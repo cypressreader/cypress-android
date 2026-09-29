@@ -28,6 +28,6 @@ public class MainActivity extends BridgeActivity {
         // First colour behind the bars, until the page picks one to match its theme.
         boolean night = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
             == Configuration.UI_MODE_NIGHT_YES;
-        getWindow().getDecorView().setBackgroundColor(night ? 0xFF14171C : 0xFFF3F1EA);
+        getWindow().getDecorView().setBackgroundColor(night ? 0xFF133A28 : 0xFF133A28);
     }
 }
