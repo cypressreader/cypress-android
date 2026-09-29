@@ -13,6 +13,9 @@ permissions:
 env:
   # Which logo the app icon uses. Change the word to  circuit  for the circuit-board logo.
   ICON: tree
+  # 1 = also build the optional extras (notifications, background audio, widget, icon switch, share target).
+  # If they fail to compile the build is repeated without them. Set to 0 to never include them.
+  EXTRAS: "1"
   BUILD_NUMBER: ${{ github.run_number }}
 
 jobs:
@@ -60,10 +63,23 @@ jobs:
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
 
       - name: Build the app
-        working-directory: android
         run: |
+          cd android
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          if ./gradlew assembleRelease --no-daemon; then
+            echo "Build finished."
+          elif [ "${EXTRAS:-1}" != "0" ] && [ "${EXTRAS_FAILED:-0}" != "1" ]; then
+            echo "::warning title=Optional extras failed to build::Building again without them (notifications, background audio, widget, icon switch)."
+            cd ..
+            python3 scripts/prepare_android.py --strip-extras
+            npx cap sync android
+            echo "EXTRAS_FAILED=1" >> "$GITHUB_ENV"
+            cd android
+            ./gradlew clean --no-daemon
+            ./gradlew assembleRelease --no-daemon
+          else
+            exit 1
+          fi
 
       - name: Sign the app
         env:
@@ -88,10 +104,17 @@ jobs:
           set -e
           TAG="v${BUILD_NUMBER}"
           if [ -f whats-new.txt ]; then cp whats-new.txt notes.txt; else echo "CyPress build ${BUILD_NUMBER}" > notes.txt; fi
+          if [ "${EXTRAS_FAILED:-0}" = "1" ]; then
+            { echo ""; echo "Built without the optional extras (notifications, background audio, widget, icon switch) because they failed to compile."; } >> notes.txt
+          fi
           gh release delete "$TAG" --yes --cleanup-tag --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
           gh release create "$TAG" cypress.apk --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "CyPress ${BUILD_NUMBER}" --notes-file notes.txt --latest
           {
             echo "### CyPress ${BUILD_NUMBER} is ready"
             echo ""
             echo "Download link for phones: https://github.com/${GITHUB_REPOSITORY}/releases/latest"
+            if [ "${EXTRAS_FAILED:-0}" = "1" ]; then
+              echo ""
+              echo "Note: built without the optional extras (notifications, background audio, widget, icon switch) because they failed to compile."
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
