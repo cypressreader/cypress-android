@@ -22,6 +22,7 @@ MAIN = os.path.join(APP, 'src', 'main')
 RES = os.path.join(MAIN, 'res')
 PKG_DIR = os.path.join(MAIN, 'java', 'com', 'cypress', 'reader')
 BUILD = os.environ.get('BUILD_NUMBER', '1').strip() or '1'
+LABEL = os.environ.get('APP_LABEL', '').strip() or ('1.0.' + BUILD)
 ICON = os.environ.get('ICON', 'tree').strip() or 'tree'
 LOGOS = ('tree', 'circuit', 'crimson', 'golden', 'terminal', 'broadsheet', 'midnight', 'rose')
 
@@ -354,7 +355,7 @@ if not os.path.isfile(gradle):
     die('Could not find android/app/build.gradle. Capacitor may have changed its project layout.')
 g = open(gradle, encoding='utf-8').read()
 g2, n1 = re.subn(r'versionCode\s*=?\s*\d+', 'versionCode %s' % BUILD, g, count=1)
-g2, n2 = re.subn(r'versionName\s*=?\s*"[^"]*"', 'versionName "1.0.%s"' % BUILD, g2, count=1)
+g2, n2 = re.subn(r'versionName\s*=?\s*"[^"]*"', 'versionName "%s"' % LABEL, g2, count=1)
 if n1 != 1 or n2 != 1:
     die('Could not set the version number in build.gradle (versionCode found: %d, versionName found: %d).' % (n1, n2))
 # make sure the AndroidX helpers CyPress uses are available (harmless if they already are)
@@ -363,7 +364,7 @@ if anchor in g2 and 'androidx.core:core:' not in g2:
     g2 = g2.replace(anchor, anchor + '\n    implementation "androidx.core:core:1.15.0"', 1)
     say('added the AndroidX core library')
 open(gradle, 'w', encoding='utf-8').write(g2)
-say('version set to 1.0.%s (build number %s)' % (BUILD, BUILD))
+say('version set to %s (build number %s)' % (LABEL, BUILD))
 
 # 3. launcher icon -------------------------------------------------------------------------
 icons = os.path.join(ROOT, 'icons', ICON)
