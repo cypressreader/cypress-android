@@ -209,10 +209,11 @@ final class CyTts {
                         if (v.getFeatures() != null && v.getFeatures().contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED)) continue;
                         JSONObject o = new JSONObject();
                         o.put("id", v.getName());
-                        String q = v.isNetworkConnectionRequired() ? " (online)" : "";
+                        String q = (v.getQuality() >= Voice.QUALITY_HIGH ? " ★" : "") + (v.isNetworkConnectionRequired() ? " (online)" : "");
                         o.put("name", v.getLocale().getDisplayName() + " · " + shortName(v.getName()) + q);
                         o.put("lang", v.getLocale().toLanguageTag());
                         o.put("local", !v.isNetworkConnectionRequired());
+                        o.put("q", v.getQuality());
                         arr.put(o);
                     }
                 }

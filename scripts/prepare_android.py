@@ -23,6 +23,8 @@ RES = os.path.join(MAIN, 'res')
 PKG_DIR = os.path.join(MAIN, 'java', 'com', 'cypress', 'reader')
 BUILD = os.environ.get('BUILD_NUMBER', '1').strip() or '1'
 ICON = os.environ.get('ICON', 'tree').strip() or 'tree'
+LOGOS = ('tree', 'circuit', 'crimson', 'golden', 'terminal', 'broadsheet', 'midnight', 'rose')
+
 REPO = os.environ.get('GITHUB_REPOSITORY', '').strip()
 # Optional extras (notifications, background audio, widget, icon switch, share target).
 # EXTRAS=0 builds the core app only. --strip-extras undoes the extras in an already prepared project.
@@ -143,9 +145,7 @@ def edit_manifest():
     body = body[:launcher[0].start()] + body[launcher[0].end():]
     if 'android.intent.action.SEND' not in body:
         body = body.rstrip() + '\n\n' + SHARE_FILTER + '        '
-    aliases = (ALIAS_TMPL % {'name': 'IconTree', 'logo': 'tree', 'enabled': 'true' if ICON == 'tree' else 'false'}
-               + '\n'
-               + ALIAS_TMPL % {'name': 'IconCircuit', 'logo': 'circuit', 'enabled': 'true' if ICON == 'circuit' else 'false'})
+    aliases = '\n'.join(ALIAS_TMPL % {'name': 'Icon' + l.capitalize(), 'logo': l, 'enabled': 'true' if ICON == l else 'false'} for l in LOGOS)
     close = end + len('</activity>')
     s = s[:st.end()] + body + '</activity>\n\n' + aliases + s[close:]
     open(MANIFEST, 'w', encoding='utf-8').write(s)
@@ -178,7 +178,7 @@ def check_manifest():
     found = {}
     for a in app.findall('activity-alias'):
         found[a.get(ANDROID_NS + 'name')] = a
-    for name, logo in (('.IconTree', 'tree'), ('.IconCircuit', 'circuit')):
+    for name, logo in (('.Icon' + l.capitalize(), l) for l in LOGOS):
         a = found.get(name)
         if a is None:
             xdie('Alias %s is missing.' % name)
@@ -196,14 +196,14 @@ def check_manifest():
 def adaptive_xml(logo, suffix):
     return ('<?xml version="1.0" encoding="utf-8"?>\n'
             '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n'
-            '    <background android:drawable="@color/ic_launcher_background"/>\n'
+            '    <background android:drawable="@color/ic_launcher_bg_%s"/>\n'
             '    <foreground android:drawable="@mipmap/ic_launcher_%s_foreground"/>\n'
-            '</adaptive-icon>\n' % logo)
+            '</adaptive-icon>\n' % (logo, logo))
 
 
 def install_extra_icons():
     """Both logos, under names the launcher aliases point at."""
-    for logo in ('tree', 'circuit'):
+    for logo in LOGOS:
         src_root = os.path.join(ROOT, 'icons', logo)
         n = 0
         for d in sorted(glob.glob(os.path.join(src_root, 'mipmap-*dpi'))):
@@ -216,6 +216,9 @@ def install_extra_icons():
                 n += 1
         if n < 15:
             xdie('Icon set "%s" is incomplete (%d files).' % (logo, n))
+        bgx = open(os.path.join(src_root, 'values', 'ic_launcher_background.xml'), encoding='utf-8').read()
+        with open(os.path.join(RES, 'values', 'ic_launcher_bg_%s.xml' % logo), 'w', encoding='utf-8') as f:
+            f.write(bgx.replace('name="ic_launcher_background"', 'name="ic_launcher_bg_%s"' % logo))
         for suffix in ('', '_round'):
             path = os.path.join(RES, 'mipmap-anydpi-v26', 'ic_launcher_%s%s.xml' % (logo, suffix))
             os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -298,7 +301,7 @@ def strip_extras():
         d = os.path.join(RES, sub)
         if os.path.isdir(d) and not os.listdir(d):
             os.rmdir(d)
-    for pat in ('mipmap*/ic_launcher_tree*', 'mipmap*/ic_launcher_circuit*'):
+    for pat in tuple('mipmap*/ic_launcher_%s*' % l for l in LOGOS) + tuple('values/ic_launcher_bg_%s.xml' % l for l in LOGOS):
         for f in glob.glob(os.path.join(RES, pat)):
             if os.path.isfile(f):
                 os.remove(f)
@@ -365,7 +368,7 @@ say('version set to 1.0.%s (build number %s)' % (BUILD, BUILD))
 # 3. launcher icon -------------------------------------------------------------------------
 icons = os.path.join(ROOT, 'icons', ICON)
 if not os.path.isdir(icons):
-    die('There is no icon set called "%s". In build-apk.yml, ICON must be tree or circuit.' % ICON)
+    die('There is no icon set called "%s". In build-apk.yml, ICON must be one of: tree, circuit, crimson, golden, terminal, broadsheet, midnight, rose.' % ICON)
 removed = 0
 for pat in ('mipmap*/ic_launcher*', 'drawable*/ic_launcher*', 'values/ic_launcher_background.xml'):
     for f in glob.glob(os.path.join(RES, pat)):

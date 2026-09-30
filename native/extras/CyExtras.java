@@ -171,26 +171,34 @@ public final class CyExtras {
         return ai.enabled;
     }
 
+    static final String[] ICONS = {"tree", "circuit", "crimson", "golden", "terminal", "broadsheet", "midnight", "rose"};
+
+    static String aliasOf(String icon) {
+        return "com.cypress.reader.Icon" + Character.toUpperCase(icon.charAt(0)) + icon.substring(1);
+    }
+
     static String getIcon(Context c) throws Exception {
-        boolean tree = isAliasEnabled(c, ICON_TREE);
-        boolean circuit = isAliasEnabled(c, ICON_CIRCUIT);
-        if (circuit && !tree) return "circuit";
+        for (String i : ICONS) {
+            if (isAliasEnabled(c, aliasOf(i))) return i;
+        }
         return "tree";
     }
 
     static String setIcon(Context c, String icon) throws Exception {
-        boolean circuit = "circuit".equals(icon);
-        if (!circuit && !"tree".equals(icon)) throw new IllegalArgumentException("icon must be tree or circuit");
+        boolean known = false;
+        for (String i : ICONS) if (i.equals(icon)) known = true;
+        if (!known) throw new IllegalArgumentException("unknown icon: " + icon);
         PackageManager pm = c.getPackageManager();
-        ComponentName on = new ComponentName(c, circuit ? ICON_CIRCUIT : ICON_TREE);
-        ComponentName off = new ComponentName(c, circuit ? ICON_TREE : ICON_CIRCUIT);
-        // Both aliases must exist (throws NameNotFoundException if the manifest edit was not applied).
-        pm.getActivityInfo(on, PackageManager.MATCH_DISABLED_COMPONENTS);
-        pm.getActivityInfo(off, PackageManager.MATCH_DISABLED_COMPONENTS);
-        // Enable the new one BEFORE disabling the old one, so there is always a launcher entry.
+        ComponentName on = new ComponentName(c, aliasOf(icon));
+        // Every alias must exist (throws NameNotFoundException if the manifest edit was not applied).
+        for (String i : ICONS) pm.getActivityInfo(new ComponentName(c, aliasOf(i)), PackageManager.MATCH_DISABLED_COMPONENTS);
+        // Enable the new one BEFORE disabling the others, so there is always a launcher entry.
         pm.setComponentEnabledSetting(on, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
-        pm.setComponentEnabledSetting(off, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-        return circuit ? "circuit" : "tree";
+        for (String i : ICONS) {
+            if (i.equals(icon)) continue;
+            pm.setComponentEnabledSetting(new ComponentName(c, aliasOf(i)), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+        }
+        return icon;
     }
 
     // ---------------------------------------------------------------- notifications
