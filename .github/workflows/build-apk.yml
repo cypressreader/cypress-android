@@ -17,6 +17,8 @@ env:
   # If they fail to compile the build is repeated without them. Set to 0 to never include them.
   EXTRAS: "1"
   BUILD_NUMBER: ${{ github.run_number }}
+  # The version name people see. Change it when you want a new release label (1.3, 1.4, ...). The build number behind it always counts up by itself.
+  APP_LABEL: "1.2"
 
 jobs:
   build:
@@ -108,9 +110,9 @@ jobs:
             { echo ""; echo "Built without the optional extras (notifications, background audio, widget, icon switch) because they failed to compile."; } >> notes.txt
           fi
           gh release delete "$TAG" --yes --cleanup-tag --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
-          gh release create "$TAG" cypress.apk --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "CyPress ${BUILD_NUMBER}" --notes-file notes.txt --latest
+          gh release create "$TAG" cypress.apk --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "CyPress v${APP_LABEL} (build ${BUILD_NUMBER})" --notes-file notes.txt --latest
           {
-            echo "### CyPress ${BUILD_NUMBER} is ready"
+            echo "### CyPress v${APP_LABEL} (build ${BUILD_NUMBER}) is ready"
             echo ""
             echo "Download link for phones: https://github.com/${GITHUB_REPOSITORY}/releases/latest"
             if [ "${EXTRAS_FAILED:-0}" = "1" ]; then
