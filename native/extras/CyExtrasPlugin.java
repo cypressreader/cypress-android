@@ -67,6 +67,7 @@ public class CyExtrasPlugin extends Plugin {
         try {
             JSObject r = new JSObject();
             r.put("icon", CyExtras.getIcon(getContext()));
+            r.put("states", CyExtras.iconStates(getContext()));
             call.resolve(r);
         } catch (Throwable t) {
             call.reject("getAppIcon failed: " + msg(t));

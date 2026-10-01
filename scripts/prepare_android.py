@@ -24,7 +24,14 @@ PKG_DIR = os.path.join(MAIN, 'java', 'com', 'cypress', 'reader')
 BUILD = os.environ.get('BUILD_NUMBER', '1').strip() or '1'
 LABEL = os.environ.get('APP_LABEL', '').strip() or ('1.0.' + BUILD)
 ICON = os.environ.get('ICON', 'tree').strip() or 'tree'
-LOGOS = ('tree', 'circuit', 'crimson', 'golden', 'terminal', 'broadsheet', 'midnight', 'rose')
+BASE_LOGOS = ('tree', 'circuit', 'crimson', 'golden', 'terminal', 'broadsheet', 'midnight', 'rose')
+
+def _has3d(l):
+    d = os.path.join(ROOT, 'icons', l + '3d')
+    return os.path.isfile(os.path.join(d, 'values', 'ic_launcher_background.xml')) and \
+        len(glob.glob(os.path.join(d, 'mipmap-*dpi', '*.png'))) >= 15
+# 3D variants ("tree3d" ...) are added only when their folders are complete, so a missing folder never blocks the build.
+LOGOS = BASE_LOGOS + tuple(l + '3d' for l in BASE_LOGOS if _has3d(l))
 
 REPO = os.environ.get('GITHUB_REPOSITORY', '').strip()
 # Optional extras (notifications, background audio, widget, icon switch, share target).

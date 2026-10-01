@@ -171,7 +171,24 @@ public final class CyExtras {
         return ai.enabled;
     }
 
-    static final String[] ICONS = {"tree", "circuit", "crimson", "golden", "terminal", "broadsheet", "midnight", "rose"};
+    static final String[] ICONS = {"tree", "circuit", "crimson", "golden", "terminal", "broadsheet", "midnight", "rose",
+        "tree3d", "circuit3d", "crimson3d", "golden3d", "terminal3d", "broadsheet3d", "midnight3d", "rose3d"};
+
+    /** One line such as "tree:off circuit:ON" so the app can show exactly what Android has enabled. */
+    static String iconStates(Context c) {
+        StringBuilder b = new StringBuilder();
+        for (String i : ICONS) {
+            String st;
+            try {
+                st = isAliasEnabled(c, aliasOf(i)) ? "ON" : "off";
+            } catch (Throwable t) {
+                st = "missing";
+            }
+            if (b.length() > 0) b.append(' ');
+            b.append(i).append(':').append(st);
+        }
+        return b.toString();
+    }
 
     static String aliasOf(String icon) {
         return "com.cypress.reader.Icon" + Character.toUpperCase(icon.charAt(0)) + icon.substring(1);
@@ -191,12 +208,18 @@ public final class CyExtras {
         PackageManager pm = c.getPackageManager();
         ComponentName on = new ComponentName(c, aliasOf(icon));
         // Every alias must exist (throws NameNotFoundException if the manifest edit was not applied).
-        for (String i : ICONS) pm.getActivityInfo(new ComponentName(c, aliasOf(i)), PackageManager.MATCH_DISABLED_COMPONENTS);
+        pm.getActivityInfo(on, PackageManager.MATCH_DISABLED_COMPONENTS);
         // Enable the new one BEFORE disabling the others, so there is always a launcher entry.
         pm.setComponentEnabledSetting(on, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
         for (String i : ICONS) {
             if (i.equals(icon)) continue;
-            pm.setComponentEnabledSetting(new ComponentName(c, aliasOf(i)), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+            try {
+                ComponentName other = new ComponentName(c, aliasOf(i));
+                pm.getActivityInfo(other, PackageManager.MATCH_DISABLED_COMPONENTS);
+                pm.setComponentEnabledSetting(other, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+            } catch (PackageManager.NameNotFoundException ignored) {
+                // A 3D set that was not built into this version; nothing to disable.
+            }
         }
         return icon;
     }
