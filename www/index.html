@@ -2231,6 +2231,11 @@ function parse(xml,f){
  }).filter(a=>a.title&&a.link);
  return{title,list};
 }
+/* many feeds finish close together: draw and store once for the batch, not once per feed */
+let LRT=0,LRW=0;
+function loadFlush(){clearTimeout(LRT);clearTimeout(LRW);LRT=LRW=0;render();saveCache()}
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&(LRT||LRW))loadFlush()});addEventListener('pagehide',()=>{if(LRT||LRW)loadFlush()});
+function loadRender(){clearTimeout(LRT);LRT=setTimeout(loadFlush,350);if(!LRW)LRW=setTimeout(loadFlush,1500)}
 async function load(f,fresh){
  if(S.offline){state[f.id]=(items[f.id]||[]).length?'ok':'err';render();return}
  state[f.id]='load';LP.t++;pfBar();
@@ -2238,7 +2243,7 @@ async function load(f,fresh){
  try{items[f.id]=(await loadFeed(f,fresh)).map(fixA);dropGeneric(items[f.id]);state[f.id]='ok'}catch(e){state[f.id]='err';tip('health')}
  S.health[f.id]=state[f.id]==='ok'?{ok:Date.now()}:{...(S.health[f.id]||{}),fail:Date.now()};save();
  LP.f++;pfBar();
- if(state[f.id]==='ok')applyRules(f);render();saveCache();gnPrefetch(items[f.id]).then(()=>enrich(f.id));if($('#mng').open)renderMng();
+ if(state[f.id]==='ok')applyRules(f);loadRender();gnPrefetch(items[f.id]).then(()=>enrich(f.id));if($('#mng').open)renderMng();
 }
 let LEADK='';
 
@@ -2256,7 +2261,7 @@ function applyRules(f,all){
  f.rseen=[...seen].slice(-400);if(ch||all)save();return n;
 }
 const rfSkip=(f,fresh)=>{if(fresh===true||!f.rfm)return false;if(!(items[f.id]||[]).length)return false;if(f.rfm<0)return true;const ok=(S.health[f.id]||{}).ok||0;return Date.now()-ok<f.rfm*6e4};
-const loadAll=fresh=>{S.lastLoad=Date.now();return Promise.all(S.feeds.filter(f=>!rfSkip(f,fresh)).map(f=>load(f,fresh===true).catch(()=>{})))};
+const loadAll=fresh=>{S.lastLoad=Date.now();return Promise.all(S.feeds.filter(f=>!rfSkip(f,fresh)).map(f=>load(f,fresh===true).catch(()=>{}))).then(r=>{if(LRT||LRW)loadFlush();return r})};
 
 async function viaJson(f){
  const r=await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(f.url),{signal:AbortSignal.timeout(12000)}),j=await r.json();
@@ -2308,11 +2313,11 @@ function group(list){
  list.forEach(a=>{
   const t=tk(a);let g=null;
   for(const o of out){
-   if(o.all.some(x=>x.feedId===a.feedId))continue;
-   const inter=[...t].filter(w=>o.t.has(w)).length,uni=t.size+o.t.size-inter;
-   if(inter>=3&&inter/uni>=.45){g=o;break}
+   if(o.fs.has(a.feedId))continue;
+   let inter=0;for(const w of t)if(o.t.has(w))inter++;
+   if(inter>=3&&inter/(t.size+o.t.size-inter)>=.45){g=o;break}
   }
-  if(g)g.all.push(a);else out.push({t,all:[a]});
+  if(g){g.all.push(a);g.fs.add(a.feedId)}else out.push({t,all:[a],fs:new Set([a.feedId])});
  });
  return out.map(o=>{const lead=o.all.find(x=>x.img)||o.all[0];return{...lead,more:o.all.filter(x=>x!==lead).map(m=>({t:m.title,l:m.link,f:m.feedId}))}});
 }
@@ -3644,7 +3649,7 @@ addEventListener('resize',()=>{if($('#rd').classList.contains('on')){if(R.T){D=n
 $('#side-list').onclick=e=>{
  const t=e.target,d=t.dataset;
  if(d.tgl){e.stopPropagation();S.fcol=S.fcol||{};if(S.fcol[d.tgl])delete S.fcol[d.tgl];else S.fcol[d.tgl]=1;save();side();return}
- if(d.delx){return removeFeed(d.delx)}
+ if(d.delx){return askRemove(d.delx)}
  if(d.delf){const fo=S.folders.find(f=>f.id===d.delf);if(!fo)return;const idx=S.folders.indexOf(fo),moved=S.feeds.filter(f=>f.folder===d.delf),was=S.sel==='f:'+d.delf;moved.forEach(f=>f.folder='');S.folders.splice(idx,1);if(S.fcol)delete S.fcol[d.delf];if(was)S.sel='all';save();render();
   toast('Deleted folder “'+fo.name+'”',()=>{S.folders.splice(Math.min(idx,S.folders.length),0,fo);moved.forEach(f=>f.folder=fo.id);if(was)S.sel='f:'+fo.id;save();render()});return}
  if(d.col){const cp=$('#cp');cp.dataset.id=d.col;try{cp.value=brand(feedOf(d.col))}catch(_){}cp.click();return}
@@ -3912,6 +3917,7 @@ function toast(m,undo){let t=$('#toast');if(!t){t=document.createElement('div');
  t.textContent='';const sp=document.createElement('span');sp.textContent=m;t.append(sp);
  if(undo){const b=document.createElement('button');b.type='button';b.className='tundo';b.textContent='Undo';b.onclick=()=>{clearTimeout(t._h);t.className='';undo()};t.append(b)}
  t.className=undo?'show act':'show';clearTimeout(t._h);t._h=setTimeout(()=>{t.className=''},undo?6500:1800)}
+function askRemove(id){const f=S.feeds.find(x=>x.id===id);if(!f)return;if(confirm('Delete “'+(f.title||host(f.url))+'”? You can undo right after.'))removeFeed(id)}
 function removeFeed(id){const i=S.feeds.findIndex(f=>f.id===id);if(i<0)return;const f=S.feeds[i],was=S.sel==='s:'+id;S.feeds.splice(i,1);if(was)S.sel='all';save();render();if($('#mng').open)renderMng();
  toast('Removed “'+(f.title||host(f.url))+'”',()=>{S.feeds.splice(Math.min(i,S.feeds.length),0,f);if(was)S.sel='s:'+id;save();render();if($('#mng').open)renderMng()})}
 
@@ -4389,7 +4395,7 @@ $('#mnglist').addEventListener('click',e=>{
  if(e.target.closest('[data-mset]')){openFset(id)}
  else if(e.target.closest('[data-mretry]')){load(feedOf(id));renderMng()}
  else if(e.target.closest('[data-mrep]')){const b=e.target.closest('[data-mrep]');b.textContent='Looking…';repairFeed(feedOf(id),true).then(ok=>{if(!ok){b.textContent='Couldn’t find a new feed';}})}
- else if(e.target.closest('[data-mdel]')){removeFeed(id)}
+ else if(e.target.closest('[data-mdel]')){askRemove(id)}
  else if(e.target.closest('[data-mcol]')){const cp=$('#cp');cp.dataset.id=id;try{cp.value=brand(feedOf(id))}catch(_){}cp.click()}
 });
 function openFset(id){
@@ -4440,7 +4446,7 @@ $('#fset').addEventListener('change',e=>{const f=S.feeds.find(x=>x.id===$('#fset
  else if(t.id==='fsrf')f.rfm=+t.value||0;
  else if(t.id==='fsrh'||t.id==='fsrr'||t.id==='fsrs'){const k={fsrh:'hide',fsrr:'read',fsrs:'save'}[t.id];f.rules=f.rules||{};f.rules[k]=t.value.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);if(k!=='hide'){const n=applyRules(f,true);if(n)toast(n+' stories updated')}}
  save();render();if($('#mng').open)renderMng()});
-$('#fsdel').onclick=()=>{const id=$('#fset').dataset.id;$('#fset').close();removeFeed(id)};
+$('#fsdel').onclick=()=>{const id=$('#fset').dataset.id;$('#fset').close();askRemove(id)};
 function nFeat(k){try{return !!(NFEAT&&NFEAT.includes(k))}catch(e){return false}}
 let NFEAT=[];
 $('#mngretry').onclick=()=>{S.feeds.filter(f=>state[f.id]!=='ok').forEach(load);setTimeout(renderMng,300)};
@@ -4764,8 +4770,8 @@ $('#grid').addEventListener('pointermove',e=>{if(QA.t&&(Math.abs(e.clientX-QA.x)
 $('#grid').addEventListener('click',e=>{if(QA.fired&&Date.now()-QA.fired<700){e.preventDefault();e.stopImmediatePropagation()}},true);
 /* feed rows: long-press or right-click for settings */
 $('#side-list').addEventListener('contextmenu',e=>{const r=e.target.closest('.fr[data-id]');if(!r)return;e.preventDefault();openFset(r.dataset.id)});
-{let ft=0,fx=0,fy=0;$('#side-list').addEventListener('pointerdown',e=>{const r=e.target.closest('.fr[data-id]');if(!r||e.pointerType==='mouse')return;fx=e.clientX;fy=e.clientY;clearTimeout(ft);ft=setTimeout(()=>{QA.fired=Date.now();openFset(r.dataset.id)},600)});
- $('#side-list').addEventListener('pointermove',e=>{if(Math.abs(e.clientX-fx)>9||Math.abs(e.clientY-fy)>9)clearTimeout(ft)});['pointerup','pointercancel'].forEach(t=>$('#side-list').addEventListener(t,()=>clearTimeout(ft)));
+{let ft=0,fx=0,fy=0,lastTouch=0;$('#side-list').addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse')lastTouch=Date.now();const r=e.target.closest('.fr[data-id]');if(!r||e.pointerType==='mouse')return;fx=e.clientX;fy=e.clientY;clearTimeout(ft);ft=setTimeout(()=>{QA.fired=Date.now();openFset(r.dataset.id)},450)});$('#side-list').addEventListener('dragstart',e=>{if(Date.now()-lastTouch<2000)e.preventDefault()});
+ $('#side-list').addEventListener('pointermove',e=>{if(Math.abs(e.clientX-fx)>9||Math.abs(e.clientY-fy)>9)clearTimeout(ft)});['pointerup'].forEach(t=>$('#side-list').addEventListener(t,()=>clearTimeout(ft)));$('#side-list').addEventListener('scroll',()=>clearTimeout(ft),{passive:true});
  $('#side-list').addEventListener('click',e=>{if(QA.fired&&Date.now()-QA.fired<700){e.preventDefault();e.stopImmediatePropagation()}},true)}
 /* pull to refresh */
 const PR={y:null};
@@ -4999,8 +5005,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.01g';
-const CHANGES=['Settings reworded and reordered so each option says plainly what it does; Update is now "Check for updates"','More cover title styles (Glow, Gradient, Bold shadow, Spaced caps, Elegant italic); metallic removed','Cover masthead: the edition on one line with the volume and number beneath it, and no ornament symbols','Cards for sites loaded through Google News show the site\u2019s own icon, and get photos from Bing where possible','Cy now runs along the top of the bottom tab bar; the Dynamic look menu sits under its tile; smaller page headers','Articles from Google News feeds no longer show Google\u2019s own picture'];
+const APP_VERSION='2026.10.01h';
+const CHANGES=['Faster start-up: the screen is drawn once for a batch of feeds instead of once per feed','Deleting a feed now asks you to confirm first (you can still undo right after)','Press and hold a feed in the list to rename or edit it now works on phones','Faster grouping of the same story from different sites on The Daily','Feed rows no longer start a drag when you press and hold on a touch screen','Fewer saves to storage while feeds load, so the app stays responsive'];
 const DEF_ON=new Set(['lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
