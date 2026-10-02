@@ -6,15 +6,25 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
 import android.media.MediaMetadata;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 import androidx.core.app.ServiceCompat;
 import androidx.core.content.ContextCompat;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  * Foreground service that keeps the app alive while the web page reads articles aloud, and shows
@@ -39,13 +49,16 @@ public class CyMediaService extends Service {
     private boolean playing = true;
     private boolean foregrounded = false;
     private MediaSession session;
+    private String artFor = "";
+    private Bitmap art = null;
+    private final Handler uiHandler = new Handler(Looper.getMainLooper());
 
     // ------------------------------------------------------------ API used by the plugin
 
-    static void start(Context c, String title, String subtitle, boolean playing) {
+    static void start(Context c, String title, String subtitle, boolean playing, String image) {
         CyMediaService s = instance;
         if (s != null) {
-            s.apply(title, subtitle, playing);
+            s.apply(title, subtitle, playing, image);
             return;
         }
         Intent i = new Intent(c, CyMediaService.class);
@@ -53,13 +66,14 @@ public class CyMediaService extends Service {
         i.putExtra("title", title);
         i.putExtra("subtitle", subtitle);
         i.putExtra("playing", playing);
+        i.putExtra("image", image == null ? "" : image);
         ContextCompat.startForegroundService(c, i);
     }
 
-    static void update(Context c, String title, String subtitle, boolean playing) {
+    static void update(Context c, String title, String subtitle, boolean playing, String image) {
         CyMediaService s = instance;
-        if (s != null) s.apply(title, subtitle, playing);
-        else start(c, title, subtitle, playing);
+        if (s != null) s.apply(title, subtitle, playing, image);
+        else start(c, title, subtitle, playing, image);
     }
 
     static void stop(Context c) {
@@ -98,6 +112,8 @@ public class CyMediaService extends Service {
                     if (t != null) title = t;
                     if (s != null) subtitle = s;
                     playing = intent.getBooleanExtra("playing", true);
+                    String im = intent.getStringExtra("image");
+                    if (im != null) loadArt(im);
                 }
                 goForeground();
                 refreshSession();
@@ -142,10 +158,11 @@ public class CyMediaService extends Service {
 
     // ------------------------------------------------------------ internals
 
-    void apply(String t, String s, boolean p) {
+    void apply(String t, String s, boolean p, String image) {
         if (t != null) title = t;
         if (s != null) subtitle = s;
         playing = p;
+        if (image != null) loadArt(image);
         try {
             if (!foregrounded) {
                 goForeground();
@@ -156,6 +173,93 @@ public class CyMediaService extends Service {
             refreshSession();
         } catch (Throwable e) {
             Log.w(TAG, "update failed: " + e);
+        }
+    }
+
+    /** Shows the story's picture on the lock screen and in the notification; the app logo until (or unless) it loads. */
+    private void loadArt(String url) {
+        final String want = url == null ? "" : url;
+        if (art != null && want.equals(artFor)) return;
+        artFor = want;
+        if (art == null) art = appLogo();
+        if (want.length() == 0 || !(want.startsWith("http://") || want.startsWith("https://"))) {
+            art = appLogo();
+            return;
+        }
+        new Thread(() -> {
+            Bitmap b = null;
+            try {
+                b = fetchBitmap(want);
+            } catch (Throwable t) {
+                Log.w(TAG, "cover picture failed: " + t);
+            }
+            final Bitmap got = b;
+            uiHandler.post(() -> {
+                if (!want.equals(artFor)) return;
+                art = got != null ? got : appLogo();
+                try {
+                    if (foregrounded) {
+                        android.app.NotificationManager nm = (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                        if (nm != null) nm.notify(NOTIF_ID, buildNotification());
+                    }
+                    refreshSession();
+                } catch (Throwable t) {
+                    Log.w(TAG, "cover refresh failed: " + t);
+                }
+            });
+        }).start();
+    }
+
+    private static Bitmap fetchBitmap(String url) throws Exception {
+        HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+        try {
+            c.setConnectTimeout(6000);
+            c.setReadTimeout(8000);
+            c.setInstanceFollowRedirects(true);
+            c.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36");
+            if (c.getResponseCode() != 200) return null;
+            InputStream in = c.getInputStream();
+            ByteArrayOutputStream bo = new ByteArrayOutputStream();
+            byte[] buf = new byte[8192];
+            int n, total = 0;
+            while ((n = in.read(buf)) > 0) {
+                total += n;
+                if (total > 4000000) return null;
+                bo.write(buf, 0, n);
+            }
+            byte[] data = bo.toByteArray();
+            BitmapFactory.Options o = new BitmapFactory.Options();
+            o.inJustDecodeBounds = true;
+            BitmapFactory.decodeByteArray(data, 0, data.length, o);
+            int sample = 1;
+            while (o.outWidth / sample > 800 || o.outHeight / sample > 800) sample *= 2;
+            o.inJustDecodeBounds = false;
+            o.inSampleSize = sample;
+            Bitmap b = BitmapFactory.decodeByteArray(data, 0, data.length, o);
+            if (b == null) return null;
+            int big = Math.max(b.getWidth(), b.getHeight());
+            if (big > 480) {
+                float f = 480f / big;
+                b = Bitmap.createScaledBitmap(b, Math.max(1, Math.round(b.getWidth() * f)), Math.max(1, Math.round(b.getHeight() * f)), true);
+            }
+            return b;
+        } finally {
+            c.disconnect();
+        }
+    }
+
+    /** The CyPress app icon as a picture, for stories that have none. */
+    private Bitmap appLogo() {
+        try {
+            Drawable d = getPackageManager().getApplicationIcon(getPackageName());
+            Bitmap b = Bitmap.createBitmap(256, 256, Bitmap.Config.ARGB_8888);
+            Canvas cv = new Canvas(b);
+            d.setBounds(0, 0, 256, 256);
+            d.draw(cv);
+            return b;
+        } catch (Throwable t) {
+            Log.w(TAG, "app logo failed: " + t);
+            return null;
         }
     }
 
@@ -221,11 +325,14 @@ public class CyMediaService extends Service {
                     PlaybackState.PLAYBACK_POSITION_UNKNOWN, playing ? 1f : 0f)
                 .build();
             session.setPlaybackState(ps);
-            MediaMetadata md = new MediaMetadata.Builder()
+            MediaMetadata.Builder mb = new MediaMetadata.Builder()
                 .putString(MediaMetadata.METADATA_KEY_TITLE, title)
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, subtitle)
-                .build();
-            session.setMetadata(md);
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, subtitle);
+            if (art != null) {
+                mb.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, art);
+                mb.putBitmap(MediaMetadata.METADATA_KEY_ART, art);
+            }
+            session.setMetadata(mb.build());
         } catch (Throwable t) {
             Log.w(TAG, "session refresh failed: " + t);
         }
@@ -256,6 +363,7 @@ public class CyMediaService extends Service {
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setCategory(Notification.CATEGORY_TRANSPORT)
             .setColor(0xFF133A28);
+        if (art != null) b.setLargeIcon(art);
         if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_LOW);
         b.addAction(action(R.drawable.cy_ic_prev, "Previous", ACT_PREV, 81));
         b.addAction(action(playing ? R.drawable.cy_ic_pause : R.drawable.cy_ic_play, playing ? "Pause" : "Play", ACT_TOGGLE, 82));

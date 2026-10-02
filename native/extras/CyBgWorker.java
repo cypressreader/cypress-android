@@ -144,8 +144,10 @@ public class CyBgWorker extends Worker {
                     JSONObject o = new JSONObject();
                     o.put("title", it.title);
                     o.put("link", it.link);
+                    o.put("src", it.feedTitle);
+                    o.put("img", it.img);
                     h.put(o);
-                    if (h.length() >= 3) break;
+                    if (h.length() >= CyWidgetProvider.MAX) break;
                 }
                 if (h.length() > 0) CyExtras.saveHeadlines(ctx, h);
                 CyExtras.updateWidgets(ctx);

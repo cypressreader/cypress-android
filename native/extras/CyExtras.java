@@ -452,7 +452,7 @@ public final class CyExtras {
     static void saveHeadlines(Context c, JSONArray headlines) {
         try {
             JSONArray out = new JSONArray();
-            for (int i = 0; i < headlines.length() && out.length() < 3; i++) {
+            for (int i = 0; i < headlines.length() && out.length() < CyWidgetProvider.MAX; i++) {
                 JSONObject h = headlines.optJSONObject(i);
                 if (h == null) continue;
                 String t = h.optString("title", "").trim();
@@ -460,9 +460,21 @@ public final class CyExtras {
                 JSONObject o = new JSONObject();
                 o.put("title", t);
                 o.put("link", h.optString("link", ""));
+                o.put("src", h.optString("src", ""));
+                o.put("img", h.optString("img", ""));
                 out.put(o);
             }
             prefs(c).edit().putString("widget_headlines", out.toString()).apply();
+            // pictures are fetched off this thread; the widget is redrawn when they arrive
+            final Context app = c.getApplicationContext();
+            final JSONArray snap = out;
+            new Thread(() -> {
+                try {
+                    if (CyWidgetProvider.fetchImages(app, snap)) updateWidgets(app);
+                } catch (Throwable t) {
+                    Log.w(TAG, "widget pictures failed: " + t);
+                }
+            }).start();
         } catch (Throwable t) {
             Log.w(TAG, "saveHeadlines failed: " + t);
         }

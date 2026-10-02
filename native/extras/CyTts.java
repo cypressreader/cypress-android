@@ -34,6 +34,7 @@ final class CyTts {
         String text;
         float rate = 1f, pitch = 1f, volume = 1f;
         String voice;
+        int remaining = 0;
         Job(String id, String text) {
             this.id = id;
             this.text = text;
@@ -68,8 +69,6 @@ final class CyTts {
     }
     private final List<Wait> waiting = new ArrayList<>();
     private final List<Piece> pieces = new ArrayList<>();
-    private String activeJob = null;
-    private int remaining = 0;
 
     private CyTts(Context c) {
         appCtx = c;
@@ -236,7 +235,11 @@ final class CyTts {
 
     // ---------------------------------------------------------------- speaking
 
-    void speak(String id, String text, float rate, float pitch, float volume, String voice) {
+    /**
+     * add = false starts a new reading (anything still playing is replaced); add = true queues this text
+     * behind what is already playing, so a whole story can be handed over at once and carry on with the app asleep.
+     */
+    void speak(String id, String text, float rate, float pitch, float volume, String voice, boolean add) {
         Job job = new Job(id, text == null ? "" : text);
         job.rate = clamp(rate, .3f, 3f);
         job.pitch = clamp(pitch, .5f, 2f);
@@ -244,9 +247,9 @@ final class CyTts {
         job.voice = voice;
         final int g;
         synchronized (lock) {
-            g = ++gen;
+            g = add ? gen : ++gen;
         }
-        whenReady(() -> start(job, g, false), () -> emit("ttsError", id, "engine"));
+        whenReady(() -> start(job, g, false, add), () -> emit("ttsError", id, "engine"));
     }
 
     private static float clamp(float v, float lo, float hi) {
@@ -259,7 +262,7 @@ final class CyTts {
         }
     }
 
-    private void start(Job job, int g, boolean retried) {
+    private void start(Job job, int g, boolean retried, boolean add) {
         try {
             if (stale(g)) return;
             TextToSpeech t = tts;
@@ -309,9 +312,8 @@ final class CyTts {
             List<int[]> spans = split(text, max);
             int run;
             synchronized (lock) {
-                pieces.clear();
-                activeJob = job.id;
-                remaining = spans.size();
+                if (!add) pieces.clear();
+                job.remaining = spans.size();
                 run = ++seq;
             }
             for (int i = 0; i < spans.size(); i++) {
@@ -324,7 +326,7 @@ final class CyTts {
                 }
                 Bundle b = new Bundle();
                 b.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, job.volume);
-                int r = t.speak(text.substring(sp[0], sp[1]), i == 0 ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD, b, uid);
+                int r = t.speak(text.substring(sp[0], sp[1]), (i == 0 && !add) ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD, b, uid);
                 if (r != TextToSpeech.SUCCESS) {
                     try {
                         t.stop();
@@ -332,18 +334,17 @@ final class CyTts {
                         // ignore
                     }
                     synchronized (lock) {
-                        activeJob = null;
                         pieces.clear();
-                        remaining = 0;
+                        job.remaining = 0;
                     }
-                    if (!retried && i == 0) {
+                    if (!retried && i == 0 && !add) {
                         // the engine may have died (for example after an update): start a new one and try once more
                         final int g2;
                         synchronized (lock) {
                             g2 = ++gen;
                         }
                         restart();
-                        whenReady(() -> start(job, g2, true), () -> emit("ttsError", job.id, "engine"));
+                        whenReady(() -> start(job, g2, true, false), () -> emit("ttsError", job.id, "engine"));
                     } else {
                         emit("ttsError", job.id, "speak");
                     }
@@ -391,9 +392,7 @@ final class CyTts {
         synchronized (lock) {
             gen++;
             waiting.clear();
-            activeJob = null;
             pieces.clear();
-            remaining = 0;
         }
         try {
             TextToSpeech t = tts;
@@ -441,12 +440,9 @@ final class CyTts {
                 if (p == null) return;
                 boolean last;
                 synchronized (lock) {
-                    remaining--;
-                    last = remaining <= 0;
-                    if (last) {
-                        activeJob = null;
-                        pieces.clear();
-                    }
+                    p.job.remaining--;
+                    last = p.job.remaining <= 0;
+                    pieces.remove(p);
                 }
                 if (last) emit("ttsEnd", p.job.id, null);
             } catch (Throwable t) {
@@ -465,9 +461,8 @@ final class CyTts {
                 Piece p = find(uid);
                 if (p == null) return;
                 synchronized (lock) {
-                    activeJob = null;
-                    pieces.clear();
-                    remaining = 0;
+                    p.job.remaining = 0;
+                    pieces.remove(p);
                 }
                 emit("ttsError", p.job.id, "engine" + code);
             } catch (Throwable t) {

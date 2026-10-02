@@ -146,7 +146,7 @@ public class CyExtrasPlugin extends Plugin {
         try {
             String title = call.getString("title", "CyPress");
             String sub = call.getString("subtitle", "");
-            CyMediaService.start(getContext(), title, sub, true);
+            CyMediaService.start(getContext(), title, sub, true, call.getString("image", ""));
             call.resolve();
         } catch (Throwable t) {
             call.reject("mediaStart failed: " + msg(t));
@@ -159,7 +159,7 @@ public class CyExtrasPlugin extends Plugin {
             String title = call.getString("title", "CyPress");
             String sub = call.getString("subtitle", "");
             boolean playing = call.getBoolean("playing", true);
-            CyMediaService.update(getContext(), title, sub, playing);
+            CyMediaService.update(getContext(), title, sub, playing, call.getString("image", ""));
             call.resolve();
         } catch (Throwable t) {
             call.reject("mediaUpdate failed: " + msg(t));
@@ -278,7 +278,8 @@ public class CyExtrasPlugin extends Plugin {
             float pitch = call.getFloat("pitch", 1f);
             float volume = call.getFloat("volume", 1f);
             String voice = call.getString("voice", "");
-            CyTts.get(getContext()).speak(id, text, rate, pitch, volume, voice);
+            boolean add = call.getBoolean("add", false);
+            CyTts.get(getContext()).speak(id, text, rate, pitch, volume, voice, add);
             call.resolve();
         } catch (Throwable t) {
             call.reject("ttsSpeak failed: " + msg(t));
