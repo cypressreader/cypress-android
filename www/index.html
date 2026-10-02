@@ -3194,6 +3194,7 @@ function refreshReader(){if($('#rd').classList.contains('on'))applyFs(true)}
 const SPK='<path d="M4 10v4h3.5L12 18V6L7.5 10z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/>',PAUSE='<path d="M9 6v12M15 6v12"/>';
 const PLAY='<path d="M8 5.5v13l10-6.5z"/>',TUNE='<path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/>',GLOBE='<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.5 2.3 3.5 5 3.5 8s-1 5.7-3.5 8c-2.5-2.3-3.5-5-3.5-8s1-5.7 3.5-8z"/>',PAGE='<path d="M6 4h9l3 3v13H6z"/><path d="M9 11h6M9 15h6"/>',SKB='<path d="M7 6v12M18 6l-8 6 8 6z"/>',SKF='<path d="M17 6v12M6 6l8 6-8 6z"/>';
 const TTS={on:false,paused:false,id:0,words:[],sent:[],wi:0,timer:0};
+document.addEventListener('visibilitychange',()=>{TTS.vis=Date.now()});
 const ENDS=/[.!?]["')\]”’]*$/;
 function raBtn(){
  const run=TTS.on&&!TTS.paused,b=$('#ra');
@@ -3223,8 +3224,8 @@ function ttsChunk(a){
   if(b>=w.length)break;
   if(w[b].b!==w[b-1].b)break;
   if(!!w[b].q!==!!w[b-1].q&&S.qvoice)break;
-  if(len>200&&ENDS.test(w[b-1].t))break;
-  if(len>320)break;
+  if(len>(TTS.nb?110:200)&&ENDS.test(w[b-1].t))break;
+  if(len>(TTS.nb?200:320))break;
  }
  return b;
 }
@@ -3244,25 +3245,34 @@ function ttsMark(i){
 function ttsFrom(wi){
  if(!('speechSynthesis' in window)||!TTS.words.length)return;
  const id=++TTS.id;TTS.on=true;TTS.paused=false;TTS.wi=wi;
+ if(TTS.cps==null&&S.tcps)TTS.cps=+S.tcps;{const vv=bestVoice();if(S.tnbv&&S.tnbv===((vv&&vv.voiceURI)||'default'))TTS.nb=1;else if(S.tnbv)TTS.nb=0}
  clearInterval(TTS.timer);try{speechSynthesis.cancel()}catch(e){}
  if(curA)document.documentElement.style.setProperty('--hlb',brand(fof(curA)));
  raBtn();mediaOn();fpSync();
- const next=a=>{
-  if(id!==TTS.id)return;
-  if(a>=TTS.words.length)return ttsEnd();
-  const b=ttsChunk(a),off=[];let txt='';TTS.wi=a;
+ /* in the Android app the whole rest of the story is handed to the phone's speech engine at once, so reading carries on while the app is minimised and the page is asleep */
+ const pre=!!(window.speechSynthesis&&window.speechSynthesis.native),BATCH=pre?60:1;
+ const hid=()=>document.hidden||Date.now()-(TTS.vis||0)<4000;
+ const chunk=(a,b,last,first)=>{
+  const off=[];let txt='';if(first)TTS.wi=a;
   TTS.words.slice(a,b).forEach(x=>{off.push(txt.length);txt+=x.t+' '});
   const u=new SpeechSynthesisUtterance(txt.trim());
   u.rate=+S.rate||1;u.volume=S.vol==null?1:+S.vol;
   const v=bestVoice();if(v){u.voice=v;u.lang=v.lang}
   if(TTS.words[a]&&TTS.words[a].q&&S.qvoice){const qv=quoteVoice();if(qv){u.voice=qv;u.lang=qv.lang}else u.pitch=1.18}
-  let real=false,t0=0;
-  const lead=S.hlead==null?(NATIVE&&!(window.speechSynthesis&&window.speechSynthesis.native)?2:(window.speechSynthesis&&window.speechSynthesis.native?1:0)):+S.hlead;const at=ci=>{let k=0;while(k+1<off.length&&off[k+1]<=ci)k++;k=Math.min(k+lead,off.length-1);if(a+k!==TTS.wi||k===0)ttsMark(a+k)};
-  u.onstart=()=>{if(id!==TTS.id)return;t0=performance.now();ttsMark(a);clearInterval(TTS.timer);TTS.timer=setInterval(()=>{if(real||id!==TTS.id)return;at((performance.now()-t0)/1000*13*(+S.rate||1))},90)};
-  u.onboundary=e=>{if(id!==TTS.id)return;if(e.name&&e.name!=='word')return;real=true;at(e.charIndex)};
-  const done=()=>{if(id!==TTS.id)return;clearInterval(TTS.timer);next(b)};
-  u.onend=done;u.onerror=e=>{if(e&&(e.error==='interrupted'||e.error==='canceled'))return;done()};
-  speechSynthesis.speak(u);
+  let real=false,t0=0,early=0;const cps=()=>Math.max(5,Math.min(60,(TTS.cps||14)*(+S.rate||1)));
+  const lead=S.hlead==null?(NATIVE&&!(window.speechSynthesis&&window.speechSynthesis.native)?2:(window.speechSynthesis&&window.speechSynthesis.native?1:0)):+S.hlead;const at=(ci,tm)=>{let k=0;while(k+1<off.length&&off[k+1]<=ci)k++;k=Math.min(k+(tm?0:lead),off.length-1);if(a+k!==TTS.wi||k===0)ttsMark(a+k)};
+  u.onstart=()=>{if(id!==TTS.id)return;t0=performance.now();ttsMark(a);clearInterval(TTS.timer);TTS.timer=setInterval(()=>{if((real&&!TTS.nb)||id!==TTS.id)return;at(Math.max(0,(performance.now()-t0)/1000-.15)*cps(),1)},90)};
+  /* some Android speech engines report every word of a chunk up front; if reports run well ahead of real speech, ignore them and pace by the clock */
+  u.onboundary=e=>{if(id!==TTS.id||TTS.nb)return;if(e.name&&e.name!=='word')return;const el=(performance.now()-t0)/1000;if(e.charIndex>el*cps()+(TTS.cps?30:70)&&!hid()&&++early>=2){TTS.nb=1;try{const vv=bestVoice();S.tnbv=(vv&&vv.voiceURI)||'default';save()}catch(_){}return}real=true;at(e.charIndex)};
+  const done=(ok)=>{if(id!==TTS.id)return;clearInterval(TTS.timer);if(ok===1&&t0&&!hid()){const el=(performance.now()-t0)/1000-.25;if(el>1.5&&txt.length>40){const m=Math.max(5,Math.min(40,txt.length/el/(+S.rate||1)));TTS.cps=TTS.cps?TTS.cps*.6+m*.4:m;S.tcps=Math.round(TTS.cps*10)/10}}if(last)next(b)};
+  u.onend=()=>done(1);u.onerror=e=>{if(e&&(e.error==='interrupted'||e.error==='canceled'))return;done()};
+  speechSynthesis.speak(u);return b;
+ };
+ const next=a=>{
+  if(id!==TTS.id)return;
+  if(a>=TTS.words.length)return ttsEnd();
+  let p=a;
+  for(let n=0;n<BATCH&&p<TTS.words.length;n++){const b0=ttsChunk(p);p=chunk(p,b0,n===BATCH-1||b0>=TTS.words.length,n===0)}
  };
  setTimeout(()=>next(wi),60);
 }
@@ -3327,24 +3337,21 @@ function voiceOpts(){const L=(navigator.language||'en').slice(0,2),vs=speechSynt
  if('speechSynthesis' in window||!NATIVE)return;
  let x=null;try{const C=window.Capacitor;x=(C.Plugins&&C.Plugins.CyExtras)||(C.registerPlugin?C.registerPlugin('CyExtras'):null)}catch(e){}
  if(!x)return;
- const syn={voices:[],q:[],cur:null,speaking:false,paused:false,pending:false,onvoiceschanged:null,native:true},L={};let seq=0;
+ const syn={voices:[],q:[],speaking:false,paused:false,pending:false,onvoiceschanged:null,native:true},L={},cur=new Map();let seq=0;
  const fire=n=>{try{syn['on'+n]&&syn['on'+n]()}catch(e){}(L[n]||[]).forEach(f=>{try{f()}catch(e){}})};
  syn.addEventListener=(n,f)=>{(L[n]=L[n]||[]).push(f)};syn.removeEventListener=(n,f)=>{L[n]=(L[n]||[]).filter(g=>g!==f)};
  syn.getVoices=()=>syn.voices;
- const finish=(id,err)=>{const c=syn.cur;if(!c||c.id!==id)return;syn.cur=null;syn.speaking=false;const u=c.u;try{if(err)u.onerror&&u.onerror({error:err,utterance:u});else u.onend&&u.onend({utterance:u})}catch(e){}next()};
- function next(){
-  if(syn.cur||!syn.q.length)return;
-  const u=syn.q.shift(),id='u'+(++seq);syn.cur={u,id};syn.speaking=true;
-  try{Promise.resolve(x.ttsSpeak({id,text:String(u.text||''),rate:+u.rate||1,pitch:+u.pitch||1,volume:u.volume==null?1:+u.volume,voice:(u.voice&&u.voice.voiceURI)||''})).catch(()=>finish(id,'synthesis-failed'))}catch(e){finish(id,'synthesis-failed')}
- }
- syn.speak=u=>{syn.q.push(u);next()};
- syn.cancel=()=>{const c=syn.cur;syn.q=[];syn.cur=null;syn.speaking=false;syn.paused=false;try{Promise.resolve(x.ttsStop()).catch(()=>{})}catch(e){}if(c&&c.u.onerror){try{c.u.onerror({error:'canceled',utterance:c.u})}catch(e){}}};
+ const finish=(id,err)=>{const c=cur.get(id);if(!c)return;cur.delete(id);syn.speaking=cur.size>0;const u=c.u;try{if(err)u.onerror&&u.onerror({error:err,utterance:u});else u.onend&&u.onend({utterance:u})}catch(e){}};
+ /* every utterance goes to the phone straight away; the phone queues them, so speech does not depend on this page staying awake */
+ syn.speak=u=>{const id='u'+(++seq),add=cur.size>0;cur.set(id,{u,id});syn.speaking=true;
+  try{Promise.resolve(x.ttsSpeak({id,add,text:String(u.text||''),rate:+u.rate||1,pitch:+u.pitch||1,volume:u.volume==null?1:+u.volume,voice:(u.voice&&u.voice.voiceURI)||''})).catch(()=>finish(id,'synthesis-failed'))}catch(e){finish(id,'synthesis-failed')}};
+ syn.cancel=()=>{const all=[...cur.values()];cur.clear();syn.speaking=false;syn.paused=false;try{Promise.resolve(x.ttsStop()).catch(()=>{})}catch(e){}all.forEach(c=>{if(c.u.onerror){try{c.u.onerror({error:'canceled',utterance:c.u})}catch(e){}}})};
  syn.pause=()=>{syn.cancel();syn.paused=true};syn.resume=()=>{syn.paused=false};
  window.SpeechSynthesisUtterance=function(t){this.text=t||'';this.rate=1;this.pitch=1;this.volume=1;this.voice=null;this.lang=''};
  try{Object.defineProperty(window,'speechSynthesis',{value:syn,configurable:true,writable:true})}catch(e){window.speechSynthesis=syn}
  const on=(n,f)=>{try{const r=x.addListener&&x.addListener(n,f);if(r&&r.catch)r.catch(()=>{})}catch(e){}};
- on('ttsStart',e=>{const c=syn.cur;if(c&&e&&c.id===e.id&&c.u.onstart)try{c.u.onstart({utterance:c.u})}catch(_){}});
- on('ttsBoundary',e=>{const c=syn.cur;if(c&&e&&c.id===e.id&&c.u.onboundary)try{c.u.onboundary({name:'word',charIndex:e.start,charLength:(e.end||e.start)-e.start,utterance:c.u})}catch(_){}});
+ on('ttsStart',e=>{const c=e&&cur.get(e.id);if(c&&c.u.onstart)try{c.u.onstart({utterance:c.u})}catch(_){}});
+ on('ttsBoundary',e=>{const c=e&&cur.get(e.id);if(c&&c.u.onboundary)try{c.u.onboundary({name:'word',charIndex:e.start,charLength:(e.end||e.start)-e.start,utterance:c.u})}catch(_){}});
  on('ttsEnd',e=>{if(e)finish(e.id)});on('ttsError',e=>{if(e)finish(e.id,'synthesis-failed')});
  const loadVoices=async n=>{try{const r=await x.ttsVoices();syn.voices=((r&&r.voices)||[]).map(v=>({voiceURI:v.id,name:v.name,lang:v.lang,localService:!!v.local,default:false,q:+v.q||0}));syn.voiceState=r&&r.failed?'failed':(syn.voices.length?'ok':'empty');fire('voiceschanged');if(!syn.voices.length&&n>0&&!(r&&r.failed))setTimeout(()=>loadVoices(n-1),1200)}catch(e){syn.voiceState='failed';syn.err=String(e&&e.message||e).slice(0,140);fire('voiceschanged')}};
  syn.reload=()=>loadVoices(2);
@@ -5047,8 +5054,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.02a';
-const CHANGES=['Press and hold a folder to rename it or delete it (with a confirmation); deleting a folder keeps its feeds','Ambient theme effects pause 20 seconds after your last touch, saving battery while you read','Feeds with a stray & or &nbsp; now load directly instead of falling back; relative links, duplicate stories and unsafe links are handled','If phone storage is full, the app frees its cache so your settings still save, and tells you','New: sites that publish a JSON Feed can be added like any other feed','Feed and folder rows no longer show the text-selection menu when pressed and held'];
+const APP_VERSION='2026.10.02b';
+const CHANGES=['Widget redesigned: top stories appear as photo cards with a peek at the next one, switching by themselves every few seconds or with the arrow buttons', 'Read-aloud highlight now keeps pace with the voice instead of racing ahead', 'Read-aloud keeps playing when you minimize the app or the screen turns off', "The media player and lock screen now show the story's picture, or the CyPress logo when it has none", 'The widget can show up to six stories, with the source name on each', 'Fixed a bug in the new read-aloud code that could have turned read-aloud off on the phone'];
 const DEF_ON=new Set(['lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -6026,7 +6033,7 @@ function nativeExtrasUi(x){
   x.addListener&&x.addListener('notificationOpen',r=>r&&r.url&&handleOpen(r.url));
  }
  if(nFeat('media')&&x.mediaStart){
-  const MT=()=>({title:(curA&&curA.title)||'CyPress',subtitle:(curA&&fof(curA).title)||''});
+  const MT=()=>({title:(curA&&curA.title)||'CyPress',subtitle:(curA&&fof(curA).title)||'',image:(curA&&/^https?:/.test(curA.img||'')&&curA.img)||''});
   const pf=ttsFrom,pp=ttsPause,ps=ttsStop;
   ttsFrom=function(w){const r=pf.apply(this,arguments);try{x.mediaStart(MT()).catch(()=>{});x.mediaUpdate&&x.mediaUpdate({...MT(),playing:true}).catch(()=>{})}catch(e){}return r};
   ttsPause=function(){const r=pp.apply(this,arguments);try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:false}).catch(()=>{})}catch(e){}return r};
@@ -6037,7 +6044,7 @@ function nativeExtrasUi(x){
   icoInit(x);
  }
 }
-function widgetPush(){const x=CyX();if(!x||!x.widgetUpdate||!nFeat('widget')||!S.widget)return;try{let l=(typeof cur!=='undefined'&&cur||[]).filter(a=>a&&a.title&&a.link);if(!l.length)l=Object.values(items).flat().sort((a,b)=>b.date-a.date);const top=l.slice(0,3).map(a=>({title:String(a.title).slice(0,140),link:a.link}));if(top.length)x.widgetUpdate({headlines:top}).catch(()=>{})}catch(e){}}
+function widgetPush(){const x=CyX();if(!x||!x.widgetUpdate||!nFeat('widget')||!S.widget)return;try{let l=(typeof cur!=='undefined'&&cur||[]).filter(a=>a&&a.title&&a.link);if(!l.length)l=Object.values(items).flat().sort((a,b)=>b.date-a.date);const top=l.slice(0,6).map(a=>{let f;try{f=fof(a)}catch(e){}return{title:String(a.title).slice(0,140),link:a.link,src:String((f&&f.title)||'').slice(0,60),img:/^https?:/.test(a.img||'')?a.img:''}});if(top.length)x.widgetUpdate({headlines:top}).catch(()=>{})}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)widgetPush()});
 
 function nativeSetup(){
