@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>CyPress</title>
-<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#14171c"><link rel="icon" id="fav" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="CyPress"><meta name="theme-color" content="#14171c"><link rel="icon" id="fav" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,500&family=Atkinson+Hyperlegible:wght@400;700&family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Orbitron:wght@600&display=swap" rel="stylesheet">
 <style>
@@ -1989,7 +1989,7 @@ window.addEventListener('error',function(e){
  if(window.__CYBOOT||document.getElementById('cyfail'))return;
  var m=String(e&&e.message||'');if(!/SyntaxError|ReferenceError|is not defined|Unexpected/.test(m)&&e&&e.filename&&!/cypress|index\.html|^$/.test(e.filename)&&e.filename!==location.href)return;
  var d=document.createElement('div');d.id='cyfail';d.style.cssText='position:fixed;inset:0;z-index:99999;background:#111;color:#eee;font:16px/1.5 system-ui,sans-serif;padding:32px 24px;overflow:auto';
- d.innerHTML='<h2 style="margin:0 0 12px">CyPress couldn’t start</h2><p>Your feeds and saved stories are safe on this device. This version has a fault. Getting the latest version usually fixes it.</p><p><a style="color:#8ab4ff" href="https://github.com/davealmaguer-hub/cypress-android/releases/latest">Get the latest version</a></p><p style="opacity:.6;font-size:13px">'+m.replace(/[<>&]/g,'')+'</p>';
+ d.innerHTML='<h2 style="margin:0 0 12px">CyPress couldn’t start</h2><p>Your feeds and saved stories are safe on this device. This version has a fault. Getting the latest version usually fixes it.</p><p><a style="color:#8ab4ff" href="https://cypressreader.com/">Get the latest version</a></p><p style="opacity:.6;font-size:13px">'+m.replace(/[<>&]/g,'')+'</p>';
  document.body.appendChild(d)});
 </script>
 <script>
@@ -2106,6 +2106,8 @@ async function readText(r){
  cs=(cs||'utf-8').toLowerCase();if(/^(iso-8859-1|latin1|us-ascii|ascii)$/.test(cs))cs='windows-1252';
  try{return new TextDecoder(cs).decode(buf)}catch(e){return new TextDecoder().decode(buf)}
 }
+/* the web app (cypressreader.com/app) fetches feeds through the site's own fetcher; the Android app goes direct */
+const WEBW=(location.hostname==='cypressreader.com')?location.origin+'/feed?u=':'';
 async function fetchText(url,ok,lg){
  if(S.offline)return Promise.reject(new Error('Offline mode'));
  /* Tries the best route first and only starts the next one if it is slow or fails,
@@ -2113,6 +2115,7 @@ async function fetchText(url,ok,lg){
  const P=[],add=(n,f,j,h)=>{f.n=n;f.j=j;f.h=h;P.push(f)};
  if(NATIVE)add('direct',u=>u,0,1);
  if(S.relay)add('your relay',u=>S.relay+encodeURIComponent(u));
+ if(WEBW){add('CyPress fetcher',u=>WEBW+encodeURIComponent(u));P[P.length-1].w=1}
  add('allorigins',u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u));
  add('corsproxy',u=>'https://corsproxy.io/?url='+encodeURIComponent(u));
  add('codetabs',u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u));
@@ -2128,7 +2131,7 @@ async function fetchText(url,ok,lg){
   (async()=>{
    try{
     const r=await fetch(p(url),p.h?{signal:c.signal,headers:NHDR}:{signal:c.signal});
-    if(!r.ok){if(p.h&&(r.status===404||r.status===410)){const er=new Error('HTTP '+r.status);er.hard=1;throw er}throw 'HTTP '+r.status}
+    if(!r.ok){if((p.h||p.w)&&(r.status===404||r.status===410)){const er=new Error('HTTP '+r.status);er.hard=1;throw er}throw 'HTTP '+r.status}
     let t=await readText(r);
     if(p.j){try{t=JSON.parse(t).contents}catch(e){t=''}}
     if(!t)throw 'empty reply';
@@ -4303,18 +4306,16 @@ async function alsoLike(){
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-dfol]');if(!b)return;e.preventDefault();quickAdd(b.dataset.dfol,b.dataset.dn,b.dataset.dc);b.textContent='Following';b.disabled=true;toast('Following '+b.dataset.dn+'. Its stories will show up in your '+b.dataset.dc+' folder')});
 /* reader overflow menu */
-function mnMarkup(){return `<div class="pb mn" id="mn" hidden><div class="mphone"><button data-act="fdn">Feeds and stories</button><button data-act="web">View the site here</button><button data-act="rp">Playback settings</button><hr></div><button data-act="share">Share…</button><button data-act="copy">Copy link</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><hr><div class="pair"><button data-act="more">More like this</button><button data-act="less">Less like this</button></div><hr><button data-act="focus">Focus mode</button><button data-act="hl">All highlights</button><button data-act="settings">Text and page settings</button><button data-act="webpref">Site view for this source</button></div>`}
+function mnMarkup(){return `<div class="pb mn" id="mn" hidden><div class="mphone"><button data-act="fdn">Feeds and stories</button><button data-act="web">View the site here</button><button data-act="rp">Playback settings</button><hr></div><button data-act="share">Share</button><button data-act="copy">Copy link</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><hr><div class="pair"><button data-act="more">More like this</button><button data-act="less">Less like this</button></div><hr><button data-act="focus">Focus mode</button><button data-act="hl">All highlights</button><button data-act="settings">Text and page settings</button><button data-act="webpref">Site view for this source</button></div>`}
 async function doAct(k){
  const a=curA;if(!a)return;
  if(k==='fdn'||k==='web'||k==='rp'){const b=$('#'+(k==='web'?'wb':k));if(b)b.click();return}
  if(k==='upnext'){addUpNext(a);return}
- if(k==='share'){const r=await askBox({title:'Share this story',text:'Link: a page that shows the story and lets people get CyPress.\nPicture: the story card as an image, with the link.',ok:'Share link',alt:'Share picture'});if(r===true)return doAct('card');if(r==='alt')return doAct('pic');return}
- if(k==='card'&&SHARE_W){let u=a.link;try{u=await shareUrl(a)}catch(e){elog('shareUrl',e)}try{if(navigator.share)await navigator.share({title:a.title,text:a.title,url:u});else{await navigator.clipboard.writeText(u);toast('Link copied')}}catch(e){}return}
- if(k==='card'||k==='pic'){toast('Making the card…');try{const c=await articleCard(a);let u=a.link;try{u=await shareUrl(a)}catch(e){elog('shareUrl',e)}shareCanvas(c,'cypress-story.png',a.title+'\n'+u)}catch(e){toast('Couldn’t make the card')}return}
+ if(k==='share'){return doAct('card')}
+ if(k==='card'){let u=a.link;try{u=await shareUrl(a)}catch(e){elog('shareUrl',e)}try{if(navigator.share)await navigator.share({title:a.title,text:a.title,url:u});else{await navigator.clipboard.writeText(u);toast('Link copied')}}catch(e){}return}
  if(k==='more'){likeA(a,1);return}
  if(k==='less'){likeA(a,-1);return}
  if(k==='focus'){focusTog();return}
- if(k==='share'){try{if(navigator.share)await navigator.share({title:a.title,url:a.link});else{await navigator.clipboard.writeText(a.link);toast('Link copied')}}catch(e){}}
  else if(k==='copy'){try{await navigator.clipboard.writeText(a.link);toast('Link copied')}catch(e){askBox({title:'Copy this link',input:true,value:a.link,ok:'Done',cancel:'Close'})}}
  else if(k==='webpref'){const fd=S.feeds.find(x=>x.id===a.feedId);if(!fd){toast('This story’s source isn’t in your feeds');return}fd.web=!fd.web;save();toast(fd.web?fd.title+' will open in site view':fd.title+' will open in reader view')}
  else if(k==='unread'){delete S.read[a.link];save();toast('Marked as unread')}
@@ -4911,7 +4912,7 @@ function qaOpen(c,x,y){
 function qaDo(k,i,lk){
  const a=(lk&&(cur.find(x=>x.link===lk)||findStory(lk)))||cur[i];if(!a)return;if(lk){const j=cur.indexOf(a);if(j>=0)i=j}const f=S.feeds.find(x=>x.id===a.feedId);
  if(k==='save'){toggleSave(a);toast(isSaved(a)?'Saved':'Removed from saved');render()}
- else if(k==='share'){try{if(navigator.share)navigator.share({title:a.title,url:a.link});else navigator.clipboard.writeText(a.link).then(()=>toast('Link copied'))}catch(e){}}
+ else if(k==='share'){(async()=>{let u=a.link;try{u=await shareUrl(a)}catch(e){elog('shareUrl',e)}try{if(navigator.share)await navigator.share({title:a.title,text:a.title,url:u});else{await navigator.clipboard.writeText(u);toast('Link copied')}}catch(e){}})()}
  else if(k==='read'){if(S.read[a.link])delete S.read[a.link];else{S.read[a.link]=1;(a.more||[]).forEach(m=>S.read[m.l]=1)}save();render()}
  else if(k==='above'){const add=[];cur.slice(0,i).forEach(x=>{[x.link,...(x.more||[]).map(m=>m.l)].forEach(l=>{if(!S.read[l])add.push(l);S.read[l]=1})});save();render();if(add.length)toast('Marked '+add.length+' above as read',()=>{add.forEach(l=>delete S.read[l]);save();render()});else toast('Nothing unread above')}
  else if(k==='coll'){collectionPrompt(a)}
@@ -5229,8 +5230,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.02d';const APP_LABEL='1.14';
-const CHANGES=['Share now sends a link that opens a page showing the story, with a button to read it and a way to get CyPress; you can still share the story card as a picture', 'Every dropdown in the app now opens a CyPress picker instead of the phone’s plain list; the font pickers show each name in its own typeface', 'The font picker now has 10 fonts in each group (Serif, Sans, Easy reading, Typewriter and mono), 19 of them new', 'The story menu is shorter and grouped, with Share… asking whether to share a link or a picture', 'Aurora is now a thin line of soft colour along the top of the screen instead of full-screen lights, so scrolling stays smooth', 'Theme names fit on the Fold, The Daily title lines up with the CyPress logo, and the Dynamic look box is no longer cut off'];
+const APP_VERSION='2026.10.02e';const APP_LABEL='1.15';
+const CHANGES=['Share is now one tap and always sends a link that opens a page showing the story, with a button to read it and a way to get CyPress; the picture option is gone because it never worked reliably', 'Share links now use the cypressreader.com address, and no personal GitHub address is left inside the app', 'CyPress now also runs on iPhone as a web app at cypressreader.com/app', 'The “couldn’t start” recovery screen now points to cypressreader.com for the latest version'];
 const DEF_ON=new Set(['lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -5467,9 +5468,9 @@ async function quoteImage(q,art,note){
  return c;
 }
 /* a shareable link: the story's headline, photo, excerpt and colour travel inside the link (after the #), so no server stores anything */
-const SHARE_BASE='https://davealmaguer-hub.github.io/cypress-android/s.html';
+const SHARE_BASE='https://cypressreader.com/s.html';
 /* once the share worker is deployed, put its address here (no trailing slash). Links then show the story's photo and headline as a preview in chat apps */
-const SHARE_W='https://cypress-share.davealmaguer.workers.dev';
+const SHARE_W='https://cypressreader.com';
 async function shareUrl(a){
  const f=fof(a),o={t:String(a.title||'').slice(0,160),s:String(f.title||host(f.url||'')||'').slice(0,60),l:a.link,c:brand(f),d:a.date||0};
  const im=/^https:\/\//.test(a.img||'')&&String(a.img).length<400?a.img:'';if(im)o.i=im;
@@ -6317,5 +6318,8 @@ setTimeout(()=>{if(S.sync)syncNow()},2000);
  document.addEventListener('click',e=>{const s=e.target.closest&&e.target.closest('select');if(s){e.preventDefault();pick(s)}},true);
  document.addEventListener('keydown',e=>{const s=e.target;if(s&&s.tagName==='SELECT'&&!open&&(e.key==='Enter'||e.key===' '||e.key==='ArrowDown'||e.key==='ArrowUp')){e.preventDefault();pick(s)}},true);
 })();
+
+/* iPhone, in Safari: offer Add to Home Screen once, so the web app opens full-screen and keeps its saved stories */
+(function(){try{if(location.hostname!=='cypressreader.com')return;const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);if(!ios||navigator.standalone||(matchMedia&&matchMedia('(display-mode: standalone)').matches))return;if(localStorage.getItem('cyhint'))return;setTimeout(async()=>{try{localStorage.setItem('cyhint','1')}catch(e){}try{await askBox({title:'Add CyPress to your Home Screen',text:'Tap the Share button in Safari, then “Add to Home Screen”. CyPress then opens full-screen like an app, and Safari is far less likely to clear your saved stories.',ok:'Got it',cancel:'Not now'})}catch(e){}},6000)}catch(e){}})();
 window.__CYBOOT=1;
 </script></body></html>
