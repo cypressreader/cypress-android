@@ -2161,6 +2161,11 @@ body:not(.narrow){--hdr:84px}body:not(.narrow) .top{height:var(--hdr);box-sizing
 #grid.nrp .card.nr-row.nr-s.noimg{grid-template-columns:minmax(0,1fr)}
 #grid.nrp .card.nr:not(.nr-pq2){min-height:0!important}
 .nr-ph-strip{scroll-padding-left:14px}
+.nr-psec{grid-column:1/-1;min-width:0}
+.nr-psec>*{margin-bottom:22px}
+.nr-psec>.nr-ph-in{margin-top:-4px}
+.nr-trend.nr-psec>.card.nr-tri{margin-bottom:6px}
+#grid.nrp>.nr-psec{margin-bottom:6px}
 /*SMOOTH (Safari)*/
 html.smooth *,html.smooth *::before,html.smooth *::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 html.smooth .card[data-th]::before{display:none!important}
@@ -3030,6 +3035,32 @@ function nrMore(skip){
  if(q.length>=4)h+=`<section class="nr-river"><div class="trh"><b>More headlines</b><small>Everything else that’s new</small></div><div class="nr-rv nr-rv3">${q.map(a=>{cur.push(a);WHY[a.link]='One of the newest stories from your feeds.';return card(a,cur.length-1,'nr nr-row')}).join('')}</div></section>`;
  return h;
 }
+/* The Daily on a phone: Trending as a feature with headline rows, and each section takes a different shape */
+function trendPhone(tp,tx){
+ if(!isOn('trend'))return '';
+ const all=tp.concat(tx);if(all.length<2)return '';
+ const C=(a,k)=>{cur.push(a);WHY[a.link]=tp.includes(a)?'Trending: '+(a.more.length+1)+' of your sites covered this story.':'One of your top stories right now.';return card(a,cur.length-1,'nr '+k)};
+ const two=tp.length>=2;
+ return `<section class="trend nr-trend nr-psec"><div class="trh"><b>${two?'Trending':'Top stories'}</b><small>${two?'Covered by several of your sites':'The most talked-about right now'}</small></div>${C(all[0],'nr-tri')}<div class="nr-ph-rows nr-ph-in">${all.slice(1,5).map(a=>C(a,'nr-row nr-s')).join('')}</div></section>`;
+}
+function nrSecPhone(l,base,vi){
+ const P=nrPick(l),C=(i,k)=>card(l[i],base+i,'nr '+k),v=vi%4,rowsOf=(ix,k)=>ix&&ix.length?`<div class="nr-ph-rows nr-ph-in">${ix.map(i=>C(i,k||'nr-row nr-s')).join('')}</div>`:'';
+ let h='';
+ if(v===0){const a=P.pick(nrHas,1,true)||P.pick(null,1);h=C(a[0],'nr-lead')+rowsOf(P.pick(null,3))}
+ else if(v===1){const d=P.pick(nrHas,2,true);if(d)h+=`<div class="nr-ph-duo">${d.map(i=>C(i,'nr-sm2')).join('')}</div>`;const f=P.pick(nrHas,1,true);if(f)h+=`<div class="nr-ph-feat">${C(f[0],'nr-tri')}</div>`;h+=rowsOf(P.pick(null,3))}
+ else if(v===2){const c=P.pick(a=>nrHas(a)&&(a.summary||'').length>60,1,true)||P.pick(nrHas,1,true);if(c)h+=`<div class="nr-color">${C(c[0],'nr-colr')}</div>`;h+=rowsOf(P.pick(null,4))}
+ else{const st=P.pick(nrHas,4,true);if(st)h+=`<div class="nr-ph-strip-w"><div class="nr-ph-strip">${st.map(i=>C(i,'nr-hs')).join('')}</div></div>`;const a=P.pick(nrHas,1,true);if(a)h+=C(a[0],'nr-lead')}
+ const rest=P.pick(null,6);if(rest.length)h+=`<div class="nr-ph-late nr-ph-in">${rest.map(i=>C(i,'nr-late')).join('')}</div>`;
+ return `<div class="nr-psec">${h}</div>`;
+}
+function nrMorePhone(skip){
+ let h='';
+ const lr=topOf(S.feeds,4,skip,a=>a.img&&readMin(a)>=7);lr.forEach(a=>skip.add(a.link));
+ if(lr.length>=3)h+=`<section class="nr-psec nr-ph-strip-w"><h4>Long reads</h4><div class="nr-ph-strip">${lr.map(a=>{cur.push(a);WHY[a.link]='A longer read.';return card(a,cur.length-1,'nr nr-hs')}).join('')}</div></section>`;
+ const q=topOf(S.feeds,10,skip);
+ if(q.length>=4)h+=`<section class="nr-psec nr-quick"><h4>More headlines</h4><div class="nr-qk">${q.map(a=>{cur.push(a);WHY[a.link]='One of the newest stories from your feeds.';return card(a,cur.length-1,'nr nr-late')}).join('')}</div></section>`;
+ return h;
+}
 function mustHtml(pool){
  if(!isOn('must')||innerWidth<760)return '';
  const seen=new Set(cur.map(x=>x.link)),l=pool.filter(a=>!S.read[a.link]&&!seen.has(a.link)).slice(0,6);
@@ -3063,24 +3094,24 @@ function renderToday0(){
  let lead=pool.find(a=>!S.read[a.link]&&a.img)||pool.find(a=>a.img)||pool[0];
  {const busy=Object.values(state).some(v=>v==='load'),pv=LEADK&&pool.find(a=>a.link===LEADK&&a.img&&!S.read[a.link]);if(busy&&pv)lead=pv;LEADK=lead&&lead.link}
  cur=[lead];skip.add(lead.link);(lead.more||[]).forEach(m=>skip.add(m.l));
- const TRP=trendPick(pool,lead);TRP.forEach(a=>{skip.add(a.link)});const NW=nrOn();const TRX=NW&&isOn('trend')?pool.filter(a=>a!==lead&&a.img&&!skip.has(a.link)&&!S.read[a.link]).slice(0,Math.max(0,5-TRP.length)):[];TRX.forEach(a=>skip.add(a.link));
+ const TRP=trendPick(pool,lead);TRP.forEach(a=>{skip.add(a.link)});const NW=nrOn(),NP=nrPhoneOn(),NX=NW||NP;const TRX=NX&&isOn('trend')?pool.filter(a=>a!==lead&&a.img&&!skip.has(a.link)&&!S.read[a.link]).slice(0,Math.max(0,5-TRP.length)):[];TRX.forEach(a=>skip.add(a.link));
  const secs=[];let TI=0;
  const groups=S.folders.map(f=>({id:'f:'+f.id,name:f.name,fs:S.feeds.filter(x=>x.folder===f.id)}));
  const un=S.feeds.filter(x=>!S.folders.some(f=>f.id===x.folder));if(un.length)groups.push({id:'',name:'Other feeds',fs:un});
  for(const g of groups){
   if(!g.fs.length)continue;
-  const l=topOf(g.fs,NW?8:4,skip);if(!l.length)continue;
+  const l=topOf(g.fs,NX?8:4,skip);if(!l.length)continue;
   l.forEach(a=>{skip.add(a.link);(a.more||[]).forEach(m=>skip.add(m.l))});
   secs.push({g,l});
  }
- for(const k of S.sk){const l=topOf(S.feeds,NW?8:4,skip,a=>kmatch(k,a));if(!l.length)continue;l.forEach(a=>{skip.add(a.link);(a.more||[]).forEach(m=>skip.add(m.l))});secs.push({g:{id:'k:'+k.id,name:k.name},l})}
+ for(const k of S.sk){const l=topOf(S.feeds,NX?8:4,skip,a=>kmatch(k,a));if(!l.length)continue;l.forEach(a=>{skip.add(a.link);(a.more||[]).forEach(m=>skip.add(m.l))});secs.push({g:{id:'k:'+k.id,name:k.name},l})}
  const unread=uc(S.feeds),d=new Date().toLocaleDateString([], {weekday:'long',month:'long',day:'numeric'});
  for(const k in WHY)delete WHY[k];
  const useCover=isOn('cover')&&lead.img&&!document.body.classList.contains('split');
  let h=useCover?coverHtml(lead,pool):`<div class="dateline"><span>${esc(edition())} · Vol. ${volNo()} · ${esc(shortDate())}</span><small>${unread?unread+' unread':'All caught up'}</small></div>`+(WHY[lead.link]=whyLead(lead),card(lead,0,'lead'));
  if(useCover)h+=`<div class="dateline"><span>Inside · ${esc(shortDate())}</span><small>${unread?unread+' unread':'All caught up'}</small></div>`;
  const CVL=new Set(useCover?cur.map(x=>x.link):[]);
- CVL.forEach(l=>skip.add(l));h+=(NW?trendWide(TRP.filter(a=>!CVL.has(a.link)),TRX.filter(a=>!CVL.has(a.link))):trendHtml(TRP))+mustHtml(pool);
+ CVL.forEach(l=>skip.add(l));h+=(NW?trendWide(TRP.filter(a=>!CVL.has(a.link)),TRX.filter(a=>!CVL.has(a.link))):NP?trendPhone(TRP.filter(a=>!CVL.has(a.link)),TRX.filter(a=>!CVL.has(a.link))):trendHtml(TRP))+mustHtml(pool);
  h+=dgChip()+fiveChip()+continueRow();
  if(isOn('toc')&&secs.length>1)h+=tocHtml(secs);
  let spreadDone=false,si=0;
@@ -3088,13 +3119,14 @@ function renderToday0(){
   h+=`<div class="sech" data-si="${si}"><span class="sno">${String(si+1).padStart(2,'0')}</span><h2>${esc(s.g.name)}</h2>${s.g.id?`<button data-sel="${s.g.id}">See all</button>`:''}</div>`;
   let sc='';
   const feat=(!spreadDone&&isOn('spread')&&isOn('mag')&&!document.body.classList.contains('split'))?s.l.find(a=>a.img&&!CVL.has(a.link)&&(a.summary||'').length>=90):null;
-  if(NW){const ls=s.l.filter(a=>!CVL.has(a.link));ls.forEach(a=>{if(!WHY[a.link])WHY[a.link]=s.g.id&&s.g.id.startsWith('k:')?`Matches “${s.g.name}”, a topic you follow.`:s.g.id?`One of the newest unread stories in your ${s.g.name} folder.`:'One of the newest unread stories from feeds that aren’t in a folder.';cur.push(a)});if(ls.length)sc=nrSecHtml(ls,cur.length-ls.length,si)}else for(const a of s.l){if(CVL.has(a.link))continue;if(!WHY[a.link])WHY[a.link]=s.g.id&&s.g.id.startsWith('k:')?`Matches “${s.g.name}”, a topic you follow.`:s.g.id?`One of the newest unread stories in your ${s.g.name} folder.`:'One of the newest unread stories from feeds that aren’t in a folder.';cur.push(a);if(a===feat){spreadDone=true;h+=card(a,cur.length-1,'spread');continue}sc+=card(a,cur.length-1,'mid')}
-  if(sc)h+=NW?sc:`<div class="tpl t${TI++%4}">${sc}</div>`;
+  if(NX){const ls=s.l.filter(a=>!CVL.has(a.link));ls.forEach(a=>{if(!WHY[a.link])WHY[a.link]=s.g.id&&s.g.id.startsWith('k:')?`Matches “${s.g.name}”, a topic you follow.`:s.g.id?`One of the newest unread stories in your ${s.g.name} folder.`:'One of the newest unread stories from feeds that aren’t in a folder.';cur.push(a)});if(ls.length)sc=NW?nrSecHtml(ls,cur.length-ls.length,si):nrSecPhone(ls,cur.length-ls.length,si)}else for(const a of s.l){if(CVL.has(a.link))continue;if(!WHY[a.link])WHY[a.link]=s.g.id&&s.g.id.startsWith('k:')?`Matches “${s.g.name}”, a topic you follow.`:s.g.id?`One of the newest unread stories in your ${s.g.name} folder.`:'One of the newest unread stories from feeds that aren’t in a folder.';cur.push(a);if(a===feat){spreadDone=true;h+=card(a,cur.length-1,'spread');continue}sc+=card(a,cur.length-1,'mid')}
+  if(sc)h+=NX?sc:`<div class="tpl t${TI++%4}">${sc}</div>`;
   si++;
   if(si===1&&isOn('mag')){const q=storyQuote(pool);if(q)h+=q}
   if(si===2&&isOn('mag')&&isOn('pqs')){const q=pqSpread();if(q)h+=q}
  }
- if(NW)h+=nrMore(skip);
+ if(NW)h+=nrMore(skip);else if(NP)h+=nrMorePhone(skip);
+ if(NP)$('#grid').classList.add('nrp');
  $('#grid').innerHTML=h;
 }
 const R={web:false,pg:0,np:1,cpv:1,step:0,busy:false};
