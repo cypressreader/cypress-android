@@ -3,8 +3,8 @@
 //   /get           the latest Android download
 //   /feed?u=<url>  fetches a feed or article for the web app (same-site requests only, plain text out)
 //   everything else is the CyPress site and web app, served from GitHub Pages under this address
-const PAGES = 'https://davealmaguer-hub.github.io/cypress-android/';
-const APK = 'https://github.com/davealmaguer-hub/cypress-android/releases/latest/download/cypress.apk';
+const PAGES = 'https://cypressreader.github.io/cypress-android/';
+const APK = 'https://github.com/cypressreader/cypress-android/releases/latest/download/cypress.apk';
 const MAXB = 3 * 1024 * 1024;
 
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
