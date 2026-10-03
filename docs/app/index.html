@@ -2593,7 +2593,7 @@ function secOpener(){
 const layoutKey=()=>((S.narrow||'auto')==='auto'&&innerWidth<=500)+'|'+(innerWidth<700)+'|'+(innerWidth>=840);let LK=layoutKey();
 function covFit(){document.querySelectorAll('.cover .cvlead h2').forEach(h=>{const n=(h.textContent||'').trim().length;h.classList.toggle('l1',n>58&&n<=88);h.classList.toggle('l2',n>88)})}
 let _lastSel=null;
-function render(){LK=layoutKey();if(S.sel!==_lastSel){_lastSel=S.sel;const mn=$('main');if(mn)mn.scrollTop=0}if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();secOpener();covTitle();covFit();dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=S.cards||'medium';clearTimeout(PF.t);PF.t=setTimeout(()=>prefetch(pfList()),2500);setTimeout(imgFx,80);setTimeout(starGuard,140)}
+function render(){LK=layoutKey();if(S.sel!==_lastSel){_lastSel=S.sel;const mn=$('main');if(mn)mn.scrollTop=0}if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();secOpener();covTitle();covFit();dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=S.cards||'medium';clearTimeout(PF.t);PF.t=setTimeout(()=>prefetch(pfList()),2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140)}
 function starGuard(){try{document.querySelectorAll('#grid .card').forEach(c=>{const st=c.querySelector('.star');if(!st)return;c.classList.remove('sg');const a=st.getBoundingClientRect();if(!a.width)return;let hit=false;c.querySelectorAll('.tx .src,.tx .src>*').forEach(e=>{const t=e.getBoundingClientRect();if(t.width&&!(a.right<=t.left||a.left>=t.right||a.bottom<=t.top||a.top>=t.bottom))hit=true});if(hit)c.classList.add('sg')})}catch(e){}}
 window.addEventListener('resize',()=>{clearTimeout(starGuard.t);starGuard.t=setTimeout(starGuard,220)});
 function offApply(user){document.body.classList.toggle('offl',!!S.offline);if(user){if(S.offline)toast('Offline mode on. Only stored stories open');else{toast('Back online');loadAll(true)}}}
@@ -2629,6 +2629,7 @@ async function imgInfo(url){
 const LUMQ=[];let lumRun=false;
 function cardLum(im){
  if(S.scrim==='strong'||S.scrim==='panel'||!im.getAttribute('src'))return;
+ {const q=IIS[im.getAttribute('src')],c0=q&&im.closest&&im.closest('.card');if(q&&c0){if(q.l>125)c0.classList.add('bright');return}}
  LUMQ.push(im);if(lumRun)return;lumRun=true;
  const step=async()=>{const x=LUMQ.shift();if(!x){lumRun=false;return}
   try{const o=await imgInfo(x.getAttribute('src'));const c=x.closest&&x.closest('.card');if(o&&c&&o.l>125)c.classList.add('bright')}catch(e){}
@@ -2649,7 +2650,8 @@ function coverStyle(lines){
 const cvThumb=a=>a.img?`<i class="cvth" style="background-image:url(&quot;${esc(a.img)}&quot;)"></i>`:'';
 function imgFx(){
  document.querySelectorAll('#grid .cover').forEach(cv=>{const im=cv.querySelector(':scope>img');if(!im)return;const u=im.getAttribute('src');
-  imgInfo(u).then(o=>{if(!o||!cv.isConnected)return;cv.classList.toggle('flip',!!o.f);if(o.t&&isOn('ptint'))cv.style.setProperty('--b',o.t);if(o.l>125&&S.scrim!=='panel')cv.classList.add('bright');if(o.t&&isOn('ctint')&&!/^(cyber|terminal)/.test(document.documentElement.dataset.theme||'')&&document.documentElement.dataset.theme!=='dynamic')document.body.style.setProperty('--tint','color-mix(in srgb,'+o.t+' 22%,var(--bg))')})});
+  const ap=o=>{if(!o||!cv.isConnected)return;cv.classList.toggle('flip',!!o.f);if(o.t&&isOn('ptint'))cv.style.setProperty('--b',o.t);if(o.l>125&&S.scrim!=='panel')cv.classList.add('bright');if(o.t&&isOn('ctint')&&!/^(cyber|terminal)/.test(document.documentElement.dataset.theme||'')&&document.documentElement.dataset.theme!=='dynamic')document.body.style.setProperty('--tint','color-mix(in srgb,'+o.t+' 22%,var(--bg))')};
+  if(IIS[u])ap(IIS[u]);else imgInfo(u).then(ap)});
 }
 function openTx(c,a){
  if(!a)return;
@@ -4368,8 +4370,8 @@ function timeline(){
 }
 function covTitle(){
  if(covTitle.io){covTitle.io.disconnect();covTitle.io=null}
- document.body.classList.remove('hascov');
- const c=$('#grid .cover');if(!c||!/^[fsk]:/.test(S.sel||'')||!('IntersectionObserver' in window))return;
+ const c=$('#grid .cover');if(!c||!/^[fsk]:/.test(S.sel||'')||!('IntersectionObserver' in window)){document.body.classList.remove('hascov');return}
+ try{const r=c.getBoundingClientRect(),m=$('main').getBoundingClientRect(),vis=Math.max(0,Math.min(r.bottom,m.bottom)-Math.max(r.top,m.top));document.body.classList.toggle('hascov',vis/(r.height||1)>.4)}catch(e){}
  const io=new IntersectionObserver(es=>document.body.classList.toggle('hascov',es[0].intersectionRatio>.4),{threshold:[0,.4,.6,1]});io.observe(c);covTitle.io=io;
 }
 function dynSet(c){if(c)document.documentElement.style.setProperty('--dyn',c)}
