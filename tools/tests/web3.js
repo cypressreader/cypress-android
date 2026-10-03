@@ -1,0 +1,10 @@
+const {chromium}=require(require('child_process').execSync('npm root -g').toString().trim()+'/playwright');
+const fs=require('fs');const D='/home/claude/cypress-android/docs/';
+(async()=>{const b=await chromium.launch();const c=await b.newContext({viewport:{width:390,height:844}});const p=await c.newPage();
+p.on('console',m=>{if(m.text().startsWith('TRACE'))console.log(m.text().slice(0,900))});
+await p.addInitScript(()=>{const f=window.fetch;window.fetch=function(u,o){if(/allorigins/.test(String(u)))console.log('TRACE '+u.slice(0,80)+' :: '+new Error().stack.split('\n').slice(2,7).join(' | '));return f.apply(this,arguments)}});
+await c.route(/^https:\/\/(?!cypressreader\.com)/,r=>r.abort());
+await c.route('https://cypressreader.com/**',async r=>{const u=new URL(r.request().url());
+ if(u.pathname==='/feed')return r.fulfill({status:200,contentType:'text/plain',body:'<rss version="2.0"><channel><title>X</title><item><title>a</title><link>https://x.example.org/1</link></item></channel></rss>'});
+ if(u.pathname.startsWith('/app/'))return r.fulfill({status:200,contentType:'text/html',body:fs.readFileSync(D+'app/index.html')});r.fulfill({status:404,body:''})});
+await p.goto('https://cypressreader.com/app/');await p.waitForTimeout(4000);await b.close()})();
