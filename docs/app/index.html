@@ -4306,18 +4306,16 @@ async function alsoLike(){
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-dfol]');if(!b)return;e.preventDefault();quickAdd(b.dataset.dfol,b.dataset.dn,b.dataset.dc);b.textContent='Following';b.disabled=true;toast('Following '+b.dataset.dn+'. Its stories will show up in your '+b.dataset.dc+' folder')});
 /* reader overflow menu */
-function mnMarkup(){return `<div class="pb mn" id="mn" hidden><div class="mphone"><button data-act="fdn">Feeds and stories</button><button data-act="web">View the site here</button><button data-act="rp">Playback settings</button><hr></div><button data-act="share">Share…</button><button data-act="copy">Copy link</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><hr><div class="pair"><button data-act="more">More like this</button><button data-act="less">Less like this</button></div><hr><button data-act="focus">Focus mode</button><button data-act="hl">All highlights</button><button data-act="settings">Text and page settings</button><button data-act="webpref">Site view for this source</button></div>`}
+function mnMarkup(){return `<div class="pb mn" id="mn" hidden><div class="mphone"><button data-act="fdn">Feeds and stories</button><button data-act="web">View the site here</button><button data-act="rp">Playback settings</button><hr></div><button data-act="share">Share</button><button data-act="copy">Copy link</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><hr><div class="pair"><button data-act="more">More like this</button><button data-act="less">Less like this</button></div><hr><button data-act="focus">Focus mode</button><button data-act="hl">All highlights</button><button data-act="settings">Text and page settings</button><button data-act="webpref">Site view for this source</button></div>`}
 async function doAct(k){
  const a=curA;if(!a)return;
  if(k==='fdn'||k==='web'||k==='rp'){const b=$('#'+(k==='web'?'wb':k));if(b)b.click();return}
  if(k==='upnext'){addUpNext(a);return}
- if(k==='share'){const r=await askBox({title:'Share this story',text:'Link: a page that shows the story and lets people get CyPress.\nPicture: the story card as an image, with the link.',ok:'Share link',alt:'Share picture'});if(r===true)return doAct('card');if(r==='alt')return doAct('pic');return}
- if(k==='card'&&SHARE_W){let u=a.link;try{u=await shareUrl(a)}catch(e){elog('shareUrl',e)}try{if(navigator.share)await navigator.share({title:a.title,text:a.title,url:u});else{await navigator.clipboard.writeText(u);toast('Link copied')}}catch(e){}return}
- if(k==='card'||k==='pic'){toast('Making the card…');try{const c=await articleCard(a);let u=a.link;try{u=await shareUrl(a)}catch(e){elog('shareUrl',e)}shareCanvas(c,'cypress-story.png',a.title+'\n'+u)}catch(e){toast('Couldn’t make the card')}return}
+ if(k==='share'){return doAct('card')}
+ if(k==='card'){let u=a.link;try{u=await shareUrl(a)}catch(e){elog('shareUrl',e)}try{if(navigator.share)await navigator.share({title:a.title,text:a.title,url:u});else{await navigator.clipboard.writeText(u);toast('Link copied')}}catch(e){}return}
  if(k==='more'){likeA(a,1);return}
  if(k==='less'){likeA(a,-1);return}
  if(k==='focus'){focusTog();return}
- if(k==='share'){try{if(navigator.share)await navigator.share({title:a.title,url:a.link});else{await navigator.clipboard.writeText(a.link);toast('Link copied')}}catch(e){}}
  else if(k==='copy'){try{await navigator.clipboard.writeText(a.link);toast('Link copied')}catch(e){askBox({title:'Copy this link',input:true,value:a.link,ok:'Done',cancel:'Close'})}}
  else if(k==='webpref'){const fd=S.feeds.find(x=>x.id===a.feedId);if(!fd){toast('This story’s source isn’t in your feeds');return}fd.web=!fd.web;save();toast(fd.web?fd.title+' will open in site view':fd.title+' will open in reader view')}
  else if(k==='unread'){delete S.read[a.link];save();toast('Marked as unread')}
@@ -4914,7 +4912,7 @@ function qaOpen(c,x,y){
 function qaDo(k,i,lk){
  const a=(lk&&(cur.find(x=>x.link===lk)||findStory(lk)))||cur[i];if(!a)return;if(lk){const j=cur.indexOf(a);if(j>=0)i=j}const f=S.feeds.find(x=>x.id===a.feedId);
  if(k==='save'){toggleSave(a);toast(isSaved(a)?'Saved':'Removed from saved');render()}
- else if(k==='share'){try{if(navigator.share)navigator.share({title:a.title,url:a.link});else navigator.clipboard.writeText(a.link).then(()=>toast('Link copied'))}catch(e){}}
+ else if(k==='share'){(async()=>{let u=a.link;try{u=await shareUrl(a)}catch(e){elog('shareUrl',e)}try{if(navigator.share)await navigator.share({title:a.title,text:a.title,url:u});else{await navigator.clipboard.writeText(u);toast('Link copied')}}catch(e){}})()}
  else if(k==='read'){if(S.read[a.link])delete S.read[a.link];else{S.read[a.link]=1;(a.more||[]).forEach(m=>S.read[m.l]=1)}save();render()}
  else if(k==='above'){const add=[];cur.slice(0,i).forEach(x=>{[x.link,...(x.more||[]).map(m=>m.l)].forEach(l=>{if(!S.read[l])add.push(l);S.read[l]=1})});save();render();if(add.length)toast('Marked '+add.length+' above as read',()=>{add.forEach(l=>delete S.read[l]);save();render()});else toast('Nothing unread above')}
  else if(k==='coll'){collectionPrompt(a)}
@@ -5233,7 +5231,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.10.02d';const APP_LABEL='1.14';
-const CHANGES=['Share now sends a link that opens a page showing the story, with a button to read it and a way to get CyPress; you can still share the story card as a picture', 'Every dropdown in the app now opens a CyPress picker instead of the phone’s plain list; the font pickers show each name in its own typeface', 'The font picker now has 10 fonts in each group (Serif, Sans, Easy reading, Typewriter and mono), 19 of them new', 'The story menu is shorter and grouped, with Share… asking whether to share a link or a picture', 'Aurora is now a thin line of soft colour along the top of the screen instead of full-screen lights, so scrolling stays smooth', 'Theme names fit on the Fold, The Daily title lines up with the CyPress logo, and the Dynamic look box is no longer cut off'];
+const CHANGES=['Share now sends a link that opens a page showing the story, with a button to read it and a way to get CyPress. It’s the same from the story menu and from a card’s quick actions', 'Every dropdown in the app now opens a CyPress picker instead of the phone’s plain list; the font pickers show each name in its own typeface', 'The font picker now has 10 fonts in each group (Serif, Sans, Easy reading, Typewriter and mono), 19 of them new', 'The story menu is shorter and grouped, so it’s quicker to find what you want', 'Aurora is now a thin line of soft colour along the top of the screen instead of full-screen lights, so scrolling stays smooth', 'Theme names fit on the Fold, The Daily title lines up with the CyPress logo, and the Dynamic look box is no longer cut off'];
 const DEF_ON=new Set(['lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
