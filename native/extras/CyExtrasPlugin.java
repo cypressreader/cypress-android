@@ -41,7 +41,7 @@ public class CyExtrasPlugin extends Plugin {
     @PluginMethod
     public void features(PluginCall call) {
         try {
-            call.resolve(CyExtras.obj("{\"features\":[\"icon\",\"share\",\"media\",\"alerts\",\"pack\",\"widget\",\"back\",\"tts\"]}"));
+            call.resolve(CyExtras.obj("{\"features\":[\"icon\",\"share\",\"media\",\"alerts\",\"pack\",\"widget\",\"back\",\"tts\",\"ttsSleep\",\"dsave\",\"dataSaver\"]}"));
         } catch (Throwable t) {
             call.reject("features failed: " + msg(t));
         }
@@ -279,7 +279,9 @@ public class CyExtrasPlugin extends Plugin {
             float volume = call.getFloat("volume", 1f);
             String voice = call.getString("voice", "");
             boolean add = call.getBoolean("add", false);
-            CyTts.get(getContext()).speak(id, text, rate, pitch, volume, voice, add);
+            // optional sleep deadline, epoch milliseconds; 0 or missing means none
+            long stopAt = call.getData().optLong("stopAt", 0L);
+            CyTts.get(getContext()).speak(id, text, rate, pitch, volume, voice, add, stopAt);
             call.resolve();
         } catch (Throwable t) {
             call.reject("ttsSpeak failed: " + msg(t));

@@ -3,14 +3,18 @@ package com.cypress.reader;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.Voice;
 import android.util.Log;
 import com.getcapacitor.JSObject;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,6 +30,11 @@ final class CyTts {
 
     static synchronized CyTts get(Context c) {
         if (inst == null) inst = new CyTts(c.getApplicationContext());
+        return inst;
+    }
+
+    /** The instance if one was ever created, otherwise null (never starts an engine). */
+    static synchronized CyTts existing() {
         return inst;
     }
 
@@ -60,6 +69,14 @@ final class CyTts {
     private volatile boolean ready = false, failed = false;
     private int gen = 0;
     private int seq = 0;
+    /** Installed voices, read once when the engine starts instead of on every call. */
+    private volatile Map<String, Voice> voiceByName = new HashMap<>();
+    private volatile List<Voice> voiceList = new ArrayList<>();
+    /** What the engine is currently set to, so unchanged settings are not sent again. */
+    private float lastRate = -1f, lastPitch = -1f;
+    private String lastVoice = null;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private Runnable sleepTask = null;
     private static final class Wait {
         final Runnable run, fail;
         Wait(Runnable run, Runnable fail) {
@@ -109,10 +126,14 @@ final class CyTts {
             engineFailed();
             return;
         }
+        refreshVoices(t);
         List<Wait> run;
         synchronized (lock) {
             ready = true;
             failed = false;
+            lastRate = -1f;
+            lastPitch = -1f;
+            lastVoice = null;
             run = new ArrayList<>(waiting);
             waiting.clear();
         }
@@ -146,6 +167,26 @@ final class CyTts {
             } catch (Throwable e) {
                 Log.w(TAG, "fail callback: " + e);
             }
+        }
+    }
+
+    /** Reads the engine's voices into the cache. Never throws. */
+    private void refreshVoices(TextToSpeech t) {
+        try {
+            Map<String, Voice> m = new HashMap<>();
+            List<Voice> l = new ArrayList<>();
+            Set<Voice> vs = t == null ? null : t.getVoices();
+            if (vs != null) {
+                for (Voice v : vs) {
+                    if (v == null || v.getName() == null) continue;
+                    m.put(v.getName(), v);
+                    l.add(v);
+                }
+            }
+            voiceByName = m;
+            voiceList = l;
+        } catch (Throwable e) {
+            Log.w(TAG, "voice list failed: " + e);
         }
     }
 
@@ -200,9 +241,9 @@ final class CyTts {
         }
         try {
             if (rdy && tts != null) {
-                Set<Voice> vs = tts.getVoices();
-                if (vs != null) {
-                    List<Voice> list = new ArrayList<>(vs);
+                if (voiceList.isEmpty()) refreshVoices(tts); // the engine had none at start-up; ask again
+                {
+                    List<Voice> list = voiceList;
                     for (Voice v : list) {
                         if (v == null || v.getLocale() == null) continue;
                         if (v.getFeatures() != null && v.getFeatures().contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED)) continue;
@@ -239,7 +280,9 @@ final class CyTts {
      * add = false starts a new reading (anything still playing is replaced); add = true queues this text
      * behind what is already playing, so a whole story can be handed over at once and carry on with the app asleep.
      */
-    void speak(String id, String text, float rate, float pitch, float volume, String voice, boolean add) {
+    void speak(String id, String text, float rate, float pitch, float volume, String voice, boolean add, long stopAt) {
+        if (!add) cancelSleep(); // a new reading drops the old sleep deadline
+        if (stopAt > 0) scheduleSleep(stopAt);
         Job job = new Job(id, text == null ? "" : text);
         job.rate = clamp(rate, .3f, 3f);
         job.pitch = clamp(pitch, .5f, 2f);
@@ -278,30 +321,39 @@ final class CyTts {
                 emit("ttsEnd", job.id, null);
                 return;
             }
-            t.setSpeechRate(job.rate);
-            t.setPitch(job.pitch);
-            boolean voiceSet = false;
-            if (job.voice != null && !job.voice.isEmpty()) {
-                try {
-                    Set<Voice> vs = t.getVoices();
-                    if (vs != null) {
-                        for (Voice v : vs) {
-                            if (job.voice.equals(v.getName())) {
-                                voiceSet = t.setVoice(v) == TextToSpeech.SUCCESS;
-                                break;
-                            }
-                        }
-                    }
-                } catch (Throwable e) {
-                    Log.w(TAG, "setVoice failed: " + e);
-                }
+            if (job.rate != lastRate) {
+                t.setSpeechRate(job.rate);
+                lastRate = job.rate;
             }
-            if (!voiceSet) {
-                try {
-                    t.setLanguage(Locale.getDefault());
-                } catch (Throwable e) {
-                    Log.w(TAG, "setLanguage failed: " + e);
+            if (job.pitch != lastPitch) {
+                t.setPitch(job.pitch);
+                lastPitch = job.pitch;
+            }
+            String wantVoice = job.voice == null ? "" : job.voice;
+            if (!wantVoice.equals(lastVoice)) {
+                boolean voiceSet = false;
+                if (!wantVoice.isEmpty()) {
+                    try {
+                        Voice v = voiceByName.get(wantVoice);
+                        if (v == null && voiceList.isEmpty()) {
+                            refreshVoices(t);
+                            v = voiceByName.get(wantVoice);
+                        }
+                        if (v != null) voiceSet = t.setVoice(v) == TextToSpeech.SUCCESS;
+                    } catch (Throwable e) {
+                        Log.w(TAG, "setVoice failed: " + e);
+                    }
                 }
+                if (!voiceSet) {
+                    try {
+                        t.setLanguage(Locale.getDefault());
+                    } catch (Throwable e) {
+                        Log.w(TAG, "setLanguage failed: " + e);
+                    }
+                }
+                // an unknown voice is tried again next time (the list may not have been ready)
+                if (voiceSet || wantVoice.isEmpty()) lastVoice = wantVoice;
+                else lastVoice = null;
             }
             int max = 3500;
             try {
@@ -388,7 +440,47 @@ final class CyTts {
         return out;
     }
 
+    // ---------------------------------------------------------------- sleep deadline
+
+    /** Stops speaking at the given time (epoch milliseconds) and tells the page with a "ttsSleep" event. */
+    private void scheduleSleep(final long stopAt) {
+        long delay = stopAt - System.currentTimeMillis();
+        if (delay <= 0) return; // already past: the page's own timer has dealt with it
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                synchronized (lock) {
+                    sleepTask = null;
+                }
+                try {
+                    stop();
+                    JSObject o = new JSObject();
+                    o.put("at", stopAt);
+                    CyExtras.emit("ttsSleep", o, false);
+                    CyMediaService.stop(appCtx);
+                } catch (Throwable t) {
+                    Log.w(TAG, "sleep stop failed: " + t);
+                }
+            }
+        };
+        synchronized (lock) {
+            if (sleepTask != null) mainHandler.removeCallbacks(sleepTask);
+            sleepTask = r;
+        }
+        mainHandler.postDelayed(r, delay);
+    }
+
+    private void cancelSleep() {
+        synchronized (lock) {
+            if (sleepTask != null) {
+                mainHandler.removeCallbacks(sleepTask);
+                sleepTask = null;
+            }
+        }
+    }
+
     void stop() {
+        cancelSleep();
         synchronized (lock) {
             gen++;
             waiting.clear();

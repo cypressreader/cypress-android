@@ -1,16 +1,23 @@
 package com.cypress.reader;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.util.Xml;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -65,7 +72,7 @@ public class CyBgWorker extends Worker {
     @Override
     public Result doWork() {
         try {
-            run(getApplicationContext());
+            run(getApplicationContext(), this);
         } catch (Throwable t) {
             Log.w(TAG, "sync failed: " + t);
         }
@@ -74,7 +81,7 @@ public class CyBgWorker extends Worker {
 
     // ------------------------------------------------------------------ main flow
 
-    static void run(Context ctx) throws Exception {
+    static void run(Context ctx, CyBgWorker worker) throws Exception {
         JSONObject cfg = CyExtras.readConfig(ctx);
         if (!CyExtras.anyEnabled(cfg)) return;
         JSONObject alerts = cfg.optJSONObject("alerts");
@@ -95,22 +102,31 @@ public class CyBgWorker extends Worker {
         List<Item> all = new ArrayList<Item>();
         List<Item> fresh = new ArrayList<Item>();
         List<String> feedOrder = new ArrayList<String>();
+        Set<String> urlsInUse = new HashSet<String>();
 
         for (int i = 0; i < feeds.length() && i < MAX_FEEDS; i++) {
+            if (worker != null && worker.isStopped()) return; // the system wants us to stop: keep what is stored as it is
             JSONObject f = feeds.optJSONObject(i);
             if (f == null) continue;
             String id = f.optString("id", "");
             String url = f.optString("url", "");
             String title = f.optString("title", "");
             feedOrder.add(id);
-            List<Item> got = fetchFeed(id, title, url);
+            urlsInUse.add(url);
+            boolean haveOld = false;
+            for (Item o : old) if (id.equals(o.feedId)) {
+                haveOld = true;
+                break;
+            }
+            List<Item> got = fetchFeed(ctx, id, title, url, haveOld);
             if (got == null || got.isEmpty()) {
-                for (Item o : old) if (id.equals(o.feedId)) all.add(o); // keep what we had
+                for (Item o : old) if (id.equals(o.feedId)) all.add(o); // keep what we had (also after "304 not modified")
             } else {
                 all.addAll(got);
                 fresh.addAll(got);
             }
         }
+        pruneFeedCache(ctx, urlsInUse);
         sortNewestFirst(all);
         while (all.size() > MAX_TOTAL) all.remove(all.size() - 1);
         saveItems(dir, all);
@@ -149,7 +165,8 @@ public class CyBgWorker extends Worker {
                     h.put(o);
                     if (h.length() >= CyWidgetProvider.MAX) break;
                 }
-                if (h.length() > 0) CyExtras.saveHeadlines(ctx, h);
+                // pictures are fetched before the worker finishes, so the system does not stop it half-way
+                if (h.length() > 0) CyExtras.saveHeadlines(ctx, h, true);
                 CyExtras.updateWidgets(ctx);
             } catch (Throwable t) {
                 Log.w(TAG, "widget failed: " + t);
@@ -178,7 +195,7 @@ public class CyBgWorker extends Worker {
                 if (k.length() > 0) kws.add(k);
             }
         }
-        Set<String> scope = null; // null = every feed
+        Set<String> scope = null; // feeds whose every new story raises an alert (null = none picked)
         JSONArray ids = alerts.optJSONArray("feedIds");
         if (ids != null) {
             scope = new HashSet<String>();
@@ -189,15 +206,19 @@ public class CyBgWorker extends Worker {
         List<Item> hits = new ArrayList<Item>();
         for (Item it : fresh) {
             if (it.link.length() == 0 || seen.contains(it.link)) continue;
-            if (scope != null && !scope.contains(it.feedId)) continue;
             if (it.date <= 0 || now - it.date > (quietOn ? QUIET_RECENT_MS : RECENT_MS)) continue;
-            String hay = (it.title + " " + it.summary).toLowerCase(Locale.ROOT);
-            for (String k : kws) {
-                if (hay.contains(k)) {
-                    hits.add(it);
-                    break;
+            // An alert when the story is from a site picked for alerts, or when a keyword matches. Neither set: no alerts.
+            boolean hit = scope != null && scope.contains(it.feedId);
+            if (!hit && !kws.isEmpty()) {
+                String hay = (it.title + " " + it.summary).toLowerCase(Locale.ROOT);
+                for (String k : kws) {
+                    if (hay.contains(k)) {
+                        hit = true;
+                        break;
+                    }
                 }
             }
+            if (hit) hits.add(it);
         }
         sortNewestFirst(hits);
 
@@ -400,6 +421,7 @@ public class CyBgWorker extends Worker {
                 it.feedTitle = o.optString("feedTitle", "");
                 it.title = o.optString("title", "");
                 it.link = o.optString("link", "");
+                if (!CyExtras.isHttpUrl(it.link)) it.link = "";
                 it.summary = o.optString("summary", "");
                 it.img = o.optString("img", "");
                 it.date = o.optLong("date", 0);
@@ -454,11 +476,67 @@ public class CyBgWorker extends Worker {
         }
     }
 
-    /** Returns the newest items of one feed, or null if it could not be fetched. */
-    static List<Item> fetchFeed(String feedId, String feedTitle, String url) {
+    private static final String FEED_PREFS = "cy_feedcache";
+
+    private static SharedPreferences feedCache(Context ctx) {
+        return ctx.getSharedPreferences(FEED_PREFS, Context.MODE_PRIVATE);
+    }
+
+    /** Forgets the stored ETag / Last-Modified of feeds that are no longer configured. Keys are "e|url" and "m|url". */
+    private static void pruneFeedCache(Context ctx, Set<String> urls) {
+        try {
+            SharedPreferences sp = feedCache(ctx);
+            SharedPreferences.Editor ed = null;
+            for (String k : sp.getAll().keySet()) {
+                if (k.length() < 3 || !urls.contains(k.substring(2))) {
+                    if (ed == null) ed = sp.edit();
+                    ed.remove(k);
+                }
+            }
+            if (ed != null) ed.apply();
+        } catch (Throwable t) {
+            // ignore
+        }
+    }
+
+    private static byte[] readAll(InputStream in) throws IOException {
+        ByteArrayOutputStream bo = new ByteArrayOutputStream();
+        byte[] buf = new byte[16384];
+        int n;
+        while ((n = in.read(buf)) > 0) bo.write(buf, 0, n);
+        return bo.toByteArray();
+    }
+
+    /** Makes a story link absolute against the feed address and keeps only http(s) links; "" if it cannot be one. */
+    private static String resolveLink(String base, String link) {
+        if (link == null) return "";
+        String l = link.trim();
+        if (l.length() == 0) return "";
+        if (CyExtras.isHttpUrl(l)) return l;
+        if (l.startsWith("//")) return "https:" + l;
+        int colon = l.indexOf(':');
+        int slash = l.indexOf('/');
+        if (colon >= 0 && (slash < 0 || colon < slash)) return ""; // some other scheme (javascript:, file:, ...)
+        try {
+            String r = new URL(new URL(base), l).toString();
+            return CyExtras.isHttpUrl(r) ? r : "";
+        } catch (Throwable t) {
+            return "";
+        }
+    }
+
+    /**
+     * Returns the newest items of one feed, or null if it could not be fetched or has not changed since last time
+     * (HTTP 304). With conditional = true the stored ETag / Last-Modified are sent, so the caller must already hold
+     * this feed's earlier items.
+     */
+    static List<Item> fetchFeed(Context ctx, String feedId, String feedTitle, String url, boolean conditional) {
         HttpURLConnection con = null;
         InputStream in = null;
         try {
+            SharedPreferences fc = feedCache(ctx);
+            String etag = conditional ? fc.getString("e|" + url, null) : null;
+            String lastMod = conditional ? fc.getString("m|" + url, null) : null;
             String cur = url;
             int hops = 0;
             while (true) {
@@ -470,8 +548,11 @@ public class CyBgWorker extends Worker {
                 con.setReadTimeout(12000);
                 con.setInstanceFollowRedirects(false);
                 con.setRequestProperty("User-Agent", UA);
-                con.setRequestProperty("Accept", "application/rss+xml, application/atom+xml, application/xml, text/xml, */*");
+                con.setRequestProperty("Accept", "application/rss+xml, application/atom+xml, application/feed+json, application/json, application/xml, text/xml, */*");
+                if (etag != null) con.setRequestProperty("If-None-Match", etag);
+                if (lastMod != null) con.setRequestProperty("If-Modified-Since", lastMod);
                 int code = con.getResponseCode();
+                if (code == HttpURLConnection.HTTP_NOT_MODIFIED) return null; // nothing new since last time
                 if (code >= 300 && code < 400 && hops < 5) {
                     String loc = con.getHeaderField("Location");
                     con.disconnect();
@@ -484,14 +565,27 @@ public class CyBgWorker extends Worker {
                 if (code != 200) return null;
                 break;
             }
+            String newEtag = con.getHeaderField("ETag");
+            String newMod = con.getHeaderField("Last-Modified");
             in = new LimitedInputStream(con.getInputStream(), MAX_BYTES);
-            List<Item> items = parseFeed(in);
+            List<Item> items = parseBody(readAll(in), con.getContentType());
+            List<Item> kept = new ArrayList<Item>();
             for (Item it : items) {
+                it.link = resolveLink(cur, it.link);
+                if (it.link.length() == 0) continue;
                 it.feedId = feedId;
                 it.feedTitle = feedTitle;
+                kept.add(it);
             }
+            items = kept;
             sortNewestFirst(items);
             while (items.size() > MAX_PER_FEED) items.remove(items.size() - 1);
+            SharedPreferences.Editor ed = fc.edit();
+            if (newEtag != null && !items.isEmpty()) ed.putString("e|" + url, newEtag);
+            else ed.remove("e|" + url);
+            if (newMod != null && !items.isEmpty()) ed.putString("m|" + url, newMod);
+            else ed.remove("m|" + url);
+            ed.apply();
             return items;
         } catch (Throwable t) {
             Log.w(TAG, "feed failed " + url + ": " + t);
@@ -506,15 +600,121 @@ public class CyBgWorker extends Worker {
         }
     }
 
+    /** JSON Feed when the body is JSON that says so, otherwise RSS / Atom. */
+    static List<Item> parseBody(byte[] data, String contentType) {
+        int i = 0;
+        if (data.length >= 3 && (data[0] & 0xFF) == 0xEF && (data[1] & 0xFF) == 0xBB && (data[2] & 0xFF) == 0xBF) i = 3;
+        while (i < data.length && (data[i] == ' ' || data[i] == '\n' || data[i] == '\r' || data[i] == '\t')) i++;
+        if (i < data.length && data[i] == '{') {
+            try {
+                String body = new String(data, i, data.length - i, StandardCharsets.UTF_8);
+                boolean jf = (contentType != null && contentType.toLowerCase(Locale.ROOT).contains("feed+json"))
+                    || body.contains("jsonfeed.org/version");
+                if (jf) return parseJsonFeed(body);
+            } catch (Throwable t) {
+                Log.w(TAG, "json feed failed: " + t);
+            }
+            return new ArrayList<Item>(); // JSON, but not a feed
+        }
+        return parseFeed(data);
+    }
+
+    private static String jstr(JSONObject o, String key) {
+        Object v = o.opt(key);
+        if (v == null || v == JSONObject.NULL) return "";
+        return String.valueOf(v);
+    }
+
+    /** JSON Feed 1.x: items[] with title, url / external_url, date_published, summary / content_text, image. */
+    static List<Item> parseJsonFeed(String body) {
+        List<Item> items = new ArrayList<Item>();
+        try {
+            JSONObject root = new JSONObject(body);
+            JSONArray arr = root.optJSONArray("items");
+            if (arr == null) return items;
+            for (int i = 0; i < arr.length() && items.size() < 100; i++) {
+                JSONObject o = arr.optJSONObject(i);
+                if (o == null) continue;
+                Item it = new Item();
+                String html = jstr(o, "content_html");
+                String text = jstr(o, "content_text");
+                String sum = jstr(o, "summary");
+                it.summary = clean(sum.length() > 0 ? sum : (text.length() > 0 ? text : html), 300);
+                it.title = clean(jstr(o, "title"), 300);
+                if (it.title.length() == 0) it.title = clean(it.summary, 120);
+                String link = jstr(o, "url");
+                if (link.length() == 0) link = jstr(o, "external_url");
+                if (link.length() == 0) {
+                    String id = jstr(o, "id");
+                    if (id.startsWith("http")) link = id;
+                }
+                it.link = link.trim();
+                String d = jstr(o, "date_published");
+                if (d.length() == 0) d = jstr(o, "date_modified");
+                it.date = parseDate(d);
+                String img = fixUrl(jstr(o, "image"));
+                if (img.length() == 0) img = fixUrl(jstr(o, "banner_image"));
+                if (img.length() == 0 && html.length() > 0) {
+                    Matcher m = IMG_RE.matcher(html);
+                    if (m.find()) img = fixUrl(m.group(1));
+                }
+                it.img = img;
+                if (it.title.length() > 0 && it.link.length() > 0) items.add(it);
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "json feed parse stopped early: " + t);
+        }
+        return items;
+    }
+
+    /** What an XML parse produced, and whether it stopped on an error before the end of the document. */
+    private static final class Parsed {
+        final List<Item> items = new ArrayList<Item>();
+        boolean broken = false;
+    }
+
+    /** A "&" that does not start an entity such as &amp; or &#39; (a common mistake in feeds). */
+    private static final Pattern BARE_AMP = Pattern.compile("&(?!(?:[A-Za-z][A-Za-z0-9]{0,31}|#[0-9]{1,7}|#[xX][0-9A-Fa-f]{1,6});)");
+    private static final Pattern XML_ENC = Pattern.compile("^\\s*<\\?xml[^>]*encoding\\s*=\\s*[\"']([A-Za-z0-9._:-]+)[\"']");
+
+    /** RSS 2.0 and Atom. Keeps what was parsed if the XML breaks half-way; then repairs stray ampersands and tries once more. */
+    static List<Item> parseFeed(byte[] data) {
+        Parsed r = parseXml(new ByteArrayInputStream(data), null);
+        if (!r.broken) return r.items;
+        try {
+            Charset cs = StandardCharsets.UTF_8;
+            String head = new String(data, 0, Math.min(data.length, 200), StandardCharsets.ISO_8859_1);
+            Matcher m = XML_ENC.matcher(head);
+            if (m.find()) {
+                try {
+                    cs = Charset.forName(m.group(1));
+                } catch (Throwable e) {
+                    // keep UTF-8
+                }
+            }
+            String txt = new String(data, cs);
+            String fixed = BARE_AMP.matcher(txt).replaceAll("&amp;");
+            if (!fixed.equals(txt)) {
+                Parsed r2 = parseXml(null, new StringReader(fixed));
+                if (r2.items.size() > r.items.size()) return r2.items;
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "feed repair failed: " + t);
+        }
+        return r.items;
+    }
+
     private static final Pattern IMG_RE = Pattern.compile("<img[^>]+src\\s*=\\s*[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
 
-    /** RSS 2.0 and Atom. Keeps whatever was parsed if the XML turns out to be broken half-way. */
-    static List<Item> parseFeed(InputStream in) {
-        List<Item> items = new ArrayList<Item>();
+    /** One pass of the pull parser over a stream (encoding from the XML declaration) or a reader (already decoded). */
+    private static Parsed parseXml(InputStream in, Reader reader) {
+        Parsed res = new Parsed();
+        List<Item> items = res.items;
         try {
             XmlPullParser p = Xml.newPullParser();
             p.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-            p.setInput(in, null);
+            if (reader != null) p.setInput(reader);
+            else p.setInput(in, null);
             defineEntities(p);
 
             Item cur = null;
@@ -597,8 +797,9 @@ public class CyBgWorker extends Worker {
             }
         } catch (Throwable t) {
             Log.w(TAG, "parse stopped early: " + t);
+            res.broken = true;
         }
-        return items;
+        return res;
     }
 
     private static void defineEntities(XmlPullParser p) {

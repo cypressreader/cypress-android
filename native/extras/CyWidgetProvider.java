@@ -132,11 +132,27 @@ public class CyWidgetProvider extends AppWidgetProvider {
         return new File(c.getCacheDir(), "cyw_" + Integer.toHexString(url.hashCode()) + ".jpg");
     }
 
-    /** Downloads any story pictures the widget does not have yet. Call from a background thread. */
+    /** True if the file is a picture Android can read (a cached file may be broken or cut short). */
+    private static boolean decodes(File f) {
+        try {
+            BitmapFactory.Options o = new BitmapFactory.Options();
+            o.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(f.getAbsolutePath(), o);
+            return o.outWidth > 0 && o.outHeight > 0;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    /**
+     * Downloads any story pictures the widget does not have yet. Call from a background thread, one call at a time
+     * (CyExtras.IMG_EXEC). Each picture is written to a .tmp file and renamed when complete, and old pictures are
+     * deleted only after every download succeeded.
+     */
     static boolean fetchImages(Context c, JSONArray list) {
         boolean any = false;
+        boolean complete = true; // every picture the widget wants is on disk
         try {
-            File[] old = c.getCacheDir().listFiles();
             java.util.HashSet<String> keep = new java.util.HashSet<>();
             for (int i = 0; i < list.length() && i < MAX; i++) {
                 JSONObject o = list.optJSONObject(i);
@@ -145,26 +161,49 @@ public class CyWidgetProvider extends AppWidgetProvider {
                 File f = imageFile(c, u);
                 if (f == null) continue;
                 keep.add(f.getName());
-                if (f.isFile()) continue;
+                if (f.isFile()) {
+                    if (decodes(f)) continue;
+                    f.delete(); // broken: fetch it again
+                }
+                File tmp = new File(f.getPath() + ".tmp");
                 try {
                     Bitmap b = download(u);
-                    if (b == null) continue;
-                    FileOutputStream out = new FileOutputStream(f);
+                    if (b == null) {
+                        complete = false;
+                        continue;
+                    }
+                    boolean wrote;
+                    FileOutputStream out = new FileOutputStream(tmp);
                     try {
-                        b.compress(Bitmap.CompressFormat.JPEG, 82, out);
+                        wrote = b.compress(Bitmap.CompressFormat.JPEG, 82, out);
                     } finally {
                         out.close();
                     }
-                    any = true;
+                    // a file under 1 KB or one Android cannot read is not a picture: never let it replace anything
+                    if (wrote && tmp.length() >= 1024 && decodes(tmp) && tmp.renameTo(f)) {
+                        any = true;
+                    } else {
+                        tmp.delete();
+                        complete = false;
+                    }
                 } catch (Throwable t) {
+                    tmp.delete();
+                    complete = false;
                     Log.w(TAG, "picture download failed: " + t);
                 }
             }
-            if (old != null) {
-                for (File f : old) {
+            // Old pictures go only after the new set is complete, so a failed refresh never leaves the widget bare.
+            // A picture that can never be fetched must not keep the cache growing, hence the cap.
+            File[] all = c.getCacheDir().listFiles();
+            java.util.ArrayList<File> stale = new java.util.ArrayList<>();
+            if (all != null) {
+                for (File f : all) {
                     String nm = f.getName();
-                    if (nm.startsWith("cyw_") && !keep.contains(nm)) f.delete();
+                    if (nm.startsWith("cyw_") && !keep.contains(nm)) stale.add(f);
                 }
+            }
+            if (complete || stale.size() > 24) {
+                for (File f : stale) f.delete();
             }
         } catch (Throwable t) {
             Log.w(TAG, "pictures failed: " + t);

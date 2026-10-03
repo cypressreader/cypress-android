@@ -1,32 +1,50 @@
 # CyPress: builds the Android app and publishes it under "Releases".
-# It runs by itself whenever you add or change a file in this repository.
+# It runs by itself whenever you add or change a file in this repository (except README.md and docs/).
 name: Build CyPress APK
 
 on:
   push:
     branches: [main, master]
+    # whats-new.txt must still start a build, so only the readme and the docs folder are ignored
+    paths-ignore:
+      - "README.md"
+      - "docs/**"
   workflow_dispatch:
+    inputs:
+      allow_degraded:
+        description: "Only if the full build keeps failing: build the core app WITHOUT the extras (notifications, background audio, widget, icon switch) and publish it as a PRE-RELEASE. Phones never get it as an update."
+        type: boolean
+        default: false
 
 permissions:
   contents: write
+
+# One build at a time, so two quick pushes can never publish out of order. A waiting build is not cancelled.
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 env:
   # Which logo the app icon uses. Change the word to  circuit  for the circuit-board logo.
   ICON: tree
   # 1 = also build the optional extras (notifications, background audio, widget, icon switch, share target).
-  # If they fail to compile the build is repeated without them. Set to 0 to never include them.
+  # If they fail to compile the build fails and nothing is published. Set to 0 to never include them.
   EXTRAS: "1"
+  # Only a manual run with "allow_degraded" ticked may build without the extras (published as a pre-release).
+  ALLOW_DEGRADED: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_degraded && '1' || '0' }}
   BUILD_NUMBER: ${{ github.run_number }}
   # The version name people see. Change it when you want a new release label (1.3, 1.4, ...). The build number behind it always counts up by itself.
-  APP_LABEL: "1.12"
+  APP_LABEL: "1.13"
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
     steps:
       - name: Get the files
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Check the signing key is set up
         env:
@@ -38,25 +56,110 @@ jobs:
             exit 1
           fi
 
+      - name: Check the build number is higher than the last release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Phones update only to a higher number, so a lower one would publish an update nobody can install.
+          # If GitHub cannot be asked right now this is skipped: it must never block a release by itself.
+          if ! TAGS=$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=100" --jq '.[].tag_name' 2>/dev/null); then
+            echo "::warning title=Could not check earlier releases::Skipping the build number check."
+            exit 0
+          fi
+          MAX=0
+          for t in $TAGS; do
+            n="${t//[!0-9]/}"
+            if [ -n "$n" ] && [ "${#n}" -lt 9 ] && [ "$n" -gt "$MAX" ]; then MAX="$n"; fi
+          done
+          echo "Newest release number so far: ${MAX}. This build: ${BUILD_NUMBER}."
+          if [ "$BUILD_NUMBER" -lt "$MAX" ]; then
+            echo "::error title=Build number too low::This build is number ${BUILD_NUMBER} but release ${MAX} already exists, so phones would never be offered it. Delete the higher release(s) or raise the number, then run again."
+            exit 1
+          fi
+          if [ "$BUILD_NUMBER" -eq "$MAX" ]; then
+            echo "::notice title=Re-run::Release v${MAX} will be replaced by this run."
+          fi
+
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
 
+      - name: Check the web app
+        run: |
+          set -e
+          test -f www/index.html || { echo "::error::www/index.html is missing."; exit 1; }
+          node - <<'JS'
+          // Pulls every inline <script> out of the page and parses it exactly the way a browser reads a classic
+          // script (vm.Script only compiles, nothing is run). `node --check` would wrap the code like a CommonJS
+          // module and could wrongly reject a page that declares its own "module" or "require". Syntax errors and
+          // duplicate top-level let/const/class names are found here instead of on a phone.
+          const fs = require('fs');
+          const os = require('os');
+          const path = require('path');
+          const vm = require('vm');
+          const cp = require('child_process');
+          const html = fs.readFileSync('www/index.html', 'utf8');
+          const re = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+          let m, n = 0, bad = 0;
+          while ((m = re.exec(html))) {
+            const attrs = m[1] || '';
+            if (/\bsrc\s*=/i.test(attrs)) continue;
+            const type = (attrs.match(/\btype\s*=\s*["']?([^"'\s>]+)/i) || [])[1] || '';
+            if (type && !/^(text\/javascript|application\/javascript|module)$/i.test(type)) continue; // JSON data etc.
+            if (!m[2].trim()) continue;
+            n++;
+            let err = '';
+            if (/^module$/i.test(type)) {
+              const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'cyweb-')), 'script' + n + '.mjs');
+              fs.writeFileSync(file, m[2]);
+              const r = cp.spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
+              if (r.status !== 0) err = String(r.stderr || 'failed');
+            } else {
+              try {
+                new vm.Script(m[2], { filename: 'index.html script ' + n });
+              } catch (e) {
+                err = String((e && e.stack) || e);
+              }
+            }
+            if (err) {
+              bad++;
+              console.log('::error title=Web app script ' + n + ' does not parse::' + err.split('\n').slice(0, 5).join(' | '));
+              console.log(err);
+            }
+          }
+          if (n === 0) { console.log('::error title=No script found::www/index.html has no inline script.'); process.exit(1); }
+          if (bad) process.exit(1);
+          console.log('Web app check passed (' + n + ' inline script' + (n === 1 ? '' : 's') + ' parsed).');
+          JS
+
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
 
       - name: Install Capacitor
-        run: npm install --no-audit --no-fund
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          else
+            npm install --no-audit --no-fund
+          fi
 
       - name: Create the Android project
         run: npx cap add android
 
       - name: Add CyPress's Android code, icon and version number
         run: python3 scripts/prepare_android.py
+
+      - name: Check the web app knows where to look for updates
+        run: |
+          # prepare_android.py writes this repository's name into the page; the empty placeholder must be gone.
+          if grep -qF "const CP_REPO='';" www/index.html; then
+            echo "::error title=Update address not set::www/index.html still has the empty update placeholder, so the app could never find updates."
+            exit 1
+          fi
 
       - name: Copy the app into the Android project
         run: npx cap sync android
@@ -70,17 +173,23 @@ jobs:
           chmod +x gradlew
           if ./gradlew assembleRelease --no-daemon; then
             echo "Build finished."
-          elif [ "${EXTRAS:-1}" != "0" ] && [ "${EXTRAS_FAILED:-0}" != "1" ]; then
-            echo "::warning title=Optional extras failed to build::Building again without them (notifications, background audio, widget, icon switch)."
-            cd ..
-            python3 scripts/prepare_android.py --strip-extras
-            npx cap sync android
-            echo "EXTRAS_FAILED=1" >> "$GITHUB_ENV"
-            cd android
-            ./gradlew clean --no-daemon
-            ./gradlew assembleRelease --no-daemon
           else
-            exit 1
+            echo "::warning title=Build failed::Trying the same full build once more (a download may have hiccuped)."
+            if ./gradlew assembleRelease --no-daemon; then
+              echo "Build finished on the second try."
+            elif [ "${ALLOW_DEGRADED:-0}" = "1" ] && [ "${EXTRAS:-1}" != "0" ] && [ "${EXTRAS_FAILED:-0}" != "1" ]; then
+              echo "::warning title=Building without the optional extras::allow_degraded is on. The result is published as a pre-release only."
+              cd ..
+              python3 scripts/prepare_android.py --strip-extras
+              npx cap sync android
+              echo "EXTRAS_FAILED=1" >> "$GITHUB_ENV"
+              cd android
+              ./gradlew clean --no-daemon
+              ./gradlew assembleRelease --no-daemon
+            else
+              echo "::error title=The build failed twice::Nothing was published. Open the log above for the first error. If you only need something installable right now, run this workflow by hand with allow_degraded ticked."
+              exit 1
+            fi
           fi
 
       - name: Sign the app
@@ -96,7 +205,11 @@ jobs:
           "$BT/zipalign" -f -p 4 "$UNSIGNED" "$RUNNER_TEMP/aligned.apk"
           "$BT/apksigner" sign --ks "$RUNNER_TEMP/cypress.keystore" --ks-pass env:KS_PASS --ks-key-alias cypress --out cypress.apk "$RUNNER_TEMP/aligned.apk"
           "$BT/apksigner" verify --print-certs cypress.apk
-          "$BT/aapt2" dump badging cypress.apk | head -3 || true
+          BADGE=$("$BT/aapt2" dump badging cypress.apk | head -3 || true)
+          echo "$BADGE"
+          if ! echo "$BADGE" | grep -q "versionCode='${BUILD_NUMBER}'"; then
+            echo "::warning title=Version number check::The app file does not report version code ${BUILD_NUMBER}. Check the lines above."
+          fi
           rm -f "$RUNNER_TEMP/cypress.keystore"
 
       - name: Publish the release
@@ -105,18 +218,42 @@ jobs:
         run: |
           set -e
           TAG="v${BUILD_NUMBER}"
-          if [ -f whats-new.txt ]; then cp whats-new.txt notes.txt; else echo "CyPress build ${BUILD_NUMBER}" > notes.txt; fi
+          DEGRADED=0
           if [ "${EXTRAS_FAILED:-0}" = "1" ]; then
-            { echo ""; echo "Built without the optional extras (notifications, background audio, widget, icon switch) because they failed to compile."; } >> notes.txt
+            if [ "${ALLOW_DEGRADED:-0}" != "1" ]; then
+              echo "::error::The app was built without its extras but allow_degraded is off. Refusing to publish."
+              exit 1
+            fi
+            DEGRADED=1
           fi
-          gh release delete "$TAG" --yes --cleanup-tag --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
-          gh release create "$TAG" cypress.apk --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "CyPress v${APP_LABEL} (build ${BUILD_NUMBER})" --notes-file notes.txt --latest
-          {
-            echo "### CyPress v${APP_LABEL} (build ${BUILD_NUMBER}) is ready"
-            echo ""
-            echo "Download link for phones: https://github.com/${GITHUB_REPOSITORY}/releases/latest"
-            if [ "${EXTRAS_FAILED:-0}" = "1" ]; then
+          : > notes.txt
+          if [ "$DEGRADED" = "1" ]; then
+            {
+              echo "**PRE-RELEASE, reduced build.** This build does NOT include the optional extras (notifications, background audio, widget, icon switch, share target) because they failed to compile. It is not offered as an update to phones. Do not use it unless you know why."
               echo ""
-              echo "Note: built without the optional extras (notifications, background audio, widget, icon switch) because they failed to compile."
+            } >> notes.txt
+          fi
+          if [ -f whats-new.txt ]; then
+            # only this version's section, so the update dialog doesn't open with the oldest notes
+            awk -v L="$APP_LABEL" '$0==L{p=1;next} p&&/^[0-9]+\.[0-9]+[a-z]?$/{exit} p&&/^CyPress v/{exit} p' whats-new.txt >> notes.txt
+            if [ ! -s notes.txt ] || ! grep -q '^- ' notes.txt; then cat whats-new.txt >> notes.txt; fi
+          else echo "CyPress build ${BUILD_NUMBER}" >> notes.txt; fi
+          gh release delete "$TAG" --yes --cleanup-tag --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
+          if [ "$DEGRADED" = "1" ]; then
+            gh release create "$TAG" cypress.apk --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "CyPress v${APP_LABEL} (build ${BUILD_NUMBER}, core only, pre-release)" --notes-file notes.txt --prerelease
+          else
+            gh release create "$TAG" cypress.apk --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "CyPress v${APP_LABEL} (build ${BUILD_NUMBER})" --notes-file notes.txt --latest
+          fi
+          {
+            if [ "$DEGRADED" = "1" ]; then
+              echo "### CyPress v${APP_LABEL} (build ${BUILD_NUMBER}) published as a PRE-RELEASE"
+              echo ""
+              echo "Built without the optional extras (notifications, background audio, widget, icon switch) because they failed to compile. Phones are not offered this build as an update. Fix the build and push again to publish a full release."
+              echo ""
+              echo "Download: https://github.com/${GITHUB_REPOSITORY}/releases/tag/${TAG}"
+            else
+              echo "### CyPress v${APP_LABEL} (build ${BUILD_NUMBER}) is ready"
+              echo ""
+              echo "Download link for phones: https://github.com/${GITHUB_REPOSITORY}/releases/latest"
             fi
           } >> "$GITHUB_STEP_SUMMARY"

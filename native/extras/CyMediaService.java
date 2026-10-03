@@ -1,16 +1,22 @@
 package com.cypress.reader;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Icon;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
+import android.media.AudioManager;
 import android.media.MediaMetadata;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
@@ -48,10 +54,47 @@ public class CyMediaService extends Service {
     private String subtitle = "";
     private boolean playing = true;
     private boolean foregrounded = false;
+    /** True after stopForeground(DETACH) while paused: the notification stays but can be swiped away. */
+    private boolean detached = false;
+    /** Set once shutdown() ran: late posted updates must not revive this instance. */
+    private boolean dead = false;
+    /** The page was already asked to pause (focus loss, headphones out); do not ask twice, a second "toggle" would resume. */
+    private boolean pauseAsked = false;
     private MediaSession session;
     private String artFor = "";
     private Bitmap art = null;
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
+
+    /** A stop() right before a start()/update() (the page moving to the next story) must not tear the service down. */
+    private static final long SHUTDOWN_DELAY_MS = 3000L;
+    /** A reading that stays paused this long is closed so the service does not linger. */
+    private static final long PAUSED_TIMEOUT_MS = 10L * 60L * 1000L;
+    private Runnable pendingShutdown;
+    private Runnable pausedTimeout;
+
+    private AudioManager audioMgr;
+    private AudioFocusRequest focusReq;
+    private boolean focusHeld = false;
+    private boolean noisyRegistered = false;
+
+    private final AudioManager.OnAudioFocusChangeListener focusListener = new AudioManager.OnAudioFocusChangeListener() {
+        @Override
+        public void onAudioFocusChange(int change) {
+            if (change == AudioManager.AUDIOFOCUS_LOSS || change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
+                focusHeld = false;
+                pauseForInterruption();
+            }
+        }
+    };
+
+    private final BroadcastReceiver noisyReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent != null && AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
+                pauseForInterruption();
+            }
+        }
+    };
 
     // ------------------------------------------------------------ API used by the plugin
 
@@ -73,12 +116,12 @@ public class CyMediaService extends Service {
     static void update(Context c, String title, String subtitle, boolean playing, String image) {
         CyMediaService s = instance;
         if (s != null) s.apply(title, subtitle, playing, image);
-        else start(c, title, subtitle, playing, image);
+        else if (playing) start(c, title, subtitle, true, image); // a pause with nothing running needs no service
     }
 
     static void stop(Context c) {
         CyMediaService s = instance;
-        if (s != null) s.shutdown();
+        if (s != null) s.requestShutdown();
         else c.stopService(new Intent(c, CyMediaService.class));
     }
 
@@ -105,16 +148,20 @@ public class CyMediaService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         String a = intent == null ? null : intent.getAction();
         try {
-            if (ACT_START.equals(a) || !foregrounded) {
-                if (intent != null && ACT_START.equals(a)) {
-                    String t = intent.getStringExtra("title");
-                    String s = intent.getStringExtra("subtitle");
-                    if (t != null) title = t;
-                    if (s != null) subtitle = s;
-                    playing = intent.getBooleanExtra("playing", true);
-                    String im = intent.getStringExtra("image");
-                    if (im != null) loadArt(im);
-                }
+            if (ACT_START.equals(a)) {
+                cancelShutdown();
+                pauseAsked = false;
+                String t = intent.getStringExtra("title");
+                String s = intent.getStringExtra("subtitle");
+                if (t != null) title = t;
+                if (s != null) subtitle = s;
+                playing = intent.getBooleanExtra("playing", true);
+                String im = intent.getStringExtra("image");
+                if (im != null) loadArt(im);
+                goForeground(); // always: startForegroundService() requires it within a few seconds
+                enterPlayState();
+                refreshSession();
+            } else if (!foregrounded && !detached) {
                 goForeground();
                 refreshSession();
             }
@@ -126,6 +173,7 @@ public class CyMediaService extends Service {
                 CyExtras.emitMediaAction("prev");
             } else if (ACT_STOP.equals(a)) {
                 CyExtras.emitMediaAction("stop");
+                stopSpeech();
                 shutdown();
             }
         } catch (Throwable t) {
@@ -138,12 +186,17 @@ public class CyMediaService extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         // The app was swiped away: stop reading and remove the notification.
+        stopSpeech();
         shutdown();
     }
 
     @Override
     public void onDestroy() {
-        instance = null;
+        if (instance == this) instance = null;
+        cancelShutdown();
+        cancelPausedTimeout();
+        unregisterNoisy();
+        abandonFocus();
         try {
             if (session != null) {
                 session.setActive(false);
@@ -158,22 +211,221 @@ public class CyMediaService extends Service {
 
     // ------------------------------------------------------------ internals
 
-    void apply(String t, String s, boolean p, String image) {
+    /** Safe to call from any thread: the service's state is only touched on the main thread. */
+    void apply(final String t, final String s, final boolean p, final String image) {
+        runOnMain(new Runnable() {
+            @Override
+            public void run() {
+                applyNow(t, s, p, image);
+            }
+        });
+    }
+
+    private void runOnMain(Runnable r) {
+        if (Looper.myLooper() == Looper.getMainLooper()) r.run();
+        else uiHandler.post(r);
+    }
+
+    private void applyNow(String t, String s, boolean p, String image) {
+        if (dead) {
+            // this instance already shut down before the update arrived; a playing update starts a fresh service
+            if (p) start(getApplicationContext(), t, s, true, image);
+            return;
+        }
+        cancelShutdown();
+        pauseAsked = false;
         if (t != null) title = t;
         if (s != null) subtitle = s;
         playing = p;
         if (image != null) loadArt(image);
         try {
-            if (!foregrounded) {
-                goForeground();
-            } else {
-                android.app.NotificationManager nm = (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                if (nm != null) nm.notify(NOTIF_ID, buildNotification());
-            }
+            enterPlayState();
             refreshSession();
         } catch (Throwable e) {
             Log.w(TAG, "update failed: " + e);
         }
+    }
+
+    /**
+     * Brings notification, audio focus and timers in line with the current playing flag. Playing: ongoing foreground
+     * notification, audio focus, headphones-unplugged pause. Paused: the notification is detached and can be swiped
+     * away, focus is given back, and the service closes itself after a while.
+     */
+    private void enterPlayState() {
+        if (playing) {
+            cancelPausedTimeout();
+            if (!foregrounded) {
+                try {
+                    goForeground(); // also re-promotes after a pause
+                } catch (Throwable e) {
+                    Log.w(TAG, "could not go foreground: " + e);
+                    notifyNow();
+                }
+            } else {
+                notifyNow();
+            }
+            requestFocus();
+            registerNoisy();
+        } else {
+            unregisterNoisy();
+            abandonFocus();
+            if (foregrounded) {
+                try {
+                    ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH);
+                } catch (Throwable e) {
+                    Log.w(TAG, "detach failed: " + e);
+                }
+                foregrounded = false;
+            }
+            detached = true;
+            notifyNow(); // repost without the ongoing flag
+            schedulePausedTimeout();
+        }
+    }
+
+    private void notifyNow() {
+        try {
+            NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm != null) nm.notify(NOTIF_ID, buildNotification());
+        } catch (Throwable e) {
+            Log.w(TAG, "notify failed: " + e);
+        }
+    }
+
+    // ------------------------------------------------------------ delayed shutdown, pause timeout
+
+    /** stop() from the page: shut down in a moment, unless a start or update arrives first. */
+    void requestShutdown() {
+        runOnMain(new Runnable() {
+            @Override
+            public void run() {
+                cancelShutdown();
+                pendingShutdown = new Runnable() {
+                    @Override
+                    public void run() {
+                        pendingShutdown = null;
+                        shutdown();
+                    }
+                };
+                uiHandler.postDelayed(pendingShutdown, SHUTDOWN_DELAY_MS);
+            }
+        });
+    }
+
+    private void cancelShutdown() {
+        if (pendingShutdown != null) {
+            uiHandler.removeCallbacks(pendingShutdown);
+            pendingShutdown = null;
+        }
+    }
+
+    private void schedulePausedTimeout() {
+        cancelPausedTimeout();
+        pausedTimeout = new Runnable() {
+            @Override
+            public void run() {
+                pausedTimeout = null;
+                if (!playing) shutdown();
+            }
+        };
+        uiHandler.postDelayed(pausedTimeout, PAUSED_TIMEOUT_MS);
+    }
+
+    private void cancelPausedTimeout() {
+        if (pausedTimeout != null) {
+            uiHandler.removeCallbacks(pausedTimeout);
+            pausedTimeout = null;
+        }
+    }
+
+    // ------------------------------------------------------------ audio focus, headphones, speech
+
+    /** Another app took the audio, or the headphones came out: pause once, the way the notification button would. */
+    private void pauseForInterruption() {
+        if (!playing || pauseAsked) return;
+        pauseAsked = true;
+        stopSpeech(); // the phone's speech engine keeps talking by itself otherwise, even if the page is asleep
+        CyExtras.emitMediaAction("toggle");
+        playing = false;
+        try {
+            enterPlayState();
+            refreshSession();
+        } catch (Throwable e) {
+            Log.w(TAG, "pause failed: " + e);
+        }
+    }
+
+    private void stopSpeech() {
+        try {
+            CyTts t = CyTts.existing();
+            if (t != null) t.stop();
+        } catch (Throwable e) {
+            Log.w(TAG, "stop speech failed: " + e);
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void requestFocus() {
+        if (focusHeld) return;
+        try {
+            if (audioMgr == null) audioMgr = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            if (audioMgr == null) return;
+            int r;
+            if (Build.VERSION.SDK_INT >= 26) {
+                if (focusReq == null) {
+                    AudioAttributes aa = new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                        .build();
+                    focusReq = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                        .setAudioAttributes(aa)
+                        .setOnAudioFocusChangeListener(focusListener, uiHandler)
+                        .build();
+                }
+                r = audioMgr.requestAudioFocus(focusReq);
+            } else {
+                r = audioMgr.requestAudioFocus(focusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+            }
+            focusHeld = r == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+        } catch (Throwable e) {
+            Log.w(TAG, "audio focus failed: " + e);
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void abandonFocus() {
+        try {
+            if (audioMgr != null && (focusHeld || focusReq != null)) {
+                if (Build.VERSION.SDK_INT >= 26) {
+                    if (focusReq != null) audioMgr.abandonAudioFocusRequest(focusReq);
+                } else {
+                    audioMgr.abandonAudioFocus(focusListener);
+                }
+            }
+        } catch (Throwable e) {
+            Log.w(TAG, "abandon focus failed: " + e);
+        }
+        focusHeld = false;
+    }
+
+    private void registerNoisy() {
+        if (noisyRegistered) return;
+        try {
+            registerReceiver(noisyReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
+            noisyRegistered = true;
+        } catch (Throwable e) {
+            Log.w(TAG, "noisy receiver failed: " + e);
+        }
+    }
+
+    private void unregisterNoisy() {
+        if (!noisyRegistered) return;
+        try {
+            unregisterReceiver(noisyReceiver);
+        } catch (Throwable e) {
+            // not registered
+        }
+        noisyRegistered = false;
     }
 
     /** Shows the story's picture on the lock screen and in the notification; the app logo until (or unless) it loads. */
@@ -198,10 +450,7 @@ public class CyMediaService extends Service {
                 if (!want.equals(artFor)) return;
                 art = got != null ? got : appLogo();
                 try {
-                    if (foregrounded) {
-                        android.app.NotificationManager nm = (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                        if (nm != null) nm.notify(NOTIF_ID, buildNotification());
-                    }
+                    if (foregrounded || detached) notifyNow();
                     refreshSession();
                 } catch (Throwable t) {
                     Log.w(TAG, "cover refresh failed: " + t);
@@ -264,12 +513,26 @@ public class CyMediaService extends Service {
     }
 
     void shutdown() {
+        cancelShutdown();
+        cancelPausedTimeout();
+        unregisterNoisy();
+        abandonFocus();
         try {
             ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
         } catch (Throwable t) {
             // ignore
         }
+        try {
+            // a detached (paused) notification is not removed by stopForeground
+            NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm != null) nm.cancel(NOTIF_ID);
+        } catch (Throwable t) {
+            // ignore
+        }
         foregrounded = false;
+        detached = false;
+        dead = true;
+        if (instance == this) instance = null; // a start() right now makes a fresh service instead of using this one
         stopSelf();
     }
 
@@ -279,6 +542,7 @@ public class CyMediaService extends Service {
         int type = Build.VERSION.SDK_INT >= 29 ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK : 0;
         ServiceCompat.startForeground(this, NOTIF_ID, n, type);
         foregrounded = true;
+        detached = false;
     }
 
     private void createSession() {
@@ -286,12 +550,12 @@ public class CyMediaService extends Service {
         session.setCallback(new MediaSession.Callback() {
             @Override
             public void onPlay() {
-                CyExtras.emitMediaAction("toggle");
+                if (!playing) CyExtras.emitMediaAction("toggle");
             }
 
             @Override
             public void onPause() {
-                CyExtras.emitMediaAction("toggle");
+                if (playing) CyExtras.emitMediaAction("toggle");
             }
 
             @Override
@@ -307,6 +571,7 @@ public class CyMediaService extends Service {
             @Override
             public void onStop() {
                 CyExtras.emitMediaAction("stop");
+                stopSpeech();
                 shutdown();
             }
         });
@@ -357,7 +622,7 @@ public class CyMediaService extends Service {
             .setContentTitle(title)
             .setContentText(subtitle)
             .setContentIntent(CyExtras.openIntent(this, null, 80))
-            .setOngoing(true)
+            .setOngoing(playing)
             .setOnlyAlertOnce(true)
             .setShowWhen(false)
             .setVisibility(Notification.VISIBILITY_PUBLIC)

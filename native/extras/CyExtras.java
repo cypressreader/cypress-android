@@ -29,6 +29,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -64,6 +68,13 @@ public final class CyExtras {
     private static final Object LOCK = new Object();
     private static JSObject pendingShare;
     private static String pendingOpen;
+    /** The same tap can arrive twice (intent plus retained event, or a double delivery): ignore repeats for a moment. */
+    private static String lastOpenUrl = "";
+    private static long lastOpenAt = 0;
+    private static final long OPEN_DEDUPE_MS = 3000L;
+
+    /** All widget picture work runs one job at a time on this thread. */
+    static final ExecutorService IMG_EXEC = Executors.newSingleThreadExecutor();
 
     private CyExtras() {}
 
@@ -101,6 +112,13 @@ public final class CyExtras {
 
     private static final Pattern URL_RE = Pattern.compile("https?://[^\\s<>\"']+");
 
+    /** Only web addresses may be opened or kept as story links. */
+    static boolean isHttpUrl(String u) {
+        if (u == null) return false;
+        String l = u.trim().toLowerCase(Locale.ROOT);
+        return l.startsWith("http://") || l.startsWith("https://");
+    }
+
     /** Reads a share (ACTION_SEND text) and/or a notification/widget tap (cy_open_url) from an intent. */
     static void handleIntent(Intent intent) {
         try {
@@ -129,13 +147,26 @@ public final class CyExtras {
 
             String url = intent.getStringExtra(EXTRA_OPEN_URL);
             if (url != null && url.length() > 0) {
-                synchronized (LOCK) {
-                    pendingOpen = url;
-                }
-                JSObject o = new JSObject();
-                o.put("url", url);
-                emit("notificationOpen", o, true);
                 intent.removeExtra(EXTRA_OPEN_URL);
+                // The internal pack/digest markers and web addresses are fine; anything else (file:, intent:, javascript:) is dropped.
+                boolean ok = PACK_URL.equals(url) || DIGEST_URL.equals(url) || isHttpUrl(url);
+                boolean dup = false;
+                if (ok) {
+                    long now = System.currentTimeMillis();
+                    synchronized (LOCK) {
+                        dup = url.equals(lastOpenUrl) && now - lastOpenAt < OPEN_DEDUPE_MS;
+                        if (!dup) {
+                            lastOpenUrl = url;
+                            lastOpenAt = now;
+                            pendingOpen = url;
+                        }
+                    }
+                }
+                if (ok && !dup) {
+                    JSObject o = new JSObject();
+                    o.put("url", url);
+                    emit("notificationOpen", o, true);
+                }
             }
         } catch (Throwable t) {
             Log.w(TAG, "handleIntent failed: " + t);
@@ -401,8 +432,36 @@ public final class CyExtras {
         wo.put("enabled", w != null && w.optBoolean("enabled", false));
         out.put("widget", wo);
 
+        // Digest notice: when and how often (the worker reads these exact keys).
+        JSONObject d = in.optJSONObject("digest");
+        JSONObject dout = new JSONObject();
+        dout.put("enabled", d != null && d.optBoolean("enabled", false));
+        String when = d == null ? "morning" : d.optString("when", "morning");
+        if (!"morning".equals(when) && !"evening".equals(when) && !"both".equals(when)) when = "morning";
+        dout.put("when", when);
+        dout.put("weekly", d != null && d.optBoolean("weekly", false));
+        dout.put("weekday", clampInt(d == null ? 0 : d.optInt("weekday", 0), 0, 6));
+        dout.put("morningHour", clampInt(d == null ? 7 : d.optInt("morningHour", 7), 0, 23));
+        dout.put("eveningHour", clampInt(d == null ? 18 : d.optInt("eveningHour", 18), 0, 23));
+        out.put("digest", dout);
+
+        // Quiet hours: no alerts, digest or pack announcements between "from" and "to".
+        JSONObject q = in.optJSONObject("quiet");
+        JSONObject qout = new JSONObject();
+        qout.put("enabled", q != null && q.optBoolean("enabled", false));
+        qout.put("from", clampInt(q == null ? 22 : q.optInt("from", 22), 0, 23));
+        qout.put("to", clampInt(q == null ? 7 : q.optInt("to", 7), 0, 23));
+        out.put("quiet", qout);
+
+        // Data saver: only sync on unmetered networks. The page sends "dataSaver"; "unmetered" and "dsave" mean the same.
+        out.put("dataSaver", in.optBoolean("dataSaver", false) || in.optBoolean("unmetered", false) || in.optBoolean("dsave", false));
+
         prefs(c).edit().putString("bg_config", out.toString()).apply();
         return out;
+    }
+
+    private static int clampInt(int v, int lo, int hi) {
+        return Math.max(lo, Math.min(hi, v));
     }
 
     static JSONObject readConfig(Context c) {
@@ -435,7 +494,12 @@ public final class CyExtras {
             wm.cancelUniqueWork(WORK_NAME);
             return;
         }
-        Constraints cons = new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build();
+        // "dsave" is what an earlier build stored; the page now sends dataSaver / unmetered
+        boolean dsave = cfg.optBoolean("dataSaver", false) || cfg.optBoolean("unmetered", false) || cfg.optBoolean("dsave", false);
+        Constraints cons = new Constraints.Builder()
+            .setRequiredNetworkType(dsave ? NetworkType.UNMETERED : NetworkType.CONNECTED)
+            .setRequiresBatteryNotLow(true)
+            .build();
         PeriodicWorkRequest req = new PeriodicWorkRequest.Builder(CyBgWorker.class, 60, TimeUnit.MINUTES)
             .setConstraints(cons)
             .build();
@@ -449,7 +513,13 @@ public final class CyExtras {
 
     // ---------------------------------------------------------------- widget
 
+    /** Stores the headlines and fetches their pictures in the background (the widget is redrawn when they arrive). */
     static void saveHeadlines(Context c, JSONArray headlines) {
+        saveHeadlines(c, headlines, false);
+    }
+
+    /** With wait = true the pictures are fetched before this returns (for the background worker, which may be stopped afterwards). */
+    static void saveHeadlines(Context c, JSONArray headlines, boolean wait) {
         try {
             JSONArray out = new JSONArray();
             for (int i = 0; i < headlines.length() && out.length() < CyWidgetProvider.MAX; i++) {
@@ -457,26 +527,47 @@ public final class CyExtras {
                 if (h == null) continue;
                 String t = h.optString("title", "").trim();
                 if (t.length() == 0) continue;
+                String link = h.optString("link", "");
                 JSONObject o = new JSONObject();
                 o.put("title", t);
-                o.put("link", h.optString("link", ""));
+                o.put("link", isHttpUrl(link) ? link : "");
                 o.put("src", h.optString("src", ""));
                 o.put("img", h.optString("img", ""));
                 out.put(o);
             }
             prefs(c).edit().putString("widget_headlines", out.toString()).apply();
-            // pictures are fetched off this thread; the widget is redrawn when they arrive
             final Context app = c.getApplicationContext();
+            if (!hasWidgets(app)) return; // nothing on a home screen: no pictures to fetch
             final JSONArray snap = out;
-            new Thread(() -> {
-                try {
-                    if (CyWidgetProvider.fetchImages(app, snap)) updateWidgets(app);
-                } catch (Throwable t) {
-                    Log.w(TAG, "widget pictures failed: " + t);
+            Future<?> job = IMG_EXEC.submit(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        if (CyWidgetProvider.fetchImages(app, snap)) updateWidgets(app);
+                    } catch (Throwable t) {
+                        Log.w(TAG, "widget pictures failed: " + t);
+                    }
                 }
-            }).start();
+            });
+            if (wait) {
+                try {
+                    job.get(150, TimeUnit.SECONDS);
+                } catch (Throwable t) {
+                    Log.w(TAG, "widget pictures did not finish: " + t);
+                }
+            }
         } catch (Throwable t) {
             Log.w(TAG, "saveHeadlines failed: " + t);
+        }
+    }
+
+    static boolean hasWidgets(Context c) {
+        try {
+            AppWidgetManager m = AppWidgetManager.getInstance(c);
+            int[] ids = m.getAppWidgetIds(new ComponentName(c, CyWidgetProvider.class));
+            return ids != null && ids.length > 0;
+        } catch (Throwable t) {
+            return true; // cannot tell: do the work
         }
     }
 

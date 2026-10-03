@@ -37,6 +37,9 @@ REPO = os.environ.get('GITHUB_REPOSITORY', '').strip()
 # Optional extras (notifications, background audio, widget, icon switch, share target).
 # EXTRAS=0 builds the core app only. --strip-extras undoes the extras in an already prepared project.
 EXTRAS = os.environ.get('EXTRAS', '1').strip().lower() not in ('0', 'false', 'no', 'off')
+# Only a manual run with "allow_degraded" switched on may fall back to the core app when the extras do not fit.
+# Otherwise a problem with the extras stops the build instead of quietly publishing a smaller app.
+ALLOW_DEGRADED = os.environ.get('ALLOW_DEGRADED', '').strip().lower() in ('1', 'true', 'yes', 'on')
 STRIP_ONLY = '--strip-extras' in sys.argv
 NATIVE = os.path.join(ROOT, 'native')
 XDIR = os.path.join(NATIVE, 'extras')
@@ -119,6 +122,35 @@ ALIAS_TMPL = """        <activity-alias
             </intent-filter>
         </activity-alias>
 """
+
+
+def patch_config_changes():
+    """Adds |density to MainActivity's android:configChanges so a display-size change does not recreate the page.
+    Works on whatever value the template has, does nothing if density is already there, and never stops the build."""
+    try:
+        s = open(MANIFEST, encoding='utf-8').read()
+        starts = [m for m in re.finditer(r'<activity\b[^>]*>', s)
+                  if re.search(r'android:name\s*=\s*"\.MainActivity"', m.group(0))]
+        if len(starts) != 1:
+            print('::warning title=configChanges not patched::Expected one MainActivity element, found %d.' % len(starts))
+            return
+        tag = starts[0].group(0)
+        m = re.search(r'android:configChanges\s*=\s*"([^"]*)"', tag)
+        if not m:
+            print('::warning title=configChanges not patched::MainActivity has no android:configChanges attribute.')
+            return
+        parts = [x.strip() for x in m.group(1).split('|') if x.strip()]
+        if 'density' in parts:
+            say('MainActivity already handles density changes')
+            return
+        parts.append('density')
+        new_tag = tag[:m.start()] + 'android:configChanges="%s"' % '|'.join(parts) + tag[m.end():]
+        s2 = s[:starts[0].start()] + new_tag + s[starts[0].end():]
+        ET.fromstring(s2)  # must still be well-formed
+        open(MANIFEST, 'w', encoding='utf-8').write(s2)
+        say('MainActivity now also handles density changes (display size)')
+    except Exception as e:
+        print('::warning title=configChanges not patched::%s' % e)
 
 
 def edit_manifest():
@@ -376,7 +408,7 @@ say('version set to %s (build number %s)' % (LABEL, BUILD))
 # 3. launcher icon -------------------------------------------------------------------------
 icons = os.path.join(ROOT, 'icons', ICON)
 if not os.path.isdir(icons):
-    die('There is no icon set called "%s". In build-apk.yml, ICON must be one of: tree, circuit, crimson, golden, terminal, broadsheet, midnight, rose.' % ICON)
+    die('There is no icon set called "%s". In .github/workflows/build-apk.yml, ICON must be one of: tree, circuit, crimson, golden, terminal, broadsheet, midnight, rose.' % ICON)
 removed = 0
 for pat in ('mipmap*/ic_launcher*', 'drawable*/ic_launcher*', 'values/ic_launcher_background.xml'):
     for f in glob.glob(os.path.join(RES, pat)):
@@ -411,11 +443,17 @@ if REPO:
 else:
     say('no repository name given, so in-app updates are off in this build')
 
-# 6. optional extras: if anything about them goes wrong they are removed again and the core app is built
+# 5b. manifest tweak that applies to every build (done before the extras take their pristine manifest copy)
+patch_config_changes()
+
+# 6. optional extras. A problem with them stops the build, unless this is a manual run with ALLOW_DEGRADED on:
+#    then they are removed again and a core-only app is built (the workflow publishes that as a pre-release).
 if EXTRAS:
     try:
         apply_extras()
     except Exception as e:
+        if not ALLOW_DEGRADED:
+            die('The optional extras could not be added: %s. Nothing was published. Fix this, or run the workflow by hand with "allow_degraded" turned on to build the core app only.' % str(e).rstrip('.'))
         print('::warning title=Optional extras skipped::%s' % e)
         try:
             strip_extras()
