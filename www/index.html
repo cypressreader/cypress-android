@@ -5093,9 +5093,11 @@ function perfReport(){
   'recorded '+secs+' s, scrolled '+Math.round(PERF.dist)+' px (down '+Math.round(PERF.down)+')',
   'frames '+f.length+': over 20ms '+over(20)+' ('+Math.round(100*over(20)/n)+'%), over 34ms '+over(34)+', over 50ms '+over(50)+', over 100ms '+over(100)+', median '+pc(.5)+'ms, 95th '+pc(.95)+'ms, worst '+Math.round(srt[n-1]||0)+'ms',
   'long tasks (50ms+): '+PERF.lt.length+', total '+PERF.lt.reduce((a,x)=>a+x,0)+'ms, longest '+Math.max(0,...PERF.lt)+'ms'];
- if(PERF.loafOk){const lo=PERF.loaf.slice().sort((x,y)=>y.d-x.d),sc={};PERF.loaf.forEach(e=>e.sc.forEach(x=>{const k=(x.fn||'?')+' '+x.src;sc[k]=(sc[k]||0)+x.d}));
+ if(PERF.loafOk){const lo=PERF.loaf.filter(e=>e.at>=0).sort((x,y)=>y.d-x.d),sc={};PERF.loaf.forEach(e=>e.sc.forEach(x=>{const k=(x.fn||'?')+' '+x.src;sc[k]=(sc[k]||0)+x.d}));
+  try{L.push('js heap '+PERF.m0+'MB at start, '+Math.round(performance.memory.usedJSHeapSize/1048576)+'MB at end, limit '+Math.round(performance.memory.jsHeapSizeLimit/1048576)+'MB')}catch(e){}
+  const evs=(PERF.ev||[]).slice().sort((a,b)=>b.d-a.d).slice(0,8);if(evs.length)L.push('app jobs 6ms+ while recording: '+evs.map(v=>v.k+' '+v.d+'ms at '+(v.at/1000).toFixed(1)+'s').join('; '));
   L.push('slow frames reported by the browser: '+PERF.loaf.length+', style and layout time in them '+PERF.loaf.reduce((a,e)=>a+e.sl,0)+'ms, script time '+PERF.loaf.reduce((a,e)=>a+e.sd,0)+'ms');
-  lo.slice(0,8).forEach((e,i)=>L.push(' '+(i+1)+'. '+e.d+'ms (blocking '+e.bd+', style+layout '+e.sl+', script '+e.sd+')'+(e.sc.length?' '+e.sc.slice(0,3).map(x=>(x.fn||'?')+' '+x.src+' '+x.d+'ms').join('; '):'')));
+  lo.slice(0,8).forEach((e,i)=>{const near=(PERF.ev||[]).filter(v=>v.at>=e.at-120&&v.at<=e.at+e.d+60).slice(0,4).map(v=>v.k+(v.d?' '+v.d+'ms':'')).join(', ');L.push(' '+(i+1)+'. at '+(e.at/1000).toFixed(1)+'s '+e.d+'ms (blocking '+e.bd+'; before drawing '+e.pre+', draw steps '+e.rs+', style+layout '+e.sl+', script '+e.sd+', heap '+e.mem+'MB)'+(e.sc.length?' '+e.sc.slice(0,3).map(x=>(x.fn||'?')+' '+x.src+' '+x.d+'ms').join('; '):'')+(near?' | app was doing: '+near:''))});
   const top=Object.entries(sc).sort((a,b)=>b[1]-a[1]).slice(0,6);if(top.length)L.push('scripts that ran longest: '+top.map(([k,v])=>k+' '+Math.round(v)+'ms').join('; '))}
  else L.push('(this browser does not report why frames were slow)');
  return L.join('\n');
@@ -5103,7 +5105,8 @@ function perfReport(){
 function perfStop(){
  if(!PERF.on)return;PERF.on=false;
  try{PERF.po&&PERF.po.disconnect();PERF.lo&&PERF.lo.disconnect()}catch(e){}
- removeEventListener('scroll',PERF.sc,true);
+ removeEventListener('scroll',PERF.sc,true);try{document.removeEventListener('visibilitychange',PERF.vc);removeEventListener('resize',PERF.rz)}catch(e){}
+ for(const n in PERF.wr){try{window[n]=PERF.wr[n]}catch(e){}}
  const bar=$('#perfbar');if(bar)bar.remove();
  const t=perfReport();
  let ok=false;
@@ -5113,11 +5116,18 @@ function perfStop(){
 }
 function perfStart(){
  if(PERF.on)return;
- Object.assign(PERF,{on:true,fr:[],loaf:[],lt:[],dist:0,down:0,t0:performance.now(),loafOk:false,lastY:new WeakMap()});
+ Object.assign(PERF,{on:true,fr:[],loaf:[],lt:[],ev:[],wr:{},dist:0,down:0,t0:performance.now(),loafOk:false,lastY:new WeakMap()});
+ try{PERF.m0=Math.round(performance.memory.usedJSHeapSize/1048576)}catch(e){}
+ const lg=(k,d)=>{if(PERF.on)PERF.ev.push({at:performance.now()-PERF.t0,k,d:Math.round(d||0)})};
+ /* time the app's own big jobs while recording, so slow frames can be matched to what the app was doing */
+ for(const n of ['render','loadAll','saveCache0','analyzePx','parse','side','imgFx','extract','openReader','quietRender','loadFlush']){const o=window[n];if(typeof o!=='function'||o.__pw)continue;const w=function(){const t=performance.now();try{return o.apply(this,arguments)}finally{const d=performance.now()-t;if(d>=6)lg(n,d)}};w.__pw=1;PERF.wr[n]=o;try{window[n]=w}catch(e){}}
+ PERF.vc=()=>lg(document.hidden?'app hidden':'app shown',0);document.addEventListener('visibilitychange',PERF.vc);
+ PERF.rz=()=>lg('resize',0);addEventListener('resize',PERF.rz);
+ PERF.pl=()=>lg('new-stories bar',0);
  let last=performance.now();const tick=t=>{if(!PERF.on)return;PERF.fr.push(t-last);last=t;requestAnimationFrame(tick)};requestAnimationFrame(tick);
  PERF.sc=e=>{const el=e.target===document?document.scrollingElement:e.target;if(!el||el.scrollTop==null)return;const p=PERF.lastY.get(el);PERF.lastY.set(el,el.scrollTop);if(p!=null){const d=el.scrollTop-p;PERF.dist+=Math.abs(d);if(d>0)PERF.down+=d}};
  addEventListener('scroll',PERF.sc,true);
- try{PERF.po=new PerformanceObserver(l=>l.getEntries().forEach(e=>{const sc=(e.scripts||[]).map(x=>({fn:x.sourceFunctionName||x.invoker||'',src:String(x.sourceURL||'inline').split('/').pop().slice(-24)+':'+(x.sourceCharPosition||0),d:Math.round(x.duration||0)}));const ss=e.styleAndLayoutStart?Math.max(0,Math.round(e.startTime+e.duration-e.styleAndLayoutStart)):0;PERF.loaf.push({d:Math.round(e.duration),bd:Math.round(e.blockingDuration||0),sl:ss,sd:sc.reduce((a,x)=>a+x.d,0),sc})}));PERF.po.observe({type:'long-animation-frame',buffered:false});PERF.loafOk=true}catch(e){}
+ try{PERF.po=new PerformanceObserver(l=>l.getEntries().forEach(e=>{const sc=(e.scripts||[]).map(x=>({fn:x.sourceFunctionName||x.invoker||'',src:String(x.sourceURL||'inline').split('/').pop().slice(-24)+':'+(x.sourceCharPosition||0),d:Math.round(x.duration||0)}));const ss=e.styleAndLayoutStart?Math.max(0,Math.round(e.startTime+e.duration-e.styleAndLayoutStart)):0;const t0=e.startTime-PERF.t0,pre=e.renderStart?Math.round(e.renderStart-e.startTime):0,rs=(e.renderStart&&e.styleAndLayoutStart)?Math.round(e.styleAndLayoutStart-e.renderStart):0;let mem=0;try{mem=Math.round(performance.memory.usedJSHeapSize/1048576)}catch(_){}PERF.loaf.push({at:t0,d:Math.round(e.duration),bd:Math.round(e.blockingDuration||0),sl:ss,sd:sc.reduce((a,x)=>a+x.d,0),sc,pre,rs,mem,ui:!!e.firstUIEventTimestamp})}));PERF.po.observe({type:'long-animation-frame',buffered:false});PERF.loafOk=true}catch(e){}
  try{PERF.lo=new PerformanceObserver(l=>l.getEntries().forEach(e=>PERF.lt.push(Math.round(e.duration))));PERF.lo.observe({entryTypes:['longtask']})}catch(e){}
  const bar=document.createElement('div');bar.id='perfbar';bar.style.cssText='position:fixed;left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:9999;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:#14171c;color:#fff;font:600 14px system-ui;box-shadow:0 6px 24px rgba(0,0,0,.4)';
  bar.innerHTML='<span style="flex:1">Recording. Scroll your feed for about 15 seconds, then tap Finish.</span><button type="button" style="padding:8px 14px;border-radius:99px;border:0;background:#5dffb0;color:#06231a;font:700 14px system-ui">Finish</button>';
@@ -5844,8 +5854,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.04e';const APP_LABEL='1.23';
-const CHANGES=['Fixed the stutter while scrolling that your Check scrolling report pinpointed: refreshing feeds in the background used to redraw the page and save a large cache while you were scrolling', 'When new stories arrive and you are scrolled down, a small "New stories. Tap to show" bar appears instead of redrawing under your finger. The page refreshes by itself when you scroll back to the top', 'Reading feeds and saving stories now wait until you stop scrolling'];
+const APP_VERSION='2026.10.04f';const APP_LABEL='1.24';
+const CHANGES=['Check scrolling now records what the app was doing around each slow moment (which job, how long, memory use), so rare stalls can be traced to their cause. Run it again and send the report'];
 const DEF_ON=new Set(['skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
