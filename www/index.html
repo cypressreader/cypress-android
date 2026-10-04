@@ -2690,7 +2690,7 @@ function extract(html,base){
  d.querySelectorAll('p').forEach(p=>{const L=p.textContent.trim().length;if(L<50)return;for(let el=p.parentElement,k=0;el&&k<3;el=el.parentElement,k++)sc.set(el,(sc.get(el)||0)+L/(k+1))});
  let best=null,max=0;sc.forEach((v,el)=>{if(v>max){max=v;best=el}});
  let node=best&&max>=300?tidyFrag(clean(best,base)):null;
- if(node){pruneJunk(node);if(node.textContent.replace(/\s+/g,' ').trim().length<120)node=null}
+ if(node){const pre=node.textContent.replace(/\s+/g,' ').trim().length;pruneJunk(node);const post=node.textContent.replace(/\s+/g,' ').trim().length;/* only a page that was mostly menus and notices is thrown away; a genuinely short story is kept */if(post<120&&pre>=post*3)node=null}
  if(ld.length>500&&(!node||ld.length>node.textContent.length*1.3)){
   ld=new DOMParser().parseFromString(ld,'text/html').body.textContent;
   const f=document.createDocumentFragment();
