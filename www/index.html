@@ -2527,8 +2527,6 @@ async function fetchText(url,ok,lg){
  add('allorigins',u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u));
  add('corsproxy',u=>'https://corsproxy.io/?url='+encodeURIComponent(u));
  add('codetabs',u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u));
- add('thingproxy',u=>'https://thingproxy.freeboard.io/fetch/'+u);
- add('yacdn',u=>'https://yacdn.org/proxy/'+u);
  add('allorigins-json',u=>'https://api.allorigins.win/get?url='+encodeURIComponent(u),1);
  const gap=NATIVE?2500:1100,ms=NATIVE?12000:8000;
  let over=false;const ctls=[],timers=[];
@@ -2713,8 +2711,19 @@ function md(txt,base){
 }
 function fromHTML(html,base){return clean(new DOMParser().parseFromString(html||'','text/html').body,base)}
 function firstImg(html,base){
- const i=new DOMParser().parseFromString(html||'','text/html').querySelector('img[src]');
- return i?abs(i.getAttribute('src'),base):'';
+ /* first real photo in the article HTML: reads lazy-load attributes and srcset, skips Google's own icons, favicons and tracking pixels */
+ const d=new DOMParser().parseFromString(html||'','text/html');
+ for(const i of d.querySelectorAll('img')){
+  let u=i.getAttribute('src')||'';
+  if(!u||/^data:/.test(u))u=i.getAttribute('data-src')||i.getAttribute('data-original')||i.getAttribute('data-lazy-src')||'';
+  if(!u){const ss=i.getAttribute('srcset')||i.getAttribute('data-srcset')||'';u=ss.split(',')[0].trim().split(/\s+/)[0]||''}
+  if(!u||/^data:/.test(u))continue;
+  const w=+i.getAttribute('width'),h=+i.getAttribute('height');
+  if((w&&w<40)||(h&&h<40))continue;
+  if(/(^|\/\/)(lh\d\.googleusercontent\.com|[\w.-]*gstatic\.com|www\.google\.com\/s2\/favicons)|favicon|\/pixel\b|1x1/i.test(u))continue;
+  return abs(u,base);
+ }
+ return '';
 }
 const tx=(el,n)=>el.getElementsByTagName(n)[0]?.textContent?.trim()||'';
 /* JSON Feed (jsonfeed.org): same story shape as RSS items */
@@ -5965,7 +5974,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.10.04j';const APP_LABEL='1.28';
-const CHANGES=['Opening your phone no longer sends a story you were reading in scroll view back to the beginning: your place carries over to the page view, and back', 'Dynamic theme now uses Inter, a modern sans designed for screens, in place of the serif', 'Closing your fold while a story is being read aloud keeps your place and no longer snaps you back: the place carries over even while photos finish loading, and scrolling by hand is not fought by the read-aloud follow for a few seconds', 'Feed headlines: every theme now uses a clear, modern face that still suits it (the old display faces such as Bangers, Bebas and Uncial are gone from the feeds), and feed headlines are a lighter weight. Story text fonts are unchanged'];
+const CHANGES=['Opening your phone no longer sends a story you were reading in scroll view back to the beginning: your place carries over to the page view, and back', 'Dynamic theme now uses Inter, a modern sans designed for screens, in place of the serif', 'Closing your fold while a story is being read aloud keeps your place and no longer snaps you back: the place carries over even while photos finish loading, and scrolling by hand is not fought by the read-aloud follow for a few seconds', 'Feed headlines: every theme now uses a clear, modern face that still suits it (the old display faces such as Bangers, Bebas and Uncial are gone from the feeds), and feed headlines are a lighter weight. Story text fonts are unchanged', 'Feed photos: lazy-loaded and srcset images are now found, and Google icons and tiny tracking pixels are never used as a story photo. Two dead fallback proxies removed so a failing feed gives up sooner'];
 const DEF_ON=new Set(['skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
