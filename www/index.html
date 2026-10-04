@@ -2657,10 +2657,12 @@ function tidyFrag(f){
  const o=document.createDocumentFragment();while(w.firstChild)o.append(w.firstChild);return o;
 }
 /* video pages and menus: drop the "video player was slow" feedback form and runs of one-word link menus that some sites leave inside the article body */
-const VIDJ=/(video player was slow to load|video content (never loaded|did not start)|ad (never loaded|froze|prevented|was repetitive)|content moved around while ad loaded|audio on ad was too loud|^\s*(\[x\]\s*)?other issues|^\s*cancel\s*submit\s*$|^\s*thank you!?\s*$|your effort and contribution in providing this feedback)/i,MENUJ=/^(more|watch|listen|subscribe|watchlistensubscribe|sign in|log in|search)$/i;
+const VIDJ=/(video player was slow to load|video content (never loaded|did not start)|ad (never loaded|froze|prevented|was repetitive)|content moved around while ad loaded|audio on ad was too loud|^\s*(\[x\]\s*)?other issues|^\s*cancel\s*submit\s*$|^\s*thank you!?\s*$|your effort and contribution in providing this feedback)/i,MENUJ=/^(more|watch|listen|subscribe|watchlistensubscribe|sign in|log in|search|skip to (main )?content|accept( all( cookies)?)?|manage my choices|try again|previous( next)?|next|menu( menu)?|settings|headings|topics|by region|home|shows|live|newsfeed|en|français|english|español|عربي|follow|share|issued on:?.*|reading time \d+ ?min|\d{1,2}:\d{2}( ?min)?|cover image:.{0,80})$/i,CHROMEJ=/(browser extensions? seems to be blocking|you must enable adver|advertisement tracking and audience|to display this content from|manage my choices|we use cookies|cookie (policy|settings|preferences)|accept all (cookies)?|skip to main content|international breaking news,? top stories|^\s*\d\.\s+\w[\w ]*(\s+\d\.\s+\w[\w ]*){1,})/i,STARLIST=/^(?:[^*]{1,60}\*\s*){3,}[^*]{0,60}$/;
 function pruneJunk(root){
- const kids=[...root.querySelectorAll('p,li,div,h2,h3')].filter(e=>e.isConnected);
- kids.forEach(e=>{if(e.children.length>8)return;const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length&&t.length<700&&(VIDJ.test(t)||MENUJ.test(t)))e.remove()});
+ const kids=[...root.querySelectorAll('p,li,div,h2,h3')];/* the article is detached from the page, so isConnected would always be false */
+ kids.forEach(e=>{if(e.children.length>8)return;const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length&&t.length<700&&(VIDJ.test(t)||MENUJ.test(t)||CHROMEJ.test(t)||(t.length<400&&STARLIST.test(t))))e.remove()});
+ /* lists made only of short labels are menus, not part of the story */
+ root.querySelectorAll('ul,ol').forEach(u=>{if(!root.contains(u))return;const li=[...u.children].filter(x=>x.tagName==='LI');if(li.length>=3&&li.every(x=>x.textContent.replace(/\s+/g,' ').trim().length<26)&&u.textContent.length<260)u.remove()});
  const lk=e=>{const t=e.textContent.replace(/\s+/g,' ').trim(),a=e.querySelectorAll('a');return t.length>0&&t.length<30&&a.length===1&&a[0].textContent.replace(/\s+/g,' ').trim()===t};
  [root,...root.querySelectorAll('div,section,article')].forEach(par=>{
   let run=[];const flush=()=>{if(run.length>=3)run.forEach(x=>x.remove());run=[]};
@@ -2720,7 +2722,7 @@ function md(txt,base){
   while(i>0&&/^(#{1,4}\s|!\[)/.test(bl[i-1]))i--;
   bl=bl.slice(i,z+1);
  }
- bl=bl.filter(x=>!ADRE.test(x)&&!VIDJ.test(pl(x))&&!MENUJ.test(pl(x)));
+ bl=bl.filter(x=>!ADRE.test(x)&&!VIDJ.test(pl(x))&&!MENUJ.test(pl(x))&&!CHROMEJ.test(pl(x))&&!(pl(x).length<400&&STARLIST.test(pl(x))));
  bl=bl.filter(x=>{const t=pl(x);return !/^(undo|ad|ads|advertisement|\*+)$/i.test(t)&&!/\[?Sponsored\s*Sponsored|^\[?Sponsored\b.*\]\(|\bSponsored\]/i.test(x)});
  {const ci=bl.findIndex((x,i)=>i>=3&&i>=bl.length*.25&&/^(#{1,6}\s*)?[*_]*(enjoyed this story|most read|most popular|related (articles|stories|news|posts)|more from|you may also like|recommended( for you)?|also read|trending( now)?|read next|latest news|more stories|follow (us|goal)|download the)/i.test(x.trim()));if(ci>0)bl=bl.slice(0,ci)}
  bl=bl.filter(x=>{const t=pl(x);if(!t&&!/!\[/.test(x))return false;if(/^(close|follow on x|multiple authors)$/i.test(t))return false;if(t.length<700&&AUTHJ.test(t))return false;const im=x.match(/!\[([^\]]*)\]\(([^)]*)\)/g)||[];if(im.length&&t.length<30&&im.every(i=>ICONRE.test(i)&&!/\.(jpe?g|webp)\b/i.test(i)))return false;return true});
@@ -6030,7 +6032,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.10.04k';const APP_LABEL='1.29';
-const CHANGES=['Smoother colour changes behind the feed in the Dynamic theme: the tint now cross-fades on its own layer instead of repainting the whole page, so scrolling stays smooth while the colour shifts'];
+const CHANGES=['Smoother colour changes behind the feed in the Dynamic theme: the tint now cross-fades on its own layer instead of repainting the whole page, so scrolling stays smooth while the colour shifts', 'Story text no longer includes site menus, language lists, cookie and video-blocker notices, “Skip to main content” links and timestamps that some sites leave in the page'];
 const DEF_ON=new Set(['skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
