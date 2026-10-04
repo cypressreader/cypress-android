@@ -2815,7 +2815,8 @@ offApply(false);
 const IINFO=new Map();let IIS={};try{IIS=JSON.parse(localStorage.getItem('folio-imgi')||'{}')}catch(e){}
 function imgPixels(url){return new Promise(async res=>{
  let done=false;const fin=v=>{if(!done){done=true;res(v)}};setTimeout(()=>fin(null),9000);
- if(NATIVE){try{const r=await fetch(url,{headers:NHDR});if(r.ok){fin(await createImageBitmap(await r.blob()));return}}catch(e){}}
+ /* decode the photo off the main thread, straight to a tiny bitmap, so scrolling never stalls on a full-size decode */
+ if(typeof createImageBitmap==='function'){try{const r=await fetch(url,NATIVE?{headers:NHDR}:{referrerPolicy:'no-referrer',credentials:'omit'});if(r.ok){const bl=await r.blob();let bm;try{bm=await createImageBitmap(bl,{resizeWidth:40,resizeHeight:40,resizeQuality:'low'})}catch(e){bm=await createImageBitmap(bl)}fin(bm);return}}catch(e){}}
  const im=new Image();im.crossOrigin='anonymous';im.referrerPolicy='no-referrer';im.onload=()=>fin(im);im.onerror=()=>fin(null);im.src=url});}
 function toTint(r,g,b){const mx=Math.max(r,g,b)/255,mn=Math.min(r,g,b)/255;let h=0,l=(mx+mn)/2,d=mx-mn,sat=d?d/(1-Math.abs(2*l-1)):0;
  if(d){if(mx===r/255)h=((g-b)/255/d)%6;else if(mx===g/255)h=(b-r)/255/d+2;else h=(r-g)/255/d+4;h*=60;if(h<0)h+=360}
