@@ -1350,8 +1350,13 @@ html.tlay:is([data-theme=forest],[data-theme=golden],[data-theme=crimson],[data-
 html.tlay:is([data-theme=forest],[data-theme=golden],[data-theme=crimson],[data-theme=rose],[data-theme=midnight],[data-theme=sepia]) .cvm{text-shadow:0 0 26px color-mix(in srgb,var(--a1) 55%,transparent),0 2px 20px rgba(0,0,0,.35)}
 html.tlay:is([data-theme=forest],[data-theme=golden],[data-theme=crimson],[data-theme=rose],[data-theme=midnight],[data-theme=sepia]) #rd .kick{font-variant:small-caps;letter-spacing:.1em}
 html.tlay:is([data-theme=forest],[data-theme=golden],[data-theme=crimson],[data-theme=rose],[data-theme=midnight],[data-theme=sepia]) #rd .dt::after{content:'\2766';display:block;margin-top:.5em;color:var(--a1);font-size:1.25em;line-height:1}
-html.dynx[data-theme=dynamic] body,html.dynx[data-theme=dynamic] #tabs{transition:--dyn .9s ease}
-html.dynx[data-theme=dynamic] body{background:radial-gradient(120% 55% at 50% -8%,color-mix(in srgb,var(--dyn) 24%,transparent),transparent 72%) fixed,color-mix(in srgb,var(--dyn) 8%,var(--bg))}
+html.dynx[data-theme=dynamic] #tabs{transition:--dyn .9s ease}
+/* the page tint is two fixed layers that cross-fade by opacity, so changing colour while you scroll costs no repaint */
+html.dynx[data-theme=dynamic]{background:var(--bg)}
+html.dynx[data-theme=dynamic] body{background:none}
+#dynbg{position:fixed;inset:0;z-index:-1;pointer-events:none}
+#dynbg i{position:absolute;inset:0;opacity:0;transition:opacity .8s ease;will-change:opacity;background:radial-gradient(120% 55% at 50% -8%,color-mix(in srgb,var(--c) 24%,transparent),transparent 72%),color-mix(in srgb,var(--c) 8%,var(--bg))}
+#dynbg i.on{opacity:1}
 html.dynx[data-theme=dynamic] #grid .card{border-bottom:2px solid color-mix(in srgb,var(--b) 55%,transparent)}
 html.dynx[data-theme=dynamic] #grid .card.act{box-shadow:0 0 0 2px color-mix(in srgb,var(--b) 70%,transparent),0 8px 26px color-mix(in srgb,var(--b) 30%,transparent)}
 html.dynx[data-theme=dynamic] #tabs{background:color-mix(in srgb,var(--dyn) 12%,color-mix(in srgb,var(--pn) 92%,transparent))}
@@ -4932,17 +4937,31 @@ function covTitle(){
  try{const r=c.getBoundingClientRect(),m=$('main').getBoundingClientRect(),vis=Math.max(0,Math.min(r.bottom,m.bottom)-Math.max(r.top,m.top));document.body.classList.toggle('hascov',vis/(r.height||1)>.4)}catch(e){}
  const io=new IntersectionObserver(es=>document.body.classList.toggle('hascov',es[0].intersectionRatio>.4),{threshold:[0,.4,.6,1]});io.observe(c);covTitle.io=io;
 }
-const dynEls=()=>[document.body,document.getElementById('tabs')].filter(Boolean);
+const dynEls=()=>[document.getElementById('tabs')].filter(Boolean);
 /* while you scroll the colour changes at once instead of fading over 0.9 s, so the page is not re-styled on every frame of a fade */
-function dynSet(c){if(!c)return;const busy=userBusy();dynEls().forEach(e=>{e.style.transition=busy?'none':'';e.style.setProperty('--dyn',c)})}
+function dynSet(c){
+ if(!c)return;const busy=userBusy();dynEls().forEach(e=>{e.style.transition=busy?'none':'';e.style.setProperty('--dyn',c)});
+ let d=document.getElementById('dynbg');
+ if(!d){d=document.createElement('div');d.id='dynbg';d.setAttribute('aria-hidden','true');d.innerHTML='<i></i><i></i>';document.body.prepend(d)}
+ if(dynSet.c===c)return;
+ /* at most one change every 350 ms; the latest colour wins when it settles */
+ const wait=350-(Date.now()-(dynSet.t||0));
+ if(wait>0&&d.classList.contains('has')){dynSet.p=c;clearTimeout(dynSet.w);dynSet.w=setTimeout(()=>{const p=dynSet.p;dynSet.p=null;if(p)dynSet(p)},wait);return}
+ dynSet.t=Date.now();dynSet.c=c;
+ const [a,b]=d.children,first=!d.classList.contains('has'),next=d.dataset.on==='a'?b:a,prev=next===a?b:a;
+ next.style.setProperty('--c',c);d.dataset.on=next===a?'a':'b';
+ if(first){next.style.transition='none'}
+ next.classList.add('on');prev.classList.remove('on');d.classList.add('has');
+ if(first){void next.offsetWidth;next.style.transition=''}
+}
 function dynLive(){
  const r=document.documentElement,on=isOn('dynx')&&r.dataset.theme==='dynamic';
  if(dynLive.io){dynLive.io.disconnect();dynLive.io=null}
- if(!on){dynEls().forEach(e=>e.style.removeProperty('--dyn'));return}
+ if(!on){dynEls().forEach(e=>e.style.removeProperty('--dyn'));const d=document.getElementById('dynbg');if(d)d.remove();dynSet.c=null;clearTimeout(dynSet.w);return}
  const g=$('#grid');if(!g)return;
  const cs=[...g.querySelectorAll(':scope>.card,:scope>.cover,:scope .card')];
  const c0=cs[0]?(cs[0].style.getPropertyValue('--b')||getComputedStyle(cs[0]).getPropertyValue('--b')).trim():'';
- const keep=document.body.style.getPropertyValue('--dyn')&&dynLive.sel===S.sel;dynLive.sel=S.sel;if(!keep)dynSet(c0||getComputedStyle(r).getPropertyValue('--a1').trim()||'#0a8f4a');
+ const keep=dynSet.c&&dynLive.sel===S.sel;dynLive.sel=S.sel;if(!keep)dynSet(c0||getComputedStyle(r).getPropertyValue('--a1').trim()||'#0a8f4a');
  if(!('IntersectionObserver' in window))return;
  const io=new IntersectionObserver(es=>{const e=es.filter(x=>x.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top)[0];if(!e)return;const c=(e.target.style.getPropertyValue('--b')||'').trim();if(c)dynSet(c)},{rootMargin:'-28% 0px -56% 0px'});
  cs.slice(0,120).forEach(x=>io.observe(x));dynLive.io=io;
@@ -6010,8 +6029,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.04j';const APP_LABEL='1.28';
-const CHANGES=['Opening your phone no longer sends a story you were reading in scroll view back to the beginning: your place carries over to the page view, and back', 'Dynamic theme now uses Inter, a modern sans designed for screens, in place of the serif', 'Closing your fold while a story is being read aloud keeps your place and no longer snaps you back: the place carries over even while photos finish loading, and scrolling by hand is not fought by the read-aloud follow for a few seconds', 'Feed headlines: every theme now uses a clear, modern face that still suits it (the old display faces such as Bangers, Bebas and Uncial are gone from the feeds), and feed headlines are a lighter weight. Story text fonts are unchanged', 'Feed photos: lazy-loaded and srcset images are now found, and Google icons and tiny tracking pixels are never used as a story photo. Two dead fallback proxies removed so a failing feed gives up sooner', 'CNN video pages and similar no longer show the video-feedback form or a column of menu links as the story text', 'Clearer problems: a feed that isn’t loading now says why (offline, blocked, moved, slow or unreadable) and when it last updated, and the Add feed box explains what went wrong and that nothing was added', 'Themes: a short Featured row comes first, and the other 48 styles sit under More styles so nobody has to scroll through them all', 'Sync and privacy wording is plain now: no account needed, your data stays yours, and the private relay is explained as optional', 'Settings now say whether you are ready for offline reading: how many stories are stored and when your feeds last updated', 'Quiet one-time tips appear when a feature becomes useful, such as The Daily after a couple of days, or folders once you follow many feeds', 'Sepia, Midnight and Forest now have their own personality: warm textured paper, calm low-intensity night reading, and a mossy green edge', 'The Week page is its own look back now: your numbers first, then the week’s biggest stories, what you read and what you missed, instead of repeating the Edition. It says it covers the last 7 days, and the “Colophon” footer is now called “About this issue”', 'Even spacing above and below the heavy rules between story lists, so the gap under the last story matches the gap under the line', 'Settings: the effects section is called Battery and motion in every view, and changing the app icon now warns that Android will close the app', 'Battery and motion has its own page in Settings again, instead of being folded into Look and layout', 'The optional opening animation is shorter on Android, where the phone already shows its own launch screen first'];
+const APP_VERSION='2026.10.04k';const APP_LABEL='1.29';
+const CHANGES=['Smoother colour changes behind the feed in the Dynamic theme: the tint now cross-fades on its own layer instead of repainting the whole page, so scrolling stays smooth while the colour shifts'];
 const DEF_ON=new Set(['skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
