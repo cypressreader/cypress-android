@@ -1359,7 +1359,7 @@ html.dynx[data-theme=dynamic] #tabs{transition:--dyn .9s ease}
 html.dynx[data-theme=dynamic]{background:var(--bg)}
 html.dynx[data-theme=dynamic] body{background:none}
 #dynbg{position:fixed;inset:0;z-index:-1;pointer-events:none}
-#dynbg i{position:absolute;inset:0;opacity:0;transition:opacity .8s ease;will-change:opacity;background:radial-gradient(120% 55% at 50% -8%,color-mix(in srgb,var(--c) 24%,transparent),transparent 72%),color-mix(in srgb,var(--c) 8%,var(--bg))}
+#dynbg i{position:absolute;inset:0;opacity:0;transition:opacity 1.8s ease-in-out;will-change:opacity;background:radial-gradient(120% 55% at 50% -8%,color-mix(in srgb,var(--c) 16%,transparent),transparent 72%),color-mix(in srgb,var(--c) 5%,var(--bg))}
 #dynbg i.on{opacity:1}
 html.dynx[data-theme=dynamic] #grid .card{border-bottom:2px solid color-mix(in srgb,var(--b) 55%,transparent)}
 html.dynx[data-theme=dynamic] #grid .card.act{box-shadow:0 0 0 2px color-mix(in srgb,var(--b) 70%,transparent),0 8px 26px color-mix(in srgb,var(--b) 30%,transparent)}
@@ -4951,20 +4951,29 @@ function covTitle(){
 }
 const dynEls=()=>[document.getElementById('tabs')].filter(Boolean);
 /* while you scroll the colour changes at once instead of fading over 0.9 s, so the page is not re-styled on every frame of a fade */
-function dynSet(c){
- if(!c)return;const busy=userBusy();dynEls().forEach(e=>{e.style.transition=busy?'none':'';e.style.setProperty('--dyn',c)});
+function dynApply(c){
+ if(!c||dynSet.c===c)return;
  let d=document.getElementById('dynbg');
  if(!d){d=document.createElement('div');d.id='dynbg';d.setAttribute('aria-hidden','true');d.innerHTML='<i></i><i></i>';document.body.prepend(d)}
- if(dynSet.c===c)return;
- /* at most one change every 350 ms; the latest colour wins when it settles */
- const wait=350-(Date.now()-(dynSet.t||0));
- if(wait>0&&d.classList.contains('has')){dynSet.p=c;clearTimeout(dynSet.w);dynSet.w=setTimeout(()=>{const p=dynSet.p;dynSet.p=null;if(p)dynSet(p)},wait);return}
- dynSet.t=Date.now();dynSet.c=c;
  const [a,b]=d.children,first=!d.classList.contains('has'),next=d.dataset.on==='a'?b:a,prev=next===a?b:a;
- next.style.setProperty('--c',c);d.dataset.on=next===a?'a':'b';
+ /* each new tint is mixed with the one before it, so fast scrolling through many colours shifts gently instead of flashing */
+ next.style.setProperty('--c',first||!dynSet.c?c:'color-mix(in srgb,'+dynSet.c+' 38%,'+c+')');
+ dynSet.t=Date.now();dynSet.c=c;d.dataset.on=next===a?'a':'b';
+ dynEls().forEach(e=>{e.style.transition='';e.style.setProperty('--dyn',c)});
  if(first){next.style.transition='none'}
  next.classList.add('on');prev.classList.remove('on');d.classList.add('has');
  if(first){void next.offsetWidth;next.style.transition=''}
+}
+function dynSet(c){
+ if(!c)return;
+ const d=document.getElementById('dynbg'),has=!!(d&&d.classList.contains('has')),now=Date.now();
+ dynSet.tgt=c;
+ /* the colour only changes once scrolling settles for a moment, and the faster the colours come, the longer it waits */
+ dynSet.h=(dynSet.h||[]).filter(t=>now-t<2500);dynSet.h.push(now);
+ const dwell=has?Math.min(1100,420+dynSet.h.length*160):0,wait=Math.max(dwell,1400-(now-(dynSet.t||0)));
+ clearTimeout(dynSet.w);
+ if(has&&wait>0){dynSet.w=setTimeout(()=>dynApply(dynSet.tgt),wait);return}
+ dynApply(c);
 }
 function dynLive(){
  const r=document.documentElement,on=isOn('dynx')&&r.dataset.theme==='dynamic';
@@ -4973,7 +4982,7 @@ function dynLive(){
  const g=$('#grid');if(!g)return;
  const cs=[...g.querySelectorAll(':scope>.card,:scope>.cover,:scope .card')];
  const c0=cs[0]?(cs[0].style.getPropertyValue('--b')||getComputedStyle(cs[0]).getPropertyValue('--b')).trim():'';
- const keep=dynSet.c&&dynLive.sel===S.sel;dynLive.sel=S.sel;if(!keep)dynSet(c0||getComputedStyle(r).getPropertyValue('--a1').trim()||'#0a8f4a');
+ const keep=dynSet.c&&dynLive.sel===S.sel;dynLive.sel=S.sel;if(!keep){clearTimeout(dynSet.w);dynApply(c0||getComputedStyle(r).getPropertyValue('--a1').trim()||'#0a8f4a')}
  if(!('IntersectionObserver' in window))return;
  const io=new IntersectionObserver(es=>{const e=es.filter(x=>x.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top)[0];if(!e)return;const c=(e.target.style.getPropertyValue('--b')||'').trim();if(c)dynSet(c)},{rootMargin:'-28% 0px -56% 0px'});
  cs.slice(0,120).forEach(x=>io.observe(x));dynLive.io=io;
@@ -6042,7 +6051,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.10.04l';const APP_LABEL='1.30';
-const CHANGES=['Story cards now mark each site with a small colour marker beside its name instead of a stripe down the side: a glowing dot in the Cyber themes and a small coloured square everywhere else, so the site colour no longer fights the theme'];
+const CHANGES=['Story cards now mark each site with a small colour marker beside its name instead of a stripe down the side: a glowing dot in the Cyber themes and a small coloured square everywhere else, so the site colour no longer fights the theme', 'The Dynamic theme’s background colour is much calmer while scrolling: it only shifts once scrolling settles, fades over almost two seconds, blends with the previous colour, and is a little softer'];
 const DEF_ON=new Set(['intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
