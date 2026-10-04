@@ -2793,7 +2793,7 @@ function secOpener(){
 const layoutKey=()=>((S.narrow||'auto')==='auto'&&innerWidth<=500)+'|'+(innerWidth<700)+'|'+(innerWidth>=840);let LK=layoutKey();
 function covFit(){document.querySelectorAll('.cover .cvlead h2').forEach(h=>{const n=(h.textContent||'').trim().length;h.classList.toggle('l1',n>58&&n<=88);h.classList.toggle('l2',n>88)})}
 let _lastSel=null;
-function render(){setTimeout(endObs,60);LK=layoutKey();if(S.sel!==_lastSel){_lastSel=S.sel;const mn=$('main');if(mn)mn.scrollTop=0}if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();secOpener();covTitle();covFit();dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=S.cards||'medium';clearTimeout(PF.t);PF.t=setTimeout(()=>prefetch(pfList()),2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140)}
+function render(){setTimeout(endObs,60);LK=layoutKey();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){_lastSel=S.sel;if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();secOpener();covTitle();covFit();dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=S.cards||'medium';clearTimeout(PF.t);PF.t=setTimeout(()=>prefetch(pfList()),2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
 function starGuard(){try{document.querySelectorAll('#grid .card').forEach(c=>{const st=c.querySelector('.star');if(!st)return;c.classList.remove('sg');const a=st.getBoundingClientRect();if(!a.width)return;let hit=false;c.querySelectorAll('.tx .src,.tx .src>*').forEach(e=>{const t=e.getBoundingClientRect();if(t.width&&!(a.right<=t.left||a.left>=t.right||a.bottom<=t.top||a.top>=t.bottom))hit=true});if(hit)c.classList.add('sg')})}catch(e){}}
 window.addEventListener('resize',()=>{clearTimeout(starGuard.t);starGuard.t=setTimeout(starGuard,220)});
 function offApply(user){document.body.classList.toggle('offl',!!S.offline);if(user){if(S.offline)toast('Offline mode on. Only stored stories open');else{toast('Back online');loadAll(true)}}}
@@ -2837,13 +2837,14 @@ function iiPump(){
  const j=IIQ.shift();iiRun++;
  j().then(()=>{},()=>{}).then(()=>{iiRun--;setTimeout(iiPump,30)});
 }
+const iiIdle=()=>new Promise(r=>{const go=()=>{if(Date.now()-SCRT<220||document.hidden){setTimeout(go,240);return}if(window.requestIdleCallback)requestIdleCallback(()=>r(),{timeout:1500});else setTimeout(r,60)};go()});
 function iiStore(){clearTimeout(iiSave);iiSave=setTimeout(()=>{try{localStorage.setItem('folio-imgi',JSON.stringify(IIS))}catch(e){}},2500)}
 async function imgInfo(url){
  if(!url||!/^https?:/.test(url))return null;
  if(IIS[url]&&IIS[url].v>=2)return IIS[url];
  if(!IINFO.has(url))IINFO.set(url,new Promise(res=>{
   if(IIQ.length>80){const d=IIQ.shift();d.cancel&&d.cancel()}
-  const job=async()=>{try{const im=await imgPixels(url);if(!im){res(null);return}const o=analyzePx(im);IIS[url]=o;const k=Object.keys(IIS);if(k.length>250)delete IIS[k[0]];iiStore();res(o)}catch(e){res(null)}};
+  const job=async()=>{try{const im=await imgPixels(url);if(!im){res(null);return}await iiIdle();const o=analyzePx(im);IIS[url]=o;const k=Object.keys(IIS);if(k.length>250)delete IIS[k[0]];iiStore();res(o)}catch(e){res(null)}};
   job.cancel=()=>{IINFO.delete(url);res(null)};
   IIQ.push(job);iiPump();
  }));
@@ -3068,12 +3069,15 @@ function nrBlocksPhone(l,base){
 }
 let NRIO=null;
 /* Puts the first blocks in the page and adds the rest as you scroll (Smooth mode), so switching feeds in Safari stays quick */
+let NRMORE=null;
 function setBlocks(head,B,first,step){
- const g=$('#grid');if(NRIO){NRIO.disconnect();NRIO=null}
+ const g=$('#grid');if(NRIO){NRIO.disconnect();NRIO=null}NRMORE=null;
  if(B.length<=first+2||!('IntersectionObserver' in window)){g.innerHTML=head+B.join('');return}
  let k=first;g.innerHTML=head+B.slice(0,k).join('')+'<div class="nr-more" aria-hidden="true"></div>';
  const s=g.querySelector('.nr-more');
- NRIO=new IntersectionObserver(es=>{if(!es.some(e=>e.isIntersecting))return;const n=B.slice(k,k+step);k+=n.length;s.insertAdjacentHTML('beforebegin',n.join(''));setTimeout(endObs,60);if(k>=B.length){NRIO.disconnect();NRIO=null;s.remove()}else{NRIO.unobserve(s);NRIO.observe(s)}},{root:$('main'),rootMargin:'1600px 0px'});
+ const next=()=>{if(k>=B.length)return false;const n=B.slice(k,k+step);k+=n.length;s.insertAdjacentHTML('beforebegin',n.join(''));setTimeout(endObs,60);if(k>=B.length){if(NRIO){NRIO.disconnect();NRIO=null}s.remove();NRMORE=null;return false}return true};
+ NRMORE=next;
+ NRIO=new IntersectionObserver(es=>{if(!es.some(e=>e.isIntersecting))return;if(next()&&NRIO){NRIO.unobserve(s);NRIO.observe(s)}},{root:$('main'),rootMargin:'1600px 0px'});
  NRIO.observe(s);
 }
 let NRS=null;
@@ -4986,9 +4990,9 @@ $('#hfn').onchange=e=>{S.hfont=e.target.value;applyHf();save();syncSet()};
 /* accessibility: keyboard reach for rows and cards, live regions */
 (function(){
  const SEL='aside .nav,aside .fr,#grid .cover';
- let t=0;const mark=()=>{clearTimeout(t);t=setTimeout(()=>{document.querySelectorAll(SEL).forEach(el=>{if(!el.hasAttribute('tabindex')){el.tabIndex=0;if(!el.matches('a[href]'))el.setAttribute('role','button')}if(el.classList.contains('nav'))el.setAttribute('aria-current',el.classList.contains('on')?'true':'false')});
-  document.querySelectorAll('.tg').forEach(b=>{b.setAttribute('role','switch');b.setAttribute('aria-checked',b.classList.contains('on')?'true':'false');if(!b.getAttribute('aria-label')){const lb=b.closest('.line')&&b.closest('.line').querySelector('.lb');const tx=lb&&(lb.firstChild&&lb.firstChild.textContent||lb.textContent);if(tx)b.setAttribute('aria-label',tx.trim())}})},120)};
- const ob=new MutationObserver(mark);['#grid','aside','#set'].forEach(q=>{const el=document.querySelector(q);if(el)ob.observe(el,{childList:true,subtree:true,attributes:true,attributeFilter:['class']})});mark();
+ let t=0;const mark=()=>{clearTimeout(t);t=setTimeout(()=>{document.querySelectorAll(SEL).forEach(el=>{if(!el.hasAttribute('tabindex')){el.tabIndex=0;if(!el.matches('a[href]'))el.setAttribute('role','button')}if(el.classList.contains('nav')){const v=el.classList.contains('on')?'true':'false';if(el.getAttribute('aria-current')!==v)el.setAttribute('aria-current',v)}});
+  document.querySelectorAll('.tg').forEach(b=>{if(b.getAttribute('role')!=='switch')b.setAttribute('role','switch');const v=b.classList.contains('on')?'true':'false';if(b.getAttribute('aria-checked')!==v)b.setAttribute('aria-checked',v);if(!b.getAttribute('aria-label')){const lb=b.closest('.line')&&b.closest('.line').querySelector('.lb');const tx=lb&&(lb.firstChild&&lb.firstChild.textContent||lb.textContent);if(tx)b.setAttribute('aria-label',tx.trim())}})},120)};
+ const ob=new MutationObserver(mark);{const g=document.querySelector('#grid');if(g)ob.observe(g,{childList:true,subtree:true});['aside','#set'].forEach(q=>{const el=document.querySelector(q);if(el)ob.observe(el,{childList:true,subtree:true,attributes:true,attributeFilter:['class']})})}mark();
  document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches(SEL)&&!e.target.matches('input,textarea,select,a[href]')){e.preventDefault();e.target.click()}});
 })();
 $('#dynm').onchange=e=>{S.dynm=e.target.value;save();applyTheme(true);syncSet()};
@@ -5751,8 +5755,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.04a';const APP_LABEL='1.19';
-const CHANGES=['The Daily on phones now has the varied magazine look, with a Trending feature, sections in different shapes and a long-reads strip', 'Play my Daily reads full stories aloud and skips subscriber-only sites. Settings is now six clear pages with a search box and fewer groups', 'Photos are cropped around the main subject, so faces and focal points stay in view', 'Smoother launch: no more colour flash or odd loading screen when the app opens, and feeds draw and switch faster', 'A new Caught up card appears when you reach the end of a feed', 'Android 13+ themed icon: the tree and circuit icons tint to your wallpaper', "The Daily editor's note reads like a proper letter, with a closing and signature, and no longer repeats itself"];
+const APP_VERSION='2026.10.04b';const APP_LABEL='1.20';
+const CHANGES=["Each site's feed now opens with a front-page header: its name, badge, tagline, address and quick stats, with Mute for a week", "The Daily shows how much of today's issue you have read, with a progress ring and a small ring on each section", 'The app keeps your place when you come back after leaving it, instead of jumping to the top', 'Smoother scrolling: photo analysis now waits until you stop, and background upkeep no longer runs while you scroll', 'The small i button on a story now only appears when it has something to tell you, like several of your sites covering it', 'Fixed several automated checks that had gone out of date'];
 const DEF_ON=new Set(['skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
