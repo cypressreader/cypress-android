@@ -50,10 +50,22 @@ public class MainActivity extends BridgeActivity {
             return WindowInsetsCompat.CONSUMED;
         });
 
-        // First colour behind the bars, until the page picks one to match its theme.
-        boolean night = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
-            == Configuration.UI_MODE_NIGHT_YES;
-        getWindow().getDecorView().setBackgroundColor(night ? 0xFF133A28 : 0xFF133A28);
+        // First colour behind the bars and the page: the one the app used last time, so there is no
+        // flash of a different colour at launch. Dark navy the very first time.
+        int first = 0xFF0E1220;
+        try {
+            first = getSharedPreferences("cy_ui", MODE_PRIVATE).getInt("bars", 0xFF0E1220);
+        } catch (Throwable t) {
+            Log.w(TAG, "saved colour not read: " + t);
+        }
+        getWindow().getDecorView().setBackgroundColor(first);
+        try {
+            if (getBridge() != null && getBridge().getWebView() != null) {
+                getBridge().getWebView().setBackgroundColor(first);
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "page colour not set: " + t);
+        }
 
         try {
             installBackHook();

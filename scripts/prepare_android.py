@@ -234,11 +234,15 @@ def check_manifest():
 
 
 def adaptive_xml(logo, suffix):
+    # Android 13+ can tint the icon to match the wallpaper ("themed icons"). Only the two emblem designs
+    # are transparent line art, so only they get a one-colour layer; the others would tint as a solid blob.
+    mono = ('    <monochrome android:drawable="@mipmap/ic_launcher_%s_foreground"/>\n' % logo) if logo in ('tree', 'circuit') else ''
     return ('<?xml version="1.0" encoding="utf-8"?>\n'
             '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n'
             '    <background android:drawable="@color/ic_launcher_bg_%s"/>\n'
             '    <foreground android:drawable="@mipmap/ic_launcher_%s_foreground"/>\n'
-            '</adaptive-icon>\n' % (logo, logo))
+            '%s'
+            '</adaptive-icon>\n' % (logo, logo, mono))
 
 
 def install_extra_icons():
@@ -422,12 +426,31 @@ if not os.path.isfile(os.path.join(RES, 'mipmap-xxxhdpi', 'ic_launcher.png')):
     die('The launcher icon was not installed.')
 say('launcher icon installed (%s), replaced %d default files' % (ICON, removed))
 
-# 4. plain deep-green launch screen (instead of the default Capacitor logo) -----------------------------
+# 4. plain dark-navy launch screen (instead of the default Capacitor logo) ---------------------------------
 count = 0
 for f in glob.glob(os.path.join(RES, '**', 'splash*.png'), recursive=True):
-    if solid_png(f, (0x13, 0x3A, 0x28)):
+    if solid_png(f, (0x0E, 0x12, 0x20)):
         count += 1
 say('launch screen images recolored: %d' % count)
+
+# 4b. Android 12+ system splash: dark navy behind the icon instead of a colour borrowed from the wallpaper.
+# Only touched when the project uses the AndroidX splash theme, so an unexpected template never breaks the build.
+try:
+    sty = os.path.join(RES, 'values', 'styles.xml')
+    if os.path.isfile(sty):
+        sx = open(sty, encoding='utf-8').read()
+        if 'Theme.SplashScreen' in sx and 'windowSplashScreenBackground' not in sx:
+            sx2 = re.sub(r'(<style\s+name="AppTheme\.NoActionBarLaunch"[^>]*>)',
+                         r'\1\n        <item name="windowSplashScreenBackground">#0E1220</item>', sx, count=1)
+            if sx2 != sx:
+                open(sty, 'w', encoding='utf-8').write(sx2)
+                say('Android 12 launch screen set to dark navy')
+            else:
+                say('Android 12 launch screen left as is (style not found)')
+        else:
+            say('Android 12 launch screen left as is')
+except Exception as e:
+    say('Android 12 launch screen not changed: %s' % e)
 
 # 5. tell the web app which GitHub repository to check for updates ---------------------------
 index = os.path.join(ROOT, 'www', 'index.html')

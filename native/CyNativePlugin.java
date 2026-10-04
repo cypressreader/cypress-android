@@ -350,7 +350,16 @@ public class CyNativePlugin extends Plugin {
             public void run() {
                 try {
                     Window w = getActivity().getWindow();
-                    w.getDecorView().setBackgroundColor(Color.parseColor(color));
+                    int c = Color.parseColor(color);
+                    w.getDecorView().setBackgroundColor(c);
+                    try {
+                        getContext().getSharedPreferences("cy_ui", Context.MODE_PRIVATE).edit().putInt("bars", c).apply();
+                        if (getBridge() != null && getBridge().getWebView() != null) {
+                            getBridge().getWebView().setBackgroundColor(c);
+                        }
+                    } catch (Exception e) {
+                        // ignore
+                    }
                     WindowInsetsControllerCompat ctl = WindowCompat.getInsetsController(w, w.getDecorView());
                     ctl.setAppearanceLightStatusBars(light);
                     ctl.setAppearanceLightNavigationBars(light);
