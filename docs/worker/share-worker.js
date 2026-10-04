@@ -61,13 +61,37 @@ async function feed(req, u) {
       headers: { 'user-agent': 'Mozilla/5.0 (compatible; CyPressReader/1.0; +https://cypressreader.com)', 'accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, text/html;q=0.9, */*;q=0.5', 'accept-language': 'en' },
       redirect: 'follow', signal: AbortSignal.timeout(10000), cf: { cacheTtl: 120, cacheEverything: true }
     });
-  } catch (e) { return bad(502, 'Couldn’t reach that site'); }
+  } catch (e) { r = null; }
+  /* Google News blocks data-centre traffic. For a Google News search, quietly ask Bing News for the same search instead. */
+  let viaBing = false;
+  if ((!r || !r.ok) && tu.hostname === 'news.google.com' && tu.pathname === '/rss/search') {
+    const q = (tu.searchParams.get('q') || '').replace(/\s*when:\d+[hdm]\b/gi, '').trim();
+    if (q) {
+      try {
+        const b = await fetch('https://www.bing.com/news/search?format=rss&q=' + encodeURIComponent(q), {
+          headers: { 'user-agent': 'Mozilla/5.0 (compatible; CyPressReader/1.0; +https://cypressreader.com)', 'accept': 'application/rss+xml, application/xml, text/xml, */*;q=0.5', 'accept-language': 'en' },
+          redirect: 'follow', signal: AbortSignal.timeout(10000), cf: { cacheTtl: 300, cacheEverything: true }
+        });
+        if (b.ok) { r = b; viaBing = true; }
+      } catch (e) { /* fall through to the normal error below */ }
+    }
+  }
+  if (!r) return bad(502, 'Couldn’t reach that site');
   if (!r.ok) return bad(r.status === 404 || r.status === 410 ? r.status : 502, 'The site answered with ' + r.status);
   const len = +r.headers.get('content-length') || 0;
   if (len > MAXB) return bad(413, 'Too large');
   const buf = await r.arrayBuffer();
   if (buf.byteLength > MAXB) return bad(413, 'Too large');
   const cs = ((r.headers.get('content-type') || '').match(/charset=["']?([\w-]+)/i) || [])[1];
+  if (viaBing) {
+    /* Bing wraps each story link in its own redirect; hand the app the real story address */
+    try {
+      const txt = new TextDecoder(cs || 'utf-8').decode(buf).replace(/https?:\/\/www\.bing\.com\/news\/apiclick\.aspx\?[^<\s"]+/g, m => {
+        try { const real = new URL(m.replace(/&amp;/g, '&')).searchParams.get('url'); return real ? real.replace(/&/g, '&amp;') : m; } catch (e) { return m; }
+      });
+      return new Response(txt, { status: 200, headers: { 'content-type': 'text/plain; charset=utf-8', 'x-content-type-options': 'nosniff', 'content-security-policy': "sandbox; default-src 'none'", 'cache-control': 'public, max-age=300' } });
+    } catch (e) { /* send it unchanged */ }
+  }
   return new Response(buf, {
     status: 200,
     headers: {
