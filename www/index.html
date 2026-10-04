@@ -3763,7 +3763,10 @@ async function getFull0(url,light){
  if(!light)startJina();
  try{return await Promise.any([good,jn].filter(Boolean))}catch(e){return null}
 }
+/* stories read ahead are kept in memory the moment they arrive, so opening one right after scrolling never has to fetch it again */
+const PFHOT=new Map();
 function getFull(url,light){
+ const hot=PFHOT.get(url);if(hot&&Date.now()-hot.t<6e5){const f=hot.n.cloneNode(true);if(hot.n.pw)f.pw=true;return Promise.resolve(f)}
  const k=url+(light?'#l':'');
  if(!INF[k])INF[k]=getFull0(url,light).finally(()=>{delete INF[k]});
  return INF[k].then(n=>{
@@ -3885,6 +3888,7 @@ function pump(){
  while(PF.run<2&&PF.q.length){
   const a=PF.q.shift();PF.run++;
   getFull(a.link,true).then(async n=>{
+   if(n){PFHOT.set(a.link,{n,t:Date.now()});if(PFHOT.size>16)PFHOT.delete(PFHOT.keys().next().value)}
    await quietGap(4000);
    if(!n||acHas(a.link))return;
    const have=fromHTML(a.html||'',a.link).textContent.length;
@@ -6032,7 +6036,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.10.04k';const APP_LABEL='1.29';
-const CHANGES=['Smoother colour changes behind the feed in the Dynamic theme: the tint now cross-fades on its own layer instead of repainting the whole page, so scrolling stays smooth while the colour shifts', 'Story text no longer includes site menus, language lists, cookie and video-blocker notices, “Skip to main content” links and timestamps that some sites leave in the page'];
+const CHANGES=['Smoother colour changes behind the feed in the Dynamic theme: the tint now cross-fades on its own layer instead of repainting the whole page, so scrolling stays smooth while the colour shifts', 'Story text no longer includes site menus, language lists, cookie and video-blocker notices, “Skip to main content” links and timestamps that some sites leave in the page', 'Stories open faster after you scroll: a story read ahead is held ready the moment it arrives instead of waiting for you to stop, so it no longer has to be fetched again when you tap it'];
 const DEF_ON=new Set(['skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
