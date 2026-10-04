@@ -1,11 +1,15 @@
 // CyPress site worker, served at cypressreader.com
-//   /s/<payload>   a shared story page with its own preview card (nothing is stored)
+//   /s/<payload>   a shared story page with its own preview card (the story travels inside the link)
+//   /s/<code>      the same page from a short link; needs the optional SHORT storage binding (see docs/worker/SHORT-LINKS.md)
+//   POST /api/short  turns a long link's payload into a short code (stores it in SHORT; answers 501 if SHORT is not set up)
 //   /get           the latest Android download
 //   /feed?u=<url>  fetches a feed or article for the web app (same-site requests only, plain text out)
 //   everything else is the CyPress site and web app, served from GitHub Pages under this address
 const PAGES = 'https://cypressreader.github.io/cypress-android/';
 const APK = 'https://github.com/cypressreader/cypress-android/releases/latest/download/cypress.apk';
 const MAXB = 3 * 1024 * 1024;
+const SHORT_TTL = 60 * 60 * 24 * 400; // short links stay valid for about 13 months
+const ALLOWED_ORIGINS = ['https://cypressreader.com', 'https://www.cypressreader.com', 'https://localhost', 'capacitor://localhost', 'http://localhost'];
 
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const okUrl = (u, https) => { try { const x = new URL(String(u)); return (https ? x.protocol === 'https:' : /^https?:$/.test(x.protocol)) ? x.href : ''; } catch (e) { return ''; } };
@@ -75,6 +79,43 @@ async function feed(req, u) {
   });
 }
 
+const cors = o => ({ 'access-control-allow-origin': o, 'vary': 'origin', 'access-control-allow-methods': 'POST, OPTIONS', 'access-control-allow-headers': 'content-type', 'access-control-max-age': '86400' });
+
+async function shorten(req, env) {
+  const origin = req.headers.get('origin') || '';
+  const okOrigin = ALLOWED_ORIGINS.indexOf(origin) >= 0;
+  const h = okOrigin ? cors(origin) : {};
+  const out = (s, body) => new Response(JSON.stringify(body), { status: s, headers: Object.assign({ 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }, h) });
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: h });
+  if (req.method !== 'POST') return out(405, { error: 'POST only' });
+  if (origin && !okOrigin) return out(403, { error: 'Not allowed' });
+  if (!env || !env.SHORT) return out(501, { error: 'Short links are not set up' });
+  const payload = (await req.text()).trim();
+  if (!/^[zp][A-Za-z0-9_-]{20,4000}$/.test(payload)) return out(400, { error: 'Bad link' });
+  let o = null;
+  try { o = await decode(payload); } catch (e) { o = null; }
+  if (!o || typeof o.t !== 'string' || !okUrl(o.l, false)) return out(400, { error: 'Bad link' });
+  // the code comes from a hash of the story, so sharing the same story twice gives the same short link
+  const dig = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(payload)));
+  let b = ''; for (let i = 0; i < 12; i++) b += String.fromCharCode(dig[i]);
+  const id = btoa(b).replace(/\+/g, 'x').replace(/\//g, 'y').replace(/=+$/, '');
+  for (const n of [7, 9, 12]) {
+    const code = id.slice(0, n);
+    const have = await env.SHORT.get(code);
+    if (have === payload) return out(200, { code });
+    if (have === null) {
+      await env.SHORT.put(code, payload, { expirationTtl: SHORT_TTL });
+      return out(200, { code });
+    }
+  }
+  return out(500, { error: 'Try again' });
+}
+
+async function lookup(env, code) {
+  if (!env || !env.SHORT) return null;
+  try { return await env.SHORT.get(code); } catch (e) { return null; }
+}
+
 async function story(u, payload) {
   let o = null;
   try { o = await decode(payload); } catch (e) { o = null; }
@@ -135,10 +176,18 @@ async function site(req, u) {
 }
 
 export default {
-  async fetch(req) {
+  async fetch(req, env) {
     const u = new URL(req.url);
     if (u.pathname === '/feed') return feed(req, u);
     if (u.pathname === '/get') return Response.redirect(APK, 302);
+    if (u.pathname === '/api/short') return shorten(req, env);
+    // a short link: /s/<6 to 12 letters or digits>, looked up in storage
+    const sc = u.pathname.match(/^\/s\/([A-Za-z0-9_-]{6,12})$/);
+    if (sc) {
+      const p = await lookup(env, sc[1]);
+      if (p && /^[zp][A-Za-z0-9_-]{1,4000}$/.test(p)) return story(u, p);
+      return new Response('This short link has expired or was never created. Ask whoever sent it to share the story again.', { status: 404, headers: { 'content-type': 'text/plain; charset=utf-8' } });
+    }
     const m = u.pathname.match(/^\/s\/([zp][A-Za-z0-9_-]{1,4000})$/);
     if (m) return story(u, m[1]);
     if (/^\/s(\/|$)/.test(u.pathname)) return new Response('Not found', { status: 404 });
