@@ -7,7 +7,7 @@
 //   everything else is the CyPress site and web app, served from GitHub Pages under this address
 const PAGES = 'https://cypressreader.github.io/cypress-android/';
 const APK = 'https://github.com/cypressreader/cypress-android/releases/latest/download/cypress.apk';
-const MAXB = 3 * 1024 * 1024;
+const MAXB = 8 * 1024 * 1024;
 const SHORT_TTL = 60 * 60 * 24 * 400; // short links stay valid for about 13 months
 const ALLOWED_ORIGINS = ['https://cypressreader.com', 'https://www.cypressreader.com', 'https://localhost', 'capacitor://localhost', 'http://localhost'];
 
