@@ -3093,7 +3093,7 @@ function render0(){
  let pre='';
  if(S.sel==='saved'&&!q&&S.saved.length)pre=savedChips();
  if(q&&!S.sk.some(k=>k.words.length===1&&k.words[0]===q))pre=`<div class="fbar"><span>${cur.length} ${cur.length===1?'story':'stories'} mention “${esc(q)}”</span><button class="tx2" data-follow="${esc(q)}">Follow this topic</button></div>`;
- if(!q&&S.sel.startsWith('s:')){const f=S.feeds.find(x=>'s:'+x.id===S.sel);if(f&&paused(f))pre=`<div class="fbar"><span>${esc(f.title)} is paused${f.snz>8e15?'':' until '+esc(new Date(f.snz).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}))}. Its stories are hidden from Today and All stories.</span><button class="tx2" data-resume="${f.id}">Resume</button></div>`;else if(f&&f.via==='bing')pre=`<div class="fbar"><span>Showing ${esc(f.title)} headlines from Bing News, because ${f.viaWhy==='stale'?'the site’s own feed is out of date':'the site blocks feed readers'}. Stories still open from ${esc(siteOf(f))}.</span></div>`;else if(f&&state[f.id]==='err')pre=`<div class="fbar"><span>${esc(f.title)} isn’t loading right now.</span><button class="tx2" data-frep="${f.id}">Try to fix it</button></div>`}
+ if(!q&&S.sel.startsWith('s:')){const f=S.feeds.find(x=>'s:'+x.id===S.sel);if(f&&paused(f))pre=`<div class="fbar"><span>${esc(f.title)} is paused${f.snz>8e15?'':' until '+esc(new Date(f.snz).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}))}. Its stories are hidden from Today and All stories.</span><button class="tx2" data-resume="${f.id}">Resume</button></div>`;else if(f&&f.via==='bing')pre=`<div class="fbar"><span>Showing ${esc(f.title)} headlines from Bing News, because ${f.viaWhy==='stale'?'the site’s own feed is out of date':'the site blocks feed readers'}. Stories still open from ${esc(siteOf(f))}.</span></div>`;else if(f&&state[f.id]==='err')pre=`<div class="fbar"><span><b>We couldn’t refresh ${esc(f.title)}.</b> ${esc(feedReason(f))}. ${esc(lastOkTxt(f))}.</span><button class="tx2" data-frep="${f.id}">Try again</button></div>`}
  if(!q&&S.sel.startsWith('k:')){const k=S.sk.find(x=>'k:'+x.id===S.sel);if(k)pre=`<div class="fbar"><span>Following ${k.by||k.sec?'':'“'}${esc(kdesc(k))}${k.by||k.sec?'':'”'} across all your sites</span><button class="tx2" data-unfollow="${k.id}">Unfollow</button></div>`}
  let cov=null,covN=0;
  if(isOn('covers')&&!q&&/^(s|f|k):/.test(S.sel)&&!document.body.classList.contains('split')&&cur.length>=3&&S.view!=='list'&&!(nrMode()&&cur.length>=6)){
@@ -4719,7 +4719,9 @@ $('#frm').onsubmit=async e=>{
   if(f.folder==='__new'){const nm=$('#nf').value.trim()||'New folder';const nf={id:'g'+Date.now(),name:nm};S.folders.push(nf);f.folder=nf.id}
   S.feeds.push(f);S.sel='s:'+f.id;save();dlg.close();load(f);
   if(!known(url))Promise.race([fetchText('https://'+host(url)),new Promise((_,j)=>setTimeout(j,6000))]).then(t=>{const m=new DOMParser().parseFromString(t,'text/html').querySelector('meta[name="theme-color"]');if(m&&/^#[0-9a-f]{3,8}$/i.test(m.content)&&S.feeds.includes(f)){f.color=m.content;save();render()}}).catch(()=>{});
- }catch(x){err.textContent=x==='dup'?'That feed is already in your list.':'That address didn’t return a feed. Try the feed link directly, or check your connection.'}
+ }catch(x){
+  let q=$('#u').value.trim(),bad=false;try{const uu=new URL(/^[a-z][a-z0-9+.-]*:/i.test(q)?q:'https://'+q);bad=!/\./.test(uu.hostname)}catch(_){bad=true}
+  err.textContent=x==='dup'?'That feed is already in your list.':!q?'Type a website or feed address first.':bad?'That doesn’t look like a web address. Try something like example.com.':!navigator.onLine?'You’re offline, so CyPress couldn’t check that address. Connect and try again.':'We reached for that address but couldn’t find a feed on it. Nothing was added. Try the site’s feed link directly (it often ends in /feed or .xml), or check the spelling.'}
  btn.disabled=false;btn.textContent='Add feed';
 };
 $('#ref').onclick=async()=>{
@@ -4729,8 +4731,8 @@ $('#ref').onclick=async()=>{
  b.classList.add('spin');toast('Refreshing '+S.feeds.length+' feeds…');
  await loadAll(true);
  b.classList.remove('spin');sfxTone('refresh');
- const n=S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>!before.has(a.link)).length,bad=S.feeds.filter(f=>state[f.id]==='err').length;
- toast((n?n+' new '+(n===1?'story':'stories'):'No new stories')+(bad?' · '+bad+' feed'+(bad>1?'s':'')+' didn’t respond':''));
+ const n=S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>!before.has(a.link)).length,badL=S.feeds.filter(f=>state[f.id]==='err'),bad=badL.length;
+ toast((n?n+' new '+(n===1?'story':'stories'):'No new stories')+(bad===1?' · '+badL[0].title+' didn’t respond':bad?' · '+bad+' feeds didn’t respond':''));
 };
 $('#mr').onclick=()=>{const add=[];cur.forEach(a=>{[a.link,...(a.more||[]).map(m=>m.l)].forEach(l=>{if(!S.read[l])add.push(l);S.read[l]=1})});trimRead();save();render();
  if(add.length)toast('Marked '+cur.length+(cur.length===1?' story':' stories')+' as read',()=>{add.forEach(l=>delete S.read[l]);save();render()})};
@@ -5318,7 +5320,7 @@ function renderMng0(){
  const nb=S.feeds.filter(f=>state[f.id]==='err').length,nq=quietFeeds().length;
  $('#mnglist').innerHTML=(S.feeds.length?`<div class="mhead"><b>${S.feeds.length} feeds</b><span>${nb?nb+' need attention':'all loading'}${nq?' · '+nq+' quiet for 60+ days':''}</span>${nq?'<button class="tx2" data-mquiet>Pause the quiet ones</button>':''}</div>`:'')+S.feeds.map(f=>{
   const h=S.health[f.id]||{},st=state[f.id];
-  const status=st==='load'?'Loading…':st==='err'?'Not loading right now':st==='ok'?(f.via==='gnews'?`Working through Google News headlines (${whyTxt(f)}), ${(items[f.id]||[]).length} stories`:f.via==='bing'?`Working through Bing headlines (${whyTxt(f)}), ${(items[f.id]||[]).length} stories`:`Working, ${(items[f.id]||[]).length} stories${feedStat(f)}`):'Waiting';const wy=feedWhy(f);
+  const status=st==='load'?'Loading…':st==='err'?'Not loading: '+esc(feedReason(f)):st==='ok'?(f.via==='gnews'?`Working through Google News headlines (${whyTxt(f)}), ${(items[f.id]||[]).length} stories`:f.via==='bing'?`Working through Bing headlines (${whyTxt(f)}), ${(items[f.id]||[]).length} stories`:`Working, ${(items[f.id]||[]).length} stories${feedStat(f)}`):'Waiting';const wy=feedWhy(f);
   return `<div class="mrow" data-f="${f.id}"><b class="dot" style="background:${brand(f)}" data-mcol title="Change color"></b><input class="mname" value="${esc(f.title)}" aria-label="Feed name"><select class="mfold" aria-label="Folder">${S.folders.map(x=>`<option value="${x.id}" ${x.id===f.folder?'selected':''}>${esc(x.name)}</option>`).join('')}<option value="" ${S.folders.some(x=>x.id===f.folder)?'':'selected'}>Unfiled</option></select><div class="mst ${st==='err'?'bad':''}">${esc(status+(h.ok?', updated '+ago(h.ok)+' ago':''))}${(st==='err'||f.via)&&wy.length?`<details class="why"><summary>Why?</summary>${wy.map(esc).join('<br>')}</details>`:''}</div><span class="ctl"><button class="tx2" data-mset>Settings</button><button class="tx2" data-mretry>Retry</button>${st==='err'?'<button class="tx2" data-mrep>Repair</button>':''}<button class="tx2" data-mdel>Remove</button></span><label class="mweb"><input type="checkbox" class="mw" ${f.web?'checked':''}> Always open this source in site view</label></div>`;
  }).join('')||'<div class="none">No feeds yet.</div>';
 }
@@ -5986,7 +5988,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.10.04j';const APP_LABEL='1.28';
-const CHANGES=['Opening your phone no longer sends a story you were reading in scroll view back to the beginning: your place carries over to the page view, and back', 'Dynamic theme now uses Inter, a modern sans designed for screens, in place of the serif', 'Closing your fold while a story is being read aloud keeps your place and no longer snaps you back: the place carries over even while photos finish loading, and scrolling by hand is not fought by the read-aloud follow for a few seconds', 'Feed headlines: every theme now uses a clear, modern face that still suits it (the old display faces such as Bangers, Bebas and Uncial are gone from the feeds), and feed headlines are a lighter weight. Story text fonts are unchanged', 'Feed photos: lazy-loaded and srcset images are now found, and Google icons and tiny tracking pixels are never used as a story photo. Two dead fallback proxies removed so a failing feed gives up sooner', 'CNN video pages and similar no longer show the video-feedback form or a column of menu links as the story text'];
+const CHANGES=['Opening your phone no longer sends a story you were reading in scroll view back to the beginning: your place carries over to the page view, and back', 'Dynamic theme now uses Inter, a modern sans designed for screens, in place of the serif', 'Closing your fold while a story is being read aloud keeps your place and no longer snaps you back: the place carries over even while photos finish loading, and scrolling by hand is not fought by the read-aloud follow for a few seconds', 'Feed headlines: every theme now uses a clear, modern face that still suits it (the old display faces such as Bangers, Bebas and Uncial are gone from the feeds), and feed headlines are a lighter weight. Story text fonts are unchanged', 'Feed photos: lazy-loaded and srcset images are now found, and Google icons and tiny tracking pixels are never used as a story photo. Two dead fallback proxies removed so a failing feed gives up sooner', 'CNN video pages and similar no longer show the video-feedback form or a column of menu links as the story text', 'Clearer problems: a feed that isn’t loading now says why (offline, blocked, moved, slow or unreadable) and when it last updated, and the Add feed box explains what went wrong and that nothing was added'];
 const DEF_ON=new Set(['skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -6830,6 +6832,24 @@ async function loadFeed(f,fresh){
  if(f.noRepair)throw new Error('no items');
  const r=await repairFeed(f,false,true);if(r)return items[f.id];
  return await bingFeed(f,'blocked');
+}
+/* plain-language reasons for a feed that isn't loading, from what the fetcher logged */
+function feedReason(f){
+ const nm=f.title||host(f.url);
+ if(!navigator.onLine)return 'You’re offline';
+ const l=(FLG[f.id]||[]).join(' ');
+ if(/HTTP (404|410)/.test(l))return nm+' may have moved its feed';
+ if(/HTTP (401|403)/.test(l))return nm+' is blocking CyPress';
+ if(/HTTP 429/.test(l))return nm+' is limiting how often it can be asked';
+ if(/HTTP 5\d\d/.test(l))return nm+'’s server had a problem';
+ if(/timed out/.test(l)&&!/HTTP/.test(l))return nm+' took too long to answer';
+ if(/no readable|empty reply|garbled|couldn.t read/i.test(l))return 'What '+nm+' sent wasn’t a readable feed';
+ return nm+' didn’t answer';
+}
+function lastOkTxt(f){
+ const t=(S.health[f.id]||{}).ok;if(!t)return 'It hasn’t loaded on this device yet';
+ const d=new Date(t),same=d.toDateString()===new Date().toDateString();
+ return 'Last updated '+(same?d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):d.toLocaleDateString([],{month:'short',day:'numeric'}));
 }
 function feedWhy(f){const l=FLG[f.id]||[];return [...new Set(l)].slice(0,12)}
 
