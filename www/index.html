@@ -3360,7 +3360,7 @@ function layout(){noteFix();
  R.pg=Math.min(R.pg,R.np-1);
  pgEnd();
  show();
- if(R.rf!=null){const f=R.rf;R.rf=null;rdSetFrac(f)}
+ if(R.rf!=null){const f=R.rf;R.rf=null;R.sf=null;rdSetFrac(f)}
 }
 function show(){
  const c=$('.cols');if(!c)return;setProg();
@@ -4420,7 +4420,7 @@ const pend=e=>{
 rdEl.addEventListener('touchmove',e=>{if(D&&D.act&&e.cancelable)e.preventDefault()},{passive:false});
 rdEl.addEventListener('pointerup',pend);
 rdEl.addEventListener('click',e=>{if(R.noClick&&e.target.closest('.book')){e.preventDefault();e.stopPropagation()}},true);rdEl.addEventListener('pointercancel',pend);
-addEventListener('resize',()=>{if($('#rd').classList.contains('on')){if(R.rf==null){R.rf=(isVert()&&R.sf!=null)?R.sf:rdFrac()}if(R.T){D=null;endTurn(false)}const v=isVert();if(_vm!==null&&v!==_vm&&(S.scroll||'auto')==='auto'){_vm=v;refreshReader();return}_vm=v;relayout()}});
+addEventListener('resize',()=>{if($('#rd').classList.contains('on')){if(R.rf==null){/* _vm is the mode the story was laid out in, which the resize has not yet changed */R.rf=_vm?(R.sf!=null?R.sf:vEndFrac()):pgFrac()}if(R.T){D=null;endTurn(false)}const v=isVert();if(_vm!==null&&v!==_vm&&(S.scroll||'auto')==='auto'){_vm=v;refreshReader();return}_vm=v;relayout()}});
 
 $('#side-list').onclick=e=>{
  const t=e.target,d=t.dataset;
@@ -5912,8 +5912,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.04i';const APP_LABEL='1.27';
-const CHANGES=['Front page cover captions in the small boxes are larger, sentence case and no longer show a sliver of a third line; the edition line no longer runs under the info button', 'Spotlight and Broadcast front pages: the CyPress name no longer disappears with the tint or gradient masthead styles, and Broadcast shows more of the photo with a smaller headline', 'Title-sequence front page: the headline now sits at the bottom and is smaller, so it no longer covers the face in the photo', 'Index front page fits on one screen without scrolling', 'Journal front page no longer shows the same photo twice, and fits more of the headline', 'Gazette, Gallery, Index, Journal and similar front pages: the CyPress name is dark on light paper again, no longer pale and hard to read with the tint, gradient or glow masthead styles', 'Switching a Quick look no longer plays the sunrise or sunset animation in the corner, and the CyPress name in the style preview stays on one line', 'Dynamic theme now reads in Literata, a typeface designed for long reading on screens, at a medium weight so headlines are clear without being heavy', 'Folding or unfolding your phone, or rotating it, keeps your place in the story you are reading instead of jumping back to the start', 'Story text no longer opens wide gaps between words when the column is narrow or the text size is large: it left-aligns unless the line is long enough to justify cleanly', 'Daily list rows on wide screens give the headline more room: smaller photo column and a lighter headline weight, so titles no longer wrap into tall stacks'];
+const APP_VERSION='2026.10.04j';const APP_LABEL='1.28';
+const CHANGES=['Opening your phone no longer sends a story you were reading in scroll view back to the beginning: your place carries over to the page view, and back']];
 const DEF_ON=new Set(['skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -5925,6 +5925,7 @@ const WHY={};
 function vView(){return $('#rd .view')}
 /* keep the reader's place when the window changes shape (fold, rotate, split screen) */
 document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.matches&&t.matches('#rd .view')){clearTimeout(rdFrac.t);rdFrac.t=setTimeout(()=>{if(R.ready&&isVert())R.sf=vEndFrac()},160)}},true);
+function pgFrac(){if(!R.ready||!curA)return null;const E=R.ep!=null?R.ep:R.np-1;return E>0?Math.min(1,R.pg/E):0}
 function rdFrac(){if(!R.ready||!curA)return null;if(isVert())return vEndFrac();const E=R.ep!=null?R.ep:R.np-1;return E>0?Math.min(1,R.pg/E):0}
 function rdSetFrac(f){if(f==null)return;if(isVert()){const v=vView();if(!v)return;let m=v.scrollHeight-v.clientHeight;const e=bodyEnd();if(e){const endY=e.getBoundingClientRect().bottom-v.getBoundingClientRect().top+v.scrollTop;m=Math.min(m,Math.max(1,endY-v.clientHeight+24))}if(m>0)v.scrollTop=Math.round(f*m)}else if(R.np>1){const E=R.ep!=null?R.ep:R.np-1;R.pg=Math.max(0,Math.min(Math.round(f*E),R.np-1));show()}}
 function vScrollBy(d){const v=vView();if(!v)return;v.scrollBy({top:d*v.clientHeight*.88,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})}
