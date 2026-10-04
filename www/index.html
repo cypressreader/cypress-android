@@ -5992,14 +5992,13 @@ async function quoteImage(q,art,note){
  x.drawImage(oc,W-300,H-150,56,56);x.fillStyle='#fff';x.font=lg==='circuit'?"600 26px 'Orbitron',system-ui,sans-serif":"italic 600 40px 'Cormorant Garamond',Georgia,serif";x.fillText(lg==='circuit'?'CYPRESS':'CyPress',W-232,H-108);
  return c;
 }
-/* a shareable link: the story's headline, photo, excerpt and colour travel inside the link (after the #), so no server stores anything */
+/* a shareable link: the story's headline, photo, date and colour travel inside the link (no excerpt, to keep it short) (after the #), so no server stores anything */
 const SHARE_BASE='https://cypressreader.com/s.html';
 /* once the share worker is deployed, put its address here (no trailing slash). Links then show the story's photo and headline as a preview in chat apps */
 const SHARE_W='https://cypressreader.com';
 async function shareUrl(a){
  const f=fof(a),o={t:String(a.title||'').slice(0,160),s:String(f.title||host(f.url||'')||'').slice(0,60),l:a.link,c:brand(f),d:a.date||0};
  const im=/^https:\/\//.test(a.img||'')&&String(a.img).length<400?a.img:'';if(im)o.i=im;
- const sm=String(a.summary||'').replace(/\s+/g,' ').trim();if(sm)o.x=sm.length>360?sm.slice(0,357).replace(/\s+\S*$/,'')+'…':sm;
  const raw=new TextEncoder().encode(JSON.stringify(o));let k='p',b=raw;
  try{if(typeof CompressionStream==='function'){const z=new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());if(z.length<raw.length){k='z';b=z}}}catch(e){elog('shareUrl',e)}
  let bin='';for(let i=0;i<b.length;i++)bin+=String.fromCharCode(b[i]);
