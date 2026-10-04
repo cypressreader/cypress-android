@@ -1594,7 +1594,6 @@ body:has(#rd.on) #fxl{display:none!important}
 html.rmo #fxl,html.lowp #fxl{display:none!important}
 @media(prefers-reduced-motion:reduce){#fxl{display:none!important}}
 /* battery: ambient effects stand still when nobody is touching the screen */
-html.idle :is(#fxl,#fxl *,#fxl::before,#fxl::after,.logo,.cover::before,.cover::after,.sech h2::after,.cvm::after),html.idle[data-theme=aurora] body{animation-play-state:paused!important}
 
 @keyframes rainfall{to{transform:translateY(125vh)}}
 @keyframes fxtw{0%,100%{opacity:.15;scale:.7}50%{opacity:1;scale:1.25}}
@@ -5854,8 +5853,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.04f';const APP_LABEL='1.24';
-const CHANGES=['Check scrolling now records what the app was doing around each slow moment (which job, how long, memory use), so rare stalls can be traced to their cause. Run it again and send the report'];
+const APP_VERSION='2026.10.04g';const APP_LABEL='1.25';
+const CHANGES=['Removed a pause of up to a quarter of a second that happened when you touched the screen after leaving CyPress idle for a while: the page used to be re-styled in full each time the background effects woke up', 'Your last Check scrolling report was clean: 96% of frames under 20 ms. The remaining stalls were that wake-up and switching feeds'];
 const DEF_ON=new Set(['skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -6499,10 +6498,18 @@ try{r.classList.toggle('pdark',/dark/.test(getComputedStyle(r).colorScheme))}cat
 }
 document.addEventListener('pointerdown',()=>{if(ACX&&ACX.state==='suspended'){try{ACX.resume()}catch(e){}}},{passive:true});
 try{matchMedia('(prefers-reduced-motion:reduce)').addEventListener('change',applyFx)}catch(e){}
-/* pause ambient effects 20 s after the last touch; any touch brings them back */
+/* pause ambient effects 20 s after the last touch; any touch brings them back.
+   Done with the Animation API, not a class on <html>: a class there made the browser re-style the whole page (up to 240 ms) every time you touched the screen again */
+let IDLEP=null;
+function idleAnims(on){
+ try{
+  if(on){if(IDLEP)return;IDLEP=[];document.getAnimations().forEach(a=>{try{if(a.playState==='running'&&a.effect&&a.effect.getComputedTiming().iterations===Infinity){a.pause();IDLEP.push(a)}}catch(e){}})}
+  else{const l=IDLEP||[];IDLEP=null;l.forEach(a=>{try{a.play()}catch(e){}})}
+ }catch(e){IDLEP=on?[]:null}
+}
 {const R=document.documentElement;let last=Date.now(),t=0;
- const arm=()=>{clearTimeout(t);t=setTimeout(()=>{const w=20000-(Date.now()-last);if(w>0){arm();return}R.classList.add('idle')},Math.max(500,20000-(Date.now()-last)))};
- const act=()=>{last=Date.now();if(R.classList.contains('idle')){R.classList.remove('idle');arm()}};
+ const arm=()=>{clearTimeout(t);t=setTimeout(()=>{const w=20000-(Date.now()-last);if(w>0){arm();return}idleAnims(true)},Math.max(500,20000-(Date.now()-last)))};
+ const act=()=>{last=Date.now();if(IDLEP){idleAnims(false);arm()}};
  ['pointerdown','touchstart','keydown','wheel'].forEach(e=>addEventListener(e,act,{passive:true,capture:true}));
  addEventListener('scroll',act,{passive:true,capture:true});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)act()});arm()}
