@@ -5776,8 +5776,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.04b';const APP_LABEL='1.20';
-const CHANGES=["Each site's feed now opens with a front-page header: its name, badge, tagline, address and quick stats, with Mute for a week", "The Daily shows how much of today's issue you have read, with a progress ring and a small ring on each section", 'The app keeps your place when you come back after leaving it, instead of jumping to the top', 'Smoother scrolling: photo analysis now waits until you stop, and background upkeep no longer runs while you scroll', 'Cover title style is now Auto by default: each cover picks the look that reads best on its photo. The five styles that stay are Clean, Tinted, Glow, Gradient and Elegant italic; Outline, Spaced caps and Bold shadow were removed', 'Shared links are shorter, because the story excerpt is no longer packed into the link', 'The small i button on a story now only appears when it has something to tell you, like several of your sites covering it', 'Story text on phones is now left-aligned, which fixes the big gaps between words and the stretched underlines on links', 'Stories no longer show hidden screen-reader labels such as "list 1 of 3" and "end of list" inside lists, and bullet lists are never stretched', 'Folder names in the side menu on phones and tablets are no longer cut off after a few letters. Press and hold a folder or feed to delete it', 'On phones the feed menu now floats over most of the screen with the stories dimmed behind it, and closes when you pick a feed, so names have room to breathe', 'Fixed several automated checks that had gone out of date'];
+const APP_VERSION='2026.10.04c';const APP_LABEL='1.21';
+const CHANGES=['Share links can now be short, like cypressreader.com/s/k3F9aQz. This needs a one-time setup of the share worker on Cloudflare; until then links stay as long as before'];
 const DEF_ON=new Set(['skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -6024,8 +6024,16 @@ async function shareUrl(a){
  try{if(typeof CompressionStream==='function'){const z=new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());if(z.length<raw.length){k='z';b=z}}}catch(e){elog('shareUrl',e)}
  let bin='';for(let i=0;i<b.length;i++)bin+=String.fromCharCode(b[i]);
  const pl=k+btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
- return SHARE_W?SHARE_W+'/s/'+pl:SHARE_BASE+'#'+pl;
+ if(!SHARE_W)return SHARE_BASE+'#'+pl;
+ /* ask the share worker for a short code; if it is not set up, offline or slow, the long link still works */
+ try{const c=SHORTC[pl];if(c)return SHARE_W+'/s/'+c;
+  const ac=new AbortController(),t=setTimeout(()=>ac.abort(),3500);
+  try{const r=await fetch(SHARE_W+'/api/short',{method:'POST',body:pl,headers:{'content-type':'text/plain'},signal:ac.signal});
+   if(r.ok){const j=await r.json();if(j&&/^[A-Za-z0-9]{6,12}$/.test(j.code||'')){SHORTC[pl]=j.code;return SHARE_W+'/s/'+j.code}}}finally{clearTimeout(t)}
+ }catch(e){}
+ return SHARE_W+'/s/'+pl;
 }
+const SHORTC={};
 async function articleCard(a){
  const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
  try{await document.fonts.ready}catch(e){}
