@@ -2155,6 +2155,11 @@ html{font-synthesis-weight:none}
 #grid .nr-trl .nr-row h3{font-size:clamp(17px,1.35vw,21px)}
 #grid .nr-late .rdy,#grid .nr-row .rdy{display:none}
 #grid .nr-late:not(.nr-n)::before,#grid .nr-row::before,#grid .nr-tri::before,#grid .nr-pq::before{display:none!important}
+/* Daily rows: a small site-colour dot before the name and a faintly tinted divider on top; Arcade keeps its own glowing edges (dot only), E-ink and Mono stay black and white */
+#grid .nr-row .src::before,#grid .nr-late .src::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--b);flex:none;margin-right:-1px}
+:root:is([data-theme=eink],[data-theme=mono]) #grid .nr-row .src::before,:root:is([data-theme=eink],[data-theme=mono]) #grid .nr-late .src::before{background:var(--ink)}
+:root:not([data-theme=arcade]):not([data-theme=eink]):not([data-theme=mono]) #grid .card.nr-late,:root:not([data-theme=arcade]):not([data-theme=eink]):not([data-theme=mono]) #grid .card.nr-row{border-top-color:color-mix(in srgb,var(--b) 38%,var(--ln))!important}
+:root[data-theme=forest] #grid .card.nr-late,:root[data-theme=forest] #grid .card.nr-row{border-top-color:color-mix(in srgb,var(--b) 55%,var(--ln))!important}
 #grid .nr-n::before{inset:auto;left:0;top:11px;background:none;filter:none;z-index:1}
 
 .nr-tb .card{aspect-ratio:auto;height:100%;min-height:420px}
@@ -6068,8 +6073,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.04m';const APP_LABEL='1.31';
-const CHANGES=['Arcade: story rows on the front page no longer let the glowing edge press against the text; the headlines now have breathing room inside the glow'];
+const APP_VERSION='2026.10.04n';const APP_LABEL='1.31';
+const CHANGES=['Arcade: story rows on the front page no longer let the glowing edge press against the text; the headlines now have breathing room inside the glow','The Daily’s story rows now show which site a story is from: a small site-colour dot before the name and a faintly tinted line above each row, drawn quietly in every theme (Arcade keeps its own glowing edges and gets the dot only)'];
 const DEF_ON=new Set(['intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
