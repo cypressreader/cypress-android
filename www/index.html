@@ -49,6 +49,7 @@ aside .logo .lgm,#tlp{transition:--p .45s ease,transform .45s cubic-bezier(.3,1.
 :root{--ghost:color-mix(in srgb,var(--logo) 17%,transparent);--lead:color-mix(in srgb,var(--logo) 45%,#fff)}
 #tlp{display:none;flex:none;width:0;height:28px;margin:0;opacity:0;overflow:hidden;background:var(--logo);-webkit-mask:var(--lm) center/contain no-repeat;mask:var(--lm) center/contain no-repeat;transition:width .3s,opacity .3s,margin .3s}
 @media(max-width:720px){#tlp{display:block}}
+@media(max-width:720px){body:not(.open) aside .logo .lgm{transition:none!important;animation:none!important}}
 body.split #tlp{display:block}
 body.lp #tlp{width:28px;opacity:1;margin:0 4px 0 2px}
 body.lp aside .logo .lgm,body.lp #tlp{background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.8) 50%,transparent 65%) 100% 0/250% 100% no-repeat,linear-gradient(to top,var(--logo) 0,var(--logo) calc(var(--p) - 3%),var(--lead) var(--p),var(--ghost) calc(var(--p) + .01%),var(--ghost) 100%)}
@@ -2805,6 +2806,8 @@ function side(){
  if(un.length)h+=`<div class="fold" data-drop=""><div class="fh">${chev('_un')}<span>Unfiled</span></div>${fold('_un')?'':un.map(feedRow).join('')}</div>`;
  if(S.sk.length)h+=`<div class="fold"><div class="fh"><span>Topics you follow</span></div>${S.sk.map(k=>`<div class="fr ${S.sel==='k:'+k.id?'on':''}" data-sel="k:${k.id}"><b style="background:var(--mut)"></b><span>${esc(k.name)}</span>${bad(kcount(k))}</div>`).join('')}</div>`;
  h+=`<div class="navsep"></div>`+bot;
+ /* redraw the side menu only when it has changed: keeps its scroll position and saves a restyle on every refresh */
+ if(side._h===h&&$('#side-list').firstChild)return;side._h=h;
  $('#side-list').innerHTML=h;
 }
 function secOpener(){
@@ -2824,11 +2827,21 @@ function secOpener(){
  el.innerHTML=`${lead.img?`<i style="background-image:url(&quot;${esc(lead.img)}&quot;)"></i>`:''}<div><small>${esc(kind)}</small><h2>${esc(name)}</h2><p>${l.length} stories · ${un} unread${nw?' · newest '+esc(ago(nw))+' ago':''}</p>${from?`<p class="sfrom">${esc(from)}</p>`:''}</div>`;
  g.prepend(el);
 }
-const layoutKey=()=>((S.narrow||'auto')==='auto'&&innerWidth<=500)+'|'+(innerWidth<700)+'|'+(innerWidth>=840);let LK=layoutKey();
+/* the window width is cached: reading innerWidth in the middle of a redraw forces the browser to lay the page out first */
+let VW=innerWidth;addEventListener('resize',()=>{VW=innerWidth},{passive:true});
+const layoutKey=()=>((S.narrow||'auto')==='auto'&&VW<=500)+'|'+(VW<700)+'|'+(VW>=840);let LK=layoutKey();
 function covFit(){document.querySelectorAll('.cover .cvlead h2').forEach(h=>{const n=(h.textContent||'').trim().length;h.classList.toggle('l1',n>58&&n<=88);h.classList.toggle('l2',n>88)})}
 let _lastSel=null;
 function render(){if(NEWP){NEWP=false;newPill(false)}setTimeout(endObs,60);LK=layoutKey();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){_lastSel=S.sel;if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();secOpener();covTitle();covFit();dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=S.cards||'medium';clearTimeout(PF.t);PF.t=setTimeout(()=>prefetch(pfList()),2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
-function starGuard(){try{document.querySelectorAll('#grid .card').forEach(c=>{const st=c.querySelector('.star');if(!st)return;c.classList.remove('sg');const a=st.getBoundingClientRect();if(!a.width)return;let hit=false;c.querySelectorAll('.tx .src,.tx .src>*').forEach(e=>{const t=e.getBoundingClientRect();if(t.width&&!(a.right<=t.left||a.left>=t.right||a.bottom<=t.top||a.top>=t.bottom))hit=true});if(hit)c.classList.add('sg')})}catch(e){}}
+function starGuard(){
+ /* reads first, writes after, so the page is laid out once instead of once per card */
+ try{
+  const cs=[...document.querySelectorAll('#grid .card')],hits=[];
+  cs.forEach(c=>{const st=c.querySelector('.star');if(!st||!c.classList.contains('sg'))return;c.classList.remove('sg')});
+  cs.forEach(c=>{const st=c.querySelector('.star');if(!st)return;const a=st.getBoundingClientRect();if(!a.width)return;let hit=false;c.querySelectorAll('.tx .src,.tx .src>*').forEach(e=>{const t=e.getBoundingClientRect();if(t.width&&!(a.right<=t.left||a.left>=t.right||a.bottom<=t.top||a.top>=t.bottom))hit=true});if(hit)hits.push(c)});
+  hits.forEach(c=>c.classList.add('sg'));
+ }catch(e){}
+}
 window.addEventListener('resize',()=>{clearTimeout(starGuard.t);starGuard.t=setTimeout(starGuard,220)});
 function offApply(user){document.body.classList.toggle('offl',!!S.offline);if(user){if(S.offline)toast('Offline mode on. Only stored stories open');else{toast('Back online');loadAll(true)}}}
 offApply(false);
@@ -2910,8 +2923,8 @@ function coverStyle(lines){
  let m=S.cvs||'clean';if(m==='mosaic'||m==='mosaicr'){m=S.cvs='auto';save()}
  if(m==='clean')return ' cv-clean';
  if(m==='auto'){const d=Math.floor(Date.now()/864e5);m=['poster','photo','poster','block'][d%4]}
- if(m==='split'&&innerWidth<700)m='photo';
- if(m==='triptych'&&(innerWidth<700||lines.filter(a=>a.img).length<2||document.body.classList.contains('split')))m='block';
+ if(m==='split'&&VW<700)m='photo';
+ if(m==='triptych'&&(VW<700||lines.filter(a=>a.img).length<2||document.body.classList.contains('split')))m='block';
  return m==='photo'?'':' cv-'+(m==='triptych'?'tri':m);
 }
 const cvThumb=a=>a.img?`<i class="cvth" style="background-image:url(&quot;${esc(a.img)}&quot;)"></i>`:'';
@@ -3012,7 +3025,7 @@ const dgCount=()=>{const n=DGL.filter(l=>S.read[l]).length;return{n,t:DGL.length
 function dgProgHtml(){const{n,t}=dgCount();if(t<3)return'';const done=n>=t;return `<div class="dgp${done?' done':''}" data-dgp role="status"><div class="rgw">${ringSvg(n,t,54,6)}<b>${done?'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>':n}</b></div><div><h3>${done?'Issue finished':n+' of '+t+' read'}</h3><p>${done?'You have read everything in today’s issue.':'About '+Math.max(1,t-n)+' minute'+(t-n>1?'s':'')+' left in today’s issue'}</p></div></div>`}
 function dgProgUpdate(){const el=document.querySelector('#grid [data-dgp]');if(!el||S.sel!=='today')return;const h=dgProgHtml();if(!h)return;const t=document.createElement('div');t.innerHTML=h;el.replaceWith(t.firstChild)}
 const RDY_MARK='<span class="rdy" title="Ready to read, even offline" aria-label="Ready"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>';
-function markReady(l){document.querySelectorAll('#grid .card').forEach(c=>{if(c.getAttribute('href')===l&&!c.querySelector('.rdy')){c.insertAdjacentHTML('beforeend',RDY_MARK);c.lastChild.classList.add('pop')}})}
+function markReady(l){document.querySelectorAll('#grid .card').forEach(c=>{if(c.getAttribute('href')===l&&!c.querySelector('.rdy')){c.insertAdjacentHTML('beforeend',RDY_MARK);if(!userBusy())c.lastChild.classList.add('pop')}})}
 const PAYRE=/(^|\.)(nytimes\.com|wsj\.com|ft\.com|bloomberg\.com|economist\.com|washingtonpost\.com|theathletic\.com|barrons\.com|newyorker\.com|thetimes\.co\.uk|hbr\.org|bostonglobe\.com)$/;
 const isPay=a=>{try{return PAYRE.test(new URL(a.link).hostname)}catch(e){return false}};
 const PAYB='<span class="pw" title="Subscriber site. Tapping opens the site itself">Opens the site</span>';
@@ -3024,7 +3037,7 @@ function card(a,i,k){
 /*NEWSROOM*/
 const IS_SAFARI=(()=>{try{const u=navigator.userAgent;return /iP(hone|ad|od)/.test(u)||(/Safari\//.test(u)&&!/Chrome\/|Chromium\/|Android|Edg\/|OPR\/|CriOS|FxiOS/.test(u))}catch(e){return false}})();
 addEventListener('scroll',()=>{SCRT=Date.now();if(NEWP)newTop()},{passive:true,capture:true});
-const NRMIN=700;let VW=innerWidth;addEventListener('resize',()=>{VW=innerWidth},{passive:true});
+const NRMIN=700;
 const nrDense=()=>S.cards==='compact'||S.cards==='narrow';
 const nrOn=()=>isOn('nroom')&&!nrDense()&&VW>=NRMIN&&!document.body.classList.contains('split')&&!document.body.classList.contains('narrow')&&S.view!=='list';
 const nrAge=a=>{const h=(Date.now()-a.date)/36e5;return h<18?'Earlier today':h<42?'Yesterday':h<144?'This week':'Earlier'};
@@ -3213,7 +3226,7 @@ function endObs(){
   ENDIO.observe(el)})
 }
 function mustHtml(pool){
- if(!isOn('must')||innerWidth<760)return '';
+ if(!isOn('must')||VW<760)return '';
  const seen=new Set(cur.map(x=>x.link)),l=pool.filter(a=>!S.read[a.link]&&!seen.has(a.link)).slice(0,6);
  if(l.length<3)return '';
  return `<section class="mrb"><div class="trh"><b>Must reads</b><small>Your top stories right now</small></div><div class="mrl">${l.map((a,i)=>{cur.push(a);WHY[a.link]='Must read: ranked high for you right now.';return `<a class="tri mri" href="${esc(a.link)}" data-i="${cur.length-1}" style="--b:${brand(fof(a))}"><em>${i+1}</em><span><small>${esc(fof(a).title)}</small>${esc(a.title)}</span></a>`}).join('')}</div></section>`;
@@ -3698,7 +3711,11 @@ const WARM=[];
 function warmImgs(el,a){if(isOn('dsave'))return;const u=[...el.querySelectorAll('img[src]')].map(i=>i.getAttribute('src')).filter(x=>/^https?:/.test(x));if(a&&a.img&&!u.includes(a.img))u.unshift(a.img);
  u.slice(0,6).forEach(x=>{try{const im=new Image();im.referrerPolicy='no-referrer';im.decoding='async';im.src=x;WARM.push(im);if(WARM.length>60)WARM.shift()}catch(e){}})}
 const LP={t:0,f:0,h:0};
+/* the little progress logo is only redrawn when you are not scrolling, and at most a few times a second: each update re-styles the page */
+let PFBT=0,PFBL=0;
 function pfBar(){
+ if(userBusy()||Date.now()-PFBL<350){clearTimeout(PFBT);PFBT=setTimeout(pfBar,userBusy()?700:350);return}
+ PFBL=Date.now();
  const t=LP.t+PF.tot,f=LP.f+PF.fin,b=document.body,setP=v=>document.querySelectorAll('aside .logo .lgm,#tlp').forEach(e=>e.style.setProperty('--p',v));
  if(!t){b.classList.remove('lp','lpd');return}
  const pc=Math.max(4,Math.min(100,Math.round(f/t*100)));
@@ -3810,7 +3827,7 @@ function toggleWeb(auto){
  w.hidden=false;R.web=true;R.auto=!!auto;b.innerHTML=svg(PAGE);b.title='Back to reader view';loadWeb();
 }
 async function openReader(a){
- const f=fof(a),my=++tok,sh=$('#sheet');curA=a;ttsStop();hlClear();const resume=S.pos[a.link]||0;R.ready=false;const afterLoad=()=>{try{dedupHero()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);save();setTimeout(()=>readAhead(a),1200);
+ const f=fof(a),my=++tok,sh=$('#sheet');curA=a;RDSIG=rdSig(a);ttsStop();hlClear();const resume=S.pos[a.link]||0;R.ready=false;const afterLoad=()=>{try{dedupHero()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);save();setTimeout(()=>readAhead(a),1200);
  $('#rd').style.setProperty('--b',brand(f));pushLayer('reader');tip('reader');
  if(a.img&&isOn('ptint'))imgInfo(a.img).then(o=>{if(o&&o.t&&curA===a)$('#rd').style.setProperty('--b',o.t)});
  document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',c.getAttribute('href')===a.link));
@@ -3823,13 +3840,14 @@ async function openReader(a){
  const c=$('.cols'),body=c.querySelector('.body'),note=c.querySelector('.note');
  body.append(fromHTML(a.html,a.link));foldBoiler(body,a);
  c.addEventListener('load',()=>{heroSpread();photoPages();relayout()},true);c.addEventListener('error',()=>{heroSpread();relayout()},true);
- layout();
+ /* when the full text is already stored, afterLoad lays the page out once, so skip the layout of the short feed version */
+ if(!(acGet(a.link)&&!ytId(a)))layout();
  mediaWire();
- if(ytId(a)){note.remove();layout();afterLoad();return}
+ if(ytId(a)){note.remove();afterLoad();return}
  let cached=acGet(a.link)||await acLoad(a.link);
  if(cached&&!textQuality(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')).ok)cached=null;
  if((f.web||(isPay(a)&&f.web!==false))&&!cached&&online())toggleWeb(true);
- if(cached){body.replaceChildren(dropTitle(tidy(fromHTML(cached,a.link)),a.title));foldBoiler(body,a);note.remove();ALT='';layout();afterLoad();return}
+ if(cached){body.replaceChildren(dropTitle(tidy(fromHTML(cached,a.link)),a.title));foldBoiler(body,a);note.remove();ALT='';afterLoad();return}
  if(!online()){note.textContent=S.offline?'Offline mode is on. Showing what’s stored on this device.':'You’re offline. Showing what came with the feed.';afterLoad();return}
  let n=await getFull(a.link),src=a.link;
  const alts=outLinks(a);
@@ -3994,7 +4012,10 @@ function syncPb(){
  fillVoices();syncUpNext();const r=+S.rate||1,v=S.vol==null?1:+S.vol;
  $('#pbrate').value=r;$('#pbrv').textContent=r.toFixed(1)+'×';$('#pbvol').value=v;$('#pbvv').textContent=Math.round(v*100)+'%';raBtn();const q=$('#pbq');if(q){q.classList.toggle('on',!!S.queue);q.textContent=S.queue?'On':'Off'}
 }
-const closeRd=fromPop=>{$('#rd').classList.remove('focus');if(fromPop!==true){dropLayer('rdnav');dropLayer('reader')}else dropLayer('rdnav');const nv=$('#rdnav');if(nv){nv.classList.remove('on');nv.hidden=true}tok++;R.busy=false;ttsStop();hlClear();$('#selbar').hidden=true;$('#rd').classList.remove('on','flex','vert');curA=null;applyFolderTheme();if(document.body.classList.contains('split'))splitEmpty();render()};
+/* leaving a story only needs a full redraw if something that changes the list happened in it (saved, highlighted, followed, partly read). Merely reading is already shown on the cards */
+const rdSig=a=>{try{return [S.saved.length,(S.hl||[]).length,JSON.stringify(S.lk||0).length,(S.mute||[]).length,(S.sk||[]).length,S.hideRead?1:0,a?Math.round(100*progOf(a.link)):0].join('|')}catch(e){return Math.random()}};
+let RDSIG='';
+const closeRd=fromPop=>{const was=curA,same=!!was&&RDSIG===rdSig(was)&&/^(all|f:|s:|k:)/.test(S.sel||'');$('#rd').classList.remove('focus');if(fromPop!==true){dropLayer('rdnav');dropLayer('reader')}else dropLayer('rdnav');const nv=$('#rdnav');if(nv){nv.classList.remove('on');nv.hidden=true}tok++;R.busy=false;ttsStop();hlClear();$('#selbar').hidden=true;$('#rd').classList.remove('on','flex','vert');curA=null;applyFolderTheme();if(document.body.classList.contains('split'))splitEmpty();if(same){try{side();dgProgUpdate()}catch(e){}}else render()};
 const set=$('#set');
 function bestVoice(){const vs=speechSynthesis.getVoices();if(S.voice){const m=vs.find(v=>v.voiceURI===S.voice);if(m)return m}const L=(navigator.language||'en').slice(0,2).toLowerCase(),c=vs.filter(v=>(v.lang||'').toLowerCase().startsWith(L));if(!c.length||!c.some(v=>v.q))return null;return c.slice().sort((a,b)=>(b.q||0)-(a.q||0)||(a.localService?0:1)-(b.localService?0:1))[0]}
 function voiceOpts(){const L=(navigator.language||'en').slice(0,2),vs=speechSynthesis.getVoices().slice().sort((a,b)=>(a.lang.startsWith(L)?0:1)-(b.lang.startsWith(L)?0:1)||(b.q||0)-(a.q||0)||a.name.localeCompare(b.name));return (vs.length?'<option value="">Best available</option>':'<option value="">No voices found</option>')+vs.map(v=>`<option value="${esc(v.voiceURI)}">${esc(v.name)} (${esc(v.lang)})</option>`).join('')}
@@ -4108,7 +4129,7 @@ const SET_ALIAS={home:'look',motion:'look',tts:'read'};
 })();
 const SET_SECPG={'s-look':'look','s-fx':'look','s-read':'read','s-mag':'look','s-tts':'read','s-stories':'feeds','s-load':'feeds','s-data':'sync','s-sync':'sync','s-setup':'about','s-notif':'alerts','s-app':'about'};
 let SET_BUILT=false,SETP=null;const SET_IX={},SET_USED=new Set();
-const setWide=()=>innerWidth>=760;
+const setWide=()=>VW>=760;
 const setNorm=s=>(s||'').replace(/\s+/g,' ').trim();
 function setKeyOf(n){
  if(n.matches&&n.matches('.lkp'))return 'P:lkp';if(n.querySelector&&n.querySelector('#thm'))return 'P:thm';if(n.querySelector&&n.querySelector('#fgrid'))return 'P:font';if(n.id==='sybox')return 'P:sync';
@@ -4209,6 +4230,7 @@ const SETSC={};
 function setShow(id,focus){
  if(!SET_BUILT)return;
  id=SET_ALIAS[id]||id;if(!id&&setWide())id=SETP||'look';
+ if(id==='read')fontPreviews();/* the font samples are only fetched when the Reading page is opened */
  const was=document.querySelector('#setpane .spage:not([hidden])'),chg=!was||was.dataset.pg!==id;
  SETP=id||null;
  document.querySelectorAll('#setpane .spage').forEach(s=>s.hidden=s.dataset.pg!==id);
@@ -4257,7 +4279,7 @@ set.addEventListener('click',()=>{setTimeout(()=>{setSum();moSync();if(SETP==='l
 let SETW=setWide();addEventListener('resize',()=>{const w=setWide();if(set.open&&SET_BUILT&&w!==SETW){SETW=w;setShow(SETP)}});
 $('#setpane')&&0;
 $('#setx').onclick=()=>set.close();
-$('#gear').onclick=()=>{drawer(false);setBuild();setAdopt();setCounts();syncSet();fontPreviews();try{if('speechSynthesis' in window){if(speechSynthesis.reload&&!speechSynthesis.getVoices().length)speechSynthesis.reload();fillVoices()}}catch(e){}set.showModal();$('#sset').value='';setSearch('');SETW=setWide();if(SETW)SETP=SETP||'look';setShow(SETP);const pn=$('#setpane'),hm=$('#sethome');if(pn&&!pn._sc){pn._sc=1;pn.addEventListener('scroll',()=>{if(set.open&&SETP)SETSC[SETP]=pn.scrollTop},{passive:true})}if(hm&&!hm._sc){hm._sc=1;hm.addEventListener('scroll',()=>{if(set.open&&!SETP)SETSC._home=hm.scrollTop},{passive:true})}const rs=()=>{if(SETP&&pn)pn.scrollTop=SETSC[SETP]||0;else if(hm)hm.scrollTop=SETSC._home||0};rs();requestAnimationFrame(rs)};
+$('#gear').onclick=()=>{drawer(false);setBuild();setAdopt();setCounts();syncSet();try{if('speechSynthesis' in window){if(speechSynthesis.reload&&!speechSynthesis.getVoices().length)speechSynthesis.reload();fillVoices()}}catch(e){}set.showModal();$('#sset').value='';setSearch('');SETW=setWide();if(SETW)SETP=SETP||'look';setShow(SETP);const pn=$('#setpane'),hm=$('#sethome');if(pn&&!pn._sc){pn._sc=1;pn.addEventListener('scroll',()=>{if(set.open&&SETP)SETSC[SETP]=pn.scrollTop},{passive:true})}if(hm&&!hm._sc){hm._sc=1;hm.addEventListener('scroll',()=>{if(set.open&&!SETP)SETSC._home=hm.scrollTop},{passive:true})}const rs=()=>{if(SETP&&pn)pn.scrollTop=SETSC[SETP]||0;else if(hm)hm.scrollTop=SETSC._home||0};rs();requestAnimationFrame(rs)};
 $('#rate').oninput=e=>{S.rate=+e.target.value;$('#ratev').value=S.rate.toFixed(1)+'×';save()};
 $('#vol').oninput=e=>{S.vol=+e.target.value;$('#volv').value=Math.round(S.vol*100)+'%';save()};
 $('#voice').onchange=e=>{S.voice=e.target.value;save()};
@@ -5853,8 +5875,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.04g';const APP_LABEL='1.25';
-const CHANGES=['Removed a pause of up to a quarter of a second that happened when you touched the screen after leaving CyPress idle for a while: the page used to be re-styled in full each time the background effects woke up', 'Your last Check scrolling report was clean: 96% of frames under 20 ms. The remaining stalls were that wake-up and switching feeds'];
+const APP_VERSION='2026.10.04h';const APP_LABEL='1.26';
+const CHANGES=['Opening a story is faster: the page is now laid out twice instead of four times', 'Leaving a story no longer redraws the whole feed behind it when you only read. It is instant and keeps your place', 'Smoother scrolling while CyPress loads in the background: the little loading logo used to make the browser restyle the page over a hundred times; it now updates a few times a second and never while you scroll', 'Opening Settings no longer fetches reading fonts up front, only when you open the Reading page', 'The side menu is only redrawn when it actually changes, and the redraw after a refresh does less work'];
 const DEF_ON=new Set(['skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
