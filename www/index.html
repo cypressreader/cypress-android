@@ -736,6 +736,8 @@ html:root.night[data-theme=sepia]{--hl:rgba(214,120,40,.4)}
 .cr small{color:var(--mut);font:600 11.5px var(--sans)}.cr b{font:600 15px/1.25 var(--serif);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .cr .prg{background:var(--ln)}.cr .prg>span{background:var(--b)}
 .card{touch-action:pan-y}
+/* instant pressed feedback on touch screens, so a tap feels answered before the page has finished changing */
+@media(hover:none){.nav:active,.fr:active,.fh:active{background:color-mix(in srgb,var(--ink) 9%,transparent)}.card:active,.tri:active,.cvl:active{opacity:.86}.ib:active,.tx2:active{opacity:.7}}
 #swl{position:fixed;z-index:4;border-radius:20px;display:flex;align-items:center;padding:0 22px;font:700 14px var(--sans);color:#fff;pointer-events:none;transition:background .2s,opacity .2s}
 #swl.sv{background:#c99a12;justify-content:flex-start}#swl.rdm{background:#2f7d57;justify-content:flex-end}
 #swl span{display:flex;align-items:center;gap:8px;opacity:.75;transform:scale(.92);transition:transform .15s,opacity .15s}
@@ -1304,7 +1306,8 @@ body.narrow .grid.list .why,body.narrow .grid.list .star{display:none}
 html .grid.list .card,html [data-cards=compact] .card{contain-intrinsic-size:auto 100px}
 @media (max-width:520px){header .ttl,#hd .ttl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 /* stage M: theme layouts + living dynamic */
-@property --dyn{syntax:'<color>';inherits:true;initial-value:#888888}
+/* not inherited: only the page background and the tab bar use it, so a colour change re-styles two elements instead of the whole page */
+@property --dyn{syntax:'<color>';inherits:false;initial-value:#888888}
 html.tlay:is([data-theme=broadsheet],[data-theme=newsprint]) .cvtop{border-bottom:3px double color-mix(in srgb,currentColor 65%,transparent);padding-bottom:8px}
 html.tlay:is([data-theme=broadsheet],[data-theme=newsprint]) #grid .card{border-radius:0;border-top:3px double var(--ink)}
 html.tlay:is([data-theme=broadsheet],[data-theme=newsprint]) .card .tx h3{font-weight:800;letter-spacing:-.005em}
@@ -1325,7 +1328,7 @@ html.tlay:is([data-theme=forest],[data-theme=golden],[data-theme=crimson],[data-
 html.tlay:is([data-theme=forest],[data-theme=golden],[data-theme=crimson],[data-theme=rose],[data-theme=midnight],[data-theme=sepia]) .cvm{text-shadow:0 0 26px color-mix(in srgb,var(--a1) 55%,transparent),0 2px 20px rgba(0,0,0,.35)}
 html.tlay:is([data-theme=forest],[data-theme=golden],[data-theme=crimson],[data-theme=rose],[data-theme=midnight],[data-theme=sepia]) #rd .kick{font-variant:small-caps;letter-spacing:.1em}
 html.tlay:is([data-theme=forest],[data-theme=golden],[data-theme=crimson],[data-theme=rose],[data-theme=midnight],[data-theme=sepia]) #rd .dt::after{content:'\2766';display:block;margin-top:.5em;color:var(--a1);font-size:1.25em;line-height:1}
-html.dynx[data-theme=dynamic]{transition:--dyn .9s ease}
+html.dynx[data-theme=dynamic] body,html.dynx[data-theme=dynamic] #tabs{transition:--dyn .9s ease}
 html.dynx[data-theme=dynamic] body{background:radial-gradient(120% 55% at 50% -8%,color-mix(in srgb,var(--dyn) 24%,transparent),transparent 72%) fixed,color-mix(in srgb,var(--dyn) 8%,var(--bg))}
 html.dynx[data-theme=dynamic] #grid .card{border-bottom:2px solid color-mix(in srgb,var(--b) 55%,transparent)}
 html.dynx[data-theme=dynamic] #grid .card.act{box-shadow:0 0 0 2px color-mix(in srgb,var(--b) 70%,transparent),0 8px 26px color-mix(in srgb,var(--b) 30%,transparent)}
@@ -3757,9 +3760,12 @@ function readAhead(a){
  if(pfMode()==='top10')prefetch(next.slice(3,10));
 }
 function pump(){
+ /* reading stories ahead of time waits until you stop scrolling: parsing a page is heavy work for the main thread */
+ if(PF.q.length&&userBusy()&&!document.hidden){clearTimeout(pump.t);pump.t=setTimeout(pump,800);return}
  while(PF.run<2&&PF.q.length){
   const a=PF.q.shift();PF.run++;
-  getFull(a.link,true).then(n=>{
+  getFull(a.link,true).then(async n=>{
+   await quietGap(4000);
    if(!n||acHas(a.link))return;
    const have=fromHTML(a.html||'',a.link).textContent.length;
    if(n.textContent.length<Math.max(600,have+100))return;
@@ -4809,15 +4815,17 @@ function covTitle(){
  try{const r=c.getBoundingClientRect(),m=$('main').getBoundingClientRect(),vis=Math.max(0,Math.min(r.bottom,m.bottom)-Math.max(r.top,m.top));document.body.classList.toggle('hascov',vis/(r.height||1)>.4)}catch(e){}
  const io=new IntersectionObserver(es=>document.body.classList.toggle('hascov',es[0].intersectionRatio>.4),{threshold:[0,.4,.6,1]});io.observe(c);covTitle.io=io;
 }
-function dynSet(c){if(c)document.documentElement.style.setProperty('--dyn',c)}
+const dynEls=()=>[document.body,document.getElementById('tabs')].filter(Boolean);
+/* while you scroll the colour changes at once instead of fading over 0.9 s, so the page is not re-styled on every frame of a fade */
+function dynSet(c){if(!c)return;const busy=userBusy();dynEls().forEach(e=>{e.style.transition=busy?'none':'';e.style.setProperty('--dyn',c)})}
 function dynLive(){
  const r=document.documentElement,on=isOn('dynx')&&r.dataset.theme==='dynamic';
  if(dynLive.io){dynLive.io.disconnect();dynLive.io=null}
- if(!on){r.style.removeProperty('--dyn');return}
+ if(!on){dynEls().forEach(e=>e.style.removeProperty('--dyn'));return}
  const g=$('#grid');if(!g)return;
  const cs=[...g.querySelectorAll(':scope>.card,:scope>.cover,:scope .card')];
  const c0=cs[0]?(cs[0].style.getPropertyValue('--b')||getComputedStyle(cs[0]).getPropertyValue('--b')).trim():'';
- const keep=r.style.getPropertyValue('--dyn')&&dynLive.sel===S.sel;dynLive.sel=S.sel;if(!keep)dynSet(c0||getComputedStyle(r).getPropertyValue('--a1').trim()||'#0a8f4a');
+ const keep=document.body.style.getPropertyValue('--dyn')&&dynLive.sel===S.sel;dynLive.sel=S.sel;if(!keep)dynSet(c0||getComputedStyle(r).getPropertyValue('--a1').trim()||'#0a8f4a');
  if(!('IntersectionObserver' in window))return;
  const io=new IntersectionObserver(es=>{const e=es.filter(x=>x.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top)[0];if(!e)return;const c=(e.target.style.getPropertyValue('--b')||'').trim();if(c)dynSet(c)},{rootMargin:'-28% 0px -56% 0px'});
  cs.slice(0,120).forEach(x=>io.observe(x));dynLive.io=io;
