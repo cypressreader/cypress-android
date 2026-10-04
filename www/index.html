@@ -3344,7 +3344,7 @@ function layout(){noteFix();
  R.words=((c.querySelector('.body')||c).textContent.match(/\S+/g)||[]).length+((c.querySelector('.tt')||{}).textContent||'').split(' ').length;
  if(vert){const W=bk.clientWidth,H=bk.clientHeight,P=Math.round((W>700?34:(narrowC()?12:18))*(narrowC()?Math.min(+S.mg||1,1):(+S.mg||1)));
   c.style.cssText=`position:relative;left:auto;top:auto;width:auto;max-width:${narrowC()?W:Math.min(W-2*P,740)}px;margin:0 auto;padding:${P}px ${W>=700?0:P}px ${Math.round(H*.35)}px;column-count:1;height:auto;transform:none;--ih:${Math.round(H*.55)}px`;
-  R.cpv=1;R.np=1;R.pg=0;R.step=0;vWire();show();if(R.rf!=null){const f=R.rf;R.rf=null;R.sf=null;rdSetFrac(f)}return}
+  R.cpv=1;R.np=1;R.pg=0;R.step=0;vWire();show();if(R.rf!=null){const f=R.rf;R.rf=null;R.sf=null;R.af={f,t:Date.now()};rdSetFrac(f);rdFollow()}else rdReapply();return}
  const hg=hinge();let gap=56;
  if(hg){const r=bk.getBoundingClientRect(),cs=getComputedStyle(bk),d=(hg.l+hg.r)/2-(r.left+r.width/2),ml=parseFloat(cs.marginLeft)||0,mr=parseFloat(cs.marginRight)||0;
   if(Math.abs(d)>1){if(d>0)bk.style.marginLeft=(ml+2*d)+'px';else bk.style.marginRight=(mr-2*d)+'px'}
@@ -3360,7 +3360,7 @@ function layout(){noteFix();
  R.pg=Math.min(R.pg,R.np-1);
  pgEnd();
  show();
- if(R.rf!=null){const f=R.rf;R.rf=null;R.sf=null;rdSetFrac(f)}
+ if(R.rf!=null){const f=R.rf;R.rf=null;R.sf=null;R.af={f,t:Date.now()};rdSetFrac(f);rdFollow()}else rdReapply()
 }
 function show(){
  const c=$('.cols');if(!c)return;setProg();
@@ -3954,7 +3954,7 @@ function ttsMark(i){
   const r=new Range();r.setStart(w.n,w.s);r.setEnd(w.n,w.e);
   if(window.CSS&&CSS.highlights&&window.Highlight){CSS.highlights.set('tts',new Highlight(r));try{const sn=TTS.sent;let lo=0,hi=sn.length-1;while(lo<hi){const m=(lo+hi+1)>>1;if(sn[m]<=i)lo=m;else hi=m-1}const s0=sn[lo],e0=(sn[lo+1]==null?TTS.words.length:sn[lo+1])-1,A0=TTS.words[s0],B0=TTS.words[e0];if(A0&&B0){const rs=new Range();rs.setStart(A0.n,A0.s);rs.setEnd(B0.n,B0.e);CSS.highlights.set('tts-s',new Highlight(rs))}}catch(_){}}
   const c=$('.cols');
-  if(c&&!R.web&&isVert()){const v=vView(),rr=r.getBoundingClientRect(),vr=v.getBoundingClientRect();if(rr.top<vr.top+30||rr.bottom>vr.bottom-60)v.scrollTo({top:v.scrollTop+rr.top-vr.top-vr.height*.3,behavior:'smooth'})}
+  if(c&&!R.web&&isVert()){const v=vView(),rr=r.getBoundingClientRect(),vr=v.getBoundingClientRect();if((rr.top<vr.top+30||rr.bottom>vr.bottom-60)&&Date.now()-(TTS.um||0)>8000)v.scrollTo({top:v.scrollTop+rr.top-vr.top-vr.height*.3,behavior:'smooth'})}
   else if(c&&!R.web){
    const pg=Math.max(0,Math.min(R.np-1,Math.floor((r.getBoundingClientRect().left-c.getBoundingClientRect().left+2)/R.step)));
    if(pg!==R.pg&&!R.busy){if(Math.abs(pg-R.pg)===1)go(pg-R.pg);else{R.pg=pg;show()}}
@@ -5913,7 +5913,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.10.04j';const APP_LABEL='1.28';
-const CHANGES=['Opening your phone no longer sends a story you were reading in scroll view back to the beginning: your place carries over to the page view, and back', 'Dynamic theme now uses Inter, a modern sans designed for screens, in place of the serif']];
+const CHANGES=['Opening your phone no longer sends a story you were reading in scroll view back to the beginning: your place carries over to the page view, and back', 'Dynamic theme now uses Inter, a modern sans designed for screens, in place of the serif', 'Closing your fold while a story is being read aloud keeps your place and no longer snaps you back: the place carries over even while photos finish loading, and scrolling by hand is not fought by the read-aloud follow for a few seconds'];
 const DEF_ON=new Set(['skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -5925,6 +5925,10 @@ const WHY={};
 function vView(){return $('#rd .view')}
 /* keep the reader's place when the window changes shape (fold, rotate, split screen) */
 document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.matches&&t.matches('#rd .view')){clearTimeout(rdFrac.t);rdFrac.t=setTimeout(()=>{if(R.ready&&isVert())R.sf=vEndFrac()},160)}},true);
+/* after a resize, late images change the page height: keep re-applying the place for a few seconds unless the reader moves it, and keep read-aloud's spoken word in view */
+function rdReapply(){const a=R.af;if(!a)return;if(Date.now()-a.t>6000){R.af=null;return}rdSetFrac(a.f)}
+function rdFollow(){if(typeof TTS!=='undefined'&&TTS.on&&TTS.words&&TTS.words[TTS.wi]){TTS.um=0;setTimeout(()=>{try{ttsMark(TTS.wi)}catch(e){}},80)}}
+['wheel','touchstart','keydown','pointerdown'].forEach(ev=>document.addEventListener(ev,e=>{if(e.target&&e.target.closest&&e.target.closest('#rd')){R.af=null;TTS.um=Date.now()}},{capture:true,passive:true}));
 function pgFrac(){if(!R.ready||!curA)return null;const E=R.ep!=null?R.ep:R.np-1;return E>0?Math.min(1,R.pg/E):0}
 function rdFrac(){if(!R.ready||!curA)return null;if(isVert())return vEndFrac();const E=R.ep!=null?R.ep:R.np-1;return E>0?Math.min(1,R.pg/E):0}
 function rdSetFrac(f){if(f==null)return;if(isVert()){const v=vView();if(!v)return;let m=v.scrollHeight-v.clientHeight;const e=bodyEnd();if(e){const endY=e.getBoundingClientRect().bottom-v.getBoundingClientRect().top+v.scrollTop;m=Math.min(m,Math.max(1,endY-v.clientHeight+24))}if(m>0)v.scrollTop=Math.round(f*m)}else if(R.np>1){const E=R.ep!=null?R.ep:R.np-1;R.pg=Math.max(0,Math.min(Math.round(f*E),R.np-1));show()}}
