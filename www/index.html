@@ -2710,12 +2710,8 @@ function pruneJunk(root){
  });
 }
 const ssList=ss=>String(ss||'').split(/\s+[\d.]+[wx]\s*,?\s*|,\s+/).map(x=>x.trim()).filter(Boolean);/* srcset candidates; CDN urls may contain commas (c_fill,w_800), so a plain split(',') cuts them */
-/* how many pictures a page had against how many the reader kept, shown in "At a glance" so a story that loses pictures can be diagnosed */
-let XALL=0;const PICSTAT={};
-function extract(html,base){const r=extract0(html,base);try{PICSTAT[base]={all:XALL,kept:r&&r.querySelectorAll?r.querySelectorAll('img').length:0};const ks=Object.keys(PICSTAT);if(ks.length>60)delete PICSTAT[ks[0]]}catch(e){}return r}
-function extract0(html,base){
+function extract(html,base){
  const d=new DOMParser().parseFromString(html,'text/html');
- try{const seen=new Set(),scope=d.querySelector('article')||d.querySelector('main')||d.body||d,NOISE=/(^|[\s_-])(ad|ads|advert\w*|promo\w*|related|recommend\w*|newsletter|sponsor\w*|social|share|sharing|trending|popular|more-stories|subscribe|footer|header|nav|menu|sidebar|comments?)([\s_-]|$)/i;scope.querySelectorAll('img,picture>source').forEach(e=>{if(e.closest('nav,footer,aside,header,form,button'))return;let n=e,bad=false;for(let k=0;n&&n!==scope&&k<8;n=n.parentElement,k++){if(NOISE.test((n.getAttribute('class')||'')+' '+(n.id||'')+' '+(n.getAttribute('data-testid')||''))){bad=true;break}}if(bad)return;if(+(e.getAttribute('width')||999)<100)return;let u=e.getAttribute('src')||e.getAttribute('data-src')||e.getAttribute('data-lazy-src')||'';if(!u||/^data:/i.test(u)){u=(e.getAttribute('srcset')||e.getAttribute('data-srcset')||'').trim().split(/\s+/)[0]||''}u=u.split('?')[0];if(!u||/^data:/i.test(u)||/\.svg$/i.test(u)||ICONRE.test(u))return;seen.add(u.split('/').pop())});XALL=seen.size}catch(e){XALL=0}
  let ld='';
  d.querySelectorAll('script[type="application/ld+json"]').forEach(x=>{try{const f=o=>{if(!o||typeof o!=='object')return;if(typeof o.articleBody==='string'&&o.articleBody.length>ld.length)ld=o.articleBody;Object.values(o).forEach(f)};f(JSON.parse(x.textContent))}catch(e){}});
  /* AMP pages (the AMP-copy fallback fetches them) use <amp-img>, which the reader would drop entirely */
@@ -6118,7 +6114,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.10.05c';const APP_LABEL='1.35';
-const CHANGES=['Thumbnails from “Related stories”, promo and ad blocks inside a story are no longer kept as if they were the story’s own pictures','“At a glance” now says when a story’s page had more pictures than the reader could show (for example “1 shown of 9 on the page”), which makes missing pictures easier to track down','The site-colour tint on card outlines (list, narrow and compact layouts) is a little stronger, so it is easier to see which site a card is from'];
+const CHANGES=['Thumbnails from “Related stories”, promo and ad blocks inside a story are no longer kept as if they were the story’s own pictures','The site-colour tint on card outlines (list, narrow and compact layouts) is a little stronger, so it is easier to see which site a card is from'];
 const DEF_ON=new Set(['intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -6210,7 +6206,7 @@ function mnotes(){
  c.querySelectorAll(':scope>.mnotes').forEach(x=>x.remove());
  if(!c.querySelector(':scope>.hsf')||!isOn('mnote')||!curA)return;
  const a=curA,f=fof(a),min=S.rt[a.link]||Math.max(1,Math.round(((c.querySelector('.body')||c).textContent.split(/\s+/).length)/230)),n=(a.more||[]).length;
- const pk=Object.keys(PICSTAT).find(k=>k===a.link||k.startsWith(a.link)),ps=pk?PICSTAT[pk]:null,rows=[['Source',f.title||host(a.link)],['Published',a.date?new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'}):''],['Reading time',min+' min'],ps&&ps.all-ps.kept>=2?['Pictures',ps.kept+' shown of '+ps.all+' on the page']:null,n?['Also covered by',(a.more.slice(0,3).map(m=>fof({feedId:m.f}).title).join(', '))+(n>3?' and '+(n-3)+' more':'')]:null].filter(r=>r&&r[1]);
+ rows=[['Source',f.title||host(a.link)],['Published',a.date?new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'}):''],['Reading time',min+' min'],n?['Also covered by',(a.more.slice(0,3).map(m=>fof({feedId:m.f}).title).join(', '))+(n>3?' and '+(n-3)+' more':'')]:null].filter(r=>r&&r[1]);
  const el=document.createElement('aside');el.className='mnotes';el.innerHTML='<b>At a glance</b><dl>'+rows.map(r=>`<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join('')+'</dl>';
  const nt=c.querySelector(':scope>.note'),bd=c.querySelector(':scope>.body');c.insertBefore(el,nt||bd);
 }
