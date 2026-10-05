@@ -2632,19 +2632,19 @@ function quietRender(){
  if(!document.hidden&&userBusy()&&(!QRS||Date.now()-QRS<15000)){QRS=QRS||Date.now();clearTimeout(QRT);QRT=setTimeout(quietRender,500);return}
  const mn=$('main'),rd=$('#rd');
  /* scrolled well down a feed: do not redraw it under the reader's finger. Offer the new stories instead */
- if(!document.hidden&&mn&&mn.scrollTop>500&&!(rd&&rd.classList.contains('on'))&&/^(all|today|f:|s:|k:)/.test(S.sel||'')){NEWP=true;newPill(true);QRS=0;saveCache();return}
+ if(!document.hidden&&mn&&mn.scrollTop>500&&!(rd&&rd.classList.contains('on'))&&/^(all|today|f:|s:|k:)/.test(S.sel||'')){QRS=0;if(LASTSET&&Date.now()-PILLT>6e5){let n=0;for(const f of S.feeds)for(const a of (items[f.id]||[]))if(!LASTSET.has(a.link)&&!muted(a))n++;if(n>=5){NEWP=true;PILLT=Date.now();newPill(true,n)}}saveCache();return}
  QRS=0;{const sg=itemsSig();if(sg===LASTSIG&&!document.hidden&&mn&&mn.children.length){saveCache();return}}render();saveCache();
 }
 let NEWP=false;
 let NPT=0;
 /* The “New stories” pill drops down from the top, waits a few seconds, then slides up and away (it never stays on screen) */
-function newPill(show){
+function newPill(show,n){
  let el=document.getElementById('newpill');
  const go=()=>{clearTimeout(NPT);const e=document.getElementById('newpill');if(!e)return;e.onclick=null;e.style.pointerEvents='none';
   if(e.animate&&!matchMedia('(prefers-reduced-motion:reduce)').matches){const an=e.animate([{transform:'translate(-50%,0)',opacity:1},{transform:'translate(-50%,-90px)',opacity:0}],{duration:380,easing:'cubic-bezier(.5,0,.75,0)',fill:'forwards'});an.onfinish=()=>e.remove()}else e.remove()};
  if(!show){clearTimeout(NPT);if(el)el.remove();return}
  if(el)return;
- el=document.createElement('button');el.id='newpill';el.type='button';el.textContent='New stories. Tap to show';el.setAttribute('aria-live','polite');
+ el=document.createElement('button');el.id='newpill';el.type='button';el.textContent=(n>1?n+' new stories':'New stories')+'. Tap to show';el.setAttribute('aria-live','polite');
  el.style.cssText='position:fixed;top:calc(64px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:30;padding:9px 16px;border-radius:99px;border:0;background:var(--ink);color:var(--bg);font:600 13px var(--sans);box-shadow:0 6px 20px rgba(0,0,0,.3);cursor:pointer';
  el.onclick=()=>{newPill(false);const m=$('main');if(m)m.scrollTop=0;render()};
  document.body.append(el);
@@ -3143,7 +3143,8 @@ let VW=innerWidth;addEventListener('resize',()=>{VW=innerWidth},{passive:true});
 const layoutKey=()=>((S.narrow||'auto')==='auto'&&VW<=500)+'|'+(VW<700)+'|'+(VW>=840);let LK=layoutKey();
 function covFit(){document.querySelectorAll('.cover .cvlead h2').forEach(h=>{const n=(h.textContent||'').trim().length;h.classList.toggle('l1',n>58&&n<=88);h.classList.toggle('l2',n>88)})}
 let _lastSel=null;const SELPOS={};/* where each feed was left, so coming back to it resumes there instead of the top */
-function render(){LASTSIG=itemsSig();if(NEWP){NEWP=false;newPill(false)}setTimeout(endObs,60);LK=layoutKey();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){if(mn0&&_lastSel!==null)SELPOS[_lastSel]={y:mn0.scrollTop,t:Date.now(),k:LK};_lastSel=S.sel;const sm=SELPOS[S.sel];if(sm&&Date.now()-sm.t<18e5&&sm.k===LK&&sm.y>40)keep=sm.y;else if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();secOpener();covTitle();covFit();dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=(S.sel==='today'&&!$('#q').value.trim()&&!nrMode())?'narrow':(S.cards||'medium');clearTimeout(PF.t);PF.t=setTimeout(()=>prefetch(pfList()),2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
+let LASTSET=null,PILLT=0;
+function render(){LASTSIG=itemsSig();LASTSET=new Set();for(const f of S.feeds)for(const a of (items[f.id]||[]))LASTSET.add(a.link);if(NEWP){NEWP=false;newPill(false)}setTimeout(endObs,60);LK=layoutKey();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){if(mn0&&_lastSel!==null)SELPOS[_lastSel]={y:mn0.scrollTop,t:Date.now(),k:LK};_lastSel=S.sel;const sm=SELPOS[S.sel];if(sm&&Date.now()-sm.t<18e5&&sm.k===LK&&sm.y>40)keep=sm.y;else if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();secOpener();covTitle();covFit();dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=(S.sel==='today'&&!$('#q').value.trim()&&!nrMode())?'narrow':(S.cards||'medium');clearTimeout(PF.t);PF.t=setTimeout(()=>prefetch(pfList()),2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
 function starGuard(){
  /* reads first, writes after, so the page is laid out once instead of once per card */
  try{
