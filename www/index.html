@@ -1104,6 +1104,7 @@ body.split .card.act{outline:3px solid var(--logo);outline-offset:2px}
 .hero{width:100%;height:calc(var(--ih)*.8);object-fit:cover;border-radius:14px;margin-bottom:18px;display:block}
 .body p,.body ul,.body ol,.body blockquote,.body figure,.body pre{margin:0 0 1em}
 .body h2,.body h3,.body h4{font:600 24px/1.2 var(--serif);margin:1.2em 0 .5em;text-align:left;break-after:avoid}
+.body img.tiny{width:auto;max-width:min(100%,var(--tw,120px));height:auto;max-height:none;object-fit:contain;margin:1em auto;cursor:default}
 .body img{width:100%;max-height:var(--ih);object-fit:cover;border-radius:12px;display:block;margin:1em 0;break-inside:avoid}
 .body figure{break-inside:avoid}
 .body{overflow-wrap:break-word}
@@ -4234,7 +4235,7 @@ async function openReader(a){
  $('#rd').classList.add('on');applyFs(false);applyFolderTheme();
  const c=$('.cols'),body=c.querySelector('.body'),note=c.querySelector('.note');
  body.append(fromHTML(a.html,a.link));foldBoiler(body,a);
- c.addEventListener('load',()=>{heroSpread();photoPages();relayout()},true);c.addEventListener('error',()=>{heroSpread();relayout()},true);
+ c.addEventListener('load',e=>{const im=e.target;/* a logo or icon in a story keeps its own small size instead of being blown up blurry across the column */if(im&&im.tagName==='IMG'&&im.closest&&im.closest('.body')&&!im.classList.contains('hero')&&im.naturalWidth&&im.naturalWidth<220&&im.naturalHeight<220){im.classList.add('tiny');im.style.setProperty('--tw',im.naturalWidth+'px')}heroSpread();photoPages();relayout()},true);c.addEventListener('error',()=>{heroSpread();relayout()},true);
  /* when the full text is already stored, afterLoad lays the page out once, so skip the layout of the short feed version */
  if(!(acGet(a.link)&&!ytId(a)))layout();
  mediaWire();
@@ -4711,7 +4712,7 @@ $('#rd').onclick=e=>{
  const kr=t.closest('[data-kr]');if(kr){const n=findStory(kr.dataset.kr);if(n)openReader(n);return}
  const cp=t.closest('.cpy');if(cp){const pr=cp.parentElement.querySelector('pre');navigator.clipboard.writeText(pr?pr.textContent:'').then(()=>{cp.classList.add('done');setTimeout(()=>cp.classList.remove('done'),1400)},()=>toast('Couldn’t copy'));return}
  /* a picture always opens in the in-app viewer, even when the site wrapped it in a link */
- const gim=t.closest('.cols img');if(gim&&!gim.closest('.emb')&&!R.noClick&&!R.web&&!(getSelection()+'')){e.preventDefault();openGal(gim);return}
+ const gim=t.closest('.cols img');if(gim&&gim.classList.contains('tiny'))return;if(gim&&!gim.closest('.emb')&&!R.noClick&&!R.web&&!(getSelection()+'')){e.preventDefault();openGal(gim);return}
  const lk=t.closest('.cols .body a[href]');if(lk&&!lk.closest('.emb')&&!R.noClick&&!R.web&&!(getSelection()+'')){e.preventDefault();extOpen(lk.href);return}
  const bn=t.closest('[data-bnext]');if(bn){const n=briefNext();if(n)openReader(n);return}
  if(t.closest('[data-bfin]'))return closeRd();
