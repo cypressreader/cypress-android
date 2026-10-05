@@ -281,6 +281,12 @@ figure.pqs figcaption{margin-top:12px;font:600 12px var(--sans);letter-spacing:.
 .dg .dsec{margin:26px 0 10px;border-bottom:1px solid var(--ln);padding-bottom:6px}
 .dg .dsec h3{font:600 22px var(--serif)}
 .dg .dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.dmag-h{text-align:center;padding:8px 0 26px;max-width:34em;margin:0 auto}.dmag-h small{display:block;font:700 11.5px var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--a1)}
+.dmag-h h3{font:700 clamp(26px,5vw,40px)/1.1 var(--serif);letter-spacing:var(--hk);margin:8px 0 10px}.dmag-h p{font:400 16px/1.5 var(--sans);color:var(--mut);margin:0}
+.dmag-f{text-align:center;padding:26px 0 8px;border-top:1px solid var(--ln);margin-top:10px}.dmag-f p{font:italic 400 15px/1.5 var(--serif);color:var(--mut);max-width:30em;margin:0 auto 14px}
+.dmag-f div{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.dmag-f button{border:1px solid var(--ln);background:var(--pn);color:var(--ink);border-radius:99px;padding:9px 18px;font:600 14px var(--sans);cursor:pointer}
+#grid .nr-top.nr-one{display:block}#grid .nr-top.nr-one>.nr-lw{padding:0}
+#grid .nr-trio.nr-t1,#grid .nr-trio.nr-t2{grid-template-columns:repeat(auto-fit,minmax(0,1fr))}
 .dg .dwhy{margin:10px auto 0;max-width:30em;font:400 15px/1.45 var(--sans);color:var(--mut);letter-spacing:0;text-transform:none}
 .dg .dsec{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}.dg .dsec small{font:500 12.5px var(--sans);color:var(--mut)}
 .dg.ed .edin{margin:14px auto 0;max-width:36em;text-align:center;padding:10px 0;border-bottom:1px solid var(--ln)}
@@ -3511,7 +3517,27 @@ function storyQuote(pool){
  const f=fof(a);
  return `<a class="pqc" href="${esc(a.link)}" data-i="${cur.length-1}" style="--b:${brand(f)}"><blockquote>${esc(q)}</blockquote><footer><i class="av">${esc((f.title||'?').trim().charAt(0).toUpperCase())}</i><span><b>${esc(f.title)}</b><small>${esc(a.title)}</small></span></footer></a>`;
 }
-/* The Daily: four tabs. Latest (the cover, today's progress, quick links, then the newest stories), Top (stories several of your sites are covering), Quick (about 1 to 3 minutes) and Deep (about 10 minutes or more) */
+/* Deep and short Quick lists: a small magazine spread that works with just a few stories (a title block, a lead feature, a pull quote, a colour feature, photo cards, then a reading list) */
+function magHtml(l,base,mode,kind){
+ const C=(i,k)=>card(l[i],base+i,'nr '+k),B=[],used=new Set(),ph=mode==='p',deep=kind==='deep';
+ const mark=i=>{used.add(i);return i},left=f=>l.map((a,i)=>i).filter(i=>!used.has(i)&&(!f||f(l[i])));
+ const mins=l.reduce((n,a)=>n+(minsOf(a)||0),0),tot=mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes';
+ B.push(`<section class="dmag-h"><small>${deep?'Settle in':'Quick break'}</small><h3>${deep?(l.length===1?'One long read for when you have time':l.length+' long reads for when you have time'):l.length+' quick reads for a spare moment'}</h3><p>${deep?'About '+tot+' of reading in all. Pick one, get comfortable, and take your time.':'About '+tot+' in all, each one short enough to finish in a few minutes.'}</p></section>`);
+ const li=mark(left(nrHas)[0]??left()[0]);
+ B.push(ph?`<div class="nr-psec">${C(li,'nr-lead')}</div>`:`<section class="nr-top nr-one"><div class="nr-lw">${C(li,'nr-lead')}</div></section>`);
+ const qi=left(a=>nrQuoteText(a))[0];
+ if(qi!==undefined&&l.length>=3){mark(qi);B.push(`<section class="nr-quote">${nrQuoteHtml(l[qi],base+qi,ph?0:(nrHas(l[qi])?2:0),nrQuoteText(l[qi]))}</section>`)}
+ const ci=left(a=>nrHas(a)&&(a.summary||'').length>60)[0];
+ if(ci!==undefined){mark(ci);B.push(ph?`<div class="nr-color">${C(ci,'nr-colr')}</div>`:`<section class="nr-color">${C(ci,'nr-colr')}</section>`)}
+ const ps=left(nrHas);
+ while(ps.length>(ph?0:1)){const n=ph?1:Math.min(3,ps.length>4?3:ps.length>=2?2:1),g=ps.splice(0,n).map(mark);
+  B.push(ph?`<div class="nr-ph-feat">${C(g[0],'nr-tri')}</div>`:`<section class="nr-trio${g.length<3?' nr-t'+g.length:''}">${g.map(i=>C(i,'nr-tri')).join('')}</section>`)}
+ const rs=left();
+ if(rs.length)B.push(ph?`<section class="nr-psec"><h4>Also worth your time</h4><div class="nr-ph-rows nr-ph-in">${rs.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`:`<section class="nr-river"><h4>Also worth your time</h4><div class="nr-rv">${rs.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`);
+ B.push(`<section class="dmag-f"><p>${deep?'That is every long read for now. A story joins this list once its length is known, and some sites only show that after you open them.':'That is every quick read for now.'}</p><div><button type="button" data-bm="top">See the top stories</button><button type="button" data-bm="latest">Back to the latest</button></div></section>`);
+ return B;
+}
+/* The Daily: four tabs. Latest (the cover, today's progress, quick links, then the newest stories), Top (stories several of your sites are covering), Quick (about 1 to 3 minutes) and Deep (about 8 minutes or more) */
 const DTABS=[['latest','Latest'],['top','Top'],['quick','Quick'],['deep','Deep']];
 const dtab=()=>DTABS.some(x=>x[0]===S.dtab)?S.dtab:'latest';
 /* minutes to read: the measured time if the story has been opened, else from the feed's own text when that is long enough to mean something (a short teaser says nothing about the real length) */
@@ -3549,17 +3575,17 @@ function renderToday(){
    list=byDate.filter(a=>{const m=minsOf(a);return m>=1&&m<=3}).slice(0,40);label='Quick reads · about 1 to 3 minutes';
    empty='No short reads yet. A story shows up here once its length is known, which for some sites is after it has been opened.';
   }else{
-   list=byDate.filter(a=>minsOf(a)>=10).slice(0,40);label='Deep dives · about 10 minutes or more';
+   list=byDate.filter(a=>minsOf(a)>=8).slice(0,40);label='';
    empty='No long reads yet. A story shows up here once its length is known, which for some sites is after it has been opened.';
   }
  }
  const base=cur.length;
  list.forEach(a=>{cur.push(a);if(!WHY[a.link])WHY[a.link]=tab==='latest'?`One of your newest stories, from ${fof(a).title}.`:tab==='quick'?`A short read (about ${minsOf(a)} min) from ${fof(a).title}.`:`A long read (about ${minsOf(a)} min) from ${fof(a).title}.`});
  if(!list.length){g.innerHTML=h+`<div class="empty dempty">${esc(empty||'Nothing here yet.')}</div>`;return}
- h+=`<div class="dlh">${esc(label)}</div>`;
+ if(label)h+=`<div class="dlh">${esc(label)}</div>`;
  /* with enough stories the list gets the same varied layout the feeds have: a lead story, pairs, photo strips, pull quotes, short headline rows */
- const mode=list.length>=6?nrMode():'';
- if(mode){g.classList.add('nr');if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';setBlocks(h,mode==='w'?nrBlocks(list,base):nrBlocksPhone(list,base),3,2);return}
+ const mode=(list.length>=6||tab==='deep')?nrMode():'';
+ if(mode){g.classList.add('nr');if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';setBlocks(h,tab==='deep'?magHtml(list,base,mode,'deep'):mode==='w'?nrBlocks(list,base):nrBlocksPhone(list,base),9,3);return}
  g.dataset.cards='narrow';g.innerHTML=h+list.map((a,i)=>card(a,base+i,'')).join('');
  g.querySelectorAll('.card').forEach(c=>{const w=c.querySelector(':scope>.why'),sr=c.querySelector('.src');if(w&&sr)sr.append(w)});
 }
