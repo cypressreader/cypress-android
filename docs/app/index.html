@@ -281,12 +281,18 @@ figure.pqs figcaption{margin-top:12px;font:600 12px var(--sans);letter-spacing:.
 .dg .dsec{margin:26px 0 10px;border-bottom:1px solid var(--ln);padding-bottom:6px}
 .dg .dsec h3{font:600 22px var(--serif)}
 .dg .dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.dmag-h{text-align:center;padding:8px 0 26px;max-width:34em;margin:0 auto}.dmag-h small{display:block;font:700 11.5px var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--a1)}
+.dmag-h h3{font:700 clamp(26px,5vw,40px)/1.1 var(--serif);letter-spacing:var(--hk);margin:8px 0 10px}.dmag-h p{font:400 16px/1.5 var(--sans);color:var(--mut);margin:0}
+.dmag-f{text-align:center;padding:26px 0 8px;border-top:1px solid var(--ln);margin-top:10px}.dmag-f p{font:italic 400 15px/1.5 var(--serif);color:var(--mut);max-width:30em;margin:0 auto 14px}
+.dmag-f div{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.dmag-f button{border:1px solid var(--ln);background:var(--pn);color:var(--ink);border-radius:99px;padding:9px 18px;font:600 14px var(--sans);cursor:pointer}
+#grid .nr-top.nr-one{display:block}@media(min-width:700px){#grid .nr-top.nr-one .card.nr-lead{aspect-ratio:2/1;min-height:0;max-height:520px;height:auto}}#grid .nr-top.nr-one>.nr-lw{padding:0}
+#grid .nr-trio.nr-t1,#grid .nr-trio.nr-t2{grid-template-columns:repeat(auto-fit,minmax(0,1fr))}
 .dg .dwhy{margin:10px auto 0;max-width:30em;font:400 15px/1.45 var(--sans);color:var(--mut);letter-spacing:0;text-transform:none}
 .dg .dsec{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}.dg .dsec small{font:500 12.5px var(--sans);color:var(--mut)}
 .dg.ed .edin{margin:14px auto 0;max-width:36em;text-align:center;padding:10px 0;border-bottom:1px solid var(--ln)}
 .dg.ed .edin b{display:block;font:700 11.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
 .dg.ed .edin span{display:block;font:600 17px var(--serif);margin-top:4px}.dg.ed .edin small{display:block;margin-top:3px;font:500 12.5px var(--sans);color:var(--mut)}
-.dg.wk{padding-top:6px}
+.dg.wk{padding-top:6px}.dg.ed:has(.nr-top),.dg.wk:has(.nr-top,.nr-color,.nr-mos,.nr-ph-big){max-width:1200px}
 .dg.wk .wkhero{border-radius:22px;padding:20px 20px 16px;background:linear-gradient(135deg,color-mix(in srgb,var(--a1) 16%,var(--pn)),color-mix(in srgb,var(--a2,var(--a1)) 10%,var(--pn)));border:1px solid var(--ln)}
 .dg.wk .wkk{display:block;font:700 11.5px var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
 .dg.wk .wkbig{display:flex;align-items:baseline;gap:10px;margin:8px 0 12px;flex-wrap:wrap}.dg.wk .wkbig b{font:700 clamp(38px,9vw,60px)/1 var(--sans);letter-spacing:-.02em}.dg.wk .wkbig span{font:500 16px var(--sans);color:var(--mut)}
@@ -3327,17 +3333,20 @@ function nrQuoteHtml(a,idx,look,qt){
  if(look===1&&a.img)return `${open}<div class="tx">${mark}<p>${esc(qt.q)}</p>${att}</div><img decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="this.classList.add('ok')" onerror="this.parentNode.classList.add('noimg');this.remove()"></a>`;
  return `${open.replace('nr-pq'+look,'nr-pq0')}<div class="tx">${mark}<p>${esc(qt.q)}</p>${att}</div></a>`;
 }
-function nrBlocks(l,base){
- const P=nrPick(l),C=(i,k)=>card(l[i],base+i,'nr '+k),B=[],seed=nrHash(S.sel),tv=seed%3;
+function nrBlocks(l,base,o){
+ const P=nrPick(l),C=(i,k)=>card(l[i],base+i,'nr '+k),B=[],seed=o&&o.seed!=null?o.seed:nrHash(S.sel),tv=o&&o.tv!=null?o.tv:seed%3;
  const lead=P.pick(nrHas,1,true)||P.pick(null,1);
- if(tv===1){
+ if(o&&o.mag){
+  const tri=P.pick(nrHas,3);
+  B.push(`<section class="nr-top nr-one"><div class="nr-lw">${C(lead[0],'nr-lead')}</div></section>`);if(tri&&tri.length)B.push(`<section class="nr-trio">${tri.map(i=>C(i,'nr-tri')).join('')}</section>`);
+ }else if(tv===1){
   const tri=P.pick(nrHas,3),rail=P.pick(null,8);
   B.push(`<section class="nr-top nr-tb2"><div class="nr-lw">${C(lead[0],'nr-lead nr-wide')}</div><div class="nr-rail"><h4>Latest</h4><div class="nr-rl">${rail.map(i=>C(i,'nr-late')).join('')}</div></div><div class="nr-t3">${tri.map(i=>C(i,'nr-tri')).join('')}</div></section>`);
  }else{
   const mid=P.pick(nrHas,4),sub=P.pick(null,4),rail=P.pick(null,6);
   B.push(`<section class="nr-top${tv===2?' nr-flip':''}"><div class="nr-lw">${C(lead[0],'nr-lead')}${sub.length?`<div class="nr-lsub">${sub.map(i=>C(i,'nr-late')).join('')}</div>`:''}</div><div class="nr-mid">${mid.map(i=>C(i,'nr-row nr-m')).join('')}</div><div class="nr-rail"><h4>Latest</h4><div class="nr-rl">${rail.map(i=>C(i,'nr-late')).join('')}</div></div></section>`);
  }
- const seq=NRPAT[(seed>>3)%3];let n=0,guard=0,fl=0,qn=0;
+ const seq=(o&&o.seq)||NRPAT[(seed>>3)%3];let n=0,guard=0,fl=0,qn=0;
  const river=max=>{const ix=P.pick(null,max);if(!ix.length)return false;B.push(`<section class="nr-river"><h4>${nrAge(l[ix[0]])}</h4><div class="nr-rv">${ix.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`);return true};
  while(P.left()>0&&guard++<90){
   const t=seq[n++%seq.length];let ix,done=false;
@@ -3368,12 +3377,14 @@ function nrSecHtml(l,base,vi){
 /* Phones and small tablets: one column, but the same idea of variety. A tall lead, pairs, headline rows, a swipeable strip, colour features, quotes */
 const nrPhoneOn=()=>isOn('nroom')&&!nrDense()&&VW<NRMIN&&!document.body.classList.contains('split')&&S.view!=='list';
 const nrMode=()=>nrOn()?'w':nrPhoneOn()?'p':'';
+/* Edition reads like a newspaper (columns, rules, headline rows, quotes); the Week reads like a magazine (colour features, big photos, strips) */
+const NEWS_W=['seg','river','trio','quote','split','sect','river','quick'],NEWS_P=['rows','duo','quote','feat','rows','duo','quick'],MAG_W=['color','quote','mosaic','strip','split','quote','color','trio'],MAG_P=['big','color','strip','quote','feat','duo','color','big'];
 const NRPP=[['rows','duo','quote','big','strip','color','feat','quick'],['duo','feat','rows','quote','color','strip','big','quick'],['color','rows','duo','strip','quote','feat','big','quick']];
-function nrBlocksPhone(l,base){
- const P=nrPick(l),C=(i,k)=>card(l[i],base+i,'nr '+k),B=[],seed=nrHash(S.sel);
+function nrBlocksPhone(l,base,o){
+ const P=nrPick(l),C=(i,k)=>card(l[i],base+i,'nr '+k),B=[],seed=o&&o.seed!=null?o.seed:nrHash(S.sel);
  const hero=P.pick(nrHas,1,true)||P.pick(null,1),late=P.pick(null,4);
  B.push(`<section class="nr-ph-top">${C(hero[0],'nr-hero')}${late.length?`<div class="nr-ph-late"><h4>Latest</h4>${late.map(i=>C(i,'nr-late')).join('')}</div>`:''}</section>`);
- const seq=NRPP[(seed>>3)%3];let n=0,guard=0,qn=0;
+ const seq=(o&&o.seq)||NRPP[(seed>>3)%3];let n=0,guard=0,qn=0;
  const rows=max=>{const ix=P.pick(null,max);if(!ix.length)return false;B.push(`<section class="nr-ph-rows"><h4>${nrAge(l[ix[0]])}</h4>${ix.map(i=>C(i,'nr-row nr-s')).join('')}</section>`);return true};
  while(P.left()>0&&guard++<90){
   const t=seq[n++%seq.length];let ix,done=false;
@@ -3511,7 +3522,27 @@ function storyQuote(pool){
  const f=fof(a);
  return `<a class="pqc" href="${esc(a.link)}" data-i="${cur.length-1}" style="--b:${brand(f)}"><blockquote>${esc(q)}</blockquote><footer><i class="av">${esc((f.title||'?').trim().charAt(0).toUpperCase())}</i><span><b>${esc(f.title)}</b><small>${esc(a.title)}</small></span></footer></a>`;
 }
-/* The Daily: four tabs. Latest (the cover, today's progress, quick links, then the newest stories), Top (stories several of your sites are covering), Quick (about 1 to 3 minutes) and Deep (about 10 minutes or more) */
+/* Deep and short Quick lists: a small magazine spread that works with just a few stories (a title block, a lead feature, a pull quote, a colour feature, photo cards, then a reading list) */
+function magHtml(l,base,mode,kind){
+ const C=(i,k)=>card(l[i],base+i,'nr '+k),B=[],used=new Set(),ph=mode==='p',deep=kind==='deep';
+ const mark=i=>{used.add(i);return i},left=f=>l.map((a,i)=>i).filter(i=>!used.has(i)&&(!f||f(l[i])));
+ const mins=l.reduce((n,a)=>n+(minsOf(a)||0),0),tot=mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes';
+ B.push(`<section class="dmag-h"><small>${deep?'Settle in':'Quick break'}</small><h3>${deep?(l.length===1?'One long read for when you have time':l.length+' long reads for when you have time'):l.length+' quick reads for a spare moment'}</h3><p>${deep?'About '+tot+' of reading in all. Pick one, get comfortable, and take your time.':'About '+tot+' in all, each one short enough to finish in a few minutes.'}</p></section>`);
+ const li=mark(left(nrHas)[0]??left()[0]);
+ B.push(ph?`<div class="nr-psec">${C(li,'nr-lead')}</div>`:`<section class="nr-top nr-one"><div class="nr-lw">${C(li,'nr-lead')}</div></section>`);
+ const qi=left(a=>nrQuoteText(a))[0];
+ if(qi!==undefined&&l.length>=3){mark(qi);B.push(`<section class="nr-quote">${nrQuoteHtml(l[qi],base+qi,ph?0:(nrHas(l[qi])?2:0),nrQuoteText(l[qi]))}</section>`)}
+ const ci=left(a=>nrHas(a)&&(a.summary||'').length>60)[0];
+ if(ci!==undefined){mark(ci);B.push(ph?`<div class="nr-color">${C(ci,'nr-colr')}</div>`:`<section class="nr-color">${C(ci,'nr-colr')}</section>`)}
+ const ps=left(nrHas);
+ while(ps.length>(ph?0:1)){const n=ph?1:Math.min(3,ps.length>4?3:ps.length>=2?2:1),g=ps.splice(0,n).map(mark);
+  B.push(ph?`<div class="nr-ph-feat">${C(g[0],'nr-tri')}</div>`:`<section class="nr-trio${g.length<3?' nr-t'+g.length:''}">${g.map(i=>C(i,'nr-tri')).join('')}</section>`)}
+ const rs=left();
+ if(rs.length)B.push(ph?`<section class="nr-psec"><h4>Also worth your time</h4><div class="nr-ph-rows nr-ph-in">${rs.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`:`<section class="nr-river"><h4>Also worth your time</h4><div class="nr-rv">${rs.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`);
+ B.push(`<section class="dmag-f"><p>${deep?'That is every long read for now. A story joins this list once its length is known, and some sites only show that after you open them.':'That is every quick read for now.'}</p><div><button type="button" data-bm="top">See the top stories</button><button type="button" data-bm="latest">Back to the latest</button></div></section>`);
+ return B;
+}
+/* The Daily: four tabs. Latest (the cover, today's progress, quick links, then the newest stories), Top (stories several of your sites are covering), Quick (about 1 to 3 minutes) and Deep (about 8 minutes or more) */
 const DTABS=[['latest','Latest'],['top','Top'],['quick','Quick'],['deep','Deep']];
 const dtab=()=>DTABS.some(x=>x[0]===S.dtab)?S.dtab:'latest';
 /* minutes to read: the measured time if the story has been opened, else from the feed's own text when that is long enough to mean something (a short teaser says nothing about the real length) */
@@ -3549,17 +3580,17 @@ function renderToday(){
    list=byDate.filter(a=>{const m=minsOf(a);return m>=1&&m<=3}).slice(0,40);label='Quick reads · about 1 to 3 minutes';
    empty='No short reads yet. A story shows up here once its length is known, which for some sites is after it has been opened.';
   }else{
-   list=byDate.filter(a=>minsOf(a)>=10).slice(0,40);label='Deep dives · about 10 minutes or more';
+   list=byDate.filter(a=>minsOf(a)>=8).slice(0,40);label='';
    empty='No long reads yet. A story shows up here once its length is known, which for some sites is after it has been opened.';
   }
  }
  const base=cur.length;
  list.forEach(a=>{cur.push(a);if(!WHY[a.link])WHY[a.link]=tab==='latest'?`One of your newest stories, from ${fof(a).title}.`:tab==='quick'?`A short read (about ${minsOf(a)} min) from ${fof(a).title}.`:`A long read (about ${minsOf(a)} min) from ${fof(a).title}.`});
  if(!list.length){g.innerHTML=h+`<div class="empty dempty">${esc(empty||'Nothing here yet.')}</div>`;return}
- h+=`<div class="dlh">${esc(label)}</div>`;
+ if(label)h+=`<div class="dlh">${esc(label)}</div>`;
  /* with enough stories the list gets the same varied layout the feeds have: a lead story, pairs, photo strips, pull quotes, short headline rows */
- const mode=list.length>=6?nrMode():'';
- if(mode){g.classList.add('nr');if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';setBlocks(h,mode==='w'?nrBlocks(list,base):nrBlocksPhone(list,base),3,2);return}
+ const mode=(list.length>=6||tab==='deep')?nrMode():'';
+ if(mode){g.classList.add('nr');if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';setBlocks(h,tab==='deep'?magHtml(list,base,mode,'deep'):mode==='w'?nrBlocks(list,base):nrBlocksPhone(list,base),9,3);return}
  g.dataset.cards='narrow';g.innerHTML=h+list.map((a,i)=>card(a,base+i,'')).join('');
  g.querySelectorAll('.card').forEach(c=>{const w=c.querySelector(':scope>.why'),sr=c.querySelector('.src');if(w&&sr)sr.append(w)});
 }
@@ -6253,8 +6284,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.05e';const APP_LABEL='1.37';
-const CHANGES=['The Daily’s Top, Quick and Deep tabs, and the Latest list under the cover, now use the same varied layouts as your feeds (a lead story, pairs, photo rows, headline columns, strips and pull quotes) instead of a plain list. Short lists still show compact cards','The Edition and the Week now look and work differently. The Edition is a finished newspaper issue with an “In this issue” strip, the editor’s letter, front page and your topics. The Week is a recap: your reading time with a seven-day chart, the week’s biggest stories, a Day by day section with the best of each day for catching up, where your time went, what you read and what is still unread','On tablet and the website, the Latest / Top / Quick / Deep tabs and the Brief / Edition / Week buttons now stretch to fill the row instead of leaving empty space on the right','“The Daily” in the side menu has an arrow like your folders, to hide or show Brief, Edition and Week','A pull quote with a photo no longer leaves a big empty gap under it while the photo loads or if it never does: the photo takes up room only once it has loaded'];
+const APP_VERSION='2026.10.05f';const APP_LABEL='1.38';
+const CHANGES=['The Deep tab is now a small magazine spread, so it looks inviting even with only a few stories: a “Settle in” title block with the total reading time, a lead feature, a pull quote, a colour feature, photo cards and a reading list, with buttons to the top stories and back to the latest. Deep now includes stories of about 8 minutes or more','The Edition now reads like a newspaper front page: a big lead story with headline columns, a ruled Latest column, photo rows, an Also new list, pull quotes, a mini front page for each topic you follow, and In case you missed it as headline rows','The Week now reads like a magazine: after your reading recap, a full-width cover story with photo cards, a colour feature, big pull quotes, a photo mosaic and (on phones) a swipeable strip, followed by Day by day, where your time went, what you read and what is still unread','The big lead photo on tablet and the website is capped so it no longer fills the whole screen'];
 const DEF_ON=new Set(['intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -6653,6 +6684,7 @@ function dgLetter(k,pool,unread,fresh){
  return `<div class="letter"><h3>From the editor</h3>${paras.map(t=>`<p>${esc(t)}</p>`).join('')}<p class="sig"><span class="cl">${closing}</span><span class="sn">Your editor, CyPress</span></p></div>`;
 }
 function renderDigest(){
+ let dgNr=false;
  const k=S.dgk||(now=>{const h=now.getHours();return h<12?'morning':h<17?'morning':'evening'})(new Date());
  $('#ttl').textContent='The Daily';
  const span=k==='week'?7*864e5:k==='evening'?18*36e5:24*36e5,since=Date.now()-span;
@@ -6677,9 +6709,16 @@ function renderDigest(){
   h+=dgLetter(k,pool,uc(S.feeds),fresh);
   const allW=S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>a.date>=wkS&&!muted(a));
   const seenW=new Set(),dupW=new Set();
-  const big=allW.slice().sort((a,b)=>((b.more||[]).length-(a.more||[]).length)||b.date-a.date).filter(a=>{if(dupW.has(a.link))return false;dupW.add(a.link);return true}).slice(0,5);big.forEach(a=>seenW.add(a.link));
-  if(big.length>=2){const bl=big.find(a=>a.img)||big[0];const rest=big.filter(a=>a!==bl).slice(0,3);
-   h+=`<div class="dsec"><h3>The week’s biggest stories</h3><small>Covered by the most of your sites</small></div>`+mk(bl,'lead','Covered by the most of your sites over the last 7 days.')+(rest.length?`<div class="dgrid">${rest.map(a=>mk(a,'mid','Widely covered across your sites in the last 7 days.')).join('')}</div>`:'')}
+  const big=allW.slice().sort((a,b)=>((b.more||[]).length-(a.more||[]).length)||b.date-a.date).filter(a=>{if(dupW.has(a.link))return false;dupW.add(a.link);return true}).slice(0,16);
+  const NMW=nrMode();
+  if(NMW&&big.length>=7){
+   const b0=cur.length;big.forEach(a=>{cur.push(a);WHY[a.link]='One of the week’s biggest stories: covered by the most of your sites over the last 7 days.';seenW.add(a.link)});dgNr=true;
+   h+=`<div class="dsec"><h3>The week’s biggest stories</h3><small>Covered by the most of your sites</small></div>`+(NMW==='w'?nrBlocks(big,b0,{seed:5,mag:true,seq:MAG_W}):nrBlocksPhone(big,b0,{seed:5,seq:MAG_P})).join('');
+  }else{
+   big.splice(5);big.forEach(a=>seenW.add(a.link));
+   if(big.length>=2){const bl=big.find(a=>a.img)||big[0];const rest=big.filter(a=>a!==bl).slice(0,3);
+    h+=`<div class="dsec"><h3>The week’s biggest stories</h3><small>Covered by the most of your sites</small></div>`+mk(bl,'lead','Covered by the most of your sites over the last 7 days.')+(rest.length?`<div class="dgrid">${rest.map(a=>mk(a,'mid','Widely covered across your sites in the last 7 days.')).join('')}</div>`:'')}
+  }
   /* day by day: the best one or two stories from each day, for catching up after time away */
   let dh='';
   for(let i=0;i<7;i++){
@@ -6698,20 +6737,23 @@ function renderDigest(){
   const unreadW=allW.filter(a=>!S.read[a.link]&&!seenW.has(a.link)).sort((a,b)=>((b.more||[]).length-(a.more||[]).length)||b.date-a.date).slice(0,4);
   if(unreadW.length)h+=`<div class="dsec"><h3>Still unread from this week</h3></div><div class="dgrid">${unreadW.map(a=>mk(a,'mid','Unread, and from the last 7 days.')).join('')}</div>`;
  }else{
- const secs=[];
- if(lead){skip.add(lead.link);secs.push(['Cover story',[lead],'The top-ranked story, with a photo when there is one','lead'])}
- const rest=topOf(S.feeds,7,skip).filter(a=>a!==lead).slice(0,6);rest.forEach(a=>skip.add(a.link));
+ const secs=[],NM=nrMode(),fp=NM?topOf(S.feeds,26,new Set()):[],useNews=NM&&fp.length>=6;
+ if(useNews)fp.forEach(a=>{skip.add(a.link);(a.more||[]).forEach(m=>skip.add(m.l))});
+ if(lead&&!useNews){skip.add(lead.link);secs.push(['Cover story',[lead],'The top-ranked story, with a photo when there is one','lead'])}
+ const rest=useNews?[]:topOf(S.feeds,7,skip).filter(a=>a!==lead).slice(0,6);rest.forEach(a=>skip.add(a.link));
  if(rest.length)secs.push(['The rest of the front page',rest,'Next most important stories right now','mid']);
- const tsecs=S.sk.map(t=>[t.name,topOf(S.feeds,3,skip,a=>kmatch(t,a)&&a.date>=since-2*864e5),`Matches “${t.name}”, a topic you follow.`,'mid']).filter(x=>x[1].length);
+ const tsecs=S.sk.map(t=>[t.name,topOf(S.feeds,useNews?6:3,skip,a=>kmatch(t,a)&&a.date>=since-2*864e5),`Matches “${t.name}”, a topic you follow.`,'mid']).filter(x=>x[1].length);
  tsecs.forEach(x=>x[1].forEach(a=>skip.add(a.link)));
  const sv=S.saved.filter(a=>!S.read[a.link]).slice(0,4);
  const miss=S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>!S.read[a.link]&&a.date<since&&a.date>Date.now()-4*864e5&&!skip.has(a.link)&&!muted(a)).sort((a,b)=>((b.more||[]).length-(a.more||[]).length)||b.date-a.date).slice(0,4);
  const all=[...secs];
- {const n=all.reduce((c,x)=>c+x[1].length,0)+tsecs.reduce((c,x)=>c+x[1].length,0);const mn=[...all,...tsecs].reduce((c,x)=>c+x[1].reduce((m,a)=>m+(minsOf(a)||3),0),0);const names=[...all.map(x=>x[0]),...tsecs.map(x=>x[0]),...(sv.length?['Saved']:[]),...(miss.length?['Missed']:[])];h+=`<div class="edin"><b>In this issue</b><span>${n+sv.length+miss.length} stories · about ${mn+sv.length*3+miss.length*3} minutes</span><small>${esc(names.join(' · '))}</small></div>`}
+ {const n=(useNews?fp.length:0)+all.reduce((c,x)=>c+x[1].length,0)+tsecs.reduce((c,x)=>c+x[1].length,0);const mn=[...all,...tsecs].reduce((c,x)=>c+x[1].reduce((m,a)=>m+(minsOf(a)||3),0),0)+(useNews?fp.length*3:0);const names=[...(useNews?['Front page']:[]),...all.map(x=>x[0]),...tsecs.map(x=>x[0]),...(sv.length?['Saved']:[]),...(miss.length?['Missed']:[])];h+=`<div class="edin"><b>In this issue</b><span>${n+sv.length+miss.length} stories · about ${mn+sv.length*3+miss.length*3} minutes</span><small>${esc(names.join(' · '))}</small></div>`}
+ const regL=(l,why)=>{const b=cur.length;l.forEach(a=>{cur.push(a);WHY[a.link]=why});return b};
+ if(useNews){const b=regL(fp,'On the front page: ranked by how many of your sites cover it, and how new it is.');h+=`<div class="dsec nws"><h3>The front page</h3></div>`+(NM==='w'?nrBlocks(fp,b,{seed:3,tv:0,seq:NEWS_W}):nrBlocksPhone(fp,b,{seed:3,seq:NEWS_P})).join('');dgNr=true}
  for(const [n,l,why,kind] of all){h+=`<div class="dsec"><h3>${esc(n)}</h3></div>`+(kind==='lead'?l.map(a=>mk(a,'lead',why)).join(''):`<div class="dgrid">${l.map(a=>mk(a,'mid',why)).join('')}</div>`)}
- for(const [n,l,why] of tsecs)h+=`<div class="dsec"><h3>${esc(n)}</h3></div><div class="dgrid">${l.map(a=>mk(a,'mid',why)).join('')}</div>`;
+ tsecs.forEach(([n,l,why],ti)=>{if(useNews&&l.length>=3){dgNr=true;const b=regL(l,why);h+=`<div class="dsec nws"><h3>${esc(n)}</h3></div>`+(NM==='w'?nrSecHtml(l,b,ti):nrSecPhone(l,b,ti))}else h+=`<div class="dsec"><h3>${esc(n)}</h3></div><div class="dgrid">${l.map(a=>mk(a,'mid',why)).join('')}</div>`});
  if(sv.length)h+=`<div class="dsec"><h3>Saved, still unread</h3></div><div class="dgrid">${sv.map(a=>mk(findStory(a.link)||a,'mid','You saved this and haven’t read it yet.')).join('')}</div>`;
- if(miss.length)h+=`<div class="dsec"><h3>In case you missed it</h3></div><div class="dgrid">${miss.map(a=>mk(a,'mid','Unread, and widely covered in the last few days.')).join('')}</div>`;
+ if(miss.length)h+=useNews?`<div class="dsec nws"><h3>In case you missed it</h3></div><section class="nr-quick"><div class="nr-qk">${miss.map(a=>mk(a,'nr nr-late','Unread, and widely covered in the last few days.')).join('')}</div></section>`:`<div class="dsec"><h3>In case you missed it</h3></div><div class="dgrid">${miss.map(a=>mk(a,'mid','Unread, and widely covered in the last few days.')).join('')}</div>`;
  }
  const hls=S.hl.filter(x=>x.q&&x.q.length<=200),dd=d.getFullYear()*372+d.getMonth()*31+d.getDate();
  const bq=hls.length?{q:hls[dd%hls.length].q.replace(/^["“]|["”]$/g,''),by:'From your highlights · '+((hls[dd%hls.length].art||{}).title||'')}:{q:DGQ[dd%DGQ.length][0],by:DGQ[dd%DGQ.length][1]};
@@ -6720,7 +6762,7 @@ function renderDigest(){
   const fn=x=>(String(x||'').split(',')[0]||'').replace(/['"]/g,'').trim()||'Newsreader';
   h+=`<div class="colo"><b>About this issue</b><p>${esc(title)}, Vol. ${volNo()}, No. ${issue}. ${cur.length} stories from ${sites} of your ${S.feeds.length} sites, about ${mins} minutes of reading. Set in ${esc(fn(tf))} and ${esc(fn(getComputedStyle(document.documentElement).getPropertyValue('--serif')))}. Printed on your own device, and it goes nowhere else.</p></div>`}
  h+='</div>';
- $('#grid').innerHTML=h;{const dg=$('#grid').firstElementChild;if(dg)dg.insertAdjacentHTML('afterbegin',bmSeg(k==='week'?'week':'edition'))}
+ $('#grid').innerHTML=h;$('#grid').classList.toggle('nr',dgNr);$('#grid').classList.toggle('nrp',dgNr&&nrMode()==='p');{const dg=$('#grid').firstElementChild;if(dg)dg.insertAdjacentHTML('afterbegin',bmSeg(k==='week'?'week':'edition'))}
  if(pool.length||fresh.length){S.dgseen=S.dgseen||{};S.dgseen[(k==='week'?'w':k==='evening'?'e':'m')+new Date().toDateString()]=1;const ks=Object.keys(S.dgseen);if(ks.length>40)delete S.dgseen[ks[0]];save()}
 }
 
