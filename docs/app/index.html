@@ -6,7 +6,7 @@
 <title>CyPress</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="CyPress"><meta name="theme-color" content="#14171c"><link rel="icon" id="fav" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,500&family=Atkinson+Hyperlegible:wght@400;700&family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Orbitron:wght@600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,500&family=Atkinson+Hyperlegible:wght@400;700&family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Orbitron:wght@600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 :root{--dw:min(var(--sw,320px),calc(100vw - 60px));--bg:#eceef2;--pn:#fff;--ink:#14171c;--mut:#5f6673;--ln:#d9dce3;--serif:'Newsreader',Georgia,serif;--sans:'Instrument Sans',system-ui,sans-serif}
 @media(prefers-color-scheme:dark){:root{--bg:#0d0f13;--pn:#15181e;--ink:#eceef2;--mut:#8b93a1;--ln:#262a33}}
@@ -749,7 +749,7 @@ main{overflow:auto;min-width:0;background:var(--tint,transparent)}
 @media(max-width:560px){.fgrid{grid-template-columns:repeat(2,1fr)}.tgrid{gap:4px}.rng{width:58%}}
 html:root.night{--hl:rgba(255,150,60,.42)}
 html:root.night[data-theme=sepia]{--hl:rgba(214,120,40,.4)}
-:root.thfade,:root.thfade *{transition:background-color 4s ease,color 4s ease,border-color 4s ease,fill 4s ease!important}
+:root.thfade,:root.thfade *{transition:background-color 1.2s ease,color 1.2s ease,border-color 1.2s ease,fill 1.2s ease!important}
 .sky{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom));left:14px;z-index:99998;width:150px;height:58px;border-radius:18px;overflow:hidden;pointer-events:none;opacity:0;transform:translateY(-8px) scale(.96);transition:opacity .6s ease,transform .6s ease;box-shadow:0 8px 24px rgba(0,0,0,.18)}
 .sky.go{opacity:1;transform:none}.sky.out{opacity:0;transform:translateY(6px)}
 .sk-bg{position:absolute;inset:0;background:linear-gradient(#7fb6ec,#f7c98b);transition:background 3.6s ease}
@@ -2614,6 +2614,8 @@ async function fetchText(url,ok,lg){
     if(fails>=P.length){over=true;rej(new Error('Could not fetch'))}else start();
    });
   };
+  /* a caller that no longer needs the answer (another route already won) can stop every request of this fetch */
+  if(lg&&lg.sig){const ab=()=>{if(over)return;over=true;timers.forEach(clearTimeout);ctls.forEach(x=>{try{x.abort()}catch(e){}});rej(new Error('stopped'))};if(lg.sig.aborted)return rej(new Error('stopped'));lg.sig.addEventListener('abort',ab,{once:true})}
   start();
  });
 }
@@ -2664,7 +2666,7 @@ function clean(n,base){
   if(c.nodeType===3){out.append(c.textContent);continue}
   if(c.nodeType!==1)continue;
   if(/^(P|DIV|SPAN|SECTION|ASIDE|FIGURE)$/i.test(c.tagName)&&c.textContent.length<220&&/^(Ad is Hidden|Paid Promoted|Promoted Stories|Sponsored|Advertisement)/i.test(c.textContent.trim()))continue;
-  let t=c.tagName.toUpperCase();{const em=embedOf(c,t)||rebuildEmb(c,t);if(em){out.append(em);continue}}if(SKIP.has(t))continue;if(t==='H1')t='H2';
+  let t=c.tagName.toUpperCase();{const em=embedOf(c,t)||rebuildEmb(c,t);if(em){out.append(em);continue}}if(SKIP.has(t))continue;if(t==='H1')t='H2';if(t==='H5'||t==='H6')t='H4';
   if(t==='IMG'){
    let s=c.getAttribute('src')||c.getAttribute('data-src')||(c.getAttribute('srcset')||'').split(' ')[0];
    if(!s||s.startsWith('data:'))continue;
@@ -2674,7 +2676,7 @@ function clean(n,base){
    if(c.closest&&c.closest('li')&&+(c.getAttribute('width')||999)<200)continue;
    const im=document.createElement('img');im.src=abs(s,base);im.loading='lazy';im.referrerPolicy='no-referrer';out.append(im);continue;
   }
-  if(!OK.has(t)){out.append(clean(c,base));continue}
+  if(!OK.has(t)){const sub=clean(c,base);/* a div/dd/etc. that holds only running text is a paragraph: without a break its text fuses with its neighbours ("...text.Next...") */if(/^(DIV|SECTION|DT|DD|ADDRESS|HEADER|MAIN)$/.test(t)&&sub.textContent.trim()&&!sub.querySelector('p,ul,ol,table,figure,blockquote,pre,h2,h3,h4,hr,img')){const q=document.createElement('p');q.append(sub);out.append(q)}else out.append(sub);continue}
   const e=document.createElement(t);
   if(t==='A'){const h=abs(c.getAttribute('href')||'',base);if(!/^https?:/.test(h)){out.append(clean(c,base));continue}e.href=h;e.target='_blank';e.rel='noopener'}
   if(t==='TD'||t==='TH')['colspan','rowspan'].forEach(k=>{const v=c.getAttribute(k);if(v&&/^\d{1,2}$/.test(v))e.setAttribute(k,v)});
@@ -2695,30 +2697,33 @@ function tidyFrag(f){
  const o=document.createDocumentFragment();while(w.firstChild)o.append(w.firstChild);return o;
 }
 /* video pages and menus: drop the "video player was slow" feedback form and runs of one-word link menus that some sites leave inside the article body */
-const VIDJ=/(video player was slow to load|video content (never loaded|did not start)|ad (never loaded|froze|prevented|was repetitive)|content moved around while ad loaded|audio on ad was too loud|^\s*(\[x\]\s*)?other issues|^\s*cancel\s*submit\s*$|^\s*thank you!?\s*$|your effort and contribution in providing this feedback)/i,MENUJ=/^(more|watch|listen|subscribe|watchlistensubscribe|sign in|log in|search|skip to (main )?content|accept( all( cookies)?)?|manage my choices|try again|previous( next)?|next|menu( menu)?|settings|headings|topics|by region|home|shows|live|newsfeed|en|français|english|español|عربي|follow|share|issued on:?.*|reading time \d+ ?min|\d{1,2}:\d{2}( ?min)?|cover image:.{0,80})$/i,CHROMEJ=/(browser extensions? seems to be blocking|you must enable adver|advertisement tracking and audience|to display this content from|manage my choices|we use cookies|cookie (policy|settings|preferences)|accept all (cookies)?|skip to main content|international breaking news,? top stories|^\s*\d\.\s+\w[\w ]*(\s+\d\.\s+\w[\w ]*){1,})/i,STARLIST=/^(?:[^*]{1,60}\*\s*){3,}[^*]{0,60}$/;
+const VIDJ=/(video player was slow to load|video content (never loaded|did not start)|\bad (never loaded|froze|prevented|was repetitive)\b(?!.{60})|content moved around while ad loaded|audio on ad was too loud|^\s*(\[x\]\s*)?other issues|^\s*cancel\s*submit\s*$|^\s*thank you!?\s*$|your effort and contribution in providing this feedback)/i,MENUJ=/^(more|watch|listen|subscribe|watchlistensubscribe|sign in|log in|search|skip to (main )?content|accept( all( cookies)?)?|manage my choices|try again|previous( next)?|next|menu( menu)?|settings|headings|topics|by region|home|shows|live|newsfeed|en|français|english|español|عربي|follow|share|issued on:?.*|reading time \d+ ?min|\d{1,2}:\d{2}( ?min)?|cover image:.{0,80})$/i,CHROMEJ=/(browser extensions? seems to be blocking|you must enable adver|advertisement tracking and audience|to display this content from|manage my choices|^\s*we use cookies|^.{0,50}cookie (policy|settings|preferences)|accept all (cookies)?|skip to main content|international breaking news,? top stories|^\s*\d\.\s+\w[\w ]*(\s+\d\.\s+\w[\w ]*){1,})/i,STARLIST=/^(?:[^*]{1,60}\*\s*){3,}[^*]{0,60}$/;
 function pruneJunk(root){
  const kids=[...root.querySelectorAll('p,li,div,h2,h3')];/* the article is detached from the page, so isConnected would always be false */
  kids.forEach(e=>{if(e.children.length>8)return;const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length&&t.length<700&&(VIDJ.test(t)||MENUJ.test(t)||CHROMEJ.test(t)||(t.length<400&&STARLIST.test(t))))e.remove()});
  /* lists made only of short labels are menus, not part of the story */
- root.querySelectorAll('ul,ol').forEach(u=>{if(!root.contains(u))return;const li=[...u.children].filter(x=>x.tagName==='LI');if(li.length>=3&&li.every(x=>x.textContent.replace(/\s+/g,' ').trim().length<26)&&u.textContent.length<260)u.remove()});
+ root.querySelectorAll('ul,ol').forEach(u=>{if(!root.contains(u))return;const li=[...u.children].filter(x=>x.tagName==='LI');if(li.length>=3&&li.every(x=>x.textContent.replace(/\s+/g,' ').trim().length<26&&x.querySelector('a'))&&u.textContent.length<260)u.remove()});
  const lk=e=>{const t=e.textContent.replace(/\s+/g,' ').trim(),a=e.querySelectorAll('a');return t.length>0&&t.length<30&&a.length===1&&a[0].textContent.replace(/\s+/g,' ').trim()===t};
  [root,...root.querySelectorAll('div,section,article')].forEach(par=>{
   let run=[];const flush=()=>{if(run.length>=3)run.forEach(x=>x.remove());run=[]};
   [...par.children].forEach(c=>{if(lk(c))run.push(c);else flush()});flush();
  });
 }
+const ssList=ss=>String(ss||'').split(/\s+[\d.]+[wx]\s*,?\s*|,\s+/).map(x=>x.trim()).filter(Boolean);/* srcset candidates; CDN urls may contain commas (c_fill,w_800), so a plain split(',') cuts them */
 function extract(html,base){
  const d=new DOMParser().parseFromString(html,'text/html');
  let ld='';
  d.querySelectorAll('script[type="application/ld+json"]').forEach(x=>{try{const f=o=>{if(!o||typeof o!=='object')return;if(typeof o.articleBody==='string'&&o.articleBody.length>ld.length)ld=o.articleBody;Object.values(o).forEach(f)};f(JSON.parse(x.textContent))}catch(e){}});
+ /* AMP pages (the AMP-copy fallback fetches them) use <amp-img>, which the reader would drop entirely */
+ d.querySelectorAll('amp-img').forEach(a=>{const im=d.createElement('img');for(const at of a.attributes)im.setAttribute(at.name,at.value);a.replaceWith(im)});
  /* pictures some sites keep only in a <noscript> fallback or only in a <picture><source srcset>: bring them back before noscript is dropped */
- try{d.querySelectorAll('noscript').forEach(ns=>{const inner=ns.querySelector('img');if(!inner||!ns.parentNode)return;const par=ns.parentNode,prev=ns.previousElementSibling,isPh=el=>{if(!el)return false;const im=el.tagName==='IMG'?el:el.querySelector&&el.querySelector('img');if(!im)return false;const sr=im.getAttribute('src')||'';return !sr||/^data:/i.test(sr)||/placeholder|blank|spacer|1x1|pixel\./i.test(sr)};const has=[...par.querySelectorAll('img')].some(i=>i!==inner&&(i.getAttribute('src')||'')===(inner.getAttribute('src')||''));if(has)return;if(isPh(prev)){prev.replaceWith(inner.cloneNode(true))}else if(!par.querySelector('img:not([src^="data:"])')||par.closest('figure')){par.insertBefore(inner.cloneNode(true),ns)}})}catch(e){}
- d.querySelectorAll('picture').forEach(pc=>{const im=pc.querySelector('img');if(!im)return;const sr=im.getAttribute('src')||'';if(sr&&!/^data:/i.test(sr))return;const so=[...pc.querySelectorAll('source')].map(x=>x.getAttribute('srcset')||x.getAttribute('data-srcset')||'').find(Boolean);if(so){const u=so.split(',').map(x=>x.trim().split(/\s+/)[0]).filter(Boolean).pop();if(u)im.setAttribute('src',u)}});
- d.querySelectorAll('img').forEach(im=>{const src=im.getAttribute('src')||'',w=im.getAttribute('width');const ph=!src||/^data:/i.test(src)||/placeholder|blank|spacer|1x1|pixel\./i.test(src)||(w!==null&&+w<=2);if(!ph)return;let v='';for(const k of ['data-src','data-lazy-src','data-original','data-lazy','data-hi-res-src']){const x=im.getAttribute(k);if(x&&!/^data:/i.test(x)){v=x;break}}if(!v){const ss=im.getAttribute('data-srcset')||im.getAttribute('srcset')||'';v=ss.split(',').map(x=>x.trim().split(/\s+/)[0]).filter(Boolean).pop()||''}if(v)im.setAttribute('src',v)});
+ try{d.querySelectorAll('noscript').forEach(ns=>{const inner=ns.querySelector('img');if(!inner||!ns.parentNode)return;const par=ns.parentNode,prev=ns.previousElementSibling,isPh=el=>{if(!el)return false;const im=el.tagName==='IMG'?el:el.querySelector&&el.querySelector('img');if(!im)return false;const sr=im.getAttribute('src')||'';return !sr||/^data:/i.test(sr)||/placeholder|blank|spacer|1x1|pixel\./i.test(sr)};const isrc=abs(inner.getAttribute('src')||'',base),has=!!isrc&&[...par.querySelectorAll('img')].some(i=>i!==inner&&['src','data-src','data-lazy-src','data-original'].some(a=>{const v=i.getAttribute(a);return !!v&&abs(v,base)===isrc}));if(has)return;if(isPh(prev)){prev.replaceWith(inner.cloneNode(true))}else if(!par.querySelector('img:not([src^="data:"])')||par.closest('figure')){par.insertBefore(inner.cloneNode(true),ns)}})}catch(e){}
+ d.querySelectorAll('picture').forEach(pc=>{const im=pc.querySelector('img');if(!im)return;const sr=im.getAttribute('src')||'';if(sr&&!/^data:/i.test(sr))return;const so=[...pc.querySelectorAll('source')].map(x=>x.getAttribute('srcset')||x.getAttribute('data-srcset')||'').find(Boolean);if(so){const u=ssList(so).pop();if(u)im.setAttribute('src',u)}});
+ d.querySelectorAll('img').forEach(im=>{const src=im.getAttribute('src')||'',w=im.getAttribute('width');const ph=!src||/^data:/i.test(src)||/placeholder|blank|spacer|1x1|pixel\./i.test(src)||(w!==null&&+w<=2);if(!ph)return;let v='';for(const k of ['data-src','data-lazy-src','data-original','data-lazy','data-hi-res-src']){const x=im.getAttribute(k);if(x&&!/^data:/i.test(x)){v=x;break}}if(!v){const ss=im.getAttribute('data-srcset')||im.getAttribute('srcset')||'';v=ssList(ss).pop()||''}if(!v){for(const at of im.attributes){if(/^data-/i.test(at.name)&&/^[^\s]+\.(jpe?g|png|webp|avif|gif)([?#][^\s]*)?$/i.test(at.value.trim())){v=at.value.trim();break}}}if(v){im.setAttribute('src',v);if(w!==null&&+w<=2){im.removeAttribute('width');im.removeAttribute('height')}}});
  d.querySelectorAll('script,style,nav,footer,aside,form,noscript').forEach(e=>e.remove());
  d.querySelectorAll('.screen-reader-text,.sr-only,.visually-hidden,.visuallyhidden,.u-visually-hidden,.assistive-text,.a11y-text,.sr-text,[class*="screen-reader" i],[class*="sr-only" i],[class*="visually-hidden" i],[class*="visuallyhidden" i]').forEach(e=>{if(e.isConnected&&!e.matches('html,body,article,main')&&!e.querySelector('article,main')&&e.textContent.length<200)e.remove()});
  try{const SRT=/^(list(\s+\d+)?\s+of\s+\d+(\s+items?)?|end of list|(start|beginning) of list)$/i,tw=d.createTreeWalker(d.body||d.documentElement,4),del=[];let n;while(n=tw.nextNode()){if(SRT.test(n.textContent.replace(/\s+/g,' ').trim()))del.push(n)}del.forEach(n=>{const p=n.parentElement;n.remove();if(p&&p.isConnected&&!p.textContent.trim()&&!p.querySelector('img,video,iframe')&&!p.matches('body,html'))p.remove()})}catch(e){}
- d.querySelectorAll('.ad,.advert,.advertisement,.newsletter,.popup,.social-share,.cookie-banner,[id*="taboola"],[id*="outbrain"],[class*="sponsor"]').forEach(e=>{if(!e.isConnected||e.matches('html,body,article,main')||e.querySelector('article,main')||e.textContent.length>3000)return;e.remove()});
+ d.querySelectorAll('.ad,.advert,.advertisement,.newsletter,.popup,.social-share,.cookie-banner,[id*="taboola"],[id*="outbrain"],[class*="sponsor"]').forEach(e=>{if(!e.isConnected||e.matches('html,body,article,main')||e.querySelector('article,main')||e.textContent.length>3000||e.querySelectorAll('p').length>=4)return;e.remove()});
  d.querySelectorAll('img').forEach(im=>{const u=(im.getAttribute('src')||'')+' '+(im.getAttribute('data-src')||'')+' '+(im.getAttribute('srcset')||''),al=im.getAttribute('alt')||'';if(GPROMO.test(u)||GALT.test(al)){const f=im.closest('figure,a,picture');(f&&f.textContent.trim().length<160?f:im).remove()}});
  d.querySelectorAll('p,figcaption,h2,h3,h4,div').forEach(e=>{if(!e.isConnected||e.children.length>6)return;const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length&&t.length<140&&GTXT.test(t))e.remove()});
  d.querySelectorAll('[class*="author" i],[class*="byline" i],[class*="contributor" i],[class*="bio" i],[class*="popup" i],[class*="modal" i],[class*="tooltip" i],[class*="overlay" i],[role="dialog"],dialog').forEach(e=>{if(!e.isConnected||e.matches('html,body,article,main')||e.querySelector('article,main'))return;const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length<900&&(AUTHJ.test(t)||t.length<240))e.remove()});
@@ -2726,8 +2731,12 @@ function extract(html,base){
  d.querySelectorAll('li').forEach(e=>{if(!e.isConnected)return;const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length<700&&AUTHJ.test(t))e.remove()});
  d.querySelectorAll('ul,ol').forEach(e=>{if(e.isConnected&&!e.textContent.trim()&&!e.querySelector('img'))e.remove();else if(e.isConnected&&!e.textContent.trim()&&[...e.querySelectorAll('img')].every(i=>ICONRE.test((i.getAttribute('src')||'')+' '+(i.getAttribute('alt')||''))))e.remove()});
  const sc=new Map();
- d.querySelectorAll('p').forEach(p=>{const L=p.textContent.trim().length;if(L<50)return;for(let el=p.parentElement,k=0;el&&k<3;el=el.parentElement,k++)sc.set(el,(sc.get(el)||0)+L/(k+1))});
+ d.querySelectorAll('p').forEach(p=>{const tx=p.textContent.trim(),L=tx.length*(/[぀-ヿ㐀-鿿가-힯]/.test(tx)?2.5:1);/* CJK packs ~2.5x the meaning per character, so 50 "English" characters is ~20 here */if(L<50)return;for(let el=p.parentElement,k=0;el&&k<3;el=el.parentElement,k++)sc.set(el,(sc.get(el)||0)+L/(k+1))});
  let best=null,max=0;sc.forEach((v,el)=>{if(v>max){max=v;best=el}});
+ /* text split over same-class sibling blocks (figures/ads between them): the first block wins the vote and the rest is lost, so climb to their parent */
+ {const pl=x=>[...x.querySelectorAll('p')].reduce((q,p)=>{const L=p.textContent.trim().length;return q+(L>=50?L:0)},0);
+ for(let e=best,k=0;e&&k<3&&e.parentElement&&!/^(BODY|HTML)$/.test(e.parentElement.tagName)&&!/^(ARTICLE|UL|OL|TABLE|LI)$/.test(e.tagName);e=e.parentElement,k++){
+  if([...e.parentElement.children].some(x=>x!==e&&x.tagName===e.tagName&&x.className===e.className&&pl(x)>=150&&!x.querySelector('h1'))){best=e.parentElement;break}}}
  let node=best&&max>=300?tidyFrag(clean(best,base)):null;
  if(node){const pre=node.textContent.replace(/\s+/g,' ').trim().length;pruneJunk(node);const post=node.textContent.replace(/\s+/g,' ').trim().length;/* only a page that was mostly menus and notices is thrown away; a genuinely short story is kept */if(post<120&&pre>=post*3)node=null}
  if(ld.length>500&&(!node||ld.length>node.textContent.length*1.3)){
@@ -2739,10 +2748,11 @@ function extract(html,base){
  return node;
 }
 function inline(t,base){
- const f=document.createDocumentFragment(),re=/(!?)\[([^\]]*)\]\(([^)\s]+)[^)]*\)|\*\*([^*]+)\*\*/g;let i=0,m;
+ const f=document.createDocumentFragment(),re=/(!?)\[([^\]]*)\]\(((?:[^()\s]|\([^()\s]*\))+)[^)]*\)|\*\*([^*]+)\*\*|\*([^*\s](?:[^*]*[^*\s])?)\*/g;let i=0,m;
  while(m=re.exec(t)){
   f.append(t.slice(i,m.index));
   if(m[4]){const b=document.createElement('strong');b.textContent=m[4];f.append(b)}
+  else if(m[5]){const b=document.createElement('em');b.textContent=m[5];f.append(b)}
   else if(m[1]){const im=document.createElement('img');im.src=abs(m[3],base);im.loading='lazy';im.referrerPolicy='no-referrer';f.append(im)}
   else{const h=abs(m[3],base);if(/^https?:/.test(h)){const a=document.createElement('a');a.href=h;a.target='_blank';a.rel='noopener';a.textContent=m[2];f.append(a)}else f.append(m[2])}
   i=re.lastIndex;
@@ -2762,7 +2772,9 @@ function md(txt,base){
  if(lg.filter(Boolean).length>=3){
   let i=lg.indexOf(true);const z=lg.lastIndexOf(true);
   while(i>0&&/^(#{1,4}\s|!\[)/.test(bl[i-1]))i--;
-  bl=bl.slice(i,z+1);
+  let z2=z;/* the closing one-liners ("The trial begins Monday.") are shorter than 110 chars but are still the story */
+  while(z2<z+3&&z2+1<bl.length){const n=bl[z2+1],t=pl(n);if(/^([-*]\s|#|\||>)/.test(n)||/\]\(/.test(n)||t.length<12||!/[.!?”"')»。]$/.test(t))break;z2++}
+  bl=bl.slice(i,z2+1);
  }
  bl=bl.filter(x=>!ADRE.test(x)&&!VIDJ.test(pl(x))&&!MENUJ.test(pl(x))&&!CHROMEJ.test(pl(x))&&!(pl(x).length<400&&STARLIST.test(pl(x))));
  bl=bl.filter(x=>{const t=pl(x);return !/^(undo|ad|ads|advertisement|\*+)$/i.test(t)&&!/\[?Sponsored\s*Sponsored|^\[?Sponsored\b.*\]\(|\bSponsored\]/i.test(x)});
@@ -2776,6 +2788,7 @@ function md(txt,base){
   if(h){e=document.createElement(h[1].length===1?'h2':'h3');e.append(inline(h[2],base))}
   else if(/^!\[[^\]]*\]\([^)]*\)$/.test(s)){e=inline(s,base)}
   else if(/^\|.*\|\s*$/.test(s.split('\n')[0])&&s.split('\n').length>1&&/^\|?\s*:?-{2,}/.test(s.split('\n')[1])){e=document.createElement('table');const rows=s.split('\n').filter((l,i)=>i!==1&&/^\|/.test(l));rows.forEach((l,ri)=>{const tr=document.createElement('tr');l.replace(/^\||\|\s*$/g,'').split('|').forEach(cl=>{const td=document.createElement(ri===0?'th':'td');td.append(inline(cl.trim(),base));tr.append(td)});e.append(tr)})}
+  else if(/^>\s?/.test(s)){e=document.createElement('blockquote');e.append(inline(s.split('\n').map(l=>l.replace(/^>\s?/,'')).join(' ').trim(),base))}
   else if(/^[-*]\s/.test(s)){e=document.createElement('ul');for(const l of s.split('\n')){const tx=l.replace(/^[-*]\s+/,'').replace(/^(\*\s*)?(\d{1,2}\s+)?#{1,6}\s*/,'').replace(/^\*\s+/,'').trim();if(!pl(tx))continue;const li=document.createElement('li');li.append(inline(tx,base));e.append(li)}}
   else{e=document.createElement('p');e.append(inline(s.replace(/\n/g,' ').replace(/\s+\*+\s*$/,'').replace(/^\*\s+(?=[A-Z“"])/,''),base))}
   out.append(e);
@@ -2909,17 +2922,20 @@ function dropGeneric(list){
 const IC=(()=>{try{const o=JSON.parse(localStorage.getItem('folio-img'))||{};for(const k in o)if(/news\.google\.com/.test(k))delete o[k];return o}catch(e){return{}}})();
 /* stories whose picture lookup failed are not retried for a day */
 const OGF=(()=>{try{return JSON.parse(localStorage.getItem('folio-ogf')||'{}')}catch(e){return{}}})();
-function ogFail(l){OGF[l]=Date.now();try{const k=Object.keys(OGF);if(k.length>400)delete OGF[k[0]];localStorage.setItem('folio-ogf',JSON.stringify(OGF))}catch(_){}}
+function ogFail(l){OGF[l]=Date.now();try{const k=Object.keys(OGF);if(k.length>400)delete OGF[k[0]];clearTimeout(ogFail.t);ogFail.t=setTimeout(ogFlush,1500)}catch(_){}}
+/* at most 6 article-page downloads at once across all feeds (each feed used to start 4 of its own) */
+let OGN=0;const OGQ=[];const ogSlot=()=>OGN<6?(OGN++,Promise.resolve()):new Promise(r=>OGQ.push(r));const ogFree=()=>{const r=OGQ.shift();if(r)r();else OGN--};
 async function og(a){
  if(IC[a.link]!==undefined)return GENS.has(gk(IC[a.link]))?'':IC[a.link];
  if(S.offline||(isOn('dsave')&&onCell()))return'';
  if(OGF[a.link]&&Date.now()-OGF[a.link]<864e5)return'';
  try{
   const L=await gnResolve(a.link);if(/(^|\.)google\.com$/.test(new URL(L).hostname))return'';
-  const d=new DOMParser().parseFromString(await fetchText(L,t=>/<meta/i.test(t)),'text/html');
+  await ogSlot();let pg;try{pg=await fetchText(L,t=>/<meta/i.test(t))}finally{ogFree()}
+  const d=new DOMParser().parseFromString(pg,'text/html');
   const m=d.querySelector('meta[property="og:image"],meta[name="twitter:image"]');
   let u=m?abs(m.content,L):'';if(GPROMO.test(u)||/(^|\.)(gstatic|googleusercontent)\.com$/.test(host(u)))u='';IC[a.link]=u;if(LOGOISH.test(gk(u).split('/').pop()||''))u='';
-  try{const k=Object.keys(IC);if(k.length>500)delete IC[k[0]];localStorage.setItem('folio-img',JSON.stringify(IC))}catch(_){}
+  try{const k=Object.keys(IC);if(k.length>1000)delete IC[k[0]];localStorage.setItem('folio-img',JSON.stringify(IC))}catch(_){}
   return u;
  }catch(e){if(navigator.onLine)ogFail(a.link);return''}
 }
@@ -3741,7 +3757,7 @@ function liteUrl(url){
  }catch(e){}
  return'';
 }
-const fromPage=async(url,lg,tag)=>{let fr=null;await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);if(x&&x.textContent.length>600){fr=x;return true}return false},lg&&{push:m=>lg.push((tag||'')+m)});return fr};
+const fromPage=async(url,lg,tag,sig)=>{let fr=null;await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);if(x&&x.textContent.length>600){fr=x;return true}return false},lg&&{push:m=>lg.push((tag||'')+m),sig});return fr};
 
 /* ---------- is this text really the story? ---------- */
 const SHORTOK=new Set('a i of to in is it on at be by an as do go he if me my no or so up us we am oh ok'.split(' '));
@@ -3758,8 +3774,8 @@ function textQuality(t){
  }
  /* short words that really recur (of, de, la, ...) are fine in any language; scattered fragments are not */
  for(const k in sf){if(!SHORTOK.has(k)&&sf[k]<Math.max(4,sm.length*.012))frag+=sf[k]}
- const head=t.slice(0,6000),letters=(head.match(/\p{L}/gu)||[]).length,nonsp=head.replace(/\s/g,'').length||1;
- const alpha=letters/nonsp,fr=frag/sm.length,avg=sum/sm.length,sym=(head.match(/[^\p{L}\p{N}\s.,;:!?'’"“”()\-–—$%&\/@#*+=]/gu)||[]).length/head.length;
+ const head=t.slice(0,6000),letters=(head.match(/[\p{L}\p{M}]/gu)||[]).length,nonsp=head.replace(/\s/g,'').length||1;
+ const alpha=letters/nonsp,fr=frag/sm.length,avg=sum/sm.length,sym=(head.match(/[^\p{L}\p{M}\p{N}\s.,;:!?'’"“”()\-–—$%&\/@#*+=।॥]/gu)||[]).length/head.length;
  let why='';
  if(alpha<.72)why='too many symbols';else if(fr>.10)why='broken words';else if(avg<3.1||avg>10)why='odd word lengths';else if(sym>.03)why='stray characters';else if(long/sm.length>.02)why='very long strings';
  return{ok:!why,why,n:w.length};
@@ -3774,22 +3790,22 @@ function sameStory(text,a){
  return hit/tw.length>=.25;
 }
 const FILEX=/\.(pdf|docx?|xlsx?|pptx?|zip|csv|mp3|mp4|jpe?g|png|gif|webp|svg)(\?|#|$)/i;
-async function getFull0(url,light){
+async function getFull0(url,ctx){
  if(S.offline)return null;
- url=await gnResolve(url);
- const lg=[];LG[url]=lg;const ks=Object.keys(LG);if(ks.length>25)delete LG[ks[0]];
- const direct=fromPage(url,lg,'page via ');
+ const orig=url;url=await gnResolve(url);
+ const lg=[];LG[orig]=lg;const ks=Object.keys(LG);if(ks.length>25)delete LG[ks[0]];
+ const stop=new AbortController(),direct=fromPage(url,lg,'page via ',stop.signal);
  const wpRun=async()=>{
   const u=new URL(url),slug=u.pathname.split('/').filter(Boolean).pop();
-  let t;try{t=await fetchText(u.origin+'/wp-json/wp/v2/posts?slug='+encodeURIComponent(slug)+'&_fields=content',t=>t.trim().startsWith('['))}catch(e){lg.push('WordPress feed: not available');throw e}
+  let t;try{t=await fetchText(u.origin+'/wp-json/wp/v2/posts?slug='+encodeURIComponent(slug)+'&_fields=content',t=>t.trim().startsWith('['),{push(){},sig:stop.signal})}catch(e){lg.push('WordPress feed: not available');throw e}
   const h=JSON.parse(t)[0]?.content?.rendered;if(!h){lg.push('WordPress feed: no post found');throw 0}
   const fr=fromHTML(h,url);if(fr.textContent.length<=600){lg.push('WordPress feed: too short');throw 0}return fr;
  };
  /* the WordPress check only runs if the page itself hasn't answered quickly */
- const wp=(async()=>{const r=await Promise.race([direct.then(v=>({v}),()=>({v:null})),new Promise(r=>setTimeout(()=>r({v:null}),2500))]);if(r.v)throw new Error('not needed');return wpRun()})();
- const lu=liteUrl(url),lite=lu?fromPage(lu,lg,'lite site via '):null;
+ const wp=(async()=>{const r=await Promise.race([direct.then(v=>({v}),()=>({v:null})),new Promise(r=>setTimeout(()=>r({v:null}),2500))]);if(r.v||stop.signal.aborted)throw new Error('not needed');return wpRun()})();
+ const lu=liteUrl(url),lite=lu?fromPage(lu,lg,'lite site via ',stop.signal):null;
  const good=Promise.any([direct,wp,lite].filter(Boolean));
- good.catch(()=>{});
+ good.then(()=>stop.abort(),()=>{});
  let jn=null;
  const startJina=()=>{
   jn=(async()=>{
@@ -3802,20 +3818,26 @@ async function getFull0(url,light){
  };
  const first=await Promise.race([good.then(v=>({v}),()=>({v:null})),new Promise(r=>setTimeout(()=>r({slow:1}),5000))]);
  if(first.v)return first.v;
- if(!light)startJina();
- try{return await Promise.any([good,jn].filter(Boolean))}catch(e){return null}
+ /* a read-ahead load that gets opened by the reader is upgraded in place (ctx.light=false) instead of being fetched a second time */
+ return await new Promise(res=>{
+  let gd=0,jd=0;const chk=()=>{if(gd&&(jd||ctx.light))res(null)};
+  good.then(res,()=>{gd=1;chk()});
+  const go=()=>{if(jn)return;startJina();jn.then(res,()=>{jd=1;chk()})};
+  ctx.up=go;if(!ctx.light)go();
+ });
 }
 /* stories read ahead are kept in memory the moment they arrive, so opening one right after scrolling never has to fetch it again */
 const PFHOT=new Map();
 function getFull(url,light){
  const hot=PFHOT.get(url);if(hot&&Date.now()-hot.t<6e5){const f=hot.n.cloneNode(true);if(hot.n.pw)f.pw=true;return Promise.resolve(f)}
- const k=url+(light?'#l':'');
- if(!INF[k])INF[k]=getFull0(url,light).finally(()=>{delete INF[k]});
- return INF[k].then(n=>{
+ let e=INF[url];
+ if(e){if(!light&&e.ctx.light){e.ctx.light=false;if(e.ctx.up)e.ctx.up()}}
+ else{const ctx={light:!!light};e=INF[url]={ctx,p:getFull0(url,ctx).finally(()=>{if(INF[url]===e)delete INF[url]})}}
+ return e.p.then(n=>{
   if(!n)return null;
   const f=tidy(n.cloneNode(true)),tx=f.textContent||'',q=textQuality(tx);
   if(!q.ok){const lg=LG[url]||(LG[url]=[]);lg.push('Rejected: the text looked garbled ('+q.why+')');return null}
-  if(paywalled(tx))f.pw=true;
+  if(paywalled(tx)||paywalled(n.textContent))f.pw=true;
   return f;
  });
 }
@@ -3932,7 +3954,7 @@ function pump(){
   getFull(a.link,true).then(async n=>{
    if(n){PFHOT.set(a.link,{n,t:Date.now()});if(PFHOT.size>16)PFHOT.delete(PFHOT.keys().next().value)}
    await quietGap(4000);
-   if(!n||acHas(a.link))return;
+   if(!n||n.pw||acHas(a.link))return;
    const have=fromHTML(a.html||'',a.link).textContent.length;
    if(n.textContent.length<Math.max(600,have+100))return;
    const d=document.createElement('div');d.append(dropTitle(n,a.title));
@@ -4017,13 +4039,15 @@ async function openReader(a){
  mediaWire();
  if(ytId(a)){note.remove();afterLoad();return}
  let cached=acGet(a.link)||await acLoad(a.link);
+ if(my!==tok)return;
  if(cached&&!textQuality(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')).ok)cached=null;
  if((f.web||(isPay(a)&&f.web!==false))&&!cached&&online())toggleWeb(true);
  if(cached){body.replaceChildren(dropTitle(tidy(fromHTML(cached,a.link)),a.title));foldBoiler(body,a);note.remove();ALT='';afterLoad();return}
  if(!online()){note.textContent=S.offline?'Offline mode is on. Showing what’s stored on this device.':'You’re offline. Showing what came with the feed.';afterLoad();return}
  let n=await getFull(a.link),src=a.link;
+ if(my!==tok){if(n){PFHOT.set(a.link,{n,t:Date.now()});if(PFHOT.size>16)PFHOT.delete(PFHOT.keys().next().value)}return}
  const alts=outLinks(a);
- if(!n){for(const u of alts){if(my!==tok)return;const m=await getFull(u);if(m&&sameStory(m.textContent,a)){n=m;src=u;break}}}
+ if(!n&&alts.length){const ms=await Promise.all(alts.map(u=>getFull(u).catch(()=>null)));if(my!==tok)return;for(let i=0;i<alts.length;i++){const m=ms[i];if(m&&sameStory(m.textContent,a)){n=m;src=alts[i];break}}}
  if(my!==tok)return;
  ALT=src!==a.link?src:(!n&&alts[0]?alts[0]:'');
  if(n&&n.textContent.length>Math.max(600,body.textContent.length+100)){
@@ -4796,7 +4820,8 @@ $('#ref').onclick=async()=>{
  if(!online()){toast(S.offline?'Offline mode is on. Turn it off in Settings to refresh':'You’re offline');return}
  const before=new Set(S.feeds.flatMap(f=>(items[f.id]||[]).map(a=>a.link)));
  b.classList.add('spin');toast('Refreshing '+S.feeds.length+' feeds…');
- await loadAll(true);
+ /* one dead or hanging site can take a minute to give up: stop waiting after 20s (it keeps loading quietly) */
+ await Promise.race([loadAll(true),new Promise(r=>setTimeout(r,20000))]);
  b.classList.remove('spin');sfxTone('refresh');
  const n=S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>!before.has(a.link)).length,badL=S.feeds.filter(f=>state[f.id]==='err'),bad=badL.length;
  toast((n?n+' new '+(n===1?'story':'stories'):'No new stories')+(bad===1?' · '+badL[0].title+' didn’t respond':bad?' · '+bad+' feeds didn’t respond':''));
@@ -5572,7 +5597,7 @@ function applyTheme(anim){
  let dm='';if(th==='dynamic'){const m=S.dynm||'sys';dm=(m==='dark'||(m==='time'&&isNight())||(m==='sys'&&matchMedia('(prefers-color-scheme:dark)').matches))?'dark':'light'}
  const changed=root.dataset.theme!==th||root.classList.contains('night')!==night||(root.dataset.dm||'')!==dm;
  if(anim&&changed&&!reduced()){
-  root.classList.add('thfade');clearTimeout(applyTheme.t);applyTheme.t=setTimeout(()=>root.classList.remove('thfade'),4600);
+  root.classList.add('thfade');clearTimeout(applyTheme.t);applyTheme.t=setTimeout(()=>root.classList.remove('thfade'),1800);
   if(anim!=='fade')sky((night||dm==='dark')?'set':'rise');
  }
  root.dataset.theme=th;if(dm)root.dataset.dm=dm;else delete root.dataset.dm;root.classList.toggle('night',night);lastNight=night;try{root.classList.toggle('pdark',/dark/.test(getComputedStyle(root).colorScheme))}catch(e){}
@@ -6086,8 +6111,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.05a';const APP_LABEL='1.33';
-const CHANGES=['Dynamic theme: fixed the whole screen dimming and brightening again while you scroll. A dark start-up colour was showing through the background tint as it changed; it now uses the theme’s own light or dark background','Bylines no longer run the author’s web address into their name (The Atlantic showed “By Hana Kiroshttp://…”)','Switching to another feed and back now returns you to where you were in the first feed, instead of the top','Photos in a story are kept more often: pictures a site hides in a no-script fallback, a picture tag or a lazy-load list are now found, and a photo is no longer dropped because its description contains a word like “arrow” inside another word','Pull quotes no longer sit in a huge, mostly empty box (most visible in Rivals): the card is shorter and fits its text'];
+const APP_VERSION='2026.10.05b';const APP_LABEL='1.34';
+const CHANGES=['Stories open faster and more reliably: opening a story that is already being read ahead no longer downloads it twice, a story you left before it finished is kept for next time, and the backup sources are tried at the same time instead of one after another','Stories split across several blocks on a page (photo essays, multi-column layouts) now keep all their text and the pictures between the blocks, and short lists such as ingredients or key points are no longer thrown away','Hindi, Bengali, Tamil and other non-Latin stories are no longer rejected as garbled, and Chinese and Japanese paragraphs are read properly','Pictures are found in more places (AMP pages, picture tags with commas in their addresses, lazy-load lists), and text no longer runs together at line breaks','Backup copies of a story fetched through the reader now keep their last short paragraphs, quotes and emphasis','“Subscribe to continue reading” previews are recognised as previews','Refreshing no longer waits on one slow feed for nearly a minute, Google News feeds no longer wait on the optional Bing step, and picture lookups for text-only stories are limited so they stop flooding the connection','The app’s fonts no longer hold up the first screen while they download','Switching themes is smoother: the colours now fade over about a second instead of four, which stops the stutter on a phone','A busy weekday-only site is no longer treated as having a dead feed over a quiet weekend, so it keeps loading its own full feed instead of being swapped for headlines only'];
 const DEF_ON=new Set(['intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -6885,7 +6910,8 @@ async function gnewsFeed(f,s,why){
  const l=parse(x,f).list.map(a=>({...a,link:gnDecode(a.link)||a.link,title:a.title.replace(/\s+-\s+[^-]{2,40}$/,''),img:'',html:'',gn:1}));
  if(!l.length){lg.push('Google News: nothing found for '+s);throw new Error('empty')}
  try{ /* Bing's news feed carries photos; borrow them for matching headlines */
-  const bx=await fetchText(bingFor(s),t=>/<item[\s>]/i.test(t),{push:()=>{}});
+  /* the photos are optional: never hold the headlines back for more than 4s waiting on Bing */
+  const bx=await Promise.race([fetchText(bingFor(s),t=>/<item[\s>]/i.test(t),{push:()=>{}}),new Promise((_,j)=>setTimeout(()=>j(0),4000))]);
   const nt=t=>String(t||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
   const cut=t=>String(t||'').replace(/\s+-\s+[^-]{2,40}$/,'');
   const bl=parseBing(bx,f).list,bm=new Map(bl.filter(a=>a.img).map(a=>[nt(cut(a.title)),a.img])),bk=new Map(bl.map(a=>[nt(cut(a.title)),a]));
@@ -6938,8 +6964,8 @@ async function gnPrefetch(list){
 const isGnews=u=>/news\.google\.com\/rss\/search/.test(u||'');
 const isHead=u=>isBing(u)||isGnews(u);
 const whyTxt=f=>f.viaWhy==='stale'?'its own feed is out of date':f.viaWhy==='nofeed'?'this site has no working feed':'the site blocks feed readers';
-/* a feed is dead when a busy publisher goes quiet for 48 hours, or any feed for 3 weeks */
-function deadList(l){const ds=l.map(a=>a.date).filter(Boolean).sort((a,b)=>b-a);if(!ds.length)return false;const age=Date.now()-ds[0];if(ds.length>=6){const g=[];for(let i=1;i<ds.length;i++)g.push(ds[i-1]-ds[i]);g.sort((a,b)=>a-b);if(g[g.length>>1]<12*36e5&&age>48*36e5)return true}return ds.length>2&&age>21*864e5}
+/* a feed is dead when a busy publisher goes quiet for 4 days (a quiet weekend is not dead), or any feed for 3 weeks */
+function deadList(l){const ds=l.map(a=>a.date).filter(Boolean).sort((a,b)=>b-a);if(!ds.length)return false;const age=Date.now()-ds[0];if(ds.length>=6){const g=[];for(let i=1;i<ds.length;i++)g.push(ds[i-1]-ds[i]);g.sort((a,b)=>a-b);if(g[g.length>>1]<12*36e5&&age>96*36e5)return true}return ds.length>2&&age>21*864e5}
 const staleList=deadList;
 async function loadFeed(f,fresh){
  const lg=FLG[f.id]=[];const tag=m=>({push:x=>lg.push(m+x)});
