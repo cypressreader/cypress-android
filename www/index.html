@@ -41,7 +41,11 @@ body.sbdrag aside,body.sbdrag main{transition:none!important}
 @media(prefers-reduced-motion:reduce){.skc{animation:none}}
 .skhid{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .pw{display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:1px 6px;border-radius:99px;font-size:10.5px;font-weight:700;letter-spacing:.02em;background:rgba(0,0,0,.42);color:#fff;vertical-align:1px;white-space:nowrap}
-#rd.focus .bar{display:none}
+#fcs.on{background:var(--ink);color:var(--pn);border-color:var(--ink)}
+/* focus mode hides every control except this one, so the same button turns it off again */
+#rd.focus .bar{position:absolute;top:calc(8px + env(safe-area-inset-top));right:10px;left:auto;width:auto;padding:0;gap:0;z-index:6}
+#rd.focus .bar>*:not(#fcs){display:none}
+#rd.focus #fcs{opacity:.6}
 
 /* --- logo progress (stage 2) --- */
 @property --p{syntax:'<percentage>';inherits:false;initial-value:0%}
@@ -797,6 +801,12 @@ html:root.night[data-theme=sepia]{--hl:rgba(214,120,40,.4)}
 .aspd button{padding:4px 9px;border-radius:999px;border:1px solid var(--ln);font:600 12px var(--sans);color:var(--ink)}
 .aspd button.on{background:var(--ink);color:var(--pn);border-color:var(--ink)}
 .cols img{cursor:zoom-in}
+.rate{display:inline-flex;gap:6px;align-items:center;vertical-align:middle;margin-left:4px}
+.thb{width:32px;height:32px;border-radius:50%;border:1px solid var(--ln);background:none;color:var(--mut);display:inline-flex;align-items:center;justify-content:center;padding:0}
+.thb svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.thb.on{color:var(--logo);border-color:var(--logo);background:color-mix(in srgb,var(--logo) 12%,transparent)}
+.thb.on svg{fill:currentColor;fill-opacity:.22}
+.hsf.hs-hero .hov .thb{color:#fff;border-color:rgba(255,255,255,.55);background:rgba(0,0,0,.38)}.hsf.hs-hero .hov .thb.on{background:rgba(255,255,255,.28)}
 #gal{position:fixed;inset:0;z-index:60;background:rgba(8,9,12,calc(.94 * var(--ga,1)));display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;touch-action:none}
 #gal.on{opacity:1}#gal[hidden]{display:none}
 .gstage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none}
@@ -2006,17 +2016,12 @@ body:not(.narrow){--hdr:84px}body:not(.narrow) .top{height:var(--hdr);box-sizing
 :root[data-theme=dark],:root[data-theme=black]{--rg:#4cd19a}
 @media (prefers-reduced-motion:reduce){.rgf{transition:none}}
 /*MASTHEAD*/
-.mst2{grid-column:1/-1;border-top:7px solid var(--mb);background:color-mix(in srgb,var(--mb) 9%,var(--bg));border-radius:0 0 20px 20px;padding:20px 22px 18px;margin:0 0 20px}
-.mst2 .mr{display:flex;align-items:center;gap:16px}
-.mst2 .mt{width:60px;height:60px;border-radius:16px;background:var(--mb);color:#fff;font:800 32px var(--serif);display:grid;place-items:center;flex:none}
-.mst2 .mr>div:nth-child(2){flex:1;min-width:0}.mst2 .mn{padding:0;font:800 clamp(28px,3.6vw,44px)/1 var(--serif);letter-spacing:-.015em;margin:0;overflow-wrap:anywhere}
-.mst2 .mg{font:italic 16px/1.35 var(--serif);color:var(--mut);margin-top:5px}
-.mst2 .mu{font:600 12px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-top:5px}
-.mst2 .ma{margin-left:auto;display:flex;gap:10px;flex:none}
-.mst2 .ma button{font:700 13px var(--sans);padding:9px 16px;border-radius:99px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer}.mst2 .ma button.fl{background:var(--ink);color:var(--bg)}
-.mst2 .ms{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-.mst2 .ms span{font:600 12.5px var(--sans);padding:6px 12px;border-radius:99px;background:var(--pn);border:1px solid var(--ln)}.mst2 .ms b{color:var(--ink)}
-#grid.nrp .mst2{padding:16px 14px 14px;border-radius:0 0 16px 16px;margin-bottom:14px}#grid.nrp .mst2 .mt{width:48px;height:48px;font-size:26px;border-radius:13px}#grid.nrp .mst2 .mn{font-size:28px}#grid.nrp .mst2 .ma{display:none}#grid.nrp .mst2 .mg{font-size:14px}
+.mst2{grid-column:1/-1;border-top:4px solid var(--mb);background:color-mix(in srgb,var(--mb) 7%,var(--bg));border-radius:0 0 14px 14px;padding:12px 16px 12px;margin:0 0 14px}
+.mst2 .mr{display:flex;align-items:center;gap:12px}
+.mst2 .mt{width:42px;height:42px;border-radius:12px;background:var(--mb);color:#fff;font:800 22px var(--serif);display:grid;place-items:center;flex:none}
+.mst2 .mr>div:nth-child(2){flex:1;min-width:0}.mst2 .mn{padding:0;font:800 clamp(20px,2.4vw,26px)/1.1 var(--serif);letter-spacing:-.01em;margin:0}
+.mst2 .mg{font:italic 14px/1.35 var(--serif);color:var(--mut);margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mst2 .mu{font:600 10.5px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-top:3px}
 
 .nr-meta{font:italic 15px var(--serif);color:var(--mut);margin:2px 2px 14px}
 #grid .card.nr{min-height:0;border-radius:16px;content-visibility:visible}
@@ -2704,7 +2709,13 @@ function tidyFrag(f){
 }
 /* video pages and menus: drop the "video player was slow" feedback form and runs of one-word link menus that some sites leave inside the article body */
 const VIDJ=/(video player was slow to load|video content (never loaded|did not start)|\bad (never loaded|froze|prevented|was repetitive)\b(?!.{60})|content moved around while ad loaded|audio on ad was too loud|^\s*(\[x\]\s*)?other issues|^\s*cancel\s*submit\s*$|^\s*thank you!?\s*$|your effort and contribution in providing this feedback)/i,MENUJ=/^(more|watch|listen|subscribe|watchlistensubscribe|sign in|log in|search|skip to (main )?content|accept( all( cookies)?)?|manage my choices|try again|previous( next)?|next|menu( menu)?|settings|headings|topics|by region|home|shows|live|newsfeed|en|français|english|español|عربي|follow|share|issued on:?.*|reading time \d+ ?min|\d{1,2}:\d{2}( ?min)?|cover image:.{0,80})$/i,CHROMEJ=/(browser extensions? seems to be blocking|you must enable adver|advertisement tracking and audience|to display this content from|manage my choices|^\s*we use cookies|^.{0,50}cookie (policy|settings|preferences)|accept all (cookies)?|skip to main content|international breaking news,? top stories|^\s*\d\.\s+\w[\w ]*(\s+\d\.\s+\w[\w ]*){1,})/i,STARLIST=/^(?:[^*]{1,60}\*\s*){3,}[^*]{0,60}$/;
+const CREDITJ=/^(photo|image|picture|credit|illustration|source)s?\s*[:\/]|\/\s*(shutterstock|getty( images)?|ap( photo)?|reuters|afp|alamy|istock|unsplash|pexels|ap images)\s*$|^(shutterstock|getty images|associated press)\s*$/i;
 function pruneJunk(root){
+ /* a lone photo credit ("vfhnb12/Shutterstock") and a short list of topic links ("Gaming, Xbox") at the very start or end are page furniture, not story text */
+ try{const all=root.textContent.length||1;let seen=0;
+  [...root.children].forEach(e=>{const t=e.textContent.replace(/\s+/g,' ').trim();const pos=seen/all;seen+=e.textContent.length;
+   if(t.length&&t.length<80&&!e.querySelector('img')&&/^(P|DIV|FIGCAPTION|SPAN)$/.test(e.tagName)&&CREDITJ.test(t)){e.remove();return}
+   if(/^(UL|OL)$/.test(e.tagName)&&(pos<.12||pos>.8)){const li=[...e.children].filter(x=>x.tagName==='LI');if(li.length>=2&&li.length<=10&&li.every(x=>{const tt=x.textContent.replace(/\s+/g,' ').trim();const a=x.querySelectorAll('a');return tt.length<=28&&a.length===1&&a[0].textContent.replace(/\s+/g,' ').trim()===tt}))e.remove()}})}catch(e){}
  const kids=[...root.querySelectorAll('p,li,div,h2,h3')];/* the article is detached from the page, so isConnected would always be false */
  kids.forEach(e=>{if(e.children.length>8)return;const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length&&t.length<700&&(VIDJ.test(t)||MENUJ.test(t)||CHROMEJ.test(t)||(t.length<400&&STARLIST.test(t))))e.remove()});
  /* lists made only of short labels are menus, not part of the story */
@@ -3196,15 +3207,8 @@ function render0(){
 
 
 function mastHtml(f,list){
- if(!f)return'';const col=brand(f),un=list.filter(a=>!S.read[a.link]).length,ms=list.reduce((m,a)=>Math.max(m,a.date),0);
- const days=list.length>1?(Math.max(1,(list[0].date-list[list.length-1].date)/864e5)):0,pd=days?list.length/Math.max(days,1):0;
- const wk=Date.now()-6048e5,rd=S.hist.filter(h=>h.fid===f.id&&h.t>wk).length;
- const hs=host(f.url).replace(/^www\./,'');const nm=esc(f.title||hs);
- const chips=[`<span><b>${list.length}</b> ${list.length===1?'story':'stories'}</span>`,`<span><b>${un}</b> unread</span>`];
- if(pd>=.5)chips.push(`<span>about <b>${pd>=10?Math.round(pd):(Math.round(pd*10)/10)}</b> a day</span>`);
- if(ms)chips.push(`<span>newest ${esc(ago(ms))} ago</span>`);
- if(rd)chips.push(`<span>You read <b>${rd}</b> of its stories this week</span>`);
- return `<div class="mst2" style="--mb:${col}"><div class="mr"><div class="mt" aria-hidden="true">${esc((f.title||hs).trim().charAt(0).toUpperCase())}</div><div style="min-width:0"><h2 class="mn">${nm}</h2>${f.desc?`<div class="mg">${esc(String(f.desc).slice(0,110))}</div>`:''}<div class="mu">${esc(hs)}</div></div><div class="ma"><button type="button" class="fl" disabled>Following ✓</button><button type="button" data-msnz="${esc(f.id)}">Mute for a week</button></div></div><div class="ms">${chips.join('')}</div></div>`;
+ if(!f)return'';const col=brand(f),hs=host(f.url).replace(/^www\./,'');const nm=esc(f.title||hs);
+ return `<div class="mst2" style="--mb:${col}"><div class="mr"><div class="mt" aria-hidden="true">${esc((f.title||hs).trim().charAt(0).toUpperCase())}</div><div style="min-width:0"><h2 class="mn">${nm}</h2>${f.desc?`<div class="mg">${esc(String(f.desc).slice(0,140))}</div>`:''}<div class="mu">${esc(hs)}</div></div></div></div>`;
 }
 /*PROGRESS RING*/
 const ringSvg=(n,t,sz,sw)=>{const r=(sz-sw)/2,c=2*Math.PI*r,f=t?Math.min(1,n/t):0;return `<svg class="rg" width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" aria-hidden="true"><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--ln)" stroke-width="${sw}"/><circle class="rgf" cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--rg,#1f8a5b)" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${(c*f).toFixed(1)} ${c.toFixed(1)}"/></svg>`};
@@ -3334,10 +3338,10 @@ const STOPL=new Set(['that','this','with','from','have','will','your','their','a
 const toks=a=>[...new Set(((a.title||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/)).filter(w=>w.length>3&&!STOPL.has(w)))];
 const likeScore=a=>{const k=S.lk;if(!k)return 0;let v=(k.s[a.feedId]||0)*2;for(const w of toks(a))v+=k.w[w]||0;return Math.max(-12,Math.min(12,v))};
 const rankOf=a=>a.date+likeScore(a)*5400000+Math.min(6,(a.more||[]).length)*7200000;
-function likeA(a,d){const k=S.lk=S.lk||{s:{},w:{}},prev=JSON.stringify(k);
+function likeA(a,d,msg){const k=S.lk=S.lk||{s:{},w:{}},prev=JSON.stringify(k);
  k.s[a.feedId]=Math.max(-5,Math.min(5,(k.s[a.feedId]||0)+d));toks(a).forEach(w=>{k.w[w]=Math.max(-4,Math.min(4,(k.w[w]||0)+d));if(!k.w[w])delete k.w[w]});
  const ws=Object.keys(k.w);if(ws.length>400)ws.slice(0,ws.length-300).forEach(w=>delete k.w[w]);
- save();render();toast(d>0?'You’ll see more like this':'You’ll see less like this',()=>{S.lk=JSON.parse(prev);save();render()})}
+ save();render();toast(msg||(d>0?'You’ll see more like this':'You’ll see less like this'),()=>{S.lk=JSON.parse(prev);save();render()})}
 function topOf(fs,n,skip,pred){
  fs=fs.filter(f=>!paused(f)&&!f.noToday);
  let l=fs.flatMap(f=>items[f.id]||[]).filter(a=>!muted(a)&&!skip.has(a.link)&&(!pred||pred(a))&&!(S.hideRead&&S.read[a.link])).sort((a,b)=>b.date-a.date);
@@ -4035,7 +4039,7 @@ async function openReader(a){
  document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',c.getAttribute('href')===a.link));
  const dt=a.date?new Date(a.date).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'';
  const cov=(a.more&&a.more.length)?`<div class="cov"><b>Also covered by</b>${a.more.map(m=>`<a target="_blank" rel="noopener" href="${esc(m.l)}">${esc(fof({feedId:m.f}).title)}: ${esc(m.t)}</a>`).join('')}</div>`:'';
- sh.innerHTML=`<div class="bar"><button class="ib" id="fdn" aria-label="Feeds and stories" title="Feeds and stories">${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><div class="bs">${esc(f.title)}</div><span id="pc"></span><button class="ib" id="st" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings">${svg(TUNE)}</button>`:''}<button class="ib" id="wb" aria-label="View the site here" title="View the site here">${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page">${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page">${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button><button class="ib" id="cl" aria-label="Close" title="Close">${svg('<path d="M6 6l12 12M18 6 6 18"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec))+(hasSec(a.sec,a.feedId)?'':'<button class="flw" data-fsec>Follow</button>'):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener" href="${esc(a.link)}">Read on ${esc(host(a.link))}</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p>This site can’t be shown inside the app. It may block automated access.</p><div><a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
+ sh.innerHTML=`<div class="bar"><button class="ib" id="fdn" aria-label="Feeds and stories" title="Feeds and stories">${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><div class="bs">${esc(f.title)}</div><span id="pc"></span><button class="ib" id="st" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings">${svg(TUNE)}</button>`:''}<button class="ib" id="fcs" aria-label="Focus mode" aria-pressed="false" title="Focus mode: hide the controls for distraction-free reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site here" title="View the site here">${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page">${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page">${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button><button class="ib" id="cl" aria-label="Close" title="Close">${svg('<path d="M6 6l12 12M18 6 6 18"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec))+(hasSec(a.sec,a.feedId)?'':'<button class="flw" data-fsec>Follow</button>'):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener" href="${esc(a.link)}">Read on ${esc(host(a.link))}</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p>This site can’t be shown inside the app. It may block automated access.</p><div><a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
  if(R.T){cancelAnimationFrame(R.T.raf);R.T.dead=true;R.T=null}
  R.pg=0;R.busy=false;R.web=false;R.auto=false;RDY=null;_vm=isVert();R.inBrief=S.sel==='brief'&&!!(S.brief&&S.brief.links.includes(a.link));
  $('#rd').classList.add('on');applyFs(false);applyFolderTheme();
@@ -4080,6 +4084,7 @@ function needFont(k){
 function applyFs(re){needFont(fontKey());if(S.font==='dys'){document.fonts&&document.fonts.load("18px 'OpenDyslexic'").then(()=>relayout(),()=>{})}const r=$('#rd'),sp=!!S.sep&&S.theme!=='dynamic';r.style.setProperty('--fs',S.fs+'px');r.style.setProperty('--rf',FONTS[fontKey()]||FONTS.serif);r.style.setProperty('--ls',S.font==='dys'?'.02em':'normal');r.style.setProperty('--ws',S.font==='dys'?'.12em':'normal');rdVars();r.classList.toggle('sep',sp);document.documentElement.classList.toggle('sepp',sp);save();if(re)relayout()}
 function refreshReader(){if($('#rd').classList.contains('on'))applyFs(true)}
 const SPK='<path d="M4 10v4h3.5L12 18V6L7.5 10z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/>',PAUSE='<path d="M9 6v12M15 6v12"/>';
+const FOCUSI='<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>';
 const PLAY='<path d="M8 5.5v13l10-6.5z"/>',TUNE='<path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/>',GLOBE='<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.5 2.3 3.5 5 3.5 8s-1 5.7-3.5 8c-2.5-2.3-3.5-5-3.5-8s1-5.7 3.5-8z"/>',PAGE='<path d="M6 4h9l3 3v13H6z"/><path d="M9 11h6M9 15h6"/>',SKB='<path d="M7 6v12M18 6l-8 6 8 6z"/>',SKF='<path d="M17 6v12M6 6l8 6-8 6z"/>';
 const TTS={on:false,paused:false,id:0,words:[],sent:[],wi:0,timer:0};
 document.addEventListener('visibilitychange',()=>{TTS.vis=Date.now()});
@@ -4509,7 +4514,9 @@ $('#rd').onclick=e=>{
  const sbb=t.closest('#selbar button');if(sbb)return selAct(sbb.dataset.s,sbb.dataset.c);
  document.querySelectorAll('#pb,#mn').forEach(p=>{if(!p.hidden&&!p.contains(t)&&!t.closest('#rp')&&!t.closest('#mo'))p.hidden=true});
  if(t.closest('#fdn')){rdNav();return}
+ if(t.closest('#fcs')){focusTog();return}
  if(t.closest('#wrl')){syncRl();$('#rl').showModal();return}
+ const rt=t.closest('[data-rate]');if(rt&&curA){e.preventDefault();rateA(curA,+rt.dataset.rate);return}
  const fb=t.closest('[data-fby]');if(fb&&curA&&curA.by){S.sk.push({id:'k'+Date.now(),name:curA.by,words:[],by:curA.by,t:Date.now()});save();side();hdrFill();toast('Following stories by '+curA.by);return}
  const fsc=t.closest('[data-fsec]');if(fsc&&curA&&curA.sec){S.sk.push({id:'k'+Date.now(),name:curA.sec+' · '+fof(curA).title,words:[],sec:curA.sec,fid:curA.feedId,t:Date.now()});save();side();const k=$('.kick .flw');if(k)k.remove();toast('Following the '+curA.sec+' section');return}
  const kr=t.closest('[data-kr]');if(kr){const n=findStory(kr.dataset.kr);if(n)openReader(n);return}
@@ -4541,7 +4548,7 @@ $('#rd').onclick=e=>{
  const bk=t.closest('.book');
  if(bk&&!t.closest('a,summary,details,button,audio,iframe')&&!R.noClick&&!(getSelection()+'')){const r=bk.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;if(isVert()){if(y<.2)go(-1);else if(y>.72)go(1);else if(x>.85)go(1);else if(x<.15)go(-1);else focusTog()}else if(x>.7)go(1);else if(x<.3)go(-1);else focusTog()}
 };
-function focusTog(){const r=$('#rd');r.classList.toggle('focus');if(!S.fhint&&r.classList.contains('focus')){S.fhint=1;SAVE0();toast('Tap the middle of the page to bring the controls back')}setTimeout(()=>{try{relayout()}catch(e){}},40)}
+function focusTog(){const r=$('#rd');r.classList.toggle('focus');{const f=$('#fcs');if(f){const on=r.classList.contains('focus');f.classList.toggle('on',on);f.setAttribute('aria-pressed',on)}}if(!S.fhint&&r.classList.contains('focus')){S.fhint=1;SAVE0();toast('Tap the middle of the page to bring the controls back')}setTimeout(()=>{try{relayout()}catch(e){}},40)}
 addEventListener('keydown',e=>{
  if(!$('#rd').classList.contains('on'))return;
  {const tg=e.target;if((tg&&(/INPUT|TEXTAREA|SELECT/.test(tg.tagName||'')||tg.isContentEditable))||document.querySelector('dialog[open]'))return}
@@ -5134,7 +5141,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-dfol]');if
 /* reader overflow menu */
 /* the menu entry says what a tap will do: switch this source to site view, or back to reader view */
 function mnWebLabel(){const fd=curA&&S.feeds.find(x=>x.id===curA.feedId);document.querySelectorAll('#mn [data-act="webpref"]').forEach(b=>{b.textContent=fd&&fd.web?'Reader view for this source':'Site view for this source'})}
-function mnMarkup(){return `<div class="pb mn" id="mn" hidden><div class="mphone"><button data-act="fdn">Feeds and stories</button><button data-act="web">View the site here</button><button data-act="rp">Playback settings</button><hr></div><button data-act="share">Share</button><button data-act="copy">Copy link</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><hr><div class="pair"><button data-act="more">More like this</button><button data-act="less">Less like this</button></div><hr><button data-act="focus">Focus mode</button><button data-act="hl">All highlights</button><button data-act="settings">Text and page settings</button><button data-act="webpref">Site view for this source</button></div>`}
+function mnMarkup(){return `<div class="pb mn" id="mn" hidden><div class="mphone"><button data-act="fdn">Feeds and stories</button><button data-act="web">View the site here</button><button data-act="rp">Playback settings</button><hr></div><button data-act="share">Share</button><button data-act="copy">Copy link</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><hr><button data-act="settings">Text and page settings</button><button data-act="webpref">Site view for this source</button></div>`}
 async function doAct(k){
  const a=curA;if(!a)return;
  if(k==='fdn'||k==='web'||k==='rp'){const b=$('#'+(k==='web'?'wb':k));if(b)b.click();return}
@@ -6123,7 +6130,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.10.05d';const APP_LABEL='1.36';
-const CHANGES=['The “Site view for this source” menu entry now changes to “Reader view for this source” once site view is on for that source, so you can tell what a tap will do and switch back','Tapping a picture in a story always opens it in the app’s own full-screen viewer (pinch to zoom, swipe between the story’s pictures, back to close). Before, a picture the site had wrapped in a link sent you to your browser instead'];
+const CHANGES=['A site’s page now opens with just its logo, name and description in a compact header: the Following and Mute buttons and the row of story counts are gone',' A lone photo credit (like “name/Shutterstock”) and a short list of topic links at the start or end of a story are no longer shown as if they were story text','Focus mode is now a button in the top bar of a story (next to the playback and site buttons) instead of a menu entry, and the same button turns it off; “All highlights” is gone from the story menu','“More like this” and “Less like this” moved out of the story menu into a thumbs-up and thumbs-down pair beside the date and reading time at the top of each story. The one you chose stays highlighted; tap it again to take it back','The “Site view for this source” menu entry now changes to “Reader view for this source” once site view is on for that source, so you can tell what a tap will do and switch back','Tapping a picture in a story always opens it in the app’s own full-screen viewer (pinch to zoom, swipe between the story’s pictures, back to close). Before, a picture the site had wrapped in a link sent you to your browser instead'];
 const DEF_ON=new Set(['intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -6306,7 +6313,12 @@ async function repairFeed(f,manual,quiet){
 
 /* ---------- cover page ---------- */
 const cmLabel=u=>/reddit\.com/.test(u)?'Discuss on Reddit':/ycombinator/.test(u)?'Discuss on Hacker News':/lobste\.rs/.test(u)?'Discuss on Lobsters':'Comments';
-function dtHtml(a,dt){const m=readMin(a);return [a.by?'<span>By '+esc(a.by)+(hasBy(a.by)?'<button class="flw" disabled>Following</button>':'<button class="flw" data-fby>Follow</button>')+'</span>':'',dt?'<span>'+esc(dt)+'</span>':'',m?'<span>'+m+' min read</span>':'',a.cm?`<a class="cmt" href="${esc(a.cm)}" target="_blank" rel="noopener">💬 ${cmLabel(a.cm)}</a>`:''].filter(Boolean).join('')}
+/* thumbs up / down in the story header: the same "more like this / less like this" signal, shown as a toggle */
+const TH_UP='<path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>',TH_DN='<path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>';
+function rateHtml(a){const v=(S.thm||{})[a.link]||0;return `<span class="rate"><button type="button" class="thb${v>0?' on':''}" data-rate="1" aria-label="More like this" aria-pressed="${v>0}" title="More like this">${svg(TH_UP)}</button><button type="button" class="thb${v<0?' on':''}" data-rate="-1" aria-label="Less like this" aria-pressed="${v<0}" title="Less like this">${svg(TH_DN)}</button></span>`}
+function rateSync(){const a=curA;if(!a)return;const v=(S.thm||{})[a.link]||0;document.querySelectorAll('.cols .thb').forEach(b=>{const on=(+b.dataset.rate)===v;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)})}
+function rateA(a,v){const m=S.thm=S.thm||{},old=m[a.link]||0,nv=old===v?0:v,delta=nv-old;if(nv)m[a.link]=nv;else delete m[a.link];const ks=Object.keys(m);if(ks.length>300)delete m[ks[0]];likeA(a,delta,nv===0?'Rating removed':nv>0?'You’ll see more like this':'You’ll see less like this');rateSync()}
+function dtHtml(a,dt){const m=readMin(a);return [a.by?'<span>By '+esc(a.by)+(hasBy(a.by)?'<button class="flw" disabled>Following</button>':'<button class="flw" data-fby>Follow</button>')+'</span>':'',dt?'<span>'+esc(dt)+'</span>':'',m?'<span>'+m+' min read</span>':'',rateHtml(a),a.cm?`<a class="cmt" href="${esc(a.cm)}" target="_blank" rel="noopener">💬 ${cmLabel(a.cm)}</a>`:''].filter(Boolean).join('')}
 function hdrFill(){const d=$('.cols .dt');if(d&&curA){const dt=curA.date?new Date(curA.date).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'';d.innerHTML=dtHtml(curA,dt)}}
 const volNo=()=>{const y=new Date().getFullYear();if(!S.born)S.born=y;return Math.max(1,y-S.born+1)};
 function edition(d){d=d||new Date();const h=d.getHours(),n=h<5?'Late-Night':h<12?'Morning':h<17?'Afternoon':'Evening';return d.toLocaleDateString([],{weekday:'long'})+' '+n+' Edition'}
