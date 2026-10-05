@@ -1373,7 +1373,7 @@ html.tlay:is([data-theme=forest],[data-theme=golden],[data-theme=crimson],[data-
 html.tlay:is([data-theme=forest],[data-theme=golden],[data-theme=crimson],[data-theme=rose],[data-theme=midnight],[data-theme=sepia]) #rd .dt::after{content:'\2766';display:block;margin-top:.5em;color:var(--a1);font-size:1.25em;line-height:1}
 html.dynx[data-theme=dynamic] #tabs{transition:--dyn .9s ease}
 /* the page tint is two fixed layers that cross-fade by opacity, so changing colour while you scroll costs no repaint */
-html.dynx[data-theme=dynamic]{background:var(--bg)}
+html.dynx[data-theme=dynamic]{background:var(--bg)!important}/* beats the dark boot colour painted inline at start-up, which otherwise shows through the tint layers while they cross-fade */
 html.dynx[data-theme=dynamic] body{background:none}
 #dynbg{position:fixed;inset:0;z-index:-1;pointer-events:none}
 #dynbg i{position:absolute;inset:0;opacity:0;transition:opacity 1.8s ease-in-out;will-change:opacity;background:radial-gradient(120% 55% at 50% -8%,color-mix(in srgb,var(--c) 16%,transparent),transparent 72%),color-mix(in srgb,var(--c) 5%,var(--bg))}
@@ -6087,7 +6087,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.10.05a';const APP_LABEL='1.33';
-const CHANGES=['Bylines no longer run the author’s web address into their name (The Atlantic showed “By Hana Kiroshttp://…”)','Switching to another feed and back now returns you to where you were in the first feed, instead of the top','Photos in a story are kept more often: pictures a site hides in a no-script fallback, a picture tag or a lazy-load list are now found, and a photo is no longer dropped because its description contains a word like “arrow” inside another word','Pull quotes no longer sit in a huge, mostly empty box (most visible in Rivals): the card is shorter and fits its text'];
+const CHANGES=['Dynamic theme: fixed the whole screen dimming and brightening again while you scroll. A dark start-up colour was showing through the background tint as it changed; it now uses the theme’s own light or dark background','Bylines no longer run the author’s web address into their name (The Atlantic showed “By Hana Kiroshttp://…”)','Switching to another feed and back now returns you to where you were in the first feed, instead of the top','Photos in a story are kept more often: pictures a site hides in a no-script fallback, a picture tag or a lazy-load list are now found, and a photo is no longer dropped because its description contains a word like “arrow” inside another word','Pull quotes no longer sit in a huge, mostly empty box (most visible in Rivals): the card is shorter and fits its text'];
 const DEF_ON=new Set(['intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -7102,7 +7102,7 @@ function nativeAppLine(){
  const ub=$('#appchk');if(ub){ub.textContent=NUBUSY?'Updating…':av?'Update now':'Check for updates';ub.disabled=!!NUBUSY;ub.classList.toggle('go',av)}
  const n=$('#appnotes');if(n){n.hidden=!(NU.code>NU.cur&&NU.notes);n.textContent=NU.notes.slice(0,600)}
 }
-function saveBg(){try{const c=getComputedStyle(document.body).backgroundColor;if(c&&c.indexOf('rgba(0, 0, 0, 0)')<0)localStorage.setItem('cy-bg',c)}catch(e){}}
+function saveBg(){try{let c=getComputedStyle(document.body).backgroundColor;if(!c||c.indexOf('rgba(0, 0, 0, 0)')>=0)c=getComputedStyle(document.documentElement).backgroundColor;if(c&&c.indexOf('rgba(0, 0, 0, 0)')<0)localStorage.setItem('cy-bg',c)}catch(e){}}
 {const a1=applyTheme;applyTheme=function(...a){const r=a1.apply(this,a);setTimeout(saveBg,600);return r};setTimeout(saveBg,1200)}
 function nativeBars(){
  const p=CyN();if(!p||!p.setBars)return;
