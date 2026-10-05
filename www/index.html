@@ -2664,7 +2664,7 @@ function clean(n,base){
   if(c.nodeType===3){out.append(c.textContent);continue}
   if(c.nodeType!==1)continue;
   if(/^(P|DIV|SPAN|SECTION|ASIDE|FIGURE)$/i.test(c.tagName)&&c.textContent.length<220&&/^(Ad is Hidden|Paid Promoted|Promoted Stories|Sponsored|Advertisement)/i.test(c.textContent.trim()))continue;
-  let t=c.tagName.toUpperCase();{const em=embedOf(c,t)||rebuildEmb(c,t);if(em){out.append(em);continue}}if(SKIP.has(t))continue;if(t==='H1')t='H2';
+  let t=c.tagName.toUpperCase();{const em=embedOf(c,t)||rebuildEmb(c,t);if(em){out.append(em);continue}}if(SKIP.has(t))continue;if(t==='H1')t='H2';if(t==='H5'||t==='H6')t='H4';
   if(t==='IMG'){
    let s=c.getAttribute('src')||c.getAttribute('data-src')||(c.getAttribute('srcset')||'').split(' ')[0];
    if(!s||s.startsWith('data:'))continue;
@@ -2674,7 +2674,7 @@ function clean(n,base){
    if(c.closest&&c.closest('li')&&+(c.getAttribute('width')||999)<200)continue;
    const im=document.createElement('img');im.src=abs(s,base);im.loading='lazy';im.referrerPolicy='no-referrer';out.append(im);continue;
   }
-  if(!OK.has(t)){out.append(clean(c,base));continue}
+  if(!OK.has(t)){const sub=clean(c,base);/* a div/dd/etc. that holds only running text is a paragraph: without a break its text fuses with its neighbours ("...text.Next...") */if(/^(DIV|SECTION|DT|DD|ADDRESS|HEADER|MAIN)$/.test(t)&&sub.textContent.trim()&&!sub.querySelector('p,ul,ol,table,figure,blockquote,pre,h2,h3,h4,hr,img')){const q=document.createElement('p');q.append(sub);out.append(q)}else out.append(sub);continue}
   const e=document.createElement(t);
   if(t==='A'){const h=abs(c.getAttribute('href')||'',base);if(!/^https?:/.test(h)){out.append(clean(c,base));continue}e.href=h;e.target='_blank';e.rel='noopener'}
   if(t==='TD'||t==='TH')['colspan','rowspan'].forEach(k=>{const v=c.getAttribute(k);if(v&&/^\d{1,2}$/.test(v))e.setAttribute(k,v)});
@@ -2695,30 +2695,33 @@ function tidyFrag(f){
  const o=document.createDocumentFragment();while(w.firstChild)o.append(w.firstChild);return o;
 }
 /* video pages and menus: drop the "video player was slow" feedback form and runs of one-word link menus that some sites leave inside the article body */
-const VIDJ=/(video player was slow to load|video content (never loaded|did not start)|ad (never loaded|froze|prevented|was repetitive)|content moved around while ad loaded|audio on ad was too loud|^\s*(\[x\]\s*)?other issues|^\s*cancel\s*submit\s*$|^\s*thank you!?\s*$|your effort and contribution in providing this feedback)/i,MENUJ=/^(more|watch|listen|subscribe|watchlistensubscribe|sign in|log in|search|skip to (main )?content|accept( all( cookies)?)?|manage my choices|try again|previous( next)?|next|menu( menu)?|settings|headings|topics|by region|home|shows|live|newsfeed|en|français|english|español|عربي|follow|share|issued on:?.*|reading time \d+ ?min|\d{1,2}:\d{2}( ?min)?|cover image:.{0,80})$/i,CHROMEJ=/(browser extensions? seems to be blocking|you must enable adver|advertisement tracking and audience|to display this content from|manage my choices|we use cookies|cookie (policy|settings|preferences)|accept all (cookies)?|skip to main content|international breaking news,? top stories|^\s*\d\.\s+\w[\w ]*(\s+\d\.\s+\w[\w ]*){1,})/i,STARLIST=/^(?:[^*]{1,60}\*\s*){3,}[^*]{0,60}$/;
+const VIDJ=/(video player was slow to load|video content (never loaded|did not start)|\bad (never loaded|froze|prevented|was repetitive)\b(?!.{60})|content moved around while ad loaded|audio on ad was too loud|^\s*(\[x\]\s*)?other issues|^\s*cancel\s*submit\s*$|^\s*thank you!?\s*$|your effort and contribution in providing this feedback)/i,MENUJ=/^(more|watch|listen|subscribe|watchlistensubscribe|sign in|log in|search|skip to (main )?content|accept( all( cookies)?)?|manage my choices|try again|previous( next)?|next|menu( menu)?|settings|headings|topics|by region|home|shows|live|newsfeed|en|français|english|español|عربي|follow|share|issued on:?.*|reading time \d+ ?min|\d{1,2}:\d{2}( ?min)?|cover image:.{0,80})$/i,CHROMEJ=/(browser extensions? seems to be blocking|you must enable adver|advertisement tracking and audience|to display this content from|manage my choices|^\s*we use cookies|^.{0,50}cookie (policy|settings|preferences)|accept all (cookies)?|skip to main content|international breaking news,? top stories|^\s*\d\.\s+\w[\w ]*(\s+\d\.\s+\w[\w ]*){1,})/i,STARLIST=/^(?:[^*]{1,60}\*\s*){3,}[^*]{0,60}$/;
 function pruneJunk(root){
  const kids=[...root.querySelectorAll('p,li,div,h2,h3')];/* the article is detached from the page, so isConnected would always be false */
  kids.forEach(e=>{if(e.children.length>8)return;const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length&&t.length<700&&(VIDJ.test(t)||MENUJ.test(t)||CHROMEJ.test(t)||(t.length<400&&STARLIST.test(t))))e.remove()});
  /* lists made only of short labels are menus, not part of the story */
- root.querySelectorAll('ul,ol').forEach(u=>{if(!root.contains(u))return;const li=[...u.children].filter(x=>x.tagName==='LI');if(li.length>=3&&li.every(x=>x.textContent.replace(/\s+/g,' ').trim().length<26)&&u.textContent.length<260)u.remove()});
+ root.querySelectorAll('ul,ol').forEach(u=>{if(!root.contains(u))return;const li=[...u.children].filter(x=>x.tagName==='LI');if(li.length>=3&&li.every(x=>x.textContent.replace(/\s+/g,' ').trim().length<26&&x.querySelector('a'))&&u.textContent.length<260)u.remove()});
  const lk=e=>{const t=e.textContent.replace(/\s+/g,' ').trim(),a=e.querySelectorAll('a');return t.length>0&&t.length<30&&a.length===1&&a[0].textContent.replace(/\s+/g,' ').trim()===t};
  [root,...root.querySelectorAll('div,section,article')].forEach(par=>{
   let run=[];const flush=()=>{if(run.length>=3)run.forEach(x=>x.remove());run=[]};
   [...par.children].forEach(c=>{if(lk(c))run.push(c);else flush()});flush();
  });
 }
+const ssList=ss=>String(ss||'').split(/\s+[\d.]+[wx]\s*,?\s*|,\s+/).map(x=>x.trim()).filter(Boolean);/* srcset candidates; CDN urls may contain commas (c_fill,w_800), so a plain split(',') cuts them */
 function extract(html,base){
  const d=new DOMParser().parseFromString(html,'text/html');
  let ld='';
  d.querySelectorAll('script[type="application/ld+json"]').forEach(x=>{try{const f=o=>{if(!o||typeof o!=='object')return;if(typeof o.articleBody==='string'&&o.articleBody.length>ld.length)ld=o.articleBody;Object.values(o).forEach(f)};f(JSON.parse(x.textContent))}catch(e){}});
+ /* AMP pages (the AMP-copy fallback fetches them) use <amp-img>, which the reader would drop entirely */
+ d.querySelectorAll('amp-img').forEach(a=>{const im=d.createElement('img');for(const at of a.attributes)im.setAttribute(at.name,at.value);a.replaceWith(im)});
  /* pictures some sites keep only in a <noscript> fallback or only in a <picture><source srcset>: bring them back before noscript is dropped */
- try{d.querySelectorAll('noscript').forEach(ns=>{const inner=ns.querySelector('img');if(!inner||!ns.parentNode)return;const par=ns.parentNode,prev=ns.previousElementSibling,isPh=el=>{if(!el)return false;const im=el.tagName==='IMG'?el:el.querySelector&&el.querySelector('img');if(!im)return false;const sr=im.getAttribute('src')||'';return !sr||/^data:/i.test(sr)||/placeholder|blank|spacer|1x1|pixel\./i.test(sr)};const has=[...par.querySelectorAll('img')].some(i=>i!==inner&&(i.getAttribute('src')||'')===(inner.getAttribute('src')||''));if(has)return;if(isPh(prev)){prev.replaceWith(inner.cloneNode(true))}else if(!par.querySelector('img:not([src^="data:"])')||par.closest('figure')){par.insertBefore(inner.cloneNode(true),ns)}})}catch(e){}
- d.querySelectorAll('picture').forEach(pc=>{const im=pc.querySelector('img');if(!im)return;const sr=im.getAttribute('src')||'';if(sr&&!/^data:/i.test(sr))return;const so=[...pc.querySelectorAll('source')].map(x=>x.getAttribute('srcset')||x.getAttribute('data-srcset')||'').find(Boolean);if(so){const u=so.split(',').map(x=>x.trim().split(/\s+/)[0]).filter(Boolean).pop();if(u)im.setAttribute('src',u)}});
- d.querySelectorAll('img').forEach(im=>{const src=im.getAttribute('src')||'',w=im.getAttribute('width');const ph=!src||/^data:/i.test(src)||/placeholder|blank|spacer|1x1|pixel\./i.test(src)||(w!==null&&+w<=2);if(!ph)return;let v='';for(const k of ['data-src','data-lazy-src','data-original','data-lazy','data-hi-res-src']){const x=im.getAttribute(k);if(x&&!/^data:/i.test(x)){v=x;break}}if(!v){const ss=im.getAttribute('data-srcset')||im.getAttribute('srcset')||'';v=ss.split(',').map(x=>x.trim().split(/\s+/)[0]).filter(Boolean).pop()||''}if(v)im.setAttribute('src',v)});
+ try{d.querySelectorAll('noscript').forEach(ns=>{const inner=ns.querySelector('img');if(!inner||!ns.parentNode)return;const par=ns.parentNode,prev=ns.previousElementSibling,isPh=el=>{if(!el)return false;const im=el.tagName==='IMG'?el:el.querySelector&&el.querySelector('img');if(!im)return false;const sr=im.getAttribute('src')||'';return !sr||/^data:/i.test(sr)||/placeholder|blank|spacer|1x1|pixel\./i.test(sr)};const isrc=abs(inner.getAttribute('src')||'',base),has=!!isrc&&[...par.querySelectorAll('img')].some(i=>i!==inner&&['src','data-src','data-lazy-src','data-original'].some(a=>{const v=i.getAttribute(a);return !!v&&abs(v,base)===isrc}));if(has)return;if(isPh(prev)){prev.replaceWith(inner.cloneNode(true))}else if(!par.querySelector('img:not([src^="data:"])')||par.closest('figure')){par.insertBefore(inner.cloneNode(true),ns)}})}catch(e){}
+ d.querySelectorAll('picture').forEach(pc=>{const im=pc.querySelector('img');if(!im)return;const sr=im.getAttribute('src')||'';if(sr&&!/^data:/i.test(sr))return;const so=[...pc.querySelectorAll('source')].map(x=>x.getAttribute('srcset')||x.getAttribute('data-srcset')||'').find(Boolean);if(so){const u=ssList(so).pop();if(u)im.setAttribute('src',u)}});
+ d.querySelectorAll('img').forEach(im=>{const src=im.getAttribute('src')||'',w=im.getAttribute('width');const ph=!src||/^data:/i.test(src)||/placeholder|blank|spacer|1x1|pixel\./i.test(src)||(w!==null&&+w<=2);if(!ph)return;let v='';for(const k of ['data-src','data-lazy-src','data-original','data-lazy','data-hi-res-src']){const x=im.getAttribute(k);if(x&&!/^data:/i.test(x)){v=x;break}}if(!v){const ss=im.getAttribute('data-srcset')||im.getAttribute('srcset')||'';v=ssList(ss).pop()||''}if(!v){for(const at of im.attributes){if(/^data-/i.test(at.name)&&/^[^\s]+\.(jpe?g|png|webp|avif|gif)([?#][^\s]*)?$/i.test(at.value.trim())){v=at.value.trim();break}}}if(v){im.setAttribute('src',v);if(w!==null&&+w<=2){im.removeAttribute('width');im.removeAttribute('height')}}});
  d.querySelectorAll('script,style,nav,footer,aside,form,noscript').forEach(e=>e.remove());
  d.querySelectorAll('.screen-reader-text,.sr-only,.visually-hidden,.visuallyhidden,.u-visually-hidden,.assistive-text,.a11y-text,.sr-text,[class*="screen-reader" i],[class*="sr-only" i],[class*="visually-hidden" i],[class*="visuallyhidden" i]').forEach(e=>{if(e.isConnected&&!e.matches('html,body,article,main')&&!e.querySelector('article,main')&&e.textContent.length<200)e.remove()});
  try{const SRT=/^(list(\s+\d+)?\s+of\s+\d+(\s+items?)?|end of list|(start|beginning) of list)$/i,tw=d.createTreeWalker(d.body||d.documentElement,4),del=[];let n;while(n=tw.nextNode()){if(SRT.test(n.textContent.replace(/\s+/g,' ').trim()))del.push(n)}del.forEach(n=>{const p=n.parentElement;n.remove();if(p&&p.isConnected&&!p.textContent.trim()&&!p.querySelector('img,video,iframe')&&!p.matches('body,html'))p.remove()})}catch(e){}
- d.querySelectorAll('.ad,.advert,.advertisement,.newsletter,.popup,.social-share,.cookie-banner,[id*="taboola"],[id*="outbrain"],[class*="sponsor"]').forEach(e=>{if(!e.isConnected||e.matches('html,body,article,main')||e.querySelector('article,main')||e.textContent.length>3000)return;e.remove()});
+ d.querySelectorAll('.ad,.advert,.advertisement,.newsletter,.popup,.social-share,.cookie-banner,[id*="taboola"],[id*="outbrain"],[class*="sponsor"]').forEach(e=>{if(!e.isConnected||e.matches('html,body,article,main')||e.querySelector('article,main')||e.textContent.length>3000||e.querySelectorAll('p').length>=4)return;e.remove()});
  d.querySelectorAll('img').forEach(im=>{const u=(im.getAttribute('src')||'')+' '+(im.getAttribute('data-src')||'')+' '+(im.getAttribute('srcset')||''),al=im.getAttribute('alt')||'';if(GPROMO.test(u)||GALT.test(al)){const f=im.closest('figure,a,picture');(f&&f.textContent.trim().length<160?f:im).remove()}});
  d.querySelectorAll('p,figcaption,h2,h3,h4,div').forEach(e=>{if(!e.isConnected||e.children.length>6)return;const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length&&t.length<140&&GTXT.test(t))e.remove()});
  d.querySelectorAll('[class*="author" i],[class*="byline" i],[class*="contributor" i],[class*="bio" i],[class*="popup" i],[class*="modal" i],[class*="tooltip" i],[class*="overlay" i],[role="dialog"],dialog').forEach(e=>{if(!e.isConnected||e.matches('html,body,article,main')||e.querySelector('article,main'))return;const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length<900&&(AUTHJ.test(t)||t.length<240))e.remove()});
@@ -2726,8 +2729,12 @@ function extract(html,base){
  d.querySelectorAll('li').forEach(e=>{if(!e.isConnected)return;const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length<700&&AUTHJ.test(t))e.remove()});
  d.querySelectorAll('ul,ol').forEach(e=>{if(e.isConnected&&!e.textContent.trim()&&!e.querySelector('img'))e.remove();else if(e.isConnected&&!e.textContent.trim()&&[...e.querySelectorAll('img')].every(i=>ICONRE.test((i.getAttribute('src')||'')+' '+(i.getAttribute('alt')||''))))e.remove()});
  const sc=new Map();
- d.querySelectorAll('p').forEach(p=>{const L=p.textContent.trim().length;if(L<50)return;for(let el=p.parentElement,k=0;el&&k<3;el=el.parentElement,k++)sc.set(el,(sc.get(el)||0)+L/(k+1))});
+ d.querySelectorAll('p').forEach(p=>{const tx=p.textContent.trim(),L=tx.length*(/[぀-ヿ㐀-鿿가-힯]/.test(tx)?2.5:1);/* CJK packs ~2.5x the meaning per character, so 50 "English" characters is ~20 here */if(L<50)return;for(let el=p.parentElement,k=0;el&&k<3;el=el.parentElement,k++)sc.set(el,(sc.get(el)||0)+L/(k+1))});
  let best=null,max=0;sc.forEach((v,el)=>{if(v>max){max=v;best=el}});
+ /* text split over same-class sibling blocks (figures/ads between them): the first block wins the vote and the rest is lost, so climb to their parent */
+ {const pl=x=>[...x.querySelectorAll('p')].reduce((q,p)=>{const L=p.textContent.trim().length;return q+(L>=50?L:0)},0);
+ for(let e=best,k=0;e&&k<3&&e.parentElement&&!/^(BODY|HTML)$/.test(e.parentElement.tagName)&&!/^(ARTICLE|UL|OL|TABLE|LI)$/.test(e.tagName);e=e.parentElement,k++){
+  if([...e.parentElement.children].some(x=>x!==e&&x.tagName===e.tagName&&x.className===e.className&&pl(x)>=150&&!x.querySelector('h1'))){best=e.parentElement;break}}}
  let node=best&&max>=300?tidyFrag(clean(best,base)):null;
  if(node){const pre=node.textContent.replace(/\s+/g,' ').trim().length;pruneJunk(node);const post=node.textContent.replace(/\s+/g,' ').trim().length;/* only a page that was mostly menus and notices is thrown away; a genuinely short story is kept */if(post<120&&pre>=post*3)node=null}
  if(ld.length>500&&(!node||ld.length>node.textContent.length*1.3)){
@@ -2739,10 +2746,11 @@ function extract(html,base){
  return node;
 }
 function inline(t,base){
- const f=document.createDocumentFragment(),re=/(!?)\[([^\]]*)\]\(([^)\s]+)[^)]*\)|\*\*([^*]+)\*\*/g;let i=0,m;
+ const f=document.createDocumentFragment(),re=/(!?)\[([^\]]*)\]\(((?:[^()\s]|\([^()\s]*\))+)[^)]*\)|\*\*([^*]+)\*\*|\*([^*\s](?:[^*]*[^*\s])?)\*/g;let i=0,m;
  while(m=re.exec(t)){
   f.append(t.slice(i,m.index));
   if(m[4]){const b=document.createElement('strong');b.textContent=m[4];f.append(b)}
+  else if(m[5]){const b=document.createElement('em');b.textContent=m[5];f.append(b)}
   else if(m[1]){const im=document.createElement('img');im.src=abs(m[3],base);im.loading='lazy';im.referrerPolicy='no-referrer';f.append(im)}
   else{const h=abs(m[3],base);if(/^https?:/.test(h)){const a=document.createElement('a');a.href=h;a.target='_blank';a.rel='noopener';a.textContent=m[2];f.append(a)}else f.append(m[2])}
   i=re.lastIndex;
@@ -2762,7 +2770,9 @@ function md(txt,base){
  if(lg.filter(Boolean).length>=3){
   let i=lg.indexOf(true);const z=lg.lastIndexOf(true);
   while(i>0&&/^(#{1,4}\s|!\[)/.test(bl[i-1]))i--;
-  bl=bl.slice(i,z+1);
+  let z2=z;/* the closing one-liners ("The trial begins Monday.") are shorter than 110 chars but are still the story */
+  while(z2<z+3&&z2+1<bl.length){const n=bl[z2+1],t=pl(n);if(/^([-*]\s|#|\||>)/.test(n)||/\]\(/.test(n)||t.length<12||!/[.!?”"')»。]$/.test(t))break;z2++}
+  bl=bl.slice(i,z2+1);
  }
  bl=bl.filter(x=>!ADRE.test(x)&&!VIDJ.test(pl(x))&&!MENUJ.test(pl(x))&&!CHROMEJ.test(pl(x))&&!(pl(x).length<400&&STARLIST.test(pl(x))));
  bl=bl.filter(x=>{const t=pl(x);return !/^(undo|ad|ads|advertisement|\*+)$/i.test(t)&&!/\[?Sponsored\s*Sponsored|^\[?Sponsored\b.*\]\(|\bSponsored\]/i.test(x)});
@@ -2776,6 +2786,7 @@ function md(txt,base){
   if(h){e=document.createElement(h[1].length===1?'h2':'h3');e.append(inline(h[2],base))}
   else if(/^!\[[^\]]*\]\([^)]*\)$/.test(s)){e=inline(s,base)}
   else if(/^\|.*\|\s*$/.test(s.split('\n')[0])&&s.split('\n').length>1&&/^\|?\s*:?-{2,}/.test(s.split('\n')[1])){e=document.createElement('table');const rows=s.split('\n').filter((l,i)=>i!==1&&/^\|/.test(l));rows.forEach((l,ri)=>{const tr=document.createElement('tr');l.replace(/^\||\|\s*$/g,'').split('|').forEach(cl=>{const td=document.createElement(ri===0?'th':'td');td.append(inline(cl.trim(),base));tr.append(td)});e.append(tr)})}
+  else if(/^>\s?/.test(s)){e=document.createElement('blockquote');e.append(inline(s.split('\n').map(l=>l.replace(/^>\s?/,'')).join(' ').trim(),base))}
   else if(/^[-*]\s/.test(s)){e=document.createElement('ul');for(const l of s.split('\n')){const tx=l.replace(/^[-*]\s+/,'').replace(/^(\*\s*)?(\d{1,2}\s+)?#{1,6}\s*/,'').replace(/^\*\s+/,'').trim();if(!pl(tx))continue;const li=document.createElement('li');li.append(inline(tx,base));e.append(li)}}
   else{e=document.createElement('p');e.append(inline(s.replace(/\n/g,' ').replace(/\s+\*+\s*$/,'').replace(/^\*\s+(?=[A-Z“"])/,''),base))}
   out.append(e);
@@ -3758,8 +3769,8 @@ function textQuality(t){
  }
  /* short words that really recur (of, de, la, ...) are fine in any language; scattered fragments are not */
  for(const k in sf){if(!SHORTOK.has(k)&&sf[k]<Math.max(4,sm.length*.012))frag+=sf[k]}
- const head=t.slice(0,6000),letters=(head.match(/\p{L}/gu)||[]).length,nonsp=head.replace(/\s/g,'').length||1;
- const alpha=letters/nonsp,fr=frag/sm.length,avg=sum/sm.length,sym=(head.match(/[^\p{L}\p{N}\s.,;:!?'’"“”()\-–—$%&\/@#*+=]/gu)||[]).length/head.length;
+ const head=t.slice(0,6000),letters=(head.match(/[\p{L}\p{M}]/gu)||[]).length,nonsp=head.replace(/\s/g,'').length||1;
+ const alpha=letters/nonsp,fr=frag/sm.length,avg=sum/sm.length,sym=(head.match(/[^\p{L}\p{M}\p{N}\s.,;:!?'’"“”()\-–—$%&\/@#*+=।॥]/gu)||[]).length/head.length;
  let why='';
  if(alpha<.72)why='too many symbols';else if(fr>.10)why='broken words';else if(avg<3.1||avg>10)why='odd word lengths';else if(sym>.03)why='stray characters';else if(long/sm.length>.02)why='very long strings';
  return{ok:!why,why,n:w.length};
