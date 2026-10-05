@@ -4521,7 +4521,7 @@ $('#rd').onclick=e=>{
  if(t.closest('[data-bfin]'))return closeRd();
  const sp=t.closest('[data-aspd]');if(sp){S.prate=+sp.dataset.aspd;S.setT=Date.now();save();const au=$('.cols .aud audio');if(au)au.playbackRate=S.prate;document.querySelectorAll('[data-aspd]').forEach(b=>b.classList.toggle('on',b===sp));return}
  if(t.closest('#pbq')){S.queue=!S.queue;save();return syncPb()}
- if(t.closest('#mo')){const m=$('#mn'),o=m.hidden;if($('#pb'))$('#pb').hidden=true;m.hidden=!o;return}
+ if(t.closest('#mo')){const m=$('#mn'),o=m.hidden;if($('#pb'))$('#pb').hidden=true;if(o)mnWebLabel();m.hidden=!o;return}
  const act=t.closest('[data-act]');if(act){$('#mn').hidden=true;return doAct(act.dataset.act)}
  if(t.closest('#wsw'))return switchReader();
  if(t.closest('#wb')||t.closest('[data-web]'))return toggleWeb();
@@ -5132,6 +5132,8 @@ async function alsoLike(){
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-dfol]');if(!b)return;e.preventDefault();quickAdd(b.dataset.dfol,b.dataset.dn,b.dataset.dc);b.textContent='Following';b.disabled=true;toast('Following '+b.dataset.dn+'. Its stories will show up in your '+b.dataset.dc+' folder')});
 /* reader overflow menu */
+/* the menu entry says what a tap will do: switch this source to site view, or back to reader view */
+function mnWebLabel(){const fd=curA&&S.feeds.find(x=>x.id===curA.feedId);document.querySelectorAll('#mn [data-act="webpref"]').forEach(b=>{b.textContent=fd&&fd.web?'Reader view for this source':'Site view for this source'})}
 function mnMarkup(){return `<div class="pb mn" id="mn" hidden><div class="mphone"><button data-act="fdn">Feeds and stories</button><button data-act="web">View the site here</button><button data-act="rp">Playback settings</button><hr></div><button data-act="share">Share</button><button data-act="copy">Copy link</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><hr><div class="pair"><button data-act="more">More like this</button><button data-act="less">Less like this</button></div><hr><button data-act="focus">Focus mode</button><button data-act="hl">All highlights</button><button data-act="settings">Text and page settings</button><button data-act="webpref">Site view for this source</button></div>`}
 async function doAct(k){
  const a=curA;if(!a)return;
@@ -5143,7 +5145,7 @@ async function doAct(k){
  if(k==='less'){likeA(a,-1);return}
  if(k==='focus'){focusTog();return}
  else if(k==='copy'){try{await navigator.clipboard.writeText(a.link);toast('Link copied')}catch(e){askBox({title:'Copy this link',input:true,value:a.link,ok:'Done',cancel:'Close'})}}
- else if(k==='webpref'){const fd=S.feeds.find(x=>x.id===a.feedId);if(!fd){toast('This story’s source isn’t in your feeds');return}fd.web=!fd.web;save();toast(fd.web?fd.title+' will open in site view':fd.title+' will open in reader view')}
+ else if(k==='webpref'){const fd=S.feeds.find(x=>x.id===a.feedId);if(!fd){toast('This story’s source isn’t in your feeds');return}fd.web=!fd.web;save();mnWebLabel();toast(fd.web?fd.title+' will open in site view':fd.title+' will open in reader view')}
  else if(k==='unread'){delete S.read[a.link];save();toast('Marked as unread')}
  else if(k==='settings'){$('#gear').click()}
  else if(k==='hl'){closeRd();S.sel='notes';save();render()}
@@ -6121,7 +6123,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.10.05d';const APP_LABEL='1.36';
-const CHANGES=['Tapping a picture in a story always opens it in the app’s own full-screen viewer (pinch to zoom, swipe between the story’s pictures, back to close). Before, a picture the site had wrapped in a link sent you to your browser instead'];
+const CHANGES=['The “Site view for this source” menu entry now changes to “Reader view for this source” once site view is on for that source, so you can tell what a tap will do and switch back','Tapping a picture in a story always opens it in the app’s own full-screen viewer (pinch to zoom, swipe between the story’s pictures, back to close). Before, a picture the site had wrapped in a link sent you to your browser instead'];
 const DEF_ON=new Set(['intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
