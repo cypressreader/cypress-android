@@ -1373,7 +1373,7 @@ html.tlay:is([data-theme=forest],[data-theme=golden],[data-theme=crimson],[data-
 html.tlay:is([data-theme=forest],[data-theme=golden],[data-theme=crimson],[data-theme=rose],[data-theme=midnight],[data-theme=sepia]) #rd .dt::after{content:'\2766';display:block;margin-top:.5em;color:var(--a1);font-size:1.25em;line-height:1}
 html.dynx[data-theme=dynamic] #tabs{transition:--dyn .9s ease}
 /* the page tint is two fixed layers that cross-fade by opacity, so changing colour while you scroll costs no repaint */
-html.dynx[data-theme=dynamic]{background:var(--bg)}
+html.dynx[data-theme=dynamic]{background:var(--bg)!important}/* beats the dark boot colour painted inline at start-up, which otherwise shows through the tint layers while they cross-fade */
 html.dynx[data-theme=dynamic] body{background:none}
 #dynbg{position:fixed;inset:0;z-index:-1;pointer-events:none}
 #dynbg i{position:absolute;inset:0;opacity:0;transition:opacity 1.8s ease-in-out;will-change:opacity;background:radial-gradient(120% 55% at 50% -8%,color-mix(in srgb,var(--c) 16%,transparent),transparent 72%),color-mix(in srgb,var(--c) 5%,var(--bg))}
@@ -2231,13 +2231,14 @@ html{font-synthesis-weight:none}
 #grid .nr-pq1>.tx{grid-column:1;grid-row:1}
 #grid .nr-pq1>img{display:block;position:static;grid-column:2;grid-row:1;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:14px;z-index:auto;height:auto}
 #grid .nr-pq1 p{font-size:clamp(22px,2.3vw,34px)}
-#grid .card.nr-pq2{display:flex;align-items:flex-end;background:var(--b);color:#fff;overflow:hidden;border-radius:22px;border:0;min-height:380px;text-align:left;padding:0}
+#grid .card.nr-pq2{display:flex;align-items:flex-end;background:var(--b);color:#fff;overflow:hidden;border-radius:22px;border:0;min-height:250px;text-align:left;padding:0}
 #grid .nr-pq2>img{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
 #grid .nr-pq2>.ov{display:block;position:absolute;inset:0;z-index:-1;background:linear-gradient(to top,rgba(0,0,0,.84),rgba(0,0,0,.42) 55%,rgba(0,0,0,.2))}
 #grid .nr-pq2 .tx{padding:36px 44px;color:#fff;max-width:880px}
 #grid .nr-pq2 p,#grid .nr-pq2 .nr-pqa,#grid .nr-pq2 .nr-qm{color:#fff}
 #grid .nr-pq2 .nr-pqa b{color:#fff}
 #grid .nr-pq.noimg.nr-pq1,#grid .nr-pq.noimg.nr-pq2{display:block;text-align:center;color:var(--ink);background:none}
+#grid .card.nr-pq.noimg.nr-pq1,#grid .card.nr-pq.noimg.nr-pq2,#grid.nrp .card.nr-pq.noimg.nr-pq2{min-height:0;padding:30px 8% 26px;border-radius:0;overflow:visible}
 .nr-sect{margin-bottom:36px}
 .nr-sect h4{display:flex;align-items:center;gap:10px;font:800 12px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--ink);margin:0 0 18px;padding-bottom:10px;border-bottom:2px solid var(--ink)}
 .nr-sect h4 span{width:10px;height:10px;border-radius:50%}
@@ -2316,7 +2317,7 @@ html{font-synthesis-weight:none}
 #grid.nrp .nr-colr>img{grid-column:1;grid-row:1;aspect-ratio:16/10;height:auto}
 #grid.nrp .nr-colr .tx{grid-column:1;grid-row:2;padding:20px 20px 24px}
 #grid.nrp .nr-colr h3{font-size:25px}
-#grid.nrp .card.nr-pq2{min-height:340px}#grid.nrp .nr-pq2 .tx{padding:26px 22px}
+#grid.nrp .card.nr-pq2{min-height:230px}#grid.nrp .nr-pq2 .tx{padding:26px 22px}
 #grid.nrp .card.nr-pq{padding:24px 4px 20px}
 #grid.nrp .nr-pq p{font-size:23px}
 #grid.nrp .nr-qk{grid-template-columns:1fr}
@@ -2668,7 +2669,7 @@ function clean(n,base){
    let s=c.getAttribute('src')||c.getAttribute('data-src')||(c.getAttribute('srcset')||'').split(' ')[0];
    if(!s||s.startsWith('data:'))continue;
    if(+c.getAttribute('width')<60&&c.getAttribute('width'))continue;
-   if(ICONRE.test(s+' '+(c.getAttribute('alt')||''))&&!/\.(jpe?g|webp)\b/i.test(s))continue;
+   if((ICONRE.test(s)||ALTICON.test(c.getAttribute('alt')||''))&&!/\.(jpe?g|webp|png|avif)\b/i.test(s))continue;
    if(+c.getAttribute('height')<60&&c.getAttribute('height'))continue;
    if(c.closest&&c.closest('li')&&+(c.getAttribute('width')||999)<200)continue;
    const im=document.createElement('img');im.src=abs(s,base);im.loading='lazy';im.referrerPolicy='no-referrer';out.append(im);continue;
@@ -2710,6 +2711,9 @@ function extract(html,base){
  const d=new DOMParser().parseFromString(html,'text/html');
  let ld='';
  d.querySelectorAll('script[type="application/ld+json"]').forEach(x=>{try{const f=o=>{if(!o||typeof o!=='object')return;if(typeof o.articleBody==='string'&&o.articleBody.length>ld.length)ld=o.articleBody;Object.values(o).forEach(f)};f(JSON.parse(x.textContent))}catch(e){}});
+ /* pictures some sites keep only in a <noscript> fallback or only in a <picture><source srcset>: bring them back before noscript is dropped */
+ try{d.querySelectorAll('noscript').forEach(ns=>{const inner=ns.querySelector('img');if(!inner||!ns.parentNode)return;const par=ns.parentNode,prev=ns.previousElementSibling,isPh=el=>{if(!el)return false;const im=el.tagName==='IMG'?el:el.querySelector&&el.querySelector('img');if(!im)return false;const sr=im.getAttribute('src')||'';return !sr||/^data:/i.test(sr)||/placeholder|blank|spacer|1x1|pixel\./i.test(sr)};const has=[...par.querySelectorAll('img')].some(i=>i!==inner&&(i.getAttribute('src')||'')===(inner.getAttribute('src')||''));if(has)return;if(isPh(prev)){prev.replaceWith(inner.cloneNode(true))}else if(!par.querySelector('img:not([src^="data:"])')||par.closest('figure')){par.insertBefore(inner.cloneNode(true),ns)}})}catch(e){}
+ d.querySelectorAll('picture').forEach(pc=>{const im=pc.querySelector('img');if(!im)return;const sr=im.getAttribute('src')||'';if(sr&&!/^data:/i.test(sr))return;const so=[...pc.querySelectorAll('source')].map(x=>x.getAttribute('srcset')||x.getAttribute('data-srcset')||'').find(Boolean);if(so){const u=so.split(',').map(x=>x.trim().split(/\s+/)[0]).filter(Boolean).pop();if(u)im.setAttribute('src',u)}});
  d.querySelectorAll('img').forEach(im=>{const src=im.getAttribute('src')||'',w=im.getAttribute('width');const ph=!src||/^data:/i.test(src)||/placeholder|blank|spacer|1x1|pixel\./i.test(src)||(w!==null&&+w<=2);if(!ph)return;let v='';for(const k of ['data-src','data-lazy-src','data-original','data-lazy','data-hi-res-src']){const x=im.getAttribute(k);if(x&&!/^data:/i.test(x)){v=x;break}}if(!v){const ss=im.getAttribute('data-srcset')||im.getAttribute('srcset')||'';v=ss.split(',').map(x=>x.trim().split(/\s+/)[0]).filter(Boolean).pop()||''}if(v)im.setAttribute('src',v)});
  d.querySelectorAll('script,style,nav,footer,aside,form,noscript').forEach(e=>e.remove());
  d.querySelectorAll('.screen-reader-text,.sr-only,.visually-hidden,.visuallyhidden,.u-visually-hidden,.assistive-text,.a11y-text,.sr-text,[class*="screen-reader" i],[class*="sr-only" i],[class*="visually-hidden" i],[class*="visuallyhidden" i]').forEach(e=>{if(e.isConnected&&!e.matches('html,body,article,main')&&!e.querySelector('article,main')&&e.textContent.length<200)e.remove()});
@@ -2746,6 +2750,7 @@ function inline(t,base){
  f.append(t.slice(i));return f;
 }
 const GPROMO=/(google[-_ ]?(g|logo|news|discover|preferred|source|icon)\b|preferred[-_ ]?source|add[-_ ]?us[-_ ]?on[-_ ]?google|google-news|googlediscover|gstatic\.com\/images\/branding|\/branding\/googlelogo)/i,GALT=/preferred source|add .{1,50} on google|google (news|discover) (logo|icon|badge)|follow us on google|google logo|google g\b/i,GTXT=/(preferred source|add .{1,50} on google|follow (us )?on google news|add us as a preferred source)/i;
+const ALTICON=/\b(icon|logo|badge|check ?mark|arrow|chevron|verified)\b/i;
 const AUTHJ=/(follow on x\b|follow @\w+|multiple authors|^\s*close\b.*\b(am|pm) et\b|\b\d{1,2}:\d\d (am|pm) et\s*close\b|\b(am|pm) et\s+close\b)/i,JUNKT=/^(close|follow on x|follow on twitter|multiple authors|follow|share|copy link)$/i,ICONRE=/(\.svg\b|check(mark)?|tick|\bicon|badge|sprite|bullet|arrow|chevron|verified)/i;
 const ADRE=/^(Ad is Hidden|Paid Promoted|Promoted Stories|Sponsored|Advertisement|Newsletter\b|Politics News Alerts|Breaking news email alerts|View \d+ more stor|Sign up for|Subscribe to|Read more:|Related:|Up Next)|utm_source=(outbrain|taboola)|Please tell us why you hid|^!\[Image \d+:[^\]]*\]\([^)]*\)\s*$/i;
 function md(txt,base){
@@ -2839,7 +2844,7 @@ function parse(xml,f){
   const text=new DOMParser().parseFromString(html,'text/html').body.textContent.replace(/\s+/g,' ').trim();
   const au=[...el.getElementsByTagName('enclosure'),...el.getElementsByTagName('media:content')].find(e=>/audio/.test(e.getAttribute('type')||'')||/\.(mp3|m4a|aac|ogg)(\?|$)/i.test(e.getAttribute('url')||''));
   const yv=tx(el,'yt:videoId');
-  const by=(tx(el,'dc:creator')||tx(el,'author')||(el.getElementsByTagName('author')[0]?tx(el.getElementsByTagName('author')[0],'name'):'')).replace(/^\S+@\S+\s*\((.*)\)$/,'$1').slice(0,60);
+  const by=(tx(el,'dc:creator')||(el.getElementsByTagName('author')[0]?tx(el.getElementsByTagName('author')[0],'name'):'')||tx(el,'author')).replace(/^\S+@\S+\s*\((.*)\)$/,'$1').replace(/<[^>]*>/g,' ').replace(/https?:\/\/\S+/g,' ').replace(/\s+/g,' ').trim().slice(0,60);/* an Atom author holds a name and a web address: only the name is the byline */
   const sec=(el.getElementsByTagName('category')[0]?(el.getElementsByTagName('category')[0].getAttribute('term')||el.getElementsByTagName('category')[0].textContent):'').trim().slice(0,30);
   let cm=tx(el,'comments');if(!/^https?:/.test(cm)){cm='';const m=(html||'').match(/href="(https?:\/\/(?:www\.|old\.)?(?:reddit\.com\/r\/[^"]+\/comments\/[^"]+|news\.ycombinator\.com\/item\?id=\d+|lobste\.rs\/s\/[^"]+))"/);if(m)cm=m[1]}
   let dur=tx(el,'itunes:duration');if(/^\d+$/.test(dur)){const n=+dur;dur=n>=3600?Math.floor(n/3600)+' h '+Math.round(n%3600/60)+' min':Math.round(n/60)+' min'}else if(/^\d+:\d+(:\d+)?$/.test(dur)){const q=dur.split(':').map(Number);dur=q.length===3?(q[0]?q[0]+' h ':'')+q[1]+' min':q[0]+' min'}else dur='';
@@ -2990,8 +2995,8 @@ function secOpener(){
 let VW=innerWidth;addEventListener('resize',()=>{VW=innerWidth},{passive:true});
 const layoutKey=()=>((S.narrow||'auto')==='auto'&&VW<=500)+'|'+(VW<700)+'|'+(VW>=840);let LK=layoutKey();
 function covFit(){document.querySelectorAll('.cover .cvlead h2').forEach(h=>{const n=(h.textContent||'').trim().length;h.classList.toggle('l1',n>58&&n<=88);h.classList.toggle('l2',n>88)})}
-let _lastSel=null;
-function render(){if(NEWP){NEWP=false;newPill(false)}setTimeout(endObs,60);LK=layoutKey();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){_lastSel=S.sel;if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();secOpener();covTitle();covFit();dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=S.cards||'medium';clearTimeout(PF.t);PF.t=setTimeout(()=>prefetch(pfList()),2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
+let _lastSel=null;const SELPOS={};/* where each feed was left, so coming back to it resumes there instead of the top */
+function render(){if(NEWP){NEWP=false;newPill(false)}setTimeout(endObs,60);LK=layoutKey();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){if(mn0&&_lastSel!==null)SELPOS[_lastSel]={y:mn0.scrollTop,t:Date.now(),k:LK};_lastSel=S.sel;const sm=SELPOS[S.sel];if(sm&&Date.now()-sm.t<18e5&&sm.k===LK&&sm.y>40)keep=sm.y;else if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();secOpener();covTitle();covFit();dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=S.cards||'medium';clearTimeout(PF.t);PF.t=setTimeout(()=>prefetch(pfList()),2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
 function starGuard(){
  /* reads first, writes after, so the page is laid out once instead of once per card */
  try{
@@ -6081,8 +6086,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.04o';const APP_LABEL='1.32';
-const CHANGES=['Dynamic theme: removed the coloured line that sat tight under some front-page headlines (it looked misplaced next to the new site dot and tinted dividers)','The bottom bar no longer flashes blue or purple when a bright story card scrolls under it: with Smooth mode on it is now fully solid instead of faintly see-through','Story cards in the list, narrow and compact layouts now have an outline that carries a faint tint of the site’s colour, so the site shows in the whole card and not only in the marker. Print and light themes keep their full-strength side bar'];
+const APP_VERSION='2026.10.05a';const APP_LABEL='1.33';
+const CHANGES=['Dynamic theme: fixed the whole screen dimming and brightening again while you scroll. A dark start-up colour was showing through the background tint as it changed; it now uses the theme’s own light or dark background','Bylines no longer run the author’s web address into their name (The Atlantic showed “By Hana Kiroshttp://…”)','Switching to another feed and back now returns you to where you were in the first feed, instead of the top','Photos in a story are kept more often: pictures a site hides in a no-script fallback, a picture tag or a lazy-load list are now found, and a photo is no longer dropped because its description contains a word like “arrow” inside another word','Pull quotes no longer sit in a huge, mostly empty box (most visible in Rivals): the card is shorter and fits its text'];
 const DEF_ON=new Set(['intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -7097,7 +7102,7 @@ function nativeAppLine(){
  const ub=$('#appchk');if(ub){ub.textContent=NUBUSY?'Updating…':av?'Update now':'Check for updates';ub.disabled=!!NUBUSY;ub.classList.toggle('go',av)}
  const n=$('#appnotes');if(n){n.hidden=!(NU.code>NU.cur&&NU.notes);n.textContent=NU.notes.slice(0,600)}
 }
-function saveBg(){try{const c=getComputedStyle(document.body).backgroundColor;if(c&&c.indexOf('rgba(0, 0, 0, 0)')<0)localStorage.setItem('cy-bg',c)}catch(e){}}
+function saveBg(){try{let c=getComputedStyle(document.body).backgroundColor;if(!c||c.indexOf('rgba(0, 0, 0, 0)')>=0)c=getComputedStyle(document.documentElement).backgroundColor;if(c&&c.indexOf('rgba(0, 0, 0, 0)')<0)localStorage.setItem('cy-bg',c)}catch(e){}}
 {const a1=applyTheme;applyTheme=function(...a){const r=a1.apply(this,a);setTimeout(saveBg,600);return r};setTimeout(saveBg,1200)}
 function nativeBars(){
  const p=CyN();if(!p||!p.setBars)return;
