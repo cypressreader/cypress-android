@@ -663,7 +663,7 @@ u{text-decoration:none;font-size:12px;background:var(--bg);border-radius:999px;p
 .dlinks button{flex:1;padding:9px 8px;border-radius:12px;border:1px solid var(--ln);background:var(--pn);color:var(--ink);font:600 13px var(--sans);cursor:pointer}
 .dlh{grid-column:1/-1;font:700 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mut);padding:2px 2px 0}
 .dempty{grid-column:1/-1;padding:30px 12px;text-align:center;color:var(--mut)}
-.nav.sub{margin-left:18px;padding-top:5px;padding-bottom:5px;font-size:14px;font-weight:500;opacity:.9}
+.nav.dly{display:flex;align-items:center}.nav.dly>span{flex:1}.nav.sub.hid{display:none}.nav.sub{margin-left:18px;padding-top:5px;padding-bottom:5px;font-size:14px;font-weight:500;opacity:.9}
 @media(pointer:coarse){#ref{display:none}}
 .segs button,.tg,.tx2{padding:7px 14px;border-radius:999px;border:1px solid var(--ln);font-weight:600;font-size:13px}
 .tg{min-width:58px}
@@ -2025,7 +2025,7 @@ body:not(.narrow){--hdr:84px}body:not(.narrow) .top{height:var(--hdr);box-sizing
 #tabs{backdrop-filter:none;background:var(--pn)}
 #rd{backdrop-filter:none}@media(min-width:700px){#rd{backdrop-filter:blur(8px)}}
 .bmseg{flex-wrap:nowrap}.bmseg button{flex:1 1 0;min-width:0;padding:6px 8px}
-@media(min-width:700px){.bmseg{justify-content:flex-start;gap:8px;max-width:none}.bmseg button{flex:0 0 auto;min-width:104px;padding:8px 22px}.dlinks{max-width:520px}.dlinks button{flex:1 1 0}}
+@media(min-width:700px){.bmseg{justify-content:flex-start;gap:8px;max-width:none}.bmseg button{flex:1 1 0;min-width:104px;padding:8px 12px}.dlinks button{flex:1 1 0}}
 #side-list i{min-width:40px;min-height:40px;margin:-8px 0;opacity:.8}
 @media(max-width:520px){.ib{width:40px;height:40px}.ib::after{inset:-2px}.bar{gap:6px}.top{gap:6px}}
 .ib{position:relative}.ib::after{content:'';position:absolute;inset:-4px}
@@ -3046,7 +3046,7 @@ const feedRow=x=>`<div class="fr ${S.sel==='s:'+x.id?'on':''}${paused(x)?' pz':'
 const fold=id=>!!(S.fcol&&S.fcol[id]);
 const chev=id=>`<u class="chv ${fold(id)?'':'open'}" data-tgl="${id}" role="button" aria-label="${fold(id)?'Expand':'Collapse'}" title="${fold(id)?'Expand':'Collapse'}"></u>`;
 function side(){
- let h=`<div class="nav ${S.sel==='today'||S.sel==='brief'||S.sel==='digest'?'on':''}" data-sel="today">The Daily${(()=>{const b=S.brief&&S.brief.day===new Date().toDateString()?S.brief.links.filter(l=>!S.read[l]).length:0;return b?bad(b):''})()}</div><div class="nav sub ${S.sel==='brief'?'on':''}" data-bm="brief">Brief</div><div class="nav sub ${S.sel==='digest'&&!S.dgk?'on':''}" data-bm="edition">Edition</div><div class="nav sub ${S.sel==='digest'&&S.dgk==='week'?'on':''}" data-bm="week">Week</div><div class="nav ${S.sel==='all'?'on':''}" data-sel="all">All stories${bad(uc(S.feeds))}</div>`;
+ let h=`<div class="nav dly ${S.sel==='today'||S.sel==='brief'||S.sel==='digest'?'on':''}" data-sel="today">${chev('daily')}<span>The Daily</span>${(()=>{const b=S.brief&&S.brief.day===new Date().toDateString()?S.brief.links.filter(l=>!S.read[l]).length:0;return b?bad(b):''})()}</div><div class="nav sub ${fold('daily')?'hid ':''}${S.sel==='brief'?'on':''}" data-bm="brief">Brief</div><div class="nav sub ${fold('daily')?'hid ':''}${S.sel==='digest'&&!S.dgk?'on':''}" data-bm="edition">Edition</div><div class="nav sub ${fold('daily')?'hid ':''}${S.sel==='digest'&&S.dgk==='week'?'on':''}" data-bm="week">Week</div><div class="nav ${S.sel==='all'?'on':''}" data-sel="all">All stories${bad(uc(S.feeds))}</div>`;
  const bot=`<div class="nav ${S.sel==='saved'?'on':''}" data-sel="saved">Saved${bad(S.saved.length)}</div><div class="nav ${S.sel==='notes'?'on':''}" data-sel="notes">Highlights${bad(S.hl.length)}</div><div class="nav ${S.sel==='hist'?'on':''}" data-sel="hist">History</div><div class="nav ${S.sel==='stats'?'on':''}" data-sel="stats">Stats</div>`;
  for(const f of S.folders)h+=`<div class="fold" data-drop="${f.id}"><div class="fh ${S.sel==='f:'+f.id?'on':''}" data-sel="f:${f.id}">${chev(f.id)}<span>${esc(f.name)}</span>${bad(uc(S.feeds.filter(x=>x.folder===f.id)))}<i data-delf="${f.id}" title="Delete folder">×</i></div>${fold(f.id)?'':S.feeds.filter(x=>x.folder===f.id).map(feedRow).join('')}</div>`;
  const un=S.feeds.filter(x=>!S.folders.some(f=>f.id===x.folder));
