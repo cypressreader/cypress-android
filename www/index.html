@@ -4514,11 +4514,12 @@ $('#rd').onclick=e=>{
  const fsc=t.closest('[data-fsec]');if(fsc&&curA&&curA.sec){S.sk.push({id:'k'+Date.now(),name:curA.sec+' · '+fof(curA).title,words:[],sec:curA.sec,fid:curA.feedId,t:Date.now()});save();side();const k=$('.kick .flw');if(k)k.remove();toast('Following the '+curA.sec+' section');return}
  const kr=t.closest('[data-kr]');if(kr){const n=findStory(kr.dataset.kr);if(n)openReader(n);return}
  const cp=t.closest('.cpy');if(cp){const pr=cp.parentElement.querySelector('pre');navigator.clipboard.writeText(pr?pr.textContent:'').then(()=>{cp.classList.add('done');setTimeout(()=>cp.classList.remove('done'),1400)},()=>toast('Couldn’t copy'));return}
+ /* a picture always opens in the in-app viewer, even when the site wrapped it in a link */
+ const gim=t.closest('.cols img');if(gim&&!gim.closest('.emb')&&!R.noClick&&!R.web&&!(getSelection()+'')){e.preventDefault();openGal(gim);return}
  const lk=t.closest('.cols .body a[href]');if(lk&&!lk.closest('.emb')&&!R.noClick&&!R.web&&!(getSelection()+'')){e.preventDefault();extOpen(lk.href);return}
  const bn=t.closest('[data-bnext]');if(bn){const n=briefNext();if(n)openReader(n);return}
  if(t.closest('[data-bfin]'))return closeRd();
  const sp=t.closest('[data-aspd]');if(sp){S.prate=+sp.dataset.aspd;S.setT=Date.now();save();const au=$('.cols .aud audio');if(au)au.playbackRate=S.prate;document.querySelectorAll('[data-aspd]').forEach(b=>b.classList.toggle('on',b===sp));return}
- const gim=t.closest('.cols img');if(gim&&!gim.closest('.emb')&&!R.noClick&&!R.web&&!(getSelection()+'')){openGal(gim);return}
  if(t.closest('#pbq')){S.queue=!S.queue;save();return syncPb()}
  if(t.closest('#mo')){const m=$('#mn'),o=m.hidden;if($('#pb'))$('#pb').hidden=true;m.hidden=!o;return}
  const act=t.closest('[data-act]');if(act){$('#mn').hidden=true;return doAct(act.dataset.act)}
@@ -6119,8 +6120,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.05c';const APP_LABEL='1.35';
-const CHANGES=['Wide photos at the top of a story are no longer cropped into a tall box: the photo now spans the column in its own shape, with the title and details underneath and the story flowing on below it (a new “Photo on top” choice in the reading page layout setting; Automatic uses it for wide photos and keeps the tall hero for tall ones)','Thumbnails from “Related stories”, promo and ad blocks inside a story are no longer kept as if they were the story’s own pictures','The site-colour tint on card outlines (list, narrow and compact layouts) is a little stronger, so it is easier to see which site a card is from'];
+const APP_VERSION='2026.10.05d';const APP_LABEL='1.36';
+const CHANGES=['Tapping a picture in a story always opens it in the app’s own full-screen viewer (pinch to zoom, swipe between the story’s pictures, back to close). Before, a picture the site had wrapped in a link sent you to your browser instead'];
 const DEF_ON=new Set(['intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
