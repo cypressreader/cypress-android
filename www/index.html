@@ -2078,9 +2078,10 @@ body:not(.narrow){--hdr:84px}body:not(.narrow) .top{height:var(--hdr);box-sizing
 #grid .nr-sm .nr-row{grid-template-columns:minmax(0,1fr) clamp(96px,24%,128px);padding:16px 0}
 /* tablet and website: the photo sits at the right and the headline and summary wrap around it, then use the space underneath, instead of leaving it empty */
 #grid:not(.nrp) .card.nr-row:not(.noimg),#grid:not(.nrp) .nr-sm .card.nr-row:not(.noimg){display:flow-root}
-#grid:not(.nrp) .card.nr-row:not(.noimg)>img{float:right;position:static;width:128px;height:auto;aspect-ratio:3/2;margin:0 0 8px 14px}
+#grid:not(.nrp) .card.nr-row:not(.noimg)>img{float:right;position:static;width:128px;height:auto;aspect-ratio:3/2;margin:0 0 3px 14px}
 #grid:not(.nrp) .nr-sm .card.nr-row:not(.noimg)>img{width:clamp(96px,24%,128px)}
 #grid:not(.nrp) .nr-trl .card.nr-row:not(.noimg)>img{width:150px}
+#grid:not(.nrp) .card.nr-row.nr-m:not(.noimg)>img{width:112px}
 #grid:not(.nrp) .card.nr-row:not(.noimg)>.tx{display:block}
 #grid .nr-late .star,#grid .nr-row .star,#grid .nr-late .why,#grid .nr-row .why{opacity:0;transition:opacity .15s}
 #grid .nr-late:hover .star,#grid .nr-row:hover .star,#grid .nr-late:hover .why,#grid .nr-row:hover .why{opacity:1}
@@ -2108,7 +2109,7 @@ body:not(.narrow){--hdr:84px}body:not(.narrow) .top{height:var(--hdr);box-sizing
 .nr-river h4,.nr-river .trh{border-bottom:2px solid var(--ink);padding-bottom:9px}
 .nr-river h4{border-top:3px solid var(--ink);margin-top:0}
 .nr-river .trh small{margin-left:10px;font:italic 13px var(--serif);letter-spacing:0;text-transform:none;color:var(--mut)}
-.nr-rv{display:grid;grid-template-columns:1fr 1fr;column-gap:44px}
+.nr-rv{display:block;column-count:2;column-gap:44px}.nr-rv>.card{break-inside:avoid;-webkit-column-break-inside:avoid}
 .nr-rv3{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:36px}
 .nr-rv>.card:nth-child(-n+2){border-top:0!important}.nr-rv3>.card:nth-child(-n+3){border-top:0!important}
 /* The Daily on wide screens */
@@ -2121,7 +2122,7 @@ body:not(.narrow){--hdr:84px}body:not(.narrow) .top{height:var(--hdr);box-sizing
 .nr-trend .trh,.nr-lr .trh{margin-bottom:12px}
 .nr-more{grid-column:1/-1;height:1px}
 #grid>.nr-river,#grid>.nr-lr,#grid>.nr-trend,#grid>.nr-sec{grid-column:1/-1;min-width:0}
-@media(max-width:1240px){#grid .nr-top{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}#grid .nr-top .nr-rail{grid-column:1/-1}.nr-rl{max-height:none;display:grid;grid-template-columns:1fr 1fr;column-gap:30px}.nr-rl>.card:nth-child(-n+2){border-top:0!important}.nr-seg{grid-template-columns:minmax(0,1fr) 270px;gap:28px}.nr-sec{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.nr-sec .nr-sx{grid-column:1/-1}.nr-rv3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1240px){#grid .nr-top{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}#grid .nr-top .nr-rail{grid-column:1/-1}.nr-rl{max-height:none;display:block;column-count:2;column-gap:30px}.nr-rl>.card{break-inside:avoid;-webkit-column-break-inside:avoid}.nr-rl>.card:first-child{border-top:0!important}.nr-seg{grid-template-columns:minmax(0,1fr) 270px;gap:28px}.nr-sec{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.nr-sec .nr-sx{grid-column:1/-1}.nr-rv3{grid-template-columns:repeat(2,minmax(0,1fr))}}
 #grid .nr-trl .nr-row p,#grid .nr-trl .also,#grid .nr-mid .also,#grid .nr-sec .also,#grid .nr-late .also{display:none}
 #grid .nr-trl .nr-row{grid-template-columns:minmax(0,1fr) 150px}
 /* feed headline fonts (--fd, loaded with the theme via THF): one readable, modern face per theme; story fonts are untouched. Weight comes from --fw so lists are not heavy */
@@ -2314,7 +2315,8 @@ html{font-synthesis-weight:none}
 .nr-sec .nr-sx,.nr-sec.nr-f .nr-sx,.nr-sec.nr-w .nr-sx{order:3;grid-column:1;grid-row:auto;display:grid;grid-template-columns:1fr 1fr;column-gap:26px}
 .nr-sec .nr-sw3{order:2;grid-column:1}
 .nr-tr{grid-template-columns:minmax(0,1fr);gap:20px}
-.nr-trl{display:grid;grid-template-columns:1fr 1fr;column-gap:26px}
+/* two columns that fill independently, so one tall headline no longer leaves a blank beside it */
+.nr-trl{display:block;column-count:2;column-gap:26px}.nr-trl>.card{break-inside:avoid;-webkit-column-break-inside:avoid;margin-bottom:0}
 .nr-tb .card{min-height:300px}
 .nr-trio>.card:nth-child(3),.nr-t3>.card:nth-child(3),.nr-sw3>.card:nth-child(3){grid-column:1/-1}
 .nr-trio>.card:nth-child(3)>img,.nr-t3>.card:nth-child(3)>img,.nr-sw3>.card:nth-child(3)>img{aspect-ratio:16/7}
@@ -2733,7 +2735,19 @@ function tidyFrag(f){
 /* video pages and menus: drop the "video player was slow" feedback form and runs of one-word link menus that some sites leave inside the article body */
 const VIDJ=/(video player was slow to load|video content (never loaded|did not start)|\bad (never loaded|froze|prevented|was repetitive)\b(?!.{60})|content moved around while ad loaded|audio on ad was too loud|^\s*(\[x\]\s*)?other issues|^\s*cancel\s*submit\s*$|^\s*thank you!?\s*$|your effort and contribution in providing this feedback)/i,MENUJ=/^(more|watch|listen|subscribe|watchlistensubscribe|sign in|log in|search|skip to (main )?content|accept( all( cookies)?)?|manage my choices|try again|previous( next)?|next|menu( menu)?|settings|headings|topics|by region|home|shows|live|newsfeed|en|français|english|español|عربي|follow|share|issued on:?.*|reading time \d+ ?min|\d{1,2}:\d{2}( ?min)?|cover image:.{0,80})$/i,CHROMEJ=/(browser extensions? seems to be blocking|you must enable adver|advertisement tracking and audience|to display this content from|manage my choices|^\s*we use cookies|^.{0,50}cookie (policy|settings|preferences)|accept all (cookies)?|skip to main content|international breaking news,? top stories|^\s*\d\.\s+\w[\w ]*(\s+\d\.\s+\w[\w ]*){1,})/i,STARLIST=/^(?:[^*]{1,60}\*\s*){3,}[^*]{0,60}$/;
 const CREDITJ=/^(photo|image|picture|credit|illustration|source)s?\s*[:\/]|\/\s*(shutterstock|getty( images)?|ap( photo)?|reuters|afp|alamy|istock|unsplash|pexels|ap images)\s*$|^(shutterstock|getty images|associated press)\s*$/i;
+/* a cookie / privacy consent block at the end of a page ("Confirm My Choices", "Consent powered by Ethyca", "Allow Sale/Targeted Advertising?") together with the consent paragraphs just before it */
+const CONSENTJ=/(confirm my choices|reject all\b.*accept all|consent powered by|allow sale\/targeted advertising|\bethyca\b|open navigation menu|^\s*\[[x ]\]\s*(on|off)\s*$|^\s*save this story\s*$|\$\d[\d.,]*\s*per (week|month|year)\b)/i,CONSENTW=/(cookies?\b|personal (information|data)|targeted advertising|third part(y|ies)|privacy (notice|policy)|profile of your interests|sharing tools|allow sale|do not sell|opt[- ]?out)/i;
+function pruneConsent(root){
+ try{const bl=[...root.querySelectorAll('p,li,h2,h3,h4,blockquote,div')].filter(e=>!e.querySelector('p,li,h2,h3,h4,blockquote,div,img,figure'));
+  const all=root.textContent.length||1;let acc=0;const pos=bl.map(e=>{const q=acc/all;acc+=e.textContent.length;return q});
+  const i0=bl.findIndex((e,i)=>pos[i]>.55&&CONSENTJ.test(e.textContent.replace(/\s+/g,' ').trim())&&e.textContent.length<400);
+  if(i0<0)return;let st=i0;while(st>0){const t=bl[st-1].textContent.replace(/\s+/g,' ').trim();if(t.length<900&&(CONSENTW.test(t)||CONSENTJ.test(t)||t.length<40))st--;else break}
+  bl.slice(st).forEach(e=>{if(root.contains(e))e.remove()});
+  root.querySelectorAll('ul,ol').forEach(u=>{if(!u.textContent.trim())u.remove()});
+ }catch(e){}
+}
 function pruneJunk(root){
+ pruneConsent(root);
  /* a lone photo credit ("vfhnb12/Shutterstock") and a short list of topic links ("Gaming, Xbox") at the very start or end are page furniture, not story text */
  try{const all=root.textContent.length||1;let seen=0;
   [...root.children].forEach(e=>{const t=e.textContent.replace(/\s+/g,' ').trim();const pos=seen/all;seen+=e.textContent.length;
@@ -6155,7 +6169,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.10.05d';const APP_LABEL='1.36';
-const CHANGES=['On tablet and the website, story rows with a photo now wrap the headline and summary around the photo and carry on underneath it, instead of leaving an empty gap under the photo (phones are unchanged)','Tables in stories with four or more columns now read well: on a phone each row becomes a small labelled card, and on a tablet or the website the table scrolls sideways with its first column pinned and names no longer breaking in the middle of a word','Pull-quote cards whose photo is missing or fails to load no longer leave a huge empty box: the photo slot is smaller and disappears when the photo can’t load','A site’s page now opens with just its logo, name and description in a compact header: the Following and Mute buttons and the row of story counts are gone',' A lone photo credit (like “name/Shutterstock”) and a short list of topic links at the start or end of a story are no longer shown as if they were story text','Focus mode is now a button in the top bar of a story (next to the playback and site buttons) instead of a menu entry, and the same button turns it off; “All highlights” is gone from the story menu','“More like this” and “Less like this” moved out of the story menu into a thumbs-up and thumbs-down pair beside the date and reading time at the top of each story. The one you chose stays highlighted; tap it again to take it back','The “Site view for this source” menu entry now changes to “Reader view for this source” once site view is on for that source, so you can tell what a tap will do and switch back','Tapping a picture in a story always opens it in the app’s own full-screen viewer (pinch to zoom, swipe between the story’s pictures, back to close). Before, a picture the site had wrapped in a link sent you to your browser instead'];
+const CHANGES=['Cookie and privacy consent text (“Confirm My Choices”, “Consent powered by Ethyca”, “Allow Sale/Targeted Advertising?”) left at the end of a story, such as on The New Yorker, is no longer shown as part of the story','On tablet and the website, the two-column story lists now fill each column on its own, so one long headline no longer leaves a big blank space in the column beside it or below it','On tablet and the website, story rows with a photo now wrap the headline and summary around the photo and carry on underneath it, instead of leaving an empty gap under the photo (phones are unchanged)','Tables in stories with four or more columns now read well: on a phone each row becomes a small labelled card, and on a tablet or the website the table scrolls sideways with its first column pinned and names no longer breaking in the middle of a word','Pull-quote cards whose photo is missing or fails to load no longer leave a huge empty box: the photo slot is smaller and disappears when the photo can’t load','A site’s page now opens with just its logo, name and description in a compact header: the Following and Mute buttons and the row of story counts are gone',' A lone photo credit (like “name/Shutterstock”) and a short list of topic links at the start or end of a story are no longer shown as if they were story text','Focus mode is now a button in the top bar of a story (next to the playback and site buttons) instead of a menu entry, and the same button turns it off; “All highlights” is gone from the story menu','“More like this” and “Less like this” moved out of the story menu into a thumbs-up and thumbs-down pair beside the date and reading time at the top of each story. The one you chose stays highlighted; tap it again to take it back','The “Site view for this source” menu entry now changes to “Reader view for this source” once site view is on for that source, so you can tell what a tap will do and switch back','Tapping a picture in a story always opens it in the app’s own full-screen viewer (pinch to zoom, swipe between the story’s pictures, back to close). Before, a picture the site had wrapped in a link sent you to your browser instead'];
 const DEF_ON=new Set(['intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
