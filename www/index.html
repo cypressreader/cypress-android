@@ -2669,7 +2669,7 @@ function clean(n,base){
    let s=c.getAttribute('src')||c.getAttribute('data-src')||(c.getAttribute('srcset')||'').split(' ')[0];
    if(!s||s.startsWith('data:'))continue;
    if(+c.getAttribute('width')<60&&c.getAttribute('width'))continue;
-   if(ICONRE.test(s+' '+(c.getAttribute('alt')||''))&&!/\.(jpe?g|webp)\b/i.test(s))continue;
+   if((ICONRE.test(s)||ALTICON.test(c.getAttribute('alt')||''))&&!/\.(jpe?g|webp|png|avif)\b/i.test(s))continue;
    if(+c.getAttribute('height')<60&&c.getAttribute('height'))continue;
    if(c.closest&&c.closest('li')&&+(c.getAttribute('width')||999)<200)continue;
    const im=document.createElement('img');im.src=abs(s,base);im.loading='lazy';im.referrerPolicy='no-referrer';out.append(im);continue;
@@ -2711,6 +2711,9 @@ function extract(html,base){
  const d=new DOMParser().parseFromString(html,'text/html');
  let ld='';
  d.querySelectorAll('script[type="application/ld+json"]').forEach(x=>{try{const f=o=>{if(!o||typeof o!=='object')return;if(typeof o.articleBody==='string'&&o.articleBody.length>ld.length)ld=o.articleBody;Object.values(o).forEach(f)};f(JSON.parse(x.textContent))}catch(e){}});
+ /* pictures some sites keep only in a <noscript> fallback or only in a <picture><source srcset>: bring them back before noscript is dropped */
+ try{d.querySelectorAll('noscript').forEach(ns=>{const inner=ns.querySelector('img');if(!inner||!ns.parentNode)return;const par=ns.parentNode,prev=ns.previousElementSibling,isPh=el=>{if(!el)return false;const im=el.tagName==='IMG'?el:el.querySelector&&el.querySelector('img');if(!im)return false;const sr=im.getAttribute('src')||'';return !sr||/^data:/i.test(sr)||/placeholder|blank|spacer|1x1|pixel\./i.test(sr)};const has=[...par.querySelectorAll('img')].some(i=>i!==inner&&(i.getAttribute('src')||'')===(inner.getAttribute('src')||''));if(has)return;if(isPh(prev)){prev.replaceWith(inner.cloneNode(true))}else if(!par.querySelector('img:not([src^="data:"])')||par.closest('figure')){par.insertBefore(inner.cloneNode(true),ns)}})}catch(e){}
+ d.querySelectorAll('picture').forEach(pc=>{const im=pc.querySelector('img');if(!im)return;const sr=im.getAttribute('src')||'';if(sr&&!/^data:/i.test(sr))return;const so=[...pc.querySelectorAll('source')].map(x=>x.getAttribute('srcset')||x.getAttribute('data-srcset')||'').find(Boolean);if(so){const u=so.split(',').map(x=>x.trim().split(/\s+/)[0]).filter(Boolean).pop();if(u)im.setAttribute('src',u)}});
  d.querySelectorAll('img').forEach(im=>{const src=im.getAttribute('src')||'',w=im.getAttribute('width');const ph=!src||/^data:/i.test(src)||/placeholder|blank|spacer|1x1|pixel\./i.test(src)||(w!==null&&+w<=2);if(!ph)return;let v='';for(const k of ['data-src','data-lazy-src','data-original','data-lazy','data-hi-res-src']){const x=im.getAttribute(k);if(x&&!/^data:/i.test(x)){v=x;break}}if(!v){const ss=im.getAttribute('data-srcset')||im.getAttribute('srcset')||'';v=ss.split(',').map(x=>x.trim().split(/\s+/)[0]).filter(Boolean).pop()||''}if(v)im.setAttribute('src',v)});
  d.querySelectorAll('script,style,nav,footer,aside,form,noscript').forEach(e=>e.remove());
  d.querySelectorAll('.screen-reader-text,.sr-only,.visually-hidden,.visuallyhidden,.u-visually-hidden,.assistive-text,.a11y-text,.sr-text,[class*="screen-reader" i],[class*="sr-only" i],[class*="visually-hidden" i],[class*="visuallyhidden" i]').forEach(e=>{if(e.isConnected&&!e.matches('html,body,article,main')&&!e.querySelector('article,main')&&e.textContent.length<200)e.remove()});
@@ -2747,6 +2750,7 @@ function inline(t,base){
  f.append(t.slice(i));return f;
 }
 const GPROMO=/(google[-_ ]?(g|logo|news|discover|preferred|source|icon)\b|preferred[-_ ]?source|add[-_ ]?us[-_ ]?on[-_ ]?google|google-news|googlediscover|gstatic\.com\/images\/branding|\/branding\/googlelogo)/i,GALT=/preferred source|add .{1,50} on google|google (news|discover) (logo|icon|badge)|follow us on google|google logo|google g\b/i,GTXT=/(preferred source|add .{1,50} on google|follow (us )?on google news|add us as a preferred source)/i;
+const ALTICON=/\b(icon|logo|badge|check ?mark|arrow|chevron|verified)\b/i;
 const AUTHJ=/(follow on x\b|follow @\w+|multiple authors|^\s*close\b.*\b(am|pm) et\b|\b\d{1,2}:\d\d (am|pm) et\s*close\b|\b(am|pm) et\s+close\b)/i,JUNKT=/^(close|follow on x|follow on twitter|multiple authors|follow|share|copy link)$/i,ICONRE=/(\.svg\b|check(mark)?|tick|\bicon|badge|sprite|bullet|arrow|chevron|verified)/i;
 const ADRE=/^(Ad is Hidden|Paid Promoted|Promoted Stories|Sponsored|Advertisement|Newsletter\b|Politics News Alerts|Breaking news email alerts|View \d+ more stor|Sign up for|Subscribe to|Read more:|Related:|Up Next)|utm_source=(outbrain|taboola)|Please tell us why you hid|^!\[Image \d+:[^\]]*\]\([^)]*\)\s*$/i;
 function md(txt,base){
