@@ -2626,7 +2626,21 @@ function quietRender(){
  QRS=0;render();saveCache();
 }
 let NEWP=false;
-function newPill(show){let el=document.getElementById('newpill');if(!show){if(el)el.remove();return}if(el)return;el=document.createElement('button');el.id='newpill';el.type='button';el.textContent='New stories. Tap to show';el.setAttribute('aria-live','polite');el.style.cssText='position:fixed;top:calc(64px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:30;padding:9px 16px;border-radius:99px;border:0;background:var(--ink);color:var(--bg);font:600 13px var(--sans);box-shadow:0 6px 20px rgba(0,0,0,.3);cursor:pointer';el.onclick=()=>{const m=$('main');if(m)m.scrollTop=0;render()};document.body.append(el)}
+let NPT=0;
+/* The “New stories” pill drops down from the top, waits a few seconds, then slides up and away (it never stays on screen) */
+function newPill(show){
+ let el=document.getElementById('newpill');
+ const go=()=>{clearTimeout(NPT);const e=document.getElementById('newpill');if(!e)return;e.onclick=null;e.style.pointerEvents='none';
+  if(e.animate&&!matchMedia('(prefers-reduced-motion:reduce)').matches){const an=e.animate([{transform:'translate(-50%,0)',opacity:1},{transform:'translate(-50%,-90px)',opacity:0}],{duration:380,easing:'cubic-bezier(.5,0,.75,0)',fill:'forwards'});an.onfinish=()=>e.remove()}else e.remove()};
+ if(!show){clearTimeout(NPT);if(el)el.remove();return}
+ if(el)return;
+ el=document.createElement('button');el.id='newpill';el.type='button';el.textContent='New stories. Tap to show';el.setAttribute('aria-live','polite');
+ el.style.cssText='position:fixed;top:calc(64px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:30;padding:9px 16px;border-radius:99px;border:0;background:var(--ink);color:var(--bg);font:600 13px var(--sans);box-shadow:0 6px 20px rgba(0,0,0,.3);cursor:pointer';
+ el.onclick=()=>{newPill(false);const m=$('main');if(m)m.scrollTop=0;render()};
+ document.body.append(el);
+ if(el.animate&&!matchMedia('(prefers-reduced-motion:reduce)').matches)el.animate([{transform:'translate(-50%,-90px)',opacity:0},{transform:'translate(-50%,0)',opacity:1}],{duration:420,easing:'cubic-bezier(.2,.8,.2,1)'});
+ NPT=setTimeout(go,5000);
+}
 function newTop(){if(!NEWP)return;const m=$('main');if(m&&m.scrollTop<150)render()}
 let SCT=0;
 function saveCache(now){
