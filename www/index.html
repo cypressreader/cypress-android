@@ -6,7 +6,7 @@
 <title>CyPress</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="CyPress"><meta name="theme-color" content="#14171c"><link rel="icon" id="fav" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,500&family=Atkinson+Hyperlegible:wght@400;700&family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Orbitron:wght@600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,500&family=Atkinson+Hyperlegible:wght@400;700&family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Orbitron:wght@600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 :root{--dw:min(var(--sw,320px),calc(100vw - 60px));--bg:#eceef2;--pn:#fff;--ink:#14171c;--mut:#5f6673;--ln:#d9dce3;--serif:'Newsreader',Georgia,serif;--sans:'Instrument Sans',system-ui,sans-serif}
 @media(prefers-color-scheme:dark){:root{--bg:#0d0f13;--pn:#15181e;--ink:#eceef2;--mut:#8b93a1;--ln:#262a33}}
@@ -2614,6 +2614,8 @@ async function fetchText(url,ok,lg){
     if(fails>=P.length){over=true;rej(new Error('Could not fetch'))}else start();
    });
   };
+  /* a caller that no longer needs the answer (another route already won) can stop every request of this fetch */
+  if(lg&&lg.sig){const ab=()=>{if(over)return;over=true;timers.forEach(clearTimeout);ctls.forEach(x=>{try{x.abort()}catch(e){}});rej(new Error('stopped'))};if(lg.sig.aborted)return rej(new Error('stopped'));lg.sig.addEventListener('abort',ab,{once:true})}
   start();
  });
 }
@@ -2920,17 +2922,20 @@ function dropGeneric(list){
 const IC=(()=>{try{const o=JSON.parse(localStorage.getItem('folio-img'))||{};for(const k in o)if(/news\.google\.com/.test(k))delete o[k];return o}catch(e){return{}}})();
 /* stories whose picture lookup failed are not retried for a day */
 const OGF=(()=>{try{return JSON.parse(localStorage.getItem('folio-ogf')||'{}')}catch(e){return{}}})();
-function ogFail(l){OGF[l]=Date.now();try{const k=Object.keys(OGF);if(k.length>400)delete OGF[k[0]];localStorage.setItem('folio-ogf',JSON.stringify(OGF))}catch(_){}}
+function ogFail(l){OGF[l]=Date.now();try{const k=Object.keys(OGF);if(k.length>400)delete OGF[k[0]];clearTimeout(ogFail.t);ogFail.t=setTimeout(ogFlush,1500)}catch(_){}}
+/* at most 6 article-page downloads at once across all feeds (each feed used to start 4 of its own) */
+let OGN=0;const OGQ=[];const ogSlot=()=>OGN<6?(OGN++,Promise.resolve()):new Promise(r=>OGQ.push(r));const ogFree=()=>{const r=OGQ.shift();if(r)r();else OGN--};
 async function og(a){
  if(IC[a.link]!==undefined)return GENS.has(gk(IC[a.link]))?'':IC[a.link];
  if(S.offline||(isOn('dsave')&&onCell()))return'';
  if(OGF[a.link]&&Date.now()-OGF[a.link]<864e5)return'';
  try{
   const L=await gnResolve(a.link);if(/(^|\.)google\.com$/.test(new URL(L).hostname))return'';
-  const d=new DOMParser().parseFromString(await fetchText(L,t=>/<meta/i.test(t)),'text/html');
+  await ogSlot();let pg;try{pg=await fetchText(L,t=>/<meta/i.test(t))}finally{ogFree()}
+  const d=new DOMParser().parseFromString(pg,'text/html');
   const m=d.querySelector('meta[property="og:image"],meta[name="twitter:image"]');
   let u=m?abs(m.content,L):'';if(GPROMO.test(u)||/(^|\.)(gstatic|googleusercontent)\.com$/.test(host(u)))u='';IC[a.link]=u;if(LOGOISH.test(gk(u).split('/').pop()||''))u='';
-  try{const k=Object.keys(IC);if(k.length>500)delete IC[k[0]];localStorage.setItem('folio-img',JSON.stringify(IC))}catch(_){}
+  try{const k=Object.keys(IC);if(k.length>1000)delete IC[k[0]];localStorage.setItem('folio-img',JSON.stringify(IC))}catch(_){}
   return u;
  }catch(e){if(navigator.onLine)ogFail(a.link);return''}
 }
@@ -3752,7 +3757,7 @@ function liteUrl(url){
  }catch(e){}
  return'';
 }
-const fromPage=async(url,lg,tag)=>{let fr=null;await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);if(x&&x.textContent.length>600){fr=x;return true}return false},lg&&{push:m=>lg.push((tag||'')+m)});return fr};
+const fromPage=async(url,lg,tag,sig)=>{let fr=null;await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);if(x&&x.textContent.length>600){fr=x;return true}return false},lg&&{push:m=>lg.push((tag||'')+m),sig});return fr};
 
 /* ---------- is this text really the story? ---------- */
 const SHORTOK=new Set('a i of to in is it on at be by an as do go he if me my no or so up us we am oh ok'.split(' '));
@@ -3785,22 +3790,22 @@ function sameStory(text,a){
  return hit/tw.length>=.25;
 }
 const FILEX=/\.(pdf|docx?|xlsx?|pptx?|zip|csv|mp3|mp4|jpe?g|png|gif|webp|svg)(\?|#|$)/i;
-async function getFull0(url,light){
+async function getFull0(url,ctx){
  if(S.offline)return null;
- url=await gnResolve(url);
- const lg=[];LG[url]=lg;const ks=Object.keys(LG);if(ks.length>25)delete LG[ks[0]];
- const direct=fromPage(url,lg,'page via ');
+ const orig=url;url=await gnResolve(url);
+ const lg=[];LG[orig]=lg;const ks=Object.keys(LG);if(ks.length>25)delete LG[ks[0]];
+ const stop=new AbortController(),direct=fromPage(url,lg,'page via ',stop.signal);
  const wpRun=async()=>{
   const u=new URL(url),slug=u.pathname.split('/').filter(Boolean).pop();
-  let t;try{t=await fetchText(u.origin+'/wp-json/wp/v2/posts?slug='+encodeURIComponent(slug)+'&_fields=content',t=>t.trim().startsWith('['))}catch(e){lg.push('WordPress feed: not available');throw e}
+  let t;try{t=await fetchText(u.origin+'/wp-json/wp/v2/posts?slug='+encodeURIComponent(slug)+'&_fields=content',t=>t.trim().startsWith('['),{push(){},sig:stop.signal})}catch(e){lg.push('WordPress feed: not available');throw e}
   const h=JSON.parse(t)[0]?.content?.rendered;if(!h){lg.push('WordPress feed: no post found');throw 0}
   const fr=fromHTML(h,url);if(fr.textContent.length<=600){lg.push('WordPress feed: too short');throw 0}return fr;
  };
  /* the WordPress check only runs if the page itself hasn't answered quickly */
- const wp=(async()=>{const r=await Promise.race([direct.then(v=>({v}),()=>({v:null})),new Promise(r=>setTimeout(()=>r({v:null}),2500))]);if(r.v)throw new Error('not needed');return wpRun()})();
- const lu=liteUrl(url),lite=lu?fromPage(lu,lg,'lite site via '):null;
+ const wp=(async()=>{const r=await Promise.race([direct.then(v=>({v}),()=>({v:null})),new Promise(r=>setTimeout(()=>r({v:null}),2500))]);if(r.v||stop.signal.aborted)throw new Error('not needed');return wpRun()})();
+ const lu=liteUrl(url),lite=lu?fromPage(lu,lg,'lite site via ',stop.signal):null;
  const good=Promise.any([direct,wp,lite].filter(Boolean));
- good.catch(()=>{});
+ good.then(()=>stop.abort(),()=>{});
  let jn=null;
  const startJina=()=>{
   jn=(async()=>{
@@ -3813,20 +3818,26 @@ async function getFull0(url,light){
  };
  const first=await Promise.race([good.then(v=>({v}),()=>({v:null})),new Promise(r=>setTimeout(()=>r({slow:1}),5000))]);
  if(first.v)return first.v;
- if(!light)startJina();
- try{return await Promise.any([good,jn].filter(Boolean))}catch(e){return null}
+ /* a read-ahead load that gets opened by the reader is upgraded in place (ctx.light=false) instead of being fetched a second time */
+ return await new Promise(res=>{
+  let gd=0,jd=0;const chk=()=>{if(gd&&(jd||ctx.light))res(null)};
+  good.then(res,()=>{gd=1;chk()});
+  const go=()=>{if(jn)return;startJina();jn.then(res,()=>{jd=1;chk()})};
+  ctx.up=go;if(!ctx.light)go();
+ });
 }
 /* stories read ahead are kept in memory the moment they arrive, so opening one right after scrolling never has to fetch it again */
 const PFHOT=new Map();
 function getFull(url,light){
  const hot=PFHOT.get(url);if(hot&&Date.now()-hot.t<6e5){const f=hot.n.cloneNode(true);if(hot.n.pw)f.pw=true;return Promise.resolve(f)}
- const k=url+(light?'#l':'');
- if(!INF[k])INF[k]=getFull0(url,light).finally(()=>{delete INF[k]});
- return INF[k].then(n=>{
+ let e=INF[url];
+ if(e){if(!light&&e.ctx.light){e.ctx.light=false;if(e.ctx.up)e.ctx.up()}}
+ else{const ctx={light:!!light};e=INF[url]={ctx,p:getFull0(url,ctx).finally(()=>{if(INF[url]===e)delete INF[url]})}}
+ return e.p.then(n=>{
   if(!n)return null;
   const f=tidy(n.cloneNode(true)),tx=f.textContent||'',q=textQuality(tx);
   if(!q.ok){const lg=LG[url]||(LG[url]=[]);lg.push('Rejected: the text looked garbled ('+q.why+')');return null}
-  if(paywalled(tx))f.pw=true;
+  if(paywalled(tx)||paywalled(n.textContent))f.pw=true;
   return f;
  });
 }
@@ -3943,7 +3954,7 @@ function pump(){
   getFull(a.link,true).then(async n=>{
    if(n){PFHOT.set(a.link,{n,t:Date.now()});if(PFHOT.size>16)PFHOT.delete(PFHOT.keys().next().value)}
    await quietGap(4000);
-   if(!n||acHas(a.link))return;
+   if(!n||n.pw||acHas(a.link))return;
    const have=fromHTML(a.html||'',a.link).textContent.length;
    if(n.textContent.length<Math.max(600,have+100))return;
    const d=document.createElement('div');d.append(dropTitle(n,a.title));
@@ -4028,13 +4039,15 @@ async function openReader(a){
  mediaWire();
  if(ytId(a)){note.remove();afterLoad();return}
  let cached=acGet(a.link)||await acLoad(a.link);
+ if(my!==tok)return;
  if(cached&&!textQuality(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')).ok)cached=null;
  if((f.web||(isPay(a)&&f.web!==false))&&!cached&&online())toggleWeb(true);
  if(cached){body.replaceChildren(dropTitle(tidy(fromHTML(cached,a.link)),a.title));foldBoiler(body,a);note.remove();ALT='';afterLoad();return}
  if(!online()){note.textContent=S.offline?'Offline mode is on. Showing what’s stored on this device.':'You’re offline. Showing what came with the feed.';afterLoad();return}
  let n=await getFull(a.link),src=a.link;
+ if(my!==tok){if(n){PFHOT.set(a.link,{n,t:Date.now()});if(PFHOT.size>16)PFHOT.delete(PFHOT.keys().next().value)}return}
  const alts=outLinks(a);
- if(!n){for(const u of alts){if(my!==tok)return;const m=await getFull(u);if(m&&sameStory(m.textContent,a)){n=m;src=u;break}}}
+ if(!n&&alts.length){const ms=await Promise.all(alts.map(u=>getFull(u).catch(()=>null)));if(my!==tok)return;for(let i=0;i<alts.length;i++){const m=ms[i];if(m&&sameStory(m.textContent,a)){n=m;src=alts[i];break}}}
  if(my!==tok)return;
  ALT=src!==a.link?src:(!n&&alts[0]?alts[0]:'');
  if(n&&n.textContent.length>Math.max(600,body.textContent.length+100)){
@@ -4807,7 +4820,8 @@ $('#ref').onclick=async()=>{
  if(!online()){toast(S.offline?'Offline mode is on. Turn it off in Settings to refresh':'You’re offline');return}
  const before=new Set(S.feeds.flatMap(f=>(items[f.id]||[]).map(a=>a.link)));
  b.classList.add('spin');toast('Refreshing '+S.feeds.length+' feeds…');
- await loadAll(true);
+ /* one dead or hanging site can take a minute to give up: stop waiting after 20s (it keeps loading quietly) */
+ await Promise.race([loadAll(true),new Promise(r=>setTimeout(r,20000))]);
  b.classList.remove('spin');sfxTone('refresh');
  const n=S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>!before.has(a.link)).length,badL=S.feeds.filter(f=>state[f.id]==='err'),bad=badL.length;
  toast((n?n+' new '+(n===1?'story':'stories'):'No new stories')+(bad===1?' · '+badL[0].title+' didn’t respond':bad?' · '+bad+' feeds didn’t respond':''));
@@ -6896,7 +6910,8 @@ async function gnewsFeed(f,s,why){
  const l=parse(x,f).list.map(a=>({...a,link:gnDecode(a.link)||a.link,title:a.title.replace(/\s+-\s+[^-]{2,40}$/,''),img:'',html:'',gn:1}));
  if(!l.length){lg.push('Google News: nothing found for '+s);throw new Error('empty')}
  try{ /* Bing's news feed carries photos; borrow them for matching headlines */
-  const bx=await fetchText(bingFor(s),t=>/<item[\s>]/i.test(t),{push:()=>{}});
+  /* the photos are optional: never hold the headlines back for more than 4s waiting on Bing */
+  const bx=await Promise.race([fetchText(bingFor(s),t=>/<item[\s>]/i.test(t),{push:()=>{}}),new Promise((_,j)=>setTimeout(()=>j(0),4000))]);
   const nt=t=>String(t||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
   const cut=t=>String(t||'').replace(/\s+-\s+[^-]{2,40}$/,'');
   const bl=parseBing(bx,f).list,bm=new Map(bl.filter(a=>a.img).map(a=>[nt(cut(a.title)),a.img])),bk=new Map(bl.map(a=>[nt(cut(a.title)),a]));
