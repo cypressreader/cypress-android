@@ -1379,6 +1379,8 @@ html.dynx[data-theme=dynamic] body{background:none}
 #dynbg i{position:absolute;inset:0;opacity:0;transition:opacity 1.8s ease-in-out;will-change:opacity;background:radial-gradient(120% 55% at 50% -8%,color-mix(in srgb,var(--c) 16%,transparent),transparent 72%),color-mix(in srgb,var(--c) 5%,var(--bg))}
 #dynbg i.on{opacity:1}
 html.dynx[data-theme=dynamic] #grid .card{border-bottom:2px solid color-mix(in srgb,var(--b) 55%,transparent)}
+/* the front-page cards already show their site with the dot and tinted divider, so no extra underline glued under the headline */
+html.dynx[data-theme=dynamic] #grid .card.nr{border-bottom-width:0}
 html.dynx[data-theme=dynamic] #grid .card.act{box-shadow:0 0 0 2px color-mix(in srgb,var(--b) 70%,transparent),0 8px 26px color-mix(in srgb,var(--b) 30%,transparent)}
 html.dynx[data-theme=dynamic] #tabs{background:color-mix(in srgb,var(--dyn) 12%,color-mix(in srgb,var(--pn) 92%,transparent))}
 html.dynx[data-theme=dynamic] #rd{transition:background-color .6s ease}
@@ -2345,6 +2347,9 @@ body.narrow .top h1{font-size:clamp(20px,5.6vw,26px)}
 .endc .tx2{margin-top:18px}
 /*SMOOTH (Safari)*/
 html.smooth *,html.smooth *::before,html.smooth *::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+/* with the blur off the bottom bar must be solid, or a bright card scrolling under it tints the whole bar */
+html.smooth #tabs,html.smooth.dynx[data-theme=dynamic] #tabs{background:color-mix(in srgb,var(--pn) 100%,transparent)}
+html.smooth.dynx[data-theme=dynamic] #tabs{background:color-mix(in srgb,var(--dyn) 12%,var(--pn))}
 html.smooth .card[data-th]::before{display:none!important}
 html.smooth .card{transition:none;box-shadow:none}
 html.smooth .card>img{transition:none}
@@ -6077,7 +6082,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.10.04o';const APP_LABEL='1.32';
-const CHANGES=['Story cards in the list, narrow and compact layouts now have an outline that carries a faint tint of the site’s colour, so the site shows in the whole card and not only in the marker. Print and light themes keep their full-strength side bar'];
+const CHANGES=['Dynamic theme: removed the coloured line that sat tight under some front-page headlines (it looked misplaced next to the new site dot and tinted dividers)','The bottom bar no longer flashes blue or purple when a bright story card scrolls under it: with Smooth mode on it is now fully solid instead of faintly see-through','Story cards in the list, narrow and compact layouts now have an outline that carries a faint tint of the site’s colour, so the site shows in the whole card and not only in the marker. Print and light themes keep their full-strength side bar'];
 const DEF_ON=new Set(['intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
