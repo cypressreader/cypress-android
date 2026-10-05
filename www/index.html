@@ -877,6 +877,22 @@ html:root.night[data-theme=sepia]{--hl:rgba(214,120,40,.4)}
 .body th,.body td{padding:7px 10px;border-bottom:1px solid var(--ln);vertical-align:top}
 .body th{background:color-mix(in srgb,var(--ink) 6%,transparent);font-weight:600}
 .body tr:last-child td{border-bottom:0}.body caption{caption-side:bottom;font-size:12px;color:var(--mut);padding:6px}
+/* tables with four or more columns: tablet and website scroll sideways with the first column pinned and names kept whole; phones show each row as a small card */
+.body .tbl.wide{position:relative;box-shadow:inset -14px 0 10px -12px rgba(0,0,0,.22)}
+.body .tbl.wide table{width:max-content;min-width:100%}
+.body .tbl.wide th,.body .tbl.wide td{min-width:84px;max-width:190px;overflow-wrap:normal;word-break:normal}
+.body .tbl.wide th{white-space:nowrap}
+.body .tbl.wide td:first-child,.body .tbl.wide th:first-child{position:sticky;left:0;z-index:1;background:var(--pn,var(--bg));font-weight:700;min-width:104px}
+@media(max-width:600px){
+ .body .tbl.wide{border:0;overflow:visible;box-shadow:none}
+ .body .tbl.wide table.cardable,.body .tbl.wide table.cardable tbody,.body .tbl.wide table.cardable tr,.body .tbl.wide table.cardable td{display:block;width:100%;min-width:0;max-width:none}
+ .body .tbl.wide table.cardable thead{display:none}
+ .body .tbl.wide table.cardable tr{border:1px solid var(--ln);border-radius:12px;margin:0 0 10px;padding:6px 12px;background:var(--pn,var(--bg));break-inside:avoid}
+ .body .tbl.wide table.cardable td{border:0;padding:4px 0;display:flex;gap:10px;position:static;font-size:13.5px;font-weight:400}
+ .body .tbl.wide table.cardable td::before{content:attr(data-l);flex:0 0 84px;color:var(--mut);font-size:12px;padding-top:1px}
+ .body .tbl.wide table.cardable td:first-child{font-weight:700;font-size:15px;padding-bottom:6px;border-bottom:1px solid var(--ln);margin-bottom:4px}
+ .body .tbl.wide table.cardable td:first-child::before{display:none}
+}
 #pc{white-space:nowrap}
 .fbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 14px;border-radius:14px;background:var(--pn);border:1px solid var(--ln);font-size:14px;color:var(--mut)}
 .why{position:absolute;top:12px;right:56px;z-index:2;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:italic 700 12px Georgia,serif;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;opacity:1}
@@ -6133,7 +6149,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.10.05d';const APP_LABEL='1.36';
-const CHANGES=['Pull-quote cards whose photo is missing or fails to load no longer leave a huge empty box: the photo slot is smaller and disappears when the photo can’t load','A site’s page now opens with just its logo, name and description in a compact header: the Following and Mute buttons and the row of story counts are gone',' A lone photo credit (like “name/Shutterstock”) and a short list of topic links at the start or end of a story are no longer shown as if they were story text','Focus mode is now a button in the top bar of a story (next to the playback and site buttons) instead of a menu entry, and the same button turns it off; “All highlights” is gone from the story menu','“More like this” and “Less like this” moved out of the story menu into a thumbs-up and thumbs-down pair beside the date and reading time at the top of each story. The one you chose stays highlighted; tap it again to take it back','The “Site view for this source” menu entry now changes to “Reader view for this source” once site view is on for that source, so you can tell what a tap will do and switch back','Tapping a picture in a story always opens it in the app’s own full-screen viewer (pinch to zoom, swipe between the story’s pictures, back to close). Before, a picture the site had wrapped in a link sent you to your browser instead'];
+const CHANGES=['Tables in stories with four or more columns now read well: on a phone each row becomes a small labelled card, and on a tablet or the website the table scrolls sideways with its first column pinned and names no longer breaking in the middle of a word','Pull-quote cards whose photo is missing or fails to load no longer leave a huge empty box: the photo slot is smaller and disappears when the photo can’t load','A site’s page now opens with just its logo, name and description in a compact header: the Following and Mute buttons and the row of story counts are gone',' A lone photo credit (like “name/Shutterstock”) and a short list of topic links at the start or end of a story are no longer shown as if they were story text','Focus mode is now a button in the top bar of a story (next to the playback and site buttons) instead of a menu entry, and the same button turns it off; “All highlights” is gone from the story menu','“More like this” and “Less like this” moved out of the story menu into a thumbs-up and thumbs-down pair beside the date and reading time at the top of each story. The one you chose stays highlighted; tap it again to take it back','The “Site view for this source” menu entry now changes to “Reader view for this source” once site view is on for that source, so you can tell what a tap will do and switch back','Tapping a picture in a story always opens it in the app’s own full-screen viewer (pinch to zoom, swipe between the story’s pictures, back to close). Before, a picture the site had wrapped in a link sent you to your browser instead'];
 const DEF_ON=new Set(['intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -6256,7 +6272,9 @@ function captions(){
 function decorate(){
  const b=$('.cols .body');if(!b)return;smarten(b);furnish(b);captions();heroSpread();mnotes();photoPages();
  b.querySelectorAll('.pullq').forEach(x=>x.remove());b.querySelectorAll('.dropcap').forEach(x=>x.classList.remove('dropcap'));
- b.querySelectorAll('table').forEach(t=>{if(!t.parentElement.classList.contains('tbl')){const w=document.createElement('div');w.className='tbl';t.replaceWith(w);w.append(t)}});
+ b.querySelectorAll('table').forEach(t=>{if(!t.parentElement.classList.contains('tbl')){const w=document.createElement('div');w.className='tbl';t.replaceWith(w);w.append(t)}
+  /* column names go on each cell so a phone can show every row as its own small card */
+  try{let hd=[...t.querySelectorAll('thead th')];if(!hd.length){const r=t.querySelector('tr');if(r&&r.querySelector('th'))hd=[...r.children]}const hs=hd.map(x=>x.textContent.replace(/\s+/g,' ').trim());if(hs.length>=3&&hs.some(Boolean))t.querySelectorAll('tr').forEach(r=>{if(r.closest('thead')||r===hd[0]?.parentElement)return;[...r.children].forEach((c,i)=>{if(c.tagName==='TD'&&hs[i])c.setAttribute('data-l',hs[i])})}),t.classList.add('cardable');t.closest('.tbl').classList.toggle('wide',hs.length>=4)}catch(e){}});
  b.querySelectorAll('.endmark').forEach(x=>x.remove());
  if(!isOn('mag'))return;
  {const lp=[...b.querySelectorAll(':scope > p')].filter(p=>p.textContent.trim().length>60).pop();if(lp&&isOn('endm')){const e=document.createElement('p');e.className='endmark';e.setAttribute('aria-hidden','true');e.textContent='◆';b.append(e)}}
