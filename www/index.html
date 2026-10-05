@@ -2296,7 +2296,7 @@ html{font-synthesis-weight:none}
 @media(min-width:1241px){#grid .nr-top>.nr-mid::before,#grid .nr-top>.nr-rail::before{content:none}#grid .nr-top{column-gap:0}#grid .nr-top>.nr-lw{padding-right:28px}#grid .nr-top>.nr-mid{padding:0 28px;border-left:1px solid var(--ln);border-right:1px solid var(--ln)}#grid .nr-top>.nr-rail{padding-left:28px}#grid .nr-flip.nr-top>.nr-lw{padding:0 0 0 28px}#grid .nr-flip.nr-top>.nr-rail{padding:10px 28px 0 0}#grid .nr-flip.nr-top>.nr-mid{padding:0 28px}}
 #grid .nr-n::before{left:0;top:11px;width:24px;height:24px;border:1px solid var(--ink);border-radius:50%;display:grid;place-items:center;font:700 11px var(--sans);font-style:normal;color:var(--ink);opacity:1}
 #grid .nr-n{padding-left:38px!important}
-.nr-quote{margin:6px 0 40px}
+.nr-quote{margin:6px 0 40px;max-height:640px;overflow:hidden}
 #grid .card.nr-pq{display:block;background:none;color:var(--ink);overflow:visible;border-radius:0;box-shadow:none;min-height:0;text-align:center;padding:30px 8% 26px;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);width:100%}
 #grid .nr-pq:hover{transform:none}
 #grid .nr-pq .tx{padding:0;color:inherit;text-shadow:none;background:none;margin:0;width:auto}
@@ -2310,6 +2310,7 @@ html{font-synthesis-weight:none}
 #grid .nr-pq1>img{display:block;position:static;grid-column:2;grid-row:1;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:14px;z-index:auto;height:auto}
 #grid .nr-pq1 p{font-size:clamp(22px,2.3vw,34px)}
 /* the picture takes up room only once it has really loaded, so a slow or blank one never leaves a gap under the quote */
+#grid .nr-pq1>img{max-height:300px;object-fit:cover}
 #grid .nr-pq1>img:not(.ok){height:0;min-height:0;max-height:0;aspect-ratio:auto;opacity:0;margin:0}
 #grid .card.nr-pq2{display:flex;align-items:flex-end;background:var(--b);color:#fff;overflow:hidden;border-radius:22px;border:0;min-height:250px;text-align:left;padding:0}
 #grid .nr-pq2>img{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
@@ -3361,7 +3362,7 @@ function nrBlocks(l,base,o){
   else if(t==='mosaic'&&(ix=P.pick(nrHas,5,true))){B.push(`<section class="nr-mos">${ix.map((i,k)=>C(i,'nr-m'+(k+1))).join('')}</section>`);done=true}
   else if(t==='strip'&&(ix=P.pick(nrHas,4,true))){B.push(`<section class="nr-strip">${ix.map(i=>C(i,'nr-tall')).join('')}</section>`);done=true}
   else if(t==='color'&&(ix=P.pick(a=>nrHas(a)&&(a.summary||'').length>60,1,true))){B.push(`<section class="nr-color">${C(ix[0],'nr-colr')}</section>`);done=true}
-  else if(t==='quote'){const lk=(qn++ +seed)%3,need=lk>0;ix=P.pick(a=>(!need||nrHas(a))&&nrQuoteText(a),1,true);if(ix){B.push(`<section class="nr-quote">${nrQuoteHtml(l[ix[0]],base+ix[0],lk,nrQuoteText(l[ix[0]]))}</section>`);done=true}else continue}
+  else if(t==='quote'){const lk=((qn++ +seed)%2)*2,need=lk>0;ix=P.pick(a=>(!need||nrHas(a))&&nrQuoteText(a),1,true);if(ix){B.push(`<section class="nr-quote">${nrQuoteHtml(l[ix[0]],base+ix[0],lk,nrQuoteText(l[ix[0]]))}</section>`);done=true}else continue}
   else if(t==='sect'&&(ix=P.pick(nrHas,4,true))){const src=fof(l[ix[0]]).title;B.push(`<section class="nr-sect"><h4><span style="background:${brand(fof(l[ix[0]]))}"></span>More from ${esc(src)}</h4><div class="nr-sc"><div class="nr-scl">${C(ix[0],'nr-sp')}</div><div class="nr-scr">${ix.slice(1).map(i=>C(i,'nr-row nr-tl')).join('')}</div></div></section>`);done=true}
   else if(t==='quick'&&(ix=P.pick(null,9,true))){B.push(`<section class="nr-quick"><h4>Quick hits</h4><div class="nr-qk">${ix.map(i=>C(i,'nr-late')).join('')}</div></section>`);done=true}
   else if(t==='seg'){const main=P.pick(null,6),side=P.pick(null,5);if(main.length){B.push(`<section class="nr-seg"><div class="nr-sm">${main.map(i=>C(i,'nr-row')).join('')}</div>${side.length?`<div class="nr-side"><h4>Also new</h4>${side.map(i=>C(i,'nr-late nr-n')).join('')}</div>`:''}</section>`);done=true}}
