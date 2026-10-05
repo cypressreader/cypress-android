@@ -281,6 +281,27 @@ figure.pqs figcaption{margin-top:12px;font:600 12px var(--sans);letter-spacing:.
 .dg .dsec{margin:26px 0 10px;border-bottom:1px solid var(--ln);padding-bottom:6px}
 .dg .dsec h3{font:600 22px var(--serif)}
 .dg .dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.dg .dwhy{margin:10px auto 0;max-width:30em;font:400 15px/1.45 var(--sans);color:var(--mut);letter-spacing:0;text-transform:none}
+.dg .dsec{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}.dg .dsec small{font:500 12.5px var(--sans);color:var(--mut)}
+.dg.ed .edin{margin:14px auto 0;max-width:36em;text-align:center;padding:10px 0;border-bottom:1px solid var(--ln)}
+.dg.ed .edin b{display:block;font:700 11.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
+.dg.ed .edin span{display:block;font:600 17px var(--serif);margin-top:4px}.dg.ed .edin small{display:block;margin-top:3px;font:500 12.5px var(--sans);color:var(--mut)}
+.dg.wk{padding-top:6px}
+.dg.wk .wkhero{border-radius:22px;padding:20px 20px 16px;background:linear-gradient(135deg,color-mix(in srgb,var(--a1) 16%,var(--pn)),color-mix(in srgb,var(--a2,var(--a1)) 10%,var(--pn)));border:1px solid var(--ln)}
+.dg.wk .wkk{display:block;font:700 11.5px var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
+.dg.wk .wkbig{display:flex;align-items:baseline;gap:10px;margin:8px 0 12px;flex-wrap:wrap}.dg.wk .wkbig b{font:700 clamp(38px,9vw,60px)/1 var(--sans);letter-spacing:-.02em}.dg.wk .wkbig span{font:500 16px var(--sans);color:var(--mut)}
+.dg.wk .wkbars{display:flex;align-items:flex-end;gap:8px;height:84px;padding-bottom:20px;border-bottom:1px solid var(--ln);margin-bottom:12px}
+.dg.wk .wkb{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}
+.dg.wk .wkb i{display:block;width:min(100%,38px);background:color-mix(in srgb,var(--a1) 45%,transparent);border-radius:6px 6px 0 0}.dg.wk .wkb.now i{background:var(--a1)}
+.dg.wk .wkb small{position:absolute;bottom:-20px;font-size:11px;color:var(--mut)}
+.dg.wk .wkchips{display:flex;gap:8px;flex-wrap:wrap}.dg.wk .wkchips span{background:var(--bg);border:1px solid var(--ln);border-radius:99px;padding:5px 12px;font:500 13px var(--sans);color:var(--mut)}.dg.wk .wkchips b{color:var(--ink);font-weight:700}
+.dg.wk .dwhy{margin:12px 0 0;max-width:none}
+.dg.wk .letter{margin:18px 0}.dg.wk .letter p:first-of-type::first-letter{float:none;font:inherit;padding:0}
+.dg.wk .dsec{border-bottom:0;margin:30px 0 12px}.dg.wk .dsec h3{font:700 20px var(--sans);letter-spacing:-.01em}
+.dg.wk .wkday{display:grid;grid-template-columns:150px 1fr;gap:14px;margin:0 0 16px;padding-top:12px;border-top:1px solid var(--ln)}
+.dg.wk .wkd b{display:block;font:700 17px var(--sans)}.dg.wk .wkd small{display:block;margin-top:3px;font:500 12.5px/1.35 var(--sans);color:var(--mut)}
+.dg.wk .wkcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}.dg.wk .wkcols .sgc h4{font:600 13px var(--sans);color:var(--mut);margin:0 0 8px}
+@media(max-width:600px){.dg.wk .wkday{grid-template-columns:1fr;gap:8px}}
 .dg .back{margin:34px auto 20px;padding:44px 22px;text-align:center;border-top:3px double var(--ln);border-bottom:3px double var(--ln)}
 .dg .back blockquote{font:italic 500 clamp(22px,4vw,32px)/1.25 var(--serif);max-width:26em;margin:0 auto}
 .dg .back cite{display:block;margin-top:14px;font:600 12px var(--sans);letter-spacing:.16em;text-transform:uppercase;font-style:normal;color:var(--mut)}
@@ -6643,21 +6664,38 @@ function renderDigest(){
  const lead=pool.find(a=>a.img&&!S.read[a.link])||pool[0];
  const d=new Date(),start=new Date(d.getFullYear(),0,0),issue=Math.floor((d-start)/864e5);
  const title=k==='week'?'The Week':k==='evening'?'The Evening Edition':'The Morning Edition';
- let h=`<div class="dg"><div class="dmast"><h2>${title}</h2><small>${k==='week'?'The last 7 days · '+esc(new Date(Date.now()-6*864e5).toLocaleDateString([],{month:'short',day:'numeric'}))+' to '+esc(d.toLocaleDateString([],{month:'short',day:'numeric'})):'Vol. '+volNo()+' · No. '+issue+' · '+esc(d.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'}))}</small></div>`;
- h+=dgLetter(k,pool,uc(S.feeds),fresh);
+ const wkR=new Date(Date.now()-6*864e5).toLocaleDateString([],{month:'short',day:'numeric'})+' to '+d.toLocaleDateString([],{month:'short',day:'numeric'});
+ let h=k==='week'?`<div class="dg wk">`:`<div class="dg ed"><div class="dmast"><h2>${title}</h2><small>Vol. ${volNo()} · No. ${issue} · ${esc(d.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'}))}</small><p class="dwhy">A finished issue of what matters right now. Read it top to bottom and you are done.</p></div>`;
+ if(k!=='week')h+=dgLetter(k,pool,uc(S.feeds),fresh);
  if(k==='week'){
-  /* the week is a look back, not a second copy of today's front page: numbers, the week's biggest stories, what you read, and what you missed */
+  /* the week is a look back, and it is laid out like a recap rather than a newspaper: your numbers, the week's biggest stories, day by day, where your time went, and what you missed */
   const wkS=Date.now()-7*864e5;
-  const days=[...Array(7)].map((_,i)=>S.st.d[dayKey(new Date(Date.now()-i*864e5))]||{m:0,n:0,f:0}),wm=days.reduce((n,x)=>n+x.m,0),wn=days.reduce((n,x)=>n+x.n,0),wf=days.reduce((n,x)=>n+x.f,0),sk=streaks();
-  const src=Object.entries(S.st.src).sort((a,b)=>b[1]-a[1])[0],tp=Object.entries(S.st.tp).sort((a,b)=>b[1]-a[1])[0];
-  h+=`<div class="dsec"><h3>Your week in numbers</h3></div><div class="tiles"><div class="tile"><b>${fmtMin(wm)}</b><small>read this week</small></div><div class="tile"><b>${wn}</b><small>stories opened</small></div><div class="tile"><b>${wf}</b><small>read to the end</small></div><div class="tile"><b>${sk.cur}</b><small>day streak</small></div>${src?`<div class="tile"><b>${esc(src[0])}</b><small>top source</small></div>`:''}${tp?`<div class="tile"><b>${esc(tp[0])}</b><small>top topic</small></div>`:''}</div>`;
-  const seenW=new Set();
-  const big=S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>a.date>=wkS&&!muted(a)).sort((a,b)=>((b.more||[]).length-(a.more||[]).length)||b.date-a.date).filter(a=>{if(seenW.has(a.link))return false;seenW.add(a.link);return true}).slice(0,7);
-  if(big.length>=2){const bl=big.find(a=>a.img)||big[0];const rest=big.filter(a=>a!==bl).slice(0,6);
-   h+=`<div class="dsec"><h3>The week’s biggest stories</h3></div>`+mk(bl,'lead','Covered by the most of your sites over the last 7 days.')+(rest.length?`<div class="dgrid">${rest.map(a=>mk(a,'mid','Widely covered across your sites in the last 7 days.')).join('')}</div>`:'')}
+  const wd=[...Array(7)].map((_,i)=>{const dt=new Date(Date.now()-(6-i)*864e5);return{dt,v:S.st.d[dayKey(dt)]||{m:0,n:0,f:0}}});
+  const wm=wd.reduce((n,x)=>n+x.v.m,0),wn=wd.reduce((n,x)=>n+x.v.n,0),wf=wd.reduce((n,x)=>n+x.v.f,0),sk=streaks(),mxm=Math.max(.25,...wd.map(x=>x.v.m));
+  const bars=wd.map(x=>`<div class="wkb${x.dt.toDateString()===d.toDateString()?' now':''}" title="${esc(x.dt.toLocaleDateString([],{weekday:'long'}))}: ${esc(fmtMin(x.v.m))}"><i style="height:${Math.max(x.v.m?8:3,Math.round(x.v.m/mxm*100))}%"></i><small>${esc(x.dt.toLocaleDateString([],{weekday:'short'}).slice(0,3))}</small></div>`).join('');
+  h+=`<div class="wkhero"><small class="wkk">Your week · ${esc(wkR)}</small><div class="wkbig"><b>${esc(fmtMin(wm))}</b><span>spent reading</span></div><div class="wkbars">${bars}</div><div class="wkchips"><span><b>${wn}</b> opened</span><span><b>${wf}</b> finished</span><span><b>${sk.cur}</b> day streak</span></div><p class="dwhy">A look back: what mattered, what you read, and what you missed.</p></div>`;
+  h+=dgLetter(k,pool,uc(S.feeds),fresh);
+  const allW=S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>a.date>=wkS&&!muted(a));
+  const seenW=new Set(),dupW=new Set();
+  const big=allW.slice().sort((a,b)=>((b.more||[]).length-(a.more||[]).length)||b.date-a.date).filter(a=>{if(dupW.has(a.link))return false;dupW.add(a.link);return true}).slice(0,5);big.forEach(a=>seenW.add(a.link));
+  if(big.length>=2){const bl=big.find(a=>a.img)||big[0];const rest=big.filter(a=>a!==bl).slice(0,3);
+   h+=`<div class="dsec"><h3>The week’s biggest stories</h3><small>Covered by the most of your sites</small></div>`+mk(bl,'lead','Covered by the most of your sites over the last 7 days.')+(rest.length?`<div class="dgrid">${rest.map(a=>mk(a,'mid','Widely covered across your sites in the last 7 days.')).join('')}</div>`:'')}
+  /* day by day: the best one or two stories from each day, for catching up after time away */
+  let dh='';
+  for(let i=0;i<7;i++){
+   const d0=new Date(d.getFullYear(),d.getMonth(),d.getDate()-i).getTime(),d1=d0+864e5;
+   const dl=allW.filter(a=>a.date>=d0&&a.date<d1&&!seenW.has(a.link)).sort((a,b)=>((b.more||[]).length-(a.more||[]).length)||(b.img?1:0)-(a.img?1:0)||b.date-a.date);
+   const top=[];for(const a of dl){if(top.length>=2)break;top.push(a);seenW.add(a.link)}
+   if(!top.length)continue;
+   const dt=new Date(d0),st=S.st.d[dayKey(dt)]||{m:0};
+   dh+=`<div class="wkday"><div class="wkd"><b>${i===0?'Today':i===1?'Yesterday':esc(dt.toLocaleDateString([],{weekday:'long'}))}</b><small>${esc(dt.toLocaleDateString([],{month:'short',day:'numeric'}))} · ${dl.length+top.length} new${st.m>=1?' · you read '+esc(fmtMin(st.m)):''}</small></div><div class="dgrid">${top.map(a=>mk(a,'mid',i===0?'One of the best stories from today.':'One of the best stories from '+dt.toLocaleDateString([],{weekday:'long'})+'.')).join('')}</div></div>`}
+  if(dh)h+=`<div class="dsec"><h3>Day by day</h3><small>The best of each day, newest first</small></div>${dh}`;
+  const src=Object.entries(S.st.src||{}).sort((a,b)=>b[1]-a[1]).slice(0,4),tp=Object.entries(S.st.tp||{}).sort((a,b)=>b[1]-a[1]).slice(0,4);
+  if(src.length||tp.length){const hb=(n,v,m)=>`<div class="hrow"><span>${esc(n)}</span><b><i style="width:${Math.max(3,Math.round(v/m*100))}%"></i></b><em>${v}</em></div>`,sm=Math.max(1,...src.map(x=>x[1])),tm=Math.max(1,...tp.map(x=>x[1]));
+   h+=`<div class="dsec"><h3>Where your time went</h3></div><div class="wkcols">${src.length?`<div class="sgc"><h4>Sites you opened most</h4>${src.map(([n,v])=>hb(n,v,sm)).join('')}</div>`:''}${tp.length?`<div class="sgc"><h4>Topics you read most</h4>${tp.map(([n,v])=>hb(n,v,tm)).join('')}</div>`:''}</div>`}
   const readW=S.hist.filter(x=>x.t>=wkS).slice(0,8).map(histStory);
   if(readW.length)h+=`<div class="dsec"><h3>What you read</h3></div><div class="dgrid">${readW.map(a=>mk(a,'mid','You opened this in the last 7 days.')).join('')}</div>`;
-  const unreadW=S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>a.date>=wkS&&!S.read[a.link]&&!seenW.has(a.link)&&!muted(a)).sort((a,b)=>((b.more||[]).length-(a.more||[]).length)||b.date-a.date).slice(0,4);
+  const unreadW=allW.filter(a=>!S.read[a.link]&&!seenW.has(a.link)).sort((a,b)=>((b.more||[]).length-(a.more||[]).length)||b.date-a.date).slice(0,4);
   if(unreadW.length)h+=`<div class="dsec"><h3>Still unread from this week</h3></div><div class="dgrid">${unreadW.map(a=>mk(a,'mid','Unread, and from the last 7 days.')).join('')}</div>`;
  }else{
  const secs=[];
@@ -6669,6 +6707,7 @@ function renderDigest(){
  const sv=S.saved.filter(a=>!S.read[a.link]).slice(0,4);
  const miss=S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>!S.read[a.link]&&a.date<since&&a.date>Date.now()-4*864e5&&!skip.has(a.link)&&!muted(a)).sort((a,b)=>((b.more||[]).length-(a.more||[]).length)||b.date-a.date).slice(0,4);
  const all=[...secs];
+ {const n=all.reduce((c,x)=>c+x[1].length,0)+tsecs.reduce((c,x)=>c+x[1].length,0);const mn=[...all,...tsecs].reduce((c,x)=>c+x[1].reduce((m,a)=>m+(minsOf(a)||3),0),0);const names=[...all.map(x=>x[0]),...tsecs.map(x=>x[0]),...(sv.length?['Saved']:[]),...(miss.length?['Missed']:[])];h+=`<div class="edin"><b>In this issue</b><span>${n+sv.length+miss.length} stories · about ${mn+sv.length*3+miss.length*3} minutes</span><small>${esc(names.join(' · '))}</small></div>`}
  for(const [n,l,why,kind] of all){h+=`<div class="dsec"><h3>${esc(n)}</h3></div>`+(kind==='lead'?l.map(a=>mk(a,'lead',why)).join(''):`<div class="dgrid">${l.map(a=>mk(a,'mid',why)).join('')}</div>`)}
  for(const [n,l,why] of tsecs)h+=`<div class="dsec"><h3>${esc(n)}</h3></div><div class="dgrid">${l.map(a=>mk(a,'mid',why)).join('')}</div>`;
  if(sv.length)h+=`<div class="dsec"><h3>Saved, still unread</h3></div><div class="dgrid">${sv.map(a=>mk(findStory(a.link)||a,'mid','You saved this and haven’t read it yet.')).join('')}</div>`;
