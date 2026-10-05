@@ -41,7 +41,11 @@ body.sbdrag aside,body.sbdrag main{transition:none!important}
 @media(prefers-reduced-motion:reduce){.skc{animation:none}}
 .skhid{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .pw{display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:1px 6px;border-radius:99px;font-size:10.5px;font-weight:700;letter-spacing:.02em;background:rgba(0,0,0,.42);color:#fff;vertical-align:1px;white-space:nowrap}
-#rd.focus .bar{display:none}
+#fcs.on{background:var(--ink);color:var(--pn);border-color:var(--ink)}
+/* focus mode hides every control except this one, so the same button turns it off again */
+#rd.focus .bar{position:absolute;top:calc(8px + env(safe-area-inset-top));right:10px;left:auto;width:auto;padding:0;gap:0;z-index:6}
+#rd.focus .bar>*:not(#fcs){display:none}
+#rd.focus #fcs{opacity:.6}
 
 /* --- logo progress (stage 2) --- */
 @property --p{syntax:'<percentage>';inherits:false;initial-value:0%}
@@ -651,6 +655,16 @@ u{text-decoration:none;font-size:12px;background:var(--bg);border-radius:999px;p
 .line select{width:auto;max-width:56%}.ctl{display:flex;align-items:center;gap:8px}
 .segs{display:flex;flex-wrap:wrap;gap:6px}
 .bmseg{grid-column:1/-1;justify-content:center;margin:2px 0 14px}.bmseg button{min-width:84px}
+.bmseg button{min-width:72px}
+#grid[data-cards] .cover .why{background:rgba(0,0,0,.6);color:#fff;border:0}
+/* in the compact cards the small “why” button sits beside the star instead of on top of the photo */
+#grid[data-cards="narrow"] .src .why{position:static;flex:none;display:inline-grid;width:18px;height:18px;margin-left:2px;font-size:11px;background:transparent;color:var(--mut);border:1px solid var(--ln);opacity:.85}
+.dlinks{grid-column:1/-1;display:flex;gap:8px;margin:2px 0 14px}
+.dlinks button{flex:1;padding:9px 8px;border-radius:12px;border:1px solid var(--ln);background:var(--pn);color:var(--ink);font:600 13px var(--sans);cursor:pointer}
+.dlh{grid-column:1/-1;font:700 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mut);padding:2px 2px 0}
+.dempty{grid-column:1/-1;padding:30px 12px;text-align:center;color:var(--mut)}
+.nav.sub{margin-left:18px;padding-top:5px;padding-bottom:5px;font-size:14px;font-weight:500;opacity:.9}
+@media(pointer:coarse){#ref{display:none}}
 .segs button,.tg,.tx2{padding:7px 14px;border-radius:999px;border:1px solid var(--ln);font-weight:600;font-size:13px}
 .tg{min-width:58px}
 .segs button.on,.tg.on{background:var(--ink);color:var(--pn);border-color:var(--ink)}
@@ -797,6 +811,12 @@ html:root.night[data-theme=sepia]{--hl:rgba(214,120,40,.4)}
 .aspd button{padding:4px 9px;border-radius:999px;border:1px solid var(--ln);font:600 12px var(--sans);color:var(--ink)}
 .aspd button.on{background:var(--ink);color:var(--pn);border-color:var(--ink)}
 .cols img{cursor:zoom-in}
+.rate{display:inline-flex;gap:6px;align-items:center;vertical-align:middle;margin-left:4px}
+.thb{width:32px;height:32px;border-radius:50%;border:1px solid var(--ln);background:none;color:var(--mut);display:inline-flex;align-items:center;justify-content:center;padding:0}
+.thb svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.thb.on{color:var(--logo);border-color:var(--logo);background:color-mix(in srgb,var(--logo) 12%,transparent)}
+.thb.on svg{fill:currentColor;fill-opacity:.22}
+.hsf.hs-hero .hov .thb{color:#fff;border-color:rgba(255,255,255,.55);background:rgba(0,0,0,.38)}.hsf.hs-hero .hov .thb.on{background:rgba(255,255,255,.28)}
 #gal{position:fixed;inset:0;z-index:60;background:rgba(8,9,12,calc(.94 * var(--ga,1)));display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;touch-action:none}
 #gal.on{opacity:1}#gal[hidden]{display:none}
 .gstage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none}
@@ -867,6 +887,22 @@ html:root.night[data-theme=sepia]{--hl:rgba(214,120,40,.4)}
 .body th,.body td{padding:7px 10px;border-bottom:1px solid var(--ln);vertical-align:top}
 .body th{background:color-mix(in srgb,var(--ink) 6%,transparent);font-weight:600}
 .body tr:last-child td{border-bottom:0}.body caption{caption-side:bottom;font-size:12px;color:var(--mut);padding:6px}
+/* tables with four or more columns: tablet and website scroll sideways with the first column pinned and names kept whole; phones show each row as a small card */
+.body .tbl.wide{position:relative;box-shadow:inset -14px 0 10px -12px rgba(0,0,0,.22)}
+.body .tbl.wide table{width:max-content;min-width:100%}
+.body .tbl.wide th,.body .tbl.wide td{min-width:84px;max-width:190px;overflow-wrap:normal;word-break:normal}
+.body .tbl.wide th{white-space:nowrap}
+.body .tbl.wide td:first-child,.body .tbl.wide th:first-child{position:sticky;left:0;z-index:1;background:var(--pn,var(--bg));font-weight:700;min-width:104px}
+@media(max-width:600px){
+ .body .tbl.wide{border:0;overflow:visible;box-shadow:none}
+ .body .tbl.wide table.cardable,.body .tbl.wide table.cardable tbody,.body .tbl.wide table.cardable tr,.body .tbl.wide table.cardable td{display:block;width:100%;min-width:0;max-width:none}
+ .body .tbl.wide table.cardable thead{display:none}
+ .body .tbl.wide table.cardable tr{border:1px solid var(--ln);border-radius:12px;margin:0 0 10px;padding:6px 12px;background:var(--pn,var(--bg));break-inside:avoid}
+ .body .tbl.wide table.cardable td{border:0;padding:4px 0;display:flex;gap:10px;position:static;font-size:13.5px;font-weight:400}
+ .body .tbl.wide table.cardable td::before{content:attr(data-l);flex:0 0 84px;color:var(--mut);font-size:12px;padding-top:1px}
+ .body .tbl.wide table.cardable td:first-child{font-weight:700;font-size:15px;padding-bottom:6px;border-bottom:1px solid var(--ln);margin-bottom:4px}
+ .body .tbl.wide table.cardable td:first-child::before{display:none}
+}
 #pc{white-space:nowrap}
 .fbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 14px;border-radius:14px;background:var(--pn);border:1px solid var(--ln);font-size:14px;color:var(--mut)}
 .why{position:absolute;top:12px;right:56px;z-index:2;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:italic 700 12px Georgia,serif;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;opacity:1}
@@ -1989,6 +2025,7 @@ body:not(.narrow){--hdr:84px}body:not(.narrow) .top{height:var(--hdr);box-sizing
 #tabs{backdrop-filter:none;background:var(--pn)}
 #rd{backdrop-filter:none}@media(min-width:700px){#rd{backdrop-filter:blur(8px)}}
 .bmseg{flex-wrap:nowrap}.bmseg button{flex:1 1 0;min-width:0;padding:6px 8px}
+@media(min-width:700px){.bmseg{justify-content:flex-start;gap:8px;max-width:none}.bmseg button{flex:0 0 auto;min-width:104px;padding:8px 22px}.dlinks{max-width:520px}.dlinks button{flex:1 1 0}}
 #side-list i{min-width:40px;min-height:40px;margin:-8px 0;opacity:.8}
 @media(max-width:520px){.ib{width:40px;height:40px}.ib::after{inset:-2px}.bar{gap:6px}.top{gap:6px}}
 .ib{position:relative}.ib::after{content:'';position:absolute;inset:-4px}
@@ -2006,17 +2043,12 @@ body:not(.narrow){--hdr:84px}body:not(.narrow) .top{height:var(--hdr);box-sizing
 :root[data-theme=dark],:root[data-theme=black]{--rg:#4cd19a}
 @media (prefers-reduced-motion:reduce){.rgf{transition:none}}
 /*MASTHEAD*/
-.mst2{grid-column:1/-1;border-top:7px solid var(--mb);background:color-mix(in srgb,var(--mb) 9%,var(--bg));border-radius:0 0 20px 20px;padding:20px 22px 18px;margin:0 0 20px}
-.mst2 .mr{display:flex;align-items:center;gap:16px}
-.mst2 .mt{width:60px;height:60px;border-radius:16px;background:var(--mb);color:#fff;font:800 32px var(--serif);display:grid;place-items:center;flex:none}
-.mst2 .mr>div:nth-child(2){flex:1;min-width:0}.mst2 .mn{padding:0;font:800 clamp(28px,3.6vw,44px)/1 var(--serif);letter-spacing:-.015em;margin:0;overflow-wrap:anywhere}
-.mst2 .mg{font:italic 16px/1.35 var(--serif);color:var(--mut);margin-top:5px}
-.mst2 .mu{font:600 12px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-top:5px}
-.mst2 .ma{margin-left:auto;display:flex;gap:10px;flex:none}
-.mst2 .ma button{font:700 13px var(--sans);padding:9px 16px;border-radius:99px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer}.mst2 .ma button.fl{background:var(--ink);color:var(--bg)}
-.mst2 .ms{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-.mst2 .ms span{font:600 12.5px var(--sans);padding:6px 12px;border-radius:99px;background:var(--pn);border:1px solid var(--ln)}.mst2 .ms b{color:var(--ink)}
-#grid.nrp .mst2{padding:16px 14px 14px;border-radius:0 0 16px 16px;margin-bottom:14px}#grid.nrp .mst2 .mt{width:48px;height:48px;font-size:26px;border-radius:13px}#grid.nrp .mst2 .mn{font-size:28px}#grid.nrp .mst2 .ma{display:none}#grid.nrp .mst2 .mg{font-size:14px}
+.mst2{grid-column:1/-1;border-top:4px solid var(--mb);background:color-mix(in srgb,var(--mb) 7%,var(--bg));border-radius:0 0 14px 14px;padding:12px 16px 12px;margin:0 0 14px}
+.mst2 .mr{display:flex;align-items:center;gap:12px}
+.mst2 .mt{width:42px;height:42px;border-radius:12px;background:var(--mb);color:#fff;font:800 22px var(--serif);display:grid;place-items:center;flex:none}
+.mst2 .mr>div:nth-child(2){flex:1;min-width:0}.mst2 .mn{padding:0;font:800 clamp(20px,2.4vw,26px)/1.1 var(--serif);letter-spacing:-.01em;margin:0}
+.mst2 .mg{font:italic 14px/1.35 var(--serif);color:var(--mut);margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mst2 .mu{font:600 10.5px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-top:3px}
 
 .nr-meta{font:italic 15px var(--serif);color:var(--mut);margin:2px 2px 14px}
 #grid .card.nr{min-height:0;border-radius:16px;content-visibility:visible}
@@ -2055,6 +2087,13 @@ body:not(.narrow){--hdr:84px}body:not(.narrow) .top{height:var(--hdr);box-sizing
 #grid .nr-s{grid-template-columns:minmax(0,1fr) 104px!important}
 #grid .nr-sm .nr-row h3{font-size:clamp(16px,1.15vw,20px);font-weight:700;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
 #grid .nr-sm .nr-row{grid-template-columns:minmax(0,1fr) clamp(96px,24%,128px);padding:16px 0}
+/* tablet and website: the photo sits at the right and the headline and summary wrap around it, then use the space underneath, instead of leaving it empty */
+#grid:not(.nrp) .card.nr-row:not(.noimg),#grid:not(.nrp) .nr-sm .card.nr-row:not(.noimg){display:flow-root}
+#grid:not(.nrp) .card.nr-row:not(.noimg)>img{float:right;position:static;width:128px;height:auto;aspect-ratio:3/2;margin:0 0 3px 14px}
+#grid:not(.nrp) .nr-sm .card.nr-row:not(.noimg)>img{width:clamp(96px,24%,128px)}
+#grid:not(.nrp) .nr-trl .card.nr-row:not(.noimg)>img{width:150px}
+#grid:not(.nrp) .card.nr-row.nr-m:not(.noimg)>img{width:112px}
+#grid:not(.nrp) .card.nr-row:not(.noimg)>.tx{display:block}
 #grid .nr-late .star,#grid .nr-row .star,#grid .nr-late .why,#grid .nr-row .why{opacity:0;transition:opacity .15s}
 #grid .nr-late:hover .star,#grid .nr-row:hover .star,#grid .nr-late:hover .why,#grid .nr-row:hover .why{opacity:1}
 #grid .nr-late .star,#grid .nr-row .star{top:auto;bottom:9px;right:0;width:28px;height:28px}
@@ -2081,7 +2120,7 @@ body:not(.narrow){--hdr:84px}body:not(.narrow) .top{height:var(--hdr);box-sizing
 .nr-river h4,.nr-river .trh{border-bottom:2px solid var(--ink);padding-bottom:9px}
 .nr-river h4{border-top:3px solid var(--ink);margin-top:0}
 .nr-river .trh small{margin-left:10px;font:italic 13px var(--serif);letter-spacing:0;text-transform:none;color:var(--mut)}
-.nr-rv{display:grid;grid-template-columns:1fr 1fr;column-gap:44px}
+.nr-rv{display:block;column-count:2;column-gap:44px}.nr-rv>.card{break-inside:avoid;-webkit-column-break-inside:avoid}
 .nr-rv3{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:36px}
 .nr-rv>.card:nth-child(-n+2){border-top:0!important}.nr-rv3>.card:nth-child(-n+3){border-top:0!important}
 /* The Daily on wide screens */
@@ -2094,7 +2133,7 @@ body:not(.narrow){--hdr:84px}body:not(.narrow) .top{height:var(--hdr);box-sizing
 .nr-trend .trh,.nr-lr .trh{margin-bottom:12px}
 .nr-more{grid-column:1/-1;height:1px}
 #grid>.nr-river,#grid>.nr-lr,#grid>.nr-trend,#grid>.nr-sec{grid-column:1/-1;min-width:0}
-@media(max-width:1240px){#grid .nr-top{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}#grid .nr-top .nr-rail{grid-column:1/-1}.nr-rl{max-height:none;display:grid;grid-template-columns:1fr 1fr;column-gap:30px}.nr-rl>.card:nth-child(-n+2){border-top:0!important}.nr-seg{grid-template-columns:minmax(0,1fr) 270px;gap:28px}.nr-sec{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.nr-sec .nr-sx{grid-column:1/-1}.nr-rv3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1240px){#grid .nr-top{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}#grid .nr-top .nr-rail{grid-column:1/-1}.nr-rl{max-height:none;display:block;column-count:2;column-gap:30px}.nr-rl>.card{break-inside:avoid;-webkit-column-break-inside:avoid}.nr-rl>.card:first-child{border-top:0!important}.nr-seg{grid-template-columns:minmax(0,1fr) 270px;gap:28px}.nr-sec{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.nr-sec .nr-sx{grid-column:1/-1}.nr-rv3{grid-template-columns:repeat(2,minmax(0,1fr))}}
 #grid .nr-trl .nr-row p,#grid .nr-trl .also,#grid .nr-mid .also,#grid .nr-sec .also,#grid .nr-late .also{display:none}
 #grid .nr-trl .nr-row{grid-template-columns:minmax(0,1fr) 150px}
 /* feed headline fonts (--fd, loaded with the theme via THF): one readable, modern face per theme; story fonts are untouched. Weight comes from --fw so lists are not heavy */
@@ -2278,6 +2317,7 @@ html{font-synthesis-weight:none}
 .nr-rv{column-gap:28px}
 #grid .card.nr-pq1{grid-template-columns:minmax(0,1fr);gap:20px}
 #grid .nr-pq1>.tx,#grid .nr-pq1>img{grid-column:1;grid-row:auto}
+#grid .nr-pq1>img{aspect-ratio:16/9;max-height:300px}
 #grid .card.nr-colr{grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:260px}
 #grid .nr-colr .tx{padding:26px 26px}
 .nr-sec,.nr-sec.nr-f,.nr-sec.nr-w{grid-template-columns:minmax(0,1fr);gap:22px}
@@ -2286,7 +2326,8 @@ html{font-synthesis-weight:none}
 .nr-sec .nr-sx,.nr-sec.nr-f .nr-sx,.nr-sec.nr-w .nr-sx{order:3;grid-column:1;grid-row:auto;display:grid;grid-template-columns:1fr 1fr;column-gap:26px}
 .nr-sec .nr-sw3{order:2;grid-column:1}
 .nr-tr{grid-template-columns:minmax(0,1fr);gap:20px}
-.nr-trl{display:grid;grid-template-columns:1fr 1fr;column-gap:26px}
+/* two columns that fill independently, so one tall headline no longer leaves a blank beside it */
+.nr-trl{display:block;column-count:2;column-gap:26px}.nr-trl>.card{break-inside:avoid;-webkit-column-break-inside:avoid;margin-bottom:0}
 .nr-tb .card{min-height:300px}
 .nr-trio>.card:nth-child(3),.nr-t3>.card:nth-child(3),.nr-sw3>.card:nth-child(3){grid-column:1/-1}
 .nr-trio>.card:nth-child(3)>img,.nr-t3>.card:nth-child(3)>img,.nr-sw3>.card:nth-child(3)>img{aspect-ratio:16/7}
@@ -2374,7 +2415,7 @@ html.smooth .cover::before{mix-blend-mode:normal!important}
  <div id="sbh" role="separator" aria-orientation="vertical" aria-label="Resize feeds list" tabindex="0" title="Drag to resize. Double-tap to reset."></div>
 </aside>
 <main>
- <div class="top"><button class="ib" id="menu" aria-label="Feeds"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button><span id="tlp" aria-hidden="true"></span><h1 id="ttl">All stories</h1><div class="srch" id="srch"><input id="q" type="search" placeholder="Search stories" aria-label="Search stories"><button class="ib" id="sb" aria-label="Search" title="Search"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button></div><button class="ib" id="mr" aria-label="Mark all as read" title="Mark all as read"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 12.5 4 4L14 9"/><path d="m10.5 15.5 1 1L20 8"/></svg></button><button class="ib" id="vw" aria-label="Switch layout" title="Switch layout"></button><button class="ib" id="ref" aria-label="Refresh" title="Refresh"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></svg></button></div>
+ <div class="top"><button class="ib" id="menu" aria-label="Feeds"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button><span id="tlp" aria-hidden="true"></span><h1 id="ttl">All stories</h1><button class="ib" id="mr" aria-label="Mark all as read" title="Mark all as read"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 12.5 4 4L14 9"/><path d="m10.5 15.5 1 1L20 8"/></svg></button><button class="ib" id="vw" aria-label="Switch layout" title="Switch layout"></button><button class="ib" id="ref" aria-label="Refresh" title="Refresh"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></svg></button><div class="srch" id="srch"><input id="q" type="search" placeholder="Search stories" aria-label="Search stories"><button class="ib" id="sb" aria-label="Search" title="Search"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button></div></div>
  <div class="grid" id="grid"></div>
 </main>
 <div id="rd"><div class="sheet" id="sheet"></div><div class="selbar" id="selbar" hidden><div class="sbr"><button class="dot c-v" data-s="hl" data-c="v" aria-label="Highlight in violet"></button><button class="dot c-y" data-s="hl" data-c="y" aria-label="Highlight in yellow"></button><button class="dot c-g" data-s="hl" data-c="g" aria-label="Highlight in green"></button><button class="dot c-r" data-s="hl" data-c="r" aria-label="Highlight in pink"></button><button data-s="note">Note</button></div><div class="sbr"><button data-s="copy">Copy</button><button data-s="img">Share</button><button data-s="follow">Follow</button></div></div></div>
@@ -2704,7 +2745,25 @@ function tidyFrag(f){
 }
 /* video pages and menus: drop the "video player was slow" feedback form and runs of one-word link menus that some sites leave inside the article body */
 const VIDJ=/(video player was slow to load|video content (never loaded|did not start)|\bad (never loaded|froze|prevented|was repetitive)\b(?!.{60})|content moved around while ad loaded|audio on ad was too loud|^\s*(\[x\]\s*)?other issues|^\s*cancel\s*submit\s*$|^\s*thank you!?\s*$|your effort and contribution in providing this feedback)/i,MENUJ=/^(more|watch|listen|subscribe|watchlistensubscribe|sign in|log in|search|skip to (main )?content|accept( all( cookies)?)?|manage my choices|try again|previous( next)?|next|menu( menu)?|settings|headings|topics|by region|home|shows|live|newsfeed|en|français|english|español|عربي|follow|share|issued on:?.*|reading time \d+ ?min|\d{1,2}:\d{2}( ?min)?|cover image:.{0,80})$/i,CHROMEJ=/(browser extensions? seems to be blocking|you must enable adver|advertisement tracking and audience|to display this content from|manage my choices|^\s*we use cookies|^.{0,50}cookie (policy|settings|preferences)|accept all (cookies)?|skip to main content|international breaking news,? top stories|^\s*\d\.\s+\w[\w ]*(\s+\d\.\s+\w[\w ]*){1,})/i,STARLIST=/^(?:[^*]{1,60}\*\s*){3,}[^*]{0,60}$/;
+const CREDITJ=/^(photo|image|picture|credit|illustration|source)s?\s*[:\/]|\/\s*(shutterstock|getty( images)?|ap( photo)?|reuters|afp|alamy|istock|unsplash|pexels|ap images)\s*$|^(shutterstock|getty images|associated press)\s*$/i;
+/* a cookie / privacy consent block at the end of a page ("Confirm My Choices", "Consent powered by Ethyca", "Allow Sale/Targeted Advertising?") together with the consent paragraphs just before it */
+const CONSENTJ=/(confirm my choices|reject all\b.*accept all|consent powered by|allow sale\/targeted advertising|\bethyca\b|open navigation menu|^\s*\[[x ]\]\s*(on|off)\s*$|^\s*save this story\s*$|\$\d[\d.,]*\s*per (week|month|year)\b)/i,CONSENTW=/(cookies?\b|personal (information|data)|targeted advertising|third part(y|ies)|privacy (notice|policy)|profile of your interests|sharing tools|allow sale|do not sell|opt[- ]?out)/i;
+function pruneConsent(root){
+ try{const bl=[...root.querySelectorAll('p,li,h2,h3,h4,blockquote,div')].filter(e=>!e.querySelector('p,li,h2,h3,h4,blockquote,div,img,figure'));
+  const all=root.textContent.length||1;let acc=0;const pos=bl.map(e=>{const q=acc/all;acc+=e.textContent.length;return q});
+  const i0=bl.findIndex((e,i)=>pos[i]>.55&&CONSENTJ.test(e.textContent.replace(/\s+/g,' ').trim())&&e.textContent.length<400);
+  if(i0<0)return;let st=i0;while(st>0){const t=bl[st-1].textContent.replace(/\s+/g,' ').trim();if(t.length<900&&(CONSENTW.test(t)||CONSENTJ.test(t)||t.length<40))st--;else break}
+  bl.slice(st).forEach(e=>{if(root.contains(e))e.remove()});
+  root.querySelectorAll('ul,ol').forEach(u=>{if(!u.textContent.trim())u.remove()});
+ }catch(e){}
+}
 function pruneJunk(root){
+ pruneConsent(root);
+ /* a lone photo credit ("vfhnb12/Shutterstock") and a short list of topic links ("Gaming, Xbox") at the very start or end are page furniture, not story text */
+ try{const all=root.textContent.length||1;let seen=0;
+  [...root.children].forEach(e=>{const t=e.textContent.replace(/\s+/g,' ').trim();const pos=seen/all;seen+=e.textContent.length;
+   if(t.length&&t.length<80&&!e.querySelector('img')&&/^(P|DIV|FIGCAPTION|SPAN)$/.test(e.tagName)&&CREDITJ.test(t)){e.remove();return}
+   if(/^(UL|OL)$/.test(e.tagName)&&(pos<.12||pos>.8)){const li=[...e.children].filter(x=>x.tagName==='LI');if(li.length>=2&&li.length<=10&&li.every(x=>{const tt=x.textContent.replace(/\s+/g,' ').trim();const a=x.querySelectorAll('a');return tt.length<=28&&a.length===1&&a[0].textContent.replace(/\s+/g,' ').trim()===tt}))e.remove()}})}catch(e){}
  const kids=[...root.querySelectorAll('p,li,div,h2,h3')];/* the article is detached from the page, so isConnected would always be false */
  kids.forEach(e=>{if(e.children.length>8)return;const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length&&t.length<700&&(VIDJ.test(t)||MENUJ.test(t)||CHROMEJ.test(t)||(t.length<400&&STARLIST.test(t))))e.remove()});
  /* lists made only of short labels are menus, not part of the story */
@@ -2987,7 +3046,7 @@ const feedRow=x=>`<div class="fr ${S.sel==='s:'+x.id?'on':''}${paused(x)?' pz':'
 const fold=id=>!!(S.fcol&&S.fcol[id]);
 const chev=id=>`<u class="chv ${fold(id)?'':'open'}" data-tgl="${id}" role="button" aria-label="${fold(id)?'Expand':'Collapse'}" title="${fold(id)?'Expand':'Collapse'}"></u>`;
 function side(){
- let h=`<div class="nav ${S.sel==='today'||S.sel==='brief'||S.sel==='digest'?'on':''}" data-sel="today">The Daily${(()=>{const b=S.brief&&S.brief.day===new Date().toDateString()?S.brief.links.filter(l=>!S.read[l]).length:0;return b?bad(b):''})()}</div><div class="nav ${S.sel==='all'?'on':''}" data-sel="all">All stories${bad(uc(S.feeds))}</div>`;
+ let h=`<div class="nav ${S.sel==='today'||S.sel==='brief'||S.sel==='digest'?'on':''}" data-sel="today">The Daily${(()=>{const b=S.brief&&S.brief.day===new Date().toDateString()?S.brief.links.filter(l=>!S.read[l]).length:0;return b?bad(b):''})()}</div><div class="nav sub ${S.sel==='brief'?'on':''}" data-bm="brief">Brief</div><div class="nav sub ${S.sel==='digest'&&!S.dgk?'on':''}" data-bm="edition">Edition</div><div class="nav sub ${S.sel==='digest'&&S.dgk==='week'?'on':''}" data-bm="week">Week</div><div class="nav ${S.sel==='all'?'on':''}" data-sel="all">All stories${bad(uc(S.feeds))}</div>`;
  const bot=`<div class="nav ${S.sel==='saved'?'on':''}" data-sel="saved">Saved${bad(S.saved.length)}</div><div class="nav ${S.sel==='notes'?'on':''}" data-sel="notes">Highlights${bad(S.hl.length)}</div><div class="nav ${S.sel==='hist'?'on':''}" data-sel="hist">History</div><div class="nav ${S.sel==='stats'?'on':''}" data-sel="stats">Stats</div>`;
  for(const f of S.folders)h+=`<div class="fold" data-drop="${f.id}"><div class="fh ${S.sel==='f:'+f.id?'on':''}" data-sel="f:${f.id}">${chev(f.id)}<span>${esc(f.name)}</span>${bad(uc(S.feeds.filter(x=>x.folder===f.id)))}<i data-delf="${f.id}" title="Delete folder">×</i></div>${fold(f.id)?'':S.feeds.filter(x=>x.folder===f.id).map(feedRow).join('')}</div>`;
  const un=S.feeds.filter(x=>!S.folders.some(f=>f.id===x.folder));
@@ -3020,7 +3079,7 @@ let VW=innerWidth;addEventListener('resize',()=>{VW=innerWidth},{passive:true});
 const layoutKey=()=>((S.narrow||'auto')==='auto'&&VW<=500)+'|'+(VW<700)+'|'+(VW>=840);let LK=layoutKey();
 function covFit(){document.querySelectorAll('.cover .cvlead h2').forEach(h=>{const n=(h.textContent||'').trim().length;h.classList.toggle('l1',n>58&&n<=88);h.classList.toggle('l2',n>88)})}
 let _lastSel=null;const SELPOS={};/* where each feed was left, so coming back to it resumes there instead of the top */
-function render(){if(NEWP){NEWP=false;newPill(false)}setTimeout(endObs,60);LK=layoutKey();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){if(mn0&&_lastSel!==null)SELPOS[_lastSel]={y:mn0.scrollTop,t:Date.now(),k:LK};_lastSel=S.sel;const sm=SELPOS[S.sel];if(sm&&Date.now()-sm.t<18e5&&sm.k===LK&&sm.y>40)keep=sm.y;else if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();secOpener();covTitle();covFit();dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=S.cards||'medium';clearTimeout(PF.t);PF.t=setTimeout(()=>prefetch(pfList()),2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
+function render(){if(NEWP){NEWP=false;newPill(false)}setTimeout(endObs,60);LK=layoutKey();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){if(mn0&&_lastSel!==null)SELPOS[_lastSel]={y:mn0.scrollTop,t:Date.now(),k:LK};_lastSel=S.sel;const sm=SELPOS[S.sel];if(sm&&Date.now()-sm.t<18e5&&sm.k===LK&&sm.y>40)keep=sm.y;else if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();secOpener();covTitle();covFit();dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=(S.sel==='today'&&!$('#q').value.trim())?'narrow':(S.cards||'medium');clearTimeout(PF.t);PF.t=setTimeout(()=>prefetch(pfList()),2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
 function starGuard(){
  /* reads first, writes after, so the page is laid out once instead of once per card */
  try{
@@ -3124,6 +3183,8 @@ function autoMast(o,t){
  return 'wash';
 }
 const BUSY=40;
+/* a pull-quote card whose photo never loads (blocked, broken or still empty) falls back to the text-only card instead of keeping an empty photo slot */
+document.addEventListener('error',e=>{const im=e.target;if(im&&im.tagName==='IMG'){const c=im.closest&&im.closest('#grid .nr-pq');if(c&&!c.classList.contains('noimg')){c.classList.add('noimg');im.style.display='none'}}},true);
 function imgFx(){
  document.querySelectorAll('#grid .cover').forEach(cv=>{const im=cv.querySelector(':scope>img');if(!im)return;const u=im.getAttribute('src');
   const ap=o=>{if(!o||!cv.isConnected)return;try{const au=document.documentElement.classList.contains('mast-auto');['frost','wash','rule','glow','italic','tint'].forEach(k=>cv.classList.remove('cm-'+k));if(au&&o.l!=null){const h=cv.querySelector('.cvlead h2');cv.classList.add('cm-'+autoMast(o,h?h.textContent:''))}}catch(e){}cv.classList.toggle('flip',!!o.f);try{if(o.px!=null){const ci=cv.querySelector(':scope>img');if(ci)ci.style.objectPosition=o.px+'% '+o.py+'%'}}catch(e){}if(o.t&&isOn('ptint'))cv.style.setProperty('--b',o.t);if(o.l>125&&S.scrim!=='panel')cv.classList.add('bright');if(o.t&&isOn('ctint')&&!/^(cyber|terminal)/.test(document.documentElement.dataset.theme||'')&&document.documentElement.dataset.theme!=='dynamic')document.body.style.setProperty('--tint','color-mix(in srgb,'+o.t+' 22%,var(--bg))')};
@@ -3196,15 +3257,8 @@ function render0(){
 
 
 function mastHtml(f,list){
- if(!f)return'';const col=brand(f),un=list.filter(a=>!S.read[a.link]).length,ms=list.reduce((m,a)=>Math.max(m,a.date),0);
- const days=list.length>1?(Math.max(1,(list[0].date-list[list.length-1].date)/864e5)):0,pd=days?list.length/Math.max(days,1):0;
- const wk=Date.now()-6048e5,rd=S.hist.filter(h=>h.fid===f.id&&h.t>wk).length;
- const hs=host(f.url).replace(/^www\./,'');const nm=esc(f.title||hs);
- const chips=[`<span><b>${list.length}</b> ${list.length===1?'story':'stories'}</span>`,`<span><b>${un}</b> unread</span>`];
- if(pd>=.5)chips.push(`<span>about <b>${pd>=10?Math.round(pd):(Math.round(pd*10)/10)}</b> a day</span>`);
- if(ms)chips.push(`<span>newest ${esc(ago(ms))} ago</span>`);
- if(rd)chips.push(`<span>You read <b>${rd}</b> of its stories this week</span>`);
- return `<div class="mst2" style="--mb:${col}"><div class="mr"><div class="mt" aria-hidden="true">${esc((f.title||hs).trim().charAt(0).toUpperCase())}</div><div style="min-width:0"><h2 class="mn">${nm}</h2>${f.desc?`<div class="mg">${esc(String(f.desc).slice(0,110))}</div>`:''}<div class="mu">${esc(hs)}</div></div><div class="ma"><button type="button" class="fl" disabled>Following ✓</button><button type="button" data-msnz="${esc(f.id)}">Mute for a week</button></div></div><div class="ms">${chips.join('')}</div></div>`;
+ if(!f)return'';const col=brand(f),hs=host(f.url).replace(/^www\./,'');const nm=esc(f.title||hs);
+ return `<div class="mst2" style="--mb:${col}"><div class="mr"><div class="mt" aria-hidden="true">${esc((f.title||hs).trim().charAt(0).toUpperCase())}</div><div style="min-width:0"><h2 class="mn">${nm}</h2>${f.desc?`<div class="mg">${esc(String(f.desc).slice(0,140))}</div>`:''}<div class="mu">${esc(hs)}</div></div></div></div>`;
 }
 /*PROGRESS RING*/
 const ringSvg=(n,t,sz,sw)=>{const r=(sz-sw)/2,c=2*Math.PI*r,f=t?Math.min(1,n/t):0;return `<svg class="rg" width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" aria-hidden="true"><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--ln)" stroke-width="${sw}"/><circle class="rgf" cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--rg,#1f8a5b)" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${(c*f).toFixed(1)} ${c.toFixed(1)}"/></svg>`};
@@ -3334,10 +3388,10 @@ const STOPL=new Set(['that','this','with','from','have','will','your','their','a
 const toks=a=>[...new Set(((a.title||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/)).filter(w=>w.length>3&&!STOPL.has(w)))];
 const likeScore=a=>{const k=S.lk;if(!k)return 0;let v=(k.s[a.feedId]||0)*2;for(const w of toks(a))v+=k.w[w]||0;return Math.max(-12,Math.min(12,v))};
 const rankOf=a=>a.date+likeScore(a)*5400000+Math.min(6,(a.more||[]).length)*7200000;
-function likeA(a,d){const k=S.lk=S.lk||{s:{},w:{}},prev=JSON.stringify(k);
+function likeA(a,d,msg){const k=S.lk=S.lk||{s:{},w:{}},prev=JSON.stringify(k);
  k.s[a.feedId]=Math.max(-5,Math.min(5,(k.s[a.feedId]||0)+d));toks(a).forEach(w=>{k.w[w]=Math.max(-4,Math.min(4,(k.w[w]||0)+d));if(!k.w[w])delete k.w[w]});
  const ws=Object.keys(k.w);if(ws.length>400)ws.slice(0,ws.length-300).forEach(w=>delete k.w[w]);
- save();render();toast(d>0?'You’ll see more like this':'You’ll see less like this',()=>{S.lk=JSON.parse(prev);save();render()})}
+ save();render();toast(msg||(d>0?'You’ll see more like this':'You’ll see less like this'),()=>{S.lk=JSON.parse(prev);save();render()})}
 function topOf(fs,n,skip,pred){
  fs=fs.filter(f=>!paused(f)&&!f.noToday);
  let l=fs.flatMap(f=>items[f.id]||[]).filter(a=>!muted(a)&&!skip.has(a.link)&&(!pred||pred(a))&&!(S.hideRead&&S.read[a.link])).sort((a,b)=>b.date-a.date);
@@ -3434,7 +3488,54 @@ function storyQuote(pool){
  const f=fof(a);
  return `<a class="pqc" href="${esc(a.link)}" data-i="${cur.length-1}" style="--b:${brand(f)}"><blockquote>${esc(q)}</blockquote><footer><i class="av">${esc((f.title||'?').trim().charAt(0).toUpperCase())}</i><span><b>${esc(f.title)}</b><small>${esc(a.title)}</small></span></footer></a>`;
 }
-function renderToday(){renderToday0();const g=$('#grid');if(g&&!g.querySelector('.bmseg'))g.insertAdjacentHTML('afterbegin',bmSeg('front'))}
+/* The Daily: four tabs. Latest (the cover, today's progress, quick links, then the newest stories), Top (stories several of your sites are covering), Quick (about 1 to 3 minutes) and Deep (about 10 minutes or more) */
+const DTABS=[['latest','Latest'],['top','Top'],['quick','Quick'],['deep','Deep']];
+const dtab=()=>DTABS.some(x=>x[0]===S.dtab)?S.dtab:'latest';
+/* minutes to read: the measured time if the story has been opened, else from the feed's own text when that is long enough to mean something (a short teaser says nothing about the real length) */
+const minsOf=a=>{const m=S.rt[a.link];if(m)return m;const w=+a.wc||0;return w>=120?Math.max(1,Math.round(w/230)):0};
+const dLinks=()=>`<div class="dlinks"><button type="button" data-bm="brief">Brief</button><button type="button" data-bm="edition">Edition</button><button type="button" data-bm="week">Week</button></div>`;
+function renderToday(){
+ const g=$('#grid');$('#ttl').textContent='The Daily';const tab=dtab();
+ const pool=topOf(S.feeds,200,new Set());
+ if(!pool.length){
+  const busy=S.feeds.some(f=>state[f.id]==='load'||!state[f.id]);
+  cur=[];g.innerHTML=bmSeg(tab)+(busy?skel(6):`<div class="empty">${S.feeds.length?'Nothing came through yet.'+EA('rf','hl'):'No feeds yet.'+EA('ad','sp')}</div>`);return;
+ }
+ const byDate=pool.slice().sort((a,b)=>b.date-a.date);
+ for(const k in WHY)delete WHY[k];
+ let h=bmSeg(tab),list=[],label='',empty='';
+ if(tab==='latest'){
+  let lead=pool.find(a=>!S.read[a.link]&&a.img)||pool.find(a=>a.img)||pool[0];
+  {const busy=Object.values(state).some(v=>v==='load'),pv=LEADK&&pool.find(a=>a.link===LEADK&&a.img&&!S.read[a.link]);if(busy&&pv)lead=pv;LEADK=lead&&lead.link}
+  const unread=uc(S.feeds),useCover=isOn('cover')&&lead.img&&!document.body.classList.contains('split');
+  cur=[lead];
+  h+=useCover?coverHtml(lead,pool)+`<div class="dateline"><span>Inside · ${esc(shortDate())}</span><small>${unread?unread+' unread':'All caught up'}</small></div>`:`<div class="dateline"><span>${esc(edition())} · Vol. ${volNo()} · ${esc(shortDate())}</span><small>${unread?unread+' unread':'All caught up'}</small></div>`+(WHY[lead.link]=whyLead(lead),card(lead,0,'lead'));
+  const shown=new Set(cur.map(a=>a.link));(lead.more||[]).forEach(m=>shown.add(m.l));
+  list=byDate.filter(a=>!shown.has(a.link)).slice(0,40);label='Latest';
+  DGL=cur.concat(list).slice(0,25).map(a=>a.link);
+  h+=dgProgHtml()+fiveChip()+dLinks()+continueRow();
+ }else{
+  cur=[];
+  const now=Date.now();
+  if(tab==='top'){
+   const rec=pool.filter(a=>a.date>now-72*36e5);
+   list=rec.filter(a=>(a.more||[]).length>0).sort((a,b)=>(b.more.length-a.more.length)||(b.date-a.date)).concat(rec.filter(a=>!(a.more||[]).length)).slice(0,40);
+   label='Top stories';empty='Nothing is trending across your sites right now.';
+   list.forEach(a=>{WHY[a.link]=(a.more||[]).length?`Covered by ${a.more.length+1} of your sites.`:'A top story from '+fof(a).title+'.'});
+  }else if(tab==='quick'){
+   list=byDate.filter(a=>{const m=minsOf(a);return m>=1&&m<=3}).slice(0,40);label='Quick reads · about 1 to 3 minutes';
+   empty='No short reads yet. A story shows up here once its length is known, which for some sites is after it has been opened.';
+  }else{
+   list=byDate.filter(a=>minsOf(a)>=10).slice(0,40);label='Deep dives · about 10 minutes or more';
+   empty='No long reads yet. A story shows up here once its length is known, which for some sites is after it has been opened.';
+  }
+ }
+ const base=cur.length;
+ list.forEach(a=>{cur.push(a);if(!WHY[a.link])WHY[a.link]=tab==='latest'?`One of your newest stories, from ${fof(a).title}.`:tab==='quick'?`A short read (about ${minsOf(a)} min) from ${fof(a).title}.`:`A long read (about ${minsOf(a)} min) from ${fof(a).title}.`});
+ h+=list.length?`<div class="dlh">${esc(label)}</div>`+list.map((a,i)=>card(a,base+i,'')).join(''):`<div class="empty dempty">${esc(empty||'Nothing here yet.')}</div>`;
+ g.innerHTML=h;
+ g.querySelectorAll('.card').forEach(c=>{const w=c.querySelector(':scope>.why'),sr=c.querySelector('.src');if(w&&sr)sr.append(w)});
+}
 function renderToday0(){
  $('#ttl').textContent='The Daily';
  const skip=new Set(),pool=topOf(S.feeds,20,skip);
@@ -4035,7 +4136,7 @@ async function openReader(a){
  document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',c.getAttribute('href')===a.link));
  const dt=a.date?new Date(a.date).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'';
  const cov=(a.more&&a.more.length)?`<div class="cov"><b>Also covered by</b>${a.more.map(m=>`<a target="_blank" rel="noopener" href="${esc(m.l)}">${esc(fof({feedId:m.f}).title)}: ${esc(m.t)}</a>`).join('')}</div>`:'';
- sh.innerHTML=`<div class="bar"><button class="ib" id="fdn" aria-label="Feeds and stories" title="Feeds and stories">${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><div class="bs">${esc(f.title)}</div><span id="pc"></span><button class="ib" id="st" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings">${svg(TUNE)}</button>`:''}<button class="ib" id="wb" aria-label="View the site here" title="View the site here">${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page">${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page">${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button><button class="ib" id="cl" aria-label="Close" title="Close">${svg('<path d="M6 6l12 12M18 6 6 18"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec))+(hasSec(a.sec,a.feedId)?'':'<button class="flw" data-fsec>Follow</button>'):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener" href="${esc(a.link)}">Read on ${esc(host(a.link))}</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p>This site can’t be shown inside the app. It may block automated access.</p><div><a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
+ sh.innerHTML=`<div class="bar"><button class="ib" id="fdn" aria-label="Feeds and stories" title="Feeds and stories">${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><div class="bs">${esc(f.title)}</div><span id="pc"></span><button class="ib" id="st" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings">${svg(TUNE)}</button>`:''}<button class="ib" id="fcs" aria-label="Focus mode" aria-pressed="false" title="Focus mode: hide the controls for distraction-free reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site here" title="View the site here">${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page">${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page">${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button><button class="ib" id="cl" aria-label="Close" title="Close">${svg('<path d="M6 6l12 12M18 6 6 18"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec))+(hasSec(a.sec,a.feedId)?'':'<button class="flw" data-fsec>Follow</button>'):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener" href="${esc(a.link)}">Read on ${esc(host(a.link))}</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p>This site can’t be shown inside the app. It may block automated access.</p><div><a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
  if(R.T){cancelAnimationFrame(R.T.raf);R.T.dead=true;R.T=null}
  R.pg=0;R.busy=false;R.web=false;R.auto=false;RDY=null;_vm=isVert();R.inBrief=S.sel==='brief'&&!!(S.brief&&S.brief.links.includes(a.link));
  $('#rd').classList.add('on');applyFs(false);applyFolderTheme();
@@ -4080,6 +4181,7 @@ function needFont(k){
 function applyFs(re){needFont(fontKey());if(S.font==='dys'){document.fonts&&document.fonts.load("18px 'OpenDyslexic'").then(()=>relayout(),()=>{})}const r=$('#rd'),sp=!!S.sep&&S.theme!=='dynamic';r.style.setProperty('--fs',S.fs+'px');r.style.setProperty('--rf',FONTS[fontKey()]||FONTS.serif);r.style.setProperty('--ls',S.font==='dys'?'.02em':'normal');r.style.setProperty('--ws',S.font==='dys'?'.12em':'normal');rdVars();r.classList.toggle('sep',sp);document.documentElement.classList.toggle('sepp',sp);save();if(re)relayout()}
 function refreshReader(){if($('#rd').classList.contains('on'))applyFs(true)}
 const SPK='<path d="M4 10v4h3.5L12 18V6L7.5 10z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/>',PAUSE='<path d="M9 6v12M15 6v12"/>';
+const FOCUSI='<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>';
 const PLAY='<path d="M8 5.5v13l10-6.5z"/>',TUNE='<path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/>',GLOBE='<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.5 2.3 3.5 5 3.5 8s-1 5.7-3.5 8c-2.5-2.3-3.5-5-3.5-8s1-5.7 3.5-8z"/>',PAGE='<path d="M6 4h9l3 3v13H6z"/><path d="M9 11h6M9 15h6"/>',SKB='<path d="M7 6v12M18 6l-8 6 8 6z"/>',SKF='<path d="M17 6v12M6 6l8 6-8 6z"/>';
 const TTS={on:false,paused:false,id:0,words:[],sent:[],wi:0,timer:0};
 document.addEventListener('visibilitychange',()=>{TTS.vis=Date.now()});
@@ -4509,18 +4611,21 @@ $('#rd').onclick=e=>{
  const sbb=t.closest('#selbar button');if(sbb)return selAct(sbb.dataset.s,sbb.dataset.c);
  document.querySelectorAll('#pb,#mn').forEach(p=>{if(!p.hidden&&!p.contains(t)&&!t.closest('#rp')&&!t.closest('#mo'))p.hidden=true});
  if(t.closest('#fdn')){rdNav();return}
+ if(t.closest('#fcs')){focusTog();return}
  if(t.closest('#wrl')){syncRl();$('#rl').showModal();return}
+ const rt=t.closest('[data-rate]');if(rt&&curA){e.preventDefault();rateA(curA,+rt.dataset.rate);return}
  const fb=t.closest('[data-fby]');if(fb&&curA&&curA.by){S.sk.push({id:'k'+Date.now(),name:curA.by,words:[],by:curA.by,t:Date.now()});save();side();hdrFill();toast('Following stories by '+curA.by);return}
  const fsc=t.closest('[data-fsec]');if(fsc&&curA&&curA.sec){S.sk.push({id:'k'+Date.now(),name:curA.sec+' · '+fof(curA).title,words:[],sec:curA.sec,fid:curA.feedId,t:Date.now()});save();side();const k=$('.kick .flw');if(k)k.remove();toast('Following the '+curA.sec+' section');return}
  const kr=t.closest('[data-kr]');if(kr){const n=findStory(kr.dataset.kr);if(n)openReader(n);return}
  const cp=t.closest('.cpy');if(cp){const pr=cp.parentElement.querySelector('pre');navigator.clipboard.writeText(pr?pr.textContent:'').then(()=>{cp.classList.add('done');setTimeout(()=>cp.classList.remove('done'),1400)},()=>toast('Couldn’t copy'));return}
+ /* a picture always opens in the in-app viewer, even when the site wrapped it in a link */
+ const gim=t.closest('.cols img');if(gim&&!gim.closest('.emb')&&!R.noClick&&!R.web&&!(getSelection()+'')){e.preventDefault();openGal(gim);return}
  const lk=t.closest('.cols .body a[href]');if(lk&&!lk.closest('.emb')&&!R.noClick&&!R.web&&!(getSelection()+'')){e.preventDefault();extOpen(lk.href);return}
  const bn=t.closest('[data-bnext]');if(bn){const n=briefNext();if(n)openReader(n);return}
  if(t.closest('[data-bfin]'))return closeRd();
  const sp=t.closest('[data-aspd]');if(sp){S.prate=+sp.dataset.aspd;S.setT=Date.now();save();const au=$('.cols .aud audio');if(au)au.playbackRate=S.prate;document.querySelectorAll('[data-aspd]').forEach(b=>b.classList.toggle('on',b===sp));return}
- const gim=t.closest('.cols img');if(gim&&!gim.closest('.emb')&&!R.noClick&&!R.web&&!(getSelection()+'')){openGal(gim);return}
  if(t.closest('#pbq')){S.queue=!S.queue;save();return syncPb()}
- if(t.closest('#mo')){const m=$('#mn'),o=m.hidden;if($('#pb'))$('#pb').hidden=true;m.hidden=!o;return}
+ if(t.closest('#mo')){const m=$('#mn'),o=m.hidden;if($('#pb'))$('#pb').hidden=true;if(o)mnWebLabel();m.hidden=!o;return}
  const act=t.closest('[data-act]');if(act){$('#mn').hidden=true;return doAct(act.dataset.act)}
  if(t.closest('#wsw'))return switchReader();
  if(t.closest('#wb')||t.closest('[data-web]'))return toggleWeb();
@@ -4540,7 +4645,7 @@ $('#rd').onclick=e=>{
  const bk=t.closest('.book');
  if(bk&&!t.closest('a,summary,details,button,audio,iframe')&&!R.noClick&&!(getSelection()+'')){const r=bk.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;if(isVert()){if(y<.2)go(-1);else if(y>.72)go(1);else if(x>.85)go(1);else if(x<.15)go(-1);else focusTog()}else if(x>.7)go(1);else if(x<.3)go(-1);else focusTog()}
 };
-function focusTog(){const r=$('#rd');r.classList.toggle('focus');if(!S.fhint&&r.classList.contains('focus')){S.fhint=1;SAVE0();toast('Tap the middle of the page to bring the controls back')}setTimeout(()=>{try{relayout()}catch(e){}},40)}
+function focusTog(){const r=$('#rd');r.classList.toggle('focus');{const f=$('#fcs');if(f){const on=r.classList.contains('focus');f.classList.toggle('on',on);f.setAttribute('aria-pressed',on)}}if(!S.fhint&&r.classList.contains('focus')){S.fhint=1;SAVE0();toast('Tap the middle of the page to bring the controls back')}setTimeout(()=>{try{relayout()}catch(e){}},40)}
 addEventListener('keydown',e=>{
  if(!$('#rd').classList.contains('on'))return;
  {const tg=e.target;if((tg&&(/INPUT|TEXTAREA|SELECT/.test(tg.tagName||'')||tg.isContentEditable))||document.querySelector('dialog[open]'))return}
@@ -5131,7 +5236,9 @@ async function alsoLike(){
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-dfol]');if(!b)return;e.preventDefault();quickAdd(b.dataset.dfol,b.dataset.dn,b.dataset.dc);b.textContent='Following';b.disabled=true;toast('Following '+b.dataset.dn+'. Its stories will show up in your '+b.dataset.dc+' folder')});
 /* reader overflow menu */
-function mnMarkup(){return `<div class="pb mn" id="mn" hidden><div class="mphone"><button data-act="fdn">Feeds and stories</button><button data-act="web">View the site here</button><button data-act="rp">Playback settings</button><hr></div><button data-act="share">Share</button><button data-act="copy">Copy link</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><hr><div class="pair"><button data-act="more">More like this</button><button data-act="less">Less like this</button></div><hr><button data-act="focus">Focus mode</button><button data-act="hl">All highlights</button><button data-act="settings">Text and page settings</button><button data-act="webpref">Site view for this source</button></div>`}
+/* the menu entry says what a tap will do: switch this source to site view, or back to reader view */
+function mnWebLabel(){const fd=curA&&S.feeds.find(x=>x.id===curA.feedId);document.querySelectorAll('#mn [data-act="webpref"]').forEach(b=>{b.textContent=fd&&fd.web?'Reader view for this source':'Site view for this source'})}
+function mnMarkup(){return `<div class="pb mn" id="mn" hidden><div class="mphone"><button data-act="fdn">Feeds and stories</button><button data-act="web">View the site here</button><button data-act="rp">Playback settings</button><hr></div><button data-act="share">Share</button><button data-act="copy">Copy link</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><hr><button data-act="settings">Text and page settings</button><button data-act="webpref">Site view for this source</button></div>`}
 async function doAct(k){
  const a=curA;if(!a)return;
  if(k==='fdn'||k==='web'||k==='rp'){const b=$('#'+(k==='web'?'wb':k));if(b)b.click();return}
@@ -5142,7 +5249,7 @@ async function doAct(k){
  if(k==='less'){likeA(a,-1);return}
  if(k==='focus'){focusTog();return}
  else if(k==='copy'){try{await navigator.clipboard.writeText(a.link);toast('Link copied')}catch(e){askBox({title:'Copy this link',input:true,value:a.link,ok:'Done',cancel:'Close'})}}
- else if(k==='webpref'){const fd=S.feeds.find(x=>x.id===a.feedId);if(!fd){toast('This story’s source isn’t in your feeds');return}fd.web=!fd.web;save();toast(fd.web?fd.title+' will open in site view':fd.title+' will open in reader view')}
+ else if(k==='webpref'){const fd=S.feeds.find(x=>x.id===a.feedId);if(!fd){toast('This story’s source isn’t in your feeds');return}fd.web=!fd.web;save();mnWebLabel();toast(fd.web?fd.title+' will open in site view':fd.title+' will open in reader view')}
  else if(k==='unread'){delete S.read[a.link];save();toast('Marked as unread')}
  else if(k==='settings'){$('#gear').click()}
  else if(k==='hl'){closeRd();S.sel='notes';save();render()}
@@ -5859,7 +5966,7 @@ function prGlow(d){
  let g=$('#tlg');
  if(d<20){if(g){g.style.opacity=0;g.classList.remove('rdy')}return}
  if(!g){g=document.createElement('div');g.id='tlg';document.body.append(g)}
- const t=$('#tlp'),vis=t&&getComputedStyle(t).display!=='none',r=(vis?t:$('#ref')).getBoundingClientRect();
+ const t=$('#tlp'),vis=t&&getComputedStyle(t).display!=='none',r=(vis?t:($('#ref').getBoundingClientRect().width?$('#ref'):$('#menu'))).getBoundingClientRect();
  g.style.left=(vis?r.left+14:r.left+r.width/2)+'px';g.style.top=(r.top+(vis?14:r.height/2))+'px';
  g.style.opacity=(.18+.42*Math.min(1,d/90)).toFixed(2);
  if(d>90&&!g.classList.contains('rdy')){g.classList.add('rdy')}else if(d<=90)g.classList.remove('rdy');
@@ -5888,8 +5995,8 @@ function briefToday(force){
  for(let r=0;r<10&&out.length<10;r++)for(const l of per){const a=l[r];if(!a||out.length>=10)continue;const k=a.title.toLowerCase().slice(0,40);if(seen.has(k))continue;seen.add(k);out.push(a.link)}
  S.brief={day,links:out};save();return S.brief;
 }
-const bmSeg=m=>`<div class="segs bmseg" role="tablist" aria-label="The Daily views"><button type="button" role="tab" data-bm="front" class="${m==='front'?'on':''}">Front page</button><button type="button" role="tab" data-bm="brief" class="${m==='brief'?'on':''}">Brief</button><button type="button" role="tab" data-bm="edition" class="${m==='edition'?'on':''}">Edition</button><button type="button" role="tab" data-bm="week" class="${m==='week'?'on':''}">Week</button></div>`;
-document.addEventListener('click',e=>{const t=e.target.closest('[data-bm]');if(!t)return;const v=t.dataset.bm;if(v==='front'){S.sel='today';S.dgk=''}else if(v==='brief'){S.sel='brief';S.dgk=''}else{S.sel='digest';S.dgk=v==='week'?'week':''}save();render();const m=$('main');if(m)m.scrollTop=0});
+const bmSeg=m=>`<div class="segs bmseg" role="tablist" aria-label="The Daily">${DTABS.map(([k,t])=>`<button type="button" role="tab" data-bm="${k}" aria-selected="${m===k}" class="${m===k?'on':''}">${t}</button>`).join('')}</div>`;
+document.addEventListener('click',e=>{const t=e.target.closest('[data-bm]');if(!t)return;const v=t.dataset.bm;if(v==='front'||DTABS.some(x=>x[0]===v)){S.sel='today';S.dtab=v==='front'?'latest':v;S.dgk=''}else if(v==='brief'){S.sel='brief';S.dgk=''}else{S.sel='digest';S.dgk=v==='week'?'week':''}save();if(document.body.classList.contains('open'))drawer(false);render();const m=$('main');if(m)m.scrollTop=0});
 function renderBrief(){renderBrief0();const g=$('#grid');if(g)g.insertAdjacentHTML('afterbegin',bmSeg('brief'))}
 function renderBrief0(){
  $('#ttl').textContent='The Daily';tip('catch');
@@ -6119,8 +6226,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.05c';const APP_LABEL='1.35';
-const CHANGES=['Wide photos at the top of a story are no longer cropped into a tall box: the photo now spans the column in its own shape, with the title and details underneath and the story flowing on below it (a new “Photo on top” choice in the reading page layout setting; Automatic uses it for wide photos and keeps the tall hero for tall ones)','Thumbnails from “Related stories”, promo and ad blocks inside a story are no longer kept as if they were the story’s own pictures','The site-colour tint on card outlines (list, narrow and compact layouts) is a little stronger, so it is easier to see which site a card is from'];
+const APP_VERSION='2026.10.05d';const APP_LABEL='1.36';
+const CHANGES=['The Daily has new tabs: Latest (the cover, today’s progress, quick links to the Brief, Edition and Week, then your newest stories), Top (stories several of your sites are covering), Quick (about 1 to 3 minutes) and Deep (about 10 minutes or more). The Brief, Edition and Week now live under the cover and in the side menu, search moved to the far right of the top bar, and the refresh button is hidden on touch screens, where you pull down to refresh','Cookie and privacy consent text (“Confirm My Choices”, “Consent powered by Ethyca”, “Allow Sale/Targeted Advertising?”) left at the end of a story, such as on The New Yorker, is no longer shown as part of the story','On tablet and the website, the two-column story lists now fill each column on its own, so one long headline no longer leaves a big blank space in the column beside it or below it','On tablet and the website, story rows with a photo now wrap the headline and summary around the photo and carry on underneath it, instead of leaving an empty gap under the photo (phones are unchanged)','Tables in stories with four or more columns now read well: on a phone each row becomes a small labelled card, and on a tablet or the website the table scrolls sideways with its first column pinned and names no longer breaking in the middle of a word','Pull-quote cards whose photo is missing or fails to load no longer leave a huge empty box: the photo slot is smaller and disappears when the photo can’t load','A site’s page now opens with just its logo, name and description in a compact header: the Following and Mute buttons and the row of story counts are gone',' A lone photo credit (like “name/Shutterstock”) and a short list of topic links at the start or end of a story are no longer shown as if they were story text','Focus mode is now a button in the top bar of a story (next to the playback and site buttons) instead of a menu entry, and the same button turns it off; “All highlights” is gone from the story menu','“More like this” and “Less like this” moved out of the story menu into a thumbs-up and thumbs-down pair beside the date and reading time at the top of each story. The one you chose stays highlighted; tap it again to take it back','The “Site view for this source” menu entry now changes to “Reader view for this source” once site view is on for that source, so you can tell what a tap will do and switch back','Tapping a picture in a story always opens it in the app’s own full-screen viewer (pinch to zoom, swipe between the story’s pictures, back to close). Before, a picture the site had wrapped in a link sent you to your browser instead'];
 const DEF_ON=new Set(['intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -6243,7 +6350,9 @@ function captions(){
 function decorate(){
  const b=$('.cols .body');if(!b)return;smarten(b);furnish(b);captions();heroSpread();mnotes();photoPages();
  b.querySelectorAll('.pullq').forEach(x=>x.remove());b.querySelectorAll('.dropcap').forEach(x=>x.classList.remove('dropcap'));
- b.querySelectorAll('table').forEach(t=>{if(!t.parentElement.classList.contains('tbl')){const w=document.createElement('div');w.className='tbl';t.replaceWith(w);w.append(t)}});
+ b.querySelectorAll('table').forEach(t=>{if(!t.parentElement.classList.contains('tbl')){const w=document.createElement('div');w.className='tbl';t.replaceWith(w);w.append(t)}
+  /* column names go on each cell so a phone can show every row as its own small card */
+  try{let hd=[...t.querySelectorAll('thead th')];if(!hd.length){const r=t.querySelector('tr');if(r&&r.querySelector('th'))hd=[...r.children]}const hs=hd.map(x=>x.textContent.replace(/\s+/g,' ').trim());if(hs.length>=3&&hs.some(Boolean))t.querySelectorAll('tr').forEach(r=>{if(r.closest('thead')||r===hd[0]?.parentElement)return;[...r.children].forEach((c,i)=>{if(c.tagName==='TD'&&hs[i])c.setAttribute('data-l',hs[i])})}),t.classList.add('cardable');t.closest('.tbl').classList.toggle('wide',hs.length>=4)}catch(e){}});
  b.querySelectorAll('.endmark').forEach(x=>x.remove());
  if(!isOn('mag'))return;
  {const lp=[...b.querySelectorAll(':scope > p')].filter(p=>p.textContent.trim().length>60).pop();if(lp&&isOn('endm')){const e=document.createElement('p');e.className='endmark';e.setAttribute('aria-hidden','true');e.textContent='◆';b.append(e)}}
@@ -6303,7 +6412,12 @@ async function repairFeed(f,manual,quiet){
 
 /* ---------- cover page ---------- */
 const cmLabel=u=>/reddit\.com/.test(u)?'Discuss on Reddit':/ycombinator/.test(u)?'Discuss on Hacker News':/lobste\.rs/.test(u)?'Discuss on Lobsters':'Comments';
-function dtHtml(a,dt){const m=readMin(a);return [a.by?'<span>By '+esc(a.by)+(hasBy(a.by)?'<button class="flw" disabled>Following</button>':'<button class="flw" data-fby>Follow</button>')+'</span>':'',dt?'<span>'+esc(dt)+'</span>':'',m?'<span>'+m+' min read</span>':'',a.cm?`<a class="cmt" href="${esc(a.cm)}" target="_blank" rel="noopener">💬 ${cmLabel(a.cm)}</a>`:''].filter(Boolean).join('')}
+/* thumbs up / down in the story header: the same "more like this / less like this" signal, shown as a toggle */
+const TH_UP='<path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>',TH_DN='<path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>';
+function rateHtml(a){const v=(S.thm||{})[a.link]||0;return `<span class="rate"><button type="button" class="thb${v>0?' on':''}" data-rate="1" aria-label="More like this" aria-pressed="${v>0}" title="More like this">${svg(TH_UP)}</button><button type="button" class="thb${v<0?' on':''}" data-rate="-1" aria-label="Less like this" aria-pressed="${v<0}" title="Less like this">${svg(TH_DN)}</button></span>`}
+function rateSync(){const a=curA;if(!a)return;const v=(S.thm||{})[a.link]||0;document.querySelectorAll('.cols .thb').forEach(b=>{const on=(+b.dataset.rate)===v;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)})}
+function rateA(a,v){const m=S.thm=S.thm||{},old=m[a.link]||0,nv=old===v?0:v,delta=nv-old;if(nv)m[a.link]=nv;else delete m[a.link];const ks=Object.keys(m);if(ks.length>300)delete m[ks[0]];likeA(a,delta,nv===0?'Rating removed':nv>0?'You’ll see more like this':'You’ll see less like this');rateSync()}
+function dtHtml(a,dt){const m=readMin(a);return [a.by?'<span>By '+esc(a.by)+(hasBy(a.by)?'<button class="flw" disabled>Following</button>':'<button class="flw" data-fby>Follow</button>')+'</span>':'',dt?'<span>'+esc(dt)+'</span>':'',m?'<span>'+m+' min read</span>':'',rateHtml(a),a.cm?`<a class="cmt" href="${esc(a.cm)}" target="_blank" rel="noopener">💬 ${cmLabel(a.cm)}</a>`:''].filter(Boolean).join('')}
 function hdrFill(){const d=$('.cols .dt');if(d&&curA){const dt=curA.date?new Date(curA.date).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'';d.innerHTML=dtHtml(curA,dt)}}
 const volNo=()=>{const y=new Date().getFullYear();if(!S.born)S.born=y;return Math.max(1,y-S.born+1)};
 function edition(d){d=d||new Date();const h=d.getHours(),n=h<5?'Late-Night':h<12?'Morning':h<17?'Afternoon':'Evening';return d.toLocaleDateString([],{weekday:'long'})+' '+n+' Edition'}
