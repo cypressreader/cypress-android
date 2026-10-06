@@ -27,7 +27,7 @@ for(const [vp,w,h,touch] of VPS){
  // --- editions + templates
  await E(()=>{S.sel='today';render()});
  ck(vp,'edition helper',await E(()=>/(Morning|Afternoon|Evening|Late-Night) Edition/.test(edition())));
- ck(vp,'today has tabs, cards and quick links',await E(()=>document.querySelectorAll('.bmseg [data-bm]').length===4&&document.querySelectorAll('#grid .card').length>=1&&!!document.querySelector('.dlinks')));
+ ck(vp,'today has tabs, cards and quick links',await E(()=>document.querySelectorAll('.bmseg [data-bm]').length===4&&document.querySelectorAll('#grid .card').length>=1&&!!document.querySelector('.dgp .dgb [data-play]')&&!document.querySelector('.dlinks')));
  ck(vp,'dateline shows edition',await E(()=>/Edition/.test(document.querySelector('#grid').textContent)));
  // --- cover face-aware flip + tint
  await E(()=>{for(const f of S.feeds)for(const a of items[f.id])a.img='';items[S.feeds[0].id][0].img='https://img.test/face.png';S.read={};S.sel='today';S.cover=true;render()});

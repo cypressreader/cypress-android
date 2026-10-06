@@ -2078,7 +2078,7 @@ body:not(.narrow){--hdr:84px}body:not(.narrow) .top{height:var(--hdr);box-sizing
 #ask{width:min(440px,92vw)}#ask h3{font:600 20px/1.25 var(--serif);margin-bottom:6px}#ask input,#ask textarea{width:100%;margin-top:12px;padding:11px 12px;border:1px solid var(--ln);border-radius:12px;background:var(--bg);color:var(--ink);font:15px var(--sans)}#ask .row{margin-top:18px;justify-content:flex-end;gap:8px}#ask .go.dgr{background:#b3261e;color:#fff}
 /*NEWSROOM*/
 #grid.nr{display:block;max-width:1560px}
-.dgp{grid-column:1/-1;display:flex;align-items:center;gap:14px;background:var(--pn);border:1px solid var(--ln);border-radius:18px;padding:12px 16px;margin:0 0 16px}
+.dgp{grid-column:1/-1;display:flex;flex-direction:column;align-items:stretch;gap:12px;background:var(--pn);border:1px solid var(--ln);border-radius:18px;padding:12px 16px;margin:0 0 16px}.dgp .dgt{display:flex;align-items:center;gap:14px}.dgp .dgb{display:flex;flex-wrap:wrap;gap:10px;padding-top:12px;border-top:1px solid var(--ln)}.dgp .dgb button{flex:1 1 124px;min-width:0;padding:10px 8px;border-radius:999px;border:1px solid var(--ln);background:transparent;color:var(--ink);font:700 13.5px var(--sans);white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}.dgp .dgb .playd{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:800}
 .dgp .rgw{position:relative;width:54px;height:54px;flex:none}.dgp .rgw .rg{transform:rotate(-90deg);display:block}.dgp .rgw b{position:absolute;inset:0;display:grid;place-items:center;font:800 15px var(--sans)}
 .dgp h3{font:700 17px var(--serif);margin:0}.dgp p{margin:2px 0 0;font:13px/1.35 var(--sans);color:var(--mut)}
 .dgp.done .rgf{stroke:var(--rg,#1f8a5b)}.dgp.done .rgw b{color:var(--rg,#1f8a5b)}
@@ -3116,7 +3116,7 @@ const feedRow=x=>`<div class="fr ${S.sel==='s:'+x.id?'on':''}${paused(x)?' pz':'
 const fold=id=>!!(S.fcol&&S.fcol[id]);
 const chev=id=>`<u class="chv ${fold(id)?'':'open'}" data-tgl="${id}" role="button" aria-label="${fold(id)?'Expand':'Collapse'}" title="${fold(id)?'Expand':'Collapse'}"></u>`;
 function side(){
- let h=`<div class="nav dly ${S.sel==='today'||S.sel==='brief'||S.sel==='digest'?'on':''}" data-sel="today">${chev('daily')}<span>The Daily</span>${(()=>{const b=S.brief&&S.brief.day===new Date().toDateString()?S.brief.links.filter(l=>!S.read[l]).length:0;return b?bad(b):''})()}</div><div class="nav sub ${fold('daily')?'hid ':''}${S.sel==='brief'?'on':''}" data-bm="brief">Brief</div><div class="nav sub ${fold('daily')?'hid ':''}${S.sel==='digest'&&!S.dgk?'on':''}" data-bm="edition">Edition</div><div class="nav sub ${fold('daily')?'hid ':''}${S.sel==='digest'&&S.dgk==='week'?'on':''}" data-bm="week">Week</div><div class="nav ${S.sel==='all'?'on':''}" data-sel="all">All stories${bad(uc(S.feeds))}</div>`;
+ let h=`<div class="nav dly ${S.sel==='today'||S.sel==='brief'||S.sel==='digest'?'on':''}" data-sel="today">${chev('daily')}<span>The Daily</span>${(()=>{const b=S.brief&&S.brief.day===new Date().toDateString()?S.brief.links.filter(l=>!S.read[l]).length:0;return b?bad(b):''})()}</div><div class="nav sub ${fold('daily')?'hid ':''}${S.sel==='brief'?'on':''}" data-bm="brief">Brief</div><div class="nav sub ${fold('daily')?'hid ':''}${S.sel==='digest'&&!S.dgk?'on':''}" data-bm="edition">Edition</div><div class="nav sub ${fold('daily')?'hid ':''}${S.sel==='digest'&&S.dgk==='week'?'on':''}" data-bm="week">Week</div><div class="nav dly ${S.sel==='all'?'on':''}" data-sel="all">${chev('allst')}<span>All stories</span>${bad(uc(S.feeds))}</div>${DTABS.map(([k,t])=>`<div class="nav sub ${fold('allst')?'hid ':''}${S.sel==='all'&&atab()===k?'on':''}" data-bm="${k}">${t}</div>`).join('')}`;
  const bot=`<div class="nav ${S.sel==='saved'?'on':''}" data-sel="saved">Saved${bad(S.saved.length)}</div><div class="nav ${S.sel==='notes'?'on':''}" data-sel="notes">Highlights${bad(S.hl.length)}</div><div class="nav ${S.sel==='hist'?'on':''}" data-sel="hist">History</div><div class="nav ${S.sel==='stats'?'on':''}" data-sel="stats">Stats</div>`;
  for(const f of S.folders)h+=`<div class="fold" data-drop="${f.id}"><div class="fh ${S.sel==='f:'+f.id?'on':''}" data-sel="f:${f.id}">${chev(f.id)}<span>${esc(f.name)}</span>${bad(uc(S.feeds.filter(x=>x.folder===f.id)))}<i data-delf="${f.id}" title="Delete folder">×</i></div>${fold(f.id)?'':S.feeds.filter(x=>x.folder===f.id).map(feedRow).join('')}</div>`;
  const un=S.feeds.filter(x=>!S.folders.some(f=>f.id===x.folder));
@@ -3281,6 +3281,7 @@ function render0(){
  document.body.style.setProperty('--tint',(S.theme==='dynamic'&&S.sel.startsWith('s:')&&fs[0])?`color-mix(in srgb,${brand(fs[0])} 8%,var(--bg))`:'');
  const q=$('#q').value.trim().toLowerCase();
  if(S.sel==='today'&&!q)return renderToday();
+ if(S.sel==='all'&&!q&&atab()!=='latest'){let p=S.feeds.filter(f=>!paused(f)).flatMap(f=>items[f.id]||[]).filter(a=>!muted(a));p.sort((a,b)=>b.date-a.date);p=p.slice(0,300);if(S.hideRead)p=p.filter(a=>!S.read[a.link]);if(S.group!==false)p=group(p);return renderToday(atab(),p,allSeg(atab()),'All stories')}
  if(S.sel==='brief'&&!q)return renderBrief();
  if(S.sel==='stats'&&!q)return renderStats();
  if(S.sel==='digest'&&!q)return renderDigest();
@@ -3305,9 +3306,10 @@ function render0(){
  if(!cur.length){
   const busy=fs.some(f=>state[f.id]==='load'||!state[f.id]);
   if(busy&&!q&&S.sel!=='saved'&&!S.sel.startsWith('k:')&&!fs.some(f=>(items[f.id]||[]).length)){$('#grid').innerHTML=skel(6);return}
-  $('#grid').innerHTML=`<div class="empty">${q?'No stories match that search.':S.sel==='saved'?'Nothing saved yet. Tap the star on any story.':S.sel.startsWith('k:')&&!busy?'No stories match this smart folder yet.':S.hideRead&&!busy&&fs.some(f=>(items[f.id]||[]).length)?'All caught up. Turn off “Hide stories I’ve read” in Settings to see older stories.':busy?SKEL:fs.length?'Nothing came through yet.'+EA('rf','hl'):'No feeds here yet.'+EA('ad','sp')}</div>`;return;
+  $('#grid').innerHTML=(S.sel==='all'&&!q?allSeg('latest'):'')+`<div class="empty">${q?'No stories match that search.':S.sel==='saved'?'Nothing saved yet. Tap the star on any story.':S.sel.startsWith('k:')&&!busy?'No stories match this smart folder yet.':S.hideRead&&!busy&&fs.some(f=>(items[f.id]||[]).length)?'All caught up. Turn off “Hide stories I’ve read” in Settings to see older stories.':busy?SKEL:fs.length?'Nothing came through yet.'+EA('rf','hl'):'No feeds here yet.'+EA('ad','sp')}</div>`;return;
  }
  let pre='';
+ if(S.sel==='all'&&!q)pre=allSeg('latest');
  if(S.sel==='saved'&&!q&&S.saved.length)pre=savedChips();
  if(q&&!S.sk.some(k=>k.words.length===1&&k.words[0]===q))pre=`<div class="fbar"><span>${cur.length} ${cur.length===1?'story':'stories'} mention “${esc(q)}”</span><button class="tx2" data-follow="${esc(q)}">Follow this topic</button></div>`;
  if(!q&&S.sel.startsWith('s:')){const f=S.feeds.find(x=>'s:'+x.id===S.sel);if(f&&paused(f))pre=`<div class="fbar"><span>${esc(f.title)} is paused${f.snz>8e15?'':' until '+esc(new Date(f.snz).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}))}. Its stories are hidden from Today and All stories.</span><button class="tx2" data-resume="${f.id}">Resume</button></div>`;else if(f&&f.via==='bing')pre=`<div class="fbar"><span>Showing ${esc(f.title)} headlines from Bing News, because ${f.viaWhy==='stale'?'the site’s own feed is out of date':'the site blocks feed readers'}. Stories still open from ${esc(siteOf(f))}.</span></div>`;else if(f&&state[f.id]==='err')pre=`<div class="fbar"><span><b>We couldn’t refresh ${esc(f.title)}.</b> ${esc(feedReason(f))}. ${esc(lastOkTxt(f))}.</span><button class="tx2" data-frep="${f.id}">Try again</button></div>`}
@@ -3335,7 +3337,7 @@ function mastHtml(f,list){
 const ringSvg=(n,t,sz,sw)=>{const r=(sz-sw)/2,c=2*Math.PI*r,f=t?Math.min(1,n/t):0;return `<svg class="rg" width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" aria-hidden="true"><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--ln)" stroke-width="${sw}"/><circle class="rgf" cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--rg,#1f8a5b)" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${(c*f).toFixed(1)} ${c.toFixed(1)}"/></svg>`};
 let DGL=[];
 const dgCount=()=>{const n=DGL.filter(l=>S.read[l]).length;return{n,t:DGL.length}};
-function dgProgHtml(){const{n,t}=dgCount();if(t<3)return'';const done=n>=t;return `<div class="dgp${done?' done':''}" data-dgp role="status"><div class="rgw">${ringSvg(n,t,54,6)}<b>${done?'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>':n}</b></div><div><h3>${done?'Issue finished':n+' of '+t+' read'}</h3><p>${done?'You have read everything in today’s issue.':'About '+Math.max(1,t-n)+' minute'+(t-n>1?'s':'')+' left in today’s issue'}</p></div></div>`}
+function dgProgHtml(){const{n,t}=dgCount();if(t<3)return'';const done=n>=t;return `<div class="dgp${done?' done':''}" data-dgp><div class="dgt" role="status"><div class="rgw">${ringSvg(n,t,54,6)}<b>${done?'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>':n}</b></div><div><h3>${done?'Issue finished':n+' of '+t+' read'}</h3><p>${done?'You have read everything in today’s issue.':'About '+Math.max(1,t-n)+' minute'+(t-n>1?'s':'')+' left in today’s issue'}</p></div></div>${fiveBtns()}</div>`}
 function dgProgUpdate(){const el=document.querySelector('#grid [data-dgp]');if(!el||S.sel!=='today')return;const h=dgProgHtml();if(!h)return;const t=document.createElement('div');t.innerHTML=h;el.replaceWith(t.firstChild)}
 const RDY_MARK='<span class="rdy" title="Ready to read, even offline" aria-label="Ready"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>';
 function markReady(l){document.querySelectorAll('#grid .card').forEach(c=>{if(c.getAttribute('href')===l&&!c.querySelector('.rdy')){c.insertAdjacentHTML('beforeend',RDY_MARK);if(!userBusy())c.lastChild.classList.add('pop')}})}
@@ -3599,17 +3601,16 @@ const DTABS=[['latest','Latest'],['top','Top'],['quick','Quick'],['deep','Deep']
 const dtab=()=>DTABS.some(x=>x[0]===S.dtab)?S.dtab:'latest';
 /* minutes to read: the measured time if the story has been opened, else from the feed's own text when that is long enough to mean something (a short teaser says nothing about the real length) */
 const minsOf=a=>{const m=S.rt[a.link];if(m)return m;const w=+a.wc||0;return w>=120?Math.max(1,Math.round(w/230)):0};
-const dLinks=()=>`<div class="dlinks"><button type="button" data-bm="brief">Brief</button><button type="button" data-bm="edition">Edition</button><button type="button" data-bm="week">Week</button></div>`;
-function renderToday(){
- const g=$('#grid');$('#ttl').textContent='The Daily';const tab=dtab();
- const pool=topOf(S.feeds,200,new Set());
+function renderToday(tab0,pool0,seg0,ttl0){
+ const g=$('#grid');$('#ttl').textContent=ttl0||'The Daily';const tab=tab0||'latest',SEG=seg0||bmSeg('front');
+ const pool=pool0||topOf(S.feeds,200,new Set());
  if(!pool.length){
   const busy=S.feeds.some(f=>state[f.id]==='load'||!state[f.id]);
-  cur=[];g.innerHTML=bmSeg(tab)+(busy?skel(6):`<div class="empty">${S.feeds.length?'Nothing came through yet.'+EA('rf','hl'):'No feeds yet.'+EA('ad','sp')}</div>`);return;
+  cur=[];g.innerHTML=SEG+(busy?skel(6):`<div class="empty">${S.feeds.length?'Nothing came through yet.'+EA('rf','hl'):'No feeds yet.'+EA('ad','sp')}</div>`);return;
  }
  const byDate=pool.slice().sort((a,b)=>b.date-a.date);
  for(const k in WHY)delete WHY[k];
- let h=bmSeg(tab),list=[],label='',empty='';
+ let h=SEG,list=[],label='',empty='';
  if(tab==='latest'){
   let lead=pool.find(a=>!S.read[a.link]&&a.img)||pool.find(a=>a.img)||pool[0];
   {const busy=Object.values(state).some(v=>v==='load'),pv=LEADK&&pool.find(a=>a.link===LEADK&&a.img&&!S.read[a.link]);if(busy&&pv)lead=pv;LEADK=lead&&lead.link}
@@ -3619,7 +3620,7 @@ function renderToday(){
   const shown=new Set(cur.map(a=>a.link));(lead.more||[]).forEach(m=>shown.add(m.l));
   list=byDate.filter(a=>!shown.has(a.link)).slice(0,40);label='Latest';
   DGL=cur.concat(list).slice(0,25).map(a=>a.link);
-  h+=dgProgHtml()+fiveChip()+dLinks()+continueRow();
+  h+=dgProgHtml()+fiveChip()+continueRow();
  }else{
   cur=[];
   const now=Date.now();
@@ -6125,8 +6126,11 @@ function briefToday(force){
  for(let r=0;r<10&&out.length<10;r++)for(const l of per){const a=l[r];if(!a||out.length>=10)continue;const k=a.title.toLowerCase().slice(0,40);if(seen.has(k))continue;seen.add(k);out.push(a.link)}
  S.brief={day,links:out};save();return S.brief;
 }
-const bmSeg=m=>`<div class="segs bmseg" role="tablist" aria-label="The Daily">${DTABS.map(([k,t])=>`<button type="button" role="tab" data-bm="${k}" aria-selected="${m===k}" class="${m===k?'on':''}">${t}</button>`).join('')}</div>`;
-document.addEventListener('click',e=>{const t=e.target.closest('[data-bm]');if(!t)return;const v=t.dataset.bm;if(v==='front'||DTABS.some(x=>x[0]===v)){S.sel='today';S.dtab=v==='front'?'latest':v;S.dgk=''}else if(v==='brief'){S.sel='brief';S.dgk=''}else{S.sel='digest';S.dgk=v==='week'?'week':''}save();if(document.body.classList.contains('open'))drawer(false);render();const m=$('main');if(m)m.scrollTop=0});
+const DLTABS=[['front','Today'],['brief','Brief'],['edition','Edition'],['week','Week']];
+const atab=()=>DTABS.some(x=>x[0]===S.atab)?S.atab:'latest';
+const allSeg=m=>`<div class="segs bmseg" role="tablist" aria-label="All stories">${DTABS.map(([k,t])=>`<button type="button" role="tab" data-bm="${k}" aria-selected="${m===k}" class="${m===k?'on':''}">${t}</button>`).join('')}</div>`;
+const bmSeg=m=>{if(m==='latest')m='front';return `<div class="segs bmseg" role="tablist" aria-label="The Daily">${DLTABS.map(([k,t])=>`<button type="button" role="tab" data-bm="${k}" aria-selected="${m===k}" class="${m===k?'on':''}">${t}</button>`).join('')}</div>`};
+document.addEventListener('click',e=>{const t=e.target.closest('[data-bm]');if(!t)return;const v=t.dataset.bm;if(v==='front'){S.sel='today';S.dgk=''}else if(DTABS.some(x=>x[0]===v)){S.sel='all';S.atab=v}else if(v==='brief'){S.sel='brief';S.dgk=''}else{S.sel='digest';S.dgk=v==='week'?'week':''}save();if(document.body.classList.contains('open'))drawer(false);render();const m=$('main');if(m)m.scrollTop=0});
 function renderBrief(){renderBrief0();const g=$('#grid');if(g)g.insertAdjacentHTML('afterbegin',bmSeg('brief'))}
 function renderBrief0(){
  $('#ttl').textContent='The Daily';tip('catch');
@@ -6145,7 +6149,8 @@ function fiveMin(){
  if(!out.length){toast('Nothing new to read right now');return}
  S.brief={day:new Date().toDateString(),links:out,five:1};S.sel='brief';save();render();$('main').scrollTop=0;
 }
-const fiveChip=()=>{const n=uc(S.feeds);return n>=2?'<div class="fivr"><button class="tx2 playd" data-play>▶ Play my Daily</button><button class="tx2" data-five>⏱ I have 5 minutes</button></div>':''};
+const fiveBtns=()=>uc(S.feeds)>=2?'<div class="dgb"><button type="button" class="playd" data-play>▶ Play my Daily</button><button type="button" data-five>⏱ I have 5 minutes</button></div>':'';
+const fiveChip=()=>{if(dgCount().t>=3)return'';return fiveBtns()?'<div class="fivr"><button class="tx2 playd" data-play>▶ Play my Daily</button><button class="tx2" data-five>⏱ I have 5 minutes</button></div>':''};
 function briefNext(){if(!R.inBrief||!curA)return null;const l=(S.brief&&S.brief.links)||[];const i=l.indexOf(curA.link);for(let j=i+1;j<l.length;j++)if(!S.read[l[j]])return findStory(l[j]);for(let j=0;j<i;j++)if(!S.read[l[j]])return findStory(l[j]);return null}
 function briefFoot(){
  const c=$('.cols');if(!c||!R.inBrief)return;const old=c.querySelector('.bnext');if(old)old.remove();

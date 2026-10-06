@@ -5,7 +5,7 @@ const {APP,OUT}=require('./env');
 const {mockRich,seedRich,PW}=require('./mock3');const {chromium}=require(PW);
 const WIDTHS=(process.env.WIDTHS||'360,412,600,700,768,834,1024,1180,1366').split(',').map(Number);
 const SCEN=(process.env.SCEN||'noimg,messy,allimg').split(',');
-const VIEWS=[['today','latest'],['today','top'],['today','quick'],['today','deep'],['digest',''],['digest','week'],['all',''],['f:d1','']];
+const VIEWS=[['today','latest'],['all','top'],['all','quick'],['all','deep'],['digest',''],['digest','week'],['all',''],['f:d1','']];
 const fails={};let n=0;
 const bad=(k,msg)=>{(fails[k]=fails[k]||[]).push(msg)};
 (async()=>{const b=await chromium.launch();
@@ -23,7 +23,7 @@ for(const w of WIDTHS){
   },sc);
   for(const [sel,sub] of VIEWS){
    n++;const key=`${sc} @${w} ${sel}${sub?'/'+sub:''}`;
-   await p.evaluate(([sel,sub])=>{if(sel==='today'){S.sel='today';S.dtab=sub}else if(sel==='digest'){S.sel='digest';S.dgk=sub}else{S.sel=sel}render()},[sel,sub]);
+   await p.evaluate(([sel,sub])=>{if(sel==='today'){S.sel='today'}else if(sel==='all'){S.sel='all';S.atab=sub||'latest'}else if(sel==='digest'){S.sel='digest';S.dgk=sub}else{S.sel=sel}render()},[sel,sub]);
    await p.waitForTimeout(450);
    for(let i=0;i<12;i++){await p.evaluate(()=>{window.NRMORE&&NRMORE()});await p.waitForTimeout(40)}
    const r=await p.evaluate(()=>{
