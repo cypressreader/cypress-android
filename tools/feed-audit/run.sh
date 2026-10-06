@@ -11,6 +11,12 @@ if [ ! -d node_modules/playwright ]; then
   npm install --no-audit --no-fund --silent playwright && npx playwright install chromium || exit 1
 fi
 export NODE_PATH="$(pwd)/node_modules"
+if [ "$1" = "followup" ]; then
+  [ -f report.json ] || { echo "Run ./run.sh retest first."; exit 1; }
+  { python3 discover.py; node deepread.js; } | tee followup.txt
+  if command -v pbcopy >/dev/null; then pbcopy < followup.txt && echo; echo "DONE. The results are copied: paste them into the chat (Cmd+V)."; fi
+  exit 0
+fi
 rm -rf d report.json
 node cat.js || exit 1
 if [ "$1" = "retest" ]; then python3 fetch.py --only retest-names.txt; else python3 fetch.py; fi

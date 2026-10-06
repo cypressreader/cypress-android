@@ -24,3 +24,7 @@ Sites often refuse requests from data-centre machines, so a home connection can 
     ./run.sh                                    # every site
 
 Then send `summary.txt` (or `report.json`) back, or run it inside a Claude Code session on that machine and ask it to push the results.
+
+## Second step: look for fixes
+After `./run.sh retest`, run `./run.sh followup`. It (1) looks on each silent site for a working feed address and
+(2) tries the app's own full-article loading, with all its fallbacks, on sites where the plain page reader found nothing.
