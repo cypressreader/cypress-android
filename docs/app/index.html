@@ -1573,6 +1573,19 @@ html.grain[data-theme=newsprint] body{background-image:url("data:image/svg+xml,%
 .bfold .bfb p{margin:.5em 0;text-indent:0!important}
 .bfold .bfb p::first-letter{all:unset}
 .bfold .bfb .lnk{display:inline-block;margin-top:.3em;font:600 12px var(--sans);color:var(--a1,currentColor);background:none;border:0;padding:6px 0;cursor:pointer;text-decoration:underline}
+.xfold{margin:1.4em 0 .4em;padding:10px 0 0;border-top:1px solid var(--ln);break-inside:avoid;font-family:var(--sans)}
+.xfold>summary{list-style:none;display:flex;align-items:baseline;gap:8px;cursor:pointer;font-size:12.5px;line-height:1.35;color:var(--mut);user-select:none;min-width:0}
+.xfold>summary::-webkit-details-marker{display:none}
+.xfold>summary::before{content:'';flex:none;width:6px;height:6px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg) translateY(-1px);transition:transform .18s}
+.xfold[open]>summary::before{transform:rotate(45deg) translateY(-2px)}
+.xfold .bl{flex:none;font-weight:700;letter-spacing:.02em}
+.xfold .bp{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.85}
+.xfold .bn{flex:none;font-size:11px;opacity:.75}
+.xfold[open] .bp{display:none}
+.xfold>summary:focus-visible{outline:2px solid var(--a1,currentColor);outline-offset:3px}
+.xfold .bfb{margin-top:.5em;font-size:.92em;color:var(--mut)}
+.xfold .bfb p{margin:.5em 0;text-indent:0!important}
+.xfold .bfb p::first-letter{all:unset}
 /* stage O: calmer active sidebar item */
 #side-list .nav.on,#side-list .fh.on,#side-list .fr.on{background-image:none;background-color:color-mix(in srgb,var(--a1) 12%,transparent);border-radius:12px;position:relative;box-shadow:none}
 #side-list .nav.on::before,#side-list .fh.on::before,#side-list .fr.on::before{content:'';position:absolute;left:0;top:26%;bottom:26%;width:3px;border-radius:3px;background:var(--a1)}
@@ -3886,6 +3899,40 @@ const CAP=/^(image|photo|photograph|illustration|credit|source|screenshot|video|
 const NAME=/^[A-Z][\w.'’-]+(\s+[A-Z][\w.'’-]+){1,3}$/;
 const normT=t=>(t||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 function dropTitle(n,title){if(!n||!n.querySelectorAll)return n;const T=normT(title);if(!T)return n;for(const h of [...n.querySelectorAll('h1,h2,h3')].slice(0,2)){const x=normT(h.textContent);if(x&&(x===T||(x.length>12&&(T.startsWith(x)||x.startsWith(T))))){h.remove();break}}return n}
+/* things that are not the story itself: related-story teasers become a small labelled card, and runs of shopping links go in a closed box */
+const AFFRE=/(^|\.)(cna\.st|amzn\.to|shop-links\.co|go\.skimresources\.com|howl\.me|go\.redirectingat\.com|click\.linksynergy\.com|shareasale\.com|awin1\.com|prf\.hn|bit\.ly)$|amazon\.[a-z.]+\/[^?]*\?[^#]*tag=/i;
+function affHref(h){try{const u=new URL(h);return AFFRE.test(u.hostname)||AFFRE.test(u.hostname+u.pathname+u.search)}catch(e){return false}}
+function isolateExtras(fr){
+ if(!fr||!fr.childNodes)return fr;
+ const els=()=>[...fr.childNodes].filter(k=>k.nodeType===1);
+ /* 1. "Read more" teaser blocks: a single link whose text ends in "Read more" */
+ for(const k of els()){
+  if(!/^(FIGURE|P|DIV)$/.test(k.tagName))continue;
+  const t=(k.textContent||'').replace(/\s+/g,' ').trim(),as=k.querySelectorAll('a[href]');
+  if(t.length>260||as.length!==1||!/read more\s*$/i.test(t))continue;
+  const h=t.replace(/\s*read more\s*$/i,'').trim();if(h.length<12||as[0].textContent.replace(/\s+/g,' ').trim()!==t)continue;
+  const a=document.createElement('a');a.className='emb';a.href=as[0].getAttribute('href');a.target='_blank';a.rel='noopener';
+  const b=document.createElement('b');b.textContent='Related story';const q=document.createElement('q');q.textContent=h;const sm=document.createElement('small');sm.textContent='Not part of this article. Opens the other story';
+  a.append(b,q,sm);k.replaceWith(a);
+ }
+ /* 2. runs of shopping links */
+ const e0=els(),isAff=k=>{const as=[...k.querySelectorAll?k.querySelectorAll('a[href]'):[]];if(k.tagName==='A'&&k.getAttribute('href'))as.push(k);if(!as.length||!as.every(a=>affHref(a.getAttribute('href')||'')))return false;if(k.tagName==='A')return true;const tx=(k.textContent||'').replace(/\s+/g,' ').trim().length,lk=as.reduce((n,a)=>n+(a.textContent||'').replace(/\s+/g,' ').trim().length,0);return tx<90||lk>=tx*.6};
+ const flat=k=>(k.textContent||'').replace(/\s+/g,' ').trim();
+ for(let i=0;i<e0.length;i++){
+  if(!e0[i].parentNode||!isAff(e0[i]))continue;
+  let a=i,z=i;
+  while(z+1<e0.length&&(isAff(e0[z+1])||(/^(P|FIGURE|IMG|DIV|SPAN|A|LI|H3|H4)$/.test(e0[z+1].tagName)&&flat(e0[z+1]).length<80)))z++;
+  while(z>a&&!isAff(e0[z])&&flat(e0[z]).length<80)z--;
+  if(a>0&&/^H[2-4]$/.test(e0[a-1].tagName)&&/(deals?|picks|buy|shop|best|sale|gear|products?)/i.test(flat(e0[a-1])))a--;
+  const run=e0.slice(a,z+1).filter(k=>k.parentNode===fr),n=run.filter(isAff).length;
+  i=z;if(n<2)continue;
+  const d=document.createElement('details');d.className='xfold';
+  const sm=document.createElement('summary');sm.innerHTML='<span class="bl"></span><span class="bp"></span><span class="bn"></span>';
+  sm.querySelector('.bl').textContent='Shopping links';sm.querySelector('.bp').textContent='Added by the site, not part of the story';sm.querySelector('.bn').textContent=n+(n===1?' link':' links');
+  const bx=document.createElement('div');bx.className='bfb';fr.insertBefore(d,run[0]);run.forEach(k=>bx.append(k));d.append(sm,bx);
+ }
+ return fr;
+}
 function tidy(fr){
  if(!fr||!fr.childNodes)return fr;
  const txt=k=>(k.textContent||'').trim(),els=()=>[...fr.childNodes].filter(k=>k.nodeType===1);
@@ -3927,7 +3974,7 @@ function tidy(fr){
   const t=txt(k);
   if(t.length<60&&!(k.querySelector&&k.querySelector('img'))&&(t===''||JUNK.test(t)))drop(k);
  });
- return fr;
+ return isolateExtras(fr);
 }
 /* ---------- author and site notes: fold bios and site blurbs at the very start or end of a story ---------- */
 const BF_ROLE='reporter|writer|journalist|editor|correspondent|columnist|author|contributor|analyst|producer|photographer|anchor|host|critic|founder|blogger|podcaster|newsletter';
