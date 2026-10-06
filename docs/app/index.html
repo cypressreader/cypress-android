@@ -5017,7 +5017,8 @@ function pop(){
   head='<button type="button" class="aback" data-back="1">'+ACH+'<span>'+(cat>=0?'Topics':'Back')+'</span></button><h3 class="ahd">'+esc(ttl)+'</h3>';
   list=cat===-1?sg:cat<-1?[]:CAT[cat].f.map(x=>({c:CAT[cat].n,n:x[0],u:x[1],v:x[3]?1:0})).sort((a,b)=>a.n.localeCompare(b.n,undefined,{sensitivity:'base',numeric:true}));
  }
- const row=x=>`<div class="pf"><b style="background:${brand({url:x.u})}"></b><span>${esc(x.n)}<small>${x.why?esc(x.why):esc(host(x.u))+(q?' in '+esc(x.c):'')}</small></span>${(inFeeds(x.u)||S.feeds.some(f=>foldQ(f.title)===foldQ(x.n)))?'<em>Added</em>':`<button type="button" data-add="${esc(x.u)}" data-n="${esc(x.n)}" data-c="${esc(x.c)}" ${x.v?'data-v="1"':''}>Add</button>`}</div>`;
+ const where=x=>{const f=S.feeds.find(f=>f.url===x.u||nUrl(f.url)===nUrl(x.u)||foldQ(f.title)===foldQ(x.n));if(!f)return'';const fo=S.folders.find(o=>o.id===f.folder);return ' · in '+(fo?fo.name:'Unfiled')};
+ const row=x=>`<div class="pf"><b style="background:${brand({url:x.u})}"></b><span>${esc(x.n)}<small>${x.why?esc(x.why):esc(host(x.u))+(q?' in '+esc(x.c):'')}${(inFeeds(x.u)||S.feeds.some(f=>foldQ(f.title)===foldQ(x.n)))?esc(where(x)):''}</small></span>${(inFeeds(x.u)||S.feeds.some(f=>foldQ(f.title)===foldQ(x.n)))?'<em>Added</em>':`<button type="button" data-add="${esc(x.u)}" data-n="${esc(x.n)}" data-c="${esc(x.c)}" ${x.v?'data-v="1"':''}>Add</button>`}</div>`;
  let extra='';
  if(q&&!list.length){
   if(liveRes&&liveQ===q){
