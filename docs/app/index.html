@@ -2751,7 +2751,7 @@ async function fetchText(url,ok,lg){
     if(p.j){try{t=JSON.parse(t).contents}catch(e){t=''}}
     if(!t)throw 'empty reply';
     if(ok&&!ok(t))throw 'no readable article in reply ('+t.length+' chars)';
-    if(!dead){clearTimeout(to);res(t)}
+    if(!dead){clearTimeout(to);if(lg)lg.won=p.n;res(t)}
    }catch(e){if(dead)return;clearTimeout(to);if(e&&e.hard){if(lg&&!over)lg.push(p.n+': '+e.message);rej(e);return}fail(typeof e==='string'?e:c.signal.aborted?'stopped':'blocked or offline')}
   })();
  });
@@ -2886,10 +2886,11 @@ function pruneJunk(root){
  });
 }
 const ssList=ss=>String(ss||'').split(/\s+[\d.]+[wx]\s*,?\s*|,\s+/).map(x=>x.trim()).filter(Boolean);/* srcset candidates; CDN urls may contain commas (c_fill,w_800), so a plain split(',') cuts them */
-function extract(html,base){
+function extract(html,base){const MT={};const r=extract0(html,base,MT);if(r&&MT.v)r.meta=MT.v;return r}
+function extract0(html,base,MT){
  const d=new DOMParser().parseFromString(html,'text/html');
  let ld='';
- d.querySelectorAll('script[type="application/ld+json"]').forEach(x=>{try{const f=o=>{if(!o||typeof o!=='object')return;if(typeof o.articleBody==='string'&&o.articleBody.length>ld.length)ld=o.articleBody;Object.values(o).forEach(f)};f(JSON.parse(x.textContent))}catch(e){}});
+ d.querySelectorAll('script[type="application/ld+json"]').forEach(x=>{try{const f=o=>{if(!o||typeof o!=='object')return;if(MT&&!MT.v&&o['@type']&&/(Article|Posting|Report)/i.test(String(o['@type']))){const au=o.author,nm=Array.isArray(au)?au.map(q=>(q&&q.name)||q).join(', '):(au&&(au.name||au))||'';MT.v={headline:String(o.headline||''),author:typeof nm==='string'?nm:'',date:String(o.datePublished||'')}}if(typeof o.articleBody==='string'&&o.articleBody.length>ld.length)ld=o.articleBody;Object.values(o).forEach(f)};f(JSON.parse(x.textContent))}catch(e){}});
  /* AMP pages (the AMP-copy fallback fetches them) use <amp-img>, which the reader would drop entirely */
  d.querySelectorAll('amp-img').forEach(a=>{const im=d.createElement('img');for(const at of a.attributes)im.setAttribute(at.name,at.value);a.replaceWith(im)});
  /* pictures some sites keep only in a <noscript> fallback or only in a <picture><source srcset>: bring them back before noscript is dropped */
@@ -2899,6 +2900,13 @@ function extract(html,base){
  d.querySelectorAll('script,style,nav,footer,aside,form,noscript').forEach(e=>e.remove());
  d.querySelectorAll('.screen-reader-text,.sr-only,.visually-hidden,.visuallyhidden,.u-visually-hidden,.assistive-text,.a11y-text,.sr-text,[class*="screen-reader" i],[class*="sr-only" i],[class*="visually-hidden" i],[class*="visuallyhidden" i]').forEach(e=>{if(e.isConnected&&!e.matches('html,body,article,main')&&!e.querySelector('article,main')&&e.textContent.length<200)e.remove()});
  try{const SRT=/^(list(\s+\d+)?\s+of\s+\d+(\s+items?)?|end of list|(start|beginning) of list)$/i,tw=d.createTreeWalker(d.body||d.documentElement,4),del=[];let n;while(n=tw.nextNode()){if(SRT.test(n.textContent.replace(/\s+/g,' ').trim()))del.push(n)}del.forEach(n=>{const p=n.parentElement;n.remove();if(p&&p.isConnected&&!p.textContent.trim()&&!p.querySelector('img,video,iframe')&&!p.matches('body,html'))p.remove()})}catch(e){}
+ /* things that sit on top of the story: consent dialogs, sign-up walls and their dimmed backdrops. Anything holding two real paragraphs is the story, never removed */
+ d.querySelectorAll('[class*="modal" i],[class*="overlay" i],[class*="backdrop" i],[class*="gate-container" i],[class*="regwall" i],[class*="paywall-modal" i],[class*="consent" i],[class*="cookie" i],[id*="modal" i],[id*="overlay" i],[id*="backdrop" i],[id*="gate-container" i],[id*="consent" i],[id*="cookie" i],[aria-modal="true"],[style*="position:fixed" i],[style*="position: fixed" i],[style*="z-index" i]').forEach(e=>{
+  if(!e.isConnected||e.matches('html,body,article,main')||e.querySelector('article,main'))return;
+  const st=(e.getAttribute('style')||'').toLowerCase(),z=+((/z-index\s*:\s*(\d+)/.exec(st)||[])[1]||0),pos=/position\s*:\s*(fixed|absolute)/.test(st);
+  if(/z-index/.test(st)&&!pos&&z<1000&&!/(modal|overlay|backdrop|gate|consent|cookie|regwall)/i.test((e.className||'')+' '+(e.id||'')))return;
+  const paras=[...e.querySelectorAll('p')].filter(q=>q.textContent.trim().length>=120).length;if(paras>=2)return;
+  e.remove()});
  d.querySelectorAll('.ad,.advert,.advertisement,.newsletter,.popup,.social-share,.cookie-banner,[id*="taboola"],[id*="outbrain"],[class*="sponsor"]').forEach(e=>{if(!e.isConnected||e.matches('html,body,article,main')||e.querySelector('article,main')||e.textContent.length>3000||e.querySelectorAll('p').length>=4)return;e.remove()});
  /* small blocks of related stories, promos and ad slots inside the article: their thumbnails are not the story's pictures (a block holding a real paragraph is never removed) */
  d.querySelectorAll('[class*="related" i],[class*="recommend" i],[class*="promo" i],[class*="trending" i],[class*="ad-slot" i],[class*="adslot" i],[class*="ad-container" i],[class*="ad-wrapper" i],[class*="most-popular" i],[class*="more-stories" i]').forEach(e=>{if(!e.isConnected||e.matches('html,body,article,main')||e.querySelector('article,main,h1'))return;if(e.textContent.length>700)return;if([...e.querySelectorAll('p')].some(p=>p.textContent.trim().length>=150))return;e.remove()});
@@ -4058,7 +4066,7 @@ function liteUrl(url){
  }catch(e){}
  return'';
 }
-const fromPage=async(url,lg,tag,sig)=>{let fr=null;await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);try{if(lg)lg.push((tag||'')+'page read: '+Math.round(t.length/1000)+' KB, '+(t.match(/<img\b/gi)||[]).length+' img tags ('+(t.match(/\sdata-(src|lazy-src|original|srcset)=/gi)||[]).length+' lazy), '+(t.match(/<picture\b/gi)||[]).length+' picture, '+(t.match(/<figure\b/gi)||[]).length+' figure, '+(t.match(/<noscript\b/gi)||[]).length+' noscript, '+(/application\/ld\+json/.test(t)?'has':'no')+' structured data; kept '+(x?x.querySelectorAll('img').length:0)+' pictures and '+(x?x.textContent.length:0)+' characters of text')}catch(e){}if(x&&x.textContent.length>600){fr=x;return true}return false},lg&&{push:m=>lg.push((tag||'')+m),sig});return fr};
+const fromPage=async(url,lg,tag,sig)=>{let fr=null;const w=lg&&{push:m=>lg.push((tag||'')+m),sig};await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);try{if(lg)lg.push((tag||'')+'page read: '+Math.round(t.length/1000)+' KB, '+(t.match(/<img\b/gi)||[]).length+' img tags ('+(t.match(/\sdata-(src|lazy-src|original|srcset)=/gi)||[]).length+' lazy), '+(t.match(/<picture\b/gi)||[]).length+' picture, '+(t.match(/<figure\b/gi)||[]).length+' figure, '+(t.match(/<noscript\b/gi)||[]).length+' noscript, '+(/application\/ld\+json/.test(t)?'has':'no')+' structured data; kept '+(x?x.querySelectorAll('img').length:0)+' pictures and '+(x?x.textContent.length:0)+' characters of text')}catch(e){}if(x&&x.textContent.length>600){fr=x;return true}return false},w);if(fr&&w&&w.won)fr.tier=w.won==='direct'?'direct':'proxy';return fr};
 
 /* ---------- is this text really the story? ---------- */
 const SHORTOK=new Set('a i of to in is it on at be by an as do go he if me my no or so up us we am oh ok'.split(' '));
@@ -4103,18 +4111,18 @@ async function getFull0(url,ctx){
   const u=new URL(url),slug=u.pathname.split('/').filter(Boolean).pop();
   let t;try{t=await fetchText(u.origin+'/wp-json/wp/v2/posts?slug='+encodeURIComponent(slug)+'&_fields=content',t=>t.trim().startsWith('['),{push(){},sig:stop.signal})}catch(e){lg.push('WordPress feed: not available');throw e}
   const h=JSON.parse(t)[0]?.content?.rendered;if(!h){lg.push('WordPress feed: no post found');throw 0}
-  const fr=fromHTML(h,url);if(fr.textContent.length<=600){lg.push('WordPress feed: too short');throw 0}return fr;
+  const fr=fromHTML(h,url);if(fr.textContent.length<=600){lg.push('WordPress feed: too short');throw 0}fr.tier='wp-json';return fr;
  };
  /* the WordPress check only runs if the page itself hasn't answered quickly */
  const wp=(async()=>{const r=await Promise.race([direct.then(v=>({v}),()=>({v:null})),new Promise(r=>setTimeout(()=>r({v:null}),2500))]);if(r.v||stop.signal.aborted)throw new Error('not needed');return wpRun()})();
- const lu=liteUrl(url),lite=lu?fromPage(lu,lg,'lite site via ',stop.signal):null;
+ const lu=liteUrl(url),lite=lu?fromPage(lu,lg,'lite site via ',stop.signal).then(f=>{if(f)f.tier='lite';return f}):null;
  const good=Promise.any([direct,wp,lite].filter(Boolean));
  good.then(()=>stop.abort(),()=>{});
  let jn=null;
  const startJina=()=>{
   jn=(async()=>{
    const c=new AbortController(),to=setTimeout(()=>c.abort(),12000);
-   try{const r=await fetch('https://r.jina.ai/'+url,{signal:c.signal});const t=await r.text();if(!r.ok){lg.push('jina reader: HTTP '+r.status);throw 0}if(t.length<1500){lg.push('jina reader: page too short ('+t.length+' chars)');throw 0}const f=md(t,url);if(f.textContent.length<600){lg.push('jina reader: little text left');throw 0}return f}
+   try{const r=await fetch('https://r.jina.ai/'+url,{signal:c.signal});const t=await r.text();if(!r.ok){lg.push('jina reader: HTTP '+r.status);throw 0}if(t.length<1500){lg.push('jina reader: page too short ('+t.length+' chars)');throw 0}const f=md(t,url);if(f.textContent.length<600){lg.push('jina reader: little text left');throw 0}f.tier='reader';return f}
    catch(e){if(c.signal.aborted)lg.push('jina reader: timed out');else if(!(lg[lg.length-1]||'').startsWith('jina'))lg.push('jina reader: blocked or offline');throw e}
    finally{clearTimeout(to)}
   })();
@@ -4132,14 +4140,15 @@ async function getFull0(url,ctx){
 }
 /* stories read ahead are kept in memory the moment they arrive, so opening one right after scrolling never has to fetch it again */
 const PFHOT=new Map();
+const TIER={};/* which route delivered each story, and what the page said about itself */
 function getFull(url,light){
- const hot=PFHOT.get(url);if(hot&&Date.now()-hot.t<6e5){const f=hot.n.cloneNode(true);if(hot.n.pw)f.pw=true;return Promise.resolve(f)}
+ const hot=PFHOT.get(url);if(hot&&Date.now()-hot.t<6e5){const f=hot.n.cloneNode(true);if(hot.n.pw)f.pw=true;f.tier=hot.n.tier;f.meta=hot.n.meta;return Promise.resolve(f)}
  let e=INF[url];
  if(e){if(!light&&e.ctx.light){e.ctx.light=false;if(e.ctx.up)e.ctx.up()}}
  else{const ctx={light:!!light};e=INF[url]={ctx,p:getFull0(url,ctx).finally(()=>{if(INF[url]===e)delete INF[url]})}}
  return e.p.then(n=>{
   if(!n)return null;
-  const f=tidy(n.cloneNode(true)),tx=f.textContent||'',q=textQuality(tx);
+  const f=tidy(n.cloneNode(true)),tx=f.textContent||'',q=textQuality(tx);f.tier=n.tier||'direct';f.meta=n.meta;TIER[url]={tier:f.tier,meta:f.meta||null};
   if(!q.ok){const lg=LG[url]||(LG[url]=[]);lg.push('Rejected: the text looked garbled ('+q.why+')');return null}
   if(paywalled(tx)||paywalled(n.textContent))f.pw=true;
   return f;
@@ -4156,16 +4165,16 @@ async function getFullDeep(url,lg){
    const r=await fetch('https://r.jina.ai/'+url,{signal:c.signal,headers:hd});const t=await r.text();
    if(!r.ok){lg.push(why+': HTTP '+r.status);throw 0}
    if(t.length<1500){lg.push(why+': page too short ('+t.length+' chars)');throw 0}
-   const f=html?extract(t,url):md(t,url);if(!f||f.textContent.length<600){lg.push(why+': little text left');throw 0}return f;
+   const f=html?extract(t,url):md(t,url);if(!f||f.textContent.length<600){lg.push(why+': little text left');throw 0}f.tier='reader';return f;
   }catch(e){if(c.signal.aborted)lg.push(why+': timed out');else if(!(lg[lg.length-1]||'').startsWith(why))lg.push(why+': blocked or offline');throw e}
   finally{clearTimeout(to)}
  })();
  const tasks=[
   jina('reader (browser mode)',{'X-Engine':'browser','X-Return-Format':'markdown','X-No-Cache':'true','X-Timeout':'25'},0),
   jina('reader (page source)',{'X-Return-Format':'html','X-No-Cache':'true'},1),
-  fromPage(base+'/amp/',lg,'AMP copy via ').then(x=>x||Promise.reject(0)),
-  fromPage(url+(url.includes('?')?'&':'?')+'amp=1',lg,'AMP copy 2 via ').then(x=>x||Promise.reject(0)),
-  fromPage('https://web.archive.org/web/2/'+url,lg,'archive copy via ').then(x=>x||Promise.reject(0))
+  fromPage(base+'/amp/',lg,'AMP copy via ').then(x=>{if(!x)throw 0;x.tier='deep';return x}),
+  fromPage(url+(url.includes('?')?'&':'?')+'amp=1',lg,'AMP copy 2 via ').then(x=>{if(!x)throw 0;x.tier='deep';return x}),
+  fromPage('https://web.archive.org/web/2/'+url,lg,'archive copy via ').then(x=>{if(!x)throw 0;x.tier='deep';return x})
  ];
  tasks.forEach(t=>t.catch(()=>{}));
  try{return await Promise.any(tasks)}catch(e){return null}
@@ -4244,11 +4253,41 @@ function pfList(){
  }
  return cur.slice(0,8);
 }
+/* ---- 4-tier article pipeline helpers ---- */
+/* a feed item is "truncated" when its own text is short or ends the way an excerpt does */
+function isTruncated(a){const t=String(a&&(a.html||a.summary)||'').replace(/&#8230;|&#x2026;|&hellip;/gi,'…').replace(/<[^>]+>/g,' ').replace(/&[a-z#0-9]+;/gi,' ').replace(/\s+/g,' ').trim();const w=t?t.split(' ').length:0;return w<250||/(\.\.\.|…|\[…\]|read more|continue reading|appeared first on[^.]*)\s*$/i.test(t)}
+/* Tier 3: the same story from a wire or syndication partner, found through Google News, when the site itself will not open */
+const WIREHOST=/(^|\.)(apnews\.com|reuters\.com|msn\.com|yahoo\.com)$/i;
+async function mirrorFor(a){
+ try{
+  const q=String(a.title||'').replace(/\s+[-–|]\s+[^-–|]{2,40}$/,'').trim();if(q.length<12)return null;
+  const u='https://news.google.com/rss/search?q='+encodeURIComponent('"'+q+'"')+'&hl=en-US&gl=US&ceid=US:en';
+  const x=await fetchText(u,t=>/<item[\s>]/i.test(t),{push(){}});
+  const own=host(a.link),list=parse(x,{id:'mir',url:u,title:'mirror'}).list.slice(0,10);
+  const tried=new Set();
+  for(const m of list){
+   let l=gnDecode(m.link)||m.link;if(/news\.google\./.test(l||''))try{l=await gnResolve(l)}catch(e){l=''}
+   const h=host(l||'');if(!l||/news\.google\./.test(l)||!h||h===own||h.endsWith(own)||own.endsWith(h)||!WIREHOST.test(h)||tried.has(l))continue;
+   tried.add(l);if(tried.size>3)break;
+   const n=await Promise.race([getFull(l),new Promise(r=>setTimeout(()=>r(null),15000))]).catch(()=>null);
+   if(n&&n.textContent.length>600&&sameStory(n.textContent,a)&&!footerish(n.textContent)){n.tier='mirror';return {n,u:l}}
+  }
+ }catch(e){}
+ return null;
+}
+/* the one shape the rest of the app can rely on, whichever route delivered the story */
+function articleState(a,contentHtml){
+ const t=(a&&TIER[a.link])||{},m=t.meta||{};
+ const iso=d=>{try{return d?new Date(d).toISOString():''}catch(e){return ''}};
+ return {title:(a&&a.title)||m.headline||'',author:(a&&a.author)||m.author||'',publishDate:iso(m.date)||iso(a&&a.date),contentHtml:contentHtml==null?'':String(contentHtml),tierResolved:(a&&a.tier)||t.tier||'feed'};
+}
 function readAhead(a){
  const by=storyMap(),cards=[...document.querySelectorAll('#grid a.card')].map(c=>c.getAttribute('href'));
  const i=cards.indexOf(a.link);let next=[];
  if(i>=0)next=cards.slice(i+1).map(l=>by.get(l)).filter(x=>x&&!S.read[x.link]);
  if(!next.length){const l=(items[a.feedId]||[]).slice().sort((x,y)=>y.date-x.date),j=l.findIndex(x=>x.link===a.link);if(j>=0)next=l.slice(j+1).filter(x=>!S.read[x.link])}
+ /* stories whose feed text is only an excerpt are the ones worth fetching ahead of time */
+ next=[...next.slice(0,8)].sort((x,y)=>(isTruncated(y)?1:0)-(isTruncated(x)?1:0)).concat(next.slice(8));
  prefetch(next.slice(0,3),true);
  if(pfMode()==='top10')prefetch(next.slice(3,10));
 }
@@ -4354,9 +4393,11 @@ async function openReader(a){
  if(my!==tok){if(n){PFHOT.set(a.link,{n,t:Date.now()});if(PFHOT.size>16)PFHOT.delete(PFHOT.keys().next().value)}return}
  const alts=outLinks(a);
  if(!n&&alts.length){const ms=await Promise.all(alts.map(u=>getFull(u).catch(()=>null)));if(my!==tok)return;for(let i=0;i<alts.length;i++){const m=ms[i];if(m&&sameStory(m.textContent,a)){n=m;src=alts[i];break}}}
+ if(!n&&online()){const mr=await Promise.race([mirrorFor(a),new Promise(r=>setTimeout(()=>r(null),20000))]);if(my!==tok)return;if(mr){n=mr.n;src=mr.u}}
  if(my!==tok)return;
  ALT=src!==a.link?src:(!n&&alts[0]?alts[0]:'');
  if(n&&n.textContent.length>Math.max(600,body.textContent.length+100)){
+  a.tier=n.tier||(src!==a.link?'mirror':'direct');
   const im=n.querySelector('img');if(im&&a.img&&sameImg(im.src,a.img))im.remove();
   ttsStop();
   body.replaceChildren(dropTitle(n,a.title));
@@ -4365,7 +4406,7 @@ async function openReader(a){
   S.rt[a.link]=Math.max(1,Math.round(body.textContent.split(/\s+/).length/230));const rk=Object.keys(S.rt);if(rk.length>600)delete S.rt[rk[0]];save();
   foldBoiler(body,a);
   if(S.autoReader&&R.web&&R.auto)toggleWeb();
- }else{note.innerHTML='Couldn’t get the full story cleanly here, so this is what the site’s feed gave us. <button type="button" class="lnk" data-web="1">View the site in the app</button> <button type="button" class="lnk" data-retry="1">Try another way</button> <button type="button" class="lnk" data-diag="1">Copy details</button>'+whyHtml(a.link);if(my===tok&&!R.web&&online()&&(S.autoWeb||isBing(f.url)||/news\.google\./.test(f.url||'')||/news\.google\./.test(a.link||'')||isPay(a)))toggleWeb(true);if(my===tok&&online())setTimeout(()=>{if(my===tok&&curA===a)deepTry(a,false)},300)}
+ }else{a.tier='feed';note.innerHTML='Couldn’t get the full story cleanly here, so this is what the site’s feed gave us. <a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener">Open the original</a> <button type="button" class="lnk" data-web="1">View the site in the app</button> <button type="button" class="lnk" data-retry="1">Try another way</button> <button type="button" class="lnk" data-diag="1">Copy details</button>'+whyHtml(a.link);if(my===tok&&!R.web&&online()&&(S.autoWeb||isBing(f.url)||/news\.google\./.test(f.url||'')||/news\.google\./.test(a.link||'')||isPay(a)))toggleWeb(true);if(my===tok&&online())setTimeout(()=>{if(my===tok&&curA===a)deepTry(a,false)},300)}
  layout();afterLoad();
 }
 const FONTS={serif:"'Newsreader',Georgia,serif",literata:"'Literata',Georgia,serif",merri:"'Merriweather',Georgia,serif",garamond:"'EB Garamond',Georgia,serif",sans:"'Instrument Sans',system-ui,sans-serif",lexend:"'Lexend',system-ui,sans-serif",hyper:"'Atkinson Hyperlegible','Instrument Sans',sans-serif",dys:"'OpenDyslexic','Lexend',sans-serif"};
