@@ -1,6 +1,8 @@
 import json,re,subprocess,concurrent.futures as cf,os,hashlib,sys
 ua="Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36"
 cat=json.load(open('cat.json'))
+if len(sys.argv)>2 and sys.argv[1]=='--only':
+    keep=set(l.strip() for l in open(sys.argv[2]) if l.strip());cat=[c for c in cat if c[1] in keep]
 os.makedirs('d',exist_ok=True)
 def get(u,lim):
     r=subprocess.run(['curl','-sL','-m','25','-A',ua,'--max-filesize',str(lim),u],capture_output=True)

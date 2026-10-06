@@ -16,3 +16,11 @@ Notes:
   inconclusive from a server; try them from a phone.
 - "No stories" can mean the feed is dead or that the site refuses this machine.
 - Read the output before removing anything: the checks are hints, not verdicts.
+
+## Running it on a Mac (or any home computer)
+Sites often refuse requests from data-centre machines, so a home connection can check what a server could not.
+
+    cd tools/feed-audit && ./run.sh retest      # just the ~150 sites a server could not check
+    ./run.sh                                    # every site
+
+Then send `summary.txt` (or `report.json`) back, or run it inside a Claude Code session on that machine and ask it to push the results.
