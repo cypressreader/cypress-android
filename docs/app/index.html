@@ -4062,6 +4062,9 @@ const fromPage=async(url,lg,tag,sig)=>{let fr=null;await fetchText(url,t=>{if(fr
 
 /* ---------- is this text really the story? ---------- */
 const SHORTOK=new Set('a i of to in is it on at be by an as do go he if me my no or so up us we am oh ok'.split(' '));
+/* a page whose "article" is really the site's footer (ads, member pitch, affiliate note) is not the story */
+const FOOTMARK=[/advertise here|carbon ads/i,/made possible by (member|reader)/i,/affiliate commission/i,/socials?\s*(&|and)\s*more/i,/all rights reserved/i,/privacy policy/i,/(sign up|subscribe) (for|to) (our|the) newsletter/i,/cookie (policy|settings)/i];
+function footerish(t){t=String(t||'').replace(/\s+/g,' ').trim().slice(0,900);let n=0;for(const r of FOOTMARK)if(r.test(t))n++;return n>=2}
 function textQuality(t){
  t=(t||'').replace(/\s+/g,' ').trim();
  const w=t.split(' ');
@@ -4343,11 +4346,11 @@ async function openReader(a){
  if(ytId(a)){note.remove();afterLoad();return}
  let cached=acGet(a.link)||await acLoad(a.link);
  if(my!==tok)return;
- if(cached&&!textQuality(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')).ok)cached=null;
+ if(cached&&!textQuality(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')).ok)cached=null;if(cached&&footerish(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')))cached=null;
  if((f.web||(isPay(a)&&f.web!==false))&&!cached&&online())toggleWeb(true);
  if(cached){body.replaceChildren(dropTitle(tidy(fromHTML(cached,a.link)),a.title));foldBoiler(body,a);note.remove();ALT='';afterLoad();return}
  if(!online()){note.textContent=S.offline?'Offline mode is on. Showing what’s stored on this device.':'You’re offline. Showing what came with the feed.';afterLoad();return}
- let n=await getFull(a.link),src=a.link;
+ let n=await getFull(a.link),src=a.link;if(n&&footerish(n.textContent)&&body.textContent.trim().length>=80)n=null;
  if(my!==tok){if(n){PFHOT.set(a.link,{n,t:Date.now()});if(PFHOT.size>16)PFHOT.delete(PFHOT.keys().next().value)}return}
  const alts=outLinks(a);
  if(!n&&alts.length){const ms=await Promise.all(alts.map(u=>getFull(u).catch(()=>null)));if(my!==tok)return;for(let i=0;i<alts.length;i++){const m=ms[i];if(m&&sameStory(m.textContent,a)){n=m;src=alts[i];break}}}
@@ -4990,7 +4993,7 @@ const CAT=[
 {n:"Entertainment",f:[["Variety", "https://variety.com/feed/"], ["The Hollywood Reporter", "https://www.hollywoodreporter.com/feed/"], ["Deadline", "https://deadline.com/feed/"], ["Rolling Stone", "https://www.rollingstone.com/feed/"], ["Vulture", "https://feeds.feedburner.com/nymag/vulture"], ["/Film", "https://www.slashfilm.com/feed/"], ["The A.V. Club", "https://www.avclub.com/rss.xml"], ["Pitchfork", "https://pitchfork.com/feed/feed-news/rss"], ["IndieWire", "https://www.indiewire.com/feed/"], ["Billboard", "https://www.billboard.com/feed/"]]},
 {n:"Gaming",f:[["IGN", "https://www.ign.com/rss/v2/articles/feed"], ["Polygon", "https://www.polygon.com/feed/"], ["Kotaku", "https://kotaku.com/feed"], ["PC Gamer", "https://www.pcgamer.com/rss/"], ["GameSpot", "https://www.gamespot.com/feeds/mashup/"], ["VGC", "https://www.videogameschronicle.com/feed/"], ["Nintendo Life", "https://www.nintendolife.com/feeds/latest"], ["Push Square", "https://www.pushsquare.com/feeds/latest"], ["Game Informer", "https://gameinformer.com/news.xml"], ["Destructoid", "https://www.destructoid.com/feed/"], ["Eurogamer", "https://www.eurogamer.net/feed"], ["Rock Paper Shotgun", "https://www.rockpapershotgun.com/feed"]]},
 {n:"Design",f:[["It’s Nice That", "https://www.itsnicethat.com/articles.rss"], ["Dezeen", "https://www.dezeen.com/feed/"], ["Design Milk", "https://design-milk.com/feed/"], ["Colossal", "https://www.thisiscolossal.com/feed/"], ["designboom", "https://www.designboom.com/feed/"], ["ArchDaily", "https://feeds.feedburner.com/Archdaily"], ["Creative Bloq", "https://www.creativebloq.com/feeds.xml"], ["Smashing Magazine", "https://www.smashingmagazine.com/feed/"]]},
-{n:"Culture",f:[["The Atlantic", "https://www.theatlantic.com/feed/all/"], ["The New Yorker", "https://www.newyorker.com/feed/everything"], ["Vox", "https://www.vox.com/rss/index.xml"], ["Slate", "https://slate.com/feeds/all.rss"], ["Hyperallergic", "https://hyperallergic.com/rss/"], ["Longreads", "https://longreads.com/feed/"], ["Open Culture", "https://www.openculture.com/feed"], ["Kottke", "https://feeds.kottke.org/main"]]},
+{n:"Culture",f:[["The Atlantic", "https://www.theatlantic.com/feed/all/"], ["The New Yorker", "https://www.newyorker.com/feed/everything"], ["Vox", "https://www.vox.com/rss/index.xml"], ["Slate", "https://slate.com/feeds/all.rss"], ["Hyperallergic", "https://hyperallergic.com/rss/"], ["Longreads", "https://longreads.com/feed/"], ["Open Culture", "https://www.openculture.com/feed"]]},
 {n:"Cars",f:[["Electrek", "https://electrek.co/feed/"], ["Jalopnik", "https://www.jalopnik.com/feed/"], ["Motor1", "https://www.motor1.com/rss/news/all/"], ["Car and Driver", "https://www.caranddriver.com/rss/all.xml/"], ["InsideEVs", "https://insideevs.com/rss/news/all/"]]},
 {n:"Developers",f:[["GitHub Blog", "https://github.blog/feed/"], ["Stack Overflow Blog", "https://stackoverflow.blog/feed/"], ["Cloudflare Blog", "https://blog.cloudflare.com/rss/"], ["Simon Willison", "https://simonwillison.net/atom/everything/"], ["The Pragmatic Engineer", "https://newsletter.pragmaticengineer.com/feed"], ["Martin Fowler", "https://martinfowler.com/feed.atom"], ["DEV Community", "https://dev.to/feed"], ["freeCodeCamp", "https://www.freecodecamp.org/news/rss/"], ["Lobsters", "https://lobste.rs/rss"], ["Reddit r/programming", "https://www.reddit.com/r/programming/.rss"]]},
 {n:"Lifestyle",f:[["Lifehacker", "https://lifehacker.com/feed/rss"], ["The Kitchn", "https://www.thekitchn.com/main.rss"], ["Apartment Therapy", "https://www.apartmenttherapy.com/main.rss"], ["Budget Bytes", "https://www.budgetbytes.com/feed/"], ["Bon Appétit", "https://www.bonappetit.com/feed/rss"], ["Serious Eats", "https://feeds-api.dotdashmeredith.com/v1/rss/google/ad57d421-0ff5-41e7-a5da-f2167b6d7f7a"], ["Condé Nast Traveler", "https://www.cntraveler.com/feed/rss"]]},
@@ -5101,7 +5104,7 @@ const PACKS=[
  {n:'Tech morning',m:['tech','technology'],d:'The day’s tech news in one sweep',f:['The Verge','TechCrunch','Ars Technica','Wired','Engadget','Hacker News']},
  {n:'World briefing',m:['world','world news','news'],d:'Global headlines from trusted outlets',f:['BBC World','Al Jazeera','The Guardian World','NPR World','Deutsche Welle','France 24']},
  {n:'Curious mind',m:['science','ideas','learning','curious'],d:'Science, discovery and big ideas',f:['Quanta Magazine','Nature','New Scientist','Scientific American','Science News','Knowable Magazine','The Conversation','Big Think','Aeon','Psyche','Atlas Obscura','Mental Floss','HowStuffWorks','Smithsonian','Farnam Street','Wait But Why','MIT Technology Review']},
- {n:'Culture vulture',m:['culture','arts','books','reading'],d:'Essays, books, film, music and the arts',f:['The Atlantic','The New Yorker','Vox','Slate','Literary Hub','Brain Pickings','Vulture','Pitchfork','Hyperallergic','The Guardian Culture','The Paris Review','Electric Literature','Longreads','Open Culture','Kottke']},
+ {n:'Culture vulture',m:['culture','arts','books','reading'],d:'Essays, books, film, music and the arts',f:['The Atlantic','The New Yorker','Vox','Slate','Literary Hub','Brain Pickings','Vulture','Pitchfork','Hyperallergic','The Guardian Culture','The Paris Review','Electric Literature','Longreads','Open Culture']},
  {n:'Sports fan',m:['sports','sport'],d:'Scores, news and analysis',f:['ESPN','BBC Sport','Sky Sports','The Athletic','Formula 1','Cricinfo']},
  {n:'Gamer',m:['gaming','games'],d:'Reviews, news and industry',f:['IGN','Polygon','PC Gamer','Rock Paper Shotgun','Eurogamer','Kotaku']},
  {n:'Builder',m:['dev','developer','development','coding','programming'],d:'For developers and makers',f:['GitHub Blog','Stack Overflow Blog','Simon Willison','Martin Fowler','Hackaday','CSS-Tricks']},
