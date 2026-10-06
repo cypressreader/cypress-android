@@ -4905,7 +4905,7 @@ const CAT=[
 {n:"Cars",f:[["Electrek", "https://electrek.co/feed/"], ["Jalopnik", "https://jalopnik.com/rss"], ["Motor1", "https://www.motor1.com/rss/news/all/"], ["Car and Driver", "https://www.caranddriver.com/rss/all.xml/"], ["InsideEVs", "https://insideevs.com/rss/news/all/"]]},
 {n:"Developers",f:[["GitHub Blog", "https://github.blog/feed/"], ["Stack Overflow Blog", "https://stackoverflow.blog/feed/"], ["Cloudflare Blog", "https://blog.cloudflare.com/rss/"], ["Simon Willison", "https://simonwillison.net/atom/everything/"], ["The Pragmatic Engineer", "https://newsletter.pragmaticengineer.com/feed"], ["Martin Fowler", "https://martinfowler.com/feed.atom"], ["DEV Community", "https://dev.to/feed"], ["freeCodeCamp", "https://www.freecodecamp.org/news/rss/"], ["Lobsters", "https://lobste.rs/rss"], ["Reddit r/programming", "https://www.reddit.com/r/programming/.rss"]]},
 {n:"Lifestyle",f:[["Lifehacker", "https://lifehacker.com/feed/rss"], ["The Kitchn", "https://www.thekitchn.com/main.rss"], ["Apartment Therapy", "https://www.apartmenttherapy.com/main.rss"], ["Budget Bytes", "https://www.budgetbytes.com/feed/"], ["Bon Appétit", "https://www.bonappetit.com/feed/rss"], ["Serious Eats", "https://feeds-api.dotdashmeredith.com/v1/rss/google/ad57d421-0ff5-41e7-a5da-f2167b6d7f7a"], ["Condé Nast Traveler", "https://www.cntraveler.com/feed/rss"]]},
-{n:"Good news",f:[["Good News Network", "https://www.goodnewsnetwork.org/feed/", ["goodnewsnetwork","good news"], 1], ["Positive News", "https://www.positive.news/feed/", ["positive.news"], 1], ["Reasons to Be Cheerful", "https://reasonstobecheerful.world/feed/", ["reasons to be cheerful"], 1], ["The Optimist Daily", "https://www.optimistdaily.com/feed/", ["optimist daily","optimist"], 1], ["Good Good Good", "https://www.goodgoodgood.co/articles?format=rss", ["goodgoodgood"], 1], ["Future Crunch", "https://futurecrun.ch/feed/", ["futurecrunch"], 1], ["YES! Magazine", "https://www.yesmagazine.org/feed", ["yes magazine"], 1]]}
+{n:"Good news",f:[["Good News Network", "https://www.goodnewsnetwork.org/feed/", ["goodnewsnetwork","good news"], 1], ["Positive News", "https://www.positive.news/feed/", ["positive.news"], 1], ["Reasons to Be Cheerful", "https://reasonstobecheerful.world/feed/", ["reasons to be cheerful"], 1], ["The Optimist Daily", "https://www.optimistdaily.com/feed/", ["optimist daily","optimist"], 1], ["YES! Magazine", "https://www.yesmagazine.org/feed", ["yes magazine"], 1], ["Our World in Data", "https://ourworldindata.org/atom.xml", ["owid","ourworldindata"], 1], ["Sustainability by Numbers", "https://www.sustainabilitybynumbers.com/feed", ["hannah ritchie"], 1]]}
 ];
 let cat=-9;
 const nUrl=u=>String(u||'').toLowerCase().replace(/^https?:\/\/(www\.)?/,'').replace(/[?#].*$/,'').replace(/\/+$/,'').replace(/\/(feed|rss)(\.xml)?$/,'');
@@ -5018,20 +5018,24 @@ const PACKS=[
  {n:'Foodie',m:['food','cooking','recipes'],d:'Recipes and kitchen culture',f:['Serious Eats','Bon Appétit','Smitten Kitchen','Budget Bytes','Eater','Minimalist Baker']},
  {n:'Design eye',m:['design','art & design'],d:'Design, architecture and visual culture',f:['Dezeen','Design Milk','Colossal','designboom','It’s Nice That','Core77']},
  {n:'Money smart',m:['money','finance','business','markets'],d:'Markets and personal finance',f:['CNBC','Financial Times','MarketWatch','NerdWallet','Investopedia','The Motley Fool']},
- {n:'Bright side',m:['good news','positive','uplifting'],d:'Uplifting stories and signs of progress',f:['Good News Network','Positive News','Reasons to Be Cheerful','The Optimist Daily','Good Good Good','Future Crunch','YES! Magazine']}
+ {n:'Bright side',m:['good news','positive','uplifting'],d:'Uplifting stories and signs of progress',f:['Good News Network','Positive News','Reasons to Be Cheerful','The Optimist Daily','YES! Magazine','Our World in Data','Sustainability by Numbers']}
 ];
 function packEntries(pk){const all=CAT.flatMap(c=>c.f.map(x=>({c:c.n,n:x[0],u:x[1],v:x[3]?1:0})));return pk.f.map(n=>all.find(x=>x.n===n)).filter(Boolean)}
-function packsHtml(){return PACKS.map((pk,i)=>{const es=packEntries(pk),fresh=es.filter(x=>!inFeeds(x.u));return `<div class="pf"><b style="background:var(--ink)"></b><span>${esc(pk.n)}<small>${esc(pk.d)} · ${es.length} feeds</small></span>${fresh.length?`<button type="button" data-pack="${i}">Add ${fresh.length}</button>`:'<em>Added</em>'}</div>`}).join('')}
+function packsHtml(){return PACKS.map((pk,i)=>{const es=packEntries(pk),fresh=es.filter(x=>!inFeeds(x.u)&&!pkFailed(x.u));return `<div class="pf"><b style="background:var(--ink)"></b><span>${esc(pk.n)}<small>${esc(pk.d)} · ${es.length} feeds</small></span>${fresh.length?`<button type="button" data-pack="${i}">Add ${fresh.length}</button>`:'<em>Added</em>'}</div>`}).join('')}
+const pkFailed=u=>{const t=(S.pkfail||{})[u];return !!t&&Date.now()-t<6048e5};
 async function addPack(i,btn){
- const pk=PACKS[i],es=packEntries(pk).filter(x=>!inFeeds(x.u));if(!es.length)return;
- if(btn){btn.disabled=true;btn.textContent='Adding…'}
+ const pk=PACKS[i],es=packEntries(pk).filter(x=>!inFeeds(x.u)&&!pkFailed(x.u));if(!es.length)return;
+ let done=0;const prog=()=>{if(btn)btn.textContent='Adding '+done+'/'+es.length};
+ if(btn){btn.disabled=true;prog()}
  const nm=[pk.n,...(pk.m||[])].map(x=>x.toLowerCase());let fo=S.folders.find(f=>nm.includes(String(f.name).trim().toLowerCase()));if(!fo){fo={id:'g'+Date.now(),name:pk.n};S.folders.push(fo)}
- let n=0;const add=async x=>{let url=x.u;
-  if(x.v){let fd=null;try{fd=await Promise.race([findFeed(x.u),new Promise((_,j)=>setTimeout(j,15000))])}catch(_){}if(!fd||!fd.xml)return;url=fd.url}
-  if(inFeeds(url))return;const f={id:'x'+Date.now()+Math.random().toString(36).slice(2,6),url,title:x.n,folder:fo.id};S.feeds.push(f);n++;load(f)};
+ let n=0;const bad=[];const add=async x=>{let url=x.u;
+  try{if(x.v){let fd=null;try{fd=await Promise.race([findFeed(x.u),new Promise((_,j)=>setTimeout(j,9000))])}catch(_){}if(!fd||!fd.xml){bad.push(x);return}url=fd.url}
+  if(inFeeds(url))return;const f={id:'x'+Date.now()+Math.random().toString(36).slice(2,6),url,title:x.n,folder:fo.id};S.feeds.push(f);n++;load(f)}finally{done++;prog()}};
  const made=!S.folders.slice(0,-1).includes(fo)&&S.folders[S.folders.length-1]===fo&&!S.feeds.some(f=>f.folder===fo.id);
- await Promise.all(es.map(add));if(!n&&made)S.folders=S.folders.filter(f=>f!==fo);save();fillFolders();pop();
- toast(n?'Added '+n+' feed'+(n===1?'':'s')+' to “'+fo.name+'”':'Couldn’t reach those feeds right now');
+ await Promise.all(es.map(add));if(!n&&made)S.folders=S.folders.filter(f=>f!==fo);
+ if(n&&bad.length){S.pkfail=S.pkfail||{};bad.forEach(x=>{S.pkfail[x.u]=Date.now()})}/* only when others worked: a site that has no feed shouldn't leave the button stuck on Add */
+ save();fillFolders();pop();
+ toast(n?'Added '+n+' feed'+(n===1?'':'s')+' to “'+fo.name+'”'+(bad.length?'. Couldn’t reach '+bad.map(x=>x.n).join(', '):''):'Couldn’t reach those feeds right now');
 }
 let LOC={st:'idle'};
 function localHtml(){
