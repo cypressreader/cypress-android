@@ -2753,7 +2753,7 @@ async function fetchText(url,ok,lg){
 /* the same story listed twice by one site (different addresses, same headline) shows once */
 function tkey(t){return String(t||'').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim()}
 function noTwins(list){const s=new Set();return list.filter(a=>{const k=tkey(a.title);if(k.length<12)return true;if(s.has(k))return false;s.add(k);return true})}
-function finishList(list){const out=[],seen=new Set();for(const a of list){if(!a||!a.title)continue;const l=webUrl(a.link);if(!l||seen.has(l))continue;a.link=l;seen.add(l);out.push(a)}return noTwins(out)}
+function finishList(list){const out=[],seen=new Set();for(const a of list){if(!a||!a.title)continue;const l=webUrl(a.link);if(!l||seen.has(l))continue;a.link=l;if(a.img&&/^\s*(javascript|data|vbscript):/i.test(a.img))a.img='';seen.add(l);out.push(a)}return noTwins(out)}
 const TZ={EST:'-0500',EDT:'-0400',CST:'-0600',CDT:'-0500',MST:'-0700',MDT:'-0600',PST:'-0800',PDT:'-0700',CET:'+0100',CEST:'+0200',BST:'+0100',IST:'+0530',EET:'+0200',EEST:'+0300',AEST:'+1000',AEDT:'+1100',JST:'+0900',KST:'+0900',HKT:'+0800',SGT:'+0800',NZST:'+1200',NZDT:'+1300',MSK:'+0300',WET:'+0000',WEST:'+0100',ET:'-0500',PT:'-0800'};
 function pdate(v){
  v=String(v||'').trim();if(!v)return 0;
@@ -2807,7 +2807,7 @@ function clean(n,base){
    if((ICONRE.test(s)||ALTICON.test(c.getAttribute('alt')||''))&&!/\.(jpe?g|webp|png|avif)\b/i.test(s))continue;
    if(+c.getAttribute('height')<60&&c.getAttribute('height'))continue;
    if(c.closest&&c.closest('li')&&+(c.getAttribute('width')||999)<200)continue;
-   const im=document.createElement('img');im.src=abs(s,base);im.loading='lazy';im.referrerPolicy='no-referrer';out.append(im);continue;
+   const su=abs(s,base);if(!/^https?:/i.test(su))continue;const im=document.createElement('img');im.src=su;im.loading='lazy';im.referrerPolicy='no-referrer';out.append(im);continue;
   }
   if(!OK.has(t)){const sub=clean(c,base);/* a div/dd/etc. that holds only running text is a paragraph: without a break its text fuses with its neighbours ("...text.Next...") */if(/^(DIV|SECTION|DT|DD|ADDRESS|HEADER|MAIN)$/.test(t)&&sub.textContent.trim()&&!sub.querySelector('p,ul,ol,table,figure,blockquote,pre,h2,h3,h4,hr,img')){const q=document.createElement('p');q.append(sub);out.append(q)}else out.append(sub);continue}
   const e=document.createElement(t);
@@ -2907,7 +2907,7 @@ function inline(t,base){
   f.append(t.slice(i,m.index));
   if(m[4]){const b=document.createElement('strong');b.textContent=m[4];f.append(b)}
   else if(m[5]){const b=document.createElement('em');b.textContent=m[5];f.append(b)}
-  else if(m[1]){const im=document.createElement('img');im.src=abs(m[3],base);im.loading='lazy';im.referrerPolicy='no-referrer';f.append(im)}
+  else if(m[1]){const su=abs(m[3],base);if(!/^https?:/i.test(su)){}else{const im=document.createElement('img');im.src=su;im.loading='lazy';im.referrerPolicy='no-referrer';f.append(im)}}
   else{const h=abs(m[3],base);if(/^https?:/.test(h)){const a=document.createElement('a');a.href=h;a.target='_blank';a.rel='noopener';a.textContent=m[2];f.append(a)}else f.append(m[2])}
   i=re.lastIndex;
  }
