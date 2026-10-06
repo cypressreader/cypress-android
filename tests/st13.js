@@ -41,4 +41,41 @@ ck('copy and close buttons exist',await p.evaluate(()=>!!document.querySelector(
 const hasLine=await p.evaluate(()=>!!document.getElementById('schkb'));ck('settings line exists',hasLine);
 const sc=await p.evaluate(()=>{const names=new Set(CAT.flatMap(c=>c.f.map(x=>x[0])));return SITE_RETEST.filter(n=>names.has(n)).length});
 ck('retest list matches catalogue names',sc>100,String(sc));
+
+// --- leaving the app: pause, retry, resume ---
+const P=await p.evaluate(async()=>{
+ const out={};const rows=Array.from({length:12},(_,i)=>['','S'+i,'https://s'+i+'.test/f']);
+ const calls=[];const setHidden=v=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>v});document.dispatchEvent(new Event('visibilitychange'))};
+ localStorage.removeItem('cypress-schk');
+ // 1. pause while hidden, carry on when back
+ window.siteProbe=async c=>{calls.push(c[1]);await new Promise(r=>setTimeout(r,120));return {name:c[1],url:c[2],feed:'ok',art:'ok',notes:[]}};
+ const ui=[];const run=siteCheckRun(rows,'test',(n,t,b,cur,paused)=>ui.push(paused?'paused':'run'));
+ await new Promise(r=>setTimeout(r,300));setHidden(true);await new Promise(r=>setTimeout(r,150));const at=calls.length;
+ await new Promise(r=>setTimeout(r,700));out.advancedWhileHidden=calls.length-at;
+ setHidden(false);const rep=await run;out.total=calls.length;out.sawPaused=ui.includes('paused');out.fullReport=/12 sites/.test(rep)&&/RESULT: 12 fine/.test(rep);
+ // 2. a failure that happened while hidden is tried again
+ calls.length=0;let first=true;
+ window.siteProbe=async c=>{calls.push(c[1]);if(c[1]==='S0'&&first){first=false;setHidden(true);await new Promise(r=>setTimeout(r,100));setTimeout(()=>setHidden(false),200);return {name:c[1],url:c[2],feed:'error: timed out',art:'',notes:[]}}return {name:c[1],url:c[2],feed:'ok',art:'ok',notes:[]}};
+ const rep2=await siteCheckRun(rows.slice(0,4),'retry',()=>{});out.retried=calls.filter(x=>x==='S0').length;out.retryFine=/RESULT: 4 fine/.test(rep2);
+ // 3. saved progress is offered and used
+ localStorage.setItem('cypress-schk',JSON.stringify({label:'saved scope',rows:rows.slice(0,6),res:rows.slice(0,4).map(c=>({name:c[1],url:c[2],feed:'ok',art:'ok',notes:[]})),el:30,ts:Date.now()}));
+ calls.length=0;window.siteProbe=async c=>{calls.push(c[1]);return {name:c[1],url:c[2],feed:'ok',art:'ok',notes:[]}};
+ siteCheckOpen();await new Promise(r=>setTimeout(r,200));
+ const btn=document.querySelector('#schk [data-k="r"]');out.resumeText=btn&&btn.textContent;
+ btn.click();for(let i=0;i<60&&!document.querySelector('#schk textarea');i++)await new Promise(r=>setTimeout(r,100));
+ out.resumedOnlyRest=calls.slice().sort().join(',');out.resumeReport=document.querySelector('#schk textarea')&&document.querySelector('#schk textarea').value;
+ out.savedCleared=localStorage.getItem('cypress-schk')===null;
+ // 4. last report offered
+ document.querySelector('#schk-x2').click();await new Promise(r=>setTimeout(r,150));siteCheckOpen();await new Promise(r=>setTimeout(r,200));out.lastBtn=!!document.querySelector('#schk [data-k="l"]');
+ document.querySelector('#schk-x').click();
+ return out});
+ck('nothing new starts while the app is in the background',P.advancedWhileHidden<=3,String(P.advancedWhileHidden));
+ck('it carries on and finishes all sites after coming back',P.total===12&&P.fullReport,JSON.stringify([P.total,P.fullReport]));
+ck('the screen says it is paused',P.sawPaused===true);
+ck('a failure that happened in the background is tried again',P.retried===2&&P.retryFine===true,JSON.stringify([P.retried,P.retryFine]));
+ck('saved progress is offered with its count',/4 of 6 done/.test(P.resumeText||''),String(P.resumeText));
+ck('carrying on only checks what was left',P.resumedOnlyRest==='S4,S5',String(P.resumedOnlyRest));
+ck('the report includes the sites done before',/6 sites/.test(P.resumeReport||'')&&/RESULT: 6 fine/.test(P.resumeReport||''),(P.resumeReport||'').slice(0,300));
+ck('saved progress is cleared when finished',P.savedCleared===true);
+ck('the last report can be shown again',P.lastBtn===true);
 console.log(pass+' passed, '+fail+' failed');log.forEach(l=>console.log(l));await b.close()})()

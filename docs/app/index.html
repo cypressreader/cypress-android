@@ -5860,37 +5860,73 @@ function siteReport(res,label,secs){
  L.push('== FINE ('+okN.length+')');L.push(okN.map(r=>r.name).join(', '));
  return L.join('\n');
 }
-async function siteCheckRun(rows,label,ui){
- if(SCHK.on)return;SCHK.on=true;SCHK.stop=false;const t0=Date.now(),res=[];let i=0,wl=null;
- try{wl=await navigator.wakeLock.request('screen')}catch(e){}
+/* progress is kept on the phone, so leaving the app (or Android closing it) never throws the work away */
+const SCK='cypress-schk',SCR='cypress-schk-report';
+const schkLoad=()=>{try{return JSON.parse(localStorage.getItem(SCK)||'null')}catch(e){return null}};
+const schkSave=o=>{try{o?localStorage.setItem(SCK,JSON.stringify(o)):localStorage.removeItem(SCK)}catch(e){}};
+const schkWaitVisible=()=>new Promise(r=>{const f=()=>{if(!document.hidden){document.removeEventListener('visibilitychange',f);r()}};if(!document.hidden)return r();document.addEventListener('visibilitychange',f)});
+async function siteCheckRun(rows,label,ui,resume){
+ if(SCHK.on)return;SCHK.on=true;SCHK.stop=false;SCHK.hides=0;
+ const res=resume?resume.res.slice():[],done=new Set(res.map(r=>r.url)),todo=rows.filter(r=>!done.has(r[2]));
+ let i=0,wl=null,act=resume?resume.el:0,mark=Date.now();
+ const lock=async()=>{try{wl=await navigator.wakeLock.request('screen')}catch(e){}};
+ await lock();
+ const onVis=()=>{if(document.hidden){act+=(Date.now()-mark)/1000;SCHK.hides++;ui(res.length,rows.length,bad(),'',true)}else{mark=Date.now();lock();ui(res.length,rows.length,bad(),'',false)}};
+ document.addEventListener('visibilitychange',onVis);
  const bad=()=>res.filter(r=>r.feed!=='ok'||!/^(ok|full text in the feed)$/.test(r.art)).length;
- const worker=async()=>{while(i<rows.length&&!SCHK.stop){const c=rows[i++];ui(res.length,rows.length,bad(),c[1]);const r=await siteProbe(c);res.push(r);ui(res.length,rows.length,bad(),'')}};
+ const persist=()=>schkSave({label,rows,res,el:act+(document.hidden?0:(Date.now()-mark)/1000),ts:Date.now()});
+ const shaky=r=>r.feed!=='ok'||r.art==='timed out'||r.art==='none';
+ const worker=async()=>{
+  while(i<todo.length&&!SCHK.stop){
+   await schkWaitVisible();if(SCHK.stop||i>=todo.length)break;
+   const c=todo[i++];ui(res.length,rows.length,bad(),c[1],false);
+   const h0=SCHK.hides;let r=await siteProbe(c);
+   /* if the app was in the background while this site was being tried, the failure may be the phone's doing: try once more */
+   if(SCHK.hides!==h0&&shaky(r)){await schkWaitVisible();r=await siteProbe(c)}
+   res.push(r);ui(res.length,rows.length,bad(),'',false);if(res.length%3===0)persist();
+  }};
  await Promise.all([worker(),worker(),worker()]);
+ document.removeEventListener('visibilitychange',onVis);
  try{wl&&wl.release()}catch(e){}
- SCHK.on=false;return siteReport(res,label+(SCHK.stop?' (stopped early)':''),(Date.now()-t0)/1000);
+ act+=document.hidden?0:(Date.now()-mark)/1000;SCHK.on=false;
+ const finished=res.length>=rows.length&&!SCHK.stop;
+ const rep=siteReport(res,label+(finished?'':' (stopped early)'),act);
+ if(finished)schkSave(null);else persist();
+ try{localStorage.setItem(SCR,JSON.stringify({rep,ts:Date.now()}))}catch(e){}
+ return rep;
 }
 function siteCheckOpen(){
  let d=document.getElementById('schk');if(d)d.remove();d=document.createElement('dialog');d.id='schk';
  d.style.cssText='max-width:520px;width:92vw;padding:18px;border-radius:16px;border:1px solid var(--ln);background:var(--pn,#fff);color:var(--ink)';
- const known=new Set(CAT.flatMap(c=>c.f.map(x=>x[0]))),set=new Set(SITE_RETEST);
+ const set=new Set(SITE_RETEST);
  const all=CAT.flatMap(c=>c.f.map(x=>[c.n,x[0],x[1]]));
  const scopes=[['Sites we couldn’t check from a computer',all.filter(r=>set.has(r[1]))],['Every site in the Add a feed list',all],['My feeds',S.feeds.map(f=>['',f.title||host(f.url),f.url])]];
  const btn='padding:12px 14px;border-radius:12px;border:1px solid var(--ln);background:none;color:inherit;font:600 15px system-ui;text-align:left;cursor:pointer;width:100%';
- d.innerHTML='<h3 style="margin:0 0 6px;font:700 20px system-ui">Test sites on this phone</h3><div id="schk-b"><p class="hint" style="margin:0 0 12px">Tries each site the way CyPress does and writes a report you can paste to the developer. It contains site names and addresses, not your stories. Keep the app open and the screen on. About 3 sites a second at best, so the long ones take a while.</p>'+scopes.map((s,k)=>'<button type="button" data-k="'+k+'" style="'+btn+';margin-bottom:8px">'+esc(s[0])+' <small style="opacity:.7">· '+s[1].length+' sites · about '+Math.max(1,Math.round(s[1].length/14))+' min</small></button>').join('')+'<button type="button" id="schk-x" style="'+btn+';text-align:center;opacity:.8">Close</button></div>';
+ const saved=schkLoad(),lastRep=(()=>{try{return JSON.parse(localStorage.getItem(SCR)||'null')}catch(e){return null}})();
+ const ok=saved&&saved.rows&&saved.res&&Date.now()-saved.ts<864e5&&saved.res.length<saved.rows.length;
+ const extra=(ok?'<button type="button" data-k="r" style="'+btn+';margin-bottom:8px;background:#5dffb0;color:#06231a;border:0">Carry on: '+esc(saved.label)+' <small>· '+saved.res.length+' of '+saved.rows.length+' done</small></button>':'')+(lastRep?'<button type="button" data-k="l" style="'+btn+';margin-bottom:8px">Show the last report <small style="opacity:.7">· '+new Date(lastRep.ts).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+'</small></button>':'');
+ d.innerHTML='<h3 style="margin:0 0 6px;font:700 20px system-ui">Test sites on this phone</h3><div id="schk-b"><p class="hint" style="margin:0 0 12px">Tries each site the way CyPress does and writes a report you can paste to the developer. It contains site names and addresses, not your stories. Keep CyPress open and the screen on. If you leave the app it pauses and carries on when you come back. About 3 sites a second at best, so the long ones take a while.</p>'+extra+scopes.map((s,k)=>'<button type="button" data-k="'+k+'" style="'+btn+';margin-bottom:8px">'+esc(s[0])+' <small style="opacity:.7">· '+s[1].length+' sites · about '+Math.max(1,Math.round(s[1].length/14))+' min</small></button>').join('')+'<button type="button" id="schk-x" style="'+btn+';text-align:center;opacity:.8">Close</button></div>';
  document.body.append(d);d.showModal();
  const b=d.querySelector('#schk-b');
- d.addEventListener('click',async e=>{
+ const showReport=rep=>{
+  b.innerHTML='<p style="margin:0 0 10px;font:600 16px system-ui">Done. The report is ready.</p><textarea readonly rows="8" style="width:100%;box-sizing:border-box;font:12px/1.4 ui-monospace,monospace;border-radius:10px;border:1px solid var(--ln);padding:8px">'+esc(rep)+'</textarea><div style="display:grid;gap:8px;margin-top:10px"><button type="button" id="schk-cp" style="'+btn+';text-align:center;background:#5dffb0;color:#06231a;border:0">Copy report</button>'+(navigator.share?'<button type="button" id="schk-sh" style="'+btn+';text-align:center">Share…</button>':'')+'<button type="button" id="schk-x2" style="'+btn+';text-align:center;opacity:.8">Close</button></div>';
+  const ta=d.querySelector('textarea');
+  d.querySelector('#schk-cp').onclick=async()=>{try{await navigator.clipboard.writeText(rep);toast('Report copied. Paste it into your message')}catch(e){ta.select();try{document.execCommand('copy');toast('Report copied')}catch(_){toast('Select the text and copy it')}}};
+  const sh=d.querySelector('#schk-sh');if(sh)sh.onclick=()=>navigator.share({title:'CyPress site check',text:rep}).catch(()=>{});
+  d.querySelector('#schk-x2').onclick=()=>d.close();
+ };
+ const go=async(rows,label,resume)=>{
+  b.innerHTML='<p id="schk-p" style="margin:0 0 10px;font:600 16px system-ui">Starting…</p><div style="height:8px;border-radius:99px;background:var(--ln);overflow:hidden"><div id="schk-bar" style="height:100%;width:0;background:#5dffb0"></div></div><p id="schk-c" class="hint" style="margin:10px 0 14px;min-height:20px"></p><button type="button" id="schk-s" style="'+btn+';text-align:center">Stop and make the report</button>';
+  d.querySelector('#schk-s').onclick=()=>{SCHK.stop=true;d.querySelector('#schk-s').textContent='Finishing…'};
+  const rep=await siteCheckRun(rows,label,(n,t,bad,cur,paused)=>{const p=d.querySelector('#schk-p');if(!p)return;p.textContent=paused?'Paused. Come back to CyPress to carry on':'Checked '+n+' of '+t+' · '+bad+' to look at';d.querySelector('#schk-bar').style.width=Math.round(100*n/t)+'%';d.querySelector('#schk-c').textContent=paused?(n+' of '+t+' done so far. Your progress is saved.'):(cur?'Now: '+cur:'')},resume);
+  if(d.isConnected)showReport(rep);
+ };
+ d.addEventListener('click',e=>{
   const x=e.target.closest('[data-k]');if(x&&!SCHK.on){
+   if(x.dataset.k==='r'){go(saved.rows,saved.label,{res:saved.res,el:saved.el||0});return}
+   if(x.dataset.k==='l'){showReport(lastRep.rep);return}
    const sc=scopes[+x.dataset.k];if(!sc[1].length){toast('Nothing to check');return}
-   b.innerHTML='<p id="schk-p" style="margin:0 0 10px;font:600 16px system-ui">Starting…</p><div style="height:8px;border-radius:99px;background:var(--ln);overflow:hidden"><div id="schk-bar" style="height:100%;width:0;background:#5dffb0"></div></div><p id="schk-c" class="hint" style="margin:10px 0 14px;min-height:20px"></p><button type="button" id="schk-s" style="'+btn+';text-align:center">Stop and make the report</button>';
-   d.querySelector('#schk-s').onclick=()=>{SCHK.stop=true;d.querySelector('#schk-s').textContent='Finishing…'};
-   const rep=await siteCheckRun(sc[1],sc[0],(n,t,bad,cur)=>{const p=d.querySelector('#schk-p');if(!p)return;p.textContent='Checked '+n+' of '+t+' · '+bad+' to look at';d.querySelector('#schk-bar').style.width=Math.round(100*n/t)+'%';d.querySelector('#schk-c').textContent=cur?'Now: '+cur:''});
-   b.innerHTML='<p style="margin:0 0 10px;font:600 16px system-ui">Done. The report is ready.</p><textarea readonly rows="8" style="width:100%;box-sizing:border-box;font:12px/1.4 ui-monospace,monospace;border-radius:10px;border:1px solid var(--ln);padding:8px">'+esc(rep)+'</textarea><div style="display:grid;gap:8px;margin-top:10px"><button type="button" id="schk-cp" style="'+btn+';text-align:center;background:#5dffb0;color:#06231a;border:0">Copy report</button>'+(navigator.share?'<button type="button" id="schk-sh" style="'+btn+';text-align:center">Share…</button>':'')+'<button type="button" id="schk-x2" style="'+btn+';text-align:center;opacity:.8">Close</button></div>';
-   const ta=d.querySelector('textarea');
-   d.querySelector('#schk-cp').onclick=async()=>{try{await navigator.clipboard.writeText(rep);toast('Report copied. Paste it into your message')}catch(e){ta.select();try{document.execCommand('copy');toast('Report copied')}catch(_){toast('Select the text and copy it')}}};
-   const sh=d.querySelector('#schk-sh');if(sh)sh.onclick=()=>navigator.share({title:'CyPress site check',text:rep}).catch(()=>{});
-   d.querySelector('#schk-x2').onclick=()=>d.close();
-   return}
+   schkSave(null);go(sc[1],sc[0],null);return}
   if(e.target.id==='schk-x'||e.target.id==='schk-x2'){d.close()}
  });
  d.addEventListener('close',()=>{SCHK.stop=true;setTimeout(()=>d.remove(),50)});
