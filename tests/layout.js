@@ -35,7 +35,7 @@ for(const w of WIDTHS){
      if(r.width<90&&!h.closest('.nr-ph-strip,.nr-strip,.nr-hs,.nr-tall'))out.push('sliver headline '+Math.round(r.width)+'px');
      if(h.scrollWidth>h.clientWidth+3&&getComputedStyle(h).overflowX!=='visible'||h.scrollWidth>m.width+3)out.push('headline clipped '+h.scrollWidth+'>'+h.clientWidth)});
     document.querySelectorAll('#grid .card.nr-row,#grid .card.nr-late,#grid .card.nr-m,#grid .card.nr-s').forEach(c=>{const tx=c.querySelector('.tx');if(!tx)return;const ch=c.getBoundingClientRect().height,th=tx.getBoundingClientRect().height,im=c.querySelector(':scope>img');
-     const imh=im&&getComputedStyle(im).display!=='none'?im.getBoundingClientRect().height:0;if(ch>Math.max(th,imh)+90)out.push('row gap '+Math.round(ch)+' vs text '+Math.round(th)+' photo '+Math.round(imh)+' ['+String(c.className).replace(/card|nr /g,'').trim()+' in '+String(c.parentElement.className).slice(0,20)+']')});
+     const imh=im&&getComputedStyle(im).display!=='none'?im.getBoundingClientRect().height:0;const stk=imh&&im.getBoundingClientRect().bottom<=tx.getBoundingClientRect().top+2;if(ch>(stk?th+imh:Math.max(th,imh))+90)out.push('row gap '+Math.round(ch)+' vs text '+Math.round(th)+' photo '+Math.round(imh)+' ['+String(c.className).replace(/card|nr /g,'').trim()+' in '+String(c.parentElement.className).slice(0,20)+']')});
     document.querySelectorAll('#grid .nr-quote,#grid .nr-pq').forEach(q=>{const h=q.getBoundingClientRect().height;if(h>640)out.push('quote block '+Math.round(h)+'px')});
     document.querySelectorAll('#grid .card').forEach(c=>{const h=c.getBoundingClientRect().height;if(h>900)out.push('huge card '+Math.round(h)+' '+String(c.className).slice(0,40))});
     return out.slice(0,6)});
