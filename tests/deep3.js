@@ -249,7 +249,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  await p.tap('#tabs [data-tab="all"]');await W(200);ck('narrow','tab bar navigates',await E(()=>S.sel==='all'));
  await p.tap('#tabs [data-tab="saved"]');await W(200);ck('narrow','saved tab',await E(()=>S.sel==='saved'));
  await p.tap('#tabs [data-tab="search"]');await W(300);ck('narrow','search tab',await E(()=>$('#srch').classList.contains('open')));await E(()=>openSearch(false));
- await p.tap('#tabs [data-tab="menu"]');await W(300);ck('narrow','more opens menu',await E(()=>document.body.classList.contains('open')));await E(()=>document.body.classList.remove('open'));
+ await p.tap('#menu');await W(300);ck('narrow','menu button opens menu',await E(()=>document.body.classList.contains('open')));ck('narrow','no More tab',await E(()=>!document.querySelector('#tabs [data-tab="menu"]')&&document.querySelectorAll('#tabs [data-tab]').length===4));await E(()=>document.body.classList.remove('open'));
  await E(()=>{S.sel='all';render();openReader(cur[0])});await W(900);ck('narrow','tabs hidden in reader',await E(()=>getComputedStyle($('#tabs')).display==='none'));await p.tap('#cl');await W(200);
  ck('narrow','last card reachable above tab bar',await E(()=>{$('main').scrollTop=1e6;const c=[...document.querySelectorAll('#grid .card')].pop().getBoundingClientRect(),t=$('#tabs').getBoundingClientRect();return c.bottom<=t.top+2}));
  await E(()=>{S.narrow='off';render()});ck('narrow','can turn off',await E(()=>!document.body.classList.contains('narrow')&&$('#tabs').hidden));
