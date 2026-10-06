@@ -1,6 +1,6 @@
 const {chromium}=require('playwright');const fs=require('fs');
 (async()=>{const b=await chromium.launch();const p=await b.newPage();
-await p.goto('file:///home/user/cypress-android/www/index.html');await p.waitForTimeout(1500);
+await p.goto('file://'+require('path').resolve(__dirname,'../../www/index.html'));await p.waitForTimeout(1500);
 const files=fs.readdirSync('d').filter(f=>f.startsWith('chunk')).sort();const all=[];
 for(const f of files){const D=JSON.parse(fs.readFileSync('d/'+f,'utf8'));
  const r=await p.evaluate(D=>{
