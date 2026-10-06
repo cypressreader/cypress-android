@@ -1,0 +1,44 @@
+const {APP}=require('./env');
+const {mock,seed,PW}=require('./mock');const {chromium}=require(PW);
+let pass=0,fail=0;const log=[];const ck=(n,c,x='')=>{if(c)pass++;else{fail++;log.push(`FAIL ${n} ${x}`)}};
+(async()=>{const b=await chromium.launch();const p=await (await b.newContext({viewport:{width:1000,height:900}})).newPage();
+await mock(p,{n:6});
+await p.addInitScript(s=>{try{if(!localStorage.getItem('folio'))localStorage.setItem('folio',JSON.stringify(s))}catch(e){}},seed(['Alpha','Beta','Gamma']));
+await p.goto('file://'+APP);await p.waitForTimeout(1500);
+const R=await p.evaluate(async()=>{
+ const rss=(n,days,txt,h)=>'<?xml version="1.0"?><rss><channel><title>T</title>'+Array.from({length:n},(_,i)=>'<item><title>Story '+i+'</title><link>https://'+(h||'s')+'.test/'+i+'</link><pubDate>'+new Date(Date.now()-days*864e5-i*3600e3).toUTCString()+'</pubDate><description>'+(txt||'short')+'</description></item>').join('')+'</channel></rss>';
+ const frag=h=>{const d=document.createElement('div');d.innerHTML=h;const f=document.createDocumentFragment();while(d.firstChild)f.append(d.firstChild);return f};
+ const longT='<p>'+'A real paragraph of reporting with many words in it. '.repeat(20)+'</p>';
+ const feeds={'https://ok.test/f':rss(5,0),'https://old.test/f':rss(5,400),'https://empty.test/f':'<rss><channel><title>x</title></channel></rss>','https://links.test/f':rss(5,0,'','links'),'https://none.test/f':rss(5,0,'','none')};
+ const art={'https://links.test/0':'<p><a href="https://a.test">First great article here</a> <a href="https://b.test">Second great article here</a></p>'.repeat(8),'https://none.test/0':null};
+ const of=window.fetchText,og=window.getFull;
+ window.fetchText=async u=>{if(u in feeds)return feeds[u];throw new Error('HTTP 404')};
+ window.getFull=async u=>{const h=(u in art)?art[u]:longT;return h==null?null:frag(h)};
+ const rows=[['','OK site','https://ok.test/f'],['','Old site','https://old.test/f'],['','Empty site','https://empty.test/f'],['','Links site','https://links.test/f'],['','Missing site','https://nope.test/f'],['','None site','https://none.test/f']];
+ const res=await Promise.all(rows.map(siteProbe));
+ const rep=siteReport(res,'test scope',65);
+ window.fetchText=of;window.getFull=og;
+ return {res:res.map(r=>[r.name,r.feed,r.art,r.notes.join('|')]),rep}});
+const m=Object.fromEntries(R.res.map(r=>[r[0],r]));
+ck('ok site is fine',m['OK site'][1]==='ok'&&m['OK site'][2]==='ok',JSON.stringify(m['OK site']));
+ck('old site noted as stale',/months/.test(m['Old site'][3]),JSON.stringify(m['Old site']));
+ck('empty feed = no stories',m['Empty site'][1]==='no stories');
+ck('links site flagged',m['Links site'][2]==='links');
+ck('failed fetch reported with reason',/^error: .*404/.test(m['Missing site'][1]),m['Missing site'][1]);
+ck('unloadable article flagged',m['None site'][2]==='none');
+ck('report has header and counts',/CyPress site check/.test(R.rep)&&/RESULT: 2 fine · 2 with article problems · 2 with no stories/.test(R.rep),R.rep.slice(0,400));
+ck('report lists names and addresses of problems',/Missing site \| error/.test(R.rep)&&/https:\/\/links\.test\/f/.test(R.rep));
+ck('report lists fine sites by name',/== FINE \(2\)\nOK site, Old site/.test(R.rep),R.rep.slice(-120));
+// UI: open dialog, run "My feeds" with a stubbed probe
+await p.evaluate(()=>{window.siteProbe=async c=>({name:c[1],url:c[2],feed:'ok',art:'ok',notes:[]})});
+await p.evaluate(()=>siteCheckOpen());await p.waitForSelector('#schk [data-k]');
+const btns=await p.evaluate(()=>[...document.querySelectorAll('#schk [data-k]')].map(x=>x.textContent));
+ck('three scopes offered',btns.length===3&&/My feeds/.test(btns[2]),JSON.stringify(btns));
+await p.click('#schk [data-k="2"]');await p.waitForSelector('#schk textarea',{timeout:15000});
+const rep2=await p.evaluate(()=>document.querySelector('#schk textarea').value);
+ck('UI produces a report for my feeds',/scope: My feeds · 3 sites/.test(rep2)&&/RESULT: 3 fine/.test(rep2),rep2.slice(0,300));
+ck('copy and close buttons exist',await p.evaluate(()=>!!document.querySelector('#schk-cp')&&!!document.querySelector('#schk-x2')));
+const hasLine=await p.evaluate(()=>!!document.getElementById('schkb'));ck('settings line exists',hasLine);
+const sc=await p.evaluate(()=>{const names=new Set(CAT.flatMap(c=>c.f.map(x=>x[0])));return SITE_RETEST.filter(n=>names.has(n)).length});
+ck('retest list matches catalogue names',sc>100,String(sc));
+console.log(pass+' passed, '+fail+' failed');log.forEach(l=>console.log(l));await b.close()})()
