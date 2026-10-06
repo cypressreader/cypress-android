@@ -14,15 +14,17 @@ const R=await p.evaluate(async()=>{
  const of=window.fetchText,og=window.getFull;
  window.fetchText=async u=>{if(u in feeds)return feeds[u];throw new Error('HTTP 404')};
  window.getFull=async u=>{const h=(u in art)?art[u]:longT;return h==null?null:frag(h)};
+ const olf=window.loadFeed;window.loadFeed=async f=>{if(/empty\.test/.test(f.url)){f.via='gnews';return [{title:'x'},{title:'y'}]}throw new Error('nothing')};
  const rows=[['','OK site','https://ok.test/f'],['','Old site','https://old.test/f'],['','Empty site','https://empty.test/f'],['','Links site','https://links.test/f'],['','Missing site','https://nope.test/f'],['','None site','https://none.test/f']];
  const res=await Promise.all(rows.map(siteProbe));
  const rep=siteReport(res,'test scope',65);
- window.fetchText=of;window.getFull=og;
+ window.fetchText=of;window.getFull=og;window.loadFeed=olf;
  return {res:res.map(r=>[r.name,r.feed,r.art,r.notes.join('|')]),rep}});
 const m=Object.fromEntries(R.res.map(r=>[r[0],r]));
 ck('ok site is fine',m['OK site'][1]==='ok'&&m['OK site'][2]==='ok',JSON.stringify(m['OK site']));
 ck('old site noted as stale',/months/.test(m['Old site'][3]),JSON.stringify(m['Old site']));
 ck('empty feed = no stories',m['Empty site'][1]==='no stories');
+ck('the report says what the app still shows',/Empty site \| no stories \| in the app: headlines only, via Google News \(2\)/.test(R.rep)&&/Missing site \| error: HTTP 404 \| in the app: nothing/.test(R.rep)&&/\(1 of them still show something in the app\)/.test(R.rep),R.rep.slice(0,700));
 ck('links site flagged',m['Links site'][2]==='links');
 ck('failed fetch reported with reason',/^error: .*404/.test(m['Missing site'][1]),m['Missing site'][1]);
 ck('unloadable article flagged',m['None site'][2]==='none');
