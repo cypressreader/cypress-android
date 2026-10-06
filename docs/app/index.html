@@ -2886,10 +2886,46 @@ function pruneJunk(root){
  });
 }
 const ssList=ss=>String(ss||'').split(/\s+[\d.]+[wx]\s*,?\s*|,\s+/).map(x=>x.trim()).filter(Boolean);/* srcset candidates; CDN urls may contain commas (c_fill,w_800), so a plain split(',') cuts them */
+/* the story's text from the JSON a page ships for its scripts (Next.js __NEXT_DATA__, Arc/Fusion globalContent) */
+function payloadParas(root){
+ const best={n:0,p:[]},strip=h=>{const d=new DOMParser().parseFromString('<body>'+h,'text/html');return [...d.body.querySelectorAll('p,h2,h3,li,blockquote')].map(x=>x.textContent.replace(/\s+/g,' ').trim()).filter(x=>x.length>=3)};
+ const consider=ps=>{ps=ps.filter(x=>x&&x.length>=3);const n=ps.reduce((a,x)=>a+x.length,0);if(ps.length>=3&&n>best.n){best.n=n;best.p=ps}};
+ let seen=0;
+ const walk=(o,d)=>{
+  if(!o||typeof o!=='object'||d>14||seen++>60000)return;
+  if(Array.isArray(o)){
+   if(o.length>=3&&o.every(x=>typeof x==='string'))consider(o.map(x=>/<\w+/.test(x)?strip(x).join(' '):x.replace(/\s+/g,' ').trim()));
+   /* arrays of blocks: {type:'paragraph', content/text/value:'...'} */
+   else if(o.length>=3&&o.every(x=>x&&typeof x==='object')){
+    const ps=[];for(const x of o){const ty=String(x.type||x.kind||x.__typename||'').toLowerCase(),tx=x.content??x.text??x.value??x.html??x.body;
+     if(typeof tx==='string'&&(/(para|text|body|html|p$|heading|quote|list)/.test(ty)||(!ty&&tx.length>40)))ps.push(...(/<\w+/.test(tx)?strip(tx):[tx.replace(/\s+/g,' ').trim()]))}
+    if(ps.length)consider(ps)}
+  }else{
+   for(const k of ['articleBody','article_body','bodyHtml','body_html','body','content','html','text']){
+    const v=o[k];if(typeof v==='string'&&v.length>800)consider(/<\w+/.test(v)?strip(v):v.split(/\n+/));
+   }
+  }
+  for(const k in o){const v=o[k];if(v&&typeof v==='object')walk(v,d+1)}
+ };
+ walk(root,0);return best.p;
+}
+function payloadOf(d){
+ const out=[];
+ const nd=d.querySelector('script#__NEXT_DATA__');
+ if(nd){try{const j=JSON.parse(nd.textContent),pp=(j&&j.props&&j.props.pageProps)||j;const ps=payloadParas(pp);if(ps.length)out.push(ps)}catch(e){}}
+ /* Arc/Fusion sites: window.Fusion.globalContent={...}; */
+ for(const sc of d.querySelectorAll('script:not([src])')){
+  const t=sc.textContent||'',i=t.indexOf('globalContent');if(i<0)continue;
+  const b=t.indexOf('{',i);if(b<0)continue;let depth=0,str=false,esc=false,e=-1;
+  for(let k=b;k<t.length&&k<b+3000000;k++){const ch=t[k];if(str){if(esc)esc=false;else if(ch==='\\')esc=true;else if(ch==='"')str=false;continue}if(ch==='"')str=true;else if(ch==='{')depth++;else if(ch==='}'){depth--;if(!depth){e=k;break}}}
+  if(e>0)try{const ps=payloadParas(JSON.parse(t.slice(b,e+1)));if(ps.length)out.push(ps)}catch(x){}
+ }
+ out.sort((a,b)=>b.join(' ').length-a.join(' ').length);return out[0]||null;
+}
 function extract(html,base){const MT={};const r=extract0(html,base,MT);if(r&&MT.v)r.meta=MT.v;return r}
 function extract0(html,base,MT){
  const d=new DOMParser().parseFromString(html,'text/html');
- let ld='';
+ let ld='';let PL=null;try{PL=payloadOf(d)}catch(e){}
  d.querySelectorAll('script[type="application/ld+json"]').forEach(x=>{try{const f=o=>{if(!o||typeof o!=='object')return;if(MT&&!MT.v&&o['@type']&&/(Article|Posting|Report)/i.test(String(o['@type']))){const au=o.author,nm=Array.isArray(au)?au.map(q=>(q&&q.name)||q).join(', '):(au&&(au.name||au))||'';MT.v={headline:String(o.headline||''),author:typeof nm==='string'?nm:'',date:String(o.datePublished||'')}}if(typeof o.articleBody==='string'&&o.articleBody.length>ld.length)ld=o.articleBody;Object.values(o).forEach(f)};f(JSON.parse(x.textContent))}catch(e){}});
  /* AMP pages (the AMP-copy fallback fetches them) use <amp-img>, which the reader would drop entirely */
  d.querySelectorAll('amp-img').forEach(a=>{const im=d.createElement('img');for(const at of a.attributes)im.setAttribute(at.name,at.value);a.replaceWith(im)});
@@ -2925,6 +2961,10 @@ function extract0(html,base,MT){
   if([...e.parentElement.children].some(x=>x!==e&&x.tagName===e.tagName&&x.className===e.className&&pl(x)>=150&&!x.querySelector('h1'))){best=e.parentElement;break}}}
  let node=best&&max>=300?tidyFrag(clean(best,base)):null;
  if(node){const pre=node.textContent.replace(/\s+/g,' ').trim().length;pruneJunk(node);const post=node.textContent.replace(/\s+/g,' ').trim().length;/* only a page that was mostly menus and notices is thrown away; a genuinely short story is kept */if(post<120&&pre>=post*3)node=null}
+ if(PL&&PL.join(' ').length>500&&(!node||PL.join(' ').length>node.textContent.length*1.3)&&PL.join(' ').length>=ld.length){
+  const f=document.createDocumentFragment();PL.forEach(x=>{const e=document.createElement('p');e.textContent=x;f.append(e)});
+  try{f.payload=true}catch(e){}return f;
+ }
  if(ld.length>500&&(!node||ld.length>node.textContent.length*1.3)){
   ld=new DOMParser().parseFromString(ld,'text/html').body.textContent;
   const f=document.createDocumentFragment();
@@ -4102,7 +4142,36 @@ function sameStory(text,a){
  return hit/tw.length>=.25;
 }
 const FILEX=/\.(pdf|docx?|xlsx?|pptx?|zip|csv|mp3|mp4|jpe?g|png|gif|webp|svg)(\?|#|$)/i;
-async function getFull0(url,ctx){
+/* ---- partial stories: some sites send only the start of the story and fill in the rest in the browser ---- */
+const HYDRATED=/(^|\.)(reuters\.com|bloomberg\.com)$/i;
+/* how a finished story usually ends: a sign-off, a reporter tag, an end mark */
+const ENDMARK=/(reporting by|writing by|editing by|additional reporting|compiled by|contributed to this (report|story)|\(reuters\)|\(ap\)|all rights reserved|©\s*\d{4}|this (story|article) (was|has been) (updated|corrected|first published)|originally published|follow [^.]{2,40} on (x|twitter|facebook|instagram)|sign up for|subscribe to|the author is|read more:|^\W*(end|-30-|###)\W*$)/im;
+function looksIncomplete(text,url){
+ const t=String(text||'').replace(/\s+/g,' ').trim(),words=t?t.split(' ').length:0;let h='';try{h=new URL(url).hostname}catch(e){}
+ if(HYDRATED.test(h))return true;
+ if(words>=500)return false;
+ const tail=t.slice(-500);
+ if(ENDMARK.test(tail))return false;
+ /* a plain full stop is not proof by itself (a cut-off stub ends on one too), so it only counts for a story that is already long */
+ if(words>=400&&/[.!?]["”’)]?$/.test(t))return false;
+ return true;
+}
+/* Tier 3 for a stub: the browser-style reader */
+async function jinaRead(url,ms){
+ const c=new AbortController(),to=setTimeout(()=>c.abort(),ms||14000);
+ try{const r=await fetch('https://r.jina.ai/'+url,{signal:c.signal});if(!r.ok)return null;const t=await r.text();if(t.length<1500)return null;const f=md(t,url);if(!f||f.textContent.length<600)return null;f.tier='reader';return f}
+ catch(e){return null}finally{clearTimeout(to)}
+}
+/* a page that gave only a stub is never accepted as it is: try the reader, keep the longest */
+async function upgradeStub(fr,url){
+ if(!fr||!looksIncomplete(fr.textContent,url))return fr;
+ let hh='';try{hh=new URL(url).hostname}catch(e){}
+ const j=await jinaRead(url,HYDRATED.test(hh)?12000:7000),w=x=>(x.textContent||'').trim().split(/\s+/).length;
+ if(j&&w(j)>w(fr)*1.25&&!footerish(j.textContent)){return j}
+ fr.incomplete=true;return fr;
+}
+async function getFull0(url,ctx){const fr=await getFull00(url,ctx);return await upgradeStub(fr,url)}
+async function getFull00(url,ctx){
  if(S.offline)return null;
  const orig=url;url=await gnResolve(url);
  const lg=[];LG[orig]=lg;const ks=Object.keys(LG);if(ks.length>25)delete LG[ks[0]];
@@ -4142,13 +4211,13 @@ async function getFull0(url,ctx){
 const PFHOT=new Map();
 const TIER={};/* which route delivered each story, and what the page said about itself */
 function getFull(url,light){
- const hot=PFHOT.get(url);if(hot&&Date.now()-hot.t<6e5){const f=hot.n.cloneNode(true);if(hot.n.pw)f.pw=true;f.tier=hot.n.tier;f.meta=hot.n.meta;return Promise.resolve(f)}
+ const hot=PFHOT.get(url);if(hot&&Date.now()-hot.t<6e5){const f=hot.n.cloneNode(true);if(hot.n.pw)f.pw=true;f.tier=hot.n.tier;f.meta=hot.n.meta;if(hot.n.incomplete)f.incomplete=true;return Promise.resolve(f)}
  let e=INF[url];
  if(e){if(!light&&e.ctx.light){e.ctx.light=false;if(e.ctx.up)e.ctx.up()}}
  else{const ctx={light:!!light};e=INF[url]={ctx,p:getFull0(url,ctx).finally(()=>{if(INF[url]===e)delete INF[url]})}}
  return e.p.then(n=>{
   if(!n)return null;
-  const f=tidy(n.cloneNode(true)),tx=f.textContent||'',q=textQuality(tx);f.tier=n.tier||'direct';f.meta=n.meta;TIER[url]={tier:f.tier,meta:f.meta||null};
+  const f=tidy(n.cloneNode(true)),tx=f.textContent||'',q=textQuality(tx);f.tier=n.tier||'direct';f.meta=n.meta;if(n.incomplete)f.incomplete=true;TIER[url]={tier:f.tier,meta:f.meta||null};
   if(!q.ok){const lg=LG[url]||(LG[url]=[]);lg.push('Rejected: the text looked garbled ('+q.why+')');return null}
   if(paywalled(tx)||paywalled(n.textContent))f.pw=true;
   return f;
@@ -4393,7 +4462,7 @@ async function openReader(a){
  if(my!==tok){if(n){PFHOT.set(a.link,{n,t:Date.now()});if(PFHOT.size>16)PFHOT.delete(PFHOT.keys().next().value)}return}
  const alts=outLinks(a);
  if(!n&&alts.length){const ms=await Promise.all(alts.map(u=>getFull(u).catch(()=>null)));if(my!==tok)return;for(let i=0;i<alts.length;i++){const m=ms[i];if(m&&sameStory(m.textContent,a)){n=m;src=alts[i];break}}}
- if(!n&&online()){const mr=await Promise.race([mirrorFor(a),new Promise(r=>setTimeout(()=>r(null),20000))]);if(my!==tok)return;if(mr){n=mr.n;src=mr.u}}
+ if(online()&&(!n||(n.incomplete&&looksIncomplete(n.textContent,src)))){const mr=await Promise.race([mirrorFor(a),new Promise(r=>setTimeout(()=>r(null),20000))]);if(my!==tok)return;if(mr&&(!n||mr.n.textContent.length>n.textContent.length*1.25)){n=mr.n;src=mr.u}}
  if(my!==tok)return;
  ALT=src!==a.link?src:(!n&&alts[0]?alts[0]:'');
  if(n&&n.textContent.length>Math.max(600,body.textContent.length+100)){
