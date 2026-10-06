@@ -16,5 +16,5 @@ async function mock(p,opt={}){
   return r.abort();
  });
 }
-const seed=(feeds)=>({feeds:feeds.map((n,i)=>({id:'f'+i,title:n,url:`https://${n.toLowerCase()}.test/feed`,folder:i<2?'d1':''})),folders:[{id:'d1',name:'Tech'}],sel:'all',scroll:'pages',ver:'2026.10.06c',intro:false,setall:1});
+const seed=(feeds)=>({feeds:feeds.map((n,i)=>({id:'f'+i,title:n,url:`https://${n.toLowerCase()}.test/feed`,folder:i<2?'d1':''})),folders:[{id:'d1',name:'Tech'}],sel:'all',scroll:'pages',ver:'2026.10.06d',intro:false,setall:1});
 module.exports={mock,seed,PW:require('child_process').execSync('npm root -g').toString().trim()+'/playwright'};
