@@ -2181,7 +2181,7 @@ body:not(.narrow){--hdr:84px}body:not(.narrow) .top{height:var(--hdr);box-sizing
 .nr-trend .trh,.nr-lr .trh{margin-bottom:12px}
 .nr-more{grid-column:1/-1;height:1px}
 #grid>.nr-river,#grid>.nr-lr,#grid>.nr-trend,#grid>.nr-sec{grid-column:1/-1;min-width:0}
-@media(max-width:1240px){#grid .nr-top{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}#grid .nr-top .nr-rail{grid-column:1/-1}.nr-rl{max-height:none;display:block;column-count:2;column-gap:30px}.nr-rl>.card{break-inside:avoid;-webkit-column-break-inside:avoid}.nr-rl>.card:first-child{border-top:0!important}.nr-seg{grid-template-columns:minmax(0,1fr) 270px;gap:28px}.nr-sec{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.nr-sec .nr-sx{grid-column:1/-1}.nr-rv3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1240px){#grid .nr-top{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}#grid .nr-top .nr-rail{grid-column:1/-1}.nr-rl{max-height:none;display:block;columns:2 170px;column-gap:30px}.nr-rl>.card{break-inside:avoid;-webkit-column-break-inside:avoid}.nr-rl>.card:first-child{border-top:0!important}.nr-seg{grid-template-columns:minmax(0,1fr) 270px;gap:28px}.nr-sec{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.nr-sec .nr-sx{grid-column:1/-1}.nr-rv3{grid-template-columns:repeat(2,minmax(0,1fr))}}
 #grid .nr-trl .nr-row p,#grid .nr-trl .also,#grid .nr-mid .also,#grid .nr-sec .also,#grid .nr-late .also{display:none}
 #grid .nr-trl .nr-row{grid-template-columns:minmax(0,1fr) 150px}
 /* feed headline fonts (--fd, loaded with the theme via THF): one readable, modern face per theme; story fonts are untouched. Weight comes from --fw so lists are not heavy */
@@ -2431,6 +2431,7 @@ html{font-synthesis-weight:none}
 #grid.nrp>.nr-psec{margin-bottom:6px}
 .fivr{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .nospeech [data-play]{display:none!important}
+#tmini{position:fixed;z-index:70;width:56px;height:56px;touch-action:none;user-select:none;-webkit-user-select:none}#tmini[hidden]{display:none}#tmini .tmb{width:56px;height:56px;border-radius:50%;border:0;background:var(--ink);color:var(--bg);display:grid;place-items:center;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:grab;-webkit-tap-highlight-color:transparent}#tmini .tmb svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}#tmini .tmx{position:absolute;top:-6px;right:-6px;width:24px;height:24px;padding:0;border-radius:50%;background:var(--pn);color:var(--ink);border:1px solid var(--ln);display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.25)}#tmini .tmx svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
 .tx2.playd{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:800}
 body.narrow #tlp{display:none}
 body.narrow .top h1{font-size:clamp(20px,5.6vw,26px)}
@@ -4305,7 +4306,37 @@ function raBtn(){
  const run=TTS.on&&!TTS.paused,b=$('#ra');
  if(b){b.innerHTML=svg(run?PAUSE:TTS.on?PLAY:SPK);b.classList.toggle('on',run);b.title=run?'Pause':TTS.on?'Resume':'Read aloud'}
  const p=$('#pbp');if(p)p.innerHTML=svg(run?PAUSE:PLAY);
+ try{tminiSync()}catch(e){}
 }
+
+/* a floating pause button for when a story is still being read aloud but its page isn't open. Drag it anywhere; it snaps to the nearest edge */
+function tminiPlace(x,y){const e=$('#tmini');if(!e)return;const w=56;e.style.left=Math.max(4,Math.min(innerWidth-w-4,x))+'px';e.style.top=Math.max(8,Math.min(innerHeight-w-8,y))+'px';e.style.right='auto';e.style.bottom='auto'}
+function tminiHome(){const p=S.tmpos;if(p&&typeof p.y==='number')tminiPlace(p.x>.5?innerWidth-60:4,p.y*innerHeight);else tminiPlace(innerWidth-70,innerHeight-150)}
+function tmini(){let e=$('#tmini');if(e)return e;
+ e=document.createElement('div');e.id='tmini';e.hidden=true;
+ e.innerHTML='<button type="button" class="tmb"></button><button type="button" class="tmx" aria-label="Stop reading" title="Stop">'+svg('<path d="M7 7l10 10M17 7 7 17"/>')+'</button>';
+ document.body.append(e);
+ let d=null;
+ e.addEventListener('pointerdown',ev=>{if(ev.target.closest('.tmx'))return;const r=e.getBoundingClientRect();d={x:ev.clientX,y:ev.clientY,l:r.left,t:r.top,m:0};try{e.setPointerCapture(ev.pointerId)}catch(_){}});
+ e.addEventListener('pointermove',ev=>{if(!d)return;const dx=ev.clientX-d.x,dy=ev.clientY-d.y;if(!d.m&&Math.hypot(dx,dy)<6)return;d.m=1;tminiPlace(d.l+dx,d.t+dy)});
+ e.addEventListener('pointerup',()=>{if(!d)return;const m=d.m;d=null;if(m){const r=e.getBoundingClientRect(),right=r.left+r.width/2>innerWidth/2;tminiPlace(right?innerWidth-60:4,r.top);S.tmpos={x:right?1:0,y:r.top/innerHeight};save();return}tminiTap()});
+ e.addEventListener('pointercancel',()=>{d=null});
+ e.querySelector('.tmx').addEventListener('click',ev=>{ev.stopPropagation();ttsStop();tminiSync()});
+ tminiHome();addEventListener('resize',tminiHome);
+ return e}
+function tminiSync(){
+ const show=!!(TTS.on&&!$('#rd').classList.contains('on')&&('speechSynthesis' in window));
+ let e=$('#tmini');if(!show&&!e)return;e=tmini();e.hidden=!show;if(!show)return;
+ const run=!TTS.paused,b=e.querySelector('.tmb'),nm=TTS.art?TTS.art.title:'';
+ b.innerHTML=svg(run?PAUSE:PLAY,!run);b.setAttribute('aria-label',run?'Pause story':'Resume story');e.title=(run?'Pause: ':'Resume: ')+nm}
+async function tminiTap(){
+ if(!TTS.on)return;
+ if(!TTS.paused)return ttsPause();
+ const a=TTS.art;if(!a)return ttsStop();
+ await openReader(a);
+ if(curA===a)try{ttsToggle.force=true;ttsToggle()}catch(e){}
+}
+setInterval(()=>{if(TTS.on||($('#tmini')&&!$('#tmini').hidden))tminiSync()},1200);
 const BOILER=/^\W*(subscribe|sign up (for|to)|newsletter|all rights reserved|©|copyright|follow us|click here|advertisement|already a subscriber|log in|sign in|read more|this article (originally )?appeared|support (our|independent) journalism|share this|terms of (use|service)|privacy policy)|(all rights reserved|©\s*\d{4})/i;
 function ttsCollect(){
  const w=[],bp=new Map(),junk=b=>{if(b.classList&&b.classList.contains('tt'))return false;if(bp.has(b))return bp.get(b);const t=(b.textContent||'').trim(),r=t.length<160&&(BOILER.test(t)||PWRE.test(t))||t.length<40&&/^(advertisement|sponsored|ad|share|related|read more|more from|photo|image|credit|getty|source:)/i.test(t);bp.set(b,r);return r};
@@ -4349,7 +4380,7 @@ function ttsMark(i){
 }
 function ttsFrom(wi){
  if(!('speechSynthesis' in window)||!TTS.words.length)return;
- const id=++TTS.id;TTS.on=true;TTS.paused=false;TTS.wi=wi;
+ const id=++TTS.id;TTS.on=true;TTS.paused=false;TTS.wi=wi;if(curA)TTS.art=curA;
  if(TTS.cps==null&&S.tcps)TTS.cps=+S.tcps;{const vv=bestVoice();if(S.tnbv&&S.tnbv===((vv&&vv.voiceURI)||'default'))TTS.nb=1;else if(S.tnbv)TTS.nb=0}
  clearInterval(TTS.timer);try{speechSynthesis.cancel()}catch(e){}
  if(curA)document.documentElement.style.setProperty('--hlb',brand(fof(curA)));
