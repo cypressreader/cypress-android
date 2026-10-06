@@ -5418,7 +5418,7 @@ async function ttsEnd(manual){
  while(S.lq.length&&!nx){const l=S.lq.shift();if(l!==was.link&&!S.read[l])nx=findStory(l)}
  save();syncUpNext();
  if(!nx&&S.queue){const i=cur.findIndex(x=>x.link===was.link);if(i>=0)for(let k=i+1;k<cur.length;k++){if(!S.read[cur[k].link]){nx=cur[k];break}}}
- if(!nx){if(R.briefAudio){R.briefAudio=false;speak('That’s your brief. You’re all caught up.')}return}
+ if(!nx){if(R.briefAudio){R.briefAudio=false;speak('That’s your brief. You’re all caught up.',()=>{if(!TTS.on)mediaNativeStop()})}return}
  const brief=R.briefAudio;
  await openReader(nx);
  if(curA!==nx||!$('#rd').classList.contains('on'))return;
@@ -6950,6 +6950,8 @@ S.lq=S.lq||[];
 const SLEEP={t:0,at:0,eos:false};
 let silentAu=null;
 function silentUrl(){const sr=8000,n=sr,b=new ArrayBuffer(44+n),v=new DataView(b);const w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};w(0,'RIFF');v.setUint32(4,36+n,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,sr,true);v.setUint32(28,sr,true);v.setUint16(32,1,true);v.setUint16(34,8,true);w(36,'data');v.setUint32(40,n,true);for(let i=0;i<n;i++)v.setUint8(44+i,128);return URL.createObjectURL(new Blob([b],{type:'audio/wav'}))}
+/* the Android notification (play, pause, skip) is switched on from the app wrapper further down; these are no-ops on the web */
+let mediaNative=()=>{},mediaNativeStop=()=>{};
 function mediaOn(){
  try{if(!silentAu){silentAu=new Audio(silentUrl());silentAu.loop=true;silentAu.volume=.01}silentAu.play().catch(()=>{})}catch(e){}
  if(!('mediaSession' in navigator)||!curA)return;
@@ -7001,7 +7003,7 @@ function listenBrief(){
  const links=briefAudioList(),l=links.map(findStory).filter(Boolean);if(!l.length){toast('Nothing left to read aloud');return}
  S.lq=l.slice(1).map(a=>a.link);R.briefAudio=true;R.audioList=links;save();
  const mins=l.reduce((n,a)=>n+(readMin(a)||3),0);
- openReader(l[0]).then(()=>{if(!$('#rd').classList.contains('on'))return;const why=ttsClean();if(why){toast('Skipped “'+l[0].title.slice(0,40)+'”: '+why);S.lq=S.lq.filter(k=>k!==l[0].link);ttsEnd(true);return}mediaOn();speak(`Here’s your Daily. ${l.length} ${l.length===1?'story':'stories'}, about ${mins} minutes, read in full. First, from ${fof(l[0]).title}.`,()=>{if(curA===l[0])ttsToggle()})});
+ openReader(l[0]).then(()=>{if(!$('#rd').classList.contains('on'))return;const why=ttsClean();if(why){toast('Skipped “'+l[0].title.slice(0,40)+'”: '+why);S.lq=S.lq.filter(k=>k!==l[0].link);ttsEnd(true);return}mediaOn();mediaNative();speak(`Here’s your Daily. ${l.length} ${l.length===1?'story':'stories'}, about ${mins} minutes, read in full. First, from ${fof(l[0]).title}.`,()=>{if(curA===l[0]&&!TTS.on)ttsToggle()})});
 }
 
 /* ---------- launch animation ---------- */
@@ -7542,7 +7544,11 @@ function nativeExtrasUi(x){
  if(nFeat('media')&&x.mediaStart){
   const MT=()=>({title:(curA&&curA.title)||'CyPress',subtitle:(curA&&fof(curA).title)||'',image:(curA&&/^https?:/.test(curA.img||'')&&curA.img)||''});
   const pf=ttsFrom,pp=ttsPause,ps=ttsStop;
-  ttsFrom=function(w){const r=pf.apply(this,arguments);MADV=0;try{x.mediaStart(MT()).catch(()=>{});x.mediaUpdate&&x.mediaUpdate({...MT(),playing:true}).catch(()=>{})}catch(e){}return r};
+  /* Android 13 and later hide the notification until the person allows notifications, so ask once, the first time something is read aloud */
+  let MPERM=0;const mediaPerm=async()=>{if(MPERM||S.mperm)return;MPERM=1;S.mperm=1;save();const ok=await notifOk();if(ok){try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}}else toast('Allow notifications for CyPress in Android settings to get play, pause and skip in the notification bar')};
+  mediaNative=()=>{MADV=0;try{mediaPerm();x.mediaStart(MT()).catch(()=>{});x.mediaUpdate&&x.mediaUpdate({...MT(),playing:true}).catch(()=>{})}catch(e){}};
+  mediaNativeStop=()=>{try{x.mediaStop&&x.mediaStop().catch(()=>{})}catch(e){}};
+  ttsFrom=function(w){const r=pf.apply(this,arguments);mediaNative();return r};
   ttsPause=function(){const r=pp.apply(this,arguments);try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:false}).catch(()=>{})}catch(e){}return r};
   ttsStop=function(){const r=ps.apply(this,arguments);try{if(Date.now()-MADV<8000){x.mediaUpdate&&x.mediaUpdate({...MT(),playing:false}).catch(()=>{})}else{x.mediaStop&&x.mediaStop().catch(()=>{})}}catch(e){}return r};
   x.addListener&&x.addListener('mediaAction',r=>{const a=r&&r.action;if(a==='toggle')ttsToggle();else if(a==='next')ttsEnd(true);else if(a==='prev'){if(TTS.on)ttsFrom(ttsStartWord())}else if(a==='stop')ttsStop()});
