@@ -4872,11 +4872,22 @@ $('#side-list').onclick=e=>{
  const s=t.closest('[data-sel]');if(s){S.sel=s.dataset.sel;save();drawer(false);render()}
 };
 $('#cp').oninput=e=>{const f=feedOf(e.target.dataset.id);f.color=e.target.value;save();render()};
-async function askDelFolder(id){const fo=S.folders.find(f=>f.id===id);if(!fo)return;const n=S.feeds.filter(f=>f.folder===id).length;if(!(await askBox({title:'Delete the folder “'+fo.name+'”?',text:(n?'Its '+n+(n===1?' feed stays':' feeds stay')+' in your list, moved to Unfiled. ':'')+'You can undo right after.',ok:'Delete',danger:true})))return;delFolder(id)}
-function delFolder(id){const fo=S.folders.find(f=>f.id===id);if(!fo)return;const idx=S.folders.indexOf(fo),moved=S.feeds.filter(f=>f.folder===id),was=S.sel==='f:'+id;moved.forEach(f=>f.folder='');S.folders.splice(idx,1);if(S.fcol)delete S.fcol[id];if(was)S.sel='all';save();render();
-  toast('Deleted folder “'+fo.name+'”',()=>{S.folders.splice(Math.min(idx,S.folders.length),0,fo);moved.forEach(f=>f.folder=fo.id);if(was)S.sel='f:'+fo.id;save();render()});}
+async function askDelFolder(id){const fo=S.folders.find(f=>f.id===id);if(!fo)return;const n=S.feeds.filter(f=>f.folder===id).length;
+ if(!n){if(!(await askBox({title:'Delete the folder “'+fo.name+'”?',text:'It’s empty. You can undo right after.',ok:'Delete',danger:true})))return;return delFolder(id,false)}
+ const r=await askBox({title:'Delete the folder “'+fo.name+'”?',text:'It has '+n+(n===1?' feed':' feeds')+'. Delete '+(n===1?'it':'them')+' too, or keep '+(n===1?'it':'them')+' in your list, moved to Unfiled. You can undo right after.',ok:'Delete folder and '+(n===1?'feed':'feeds'),alt:'Keep the '+(n===1?'feed':'feeds'),danger:true});
+ if(r===true)delFolder(id,true);else if(r==='alt')delFolder(id,false)}
+/* withFeeds: also remove the feeds inside it. Either way the toast can undo it */
+function delFolder(id,withFeeds){const fo=S.folders.find(f=>f.id===id);if(!fo)return;const idx=S.folders.indexOf(fo),inside=S.feeds.filter(f=>f.folder===id),was=S.sel==='f:'+id,wasFeed=inside.some(f=>S.sel==='s:'+f.id);
+  const gone=withFeeds?inside.map(f=>({f,i:S.feeds.indexOf(f)})):[];
+  if(withFeeds){S.feeds=S.feeds.filter(f=>f.folder!==id);inside.forEach(f=>{if(S.health)delete S.health[f.id]})}else inside.forEach(f=>f.folder='');
+  S.folders.splice(idx,1);if(S.fcol)delete S.fcol[id];if(was||wasFeed)S.sel='all';save();render();
+  const n=inside.length;
+  toast(withFeeds&&n?'Deleted folder “'+fo.name+'” and '+n+(n===1?' feed':' feeds'):'Deleted folder “'+fo.name+'”',()=>{
+   S.folders.splice(Math.min(idx,S.folders.length),0,fo);
+   if(withFeeds)gone.slice().sort((x,y)=>x.i-y.i).forEach(g=>S.feeds.splice(Math.min(g.i,S.feeds.length),0,g.f));else inside.forEach(f=>f.folder=fo.id);
+   if(was)S.sel='f:'+fo.id;save();render();try{fillFolders()}catch(e){}})}
 
-function openFoset(id){const fo=S.folders.find(x=>x.id===id);if(!fo)return;const d=$('#foset');d.dataset.id=id;$('#foname').value=fo.name;$('#fotoday').value=fo.noToday?'0':'1';const n=S.feeds.filter(f=>f.folder===id).length;$('#focount').innerHTML='Feeds in this folder<small>'+n+(n===1?' feed':' feeds')+'. Deleting the folder keeps them, moved to Unfiled</small>';if(!d.open)d.showModal()}
+function openFoset(id){const fo=S.folders.find(x=>x.id===id);if(!fo)return;const d=$('#foset');d.dataset.id=id;$('#foname').value=fo.name;$('#fotoday').value=fo.noToday?'0':'1';const n=S.feeds.filter(f=>f.folder===id).length;$('#focount').innerHTML='Feeds in this folder<small>'+n+(n===1?' feed':' feeds')+'. When you delete the folder you choose whether to delete them too</small>';if(!d.open)d.showModal()}
 $('#fosx').onclick=()=>$('#foset').close();
 $('#fotoday').addEventListener('change',e=>{const fo=S.folders.find(x=>x.id===$('#foset').dataset.id);if(!fo)return;fo.noToday=e.target.value==='0';S.brief=null;save();render()});
 $('#foname').addEventListener('change',e=>{const fo=S.folders.find(x=>x.id===$('#foset').dataset.id);if(!fo)return;const v=e.target.value.trim();if(!v){e.target.value=fo.name;return}fo.name=v;save();render()});
