@@ -2575,7 +2575,21 @@ async function saveFile(name,blob){
 const BRAND=[['techcrunch','#0a9e4b'],['theverge','#6a3df0'],['vox.com','#f5c400'],['wired','#111'],['arstechnica','#ff4e00'],['engadget','#4a3ff0'],['bbc','#bb1919'],['nytimes','#222'],['theguardian','#052962'],['ycombinator','#ff6600'],['hnrss','#ff6600'],['reuters','#ff8000'],['npr','#d62021'],['mashable','#009fd8'],['gizmodo','#1a73e8'],['macrumors','#d0342c'],['9to5','#00a3e0'],['cnet','#e3272b'],['tomshardware','#d6001c'],['zdnet','#e2231a'],['nasa.gov','#0b3d91'],['espn.com','#d6001c'],['polygon.com','#5b2dd8'],['ign.com','#bf1313'],['kotaku','#3ab54a'],['pcgamer','#c8102e'],['gamespot','#e5b800'],['variety.com','#111'],['hollywoodreporter','#222'],['rollingstone','#c8102e'],['pitchfork','#111'],['cnbc.com','#005594'],['forbes.com','#222'],['fortune.com','#e02020'],['businessinsider','#0057b8'],['economist.com','#e3120b'],['a.dj.com','#0274b6'],['washingtonpost','#222'],['politico','#e0201b'],['axios','#3f75ff'],['newyorker','#222'],['theatlantic','#222'],['github','#24292f'],['stackoverflow','#f48024'],['css-tricks','#f36f2a'],['dev.to','#3b49df'],['freecodecamp','#0a0a23'],['lifehacker','#2e9e6b'],['sciencedaily','#a11'],['nature.com','#c9002b'],['space.com','#1e5aa8'],['newscientist','#e2001a'],['quantamagazine','#0072b8'],['technologyreview','#e5002b'],['techradar','#e21f26'],['androidauthority','#2fb56a'],['9to5google','#4285f4'],['aljazeera','#c8963e'],['fastcompany','#111'],['dezeen','#111'],['smashingmagazine','#d33a2c'],['cbsnews','#0a3d91'],['abcnews','#1c4f9c'],['skysports','#d0021b'],['deadline.com','#c8102e'],['reddit.com','#ff4500'],['youtube.com','#e62117']];
 const host=u=>{try{return new URL(u).hostname.replace(/^www\./,'')}catch(e){return ''}};
 const known=u=>BRAND.find(b=>u.includes(b[0]));
-function brand(f){if(f.color&&okColor(f.color))return f.color;const k=known(f.url);if(k)return k[1];let h=0;for(const c of host(f.url))h=(h*31+c.charCodeAt(0))%360;return `hsl(${h} 55% 40%)`}
+/* a site's colour is shown as a small dot, bar or label. Very dark brand colours (NYT, for one) vanish on the dark themes, so on those they are lifted towards white until they can be seen */
+const BLITE=new Map();let DARKBG=false;
+function bgDark(){try{const v=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),r=rgbOf(v);if(r)return(.2126*r[0]+.7152*r[1]+.0722*r[2])/255<.4;const m=getComputedStyle(document.body).backgroundColor.match(/[\d.]+/g);if(!m||m.length<3||(m.length>3&&+m[3]===0))return DARKBG;return(.2126*m[0]+.7152*m[1]+.0722*m[2])/255<.4}catch(e){return DARKBG}}
+function rgbOf(c){c=String(c||'').trim();let m;
+ if(m=c.match(/^#([0-9a-f]{3,8})$/i)){let h=m[1];if(h.length<6)h=h.slice(0,3).split('').map(x=>x+x).join('');return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]}
+ if(m=c.match(/^hsl\(\s*([\d.]+)\s*,?\s*([\d.]+)%\s*,?\s*([\d.]+)%\s*\)$/i)){const h=+m[1]/360,sa=+m[2]/100,l=+m[3]/100,q=l<.5?l*(1+sa):l+sa-l*sa,p=2*l-q,f=t=>{t=(t+1)%1;return t<1/6?p+(q-p)*6*t:t<.5?q:t<2/3?p+(q-p)*(2/3-t)*6:p};return[Math.round(f(h+1/3)*255),Math.round(f(h)*255),Math.round(f(h-1/3)*255)]}
+ return null}
+function liftDark(c){
+ if(!DARKBG)return c;
+ if(BLITE.has(c))return BLITE.get(c);
+ let out=c;const r=rgbOf(c);
+ if(r){const y=(.2126*r[0]+.7152*r[1]+.0722*r[2])/255;if(y<.38){const t=Math.min(.7,(.38-y)/(1-y));out='rgb('+r.map(v=>Math.round(v+(255-v)*t)).join(',')+')'}}
+ BLITE.set(c,out);return out}
+function brand(f){return liftDark(brand0(f))}
+function brand0(f){if(f.color&&okColor(f.color))return f.color;const k=known(f.url);if(k)return k[1];let h=0;for(const c of host(f.url))h=(h*31+c.charCodeAt(0))%360;return `hsl(${h} 55% 40%)`}
 let FIRST=false;try{FIRST=!localStorage.getItem('folio')}catch(e){}
 let S;try{S=JSON.parse(localStorage.getItem('folio'))}catch(e){}
 S=S||{folders:[{id:'f1',name:'Tech'},{id:'f2',name:'World'}],feeds:[
@@ -3466,7 +3480,9 @@ let NRS=null;
 addEventListener('resize',()=>{clearTimeout(addEventListener._nt);addEventListener._nt=setTimeout(()=>{const v=nrMode();if(NRS!==null&&v!==NRS)try{render()}catch(e){}},200)});
 /* some feeds mix in pages that are not stories at all (the Goodreads Blog feed is full of spam user profiles, “H19”, “TT789”): only real blog posts are kept */
 const JUNKFEEDS=[[/(^|\.)goodreads\.com$/,/\/blog\//]];
-const junkItem=a=>{try{const u=new URL(a.link);for(const[h,ok]of JUNKFEEDS)if(h.test(u.hostname)&&!ok.test(u.pathname))return true}catch(e){}return false};
+/* the Goodreads blog feed is flooded with spam profile pages. The link is the best sign, but the titles give them away too: a name followed by (Author of …) or by a made-up handle in brackets, or just a code like TT789 */
+const GRTITLE=[/\(\s*author of\b[^)]*\)\s*$/i,/\(\s*(?=[a-z0-9]*\d)[a-z0-9]{4,}\s*\)\s*$/,/\(\s*[a-z]{10,}\s*\)\s*$/,/^[A-Z]{1,4}\d{2,5}$/];
+const junkItem=a=>{try{const u=new URL(a.link);for(const[h,ok]of JUNKFEEDS)if(h.test(u.hostname)&&!ok.test(u.pathname))return true}catch(e){}try{const f=fof(a),t=(a.title||'').trim();if(/goodreads\.com/i.test((f&&f.url)||'')&&GRTITLE.some(r=>r.test(t)))return true}catch(e){}return false};
 const DEALRX=[/\b\d{1,2}\s?% (off|discount)\b/i,/\bsave (up to )?(\$|£|€)\d+/i,/(\$|£|€)\d+(\.\d\d)? off\b/i,/\bup to \d+% (off|discount)/i,/\b(best|biggest|early|great|huge)\s+(\w+[\w\x27-]*\s+){0,3}deals?\b/i,/\bdeals? (of the day|alert|roundup|round-up)\b/i,/\b(prime day|prime big deal|black friday|cyber monday|boxing day sales?|labou?r day sales?|memorial day sales?|presidents.? day sales?|back[- ]to[- ]school sales?)\b/i,/\b(coupons?|promo codes?|discount codes?|voucher codes?)\b/i,/\bwhere to buy\b|\bbuying guide\b|\bworth buying\b/i,/\b(lowest|record[- ]low|all[- ]time low) price\b/i,/\b(is|are) on sale (at|for|now|today)\b|\bnow on sale at\b/i,/\b(deals?|sales?|discounts?)\b.{0,30}\b(at|from|on) (amazon|walmart|best buy|target|costco|ebay)\b/i,/^(sponsored|advertisement|advertorial|partner content|promoted|paid post)\s*[:|–—-]/i,/[|–—-]\s*(sponsored|advertisement|partner content|paid post)\s*\)?\s*$/i,/\((sponsored|advertisement|ad)\)/i],DEALURL=/\/(deals?|coupons?|sponsored|advertorial|promo-codes?|paid-content|shopping-deals)(\/|$)/i;
 const dealItem=a=>{const t=(a.title||'').trim();if(DEALRX.some(r=>r.test(t)))return true;try{const u=new URL(a.link);if(DEALURL.test(u.pathname)||/^(deals|coupons|shop)\./i.test(u.hostname))return true}catch(e){}return false};
 const dealHide=a=>!!S.hideDeals&&dealItem(a);
@@ -4905,7 +4921,7 @@ const CAT=[
 {n:"Cars",f:[["Electrek", "https://electrek.co/feed/"], ["Jalopnik", "https://jalopnik.com/rss"], ["Motor1", "https://www.motor1.com/rss/news/all/"], ["Car and Driver", "https://www.caranddriver.com/rss/all.xml/"], ["InsideEVs", "https://insideevs.com/rss/news/all/"]]},
 {n:"Developers",f:[["GitHub Blog", "https://github.blog/feed/"], ["Stack Overflow Blog", "https://stackoverflow.blog/feed/"], ["Cloudflare Blog", "https://blog.cloudflare.com/rss/"], ["Simon Willison", "https://simonwillison.net/atom/everything/"], ["The Pragmatic Engineer", "https://newsletter.pragmaticengineer.com/feed"], ["Martin Fowler", "https://martinfowler.com/feed.atom"], ["DEV Community", "https://dev.to/feed"], ["freeCodeCamp", "https://www.freecodecamp.org/news/rss/"], ["Lobsters", "https://lobste.rs/rss"], ["Reddit r/programming", "https://www.reddit.com/r/programming/.rss"]]},
 {n:"Lifestyle",f:[["Lifehacker", "https://lifehacker.com/feed/rss"], ["The Kitchn", "https://www.thekitchn.com/main.rss"], ["Apartment Therapy", "https://www.apartmenttherapy.com/main.rss"], ["Budget Bytes", "https://www.budgetbytes.com/feed/"], ["Bon Appétit", "https://www.bonappetit.com/feed/rss"], ["Serious Eats", "https://feeds-api.dotdashmeredith.com/v1/rss/google/ad57d421-0ff5-41e7-a5da-f2167b6d7f7a"], ["Condé Nast Traveler", "https://www.cntraveler.com/feed/rss"]]},
-{n:"Good news",f:[["Good News Network", "https://www.goodnewsnetwork.org/feed/", ["goodnewsnetwork","good news"], 1], ["Positive News", "https://www.positive.news/feed/", ["positive.news"], 1], ["Reasons to Be Cheerful", "https://reasonstobecheerful.world/feed/", ["reasons to be cheerful"], 1], ["The Optimist Daily", "https://www.optimistdaily.com/feed/", ["optimist daily","optimist"], 1], ["Good Good Good", "https://www.goodgoodgood.co/articles?format=rss", ["goodgoodgood"], 1], ["Future Crunch", "https://futurecrun.ch/feed/", ["futurecrunch"], 1], ["YES! Magazine", "https://www.yesmagazine.org/feed", ["yes magazine"], 1]]}
+{n:"Good news",f:[["Good News Network", "https://www.goodnewsnetwork.org/feed/", ["goodnewsnetwork","good news"], 1], ["Positive News", "https://www.positive.news/feed/", ["positive.news"], 1], ["Reasons to Be Cheerful", "https://reasonstobecheerful.world/feed/", ["reasons to be cheerful"], 1], ["The Optimist Daily", "https://www.optimistdaily.com/feed/", ["optimist daily","optimist"], 1], ["YES! Magazine", "https://www.yesmagazine.org/feed", ["yes magazine"], 1], ["Our World in Data", "https://ourworldindata.org/atom.xml", ["owid","ourworldindata"], 1], ["Sustainability by Numbers", "https://www.sustainabilitybynumbers.com/feed", ["hannah ritchie"], 1]]}
 ];
 let cat=-9;
 const nUrl=u=>String(u||'').toLowerCase().replace(/^https?:\/\/(www\.)?/,'').replace(/[?#].*$/,'').replace(/\/+$/,'').replace(/\/(feed|rss)(\.xml)?$/,'');
@@ -5018,20 +5034,24 @@ const PACKS=[
  {n:'Foodie',m:['food','cooking','recipes'],d:'Recipes and kitchen culture',f:['Serious Eats','Bon Appétit','Smitten Kitchen','Budget Bytes','Eater','Minimalist Baker']},
  {n:'Design eye',m:['design','art & design'],d:'Design, architecture and visual culture',f:['Dezeen','Design Milk','Colossal','designboom','It’s Nice That','Core77']},
  {n:'Money smart',m:['money','finance','business','markets'],d:'Markets and personal finance',f:['CNBC','Financial Times','MarketWatch','NerdWallet','Investopedia','The Motley Fool']},
- {n:'Bright side',m:['good news','positive','uplifting'],d:'Uplifting stories and signs of progress',f:['Good News Network','Positive News','Reasons to Be Cheerful','The Optimist Daily','Good Good Good','Future Crunch','YES! Magazine']}
+ {n:'Bright side',m:['good news','positive','uplifting'],d:'Uplifting stories and signs of progress',f:['Good News Network','Positive News','Reasons to Be Cheerful','The Optimist Daily','YES! Magazine','Our World in Data','Sustainability by Numbers']}
 ];
 function packEntries(pk){const all=CAT.flatMap(c=>c.f.map(x=>({c:c.n,n:x[0],u:x[1],v:x[3]?1:0})));return pk.f.map(n=>all.find(x=>x.n===n)).filter(Boolean)}
-function packsHtml(){return PACKS.map((pk,i)=>{const es=packEntries(pk),fresh=es.filter(x=>!inFeeds(x.u));return `<div class="pf"><b style="background:var(--ink)"></b><span>${esc(pk.n)}<small>${esc(pk.d)} · ${es.length} feeds</small></span>${fresh.length?`<button type="button" data-pack="${i}">Add ${fresh.length}</button>`:'<em>Added</em>'}</div>`}).join('')}
+function packsHtml(){return PACKS.map((pk,i)=>{const es=packEntries(pk),fresh=es.filter(x=>!inFeeds(x.u)&&!pkFailed(x.u));return `<div class="pf"><b style="background:var(--ink)"></b><span>${esc(pk.n)}<small>${esc(pk.d)} · ${es.length} feeds</small></span>${fresh.length?`<button type="button" data-pack="${i}">Add ${fresh.length}</button>`:'<em>Added</em>'}</div>`}).join('')}
+const pkFailed=u=>{const t=(S.pkfail||{})[u];return !!t&&Date.now()-t<6048e5};
 async function addPack(i,btn){
- const pk=PACKS[i],es=packEntries(pk).filter(x=>!inFeeds(x.u));if(!es.length)return;
- if(btn){btn.disabled=true;btn.textContent='Adding…'}
+ const pk=PACKS[i],es=packEntries(pk).filter(x=>!inFeeds(x.u)&&!pkFailed(x.u));if(!es.length)return;
+ let done=0;const prog=()=>{if(btn)btn.textContent='Adding '+done+'/'+es.length};
+ if(btn){btn.disabled=true;prog()}
  const nm=[pk.n,...(pk.m||[])].map(x=>x.toLowerCase());let fo=S.folders.find(f=>nm.includes(String(f.name).trim().toLowerCase()));if(!fo){fo={id:'g'+Date.now(),name:pk.n};S.folders.push(fo)}
- let n=0;const add=async x=>{let url=x.u;
-  if(x.v){let fd=null;try{fd=await Promise.race([findFeed(x.u),new Promise((_,j)=>setTimeout(j,15000))])}catch(_){}if(!fd||!fd.xml)return;url=fd.url}
-  if(inFeeds(url))return;const f={id:'x'+Date.now()+Math.random().toString(36).slice(2,6),url,title:x.n,folder:fo.id};S.feeds.push(f);n++;load(f)};
+ let n=0;const bad=[];const add=async x=>{let url=x.u;
+  try{if(x.v){let fd=null;try{fd=await Promise.race([findFeed(x.u),new Promise((_,j)=>setTimeout(j,9000))])}catch(_){}if(!fd||!fd.xml){bad.push(x);return}url=fd.url}
+  if(inFeeds(url))return;const f={id:'x'+Date.now()+Math.random().toString(36).slice(2,6),url,title:x.n,folder:fo.id};S.feeds.push(f);n++;load(f)}finally{done++;prog()}};
  const made=!S.folders.slice(0,-1).includes(fo)&&S.folders[S.folders.length-1]===fo&&!S.feeds.some(f=>f.folder===fo.id);
- await Promise.all(es.map(add));if(!n&&made)S.folders=S.folders.filter(f=>f!==fo);save();fillFolders();pop();
- toast(n?'Added '+n+' feed'+(n===1?'':'s')+' to “'+fo.name+'”':'Couldn’t reach those feeds right now');
+ await Promise.all(es.map(add));if(!n&&made)S.folders=S.folders.filter(f=>f!==fo);
+ if(n&&bad.length){S.pkfail=S.pkfail||{};bad.forEach(x=>{S.pkfail[x.u]=Date.now()})}/* only when others worked: a site that has no feed shouldn't leave the button stuck on Add */
+ save();fillFolders();pop();
+ toast(n?'Added '+n+' feed'+(n===1?'':'s')+' to “'+fo.name+'”'+(bad.length?'. Couldn’t reach '+bad.map(x=>x.n).join(', '):''):'Couldn’t reach those feeds right now');
 }
 let LOC={st:'idle'};
 function localHtml(){
@@ -5868,6 +5888,7 @@ function applyTheme(anim){
   if(anim!=='fade')sky((night||dm==='dark')?'set':'rise');
  }
  root.dataset.theme=th;if(dm)root.dataset.dm=dm;else delete root.dataset.dm;root.classList.toggle('night',night);lastNight=night;try{root.classList.toggle('pdark',/dark/.test(getComputedStyle(root).colorScheme))}catch(e){}
+ {const pd=bgDark();DARKBG=pd;if(applyTheme.pd!==undefined&&applyTheme.pd!==pd){try{side._h=null;render()}catch(e){}}applyTheme.pd=pd}
  themeFonts(th);applyFx();if((S.font||'theme')==='theme'&&$('#rd').classList.contains('on'))refreshReader();
  try{const m=document.querySelector('meta[name=theme-color]');if(m)m.content=getComputedStyle(document.body).backgroundColor||m.content}catch(e){}
 }
@@ -6394,8 +6415,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.06d';const APP_LABEL='1.45';
-const CHANGES=["In the side menu, All stories is now a plain button too. Latest, Top, Quick and Deep are the tabs at the top of the All stories page"];
+const APP_VERSION='2026.10.06e';const APP_LABEL='1.46';
+const CHANGES=["Bright side starter pack: the Add button no longer sticks. It shows progress, names any site it couldn’t reach, and two sites without a usable feed were swapped for Our World in Data and Sustainability by Numbers","Goodreads spam is now also caught by its titles: names followed by “(Author of …)” or a made-up handle, and codes like TT789 are hidden from the Goodreads blog feed automatically","On dark themes, very dark site colours (like NYT Books) are lightened so their dots, bars and labels can be seen"];
 const DEF_ON=new Set(['intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
