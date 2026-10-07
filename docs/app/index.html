@@ -113,6 +113,7 @@ body:not(.narrow) .grid:not(.list) .tpl.t3>.card:nth-child(1),body:not(.narrow) 
 .emb.yt .pl{position:absolute;left:50%;top:calc(14px + 28%);transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;background:rgba(0,0,0,.6);display:grid;place-items:center;color:#fff;font-size:22px;padding-left:4px}
 .cols .body pre{white-space:pre;overflow:auto;overflow-wrap:normal;word-break:normal;max-width:100%;max-height:min(60vh,520px);tab-size:2}
 .code{position:relative;break-inside:avoid}
+.codex{margin:0 0 1em;break-inside:avoid;font-family:var(--sans);font-size:.8em;color:var(--mut)}.codex>summary{cursor:pointer;padding:.5em .8em;border:1px solid var(--ln);border-radius:10px;list-style:none}.codex>summary::-webkit-details-marker{display:none}.codex[open]>summary{margin-bottom:.5em}.code pre{padding-right:4.6em!important}
 .cpy{position:absolute;top:8px;right:8px;z-index:2;padding:3px 10px;border-radius:99px;background:var(--pn);border:1px solid var(--ln);font:700 11px var(--sans);color:var(--ink);cursor:pointer}
 .cpy::after{content:'Copy'}.cpy.done::after{content:'Copied'}
 .kr{margin:1.6em 0 1em;padding-top:1em;border-top:1px solid var(--ln);text-align:left;font-family:var(--sans);hyphens:none;break-inside:avoid}
@@ -6912,7 +6913,7 @@ function furnish(b){
   if(!m||!m[1].trim())return;tn[0].data=m[1].trim()+' ';const sp=document.createElement('span');sp.className='crd';sp.textContent=m[2].replace(/^(?:photo|image|credit|illustration|source|via)s?\s*[:\/]\s*/i,'').trim();fc.append(sp)});
  const kids=[...b.children];let run=[];const flush=()=>{if(run.length>=3&&!run[0].closest('.strip')){const w=document.createElement('div');w.className='strip';run[0].before(w);run.forEach(x=>w.append(x))}run=[]};
  for(const k of kids){const isImg=k.matches&&(k.matches('figure')&&k.querySelector('img')||k.matches('img')||(k.tagName==='P'&&k.children.length===1&&k.firstElementChild.tagName==='IMG'&&!k.textContent.trim()));if(isImg)run.push(k);else flush()}flush();
- b.querySelectorAll('pre').forEach(pr=>{if(pr.parentElement.classList.contains('code'))return;const w=document.createElement('div');w.className='code';pr.replaceWith(w);const bt=document.createElement('button');bt.type='button';bt.className='cpy';bt.setAttribute('aria-label','Copy code');w.append(pr,bt)});
+ b.querySelectorAll('pre').forEach(pr=>{if(pr.parentElement.classList.contains('code')||pr.closest('.codex'))return;{const L=(pr.textContent||'').split('\n').filter(x=>x.trim()),n=L.filter(x=>/^\s*<(string|item|plurals|string-array)\b[^>]*name=/.test(x)).length;if(n>=3&&n>=L.length*.6){const d=document.createElement('details');d.className='codex';const sm=document.createElement('summary');sm.textContent='Code from the app, '+n+' lines. Tap to show';pr.replaceWith(d);d.append(sm,pr);return}}const w=document.createElement('div');w.className='code';pr.replaceWith(w);const bt=document.createElement('button');bt.type='button';bt.className='cpy';bt.setAttribute('aria-label','Copy code');w.append(pr,bt)});
 }
 function heroSpread(){
  const c=$('.cols'),bk=$('.book');if(!c||!bk)return;

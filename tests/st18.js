@@ -40,5 +40,9 @@ ck('synced key',await p.evaluate(()=>SET_KEYS.includes('sch')));
  r=await q('midnight','theme','twin',true);ck('already-dark theme stays',r.dark&&r.eff==='midnight');
  r=await q('sepia','theme','dark',true);ck('fixed night theme still works',r.dark&&r.eff==='dark');
  ck('option exists',await p.evaluate(()=>!!document.querySelector('#ngt option[value=twin]')));}
+// code dumps
+{const o=await p.evaluate(()=>{const d=document.createElement('div');const lines=Array.from({length:6},(_,i)=>'<string name="midnight_item_'+i+'">x</string>').join('\n');
+ d.innerHTML='<pre>'+lines.replace(/</g,'&lt;')+'</pre><pre>function a(){\n return 1\n}</pre>';document.body.append(d);furnish(d);const r={codex:d.querySelectorAll('details.codex').length,code:d.querySelectorAll('.code').length,txt:(d.querySelector('summary')||{}).textContent};furnish(d);r.again=d.querySelectorAll('details.codex').length;d.remove();return r});
+ ck('string dump is collapsed',o.codex===1&&/6 lines/.test(o.txt),JSON.stringify(o));ck('real code keeps copy box',o.code===1);ck('furnish twice is safe',o.again===1)}
 ck('no page errors',!errs.length,errs.join('|'));
 console.log('st18',pass,'pass',fail,'fail');log.forEach(l=>console.log(l));await b.close();process.exit(fail?1:0)})();
