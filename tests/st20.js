@@ -1,0 +1,44 @@
+const {APP}=require('./env');
+const {mock,PW}=require('./mock');const {chromium}=require(PW);
+let pass=0,fail=0;const log=[];const ck=(n,c,x='')=>{if(c)pass++;else{fail++;log.push(`FAIL ${n} ${x}`)}};
+(async()=>{const b=await chromium.launch();
+const p=await (await b.newContext({viewport:{width:390,height:800}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await mock(p,{n:6});await p.goto('file://'+APP);await p.waitForTimeout(1500);
+const R=await p.evaluate(async()=>{
+ const o={},now=Date.now(),D=864e5,L=(...ds)=>ds.map(d=>({date:now-d*D}));
+ o.daily=freqText(L(0.1,1.1,2.1,3.1,4.1,5.1,6.1,7.1));
+ o.weekly=freqText(L(1,8,15,22,29));
+ o.monthly=freqText(L(2,33,64,95));
+ o.rare=freqText(L(30,200,400));
+ o.stale=freqText(L(200,230,260));
+ o.one=freqText(L(3));
+ o.none=freqText([]);
+ o.burst=freqText([{date:now},{date:now-1000}]);
+ o.perDay=freqText(L(0.05,0.3,0.55,0.8,1.05,1.3,1.55,1.8));
+ // UI flow with a stubbed feed
+ const rss='<?xml version="1.0"?><rss version="2.0"><channel><title>T</title><link>https://t.test/</link>'+[1,3,5,7,9,11].map(d=>'<item><title>Story '+d+'</title><link>https://t.test/p'+d+'</link><pubDate>'+new Date(now-d*D).toUTCString()+'</pubDate><description>x</description></item>').join('')+'</channel></rss>';
+ const of=window.findFeed;let calls=0;window.findFeed=async u=>{calls++;return{xml:rss,url:u}};
+ cat=0;pop();await new Promise(r=>setTimeout(r,100));
+ const links=document.querySelectorAll('#pop .pfi');o.links=links.length;
+ const first=links[0];const u=first.dataset.info;first.click();await new Promise(r=>setTimeout(r,500));
+ o.after=(document.querySelector('#pop .pfi2')||{}).textContent;o.calls=calls;
+ pop();await new Promise(r=>setTimeout(r,100));o.cached=[...document.querySelectorAll('#pop .pfi2')].some(e=>/Posts about/.test(e.textContent));
+ const before=calls;const second=document.querySelectorAll('#pop .pfi')[0];second.click();await new Promise(r=>setTimeout(r,500));o.calls2=calls-before;
+ window.findFeed=async()=>{throw new Error('x')};const third=document.querySelectorAll('#pop .pfi')[0];if(third){const par=third.parentElement;third.click();await new Promise(r=>setTimeout(r,500));o.fail=par.lastElementChild.textContent}
+ window.findFeed=of;return o});
+ck('daily',/Posts about 7 a week|about 1 a day|about once a day|a day/.test(R.daily)&&/last story/.test(R.daily),R.daily);
+ck('weekly',/about once a week/.test(R.weekly),R.weekly);
+ck('monthly',/about once a month/.test(R.monthly),R.monthly);
+ck('rare',/only a few times a year/.test(R.rare),R.rare);
+ck('stale mentions months',/hasn’t posted in about \d+ months/.test(R.stale),R.stale);
+ck('single story',/Only one story/.test(R.one),R.one);
+ck('empty feed',/No stories found/.test(R.none),R.none);
+ck('burst',/Several stories at once/.test(R.burst),R.burst);
+ck('several a day',/about \d+ a day/.test(R.perDay),R.perDay);
+ck('catalogue rows get a link',R.links>3,String(R.links));
+ck('tap shows how often',/Posts about .* · last story \d+d ago/.test(R.after||''),R.after);
+ck('one fetch per tap',R.calls===1,String(R.calls));
+ck('result remembered when list redraws',R.cached);
+ck('failed check says so kindly',/Couldn’t check/.test(R.fail||''),R.fail);
+ck('no page errors',!errs.length,errs.join('|'));
+console.log('st20',pass,'pass',fail,'fail');log.forEach(l=>console.log(l));await b.close();process.exit(fail?1:0)})();

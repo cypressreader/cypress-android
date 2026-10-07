@@ -1166,6 +1166,7 @@ button.go{padding:11px 22px;border-radius:999px;background:var(--ink);color:var(
 .pf span{flex:1;min-width:0}.pf small{display:block;color:var(--mut);font-size:12px}
 .pf button{padding:6px 14px;border-radius:999px;background:var(--ink);color:var(--pn);font-weight:600;font-size:13px}
 .pf em{font-style:normal;color:var(--mut);font-size:13px;padding-right:6px}
+.pfi{display:inline-block;margin-top:2px;color:var(--mut);font-size:12px;text-decoration:underline;cursor:pointer}.pfi2{margin-top:1px}
 .none{color:var(--mut);padding:12px 4px;font-size:14px}
 :root{--hl:rgba(255,200,40,.5)}
 @media(prefers-color-scheme:dark){:root{--hl:rgba(110,160,255,.4)}}
@@ -5302,6 +5303,25 @@ async function addVerified(u,n,c,btn){
 const ACH='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
 const arow=(k,t,d,c)=>`<button type="button" class="arow" data-cat="${k}"><i style="background:${c}"></i><span><b>${esc(t)}</b><small>${esc(d)}</small></span>${ACH}</button>`;
 const ACOL=['#7c5cff','#0a8f4a','#e2231a','#2e7dd7','#d98a1a','#c2307a','#0f9ca8','#6b7a8f'];
+/* how often a site posts and when it last did, worked out from its own feed */
+const INFOC=new Map();
+function freqText(list){
+ const d=list.map(a=>a.date||0).filter(Boolean).sort((a,b)=>b-a);
+ if(!d.length)return'No stories found in this feed yet';
+ const last=Date.now()-d[0]>=864e5*120?'hasn’t posted in about '+Math.max(4,Math.round((Date.now()-d[0])/(30*864e5)))+' months':'last story '+(ago(d[0])||'1m')+' ago';
+ if(d.length<2)return 'Only one story so far · '+last;
+ const days=(d[0]-d[d.length-1])/864e5;if(days<.02)return 'Several stories at once · '+last;
+ const r=(d.length-1)/days,n=x=>Math.max(2,Math.round(x));
+ const how=r>=1.5?'about '+n(r)+' a day':r>=.9?'about once a day':r*7>=1.5?'about '+n(r*7)+' a week':r*7>=.9?'about once a week':r*30>=1.5?'about '+n(r*30)+' a month':r*30>=.9?'about once a month':'only a few times a year';
+ return 'Posts '+how+' · '+last;
+}
+async function feedInfo(url,el){
+ if(INFOC.has(url)){el.replaceWith(Object.assign(document.createElement('small'),{textContent:INFOC.get(url)}));return}
+ el.textContent='Checking…';el.removeAttribute('data-info');
+ let txt='Couldn’t check this one. Try again after adding it';
+ try{const fd=await Promise.race([findFeed(url),new Promise((_,j)=>setTimeout(j,9000))]);if(fd&&fd.xml){txt=freqText(parse(fd.xml,{id:'chk',url,title:''}).list);INFOC.set(url,txt)}}catch(e){}
+ const sm=document.createElement('small');sm.className='pfi2';sm.textContent=txt;if(el.isConnected)el.replaceWith(sm)
+}
 function pop(){
  const q=$('#u').value.trim();let head='',list=[];
  if(q){list=catSearch(q)}
@@ -5319,7 +5339,7 @@ function pop(){
   list=cat===-1?sg:cat<-1?[]:CAT[cat].f.map(x=>({c:CAT[cat].n,n:x[0],u:x[1],v:x[3]?1:0})).sort((a,b)=>a.n.localeCompare(b.n,undefined,{sensitivity:'base',numeric:true}));
  }
  const where=x=>{const f=S.feeds.find(f=>f.url===x.u||nUrl(f.url)===nUrl(x.u)||foldQ(f.title)===foldQ(x.n));if(!f)return'';const fo=S.folders.find(o=>o.id===f.folder);return ' · in '+(fo?fo.name:'Unfiled')};
- const row=x=>`<div class="pf"><b style="background:${brand({url:x.u})}"></b><span>${esc(x.n)}<small>${x.why?esc(x.why):esc(host(x.u))+(q?' in '+esc(x.c):'')}${(inFeeds(x.u)||S.feeds.some(f=>foldQ(f.title)===foldQ(x.n)))?esc(where(x)):''}</small></span>${(inFeeds(x.u)||S.feeds.some(f=>foldQ(f.title)===foldQ(x.n)))?'<em>Added</em>':`<button type="button" data-add="${esc(x.u)}" data-n="${esc(x.n)}" data-c="${esc(x.c)}" ${x.v?'data-v="1"':''}>Add</button>`}</div>`;
+ const row=x=>`<div class="pf"><b style="background:${brand({url:x.u})}"></b><span>${esc(x.n)}<small>${x.why?esc(x.why):esc(host(x.u))+(q?' in '+esc(x.c):'')}${(inFeeds(x.u)||S.feeds.some(f=>foldQ(f.title)===foldQ(x.n)))?esc(where(x)):''}</small>${INFOC.has(x.u)?'<small class="pfi2">'+esc(INFOC.get(x.u))+'</small>':'<a class="pfi" role="button" tabindex="0" data-info="'+esc(x.u)+'">How often does it post?</a>'}</span>${(inFeeds(x.u)||S.feeds.some(f=>foldQ(f.title)===foldQ(x.n)))?'<em>Added</em>':`<button type="button" data-add="${esc(x.u)}" data-n="${esc(x.n)}" data-c="${esc(x.c)}" ${x.v?'data-v="1"':''}>Add</button>`}</div>`;
  let extra='';
  if(q&&!list.length){
   if(liveRes&&liveQ===q){
@@ -5395,7 +5415,7 @@ async function localGo(){
  pop();
 }
 $('#u').oninput=()=>{const q=$('#u').value.trim();liveRes=null;pop();liveCheck(q)};
-$('#pop').onclick=e=>{const t=e.target;const cb=t.closest&&t.closest('[data-cat]');if(cb){cat=+cb.dataset.cat;pop();popTop()}else if(t.closest&&t.closest('[data-back]')){window.addBackHook();popTop()}else if(t.dataset.pack!==undefined)addPack(+t.dataset.pack,t);else if(t.dataset.local)localGo();else if(t.dataset.add){if(t.dataset.v)addVerified(t.dataset.add,t.dataset.n,t.dataset.c,t);else quickAdd(t.dataset.add,t.dataset.n,t.dataset.c)}};
+$('#pop').onclick=e=>{const t=e.target;if(t.dataset&&t.dataset.info){feedInfo(t.dataset.info,t);return}const cb=t.closest&&t.closest('[data-cat]');if(cb){cat=+cb.dataset.cat;pop();popTop()}else if(t.closest&&t.closest('[data-back]')){window.addBackHook();popTop()}else if(t.dataset.pack!==undefined)addPack(+t.dataset.pack,t);else if(t.dataset.local)localGo();else if(t.dataset.add){if(t.dataset.v)addVerified(t.dataset.add,t.dataset.n,t.dataset.c,t);else quickAdd(t.dataset.add,t.dataset.n,t.dataset.c)}};
 $('#add').onclick=()=>{drawer(false);fillFolders();$('#err').textContent='';$('#frm').reset();fillFolders();cat=-9;$('#adv').open=false;pop();dlg.showModal();$('#u').focus()};
 $('#cancel').onclick=()=>dlg.close();$('#dlgx').onclick=()=>dlg.close();dlg.addEventListener('click',e=>{if(e.target!==dlg)return;const r=dlg.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dlg.close()});
 $('#frm').onsubmit=async e=>{
@@ -5888,7 +5908,7 @@ $('#tpre').addEventListener('click',e=>{const b=e.target.closest('[data-tp]');if
 $('#hfn').onchange=e=>{S.hfont=e.target.value;applyHf();save();syncSet()};
 /* accessibility: keyboard reach for rows and cards, live regions */
 (function(){
- const SEL='aside .nav,aside .fr,#grid .cover';
+ const SEL='aside .nav,aside .fr,#grid .cover,#pop .pfi';
  let t=0;const mark=()=>{clearTimeout(t);t=setTimeout(()=>{document.querySelectorAll(SEL).forEach(el=>{if(!el.hasAttribute('tabindex')){el.tabIndex=0;if(!el.matches('a[href]'))el.setAttribute('role','button')}if(el.classList.contains('nav')){const v=el.classList.contains('on')?'true':'false';if(el.getAttribute('aria-current')!==v)el.setAttribute('aria-current',v)}});
   document.querySelectorAll('.tg').forEach(b=>{if(b.getAttribute('role')!=='switch')b.setAttribute('role','switch');const v=b.classList.contains('on')?'true':'false';if(b.getAttribute('aria-checked')!==v)b.setAttribute('aria-checked',v);if(!b.getAttribute('aria-label')){const lb=b.closest('.line')&&b.closest('.line').querySelector('.lb');const tx=lb&&(lb.firstChild&&lb.firstChild.textContent||lb.textContent);if(tx)b.setAttribute('aria-label',tx.trim())}})},120)};
  const ob=new MutationObserver(mark);{const g=document.querySelector('#grid');if(g)ob.observe(g,{childList:true,subtree:true});['aside','#set'].forEach(q=>{const el=document.querySelector(q);if(el)ob.observe(el,{childList:true,subtree:true,attributes:true,attributeFilter:['class']})})}mark();
