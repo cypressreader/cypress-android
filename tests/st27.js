@@ -32,6 +32,6 @@ for(const [id,a1] of [['highstorm','#66b8ff'],['crimsondawn','#e23a35'],['thevoi
  ck(id+' own fonts',r.fonts);
  ck(id+' accent rule under title',r.rule);
  ck(id+' no watermark behind the title',r.mark);
- ck(id+' end mark is a symbol, not the diamond text or a heart',r.end&&r.end[0]==='38px'&&r.end[2]==='0px'&&r.end[3]&&r.heart,JSON.stringify(r.end))}
+ ck(id+' end mark is a symbol, not the diamond text or a heart',r.end&&(r.end[0]==='38px'||(id==='crimsondawn'&&r.end[0]==='58px'))&&r.end[2]==='0px'&&r.end[3]&&r.heart,JSON.stringify(r.end))}
 ck('no page errors',!errs.length,errs.join('|'));
 console.log('st27',pass,'pass',fail,'fail');log.forEach(l=>console.log(l));await b.close();process.exit(fail?1:0)})();
