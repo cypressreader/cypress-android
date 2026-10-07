@@ -6289,7 +6289,7 @@ function icoInit(x){$('#icrow').hidden=$('#icg').hidden=$('#icst').hidden=false;
 
 const NOTWIN=new Set(['eink','black','pixel','arcade','outrun','y2k','cyber','cyberdawn','terminal','amber']);
 const TW_VARS=['--bg','--pn','--ink','--mut','--ln','--a1','--a2','--a3','--logo'];
-function rgbOf(v){try{const p=applyTheme.pr||(applyTheme.pr=document.createElement('i'));p.style.cssText='position:absolute;width:0;height:0;visibility:hidden;transition:none!important;background-color:var('+v+')';if(!p.isConnected)document.documentElement.appendChild(p);const c=getComputedStyle(p).backgroundColor,m=c&&c.match(/[\d.]+/g);return m&&m.length>=3?[+m[0],+m[1],+m[2]]:null}catch(e){return null}}
+function varRgb(v){try{const p=applyTheme.pr||(applyTheme.pr=document.createElement('i'));p.style.cssText='position:absolute;width:0;height:0;visibility:hidden;transition:none!important;background-color:var('+v+')';if(!p.isConnected)document.documentElement.appendChild(p);const c=getComputedStyle(p).backgroundColor,m=c&&c.match(/[\d.]+/g);return m&&m.length>=3?[+m[0],+m[1],+m[2]]:null}catch(e){return null}}
 function rgb2hsl(c){const r=c[0]/255,g=c[1]/255,b=c[2]/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,d=mx-mn;let h=0,s=0;if(d){s=d/(1-Math.abs(2*l-1));h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;h*=60;if(h<0)h+=360}return[h,s,l]}
 function hsl2css(h,s,l){return'hsl('+Math.round(h)+' '+Math.round(s*100)+'% '+Math.round(l*100)+'%)'}
 function lumOf(c){const f=x=>{x/=255;return x<=.03928?x/12.92:Math.pow((x+.055)/1.055,2.4)};return .2126*f(c[0])+.7152*f(c[1])+.0722*f(c[2])}
@@ -6297,15 +6297,15 @@ function schWant(){const m=S.sch||'theme';return m==='sys'?(matchMedia('(prefers
 function twinClear(root){(applyTheme.tv||[]).forEach(v=>root.style.removeProperty(v));applyTheme.tv=[];root.style.removeProperty('color-scheme')}
 function twinApply(root,th,want){
  twinClear(root);
- const bg=rgbOf('--bg');if(!bg)return th;
+ const bg=varRgb('--bg');if(!bg)return th;
  const own=lumOf(bg)<.2?'dark':'light';
  if(own===want)return th;
  if(th==='auto'||th==='light'||th==='dark')return want;
  if(NOTWIN.has(th))return th;
  const toD=want==='dark',set=(v,c)=>{root.style.setProperty(v,c);applyTheme.tv.push(v)};
  const T=toD?{bg:.085,pn:.125,ln:.2,ink:.93,mut:.66}:{bg:.955,pn:.995,ln:.86,ink:.11,mut:.42};
- for(const k of['bg','pn','ln','ink','mut']){const c=rgbOf('--'+k);if(!c)continue;const[h,sa]=rgb2hsl(c);set('--'+k,hsl2css(h,Math.min(sa,k==='ink'||k==='mut'?.25:.4),T[k]))}
- for(const v of['--a1','--a2','--a3','--logo']){const c=rgbOf(v);if(!c)continue;const[h,sa,l]=rgb2hsl(c);set(v,hsl2css(h,sa,toD?Math.max(l,.62):Math.min(l,.42)))}
+ for(const k of['bg','pn','ln','ink','mut']){const c=varRgb('--'+k);if(!c)continue;const[h,sa]=rgb2hsl(c);set('--'+k,hsl2css(h,Math.min(sa,k==='ink'||k==='mut'?.25:.4),T[k]))}
+ for(const v of['--a1','--a2','--a3','--logo']){const c=varRgb(v);if(!c)continue;const[h,sa,l]=rgb2hsl(c);set(v,hsl2css(h,sa,toD?Math.max(l,.62):Math.min(l,.42)))}
  root.style.setProperty('color-scheme',toD?'dark':'light');applyTheme.tv.push('color-scheme');
  return th;
 }
