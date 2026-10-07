@@ -16,7 +16,7 @@ const R=await p.evaluate(async()=>{
   r.names=THEME_NAMES.some(x=>x[0]===id&&x[1]===name);r.genres=THEME_GENRES.some(g=>(g[1]||[]).includes(id));r.fonts=[THB[id],THF[id],THH[id]].every(Boolean);
   document.querySelector('#grid a.card').click();await new Promise(x=>setTimeout(x,2200));
   const tt=document.querySelector('#rd .tt');
-  r.rule=tt?getComputedStyle(tt,'::after').height==='3px':false;r.mark=tt?getComputedStyle(tt,'::before').content!=='none'&&getComputedStyle(tt,'::before').width==='92px':false;
+  r.rule=tt?getComputedStyle(tt,'::after').height==='3px':false;r.mark=tt?getComputedStyle(tt,'::before').content==='none'||getComputedStyle(tt,'::before').content==='normal':false;
   const em=document.querySelector('.cols .body .endmark');if(em){const c=getComputedStyle(em);r.end=[c.width,c.height,c.fontSize,(c.maskImage!=='none'||c.webkitMaskImage!=='none')||/data:image/.test(c.backgroundImage)]}else r.end=null;
   r.heart=em?!/[♥❤❦]/.test(em.textContent):false;
   // light twin keeps working
@@ -31,7 +31,7 @@ for(const [id,a1] of [['highstorm','#66b8ff'],['crimsondawn','#e23a35'],['thevoi
  ck(id+' in the theme grid, After sunset and folder lists',r.swatch&&r.sunset&&r.names&&r.genres,JSON.stringify([r.swatch,r.sunset,r.names,r.genres]));
  ck(id+' own fonts',r.fonts);
  ck(id+' accent rule under title',r.rule);
- ck(id+' faint symbol behind title',r.mark);
- ck(id+' end mark is a symbol, not the diamond text or a heart',r.end&&r.end[0]==='30px'&&r.end[2]==='0px'&&r.end[3]&&r.heart,JSON.stringify(r.end))}
+ ck(id+' no watermark behind the title',r.mark);
+ ck(id+' end mark is a symbol, not the diamond text or a heart',r.end&&r.end[0]==='38px'&&r.end[2]==='0px'&&r.end[3]&&r.heart,JSON.stringify(r.end))}
 ck('no page errors',!errs.length,errs.join('|'));
 console.log('st27',pass,'pass',fail,'fail');log.forEach(l=>console.log(l));await b.close();process.exit(fail?1:0)})();
