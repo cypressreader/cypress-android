@@ -1129,6 +1129,7 @@ body.split .card.act{outline:3px solid var(--logo);outline-offset:2px}
 .body blockquote{border-left:4px solid var(--b);padding-left:16px;font-style:italic}
 .body figcaption{font:13px var(--sans);color:var(--mut)}
 .note{font:14px var(--sans);color:var(--mut);margin:0 0 14px;text-align:left}
+.sbadge{display:inline-block;margin:0 8px 4px 0;padding:2px 9px;border-radius:99px;font:700 11px var(--sans);letter-spacing:.05em;text-transform:uppercase;color:var(--ink);background:color-mix(in srgb,var(--ink) 10%,transparent);vertical-align:1px}
 .orig{display:inline-block;margin:10px 0 20px;padding:11px 18px;border-radius:999px;background:var(--b);color:#fff;text-decoration:none;font:600 15px var(--sans)}
 dialog{margin:auto;border:0;border-radius:20px;padding:26px;width:min(520px,94vw);max-height:90vh;max-height:90dvh;overflow:auto;background:var(--pn);color:var(--ink)}
 dialog::backdrop{background:rgba(8,10,14,.5)}
@@ -4268,7 +4269,7 @@ async function deepTry(a,manual){
   S.rt[a.link]=Math.max(1,Math.round(body.textContent.split(/\s+/).length/230));save();
   foldBoiler(body,a);if(R.web)toggleWeb();decorate();layout();applyHl();toast('Loaded the full story');return;
  }
- put('Couldn’t get the full story, even another way. <button type="button" class="lnk" data-web="1">View the site in the app</button> <button type="button" class="lnk" data-retry="1">Try again</button> <button type="button" class="lnk" data-diag="1">Copy details</button><details class="why"><summary>Why?</summary>'+[...new Set(lg)].map(esc).join('<br>')+'</details>');
+ put('<span class="sbadge">Truncated source text</span>Couldn’t get the full story, even another way. <a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener">Open Original Story</a> <button type="button" class="lnk" data-web="1">View the site in the app</button> <button type="button" class="lnk" data-retry="1">Try again</button> <button type="button" class="lnk" data-diag="1">Copy details</button><details class="why"><summary>Why?</summary>'+[...new Set(lg)].map(esc).join('<br>')+'</details>');
  if(manual)toast('Still couldn’t load it. Try “View the site in the app”');
 }
 const whyHtml=u=>{const l=LG[u];return l&&l.length?`<details class="why"><summary>Why?</summary>${[...new Set(l)].map(esc).join('<br>')}</details>`:''};
@@ -4321,6 +4322,41 @@ function pfList(){
   return out.slice(0,10);
  }
  return cur.slice(0,8);
+}
+/* ---- saved copies and the last-resort steps for a story the site won't give in full ---- */
+const wordsOf=n=>{const t=((n&&n.textContent)||'').trim();return t?t.split(/\s+/).length:0};
+/* a story still needs help when nothing came back, or only a short start did (a short story that ends properly is left alone) */
+function needsMore(n,url){return !n||(wordsOf(n)<400&&(!!n.incomplete||looksIncomplete(n.textContent,url||'')))}
+function canonicalUrl(u){try{const x=new URL(u);x.hash='';[...x.searchParams.keys()].forEach(k=>{if(/^(utm_|fbclid|gclid|mc_|ref$|ref_|cmpid|ocid|ito$|taid)/i.test(k))x.searchParams.delete(k)});return x.href}catch(e){return ''}}
+/* the Internet Archive's public "is there a saved copy" lookup: only a copy that was saved successfully (status 200) counts */
+async function archiveSnapshot(url){
+ try{
+  const u=canonicalUrl(url);if(!/^https?:/.test(u)||/(^|\.)(news\.google\.com|bing\.com|archive\.org)$/.test(host(u)))return null;
+  const t=await fetchText('https://archive.org/wayback/available?url='+encodeURIComponent(u),x=>/archived_snapshots/.test(x),{push(){}});
+  const j=JSON.parse(t),c=j&&j.archived_snapshots&&j.archived_snapshots.closest;
+  if(!c||c.available!==true||String(c.status)!=='200'||!c.url)return null;
+  return String(c.url).replace(/^http:/,'https:');
+ }catch(e){return null}
+}
+async function archiveFor(a,url){
+ try{
+  const snap=await Promise.race([archiveSnapshot(url||a.link),new Promise(r=>setTimeout(()=>r(null),8000))]);if(!snap)return null;
+  /* "id_" asks for the page exactly as it was saved, without the archive's own banner */
+  const raw=snap.replace(/\/web\/(\d{8,14})\//,'/web/$1id_/');
+  for(const u of [...new Set([raw,snap])]){
+   let n=null;try{n=await Promise.race([fromPage(u,[],'archive copy via '),new Promise(r=>setTimeout(()=>r(null),14000))])}catch(e){n=null}
+   if(!n)continue;n=tidy(n);const tx=n.textContent||'';
+   if(tx.length>600&&sameStory(tx,a)&&!footerish(tx)&&textQuality(tx).ok){n.tier='archive';return {n,u:snap}}
+  }
+ }catch(e){}
+ return null;
+}
+/* the steps after the page and the reader have both fallen short: a saved copy first, then the same story from a wire partner */
+async function deeperTiers(a,n,src){
+ let best=n,bsrc=src;const longer=m=>m&&(!best||wordsOf(m)>wordsOf(best)*1.25);
+ const ar=await archiveFor(a,src);if(ar&&longer(ar.n)){best=ar.n;bsrc=ar.u}
+ if(needsMore(best,bsrc)){const mr=await mirrorFor(a);if(mr&&longer(mr.n)){best=mr.n;bsrc=mr.u}}
+ return {n:best,src:bsrc};
 }
 /* ---- 4-tier article pipeline helpers ---- */
 /* a feed item is "truncated" when its own text is short or ends the way an excerpt does */
@@ -4462,7 +4498,8 @@ async function openReader(a){
  if(my!==tok){if(n){PFHOT.set(a.link,{n,t:Date.now()});if(PFHOT.size>16)PFHOT.delete(PFHOT.keys().next().value)}return}
  const alts=outLinks(a);
  if(!n&&alts.length){const ms=await Promise.all(alts.map(u=>getFull(u).catch(()=>null)));if(my!==tok)return;for(let i=0;i<alts.length;i++){const m=ms[i];if(m&&sameStory(m.textContent,a)){n=m;src=alts[i];break}}}
- if(online()&&(!n||(n.incomplete&&looksIncomplete(n.textContent,src)))){const mr=await Promise.race([mirrorFor(a),new Promise(r=>setTimeout(()=>r(null),20000))]);if(my!==tok)return;if(mr&&(!n||mr.n.textContent.length>n.textContent.length*1.25)){n=mr.n;src=mr.u}}
+ let gated=false;try{gated=(LG[a.link]||[]).some(x=>/HTTP (401|402|403|429|451)\b/.test(String(x)))}catch(e){}
+ if(online()&&needsMore(n,src)){const dr=await Promise.race([deeperTiers(a,n,src),new Promise(r=>setTimeout(()=>r(null),34000))]);if(my!==tok)return;if(dr&&dr.n){n=dr.n;src=dr.src}}
  if(my!==tok)return;
  ALT=src!==a.link?src:(!n&&alts[0]?alts[0]:'');
  if(n&&n.textContent.length>Math.max(600,body.textContent.length+100)){
@@ -4470,12 +4507,12 @@ async function openReader(a){
   const im=n.querySelector('img');if(im&&a.img&&sameImg(im.src,a.img))im.remove();
   ttsStop();
   body.replaceChildren(dropTitle(n,a.title));
-  if(n.pw&&src===a.link){a.pw=1;note.innerHTML='This looks like a preview, and the site may want a subscription for the rest. <button type="button" class="lnk" data-web="1">View the site in the app</button>';if(my===tok&&!R.web&&(S.autoWeb||isBing(f.url)||/news\.google\./.test(f.url||'')||/news\.google\./.test(a.link||'')))toggleWeb(true)}else if(src!==a.link)note.textContent='Full story loaded from '+host(src)+'.';else note.remove();
-  acPut(a.link,body.innerHTML);markReady(a.link);
+  if(n.pw&&src===a.link){a.pw=1;note.innerHTML='This looks like a preview, and the site may want a subscription for the rest. <button type="button" class="lnk" data-web="1">View the site in the app</button>';if(my===tok&&!R.web&&(S.autoWeb||isBing(f.url)||/news\.google\./.test(f.url||'')||/news\.google\./.test(a.link||'')))toggleWeb(true)}else if(n.tier==='archive')note.textContent='Full story loaded from a saved copy at the Internet Archive.';else if(src!==a.link)note.textContent='Full story loaded from '+host(src)+'.';else if(n.incomplete&&looksIncomplete(n.textContent,src))note.innerHTML='<span class="sbadge">Truncated source text</span>This may be only the start of the story. <a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener">Open Original Story</a>';else note.remove();
+  if(!(n.incomplete&&looksIncomplete(n.textContent,src)))acPut(a.link,body.innerHTML);markReady(a.link);
   S.rt[a.link]=Math.max(1,Math.round(body.textContent.split(/\s+/).length/230));const rk=Object.keys(S.rt);if(rk.length>600)delete S.rt[rk[0]];save();
   foldBoiler(body,a);
   if(S.autoReader&&R.web&&R.auto)toggleWeb();
- }else{a.tier='feed';note.innerHTML='Couldn’t get the full story cleanly here, so this is what the site’s feed gave us. <a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener">Open the original</a> <button type="button" class="lnk" data-web="1">View the site in the app</button> <button type="button" class="lnk" data-retry="1">Try another way</button> <button type="button" class="lnk" data-diag="1">Copy details</button>'+whyHtml(a.link);if(my===tok&&!R.web&&online()&&(S.autoWeb||isBing(f.url)||/news\.google\./.test(f.url||'')||/news\.google\./.test(a.link||'')||isPay(a)))toggleWeb(true);if(my===tok&&online())setTimeout(()=>{if(my===tok&&curA===a)deepTry(a,false)},300)}
+ }else{a.tier='feed';note.innerHTML='<span class="sbadge">Truncated source text</span>'+(gated?'The site wouldn’t let the app in, and no saved or syndicated copy turned up, so this is what its feed gave us. ':'Couldn’t get the full story cleanly here, and no saved or syndicated copy turned up, so this is what the site’s feed gave us. ')+'<a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener">Open Original Story</a> <button type="button" class="lnk" data-web="1">View the site in the app</button> <button type="button" class="lnk" data-retry="1">Try another way</button> <button type="button" class="lnk" data-diag="1">Copy details</button>'+whyHtml(a.link);if(my===tok&&!R.web&&online()&&(S.autoWeb||isBing(f.url)||/news\.google\./.test(f.url||'')||/news\.google\./.test(a.link||'')||isPay(a)))toggleWeb(true);if(my===tok&&online())setTimeout(()=>{if(my===tok&&curA===a)deepTry(a,false)},300)}
  layout();afterLoad();
 }
 const FONTS={serif:"'Newsreader',Georgia,serif",literata:"'Literata',Georgia,serif",merri:"'Merriweather',Georgia,serif",garamond:"'EB Garamond',Georgia,serif",sans:"'Instrument Sans',system-ui,sans-serif",lexend:"'Lexend',system-ui,sans-serif",hyper:"'Atkinson Hyperlegible','Instrument Sans',sans-serif",dys:"'OpenDyslexic','Lexend',sans-serif"};
