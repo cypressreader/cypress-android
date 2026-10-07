@@ -1,0 +1,35 @@
+const {APP}=require('./env');
+const {mock,PW}=require('./mock');const {chromium}=require(PW);
+let pass=0,fail=0;const log=[];const ck=(n,c,x='')=>{if(c)pass++;else{fail++;log.push(`FAIL ${n} ${x}`)}};
+(async()=>{const b=await chromium.launch();
+const p=await (await b.newContext({viewport:{width:390,height:800}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await mock(p,{n:4});await p.goto('file://'+APP);await p.waitForTimeout(1500);
+const R=await p.evaluate(async()=>{
+ const o={};const s=document.createElement('style');s.textContent='*{transition:none!important}';document.head.append(s);
+ const L=c=>lumOf(anyRgb(c));
+ const st=async(sch)=>{S.theme='nocturne';S.sch=sch;S.night='off';applyTheme(false);await new Promise(r=>setTimeout(r,120));const cs=getComputedStyle(document.documentElement);const bg=getComputedStyle(document.body).backgroundColor,ink=getComputedStyle(document.body).color;const c=(Math.max(L(bg),L(ink))+.05)/(Math.min(L(bg),L(ink))+.05);return{eff:document.documentElement.dataset.theme,bg,ink,ct:c,bgv:cs.getPropertyValue('--bg').trim(),a1:cs.getPropertyValue('--a1').trim(),serif:cs.getPropertyValue('--serif'),dark:L(bg)<.2}};
+ o.dark=await st('theme');o.light=await st('light');o.darkAgain=await st('dark');
+ o.swatch=!!document.querySelector('#thm [data-th=nocturne]');
+ o.group=[...document.querySelectorAll('#thm details.thd')].find(d=>/After Dark/.test(d.querySelector('summary').textContent));
+ o.groupHas=!!(o.group&&o.group.querySelector('[data-th=nocturne]'));o.groupCount=o.group&&o.group.querySelector('summary small').textContent;o.group=undefined;
+ o.more=[...document.querySelectorAll('#thm summary')].find(x=>/More Styles/.test(x.textContent)).querySelector('small').textContent;
+ o.sunset=!!document.querySelector('#ngt option[value=nocturne]');
+ o.names=THEME_NAMES.some(x=>x[0]==='nocturne');o.genres=THEME_GENRES.some(g=>(g[1]||[]).includes('nocturne'));
+ o.fonts=[THB.nocturne,THF.nocturne,THH.nocturne];
+ // after sunset can pick it
+ S.theme='light';S.sch='theme';S.night='nocturne';const on=window.isNight;window.isNight=()=>true;applyTheme(false);await new Promise(r=>setTimeout(r,120));o.nightEff=document.documentElement.dataset.theme;window.isNight=on;S.night='off';
+ return o});
+ck('dark: near-black background',R.dark.dark&&R.dark.eff==='nocturne'&&/9, 10, 15|#090a0f/i.test(R.dark.bg+R.dark.bgv),JSON.stringify([R.dark.bg,R.dark.bgv]));
+ck('gold accent',/#a8873a/i.test(R.dark.a1),R.dark.a1);
+ck('serif headlines',/Playfair/.test(R.dark.serif),R.dark.serif);
+ck('readable (contrast >= 7)',R.dark.ct>=7,String(R.dark.ct));
+ck('light twin is light and readable',!R.light.dark&&R.light.ct>=7,JSON.stringify([R.light.dark,R.light.ct]));
+ck('flips back to dark',R.darkAgain.dark);
+ck('swatch in the theme grid',R.swatch);
+ck('in the After Dark group, count updated',R.groupHas&&R.groupCount==='9',JSON.stringify([R.groupHas,R.groupCount]));
+ck('More Styles count updated',R.more==='49',R.more);
+ck('available for After sunset',R.sunset&&R.nightEff==='nocturne',JSON.stringify([R.sunset,R.nightEff]));
+ck('listed for folder themes',R.names&&R.genres);
+ck('has its own fonts',R.fonts.every(Boolean),JSON.stringify(R.fonts));
+ck('no page errors',!errs.length,errs.join('|'));
+console.log('st26',pass,'pass',fail,'fail');log.forEach(l=>console.log(l));await b.close();process.exit(fail?1:0)})();
