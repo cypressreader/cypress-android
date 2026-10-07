@@ -4139,13 +4139,22 @@ function liteUrl(url){
  }catch(e){}
  return'';
 }
-const fromPage=async(url,lg,tag,sig)=>{let fr=null;const w=lg&&{push:m=>lg.push((tag||'')+m),sig};await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);try{if(lg)lg.push((tag||'')+'page read: '+Math.round(t.length/1000)+' KB, '+(t.match(/<img\b/gi)||[]).length+' img tags ('+(t.match(/\sdata-(src|lazy-src|original|srcset)=/gi)||[]).length+' lazy), '+(t.match(/<picture\b/gi)||[]).length+' picture, '+(t.match(/<figure\b/gi)||[]).length+' figure, '+(t.match(/<noscript\b/gi)||[]).length+' noscript, '+(/application\/ld\+json/.test(t)?'has':'no')+' structured data; kept '+(x?x.querySelectorAll('img').length:0)+' pictures and '+(x?x.textContent.length:0)+' characters of text')}catch(e){}if(x&&x.textContent.length>600){fr=x;return true}return false},w);if(fr&&w&&w.won)fr.tier=w.won==='direct'?'direct':'proxy';return fr};
+const fromPage=async(url,lg,tag,sig)=>{let fr=null;const w=lg&&{push:m=>lg.push((tag||'')+m),sig};await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);try{if(lg)lg.push((tag||'')+'page read: '+Math.round(t.length/1000)+' KB, '+(t.match(/<img\b/gi)||[]).length+' img tags ('+(t.match(/\sdata-(src|lazy-src|original|srcset)=/gi)||[]).length+' lazy), '+(t.match(/<picture\b/gi)||[]).length+' picture, '+(t.match(/<figure\b/gi)||[]).length+' figure, '+(t.match(/<noscript\b/gi)||[]).length+' noscript, '+(/application\/ld\+json/.test(t)?'has':'no')+' structured data; kept '+(x?x.querySelectorAll('img').length:0)+' pictures and '+(x?x.textContent.length:0)+' characters of text')}catch(e){}if(x&&(footerish(x.textContent)||errorPage(t,x.textContent))){try{if(lg)lg.push((tag||'')+'page was an error or notice page, not the story')}catch(e){}return false}if(x&&x.textContent.length>600){fr=x;return true}return false},w);if(fr&&w&&w.won)fr.tier=w.won==='direct'?'direct':'proxy';return fr};
 
 /* ---------- is this text really the story? ---------- */
 const SHORTOK=new Set('a i of to in is it on at be by an as do go he if me my no or so up us we am oh ok'.split(' '));
 /* a page whose "article" is really the site's footer (ads, member pitch, affiliate note) is not the story */
 const FOOTMARK=[/advertise here|carbon ads/i,/made possible by (member|reader)/i,/affiliate commission/i,/socials?\s*(&|and)\s*more/i,/all rights reserved/i,/privacy policy/i,/(sign up|subscribe) (for|to) (our|the) newsletter/i,/cookie (policy|settings)/i];
-function footerish(t){t=String(t||'').replace(/\s+/g,' ').trim().slice(0,900);let n=0;for(const r of FOOTMARK)if(r.test(t))n++;return n>=2}
+/* a cookie / privacy notice (a site's consent banner or its "Terms of Use / Your Privacy Rights" box) is not a story: it ticks off many different consent phrases close together */
+const CONSENTM=[/\bcookies?\b/i,/privacy (policy|choices|center|rights|notice)/i,/\bopt[- ]?(out|in)\b/i,/terms of (use|service)|\barbitration\b/i,/\bconsent\b|strictly necessary|manage (my )?preferences|third[- ]party (cookies|partners|vendors)/i,/by continuing to use|you agree to (the|our)/i,/personally identifiable|process information about you|screen recordings|pixels, and similar technologies/i,/notifications drawer|opt-out request/i];
+function consentish(t){t=String(t||'').replace(/\s+/g,' ').trim().slice(0,2200);let n=0;for(const r of CONSENTM)if(r.test(t))n++;return n>=5}
+/* a "Page Not Found" page that a proxy hands back with a normal status */
+function errorPage(html,tx){
+ const h=String(html||''),t=(h.match(/<title[^>]*>([^<]*)/i)||[])[1]||'',h1=(h.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)||[])[1]||'',head=(t+' '+h1.replace(/<[^>]+>/g,' ')).slice(0,300),body=String(tx||'').replace(/\s+/g,' ').trim();
+ const said=/\b404\b|page not found|that page does not exist|this page (does not|doesn.t) exist|page (could not|can.t) be found|no longer available/i,inHead=/^\W*not found\b|\bnot found\W*$|\b(error|oops)\b.*\b(page|found)\b/i;
+ return body.length<3500&&(said.test(head)||inHead.test(head.trim())||said.test(body.slice(0,700)))
+}
+function footerish(t){t=String(t||'').replace(/\s+/g,' ').trim().slice(0,900);let n=0;for(const r of FOOTMARK)if(r.test(t))n++;return n>=2||consentish(t)}
 function textQuality(t){
  t=(t||'').replace(/\s+/g,' ').trim();
  const w=t.split(' ');
