@@ -119,6 +119,26 @@ footer{padding:40px 0 60px;color:var(--mut);font-size:14px}footer .w{display:fle
 .dm .row{padding:12px 0;border-bottom:1px solid var(--d-ln)}.dm .row h4{margin:6px 0 0;font:700 16px/1.25 var(--d-f);color:var(--d-ink)}
 .dm .wl{display:flex;align-items:center;gap:10px;margin:8px 0 2px;font:700 10.5px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--d-mut)}.dm .wl:before,.dm .wl:after{content:'';flex:1;height:1px;background:var(--d-ln)}
 @media(min-width:760px){.dm .cols{grid-template-columns:1.35fr 1fr}.dm{padding:28px}}
+/* tap-anything demo */
+.try{display:grid;gap:22px;max-width:980px;margin:0 auto;align-items:start}
+.tapl{display:grid;gap:14px}
+.app{display:grid;grid-template-columns:200px 1fr;border:1px solid #2c3760;border-radius:20px;overflow:hidden;background:#0f1424;box-shadow:0 26px 60px rgba(0,0,0,.45);min-height:330px}
+.app .sb{border-right:1px solid #232c4a;padding:14px 10px;display:grid;gap:2px;align-content:start;background:#0c1120}
+.app .sb h5{margin:0 6px 8px;font:700 11px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.app .fr{appearance:none;border:0;background:transparent;color:var(--ink);font:500 14px var(--sans);display:flex;align-items:center;gap:9px;padding:9px 8px;border-radius:10px;cursor:pointer;text-align:left;width:100%}
+.app .fr:hover{background:rgba(255,255,255,.06)}.app .fr.on{background:rgba(255,255,255,.1)}
+.app .fr b{width:9px;height:9px;border-radius:50%;flex:none}.app .fr span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app .fr u{text-decoration:none;font-size:12px;background:#1a2240;border-radius:999px;padding:1px 8px;color:var(--mut)}
+.app .fr u.nd{width:8px;height:8px;padding:0;background:var(--g1)}
+.app .ls{padding:16px;display:grid;gap:0;align-content:start}
+.app .ls .it{padding:12px 4px;border-bottom:1px solid #232c4a;cursor:pointer;border-radius:8px}.app .ls .it:hover{background:rgba(255,255,255,.04)}
+.app .ls .src{font:700 11px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--mut);display:flex;gap:8px;align-items:center}
+.app .ls h4{margin:6px 0 0;font:700 17px/1.25 var(--serif)}
+.app .wl{display:flex;align-items:center;gap:10px;margin:10px 0 0;font:700 10.5px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--mut);cursor:pointer}.app .wl:before,.app .wl:after{content:'';flex:1;height:1px;background:#2c3760}
+.hot{outline:2px dashed transparent;outline-offset:2px}.hot.hl{outline-color:var(--g2)}
+.tip2{border:1px solid #2c3760;background:rgba(255,255,255,.045);border-radius:14px;padding:14px 16px;min-height:76px}
+.tip2 b{display:block;font:700 15px var(--sans);margin-bottom:4px;color:var(--ink)}.tip2 p{font-size:15px;line-height:1.5}
+@media(max-width:620px){.app{grid-template-columns:1fr}.app .sb{border-right:0;border-bottom:1px solid #232c4a;grid-template-columns:1fr 1fr}.app .sb h5{grid-column:1/-1}}
 </style></head>
 <body>
 <header class="bar"><div class="w"><a class="brand" href="#top"><span class="mk" id="mk" role="img" aria-label="CyPress logo"></span>CyPress</a><nav aria-label="Main"><a href="#features">Features</a><a href="#screens">Screenshots</a><a href="#install">Install</a><a href="#faq">Questions</a></nav><a class="pill" href="#install">Get CyPress</a></div></header>
@@ -171,6 +191,19 @@ footer{padding:40px 0 60px;color:var(--mut);font-size:14px}footer .w{display:fle
     </div>
    </div>
   </div>
+ </div>
+</div></section>
+
+<section id="try"><div class="w">
+ <div class="head"><h2>Tap anything to see what it does</h2><p>A tiny working copy of CyPress. Tap a site, a headline or the dividing line. Flip between numbers and quiet dots.</p></div>
+ <div class="try">
+  <div class="tapl"><div class="tlab" id="tl3" style="text-align:center">Unread display</div>
+   <div class="seg" id="qseg" role="radiogroup" aria-labelledby="tl3" style="justify-self:center"><button type="button" role="radio" aria-checked="true" data-q="num">Numbers</button><button type="button" role="radio" aria-checked="false" data-q="dot">Quiet dots</button></div></div>
+  <div class="app" id="app">
+   <div class="sb" id="sb"><h5>Your sites</h5></div>
+   <div class="ls" id="ls"></div>
+  </div>
+  <div class="tip2" id="tip2" aria-live="polite"><b>Tap anything</b><p>Try a site on the left. Watch its number or dot clear when you read it.</p></div>
  </div>
 </div></section>
 
@@ -243,6 +276,29 @@ function paint(){
 }
 T.forEach(function(t,i){var b=document.createElement('button');b.type='button';b.className='chip';b.setAttribute('role','radio');b.innerHTML='<i style="background:'+t[1]+'"></i>'+t[0];b.onclick=function(){cur=i;paint()};b.onkeydown=function(e){var d=e.key==='ArrowRight'||e.key==='ArrowDown'?1:e.key==='ArrowLeft'||e.key==='ArrowUp'?-1:0;if(!d)return;e.preventDefault();cur=(cur+d+T.length)%T.length;paint();chips.children[cur].focus()};chips.appendChild(b)});
 [].forEach.call(seg.children,function(b){b.onclick=function(){mode=b.getAttribute('data-m');paint()}});
+paint();
+})();
+</script>
+<script>
+(function(){
+var F=[{n:'Field Notes',c:'#5dffb0',u:3},{n:'The Gazette',c:'#4fd2ff',u:5},{n:'Daily Wire',c:'#ff7c9a',u:2},{n:'Old Press',c:'#ffd23f',u:0}];
+var P=[['Field Notes','What the river taught a city planner',1],['The Gazette','The quiet return of the long read',1],['The Gazette','Why we still print the weather',1],['Daily Wire','Five minutes with the new tide tables',1],['Old Press','A short history of the margin',0],['Old Press','The last typewriter repair shop',0]];
+var sb=document.getElementById('sb'),ls=document.getElementById('ls'),tip=document.getElementById('tip2'),qs=document.getElementById('qseg');
+if(!sb||!ls||!tip||!qs)return;
+var quiet=false,sel=null;
+var T={site:['A site','Each site you follow has a coloured dot. Tapping it shows just that site. The number counts stories you haven\u2019t read; in quiet mode it\u2019s a small dot instead, so there\u2019s no pile to feel behind on.'],story:['A story','Tap a headline and it opens as a full article you can page through like a magazine, with no pop-ups and no clutter.'],wl:['The waterline','This line marks where stories from before your last visit begin. Everything above it is new, so you always know where you left off.'],mode:['Numbers or quiet dots','Numbers count what\u2019s unread. Quiet dots just say \u201csomething new here\u201d. Switch any time in Settings.']};
+function say(k,extra){var t=T[k];tip.innerHTML='<b></b><p></p>';tip.firstChild.textContent=t[0];tip.lastChild.textContent=t[1]+(extra?' '+extra:'')}
+function paint(){
+ sb.innerHTML='<h5>Your sites</h5>';
+ F.forEach(function(f,i){var b=document.createElement('button');b.type='button';b.className='fr hot'+(sel===i?' on':'');b.innerHTML='<b style="background:'+f.c+'"></b><span></span>'+(f.u?(quiet?'<u class="nd" aria-label="New stories"></u>':'<u>'+f.u+'</u>'):'');b.children[1].textContent=f.n;b.onclick=function(){sel=sel===i?null:i;var had=f.u;f.u=0;say('site',had?'You\u2019ve read '+f.n+', so its '+(quiet?'dot':'number')+' cleared.':'');paint()};sb.appendChild(b)});
+ ls.innerHTML='';var shown=0,drew=false;
+ P.forEach(function(p,i){
+  if(sel!==null&&F[sel].n!==p[0])return;
+  if(!p[2]&&!drew&&shown){var w=document.createElement('div');w.className='wl hot';w.textContent='Before your last visit';w.onclick=function(){say('wl')};ls.appendChild(w);drew=true}
+  var d=document.createElement('div');d.className='it hot';d.innerHTML='<div class="src"></div><h4></h4>';d.firstChild.textContent=p[0];d.lastChild.textContent=p[1];d.onclick=function(){say('story')};ls.appendChild(d);shown++
+ })
+}
+[].forEach.call(qs.children,function(b){b.onclick=function(){quiet=b.getAttribute('data-q')==='dot';[].forEach.call(qs.children,function(x){x.setAttribute('aria-checked',x===b?'true':'false')});F.forEach(function(f,i){f.u=[3,5,2,0][i]});sel=null;say('mode');paint()}});
 paint();
 })();
 </script>
