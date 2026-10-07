@@ -22,23 +22,18 @@ const R=await p.evaluate(async()=>{
  // reader gets the same recipe
  rdB('#6a3df0');o.rbg=$('#rd').style.getPropertyValue('--rbg');o.rexp=dynTone('#6a3df0',dynIsDark()).bg;
  o.sameHue=Math.abs(hue(lay().style.getPropertyValue('--tb').replace(/color-mix.*/,'')||o.tb)-hue(o.rbg))<3;
- // options off
- S.dtone=false;applyFx();await new Promise(r=>setTimeout(r,800));o.tbOff=lay().style.getPropertyValue('--tb');rdB('#6a3df0');o.rbgOff=$('#rd').style.getPropertyValue('--rbg');
- S.dtone=undefined;S.dacc=false;applyFx();await new Promise(r=>setTimeout(r,800));o.logoOff=root.style.getPropertyValue('--logo');
- S.dacc=undefined;applyFx();await new Promise(r=>setTimeout(r,800));o.logoBack=root.style.getPropertyValue('--logo');
- // calm
- o.calmClass=root.classList.contains('dcalm');
+ // calm: a nearly identical colour is ignored, a different one is applied
  let n=0;const oa=dynApply;window.dynApply=c=>{n++;oa(c)};
- const base=dynSet.c;dynSet.c=base||'#6a3df0';const near=dynSet.c;
+ const base=dynSet.c||'#6a3df0';dynSet.c=base;
  dynSet('#6b3ef1');await new Promise(r=>setTimeout(r,2200));o.nearCalls=n;
- S.dcalm=false;applyFx();dynSet.c=near;n=0;dynSet('#6b3ef1');await new Promise(r=>setTimeout(r,2500));o.nearCallsOff=n;
- S.dcalm=undefined;applyFx();window.dynApply=oa;
- // typeface
- o.serifDefault=getComputedStyle(root).getPropertyValue('--serif');o.dsansDefault=root.classList.contains('dsans');
- S.dfont='sans';applyFx();o.dsans=root.classList.contains('dsans');o.serifSans=getComputedStyle(root).getPropertyValue('--serif');S.dfont='serif';applyFx();
- o.ui=['dtone','dacc','dcalm'].every(k=>!!document.querySelector('[data-tg='+k+']'))&&!!$('#dfont');
- o.keys=['dtone','dacc','dcalm','dfont'].every(k=>SET_KEYS.includes(k));
- o.defOn=['dtone','dacc','dcalm'].every(k=>isOn(k));
+ dynSet.c=base;n=0;dynSet('#e0443c');await new Promise(r=>setTimeout(r,3500));o.farCalls=n;
+ window.dynApply=oa;
+ o.fade=getComputedStyle(document.querySelector('#dynbg i')).transitionDuration;
+ // typeface: Dynamic keeps the magazine serif
+ o.serif=getComputedStyle(root).getPropertyValue('--serif');
+ // no new settings were added
+ o.noUi=!document.querySelector('[data-tg=dtone],[data-tg=dacc],[data-tg=dcalm]')&&!$('#dfont');
+ o.noKeys=!['dtone','dacc','dcalm','dfont'].some(k=>SET_KEYS.includes(k));
  return o});
 ck(pre+'light tint is light',R.lightBg>.7,String(R.lightBg));ck(pre+'dark tint is dark',R.darkBg<.05,String(R.darkBg));
 ck(pre+'tint keeps the site hue',Math.abs(R.hueL-R.hueSite)<4&&Math.abs(R.hueD-R.hueSite)<4,JSON.stringify([R.hueL,R.hueD,R.hueSite]));
@@ -49,13 +44,11 @@ ck(pre+'accent contrast direction',R.accL<.5&&R.accD>.6,JSON.stringify([R.accL,R
 ck(pre+'page uses the rich tint',/^hsl\(/.test(R.tb),R.tb);
 ck(pre+'reader uses the same recipe',R.rbg===R.rexp&&R.sameHue,JSON.stringify([R.rbg,R.rexp,R.sameHue]));
 ck(pre+'site colour on details',/^hsl\(/.test(R.logo),R.logo);
-ck(pre+'tint toggle off drops tone',!R.tbOff&&!R.rbgOff,JSON.stringify([R.tbOff,R.rbgOff]));
-ck(pre+'details toggle off clears accent',!R.logoOff&&/^hsl\(/.test(R.logoBack),JSON.stringify([R.logoOff,R.logoBack]));
-ck(pre+'calm: near colour ignored',R.calmClass&&R.nearCalls===0,JSON.stringify([R.calmClass,R.nearCalls]));
-ck(pre+'calm off: near colour applied',R.nearCallsOff>=1,String(R.nearCallsOff));
-ck(pre+'serif by default',!R.dsansDefault&&!/Inter/.test(R.serifDefault),R.serifDefault);
-ck(pre+'sans option',R.dsans&&/Inter/.test(R.serifSans),R.serifSans);
-ck(pre+'settings present',R.ui);ck(pre+'synced keys',R.keys);ck(pre+'defaults on',R.defOn);
+ck(pre+'calm: near colour ignored',R.nearCalls===0,String(R.nearCalls));
+ck(pre+'calm: different colour applied',R.farCalls>=1,String(R.farCalls));
+ck(pre+'slow fade',/2\.8s/.test(R.fade),R.fade);
+ck(pre+'keeps the magazine serif',!/Inter/.test(R.serif),R.serif);
+ck(pre+'no new settings',R.noUi&&R.noKeys);
 ck(pre+'no page errors',!errs.length,errs.join('|'));
 await ctx.close()}
 console.log('st21',pass,'pass',fail,'fail');log.forEach(l=>console.log(l));await b.close();process.exit(fail?1:0)})();
