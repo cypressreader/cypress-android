@@ -1,0 +1,45 @@
+const {APP}=require('./env');
+const {mock,PW}=require('./mock');const {chromium}=require(PW);
+let pass=0,fail=0;const log=[];const ck=(n,c,x='')=>{if(c)pass++;else{fail++;log.push(`FAIL ${n} ${x}`)}};
+(async()=>{const b=await chromium.launch();
+for(const [w,h] of [[390,800],[1000,900]]){
+const p=await (await b.newContext({viewport:{width:w,height:h}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await mock(p,{n:4});await p.goto('file://'+APP);await p.waitForTimeout(1200);
+const R=await p.evaluate(async()=>{
+ const o={},now=Date.now(),f=S.feeds[0];
+ items[f.id]=Array.from({length:120},(_,i)=>({feedId:f.id,title:'Story '+i,link:'https://w.test/s'+i,date:now-i*6e4,summary:'x',html:'<p>x</p>'}));
+ S.read={};S.sel='s:'+f.id;render();await new Promise(r=>setTimeout(r,500));
+ const sel=document.getElementById('pfm'),ans=[];const oa=window.askBox;window.askBox=async()=>ans.shift();
+ const pick=async(v,a)=>{ans.push(a);sel.value=v;sel.dispatchEvent(new Event('change'));await new Promise(r=>setTimeout(r,200))};
+ o.hasOpt=!!sel.querySelector('option[value=custom]');
+ o.top10=(S.pfm=undefined,pfList().length);
+ await pick('custom','40');o.mode=S.pfm;o.n=S.pfn;o.label=sel.querySelector('option[value=custom]').textContent;o.shown=sel.value;o.list40=pfList().length;o.unique=new Set(pfList().map(a=>a.link)).size;
+ o.hasEdit=!!sel.querySelector('option[value=editn]');
+ await pick('editn','75');o.n2=S.pfn;o.list75=pfList().length;o.mode2=S.pfm;
+ await pick('custom','0');o.badZero=[S.pfn,S.pfm,sel.value];
+ await pick('custom','900');o.badBig=[S.pfn,S.pfm];
+ await pick('custom','abc');o.badText=[S.pfn,S.pfm];
+ await pick('editn',null);o.cancel=[S.pfn,S.pfm,sel.value];
+ await pick('custom','500');o.max=S.pfn;o.list500=pfList().length;o.capOK=true;
+ await pick('top10','');o.back=[S.pfm,pfList().length,!!sel.querySelector('option[value=editn]'),sel.querySelector('option[value=custom]').textContent];
+ await pick('off','');o.off=S.pfm;
+ S.pfm='custom';S.pfn=33;pfLabel();o.clamp=[(S.pfn=-5,pfN()),(S.pfn='x',pfN()),(S.pfn=9999,pfN())];
+ o.synced=SET_KEYS.includes('pfn');
+ window.askBox=oa;return o});
+ck(w+' option exists',R.hasOpt);
+ck(w+' standard mode is still 10',R.top10===10,String(R.top10));
+ck(w+' custom number saved',R.mode==='custom'&&R.n===40&&R.shown==='custom',JSON.stringify([R.mode,R.n,R.shown]));
+ck(w+' label shows the number',/Top 40 of each list/.test(R.label),R.label);
+ck(w+' list is the chosen size',R.list40===40&&R.unique===40,JSON.stringify([R.list40,R.unique]));
+ck(w+' can change it again',R.hasEdit&&R.n2===75&&R.list75===75&&R.mode2==='custom',JSON.stringify([R.hasEdit,R.n2,R.list75]));
+ck(w+' zero rejected',R.badZero[0]===75&&R.badZero[1]==='custom'&&R.badZero[2]==='custom',JSON.stringify(R.badZero));
+ck(w+' too big rejected',R.badBig[0]===75,JSON.stringify(R.badBig));
+ck(w+' text rejected',R.badText[0]===75,JSON.stringify(R.badText));
+ck(w+' cancel keeps the old number',R.cancel[0]===75&&R.cancel[1]==='custom'&&R.cancel[2]==='custom',JSON.stringify(R.cancel));
+ck(w+' 500 allowed and filled',R.max===500&&R.list500===120,JSON.stringify([R.max,R.list500]));
+ck(w+' back to top 10 removes the edit option',R.back[0]==='top10'&&R.back[1]===10&&!R.back[2]&&/Your own number/.test(R.back[3]),JSON.stringify(R.back));
+ck(w+' off still works',R.off==='off');
+ck(w+' bad stored numbers are clamped',R.clamp[0]===1&&R.clamp[1]===10&&R.clamp[2]===500,JSON.stringify(R.clamp));
+ck(w+' number is synced',R.synced);
+ck(w+' no page errors',!errs.length,errs.join('|'));await p.close()}
+console.log('st24',pass,'pass',fail,'fail');log.forEach(l=>console.log(l));await b.close();process.exit(fail?1:0)})();
