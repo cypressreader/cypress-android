@@ -6396,7 +6396,8 @@ function sky(kind){
  const old=$('#sky');if(old)old.remove();
  const el=document.createElement('div');el.id='sky';el.className='sky '+kind;el.setAttribute('aria-hidden','true');
  el.innerHTML='<div class="sk-bg"></div><i class="sk-star" style="left:18%;top:22%"></i><i class="sk-star" style="left:70%;top:14%"></i><i class="sk-star" style="left:48%;top:32%"></i><i class="sk-star" style="left:84%;top:40%"></i><div class="sk-sun"></div><div class="sk-moon"></div><div class="sk-hill"></div><span class="sk-t">'+(kind==='set'?'Good evening':'Good morning')+'</span>';
- document.body.append(el);
+ /* an open Settings panel sits in the browser's top layer, above anything in the page, so the animation is drawn inside it */
+ (document.querySelector('dialog[open]')||document.body).append(el);
  weatherKind().then(k=>{if(el.isConnected)skyWeather(el,kind==='set'||kind==='rise'?k:'')});
  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('go')));
  setTimeout(()=>el.classList.add('out'),4200);setTimeout(()=>el.remove(),5200);
