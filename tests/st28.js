@@ -4,8 +4,11 @@ let pass=0,fail=0;const log=[];const ck=(n,c,x='')=>{if(c)pass++;else{fail++;log
 (async()=>{const b=await chromium.launch();
 const p=await (await b.newContext({viewport:{width:390,height:800}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
 await mock(p,{n:6});await p.goto('file://'+APP);await p.waitForTimeout(1500);
-const IDS=['nocturne','midnight','forest','golden','crimson','alpenglow','nebula','deepsea','aurora','highstorm','crimsondawn','thevoid'];
-const R=await p.evaluate(async(IDS)=>{
+const IDS=['midnight','forest','golden','alpenglow','deepsea','aurora','cyber','cyberdawn','terminal','amber','outrun','y2k','arcade','sepia','newsprint','broadsheet','rose','typewriter','letterpress','sage','coastal','marigold','tropical','eink','highstorm','crimsondawn','thevoid'];
+const PLAIN=['nocturne','crimson','nebula','light','dynamic'];
+const TWIN=['midnight','forest','golden','alpenglow','deepsea','aurora','highstorm'];
+const PLAIN_=PLAIN;
+const R=await p.evaluate(async([IDS,PLAIN])=>{
  const o={};const st=document.createElement('style');st.textContent='*{transition:none!important}';document.head.append(st);
  document.querySelectorAll('dialog[open]').forEach(d=>d.close());
  const body=Array.from({length:4},()=>'<p>Not whether he accepts the diagnosis on paper. Whether he actually believes, in the car, at the dinner table, in the moment when the homework is not done again.</p>').join('');
@@ -13,15 +16,15 @@ const R=await p.evaluate(async(IDS)=>{
  const one=async(id,sch)=>{try{closeReader()}catch(e){}S.theme=id;S.sch=sch;S.night='off';S.sel='all';applyTheme(false);render();await new Promise(x=>setTimeout(x,500));document.querySelector('#grid a.card').click();await new Promise(x=>setTimeout(x,1800));
   const r=document.documentElement,em=document.querySelector('.cols .body .endmark');const c=em&&getComputedStyle(em);
   return{has:r.classList.contains('hasym'),sym:/^url\(/.test(getComputedStyle(r).getPropertyValue('--sym').trim()),size:c&&c.width,fs:c&&c.fontSize,heart:em?/[♥❤❦]/.test(em.textContent):null,paint:c&&(c.maskImage!=='none'||c.webkitMaskImage!=='none'||/data:image/.test(c.backgroundImage)),logoL:r.style.getPropertyValue('--logo')?rgb2hsl(anyRgb(r.style.getPropertyValue('--logo')))[2]:null}};
- for(const id of IDS){o[id]=await one(id,'theme');o[id+'_l']=await one(id,'light')}
- o.sepia=await one('sepia','theme');o.dynamic=await one('dynamic','theme');
- return o},IDS);
+ for(const id of IDS){o[id]=await one(id,'theme');o[id+'_l']=await one(id,'light');o[id+'_d']=await one(id,'dark')}
+ for(const id of PLAIN)o['plain_'+id]=await one(id,'theme');
+ return o},[IDS,PLAIN]);
 for(const id of IDS){const r=R[id];
  ck(id+' has an end symbol',r.has&&r.sym&&r.paint,JSON.stringify(r));
- ck(id+' symbol size and no stray text',(r.size==='38px'||(id==='crimsondawn'&&r.size==='58px'))&&r.fs==='0px'&&r.heart===false,JSON.stringify([r.size,r.fs,r.heart]));
+ ck(id+' symbol size and no stray text',(r.size==='38px'||(id==='crimsondawn'&&r.size==='58px')||(['cyber','aurora','deepsea'].includes(id)&&r.size==='54px'))&&r.fs==='0px'&&r.heart===false,JSON.stringify([r.size,r.fs,r.heart]));
  const l=R[id+'_l'];ck(id+' light twin keeps it',l.has&&l.paint);
- if(id!=='thevoid'&&id!=='crimsondawn'&&id!=='nocturne')ck(id+' light twin symbol is dark enough',l.logoL!==null&&l.logoL<=.45,String(l.logoL))}
-ck('a theme without a symbol keeps the plain diamond',!R.sepia.has&&R.sepia.size!=='38px');
-ck('dynamic keeps the plain diamond',!R.dynamic.has);
+ ck(id+' dark twin keeps it',R[id+'_d'].has&&R[id+'_d'].paint);
+ if(TWIN.includes(id))ck(id+' light twin symbol is dark enough',l.logoL!==null&&l.logoL<=.45,String(l.logoL))}
+for(const id of PLAIN)ck(id+' keeps the plain diamond',!R['plain_'+id].has&&R['plain_'+id].size!=='38px',JSON.stringify(R['plain_'+id]));
 ck('no page errors',!errs.length,errs.join('|'));
 console.log('st28',pass,'pass',fail,'fail');log.forEach(l=>console.log(l));await b.close();process.exit(fail?1:0)})();
