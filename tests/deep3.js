@@ -233,7 +233,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  ck('update','update check parses version',await p.E(()=>/const APP_VERSION='([^']+)'/.test(document.documentElement.innerHTML)));
  await p.ctx.close()}
 {// update banner via http server
- const http=require('http'),fs=require('fs');let ver='2026.10.01a';const srv=http.createServer((q,r)=>{let t=fs.readFileSync(APP,'utf8');if(ver!=='2026.10.07d')t=t.replace("const APP_VERSION='2026.10.07d'","const APP_VERSION='"+ver+"'");r.writeHead(200,{'Content-Type':'text/html'});r.end(t)}).listen(8765);
+ const http=require('http'),fs=require('fs');let ver='2026.10.01a';const srv=http.createServer((q,r)=>{let t=fs.readFileSync(APP,'utf8');if(ver!=='2026.10.07e')t=t.replace("const APP_VERSION='2026.10.07e'","const APP_VERSION='"+ver+"'");r.writeHead(200,{'Content-Type':'text/html'});r.end(t)}).listen(8765);
  const ctx=await b.newContext({viewport:{width:884,height:1060}});const p=await ctx.newPage();await mock(p);await p.addInitScript(s=>{try{if(!localStorage.getItem('folio'))localStorage.setItem('folio',JSON.stringify(s))}catch(e){}},seed(SITES));
  await p.route('http://localhost:8765/**',r=>r.continue());
  await p.goto('http://localhost:8765/');await W(1200);ver='2026.10.01';await p.evaluate(()=>checkUpdate());await W(800);
