@@ -4,10 +4,10 @@ let pass=0,fail=0;const log=[];const ck=(n,c,x='')=>{if(c)pass++;else{fail++;log
 (async()=>{const b=await chromium.launch();
 const p=await (await b.newContext({viewport:{width:390,height:800}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
 await mock(p,{n:6});await p.goto('file://'+APP);await p.waitForTimeout(1500);
-const IDS=['midnight','forest','golden','alpenglow','deepsea','aurora','cyber','cyberdawn','terminal','amber','outrun','y2k','arcade','sepia','newsprint','broadsheet','rose','typewriter','letterpress','sage','coastal','marigold','tropical','eink','highstorm','crimsondawn','thevoid','nocturne','crimson','nebula','light','dark','black','slate','modern','inkwash','blueprint','spartan','cortana','rivals','midgar','ragnarok','nightcity'];
-const PLAIN=['dim','swissred','denim','pixel','covenant','protoss','dynamic'];
-const TWIN=['midnight','forest','golden','alpenglow','deepsea','aurora','highstorm','nocturne','crimson','nebula','slate','spartan','cortana','rivals','midgar','ragnarok','nightcity'];
-const BIG={crimsondawn:58,cyber:54,aurora:54,deepsea:54,cortana:56,ragnarok:56,nightcity:56,nebula:48,modern:48,light:48,dark:48,blueprint:48,black:48,nocturne:44};
+const IDS=['midnight','forest','golden','alpenglow','deepsea','aurora','cyber','cyberdawn','terminal','amber','outrun','y2k','arcade','sepia','newsprint','broadsheet','rose','typewriter','letterpress','sage','coastal','marigold','tropical','eink','highstorm','crimsondawn','thevoid','nocturne','crimson','nebula','light','dark','black','slate','modern','inkwash','blueprint','spartan','cortana','rivals','midgar','ragnarok','nightcity','dim','swissred','denim','pixel','covenant','protoss'];
+const PLAIN=['dynamic'];
+const TWIN=['midnight','forest','golden','alpenglow','deepsea','aurora','highstorm','nocturne','crimson','nebula','slate','spartan','cortana','rivals','midgar','ragnarok','nightcity','dim','covenant','protoss'];
+const BIG={crimsondawn:58,cyber:54,aurora:54,deepsea:54,cortana:56,ragnarok:56,nightcity:56,nebula:48,modern:48,light:48,dark:48,blueprint:48,black:48,nocturne:44,denim:48,covenant:48,protoss:48,dim:44,pixel:44,swissred:30};
 const PLAIN_=PLAIN;
 const R=await p.evaluate(async([IDS,PLAIN])=>{
  const o={};const st=document.createElement('style');st.textContent='*{transition:none!important}';document.head.append(st);
