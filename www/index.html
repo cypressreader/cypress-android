@@ -7679,8 +7679,8 @@ function dgLetter(k,pool,unread,fresh){
  return `<div class="letter"><h3>From the editor</h3>${paras.map(t=>`<p>${esc(t)}</p>`).join('')}<p class="sig"><span class="cl">${closing}</span><span class="sn">Your editor, CyPress</span></p></div>`;
 }
 function renderDigest(){
- let dgNr=false;
- const k=S.dgk||(now=>{const h=now.getHours();return h<12?'morning':h<17?'morning':'evening'})(new Date());
+ let dgNr=false,edN=0,edM=0;
+ const k=S.dgk||(now=>{const h=now.getHours();return h>=5&&h<17?'morning':'evening'})(new Date());
  $('#ttl').textContent='The Daily';
  const span=k==='week'?7*864e5:k==='evening'?18*36e5:24*36e5,since=Date.now()-span;
  const skip=new Set(),pool=topOf(S.feeds,12,skip);
@@ -7742,7 +7742,6 @@ function renderDigest(){
  const miss=S.feeds.filter(inDaily).flatMap(f=>items[f.id]||[]).filter(a=>!S.read[a.link]&&a.date<since&&a.date>Date.now()-4*864e5&&!skip.has(a.link)&&!muted(a)).sort((a,b)=>((b.more||[]).length-(a.more||[]).length)||b.date-a.date).slice(0,4);
  const all=[...secs];
  {const n=(useNews?fp.length:0)+all.reduce((c,x)=>c+x[1].length,0)+tsecs.reduce((c,x)=>c+x[1].length,0);const mn=[...all,...tsecs].reduce((c,x)=>c+x[1].reduce((m,a)=>m+(minsOf(a)||3),0),0)+(useNews?fp.length*3:0);const names=[...(useNews?['Front page']:[]),...all.map(x=>x[0]),...tsecs.map(x=>x[0]),...(sv.length?['Saved']:[]),...(miss.length?['Missed']:[])];h+=`<div class="edin"><b>In this issue</b><span>${edN=n+sv.length+miss.length} stories · about ${edM=mn+sv.length*3+miss.length*3} minutes</span><small>${esc(names.join(' · '))}</small></div>`}
- let edN=0,edM=0;
  const regL=(l,why)=>{const b=cur.length;l.forEach(a=>{cur.push(a);WHY[a.link]=why});return b};
  if(useNews){const b=regL(fp,'On the front page: ranked by how many of your sites cover it, and how new it is.');h+=`<div class="dsec nws"><h3>The front page</h3></div>`+(NM==='w'?nrBlocks(fp,b,{seed:3,tv:0,seq:NEWS_W}):nrBlocksPhone(fp,b,{seed:3,seq:NEWS_P})).join('');dgNr=true}
  for(const [n,l,why,kind] of all){h+=`<div class="dsec"><h3>${esc(n)}</h3></div>`+(kind==='lead'?l.map(a=>mk(a,'lead',why)).join(''):`<div class="dgrid">${l.map(a=>mk(a,'mid',why)).join('')}</div>`)}
