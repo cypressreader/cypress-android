@@ -3531,6 +3531,7 @@ function nrQuoteHtml(a,idx,look,qt){
  if(look===1&&a.img)return `${open}<div class="tx">${mark}<p>${esc(qt.q)}</p>${att}</div><img decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="this.classList.add('ok')" onerror="this.parentNode.classList.add('noimg');this.remove()"></a>`;
  return `${open.replace('nr-pq'+look,'nr-pq0')}<div class="tx">${mark}<p>${esc(qt.q)}</p>${att}</div></a>`;
 }
+let NRLAB='Latest';/* the first heading in the varied layouts; The Daily calls it something else */
 function nrBlocks(l,base,o){
  const P=nrPick(l),C=(i,k)=>card(l[i],base+i,'nr '+k),B=[],seed=o&&o.seed!=null?o.seed:nrHash(S.sel),tv=o&&o.tv!=null?o.tv:seed%3;
  const lead=P.pick(nrHas,1,true)||P.pick(null,1);
@@ -3539,10 +3540,10 @@ function nrBlocks(l,base,o){
   B.push(`<section class="nr-top nr-one"><div class="nr-lw">${C(lead[0],'nr-lead')}</div></section>`);if(tri&&tri.length)B.push(`<section class="nr-trio">${tri.map(i=>C(i,'nr-tri')).join('')}</section>`);
  }else if(tv===1){
   const tri=P.pick(nrHas,3),rail=P.pick(null,8);
-  B.push(`<section class="nr-top nr-tb2"><div class="nr-lw">${C(lead[0],'nr-lead nr-wide')}</div><div class="nr-rail"><h4>Latest</h4><div class="nr-rl">${rail.map(i=>C(i,'nr-late')).join('')}</div></div><div class="nr-t3">${tri.map(i=>C(i,'nr-tri')).join('')}</div></section>`);
+  B.push(`<section class="nr-top nr-tb2"><div class="nr-lw">${C(lead[0],'nr-lead nr-wide')}</div><div class="nr-rail"><h4>${NRLAB}</h4><div class="nr-rl">${rail.map(i=>C(i,'nr-late')).join('')}</div></div><div class="nr-t3">${tri.map(i=>C(i,'nr-tri')).join('')}</div></section>`);
  }else{
   const mid=P.pick(nrHas,4),sub=P.pick(null,4),rail=P.pick(null,6);
-  B.push(`<section class="nr-top${tv===2?' nr-flip':''}"><div class="nr-lw">${C(lead[0],'nr-lead')}${sub.length?`<div class="nr-lsub">${sub.map(i=>C(i,'nr-late')).join('')}</div>`:''}</div><div class="nr-mid">${mid.map(i=>C(i,'nr-row nr-m')).join('')}</div><div class="nr-rail"><h4>Latest</h4><div class="nr-rl">${rail.map(i=>C(i,'nr-late')).join('')}</div></div></section>`);
+  B.push(`<section class="nr-top${tv===2?' nr-flip':''}"><div class="nr-lw">${C(lead[0],'nr-lead')}${sub.length?`<div class="nr-lsub">${sub.map(i=>C(i,'nr-late')).join('')}</div>`:''}</div><div class="nr-mid">${mid.map(i=>C(i,'nr-row nr-m')).join('')}</div><div class="nr-rail"><h4>${NRLAB}</h4><div class="nr-rl">${rail.map(i=>C(i,'nr-late')).join('')}</div></div></section>`);
  }
  const seq=(o&&o.seq)||NRPAT[(seed>>3)%3];let n=0,guard=0,fl=0,qn=0;
  const river=max=>{const ix=P.pick(null,max);if(!ix.length)return false;B.push(`<section class="nr-river"><h4>${nrAge(l[ix[0]])}</h4><div class="nr-rv">${ix.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`);return true};
@@ -3581,7 +3582,7 @@ const NRPP=[['rows','duo','quote','big','strip','color','feat','quick'],['duo','
 function nrBlocksPhone(l,base,o){
  const P=nrPick(l),C=(i,k)=>card(l[i],base+i,'nr '+k),B=[],seed=o&&o.seed!=null?o.seed:nrHash(S.sel);
  const hero=P.pick(nrHas,1,true)||P.pick(null,1),late=P.pick(null,4);
- B.push(`<section class="nr-ph-top">${C(hero[0],'nr-hero')}${late.length?`<div class="nr-ph-late"><h4>Latest</h4>${late.map(i=>C(i,'nr-late')).join('')}</div>`:''}</section>`);
+ B.push(`<section class="nr-ph-top">${C(hero[0],'nr-hero')}${late.length?`<div class="nr-ph-late"><h4>${NRLAB}</h4>${late.map(i=>C(i,'nr-late')).join('')}</div>`:''}</section>`);
  const seq=(o&&o.seq)||NRPP[(seed>>3)%3];let n=0,guard=0,qn=0;
  const rows=max=>{const ix=P.pick(null,max);if(!ix.length)return false;B.push(`<section class="nr-ph-rows"><h4>${nrAge(l[ix[0]])}</h4>${ix.map(i=>C(i,'nr-row nr-s')).join('')}</section>`);return true};
  while(P.left()>0&&guard++<90){
@@ -3634,12 +3635,12 @@ function likeA(a,d,msg){const k=S.lk=S.lk||{s:{},w:{}},prev=JSON.stringify(k);
  save();render();toast(msg||(d>0?'You’ll see more like this':'You’ll see less like this'),()=>{S.lk=JSON.parse(prev);save();render()})}
 /* a feed (or its whole folder) can be kept out of The Daily, the Brief, the Edition and the Week; it still shows in All stories and in its own feed */
 const inDaily=f=>!!f&&!f.noToday&&!(S.folders.find(x=>x.id===f.folder)||{}).noToday;
-function topOf(fs,n,skip,pred){
+function topOf(fs,n,skip,pred,nocap){
  fs=fs.filter(f=>!paused(f)&&inDaily(f));
  let l=fs.flatMap(f=>items[f.id]||[]).filter(a=>!muted(a)&&!skip.has(a.link)&&(!pred||pred(a))&&!(S.hideRead&&S.read[a.link])).sort((a,b)=>b.date-a.date);
  if(l.length>300)l=l.slice(0,Math.max(300,(n||0)*12));/* only the newest stories compete for The Daily, so grouping stays fast with many feeds */
  if(S.group!==false)l=group(l);
- if(fs.length>1)l=capList(l);
+ if(fs.length>1&&!nocap)l=capList(l);/* the For you list ranks everything itself, so it isn't capped per site */
  l=l.map((a,i)=>[a,i]).sort((x,y)=>rankOf(y[0])-rankOf(x[0])||x[1]-y[1]).map(x=>x[0]);
  const fresh=l.filter(a=>!S.read[a.link]);
  return fresh.concat(l.filter(a=>S.read[a.link])).slice(0,n);
@@ -3750,14 +3751,60 @@ function magHtml(l,base,mode,kind){
  B.push(`<section class="dmag-f"><p>${deep?'That is every long read for now. A story joins this list once its length is known, and some sites only show that after you open them.':'That is every quick read for now.'}</p><div><button type="button" data-bm="top">See the top stories</button><button type="button" data-bm="latest">Back to the latest</button></div></section>`);
  return B;
 }
-/* The Daily: four tabs. Latest (the cover, today's progress, quick links, then the newest stories), Top (stories several of your sites are covering), Quick (about 1 to 3 minutes) and Deep (about 8 minutes or more) */
+/* The Daily: the cover, today's progress and quick links, then every unread story ranked by freshness, your habits, breaking news and how many sites cover it (see dayRank). The tabs below belong to All stories: Latest (the plain newest-first list), Top (stories several of your sites are covering), Quick (about 1 to 3 minutes) and Deep (about 8 minutes or more) */
 const DTABS=[['latest','Latest'],['top','Top'],['quick','Quick'],['deep','Deep']];
+/* ---- The Daily's ranking: a score for every unread story, worked out on the phone ----
+   score = freshness x source boost x keyword boost x coverage boost
+   freshness: 100 when new, halving every 8 hours (never below 3)
+   source boost: how often you open a site compared with how much of your feed it is (30 days), kept between 0.7 and 1.5, and only used after about 25 opens
+   keywords: breaking, alert, just in, developing x1.8; exclusive, live, updated x1.3 (stories under 12 hours old)
+   coverage: +15% for each other site covering the same story, up to x1.6 */
+const DAYK1=/\b(breaking(?! bad)|alert|just in|developing)\b/i,DAYK2=/(^|[:|–—\[(-]\s*)(exclusive|live|updated)\b|\blive (updates?|blog|coverage|stream)\b|\bexclusive\b|\bupdated:/i;
+function dayAffinity(){
+ const out={},cut=Date.now()-30*864e5,H=(S.hist||[]).filter(h=>h.fid&&h.t>cut);
+ if(H.length<25)return out;
+ const opens={},cnt={};let tot=0;H.forEach(h=>opens[h.fid]=(opens[h.fid]||0)+1);
+ for(const f of S.feeds){const n=(items[f.id]||[]).filter(a=>a.date>cut).length;cnt[f.id]=n;tot+=n}
+ if(!tot)return out;
+ for(const f of S.feeds){const exp=H.length*cnt[f.id]/tot;out[f.id]=Math.max(.7,Math.min(1.5,Math.sqrt(((opens[f.id]||0)+1)/(exp+1))))}
+ return out;
+}
+function dayScore(a,aff,now){
+ const age=Math.max(0,(now-a.date)/36e5);let s=Math.max(3,100*Math.pow(.5,age/8)),why='';
+ const af=aff[a.feedId]||1;s*=af;
+ if(age<12){const t=a.title||'';if(DAYK1.test(t)){s*=1.8;why='Flagged as breaking news.'}else if(DAYK2.test(t)){s*=1.3;why='Marked as live, updated or exclusive.'}}
+ const n=(a.more||[]).length;if(n){s*=Math.min(1.6,1+.15*n);if(!why)why='Covered by '+(n+1)+' of your sites.'}
+ if(!why&&af>=1.15)why='You often read '+fof(a).title+'.';
+ return {s,why:why||'One of the freshest stories from '+fof(a).title+'.'};
+}
+/* highest score first, but never more than two stories in a row from one site */
+function dayOrder(arr){
+ const now=Date.now(),aff=dayAffinity(),sc=new Map();
+ for(const a of arr){const r=dayScore(a,aff,now);sc.set(a,r.s);WHY[a.link]=r.why}
+ const rest=arr.slice().sort((x,y)=>sc.get(y)-sc.get(x)),out=[];
+ while(rest.length){let i=0;const l1=out[out.length-1],l2=out[out.length-2];if(l1&&l2&&l1.feedId===l2.feedId){const j=rest.findIndex(a=>a.feedId!==l1.feedId);if(j>0)i=j}out.push(rest.splice(i,1)[0])}
+ return out;
+}
+/* the order is worked out when new stories arrive (or every 20 minutes), not while you read or scroll, so the list doesn't shuffle under your thumb */
+let DAYORD=null;
+function dayRank(pool,byDate){
+ const sig=pool.length+'|'+(byDate[0]&&byDate[0].link),now=Date.now(),by=new Map(pool.map(a=>[a.link,a]));
+ if(!DAYORD||DAYORD.sig!==sig||now-DAYORD.t>12e5){const un=pool.filter(a=>!S.read[a.link]);const o=dayOrder(un.length?un:byDate),why={};o.forEach(x=>why[x.link]=WHY[x.link]);DAYORD={sig,t:now,links:o.map(x=>x.link),why}}
+ const l=DAYORD.links.map(k=>by.get(k)).filter(a=>a&&!S.read[a.link]);
+ l.forEach(a=>{if(DAYORD.why[a.link])WHY[a.link]=DAYORD.why[a.link]});
+ return l.length?l:byDate;
+}
+/* the rows that follow the front-page blocks: one continuous list, added as you scroll */
+function dayTail(l,base,mode){
+ const B=[];for(let i=0;i<l.length;i+=10){const rows=l.slice(i,i+10).map((a,k)=>card(a,base+i+k,'nr nr-row nr-s')).join('');B.push(mode==='w'?`<section class="nr-river"><div class="nr-rv">${rows}</div></section>`:`<section class="nr-ph-rows nr-ph-in">${rows}</section>`)}
+ return B;
+}
 const dtab=()=>DTABS.some(x=>x[0]===S.dtab)?S.dtab:'latest';
 /* minutes to read: the measured time if the story has been opened, else from the feed's own text when that is long enough to mean something (a short teaser says nothing about the real length) */
 const minsOf=a=>{const m=S.rt[a.link];if(m)return m;const w=+a.wc||0;return w>=120?Math.max(1,Math.round(w/230)):0};
 function renderToday(tab0,pool0,seg0,ttl0){
  const g=$('#grid');$('#ttl').textContent=ttl0||'The Daily';const tab=tab0||'latest',SEG=seg0||bmSeg('front');
- const pool=pool0||topOf(S.feeds,200,new Set());
+ const pool=pool0||(tab==='latest'?topOf(S.feeds,400,new Set(),null,true):topOf(S.feeds,200,new Set()));
  if(!pool.length){
   const busy=S.feeds.some(f=>state[f.id]==='load'||!state[f.id]);
   cur=[];g.innerHTML=SEG+(busy?skel(6):`<div class="empty">${S.feeds.length?'Nothing came through yet.'+EA('rf','hl'):'No feeds yet.'+EA('ad','sp')}</div>`);return;
@@ -3766,13 +3813,14 @@ function renderToday(tab0,pool0,seg0,ttl0){
  for(const k in WHY)delete WHY[k];
  let h=SEG,list=[],label='',empty='';
  if(tab==='latest'){
-  let lead=pool.find(a=>!S.read[a.link]&&a.img)||pool.find(a=>a.img)||pool[0];
+  const ranked=dayRank(pool,byDate);
+  let lead=ranked.find(a=>a.img)||ranked[0]||pool.find(a=>a.img)||pool[0];
   {const busy=Object.values(state).some(v=>v==='load'),pv=LEADK&&pool.find(a=>a.link===LEADK&&a.img&&!S.read[a.link]);if(busy&&pv)lead=pv;LEADK=lead&&lead.link}
   const unread=uc(S.feeds),useCover=isOn('cover')&&lead.img&&!document.body.classList.contains('split');
   cur=[lead];
   h+=useCover?coverHtml(lead,pool)+`<div class="dateline"><span>Inside · ${esc(shortDate())}</span><small>${S.hideCount?'':unread?unread+' unread':'All caught up'}</small></div>`:`<div class="dateline"><span>${esc(edition())} · Vol. ${volNo()} · ${esc(shortDate())}</span><small>${S.hideCount?'':unread?unread+' unread':'All caught up'}</small></div>`+(WHY[lead.link]=whyLead(lead),card(lead,0,'lead'));
   const shown=new Set(cur.map(a=>a.link));(lead.more||[]).forEach(m=>shown.add(m.l));
-  list=byDate.filter(a=>!shown.has(a.link)).slice(0,40);label='Latest';
+  list=ranked.filter(a=>!shown.has(a.link)).slice(0,400);label='For you';
   DGL=cur.concat(list).slice(0,25).map(a=>a.link);
   h+=dgProgHtml()+fiveChip()+continueRow();
  }else{
@@ -3792,12 +3840,15 @@ function renderToday(tab0,pool0,seg0,ttl0){
   }
  }
  const base=cur.length;
- list.forEach(a=>{cur.push(a);if(!WHY[a.link])WHY[a.link]=tab==='latest'?`One of your newest stories, from ${fof(a).title}.`:tab==='quick'?`A short read (about ${minsOf(a)} min) from ${fof(a).title}.`:`A long read (about ${minsOf(a)} min) from ${fof(a).title}.`});
+ list.forEach(a=>{cur.push(a);if(!WHY[a.link])WHY[a.link]=tab==='latest'?(WHY[a.link]||`One of your newest stories, from ${fof(a).title}.`):tab==='quick'?`A short read (about ${minsOf(a)} min) from ${fof(a).title}.`:`A long read (about ${minsOf(a)} min) from ${fof(a).title}.`});
  if(!list.length){g.innerHTML=h+`<div class="empty dempty">${esc(empty||'Nothing here yet.')}</div>`;return}
  /* with enough stories the list gets the same varied layout the feeds have: a lead story, pairs, photo strips, pull quotes, short headline rows */
  const mode=(list.length>=6||tab==='deep')?nrMode():'';
  if(label&&!(mode&&label==='Latest'))h+=`<div class="dlh">${esc(label)}</div>`; /* the varied layouts already carry their own Latest heading */
- if(mode){g.classList.add('nr');if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';setBlocks(h,tab==='deep'?magHtml(list,base,mode,'deep'):mode==='w'?nrBlocks(list,base):nrBlocksPhone(list,base),9,3);return}
+ if(mode){g.classList.add('nr');if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
+  let bl;if(tab==='latest'){NRLAB='For you';const top=list.slice(0,9);bl=(mode==='w'?nrBlocks(top,base):nrBlocksPhone(top,base)).concat(dayTail(list.slice(9),base+9,mode));NRLAB='Latest'}
+  else bl=tab==='deep'?magHtml(list,base,mode,'deep'):mode==='w'?nrBlocks(list,base):nrBlocksPhone(list,base);
+  setBlocks(h,bl,9,3);return}
  g.dataset.cards='narrow';g.innerHTML=h+list.map((a,i)=>card(a,base+i,'')).join('');
  g.querySelectorAll('.card').forEach(c=>{const w=c.querySelector(':scope>.why'),sr=c.querySelector('.src');if(w&&sr)sr.append(w)});
 }
@@ -4470,6 +4521,15 @@ function gatedPreview(text,gate,url){
 }
 /* the lead paragraphs, cleanly, fading out, with a card that sends the reader to the original site */
 /* In the Android app a page opens in a Chrome Custom Tab: it shares the phone browser's sign-ins, so a subscriber sees the whole story. Anywhere else the normal link is used */
+/* every external link in the Android app (Open Original Story, links inside stories, "Open in browser") opens the same way */
+document.addEventListener('click',e=>{
+ if(e.defaultPrevented||e.button||e.metaKey||e.ctrlKey||!NATIVE)return;
+ const a=e.target.closest&&e.target.closest('a[href]');if(!a||a.hasAttribute('download')||a.classList.contains('card'))return;
+ let u;try{u=new URL(a.href)}catch(x){return}
+ if(!/^https?:$/.test(u.protocol)||u.origin===location.origin)return;
+ if(a.target!=='_blank'&&!a.closest('#rd .body,.cols .body'))return;
+ if(openTab(u.href))e.preventDefault();
+});
 let CTAB;
 function openTab(u){
  try{
@@ -7093,7 +7153,7 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.08d';const APP_LABEL='1.61';
+const APP_VERSION='2026.10.08e';const APP_LABEL='1.62';
 const CHANGES=["Stories that stop at a subscriber gate (like the New York Times verification message) are now spotted, and the app looks for a saved or wire copy of the full story", "If the full story can’t be found, you get the opening paragraphs with a soft fade, a Subscriber Preview card and a button to read it on the original site", "The gate check looks only for real gate messages, so ordinary news pages are not mislabelled as previews"];
 const DEF_ON=new Set(['fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
