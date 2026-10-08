@@ -18,6 +18,14 @@ Things that could not be reproduced in a desktop browser and need a check on a r
   - Expected: the popover stays fully inside the screen.
   - Where: Android app and the web app on a phone.
 
+## Must verify on a device before the next release
+
+- [ ] **"Read it now" from a cold start.** Fully close CyPress (swipe it away from recent apps), then in another app (Chrome, for example) use Share, then CyPress.
+  1. The "Shared with CyPress" box should appear on top, with Read it now, Add as a feed, Save the link for later and Cancel.
+  2. Tap Read it now. The story should open in the reader.
+  3. Repeat right after installing an update (so the What's New box is also waiting) and on a brand-new install (so set-up is waiting). The share box should appear once those are closed, never hidden underneath.
+  - What is already checked: the app-side path was simulated in a desktop browser with a pretend pending share, and a bug where What's New or set-up covered the share box was found and fixed. What is not checked: Android handing the shared text to the app when it starts from cold. That needs a real phone.
+
 ## Added with recent changes (worth a look too)
 
 - [ ] Tapping "Read on the original site" on a Subscriber Preview card opens a Chrome Custom Tab (Android app only).

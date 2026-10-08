@@ -1092,8 +1092,9 @@ body.split .card.act{outline:3px solid var(--logo);outline-offset:2px}
 .sk-star.tw{width:2.5px;height:2.5px;animation:tw 1.6s ease-in-out infinite alternate}@keyframes tw{from{opacity:.2}to{opacity:1}}
 .sky.cloud .sk-sun,.sky.rain .sk-sun,.sky.storm .sk-sun{filter:brightness(.8)}
 #wn .wnh{display:flex;align-items:center;gap:12px;margin-bottom:16px}#wn .wnh .wnlg{width:36px;height:44px;flex:none;background:var(--logo);-webkit-mask:var(--lm) center/contain no-repeat;mask:var(--lm) center/contain no-repeat}#wn .wnh h2{margin:0;line-height:1.1}#wn .wnh small{display:block;font:600 12px var(--sans);letter-spacing:.8px;text-transform:uppercase;color:var(--mut);margin-top:3px}#wn .wnh .ib{margin-left:auto;flex:none}#wn .wnbox{max-height:52vh;overflow:auto;padding:2px 16px;-webkit-overflow-scrolling:touch}#wn .wnl{list-style:none;margin:0;padding:0}#wn .wnl li{display:flex;gap:12px;padding:13px 0;border-top:1px solid var(--ln);font-size:14.5px;line-height:1.5}#wn .wnl li:first-child{border-top:0}#wn .wnl li::before{content:'';flex:none;width:8px;height:8px;border-radius:50%;background:var(--logo);margin-top:7px}#wn .row{margin-top:18px}#wn .row .go{width:100%;padding:13px}
-#upd{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top));transform:translateX(-50%);z-index:90;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 16px;border-radius:22px;background:var(--ink);color:var(--pn);box-shadow:0 10px 30px rgba(0,0,0,.3);font:600 13.5px var(--sans);width:max-content;max-width:calc(100vw - 24px)}
-#upd .go{background:var(--pn);color:var(--ink);padding:7px 14px}#upd .go[disabled]{opacity:.55}#upd span{line-height:1.3}#upd .ib{width:30px;height:30px;color:var(--pn);border-color:transparent}
+#upd,#smn{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top));transform:translateX(-50%);z-index:90;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 16px;border-radius:22px;background:var(--ink);color:var(--pn);box-shadow:0 10px 30px rgba(0,0,0,.3);font:600 13.5px var(--sans);width:max-content;max-width:calc(100vw - 24px)}
+#upd .go,#smn .go{background:var(--pn);color:var(--ink);padding:7px 14px}#upd .go[disabled]{opacity:.55}#upd span,#smn span{line-height:1.3}#upd .ib,#smn .ib{width:30px;height:30px;color:var(--pn);border-color:transparent}
+#smn{top:auto;bottom:calc(84px + env(safe-area-inset-bottom));border-radius:18px;max-width:min(460px,calc(100vw - 24px));padding:12px 10px 12px 16px;align-items:flex-start}#smn span{font-weight:500}#smn .go{flex:none}
 
 
 .ys.on{background:none;color:inherit}#tabs button.on{background:none}.ybars b.on{background:rgba(255,255,255,.3)}
@@ -6988,7 +6989,7 @@ function briefToday(force){
 }
 const DLTABS=[['front','Today'],['brief','Brief'],['edition','Edition'],['week','Week']];
 const atab=()=>DTABS.some(x=>x[0]===S.atab)?S.atab:'latest';
-const allSeg=m=>`<div class="segs bmseg" role="tablist" aria-label="All stories">${DTABS.map(([k,t])=>`<button type="button" role="tab" data-bm="${k}" aria-selected="${m===k}" class="${m===k?'on':''}">${k==='latest'&&smartOn()?'For you':t}</button>`).join('')}</div>`;
+const allSeg=m=>`<div class="segs bmseg" role="tablist" aria-label="All stories">${DTABS.map(([k,t])=>`<button type="button" role="tab" data-bm="${k}" aria-selected="${m===k}" class="${m===k?'on':''}">${k==='latest'&&smartOn()?'Smart':t}</button>`).join('')}</div>`;
 const bmSeg=m=>{if(m==='latest')m='front';return `<div class="segs bmseg" role="tablist" aria-label="The Daily">${DLTABS.map(([k,t])=>`<button type="button" role="tab" data-bm="${k}" aria-selected="${m===k}" class="${m===k?'on':''}">${t}</button>`).join('')}</div>`};
 document.addEventListener('click',e=>{const t=e.target.closest('[data-bm]');if(!t)return;const v=t.dataset.bm;if(v==='front'){S.sel='today';S.dgk=''}else if(DTABS.some(x=>x[0]===v)){S.sel='all';S.atab=v}else if(v==='brief'){S.sel='brief';S.dgk=''}else{S.sel='digest';S.dgk=v==='week'?'week':''}save();if(document.body.classList.contains('open'))drawer(false);render();const m=$('main');if(m)m.scrollTop=0});
 function renderBrief(){renderBrief0();const g=$('#grid');if(g)g.insertAdjacentHTML('afterbegin',bmSeg('brief'))}
@@ -8028,13 +8029,24 @@ function applySbw(){const r=document.documentElement.style;if(S.sbw)r.setPropert
 })();
 addEventListener('resize',()=>{applySbw();clearTimeout(screenMode.t);screenMode.t=setTimeout(()=>{screenMode();if($('#rd').classList.contains('on'))flexUi();if(layoutKey()!==LK&&!$('#rd').classList.contains('on')&&!document.body.classList.contains('open'))render()},120)});
 
+/* A one-time heads-up for people who had the old newest-first All list: it is now sorted best first, and Settings says where to switch back */
+function smartNotice(){
+ if(S.smn)return;S.smn=1;SAVE0();
+ if(FIRST||S.sort)return;
+ setTimeout(()=>{
+  if($('#smn'))return;const b=document.createElement('div');b.id='smn';b.setAttribute('role','status');
+  b.innerHTML=`<span>The All list is now sorted smartly: the best stories come first, not just the newest. To get plain newest-first back, go to Settings, Stories, Order of stories.</span><button class="go" data-smc>Change it</button><button class="ib" data-smx aria-label="Dismiss">${svg('<path d="M6 6l12 12M18 6 6 18"/>')}</button>`;
+  document.body.append(b);setTimeout(()=>b.remove(),30000);
+  b.addEventListener('click',e=>{if(e.target.closest('[data-smc]')){b.remove();SETP='feeds';$('#gear').click();setTimeout(()=>{const r=$('#srt');if(r){r.scrollIntoView({block:'center'});r.focus()}},450)}else if(e.target.closest('[data-smx]'))b.remove()});
+ },5000);
+}
 /* ---------- update notice ---------- */
 function whatsNew(){
  if(FIRST){S.ver=APP_VERSION;S.fmig=1;return}
  if(!S.fmig){S.fmig=1;if(S.font==='serif'){delete S.font;try{applyFs&&applyFs()}catch(e){}}}
  if(S.ver===APP_VERSION){SAVE0();return}S.ver=APP_VERSION;SAVE0();
  const d=document.createElement('dialog');d.id='wn';{const lk=LOGOS[S.logo]?S.logo:'tree';d.innerHTML=`<div class="wnh"><span class="wnlg" style="--lm:url(data:image/png;base64,${LOGOS[lk][0]})"></span><div><h2>What’s New</h2><small>CyPress ${esc(APP_LABEL)}</small></div><button class="ib" data-wnx aria-label="Close">${svg('<path d="M6 6l12 12M18 6 6 18"/>')}</button></div><div class="sbox wnbox"><ul class="wnl">${CHANGES.slice(0,8).map(c=>`<li><span>${esc(c)}</span></li>`).join('')}</ul></div><div class="row"><button class="go" data-wnx>Got it</button></div>`}
- document.body.append(d);d.addEventListener('click',e=>{if(e.target.closest('[data-wnx]'))d.close()});d.addEventListener('close',()=>d.remove());setTimeout(()=>{if(!$('#ob')||!$('#ob').open)d.showModal()},1900);
+ document.body.append(d);d.addEventListener('click',e=>{if(e.target.closest('[data-wnx]'))d.close()});d.addEventListener('close',()=>d.remove());setTimeout(()=>{if($('#shr')&&$('#shr').open){$('#shr').addEventListener('close',()=>{if(!d.open&&d.isConnected)d.showModal()},{once:true});return}if(!$('#ob')||!$('#ob').open)d.showModal()},1900);
 }
 async function checkUpdate(){
  if(NATIVE||!/^https?:/.test(location.protocol)||!navigator.onLine||$('#upd'))return;
@@ -8331,7 +8343,11 @@ let LASTSHARE='';
 function handleShare(d){
  if(!d)return;const txt=[d.url,d.text].filter(Boolean).join(' ');const m=txt.match(/https?:\/\/[^\s]+/);const url=m?m[0]:'';
  if(!url||url===LASTSHARE)return;LASTSHARE=url;
- $('#shu').textContent=url;$('#shr')._u=url;$('#shr')._t=d.title||'';$('#shr').showModal();
+ $('#shu').textContent=url;$('#shr')._u=url;$('#shr')._t=d.title||'';
+ /* a share that arrives while another box is open (set-up, What’s New) waits its turn instead of hiding underneath it */
+ const bl=[...document.querySelectorAll('dialog[open]')].filter(x=>x.id!=='shr');
+ if(bl.length){bl[bl.length-1].addEventListener('close',()=>setTimeout(()=>{if(!$('#shr').open)$('#shr').showModal()},200),{once:true});return}
+ $('#shr').showModal();
 }
 /* ---- keyboard and screen reader help that applies across Settings and set-up ---- */
 (function(){
@@ -8471,7 +8487,7 @@ render();loadAll();document.documentElement.classList.remove('boot');
 setTimeout(()=>{if(S.offline||FROZEN||!navigator.onLine)return;S.feeds.filter(f=>state[f.id]==='err'&&!paused(f)).forEach(f=>load(f,true).catch(()=>{}))},15000);
 applyLogo();
 acReady.then(()=>render());
-introAnim();whatsNew();setTimeout(checkUpdate,8000);setTimeout(relayCheck,6000);nativeSetup();
+introAnim();whatsNew();smartNotice();setTimeout(checkUpdate,8000);setTimeout(relayCheck,6000);nativeSetup();
 if(FIRST)setTimeout(()=>obOpen(false),60);
 setTimeout(()=>{if(S.sync)syncNow()},2000);
 
