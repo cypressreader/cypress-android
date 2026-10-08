@@ -4469,13 +4469,24 @@ function gatedPreview(text,gate,url){
  return false;
 }
 /* the lead paragraphs, cleanly, fading out, with a card that sends the reader to the original site */
+/* In the Android app a page opens in a Chrome Custom Tab: it shares the phone browser's sign-ins, so a subscriber sees the whole story. Anywhere else the normal link is used */
+let CTAB;
+function openTab(u){
+ try{
+  if(!NATIVE||!/^https?:/i.test(u))return false;
+  const C=window.Capacitor;if(CTAB===undefined)CTAB=(C&&((C.Plugins&&C.Plugins.Browser)||(C.registerPlugin?C.registerPlugin('Browser'):null)))||null;
+  if(!CTAB||!CTAB.open)return false;
+  CTAB.open({url:u}).catch(()=>{try{window.open(u,'_blank','noopener')}catch(e){}});
+  return true;
+ }catch(e){return false}
+}
 function gatePreviewUi(body,a){
  let ps=[...body.querySelectorAll('p')],k=ps.length;
  while(k>1&&GATEMARK.test(ps[k-1].textContent)&&ps[k-1].textContent.length<420){ps[k-1].remove();k--}
  ps=[...body.querySelectorAll('p')];const last=ps[ps.length-1];if(last)last.classList.add('gfade');
  const c=document.createElement('div');c.className='gcard';c.setAttribute('role','note');
  const b=document.createElement('b');b.textContent='Subscriber Preview';const sp=document.createElement('span');sp.textContent='Read the full story on the original site';
- const l=document.createElement('a');l.className='gbtn';l.href=a.link;l.target='_blank';l.rel='noopener';l.textContent='Read on the original site';
+ const l=document.createElement('a');l.className='gbtn';l.href=a.link;l.target='_blank';l.rel='noopener';l.textContent='Read on the original site';l.addEventListener('click',e=>{if(openTab(a.link))e.preventDefault()});
  c.append(b,sp,l);body.append(c);
 }
 /* ---- saved copies and the last-resort steps for a story the site won't give in full ---- */
