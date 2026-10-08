@@ -14,7 +14,7 @@ r=await st('midnight','light');ck('dark theme to light twin',!r.dark&&!r.pd&&r.i
 r=await st('midnight','dark');ck('already dark untouched',r.dark&&!r.inline);
 r=await st('auto','dark');ck('auto maps to dark',r.dark&&r.eff==='dark');
 r=await st('auto','light');ck('auto maps to light',!r.dark&&(r.eff==='light'||r.eff==='auto'),JSON.stringify(r));
-r=await st('terminal','light');ck('special look stays',r.dark&&!r.inline);
+r=await st('terminal','light');ck('terminal gets a hand-made light version',!r.dark&&r.eff==='terminal');
 r=await st('broadsheet','theme');ck('back to theme clears twin',!r.dark&&!r.inline);
 r=await st('dynamic','dark');ck('dynamic ignores switch',!r.inline);
 // sys follows phone
