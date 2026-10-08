@@ -1489,7 +1489,7 @@ html.dynx[data-theme=dynamic] #rd{transition:background-color .6s ease}
 :root[data-theme=modern] .cvm{font-style:normal;font-weight:600;letter-spacing:-.015em}
 :root[data-theme=modern] .sech{border-bottom:0}
 :root[data-theme=modern] .sech h2,:root[data-theme=modern] h1{font-weight:600;letter-spacing:-.01em}
-:root[data-theme=modern] #rd{--pn:#fff;--bg:#f7f8fc}
+:root[data-theme=modern]:not(.twinned) #rd{--pn:#fff;--bg:#f7f8fc}
 :root[data-theme=modern] #side-list .nav.on,:root[data-theme=modern] #side-list .nav.act{background:linear-gradient(90deg,color-mix(in srgb,var(--a1) 14%,transparent),color-mix(in srgb,var(--a2) 10%,transparent))}
 :root[data-theme=modern] .sop{border-radius:26px}
 html.tlay[data-theme=modern] .card .src{text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;font-weight:700}
@@ -6487,7 +6487,7 @@ function hsl2css(h,s,l){return'hsl('+Math.round(h)+' '+Math.round(s*100)+'% '+Ma
 function lumOf(c){const f=x=>{x/=255;return x<=.03928?x/12.92:Math.pow((x+.055)/1.055,2.4)};return .2126*f(c[0])+.7152*f(c[1])+.0722*f(c[2])}
 const phoneDark=()=>{try{return matchMedia('(prefers-color-scheme:dark)').matches}catch(e){return false}};
 function schWant(){const m=S.sch||'theme';return m==='sys'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):(m==='dark'||m==='light'?m:'')}
-function twinClear(root){(applyTheme.tv||[]).forEach(v=>root.style.removeProperty(v));applyTheme.tv=[];root.style.removeProperty('color-scheme')}
+function twinClear(root){(applyTheme.tv||[]).forEach(v=>root.style.removeProperty(v));applyTheme.tv=[];root.style.removeProperty('color-scheme');root.classList.remove('twinned')}
 function twinApply(root,th,want){
  twinClear(root);
  if(th==='thegoat')return want==='dark'?'thegoatd':'thegoat';
@@ -6500,7 +6500,7 @@ function twinApply(root,th,want){
  const T=toD?{bg:.085,pn:.125,ln:.2,ink:.93,mut:.66}:{bg:.955,pn:.995,ln:.86,ink:.11,mut:.42};
  for(const k of['bg','pn','ln','ink','mut']){const c=varRgb('--'+k);if(!c)continue;const[h,sa]=rgb2hsl(c);set('--'+k,hsl2css(h,Math.min(sa,k==='ink'||k==='mut'?.25:.4),T[k]))}
  for(const v of['--a1','--a2','--a3','--logo']){const c=varRgb(v);if(!c)continue;const[h,sa,l]=rgb2hsl(c);set(v,hsl2css(h,sa,toD?Math.max(l,.62):Math.min(l,.42)))}
- root.style.setProperty('color-scheme',toD?'dark':'light');applyTheme.tv.push('color-scheme');
+ root.style.setProperty('color-scheme',toD?'dark':'light');applyTheme.tv.push('color-scheme');root.classList.add('twinned');
  return th;
 }
 function applyTheme(anim){
