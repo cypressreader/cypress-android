@@ -3862,6 +3862,51 @@ function daySections(list,mode){
  B.push(dayEndCard());
  return B;
 }
+/* ---- The Daily's edition is downloaded ahead of time, gently, so Quick Briefs and Deep Dives know the real reading times ----
+   Only on Wi-Fi, never when downloads are off, in Offline or Data saver mode or in low-power mode, one story at a time with a pause between,
+   and it stops as soon as you leave The Daily, leave Wi-Fi or the edition changes. A story that fails is not tried again in the same edition. */
+const DPRE={k:'',q:[],tried:new Set(),on:false,t:0,gap:1500};
+function dpOk(){
+ try{
+  if(S.sel!=='today'||edKey()!==DPRE.k||pfMode()==='off'||S.offline||isOn('dsave')||!online())return false;
+  const c=navigator.connection;if(onCell()||(c&&c.saveData))return false;
+  if(document.documentElement.classList.contains('lowp'))return false;
+  return true;
+ }catch(e){return false}
+}
+function dayPreload(){
+ const k=edKey();if(DPRE.k!==k){DPRE.k=k;DPRE.tried=new Set();DPRE.q=[]}
+ if(!dpOk()||DPRE.on)return;
+ const by=storyMap();
+ DPRE.q=DGL.map(l=>by.get(l)).filter(a=>a&&!DPRE.tried.has(a.link)&&!S.rt[a.link]&&!acHas(a.link)&&!S.read[a.link]);
+ if(DPRE.q.length)dpRun();
+}
+async function dpRun(){
+ if(DPRE.on)return;DPRE.on=true;let got=0;
+ try{
+  while(DPRE.q.length){
+   if(!dpOk()){DPRE.q=[];break}
+   const a=DPRE.q.shift();DPRE.tried.add(a.link);
+   await quietGap(4000);
+   if(!dpOk()){DPRE.q=[];break}
+   try{
+    const n=await getFull(a.link,true);
+    if(n&&!n.pw&&!acHas(a.link)){
+     const have=fromHTML(a.html||'',a.link).textContent.length;
+     if(n.textContent.length>=Math.max(600,have+100)){
+      const d=document.createElement('div');d.append(dropTitle(n,a.title));
+      acPut(a.link,d.innerHTML);markReady(a.link);warmImgs(d,a);
+      S.rt[a.link]=Math.max(1,Math.round(d.textContent.split(/\s+/).length/230));
+      clearTimeout(DPRE.st);DPRE.st=setTimeout(save,900);got++;
+      /* the sections fill in as lengths arrive, but never while you are scrolling or reading */
+      if(S.sel==='today'&&!userBusy()&&!$('#rd').classList.contains('on')&&(document.querySelector('main').scrollTop||0)<150&&(got%4===0||!DPRE.q.length))render();
+     }
+    }
+   }catch(e){}
+   await new Promise(r=>setTimeout(r,DPRE.gap));
+  }
+ }finally{DPRE.on=false}
+}
 function dayEndCard(){
  const k=LOGOS[S.logo]?S.logo:'tree',am=edKind()==='m';
  return `<section class="endc"><span class="lgm endl" data-fill style="--p:0%;--lm:url(data:image/png;base64,${LOGOS[k][0]})"></span><h3>You’re all caught up for the ${am?'morning':'evening'}</h3><p>That’s every story in this edition. ${am?'The Evening Edition comes out at 5 PM.':'The Morning Edition comes out at 5 AM.'}</p><button type="button" class="tx2" data-endall>Explore Full Feed</button></section>`;
@@ -3888,7 +3933,7 @@ function renderToday(tab0,pool0,seg0,ttl0){
   h+=useCover?coverHtml(lead,pool)+`<div class="dateline"><span>Inside · ${esc(shortDate())}</span><small>${S.hideCount?'':unread?unread+' unread in all your feeds':'All caught up'}</small></div>`:`<div class="dateline"><span>${esc(edition())} · ${esc(shortDate())}</span><small>${S.hideCount?'':unread?unread+' unread in all your feeds':'All caught up'}</small></div>`+(WHY[lead.link]=whyLead(lead),card(lead,0,'lead'));
   const shown=new Set(cur.map(a=>a.link));(lead.more||[]).forEach(m=>shown.add(m.l));
   list=ranked.filter(a=>!shown.has(a.link)).slice(0,ED_N);label='Top stories';
-  DGL=cur.concat(list).slice(0,ED_N).map(a=>a.link);
+  DGL=cur.concat(list).slice(0,ED_N).map(a=>a.link);clearTimeout(DPRE.t);DPRE.t=setTimeout(dayPreload,2500);
   h+=dgProgHtml()+fiveChip()+continueRow();
  }else{
   cur=[];
