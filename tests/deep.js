@@ -112,7 +112,7 @@ ck(vp,'read-state sane after open',await E(()=>typeof S.read==='object'));
  const setInfo=await E(()=>{const d=$('#set').getBoundingClientRect();return{w:d.width,h:d.height,iw:innerWidth,ih:innerHeight,ov:$('.sbody').scrollWidth>$('.sbody').clientWidth+1}});
  ck(vp,'settings fits screen',setInfo.w<=setInfo.iw&&setInfo.h<=setInfo.ih&&!setInfo.ov,JSON.stringify(setInfo));
  await p.screenshot({path:`/tmp/t/deep-${vp}-settings.png`});
- await E(()=>document.querySelectorAll('#thm details').forEach(d=>d.open=true));for(const th of ['dark','sepia','dynamic','light','auto']){await tap(`[data-th="${th}"]`);await p.waitForTimeout(80);ck(vp,'theme '+th,await E(t=>S.theme===t&&document.documentElement.dataset.theme===t,th))}
+ await E(()=>document.querySelectorAll('#thm details').forEach(d=>d.open=true));for(const th of ['dark','broadsheet','dynamic','light','auto']){await tap(`[data-th="${th}"]`);await p.waitForTimeout(80);ck(vp,'theme '+th,await E(t=>S.theme===t&&document.documentElement.dataset.theme===t,th))}
  await tap('[data-fn="literata"]');ck(vp,'font tile',await E(()=>S.font==='literata'));
  await tap('[data-fs="1"]');ck(vp,'text size +',await E(()=>S.fs===19));await tap('[data-fs="-1"]');
  for(const k of ['just','group','hideRead','autoWeb','autoReader','queue']){const before=await E(k=>$(`.tg[data-tg="${k}"]`).classList.contains('on'),k);await tap(`.tg[data-tg="${k}"]`);await p.waitForTimeout(60);const after=await E(k=>$(`.tg[data-tg="${k}"]`).classList.contains('on'),k);ck(vp,'toggle '+k,before!==after);await tap(`.tg[data-tg="${k}"]`);await p.waitForTimeout(60)}

@@ -11,7 +11,7 @@ for(const [vp,w,h,touch] of VPS){
  await p.goto(('file://'+APP));await p.waitForTimeout(1800);
  const E=(f,a)=>p.evaluate(f,a);
  // themes
- for(const th of ['newsprint','midnight','forest','rose','mono']){
+ for(const th of ['broadsheet','midnight','forest','rose','mono']){
   await E(t=>{S.theme=t;applyTheme(false)},th);
   ck(vp,'theme '+th,await E(t=>document.documentElement.dataset.theme===t&&getComputedStyle(document.body).backgroundColor!=='rgba(0, 0, 0, 0)',th));
  }

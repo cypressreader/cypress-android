@@ -34,8 +34,8 @@ for(const [nm,w,h,mob] of [['setup-phone',380,820,true],['setup-fold',884,1060,f
  await p.fill('#obu','alpha.test/feed');await p.tap('[data-obaddu]');await W(100);
  ck(nm,'custom source added',await p.E(()=>OB.custom.length===1));
  await p.tap('[data-obnext]');await W(150);
- await p.tap('[data-obth="sepia"]');await p.tap('[data-obfn="lexend"]');await p.selectOption('#obnight','dark');
- ck(nm,'look choices',await p.E(()=>S.theme==='sepia'&&S.font==='lexend'&&S.night==='dark'));
+ await p.tap('[data-obth="broadsheet"]');await p.tap('[data-obfn="lexend"]');await p.selectOption('#obnight','dark');
+ ck(nm,'look choices',await p.E(()=>S.theme==='broadsheet'&&S.font==='lexend'&&S.night==='dark'));
  await p.screenshot({path:`/tmp/t/n-${nm}-3.png`});
  await p.tap('[data-obnext]');await W(150);await p.screenshot({path:`/tmp/t/n-${nm}-4.png`});
  await p.tap('[data-obdone]');await W(2500);
@@ -203,7 +203,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
 /* ---------- 6. sync between two devices ---------- */
 {const A=await mk(b,{seedData:seed(['Alpha','Beta'],{relay:'https://relay.test/?url='})});
  const B=await mk(b,{seedData:seed(['Gamma'],{relay:'https://relay.test/?url=',onboarded:1})});
- await A.E(()=>{toggleSave(findStory(cur[0].link)||cur[0]);S.hl.push({t:1,q:'quote A',art:{title:'x',link:'y'}});S.theme='sepia';S.setT=Date.now();save()});
+ await A.E(()=>{toggleSave(findStory(cur[0].link)||cur[0]);S.hl.push({t:1,q:'quote A',art:{title:'x',link:'y'}});S.theme='broadsheet';S.setT=Date.now();save()});
  await A.tap('#gear');await W(300);await A.E(()=>$('#s-sync').scrollIntoView());await A.tap('#systart');await W(2500);
  const code=await A.E(()=>S.sync);ck('sync','code created',/^[A-Z0-9]{4}(-[A-Z0-9]{4}){3}$/.test(code),code);
  ck('sync','A synced',await A.E(()=>!!S.syncAt),await A.E(()=>S.syncMsg));
@@ -212,7 +212,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  const bs=await B.E(()=>({feeds:S.feeds.map(f=>f.url).sort(),saved:S.saved.length,hl:S.hl.length,theme:S.theme,msg:S.syncMsg}));
  ck('sync','B gets A feeds and keeps its own',bs.feeds.length===3,JSON.stringify(bs));
  ck('sync','B gets saved + highlights',bs.saved===1&&bs.hl===1,JSON.stringify(bs));
- ck('sync','B gets newer settings',bs.theme==='sepia');
+ ck('sync','B gets newer settings',bs.theme==='broadsheet');
  ck('sync','B loads new feeds',await B.E(()=>S.feeds.every(f=>state[f.id]==='ok')));
  // B deletes a feed and unsaves; A adds a feed
  await B.E(()=>{S.feeds=S.feeds.filter(f=>!f.url.includes('beta'));S.saved=[];save()});
@@ -242,7 +242,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
 {const p=await mk(b,{w:380,h:820,mob:true,seedData:seed(['Alpha'])});
  await p.tap('#menu');await W(300);await p.tap('#gear');await W(400);
  for(const id of ['#ngt','#sybox','#obagain','#fresh']){ck('settings',id+' present',await p.E(i=>!!$(i),id))}
- await p.selectOption('#ngt','sepia');await W(200);ck('settings','night select shows location row',await p.E(()=>!$('#ngeorow').hidden&&/sunset/.test($('#nlab').textContent)));
+ await p.selectOption('#ngt','midnight');await W(200);ck('settings','night select shows location row',await p.E(()=>!$('#ngeorow').hidden&&/sunset/.test($('#nlab').textContent)));
  ck('settings','settings width fits',await p.E(()=>{const d=$('#set').getBoundingClientRect();return d.right<=innerWidth&&$('.sbody').scrollWidth<=$('.sbody').clientWidth+1}));
  await p.E(()=>$('#s-sync').scrollIntoView());await W(200);await p.screenshot({path:'/tmp/t/n-settings-sync.png'});
  ck('settings','no errors',p.errs.length===0,p.errs.join('|'));await p.ctx.close()}
