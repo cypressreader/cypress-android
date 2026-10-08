@@ -2937,12 +2937,14 @@ function payloadOf(d){
  }
  out.sort((a,b)=>b.join(' ').length-a.join(' ').length);return out[0]||null;
 }
-function extract(html,base){const MT={};const r=extract0(html,base,MT);if(r&&MT.v)r.meta=MT.v;if(r&&MT.gate)r.gate=true;return r}
+function extract(html,base){const MT={};const r=extract0(html,base,MT);if(r&&MT.v)r.meta=MT.v;if(r&&MT.gate)r.gate=true;if(r&&MT.nofree)r.nofree=true;return r}
 function extract0(html,base,MT){
  const d=new DOMParser().parseFromString(html,'text/html');
  let ld='';let PL=null;try{PL=payloadOf(d)}catch(e){}
  /* a gate element only counts when it carries a gate message of its own: many pages ship "paywall" styling or markup without holding anything back */
  try{if(MT)for(const g of d.querySelectorAll('[class*="gateway" i],[class*="gate-container" i],[class*="paywall" i],[class*="regwall" i],[id*="gateway" i],[id*="paywall" i],[data-testid*="gateway" i],[data-testid*="paywall" i]')){const gt=(g.textContent||'').replace(/\s+/g,' ').trim();if(gt.length>=20&&gt.length<1500&&GATEMARK.test(gt)){MT.gate=true;break}}}catch(e){}
+ /* the page's own structured data can say the story is not free */
+ try{if(MT)d.querySelectorAll('script[type="application/ld+json"]').forEach(x=>{if(/"isAccessibleForFree"\s*:\s*(false|"false")/i.test(x.textContent||''))MT.nofree=true})}catch(e){}
  d.querySelectorAll('script[type="application/ld+json"]').forEach(x=>{try{const f=o=>{if(!o||typeof o!=='object')return;if(MT&&!MT.v&&o['@type']&&/(Article|Posting|Report)/i.test(String(o['@type']))){const au=o.author,nm=Array.isArray(au)?au.map(q=>(q&&q.name)||q).join(', '):(au&&(au.name||au))||'';MT.v={headline:String(o.headline||''),author:typeof nm==='string'?nm:'',date:String(o.datePublished||'')}}if(typeof o.articleBody==='string'&&o.articleBody.length>ld.length)ld=o.articleBody;Object.values(o).forEach(f)};f(JSON.parse(x.textContent))}catch(e){}});
  /* AMP pages (the AMP-copy fallback fetches them) use <amp-img>, which the reader would drop entirely */
  d.querySelectorAll('amp-img').forEach(a=>{const im=d.createElement('img');for(const at of a.attributes)im.setAttribute(at.name,at.value);a.replaceWith(im)});
@@ -4277,13 +4279,13 @@ async function getFull00(url,ctx){
 const PFHOT=new Map();
 const TIER={};/* which route delivered each story, and what the page said about itself */
 function getFull(url,light){
- const hot=PFHOT.get(url);if(hot&&Date.now()-hot.t<6e5){const f=hot.n.cloneNode(true);if(hot.n.pw)f.pw=true;f.tier=hot.n.tier;f.meta=hot.n.meta;if(hot.n.incomplete)f.incomplete=true;if(hot.n.gate)f.gate=true;if(hot.n.gated_preview)f.gated_preview=true;return Promise.resolve(f)}
+ const hot=PFHOT.get(url);if(hot&&Date.now()-hot.t<6e5){const f=hot.n.cloneNode(true);if(hot.n.pw)f.pw=true;f.tier=hot.n.tier;f.meta=hot.n.meta;if(hot.n.incomplete)f.incomplete=true;if(hot.n.gate)f.gate=true;if(hot.n.nofree)f.nofree=true;if(hot.n.gated_preview)f.gated_preview=true;return Promise.resolve(f)}
  let e=INF[url];
  if(e){if(!light&&e.ctx.light){e.ctx.light=false;if(e.ctx.up)e.ctx.up()}}
  else{const ctx={light:!!light};e=INF[url]={ctx,p:getFull0(url,ctx).finally(()=>{if(INF[url]===e)delete INF[url]})}}
  return e.p.then(n=>{
   if(!n)return null;
-  const f=tidy(n.cloneNode(true)),tx=f.textContent||'',q=textQuality(tx);f.tier=n.tier||'direct';f.meta=n.meta;if(n.incomplete)f.incomplete=true;if(n.gate)f.gate=true;if(gatedPreview(tx,n.gate,url))f.gated_preview=true;TIER[url]={tier:f.tier,meta:f.meta||null};
+  const f=tidy(n.cloneNode(true)),tx=f.textContent||'',q=textQuality(tx);f.tier=n.tier||'direct';f.meta=n.meta;if(n.incomplete)f.incomplete=true;if(n.gate)f.gate=true;if(n.nofree)f.nofree=true;if(gatedPreview(tx,n.gate,url))f.gated_preview=true;TIER[url]={tier:f.tier,meta:f.meta||null};
   if(!q.ok){const lg=LG[url]||(LG[url]=[]);lg.push('Rejected: the text looked garbled ('+q.why+')');return null}
   if(paywalled(tx)||paywalled(n.textContent))f.pw=true;
   return f;
@@ -4478,6 +4480,26 @@ function gatePreviewUi(body,a){
 /* ---- saved copies and the last-resort steps for a story the site won't give in full ---- */
 const wordsOf=n=>{const t=((n&&n.textContent)||'').trim();return t?t.split(/\s+/).length:0};
 /* a story still needs help when nothing came back, or only a short start did (a short story that ends properly is left alone) */
+/* Why a story should be treated as cut short, or '' when it looks complete: under 500 words, the page says it isn't free,
+   a subscribe or read-more prompt (or a paywall, fade or gate element) at the end, or text that stops mid-thought */
+function truncReason(n,url){
+ if(!n)return 'no text';
+ const t=String(n.textContent||'').replace(/\s+/g,' ').trim(),words=t?t.split(' ').length:0;
+ if(words<500)return 'under 500 words';
+ if(n.nofree)return 'the page marks the story as not free';
+ const tail=t.slice(-400);
+ for(const el of Array.from(n.children||[]).slice(-4)){
+  if(el.matches&&el.matches('[class*="paywall" i],[class*="fade" i],[class*="gate" i]'))return 'a paywall element ends the text';
+  const x=(el.textContent||'').replace(/\s+/g,' ').trim();
+  if(x.length<400&&(PWRE.test(x)||/(subscribe to continue|read (the )?full (story|article)|continue reading)/i.test(x)))return 'a subscription prompt ends the text';
+ }
+ if(PWRE.test(tail))return 'a subscription prompt ends the text';
+ if(ENDMARK.test(tail))return '';
+ if(/(\.\.\.|…|\[…\]|\[\.\.\.\])$/.test(t))return 'the text ends with an ellipsis';
+ if(!/[.!?]["”’')\]]*$/.test(t))return 'the text stops without ending punctuation';
+ return '';
+}
+const TRUNCDONE=new Set();
 function needsMore(n,url){return !n||!!n.gated_preview||(wordsOf(n)<400&&(!!n.incomplete||looksIncomplete(n.textContent,url||'')))}
 function canonicalUrl(u){try{const x=new URL(u);x.hash='';[...x.searchParams.keys()].forEach(k=>{if(/^(utm_|fbclid|gclid|mc_|ref$|ref_|cmpid|ocid|ito$|taid)/i.test(k))x.searchParams.delete(k)});return x.href}catch(e){return ''}}
 /* the Internet Archive's public "is there a saved copy" lookup: only a copy that was saved successfully (status 200) counts */
@@ -4525,10 +4547,11 @@ async function morssFor(a){
 }
 /* the steps after the page and the reader have both fallen short: a saved copy first, then the same story from a wire partner */
 async function deeperTiers(a,n,src){
- let best=n,bsrc=src;const longer=m=>m&&(!best||wordsOf(m)>wordsOf(best)*1.25);
+ let best=n,bsrc=src;const longer=m=>m&&(!best||wordsOf(m)>wordsOf(best)*1.25),cut=()=>needsMore(best,bsrc)||truncReason(best,bsrc);
  const ar=await archiveFor(a,src);if(ar&&longer(ar.n)){best=ar.n;bsrc=ar.u}
- if(needsMore(best,bsrc)){const mo=await morssFor(a);if(mo&&longer(mo.n)){best=mo.n;bsrc=mo.u}}
- if(needsMore(best,bsrc)){const mr=await mirrorFor(a);if(mr&&longer(mr.n)){best=mr.n;bsrc=mr.u}}
+ if(cut()){const mo=await morssFor(a);if(mo&&longer(mo.n)){best=mo.n;bsrc=mo.u}}
+ if(cut()){const mr=await mirrorFor(a);if(mr&&longer(mr.n)){best=mr.n;bsrc=mr.u}}
+ if(best===n)TRUNCDONE.add(a.link);/* nothing better turned up: don't repeat the whole search every time the story is reopened */
  return {n:best,src:bsrc};
 }
 /* ---- 4-tier article pipeline helpers ---- */
@@ -4672,7 +4695,7 @@ async function openReader(a){
  const alts=outLinks(a);
  if(!n&&alts.length){const ms=await Promise.all(alts.map(u=>getFull(u).catch(()=>null)));if(my!==tok)return;for(let i=0;i<alts.length;i++){const m=ms[i];if(m&&sameStory(m.textContent,a)){n=m;src=alts[i];break}}}
  let gated=false;try{gated=(LG[a.link]||[]).some(x=>/HTTP (401|402|403|429|451)\b/.test(String(x)))}catch(e){}
- if(online()&&needsMore(n,src)){const dr=await Promise.race([deeperTiers(a,n,src),new Promise(r=>setTimeout(()=>r(null),34000))]);if(my!==tok)return;if(dr&&dr.n){n=dr.n;src=dr.src}}
+ if(online()&&!TRUNCDONE.has(a.link)&&(needsMore(n,src)||truncReason(n,src))){const dr=await Promise.race([deeperTiers(a,n,src),new Promise(r=>setTimeout(()=>r(null),34000))]);if(my!==tok)return;if(dr&&dr.n){n=dr.n;src=dr.src}}
  if(my!==tok)return;
  ALT=src!==a.link?src:(!n&&alts[0]?alts[0]:'');
  if(n&&n.textContent.length>Math.max(600,body.textContent.length+100)){
