@@ -317,6 +317,41 @@ public final class CyExtras {
         }
     }
 
+    /**
+     * The edition notice: the cover headline as a BigText notification. With showOnLock it is PUBLIC, so the headline
+     * shows on the lock screen; otherwise the lock screen only gets a plain "your edition is ready" version.
+     */
+    static boolean postEdition(Context c, String channel, int id, String title, String headline, String big, String openUrl, boolean showOnLock) {
+        try {
+            if (!notificationsEnabled(c)) return false;
+            ensureChannels(c);
+            NotificationCompat.Builder pub = new NotificationCompat.Builder(c, channel)
+                .setSmallIcon(R.drawable.cy_ic_notif)
+                .setColor(0xFF133A28)
+                .setContentTitle(title)
+                .setContentText("Open CyPress to read it");
+            NotificationCompat.Builder b = new NotificationCompat.Builder(c, channel)
+                .setSmallIcon(R.drawable.cy_ic_notif)
+                .setColor(0xFF133A28)
+                .setContentTitle(title)
+                .setContentText(headline)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(big))
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)
+                .setVisibility(showOnLock ? NotificationCompat.VISIBILITY_PUBLIC : NotificationCompat.VISIBILITY_PRIVATE)
+                .setContentIntent(openIntent(c, openUrl, id));
+            if (!showOnLock) b.setPublicVersion(pub.build());
+            NotificationManager nm = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm == null) return false;
+            nm.notify(id, b.build());
+            return true;
+        } catch (Throwable t) {
+            Log.w(TAG, "postEdition failed: " + t);
+            return false;
+        }
+    }
+
     // ---------------------------------------------------------------- files / json helpers
 
     static String readFile(File f) {
@@ -443,6 +478,17 @@ public final class CyExtras {
         dout.put("weekday", clampInt(d == null ? 0 : d.optInt("weekday", 0), 0, 6));
         dout.put("morningHour", clampInt(d == null ? 7 : d.optInt("morningHour", 7), 0, 23));
         dout.put("eveningHour", clampInt(d == null ? 18 : d.optInt("eveningHour", 18), 0, 23));
+        dout.put("lock", d == null || d.optBoolean("lock", true));
+        // The day's cover headline (kept short), so the edition notice can show it.
+        JSONObject cvIn = d == null ? null : d.optJSONObject("cover");
+        if (cvIn != null && cvIn.optString("t", "").trim().length() > 0) {
+            JSONObject cvOut = new JSONObject();
+            cvOut.put("t", cvIn.optString("t", "").trim());
+            cvOut.put("f", cvIn.optString("f", "").trim());
+            cvOut.put("n", clampInt(cvIn.optInt("n", 0), 0, 99));
+            cvOut.put("at", cvIn.optLong("at", System.currentTimeMillis()));
+            dout.put("cover", cvOut);
+        }
         out.put("digest", dout);
 
         // Quiet hours: no alerts, digest or pack announcements between "from" and "to".

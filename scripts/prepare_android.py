@@ -237,12 +237,32 @@ def adaptive_xml(logo, suffix):
     # Android 13+ can tint the icon to match the wallpaper ("themed icons"). Only the two emblem designs
     # are transparent line art, so only they get a one-colour layer; the others would tint as a solid blob.
     mono = ('    <monochrome android:drawable="@mipmap/ic_launcher_%s_foreground"/>\n' % logo) if logo in ('tree', 'circuit') else ''
+    # the default (tree) icon sits in a deep-green frame, like the frame on the Daily cover
+    bg = ('@drawable/ic_launcher_frame_tree' if logo == 'tree' else '@color/ic_launcher_bg_%s' % logo)
     return ('<?xml version="1.0" encoding="utf-8"?>\n'
             '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n'
-            '    <background android:drawable="@color/ic_launcher_bg_%s"/>\n'
+            '    <background android:drawable="%s"/>\n'
             '    <foreground android:drawable="@mipmap/ic_launcher_%s_foreground"/>\n'
             '%s'
-            '</adaptive-icon>\n' % (logo, logo, mono))
+            '</adaptive-icon>\n' % (bg, logo, mono))
+
+
+# Deep-green ground with a soft glow and a thin green ring. The ring sits inside the 66dp safe zone, so circle,
+# squircle and square launcher masks all show it whole.
+FRAME_TREE = ('<?xml version="1.0" encoding="utf-8"?>\n'
+              '<layer-list xmlns:android="http://schemas.android.com/apk/res/android">\n'
+              '    <item>\n'
+              '        <shape android:shape="rectangle">\n'
+              '            <gradient android:type="radial" android:gradientRadius="60dp" android:centerX="0.5" android:centerY="0.5"\n'
+              '                android:startColor="#12432F" android:centerColor="#0B2119" android:endColor="#06130D"/>\n'
+              '        </shape>\n'
+              '    </item>\n'
+              '    <item android:left="21dp" android:top="21dp" android:right="21dp" android:bottom="21dp">\n'
+              '        <shape android:shape="oval">\n'
+              '            <stroke android:width="1.5dp" android:color="#1F8A5B"/>\n'
+              '        </shape>\n'
+              '    </item>\n'
+              '</layer-list>\n')
 
 
 def install_extra_icons():
@@ -263,6 +283,11 @@ def install_extra_icons():
         bgx = open(os.path.join(src_root, 'values', 'ic_launcher_background.xml'), encoding='utf-8').read()
         with open(os.path.join(RES, 'values', 'ic_launcher_bg_%s.xml' % logo), 'w', encoding='utf-8') as f:
             f.write(bgx.replace('name="ic_launcher_background"', 'name="ic_launcher_bg_%s"' % logo))
+        if logo == 'tree':
+            fp = os.path.join(RES, 'drawable', 'ic_launcher_frame_tree.xml')
+            os.makedirs(os.path.dirname(fp), exist_ok=True)
+            with open(fp, 'w', encoding='utf-8') as f:
+                f.write(FRAME_TREE)
         for suffix in ('', '_round'):
             path = os.path.join(RES, 'mipmap-anydpi-v26', 'ic_launcher_%s%s.xml' % (logo, suffix))
             os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -345,7 +370,7 @@ def strip_extras():
         d = os.path.join(RES, sub)
         if os.path.isdir(d) and not os.listdir(d):
             os.rmdir(d)
-    for pat in tuple('mipmap*/ic_launcher_%s*' % l for l in LOGOS) + tuple('values/ic_launcher_bg_%s.xml' % l for l in LOGOS):
+    for pat in tuple('mipmap*/ic_launcher_%s*' % l for l in LOGOS) + tuple('values/ic_launcher_bg_%s.xml' % l for l in LOGOS) + ('drawable/ic_launcher_frame_tree.xml',):
         for f in glob.glob(os.path.join(RES, pat)):
             if os.path.isfile(f):
                 os.remove(f)

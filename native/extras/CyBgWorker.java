@@ -320,8 +320,22 @@ public class CyBgWorker extends Worker {
         int n = 0;
         for (Item it : all) if (it.date >= since) n++;
         if (n == 0) return;
-        boolean ok = CyExtras.post(ctx, CyExtras.CH_DIGEST, nid, title,
-            n + " new " + (n == 1 ? "story" : "stories") + " to catch up on", CyExtras.DIGEST_URL, null, false);
+        boolean ok;
+        // The app records the day's cover headline in the digest settings; if it is fresh, the notice carries it.
+        JSONObject cv = dg.optJSONObject("cover");
+        String head = cv == null ? "" : cv.optString("t", "").trim();
+        boolean fresh = head.length() > 0 && System.currentTimeMillis() - cv.optLong("at", 0) < 36L * 3600000L;
+        if (fresh && !"dg_w".equals(slot)) {
+            int ec = cv.optInt("n", 0);
+            String edName = "dg_e".equals(slot) ? "The Evening Edition" : "The Morning Edition";
+            String src = cv.optString("f", "").trim();
+            String big = head + (src.length() > 0 ? "\n" + src : "")
+                + "\n" + (ec > 0 ? ec + (ec == 1 ? " story" : " stories") + " in your edition." : n + " new " + (n == 1 ? "story" : "stories") + " to catch up on.");
+            ok = CyExtras.postEdition(ctx, CyExtras.CH_DIGEST, nid, edName + " is ready", head, big, CyExtras.DIGEST_URL, dg.optBoolean("lock", true));
+        } else {
+            ok = CyExtras.post(ctx, CyExtras.CH_DIGEST, nid, title,
+                n + " new " + (n == 1 ? "story" : "stories") + " to catch up on", CyExtras.DIGEST_URL, null, false);
+        }
         if (ok) {
             android.content.SharedPreferences.Editor ed = CyExtras.prefs(ctx).edit().putString(slot, today);
             if ("dg_w".equals(slot)) ed.putString("dg_m", today); // the weekly issue replaces that day's morning notice
