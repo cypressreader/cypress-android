@@ -2846,6 +2846,30 @@ html.rdx .cols.tplb img.hero{aspect-ratio:16/9;max-height:calc(var(--ih)*.5)}
 .ddiff>summary:focus-visible{outline:2px solid var(--logo);outline-offset:2px}.ddiff[open]{padding-bottom:6px}
 .dtoc{background:none;border:0;border-radius:0;padding:4px 0 6px;border-top:1px solid var(--ln);border-bottom:1px solid var(--ln)}
 .dexp{font-size:12.5px;padding:4px 10px;opacity:.8}
+/* correction round, cluster 4: feed identity */
+#grid.fed{--fa:color-mix(in srgb,var(--fb,#0f5a3b) 78%,#0f5a3b);--logo:var(--fa)}
+#grid.fed .fmast{border-bottom-color:var(--fa)}#grid.fed .fm-mark{background:var(--fa)}
+#grid.fed .wsec{border-bottom:2px solid var(--fa);padding-bottom:6px}#grid.fed .wsec>span{color:var(--fa)}
+#grid.fed .wsec-v{margin:6px 0 14px;font:italic 400 15px var(--disp,var(--serif));color:var(--mut)}
+#grid.fed .wthr-t,#grid.fed .wtrend button:hover{border-color:var(--fa)}
+.fd-feat{display:block;margin:6px 0 30px;color:inherit;text-decoration:none;padding-bottom:22px;border-bottom:1px solid var(--ln)}
+.fd-fa{display:block;aspect-ratio:4/3;border-radius:6px;overflow:hidden;margin-bottom:16px;background:var(--pn);box-shadow:0 0 0 1px var(--ln)}.fd-fa img{display:block;width:100%;height:100%;object-fit:cover}
+.cvlead.fd-feat *,.cvlead.fd-deck *,.cvlead.fd-bl *{text-shadow:none!important}.fd-fb{display:block}.fd-fb small{display:block;margin-bottom:8px;font:700 10.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--fa,var(--logo))}
+.fd-fb b{display:block;font:400 clamp(32px,8vw,48px)/1.04 var(--disp,var(--serif));letter-spacing:-.01em;text-wrap:balance}
+.fd-fb em{display:block;margin-top:12px;font:italic 400 18px/1.4 var(--serif,Georgia,serif);color:var(--mut)}
+.fd-ft{border-top:3px solid var(--fa,var(--logo));padding-top:18px}
+.fd-thr{margin:-16px 0 26px}
+.fd-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 18px}.fd-pair .card{min-height:0;aspect-ratio:3/4;margin:0}
+.fd-decks{margin:0 0 20px}.fd-deck{display:block;padding:16px 0;border-top:1px solid var(--ln);color:inherit;text-decoration:none}.fd-deck:last-child{border-bottom:1px solid var(--ln)}
+.fd-deck small{display:block;margin-bottom:5px;font:600 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.fd-deck b{display:block;font:400 24px/1.12 var(--disp,var(--serif))}.fd-deck span{display:block;margin-top:6px;font:400 15px/1.4 var(--serif,Georgia,serif);color:var(--mut)}
+.fd-brief{margin:0 0 22px;padding:14px 16px;border-left:3px solid var(--fa,var(--logo));background:color-mix(in srgb,var(--fa,var(--logo)) 6%,transparent)}
+.fd-brief h4{margin:0 0 6px;font:700 10.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--fa,var(--logo))}
+.fd-bl{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:7px 0;border-top:1px solid color-mix(in srgb,var(--ink) 12%,transparent);color:inherit;text-decoration:none}.fd-bl:first-of-type{border-top:0}
+.fd-bl b{font:500 16px/1.3 var(--serif,Georgia,serif)}.fd-bl time{flex:none;font:12px var(--sans);color:var(--mut)}
+.fd-voice{margin:6px 0 22px;padding:2px 0;text-align:center;font:italic 400 18px/1.3 var(--disp,var(--serif));color:var(--fa,var(--logo))}.fd-voice::before,.fd-voice::after{content:" ❦ ";opacity:.6;font-style:normal;font-size:.8em}
+.fd-feat.read b,.fd-deck.read b,.fd-bl.read b{color:var(--mut)}
+@media(min-width:760px){.fd-feat{display:grid;grid-template-columns:1.25fr 1fr;gap:30px;align-items:center}.fd-feat .fd-fa{margin:0;aspect-ratio:3/2}.fd-feat.fd-ft{display:block}.fd-pair .card{aspect-ratio:4/3}.fd-decks{display:grid;grid-template-columns:repeat(3,1fr);gap:0 24px}.fd-deck{border-bottom:1px solid var(--ln)}}
 /* cluster 2: The Briefing */
 .brf{display:block;text-align:center;padding:14px 0 18px;margin-bottom:6px;border-top:3px double var(--ink);border-bottom:1px solid var(--ln)}
 .brf-d{display:block;font:700 10.5px var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--mut)}
@@ -3731,10 +3755,10 @@ function waterline(){
  const g=$('#grid');if(!g)return;g.querySelectorAll('.wline').forEach(e=>e.remove());
  const qq=$('#q');if(!VIS||!trackSel(S.sel)||(qq&&qq.value.trim()))return;
  const dm=new Map();for(const f of S.feeds)for(const a of (items[f.id]||[]))dm.set(a.link,a.date||0);
- const cs=[...g.querySelectorAll('.card[data-i]')];let nw=0,old=null;
+ const cs=[...g.querySelectorAll('.card[data-i],.fd-feat[data-i],.fd-deck[data-i],.fd-bl[data-i]')];let nw=0,old=null;
  for(const c of cs){const d=dm.get(chref(c));if(d==null)continue;if(d>VIS)nw++;else{old=c;break}}
  if(!old||!nw)return;
- const isNew=e=>{const c=e.matches&&e.matches('.card[data-i]')?[e]:[...e.querySelectorAll('.card[data-i]')];return c.some(x=>(dm.get(chref(x))||0)>VIS)};
+ const isNew=e=>{const c=e.matches&&e.matches('.card[data-i],.fd-feat[data-i],.fd-deck[data-i],.fd-bl[data-i]')?[e]:[...e.querySelectorAll('.card[data-i],.fd-feat[data-i],.fd-deck[data-i],.fd-bl[data-i]')];return c.some(x=>(dm.get(chref(x))||0)>VIS)};
  const el=document.createElement('div');el.className='wline';el.setAttribute('role','separator');el.innerHTML=g.classList.contains('wire')?'<span>New since '+wireClock(VIS)+' ↑</span>':'<span>Before your last visit</span>';
  /* walk up from the first older story to the level where newer stories sit just before it, and draw the line there. In a side-by-side layout (a front-page column next to a rail) the line goes at the top of the older column instead, so it never cuts across the page */
  let node=old;
@@ -3916,7 +3940,7 @@ function openTx(c,a){
 }
 const skel=n=>skelCap()+'<div class="skc ld" aria-hidden="true"><i></i><i></i><i class="s"></i></div>'+'<div class="skc" aria-hidden="true"></div>'.repeat(n);
 function render0(){
- NRS=nrMode();$('#grid').classList.remove('nr','nrp','wire','wtopic','paper');
+ NRS=nrMode();$('#grid').classList.remove('nr','nrp','wire','wtopic','fed','paper');$('#grid').style.removeProperty('--fb');
  side();$('#grid').classList.toggle('list',S.view==='list');
  let fs=S.feeds,t='All stories';
  if(S.sel.startsWith('f:')){const id=S.sel.slice(2);fs=S.feeds.filter(x=>x.folder===id);t=S.folders.find(f=>f.id===id)?.name||t}
@@ -4118,7 +4142,8 @@ const densHtml=()=>`<div class="wdens" role="group" aria-label="Density"><button
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-wdens]');if(!b)return;e.preventDefault();e.stopPropagation();S.wdens=b.dataset.wdens;save();render()},true);
 function wireRender(pre,list,T){
  const g=$('#grid'),mode=nrMode(),now=Date.now(),vis=T?0:VIS,units=wireThreads(list);
- const dens=S.wdens==='col'?'col':'mag',aff=dayAffinity(),wildN=dens==='col'?0:Math.min(8,Math.floor(units.length/7));
+ const FD=!T&&S.sel.startsWith('s:')?S.feeds.find(x=>'s:'+x.id===S.sel):null;
+ const dens=S.wdens==='col'?'col':'mag',aff=dayAffinity(),wildN=(dens==='col'||FD)?0:Math.min(8,Math.floor(units.length/7));
  /* wild cards: stories from the sites you open least, taken from further down the list and shown once on every screen */
  const wild=units.slice(Math.floor(units.length*.4)).filter(u=>!u.more.length&&!S.read[u.head.link]).sort((x,y)=>((aff[x.head.feedId]||1)+(peHash(x.head.link+WIRE.seed)%100)/400)-((aff[y.head.feedId]||1)+(peHash(y.head.link+WIRE.seed)%100)/400)).slice(0,wildN);
  const wset=new Set(wild);
@@ -4129,9 +4154,11 @@ function wireRender(pre,list,T){
  const rowHtml=a=>card(a,ix(a),'nr nr-row nr-s');
  let rowBuf='',colBuf='';const flush=()=>{if(rowBuf){B.push(rowsWrap(rowBuf));rowBuf=''}if(colBuf){B.push(`<div class="wcols">${colBuf}</div>`);colBuf=''}};
  const addWild=()=>{const u=wild[wi++];if(!u)return;flush();WHY[u.head.link]='Wild card: from '+fof(u.head).title+', a site you open less often. One turns up on every screen.';B.push(`<div class="wwild"><p class="wwild-k">Wild card</p>${card(u.head,ix(u.head),'mid')}</div>`)};
+ if(FD&&dens!=='col'){const k0=['new','hour','morning','today','earlier'].find(q=>groups[q].length);if(k0)fedMods(groups[k0],FD,{B,ix,card,first:true,leadOnly:true})}
  for(const key of ['new','hour','morning','today','earlier']){
   const us=groups[key];if(!us.length)continue;
-  flush();B.push(`<h3 class="dsh wsec"><span>${esc(wireLabel(key,an))}</span><small>${us.length} ${us.length===1?'story':'stories'}</small></h3>`);
+  flush();B.push(`<h3 class="dsh wsec"><span>${esc(wireLabel(key,an))}</span><small>${us.length} ${us.length===1?'story':'stories'}</small></h3>`+(FD?`<p class="wsec-v">${esc(pe('fedgrp',{key,gn:us.length,feed:FD.title||host(FD.url),newest:ago(Math.max(...us.map(u=>u.head.date)))},'fg'+FD.id+key))}</p>`:''));
+  if(FD&&dens!=='col'){fedMods(us,FD,{B,ix,card});continue}
   let j=0;
   for(const u of us){
    const kind=WIRE_PAT[j%WIRE_PAT.length];j++;k++;
@@ -4149,7 +4176,7 @@ function wireRender(pre,list,T){
  flush();while(wi<wild.length)addWild();
   const selFeeds=T?null:S.sel==='all'?S.feeds:S.sel.startsWith('s:')?S.feeds.filter(f=>'s:'+f.id===S.sel):S.sel.startsWith('f:')?S.feeds.filter(f=>f.folder===S.sel.slice(2)):null,
   unread=selFeeds?uc(selFeeds):cn.filter(a=>!S.read[a.link]).length,pend=T?0:WIRE.pend.length,f1=!T&&S.sel.startsWith('s:')?S.feeds.find(x=>'s:'+x.id===S.sel):null,here=S.sel==='all'?'your sites':'here';
- if(!unread&&!pend)B.push(wireCaught(cn,T));
+ if(!unread&&!pend)B.push(wireCaught(cn,T,FD));
  else B.push(`<section class="wend"><p>That is the end of ${T?'this topic':f1?esc(f1.title):S.sel==='all'?'the wire':'this list'} for now. ${unread} unread${S.sel==='all'?' across your sites':''}${pend?`, ${pend} new ${pend===1?'story':'stories'} waiting`:''}.</p>${pend?`<button type="button" class="tx2" data-wire="load">Load the new ${pend===1?'story':'stories'}</button>`:''}</section>`);
  cur=cn;
  newN=vis?cn.filter(a=>a.date>vis).length:0;WIRE.newN=newN;
@@ -4157,7 +4184,7 @@ function wireRender(pre,list,T){
  const head=pre+(f1?feedMast(f1,unread):'')+(pend?`<button type="button" class="wpill" data-wire="load" aria-live="polite">${pend} new ${pend===1?'story':'stories'} — tap to load</button>`:'')
   +`<div class="wmeta"><div class="nr-meta">${cn.length} stories${S.hideCount?'':' · '+unread+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>${densHtml()}</div>`
   +(tr.length?`<div class="wtrend" role="group" aria-label="Trending topics"><span>Trending</span>${tr.map(e=>`<button type="button" data-trend="${esc(e.w)}">${esc(e.w)}<i>${e.n}</i></button>`).join('')}</div>`:'');
- g.classList.add('nr','wire');if(T)g.classList.add('wtopic');if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
+ g.classList.add('nr','wire');if(T)g.classList.add('wtopic');if(FD){g.classList.add('fed');g.style.setProperty('--fb',brand(FD))}if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
  /* coming back to a place you left: render far enough to include the story that was at the top of the screen */
  let first=9;const wp=S.wirePos;let anchor=-1;
  if(!T&&!WIRE.restored&&wp&&wp.l&&(wp.sel||'all')===S.sel&&Date.now()-wp.t<12*36e5){anchor=cn.findIndex(a=>a.link===wp.l);if(anchor>=0){const bi=B.findIndex(h=>h.includes(`data-i="${anchor}"`));if(bi>=0)first=Math.max(9,bi+4)}}
@@ -8910,6 +8937,77 @@ PEB.feedstat=[
  {id:'s12',t:'No stories yet.',ok:x=>x.n===0}
 ];
 PE_NEUTRAL.feedstat='A quiet corner of your magazine.';
+/* ---- correction round, cluster 4: a feed is composed, not stamped ----
+   One site's list is laid out as modules: a feature, picture pairs, text-only headline-and-deck rows, an "In brief" list, and now and then a line of voice.
+   The rhythm follows the site itself (how much it publishes), so a busy site reads dense and a slow one reads like essays. Never two of the same module in a row. */
+PEB.fedgrp=[
+ {id:'g1',t:'{gn} in the last hour: the live edge of {feed}.',ok:x=>x.key==='hour'&&x.gn>=2},
+ {id:'g2',t:'Just in from {feed}.',ok:x=>x.key==='hour'&&x.gn===1},
+ {id:'g3',t:'Since you last looked: {gn} from {feed}.',ok:x=>x.key==='new'},
+ {id:'g4',t:'Earlier on, {gn} from {feed}.',ok:x=>x.key==='morning'},
+ {id:'g5',t:'The rest of today: {gn}, newest {newest} ago.',ok:x=>x.key==='today'},
+ {id:'g6',t:'Before today: {gn} more, newest {newest} ago.',ok:x=>x.key==='earlier'}
+];
+PE_NEUTRAL.fedgrp='From your own pages.';
+PEB.fedvoice=[
+ {id:'v1',t:'{today} stories today · you usually read {avg}.',ok:x=>x.today>=2&&x.avg>=1},
+ {id:'v2',t:'{today} stories today, {readn} already read.',ok:x=>x.today>=2&&x.readn>=1},
+ {id:'v3',t:'About {rate} stories a day here, so a quick pass is enough.',ok:x=>x.rate>=8},
+ {id:'v4',t:'{u} unread, the oldest {behindtxt} old.',ok:x=>x.u>0&&x.behind>=1},
+ {id:'v5',t:'{today} new today.',ok:x=>x.today>=1}
+];
+PE_NEUTRAL.fedvoice='A quiet corner of the magazine.';
+function fedFactsToday(f){
+ const ft=feedFacts(f),now=Date.now(),d0=new Date();d0.setHours(0,0,0,0);
+ const L=(items[f.id]||[]).filter(a=>a.date>=d0.getTime()),days=14;
+ const reads=(S.hist||[]).filter(h=>h.fid===f.id&&h.t>now-days*864e5).length;
+ return Object.assign({},ft,{today:L.length,readn:L.filter(a=>S.read[a.link]).length,avg:Math.round(reads/days*10)/10});
+}
+function fedMods(us,FD,c){
+ const {B,ix}=c,ft=fedFactsToday(FD),cls=ft.rate>=8?0:ft.rate>=3?1:2;
+ const SEQ=[['mid','brief','pair','deck','brief','mid','voice','pair'],['pair','deck','mid','brief','mid','pair','voice','deck'],['mid','deck','mid','pair','deck','voice','mid','brief']][cls];
+ const rot=peHash(FD.id)%3;let mi=FED_I[FD.id]||0,i=0;
+ const dk=a=>String(a.summary||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,150);
+ const when=a=>ago(a.date)?ago(a.date)+' ago':'';
+ const why=(a,t)=>{WHY[a.link]=t||('From '+(FD.title||host(FD.url))+'.')};
+ const link=(a,cl,inner)=>{const n=ix(a);return `<a class="cvlead ${cl}${S.read[a.link]?' read':''}" href="${esc(a.link)}" data-i="${n}">${inner}</a>`};
+ const thread=u=>{const id='t'+peHash(u.head.link);why(u.head,'A developing story: '+(u.more.length+1)+' updates, newest first.');return `<div class="wthr">${c.card(u.head,ix(u.head),'mid')}<button type="button" class="wthr-t" data-thr="${id}" aria-expanded="false">${u.more.length} earlier ${u.more.length===1?'update':'updates'} on this story</button><div class="wthr-b" id="${id}" hidden>${u.more.map(a=>c.card(a,ix(a),'nr nr-row nr-s')).join('')}</div></div>`};
+ /* the very first story is the feature */
+ if(c.first&&us.length){
+  const u=us.shift(),a=u.head;why(a,'The lead story from '+(FD.title||host(FD.url))+'.');
+  const img=a.img?`<span class="fd-fa"><img loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.remove()"></span>`:'';
+  B.push(link(a,'fd-feat'+(a.img?'':' fd-ft'),`${img}<span class="fd-fb"><small>The lead · ${esc(when(a))}</small><b>${esc(a.title)}</b>${dk(a)?`<em>${esc(dk(a))}</em>`:''}</span>`)+(u.more.length?(()=>{const id='t'+peHash(a.link);return `<div class="wthr fd-thr"><button type="button" class="wthr-t" data-thr="${id}" aria-expanded="false">${u.more.length} earlier ${u.more.length===1?'update':'updates'} on this story</button><div class="wthr-b" id="${id}" hidden>${u.more.map(x=>c.card(x,ix(x),'nr nr-row nr-s')).join('')}</div></div>`})():''));
+ }
+ if(c.leadOnly)return;
+ let last='feat';
+ while(us.length){
+  let m=SEQ[(mi+rot)%SEQ.length];mi++;
+  if(m==='voice'){
+   const t=pe('fedvoice',ft,'fv'+FD.id+mi);if(t&&t!==PE_NEUTRAL.fedvoice&&last!=='voice'){B.push(`<p class="fd-voice">${esc(t)}</p>`);last='voice'}
+   continue;
+  }
+  if(us[0].more.length){B.push(thread(us.shift()));last='thr';continue}
+  if(m===last)m=m==='mid'?'deck':'mid';
+  if(m==='mid'){const u=us.shift();why(u.head);B.push(c.card(u.head,ix(u.head),'mid'))}
+  else if(m==='pair'){
+   const t=us.filter(u=>!u.more.length).slice(0,2);if(t.length<2){const u=us.shift();why(u.head);B.push(c.card(u.head,ix(u.head),'mid'));last='mid';continue}
+   t.forEach(u=>us.splice(us.indexOf(u),1));t.forEach(u=>why(u.head));
+   B.push(`<div class="fd-pair">${t.map(u=>c.card(u.head,ix(u.head),'mid')).join('')}</div>`);
+  }else if(m==='deck'){
+   const t=[];while(us.length&&t.length<3&&!us[0].more.length)t.push(us.shift());
+   t.forEach(u=>why(u.head));
+   B.push(`<div class="fd-decks">${t.map(u=>link(u.head,'fd-deck',`<small>${esc(when(u.head))}${minsOf(u.head)?' · '+minsOf(u.head)+' min':''}</small><b>${esc(u.head.title)}</b>${dk(u.head)?`<span>${esc(dk(u.head))}</span>`:''}`)).join('')}</div>`);
+  }else{
+   const t=[];while(us.length&&t.length<4&&!us[0].more.length)t.push(us.shift());
+   t.forEach(u=>why(u.head));
+   B.push(`<div class="fd-brief"><h4>In brief</h4>${t.map(u=>link(u.head,'fd-bl',`<b>${esc(u.head.title)}</b><time>${esc(when(u.head))}</time>`)).join('')}</div>`);
+  }
+  last=m;
+ }
+ FED_I[FD.id]=mi;
+}
+const FED_I={};
+
 /* ---- experiment, cluster M: print mode ----
    "Export this edition" typesets the edition into a real PDF on the device: selectable text in Times, a cover, contents, two-column story pages, short items gathered at the back.
    It is written by hand (standard PDF fonts, no library, no network), so it works the same on the web and in the Android app.
@@ -9173,10 +9271,10 @@ PEB.caught=[
  {id:'c5',t:'Nothing waiting. New stories will gather here.',ok:x=>true}
 ];
 PE_NEUTRAL.caught='Nothing waiting.';
-function wireCaught(cn,T){
+function wireCaught(cn,T,FD){
  const d=S.st.d[dayKey()]||{m:0,n:0,f:0},ctx={f:d.f||0,mins:Math.round(d.m||0),streak:streaks().cur,total:cn.length};
  const where=T?'on this topic':S.sel==='all'?'from any of your sites':'here';
- return `<section class="endc wend wcaught" role="status"><span class="wc-tree" aria-hidden="true">${PT_SVG.replace('width="46" height="46"','width="54" height="54"').replace(/<svg /,'<svg class="wc-svg" ')}</span><small>The end of the wire</small><h3>You’re all caught up</h3><p>Nothing unread ${where}.</p><p class="wc-s">${esc(pe('caught',ctx,'caught'))}</p></section>`;
+ return `<section class="endc wend wcaught" role="status"><span class="wc-tree" aria-hidden="true">${PT_SVG.replace('width="46" height="46"','width="54" height="54"').replace(/<svg /,'<svg class="wc-svg" ')}</span><small>${FD?'The end of '+esc(FD.title||host(FD.url)):'The end of the wire'}</small><h3>${FD?'Caught up with '+esc(FD.title||host(FD.url)):'You’re all caught up'}</h3><p>Nothing unread ${where}.</p><p class="wc-s">${esc(pe('caught',ctx,'caught'))}</p></section>`;
 }
 
 /* ---- experiment, cluster K: loading captions, milestones, lock-screen cover ---- */

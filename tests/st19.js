@@ -12,7 +12,7 @@ const setup=async(seenAgoH,hide)=>p.evaluate(async([seenAgoH,hide])=>{
  S.read={};S.seen={};S.seen['s:'+f.id]=now-seenAgoH*H;
  S.sel='all';_lastSel=null;render();await new Promise(r=>setTimeout(r,200));
  S.sel='today';render();S.sel='s:'+f.id;S.seen['s:'+f.id]=now-seenAgoH*H;render();await new Promise(r=>setTimeout(r,500));
- const g=document.querySelector('#grid'),kids=[...g.querySelectorAll('.wline,.card[data-i]')],wi=kids.findIndex(e=>e.classList.contains('wline'));
+ const g=document.querySelector('#grid'),kids=[...g.querySelectorAll('.wline,.card[data-i],.fd-feat[data-i],.fd-deck[data-i],.fd-bl[data-i]')],wi=kids.findIndex(e=>e.classList.contains('wline'));
  const before=kids.slice(0,Math.max(wi,0)).filter(e=>!e.classList.contains('wline')).map(e=>chref(e)),after=kids.slice(wi+1).filter(e=>!e.classList.contains('wline')).map(e=>chref(e));
  return{wi,lines:g.querySelectorAll('.wline').length,before,after,txt:(g.querySelector('.wline')||{}).textContent,cards:kids.length}},[seenAgoH,hide]);
 let r=await setup(6,false);
