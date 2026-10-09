@@ -5049,6 +5049,7 @@ function ttsToggle(){
  if(!TTS.on){const why=ttsClean();if(why&&!ttsToggle.force){if(R.queueRun||R.briefAudio){toast('Skipping: '+why);ttsEnd(true)}else{toast('Not reading this aloud because '+why+'. Tap Read aloud again to read what’s here');ttsToggle.force=true;setTimeout(()=>{ttsToggle.force=false},6000)}return}}
  if(TTS.on&&!TTS.paused)return ttsPause();
  if(TTS.on&&TTS.paused)return ttsFrom(TTS.wi);
+ if(!TTS.on&&!speechSynthesis.getVoices().length){const f=speechSynthesis.voiceState==='failed';toast(f?'The phone’s speech engine didn’t start. Check Text-to-speech output in Android Settings.':'No voices are installed, so reading aloud isn’t available. Add one in Android Settings > Text-to-speech output.');if(NATIVE||f)return}
  ttsCollect();if(!TTS.words.length)return;
  ttsFrom(ttsStartWord());
 }
@@ -5282,7 +5283,7 @@ function setSum(){
  const ar=q('#arf');t.feeds=(S.offline?'Offline mode':(ar&&ar.value!=='0'&&ar.selectedOptions[0]?'Refresh '+ar.selectedOptions[0].textContent.toLowerCase():'Refresh by hand'));
  t.alerts=isOn('dgon')?'Digest on':'Digest off';
  const ml=moLevel();t.motion='Motion '+(ml==='custom'?'custom':ml)+' · effects '+(isOn('cyfx')?'on':'off');
- t.sync='Backups, devices and feeds file';t.about='Tips, shortcuts, version '+APP_VERSION;
+ t.sync='Backups, devices and feeds file';t.about='Tips, shortcuts, version '+APP_LABEL;
  document.querySelectorAll('[data-sum]').forEach(e=>{if(t[e.dataset.sum])e.textContent=t[e.dataset.sum]});
 }
 let PREVK='';
@@ -7769,7 +7770,7 @@ function renderStats(){
  const tp=Object.entries(S.st.tp).sort((a,b)=>b[1]-a[1]).slice(0,5),tmx=Math.max(1,...tp.map(x=>x[1]));
  const hmx=Math.max(.25,...S.st.hr),pe=persona(S.st.hr);
  const bar=(v,m,lab,tip)=>`<div class="sbar" title="${esc(tip)}"><i style="height:${Math.max(v?4:0,Math.round(v/m*100))}%"></i><small>${esc(lab)}</small></div>`;
- const hbar=(n,v,m)=>`<div class="hrow"><span>${esc(n)}</span><b><i style="width:${Math.max(3,Math.round(v/m*100))}%"></i></b><em>${v}</em></div>`;
+ const hbar=(n,v,m)=>`<div class="hrow"><span>${esc(n)}</span><b><i style="width:${Math.max(3,Math.round(v/m*100))}%"></i></b><em>${v} ${v===1?'story':'stories'}</em></div>`;
  const empty=!Object.keys(S.st.d).length;
  $('#grid').innerHTML=`<div class="stats">
  <div class="shead"><h2>Your reading</h2><button class="go" data-yir>Your ${new Date().getFullYear()} so far</button></div>
