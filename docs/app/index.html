@@ -2693,6 +2693,28 @@ html.pdark #grid.paper{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 #grid.tin>*{animation:tin .38s cubic-bezier(.2,.7,.2,1) both}
 #grid.tin>*:nth-child(n+4){animation-duration:.46s}
 @media(prefers-reduced-motion:reduce){.dcv-art,.dcov .dcv-main{transform:none!important;opacity:1!important}#grid.tin>*{animation:none}}
+/* experiment, cluster 11: the well and the back cover */
+.dwell{grid-column:1/-1;margin:8px calc(-1 * clamp(14px,3vw,32px)) 36px;padding:26px clamp(14px,3vw,32px) 28px;background:color-mix(in srgb,var(--ink) 94%,var(--b,#1f4a33));color:var(--bg)}
+.dwell-k{margin:0 0 16px;font:400 24px/1 var(--disp);letter-spacing:.02em;color:var(--bg)}.dwell-k span{margin-left:10px;font:italic 400 15px var(--disp);opacity:.7}
+.dwell-g{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.dwf{margin:0;min-width:0}.dwf:first-child{grid-column:1/-1}.dwf:last-child:nth-child(even){grid-column:1/-1}
+.dwf a{display:block;overflow:hidden;background:#0003;aspect-ratio:3/2}.dwf:not(:first-child):not(:last-child:nth-child(even)) a{aspect-ratio:4/5}
+.dwf img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .6s}.dwf img.ok{opacity:1}
+.dwf figcaption{margin-top:8px;font:italic 400 14.5px/1.35 var(--disp);color:var(--bg);opacity:.92}.dwf figcaption b{display:block;margin-bottom:2px;font:700 9.5px var(--sans);font-style:normal;letter-spacing:.16em;text-transform:uppercase;opacity:.75}
+@media(min-width:760px){.dwell-g.n4{grid-template-columns:1.4fr 1fr 1fr}.dwell-g.n4 .dwf:first-child{grid-column:1;grid-row:1/3}.dwell-g.n4 .dwf:first-child a{aspect-ratio:auto;height:100%;min-height:420px}.dwell-g.n4 .dwf:nth-child(n+2){grid-column:auto}.dwell-g.n3{grid-template-columns:1.4fr 1fr 1fr}.dwell-g.n3 .dwf:first-child{grid-column:1}.dwell-g.n3 .dwf:first-child a{aspect-ratio:auto;height:100%;min-height:380px}.dwell-g.n3 .dwf:last-child{grid-column:auto}}
+.dback{grid-column:1/-1;position:relative;isolation:isolate;overflow:hidden;margin:30px calc(-1 * clamp(14px,3vw,32px)) -48px;color:#fff;text-align:center;background:#0b2119}
+.dbk-art{position:absolute;inset:0;z-index:-2;opacity:.62}.dbk-art svg{width:100%;height:100%;display:block}
+.dbk-sh{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(4,22,15,.78),rgba(4,22,15,.46) 40%,rgba(3,18,12,.92))}
+.dback::after{content:'';position:absolute;inset:12px;border:2px solid #0f5a3b;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);pointer-events:none}
+.dbk-in{padding:70px clamp(28px,8vw,80px) calc(60px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto}
+.dbk-mast{display:block;font:400 22px var(--disp);letter-spacing:.38em;text-indent:.38em;opacity:.9}
+.dbk-end{margin:22px 0 10px;font:400 clamp(46px,13vw,76px)/.92 var(--disp);letter-spacing:-.01em}
+.dbk-fin{margin:0 0 20px;font:italic 400 19px/1.35 var(--disp);opacity:.92}
+.dback .tx2{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.5)}
+.dbk-next{margin:36px 0 0;padding-top:24px;border-top:1px solid rgba(255,255,255,.34)}
+.dbk-k{margin:0 0 6px;font:700 10.5px var(--sans);letter-spacing:.24em;text-transform:uppercase;opacity:.75}
+.dbk-ed{margin:0;font:400 clamp(30px,8vw,44px)/1 var(--disp)}.dbk-at{margin:6px 0 0;font:600 13px var(--sans);opacity:.85}.dbk-t{margin:12px 0 0;font:italic 400 16px/1.4 var(--disp);opacity:.88}
+.dbk-colo{margin:40px 0 0;font:italic 400 13px/1.5 var(--serif,Georgia,serif);opacity:.72}.dbk-colo b{display:block;margin-bottom:5px;font:700 10px var(--sans);font-style:normal;letter-spacing:.24em;text-transform:uppercase}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4220,6 +4242,42 @@ const DAYDEK={
  deep:['For when you have time. Settle in and let these take theirs.','The long way round: a few stories worth a proper sit-down.'],
  more:['Everything else that made the issue, for the curious.','The rest of the day, tucked in at the back like the classifieds.']
 };
+/* ---- experiment, cluster 11: the feature well and the back cover ----
+   The Well: a photo-essay break halfway through the issue, three or four large pictures with captions and no headlines.
+   The back cover: the end of the issue as a designed moment, with the finish line, the next-issue teaser and the colophon. */
+function wellJudge(im){
+ try{const f=im.closest('figure'),w=im.naturalWidth,h=im.naturalHeight;if(w<640||h<360||h/w>1.3){if(f)f.remove()}else im.classList.add('ok');
+  const well=document.querySelector('.dwell');if(well&&well.querySelectorAll('figure').length<3)well.remove()}catch(e){}
+}
+function pickWell(pool,skip){
+ const lim=Date.now()-48*36e5,seen=new Set(),out=[];
+ for(const a of pool.slice().sort((x,y)=>y.date-x.date)){
+  if(out.length>=4)break;
+  if(!a.img||a.date<lim||S.read[a.link]||skip.has(a.link)||seen.has(a.feedId+a.img))continue;
+  seen.add(a.feedId+a.img);out.push(a);
+ }
+ return out.length>=3?out:[];
+}
+const captionOf=a=>{const t=String(a.summary||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().replace(/^[A-Z][A-Z .,'’\/-]{2,38}?\s*(?:\([^)]{1,30}\)\s*)?[—–-]\s/,'');const s=(t.match(/^[^.!?]{25,150}[.!?]?/)||[''])[0].trim();return s||fof(a).title};
+function wellHtml(list){
+ cur.length;const figs=list.map((a,k)=>{cur.push(a);const ix=cur.length-1;WHY[a.link]='A picture from The Well: a photo from '+fof(a).title+', shown without a headline.';
+  return `<figure class="dwf f${k}"><a class="cvlead dwf-a" href="${esc(a.link)}" data-i="${ix}" aria-label="${esc(a.title)}"><img loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="wellJudge(this)" onerror="this.closest('figure').remove()"></a><figcaption><b>${esc(fof(a).title)}</b> ${esc(captionOf(a))}</figcaption></figure>`}).join('');
+ return `<section class="dwell" aria-label="The Well, pictures from your sites"><p class="dwell-k">The Well <span>Pictures from your sites</span></p><div class="dwell-g n${list.length}">${figs}</div></section>`;
+}
+function nextEdition(){
+ const d=new Date(),h=d.getHours(),t=new Date(d);
+ if(h>=5&&h<17)t.setHours(17,0,0,0);else{if(h>=17)t.setDate(t.getDate()+1);t.setHours(5,0,0,0)}
+ const mins=Math.max(1,Math.round((t-d)/6e4)),hh=Math.floor(mins/60),mm=mins%60;
+ return {am:!(h>=5&&h<17)?true:false,name:(h>=5&&h<17)?'The Evening Edition':'The Morning Edition',at:(h>=5&&h<17)?'5 PM':'5 AM',left:(hh?hh+' h ':'')+mm+' min'};
+}
+function backCoverHtml(count,trend){
+ const am=edKind()==='m',nx=nextEdition(),d=new Date(),issue=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
+ const tease=trend&&trend.length?`Still developing: ${trend.slice(0,3).map(e=>esc(e.w)).join(' · ')}. We will keep watching.`:'Fresh stories from your sites will be waiting.';
+ return `<section class="dback ${am?'dbm':'dbe'}"><div class="dbk-art">${edArtSvg(!am)}</div><div class="dbk-sh"></div>`
+  +`<div class="dbk-in"><span class="dbk-mast">CYPRESS</span><h3 class="dbk-end">That’s the issue.</h3><p class="dbk-fin">${esc(pe('finish',{},'end'))}</p><button type="button" class="tx2" data-endall>Explore Full Feed</button>`
+  +`<div class="dbk-next"><p class="dbk-k">Next issue</p><p class="dbk-ed">${nx.name}</p><p class="dbk-at">Arrives at ${nx.at}, in ${nx.left}.</p><p class="dbk-t">${tease}</p></div>`
+  +`<p class="dbk-colo"><b>Colophon</b>The ${am?'Morning':'Evening'} Edition, No. ${issue}. ${count} ${count===1?'story':'stories'}, chosen on this device from the sites you follow. Set in Instrument Serif and ${esc(fontName('--sans','the system sans'))}. Nothing here was sent anywhere.</p></div></section>`;
+}
 function daySections(list,mode){
  const ix=a=>cur.indexOf(a),C=(a,k)=>card(a,ix(a),k),B=[],base=ix(list[0]);
  const lead=cur[0],pool=DAYPOOL||[];
@@ -4227,8 +4285,10 @@ function daySections(list,mode){
  /* the two rituals may borrow a story from further down the issue; it is then shown there and not again in the lists */
  const skip=new Set(front.map(a=>a.link));if(lead)skip.add(lead.link);
  const good=pickGood(pool,skip);if(good)skip.add(good.link);
- const num=pickNumber(pool,skip);
- const rest=list.slice(6).filter(a=>a!==good&&!(num&&a===num.a));
+ const num=pickNumber(pool,skip);if(num)skip.add(num.a.link);
+ const well=pickWell(pool,skip);
+ const wset=new Set(well);
+ const rest=list.slice(6).filter(a=>a!==good&&!(num&&a===num.a)&&!wset.has(a));
  const quick=rest.filter(a=>{const m=minsOf(a);return m>=1&&m<=3}).slice(0,10);
  const deep=rest.filter(a=>minsOf(a)>=8).slice(0,6);
  const used=new Set(quick.concat(deep)),more=rest.filter(a=>!used.has(a));
@@ -4247,13 +4307,13 @@ function daySections(list,mode){
  if(good)B.push(ritualHtml('good',good));
  if(brief)B.push(`<section class="dsec2">${sh('brief','The Brief','Short reads, a few minutes each',quick.length,'short reads')}<div class="dq">${quick.map(a=>C(a,'nr dq-c')).join('')}</div></section>`);
  if(num)B.push(ritualHtml('num',num.a,num.n));
+ if(well.length)B.push(wellHtml(well));
  if(deep.length)B.push(`<section class="dsec2 ddv">${sh('deep','Deep Dives','Settle in',deep.length,'long reads')}${deep.map(a=>`<div class="nr-color">${C(a,'nr nr-colr')}</div>`).join('')}</section>`);
  if(more.length){
   B.push(`<section class="dsec2">${sh('more',deep.length||brief?'Also in this issue':'More from your sites','',more.length,'stories')}${rowsQ(more)}</section>`);
  }
- B.push(dayEndCard());
- B.push(colophonHtml(DGL.length));
- const rit=[good?'One Good Thing':'',num?'The Number':''].filter(Boolean);
+ B.push(backCoverHtml(DGL.length,wireTrending(pool)));
+ const rit=[good?'One Good Thing':'',num?'The Number':'',well.length?'The Well':''].filter(Boolean);
  B.unshift(`<nav class="dtoc" aria-label="In this issue"><h4>In this issue</h4><ol>${secs.map(([id,nn,t,c,u])=>`<li><button type="button" data-dsec="dsec-${id}"><i>${nn}</i><span>${t}</span><em>${c} ${c===1&&u==='stories'?'story':u}</em></button></li>`).join('')}</ol>${rit.length?`<p class="dtoc-r">Also: ${rit.join(' · ')}</p>`:''}</nav>`);
  return B;
 }
