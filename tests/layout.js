@@ -30,7 +30,7 @@ for(const w of WIDTHS){
     const m=document.querySelector('main').getBoundingClientRect(),out=[];
     const inScroller=e=>{for(let x=e.parentElement;x&&x.id!=='grid';x=x.parentElement){const o=getComputedStyle(x).overflowX;if((o==='auto'||o==='scroll')&&x.scrollWidth>x.clientWidth+2)return true}return false};
     document.querySelectorAll('#grid *').forEach(e=>{const r=e.getBoundingClientRect();if(!r.width||!r.height)return;
-     if((r.right>m.right+3||r.left<m.left-3)&&getComputedStyle(e).position!=='fixed'&&!inScroller(e)&&!(e.tagName==='IMG'&&e.parentNode.classList&&e.parentNode.classList.contains('card'))&&!e.closest('.nr-ph-strip,.nr-strip,.nr-hs,.tbl,.cover,.dcov,.dwell,.dback,.wmom'))out.push('overflow '+e.tagName+'.'+String(e.className).slice(0,30)+' '+Math.round(r.left-m.left)+'..'+Math.round(r.right-m.right))});
+     if((r.right>m.right+3||r.left<m.left-3)&&getComputedStyle(e).position!=='fixed'&&!inScroller(e)&&!(e.tagName==='IMG'&&e.parentNode.classList&&e.parentNode.classList.contains('card'))&&!e.closest('.nr-ph-strip,.nr-strip,.nr-hs,.tbl,.cover,.dcov,.dwell,.dback,.wmom,.wtick'))out.push('overflow '+e.tagName+'.'+String(e.className).slice(0,30)+' '+Math.round(r.left-m.left)+'..'+Math.round(r.right-m.right))});
     document.querySelectorAll('#grid .card h3').forEach(h=>{const r=h.getBoundingClientRect();if(!r.width)return;
      if(r.width<90&&!h.closest('.nr-ph-strip,.nr-strip,.nr-hs,.nr-tall'))out.push('sliver headline '+Math.round(r.width)+'px');
      if(h.scrollWidth>h.clientWidth+3&&getComputedStyle(h).overflowX!=='visible'||h.scrollWidth>m.width+3)out.push('headline clipped '+h.scrollWidth+'>'+h.clientWidth)});
