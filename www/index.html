@@ -3589,7 +3589,7 @@ function mastHtml(f,list){
 const ringSvg=(n,t,sz,sw)=>{const r=(sz-sw)/2,c=2*Math.PI*r,f=t?Math.min(1,n/t):0;return `<svg class="rg" width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" aria-hidden="true"><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--ln)" stroke-width="${sw}"/><circle class="rgf" cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--rg,#1f8a5b)" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${(c*f).toFixed(1)} ${c.toFixed(1)}"/></svg>`};
 let DGL=[],DAYPOOL=[];
 const dgCount=()=>{const n=DGL.filter(l=>S.read[l]).length;return{n,t:DGL.length}};
-function dgProgHtml(){const{n,t}=dgCount();if(t<3)return'';const done=n>=t;return `<div class="dgp${done?' done':''}" data-dgp><div class="dgt" role="status"><div class="rgw">${ringSvg(n,t,54,6)}<b>${done?'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>':n}</b></div><div><h3>${done?'Edition finished':n+' of '+t+' read'}</h3><p class="dgq">${esc(pe0('progress',{key:done?'done':n?'mid':'start',n}))}</p><p>${done?'You have read everything in this edition.':(t-n)+' '+(t-n===1?'story':'stories')+' left in this edition'}</p></div></div>${fiveBtns()}</div>`}
+function dgProgHtml(){const{n,t}=dgCount();if(t<3)return'';const done=n>=t;return `<div class="dgp${done?' done':''}" data-dgp><div class="dgt" role="status"><div class="rgw">${ringSvg(n,t,54,6)}<b>${done?'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>':n}</b></div><div><h3>${done?'Edition finished':n+' of '+t+' read'}</h3><p class="dgq">${esc(pe('progress',{},(done?'done':n?'mid':'start')))}</p><p>${done?'You have read everything in this edition.':(t-n)+' '+(t-n===1?'story':'stories')+' left in this edition'}</p></div></div>${fiveBtns()}</div>`}
 function dgProgUpdate(){const el=document.querySelector('#grid [data-dgp]');if(!el||S.sel!=='today')return;const h=dgProgHtml();if(!h)return;const t=document.createElement('div');t.innerHTML=h;el.replaceWith(t.firstChild)}
 const RDY_MARK='<span class="rdy" title="Ready to read, even offline" aria-label="Ready"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>';
 function markReady(l){document.querySelectorAll('#grid .card').forEach(c=>{if(chref(c)===l&&!c.querySelector('.rdy')){c.insertAdjacentHTML('beforeend',RDY_MARK);if(!userBusy())c.lastChild.classList.add('pop')}})}
@@ -4051,7 +4051,7 @@ async function dpRun(){
 }
 function dayEndCard(){
  const k=LOGOS[S.logo]?S.logo:'tree',am=edKind()==='m';
- return `<section class="endc"><span class="lgm endl" data-fill style="--p:0%;--lm:url(data:image/png;base64,${LOGOS[k][0]})"></span><h3>You’re all caught up for the ${am?'morning':'evening'}</h3><p>That’s every story in this edition. ${am?'The Evening Edition comes out at 5 PM.':'The Morning Edition comes out at 5 AM.'}</p><button type="button" class="tx2" data-endall>Explore Full Feed</button></section>`;
+ return `<section class="endc"><span class="lgm endl" data-fill style="--p:0%;--lm:url(data:image/png;base64,${LOGOS[k][0]})"></span><h3>You’re all caught up for the ${am?'morning':'evening'}</h3><p>${esc(pe('finish',{},'end'))} ${am?'The Evening Edition comes out at 5 PM.':'The Morning Edition comes out at 5 AM.'}</p><button type="button" class="tx2" data-endall>Explore Full Feed</button></section>`;
 }
 const dtab=()=>DTABS.some(x=>x[0]===S.dtab)?S.dtab:'latest';
 /* minutes to read: the measured time if the story has been opened, else from the feed's own text when that is long enough to mean something (a short teaser says nothing about the real length) */
@@ -7635,10 +7635,135 @@ function covSeen(){const now=Date.now();document.documentElement.classList.toggl
    Full-bleed art (the lead story's picture over per-edition art), a thin deep-green frame, the CYPRESS masthead with the motto beneath it,
    the edition line, one dominant headline, a few small margin cover lines, an italic editor's note, and the day's progress card sitting on the cover */
 const DAY_MOTTO='Read what matters. Then stop.';
-/* first pass of the wording: cluster 4 replaces this with the variant engine */
-const PE0={note:{m:['A calm start: the stories that matter this morning, and nothing more.','Good morning. Everything below has been picked for you, and it ends.'],e:['The day’s news, settled and in order. Take your time.','Good evening. Here is what mattered today, and it ends.']},
- progress:{start:['Nothing read yet. Start anywhere.'],mid:['Good pace. Keep going.'],done:['Every page turned.']}};
-function pe0(slot,ctx){const b=PE0[slot];if(!b)return'';const k=slot==='note'?(ctx&&ctx.am?'m':'e'):(ctx&&ctx.key);const a=b[k]||[];return a.length?a[(new Date().getDate()+(ctx&&ctx.n||0))%a.length]:''}
+/* ---- experiment, cluster 4: the personality engine (first pass) ----
+   Four slots, each a bank of variants: the editor's note, the progress line, the finish line and the cover-line kickers.
+   A variant can ask for a time of day, a state, a dominant topic, a reading streak or a story count. Picking works down a fallback chain:
+   derived (uses what we know about today) -> contextual (time of day and state only) -> neutral (always safe).
+   The same line is kept for a whole edition (no flicker on redraws), the last few picks are not repeated, and every line is checked
+   before it is shown: no empty slot, no leftover {tokens}, no "undefined". */
+const PEB={
+ note:[
+  {id:'n1',t:'Everything here was chosen for you, and it ends. That is the point.'},
+  {id:'n2',t:'A short issue, on purpose. Read it, then get on with your day.'},
+  {id:'n3',t:'Nothing in here is trying to keep you. Read what you like and leave.'},
+  {id:'n4',t:'Picked from the sites you chose, in the order that matters most.'},
+  {id:'n5',t:'Good morning. Coffee first, then the news, and the news is finite.',tod:['dawn','morning']},
+  {id:'n6',t:'A calm start: the stories worth your attention this morning, and nothing more.',tod:['dawn','morning']},
+  {id:'n7',t:'Good evening. The day has been sorted for you, so you can stop scrolling.',tod:['evening']},
+  {id:'n8',t:'Late edition. Read one or two, then rest.',tod:['night']},
+  {id:'n9',t:'Midday check-in: here is what changed since this morning.',tod:['afternoon']},
+  {id:'n10',t:'A lot of {topic} in the headlines today. We kept the best of it.',topic:1},
+  {id:'n11',t:'A quiet one: only {n} stories made the cut today.',count:[1,12]},
+  {id:'n12',t:'A full issue today, {n} stories. Start at the top and stop whenever you like.',count:[35,999]},
+  {id:'n13',t:'That is {streak} days in a row. The habit is working.',streak:[3,6]},
+  {id:'n14',t:'A whole week of showing up, and counting. The news is better when you read it on purpose.',streak:[7,999]},
+  {id:'n15',t:'{topic} took up much of the day. Here is how it settled.',topic:1,tod:['evening','night']}
+ ],
+ progress:[
+  {id:'p1',t:'Nothing read yet. Start anywhere.',state:'start'},
+  {id:'p2',t:'A clean slate. Pick the story that catches your eye.',state:'start'},
+  {id:'p3',t:'{n} stories are waiting, and none of them are in a hurry.',state:'start',count:[1,999]},
+  {id:'p4',t:'Fresh issue. The first page is the best one.',state:'start'},
+  {id:'p5',t:'Pour something warm. Begin when you like.',state:'start',tod:['evening','night']},
+  {id:'p6',t:'Good pace. Keep going.',state:'mid'},
+  {id:'p7',t:'You are past the start. The rest goes quickly.',state:'mid'},
+  {id:'p8',t:'{left} to go. Nothing is chasing you.',state:'mid',left:1},
+  {id:'p9',t:'Halfway there.',state:'mid',frac:[.4,.7]},
+  {id:'p10',t:'Almost through. The end is in sight.',state:'mid',frac:[.75,1]},
+  {id:'p11',t:'Day {streak} of your streak, and it is going well.',state:'mid',streak:[2,999]},
+  {id:'p12',t:'Every page turned.',state:'done'},
+  {id:'p13',t:'All done. Go outside.',state:'done'},
+  {id:'p14',t:'Finished, with time to spare.',state:'done'},
+  {id:'p15',t:'That is the whole issue. You are up to date.',state:'done'}
+ ],
+ finish:[
+  {id:'f1',t:'That is every story in this edition.'},
+  {id:'f2',t:'You have reached the end. There is no more to scroll.'},
+  {id:'f3',t:'Nothing left. The news will keep until the next edition.'},
+  {id:'f4',t:'Done, and you did not have to doomscroll to get here.'},
+  {id:'f5',t:'A good way to start the day: informed, and finished by breakfast.',tod:['dawn','morning']},
+  {id:'f6',t:'The day is closed. Sleep well.',tod:['evening']},
+  {id:'f7',t:'Lights out. The news will be here tomorrow.',tod:['night']},
+  {id:'f8',t:'The afternoon is yours again.',tod:['afternoon']},
+  {id:'f9',t:'{streak} days running. See you at the next edition.',streak:[3,999]},
+  {id:'f10',t:'Plenty of {topic} today, and you read what mattered.',topic:1},
+  {id:'f11',t:'All {n} stories, finished. That is a proper read.',count:[30,999]},
+  {id:'f12',t:'A short issue, finished quickly. Enjoy the time back.',count:[1,15]}
+ ],
+ coverline:[
+  {id:'c1',t:'Also today'},{id:'c2',t:'Meanwhile'},{id:'c3',t:'Worth a look'},{id:'c4',t:'In brief'},{id:'c5',t:'Elsewhere'},
+  {id:'c6',t:'Don’t miss'},{id:'c7',t:'On the side'},{id:'c8',t:'And then'},{id:'c9',t:'Late word'},{id:'c10',t:'From the margin'},
+  {id:'c11',t:'Over breakfast',tod:['dawn','morning']},{id:'c12',t:'After dinner',tod:['evening']},{id:'c13',t:'More {topic}',topic:1},{id:'c14',t:'Before bed',tod:['night']}
+ ]
+};
+const PE_NEUTRAL={note:'A short issue, chosen for you.',progress:'Keep going at your own pace.',finish:'That is every story in this edition.',coverline:'Also today'};
+function peTod(h){h=h==null?new Date().getHours():h;return h<5?'night':h<8?'dawn':h<12?'morning':h<17?'afternoon':h<22?'evening':'night'}
+function peStreak(){
+ try{
+  const days=new Set((S.hist||[]).map(h=>h&&h.t?new Date(h.t).toDateString():'').filter(Boolean));
+  let n=0;const d=new Date();if(!days.has(d.toDateString()))d.setDate(d.getDate()-1);
+  while(days.has(d.toDateString())){n++;d.setDate(d.getDate()-1)}
+  return n;
+ }catch(e){return 0}
+}
+function peTopic(){
+ try{
+  const by=storyMap(),c={};
+  for(const l of DGL){const a=by.get(l);if(!a)continue;const f=S.folders.find(x=>x.id===(fof(a).folder));if(f&&f.name)c[f.name]=(c[f.name]||0)+1}
+  const e=Object.entries(c).sort((x,y)=>y[1]-x[1]);
+  if(e.length&&e[0][1]>=Math.max(3,DGL.length*.3)&&(e.length<2||e[0][1]>e[1][1]))return e[0][0].toLowerCase();
+ }catch(e){}
+ return '';
+}
+function peCtx(extra){
+ const{n,t}=dgCount(),frac=t?n/t:0;
+ return Object.assign({tod:peTod(),topic:peTopic(),streak:peStreak(),n:DGL.length,read:n,total:t,left:t-n,frac,state:!t||n===0?'start':n>=t?'done':'mid'},extra||{});
+}
+const peNeed=v=>/\{(\w+)\}/g;
+function peFits(v,x){
+ if(v.tod&&!v.tod.includes(x.tod))return false;
+ if(v.state&&v.state!==x.state)return false;
+ if(v.topic&&!x.topic)return false;
+ if(v.streak&&!(x.streak>=v.streak[0]&&x.streak<=v.streak[1]))return false;
+ if(v.count&&!(x.n>=v.count[0]&&x.n<=v.count[1]))return false;
+ if(v.frac&&!(x.frac>=v.frac[0]&&x.frac<=v.frac[1]))return false;
+ if(v.left&&!(x.left>0))return false;
+ return true;
+}
+const peTier=v=>(v.topic||v.streak||v.count||v.frac||v.left||/\{(topic|streak|n|left|read|total)\}/.test(v.t))?0:(v.tod||v.state)?1:2;
+function peFill(v,x){
+ const s=v.t.replace(/\{(\w+)\}/g,(m,k)=>x[k]==null||x[k]===''?m:String(x[k]));
+ return s;
+}
+/* a line must be a real sentence: not empty, no leftover {token}, no undefined/null/NaN/[object], no doubled spaces */
+function peValid(s){return typeof s==='string'&&s.trim().length>=8&&!/[{}]|undefined|null|NaN|\[object|\s{2}/.test(s)}
+function peState(){if(!S.pe||typeof S.pe!=='object')S.pe={};if(!S.pe.h)S.pe.h={};if(!S.pe.c)S.pe.c={};return S.pe}
+const peHash=s=>{let h=5381;for(const c of String(s))h=((h<<5)+h+c.charCodeAt(0))|0;return Math.abs(h)};
+/* slot: 'note' | 'progress' | 'finish' | 'coverline'. key keeps a pick stable (edition + state); skip lists ids already used on this page. */
+function pe(slot,extra,key,skip){
+ const bank=PEB[slot];if(!bank)return '';
+ const st=peState(),x=peCtx(extra),k=(typeof edKey==='function'?edKey():'')+'|'+(key||''),held=st.c[slot+'|'+(key||'')];
+ const byId=Object.fromEntries(bank.map(v=>[v.id,v]));
+ if(held&&held.k===k&&byId[held.id]){const s=peFill(byId[held.id],x);if(peValid(s))return s}
+ const hist=st.h[slot]||[],recent=new Set(hist.slice(-Math.min(6,Math.floor(bank.length/2))));
+ const used=skip||new Set();
+ const ok=bank.filter(v=>peFits(v,x)&&!used.has(v.id));
+ const take=v=>{
+  const s=peFill(v,x);if(!peValid(s))return null;
+  st.c[slot+'|'+(key||'')]={k,id:v.id};used.add(v.id);
+  const hl=st.h[slot]||(st.h[slot]=[]);if(hl[hl.length-1]!==v.id){hl.push(v.id);if(hl.length>12)hl.shift()}
+  try{save()}catch(e){}
+  return s;
+ };
+ /* the chain: derived, then contextual, then neutral. A tier whose lines were all used recently is skipped, so the next tier supplies something new */
+ for(const tier of [0,1,2]){
+  const cand=ok.filter(v=>peTier(v)===tier&&!recent.has(v.id)).sort((a,b)=>peHash(k+a.id)-peHash(k+b.id));
+  for(const v of cand){const s=take(v);if(s)return s}
+ }
+ /* everything suitable was used recently: take the one used longest ago */
+ for(const v of ok.slice().sort((a,b)=>hist.lastIndexOf(a.id)-hist.lastIndexOf(b.id)||peHash(k+a.id)-peHash(k+b.id))){const s=take(v);if(s)return s}
+ return PE_NEUTRAL[slot]||'';
+}
 function edArtSvg(am){
  const sky=am?['#fbe7bf','#f3b783','#d98a5f']:['#0f1a3a','#3f3a73','#c8735b'],hill=am?['#2f7a5a','#1f6046','#124a35']:['#1f4a45','#143a36','#0b2a28'],g=am?'m':'e';
  const orb=am?`<circle cx="292" cy="228" r="70" fill="#fff6dd" opacity=".55"/><circle cx="292" cy="228" r="38" fill="#fffaf0"/>`:`<circle cx="104" cy="178" r="34" fill="#f4f1de"/><circle cx="118" cy="170" r="30" fill="#3a3f78"/><g fill="#fff" opacity=".8"><circle cx="40" cy="70" r="1.6"/><circle cx="210" cy="48" r="1.4"/><circle cx="330" cy="110" r="1.8"/><circle cx="260" cy="150" r="1.2"/><circle cx="64" cy="230" r="1.3"/><circle cx="360" cy="60" r="1.3"/></g>`;
@@ -7647,11 +7772,11 @@ function edArtSvg(am){
 }
 function dayCoverHtml(lead,pool){covSeen();
  const d=new Date(),start=new Date(d.getFullYear(),0,0),issue=Math.floor((d-start)/864e5),am=edKind()==='m';
- const lines=[],seen=new Set([lead.feedId]);
+ const lines=[],seen=new Set([lead.feedId]),usedCL=new Set();
  for(const a of pool){if(lines.length>=3)break;if(a===lead||seen.has(a.feedId)||S.read[a.link])continue;seen.add(a.feedId);lines.push(a)}
  cur=[lead];WHY[lead.link]=whyLead(lead);
- const li=lines.map(a=>{cur.push(a);WHY[a.link]='Cover line: a top unread story from '+fof(a).title+', one per site';return `<a class="cvl dcv-l" href="${esc(a.link)}" data-i="${cur.length-1}"><small style="--b:${brand(fof(a))}">${esc(fof(a).title)}</small><span>${esc(a.title)}</span></a>`}).join('');
- const note=pe0('note',{am});
+ const li=lines.map(a=>{cur.push(a);WHY[a.link]='Cover line: a top unread story from '+fof(a).title+', one per site';return `<a class="cvl dcv-l" href="${esc(a.link)}" data-i="${cur.length-1}"><small style="--b:${brand(fof(a))}">${esc(pe('coverline',{},'cl'+cur.length,usedCL))} · ${esc(fof(a).title)}</small><span>${esc(a.title)}</span></a>`}).join('');
+ const note=pe('note',{},'cover');
  return `<div class="dcov ${am?'dcm':'dce'}" style="--b:${brand(fof(lead))}"><div class="dcv-art">${edArtSvg(am)}${lead.img?`<img src="${esc(lead.img)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}</div><div class="dcv-sh"></div>`
   +`<header class="dcv-top"><span class="dcv-mast">CYPRESS</span><span class="dcv-motto">${esc(DAY_MOTTO)}</span><span class="dcv-ed">${esc(edition(d))} · No. ${issue}</span></header>`
   +`<div class="dcv-main"><a class="cvlead dcv-lead" href="${esc(lead.link)}" data-i="0"><small>${esc(fof(lead).title)}</small><h2>${esc(lead.title)}</h2></a>${note?`<p class="dcv-note">${esc(note)}</p>`:''}${li?`<div class="dcv-lines">${li}</div>`:''}</div>`
