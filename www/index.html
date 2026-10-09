@@ -2807,6 +2807,23 @@ html.rdx .cols.rfok .kr{display:none}
 @keyframes sbStar{0%{opacity:0;transform:scale(.2) rotate(-40deg)}35%{opacity:1;transform:scale(1.35) rotate(8deg)}70%{opacity:1;transform:scale(1) rotate(0)}100%{opacity:0;transform:scale(1.1)}}
 @media(prefers-reduced-motion:reduce){.star.flo,#st.flo{animation:none;outline:2px solid #f4c25a;outline-offset:2px}.sburst{display:none}}
 .rf-junk{display:block;margin:14px auto 0;padding:4px 10px;border:0;background:none;color:var(--mut);font:italic 400 12.5px var(--sans);text-decoration:underline;cursor:pointer;opacity:.75}
+/* cluster D: article templates */
+#rd .cols.tplb{--fs:calc(var(--fsu,18px)*1.16);--lh:1.58}
+#rd .cols.tplf{--fs:calc(var(--fsu,18px)*.98);--lh:1.74}
+html.rdx .cols.tplb .tt{font-size:clamp(46px,12.5vw,84px);line-height:.94}
+html.rdx .cols.tplb img.hero{aspect-ratio:16/9;max-height:calc(var(--ih)*.5)}
+.cols.tplb .mnotes,.cols.tplb .kr{display:none}
+.cols.tplb .body p.dropcap::first-letter{font-size:3.4em}
+.rkk{margin-left:10px;font:italic 400 13px var(--disp,Georgia);letter-spacing:0;text-transform:none;color:var(--mut)}
+.rby{margin:-.1em 0 .9em;font:italic 400 clamp(17px,4.4vw,21px) var(--disp,Georgia);color:var(--mut)}
+.rdl{margin-right:.35em;font:700 .74em var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--ink)}
+.rbrk{display:block;break-inside:avoid;margin:1.4em 0;text-align:center;font-size:1.4em;line-height:1;color:var(--b,var(--ink));opacity:.8}
+.rtags{break-inside:avoid;margin:1.4em 0 0;text-align:center;font:400 13px var(--sans);color:var(--mut)}
+.rtags small{display:block;margin-bottom:6px;font:700 10px var(--sans);letter-spacing:.22em;text-transform:uppercase}
+.rtags button{margin:3px 3px;padding:4px 12px;border:1px solid var(--ln);border-radius:999px;background:transparent;color:var(--ink);font:600 12.5px var(--disp,Georgia);cursor:pointer}
+#rd.vert .cols.tplf .body{max-width:36em;margin-left:auto;margin-right:auto}
+#rhead{position:absolute;left:0;right:0;z-index:9;display:flex;gap:10px;align-items:baseline;justify-content:center;padding:7px 14px;background:color-mix(in srgb,var(--pn) 92%,transparent);border-bottom:1px solid var(--ln);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font:400 14px var(--disp,Georgia);color:var(--ink);white-space:nowrap;overflow:hidden}
+#rhead b{flex:none;font:700 9.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}#rhead span{overflow:hidden;text-overflow:ellipsis}#rhead[hidden]{display:none}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4204,6 +4221,65 @@ function rdLeftUpdate(){
  el.textContent=f>=.98?'Finished':(m?m+' min left':'Last page');
 }
 {const _sp=setProg;setProg=function(){_sp.apply(this,arguments);try{rdLeftUpdate()}catch(e){}}}
+/* ---- cluster D: length-aware article templates ----
+   The story's length picks its template. A Brief (under two minutes) is a magazine sidebar: bigger display type, one calm screen, a byline and an end mark, no empty chrome.
+   A Feature (seven minutes or more) keeps AT A GLANCE and gains rhythm: ornamental section breaks, pull quotes on a cadence and a running head with the story's title.
+   Both wear the same furniture as the Daily's interior (kicker, dateline, end mark, "filed under"). The type scale follows length too, always on top of the reader's own font and size. */
+const RD_BRIEF=2,RD_FEATURE=7;
+function rdWords(b){return ((b&&b.textContent||'').match(/\S+/g)||[]).length}
+function rdTemplate(w){const m=(w||0)/(S.wpm||230);return m<RD_BRIEF?'b':m>=RD_FEATURE?'f':'s'}
+function rdTags(a,body){
+ const tags=[],add=t=>{t=String(t||'').trim();if(t&&t.length<28&&!tags.some(x=>x.toLowerCase()===t.toLowerCase()))tags.push(t)};
+ try{const f=S.folders.find(x=>x.id===fof(a).folder);if(f)add(f.name)}catch(e){}
+ if(a.sec)add(secT(a.sec));
+ try{(S.sk||[]).forEach(k=>{if(kmatch(k,a))add(k.name)})}catch(e){}
+ /* the people and places the story keeps coming back to: capitalised words used three times or more */
+ try{const c={};((body.textContent||'').match(/\b[A-Z][a-z]{3,}\b/g)||[]).forEach(w=>{const k=w.toLowerCase();if(STOP.has(k)||/^(the|this|that|they|there|then|when|while|with|which|will|what|said|says|also|after|before|about|their|these|those|where|would|could|should|monday|tuesday|wednesday|thursday|friday|saturday|sunday|january|february|march|april|june|july|august|september|october|november|december|according|however|because|since|during|despite|though|although|still|first|last|next|more|most|many|some|such|just|only|even|much|here|from|into|over|under|between|through)$/.test(k))return;c[w]=(c[w]||0)+1});
+  Object.entries(c).filter(([w,n])=>n>=3).sort((x,y)=>y[1]-x[1]).slice(0,2).forEach(([w])=>add(w))}catch(e){}
+ return tags.slice(0,4);
+}
+function decorateTpl(){
+ const c=$('.cols'),b=c&&c.querySelector('.body');if(!c||!b||!curA||R.web)return;
+ const wd=rdWords(b),tpl=rdTemplate(wd),a=curA,mins=Math.max(1,Math.round(wd/(S.wpm||230)));
+ c.classList.remove('tplb','tplf');if(tpl==='b')c.classList.add('tplb');if(tpl==='f')c.classList.add('tplf');
+ ['.rbrk','.rtags','.rby','.rkk'].forEach(q=>c.querySelectorAll(q).forEach(x=>x.remove()));
+ /* kicker: what kind of read this is, from its measured length */
+ const k=c.querySelector('.kick');if(k&&tpl!=='s'){const s=document.createElement('span');s.className='rkk';s.textContent=(tpl==='b'?'In brief':'Long read')+' · '+mins+' min';k.append(s)}
+ /* byline, for a brief */
+ if(tpl==='b'){const t=c.querySelector('.tt');if(t){const by=document.createElement('p');by.className='rby';by.textContent=a.author?'By '+String(a.author).slice(0,60):fof(a).title;t.after(by)}}
+ /* dateline: "WASHINGTON (Reuters) —" opens the first paragraph as a small-caps lead-in */
+ {const p0=[...b.querySelectorAll(':scope > p')].find(p=>p.textContent.trim().length>40);if(p0&&!p0.querySelector('.rdl')){const m=p0.textContent.trim().match(/^([A-Z][A-Z .,'’\/-]{2,38}?)\s*(?:\(([^)]{1,30})\)\s*)?[—–-]\s+/);if(m&&p0.firstChild&&p0.firstChild.nodeType===3){const tn=p0.firstChild,rest=tn.textContent.replace(/^\s*[^—–-]*[—–-]\s+/,'');const sp=document.createElement('span');sp.className='rdl';sp.textContent=m[1].trim()+(m[2]?' ('+m[2]+')':'')+' —';tn.textContent=rest;p0.insertBefore(sp,tn);p0.classList.remove('dropcap')}}}
+ /* end mark */
+ b.querySelectorAll('.endmark').forEach(e=>{e.textContent=tpl==='b'?'■':tpl==='f'?'❦':'◆'});
+ /* a feature gets ornamental breaks, and a pull quote on a cadence */
+ if(tpl==='f'){
+  const ps=[...b.querySelectorAll(':scope > p')].filter(p=>!p.classList.contains('endmark')&&p.textContent.trim().length>60);
+  const every=Math.max(7,Math.round(ps.length/5));
+  ps.forEach((p,i)=>{if(i>0&&i%every===0&&p.previousElementSibling&&!/rbrk|pullq/.test(p.previousElementSibling.className||'')){const d=document.createElement('div');d.className='rbrk';d.setAttribute('aria-hidden','true');d.textContent='❦';p.before(d)}});
+ }
+ /* filed under, then the footer's cues follow */
+ {const tg=rdTags(a,b);if(tg.length){const p=document.createElement('p');p.className='rtags';p.innerHTML='<small>Filed under</small> '+tg.map(t=>`<button type="button" data-ftag="${esc(t)}">${esc(t)}</button>`).join('');const em=b.querySelector('.endmark'),rf=b.querySelector('.rfoot');if(rf)rf.before(p);else if(em)em.after(p);else b.append(p)}}
+ /* a brief carries no empty chrome */
+ const nt=c.querySelector('.note');if(nt&&tpl==='b'&&/^\s*(full story loaded|loading)/i.test(nt.textContent))nt.hidden=true;
+ rdHead();
+}
+/* the running head: source and title, pinned under the bar once the headline has scrolled away (features, scrolling reader) */
+function rdHead(){
+ const rd=$('#rd');let h=$('#rhead');
+ const c=$('.cols'),v=vView(),on=rd&&rd.classList.contains('on')&&c&&c.classList.contains('tplf')&&isVert()&&v&&curA;
+ if(!on){if(h)h.hidden=true;return}
+ if(!h){h=document.createElement('div');h.id='rhead';h.setAttribute('aria-hidden','true');rd.append(h)}
+ const bar=$('#rd .bar'),top=bar?bar.getBoundingClientRect().bottom-rd.getBoundingClientRect().top:48;
+ h.innerHTML=`<b>${esc(fof(curA).title)}</b><span>${esc(curA.title)}</span>`;h.style.top=top+'px';
+ h.hidden=v.scrollTop<260||rd.classList.contains('focus');
+}
+document.addEventListener('scroll',e=>{if(e.target&&e.target.classList&&e.target.classList.contains('view'))rdHead()},{capture:true,passive:true});
+document.addEventListener('click',e=>{
+ const t=e.target.closest&&e.target.closest('[data-ftag]');if(!t)return;
+ e.preventDefault();e.stopPropagation();const w=t.dataset.ftag;
+ const cl=$('#cl');if(cl)cl.click();setTimeout(()=>{try{openSearch(true);$('#q').value=w;render()}catch(er){}},380);
+},true);
+{const _d3=decorate;decorate=function(){const r=_d3.apply(this,arguments);try{decorateTpl()}catch(e){}return r}}
 /* ---- experiment, cluster 15: focus mode ----
    A reading toggle that fades every piece of chrome and leaves only the story; in the scrolling reader a soft highlight follows the line you are reading
    and the rest of the page dims a little. Tap the faint mark at the top corner, or press Esc, to bring the chrome back. */
@@ -5845,7 +5921,7 @@ function needFont(k){
  const f=FONTLINK[k];if(!f||document.querySelector('link[data-f="'+k+'"]'))return;
  const l=document.createElement('link');l.rel='stylesheet';l.dataset.f=k;l.href='https://fonts.googleapis.com/css2?family='+f+'&display=swap';document.head.append(l);
 }
-function applyFs(re){needFont(fontKey());if(S.font==='dys'){document.fonts&&document.fonts.load("18px 'OpenDyslexic'").then(()=>relayout(),()=>{})}const r=$('#rd'),sp=!!S.sep&&S.theme!=='dynamic';r.style.setProperty('--fs',S.fs+'px');r.style.setProperty('--rf',FONTS[fontKey()]||FONTS.serif);r.style.setProperty('--ls',S.font==='dys'?'.02em':'normal');r.style.setProperty('--ws',S.font==='dys'?'.12em':'normal');rdVars();r.classList.toggle('sep',sp);document.documentElement.classList.toggle('sepp',sp);save();if(re)relayout()}
+function applyFs(re){needFont(fontKey());if(S.font==='dys'){document.fonts&&document.fonts.load("18px 'OpenDyslexic'").then(()=>relayout(),()=>{})}const r=$('#rd'),sp=!!S.sep&&S.theme!=='dynamic';r.style.setProperty('--fs',S.fs+'px');r.style.setProperty('--fsu',S.fs+'px');r.style.setProperty('--rf',FONTS[fontKey()]||FONTS.serif);r.style.setProperty('--ls',S.font==='dys'?'.02em':'normal');r.style.setProperty('--ws',S.font==='dys'?'.12em':'normal');rdVars();r.classList.toggle('sep',sp);document.documentElement.classList.toggle('sepp',sp);save();if(re)relayout()}
 function refreshReader(){if($('#rd').classList.contains('on'))applyFs(true)}
 const SPK='<path d="M4 10v4h3.5L12 18V6L7.5 10z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/>',PAUSE='<path d="M9 6v12M15 6v12"/>';
 const FOCUSI='<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>';
@@ -8263,7 +8339,7 @@ function smarten(b){
  if(!isOn('typo'))return;
  const tw=document.createTreeWalker(b,NodeFilter.SHOW_TEXT);let n,prev=' ',lastBlock=null;
  while(n=tw.nextNode()){
-  const pe=n.parentElement;if(!pe||pe.closest('pre,code,script,style,.pullq,.endmark,.rfoot'))continue;
+  const pe=n.parentElement;if(!pe||pe.closest('pre,code,script,style,.pullq,.endmark,.rfoot,.rbrk,.rtags'))continue;
   const blk=pe.closest('p,li,h2,h3,h4,blockquote,figcaption,td,th')||b;if(blk!==lastBlock){prev=' ';lastBlock=blk}
   const t=n.data;if(!/["'\u2019]| - /.test(t)){prev=t.slice(-1)||prev;continue}
   let o='';for(let i=0;i<t.length;i++){const ch=t[i],pv=i?t[i-1]:prev,nx=t[i+1]||'';
@@ -8355,7 +8431,7 @@ function decorate(){
  const at=ps[Math.floor(ps.length*.45)],q=document.createElement('div');q.className='pullq';q.setAttribute('aria-hidden','true');q.textContent=best.replace(/^["“]|["”]$/g,'');
  at.before(q);
 }
-const skipDeco=n=>n.parentElement&&n.parentElement.closest('.pullq,.endmark,.bfold,.gcard,.rfoot');
+const skipDeco=n=>n.parentElement&&n.parentElement.closest('.pullq,.endmark,.bfold,.gcard,.rfoot,.rbrk,.rtags,.rdl');
 
 /* ---------- follow topics ---------- */
 function followTopic(q){q=(q||'').trim();if(!q)return;const w=q.toLowerCase();if(S.sk.some(k=>k.words.length===1&&k.words[0]===w)){toast('Already following “'+q+'”');return}S.sk.push({id:'k'+Date.now(),name:q.length>28?q.slice(0,28)+'…':q,words:[w],t:Date.now()});save();render();toast('Following “'+q+'”. Find it under Topics.')}
