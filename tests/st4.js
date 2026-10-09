@@ -29,7 +29,7 @@ for(const [vp,w,h,touch] of VPS){
  await E(()=>{S.rmo=false;applyRmo()});
  // keyboard reach
  await p.waitForTimeout(400);
- ck(vp,'cards keyboard reachable',await E(()=>{const c=document.querySelector('#grid .card');return !c||c.tabIndex===0}));
+ ck(vp,'cards keyboard reachable',await E(()=>{const c=document.querySelector('#grid .card'),l=c&&(c.matches('a')?c:c.querySelector('a[href]'));return !c||(!!l&&l.tabIndex===0)}));
  ck(vp,'nav aria-current',await E(()=>!!document.querySelector('aside .nav[aria-current=true]')||!document.querySelector('aside .nav')));
  // paused feed
  const fid=await E(()=>S.feeds[0].id);
