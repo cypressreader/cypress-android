@@ -2722,6 +2722,22 @@ html.pdark #grid.paper{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 #whairl{position:fixed;top:7px;left:50%;transform:translate(-50%,-6px);z-index:61;padding:3px 10px;border-radius:999px;background:var(--ink);color:var(--pn);font:600 10.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}#whairl.on{opacity:.92;transform:translate(-50%,0)}#whairl[hidden]{display:none}
 #grid .card:not(.nr-row):not(.dq-c)>img{transform:translate3d(0,var(--ip,0px),0) scale(1.08)}
 @media(prefers-reduced-motion:reduce){#grid .card:not(.nr-row):not(.dq-c)>img{transform:none}}
+/* experiment, cluster 13: rhythm and density */
+.wmom{grid-column:1/-1;position:relative;display:block;margin:12px calc(-1 * clamp(14px,3vw,32px)) 28px;aspect-ratio:4/5;max-height:82svh;overflow:hidden;background:var(--b,#223);color:#fff;text-decoration:none}
+.wmom img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:url(#cyduo) contrast(1.03)}
+.wmom::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,22,15,0) 40%,rgba(4,22,15,.85))}
+.wmom-t{position:absolute;z-index:2;left:clamp(18px,5vw,40px);right:clamp(18px,5vw,40px);bottom:clamp(20px,5vw,40px)}
+.wmom-t small{display:block;margin-bottom:8px;font:600 10.5px var(--sans);letter-spacing:.18em;text-transform:uppercase;opacity:.88}
+.wmom-t b{display:block;font:400 clamp(34px,9.5vw,64px)/.94 var(--disp);letter-spacing:-.01em;text-shadow:0 2px 18px rgba(0,0,0,.5)}
+@media(min-width:700px){.wmom{aspect-ratio:21/9}}
+.wmeta{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px}.wmeta .nr-meta{margin:0}
+.wdens{flex:none;display:inline-flex;border:1px solid var(--ln);border-radius:999px;overflow:hidden}
+.wdens button{padding:4px 11px;border:0;background:transparent;color:var(--mut);font:600 11px var(--sans);letter-spacing:.04em;cursor:pointer}.wdens button[aria-pressed=true]{background:var(--ink);color:var(--pn)}
+.wcols{grid-column:1/-1;column-width:250px;column-gap:28px;column-rule:1px solid var(--ln);margin:0 0 22px}
+.wcol{display:block;break-inside:avoid;padding:11px 0 12px;border-bottom:1px solid var(--ln);color:var(--ink);text-decoration:none}
+.wcol small{display:block;margin-bottom:3px;font:700 9.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}.wcol small::before{content:'';display:inline-block;width:6px;height:6px;margin-right:6px;border-radius:50%;background:var(--b,var(--mut))}
+.wcol b{display:block;font:400 21px/1.1 var(--disp)}.wcol em{display:block;margin-top:4px;font:italic 400 13px var(--disp);color:var(--mut)}.wcol.read b{opacity:.55}
+.wcol small,.wcol b,.wcol em{text-shadow:none}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -3749,9 +3765,21 @@ function wireGroup(a,now){
 }
 const WIRE_LAB={hour:'Last hour',morning:'This morning',today:'Earlier today',earlier:'Earlier'};
 const WIRE_PAT=['lead','mid','row','row','row','mid','row'];
+/* ---- experiment, cluster 13: rhythm and density ----
+   Every dozen stories an edge-to-edge picture breaks the card grid. A small switch picks the density: magazine cards, or a tight newspaper-column headline river. */
+function momentHtml(a,ix){
+ const f=fof(a);WHY[a.link]='A picture break: a story with a strong photo from '+f.title+'.';
+ return `<a class="cvlead wmom" href="${esc(a.link)}" data-i="${ix}" style="--b:${brand(f)}"><img loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()"><span class="wmom-t"><small>${esc(f.title)} · ${esc(ago(a.date))} ago</small><b>${esc(a.title)}</b></span></a>`;
+}
+function colItem(u,ix){
+ const a=u.head,f=fof(a);WHY[a.link]=u.more.length?'A developing story: '+(u.more.length+1)+' updates, newest first.':'A story from '+f.title+'.';
+ return `<a class="cvlead wcol${S.read[a.link]?' read':''}" href="${esc(a.link)}" data-i="${ix(a)}"><small style="--b:${brand(f)}">${esc(f.title)} · ${esc(ago(a.date))}</small><b>${esc(a.title)}</b>${u.more.length?`<em>+${u.more.length} ${u.more.length===1?'update':'updates'}</em>`:''}</a>`;
+}
+const densHtml=()=>`<div class="wdens" role="group" aria-label="Density"><button type="button" data-wdens="mag" aria-pressed="${S.wdens!=='col'}">Cards</button><button type="button" data-wdens="col" aria-pressed="${S.wdens==='col'}">Columns</button></div>`;
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-wdens]');if(!b)return;e.preventDefault();e.stopPropagation();S.wdens=b.dataset.wdens;save();render()},true);
 function wireRender(pre,list){
  const g=$('#grid'),mode=nrMode(),now=Date.now(),vis=VIS,units=wireThreads(list);
- const aff=dayAffinity(),wildN=Math.min(8,Math.floor(units.length/7));
+ const dens=S.wdens==='col'?'col':'mag',aff=dayAffinity(),wildN=dens==='col'?0:Math.min(8,Math.floor(units.length/7));
  /* wild cards: stories from the sites you open least, taken from further down the list and shown once on every screen */
  const wild=units.slice(Math.floor(units.length*.4)).filter(u=>!u.more.length&&!S.read[u.head.link]).sort((x,y)=>((aff[x.head.feedId]||1)+(peHash(x.head.link+WIRE.seed)%100)/400)-((aff[y.head.feedId]||1)+(peHash(y.head.link+WIRE.seed)%100)/400)).slice(0,wildN);
  const wset=new Set(wild);
@@ -3760,7 +3788,7 @@ function wireRender(pre,list){
  const cn=[],ix=a=>{cn.push(a);return cn.length-1},B=[];let k=0,wi=0,newN=0;
  const rowsWrap=h=>mode==='w'?`<div class="nr-river"><div class="nr-rv">${h}</div></div>`:`<div class="nr-ph-rows nr-ph-in">${h}</div>`;
  const rowHtml=a=>card(a,ix(a),'nr nr-row nr-s');
- let rowBuf='';const flush=()=>{if(rowBuf){B.push(rowsWrap(rowBuf));rowBuf=''}};
+ let rowBuf='',colBuf='';const flush=()=>{if(rowBuf){B.push(rowsWrap(rowBuf));rowBuf=''}if(colBuf){B.push(`<div class="wcols">${colBuf}</div>`);colBuf=''}};
  const addWild=()=>{const u=wild[wi++];if(!u)return;flush();WHY[u.head.link]='Wild card: from '+fof(u.head).title+', a site you open less often. One turns up on every screen.';B.push(`<div class="wwild"><p class="wwild-k">Wild card</p>${card(u.head,ix(u.head),'mid')}</div>`)};
  for(const key of ['hour','morning','today','earlier']){
   const us=groups[key];if(!us.length)continue;
@@ -3768,6 +3796,8 @@ function wireRender(pre,list){
   let j=0;
   for(const u of us){
    const kind=WIRE_PAT[j%WIRE_PAT.length];j++;k++;
+   if(dens==='col'){colBuf+=colItem(u,ix);continue}
+   if(k%12===9&&u.head.img&&!u.more.length){flush();B.push(momentHtml(u.head,ix(u.head)));continue}
    if(u.more.length){
     flush();WHY[u.head.link]='A developing story: '+(u.more.length+1)+' updates, newest first.';
     const id='t'+peHash(u.head.link);
@@ -3785,7 +3815,7 @@ function wireRender(pre,list){
  newN=vis?cn.filter(a=>a.date>vis).length:0;WIRE.newN=newN;
  const tr=wireTrending(cn),clock=vis?wireClock(vis):'';
  const head=pre+(pend?`<button type="button" class="wpill" data-wire="load" aria-live="polite">${pend} new ${pend===1?'story':'stories'} — tap to load</button>`:'')
-  +`<div class="nr-meta">${cn.length} stories${S.hideCount?'':' · '+unread+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>`
+  +`<div class="wmeta"><div class="nr-meta">${cn.length} stories${S.hideCount?'':' · '+unread+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>${densHtml()}</div>`
   +(tr.length?`<div class="wtrend" role="group" aria-label="Trending topics"><span>Trending</span>${tr.map(e=>`<button type="button" data-trend="${esc(e.w)}">${esc(e.w)}<i>${e.n}</i></button>`).join('')}</div>`:'');
  g.classList.add('nr','wire');if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
  /* coming back to a place you left: render far enough to include the story that was at the top of the screen */
@@ -3872,7 +3902,7 @@ function wireChrome(){
   pin.style.cssText=`left:${mr.left}px;width:${mr.width}px;top:${hb}px;transform:translateY(${push}px)`;pin.hidden=false;
  }else pin.hidden=true;
  /* the position hairline */
- const cards=[...g.querySelectorAll('.card[data-i]')];
+ const cards=[...g.querySelectorAll('.card[data-i],.wcol[data-i],.wmom[data-i]')];
  let n=0;for(const c of cards){if(c.getBoundingClientRect().bottom>hb+24){n=(+c.dataset.i)+1;break}}
  const M=cur.length;if(M&&n){hl.hidden=false;hl.style.cssText=`left:${mr.left}px;width:${mr.width}px`;hl.firstChild.style.width=(Math.min(1,n/M)*100).toFixed(1)+'%';
   lab.textContent='Story '+n+' of '+M;lab.hidden=false;lab.classList.add('on');clearTimeout(wireChrome.t);wireChrome.t=setTimeout(()=>lab.classList.remove('on'),1400)}
