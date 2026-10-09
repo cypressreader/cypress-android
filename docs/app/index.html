@@ -2715,6 +2715,13 @@ html.pdark #grid.paper{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .dbk-k{margin:0 0 6px;font:700 10.5px var(--sans);letter-spacing:.24em;text-transform:uppercase;opacity:.75}
 .dbk-ed{margin:0;font:400 clamp(30px,8vw,44px)/1 var(--disp)}.dbk-at{margin:6px 0 0;font:600 13px var(--sans);opacity:.85}.dbk-t{margin:12px 0 0;font:italic 400 16px/1.4 var(--disp);opacity:.88}
 .dbk-colo{margin:40px 0 0;font:italic 400 13px/1.5 var(--serif,Georgia,serif);opacity:.72}.dbk-colo b{display:block;margin-bottom:5px;font:700 10px var(--sans);font-style:normal;letter-spacing:.24em;text-transform:uppercase}
+/* experiment, cluster 12: feed motion */
+#wpin{position:fixed;z-index:19;display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:9px clamp(14px,3vw,32px) 8px;background:color-mix(in srgb,var(--bg) 94%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--ink);font:400 22px/1 var(--disp);color:var(--ink);will-change:transform}
+#wpin small{font:italic 400 14px var(--disp);color:var(--mut)}#wpin[hidden]{display:none}
+#whair{position:fixed;top:0;z-index:60;height:3px;background:color-mix(in srgb,var(--ink) 12%,transparent);pointer-events:none}#whair i{display:block;height:100%;background:var(--a1,#0f5a3b);transition:width .15s linear}#whair[hidden]{display:none}
+#whairl{position:fixed;top:7px;left:50%;transform:translate(-50%,-6px);z-index:61;padding:3px 10px;border-radius:999px;background:var(--ink);color:var(--pn);font:600 10.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}#whairl.on{opacity:.92;transform:translate(-50%,0)}#whairl[hidden]{display:none}
+#grid .card:not(.nr-row):not(.dq-c)>img{transform:translate3d(0,var(--ip,0px),0) scale(1.08)}
+@media(prefers-reduced-motion:reduce){#grid .card:not(.nr-row):not(.dq-c)>img{transform:none}}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -3843,6 +3850,53 @@ function tabAnim(){
  clearTimeout(tabAnim.t);tabAnim.t=setTimeout(()=>g.classList.remove('tin'),520);
 }
 {const _r=render;render=function(){_r.apply(this,arguments);tabAnim()}}
+/* ---- experiment, cluster 12: feed motion ----
+   A section's name pins under the header while its stories scroll beneath (and is pushed away by the next one), pictures drift a little inside their cards,
+   and a thin hairline at the very top shows how far through the list you are, with "Story 40 of 132" appearing while you scroll. */
+function wireChrome(){
+ const g=$('#grid'),m=$('main');
+ let pin=$('#wpin'),hl=$('#whair'),lab=$('#whairl');
+ const on=g&&m&&g.classList.contains('wire')&&S.sel==='all'&&!$('#rd').classList.contains('on');
+ if(!on){if(pin)pin.hidden=true;if(hl)hl.hidden=true;if(lab)lab.hidden=true;return}
+ if(!pin){pin=document.createElement('div');pin.id='wpin';pin.setAttribute('aria-hidden','true');document.body.append(pin)}
+ if(!hl){hl=document.createElement('div');hl.id='whair';hl.setAttribute('aria-hidden','true');hl.innerHTML='<i></i>';document.body.append(hl)}
+ if(!lab){lab=document.createElement('div');lab.id='whairl';lab.setAttribute('role','status');document.body.append(lab)}
+ const mr=m.getBoundingClientRect(),top=$('.top'),hb=top?top.getBoundingClientRect().bottom:mr.top;
+ /* the pinned section name */
+ const secs=[...g.querySelectorAll('.wsec')];let cs=null,nx=null;
+ for(const s of secs){if(s.getBoundingClientRect().top<=hb+1)cs=s;else{nx=s;break}}
+ if(cs&&m.scrollTop>40){
+  const t=cs.querySelector('span'),c=cs.querySelector('small');
+  pin.innerHTML=`<span>${t?t.textContent:''}</span><small>${c?c.textContent:''}</small>`;
+  const h=pin.offsetHeight||40,push=nx?Math.min(0,nx.getBoundingClientRect().top-hb-h):0;
+  pin.style.cssText=`left:${mr.left}px;width:${mr.width}px;top:${hb}px;transform:translateY(${push}px)`;pin.hidden=false;
+ }else pin.hidden=true;
+ /* the position hairline */
+ const cards=[...g.querySelectorAll('.card[data-i]')];
+ let n=0;for(const c of cards){if(c.getBoundingClientRect().bottom>hb+24){n=(+c.dataset.i)+1;break}}
+ const M=cur.length;if(M&&n){hl.hidden=false;hl.style.cssText=`left:${mr.left}px;width:${mr.width}px`;hl.firstChild.style.width=(Math.min(1,n/M)*100).toFixed(1)+'%';
+  lab.textContent='Story '+n+' of '+M;lab.hidden=false;lab.classList.add('on');clearTimeout(wireChrome.t);wireChrome.t=setTimeout(()=>lab.classList.remove('on'),1400)}
+ else{hl.hidden=true;lab.hidden=true}
+}
+/* pictures drift inside their cards: each picture is shifted a little against the card as the card crosses the screen */
+const PARV=new Set();let PARIO=null;
+function parTick(){
+ if(reduced()||document.documentElement.classList.contains('lowp'))return;
+ const vh=innerHeight;
+ PARV.forEach(im=>{if(!im.isConnected){PARV.delete(im);return}const r=im.parentNode.getBoundingClientRect(),p=((r.top+r.height/2)-vh/2)/vh;im.style.setProperty('--ip',(Math.max(-1,Math.min(1,p))*-9).toFixed(1)+'px')})
+}
+function parWatch(root){
+ if(!('IntersectionObserver' in window))return;
+ if(!PARIO)PARIO=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)PARV.add(e.target);else PARV.delete(e.target)});parTick()},{root:$('main'),rootMargin:'120px 0px'});
+ (root||document).querySelectorAll('#grid .card:not(.nr-row):not(.dq-c)>img').forEach(im=>{if(!im._pw){im._pw=1;PARIO.observe(im)}});
+}
+{
+ const m=$('main');let raf=0;
+ if(m)m.addEventListener('scroll',()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;wireChrome();parTick()})},{passive:true});
+ const g=$('#grid');if(g&&'MutationObserver' in window)new MutationObserver(()=>{parWatch();wireChrome()}).observe(g,{childList:true});
+ addEventListener('resize',()=>wireChrome());
+ {const _r3=render;render=function(){_r3.apply(this,arguments);parWatch();wireChrome()}}
+}
 function mastHtml(f,list){
  if(!f)return'';const col=brand(f),hs=host(f.url).replace(/^www\./,'');const nm=esc(f.title||hs);
  return `<div class="mst2" style="--mb:${col}"><div class="mr"><div class="mt" aria-hidden="true">${esc((f.title||hs).trim().charAt(0).toUpperCase())}</div><div style="min-width:0"><h2 class="mn">${nm}</h2>${f.desc?`<div class="mg">${esc(String(f.desc).slice(0,140))}</div>`:''}<div class="mu">${esc(hs)}</div></div></div></div>`;
