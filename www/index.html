@@ -2824,6 +2824,13 @@ html.rdx .cols.tplb img.hero{aspect-ratio:16/9;max-height:calc(var(--ih)*.5)}
 #rd.vert .cols.tplf .body{max-width:36em;margin-left:auto;margin-right:auto}
 #rhead{position:absolute;left:0;right:0;z-index:9;display:flex;gap:10px;align-items:baseline;justify-content:center;padding:7px 14px;background:color-mix(in srgb,var(--pn) 92%,transparent);border-bottom:1px solid var(--ln);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font:400 14px var(--disp,Georgia);color:var(--ink);white-space:nowrap;overflow:hidden}
 #rhead b{flex:none;font:700 9.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}#rhead span{overflow:hidden;text-overflow:ellipsis}#rhead[hidden]{display:none}
+/* cluster E: the feed masthead */
+.fmast{grid-column:1/-1;display:flex;align-items:center;gap:14px;margin:2px 0 6px;padding:2px 0 12px;border-bottom:2px solid var(--mb,var(--ink))}
+.fm-mark{flex:none;display:grid;place-items:center;width:46px;height:46px;border-radius:6px;background:var(--mb,var(--ink));color:#fff;font:400 30px/1 var(--disp);font-synthesis:none}
+.fm-t{flex:1;min-width:0}.fm-t h2{margin:0;font:400 clamp(30px,8vw,40px)/1 var(--disp);letter-spacing:-.01em;color:var(--ink);font-synthesis:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-d{margin:3px 0 0;font:italic 400 14px/1.3 var(--disp);color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-n{flex:none;text-align:center;line-height:1}.fm-n b{display:block;font:400 30px/1 var(--disp);color:var(--mb,var(--ink))}.fm-n small{font:700 9px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.fm-s{grid-column:1/-1;margin:0 0 10px;font:italic 400 13.5px var(--disp);color:var(--mut)}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -3613,7 +3620,7 @@ let _lastSel=null;const SELPOS={};/* where each feed was left, so coming back to
 let LASTSET=null;
 if(!S.seenBase){S.seenBase=Date.now();try{save()}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){HIDT=Date.now();markSeen(S.sel)}else if(HIDT&&Date.now()-HIDT>18e5){VIS=visFor(S.sel);setTimeout(waterline,300)}});
-function render(){SMARTV=false;LASTSIG=itemsSig();LASTSET=new Set();for(const f of S.feeds)for(const a of (items[f.id]||[]))LASTSET.add(a.link);setTimeout(endObs,60);LK=layoutKey();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){markSeen(_lastSel);VIS=visFor(S.sel);if(mn0&&_lastSel!==null)SELPOS[_lastSel]={y:mn0.scrollTop,t:Date.now(),k:LK};_lastSel=S.sel;pfKick();const sm=SELPOS[S.sel];if(sm&&Date.now()-sm.t<18e5&&sm.k===LK&&sm.y>40)keep=sm.y;else if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();waterline();secOpener();covTitle();covFit();dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=(S.sel==='today'&&!$('#q').value.trim()&&!nrMode())?'narrow':(S.cards||'medium');clearTimeout(PF.t);PF.t=setTimeout(()=>{prefetch(pfList());oiSync()},2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
+function render(){SMARTV=false;LASTSIG=itemsSig();LASTSET=new Set();for(const f of S.feeds)for(const a of (items[f.id]||[]))LASTSET.add(a.link);setTimeout(endObs,60);LK=layoutKey();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){markSeen(_lastSel);VIS=visFor(S.sel);if(mn0&&_lastSel!==null)SELPOS[_lastSel]={y:mn0.scrollTop,t:Date.now(),k:LK};wireSwitch(_lastSel,S.sel);_lastSel=S.sel;pfKick();const sm=SELPOS[S.sel];if(sm&&Date.now()-sm.t<18e5&&sm.k===LK&&sm.y>40)keep=sm.y;else if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();waterline();secOpener();covTitle();covFit();dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=(S.sel==='today'&&!$('#q').value.trim()&&!nrMode())?'narrow':(S.cards||'medium');clearTimeout(PF.t);PF.t=setTimeout(()=>{prefetch(pfList());oiSync()},2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
 function starGuard(){
  /* reads first, writes after, so the page is laid out once instead of once per card */
  try{
@@ -3766,6 +3773,7 @@ function render0(){
  if(S.hideRead&&S.sel!=='saved'&&!q)cur=cur.filter(a=>!S.read[a.link]);
  if(S.group!==false&&S.sel!=='saved')cur=group(cur);
  if(S.sel==='all'&&!q){if(wireOn())cur=wireList(cur);else if(smartOn()){cur=smartAll(cur);SMARTV=true}else cur=capList(cur)}
+ else if(wireOn()&&wireSel()&&!q&&!inSaved)cur=wireList(cur);
  if(!cur.length){
   const busy=fs.some(f=>state[f.id]==='load'||!state[f.id]);
   if(busy&&!q&&S.sel!=='saved'&&!S.sel.startsWith('k:')&&!fs.some(f=>(items[f.id]||[]).length)){$('#grid').innerHTML=skel(6);return}
@@ -3786,7 +3794,7 @@ function render0(){
   if(title){const all=cur.slice();cov=siteCoverHtml(title,col,all,kd==='s'?'site':kd==='k'?'topic':'folder');if(cov)covN=1+Math.min(3,all.length-1)}
  }
  if(cur.length>3)tip('card');
- if(wireOn()&&S.sel==='all'&&!q&&cur.length>=6&&nrMode()&&S.view!=='list'){wireRender(pre,cur);return}
+ if(wireOn()&&wireSel()&&!q&&cur.length>=6&&nrMode()&&S.view!=='list'){wireRender(pre,cur);return}
  if(nrOn()&&!q&&S.sel!=='saved'&&cur.length>=6){const ms=cur.reduce((m,a)=>Math.max(m,a.date),0),un=cur.filter(a=>!S.read[a.link]).length;$('#grid').classList.add('nr');setBlocks(pre+((!q&&S.sel.startsWith('s:'))?mastHtml(S.feeds.find(x=>'s:'+x.id===S.sel),cur):`<div class="nr-meta">${cur.length} stories${S.hideCount?'':' · '+un+' unread'} · newest ${ago(ms)} ago</div>`),nrBlocks(cur,0),3,2);return}
  if(nrPhoneOn()&&!q&&S.sel!=='saved'&&cur.length>=6){const ms=cur.reduce((m,a)=>Math.max(m,a.date),0),un=cur.filter(a=>!S.read[a.link]).length;$('#grid').classList.add('nr','nrp');setBlocks(pre+((!q&&S.sel.startsWith('s:'))?mastHtml(S.feeds.find(x=>'s:'+x.id===S.sel),cur):`<div class="nr-meta">${cur.length} stories${S.hideCount?'':' · '+un+' unread'} · newest ${ago(ms)} ago</div>`),nrBlocksPhone(cur,0),3,2);return}
  setBlocks(pre+(cov||''),(cov?cur.slice(covN):cur).map((a,i)=>card(a,i+(cov?covN:0),'mid')),24,12);
@@ -3798,12 +3806,40 @@ function render0(){
    and only pulling to refresh (or tapping the pill) ranks again. Stories are grouped by age, developing stories fold into one thread, a trending strip
    shows what several sites are talking about, one Wild Card turns up on every screen, card sizes vary, and a small chip says where you are among the new ones. */
 const wireOn=()=>isOn('wire');
-function wireReset(){WIRE.order=null;WIRE.known=null;WIRE.anchor=null;WIRE.settled=false;clearTimeout(wireReset.t);wireReset.t=setTimeout(wireSettle,8000)}
-function wireSettle(){WIRE.settled=true;clearTimeout(wireReset.t);if(S.sel==='all'&&!WIRE.order&&!(($('#q')||{}).value||'').trim()){try{render()}catch(e){}}}
+/* ---- cluster E: the single-feed view ----
+   A feed gets a compact source masthead (a column header, not a Daily cover): its mark, its name in the display serif, how many stories are unread, one line from the site itself
+   and one line of stats from measurable facts only. Folders, topics and feeds then behave exactly like All stories: pinned time headers, "Story N of M", a tap-to-load pill for new
+   arrivals, and a caught-up message only at true zero. */
+const wireSel=()=>/^(all|s:|f:|k:)/.test(S.sel||'');
+let WIREX={};
+function wireSwitch(prev,next){
+ if(prev&&/^(all|s:|f:|k:)/.test(prev))WIREX[prev]={order:WIRE.order,known:WIRE.known,anchor:WIRE.anchor,sig:WIRE.sig,settled:WIRE.settled,pend:WIRE.pend,newN:WIRE.newN,restored:WIRE.restored};
+ const s=WIREX[next]||{order:null,known:null,anchor:null,sig:undefined,settled:next==='all'?WIRE.settled:true,pend:[],newN:0,restored:false};
+ Object.assign(WIRE,s);
+}
+/* what can be known about a feed from its own stories and your reading history */
+function feedFacts(f){
+ const now=Date.now(),L=(items[f.id]||[]).filter(a=>a.date),rec=L.filter(a=>a.date>now-14*864e5);
+ let rate=0;if(rec.length>=3){const span=Math.max(2,(now-Math.min(...rec.map(a=>a.date)))/864e5);rate=rec.length/Math.min(14,span)}
+ const un=L.filter(a=>!S.read[a.link]&&!junkItem(a)&&!dealHide(a)),oldest=un.length?Math.min(...un.map(a=>a.date)):0,behind=oldest?Math.floor((now-oldest)/864e5):0;
+ const hist=(S.hist||[]).filter(h=>h.fid===f.id&&h.t),last=hist.length?Math.max(...hist.map(h=>h.t)):0,gap=last?Math.floor((now-last)/864e5):-1;
+ const rdays=new Set(hist.filter(h=>h.t>now-14*864e5).map(h=>new Date(h.t).toDateString())).size;
+ const r=rate>=10?Math.round(rate):Math.round(rate*10)/10;
+ return {rate:r,perweek:Math.max(1,Math.round(rate*7)),u:un.length,behind,behindtxt:behind+' '+(behind===1?'day':'days'),gap,gaptxt:gap===0?'today':gap===1?'yesterday':gap+' days ago',rdays,n:L.length};
+}
+
+function feedMast(f,unread){
+ const col=brand(f),hs=host(f.url).replace(/^www\./,''),nm=esc(f.title||hs),fo=S.folders.find(x=>x.id===f.folder);
+ const desc=f.desc?esc(String(f.desc).replace(/\s+/g,' ').slice(0,110)):esc(hs+(fo?' · in '+fo.name:''));
+ const ft=feedFacts(f),stat=pe('feedstat',ft,'fs'+f.id);
+ return `<header class="fmast" style="--mb:${col}"><span class="fm-mark" aria-hidden="true">${esc((f.title||hs).trim().charAt(0).toUpperCase())}</span><div class="fm-t"><h2>${nm}</h2><p class="fm-d">${desc}</p></div>${S.hideCount?'':`<span class="fm-n" title="Unread stories"><b>${unread}</b><small>unread</small></span>`}</header><p class="fm-s">${esc(stat)}</p>`;
+}
+function wireReset(){WIREX={};WIRE.order=null;WIRE.known=null;WIRE.anchor=null;WIRE.settled=false;clearTimeout(wireReset.t);wireReset.t=setTimeout(wireSettle,8000)}
+function wireSettle(){WIRE.settled=true;clearTimeout(wireReset.t);if(wireSel()&&!WIRE.order&&!(($('#q')||{}).value||'').trim()){try{render()}catch(e){}}}
 function wireLoad(){WIRE.order=null;WIRE.known=null;WIRE.anchor=null;WIRE.settled=true;render();const m=$('main');if(m)m.scrollTop=0}
 /* the ranking is made once; later renders only re-use it. Returns the list to show; WIRE.pend holds stories that arrived since */
 function wireList(cur0){
- const rank=l=>smartOn()?smartAll(l):capList(l);
+ const rank=l=>S.sel!=='all'?l:smartOn()?smartAll(l):capList(l);
  /* changing how the list is sorted or limited is a deliberate request to rank again */
  {const sig=[S.sort,S.capn,S.group,S.hideRead].join('|');if(WIRE.sig!==sig){WIRE.sig=sig;WIRE.order=null;WIRE.known=null;WIRE.anchor=null}}
  if(!WIRE.order){
@@ -3815,7 +3851,7 @@ function wireList(cur0){
  const seen=new Set(),list=[];
  for(const l of WIRE.order){const a=by.get(l);if(a&&!seen.has(a)){seen.add(a);list.push(a)}}
  WIRE.pend=cur0.filter(a=>!seen.has(a)&&!WIRE.known.has(a.link)&&!(a.more||[]).some(m=>WIRE.known.has(m.l))&&!S.read[a.link]);
- if(smartOn())SMARTV=true;
+ if(S.sel==='all'&&smartOn())SMARTV=true;
  return list;
 }
 const wsig=a=>new Set((String((a&&a.title)||'').toLowerCase().match(/[a-z][a-z'’-]{3,}/g)||[]).filter(w=>!STOP.has(w)));
@@ -3922,19 +3958,20 @@ function wireRender(pre,list){
   }
  }
  flush();while(wi<wild.length)addWild();
- const unread=uc(S.feeds),pend=WIRE.pend.length;
- if(!unread&&!pend)B.push(`<section class="endc wend"><h3>You’re all caught up</h3><p>Nothing unread from any of your sites.</p></section>`);
- else B.push(`<section class="wend"><p>That is the end of the wire for now. ${unread} unread across your sites${pend?`, ${pend} new ${pend===1?'story':'stories'} waiting`:''}.</p>${pend?`<button type="button" class="tx2" data-wire="load">Load the new ${pend===1?'story':'stories'}</button>`:''}</section>`);
+  const selFeeds=S.sel==='all'?S.feeds:S.sel.startsWith('s:')?S.feeds.filter(f=>'s:'+f.id===S.sel):S.sel.startsWith('f:')?S.feeds.filter(f=>f.folder===S.sel.slice(2)):null,
+  unread=selFeeds?uc(selFeeds):cn.filter(a=>!S.read[a.link]).length,pend=WIRE.pend.length,f1=S.sel.startsWith('s:')?S.feeds.find(x=>'s:'+x.id===S.sel):null,here=S.sel==='all'?'your sites':'here';
+ if(!unread&&!pend)B.push(`<section class="endc wend"><h3>You’re all caught up</h3><p>Nothing unread ${S.sel==='all'?'from any of your sites':'here'}.</p></section>`);
+ else B.push(`<section class="wend"><p>That is the end of ${f1?esc(f1.title):S.sel==='all'?'the wire':'this list'} for now. ${unread} unread${S.sel==='all'?' across your sites':''}${pend?`, ${pend} new ${pend===1?'story':'stories'} waiting`:''}.</p>${pend?`<button type="button" class="tx2" data-wire="load">Load the new ${pend===1?'story':'stories'}</button>`:''}</section>`);
  cur=cn;
  newN=vis?cn.filter(a=>a.date>vis).length:0;WIRE.newN=newN;
- const tr=wireTrending(cn),clock=vis?wireClock(vis):'';
- const head=pre+(pend?`<button type="button" class="wpill" data-wire="load" aria-live="polite">${pend} new ${pend===1?'story':'stories'} — tap to load</button>`:'')
+ const tr=f1?[]:wireTrending(cn),clock=vis?wireClock(vis):'';
+ const head=pre+(f1?feedMast(f1,unread):'')+(pend?`<button type="button" class="wpill" data-wire="load" aria-live="polite">${pend} new ${pend===1?'story':'stories'} — tap to load</button>`:'')
   +`<div class="wmeta"><div class="nr-meta">${cn.length} stories${S.hideCount?'':' · '+unread+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>${densHtml()}</div>`
   +(tr.length?`<div class="wtrend" role="group" aria-label="Trending topics"><span>Trending</span>${tr.map(e=>`<button type="button" data-trend="${esc(e.w)}">${esc(e.w)}<i>${e.n}</i></button>`).join('')}</div>`:'');
  g.classList.add('nr','wire');if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
  /* coming back to a place you left: render far enough to include the story that was at the top of the screen */
  let first=9;const wp=S.wirePos;let anchor=-1;
- if(!WIRE.restored&&wp&&wp.l&&Date.now()-wp.t<12*36e5){anchor=cn.findIndex(a=>a.link===wp.l);if(anchor>=0){const bi=B.findIndex(h=>h.includes(`data-i="${anchor}"`));if(bi>=0)first=Math.max(9,bi+4)}}
+ if(!WIRE.restored&&wp&&wp.l&&(wp.sel||'all')===S.sel&&Date.now()-wp.t<12*36e5){anchor=cn.findIndex(a=>a.link===wp.l);if(anchor>=0){const bi=B.findIndex(h=>h.includes(`data-i="${anchor}"`));if(bi>=0)first=Math.max(9,bi+4)}}
  setBlocks(head,B,first,6);
  if(!WIRE.restored){WIRE.restored=true;if(anchor>=0)setTimeout(()=>{const m=$('main'),c=[...g.querySelectorAll('.card[data-i]')].find(x=>chref(x)===wp.l);if(c&&m&&m.scrollTop<40)m.scrollTop+=c.getBoundingClientRect().top-m.getBoundingClientRect().top-(wp.off||0)},80)}
  wirePos();
@@ -3942,7 +3979,7 @@ function wireRender(pre,list){
 /* "Story N of M new": where you are among the stories that arrived since your last visit */
 function wirePos(){
  let el=$('#wpos');const g=$('#grid'),m=$('main');
- if(!g||!g.classList.contains('wire')||S.sel!=='all'||!WIRE.newN||!m||m.scrollTop<300){if(el)el.hidden=true;return}
+ if(!g||!g.classList.contains('wire')||!wireSel()||!WIRE.newN||!m||m.scrollTop<300){if(el)el.hidden=true;return}
  if(!el){el=document.createElement('div');el.id='wpos';el.setAttribute('role','status');document.body.append(el)}
  const vh=innerHeight;let n=0;
  g.querySelectorAll('.card[data-i]').forEach(c=>{const a=cur[+c.dataset.i];if(a&&VIS&&a.date>VIS&&c.getBoundingClientRect().top<vh*.85)n++});
@@ -3950,11 +3987,11 @@ function wirePos(){
  el.hidden=false;el.textContent='Story '+Math.min(n,WIRE.newN)+' of '+WIRE.newN+' new';
 }
 function wireSavePos(){
- const g=$('#grid'),m=$('main');if(!g||!m||!g.classList.contains('wire')||S.sel!=='all')return;
+ const g=$('#grid'),m=$('main');if(!g||!m||!g.classList.contains('wire')||!wireSel())return;
  const top=m.getBoundingClientRect().top+4;
  const c=[...g.querySelectorAll('.card[data-i]')].find(x=>x.getBoundingClientRect().bottom>top+20);
  if(!c)return;
- S.wirePos={l:chref(c),off:Math.round(c.getBoundingClientRect().top-m.getBoundingClientRect().top),t:Date.now()};
+ S.wirePos={sel:S.sel,l:chref(c),off:Math.round(c.getBoundingClientRect().top-m.getBoundingClientRect().top),t:Date.now()};
  clearTimeout(wireSavePos.t);wireSavePos.t=setTimeout(()=>{try{save()}catch(e){}},400);
 }
 {
@@ -4000,7 +4037,7 @@ function tabAnim(){
 function wireChrome(){
  const g=$('#grid'),m=$('main');
  let pin=$('#wpin'),hl=$('#whair'),lab=$('#whairl');
- const on=g&&m&&g.classList.contains('wire')&&S.sel==='all'&&!$('#rd').classList.contains('on');
+ const on=g&&m&&g.classList.contains('wire')&&wireSel()&&!$('#rd').classList.contains('on');
  if(!on){if(pin)pin.hidden=true;if(hl)hl.hidden=true;if(lab)lab.hidden=true;return}
  if(!pin){pin=document.createElement('div');pin.id='wpin';pin.setAttribute('aria-hidden','true');document.body.append(pin)}
  if(!hl){hl=document.createElement('div');hl.id='whair';hl.setAttribute('aria-hidden','true');hl.innerHTML='<i></i>';document.body.append(hl)}
@@ -4382,8 +4419,8 @@ function saveFlourish(a){
 }
 {const _ts=toggleSave;toggleSave=function(a){const r=_ts.apply(this,arguments);try{saveFlourish(a)}catch(e){}return r}}
 function mastHtml(f,list){
- if(!f)return'';const col=brand(f),hs=host(f.url).replace(/^www\./,'');const nm=esc(f.title||hs);
- return `<div class="mst2" style="--mb:${col}"><div class="mr"><div class="mt" aria-hidden="true">${esc((f.title||hs).trim().charAt(0).toUpperCase())}</div><div style="min-width:0"><h2 class="mn">${nm}</h2>${f.desc?`<div class="mg">${esc(String(f.desc).slice(0,140))}</div>`:''}<div class="mu">${esc(hs)}</div></div></div></div>`;
+ if(!f)return'';
+ return feedMast(f,uc([f]));
 }
 /*PROGRESS RING*/
 const ringSvg=(n,t,sz,sw)=>{const r=(sz-sw)/2,c=2*Math.PI*r,f=t?Math.min(1,n/t):0;return `<svg class="rg" width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" aria-hidden="true"><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--ln)" stroke-width="${sw}"/><circle class="rgf" cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--rg,#1f8a5b)" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${(c*f).toFixed(1)} ${c.toFixed(1)}"/></svg>`};
@@ -8554,6 +8591,21 @@ const PEB={
  ]
 };
 const PE_NEUTRAL={note:'A short issue, chosen for you.',progress:'Keep going at your own pace.',finish:'That is every story in this edition.',coverline:'Also today'};
+PEB.feedstat=[
+ {id:'s1',t:'Averages {rate} stories a day · you’re {behindtxt} behind.',ok:x=>x.rate>=1&&x.behind>=2},
+ {id:'s2',t:'Averages {rate} stories a day · you’re up to date.',ok:x=>x.rate>=1&&x.u===0},
+ {id:'s3',t:'Averages {rate} stories a day · {u} waiting.',ok:x=>x.rate>=1&&x.u>0},
+ {id:'s4',t:'Prolific: about {rate} stories a day.',ok:x=>x.rate>=12},
+ {id:'s5',t:'About {perweek} stories a week · {u} waiting.',ok:x=>x.rate>0&&x.rate<1&&x.u>0},
+ {id:'s6',t:'About {perweek} stories a week, so there is no rush.',ok:x=>x.rate>0&&x.rate<1},
+ {id:'s7',t:'{u} unread, the oldest from {behindtxt} ago.',ok:x=>x.u>0&&x.behind>=1},
+ {id:'s8',t:'Last read {gaptxt} · {u} new since.',ok:x=>x.gap>=1&&x.u>0},
+ {id:'s9',t:'You opened it on {rdays} of the last 14 days.',ok:x=>x.rdays>=4},
+ {id:'s10',t:'{u} unread.',ok:x=>x.u>0},
+ {id:'s11',t:'Nothing unread.',ok:x=>x.u===0&&x.n>0},
+ {id:'s12',t:'No stories yet.',ok:x=>x.n===0}
+];
+PE_NEUTRAL.feedstat='A quiet corner of your magazine.';
 function peTod(h){h=h==null?new Date().getHours():h;return h<5?'night':h<8?'dawn':h<12?'morning':h<17?'afternoon':h<22?'evening':'night'}
 function peStreak(){
  try{
@@ -8578,6 +8630,7 @@ function peCtx(extra){
 }
 const peNeed=v=>/\{(\w+)\}/g;
 function peFits(v,x){
+ if(v.ok&&!v.ok(x))return false;
  if(v.tod&&!v.tod.includes(x.tod))return false;
  if(v.state&&v.state!==x.state)return false;
  if(v.topic&&!x.topic)return false;
@@ -8587,7 +8640,7 @@ function peFits(v,x){
  if(v.left&&!(x.left>0))return false;
  return true;
 }
-const peTier=v=>(v.topic||v.streak||v.count||v.frac||v.left||/\{(topic|streak|n|left|read|total)\}/.test(v.t))?0:(v.tod||v.state)?1:2;
+const peTier=v=>(v.ok||v.topic||v.streak||v.count||v.frac||v.left||/\{(topic|streak|n|left|read|total)\}/.test(v.t))?0:(v.tod||v.state)?1:2;
 function peFill(v,x){
  const s=v.t.replace(/\{(\w+)\}/g,(m,k)=>x[k]==null||x[k]===''?m:String(x[k]));
  return s;

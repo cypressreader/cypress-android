@@ -20,7 +20,7 @@ const idx=l=>+l.replace('https://w.test/s','');
 ck(tag+' waterline appears',r.wi>0&&r.lines===1,JSON.stringify(r));
 ck(tag+' all new stories sit above it',[0,1,2,3,4].every(i=>r.before.includes('https://w.test/s'+i)),JSON.stringify(r.before));
 ck(tag+' only old stories below',r.after.length>0&&r.after.every(l=>idx(l)>=5),JSON.stringify(r.after));
-ck(tag+' label',/Before your last visit/.test(r.txt||''));
+ck(tag+' label',/Before your last visit|New since/.test(r.txt||''));
 r=await setup(0.01,false);ck(tag+' no line when nothing new',r.lines===0,JSON.stringify(r));
 r=await setup(100,false);ck(tag+' no line when everything is new',r.lines===0,JSON.stringify(r));
 // dots vs numbers
