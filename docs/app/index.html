@@ -2542,6 +2542,17 @@ html.smooth .cover::before{mix-blend-mode:normal!important}
 #grid:not(.nrp) .nr-top:not(.nr-one):not(.nr-tb2):not(.zz)>.nr-rail{position:sticky;top:14px;align-self:start}
 }
 .skip{position:absolute;left:-9999px;top:0;z-index:1000;background:#fff;color:#111;padding:10px 14px;border-radius:0 0 10px 0;font:700 14px system-ui}.skip:focus{left:0}
+/* experiment, cluster 1: the Daily's views are a serif segmented control with an underline; All stories' views are small plain filter chips */
+.bmseg.dtabs{gap:0;flex-wrap:nowrap;justify-content:center;margin:2px 0 16px;border-bottom:1px solid var(--ln)}
+.bmseg.dtabs button{flex:1 1 0;min-width:0;padding:10px 6px 11px;border:0;border-radius:0;background:none;color:var(--mut);font:600 17px/1.2 var(--serif,Georgia,'Times New Roman',serif);letter-spacing:.01em;position:relative;box-shadow:none!important;white-space:nowrap}
+.bmseg.dtabs button.on{background:none;color:var(--ink);border:0}
+.bmseg.dtabs button::after{content:'';position:absolute;left:16%;right:16%;bottom:-1px;height:2px;border-radius:2px;background:var(--a1,var(--ink));transform:scaleX(0);transition:transform .22s ease}
+.bmseg.dtabs button.on::after{transform:scaleX(1)}
+@media(prefers-reduced-motion:reduce){.bmseg.dtabs button::after{transition:none}}
+.bmseg.chips{gap:6px;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;margin:2px 0 12px}
+.bmseg.chips::-webkit-scrollbar{display:none}
+.bmseg.chips button{flex:none;min-width:0;padding:4px 11px;border-radius:999px;border:1px solid var(--ln);background:transparent;color:var(--mut);font-size:12px;font-weight:500;box-shadow:none!important;white-space:nowrap}
+.bmseg.chips button.on{background:color-mix(in srgb,var(--ink) 9%,transparent);border-color:color-mix(in srgb,var(--ink) 40%,transparent);color:var(--ink);font-weight:600}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -3782,7 +3793,7 @@ function magHtml(l,base,mode,kind){
  return B;
 }
 /* The Daily: the cover, today's progress and quick links, then every unread story ranked by freshness, your habits, breaking news and how many sites cover it (see dayRank). The tabs below belong to All stories: Latest (the plain newest-first list), Top (stories several of your sites are covering), Quick (about 1 to 3 minutes) and Deep (about 8 minutes or more) */
-const DTABS=[['latest','Latest'],['top','Top'],['quick','Quick'],['deep','Deep']];
+const DTABS=[['latest','Smart'],['top','Top stories'],['quick','Quick reads'],['deep','Deep reads']];
 /* ---- The Daily's ranking: a score for every unread story, worked out on the phone ----
    score = freshness x source boost x keyword boost x coverage boost
    freshness: 100 when new, halving every 8 hours (never below 3)
@@ -7064,8 +7075,8 @@ function briefToday(force){
 }
 const DLTABS=[['front','Today'],['brief','Brief'],['edition','Headlines'],['week','Week']];
 const atab=()=>DTABS.some(x=>x[0]===S.atab)?S.atab:'latest';
-const allSeg=m=>`<div class="segs bmseg" role="tablist" aria-label="All stories">${DTABS.map(([k,t])=>`<button type="button" role="tab" data-bm="${k}" aria-selected="${m===k}" class="${m===k?'on':''}">${k==='latest'&&smartOn()?'Smart':t}</button>`).join('')}</div>`;
-const bmSeg=m=>{if(m==='latest')m='front';return `<div class="segs bmseg" role="tablist" aria-label="The Daily">${DLTABS.map(([k,t])=>`<button type="button" role="tab" data-bm="${k}" aria-selected="${m===k}" class="${m===k?'on':''}">${t}</button>`).join('')}</div>`};
+const allSeg=m=>`<div class="segs bmseg chips" role="tablist" aria-label="All stories">${DTABS.map(([k,t])=>`<button type="button" role="tab" data-bm="${k}" aria-selected="${m===k}" class="${m===k?'on':''}">${k==='latest'&&!smartOn()?'Latest':t}</button>`).join('')}</div>`;
+const bmSeg=m=>{if(m==='latest')m='front';return `<div class="segs bmseg dtabs" role="tablist" aria-label="The Daily">${DLTABS.map(([k,t])=>`<button type="button" role="tab" data-bm="${k}" aria-selected="${m===k}" class="${m===k?'on':''}">${t}</button>`).join('')}</div>`};
 document.addEventListener('click',e=>{const t=e.target.closest('[data-bm]');if(!t)return;const v=t.dataset.bm;if(v==='front'){S.sel='today';S.dgk=''}else if(DTABS.some(x=>x[0]===v)){S.sel='all';S.atab=v}else if(v==='brief'){S.sel='brief';S.dgk=''}else{S.sel='digest';S.dgk=v==='week'?'week':''}save();if(document.body.classList.contains('open'))drawer(false);render();const m=$('main');if(m)m.scrollTop=0});
 function renderBrief(){renderBrief0();const g=$('#grid');if(g)g.insertAdjacentHTML('afterbegin',bmSeg('brief'))}
 function renderBrief0(){
