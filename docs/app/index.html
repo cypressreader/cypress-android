@@ -2905,6 +2905,20 @@ html.dkart #fin .fin-frame{border-color:#2d8a5e}
 .d2r{min-width:0}
 #grid .d2r .nr-lsub{column-count:1}
 .d2r>.dateline{padding-top:0}
+/* cluster I: topic masthead and Previously timeline */
+.tmast{grid-column:1/-1;margin:2px 0 14px;padding:16px 0 12px;border-top:3px double var(--ink);border-bottom:1px solid var(--ln)}
+.tmast small{font:700 10.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
+.tmast h2{margin:2px 0 4px;font:400 clamp(34px,7vw,56px)/1 var(--disp,var(--serif));text-transform:capitalize;letter-spacing:-.01em}
+.tm-s{margin:0 0 10px;font:italic 400 16px/1.35 var(--serif,Georgia,serif);color:var(--mut)}
+.tm-a{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.tm-f{font:600 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.rprev{break-inside:avoid;margin:0 0 1.4em;padding:2px 0 2px 16px;border-left:2px solid var(--ln);font:400 14px/1.4 var(--sans)}
+.rprev>b{display:block;margin-bottom:6px;font:italic 600 17px var(--serif,Georgia,serif)}
+.rprev ol{list-style:none;margin:0;padding:0}.rprev li{position:relative;padding:4px 0}
+.rprev li::before{content:"";position:absolute;left:-21px;top:11px;width:8px;height:8px;border-radius:50%;background:var(--bg);border:2px solid var(--mut)}
+.rprev time{display:block;font:600 11px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.rprev button{all:unset;cursor:pointer;color:var(--ink);font:500 15px/1.35 var(--serif,Georgia,serif);text-decoration:underline;text-decoration-color:var(--ln);text-underline-offset:3px}
+.rprev button:focus-visible{outline:2px solid var(--acc,currentColor);outline-offset:2px}
+.rprev span{display:block;font-size:12px;color:var(--mut)}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -3815,7 +3829,7 @@ function openTx(c,a){
 }
 const skel=n=>'<span class="skhid" role="status">Loading stories…</span><div class="skc ld" aria-hidden="true"></div>'+'<div class="skc" aria-hidden="true"></div>'.repeat(n);
 function render0(){
- NRS=nrMode();$('#grid').classList.remove('nr','nrp','wire','paper');
+ NRS=nrMode();$('#grid').classList.remove('nr','nrp','wire','wtopic','paper');
  side();$('#grid').classList.toggle('list',S.view==='list');
  let fs=S.feeds,t='All stories';
  if(S.sel.startsWith('f:')){const id=S.sel.slice(2);fs=S.feeds.filter(x=>x.folder===id);t=S.folders.find(f=>f.id===id)?.name||t}
@@ -3856,7 +3870,7 @@ function render0(){
  let pre='';
  if(S.sel==='all'&&!q)pre=allSeg('latest');
  if(S.sel==='saved'&&!q&&S.saved.length)pre=savedChips();
- if(q&&!S.sk.some(k=>k.words.length===1&&k.words[0]===q))pre=`<div class="fbar"><span>${cur.length} ${cur.length===1?'story':'stories'} mention “${esc(q)}”</span><button class="tx2" data-follow="${esc(q)}">Follow this topic</button></div>`;
+ if(q&&!S.sk.some(k=>k.words.length===1&&k.words[0]===q))pre=topicMast(q,cur);
  if(!q&&S.sel.startsWith('s:')){const f=S.feeds.find(x=>'s:'+x.id===S.sel);if(f&&paused(f))pre=`<div class="fbar"><span>${esc(f.title)} is paused${f.snz>8e15?'':' until '+esc(new Date(f.snz).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}))}. Its stories are hidden from Today and All stories.</span><button class="tx2" data-resume="${f.id}">Resume</button></div>`;else if(f&&f.via==='bing')pre=`<div class="fbar"><span>Showing ${esc(f.title)} headlines from Bing News, because ${f.viaWhy==='stale'?'the site’s own feed is out of date':'the site blocks feed readers'}. Stories still open from ${esc(siteOf(f))}.</span></div>`;else if(f&&state[f.id]==='err')pre=`<div class="fbar"><span><b>We couldn’t refresh ${esc(f.title)}.</b> ${esc(feedReason(f))}. ${esc(lastOkTxt(f))}.</span><button class="tx2" data-frep="${f.id}">Try again</button></div>`}
  if(!q&&S.sel.startsWith('k:')){const k=S.sk.find(x=>'k:'+x.id===S.sel);if(k)pre=`<div class="fbar"><span>Following ${k.by||k.sec?'':'“'}${esc(kdesc(k))}${k.by||k.sec?'':'”'} across all your sites</span><button class="tx2" data-unfollow="${k.id}">Unfollow</button></div>`}
  let cov=null,covN=0;
@@ -3869,6 +3883,7 @@ function render0(){
  }
  if(cur.length>3)tip('card');
  if(wireOn()&&wireSel()&&!q&&cur.length>=6&&nrMode()&&S.view!=='list'){wireRender(pre,cur);return}
+ if(q&&S.sel!=='saved'&&wireOn()&&cur.length>=4&&nrMode()&&S.view!=='list'){wireRender(pre,cur,true);return}
  if(nrOn()&&!q&&S.sel!=='saved'&&cur.length>=6){const ms=cur.reduce((m,a)=>Math.max(m,a.date),0),un=cur.filter(a=>!S.read[a.link]).length;$('#grid').classList.add('nr');setBlocks(pre+((!q&&S.sel.startsWith('s:'))?mastHtml(S.feeds.find(x=>'s:'+x.id===S.sel),cur):`<div class="nr-meta">${cur.length} stories${S.hideCount?'':' · '+un+' unread'} · newest ${ago(ms)} ago</div>`),nrBlocks(cur,0),3,2);return}
  if(nrPhoneOn()&&!q&&S.sel!=='saved'&&cur.length>=6){const ms=cur.reduce((m,a)=>Math.max(m,a.date),0),un=cur.filter(a=>!S.read[a.link]).length;$('#grid').classList.add('nr','nrp');setBlocks(pre+((!q&&S.sel.startsWith('s:'))?mastHtml(S.feeds.find(x=>'s:'+x.id===S.sel),cur):`<div class="nr-meta">${cur.length} stories${S.hideCount?'':' · '+un+' unread'} · newest ${ago(ms)} ago</div>`),nrBlocksPhone(cur,0),3,2);return}
  setBlocks(pre+(cov||''),(cov?cur.slice(covN):cur).map((a,i)=>card(a,i+(cov?covN:0),'mid')),24,12);
@@ -4001,13 +4016,13 @@ function colItem(u,ix){
 }
 const densHtml=()=>`<div class="wdens" role="group" aria-label="Density"><button type="button" data-wdens="mag" aria-pressed="${S.wdens!=='col'}">Cards</button><button type="button" data-wdens="col" aria-pressed="${S.wdens==='col'}">Columns</button></div>`;
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-wdens]');if(!b)return;e.preventDefault();e.stopPropagation();S.wdens=b.dataset.wdens;save();render()},true);
-function wireRender(pre,list){
- const g=$('#grid'),mode=nrMode(),now=Date.now(),vis=VIS,units=wireThreads(list);
+function wireRender(pre,list,T){
+ const g=$('#grid'),mode=nrMode(),now=Date.now(),vis=T?0:VIS,units=wireThreads(list);
  const dens=S.wdens==='col'?'col':'mag',aff=dayAffinity(),wildN=dens==='col'?0:Math.min(8,Math.floor(units.length/7));
  /* wild cards: stories from the sites you open least, taken from further down the list and shown once on every screen */
  const wild=units.slice(Math.floor(units.length*.4)).filter(u=>!u.more.length&&!S.read[u.head.link]).sort((x,y)=>((aff[x.head.feedId]||1)+(peHash(x.head.link+WIRE.seed)%100)/400)-((aff[y.head.feedId]||1)+(peHash(y.head.link+WIRE.seed)%100)/400)).slice(0,wildN);
  const wset=new Set(wild);
- const an=wireAnchor(),groups={new:[],hour:[],morning:[],today:[],earlier:[]};
+ const an=T?{t:now,visit:false}:wireAnchor(),groups={new:[],hour:[],morning:[],today:[],earlier:[]};
  units.filter(u=>!wset.has(u)).forEach(u=>groups[wireGroup(u.head,an)].push(u));
  const cn=[],ix=a=>{cn.push(a);return cn.length-1},B=[];let k=0,wi=0,newN=0;
  const rowsWrap=h=>mode==='w'?`<div class="nr-river"><div class="nr-rv">${h}</div></div>`:`<div class="nr-ph-rows nr-ph-in">${h}</div>`;
@@ -4032,22 +4047,22 @@ function wireRender(pre,list){
   }
  }
  flush();while(wi<wild.length)addWild();
-  const selFeeds=S.sel==='all'?S.feeds:S.sel.startsWith('s:')?S.feeds.filter(f=>'s:'+f.id===S.sel):S.sel.startsWith('f:')?S.feeds.filter(f=>f.folder===S.sel.slice(2)):null,
-  unread=selFeeds?uc(selFeeds):cn.filter(a=>!S.read[a.link]).length,pend=WIRE.pend.length,f1=S.sel.startsWith('s:')?S.feeds.find(x=>'s:'+x.id===S.sel):null,here=S.sel==='all'?'your sites':'here';
- if(!unread&&!pend)B.push(`<section class="endc wend"><h3>You’re all caught up</h3><p>Nothing unread ${S.sel==='all'?'from any of your sites':'here'}.</p></section>`);
- else B.push(`<section class="wend"><p>That is the end of ${f1?esc(f1.title):S.sel==='all'?'the wire':'this list'} for now. ${unread} unread${S.sel==='all'?' across your sites':''}${pend?`, ${pend} new ${pend===1?'story':'stories'} waiting`:''}.</p>${pend?`<button type="button" class="tx2" data-wire="load">Load the new ${pend===1?'story':'stories'}</button>`:''}</section>`);
+  const selFeeds=T?null:S.sel==='all'?S.feeds:S.sel.startsWith('s:')?S.feeds.filter(f=>'s:'+f.id===S.sel):S.sel.startsWith('f:')?S.feeds.filter(f=>f.folder===S.sel.slice(2)):null,
+  unread=selFeeds?uc(selFeeds):cn.filter(a=>!S.read[a.link]).length,pend=T?0:WIRE.pend.length,f1=!T&&S.sel.startsWith('s:')?S.feeds.find(x=>'s:'+x.id===S.sel):null,here=S.sel==='all'?'your sites':'here';
+ if(!unread&&!pend)B.push(`<section class="endc wend"><h3>You’re all caught up</h3><p>Nothing unread ${T?'on this topic':S.sel==='all'?'from any of your sites':'here'}.</p></section>`);
+ else B.push(`<section class="wend"><p>That is the end of ${T?'this topic':f1?esc(f1.title):S.sel==='all'?'the wire':'this list'} for now. ${unread} unread${S.sel==='all'?' across your sites':''}${pend?`, ${pend} new ${pend===1?'story':'stories'} waiting`:''}.</p>${pend?`<button type="button" class="tx2" data-wire="load">Load the new ${pend===1?'story':'stories'}</button>`:''}</section>`);
  cur=cn;
  newN=vis?cn.filter(a=>a.date>vis).length:0;WIRE.newN=newN;
- const tr=f1?[]:wireTrending(cn),clock=vis?wireClock(vis):'';
+ const tr=f1||T?[]:wireTrending(cn),clock=vis?wireClock(vis):'';
  const head=pre+(f1?feedMast(f1,unread):'')+(pend?`<button type="button" class="wpill" data-wire="load" aria-live="polite">${pend} new ${pend===1?'story':'stories'} — tap to load</button>`:'')
   +`<div class="wmeta"><div class="nr-meta">${cn.length} stories${S.hideCount?'':' · '+unread+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>${densHtml()}</div>`
   +(tr.length?`<div class="wtrend" role="group" aria-label="Trending topics"><span>Trending</span>${tr.map(e=>`<button type="button" data-trend="${esc(e.w)}">${esc(e.w)}<i>${e.n}</i></button>`).join('')}</div>`:'');
- g.classList.add('nr','wire');if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
+ g.classList.add('nr','wire');if(T)g.classList.add('wtopic');if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
  /* coming back to a place you left: render far enough to include the story that was at the top of the screen */
  let first=9;const wp=S.wirePos;let anchor=-1;
- if(!WIRE.restored&&wp&&wp.l&&(wp.sel||'all')===S.sel&&Date.now()-wp.t<12*36e5){anchor=cn.findIndex(a=>a.link===wp.l);if(anchor>=0){const bi=B.findIndex(h=>h.includes(`data-i="${anchor}"`));if(bi>=0)first=Math.max(9,bi+4)}}
+ if(!T&&!WIRE.restored&&wp&&wp.l&&(wp.sel||'all')===S.sel&&Date.now()-wp.t<12*36e5){anchor=cn.findIndex(a=>a.link===wp.l);if(anchor>=0){const bi=B.findIndex(h=>h.includes(`data-i="${anchor}"`));if(bi>=0)first=Math.max(9,bi+4)}}
  setBlocks(head,B,first,6);
- if(!WIRE.restored){WIRE.restored=true;if(anchor>=0)setTimeout(()=>{const m=$('main'),c=[...g.querySelectorAll('.card[data-i]')].find(x=>chref(x)===wp.l);if(c&&m&&m.scrollTop<40)m.scrollTop+=c.getBoundingClientRect().top-m.getBoundingClientRect().top-(wp.off||0)},80)}
+ if(!T&&!WIRE.restored){WIRE.restored=true;if(anchor>=0)setTimeout(()=>{const m=$('main'),c=[...g.querySelectorAll('.card[data-i]')].find(x=>chref(x)===wp.l);if(c&&m&&m.scrollTop<40)m.scrollTop+=c.getBoundingClientRect().top-m.getBoundingClientRect().top-(wp.off||0)},80)}
  wirePos();
 }
 /* "Story N of M new": where you are among the stories that arrived since your last visit */
@@ -4061,7 +4076,7 @@ function wirePos(){
  el.hidden=false;el.textContent='Story '+Math.min(n,WIRE.newN)+' of '+WIRE.newN+' new';
 }
 function wireSavePos(){
- const g=$('#grid'),m=$('main');if(!g||!m||!g.classList.contains('wire')||!wireSel())return;
+ const g=$('#grid'),m=$('main');if(!g||!m||!g.classList.contains('wire')||g.classList.contains('wtopic')||!wireSel())return;
  const top=m.getBoundingClientRect().top+4;
  const c=[...g.querySelectorAll('.card[data-i]')].find(x=>x.getBoundingClientRect().bottom>top+20);
  if(!c)return;
@@ -4372,6 +4387,7 @@ function decorateTpl(){
  {const tg=rdTags(a,b);if(tg.length){const p=document.createElement('p');p.className='rtags';p.innerHTML='<small>Filed under</small> '+tg.map(t=>`<button type="button" data-ftag="${esc(t)}">${esc(t)}</button>`).join('');const em=b.querySelector('.endmark'),rf=b.querySelector('.rfoot');if(rf)rf.before(p);else if(em)em.after(p);else b.append(p)}}
  /* a brief carries no empty chrome */
  const nt=c.querySelector('.note');if(nt&&tpl==='b'&&/^\s*(full story loaded|loading)/i.test(nt.textContent))nt.hidden=true;
+ try{rdPrev()}catch(e){}
  rdHead();
 }
 /* the running head: source and title, pinned under the bar once the headline has scrolled away (features, scrolling reader) */
@@ -8775,6 +8791,50 @@ PEB.feedstat=[
  {id:'s12',t:'No stories yet.',ok:x=>x.n===0}
 ];
 PE_NEUTRAL.feedstat='A quiet corner of your magazine.';
+/* ---- experiment, cluster I: topic view, "Previously" timelines ----
+   Tapping a trending word (or searching) opens a topic: a small masthead with facts about it, then the same wire treatment as All stories
+   (age groups, developing-story threads, photo breaks). Opening a story that has earlier coverage in your own feeds adds a "Previously" timeline. */
+function topicFacts(q,list){
+ const now=Date.now(),by={};list.forEach(a=>{const t=fof(a).title||'';by[t]=(by[t]||0)+1});
+ const top=Object.entries(by).sort((x,y)=>y[1]-x[1])[0]||['',0],newest=list.reduce((m,a)=>Math.max(m,a.date||0),0);
+ const nm=newest?Math.max(1,Math.round((now-newest)/6e4)):0;
+ return {n:list.length,sites:Object.keys(by).length,today:list.filter(a=>a.date>now-864e5).length,u:list.filter(a=>!S.read[a.link]).length,topsite:top[0],topn:top[1],newest:ago(newest),newestMin:nm};
+}
+PEB.topicstat=[
+ {id:'t1',t:'{n} stories from {sites} sites, {today} in the last day.',ok:x=>x.n>=2&&x.sites>=2&&x.today>=1},
+ {id:'t2',t:'{n} stories across {sites} sites · newest {newest} ago.',ok:x=>x.sites>=2&&x.newestMin<2880},
+ {id:'t3',t:'Mostly {topsite}: {topn} of {n} stories.',ok:x=>x.sites>=2&&x.topn>=3&&x.topn/x.n>=.6},
+ {id:'t4',t:'{n} stories, all from {topsite}.',ok:x=>x.sites===1&&x.n>=2},
+ {id:'t5',t:'{u} of them you haven’t read yet.',ok:x=>x.u>0&&x.u<x.n},
+ {id:'t6',t:'You have read all {n}.',ok:x=>x.u===0&&x.n>0},
+ {id:'t7',t:'One story so far.',ok:x=>x.n===1},
+ {id:'t8',t:'Quiet lately: the newest is {newest} old.',ok:x=>x.newestMin>=2880}
+];
+PE_NEUTRAL.topicstat='What your sites have said about this.';
+function topicMast(q,list){
+ const f=topicFacts(q,list),stat=pe('topicstat',f,'tp'+q.toLowerCase()),fol=S.sk.some(k=>k.words.length===1&&k.words[0]===q);
+ return `<header class="tmast"><small>Topic</small><h2>${esc(q)}</h2><p class="tm-s">${esc(stat)}</p><div class="tm-a">${fol?'<span class="tm-f">Following</span>':`<button class="tx2" type="button" data-follow="${esc(q)}">Follow this topic</button>`}<button class="tx2" type="button" data-topicx>Close topic</button></div></header>`;
+}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-topicx]');if(!b)return;e.preventDefault();e.stopPropagation();openSearch(false)},true);
+/* earlier coverage of the same story, found in the feeds and reading history already on the device */
+function prevStories(a){
+ const sg=wsig(a);if(sg.size<3)return [];
+ const lim=(a.date||Date.now())-3*36e5,seen=new Set([a.link]),out=[];
+ const test=b=>{if(!b||!b.date||b.date>=lim||seen.has(b.link))return;const g=wsig(b);if(g.size<3)return;let sh=0;for(const w of sg)if(g.has(w))sh++;if(sh>=3&&sh/Math.min(sg.size,g.size)>=.6){seen.add(b.link);out.push(b)}};
+ for(const f of S.feeds)for(const b of (items[f.id]||[]))test(b);
+ (S.hist||[]).slice(0,400).forEach(h=>{if(h.t)test(histStory(h))});
+ return out.sort((x,y)=>y.date-x.date).slice(0,4);
+}
+function rdPrev(){
+ const c=$('.cols'),b=c&&c.querySelector('.body'),a=curA;if(!c||!b||!a||R.web)return;
+ const old=c.querySelector('.rprev');if(old&&old.dataset.for===a.link)return;if(old)old.remove();
+ const l=prevStories(a);if(!l.length)return;
+ const d=document.createElement('div');d.className='rprev';d.setAttribute('role','group');d.dataset.for=a.link;d.setAttribute('aria-label','Previously');
+ d.innerHTML='<b>Previously</b><ol>'+l.map(x=>`<li><time>${esc(new Date(x.date).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}))}</time> <button type="button" data-prev="${esc(x.link)}">${esc(x.title)}</button> <span>${esc(fof(x).title||'')}</span></li>`).join('')+'</ol>';
+ if(isVert())b.before(d);else{const rt=b.querySelector('.rtags'),rf=b.querySelector('.rfoot');if(rt)rt.before(d);else if(rf)rf.before(d);else b.append(d)}
+}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-prev]');if(!t)return;e.preventDefault();e.stopPropagation();const l=t.dataset.prev;const st=findStory(l)||(S.hist||[]).map(histStory).find(x=>x.link===l);if(st)openReader(st)},true);
+
 function peTod(h){h=h==null?new Date().getHours():h;return h<5?'night':h<8?'dawn':h<12?'morning':h<17?'afternoon':h<22?'evening':'night'}
 function peStreak(){
  try{
