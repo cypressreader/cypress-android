@@ -2672,6 +2672,19 @@ html.smooth .cover::before{mix-blend-mode:normal!important}
 .dcv-art::after{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(14,90,58,.35),rgba(8,40,28,.15) 45%,rgba(8,40,28,.45));mix-blend-mode:multiply;pointer-events:none}
 .dcv-sh{background:linear-gradient(180deg,rgba(4,22,15,.58) 0%,rgba(4,22,15,.10) 26%,rgba(4,22,15,.38) 52%,rgba(3,18,12,.9) 100%)}
 @media(prefers-reduced-motion:reduce){.dcv-art>img{transition:none}}
+/* experiment, cluster 9: print furniture */
+#grid.paper{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32 0 0 0 0 .26 0 0 0 0 .18 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.26'/%3E%3C/svg%3E");background-size:180px 180px}
+html.pdark #grid.paper{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .88 0 0 0 0 .8 0 0 0 .32 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E")}
+.dsec2{position:relative}
+.dfolio{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 10px;font:600 10px var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--mut)}
+.dfolio span:nth-child(2){font-family:var(--disp);font-size:13px;letter-spacing:.14em;font-weight:400}
+.ddiv{grid-column:1/-1;display:flex;align-items:center;gap:14px;margin:6px 0 26px;color:var(--ink);opacity:.8}
+.ddiv::before,.ddiv::after{content:'';flex:1;height:1px;background:currentColor;opacity:.55}
+.ddiv svg{flex:none;width:112px;height:32px}
+.ddek{margin:0 0 20px;font:400 17px/1.55 var(--serif,Georgia,serif);color:var(--mut);max-width:34em}
+.ddek::first-letter{float:left;font:400 3.3em/.8 var(--disp);padding:.06em .1em 0 0;color:var(--a1,var(--ink));font-synthesis:none}
+@media(min-width:900px){.dsec2 .dfolio{position:absolute;left:-30px;top:4px;margin:0;writing-mode:vertical-rl;transform:rotate(180deg);gap:14px;white-space:nowrap}}
+.card h3{font-size-adjust:.5}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -3582,7 +3595,7 @@ function openTx(c,a){
 }
 const skel=n=>'<span class="skhid" role="status">Loading stories…</span><div class="skc ld" aria-hidden="true"></div>'+'<div class="skc" aria-hidden="true"></div>'.repeat(n);
 function render0(){
- NRS=nrMode();$('#grid').classList.remove('nr','nrp','wire');
+ NRS=nrMode();$('#grid').classList.remove('nr','nrp','wire','paper');
  side();$('#grid').classList.toggle('list',S.view==='list');
  let fs=S.feeds,t='All stories';
  if(S.sel.startsWith('f:')){const id=S.sel.slice(2);fs=S.feeds.filter(x=>x.folder===id);t=S.folders.find(f=>f.id===id)?.name||t}
@@ -4160,6 +4173,18 @@ function colophonHtml(count){
  const am=edKind()==='m',d=new Date(),issue=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
  return `<footer class="colo"><b>Colophon</b><p>The ${am?'Morning':'Evening'} Edition, No. ${issue}. ${count} ${count===1?'story':'stories'}, chosen on this device from the sites you follow. Set in ${esc(fontName('--serif','Georgia'))} and ${esc(fontName('--sans','the system sans'))}. Nothing here was sent anywhere.</p></footer>`;
 }
+/* print furniture: folio running heads with the edition number, illustrated section dividers, a dek with a drop cap under each section head */
+function dividerHtml(n){
+ const t=(x,h)=>`<path d="M${x} 30C${x-4} 30 ${x-5} ${30-h*.6} ${x} ${30-h}C${x+5} ${30-h*.6} ${x+4} 30 ${x} 30z"/>`;
+ const sets=[[[20,22],[46,16],[56,28],[70,18],[92,24]],[[14,16],[34,26],[56,20],[78,28],[100,16]],[[24,20],[44,28],[56,14],[68,26],[88,18]]][n%3];
+ return `<div class="ddiv" role="presentation"><svg viewBox="0 0 112 32" fill="currentColor" aria-hidden="true" focusable="false">${sets.map(([x,h])=>t(x,h)).join('')}<path d="M4 30.5H108" stroke="currentColor" stroke-width="1" fill="none"/></svg></div>`;
+}
+const DAYDEK={
+ front:['The stories that shaped the hours since you last looked, in the order that matters.','Start here. These are the ones your sites agree are worth your time.'],
+ brief:['Short reads for short moments: each takes about as long as the kettle.','Quick, complete, and done before the toast pops.'],
+ deep:['For when you have time. Settle in and let these take theirs.','The long way round: a few stories worth a proper sit-down.'],
+ more:['Everything else that made the issue, for the curious.','The rest of the day, tucked in at the back like the classifieds.']
+};
 function daySections(list,mode){
  const ix=a=>cur.indexOf(a),C=(a,k)=>card(a,ix(a),k),B=[],base=ix(list[0]);
  const lead=cur[0],pool=DAYPOOL||[];
@@ -4174,7 +4199,10 @@ function daySections(list,mode){
  const used=new Set(quick.concat(deep)),more=rest.filter(a=>!used.has(a));
  const brief=quick.length>=2;if(!brief)quick.forEach(a=>more.unshift(a));
  let n=0;const secs=[];
- const sh=(id,t,sub,count,unit)=>{n++;const nn=String(n).padStart(2,'0');secs.push([id,nn,t,count,unit]);return `<h3 class="dsh" id="dsec-${id}"><span><i class="dsn">${nn}</i> — ${t}</span>${sub?`<small>${sub}</small>`:''}</h3>`};
+ const issue=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/864e5);
+ const sh=(id,t,sub,count,unit)=>{n++;const nn=String(n).padStart(2,'0');secs.push([id,nn,t,count,unit]);const dk=(DAYDEK[id]||[])[peHash(edKey()+id)%2]||'';return (n>1?dividerHtml(n):'')+`<div class="dfolio"><span>No. ${issue}</span><span>${t}</span><span>${nn}</span></div><h3 class="dsh" id="dsec-${id}"><span><i class="dsn">${nn}</i> — ${t}</span>${sub?`<small>${sub}</small>`:''}</h3>${dk?`<p class="ddek">${dk}</p>`:''}`};
+ /* a pull quote after every fifth headline row, when that story has a line worth lifting */
+ const rowsQ=arr=>{let h='',buf='',k=0;const wrap=x=>mode==='w'?`<div class="nr-river"><div class="nr-rv">${x}</div></div>`:`<div class="nr-ph-rows nr-ph-in">${x}</div>`;for(const a of arr){buf+=C(a,'nr nr-row nr-s');k++;if(k%5===0){const pq=pullQuoteHtml(a);if(pq){h+=wrap(buf)+pq;buf=''}}}return h+(buf?wrap(buf):'')};
  const frontCount=front.length+(lead?1:0);
  SMARTV=true;NRLAB='Next up';
  B.push(`<div class="dsec2">${sh('front','The Front Page','',frontCount,'stories')}</div>`);
@@ -4186,8 +4214,7 @@ function daySections(list,mode){
  if(num)B.push(ritualHtml('num',num.a,num.n));
  if(deep.length)B.push(`<section class="dsec2 ddv">${sh('deep','Deep Dives','Settle in',deep.length,'long reads')}${deep.map(a=>`<div class="nr-color">${C(a,'nr nr-colr')}</div>`).join('')}</section>`);
  if(more.length){
-  const rows=more.map(a=>C(a,'nr nr-row nr-s')).join('');
-  B.push(`<section class="dsec2">${sh('more',deep.length||brief?'Also in this issue':'More from your sites','',more.length,'stories')}${mode==='w'?`<div class="nr-river"><div class="nr-rv">${rows}</div></div>`:`<div class="nr-ph-rows nr-ph-in">${rows}</div>`}</section>`);
+  B.push(`<section class="dsec2">${sh('more',deep.length||brief?'Also in this issue':'More from your sites','',more.length,'stories')}${rowsQ(more)}</section>`);
  }
  B.push(dayEndCard());
  B.push(colophonHtml(DGL.length));
@@ -4249,7 +4276,7 @@ const dtab=()=>DTABS.some(x=>x[0]===S.dtab)?S.dtab:'latest';
 /* minutes to read: the measured time if the story has been opened, else from the feed's own text when that is long enough to mean something (a short teaser says nothing about the real length) */
 const minsOf=a=>{const m=S.rt[a.link];if(m)return m;const w=+a.wc||0;return w>=120?Math.max(1,Math.round(w/230)):0};
 function renderToday(tab0,pool0,seg0,ttl0){
- const g=$('#grid');const tab=tab0||'latest';$('#ttl').textContent=ttl0||'The Daily',SEG=seg0||bmSeg('front');
+ const g=$('#grid');const tab=tab0||'latest';g.classList.toggle('paper',tab==='latest');$('#ttl').textContent=ttl0||'The Daily',SEG=seg0||bmSeg('front');
  const pool=pool0||(tab==='latest'?topOf(S.feeds,400,new Set(),null,true):topOf(S.feeds,200,new Set()));
  if(!pool.length){
   const busy=S.feeds.some(f=>state[f.id]==='load'||!state[f.id]);
