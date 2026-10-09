@@ -2947,6 +2947,9 @@ html.dkart #fin .fin-frame{border-color:#2d8a5e}
 .wcaught h3{margin:4px 0 6px;font:400 34px/1.05 var(--disp,var(--serif))}
 .wcaught p{margin:0;font:400 15px var(--sans);color:var(--mut)}.wcaught .wc-s{margin-top:10px;font:italic 400 18px/1.3 var(--disp,var(--serif));color:var(--ink)}
 @media(prefers-reduced-motion:reduce){.wc-svg path{animation:none}}
+/* cluster 0: edition error state */
+.dterr{grid-column:1/-1;margin:30px 0;padding:34px 20px;text-align:center;border-top:3px double var(--ink);border-bottom:1px solid var(--ln)}
+.dterr small{font:700 10.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}.dterr h2{margin:6px 0;font:400 34px/1.05 var(--disp,var(--serif))}.dterr p{margin:0 0 14px;font:italic 400 17px var(--disp,var(--serif));color:var(--mut)}
 /* cluster L: Sunday Issue */
 .sun{margin:4px 0 34px}
 .sun-m{text-align:center;padding:22px 0 26px;border-top:3px double var(--ink);border-bottom:1px solid var(--ln);margin-bottom:34px}
@@ -4818,9 +4821,18 @@ function likeA(a,d,msg){const k=S.lk=S.lk||{s:{},w:{}},prev=JSON.stringify(k);
  save();render();toast(msg||(d>0?'You’ll see more like this':'You’ll see less like this'),()=>{S.lk=JSON.parse(prev);save();render()})}
 /* a feed (or its whole folder) can be kept out of The Daily, the Brief, the Edition and the Week; it still shows in All stories and in its own feed */
 const inDaily=f=>!!f&&!f.noToday&&!(S.folders.find(x=>x.id===f.folder)||{}).noToday;
+/* real feeds are untidy: items with no title, no date, no link or odd values must never break an edition. Fixed in place, once. */
+function itemFix(a){
+ if(!a||!a.link)return false;
+ if(typeof a.title!=='string'||!a.title.trim()){try{a.title=(String(a.summary||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,90))||host(a.link)||'Untitled'}catch(e){a.title='Untitled'}}
+ if(typeof a.date!=='number'||!isFinite(a.date))a.date=+a.date>0?+a.date:0;
+ if(a.summary!=null&&typeof a.summary!=='string')a.summary=String(a.summary);
+ if(a.img!=null&&typeof a.img!=='string')a.img='';
+ return true;
+}
 function topOf(fs,n,skip,pred,nocap){
  fs=fs.filter(f=>!paused(f)&&inDaily(f));
- let l=fs.flatMap(f=>items[f.id]||[]).filter(a=>!muted(a)&&!skip.has(a.link)&&(!pred||pred(a))&&!(S.hideRead&&S.read[a.link])).sort((a,b)=>b.date-a.date);
+ let l=fs.flatMap(f=>items[f.id]||[]).filter(a=>itemFix(a)&&!muted(a)&&!skip.has(a.link)&&(!pred||pred(a))&&!(S.hideRead&&S.read[a.link])).sort((a,b)=>b.date-a.date);
  if(l.length>300)l=l.slice(0,Math.max(300,(n||0)*12));/* only the newest stories compete for The Daily, so grouping stays fast with many feeds */
  if(S.group!==false)l=group(l);
  if(fs.length>1&&!nocap)l=capList(l);/* the For you list ranks everything itself, so it isn't capped per site */
@@ -5097,8 +5109,12 @@ function backCoverHtml(count,trend){
   +`<div class="dbk-next"><p class="dbk-k">Next issue</p><p class="dbk-ed">${nx.name}</p><p class="dbk-at">Arrives at ${nx.at}, in ${nx.left}.</p><p class="dbk-t">${tease}</p></div>`
   +`<p class="dbk-colo"><b>Colophon</b>The ${am?'Morning':'Evening'} Edition, No. ${issue}. ${count} ${count===1?'story':'stories'}, chosen on this device from the sites you follow. Set in Instrument Serif and ${esc(fontName('--sans','the system sans'))}. Nothing here was sent anywhere.</p></div></section>`;
 }
+/* if an edition truly cannot be set, say so in the magazine's own voice; never fall back to the old plain list */
+function dayErrorHtml(){
+ return `<section class="dterr" role="alert"><small>The Daily</small><h2>The press jammed</h2><p>Something in today’s stories kept this edition from being set. Your reading is safe.</p><button type="button" class="go" data-ea="rf">Try again</button></section>`;
+}
 function daySections(list,mode){
- const ix=a=>cur.indexOf(a),C=(a,k)=>card(a,ix(a),k),B=[],base=ix(list[0]);
+ const ix=a=>cur.indexOf(a),C=(a,k)=>card(a,ix(a),k),B=[],base=list.length?ix(list[0]):cur.length;
  const lead=cur[0],pool=DAYPOOL||[];
  const front=list.slice(0,6);
  /* the two rituals may borrow a story from further down the issue; it is then shown there and not again in the lists */
@@ -5122,7 +5138,7 @@ function daySections(list,mode){
  SMARTV=true;NRLAB='Next up';
  B.push(`<div class="dsec2">${sh('front','The Front Page','',frontCount,'stories')}</div>`);
  if(lead&&!lead.read){B.push(royalHtml(lead,0));const L=ledeOf(lead),cand=[lead].concat(front),pick=cand.find(x=>{const q=nrQuoteText(x);return q&&q.real&&q.q!==L})||front.find(x=>{const q=nrQuoteText(x);return q&&q.q!==L});const pq=pick?pullQuoteHtml(pick):'';if(pq)B.push(pq)}
- (mode==='w'?nrBlocks(front,base):nrBlocksPhone(front,base)).forEach(b=>B.push(b));
+ if(front.length)(mode==='w'?nrBlocks(front,base):nrBlocksPhone(front,base)).forEach(b=>B.push(b));
  NRLAB='Latest';SMARTV=false;
  if(good)B.push(ritualHtml('good',good));
  if(brief)B.push(`<section class="dsec2">${sh('brief','The Brief','Short reads, a few minutes each',quick.length,'short reads')}<div class="dq">${quick.map(a=>C(a,'nr dq-c')).join('')}</div></section>`);
@@ -5232,12 +5248,12 @@ function renderToday(tab0,pool0,seg0,ttl0){
  }
  const base=cur.length;
  list.forEach(a=>{cur.push(a);if(!WHY[a.link])WHY[a.link]=tab==='latest'?(WHY[a.link]||`One of your newest stories, from ${fof(a).title}.`):tab==='quick'?`A short read (about ${minsOf(a)} min) from ${fof(a).title}.`:`A long read (about ${minsOf(a)} min) from ${fof(a).title}.`});
- if(!list.length){g.innerHTML=h+`<div class="empty dempty">${esc(empty||'Nothing here yet.')}</div>`;return}
+ if(!list.length&&tab!=='latest'){g.innerHTML=h+`<div class="empty dempty">${esc(empty||'Nothing here yet.')}</div>`;return}
  /* with enough stories the list gets the same varied layout the feeds have: a lead story, pairs, photo strips, pull quotes, short headline rows */
- const mode=(list.length>=6||tab==='deep')?nrMode():'';
+ const mode=tab==='latest'?(nrMode()||(VW<NRMIN?'p':'w')):(list.length>=6||tab==='deep')?nrMode():'';
  if(label&&!(mode&&(label==='Latest'||tab==='latest')))h+=`<div class="dlh">${esc(label)}</div>`; /* the varied layouts already carry their own Latest heading */
  if(mode){g.classList.add('nr');if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
-  let bl;if(tab==='latest')bl=daySections(list,mode)
+  let bl;if(tab==='latest'){try{bl=daySections(list,mode)}catch(e){elog('daySections',e);g.innerHTML=h+dayErrorHtml();return}}
   else bl=tab==='deep'?magHtml(list,base,mode,'deep'):mode==='w'?nrBlocks(list,base):nrBlocksPhone(list,base);
   setBlocks(h,bl,9,3);return}
  g.dataset.cards='narrow';g.innerHTML=h+list.map((a,i)=>card(a,base+i,'')).join('')+(tab==='latest'?dayEndCard():'');
