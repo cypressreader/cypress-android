@@ -20,7 +20,7 @@ for(const [n,w,h] of [['fold',884,1000],['phone',380,820]]){
  await E(()=>{delete S.dynx;S.theme='light';applyTheme(false)});
  // list view on narrow
  await E(()=>{closeAll&&0}).catch(()=>{});
- await E(()=>{S.view='list';S.cards='narrow';save();render()});await p.waitForTimeout(300);
+ await E(()=>{S.view='list';S.cards='narrow';S.sel='all';save();render()});await p.waitForTimeout(300);
  ck(n+' list card grid not broken',await E(()=>{const c=document.querySelector('#grid .card');if(!c)return false;const r=c.getBoundingClientRect();return r.height<200&&r.width>150}));
  ck(n+' no why in list',await E(()=>{const y=document.querySelector('.grid.list .why');return S.sel==='today'||!y||getComputedStyle(y).display==='none'}));
  // section opener
