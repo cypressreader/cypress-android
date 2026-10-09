@@ -2685,6 +2685,14 @@ html.pdark #grid.paper{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .ddek::first-letter{float:left;font:400 3.3em/.8 var(--disp);padding:.06em .1em 0 0;color:var(--a1,var(--ink));font-synthesis:none}
 @media(min-width:900px){.dsec2 .dfolio{position:absolute;left:-30px;top:4px;margin:0;writing-mode:vertical-rl;transform:rotate(180deg);gap:14px;white-space:nowrap}}
 .card h3{font-size-adjust:.5}
+/* experiment, cluster 10: motion */
+.dcv-art{inset:-4% 0 -12%;will-change:transform;transform:translate3d(0,calc(var(--par,0)*26%),0) scale(calc(1.06 + var(--par,0)*.05))}
+.dcov .dcv-top{opacity:calc(1 - var(--par,0)*.9)}
+.dcov .dcv-main{opacity:calc(1 - var(--par,0)*1.7);transform:translate3d(0,calc(var(--par,0)*-34px),0);will-change:opacity,transform}
+@keyframes tin{from{opacity:0;transform:translate3d(var(--dx,18px),0,0)}to{opacity:1;transform:none}}
+#grid.tin>*{animation:tin .38s cubic-bezier(.2,.7,.2,1) both}
+#grid.tin>*:nth-child(n+4){animation-duration:.46s}
+@media(prefers-reduced-motion:reduce){.dcv-art,.dcov .dcv-main{transform:none!important;opacity:1!important}#grid.tin>*{animation:none}}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -3786,6 +3794,33 @@ function wireSavePos(){
   const tr=e.target.closest&&e.target.closest('[data-trend]');if(tr){e.preventDefault();e.stopPropagation();openSearch(true);$('#q').value=tr.dataset.trend;render()}
  },true);
 }
+/* ---- experiment, cluster 10: motion ----
+   The cover art drifts slower than the page while you scroll, the headline fades and lifts away, and the story flow rises over it.
+   Moving between Today, Brief, Headlines and Week slides and fades the new page in. Both stand down when the phone asks for reduced motion. */
+function cvPar(){
+ const m=$('main'),c=document.querySelector('.dcov');if(!m||!c)return;
+ if(reduced()){c.style.removeProperty('--par');return}
+ const r=c.getBoundingClientRect(),mr=m.getBoundingClientRect(),p=Math.max(0,Math.min(1,(mr.top-r.top)/Math.max(1,r.height)));
+ c.style.setProperty('--par',p.toFixed(3));
+}
+{
+ const m=$('main');let raf=0;
+ if(m)m.addEventListener('scroll',()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;cvPar()})},{passive:true});
+ addEventListener('resize',()=>cvPar());
+}
+const DTAB_ORDER=['front','brief','edition','week'];
+function dayTabKey(){return S.sel==='today'?'front':S.sel==='brief'?'brief':S.sel==='digest'?(S.dgk==='week'?'week':'edition'):''}
+let TABPREV='';
+function tabAnim(){
+ const k=dayTabKey(),prev=TABPREV;TABPREV=k;
+ try{cvPar()}catch(e){}
+ if(!k||!prev||k===prev||reduced())return;
+ const g=$('#grid');if(!g)return;
+ g.style.setProperty('--dx',(DTAB_ORDER.indexOf(k)>DTAB_ORDER.indexOf(prev)?1:-1)*22+'px');
+ g.classList.remove('tin');void g.offsetWidth;g.classList.add('tin');
+ clearTimeout(tabAnim.t);tabAnim.t=setTimeout(()=>g.classList.remove('tin'),520);
+}
+{const _r=render;render=function(){_r.apply(this,arguments);tabAnim()}}
 function mastHtml(f,list){
  if(!f)return'';const col=brand(f),hs=host(f.url).replace(/^www\./,'');const nm=esc(f.title||hs);
  return `<div class="mst2" style="--mb:${col}"><div class="mr"><div class="mt" aria-hidden="true">${esc((f.title||hs).trim().charAt(0).toUpperCase())}</div><div style="min-width:0"><h2 class="mn">${nm}</h2>${f.desc?`<div class="mg">${esc(String(f.desc).slice(0,140))}</div>`:''}<div class="mu">${esc(hs)}</div></div></div></div>`;
