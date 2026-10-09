@@ -67,7 +67,7 @@ for(const [vp,w,h,touch] of VPS){
  await E(()=>{S.read={};S.sel='today';render()});
  ck(vp,'5-minute chip on Today',await E(()=>!!document.querySelector('[data-five]')));
  await E(()=>document.querySelector('[data-five]').click());await p.waitForTimeout(400);
- const fm=await E(()=>({sel:S.sel,n:S.brief.links.length,five:S.brief.five,t:S.brief.links.reduce((n,l)=>n+(readMin(findStory(l))||3),0),head:document.querySelector('.bhead h2')&&document.querySelector('.bhead h2').textContent}));
+ const fm=await E(()=>({sel:S.sel,n:S.brief.links.length,five:S.brief.five,t:S.brief.links.reduce((n,l)=>n+(readMin(findStory(l))||3),0),head:document.querySelector('.bhead')&&document.querySelector('.bhead').textContent}));
  ck(vp,'5-minute read built',fm.sel==='brief'&&fm.n>=1&&fm.t<=6&&fm.five===1&&/5-minute/.test(fm.head),JSON.stringify(fm));
  // reader menu
  await E(()=>{S.sel='all';render();openReader(cur[0])});await p.waitForTimeout(600);
