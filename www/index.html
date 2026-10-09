@@ -2896,6 +2896,15 @@ html.dkart .rbrk,html.dkart .rf-fin{color:var(--brass)}
 html.dkart .pullq{border-left-color:var(--brass)}
 html.dkart .bmseg.dtabs button::after{background:var(--brass)}
 html.dkart #fin .fin-frame{border-color:#2d8a5e}
+/* cluster H: tablet two-pane Today */
+.d2{grid-column:1/-1;display:grid;grid-template-columns:minmax(320px,5fr) minmax(0,7fr);gap:46px;align-items:start}
+.d2l{position:sticky;top:8px;min-width:0}
+.d2l .dcov{min-height:0;height:calc(100vh - 140px);max-height:820px;margin:0;border-radius:18px;box-shadow:0 0 0 2px #0f5a3b}
+.d2l .dcv-main{padding:36px 26px 12px}.d2l .dcv-prog{padding:0 22px 22px}
+.d2l .dcov .dcv-lead h2,.d2l .dcov .dcv-lead.long h2{font-size:clamp(34px,4.2vw,58px);-webkit-line-clamp:5}.d2l .dcv-mast{font-size:clamp(26px,3.2vw,40px)}.d2l .dcv-note{font-size:16px}
+.d2r{min-width:0}
+#grid .d2r .nr-lsub{column-count:1}
+.d2r>.dateline{padding-top:0}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4439,6 +4448,18 @@ function genreApply(){
  }else if(k==='week'&&g.querySelector('.dg.wk'))g.classList.add('gen-sun');
 }
 {const _r5=render;render=function(){_r5.apply(this,arguments);try{genreApply()}catch(e){}}}
+/* cluster H: on tablets the Today edition becomes a two-pane spread: the cover stays put on the left while the story flow scrolls on the right. Phones are untouched. */
+function d2Apply(){const g=$('#grid');if(!g)return;
+ const want=window.innerWidth>=900&&!document.body.classList.contains('split');
+ const w=g.querySelector(':scope>.d2'),cv=g.querySelector(':scope>.dcov');
+ if(w&&!want){const l=w.querySelector('.d2l'),r=w.querySelector('.d2r');const f=document.createDocumentFragment();[...l.childNodes,...r.childNodes].forEach(n=>f.appendChild(n));w.replaceWith(f);return}
+ if(!want||w||!cv)return;
+ const wr=document.createElement('div');wr.className='d2';const l=document.createElement('div');l.className='d2l';const r=document.createElement('div');r.className='d2r';
+ wr.append(l,r);cv.before(wr);l.appendChild(cv);
+ let n=wr.nextSibling;while(n){const x=n;n=n.nextSibling;r.appendChild(x)}
+}
+{const _r6=render;render=function(){_r6.apply(this,arguments);try{d2Apply()}catch(e){}}}
+{let t=0,was=window.innerWidth>=900;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{const now=window.innerWidth>=900;if(now!==was){was=now;if(now)try{render()}catch(e){}else try{d2Apply()}catch(e){}}},200)})}
 /* 15: what changed since this morning */
 function editionDiff(pool){
  if(edKind()!=='e')return null;
