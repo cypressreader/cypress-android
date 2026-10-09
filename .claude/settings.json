@@ -3,5 +3,18 @@
     "allow": [
       "Bash(git push origin HEAD:main)"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); if echo \"$input\" | grep -q '\"file_path\"[^}]*www/index.html'; then cp www/index.html docs/app/index.html && echo 'Hook: synced docs/app/index.html'; fi"
+          }
+        ]
+      }
+    ]
   }
 }
