@@ -4023,13 +4023,25 @@ function wireThreads(list){
  }
  return out;
 }
-function wireTrending(list){
+function wireTrending(list,multi){
  const lim=Date.now()-24*36e5,c={};
  for(const a of list){
-  if(a.date<lim)continue;const f=a.feedId,seen=new Set();
+  if(!a||!(a.date>=lim))continue;const f=a.feedId,seen=new Set();
   for(const w of (String(a.title||'').match(/\b[A-Z][a-zA-Z'’-]{3,}\b/g)||[])){const k=w.toLowerCase();if(STOP.has(k)||seen.has(k))continue;seen.add(k);const e=c[k]||(c[k]={w,n:0,f:new Set()});e.n++;e.f.add(f)}
  }
- return Object.values(c).filter(e=>e.n>=3&&e.f.size>=2).sort((x,y)=>y.n-x.n||y.f.size-x.f.size).slice(0,6);
+ const all=Object.values(c),need=multi===false?1:2,pick=(n)=>all.filter(e=>e.n>=n&&e.f.size>=need).sort((x,y)=>y.n-x.n||y.f.size-x.f.size).slice(0,6);
+ /* three mentions is a trend; when the day is quiet, two mentions across sites still make a thread worth following */
+ const a=pick(3);return a.length?a:pick(2);
+}
+/* The trending strip is computed from everything recent in the selection, not from whatever happens to be on screen, and the last good strip is kept for a while: it stays put when you navigate away and back, or the ranking shifts. */
+function wireStrip(cn){
+ const k=S.sel,now=Date.now();WIRE.tr=WIRE.tr||{};
+ let feeds=S.feeds.filter(f=>!paused(f));
+ if(k.startsWith('s:'))feeds=feeds.filter(f=>'s:'+f.id===k);else if(k.startsWith('f:'))feeds=feeds.filter(f=>f.folder===k.slice(2));
+ const pool=k.startsWith('k:')?cn:feeds.flatMap(f=>items[f.id]||[]).filter(a=>!muted(a));
+ let l=wireTrending(pool,feeds.length>1||k.startsWith('k:'));
+ if(l.length)WIRE.tr[k]={t:now,l};else if(WIRE.tr[k]&&now-WIRE.tr[k].t<3*36e5)l=WIRE.tr[k].l;
+ return l;
 }
 const wireClock=t=>new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
 /* The age groups are measured from an anchor that is fixed for the whole visit, not from the clock: when you come back after hours away the anchor is the moment you left,
@@ -4117,7 +4129,7 @@ function wireRender(pre,list,T){
  else B.push(`<section class="wend"><p>That is the end of ${T?'this topic':f1?esc(f1.title):S.sel==='all'?'the wire':'this list'} for now. ${unread} unread${S.sel==='all'?' across your sites':''}${pend?`, ${pend} new ${pend===1?'story':'stories'} waiting`:''}.</p>${pend?`<button type="button" class="tx2" data-wire="load">Load the new ${pend===1?'story':'stories'}</button>`:''}</section>`);
  cur=cn;
  newN=vis?cn.filter(a=>a.date>vis).length:0;WIRE.newN=newN;
- const tr=f1||T?[]:wireTrending(cn),clock=vis?wireClock(vis):'';
+ const tr=T?[]:wireStrip(cn),clock=vis?wireClock(vis):'';
  const head=pre+(f1?feedMast(f1,unread):'')+(pend?`<button type="button" class="wpill" data-wire="load" aria-live="polite">${pend} new ${pend===1?'story':'stories'} — tap to load</button>`:'')
   +`<div class="wmeta"><div class="nr-meta">${cn.length} stories${S.hideCount?'':' · '+unread+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>${densHtml()}</div>`
   +(tr.length?`<div class="wtrend" role="group" aria-label="Trending topics"><span>Trending</span>${tr.map(e=>`<button type="button" data-trend="${esc(e.w)}">${esc(e.w)}<i>${e.n}</i></button>`).join('')}</div>`:'');
