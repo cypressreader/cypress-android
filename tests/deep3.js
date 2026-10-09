@@ -110,7 +110,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060],['desk',1280,900]]){
 for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  const p=await mk(b,{w,h,mob:w<500,seedData:seed(SITES,{sel:'today',narrow:'off',cvs:'poster'})});const E=p.E;
  ck(vp,'cover on Today',await E(()=>!!$('.cover')&&!!$('.cover .cvlead h2')&&document.querySelectorAll('.cover .cvl').length>=2));
- ck(vp,'cover no dup in sections',await E(()=>{const ls=[...document.querySelectorAll('#grid .card')].map(c=>c.getAttribute('href'));const cv=[...document.querySelectorAll('.cvl,.cvlead')].map(c=>c.getAttribute('href'));return !ls.some(l=>cv.includes(l))}));
+ ck(vp,'cover no dup in sections',await E(()=>{const ls=[...document.querySelectorAll('#grid .card')].map(c=>chref(c));const cv=[...document.querySelectorAll('.cvl,.cvlead')].map(c=>c.getAttribute('href'));return !ls.some(l=>cv.includes(l))}));
  await p.screenshot({path:`/tmp/t/v3-${vp}-cover.png`});
  await p.tap('.cvl');await W(800);ck(vp,'cover line opens story',await E(()=>$('#rd').classList.contains('on')));await p.tap('#cl');await W(300);
  await E(()=>{$('main').scrollTop=0});

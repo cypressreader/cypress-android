@@ -21,11 +21,11 @@ for(const [vp,w,h,touch] of VPS){
  ck(vp,'default preload mode top10',await E(()=>pfMode()==='top10'));
  // top 10 in view cached
  await E(()=>{S.sel='all';S.capn=0;render()});await p.waitForTimeout(6000);
- const c10=await E(()=>{const by=storyMap();const l=[...document.querySelectorAll('#grid a.card')].map(c=>by.get(c.getAttribute('href'))).filter(Boolean).slice(0,10);return l.filter(a=>acGet(a.link)).length+'/'+l.length});
+ const c10=await E(()=>{const by=storyMap();const l=[...document.querySelectorAll('#grid .card[data-i]')].map(c=>by.get(chref(c))).filter(Boolean).slice(0,10);return l.filter(a=>acGet(a.link)).length+'/'+l.length});
  ck(vp,'top 10 stories prepared',c10.startsWith('10/'),c10);
  // rolling refill
  const before=await E(()=>Object.keys(AC).length);
- await E(()=>{const by=storyMap();const cards=[...document.querySelectorAll('#grid a.card')].map(c=>by.get(c.getAttribute('href')));readAhead(cards[9])});await p.waitForTimeout(3500);
+ await E(()=>{const by=storyMap();const cards=[...document.querySelectorAll('#grid .card[data-i]')].map(c=>by.get(chref(c)));readAhead(cards[9])});await p.waitForTimeout(3500);
  const after=await E(()=>Object.keys(AC).length);
  ck(vp,'rolling refill adds stories ahead',after>before,before+'→'+after);
  // logo pulse shows checkmarks kept
@@ -48,12 +48,12 @@ for(const [vp,w,h,touch] of VPS){
  ck(vp,'offline fetchText rejects',await E(async()=>{try{await fetchText('https://alpha.test/feed');return false}catch(e){return /Offline/.test(e.message)}}));
  ck(vp,'offline blocks preload',await E(()=>pfAllowed()===false));
  await E(()=>loadAll(true));await p.waitForTimeout(400);
- ck(vp,'offline keeps cached stories',await E(()=>document.querySelectorAll('#grid a.card').length>3));
+ ck(vp,'offline keeps cached stories',await E(()=>document.querySelectorAll('#grid .card[data-i]').length>3));
  await E(()=>{S.offline=false;offApply(true)});await p.waitForTimeout(2500);
  ck(vp,'offline off restores',await E(()=>!document.body.classList.contains('offl')));
  // per-site cap
  await E(()=>{S.capn=3;S.sort='new';S.sel='all';render()});
- const per=await E(()=>{const by=storyMap(),c={};[...document.querySelectorAll('#grid a.card')].forEach(a=>{const x=by.get(a.getAttribute('href'));if(x)c[x.feedId]=(c[x.feedId]||0)+1});return Math.max(...Object.values(c))});
+ const per=await E(()=>{const by=storyMap(),c={};[...document.querySelectorAll('#grid .card[data-i]')].forEach(a=>{const x=by.get(chref(a));if(x)c[x.feedId]=(c[x.feedId]||0)+1});return Math.max(...Object.values(c))});
  ck(vp,'per-site cap in All',per<=3,String(per));
  await E(()=>{S.capn=0;S.sort='smart';render()});
  // like ranking

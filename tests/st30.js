@@ -11,7 +11,7 @@ const res=await p.evaluate(async(ids)=>{const out=[];const s=document.createElem
  items[f.id]=Array.from({length:3},(_,i)=>({feedId:f.id,title:'Reader legibility '+i,link:'https://w.test/'+i,date:now-i*36e5,summary:'x',html:'<p>Body text that must be readable in every theme and both modes.</p>'.repeat(3)}));
  S.sel='all';
  for(const id of ids)for(const sch of ['light','dark']){S.theme=id;S.sch=sch;applyTheme(false);render();await new Promise(r=>setTimeout(r,120));
-  const c=document.querySelector('#grid a.card');if(!c)continue;c.click();await new Promise(r=>setTimeout(r,500));
+  const c=document.querySelector('#grid .card[data-i]');if(!c)continue;c.click();await new Promise(r=>setTimeout(r,500));
   const L=c=>lumOf(anyRgb(c)),g=(e,p)=>e?getComputedStyle(e)[p]:null;
   const sh=document.querySelector('#rd .sheet,#sheet'),tt=document.querySelector('#rd .tt'),bp=document.querySelector('.cols .body p');
   const bg=g(sh,'backgroundColor'),a=[g(tt,'color'),g(bp,'color')].filter(Boolean);

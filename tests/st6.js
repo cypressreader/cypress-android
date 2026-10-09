@@ -59,7 +59,7 @@ for(const [vp,w,h,touch] of [['phone',380,820,true],['desktop',1280,900,false]])
   await E(()=>window.__emit('mediaAction',{action:'stop'}));
   // widget
   await E(()=>{S.widget=true;widgetPush()});await p.waitForTimeout(100);
-  ck(tag+' widget push',(await calls('widget')).length>=1||await E(()=>document.querySelectorAll('#grid a.card').length===0));
+  ck(tag+' widget push',(await calls('widget')).length>=1||await E(()=>document.querySelectorAll('#grid .card[data-i]').length===0));
  }
  ck(tag+' no page errors',errs.length===0,errs.join('|'));
  await ctx.close();}}

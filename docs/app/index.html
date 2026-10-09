@@ -676,6 +676,7 @@ u.nd{width:8px;height:8px;padding:0;border-radius:50%;background:var(--logo,var(
 .sech button{font-size:13px;color:var(--mut);padding:4px 8px}.sech button:hover{color:var(--ink);text-decoration:underline}
 @media(max-width:420px){.card.lead{grid-column:1/-1}}
 .card.read{opacity:.55}.card.read:hover{opacity:1}
+.card .cl{color:inherit;text-decoration:none}.card .cl::after{content:'';position:absolute;inset:0;z-index:1}button.star,button.why{padding:0;border:0;-webkit-appearance:none;appearance:none}button.star{font-family:inherit}
 .star{position:absolute;top:12px;right:12px;z-index:2;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.38);color:#fff;font-size:17px;display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(4px)}
 #rd.sep{--pn:#f3ead8;--ink:#3b3226;--bg:#e8dcc3;--ln:#d6c7a6;--mut:#7a6a50}
 :root[data-theme=dynamic] #rd{--pn:var(--rpn,color-mix(in srgb,var(--b) 9%,#fff));--bg:var(--rbg,color-mix(in srgb,var(--b) 15%,#fff));--ln:var(--rln,color-mix(in srgb,var(--b) 24%,#fff))}
@@ -3266,10 +3267,10 @@ function waterline(){
  const g=$('#grid');if(!g)return;g.querySelectorAll('.wline').forEach(e=>e.remove());
  const qq=$('#q');if(!VIS||!trackSel(S.sel)||(qq&&qq.value.trim()))return;
  const dm=new Map();for(const f of S.feeds)for(const a of (items[f.id]||[]))dm.set(a.link,a.date||0);
- const cs=[...g.querySelectorAll('a.card[href]')];let nw=0,old=null;
- for(const c of cs){const d=dm.get(c.getAttribute('href'));if(d==null)continue;if(d>VIS)nw++;else{old=c;break}}
+ const cs=[...g.querySelectorAll('.card[data-i]')];let nw=0,old=null;
+ for(const c of cs){const d=dm.get(chref(c));if(d==null)continue;if(d>VIS)nw++;else{old=c;break}}
  if(!old||!nw)return;
- const isNew=e=>{const c=e.matches&&e.matches('a.card[href]')?[e]:[...e.querySelectorAll('a.card[href]')];return c.some(x=>(dm.get(x.getAttribute('href'))||0)>VIS)};
+ const isNew=e=>{const c=e.matches&&e.matches('.card[data-i]')?[e]:[...e.querySelectorAll('.card[data-i]')];return c.some(x=>(dm.get(chref(x))||0)>VIS)};
  const el=document.createElement('div');el.className='wline';el.setAttribute('role','separator');el.innerHTML='<span>Before your last visit</span>';
  /* walk up from the first older story to the level where newer stories sit just before it, and draw the line there. In a side-by-side layout (a front-page column next to a rail) the line goes at the top of the older column instead, so it never cuts across the page */
  let node=old;
@@ -3519,16 +3520,18 @@ const dgCount=()=>{const n=DGL.filter(l=>S.read[l]).length;return{n,t:DGL.length
 function dgProgHtml(){const{n,t}=dgCount();if(t<3)return'';const done=n>=t;return `<div class="dgp${done?' done':''}" data-dgp><div class="dgt" role="status"><div class="rgw">${ringSvg(n,t,54,6)}<b>${done?'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>':n}</b></div><div><h3>${done?'Edition finished':n+' of '+t+' read'}</h3><p>${done?'You have read everything in this edition.':(t-n)+' '+(t-n===1?'story':'stories')+' left in this edition'}</p></div></div>${fiveBtns()}</div>`}
 function dgProgUpdate(){const el=document.querySelector('#grid [data-dgp]');if(!el||S.sel!=='today')return;const h=dgProgHtml();if(!h)return;const t=document.createElement('div');t.innerHTML=h;el.replaceWith(t.firstChild)}
 const RDY_MARK='<span class="rdy" title="Ready to read, even offline" aria-label="Ready"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>';
-function markReady(l){document.querySelectorAll('#grid .card').forEach(c=>{if(c.getAttribute('href')===l&&!c.querySelector('.rdy')){c.insertAdjacentHTML('beforeend',RDY_MARK);if(!userBusy())c.lastChild.classList.add('pop')}})}
+function markReady(l){document.querySelectorAll('#grid .card').forEach(c=>{if(chref(c)===l&&!c.querySelector('.rdy')){c.insertAdjacentHTML('beforeend',RDY_MARK);if(!userBusy())c.lastChild.classList.add('pop')}})}
 const PAYRE=/(^|\.)(nytimes\.com|wsj\.com|ft\.com|bloomberg\.com|economist\.com|washingtonpost\.com|theathletic\.com|barrons\.com|newyorker\.com|thetimes\.co\.uk|hbr\.org|bostonglobe\.com)$/;
 const isPay=a=>{try{return PAYRE.test(new URL(a.link).hostname)}catch(e){return false}};
 const PAYB='<span class="pw" title="Subscriber site. Tapping opens the site itself">Opens the site</span>';
 const favHost=f=>{const h=host(f.url);if(/(^|\.)(news\.google\.com|bing\.com|feedburner\.com|feedblitz\.com)$/.test(h)){const d=siteOf(f);if(d)return d}return h};
 /* pictures that have already loaded once appear at once when a list is redrawn; only a first load fades in (redraws used to make every picture blink) */
 const IMGOK=new Set();
+/* a story card is a container: one headline link plus separate Save and Why buttons beside it, never buttons inside a link */
+const chref=c=>(c&&((c.dataset&&c.dataset.href)||c.getAttribute('href')))||'';
 function card(a,i,k){
   const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],op=q0&&q0.v>=3&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="object-position:${q0.px}% ${q0.py}%"`:'';
-  return `<a class="card ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div><span class="star" data-star="${i}" title="Save" role="button" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</span>${WHY[a.link]?`<span class="why" data-why="${i}" role="button" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</span>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span>${isPay(a)?PAYB:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="Covered by ${a.more.length+1} of your sites">${a.more.length+1} sites</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}<time>${ago(a.date)}</time></div><h3>${esc(a.title)}</h3><p>${esc(a.summary)}</p>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></a>`;
+  return `<div class="card ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span>${isPay(a)?PAYB:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="Covered by ${a.more.length+1} of your sites">${a.more.length+1} sites</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}<time>${ago(a.date)}</time></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><p>${esc(a.summary)}</p>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
 }
 /*NEWSROOM*/
 const IS_SAFARI=(()=>{try{const u=navigator.userAgent;return /iP(hone|ad|od)/.test(u)||(/Safari\//.test(u)&&!/Chrome\/|Chromium\/|Android|Edg\/|OPR\/|CriOS|FxiOS/.test(u))}catch(e){return false}})();
@@ -4613,10 +4616,10 @@ function pfKick(){clearTimeout(pfKick.t);pfKick.t=setTimeout(()=>{if(!pfAllowed(
 /* while scrolling, the next ten cards below the screen are read ahead once the finger stops */
 function pfAhead(){
  if(!pfAllowed()||document.hidden||!pfTop())return;
- const by=storyMap(),vh=innerHeight,cs=[...document.querySelectorAll('#grid a.card')];let a=-1,z=-1;
+ const by=storyMap(),vh=innerHeight,cs=[...document.querySelectorAll('#grid .card[data-i]')];let a=-1,z=-1;
  cs.forEach((c,i)=>{const r=c.getBoundingClientRect();if(r.top<vh&&r.bottom>0){if(a<0)a=i;z=i}});
  if(a<0)return;
- prefetch(cs.slice(a,z+11).map(c=>by.get(c.getAttribute('href'))).filter(x=>x&&!S.read[x.link]),true)
+ prefetch(cs.slice(a,z+11).map(c=>by.get(chref(c))).filter(x=>x&&!S.read[x.link]),true)
 }
 $('main').addEventListener('scroll',()=>{clearTimeout(pfAhead.t);pfAhead.t=setTimeout(pfAhead,1200)},{passive:true});
 /* stubborn sites: for the first few stories the quick fetch leaves short or cut off, the slower routes (saved copy, Morss, partner copy) are tried quietly in the background, on Wi-Fi only */
@@ -4636,7 +4639,7 @@ function pfList(){
  }
  if(pfTop()){
   const by=storyMap(),out=[],n=pfN(),seen=new Set();
-  document.querySelectorAll('#grid a.card').forEach(c=>{const a=by.get(c.getAttribute('href'));if(a&&!S.read[a.link]&&!seen.has(a.link)){seen.add(a.link);out.push(a)}});
+  document.querySelectorAll('#grid .card[data-i]').forEach(c=>{const a=by.get(chref(c));if(a&&!S.read[a.link]&&!seen.has(a.link)){seen.add(a.link);out.push(a)}});
   /* the page only draws the first screens of cards, so a bigger number is filled from the rest of the list in the same order */
   if(n>out.length&&Array.isArray(cur))for(const a of cur){if(out.length>=n)break;if(a&&a.link&&!S.read[a.link]&&!seen.has(a.link)){seen.add(a.link);out.push(a)}}
   /* a view only lists its first 80, so a larger number carries on with the newest unread stories from all your sites */
@@ -4792,7 +4795,7 @@ function articleState(a,contentHtml){
  return {title:(a&&a.title)||m.headline||'',author:(a&&a.author)||m.author||'',publishDate:iso(m.date)||iso(a&&a.date),contentHtml:contentHtml==null?'':String(contentHtml),tierResolved:(a&&a.tier)||t.tier||'feed'};
 }
 function readAhead(a){
- const by=storyMap(),cards=[...document.querySelectorAll('#grid a.card')].map(c=>c.getAttribute('href'));
+ const by=storyMap(),cards=[...document.querySelectorAll('#grid .card[data-i]')].map(chref);
  const i=cards.indexOf(a.link);let next=[];
  if(i>=0)next=cards.slice(i+1).map(l=>by.get(l)).filter(x=>x&&!S.read[x.link]);
  if(!next.length){const l=(items[a.feedId]||[]).slice().sort((x,y)=>y.date-x.date),j=l.findIndex(x=>x.link===a.link);if(j>=0)next=l.slice(j+1).filter(x=>!S.read[x.link])}
@@ -4880,7 +4883,7 @@ async function openReader(a){
  const f=fof(a),my=++tok,sh=$('#sheet');curA=a;RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0;R.ready=false;const afterLoad=()=>{try{dedupHero()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;setTimeout(()=>{if(curA===a0)relayout()},800);setTimeout(()=>{if(curA===a0)relayout()},2600);try{document.fonts&&document.fonts.ready.then(()=>{if(curA===a0)relayout()})}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);save();setTimeout(()=>readAhead(a),1200);
  rdB(brand(f));pushLayer('reader');tip('reader');
  if(a.img&&isOn('ptint'))imgInfo(a.img).then(o=>{if(o&&o.t&&curA===a)rdB(o.t)});
- document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',c.getAttribute('href')===a.link));
+ document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',chref(c)===a.link));
  const dt=a.date?new Date(a.date).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'';
  const cov=(a.more&&a.more.length)?`<div class="cov"><b>Also covered by</b>${a.more.map(m=>`<a target="_blank" rel="noopener" href="${esc(m.l)}">${esc(fof({feedId:m.f}).title)}: ${esc(m.t)}</a>`).join('')}</div>`:'';
  sh.innerHTML=`<div class="bar"><button class="ib" id="fdn" aria-label="Back to all feeds" title="Back to all feeds">${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><div class="bs">${esc(f.title)}</div><span id="pc"></span><button class="ib" id="st" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings">${svg(TUNE)}</button>`:''}<button class="ib" id="fcs" aria-label="Focus mode" aria-pressed="false" title="Focus mode: hide the controls for distraction-free reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site here" title="View the site here">${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page">${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page">${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button><button class="ib" id="cl" aria-label="Close" title="Close">${svg('<path d="M6 6l12 12M18 6 6 18"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec))+(hasSec(a.sec,a.feedId)?'':`<button class="flw" data-fsec aria-label="Follow ${esc(a.sec||'this section')}">Follow</button>`):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener" href="${esc(a.link)}">Read on ${esc(host(a.link))}</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p>This site can’t be shown inside the app. It may block automated access.</p><div><a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
@@ -6305,9 +6308,9 @@ const EA=(...k)=>'<div class="eact">'+k.map(x=>({rf:'<button type="button" class
 document.addEventListener('click',e=>{const b=e.target.closest('[data-ea]');if(!b)return;const k=b.dataset.ea;if(k==='rf')$('#ref').click();else if(k==='hl')$('#mgb').click();else if(k==='ad')$('#add').click();else if(k==='sp')obOpen(true)});
 
 /* list keyboard shortcuts */
-let KBL='';const kbCur=()=>KBL?kbItems().find(x=>x.getAttribute('href')===KBL):null;function kbReapply(){const o=kbCur();if(o)o.classList.add('kbf')}{const _r=render;render=function(){_r.apply(this,arguments);kbReapply()}}
-const kbItems=()=>[...document.querySelectorAll('#grid a[data-i]')].filter(a=>a.offsetParent);
-function kbMove(d){const l=kbItems();if(!l.length)return;const o=kbCur();if(o)o.classList.remove('kbf');const i=Math.max(0,Math.min(l.length-1,(o?l.indexOf(o):-1)+d));const a=l[i];KBL=a.getAttribute('href');a.classList.add('kbf');a.scrollIntoView({block:'center',behavior:reduced()?'auto':'smooth'})}
+let KBL='';const kbCur=()=>KBL?kbItems().find(x=>chref(x)===KBL):null;function kbReapply(){const o=kbCur();if(o)o.classList.add('kbf')}{const _r=render;render=function(){_r.apply(this,arguments);kbReapply()}}
+const kbItems=()=>[...document.querySelectorAll('#grid a[data-i],#grid .card[data-i]')].filter(a=>a.offsetParent);
+function kbMove(d){const l=kbItems();if(!l.length)return;const o=kbCur();if(o)o.classList.remove('kbf');const i=Math.max(0,Math.min(l.length-1,(o?l.indexOf(o):-1)+d));const a=l[i];KBL=chref(a);a.classList.add('kbf');a.scrollIntoView({block:'center',behavior:reduced()?'auto':'smooth'})}
 addEventListener('keydown',e=>{
  if(e.ctrlKey||e.metaKey||e.altKey)return;const tg=e.target,tn=(tg&&tg.tagName)||'';
  if(/INPUT|TEXTAREA|SELECT/.test(tn)||(tg&&tg.isContentEditable))return;
@@ -6791,7 +6794,7 @@ function nightLabel(){
 
 /* ===================== reading progress ===================== */
 S.prog=S.prog||{};
-function markReadA(a){if(!a||S.read[a.link])return;S.read[a.link]=1;(a.more||[]).forEach(m=>S.read[m.l]=1);trimRead();save();try{dgProgUpdate()}catch(e){}document.querySelectorAll('#grid a.card').forEach(c=>{if(c.getAttribute('href')===a.link)c.classList.add('read')})}
+function markReadA(a){if(!a||S.read[a.link])return;S.read[a.link]=1;(a.more||[]).forEach(m=>S.read[m.l]=1);trimRead();save();try{dgProgUpdate()}catch(e){}document.querySelectorAll('#grid .card[data-i]').forEach(c=>{if(chref(c)===a.link)c.classList.add('read')})}
 function wpmTick(f){const now=Date.now();if(R.lf!=null&&R.words>150){const dt=(now-R.lt)/60000,df=f-R.lf;if(df>0&&df<.25&&dt>.02&&dt<1.5){const w=df*R.words/dt;if(w>=90&&w<=550)S.wpm=Math.round((S.wpm||230)*.85+w*.15)}}R.lf=f;R.lt=now}
 function bodyEnd(){const b=$('.cols .body');if(!b)return null;const k=[...b.children].filter(e=>!e.matches('.bfold,.endmark,script,style'));return k.pop()||null}
 function pgEnd(){R.ep=null;if(isVert()||!(R.np>1))return;const c=$('.cols'),e=bodyEnd();if(!c||!e)return;const rs=[...e.getClientRects()],r=rs[rs.length-1];if(!r)return;const x=r.left-c.getBoundingClientRect().left;if(!isFinite(x)||!R.step)return;R.ep=Math.max(0,Math.min(R.np-1,Math.floor((x+2)/R.step)))}
@@ -6880,7 +6883,7 @@ function galWire(g){
 /* ===================== swipe cards, pull to refresh ===================== */
 const SW={c:null};
 /* a card's story is found by its link, so a list that re-renders mid-gesture can't point an action at a different story */
-const cardStory=c=>{const l=c&&c.getAttribute&&c.getAttribute('href');return (l&&cur.find(x=>x.link===l))||(c&&cur[+c.dataset.i])||null};
+const cardStory=c=>{const l=chref(c);return (l&&cur.find(x=>x.link===l))||(c&&cur[+c.dataset.i])||null};
 function swEnd(){const c=SW.c,act=SW.act;SW.act=false;if(!c)return;SW.c=null;const lab=$('#swl');
  const w=c.offsetWidth,dx=SW.dx||0,hit=Math.abs(dx)>Math.min(110,w*.32);
  c.style.transition='transform .28s cubic-bezier(.2,.8,.3,1)';c.style.transform='';setTimeout(()=>{c.style.transition='';c.style.zIndex=''},300);
@@ -6937,7 +6940,7 @@ function cardTap(c){
  if(!isOn('dtap')){openTx(c,a);return}
  const now=Date.now();
  if(DTAP.c===c&&now-DTAP.t<320){clearTimeout(DTAP.h);DTAP.c=null;toggleSave(a);toast(isSaved(a)?'Saved':'Removed from saved');render();return}
- DTAP.c=c;DTAP.t=now;clearTimeout(DTAP.h);DTAP.h=setTimeout(()=>{DTAP.c=null;const c2=c.isConnected?c:(document.querySelector('#grid a.card[href="'+CSS.escape(a.link)+'"]')||c);openTx(c2,a)},330);
+ DTAP.c=c;DTAP.t=now;clearTimeout(DTAP.h);DTAP.h=setTimeout(()=>{DTAP.c=null;const c2=c.isConnected?c:([...document.querySelectorAll('#grid .card[data-i]')].find(x=>chref(x)===a.link)||c);openTx(c2,a)},330);
 }
 /* ---------- long-press quick actions ---------- */
 const QA={t:0,x:0,y:0,c:null,fired:0};

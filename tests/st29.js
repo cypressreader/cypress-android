@@ -36,7 +36,7 @@ ck('in the theme grid as The Goat',reg.sw&&reg.label==='The Goat',JSON.stringify
 // end mark: the 10 with three stars, in both kits
 const end=await p.evaluate(async()=>{const out={};const body=Array.from({length:4},()=>'<p>Not whether he accepts the diagnosis on paper. Whether he actually believes, in the car, at the dinner table, in the moment when the homework is not done again.</p>').join('');
  const f=S.feeds[0],now=Date.now();items[f.id]=Array.from({length:3},(_,i)=>({feedId:f.id,title:'Whether his dad believes the ADHD is real '+i,link:'https://w.test/'+i,date:now-i*36e5,summary:'x',html:body}));
- for(const sch of ['light','dark']){try{closeReader()}catch(e){}S.theme='thegoat';S.sch=sch;S.sel='all';applyTheme(false);render();await new Promise(r=>setTimeout(r,500));document.querySelector('#grid a.card').click();await new Promise(r=>setTimeout(r,1800));
+ for(const sch of ['light','dark']){try{closeReader()}catch(e){}S.theme='thegoat';S.sch=sch;S.sel='all';applyTheme(false);render();await new Promise(r=>setTimeout(r,500));document.querySelector('#grid .card[data-i]').click();await new Promise(r=>setTimeout(r,1800));
   const em=document.querySelector('.cols .body .endmark'),c=em&&getComputedStyle(em),svg=decodeURIComponent((getComputedStyle(document.documentElement).getPropertyValue('--sym')||'').replace(/^url\("data:image\/svg\+xml,/,'').replace(/"\)$/,''));
   const tt=document.querySelector('#rd .tt');
   out[sch]={w:c&&c.width,fs:c&&c.fontSize,bg:c&&/data:image/.test(c.backgroundImage),gold:/#f6b40e/i.test(svg),stars:(svg.match(/M[\d. ]+L[\d. L]+Z/g)||[]).length>=1,rule:tt?getComputedStyle(tt,'::after').height:null,ruleBg:tt?getComputedStyle(tt,'::after').backgroundColor:null}}

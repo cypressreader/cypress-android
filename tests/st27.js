@@ -14,7 +14,7 @@ const R=await p.evaluate(async()=>{
   const cs=getComputedStyle(document.documentElement);r.a1=cs.getPropertyValue('--a1').trim();r.sym=/^url\(/.test(cs.getPropertyValue('--sym').trim());r.dark=lumOf(anyRgb(getComputedStyle(document.body).backgroundColor))<.2;
   r.swatch=!!document.querySelector('#thm [data-th='+id+']');r.label=(document.querySelector('#thm [data-th='+id+']')||{textContent:''}).textContent;r.sunset=!!document.querySelector('#ngt option[value='+id+']');
   r.names=THEME_NAMES.some(x=>x[0]===id&&x[1]===name);r.genres=THEME_GENRES.some(g=>(g[1]||[]).includes(id));r.fonts=[THB[id],THF[id],THH[id]].every(Boolean);
-  document.querySelector('#grid a.card').click();await new Promise(x=>setTimeout(x,2200));
+  document.querySelector('#grid .card[data-i]').click();await new Promise(x=>setTimeout(x,2200));
   const tt=document.querySelector('#rd .tt');
   r.rule=tt?getComputedStyle(tt,'::after').height==='3px':false;r.mark=tt?getComputedStyle(tt,'::before').content==='none'||getComputedStyle(tt,'::before').content==='normal':false;
   const em=document.querySelector('.cols .body .endmark');if(em){const c=getComputedStyle(em);r.end=[c.width,c.height,c.fontSize,(c.maskImage!=='none'||c.webkitMaskImage!=='none')||/data:image/.test(c.backgroundImage)]}else r.end=null;

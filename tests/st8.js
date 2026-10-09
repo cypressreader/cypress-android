@@ -27,7 +27,7 @@ for(const [vp,w,h,touch] of [['phone',380,820,true],['desktop',1280,900,false]])
    await E(()=>{document.querySelector('#gear').click()});await p.waitForTimeout(200);
    ck(tag+' voice select filled',await E(()=>document.querySelectorAll('#voice option').length===3));
    await E(()=>document.querySelector('#set').close());
-   await E(()=>{S.sel='all';render();document.querySelector('#grid a.card').click()});await p.waitForTimeout(1500);
+   await E(()=>{S.sel='all';render();document.querySelector('#grid .card[data-i]').click()});await p.waitForTimeout(1500);
    ck(tag+' read-aloud button exists',await E(()=>!!document.querySelector('#ra')));
    await E(()=>document.querySelector('#ra').click());await p.waitForTimeout(900);
    ck(tag+' speak called',await E(()=>window.__calls.some(c=>c[0]==='speak'&&c[1].text.length>20)));

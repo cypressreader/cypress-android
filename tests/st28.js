@@ -14,7 +14,7 @@ const R=await p.evaluate(async([IDS,PLAIN])=>{
  document.querySelectorAll('dialog[open]').forEach(d=>d.close());
  const body=Array.from({length:4},()=>'<p>Not whether he accepts the diagnosis on paper. Whether he actually believes, in the car, at the dinner table, in the moment when the homework is not done again.</p>').join('');
  const f=S.feeds[0],now=Date.now();items[f.id]=Array.from({length:3},(_,i)=>({feedId:f.id,title:'Whether his dad believes the ADHD is real '+i,link:'https://w.test/'+i,date:now-i*36e5,summary:'x',html:body}));
- const one=async(id,sch)=>{try{closeReader()}catch(e){}S.theme=id;S.sch=sch;S.night='off';S.sel='all';applyTheme(false);render();await new Promise(x=>setTimeout(x,500));document.querySelector('#grid a.card').click();await new Promise(x=>setTimeout(x,1800));
+ const one=async(id,sch)=>{try{closeReader()}catch(e){}S.theme=id;S.sch=sch;S.night='off';S.sel='all';applyTheme(false);render();await new Promise(x=>setTimeout(x,500));document.querySelector('#grid .card[data-i]').click();await new Promise(x=>setTimeout(x,1800));
   const r=document.documentElement,em=document.querySelector('.cols .body .endmark');const c=em&&getComputedStyle(em);
   return{has:r.classList.contains('hasym'),sym:/^url\(/.test(getComputedStyle(r).getPropertyValue('--sym').trim()),size:c&&c.width,fs:c&&c.fontSize,heart:em?/[♥❤❦]/.test(em.textContent):null,paint:c&&(c.maskImage!=='none'||c.webkitMaskImage!=='none'||/data:image/.test(c.backgroundImage)),logoL:r.style.getPropertyValue('--logo')?rgb2hsl(anyRgb(r.style.getPropertyValue('--logo')))[2]:null}};
  for(const id of IDS){o[id]=await one(id,'theme');o[id+'_l']=await one(id,'light');o[id+'_d']=await one(id,'dark')}
