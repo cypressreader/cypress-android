@@ -2766,6 +2766,28 @@ html.rdx .cols.rfok .kr{display:none}
 #rd.focus .cols .body > p:not(.fl){opacity:.5}
 #rd.focus .cols .body > p.fl{opacity:1;background:color-mix(in srgb,var(--b,var(--ink)) 9%,transparent);border-radius:10px;box-shadow:-12px 0 0 color-mix(in srgb,var(--b,var(--ink)) 9%,transparent),12px 0 0 color-mix(in srgb,var(--b,var(--ink)) 9%,transparent)}
 @media(prefers-reduced-motion:reduce){#rd .bar,#rd #dial,#rd #rleft,#rd.focus .cols .body > p{transition:none}}
+/* experiment, cluster 16: ceremonies */
+@keyframes landArt{from{transform:translate3d(0,0,0) scale(1.22);opacity:.2}to{opacity:1}}
+@keyframes landUp{from{opacity:0;transform:translate3d(0,34px,0)}to{opacity:1;transform:none}}
+@keyframes landMast{from{opacity:0;letter-spacing:.8em}to{opacity:1}}
+.dcov.land .dcv-art{animation:landArt 1.5s cubic-bezier(.2,.7,.2,1) both}
+.dcov.land .dcv-mast{animation:landMast 1.3s .15s cubic-bezier(.2,.7,.2,1) both}
+.dcov.land .dcv-motto,.dcov.land .dcv-ed{animation:landUp .9s .5s both}
+.dcov.land .dcv-lead{animation:landUp 1s .7s both}
+.dcov.land .dcv-note,.dcov.land .dcv-lines{animation:landUp .9s 1s both}
+.dcov.land .dcv-prog{animation:landUp .9s 1.2s both}
+#fin{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;color:#fff;background:#06160f;opacity:0;transition:opacity .6s ease;overflow:hidden}
+#fin.on{opacity:1}
+.fin-art{position:absolute;inset:0;opacity:.55}.fin-art>svg,.fin-art>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.fin-art>img{opacity:0;filter:url(#cyduo);transition:opacity .8s}.fin-art>img.ok{opacity:1}
+.fin-sh{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(4,22,15,.35),rgba(3,16,11,.92))}
+.fin-frame{position:relative;width:min(86vw,520px);padding:clamp(34px,8vh,64px) 28px;text-align:center;border:2px solid #0f5a3b;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3),0 0 0 1px rgba(255,255,255,.18);background:rgba(4,22,15,.38);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);transform:scale(.96);transition:transform .9s cubic-bezier(.2,.7,.2,1)}
+#fin.on .fin-frame{transform:none}
+.fin-mast{display:block;font:400 20px var(--disp);letter-spacing:.38em;text-indent:.38em;opacity:.9}
+.fin-h{margin:14px 0 8px;font:400 clamp(84px,26vw,150px)/.85 var(--disp);font-style:italic;font-synthesis:none;letter-spacing:-.02em}
+.fin-note{margin:0 0 12px;font:italic 400 19px/1.35 var(--disp);opacity:.92}
+.fin-ed{margin:0 0 24px;font:700 10px var(--sans);letter-spacing:.2em;text-transform:uppercase;opacity:.7}
+#fin .tx2{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.5)}
+@media(prefers-reduced-motion:reduce){#fin,.fin-frame{transition:none}.dcov.land *{animation:none!important}}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4042,6 +4064,39 @@ document.addEventListener('click',e=>{
 addEventListener('keydown',e=>{if(e.key==='Escape'&&S.rfocus&&$('#rd').classList.contains('on')){S.rfocus=false;save();focusApply();e.stopPropagation()}},true);
 {const _d2=decorate;decorate=function(){_d2.apply(this,arguments);try{focusInstall();focusApply()}catch(e){}}}
 {let raf=0;document.addEventListener('scroll',e=>{if(!S.rfocus||!e.target.closest)return;if(!e.target.closest('#rd'))return;if(!raf)raf=requestAnimationFrame(()=>{raf=0;focusLine()})},{capture:true,passive:true})}
+/* ---- experiment, cluster 16: ceremonies ----
+   A fresh edition lands: its cover fades up the first time it is drawn. Finishing the whole Daily brings a framed end card with the cover art and "Fin." */
+const FIN={pending:false,open:false,ret:null};
+function landCheck(){
+ if(S.sel!=='today')return;const c=document.querySelector('.dcov');if(!c)return;
+ const k=edKey();if(S.edland===k||reduced()){S.edland=k;return}
+ S.edland=k;try{save()}catch(e){}
+ c.classList.add('land');setTimeout(()=>c.classList.remove('land'),2600);
+}
+const finDone=()=>{const{n,t}=dgCount();return t>=3&&n>=t};
+function finCheck(){
+ if(FIN.open||S.sel!=='today'||$('#rd').classList.contains('on'))return;
+ if(!finDone()||S.edfin===edKey())return;
+ finShow();
+}
+function finShow(){
+ const k=edKey(),am=edKind()==='m',lead=cur[0],d=new Date(),issue=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
+ S.edfin=k;try{save()}catch(e){}FIN.open=true;FIN.ret=document.activeElement;
+ const el=document.createElement('div');el.id='fin';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','Edition finished');
+ el.innerHTML=`<div class="fin-art">${edArtSvg(am)}${lead&&lead.img?`<img src="${esc(lead.img)}" alt="" referrerpolicy="no-referrer" onload="cvJudge(this)" onerror="this.remove()">`:''}</div><div class="fin-sh"></div>`
+  +`<div class="fin-frame"><span class="fin-mast">CYPRESS</span><h2 class="fin-h">Fin.</h2><p class="fin-note">${esc(pe('progress',{},'done'))}</p><p class="fin-ed">${am?'The Morning':'The Evening'} Edition · No. ${issue} · ${DGL.length} stories read</p><button type="button" class="tx2" id="finx">Back to the issue</button></div>`;
+ document.body.append(el);requestAnimationFrame(()=>el.classList.add('on'));
+ const x=$('#finx');if(x)x.focus();
+}
+function finClose(){
+ const el=$('#fin');if(!el)return;el.classList.remove('on');FIN.open=false;
+ setTimeout(()=>el.remove(),500);try{if(FIN.ret&&FIN.ret.focus)FIN.ret.focus()}catch(e){}
+}
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#finx')){e.preventDefault();e.stopPropagation();finClose()}},true);
+addEventListener('keydown',e=>{if(!FIN.open)return;if(e.key==='Escape'){e.preventDefault();e.stopPropagation();finClose()}else if(e.key==='Tab'){e.preventDefault();const x=$('#finx');if(x)x.focus()}},true);
+{const _r4=render;render=function(){_r4.apply(this,arguments);try{landCheck();finCheck()}catch(e){}}}
+{const _dp=dgProgUpdate;dgProgUpdate=function(){_dp.apply(this,arguments);try{finCheck()}catch(e){}}}
+{const rd=$('#rd');if(rd&&'MutationObserver' in window)new MutationObserver(()=>{if(!rd.classList.contains('on'))setTimeout(()=>{try{finCheck()}catch(e){}},450)}).observe(rd,{attributes:true,attributeFilter:['class']})}
 function mastHtml(f,list){
  if(!f)return'';const col=brand(f),hs=host(f.url).replace(/^www\./,'');const nm=esc(f.title||hs);
  return `<div class="mst2" style="--mb:${col}"><div class="mr"><div class="mt" aria-hidden="true">${esc((f.title||hs).trim().charAt(0).toUpperCase())}</div><div style="min-width:0"><h2 class="mn">${nm}</h2>${f.desc?`<div class="mg">${esc(String(f.desc).slice(0,140))}</div>`:''}<div class="mu">${esc(hs)}</div></div></div></div>`;
@@ -4473,7 +4528,7 @@ function backCoverHtml(count,trend){
  const am=edKind()==='m',nx=nextEdition(),d=new Date(),issue=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
  const tease=trend&&trend.length?`Still developing: ${trend.slice(0,3).map(e=>esc(e.w)).join(' · ')}. We will keep watching.`:'Fresh stories from your sites will be waiting.';
  return `<section class="dback ${am?'dbm':'dbe'}"><div class="dbk-art">${edArtSvg(!am)}</div><div class="dbk-sh"></div>`
-  +`<div class="dbk-in"><span class="dbk-mast">CYPRESS</span><h3 class="dbk-end">That’s the issue.</h3><p class="dbk-fin">${esc(pe('finish',{},'end'))}</p><button type="button" class="tx2" data-endall>Explore Full Feed</button>`
+  +`<div class="dbk-in"><span class="dbk-mast">CYPRESS</span><h3 class="dbk-end">${finDone()?'Fin.':'That’s the issue.'}</h3><p class="dbk-fin">${esc(pe('finish',{},'end'))}</p><button type="button" class="tx2" data-endall>Explore Full Feed</button>`
   +`<div class="dbk-next"><p class="dbk-k">Next issue</p><p class="dbk-ed">${nx.name}</p><p class="dbk-at">Arrives at ${nx.at}, in ${nx.left}.</p><p class="dbk-t">${tease}</p></div>`
   +`<p class="dbk-colo"><b>Colophon</b>The ${am?'Morning':'Evening'} Edition, No. ${issue}. ${count} ${count===1?'story':'stories'}, chosen on this device from the sites you follow. Set in Instrument Serif and ${esc(fontName('--sans','the system sans'))}. Nothing here was sent anywhere.</p></div></section>`;
 }
