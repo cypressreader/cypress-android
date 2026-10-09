@@ -2806,6 +2806,7 @@ html.rdx .cols.rfok .kr{display:none}
 @keyframes sbSpark{0%{opacity:1;transform:rotate(var(--r)) translateY(-14px) scale(1)}100%{opacity:0;transform:rotate(var(--r)) translateY(calc(-1 * var(--d))) scale(.3)}}
 @keyframes sbStar{0%{opacity:0;transform:scale(.2) rotate(-40deg)}35%{opacity:1;transform:scale(1.35) rotate(8deg)}70%{opacity:1;transform:scale(1) rotate(0)}100%{opacity:0;transform:scale(1.1)}}
 @media(prefers-reduced-motion:reduce){.star.flo,#st.flo{animation:none;outline:2px solid #f4c25a;outline-offset:2px}.sburst{display:none}}
+.rf-junk{display:block;margin:14px auto 0;padding:4px 10px;border:0;background:none;color:var(--mut);font:italic 400 12.5px var(--sans);text-decoration:underline;cursor:pointer;opacity:.75}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -2820,7 +2821,7 @@ html.rdx .cols.rfok .kr{display:none}
  <div class="top"><button class="ib" id="menu" aria-label="Feeds"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button><span id="tlp" aria-hidden="true"></span><h1 id="ttl">All stories</h1><button class="ib" id="mr" aria-label="Mark all as read" title="Mark all as read"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 12.5 4 4L14 9"/><path d="m10.5 15.5 1 1L20 8"/></svg></button><button class="ib" id="vw" aria-label="Switch layout" title="Switch layout"></button><button class="ib" id="ref" aria-label="Refresh" title="Refresh"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></svg></button><div class="srch" id="srch"><input id="q" type="search" placeholder="Search stories" aria-label="Search stories"><button class="ib" id="sb" aria-label="Search" title="Search"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button></div></div>
  <div class="grid" id="grid"></div>
 </main>
-<div id="rd" role="dialog" aria-modal="true" aria-label="Story reader"><div class="sheet" id="sheet"></div><div class="selbar" id="selbar" hidden><div class="sbr"><button class="dot c-v" data-s="hl" data-c="v" aria-label="Highlight in violet"></button><button class="dot c-y" data-s="hl" data-c="y" aria-label="Highlight in yellow"></button><button class="dot c-g" data-s="hl" data-c="g" aria-label="Highlight in green"></button><button class="dot c-r" data-s="hl" data-c="r" aria-label="Highlight in pink"></button><button data-s="note">Note</button></div><div class="sbr"><button data-s="copy">Copy</button><button data-s="img">Share</button><button data-s="follow">Follow</button></div></div></div>
+<div id="rd" role="dialog" aria-modal="true" aria-label="Story reader"><div class="sheet" id="sheet"></div><div class="selbar" id="selbar" hidden><div class="sbr"><button class="dot c-v" data-s="hl" data-c="v" aria-label="Highlight in violet"></button><button class="dot c-y" data-s="hl" data-c="y" aria-label="Highlight in yellow"></button><button class="dot c-g" data-s="hl" data-c="g" aria-label="Highlight in green"></button><button class="dot c-r" data-s="hl" data-c="r" aria-label="Highlight in pink"></button><button data-s="note">Note</button></div><div class="sbr"><button data-s="copy">Copy</button><button data-s="img">Share</button><button data-s="follow">Follow</button><button data-s="junk" title="Hide this and report it as junk">Junk</button></div></div></div>
 <input type="color" id="cp" hidden>
 <dialog id="dlg"><form method="dialog" id="frm">
  <div class="sh dsh"><h2>Add a feed</h2><button type="button" class="ib" id="dlgx" aria-label="Close"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
@@ -3231,7 +3232,7 @@ function payloadOf(d){
 }
 function extract(html,base){const MT={};const r=extract0(html,base,MT);if(r&&MT.v)r.meta=MT.v;if(r&&MT.gate)r.gate=true;if(r&&MT.nofree)r.nofree=true;return r}
 function extract0(html,base,MT){
- const d=new DOMParser().parseFromString(html,'text/html');
+ const d=new DOMParser().parseFromString(html,'text/html');try{junkDom(d,base)}catch(e){}
  let ld='';let PL=null;try{PL=payloadOf(d)}catch(e){}
  /* a gate element only counts when it carries a gate message of its own: many pages ship "paywall" styling or markup without holding anything back */
  try{if(MT)for(const g of d.querySelectorAll('[class*="gateway" i],[class*="gate-container" i],[class*="paywall" i],[class*="regwall" i],[id*="gateway" i],[id*="paywall" i],[data-testid*="gateway" i],[data-testid*="paywall" i]')){const gt=(g.textContent||'').replace(/\s+/g,' ').trim();if(gt.length>=20&&gt.length<1500&&GATEMARK.test(gt)){MT.gate=true;break}}}catch(e){}
@@ -3264,7 +3265,7 @@ function extract0(html,base,MT){
  d.querySelectorAll('li').forEach(e=>{if(!e.isConnected)return;const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length<700&&AUTHJ.test(t))e.remove()});
  d.querySelectorAll('ul,ol').forEach(e=>{if(e.isConnected&&!e.textContent.trim()&&!e.querySelector('img'))e.remove();else if(e.isConnected&&!e.textContent.trim()&&[...e.querySelectorAll('img')].every(i=>ICONRE.test((i.getAttribute('src')||'')+' '+(i.getAttribute('alt')||''))))e.remove()});
  const sc=new Map();
- d.querySelectorAll('p').forEach(p=>{const tx=p.textContent.trim(),L=tx.length*(/[぀-ヿ㐀-鿿가-힯]/.test(tx)?2.5:1);/* CJK packs ~2.5x the meaning per character, so 50 "English" characters is ~20 here */if(L<50)return;for(let el=p.parentElement,k=0;el&&k<3;el=el.parentElement,k++)sc.set(el,(sc.get(el)||0)+L/(k+1))});
+ d.querySelectorAll('p').forEach(p=>{const tx=p.textContent.trim(),L=tx.length*(/[぀-ヿ㐀-鿿가-힯]/.test(tx)?2.5:1);/* CJK packs ~2.5x the meaning per character, so 50 "English" characters is ~20 here */if(L<50)return;/* (a) text density: paragraphs that are mostly links count for little, and blocks named like sidebars or comments count for less */const lkn=[...p.querySelectorAll('a')].reduce((q,a)=>q+(a.textContent||'').length,0),ld=Math.min(1,lkn/Math.max(1,tx.length));for(let el=p.parentElement,k=0;el&&k<3;el=el.parentElement,k++){const neg=/(comment|sidebar|related|promo|newsletter|share|footer|widget|recirc|trending)/i.test((el.className&&el.className.baseVal!==undefined?el.className.baseVal:el.className)+' '+(el.id||''))?.4:1;sc.set(el,(sc.get(el)||0)+L*(1-ld*.9)*neg/(k+1))}});
  let best=null,max=0;sc.forEach((v,el)=>{if(v>max){max=v;best=el}});
  /* text split over same-class sibling blocks (figures/ads between them): the first block wins the vote and the rest is lost, so climb to their parent */
  {const pl=x=>[...x.querySelectorAll('p')].reduce((q,p)=>{const L=p.textContent.trim().length;return q+(L>=50?L:0)},0);
@@ -3336,7 +3337,7 @@ function md(txt,base){
  {const tot=out.textContent.replace(/\s+/g,' ').trim().length;let lk=0;out.querySelectorAll('a').forEach(a=>{lk+=a.textContent.replace(/\s+/g,' ').trim().length});if(tot<4000&&tot>0&&lk/tot>.6)return document.createDocumentFragment()}
  return tidyFrag(out);
 }
-function fromHTML(html,base){return clean(new DOMParser().parseFromString(html||'','text/html').body,base)}
+function fromHTML(html,base){const d=new DOMParser().parseFromString(html||'','text/html');try{junkDom(d,base)}catch(e){}const f=clean(d.body,base);try{junkClean(f,base)}catch(e){}return f}
 function firstImg(html,base){
  /* first real photo in the article HTML: reads lazy-load attributes and srcset, skips Google's own icons, favicons and tracking pixels */
  const d=new DOMParser().parseFromString(html||'','text/html');
@@ -4023,6 +4024,133 @@ function parWatch(root){
  addEventListener('resize',()=>wireChrome());
  {const _r3=render;render=function(){_r3.apply(this,arguments);parWatch();wireChrome()}}
 }
+/* ---- cluster C: the content-cleaning pipeline ----
+   One pipeline for what the reader shows and what the print export sets: (a) the extractor scores text blocks by density, not just by length; (b) blocklists of
+   ad, promo, newsletter and sponsored selectors and phrases; (c) per-publisher rules for the top feeds, where promos sit inside the article body; (d) a conservative
+   keep policy: anything that reads like a story paragraph is never removed, and a pass that would take more than a quarter of the text is undone;
+   (e) "Junk" in the selection bar hides a block, logs the address and its HTML, and teaches the same site's next story. */
+const JK={
+ /* (b) classes and ids of ad, promo, newsletter, sponsored and share furniture. Applied to the page before its classes are stripped */
+ SEL:'ins.adsbygoogle,[id^="div-gpt-ad" i],[id*="google_ads" i],[data-ad],[data-ad-slot],[data-ad-unit],[class*="adslot" i],[class*="ad-slot" i],[class*="ad-container" i],[class*="ad-wrapper" i],[class*="ad-banner" i],[class*="advert" i],[class*="native-ad" i],[class*="dfp-" i],[class*="sponsor" i],[class*="paid-content" i],[class*="partner-content" i],[class*="outbrain" i],[class*="taboola" i],[class*="newsletter" i],[id*="newsletter" i],[class*="email-signup" i],[class*="signup-form" i],[class*="mailing-list" i],[class*="inline-signup" i],[data-component*="newsletter" i],[data-component*="sign-in-gate" i],[data-component*="support" i],[class*="share-bar" i],[class*="share-tools" i],[class*="social-share" i],[class*="follow-us" i],[class*="you-may-like" i],[class*="more-from" i],[class*="read-next" i],[class*="most-popular" i],[class*="promo-box" i],[class*="promobox" i],[class*="inline-promo" i],[class*="app-promo" i],[class*="donate" i],[class*="contribute-" i],[class*="paywall-promo" i]',
+ /* (b) phrases that mark a block as furniture when the block is short */
+ TXT:[
+  /^\W*(advertisement|advertisements|ad|sponsored( content| post| by .{1,40})?|paid (post|content|partnership)|promoted( stories| content)?|partner content|advertiser content|story continues (below|after) (the )?advertis\w*|continue reading below|scroll to continue|skip advertisement|ad feedback|advertise with us)\W*$/i,
+  /\b(sign up|subscribe|register) (for|to) (our|the|my|this|your|free)\b.{0,80}\b(newsletters?|e-?mail alerts?|briefings?|mailing list|updates)\b/i,
+  /\b(get|receive|delivered|sent|straight|right) .{0,50}\b(to your inbox|in your inbox|into your inbox|to your email)\b/i,
+  /^\W*(subscribe to|join) (our|the|my) (free )?(newsletter|mailing list|channel|podcast|youtube|telegram|whatsapp)/i,
+  /^\W*(download|get) (the|our) .{0,40}\bapp\b/i,
+  /^\W*(follow|like|join|find) (us|\w[\w .&'’-]{1,30}) (on|at) (facebook|twitter|x|instagram|tiktok|youtube|linkedin|threads|bluesky|mastodon|whatsapp|telegram|google news|social media)\b/i,
+  /^\W*(add|make) .{1,40} (as a |to your )?(preferred|favou?rite) (source|sources)\b/i,
+  /^\W*(support|fund|back|donate to|become a (member|supporter|subscriber))\b.{0,60}\b(journalism|independent|reporting|nonprofit|newsroom|us)\b/i,
+  /^\W*(read more|related|also read|see also|more on this|more from|you (may|might) also like|recommended( for you)?|read next|up next|don.t miss|what to read next|watch next|trending( now)?)\s*[:\-–—]/i,
+  /^\W*(related( stories| articles| reading| links| coverage)?|more (stories|articles|news|from [^.]{2,40})|recommended( reading| stories)?|read next|up next|also in [^.]{2,40}|latest (news|stories))\W*$/i,
+  /^\W*(sign in|log in|login) to (comment|post|join|read)|^\W*(join|view|read|add) the (conversation|comments|discussion)|^\W*comments?( \(\d+\))?\W*$|^\W*\d+ comments?\W*$/i,
+  /^\W*(we use cookies|this (site|website) uses cookies|by (continuing|using this site)|cookie (settings|policy|preferences)|manage (cookies|consent|preferences))/i,
+  /^\W*(share (this|on)|share via|copy link|print|email this|tweet|pin it|post to)\W*$/i,
+  /^\W*(all rights reserved|©|copyright)\s?(\d{4})?/i,
+  /^\W*(image|photo|video|picture|credit|source):?\s*(courtesy|getty|reuters|ap\b|afp|shutterstock|alamy|istock)/i
+ ],
+ /* (c) rules for the top feeds, where promos sit inside the body. h: the site, sel: extra selectors, txt: extra phrases for short blocks */
+ PUB:[
+  {h:/(^|\.)theguardian\.com$/,sel:['[data-component*="newsletter" i]','[data-gu-name*="sign-in" i]','[class*="contributions" i]','[id*="contributions" i]','[data-component="support-banner"]','[class*="epic" i][class*="support" i]'],txt:[/^after newsletter promotion/i,/^sign up to .{2,60}$/i,/^support the guardian/i,/^(the )?guardian (supporter|contribution)/i,/^explore more on these topics/i]},
+  {h:/(^|\.)bbc\.(co\.uk|com)$/,sel:['[data-component="links-block"]','[data-component="related-internet-links"]','[data-component="see-alsos"]','[data-component="tag-list"]'],txt:[/^related internet links\W*$/i,/^(follow|find) bbc .{2,40} on (social media|x|facebook|instagram)/i,/^get in touch\W*$/i,/^more on this story\W*$/i,/^the bbc is not responsible for the content of external sites/i]},
+  {h:/(^|\.)theverge\.com$/,sel:['[class*="newsletter" i]','[class*="duet--article--newsletter" i]','[class*="ad-" i][class*="slot" i]'],txt:[/^(sign up for|subscribe to) the .{2,60}\b(newsletter)?\W*$/i,/^this is (the )?.{2,50} newsletter\b/i,/^(posts|more) from this (author|topic|series|storystream)/i,/^follow (topics|authors) (and|to) /i,/^see all (stories|posts) by/i,/^advertiser content/i]},
+  {h:/(^|\.)arstechnica\.com$/,sel:['[class*="ad-" i]','[class*="subscribe" i]','[class*="sidebar" i]'],txt:[/^(listing image|image|credit):/i,/^(\d+ )?comments?\W*$/i,/^(join|view|read) the (conversation|comments)/i,/^(sign up|subscribe) (for|to) .{0,60}(ars|newsletter)/i,/^ars (orbital transmission|technica) .{0,40}(newsletter|subscribe)/i]},
+  {h:/(^|\.)techcrunch\.com$/,sel:['[class*="newsletter" i]','[class*="wp-block-techcrunch" i][class*="event" i]','[class*="event-promo" i]','[class*="card-event" i]'],txt:[/^(tc |techcrunch )?(sessions|disrupt|early[- ]bird|all stage).{0,100}(ticket|save|register|pass)/i,/^(save|register|get your pass).{0,50}(now|today|before)/i,/^(subscribe|sign up) (for|to) (the )?.{0,40}(newsletter|techcrunch)/i,/^techcrunch (has|is|also) .{0,60}newsletter/i,/^topics?\W*$/i,/^(was this (article|story) helpful|got a (news )?tip)/i]},
+  {h:/(^|\.)wired\.com$/,sel:['[class*="newsletter" i]','[class*="paywall" i][class*="promo" i]','[class*="inline-ad" i]','[class*="consumer-marketing" i]'],txt:[/^subscribe to wired\b/i,/^(sign up|get) .{0,50}wired.{0,40}(newsletter|inbox)/i,/^read(ing)? (more|similar) (stories|from)/i,/^this (story|article) (originally )?appeared in wired/i,/^(you can (also )?)?(read|find) (more|the rest)\b.{0,40}\bwired\b/i]},
+  {h:/(^|\.)cnn\.com$/,sel:['[class*="ad-feedback" i]','[class*="newsletter" i]','[class*="inline-placeholder" i]'],txt:[/^sign up for cnn.{0,60}/i,/^(cnn )?(breaking )?news alerts?\W*$/i,/^download the cnn app/i,/^(watch|listen) (cnn|now)\b.{0,40}$/i,/^(cnn['’]s? .{2,40}) (contributed|reported) to this report\W*$/i]},
+  {h:/(^|\.)npr\.org$/,sel:['[class*="sponsor" i]','[class*="donate" i]','[class*="support" i][class*="npr" i]'],txt:[/^(support|donate to) (public|npr|the)/i,/^sponsor message\W*$/i,/^become an npr sponsor/i,/^(subscribe to|get) (the )?npr .{0,40}(newsletter|podcast)/i,/^copyright (\d{4} )?npr/i]},
+  {h:/(^|\.)aljazeera\.(com|net)$/,sel:['[class*="newsletter" i]','[class*="more-on" i]','[class*="trending" i]'],txt:[/^sign up for al jazeera\b/i,/^follow al jazeera\b/i,/^(recommended|more) stories\W*$/i,/^list of \d+ items\W*$/i,/^(advertisement|sponsored)\W*$/i,/^(the )?(al jazeera|aj) (app|newsletter|podcast)\b/i]},
+  {h:/(^|\.)(reuters\.com|apnews\.com)$/,sel:['[class*="newsletter" i]'],txt:[/^(our standards|acquire licensing rights|sign up here)\b/i,/^(thomson reuters|the associated press) (trust principles|all rights)/i]},
+  {h:/(^|\.)(nytimes|washingtonpost|wsj|ft|economist)\.com$/,sel:[],txt:[/^(supported by|advertisement|sign up for the .{0,50}newsletter|listen to this article)\b.{0,40}$/i,/^(read more|related|from the archive).{0,30}:/i]}
+ ],
+ LEARN:50,
+ last:[]
+};
+const jkHost=u=>{try{return new URL(u).hostname.replace(/^www\./,'')}catch(e){return ''}};
+const jkNorm=t=>String(t||'').toLowerCase().replace(/\s+/g,' ').replace(/[^\p{L}\p{N} ]/gu,'').trim().slice(0,160);
+/* (d) the keep policy: a block that reads like a story paragraph is never removed */
+function jkNarrative(el){
+ const t=(el.textContent||'').replace(/\s+/g,' ').trim();
+ if(t.length<90)return false;
+ /* one long sentence that closes properly, and is not mostly links, is story */
+ const lk=[...el.querySelectorAll('a')].reduce((q,a)=>q+(a.textContent||'').length,0);
+ const ss=(t.match(/[^.!?…]{70,}[.!?…”"')]/g)||[]);
+ if(ss.length&&lk/Math.max(1,t.length)<.5)return true;
+ const paras=[...el.querySelectorAll('p')].filter(p=>p.textContent.trim().length>=120).length;
+ return paras>=2;
+}
+/* the page, before its classes are stripped */
+function junkDom(d,base){
+ if(!d||!d.querySelectorAll)return;
+ const host=jkHost(base),pub=JK.PUB.find(x=>x.h.test(host)),sels=[JK.SEL].concat(pub?pub.sel:[]).filter(Boolean).join(',');
+ let n=0;
+ try{d.querySelectorAll(sels).forEach(e=>{
+  if(!e.isConnected||e.matches('html,body,main,article')||e.querySelector('article,main,h1'))return;
+  if(e.closest('article,main')&&e.matches('[class*="advert" i]:not([class*="adverti"])'))return;
+  if(jkNarrative(e))return;
+  const t=(e.textContent||'').replace(/\s+/g,' ').trim();
+  /* a wrapper holding a lot of text is not furniture, whatever its class says */
+  if(t.length>700)return;
+  e.remove();n++;
+ })}catch(e){}
+ return n;
+}
+/* the fragment (or live body) after cleaning: text-density scoring + phrases + learned rules, under the keep policy */
+function junkClean(root,url){
+ if(!root)return;
+ const isFrag=root.nodeType===11,w=isFrag?document.createElement('div'):root;if(isFrag)w.append(root);
+ const host=jkHost(url),pub=JK.PUB.find(x=>x.h.test(host)),txt=JK.TXT.concat(pub?pub.txt:[]),learned=new Set(((S.jk&&S.jk.t&&S.jk.t[host])||[]));
+ const total=(w.textContent||'').replace(/\s+/g,' ').trim().length;
+ const blocks=[...w.querySelectorAll('p,div,section,aside,ul,ol,h2,h3,h4,blockquote,figure')].filter(e=>!e.querySelector('p,div,section,aside,ul,ol,h2,h3,h4,blockquote,figure,li')||/^(UL|OL)$/.test(e.tagName));
+ const kill=[],why=new Map();let gone=0;
+ const N=blocks.length;
+ blocks.forEach((e,i)=>{
+  if(e.closest('.pullq,.rfoot,.endmark,.tbl,table,pre,code'))return;
+  const t=(e.textContent||'').replace(/\s+/g,' ').trim();
+  if(!t){return}
+  if(e.querySelector('img,video,iframe')&&t.length>140)return;
+  if(jkNarrative(e)&&!learned.has(jkNorm(t)))return;
+  const lk=[...e.querySelectorAll('a')].reduce((q,a)=>q+(a.textContent||'').length,0),ld=lk/Math.max(1,t.length),tail=i>=N*.7;
+  let r='';
+  if(learned.has(jkNorm(t)))r='learned';
+  else if(t.length<260&&txt.some(re=>re.test(t)))r='phrase';
+  /* a short run of links with no sentence in it: related stories, share rows, tag clouds */
+  else if(/^(UL|OL)$/.test(e.tagName)){const lis=[...e.children];if(lis.length>=3&&lis.every(li=>{const a=li.querySelector('a');return a&&(a.textContent||'').trim().length>=(li.textContent||'').trim().length*.8})&&(tail||/related|more|read|also|latest|trending|popular|recommended/i.test((e.previousElementSibling&&e.previousElementSibling.textContent||'').slice(0,60))))r='links'}
+  else if(t.length<180&&ld>.8&&!/[.!?]["”’)]*$/.test(t)&&/^(read|see|watch|listen|more|also|related|why|how|what|the best|best)\b/i.test(t)&&tail)r='link-line';
+  if(r){kill.push(e);why.set(e,{r,t:t.slice(0,140)});
+   /* the line under a newsletter sign-up ("Our morning email breaks down...") goes with it */
+   if(r==='phrase'&&/newsletter|sign up|subscribe|inbox|e-?mail/i.test(t)){const nx=e.nextElementSibling;if(nx&&!kill.includes(nx)){const nt=(nx.textContent||'').replace(/\s+/g,' ').trim(),nl=[...nx.querySelectorAll('a')].reduce((q,a)=>q+(a.textContent||'').length,0);if(nt.length<320&&/(privacy (notice|policy)|unsubscribe|your inbox|newsletter|e-?mail|sign up)/i.test(nt)&&nl<nt.length*.6){kill.push(nx);why.set(nx,{r:'under-signup',t:nt.slice(0,140)})}}}}
+ });
+ /* (d) a pass that would take more than a quarter of the text is undone */
+ kill.forEach(e=>{gone+=(e.textContent||'').replace(/\s+/g,' ').trim().length});
+ if(total&&gone>total*.25&&total>600){JK.last=[{r:'undone',t:'would remove '+gone+' of '+total+' characters'}]}
+ else{kill.forEach(e=>{if(e.parentNode)e.remove()});JK.last=kill.map(e=>why.get(e))}
+ /* leave nothing hollow behind */
+ for(let k=0;k<2;k++)w.querySelectorAll('ul,ol,div,section,aside,p').forEach(e=>{if(!e.textContent.trim()&&!e.querySelector('img,video,iframe,br'))e.remove()});
+ if(isFrag){while(w.firstChild)root.append(w.firstChild)}
+}
+/* (e) Junk: hide the block(s) containing the selected text, log the address and the HTML, and teach this site's next story */
+function junkReport(q){
+ const body=$('.cols .body');if(!body||!curA)return;
+ const key=String(q||'').replace(/\s+/g,' ').trim().slice(0,60);if(key.length<4){toast('Select the junk text first');return}
+ const hits=[...body.querySelectorAll('p,li,div,blockquote,aside,section,h2,h3,h4')].filter(e=>!e.querySelector('p,li,div,blockquote,aside,section')&&(e.textContent||'').replace(/\s+/g,' ').includes(key));
+ if(!hits.length){toast('Could not find that block');return}
+ const host=jkHost(curA.link);S.jk=S.jk||{};S.jk.r=S.jk.r||[];S.jk.t=S.jk.t||{};
+ const rec=hits.slice(0,3).map(e=>({u:curA.link,t:(e.textContent||'').replace(/\s+/g,' ').trim().slice(0,300),h:e.outerHTML.slice(0,2000),at:Date.now()}));
+ S.jk.r=rec.concat(S.jk.r).slice(0,JK.LEARN);
+ const added=[];hits.slice(0,3).forEach(e=>{const n=jkNorm(e.textContent);if(n.length>=12&&n.length<=160){const l=S.jk.t[host]||(S.jk.t[host]=[]);if(!l.includes(n)){l.unshift(n);if(l.length>JK.LEARN)l.pop();added.push([host,n])}}});
+ hits.forEach(e=>e.setAttribute('hidden',''));
+ try{getSelection().removeAllRanges()}catch(e){}$('#selbar').hidden=true;SELV=null;save();
+ try{layout()}catch(e){}
+ toast('Hidden. Thanks: it is logged and this site’s next story will skip it',()=>{hits.forEach(e=>e.removeAttribute('hidden'));S.jk.r=S.jk.r.filter(x=>!rec.includes(x));added.forEach(([h,n])=>{S.jk.t[h]=(S.jk.t[h]||[]).filter(x=>x!==n)});save();try{layout()}catch(e){}});
+}
+function junkLogText(){
+ const r=(S.jk&&S.jk.r)||[];
+ return 'CyPress junk log ('+r.length+')\n\n'+r.map(x=>x.u+'\n'+x.t+'\n'+x.h).join('\n\n---\n\n');
+}
+/* the pipeline's two entry points */
+{const _d=decorate;decorate=function(){try{const b=$('.cols .body');if(b&&curA&&!R.web)junkClean(b,curA.link)}catch(e){}return _d.apply(this,arguments)}}
 /* ---- experiment, cluster 14: the magazine article view ----
    A display-serif headline, a drop cap, up to three pull quotes lifted from the article's own sentences, a generous serif body, a live "N min left" pill,
    and an end-of-article footer with a cue to the next story and a few related reads. */
@@ -4048,6 +4176,7 @@ function readerFootHtml(a){
  const f=fof(a),nx=nextAfter(a),rel=relatedFor(a).filter(r=>!nx||r.link!==nx.link),mm=n=>{const m=minsOf(n);return m?' · '+m+' min':''};
  return `<aside class="rfoot" aria-label="Keep reading"><p class="rf-fin" aria-hidden="true">❦</p><p class="rf-src">${esc(f.title)}${a.date?' · '+esc(new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'})):''}</p>`
   +(nx?`<button type="button" class="rf-next" data-rnext="${esc(nx.link)}"><small>Next up</small><b>${esc(nx.title)}</b><em>${esc(fof(nx).title)}${mm(nx)}</em></button>`:'')
+  +((S.jk&&S.jk.r&&S.jk.r.length)?`<button type="button" class="rf-junk" data-junklog>Copy my junk log (${S.jk.r.length})</button>`:'')
   +(rel.length?`<div class="rf-rel"><p>Related reads</p>${rel.map(r=>`<button type="button" data-rnext="${esc(r.link)}"><b>${esc(r.title)}</b><em>${esc(fof(r).title)}</em></button>`).join('')}</div>`:'')+`</aside>`;
 }
 function decorate14(){
@@ -5239,7 +5368,7 @@ function getFull(url,light){
  else{const ctx={light:!!light};e=INF[url]={ctx,p:getFull0(url,ctx).finally(()=>{if(INF[url]===e)delete INF[url]})}}
  return e.p.then(n=>{
   if(!n)return null;
-  const f=tidy(n.cloneNode(true)),tx=f.textContent||'',q=textQuality(tx);f.tier=n.tier||'direct';f.meta=n.meta;if(n.incomplete)f.incomplete=true;if(n.gate)f.gate=true;if(n.nofree)f.nofree=true;if(gatedPreview(tx,n.gate,url))f.gated_preview=true;TIER[url]={tier:f.tier,meta:f.meta||null};
+  const f=tidy(n.cloneNode(true));try{junkClean(f,url)}catch(e){}const tx=f.textContent||'',q=textQuality(tx);f.tier=n.tier||'direct';f.meta=n.meta;if(n.incomplete)f.incomplete=true;if(n.gate)f.gate=true;if(n.nofree)f.nofree=true;if(gatedPreview(tx,n.gate,url))f.gated_preview=true;TIER[url]={tier:f.tier,meta:f.meta||null};
   if(!q.ok){const lg=LG[url]||(LG[url]=[]);lg.push('Rejected: the text looked garbled ('+q.why+')');return null}
   if(paywalled(tx)||paywalled(n.textContent))f.pw=true;
   return f;
@@ -6195,6 +6324,7 @@ $('#rd').onclick=e=>{
  const lk=t.closest('.cols .body a[href]');if(lk&&!lk.closest('.emb')&&!R.noClick&&!R.web&&!(getSelection()+'')){e.preventDefault();extOpen(lk.href);return}
  const bn=t.closest('[data-bnext]');if(bn){const n=briefNext();if(n)openReader(n);return}
  const rn=t.closest('[data-rnext]');if(rn){const n=findStory(rn.dataset.rnext);if(n)openReader(n);return}
+ const jl=t.closest('[data-junklog]');if(jl){navigator.clipboard.writeText(junkLogText()).then(()=>toast('Junk log copied'),()=>toast('Could not copy'));return}
  if(t.closest('[data-bfin]'))return closeRd();
  const sp=t.closest('[data-aspd]');if(sp){S.prate=+sp.dataset.aspd;S.setT=Date.now();save();const au=$('.cols .aud audio');if(au)au.playbackRate=S.prate;document.querySelectorAll('[data-aspd]').forEach(b=>b.classList.toggle('on',b===sp));return}
  if(t.closest('#pbq')){S.queue=!S.queue;save();return syncPb()}
@@ -6741,6 +6871,7 @@ async function selAct(k,col){
 
 
  if(k==='copy'){navigator.clipboard.writeText(SELV.q).then(()=>toast('Copied'),()=>{});return}
+ if(k==='junk'){junkReport(SELV.q);return}
  if(k==='img'){const f=fof(curA);quoteImage(SELV.q,{...curA,ft:f.title,fc:brand(f)}).then(c=>shareCanvas(c,'cypress-quote.png',curA.title+' '+curA.link));return}
  if(k==='follow'){const w=SELV.q.trim().replace(/\s+/g,' ');if(w.length>40){toast('Select a short word or phrase to follow');return}followTopic(w.replace(/^[^\w]+|[^\w]+$/g,''));try{getSelection().removeAllRanges()}catch(e){}$('#selbar').hidden=true;return}
  let note='';
