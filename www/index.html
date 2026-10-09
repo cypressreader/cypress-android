@@ -2553,6 +2553,32 @@ html.smooth .cover::before{mix-blend-mode:normal!important}
 .bmseg.chips::-webkit-scrollbar{display:none}
 .bmseg.chips button{flex:none;min-width:0;padding:4px 11px;border-radius:999px;border:1px solid var(--ln);background:transparent;color:var(--mut);font-size:12px;font-weight:500;box-shadow:none!important;white-space:nowrap}
 .bmseg.chips button.on{background:color-mix(in srgb,var(--ink) 9%,transparent);border-color:color-mix(in srgb,var(--ink) 40%,transparent);color:var(--ink);font-weight:600}
+/* experiment, cluster 2: the Daily's cover */
+.dcov{grid-column:1/-1;position:relative;isolation:isolate;overflow:hidden;border-radius:20px;color:#fff;min-height:min(88vh,740px);display:flex;flex-direction:column;background:#0f2a22;box-shadow:0 0 0 2px #0f5a3b}
+.dcov::after{content:'';position:absolute;inset:9px;border:1px solid rgba(255,255,255,.28);border-radius:13px;pointer-events:none;z-index:3}
+.dcv-art{position:absolute;inset:0;z-index:-2}.dcv-art>img,.dcv-art>svg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.dcv-sh{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(6,22,16,.5) 0%,rgba(6,22,16,.12) 30%,rgba(6,22,16,.4) 58%,rgba(6,22,16,.88) 100%)}
+.dcv-top{text-align:center;padding:28px 22px 0;text-shadow:0 1px 8px rgba(0,0,0,.45)}
+.dcv-mast{display:block;font:600 clamp(26px,7.4vw,42px)/1 var(--serif,Georgia,serif);letter-spacing:.34em;text-indent:.34em}
+.dcv-motto{display:block;margin-top:7px;font:italic 400 13.5px/1.2 var(--serif,Georgia,serif);opacity:.9}
+.dcv-ed{display:block;margin-top:12px;font:600 10.5px/1.2 var(--sans);letter-spacing:.2em;text-transform:uppercase;opacity:.92}
+.dcv-main{margin-top:auto;padding:36px 22px 12px}
+.dcov .dcv-lead{display:block;color:#fff;text-decoration:none;text-shadow:none}
+.dcov .dcv-lead small{display:block;margin-bottom:8px;font:600 11px/1.2 var(--sans);letter-spacing:.16em;text-transform:uppercase;opacity:.9;text-shadow:none}
+.dcov .dcv-lead h2{margin:0;font:700 clamp(28px,8.2vw,52px)/1.05 var(--serif,Georgia,serif);letter-spacing:-.005em;text-shadow:0 2px 14px rgba(0,0,0,.5);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:5;overflow:hidden;overflow-wrap:anywhere}
+.dcv-note{margin:12px 0 0;font:italic 400 15px/1.4 var(--serif,Georgia,serif);opacity:.94}
+.dcv-lines{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:14px;margin-top:18px;padding-top:11px;border-top:1px solid rgba(255,255,255,.38)}
+.dcov .dcv-l{display:block;color:#fff;text-decoration:none;min-width:0;padding:0;background:none;border:0}
+.dcov .dcv-l small{display:block;font:600 9.5px/1.2 var(--sans);letter-spacing:.14em;text-transform:uppercase;opacity:.78;margin-bottom:4px;text-shadow:none;background:none;padding:0}
+.dcov .dcv-l span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;font:500 13px/1.3 var(--serif,Georgia,serif);text-shadow:none}
+.dcv-prog{padding:0 16px 18px}.dcv-prog:empty{display:none}
+.dcov .dgp{margin:0;background:rgba(7,26,19,.62);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.24);border-radius:16px;color:#fff;box-shadow:none}
+.dcov .dgp *{color:inherit;border-color:rgba(255,255,255,.22)}.dcov .dgp .tx2,.dcov .dgp button{background:rgba(255,255,255,.12);color:#fff}
+.dcov .dgp p{opacity:.85}.dcov .dgp .dgq{margin:6px 0 0;font:italic 400 13px/1.35 var(--serif,Georgia,serif);opacity:.95}
+.dcov .dgp .rg circle:first-child{stroke:rgba(255,255,255,.25)}
+.dcov .dcv-why{position:absolute;top:12px;right:14px;z-index:4;background:rgba(0,0,0,.45);color:#fff;border:0}
+.dcov{--rg:#7be0b0;margin-bottom:16px}
+@media(min-width:700px){.dcov{min-height:min(78vh,700px)}.dcv-main{padding:48px 44px 16px;max-width:880px}.dcv-prog{padding:0 28px 26px;max-width:560px}}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -3528,7 +3554,7 @@ function mastHtml(f,list){
 const ringSvg=(n,t,sz,sw)=>{const r=(sz-sw)/2,c=2*Math.PI*r,f=t?Math.min(1,n/t):0;return `<svg class="rg" width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" aria-hidden="true"><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--ln)" stroke-width="${sw}"/><circle class="rgf" cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--rg,#1f8a5b)" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${(c*f).toFixed(1)} ${c.toFixed(1)}"/></svg>`};
 let DGL=[];
 const dgCount=()=>{const n=DGL.filter(l=>S.read[l]).length;return{n,t:DGL.length}};
-function dgProgHtml(){const{n,t}=dgCount();if(t<3)return'';const done=n>=t;return `<div class="dgp${done?' done':''}" data-dgp><div class="dgt" role="status"><div class="rgw">${ringSvg(n,t,54,6)}<b>${done?'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>':n}</b></div><div><h3>${done?'Edition finished':n+' of '+t+' read'}</h3><p>${done?'You have read everything in this edition.':(t-n)+' '+(t-n===1?'story':'stories')+' left in this edition'}</p></div></div>${fiveBtns()}</div>`}
+function dgProgHtml(){const{n,t}=dgCount();if(t<3)return'';const done=n>=t;return `<div class="dgp${done?' done':''}" data-dgp><div class="dgt" role="status"><div class="rgw">${ringSvg(n,t,54,6)}<b>${done?'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>':n}</b></div><div><h3>${done?'Edition finished':n+' of '+t+' read'}</h3><p class="dgq">${esc(pe0('progress',{key:done?'done':n?'mid':'start',n}))}</p><p>${done?'You have read everything in this edition.':(t-n)+' '+(t-n===1?'story':'stories')+' left in this edition'}</p></div></div>${fiveBtns()}</div>`}
 function dgProgUpdate(){const el=document.querySelector('#grid [data-dgp]');if(!el||S.sel!=='today')return;const h=dgProgHtml();if(!h)return;const t=document.createElement('div');t.innerHTML=h;el.replaceWith(t.firstChild)}
 const RDY_MARK='<span class="rdy" title="Ready to read, even offline" aria-label="Ready"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>';
 function markReady(l){document.querySelectorAll('#grid .card').forEach(c=>{if(chref(c)===l&&!c.querySelector('.rdy')){c.insertAdjacentHTML('beforeend',RDY_MARK);if(!userBusy())c.lastChild.classList.add('pop')}})}
@@ -3946,13 +3972,13 @@ function renderToday(tab0,pool0,seg0,ttl0){
   const ed0=dayEdition(pool),ranked=ed0.length?ed0:byDate.slice(0,ED_N);
   let lead=ranked.find(a=>a.img)||ranked[0]||pool.find(a=>a.img)||pool[0];
   {const busy=Object.values(state).some(v=>v==='load'),pv=LEADK&&pool.find(a=>a.link===LEADK&&a.img&&!S.read[a.link]);if(busy&&pv)lead=pv;LEADK=lead&&lead.link}
-  const unread=uc(S.feeds),useCover=isOn('cover')&&lead.img&&!document.body.classList.contains('split');
+  const unread=uc(S.feeds),useCover=isOn('cover')&&!document.body.classList.contains('split');
   cur=[lead];
-  h+=useCover?coverHtml(lead,pool)+`<div class="dateline"><span>Inside · ${esc(shortDate())}</span><small>${S.hideCount?'':unread?unread+' unread in all your feeds':'All caught up'}</small></div>`:`<div class="dateline"><span>${esc(edition())} · ${esc(shortDate())}</span><small>${S.hideCount?'':unread?unread+' unread in all your feeds':'All caught up'}</small></div>`+(WHY[lead.link]=whyLead(lead),card(lead,0,'lead'));
+  h+=useCover?dayCoverHtml(lead,pool)+`<div class="dateline"><span>Inside · ${esc(shortDate())}</span><small>${S.hideCount?'':unread?unread+' unread in all your feeds':'All caught up'}</small></div>`:`<div class="dateline"><span>${esc(edition())} · ${esc(shortDate())}</span><small>${S.hideCount?'':unread?unread+' unread in all your feeds':'All caught up'}</small></div>`+(WHY[lead.link]=whyLead(lead),card(lead,0,'lead'));
   const shown=new Set(cur.map(a=>a.link));(lead.more||[]).forEach(m=>shown.add(m.l));
   list=ranked.filter(a=>!shown.has(a.link)).slice(0,ED_N);label='Top stories';
   DGL=cur.concat(list).slice(0,ED_N).map(a=>a.link);clearTimeout(DPRE.t);DPRE.t=setTimeout(dayPreload,2500);
-  h+=`<p class="dwhy dtd">Your ${DGL.length} best stories for this ${edKind()==='m'?'morning':'evening'}, picked from what you read, what’s new and what’s breaking. Finish them and you’re done.</p>`+dgProgHtml()+fiveChip()+continueRow();
+  h+=`<p class="dwhy dtd">Your ${DGL.length} best stories for this ${edKind()==='m'?'morning':'evening'}, picked from what you read, what’s new and what’s breaking. Finish them and you’re done.</p>`+(useCover?'':dgProgHtml())+fiveChip()+continueRow();if(useCover)h=h.replace('<!--DGP-->',dgProgHtml());
  }else{
   cur=[];
   const now=Date.now();
@@ -7507,6 +7533,32 @@ const shortDate=d=>(d||new Date()).toLocaleDateString([],{month:'long',day:'nume
 let EDK=edition();setInterval(()=>{const k=edition();if(k!==EDK){EDK=k;if(S.sel==='today'&&!$('#rd').classList.contains('on'))render()}},300000);
 let COVSEEN=0;
 function covSeen(){const now=Date.now();document.documentElement.classList.toggle('cvstill',!!COVSEEN&&now-COVSEEN<18e5);if(!COVSEEN||now-COVSEEN>=18e5)COVSEEN=now}
+/* ---- experiment, cluster 2: the Daily's cover ----
+   Full-bleed art (the lead story's picture over per-edition art), a thin deep-green frame, the CYPRESS masthead with the motto beneath it,
+   the edition line, one dominant headline, a few small margin cover lines, an italic editor's note, and the day's progress card sitting on the cover */
+const DAY_MOTTO='Read what matters. Then stop.';
+/* first pass of the wording: cluster 4 replaces this with the variant engine */
+const PE0={note:{m:['A calm start: the stories that matter this morning, and nothing more.','Good morning. Everything below has been picked for you, and it ends.'],e:['The day’s news, settled and in order. Take your time.','Good evening. Here is what mattered today, and it ends.']},
+ progress:{start:['Nothing read yet. Start anywhere.'],mid:['Good pace. Keep going.'],done:['Every page turned.']}};
+function pe0(slot,ctx){const b=PE0[slot];if(!b)return'';const k=slot==='note'?(ctx&&ctx.am?'m':'e'):(ctx&&ctx.key);const a=b[k]||[];return a.length?a[(new Date().getDate()+(ctx&&ctx.n||0))%a.length]:''}
+function edArtSvg(am){
+ const sky=am?['#fbe7bf','#f3b783','#d98a5f']:['#0f1a3a','#3f3a73','#c8735b'],hill=am?['#2f7a5a','#1f6046','#124a35']:['#1f4a45','#143a36','#0b2a28'],g=am?'m':'e';
+ const orb=am?`<circle cx="292" cy="228" r="70" fill="#fff6dd" opacity=".55"/><circle cx="292" cy="228" r="38" fill="#fffaf0"/>`:`<circle cx="104" cy="178" r="34" fill="#f4f1de"/><circle cx="118" cy="170" r="30" fill="#3a3f78"/><g fill="#fff" opacity=".8"><circle cx="40" cy="70" r="1.6"/><circle cx="210" cy="48" r="1.4"/><circle cx="330" cy="110" r="1.8"/><circle cx="260" cy="150" r="1.2"/><circle cx="64" cy="230" r="1.3"/><circle cx="360" cy="60" r="1.3"/></g>`;
+ const tree=(x,h,c)=>`<path d="M${x} 560C${x-15} 560 ${x-17} ${560-h*.6} ${x} ${560-h}C${x+17} ${560-h*.6} ${x+15} 560 ${x} 560z" fill="${c}"/>`;
+ return `<svg class="dcv-svg" viewBox="0 0 400 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false"><defs><linearGradient id="dcg${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset=".55" stop-color="${sky[1]}"/><stop offset="1" stop-color="${sky[2]}"/></linearGradient></defs><rect width="400" height="600" fill="url(#dcg${g})"/>${orb}<path d="M0 410C70 380 130 392 200 372s150-6 200 20V600H0z" fill="${hill[0]}"/><path d="M0 470C80 440 150 462 230 440s120 0 170 18V600H0z" fill="${hill[1]}"/>${tree(46,210,hill[2])}${tree(344,260,hill[2])}${tree(380,170,hill[2])}<path d="M0 530C90 506 170 528 260 512s100 4 140 12V600H0z" fill="${hill[2]}"/></svg>`;
+}
+function dayCoverHtml(lead,pool){covSeen();
+ const d=new Date(),start=new Date(d.getFullYear(),0,0),issue=Math.floor((d-start)/864e5),am=edKind()==='m';
+ const lines=[],seen=new Set([lead.feedId]);
+ for(const a of pool){if(lines.length>=3)break;if(a===lead||seen.has(a.feedId)||S.read[a.link])continue;seen.add(a.feedId);lines.push(a)}
+ cur=[lead];WHY[lead.link]=whyLead(lead);
+ const li=lines.map(a=>{cur.push(a);WHY[a.link]='Cover line: a top unread story from '+fof(a).title+', one per site';return `<a class="cvl dcv-l" href="${esc(a.link)}" data-i="${cur.length-1}"><small style="--b:${brand(fof(a))}">${esc(fof(a).title)}</small><span>${esc(a.title)}</span></a>`}).join('');
+ const note=pe0('note',{am});
+ return `<div class="dcov ${am?'dcm':'dce'}" style="--b:${brand(fof(lead))}"><div class="dcv-art">${edArtSvg(am)}${lead.img?`<img src="${esc(lead.img)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}</div><div class="dcv-sh"></div>`
+  +`<header class="dcv-top"><span class="dcv-mast">CYPRESS</span><span class="dcv-motto">${esc(DAY_MOTTO)}</span><span class="dcv-ed">${esc(edition(d))} · No. ${issue}</span></header>`
+  +`<div class="dcv-main"><a class="cvlead dcv-lead" href="${esc(lead.link)}" data-i="0"><small>${esc(fof(lead).title)}</small><h2>${esc(lead.title)}</h2></a>${note?`<p class="dcv-note">${esc(note)}</p>`:''}${li?`<div class="dcv-lines">${li}</div>`:''}</div>`
+  +`<div class="dcv-prog"><!--DGP--></div>${WHY[lead.link]?'<button type="button" class="why cvwhy dcv-why" data-why="0" title="Why am I seeing this?" aria-label="Why am I seeing this?">i</button>':''}</div>`;
+}
 function coverHtml(lead,pool){covSeen();
  const d=new Date(),start=new Date(d.getFullYear(),0,0),issue=Math.floor((d-start)/864e5);
  const lines=[];const seen=new Set([lead.feedId]);
