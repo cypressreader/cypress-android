@@ -29,7 +29,7 @@ for(const [vp,w,h,touch] of VPS){
  // 3 list view, search
  await tap('[data-sel="all"]').catch(async()=>{await openSide();await tap('[data-sel="all"]')});await p.waitForTimeout(200);
  await E(()=>{S.sel='all';render()});
- ck(vp,'all stories count',await E(()=>document.querySelectorAll('#grid .card').length===18));
+ ck(vp,'all stories count',await E(()=>{for(let i=0;i<40;i++){NRMORE&&NRMORE()}return document.querySelectorAll('#grid .card').length===18}));
  await tap('#vw');await p.waitForTimeout(200);ck(vp,'list view',await E(()=>$('#grid').classList.contains('list')));await noHScroll('list');
  await tap('#vw');await p.waitForTimeout(150);
  await tap('#sb');await p.fill('#q','Gamma story 3');await p.waitForTimeout(300);
