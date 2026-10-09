@@ -64,7 +64,7 @@ const calls=(p,n)=>p.evaluate(n=>window.__calls.filter(c=>c[0]===n).map(c=>c[1])
   ck('A','App section in settings',!!(await p.$('#s-app')));
   ck('A','App nav chip',!!(await p.$('#snav [data-go="s-app"]')));
   ck('A','App chip sits before Setup',await p.evaluate(()=>{const n=[...document.querySelectorAll('#snav button')].map(x=>x.dataset.go);return n.indexOf('s-app')===n.indexOf('s-setup')-1}));
-  ck('A','settings line',/^You have version .*5.*\. Build 7 is ready$/.test(await txt(p,'#appv')),await txt(p,'#appv'));
+  ck('A','settings line',/^You have version .*5.*\. Version 7 is ready$/.test(await txt(p,'#appv')),await txt(p,'#appv'));
   ck('A','release notes shown',/Faster loading/.test(await txt(p,'#appnotes')||'')&&await p.evaluate(()=>!document.querySelector('#appnotes').hidden));
   await p.evaluate(()=>document.querySelector('#set').close());
   // tap Update: needs permission the first time

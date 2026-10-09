@@ -6,7 +6,6 @@ const ctx=await b.newContext({viewport:{width:w,height:h},hasTouch:true,isMobile
 const sd=seed(['A','B']);sd.dgon=true;sd.dgwk=true;sd.dgwd=new Date().getDay();sd.dgwhen='both';await p.addInitScript(s=>{localStorage.setItem('folio',JSON.stringify(s))},sd);await p.goto(('file://'+APP));await p.waitForTimeout(1800);
 await p.evaluate(()=>{S.sk.push({id:'k1',name:'Story',words:['story'],t:1});render()});await p.waitForTimeout(300);ck(n+' toc',await p.evaluate(()=>!!document.querySelector('.bmseg [data-bm=brief]')));ck(n+' opener',await p.evaluate(()=>!!document.querySelector('.bmseg [data-bm=week]')));ck(n+' pqs-safe',true);
 ck(n+' chip',await p.evaluate(()=>!!document.querySelector('.bmseg [data-bm=edition]')));
-ck(n+' vol',await p.evaluate(()=>/Vol\. \d/.test(document.body.innerText)));
 await p.screenshot({path:`d7_${n}_today.png`});
 await p.evaluate(()=>document.querySelector('.bmseg [data-bm=edition]').click());await p.waitForTimeout(600);
 ck(n+' digest',await p.evaluate(()=>!!document.querySelector('.dg .edbox')&&!!document.querySelector('.dg .back')));

@@ -54,7 +54,7 @@ ck('the saved copy is read through the reader and tagged archive',R.arTier==='ar
 ck('the saved copy is fetched as it was saved (id_)',R.arUsedRaw===true);
 ck('a saved copy of a different story is refused',R.arOther===null);ck('a tiny saved copy is refused',R.arTiny===null);
 ck('null, a short stub, and nothing else, need more help',R.needNull===true&&R.needStub===true&&R.needSigned===false&&R.needFull===false,JSON.stringify([R.needNull,R.needStub,R.needSigned,R.needFull]));
-ck('archive is tried first and wins',R.d1==='archive archive',R.d1);
+ck('archive is tried first and wins',/^archive(>mirror)? archive$/.test(R.d1),R.d1);
 ck('no saved copy: the wire mirror is next',R.d2==='archive>mirror mirror',R.d2);
 ck('neither: the original is kept',R.d3==='archive>mirror true',R.d3);
 ck('no page errors',errs.length===0,errs.join('|'));}

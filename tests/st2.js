@@ -52,10 +52,10 @@ for(const [vp,w,h,touch] of VPS){
  await E(()=>{S.offline=false;offApply(true)});await p.waitForTimeout(2500);
  ck(vp,'offline off restores',await E(()=>!document.body.classList.contains('offl')));
  // per-site cap
- await E(()=>{S.capn=3;S.sel='all';render()});
+ await E(()=>{S.capn=3;S.sort='new';S.sel='all';render()});
  const per=await E(()=>{const by=storyMap(),c={};[...document.querySelectorAll('#grid a.card')].forEach(a=>{const x=by.get(a.getAttribute('href'));if(x)c[x.feedId]=(c[x.feedId]||0)+1});return Math.max(...Object.values(c))});
  ck(vp,'per-site cap in All',per<=3,String(per));
- await E(()=>{S.capn=0;render()});
+ await E(()=>{S.capn=0;S.sort='smart';render()});
  // like ranking
  const rk=await E(()=>{const f=S.feeds[2].id,a=items[f][8];const b=likeScore(a);likeA(a,1);const c=likeScore(a);likeA(a,1);likeA(a,1);return [b,c,likeScore(a)]});
  ck(vp,'more like this raises score',rk[1]>rk[0]&&rk[2]>rk[1],JSON.stringify(rk));

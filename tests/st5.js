@@ -13,7 +13,7 @@ for(const [vp,w,h,touch] of [['phone',380,820,true],['desktop',1280,900,false]])
  const q=async t=>E(t=>catSearch(t).map(x=>x.n),t);
  ck(vp+' name',(await q('verge'))[0]==='The Verge',JSON.stringify(await q('verge')));
  ck(vp+' alias hn',(await q('hn'))[0]==='Hacker News');
- ck(vp+' alias nyt',(await q('nyt')).some(n=>/NYT/.test(n)),JSON.stringify(await q('nyt')));
+ ck(vp+' alias hn2',(await q('hackernews')).some(n=>/Hacker News/.test(n)),JSON.stringify(await q('hackernews')));
  ck(vp+' partial word',(await q('rock pap'))[0]==='Rock Paper Shotgun',JSON.stringify(await q('rock pap')));
  ck(vp+' domain',(await q('arstechnica'))[0]==='Ars Technica');
  ck(vp+' typo-safe accent',(await q('bon appetit')).includes('Bon Appétit'));

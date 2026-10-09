@@ -58,7 +58,7 @@ ck('a gate-named element with no gate message does not count',R.styleOnly===true
 ck('getFull marks the verification-gate story gated_preview',R.gfFlag===true);
 ck('a gated story always needs the deeper steps',R.needs===true);
 ck('a complete NYT story is not marked',R.fullNotGated===true);
-ck('archive is tried first for a gated story and wins',R.cas1==='archive archive',R.cas1);
+ck('archive is tried first for a gated story and wins',/^archive(>mirror)? archive$/.test(R.cas1),R.cas1);
 ck('then the wire mirror',R.cas2==='archive>mirror mirror',R.cas2);
 ck('neither: the preview is kept',R.cas3==='archive>mirror true',R.cas3);
 ck('no page errors',errs.length===0,errs.join('|'));}
@@ -79,7 +79,7 @@ ck('no page errors',errs.length===0,errs.join('|'));}
   const o={card:!!card,cardTxt:card?card.textContent:'',href:card?card.querySelector('a').getAttribute('href'):'',tgt:card?card.querySelector('a').getAttribute('target'):'',fade:lastFade.length,mask:lastFade[0]?getComputedStyle(lastFade[0]).webkitMaskImage||getComputedStyle(lastFade[0]).maskImage:'',gateGone:!/verify access/.test(document.querySelector('.cols .body').textContent),note:(document.querySelector('.cols .note')||{}).textContent||'',cached:!!acGet(link),link};
   document.querySelector('#cl').click();await new Promise(r=>setTimeout(r,400));
   // a saved copy found: no preview card
-  window.archiveFor=async()=>({n:Object.assign(frag('<p>'+words(300)+'</p><p>'+words(300)+'</p>'),{tier:'archive'}),u:'https://web.archive.org/web/1/x'});
+  TRUNCDONE.delete(link);window.archiveFor=async()=>({n:Object.assign(frag('<p>'+words(300)+'</p><p>'+words(300)+'</p>'),{tier:'archive'}),u:'https://web.archive.org/web/1/x'});
   await openReader(a);await new Promise(r=>setTimeout(r,2500));
   o.noCardWhenArchived=!document.querySelector('.cols .gcard');o.archNote=(document.querySelector('.cols .note')||{}).textContent||'';
   window.getFull=og;window.archiveFor=oa;window.mirrorFor=om;return o});

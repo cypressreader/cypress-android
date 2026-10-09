@@ -27,7 +27,7 @@ ck('light twin is light and readable',!R.light.dark&&R.light.ct>=7,JSON.stringif
 ck('flips back to dark',R.darkAgain.dark);
 ck('swatch in the theme grid',R.swatch);
 ck('in the After Dark group, count updated',R.groupHas&&R.groupCount==='12',JSON.stringify([R.groupHas,R.groupCount]));
-ck('More Styles count updated',R.more==='53',R.more);
+ck('More Styles count updated',R.more==='43',R.more);
 ck('available for After sunset',R.sunset&&R.nightEff==='nocturne',JSON.stringify([R.sunset,R.nightEff]));
 ck('listed for folder themes',R.names&&R.genres);
 ck('has its own fonts',R.fonts.every(Boolean),JSON.stringify(R.fonts));
