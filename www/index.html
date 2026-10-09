@@ -3771,14 +3771,14 @@ function render0(){
    and only pulling to refresh (or tapping the pill) ranks again. Stories are grouped by age, developing stories fold into one thread, a trending strip
    shows what several sites are talking about, one Wild Card turns up on every screen, card sizes vary, and a small chip says where you are among the new ones. */
 const wireOn=()=>isOn('wire');
-function wireReset(){WIRE.order=null;WIRE.known=null;WIRE.settled=false;clearTimeout(wireReset.t);wireReset.t=setTimeout(wireSettle,8000)}
+function wireReset(){WIRE.order=null;WIRE.known=null;WIRE.anchor=null;WIRE.settled=false;clearTimeout(wireReset.t);wireReset.t=setTimeout(wireSettle,8000)}
 function wireSettle(){WIRE.settled=true;clearTimeout(wireReset.t);if(S.sel==='all'&&!WIRE.order&&!(($('#q')||{}).value||'').trim()){try{render()}catch(e){}}}
-function wireLoad(){WIRE.order=null;WIRE.known=null;WIRE.settled=true;render();const m=$('main');if(m)m.scrollTop=0}
+function wireLoad(){WIRE.order=null;WIRE.known=null;WIRE.anchor=null;WIRE.settled=true;render();const m=$('main');if(m)m.scrollTop=0}
 /* the ranking is made once; later renders only re-use it. Returns the list to show; WIRE.pend holds stories that arrived since */
 function wireList(cur0){
  const rank=l=>smartOn()?smartAll(l):capList(l);
  /* changing how the list is sorted or limited is a deliberate request to rank again */
- {const sig=[S.sort,S.capn,S.group,S.hideRead].join('|');if(WIRE.sig!==sig){WIRE.sig=sig;WIRE.order=null;WIRE.known=null}}
+ {const sig=[S.sort,S.capn,S.group,S.hideRead].join('|');if(WIRE.sig!==sig){WIRE.sig=sig;WIRE.order=null;WIRE.known=null;WIRE.anchor=null}}
  if(!WIRE.order){
   const r=rank(cur0);WIRE.pend=[];
   if(WIRE.settled&&r.length){WIRE.order=r.map(a=>a.link);WIRE.known=new Set();r.forEach(a=>{WIRE.known.add(a.link);(a.more||[]).forEach(m=>WIRE.known.add(m.l))})}
@@ -3816,13 +3816,41 @@ function wireTrending(list){
  return Object.values(c).filter(e=>e.n>=3&&e.f.size>=2).sort((x,y)=>y.n-x.n||y.f.size-x.f.size).slice(0,6);
 }
 const wireClock=t=>new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
-function wireGroup(a,now){
- const d0=new Date(now);d0.setHours(0,0,0,0);
- if(a.date>=now-36e5)return 'hour';
+/* The age groups are measured from an anchor that is fixed for the whole visit, not from the clock: when you come back after hours away the anchor is the moment you left,
+   so what arrived since then is "New since 3:27 AM" and what you already had keeps sensible groups instead of all collapsing into "Earlier". */
+/* The theme picker lists Auto, Dynamic, Light, Dark and Modern again inside the category groups and its Featured count said 6 for 5 buttons: each theme appears once (in the first group that has it) and every count is the real number */
+function themeTidy(){
+ const root=document.getElementById('thm');if(!root)return;
+ const seen=new Set();
+ root.querySelectorAll('.tgrid').forEach(g=>{g.querySelectorAll(':scope>button[data-th]').forEach(b=>{if(seen.has(b.dataset.th))b.remove();else seen.add(b.dataset.th)})});
+ root.querySelectorAll('details.thd').forEach(d=>{
+  const g=d.querySelector(':scope>.tgrid');
+  if(g){const n=g.querySelectorAll(':scope>button[data-th]').length;const sm=d.querySelector(':scope>summary>small');if(sm)sm.textContent=String(n);if(!n&&!d.classList.contains('thmore'))d.remove()}
+ });
+ const more=root.querySelector('details.thmore');
+ if(more){const n=more.querySelectorAll('.tgrid>button[data-th]').length;const sm=more.querySelector(':scope>summary>small');if(sm)sm.textContent=String(n)}
+}
+try{themeTidy()}catch(e){}
+function wireAnchor(){
+ if(WIRE.anchor)return WIRE.anchor;
+ const now=Date.now();
+ return WIRE.anchor=(VIS&&now-VIS>=60*6e4)?{t:VIS,visit:true}:{t:now,visit:false};
+}
+function wireGroup(a,an){
+ if(an.visit&&a.date>an.t)return 'new';
+ const t=an.t,d0=new Date(t);d0.setHours(0,0,0,0);
+ if(a.date>=t-36e5)return 'hour';
  if(a.date>=d0.getTime())return new Date(a.date).getHours()<12?'morning':'today';
  return 'earlier';
 }
-const WIRE_LAB={hour:'Last hour',morning:'This morning',today:'Earlier today',earlier:'Earlier'};
+function wireLabel(key,an){
+ const dayName=new Date(an.t).toLocaleDateString([],{weekday:'long'}),today=new Date(an.t).toDateString()===new Date().toDateString();
+ if(key==='new')return 'New since '+wireClock(an.t);
+ if(key==='hour')return an.visit?'Just before you left':'Last hour';
+ if(key==='morning')return an.visit&&!today?dayName+' morning':'This morning';
+ if(key==='today')return an.visit&&!today?dayName+' afternoon':'Earlier today';
+ return 'Earlier';
+}
 const WIRE_PAT=['lead','mid','row','row','row','mid','row'];
 /* ---- experiment, cluster 13: rhythm and density ----
    Every dozen stories an edge-to-edge picture breaks the card grid. A small switch picks the density: magazine cards, or a tight newspaper-column headline river. */
@@ -3842,16 +3870,16 @@ function wireRender(pre,list){
  /* wild cards: stories from the sites you open least, taken from further down the list and shown once on every screen */
  const wild=units.slice(Math.floor(units.length*.4)).filter(u=>!u.more.length&&!S.read[u.head.link]).sort((x,y)=>((aff[x.head.feedId]||1)+(peHash(x.head.link+WIRE.seed)%100)/400)-((aff[y.head.feedId]||1)+(peHash(y.head.link+WIRE.seed)%100)/400)).slice(0,wildN);
  const wset=new Set(wild);
- const groups={hour:[],morning:[],today:[],earlier:[]};
- units.filter(u=>!wset.has(u)).forEach(u=>groups[wireGroup(u.head,now)].push(u));
+ const an=wireAnchor(),groups={new:[],hour:[],morning:[],today:[],earlier:[]};
+ units.filter(u=>!wset.has(u)).forEach(u=>groups[wireGroup(u.head,an)].push(u));
  const cn=[],ix=a=>{cn.push(a);return cn.length-1},B=[];let k=0,wi=0,newN=0;
  const rowsWrap=h=>mode==='w'?`<div class="nr-river"><div class="nr-rv">${h}</div></div>`:`<div class="nr-ph-rows nr-ph-in">${h}</div>`;
  const rowHtml=a=>card(a,ix(a),'nr nr-row nr-s');
  let rowBuf='',colBuf='';const flush=()=>{if(rowBuf){B.push(rowsWrap(rowBuf));rowBuf=''}if(colBuf){B.push(`<div class="wcols">${colBuf}</div>`);colBuf=''}};
  const addWild=()=>{const u=wild[wi++];if(!u)return;flush();WHY[u.head.link]='Wild card: from '+fof(u.head).title+', a site you open less often. One turns up on every screen.';B.push(`<div class="wwild"><p class="wwild-k">Wild card</p>${card(u.head,ix(u.head),'mid')}</div>`)};
- for(const key of ['hour','morning','today','earlier']){
+ for(const key of ['new','hour','morning','today','earlier']){
   const us=groups[key];if(!us.length)continue;
-  flush();B.push(`<h3 class="dsh wsec"><span>${WIRE_LAB[key]}</span><small>${us.length} ${us.length===1?'story':'stories'}</small></h3>`);
+  flush();B.push(`<h3 class="dsh wsec"><span>${esc(wireLabel(key,an))}</span><small>${us.length} ${us.length===1?'story':'stories'}</small></h3>`);
   let j=0;
   for(const u of us){
    const kind=WIRE_PAT[j%WIRE_PAT.length];j++;k++;
@@ -4574,7 +4602,7 @@ function daySections(list,mode){
  const wset=new Set(well);
  const rest=list.slice(6).filter(a=>a!==good&&!(num&&a===num.a)&&!wset.has(a));
  const quick=rest.filter(a=>{const m=minsOf(a);return m>=1&&m<=3}).slice(0,10);
- const deep=rest.filter(a=>minsOf(a)>=8).slice(0,6);
+ const deep=rest.filter(a=>minsOf(a)>=DEEPMIN).slice(0,6);
  const used=new Set(quick.concat(deep)),more=rest.filter(a=>!used.has(a));
  const brief=quick.length>=2;if(!brief)quick.forEach(a=>more.unshift(a));
  let n=0;const secs=[];
@@ -4653,6 +4681,8 @@ function dayEndCard(){
 }
 const dtab=()=>DTABS.some(x=>x[0]===S.dtab)?S.dtab:'latest';
 /* minutes to read: the measured time if the story has been opened, else from the feed's own text when that is long enough to mean something (a short teaser says nothing about the real length) */
+/* a long read starts at six minutes (a seven-minute story showed in Top stories but never in Deep reads when the line was drawn at eight) */
+const DEEPMIN=6;
 const minsOf=a=>{const m=S.rt[a.link];if(m)return m;const w=+a.wc||0;return w>=120?Math.max(1,Math.round(w/230)):0};
 function renderToday(tab0,pool0,seg0,ttl0){
  const g=$('#grid');const tab=tab0||'latest';g.classList.toggle('paper',tab==='latest');$('#ttl').textContent=ttl0||'The Daily',SEG=seg0||bmSeg('front');
@@ -4687,7 +4717,7 @@ function renderToday(tab0,pool0,seg0,ttl0){
    list=byDate.filter(a=>{const m=minsOf(a);return m>=1&&m<=3}).slice(0,40);label='Quick reads · about 1 to 3 minutes';
    empty='No short reads yet. A story shows up here once its length is known, which for some sites is after it has been opened.';
   }else{
-   list=byDate.filter(a=>minsOf(a)>=8).slice(0,40);label='';
+   list=byDate.filter(a=>minsOf(a)>=DEEPMIN).slice(0,40);label='';
    empty='No long reads yet. A story shows up here once its length is known, which for some sites is after it has been opened.';
   }
  }
