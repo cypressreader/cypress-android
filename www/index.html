@@ -9047,20 +9047,21 @@ function pdfW(s,f,sz){
  }
  return w*sz/1000;
 }
-function pdfWrap(s,f,sz,wf){
+function pdfWrap(s,f,sz,wf,k){
  const words=s.split(/ +/).filter(Boolean),lines=[];let ln='',i=0;
  for(const w of words){
   const lim=wf(lines.length),t=ln?ln+' '+w:w;
-  if(ln&&pdfW(t,f,sz)>lim){lines.push(ln);ln=w}else ln=t;
+  if(ln&&pdfW(t,f,sz)*(k||1)>lim){lines.push(ln);ln=w}else ln=t;
  }
  if(ln)lines.push(ln);
  return lines;
 }
 /* ed: {kind:'The Evening Edition', date:'Friday, October 9', short:'Oct 9', issue:282, cover:{title,source,deck,img:{bytes,w,h}|null}, stories:[{title,source,min,author,link,blocks:[{t:'p'|'h'|'q'|'li',s}]}]} */
 function pdfIssue(ed){
- const PW=595.28,PH=841.89,M=48,CG=22,CW=(PW-2*M-CG)/2,TOP=54,BOT=PH-60,LEAD=12.6,FS=9.6;
+ const PW=595.28,PH=841.89,M=48,CG=22,CW=(PW-2*M-CG)/2,TOP=60,BOT=PH-62,LEAD=12.6,FS=9.6;
  const GREEN='#0b2119',MID='#1f6a48',BRASS='#a8842c',INK='#16181d',GREY='#6b7078';
- const pages=[];let P=null;
+ const pages=[];let P=null;const IMGS=[];
+ const drawImg=(p,im,x,y,w,h)=>{let n=IMGS.indexOf(im)+1;if(!n){IMGS.push(im);n=IMGS.length}(p.imgs=p.imgs||new Set()).add(n);const sc=Math.max(w/im.w,h/im.h),dw=im.w*sc,dh=im.h*sc;p.ops.push(`q ${x.toFixed(2)} ${(PH-y-h).toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)} re W n ${dw.toFixed(2)} 0 0 ${dh.toFixed(2)} ${(x+(w-dw)/2).toFixed(2)} ${(PH-y-h+(h-dh)/2).toFixed(2)} cm /Im${n} Do Q`)};
  const mk=(foot)=>({ops:[],foot:foot||'',top:TOP});
  const col=h=>{const n=parseInt(h.slice(1),16);return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255].map(v=>v.toFixed(3)).join(' ')};
  const F={r:'F1',b:'F2',i:'F3',h:'F4',hb:'F5'};
@@ -9070,6 +9071,7 @@ function pdfIssue(ed){
  const L=(p,x1,y1,x2,y2,c,wd)=>p.ops.push(`${col(c)} RG ${wd||.6} w ${x1.toFixed(2)} ${(PH-y1).toFixed(2)} m ${x2.toFixed(2)} ${(PH-y2).toFixed(2)} l S`);
  const S=(p,x,y,w,h,c,wd)=>p.ops.push(`${col(c)} RG ${wd||.6} w ${x.toFixed(2)} ${(PH-y-h).toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)} re S`);
  const clip=(s,f,sz,w)=>{let t=s;if(pdfW(t,f,sz)<=w)return t;while(t.length>1&&pdfW(t+'…',f,sz)>w)t=t.slice(0,-1);return t.trimEnd()+'…'};
+ const wrapS=(s,f,sz,wf)=>pdfWrap(s,f,sz,wf,1.07);
  const dateShort=pdfWa(ed.short||''),kind=pdfWa(ed.kind||'The Daily');
  /* ---------- cover ---------- */
  {
@@ -9082,15 +9084,13 @@ function pdfIssue(ed){
   const dl=pdfWa(ed.date||''),dlw=pdfW(dl,'i',11);T(p,(PW-dlw)/2,162,dl,'i',11,'#cfe3d6');
   const c=ed.cover||{};let y=190;
   if(c.img){
-   const x0=M+6,w0=PW-2*(M+6),h0=300;p.img=c.img;
-   const sc=Math.max(w0/c.img.w,h0/c.img.h),dw=c.img.w*sc,dh=c.img.h*sc;
-   p.ops.push(`q ${x0} ${(PH-y-h0).toFixed(2)} ${w0} ${h0} re W n ${dw.toFixed(2)} 0 0 ${dh.toFixed(2)} ${(x0+(w0-dw)/2).toFixed(2)} ${(PH-y-h0+(h0-dh)/2).toFixed(2)} cm /Im1 Do Q`);
+   const x0=M+6,w0=PW-2*(M+6),h0=300;drawImg(p,c.img,x0,y,w0,h0);
    S(p,x0,y,w0,h0,'#a8842c',.8);y+=h0+34;
   }else y=300;
   const ks=pdfWa((c.source||'').toUpperCase()+'  ·  THE COVER STORY');T(p,M+6,y,clip(ks,'hb',8,PW-2*(M+6)),'hb',8,'#d1ad55',{tc:1.4});y+=26;
-  const hs=(c.title||'').length>80?28:34,hl=pdfWrap(pdfWa(c.title||''),'b',hs,()=>PW-2*(M+6)).slice(0,5);
+  const hs=(c.title||'').length>80?28:34,hl=wrapS(pdfWa(c.title||''),'b',hs,()=>PW-2*(M+6)).slice(0,5);
   hl.forEach(l=>{T(p,M+6,y,l,'b',hs,'#f3ead6');y+=hs*1.12});y+=10;
-  if(c.deck){pdfWrap(pdfWa(c.deck),'i',13,()=>PW-2*(M+6)).slice(0,3).forEach(l=>{T(p,M+6,y,l,'i',13,'#cfe3d6');y+=17})}
+  if(c.deck){wrapS(pdfWa(c.deck),'i',13,()=>PW-2*(M+6)).slice(0,3).forEach(l=>{T(p,M+6,y,l,'i',13,'#cfe3d6');y+=17})}
   const fl=pdfWa(ed.stories.length+(ed.stories.length===1?' story':' stories')+(ed.totalMin?'  ·  about '+ed.totalMin+' of reading':'')),flw=pdfW(fl,'h',8.5)+1.2*(fl.length-1);
   T(p,(PW-flw)/2,PH-52,fl,'h',8.5,'#9fc4af',{tc:1.2});
  }
@@ -9104,7 +9104,7 @@ function pdfIssue(ed){
  const room=()=>BOT-cy;
  const placePara=(txt,f,sz,lead,opt)=>{
   opt=opt||{};const ind=opt.ind||0,w=CW-ind;
-  let lines=pdfWrap(txt,f,sz,i=>opt.drop&&i<3?w-opt.drop:w);
+  let lines=pdfWrap(txt,f,sz,i=>opt.drop&&i<3?w-opt.drop:w,1.035);
   let i=0;
   while(i<lines.length){
    const left=lines.length-i,fit=Math.floor(room()/lead);
@@ -9125,7 +9125,7 @@ function pdfIssue(ed){
   }
  };
  const placeHead=(txt,f,sz,lead,before,keep)=>{
-  const lines=pdfWrap(txt,f,sz,()=>CW);const need=before+lines.length*lead+(keep||0);
+  const lines=wrapS(txt,f,sz,()=>CW);const need=before+lines.length*lead+(keep||0);
   if(room()<need)advance();
   cy+=before;lines.forEach(l=>{T(P,colX(cc),cy+lead*.8,l,f,sz,INK);cy+=lead});
  };
@@ -9146,13 +9146,15 @@ function pdfIssue(ed){
   if(P.endX!=null&&bl.length){T(P,P.endX+4,P.endY,'\x95','b',FS,MID)}
  };
  longS.forEach(st=>{
-  const p=newBody(clip(pdfWa(st.title),'h',7,300),TOP);startIdx.set(st,body.length-1);
+  const p=newBody(clip(pdfWa(st.title),'h',7,300),TOP);p.open=1;startIdx.set(st,body.length-1);
   let y=TOP+4;
   const kk=pdfWa((st.source||'')+'  ·  '+st.min+' MIN READ').toUpperCase();T(p,M,y+4,clip(kk,'hb',7.5,PW-2*M),'hb',7.5,MID,{tc:1.3});L(p,M,y+12,PW-M,y+12,GREEN,1.2);y+=18;
-  const t=pdfWa(st.title),hs=t.length>110?20:t.length>70?24:28,hl=pdfWrap(t,'b',hs,()=>PW-2*M).slice(0,4);
+  const t=pdfWa(st.title),hs=t.length>110?20:t.length>70?24:28,hl=wrapS(t,'b',hs,()=>PW-2*M).slice(0,4);
   hl.forEach(l=>{y+=hs*1.1;T(p,M,y-hs*.12,l,'b',hs,INK)});y+=8;
   const by=pdfWa(st.author?'By '+st.author:st.source||'');if(by){T(p,M,y+8,clip(by,'i',10,PW-2*M),'i',10,GREY);y+=16}
-  L(p,M,y+4,PW-M,y+4,'#c9ccd1',.5);y+=14;p.top=y;cy=y;cc=0;
+  L(p,M,y+4,PW-M,y+4,'#c9ccd1',.5);y+=14;
+  if(st.img){const H=st.words>=900?250:190;drawImg(p,st.img,M,y,PW-2*M,H);S(p,M,y,PW-2*M,H,'#c9ccd1',.5);y+=H+16}
+  p.top=y;cy=y;cc=0;
   placeBlocks(st.blocks,true);
   if(st.note){const n=pdfWa(st.note);if(room()<LEAD*2)advance();T(P,colX(cc),cy+LEAD,clip(n,'i',8.5,CW),'i',8.5,GREY);cy+=LEAD+4}
   /* a hairline between the columns on two-column pages */
@@ -9162,10 +9164,12 @@ function pdfIssue(ed){
   const p=newBody('Also in this issue',TOP);let y=TOP+4;
   T(p,M,y+4,'ALSO IN THIS ISSUE','hb',7.5,MID,{tc:1.6});L(p,M,y+12,PW-M,y+12,GREEN,1.2);y+=44;T(p,M,y,'In brief','b',26,INK);y+=12;L(p,M,y+4,PW-M,y+4,'#c9ccd1',.5);y+=16;p.top=y;cy=y;cc=0;
   startIdx.set('brief',body.length-1);
+  let briefImgs=0;
   brief.forEach(st=>{
    startIdx.set(st,body.length-1+(0));
-   const need=22+3*LEAD;if(room()<need)advance();
+   const need=22+3*LEAD+(st.img?106:0);if(room()<need)advance();
    startIdx.set(st,body.indexOf(P));
+   if(st.img&&briefImgs++<10){drawImg(P,st.img,colX(cc),cy,CW,96);S(P,colX(cc),cy,CW,96,'#c9ccd1',.4);cy+=104}
    T(P,colX(cc),cy+8,clip(pdfWa((st.source||'').toUpperCase()+'  ·  '+st.min+' MIN'),'hb',6.8,CW),'hb',6.8,MID,{tc:1});cy+=10;
    placeHead(pdfWa(st.title),'b',11.5,13.6,2,2*LEAD);
    placeBlocks(st.blocks.slice(0,6),false);
@@ -9176,23 +9180,25 @@ function pdfIssue(ed){
  /* ---------- contents ---------- */
  const contents=[];
  {
-  const per=[];let cp=mk('In this issue');cp.top=TOP;contents.push(cp);
-  let y=TOP+4;T(cp,M,y+4,pdfWa(kind.toUpperCase()+'  ·  NO. '+ed.issue),'hb',7.5,MID,{tc:1.3});L(cp,M,y+12,PW-M,y+12,GREEN,1.2);y+=50;T(cp,M,y,'In this issue','b',30,INK);y+=26;
-  const entries=ed.stories.map(st=>({st,lines:pdfWrap(pdfWa(st.title),'r',13.5,()=>PW-2*M-70).slice(0,2)}));
-  let pg=cp;
-  entries.forEach((e,i)=>{
-   const h=e.lines.length*16+22;
-   if(y+h>BOT){pg=mk('In this issue');contents.push(pg);y=TOP+10}
-   const bi=startIdx.get(e.st);e.pg=pg;e.y=y;e.bi=bi;
-   T(pg,M,y+12,String(i+1).padStart(2,'0'),'hb',9,BRASS,{tc:.8});
-   e.lines.forEach((l,k)=>T(pg,M+30,y+13+k*16,l,'r',13.5,INK));
-   T(pg,M+30,y+13+e.lines.length*16-4,clip(pdfWa((e.st.source||'')+'  ·  '+e.st.min+' min'),'h',7.5,PW-2*M-90),'h',7.5,GREY);
-   y+=h;L(pg,M+30,y-6,PW-M,y-6,'#dfe1e5',.4);
+  let cp=mk('In this issue');cp.top=TOP;cp.band=1;contents.push(cp);
+  R(cp,0,0,PW,132,GREEN);R(cp,0,132,PW,2,'#1f8a5b');
+  T(cp,M,58,pdfWa(kind.toUpperCase()+'  ·  NO. '+ed.issue),'hb',7.5,'#d1ad55',{tc:1.6});
+  T(cp,M,102,'In this issue','b',34,'#f3ead6');
+  let y=162,pg=cp;
+  const NUMW=34,PGW=44,TW=PW-2*M-NUMW-PGW;
+  var contEntries=[];
+  ed.stories.forEach((st,i)=>{
+   const lines=wrapS(pdfWa(st.title)||'Untitled','b',13.5,()=>TW).slice(0,3),h=lines.length*16.5+26;
+   if(y+h>BOT){pg=mk('In this issue');contents.push(pg);y=TOP+14}
+   const e={st,pg,y,bi:startIdx.get(st)};contEntries.push(e);
+   T(pg,M,y+16,String(i+1).padStart(2,'0'),'i',20,BRASS);
+   lines.forEach((l,k)=>T(pg,M+NUMW,y+13+k*16.5,l,'b',13.5,INK));
+   T(pg,M+NUMW,y+13+lines.length*16.5,clip(pdfWa((st.source||'')+'  ·  '+st.min+' min read'),'h',7.8,TW),'h',7.8,GREY);
+   y+=h;L(pg,M,y-8,PW-M,y-8,'#dfe1e5',.45);
   });
-  var contEntries=entries;
  }
  const all=[pages[0],...contents,...body];
- contEntries.forEach(e=>{const n=1+contents.length+e.bi+1;const s=String(n),w=pdfW(s,'r',13.5);T(e.pg,PW-M-w,e.y+13,s,'r',13.5,INK)});
+ contEntries.forEach(e=>{const n=1+contents.length+e.bi+1;const s=String(n),w=pdfW(s,'hb',11);T(e.pg,PW-M-w,e.y+13,s,'hb',11,INK)});
  /* ---------- back page ---------- */
  {
   const p=mk('');all.push(p);R(p,0,0,PW,PH,GREEN);S(p,22,22,PW-44,PH-44,'#1f8a5b',2.2);S(p,30,30,PW-60,PH-60,'#a8842c',.6);
@@ -9201,24 +9207,30 @@ function pdfIssue(ed){
   const b='Typeset on your device by CyPress. Nothing was sent anywhere.',bw=pdfW(b,'h',8)+1*(b.length-1);T(p,(PW-bw)/2,PH-60,b,'h',8,'#9fc4af',{tc:1});
   p.back=1;
  }
- /* footers */
- all.forEach((p,i)=>{if(i===0||p.back)return;const n=String(i+1),w=pdfW(n,'h',7.5);L(p,M,BOT+16,PW-M,BOT+16,'#c9ccd1',.4);T(p,M,BOT+28,clip(pdfWa((p.foot?p.foot+'  ·  ':'')+'CyPress '+(kind.replace(/^The /,''))+' · '+dateShort),'h',7,PW-2*M-30),'h',7,GREY);T(p,PW-M-w,BOT+28,n,'h',7.5,INK)});
+ /* running heads sit in the top margin and folios in the bottom margin, clear of the text block */
+ all.forEach((p,i)=>{
+  if(i===0||p.back)return;
+  const n=String(i+1),w=pdfW(n,'r',9.5);
+  T(p,(PW-w)/2,PH-34,n,'r',9.5,INK);L(p,PW/2-26,PH-40,PW/2-w/2-6,PH-40,'#c9ccd1',.4);L(p,PW/2+w/2+6,PH-40,PW/2+26,PH-40,'#c9ccd1',.4);
+  if(p.band||p.open)return;
+  const rt=clip(pdfWa(p.foot||''),'h',6.8,PW-2*M-190),rw=pdfW(rt,'h',6.8);
+  T(p,M,32,'CYPRESS  ·  '+kind.replace(/^The /,'').toUpperCase(),'hb',6.5,MID,{tc:1.4});T(p,PW-M-rw,32,rt,'h',6.8,GREY);L(p,M,38,PW-M,38,'#c9ccd1',.4);
+ });
  /* ---------- file ---------- */
  const enc=s=>{const b=new Uint8Array(s.length);for(let i=0;i<s.length;i++)b[i]=s.charCodeAt(i)&255;return b};
  const chunks=[],offs=[];let len=0;
  const put=x=>{const b=typeof x==='string'?enc(x):x;chunks.push(b);len+=b.length};
  const obj=(n,body)=>{offs[n]=len;put(n+' 0 obj\n');put(body);put('\nendobj\n')};
- const hasImg=!!pages[0].img;
- const nF=5,fontBase=3,imgN=hasImg?fontBase+nF:0,first=fontBase+nF+(hasImg?1:0),info=first+all.length*2;
+ const nF=5,fontBase=3,imgBase=fontBase+nF,first=imgBase+IMGS.length,info=first+all.length*2;
  put('%PDF-1.4\n%\xe2\xe3\xcf\xd3\n');
  obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
  obj(2,'<< /Type /Pages /Kids ['+all.map((_,i)=>(first+i*2+1)+' 0 R').join(' ')+'] /Count '+all.length+' >>');
  ['Times-Roman','Times-Bold','Times-Italic','Helvetica','Helvetica-Bold'].forEach((n,i)=>obj(fontBase+i,'<< /Type /Font /Subtype /Type1 /BaseFont /'+n+' /Encoding /WinAnsiEncoding >>'));
- if(hasImg){const im=pages[0].img;offs[imgN]=len;put(imgN+' 0 obj\n<< /Type /XObject /Subtype /Image /Width '+im.w+' /Height '+im.h+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+im.bytes.length+' >>\nstream\n');put(im.bytes);put('\nendstream\nendobj\n')}
+ IMGS.forEach((im,k)=>{const n=imgBase+k;offs[n]=len;put(n+' 0 obj\n<< /Type /XObject /Subtype /Image /Width '+im.w+' /Height '+im.h+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+im.bytes.length+' >>\nstream\n');put(im.bytes);put('\nendstream\nendobj\n')});
  all.forEach((p,i)=>{
   const cn=first+i*2,pn=cn+1,s=p.ops.join('\n');
   offs[cn]=len;put(cn+' 0 obj\n<< /Length '+s.length+' >>\nstream\n');put(s);put('\nendstream\nendobj\n');
-  obj(pn,'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+PW+' '+PH+'] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R /F5 7 0 R >>'+(p.img?' /XObject << /Im1 '+imgN+' 0 R >>':'')+' >> /Contents '+cn+' 0 R >>');
+  obj(pn,'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+PW+' '+PH+'] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R /F5 7 0 R >>'+(p.imgs&&p.imgs.size?' /XObject << '+[...p.imgs].map(n=>'/Im'+n+' '+(imgBase+n-1)+' 0 R').join(' ')+' >>':'')+' >> /Contents '+cn+' 0 R >>');
  });
  const d=new Date(),pad=n=>String(n).padStart(2,'0'),cd='D:'+d.getUTCFullYear()+pad(d.getUTCMonth()+1)+pad(d.getUTCDate())+pad(d.getUTCHours())+pad(d.getUTCMinutes())+pad(d.getUTCSeconds())+'Z';
  obj(info,'<< /Title ('+esc(pdfWa(kind+', '+(ed.date||'')))+') /Producer (CyPress) /Creator (CyPress) /CreationDate ('+cd+') >>');
@@ -10648,7 +10660,7 @@ async function pdfStory(a,cachedOnly){
  if(r.words<30&&a.summary){const s=String(a.summary).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();if(s)r={blocks:[{t:'p',s}],words:s.split(' ').length}}
  const f=fof(a),min=minsOf(a)||Math.max(1,Math.round(r.words/(S.wpm||230)));
  return {l:a.link,title:a.title||'',source:f.title||host(a.link),min,author:a.author?String(a.author).slice(0,60):'',words:r.words,blocks:r.blocks,
-  note:r.words<120?'Read the full story at '+host(a.link)+'.':''};
+  note:r.words<120?'Read the full story at '+host(a.link)+'.':'',imgUrl:a.img||''};
 }
 async function pdfCoverImg(url){
  if(!url)return null;
@@ -10666,10 +10678,12 @@ function pdfEdMeta(d,kind){
  return {kind:kind==='m'?'The Morning Edition':'The Evening Edition',date:d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),short:d.toLocaleDateString('en-US',{month:'short',day:'numeric'}),issue};
 }
 async function pdfFinish(meta,stories,coverImgUrl){
- const mins=stories.reduce((n,s)=>n+s.min,0);
- const lead=stories[0]||{};
- const img=await pdfCoverImg(coverImgUrl);
- const ed=Object.assign({},meta,{totalMin:mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes',cover:{title:lead.title,source:lead.source,deck:(lead.blocks&&lead.blocks[0]&&lead.blocks[0].t==='p'?lead.blocks[0].s.slice(0,150):''),img},stories});
+ const mins=stories.reduce((n,s)=>n+s.min,0),lead=stories[0]||{};
+ /* every story's lead picture, fetched a few at a time (best effort: a picture that cannot be fetched is simply left out) */
+ let k=0;const work=async()=>{while(k<stories.length){const s=stories[k++];if(s.imgUrl&&k<=24)s.img=await pdfCoverImg(s.imgUrl)}};
+ await Promise.all([work(),work(),work()]);
+ const cimg=(lead.img)||await pdfCoverImg(coverImgUrl);
+ const ed=Object.assign({},meta,{totalMin:mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes',cover:{title:lead.title,source:lead.source,deck:(lead.blocks&&lead.blocks[0]&&lead.blocks[0].t==='p'?lead.blocks[0].s.slice(0,150):''),img:cimg},stories});
  const r=pdfIssue(ed);
  return new Blob([r.bytes],{type:'application/pdf'});
 }
