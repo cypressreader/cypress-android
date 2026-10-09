@@ -134,7 +134,8 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  const np=await E(()=>R.np);
  await E(()=>{window.CLK=[];['pointerdown','pointerup','click','touchend'].forEach(t=>document.addEventListener(t,e=>CLK.push(t+':'+(e.target.id||e.target.tagName)+':'+e.defaultPrevented),true))});
  await p.tap('#cl');await W(300);
- if(np>2){ck(vp,'progress bar on card',await E(()=>document.querySelectorAll('.card .prg').length>=1));
+ const ep0=await E(()=>R.ep!=null?R.ep:R.np-1);
+ if(np>2&&ep0>1){ck(vp,'progress bar on card',await E(()=>document.querySelectorAll('.card .prg').length>=1));
   await E(()=>{S.sel='today';render()});await W(200);
   ck(vp,'continue reading row',await E(()=>!!$('.crow .cr')));
   await p.screenshot({path:`/tmp/t/n-${vp}-today.png`});

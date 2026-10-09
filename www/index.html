@@ -2738,6 +2738,25 @@ html.pdark #grid.paper{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .wcol small{display:block;margin-bottom:3px;font:700 9.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}.wcol small::before{content:'';display:inline-block;width:6px;height:6px;margin-right:6px;border-radius:50%;background:var(--b,var(--mut))}
 .wcol b{display:block;font:400 21px/1.1 var(--disp)}.wcol em{display:block;margin-top:4px;font:italic 400 13px var(--disp);color:var(--mut)}.wcol.read b{opacity:.55}
 .wcol small,.wcol b,.wcol em{text-shadow:none}
+/* experiment, cluster 14: the magazine article view */
+html.rdx .cols .tt{font-family:var(--disp);font-weight:400;font-size:clamp(38px,9vw,64px);line-height:.98;letter-spacing:-.012em;font-synthesis:none;margin-bottom:.35em}
+html.rdx .cols .kick{font:700 10.5px var(--sans);letter-spacing:.22em;text-transform:uppercase}
+html.rdx .cols img.hero{border-radius:3px;aspect-ratio:3/2;height:auto;max-height:calc(var(--ih)*.95);object-fit:cover}
+html.rdserif .cols .body{font-family:var(--serif,Georgia,serif)}
+html.rdx .cols .body p{line-height:1.72}
+html.rdx .body p.dropcap::first-letter{font-family:var(--disp);font-weight:400;font-synthesis:none;color:var(--b,var(--ink))}
+html.rdx .pullq{font-family:var(--disp);font-weight:400;font-style:italic;font-size:1.7em;line-height:1.1;font-synthesis:none;border-left-width:3px}
+.rfoot{display:block;break-inside:avoid;margin:2.2em 0 .5em;padding-top:1.4em;border-top:1px solid var(--ln);text-align:center;font-family:var(--sans)}
+.rf-fin{margin:0 0 6px;font-size:28px;line-height:1;color:var(--b,var(--ink))}
+.rf-src{margin:0 0 20px;font:italic 400 14px var(--disp,Georgia);color:var(--mut)}
+.rf-next,.rf-rel button{display:block;width:100%;text-align:left;border:0;background:none;cursor:pointer;color:var(--ink)}
+.rf-next{padding:16px 18px;border:1px solid var(--ln);border-radius:14px;background:var(--pn)}
+.rf-next small,.rf-rel p{display:block;margin:0 0 6px;font:700 10px var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--mut)}
+.rf-next b,.rf-rel b{display:block;font:400 24px/1.08 var(--disp,Georgia);font-synthesis:none}.rf-rel b{font-size:19px}
+.rf-next em,.rf-rel em{display:block;margin-top:5px;font:italic 400 13px var(--disp,Georgia);color:var(--mut)}
+.rf-rel{margin-top:20px;text-align:left}.rf-rel button{padding:10px 0;border-top:1px dotted var(--ln)}
+#rleft{position:absolute;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:12;padding:5px 13px;border-radius:999px;background:color-mix(in srgb,var(--ink) 86%,transparent);color:var(--pn);font:600 11.5px var(--sans);letter-spacing:.04em;pointer-events:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}#rleft[hidden]{display:none}
+html.rdx .cols.rfok .kr{display:none}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -3927,6 +3946,58 @@ function parWatch(root){
  addEventListener('resize',()=>wireChrome());
  {const _r3=render;render=function(){_r3.apply(this,arguments);parWatch();wireChrome()}}
 }
+/* ---- experiment, cluster 14: the magazine article view ----
+   A display-serif headline, a drop cap, up to three pull quotes lifted from the article's own sentences, a generous serif body, a live "N min left" pill,
+   and an end-of-article footer with a cue to the next story and a few related reads. */
+document.documentElement.classList.add('rdx');
+function rdQuote(ps,lo,hi,skip){
+ let best=null,bs=-1;
+ ps.slice(Math.floor(ps.length*lo),Math.ceil(ps.length*hi)).forEach(p=>{
+  (p.textContent.match(/[^.!?]+[.!?]/g)||[]).forEach(s=>{s=s.trim();const L=s.length;if(L<60||L>170||/https?:|@|\d{4}/.test(s)||/^["“”']/.test(s)||skip.has(s))return;const sc=100-Math.abs(L-110)+(/\b(we|our|never|always|first|most|only|why|but)\b/i.test(s)?15:0);if(sc>bs){bs=sc;best=s}});
+ });
+ return best;
+}
+function relatedFor(a){
+ const sg=wsig(a);if(sg.size<2)return [];const out=[];
+ for(const f of S.feeds)for(const b of items[f.id]||[]){if(b.link===a.link||S.read[b.link])continue;const s2=wsig(b);let sh=0;for(const w of sg)if(s2.has(w))sh++;if(sh>=2)out.push([sh,b])}
+ return out.sort((x,y)=>y[0]-x[0]||y[1].date-x[1].date).slice(0,3).map(x=>x[1]);
+}
+function nextAfter(a){
+ const i=cur.findIndex(x=>x.link===a.link);
+ for(let j=i+1;j<cur.length;j++){const n=cur[j];if(n&&n.link!==a.link&&!S.read[n.link])return n}
+ return null;
+}
+function readerFootHtml(a){
+ const f=fof(a),nx=nextAfter(a),rel=relatedFor(a).filter(r=>!nx||r.link!==nx.link),mm=n=>{const m=minsOf(n);return m?' · '+m+' min':''};
+ return `<aside class="rfoot" aria-label="Keep reading"><p class="rf-fin" aria-hidden="true">❦</p><p class="rf-src">${esc(f.title)}${a.date?' · '+esc(new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'})):''}</p>`
+  +(nx?`<button type="button" class="rf-next" data-rnext="${esc(nx.link)}"><small>Next up</small><b>${esc(nx.title)}</b><em>${esc(fof(nx).title)}${mm(nx)}</em></button>`:'')
+  +(rel.length?`<div class="rf-rel"><p>Related reads</p>${rel.map(r=>`<button type="button" data-rnext="${esc(r.link)}"><b>${esc(r.title)}</b><em>${esc(fof(r).title)}</em></button>`).join('')}</div>`:'')+`</aside>`;
+}
+function decorate14(){
+ const b=$('.cols .body');if(!b)return;
+ document.documentElement.classList.toggle('rdserif',(S.font||'theme')==='theme'&&!/typewriter|terminal|amber|pixel|arcade|cyber/.test(document.documentElement.dataset.theme||''));
+ b.querySelectorAll('.rfoot').forEach(x=>x.remove());
+ /* a second and third pull quote for a long article */
+ if(isOn('mag')&&isOn('pqs')){
+  const ps=[...b.querySelectorAll(':scope > p')].filter(p=>!p.classList.contains('endmark')),total=b.textContent.length,have=new Set([...b.querySelectorAll('.pullq')].map(q=>q.textContent));
+  const add=(lo,hi,at)=>{const s=rdQuote(ps,lo,hi,have);if(!s)return;have.add(s);const q=document.createElement('div');q.className='pullq';q.setAttribute('aria-hidden','true');q.textContent=s.replace(/^["“]|["”]$/g,'');(ps[Math.floor(ps.length*at)]||ps[ps.length-1]).before(q)};
+  if(ps.length>=14&&total>=4200)add(.6,.9,.75);
+  if(ps.length>=24&&total>=8000)add(.12,.35,.2);
+ }
+ if(curA&&!R.web)b.append(Object.assign(document.createElement('div'),{innerHTML:readerFootHtml(curA)}).firstChild);
+ {const c=$('.cols');if(c)c.classList.toggle('rfok',!!b.querySelector('.rf-next,.rf-rel'))}
+}
+{const _d=decorate;decorate=function(){_d.apply(this,arguments);try{decorate14()}catch(e){}}}
+/* the live countdown */
+function rdLeftUpdate(){
+ const rd=$('#rd');let el=$('#rleft');
+ if(!rd||!rd.classList.contains('on')||R.web||!R.ready){if(el)el.hidden=true;return}
+ if(!el){el=document.createElement('div');el.id='rleft';el.setAttribute('role','status');rd.append(el)}
+ const NP=R.ep!=null?Math.min(R.np,R.ep+1):R.np,PG=Math.min(R.pg,Math.max(0,NP-1)),f=isVert()?vEndFrac():(NP>1?(PG+1)/NP:1),m=minsLeft(f);
+ el.hidden=!(R.words>=120);
+ el.textContent=f>=.98?'Finished':(m?m+' min left':'Last page');
+}
+{const _sp=setProg;setProg=function(){_sp.apply(this,arguments);try{rdLeftUpdate()}catch(e){}}}
 function mastHtml(f,list){
  if(!f)return'';const col=brand(f),hs=host(f.url).replace(/^www\./,'');const nm=esc(f.title||hs);
  return `<div class="mst2" style="--mb:${col}"><div class="mr"><div class="mt" aria-hidden="true">${esc((f.title||hs).trim().charAt(0).toUpperCase())}</div><div style="min-width:0"><h2 class="mn">${nm}</h2>${f.desc?`<div class="mg">${esc(String(f.desc).slice(0,140))}</div>`:''}<div class="mu">${esc(hs)}</div></div></div></div>`;
@@ -5943,6 +6014,7 @@ $('#rd').onclick=e=>{
  const gim=t.closest('.cols img');if(gim&&gim.classList.contains('tiny'))return;if(gim&&!gim.closest('.emb')&&!R.noClick&&!R.web&&!(getSelection()+'')){e.preventDefault();openGal(gim);return}
  const lk=t.closest('.cols .body a[href]');if(lk&&!lk.closest('.emb')&&!R.noClick&&!R.web&&!(getSelection()+'')){e.preventDefault();extOpen(lk.href);return}
  const bn=t.closest('[data-bnext]');if(bn){const n=briefNext();if(n)openReader(n);return}
+ const rn=t.closest('[data-rnext]');if(rn){const n=findStory(rn.dataset.rnext);if(n)openReader(n);return}
  if(t.closest('[data-bfin]'))return closeRd();
  const sp=t.closest('[data-aspd]');if(sp){S.prate=+sp.dataset.aspd;S.setT=Date.now();save();const au=$('.cols .aud audio');if(au)au.playbackRate=S.prate;document.querySelectorAll('[data-aspd]').forEach(b=>b.classList.toggle('on',b===sp));return}
  if(t.closest('#pbq')){S.queue=!S.queue;save();return syncPb()}
@@ -7880,7 +7952,7 @@ function smarten(b){
  if(!isOn('typo'))return;
  const tw=document.createTreeWalker(b,NodeFilter.SHOW_TEXT);let n,prev=' ',lastBlock=null;
  while(n=tw.nextNode()){
-  const pe=n.parentElement;if(!pe||pe.closest('pre,code,script,style,.pullq,.endmark'))continue;
+  const pe=n.parentElement;if(!pe||pe.closest('pre,code,script,style,.pullq,.endmark,.rfoot'))continue;
   const blk=pe.closest('p,li,h2,h3,h4,blockquote,figcaption,td,th')||b;if(blk!==lastBlock){prev=' ';lastBlock=blk}
   const t=n.data;if(!/["'\u2019]| - /.test(t)){prev=t.slice(-1)||prev;continue}
   let o='';for(let i=0;i<t.length;i++){const ch=t[i],pv=i?t[i-1]:prev,nx=t[i+1]||'';
@@ -7972,7 +8044,7 @@ function decorate(){
  const at=ps[Math.floor(ps.length*.45)],q=document.createElement('div');q.className='pullq';q.setAttribute('aria-hidden','true');q.textContent=best.replace(/^["“]|["”]$/g,'');
  at.before(q);
 }
-const skipDeco=n=>n.parentElement&&n.parentElement.closest('.pullq,.endmark,.bfold,.gcard');
+const skipDeco=n=>n.parentElement&&n.parentElement.closest('.pullq,.endmark,.bfold,.gcard,.rfoot');
 
 /* ---------- follow topics ---------- */
 function followTopic(q){q=(q||'').trim();if(!q)return;const w=q.toLowerCase();if(S.sk.some(k=>k.words.length===1&&k.words[0]===w)){toast('Already following “'+q+'”');return}S.sk.push({id:'k'+Date.now(),name:q.length>28?q.slice(0,28)+'…':q,words:[w],t:Date.now()});save();render();toast('Following “'+q+'”. Find it under Topics.')}
