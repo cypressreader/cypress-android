@@ -2788,6 +2788,15 @@ html.rdx .cols.rfok .kr{display:none}
 .fin-ed{margin:0 0 24px;font:700 10px var(--sans);letter-spacing:.2em;text-transform:uppercase;opacity:.7}
 #fin .tx2{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.5)}
 @media(prefers-reduced-motion:reduce){#fin,.fin-frame{transition:none}.dcov.land *{animation:none!important}}
+/* experiment, cluster 17: ambient delight */
+.top,aside,#tabs,.tabbar,nav.bnav{background-image:linear-gradient(var(--amb,transparent),var(--amb,transparent))!important}
+@keyframes starPop{0%{transform:scale(1)}28%{transform:scale(1.5) rotate(-14deg)}58%{transform:scale(.9) rotate(4deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes starRing{0%{opacity:.9;transform:scale(.6)}100%{opacity:0;transform:scale(2)}}
+@keyframes starSpark{0%{opacity:1;box-shadow:0 -14px 0 -2px #f4c25a,12px -8px 0 -2px #f4c25a,14px 8px 0 -2px #f4c25a,0 14px 0 -2px #f4c25a,-13px 8px 0 -2px #f4c25a,-12px -8px 0 -2px #f4c25a}100%{opacity:0;box-shadow:0 -34px 0 -3px #f4c25a,30px -18px 0 -3px #f4c25a,32px 20px 0 -3px #f4c25a,0 34px 0 -3px #f4c25a,-31px 20px 0 -3px #f4c25a,-30px -18px 0 -3px #f4c25a}}
+.star.flo,#st.flo{animation:starPop .7s cubic-bezier(.3,1.5,.5,1);position:relative}
+.star.flo::before,#st.flo::before{content:'';position:absolute;inset:-5px;border-radius:50%;border:2px solid #f4c25a;animation:starRing .7s ease-out forwards;pointer-events:none}
+.star.flo::after,#st.flo::after{content:'';position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;animation:starSpark .75s ease-out forwards;pointer-events:none}
+@media(prefers-reduced-motion:reduce){.star.flo,#st.flo,.star.flo::before,#st.flo::before,.star.flo::after,#st.flo::after{animation:none}}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4097,6 +4106,27 @@ addEventListener('keydown',e=>{if(!FIN.open)return;if(e.key==='Escape'){e.preven
 {const _r4=render;render=function(){_r4.apply(this,arguments);try{landCheck();finCheck()}catch(e){}}}
 {const _dp=dgProgUpdate;dgProgUpdate=function(){_dp.apply(this,arguments);try{finCheck()}catch(e){}}}
 {const rd=$('#rd');if(rd&&'MutationObserver' in window)new MutationObserver(()=>{if(!rd.classList.contains('on'))setTimeout(()=>{try{finCheck()}catch(e){}},450)}).observe(rd,{attributes:true,attributeFilter:['class']})}
+/* ---- experiment, cluster 17: ambient delight ----
+   The chrome warms and cools with the hour: gold in the morning, ink in the evening. Saving a story gets a small flourish. The quote card (long-press a passage, then Share)
+   is drawn on the cover look. */
+function ambApply(){
+ const h=new Date().getHours()+new Date().getMinutes()/60;
+ const T=[[0,'20,30,74',.15],[5,'255,190,100',.11],[8,'255,208,128',.075],[12,'255,236,200',.025],[16,'255,176,96',.06],[19,'44,62,118',.10],[22,'20,30,74',.15],[24,'20,30,74',.15]];
+ let a=T[0],b=T[1];for(let i=0;i<T.length-1;i++){if(h>=T[i][0]&&h<T[i+1][0]){a=T[i];b=T[i+1];break}}
+ const t=(h-a[0])/Math.max(.001,b[0]-a[0]),A=+a[2]+(+b[2]-+a[2])*t,pa=a[1].split(',').map(Number),pb=b[1].split(',').map(Number);
+ const rgb=pa.map((v,i)=>Math.round(v+(pb[i]-v)*t)).join(',');
+ document.documentElement.style.setProperty('--amb','rgba('+rgb+','+A.toFixed(3)+')');
+}
+ambApply();setInterval(ambApply,600000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)ambApply()});
+/* the save flourish: a pop, a ring and a few sparks on the star that was just filled */
+function saveFlourish(a){
+ if(!a||reduced()||!isSaved(a))return;
+ setTimeout(()=>{
+  const els=[...document.querySelectorAll('#grid .card .star,#grid .wmom,#st')].filter(e=>e.id==='st'||(e.closest&&chref(e.closest('.card'))===a.link));
+  els.forEach(e=>{e.classList.remove('flo');void e.offsetWidth;e.classList.add('flo');setTimeout(()=>e.classList.remove('flo'),1000)});
+ },60);
+}
+{const _ts=toggleSave;toggleSave=function(a){const r=_ts.apply(this,arguments);try{saveFlourish(a)}catch(e){}return r}}
 function mastHtml(f,list){
  if(!f)return'';const col=brand(f),hs=host(f.url).replace(/^www\./,'');const nm=esc(f.title||hs);
  return `<div class="mst2" style="--mb:${col}"><div class="mr"><div class="mt" aria-hidden="true">${esc((f.title||hs).trim().charAt(0).toUpperCase())}</div><div style="min-width:0"><h2 class="mn">${nm}</h2>${f.desc?`<div class="mg">${esc(String(f.desc).slice(0,140))}</div>`:''}<div class="mu">${esc(hs)}</div></div></div></div>`;
@@ -8388,28 +8418,49 @@ function showWhy(a,el){
 document.addEventListener('pointerdown',e=>{const p=$('#whyp');if(p&&!p.hidden&&!e.target.closest('[data-why]'))p.hidden=true},true);
 
 /* ---------- quote images ---------- */
+/* the quote card: the selected text set in the display serif on the deep-green cover look (frame, masthead, hills and cypress trees), ready to share as a picture */
 async function quoteImage(q,art,note){
  const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
- try{await document.fonts.ready}catch(e){}
- const col=(art&&art.fc)||brand(fof(art||{}))||'#1f4a33';
+ try{await document.fonts.ready;await document.fonts.load("400 80px 'CyPress Display'");await document.fonts.load("italic 400 80px 'CyPress Display'")}catch(e){}
+ const DF="'CyPress Display','Instrument Serif',Georgia,serif",SF="system-ui,-apple-system,'Segoe UI',sans-serif";
+ const col=(art&&art.fc)||brand(fof(art||{}))||'#1f6a48';
  const tmp=document.createElement('div');tmp.style.color=col;document.body.append(tmp);const rgb=getComputedStyle(tmp).color;tmp.remove();
- const g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,rgb);g.addColorStop(1,'#0e1116');x.fillStyle=g;x.fillRect(0,0,W,H);
- x.fillStyle='rgba(255,255,255,.07)';x.beginPath();x.arc(W*.85,H*.12,300,0,7);x.fill();
- x.fillStyle='rgba(255,255,255,.9)';x.font="600 220px 'Newsreader',Georgia,serif";x.fillText('“',70,300);
- let fs=q.length>320?44:q.length>200?52:q.length>110?62:72;x.font=`500 ${fs}px 'Newsreader',Georgia,serif`;x.fillStyle='#fff';
- const words=q.replace(/\s+/g,' ').trim().split(' '),lines=[];let ln='';
- for(const w of words){const t=ln?ln+' '+w:w;if(x.measureText(t).width>W-180&&ln){lines.push(ln);ln=w}else ln=t}if(ln)lines.push(ln);
- const maxL=Math.floor(640/(fs*1.3));if(lines.length>maxL){lines.length=maxL;lines[maxL-1]=lines[maxL-1].replace(/\s*\S*$/,'')+'…'}
- let y=380;for(const l of lines){x.fillText(l,90,y);y+=fs*1.3}
- if(note){x.font="italic 400 32px 'Instrument Sans',system-ui,sans-serif";x.fillStyle='rgba(255,255,255,.75)';x.fillText(('Note: '+note).slice(0,70),90,y+20);y+=60}
- x.fillStyle='rgba(255,255,255,.35)';x.fillRect(90,H-330,120,4);
- x.fillStyle='#fff';x.font="600 36px 'Instrument Sans',system-ui,sans-serif";
- const tl=(art&&art.title||'').slice(0,90);let t2='',tls=[];for(const w of tl.split(' ')){const t=t2?t2+' '+w:w;if(x.measureText(t).width>W-180&&t2){tls.push(t2);t2=w}else t2=t}if(t2)tls.push(t2);
- tls.slice(0,2).forEach((l,i)=>x.fillText(l,90,H-270+i*46));
- x.fillStyle='rgba(255,255,255,.7)';x.font="500 30px 'Instrument Sans',system-ui,sans-serif";x.fillText((art&&(art.ft||fof(art).title))||'',90,H-165);
- const lg=LOGOS[S.logo]?S.logo:'tree',img=new Image();img.src='data:image/png;base64,'+LOGOS[lg][0];await new Promise(r=>{img.onload=r;img.onerror=r});
- const oc=document.createElement('canvas');oc.width=oc.height=84;const o=oc.getContext('2d');o.drawImage(img,0,0,84,84);o.globalCompositeOperation='source-in';o.fillStyle='#fff';o.fillRect(0,0,84,84);
- x.drawImage(oc,W-300,H-150,56,56);x.fillStyle='#fff';x.font=lg==='circuit'?"600 26px 'Orbitron',system-ui,sans-serif":"italic 600 40px 'Cormorant Garamond',Georgia,serif";x.fillText(lg==='circuit'?'CYPRESS':'CyPress',W-232,H-108);
+ /* ground: deep green to near black, with a wash of the story's own colour */
+ let g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#10382a');g.addColorStop(.55,'#0a2018');g.addColorStop(1,'#050f0b');x.fillStyle=g;x.fillRect(0,0,W,H);
+ g=x.createRadialGradient(W*.82,H*.16,20,W*.82,H*.16,520);g.addColorStop(0,rgb.replace('rgb(','rgba(').replace(')',',.5)'));g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,W,H);
+ /* hills and cypress trees along the bottom */
+ const hill=(y,h,fill)=>{x.fillStyle=fill;x.beginPath();x.moveTo(0,H);x.lineTo(0,y);x.bezierCurveTo(W*.25,y-h,W*.5,y+h*.6,W*.75,y-h*.3);x.bezierCurveTo(W*.88,y-h*.6,W*.95,y,W,y-h*.2);x.lineTo(W,H);x.closePath();x.fill()};
+ hill(H-250,60,'rgba(31,106,72,.45)');hill(H-170,50,'rgba(14,64,44,.7)');
+ const tree=(tx,th,fill)=>{x.fillStyle=fill;x.beginPath();x.moveTo(tx,H-100);x.bezierCurveTo(tx-th*.14,H-100,tx-th*.16,H-100-th*.6,tx,H-100-th);x.bezierCurveTo(tx+th*.16,H-100-th*.6,tx+th*.14,H-100,tx,H-100);x.fill()};
+ tree(130,330,'#06140e');tree(190,230,'#06140e');tree(W-150,380,'#06140e');tree(W-220,250,'#06140e');
+ hill(H-100,30,'#06140e');
+ /* the signature frame */
+ x.strokeStyle='#0f5a3b';x.lineWidth=6;x.strokeRect(34,34,W-68,H-68);x.strokeStyle='rgba(255,255,255,.3)';x.lineWidth=1.5;x.strokeRect(50,50,W-100,H-100);
+ /* masthead */
+ x.textAlign='center';x.fillStyle='rgba(255,255,255,.92)';x.font=`400 50px ${DF}`;
+ const mast='CYPRESS';let mx=W/2-(mast.length*34)/2+17;for(const ch of mast){x.fillText(ch,mx,150);mx+=34}
+ x.textAlign='left';
+ /* the quote */
+ x.fillStyle='rgba(255,255,255,.28)';x.font=`italic 400 300px ${DF}`;x.fillText('“',96,420);
+ const qt=String(q||'').replace(/\s+/g,' ').trim();
+ let fs=qt.length>360?54:qt.length>240?64:qt.length>140?78:qt.length>70?92:108;
+ x.fillStyle='#fff';x.font=`400 ${fs}px ${DF}`;
+ const words=qt.split(' ');let lines=[],ln='';
+ const wrap=()=>{lines=[];ln='';for(const w of words){const t=ln?ln+' '+w:w;if(x.measureText(t).width>W-240&&ln){lines.push(ln);ln=w}else ln=t}if(ln)lines.push(ln)};
+ wrap();const maxH=640;while(lines.length*fs*1.1>maxH&&fs>40){fs-=4;x.font=`400 ${fs}px ${DF}`;wrap()}
+ const maxL=Math.floor(maxH/(fs*1.1));if(lines.length>maxL){lines.length=maxL;lines[maxL-1]=lines[maxL-1].replace(/\s*\S*$/,'')+'…'}
+ let y=470;for(const l of lines){x.fillText(l,120,y);y+=fs*1.1}
+ if(note){x.font=`italic 400 40px ${DF}`;x.fillStyle='rgba(255,255,255,.75)';x.fillText(('Note: '+note).slice(0,60),120,y+30);y+=70}
+ /* attribution */
+ const ay=Math.max(y+50,H-430);
+ x.fillStyle='rgba(255,255,255,.4)';x.fillRect(120,ay,110,3);
+ x.fillStyle='#fff';x.font=`400 44px ${DF}`;
+ const tl=(art&&art.title||'').slice(0,100);let t2='',tls=[];for(const w of tl.split(' ')){const t=t2?t2+' '+w:w;if(x.measureText(t).width>W-240&&t2){tls.push(t2);t2=w}else t2=t}if(t2)tls.push(t2);
+ tls.slice(0,2).forEach((l,i)=>x.fillText(l,120,ay+62+i*50));
+ x.fillStyle='rgba(255,255,255,.72)';x.font=`600 26px ${SF}`;
+ const src=((art&&(art.ft||fof(art).title))||'').toUpperCase(),dt=art&&art.date?'  ·  '+new Date(art.date).toLocaleDateString([],{month:'long',day:'numeric',year:'numeric'}).toUpperCase():'';
+ x.fillText((src+dt).slice(0,60),120,ay+62+Math.min(2,tls.length)*50+34);
+ x.textAlign='center';x.fillStyle='rgba(255,255,255,.55)';x.font=`italic 400 30px ${DF}`;x.fillText('Read on CyPress',W/2,H-62);x.textAlign='left';
  return c;
 }
 /* a shareable link: the story's headline, photo, date and colour travel inside the link (no excerpt, to keep it short) (after the #), so no server stores anything */
