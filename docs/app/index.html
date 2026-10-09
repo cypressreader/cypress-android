@@ -2759,12 +2759,14 @@ html.rdx .pullq{font-family:var(--disp);font-weight:400;font-style:italic;font-s
 html.rdx .cols.rfok .kr{display:none}
 /* experiment, cluster 15: focus mode */
 #rd .bar,#rd #dial,#rd #rleft,#rd .hdr,#rd .bs,#rd #pc{transition:opacity .45s ease}
-#rd.focus .bar,#rd.focus #dial,#rd.focus #rleft,#rd.focus .selhint{opacity:0!important;pointer-events:none}
+#rd.focus .bar,#rd.focus #dial,#rd.focus #rleft,#rd.focus .selhint,#rd.focus #pc,#rd.focus .bs{opacity:0!important;pointer-events:none}
+/* on pages (tablet and desktop) a following highlight means nothing, since the whole page is in view: focus only fades the chrome and the folio, leaving the page itself untouched */
+#rd.focus:not(.vert) .book[data-folio]::after{opacity:0;transition:opacity .45s ease}
 #rd.focus .bar *{pointer-events:none}
 #rfx{position:absolute;top:calc(10px + env(safe-area-inset-top));right:12px;z-index:30;width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:var(--ink);opacity:.28;cursor:pointer}#rfx:hover,#rfx:focus-visible{opacity:.9}#rfx[hidden]{display:none}
-#rd.focus .cols .body > p{transition:opacity .35s ease,background-color .35s ease}
-#rd.focus .cols .body > p:not(.fl){opacity:.5}
-#rd.focus .cols .body > p.fl{opacity:1;background:color-mix(in srgb,var(--b,var(--ink)) 9%,transparent);border-radius:10px;box-shadow:-12px 0 0 color-mix(in srgb,var(--b,var(--ink)) 9%,transparent),12px 0 0 color-mix(in srgb,var(--b,var(--ink)) 9%,transparent)}
+#rd.focus.vert .cols .body > p{transition:opacity .35s ease,background-color .35s ease}
+#rd.focus.vert .cols .body > p:not(.fl){opacity:.5}
+#rd.focus.vert .cols .body > p.fl{opacity:1;background:color-mix(in srgb,var(--b,var(--ink)) 9%,transparent);border-radius:10px;box-shadow:-12px 0 0 color-mix(in srgb,var(--b,var(--ink)) 9%,transparent),12px 0 0 color-mix(in srgb,var(--b,var(--ink)) 9%,transparent)}
 @media(prefers-reduced-motion:reduce){#rd .bar,#rd #dial,#rd #rleft,#rd.focus .cols .body > p{transition:none}}
 /* experiment, cluster 16: ceremonies */
 @keyframes landArt{from{transform:translate3d(0,0,0) scale(1.22);opacity:.2}to{opacity:1}}
@@ -2791,12 +2793,19 @@ html.rdx .cols.rfok .kr{display:none}
 /* experiment, cluster 17: ambient delight */
 .top,aside,#tabs,.tabbar,nav.bnav{background-image:linear-gradient(var(--amb,transparent),var(--amb,transparent))!important}
 @keyframes starPop{0%{transform:scale(1)}28%{transform:scale(1.5) rotate(-14deg)}58%{transform:scale(.9) rotate(4deg)}100%{transform:scale(1) rotate(0)}}
-@keyframes starRing{0%{opacity:.9;transform:scale(.6)}100%{opacity:0;transform:scale(2)}}
-@keyframes starSpark{0%{opacity:1;box-shadow:0 -14px 0 -2px #f4c25a,12px -8px 0 -2px #f4c25a,14px 8px 0 -2px #f4c25a,0 14px 0 -2px #f4c25a,-13px 8px 0 -2px #f4c25a,-12px -8px 0 -2px #f4c25a}100%{opacity:0;box-shadow:0 -34px 0 -3px #f4c25a,30px -18px 0 -3px #f4c25a,32px 20px 0 -3px #f4c25a,0 34px 0 -3px #f4c25a,-31px 20px 0 -3px #f4c25a,-30px -18px 0 -3px #f4c25a}}
-.star.flo,#st.flo{animation:starPop .7s cubic-bezier(.3,1.5,.5,1);position:relative}
-.star.flo::before,#st.flo::before{content:'';position:absolute;inset:-5px;border-radius:50%;border:2px solid #f4c25a;animation:starRing .7s ease-out forwards;pointer-events:none}
-.star.flo::after,#st.flo::after{content:'';position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;animation:starSpark .75s ease-out forwards;pointer-events:none}
-@media(prefers-reduced-motion:reduce){.star.flo,#st.flo,.star.flo::before,#st.flo::before,.star.flo::after,#st.flo::after{animation:none}}
+.star.flo,#st.flo{animation:starPop .7s cubic-bezier(.3,1.5,.5,1)}
+.sburst{position:fixed;z-index:2500;width:0;height:0;pointer-events:none}
+.sburst>*{position:absolute;left:0;top:0}
+.sb-glow{width:170px;height:170px;margin:-85px 0 0 -85px;border-radius:50%;background:radial-gradient(circle,rgba(244,194,90,.55),rgba(244,194,90,0) 68%);animation:sbGlow .9s ease-out forwards}
+.sb-ring{width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:3px solid #f4c25a;animation:sbRing .85s cubic-bezier(.2,.7,.3,1) forwards}
+.sb-ring.r2{border-width:2px;animation-delay:.12s;opacity:0}
+.sburst i{width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#f4c25a;box-shadow:0 0 10px #f4c25a;transform:rotate(var(--r)) translateY(0);animation:sbSpark .85s cubic-bezier(.2,.8,.3,1) forwards}
+.sb-star{margin:-32px 0 0 -32px;filter:drop-shadow(0 4px 14px rgba(244,194,90,.7));animation:sbStar .9s cubic-bezier(.3,1.5,.5,1) forwards}
+@keyframes sbGlow{0%{opacity:0;transform:scale(.4)}35%{opacity:1}100%{opacity:0;transform:scale(1.15)}}
+@keyframes sbRing{0%{opacity:1;transform:scale(.5)}100%{opacity:0;transform:scale(3.4)}}
+@keyframes sbSpark{0%{opacity:1;transform:rotate(var(--r)) translateY(-14px) scale(1)}100%{opacity:0;transform:rotate(var(--r)) translateY(calc(-1 * var(--d))) scale(.3)}}
+@keyframes sbStar{0%{opacity:0;transform:scale(.2) rotate(-40deg)}35%{opacity:1;transform:scale(1.35) rotate(8deg)}70%{opacity:1;transform:scale(1) rotate(0)}100%{opacity:0;transform:scale(1.1)}}
+@media(prefers-reduced-motion:reduce){.star.flo,#st.flo{animation:none;outline:2px solid #f4c25a;outline-offset:2px}.sburst{display:none}}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4147,11 +4156,23 @@ function ambApply(){
 }
 ambApply();setInterval(ambApply,600000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)ambApply()});
 /* the save flourish: a pop, a ring and a few sparks on the star that was just filled */
+function starBurst(el){
+ const r=el.getBoundingClientRect();if(!r.width)return;
+ const b=document.createElement('div');b.className='sburst';b.setAttribute('aria-hidden','true');
+ b.style.left=(r.left+r.width/2)+'px';b.style.top=(r.top+r.height/2)+'px';
+ const sp=Array.from({length:10},(_,i)=>`<i style="--r:${i*36}deg;--d:${i%2?58:74}px"></i>`).join('');
+ b.innerHTML=`<span class="sb-glow"></span><span class="sb-ring"></span><span class="sb-ring r2"></span>${sp}<svg class="sb-star" viewBox="0 0 24 24" width="64" height="64"><path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.2 1.2-6.5-4.8-4.6 6.6-.9z" fill="#f4c25a" stroke="#fff3cf" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
+ document.body.append(b);setTimeout(()=>b.remove(),1100);
+}
 function saveFlourish(a){
- if(!a||reduced()||!isSaved(a))return;
+ if(!a||!isSaved(a))return;
  setTimeout(()=>{
-  const els=[...document.querySelectorAll('#grid .card .star,#grid .wmom,#st')].filter(e=>e.id==='st'||(e.closest&&chref(e.closest('.card'))===a.link));
-  els.forEach(e=>{e.classList.remove('flo');void e.offsetWidth;e.classList.add('flo');setTimeout(()=>e.classList.remove('flo'),1000)});
+  const els=[...document.querySelectorAll('#grid .card .star,#st')].filter(e=>e.id==='st'?$('#rd').classList.contains('on'):(e.closest&&chref(e.closest('.card'))===a.link));
+  const el=els.find(e=>{const r=e.getBoundingClientRect();return r.width&&r.bottom>0&&r.top<innerHeight})||els[0];
+  if(!el)return;
+  if(reduced()){el.classList.remove('flo');void el.offsetWidth;el.classList.add('flo');setTimeout(()=>el.classList.remove('flo'),700);return}
+  el.classList.remove('flo');void el.offsetWidth;el.classList.add('flo');setTimeout(()=>el.classList.remove('flo'),900);
+  starBurst(el);
  },60);
 }
 {const _ts=toggleSave;toggleSave=function(a){const r=_ts.apply(this,arguments);try{saveFlourish(a)}catch(e){}return r}}
