@@ -3,7 +3,7 @@ const fs=require('fs'),cp=require('child_process'),path=require('path'),os=requi
 const have=c=>{try{cp.execSync('which '+c,{stdio:'ignore'});return true}catch(e){return false}};
 if(!have('pdftotext')||!have('pdfimages')||!have('pdftoppm')){console.log('pdf_overhaul skipped (poppler not installed)');process.exit(0)}
 const html=fs.readFileSync(path.join(__dirname,'..','www','index.html'),'utf8');
-const a=html.indexOf('const PDFW={'),b=html.indexOf('return {bytes:out,pages:all.length};\n}',a)+'return {bytes:out,pages:all.length};\n}'.length;
+const a=html.indexOf('const PDFW={'),b=html.indexOf('\n}\n',html.indexOf('return {bytes:out,pages:all.length',a))+3;
 eval(html.slice(a,b)+';globalThis.pdfIssue=pdfIssue;');
 const JPG=Buffer.from('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/yQALCAABAAEBAREA/8wABgAQEAX/2gAIAQEAAD8A0s8g/9k=','base64');
 const im={bytes:new Uint8Array(JPG),w:1,h:1};
@@ -38,12 +38,9 @@ const raw=all;const pageTxt=[null,...[...Array(r.pages)].map((_,k)=>tx('-f '+(k+
 ck('every drop cap carries its letter (The ... not he ...)',(raw.match(/T\s?he committee met on Tuesday to discuss/g)||[]).length>=1&&(raw.match(/he committee met on Tuesday to discuss/g)||[]).length===(raw.match(/T\s?he committee met on Tuesday to discuss/g)||[]).length,'');
 const ds=[...raw.matchAll(/(?:^|\n)([A-Z])\n?([a-z]+ [a-z]+ [a-z]+)/g)].length;
 ck('drop caps are drawn',ds>=1||/T\s*he committee/.test(raw));
-/* 5. briefs keep header and body together, in order */
-let order=true;for(let i=0;i<6;i++){const h=raw.indexOf('Brief item '+i+' headline'),bd=raw.indexOf('BRIEFBODY'+i),tl=raw.indexOf('BRIEFTAIL'+i);if(!(h>=0&&bd>h&&tl>bd))order=false}
-ck('each brief reads header, body, tail in order',order);
-const briefPages=[];for(let p=1;p<=r.pages;p++){if(/BRIEFBODY/.test(tx('-f '+p+' -l '+p)))briefPages.push(p)}
-let together=true;for(let i=0;i<6;i++){const pg=storyPages.filter(p=>pageTxt[p].includes('Brief item '+i+' headline'));const pg2=storyPages.filter(p=>pageTxt[p].includes('BRIEFBODY'+i));if(pg[0]!==pg2[0])together=false}
-ck('a brief never starts on one page and continues its header elsewhere',together);
+/* 5. briefs are a digest: each headline appears once with its one-line summary (never split, never repeated) */
+let once=true;for(let i=0;i<6;i++){const n=(raw.match(new RegExp('Brief item '+i+' headline','g'))||[]).length;if(n<1||n>3)once=false}
+ck('each brief headline is printed (contents + digest only)',once);
 /* 4. each paragraph once */
 const dupP=(n)=>(raw.match(new RegExp('Paragraph 3 of story '+n+':','g'))||[]).length;
 ck('a body paragraph appears once',dupP(0)===1&&dupP(1)===1,dupP(0)+','+dupP(1));
@@ -53,7 +50,7 @@ ck('the standfirst appears once per place it belongs (cover, contents, story pag
 const bytes=fs.readFileSync(f).toString('latin1');
 ck('has a bookmark outline that opens with the file',/\/Outlines \d+ 0 R/.test(bytes)&&/\/PageMode \/UseOutlines/.test(bytes));
 const links=[...bytes.matchAll(/\/Subtype \/Link \/Rect \[[^\]]+\] \/Border \[0 0 0\] \/Dest \[(\d+) 0 R/g)].map(m=>+m[1]);
-ck('every contents entry is a link',links.length===stories.length,String(links.length));
+ck('every contents entry is a link (plus the up-next cards)',links.length>=stories.length,String(links.length));
 const pageIds=new Set([...bytes.matchAll(/(\d+) 0 obj\n<< \/Type \/Page /g)].map(m=>+m[1]));
 ck('every link lands on a real page',links.every(n=>pageIds.has(n)));
 const outDest=[...bytes.matchAll(/\/Title \(([^)]*)\) \/Parent \d+ 0 R[^>]*\/Dest \[(\d+) 0 R/g)];

@@ -4,7 +4,7 @@ const fs=require('fs'),cp=require('child_process'),path=require('path'),os=requi
 const have=c=>{try{cp.execSync('which '+c,{stdio:'ignore'});return true}catch(e){return false}};
 if(!have('pdftotext')||!have('pdfimages')){console.log('pdf_layout skipped (poppler not installed)');process.exit(0)}
 const html=fs.readFileSync(path.join(__dirname,'..','www','index.html'),'utf8');
-const a=html.indexOf('const PDFW={'),b=html.indexOf('return {bytes:out,pages:all.length};\n}',a)+'return {bytes:out,pages:all.length};\n}'.length;
+const a=html.indexOf('const PDFW={'),b=html.indexOf('\n}\n',html.indexOf('return {bytes:out,pages:all.length',a))+3;
 eval(html.slice(a,b)+';globalThis.pdfIssue=pdfIssue;');
 /* a tiny valid JPEG (1x1, grey), scaled by the PDF viewer */
 const JPG=Buffer.from('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/yQALCAABAAEBAREA/8wABgAQEAX/2gAIAQEAAD8A0s8g/9k=','base64');
