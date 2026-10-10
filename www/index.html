@@ -1369,8 +1369,9 @@ html.quiet .why,html.quiet .bad,html.quiet .star{display:none!important}
 html.quiet .sech h2,html.quiet .kick,html.quiet .trh b{letter-spacing:.2em}
 html.quiet .cvm{letter-spacing:.06em}
 /* photo pages in the reader */
-.body figure.fbp,.body p.fbp{break-before:column;break-after:column;break-inside:avoid;margin:0;height:var(--ch);display:flex;align-items:center;justify-content:center}
-.body .fbp img{width:100%;height:100%;max-height:none;object-fit:cover;border-radius:14px;margin:0}
+/* a large photo is set big but no longer forces its own column (that left half-empty columns before and after it) */
+.body figure.fbp,.body p.fbp{break-inside:avoid;margin:1em 0;display:flex;align-items:center;justify-content:center}
+.body .fbp img{width:100%;height:auto;max-height:calc(var(--ch)*.72);object-fit:cover;border-radius:14px;margin:0}
 .body figure.fbp figcaption{position:absolute;left:0;right:0;bottom:0;padding:26px 14px 10px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);color:#fff;font-size:13px}
 .body figure.fbp{position:relative}
 /* colophon */
@@ -5761,6 +5762,7 @@ function layout(){noteFix();
  c.style.cssText=`left:${P}px;top:${P}px;width:${use}px;height:${ch}px;column-count:${R.cpv};column-gap:${gap}px;--ih:${Math.round(ch*.5)}px;--ch:${ch}px`;
  const cw=(use-(R.cpv-1)*gap)/R.cpv;
  R.step=use+gap;
+ try{fillVoids(c,cw,gap)}catch(e){elog('fillVoids',e)}
  R.np=Math.max(1,Math.ceil(Math.round((c.scrollWidth+gap)/(cw+gap))/R.cpv));
  R.pg=Math.min(R.pg,R.np-1);
  pgEnd();
@@ -12020,4 +12022,35 @@ function eagerImgs(){
 
 /* tapping the offline badge explains it instead of opening the story */
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#grid .rdy');if(!b)return;e.preventDefault();e.stopPropagation();toast('Saved on this device, so it opens offline. It is not the same as read.')},true);
+
+/* ---------- page mode: no dead gaps mid-article ----------
+   A picture, table or quote cannot be split across columns, so when one does not fit the room left at the foot of a column the browser leaves that room empty. When the previous column is left clearly short because the next one opens with such a block, the block is moved after the paragraph that follows it (never further than three paragraphs from where it was) so the text fills the gap. */
+function fillVoids(c,cw,gap){
+ const bd=c.querySelector('.body');if(!bd||R.web||isVert())return;
+ const pitch=cw+gap,H=c.clientHeight;if(!(H>0&&pitch>0))return;
+ const BLK='p,li,h2,h3,h4,blockquote,figure,img,table,pre,figcaption,.pullq,.tbl,.emb';
+ for(let pass=0;pass<10;pass++){
+  const bl=bd.getBoundingClientRect(),nC=Math.ceil((bd.offsetWidth+gap)/pitch);if(nC<4)return;
+  const low=new Array(nC).fill(0);
+  for(const e of bd.querySelectorAll(BLK)){for(const q of e.getClientRects()){if(!q.width||!q.height)continue;const k=Math.floor((q.left-bl.left+2)/pitch);if(k>=0&&k<nC){const bt=q.bottom-bl.top;if(bt>low[k])low[k]=bt}}}
+  const em=bd.querySelector('.endmark,.rtags,.rfoot'),eq=em&&em.getClientRects()[0],endC=eq?Math.floor((eq.left-bl.left+2)/pitch):nC-1;
+  let moved=false;
+  for(const k of bd.children){
+   if(!/^(FIGURE|TABLE|PRE|BLOCKQUOTE|UL|OL|IMG|DIV)$/.test(k.tagName)||k.classList.contains('rfoot')||k.classList.contains('rbrk'))continue;
+   const q=k.getClientRects()[0];if(!q)continue;
+   const ci=Math.floor((q.left-bl.left+2)/pitch);if(ci<1||ci>=endC)continue;
+   if(q.top-bl.top>14)continue;               /* it opens its column */
+   if(low[ci-1]>=H*.72)continue;               /* the column before is well filled */
+   /* a picture is first fitted to the room that is left (cropped a little) when there is a fair amount */
+   const rem=H-low[ci-1]-16;
+   if(k.tagName==='FIGURE'&&k.querySelector('img')&&!k.dataset.fit&&rem>=170){k.style.setProperty('--ih',Math.max(120,rem-34)+'px');k.dataset.fit='1';moved=true;break}
+   const mv=+k.dataset.mv||0;if(mv>=3)continue;
+   const nx=k.nextElementSibling;if(!nx||nx.tagName!=='P'||nx.classList.contains('endmark')||nx.classList.contains('rtags'))continue;
+   if((nx.textContent||'').length>1900)continue;                  /* not past a paragraph longer than a column */
+   const after=nx.nextElementSibling;if(!after||after.classList.contains('endmark')||after.classList.contains('rtags')||after.classList.contains('rfoot'))continue; /* never to the very end */
+   nx.after(k);k.dataset.mv=String(mv+1);moved=true;break;
+  }
+  if(!moved)return;
+ }
+}
 </script></body></html>

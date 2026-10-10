@@ -5,7 +5,7 @@ function png(w,h,rgb){const raw=Buffer.alloc((w*3+1)*h);for(let y=0;y<h;y++){raw
  const ih=Buffer.alloc(13);ih.writeUInt32BE(w,0);ih.writeUInt32BE(h,4);ih[8]=8;ih[9]=2;
  return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),ch('IHDR',ih),ch('IDAT',zlib.deflateSync(raw)),ch('IEND',Buffer.alloc(0))])}
 const IMG=png(640,400,[40,90,160]);
-const long=n=>Array.from({length:n},(_,i)=>`<p>Paragraph ${i} of the article body with enough words to look like real reporting, and a bit more text so it reaches a realistic length for extraction.</p>`).join('');
+const long=(n,o=0)=>Array.from({length:n},(_,i)=>`<p>Paragraph ${i+o} of the article body with enough words to look like real reporting, and a bit more text so it reaches a realistic length for extraction.</p>`).join('');
 const now=Date.now();
 function feed(name,n){
  const it=i=>{
@@ -15,7 +15,7 @@ function feed(name,n){
  if(name==='Tube')return `<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom" xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/"><title>Tube</title>${Array.from({length:n},(_,i)=>it(i+1)).join('')}</feed>`;
  return `<?xml version="1.0"?><rss xmlns:media="http://search.yahoo.com/mrss/" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"><channel><title>${name}</title>${Array.from({length:n},(_,i)=>it(i+1)).join('')}</channel></rss>`;
 }
-const article=(t,h)=>`<html><body><article><h1>${t}</h1><figure><img src="https://${h}/photo-a.png" width="640" height="400"></figure>${long(10)}<figure><img src="https://${h}/photo-b.png" width="640" height="400"></figure>${long(6)}</article></body></html>`;
+const article=(t,h)=>`<html><body><article><h1>${t}</h1><figure><img src="https://${h}/photo-a.png" width="640" height="400"></figure>${long(10)}<figure><img src="https://${h}/photo-b.png" width="640" height="400"></figure>${long(6,10)}</article></body></html>`;
 const KV={};
 async function mock(p,opt={}){
  if(!opt.noAsk){
