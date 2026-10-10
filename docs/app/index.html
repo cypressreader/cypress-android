@@ -2726,10 +2726,10 @@ html.pdark #grid.paper{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .dbk-ed{margin:0;font:400 clamp(30px,8vw,44px)/1 var(--disp)}.dbk-at{margin:6px 0 0;font:600 13px var(--sans);opacity:.85}.dbk-t{margin:12px 0 0;font:italic 400 16px/1.4 var(--disp);opacity:.88}
 .dbk-colo{margin:40px 0 0;font:italic 400 13px/1.5 var(--serif,Georgia,serif);opacity:.72}.dbk-colo b{display:block;margin-bottom:5px;font:700 10px var(--sans);font-style:normal;letter-spacing:.24em;text-transform:uppercase}
 /* experiment, cluster 12: feed motion */
-#wpin{position:fixed;z-index:19;display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:9px clamp(14px,3vw,32px) 8px;background:color-mix(in srgb,var(--bg) 94%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--ink);font:400 22px/1 var(--disp);color:var(--ink);will-change:transform}
+#wpin{pointer-events:none;position:fixed;z-index:19;display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:9px clamp(14px,3vw,32px) 8px;background:color-mix(in srgb,var(--bg) 94%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--ink);font:400 22px/1 var(--disp);color:var(--ink);will-change:transform}
 #wpin small{font:italic 400 14px var(--disp);color:var(--mut)}#wpin[hidden]{display:none}
 #whair{position:fixed;top:0;z-index:60;height:3px;background:color-mix(in srgb,var(--ink) 12%,transparent);pointer-events:none}#whair i{display:block;height:100%;background:var(--a1,#0f5a3b);transition:width .15s linear}#whair[hidden]{display:none}
-#whairl{position:fixed;top:auto;bottom:calc(72px + env(safe-area-inset-bottom,0px));left:auto;right:14px;transform:translateY(6px);z-index:61;padding:3px 10px;border-radius:999px;background:var(--ink);color:var(--pn);font:600 10.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}#whairl.on{opacity:.92;transform:translateY(0)}#whairl[hidden]{display:none}
+#wpin .wpos{margin-left:auto;padding-left:12px;font:600 10.5px var(--sans);font-style:normal;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);white-space:nowrap}
 #grid .card:not(.nr-row):not(.dq-c)>img{transform:translate3d(0,var(--ip,0px),0) scale(1.08)}
 @media(prefers-reduced-motion:reduce){#grid .card:not(.nr-row):not(.dq-c)>img{transform:none}}
 /* experiment, cluster 13: rhythm and density */
@@ -2859,7 +2859,6 @@ html.rdx .cols.tplb img.hero{aspect-ratio:16/9;max-height:calc(var(--ih)*.42)}
 .cols:has(.rprev) .stl{display:none}
 /* correction round, cluster 4: feed identity */
 .wcol-d{display:block;margin-top:5px;font:400 14px/1.4 var(--serif,Georgia,serif);color:var(--mut)}
-@media(min-width:700px){#whairl{bottom:22px}}
 #grid.fed{--fa:color-mix(in srgb,var(--fb,#0f5a3b) 78%,#0f5a3b);--logo:var(--fa)}
 #grid.fed .fmast{border-bottom-color:var(--fa)}#grid.fed .fm-mark{background:var(--fa)}
 #grid.fed .wsec{border-bottom:2px solid var(--fa);padding-bottom:6px}#grid.fed .wsec>span{color:var(--fa)}
@@ -3584,7 +3583,7 @@ async function fetchText(url,ok,lg){
   let i=0,fails=0;
   const start=()=>{
    if(over||i>=P.length)return;
-   const p=P[i++],c=new AbortController();ctls.push(c);
+   const p=P[i++],c=new AbortController();ctls.push(c);if(lg&&lg.prog)try{lg.prog(i,P.length,p.n)}catch(e){}
    const t=setTimeout(start,gap);timers.push(t);
    one(p,c).then(v=>{if(over)return;over=true;timers.forEach(clearTimeout);ctls.forEach(x=>{try{x.abort()}catch(e){}});res(v)},er=>{
     clearTimeout(t);fails++;
@@ -4611,47 +4610,61 @@ function tabAnim(){
    and a thin hairline at the very top shows how far through the list you are, with "Story 40 of 132" appearing while you scroll. */
 function wireChrome(){
  const g=$('#grid'),m=$('main');
- let pin=$('#wpin'),hl=$('#whair'),lab=$('#whairl');
+ let pin=$('#wpin'),hl=$('#whair');
  const on=g&&m&&g.classList.contains('wire')&&wireSel()&&!$('#rd').classList.contains('on');
- if(!on){if(pin)pin.hidden=true;if(hl)hl.hidden=true;if(lab)lab.hidden=true;return}
+ if(!on){if(pin&&!pin.hidden)pin.hidden=true;if(hl&&!hl.hidden)hl.hidden=true;return}
  if(!pin){pin=document.createElement('div');pin.id='wpin';pin.setAttribute('aria-hidden','true');document.body.append(pin)}
  if(!hl){hl=document.createElement('div');hl.id='whair';hl.setAttribute('aria-hidden','true');hl.innerHTML='<i></i>';document.body.append(hl)}
- if(!lab){lab=document.createElement('div');lab.id='whairl';lab.setAttribute('role','status');document.body.append(lab)}
+ /* all the measuring first, all the writing after: a read that follows a write forces the whole page to be laid out again, once per scroll frame */
  const mr=m.getBoundingClientRect(),top=$('.top'),hb=top?top.getBoundingClientRect().bottom:mr.top;
- /* the pinned section name */
- const secs=[...g.querySelectorAll('.wsec')];let cs=null,nx=null;
+ /* the lists are rebuilt when the grid changes, not on every scroll frame */
+ const WC=wireChrome;if(WC.g!==g||WC.dirty||!WC.secs){WC.g=g;WC.dirty=false;WC.secs=[...g.querySelectorAll('.wsec')];WC.cards=[...g.querySelectorAll('.card[data-i],.wcol[data-i],.wmom[data-i]')];WC.ci=0}
+ const secs=WC.secs;let cs=null,nx=null;
  for(const s of secs){if(s.getBoundingClientRect().top<=hb+1)cs=s;else{nx=s;break}}
- if(cs&&m.scrollTop>40){
-  const t=cs.querySelector('span'),c=cs.querySelector('small');
-  pin.innerHTML=`<span>${t?t.textContent:''}</span><small>${c?c.textContent:''}</small>`;
-  const h=pin.offsetHeight||40,push=nx?Math.min(0,nx.getBoundingClientRect().top-hb-h):0;
-  pin.style.cssText=`left:${mr.left}px;width:${mr.width}px;top:${hb}px;transform:translateY(${push}px)`;pin.hidden=false;
- }else pin.hidden=true;
- /* the position hairline */
- const cards=[...g.querySelectorAll('.card[data-i],.wcol[data-i],.wmom[data-i]')];
- let n=0;for(const c of cards){if(c.getBoundingClientRect().bottom>hb+24){n=(+c.dataset.i)+1;break}}
- const M=cur.length;if(M&&n){hl.hidden=false;hl.style.cssText=`left:${mr.left}px;width:${mr.width}px`;hl.firstChild.style.width=(Math.min(1,n/M)*100).toFixed(1)+'%';
-  lab.textContent='Story '+n+' of '+M;lab.hidden=false;lab.classList.add('on');clearTimeout(wireChrome.t);wireChrome.t=setTimeout(()=>lab.classList.remove('on'),1400)}
- else{hl.hidden=true;lab.hidden=true}
+ const showPin=!!(cs&&m.scrollTop>40),nxTop=showPin&&nx?nx.getBoundingClientRect().top:0;
+ /* the first card still on screen: found by walking from where it was last frame, so a scroll costs a card or two, not the whole list */
+ const cards=WC.cards,lim=hb+24;let n=0;
+ if(cards.length){let i=Math.min(WC.ci||0,cards.length-1);
+  while(i>0&&cards[i-1].isConnected&&cards[i-1].getBoundingClientRect().bottom>lim)i--;
+  while(i<cards.length&&(!cards[i].isConnected||cards[i].getBoundingClientRect().bottom<=lim))i++;
+  WC.ci=Math.min(i,cards.length-1);if(i<cards.length)n=(+cards[i].dataset.i)+1}
+ const ph=wireChrome.ph||40;
+ /* writes */
+ if(showPin){
+  const t=cs.querySelector('span'),c=cs.querySelector('small'),html=`<span>${t?t.textContent:''}</span><small>${c?c.textContent:''}</small>${n&&cur.length?`<em class="wpos">Story ${n} of ${cur.length}</em>`:''}`;
+  if(wireChrome.html!==html){pin.innerHTML=html;wireChrome.html=html}
+  const push=nx?Math.min(0,nxTop-hb-ph):0,css=`left:${mr.left}px;width:${mr.width}px;top:${hb}px;transform:translateY(${push}px)`;
+  if(pin.style.cssText!==css)pin.style.cssText=css;if(pin.hidden)pin.hidden=false;
+ }else if(!pin.hidden)pin.hidden=true;
+ const M=cur.length;
+ if(M&&n){const css=`left:${mr.left}px;width:${mr.width}px`;if(hl.hidden)hl.hidden=false;if(hl.style.cssText!==css)hl.style.cssText=css;const wd=(Math.min(1,n/M)*100).toFixed(1)+'%';if(hl.firstChild.style.width!==wd)hl.firstChild.style.width=wd;
+}
+ else{if(!hl.hidden)hl.hidden=true}
+ /* the pin's own height is measured at the end of the frame, for the next one */
+ if(showPin&&!pin.hidden){const h=pin.offsetHeight;if(h)wireChrome.ph=h}
 }
 /* pictures drift inside their cards: each picture is shifted a little against the card as the card crosses the screen */
 const PARV=new Set();let PARIO=null;
-function parTick(){
- if(reduced()||document.documentElement.classList.contains('lowp'))return;
- const vh=innerHeight;
- PARV.forEach(im=>{if(!im.isConnected){PARV.delete(im);return}const r=im.parentNode.getBoundingClientRect(),p=((r.top+r.height/2)-vh/2)/vh;im.style.setProperty('--ip',(Math.max(-1,Math.min(1,p))*-9).toFixed(1)+'px')})
+function parRead(){
+ if(reduced()||document.documentElement.classList.contains('lowp'))return null;
+ const vh=innerHeight,out=[];
+ PARV.forEach(im=>{if(!im.isConnected){PARV.delete(im);return}const r=im.parentNode.getBoundingClientRect(),p=((r.top+r.height/2)-vh/2)/vh;out.push([im,(Math.max(-1,Math.min(1,p))*-9).toFixed(1)+'px'])});
+ return out;
 }
+function parWrite(a){if(a)for(const [im,v] of a)if(im._pv!==v){im._pv=v;im.style.setProperty('--ip',v)}}
+function parTick(){parWrite(parRead())}
 function parWatch(root){
  if(!('IntersectionObserver' in window))return;
  if(!PARIO)PARIO=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)PARV.add(e.target);else PARV.delete(e.target)});parTick()},{root:$('main'),rootMargin:'120px 0px'});
  (root||document).querySelectorAll('#grid .card:not(.nr-row):not(.dq-c)>img').forEach(im=>{if(!im._pw){im._pw=1;PARIO.observe(im)}});
 }
 {
- const m=$('main');let raf=0;
- if(m)m.addEventListener('scroll',()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;wireChrome();parTick()})},{passive:true});
- const g=$('#grid');if(g&&'MutationObserver' in window)new MutationObserver(()=>{parWatch();wireChrome()}).observe(g,{childList:true});
+ const m=$('main');let raf=0,lastT=0;
+ /* the pinned section name, the position hairline and the picture drift are caught up about twelve times a second while scrolling, not on every frame: each pass measures the page */
+ if(m)m.addEventListener('scroll',()=>{if(raf)return;const wait=Math.max(0,80-(performance.now()-lastT));raf=setTimeout(()=>requestAnimationFrame(()=>{raf=0;lastT=performance.now();const pr=parRead();wireChrome();parWrite(pr)}),wait)},{passive:true});
+ const g=$('#grid');if(g&&'MutationObserver' in window)new MutationObserver(()=>{wireChrome.dirty=true;parWatch();wireChrome()}).observe(g,{childList:true});
  addEventListener('resize',()=>wireChrome());
- {const _r3=render;render=function(){_r3.apply(this,arguments);parWatch();wireChrome()}}
+ {const _r3=render;render=function(){_r3.apply(this,arguments);wireChrome.dirty=true;parWatch();wireChrome()}}
 }
 /* ---- cluster C: the content-cleaning pipeline ----
    One pipeline for what the reader shows and what the print export sets: (a) the extractor scores text blocks by density, not just by length; (b) blocklists of
@@ -6178,7 +6191,7 @@ function liteUrl(url){
  }catch(e){}
  return'';
 }
-const fromPage=async(url,lg,tag,sig)=>{let fr=null;const w=lg&&{push:m=>lg.push((tag||'')+m),sig};await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);try{if(lg)lg.push((tag||'')+'page read: '+Math.round(t.length/1000)+' KB, '+(t.match(/<img\b/gi)||[]).length+' img tags ('+(t.match(/\sdata-(src|lazy-src|original|srcset)=/gi)||[]).length+' lazy), '+(t.match(/<picture\b/gi)||[]).length+' picture, '+(t.match(/<figure\b/gi)||[]).length+' figure, '+(t.match(/<noscript\b/gi)||[]).length+' noscript, '+(/application\/ld\+json/.test(t)?'has':'no')+' structured data; kept '+(x?x.querySelectorAll('img').length:0)+' pictures and '+(x?x.textContent.length:0)+' characters of text')}catch(e){}if(x&&(footerish(x.textContent)||errorPage(t,x.textContent))){try{if(lg)lg.push((tag||'')+'page was an error or notice page, not the story')}catch(e){}return false}if(x&&x.textContent.length>600){fr=x;return true}return false},w);if(fr&&w&&w.won)fr.tier=w.won==='direct'?'direct':'proxy';return fr};
+const fromPage=async(url,lg,tag,sig)=>{let fr=null;const w=lg&&{push:m=>lg.push((tag||'')+m),sig,prog:(i,n,nm)=>rdProg(url,i,n,nm)};await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);try{if(lg)lg.push((tag||'')+'page read: '+Math.round(t.length/1000)+' KB, '+(t.match(/<img\b/gi)||[]).length+' img tags ('+(t.match(/\sdata-(src|lazy-src|original|srcset)=/gi)||[]).length+' lazy), '+(t.match(/<picture\b/gi)||[]).length+' picture, '+(t.match(/<figure\b/gi)||[]).length+' figure, '+(t.match(/<noscript\b/gi)||[]).length+' noscript, '+(/application\/ld\+json/.test(t)?'has':'no')+' structured data; kept '+(x?x.querySelectorAll('img').length:0)+' pictures and '+(x?x.textContent.length:0)+' characters of text')}catch(e){}if(x&&(footerish(x.textContent)||errorPage(t,x.textContent))){try{if(lg)lg.push((tag||'')+'page was an error or notice page, not the story')}catch(e){}return false}if(x&&x.textContent.length>600){fr=x;return true}return false},w);if(fr&&w&&w.won)fr.tier=w.won==='direct'?'direct':'proxy';return fr};
 
 /* ---------- is this text really the story? ---------- */
 const SHORTOK=new Set('a i of to in is it on at be by an as do go he if me my no or so up us we am oh ok'.split(' '));
@@ -6252,6 +6265,14 @@ async function upgradeStub(fr,url){
  fr.incomplete=true;return fr;
 }
 async function getFull0(url,ctx){const fr=await getFull00(url,ctx);return await upgradeStub(fr,url)}
+/* real progress while a story loads: how long, and which route is being tried, instead of a static line */
+function rdProg(url,i,n,nm){
+ try{if(!curA||(curA.link!==url&&!R.lpUrls.has(url)))return;R.lp=i?('Loading the full article… trying route '+i+' of '+n+(nm?' ('+nm+')':'')):('Loading the full article… trying '+(nm||'another route'));rdTick()}catch(e){}
+}
+function rdTick(){
+ const n=document.querySelector('.cols .note');if(!n||!/^Loading the full article/.test(n.textContent))return;
+ const sec=Math.max(0,Math.round((Date.now()-(R.t0||Date.now()))/1000));n.textContent=(R.lp||'Loading the full article…')+(sec>=2?' · '+sec+'s':'');
+}
 async function getFull00(url,ctx){
  if(S.offline)return null;
  const orig=url;url=await gnResolve(url);
@@ -6270,6 +6291,7 @@ async function getFull00(url,ctx){
  good.then(()=>stop.abort(),()=>{});
  let jn=null;
  const startJina=()=>{
+  rdProg(url,0,0,'a reader service');
   jn=(async()=>{
    const c=new AbortController(),to=setTimeout(()=>c.abort(),12000);
    try{const r=await fetch('https://r.jina.ai/'+url,{signal:c.signal});const t=await r.text();if(!r.ok){lg.push('jina reader: HTTP '+r.status);throw 0}if(t.length<1500){lg.push('jina reader: page too short ('+t.length+' chars)');throw 0}const f=md(t,url);if(f.textContent.length<600){lg.push('jina reader: little text left');throw 0}f.tier='reader';return f}
@@ -6278,7 +6300,7 @@ async function getFull00(url,ctx){
   })();
   jn.catch(()=>{});
  };
- const first=await Promise.race([good.then(v=>({v}),()=>({v:null})),new Promise(r=>setTimeout(()=>r({slow:1}),5000))]);
+ const first=await Promise.race([good.then(v=>({v}),()=>({v:null})),new Promise(r=>setTimeout(()=>r({slow:1}),NATIVE?5000:3500))]);
  if(first.v)return first.v;
  /* a read-ahead load that gets opened by the reader is upgraded in place (ctx.light=false) instead of being fetched a second time */
  return await new Promise(res=>{
@@ -6435,12 +6457,14 @@ let PFBT=0,PFBL=0;
 function pfBar(){
  if(userBusy()||Date.now()-PFBL<350){clearTimeout(PFBT);PFBT=setTimeout(pfBar,userBusy()?700:350);return}
  PFBL=Date.now();
- const t=LP.t+PF.tot,f=LP.f+PF.fin,b=document.body,setP=v=>document.querySelectorAll('aside .logo .lgm,#tlp').forEach(e=>e.style.setProperty('--p',v));
- if(!t){b.classList.remove('lp','lpd');return}
+ /* the logo shows the wait you can feel: the feeds being fetched. Reading stories ahead in the background is deliberately slow and quiet (two at a time, with pauses), so it is not counted, otherwise a refresh that finished in seconds would look like it takes a minute */
+ const t=LP.t,f=LP.f,b=document.body,setP=v=>document.querySelectorAll('aside .logo .lgm,#tlp').forEach(e=>e.style.setProperty('--p',v));
+ const pfIdle=()=>{if(!PF.run&&!PF.q.length&&PF.tot<=PF.fin){PF.tot=PF.fin=0;PF.ok=0;PF.n=0}};
+ if(!t){b.classList.remove('lp','lpd');pfIdle();return}
  const pc=Math.max(4,Math.min(100,Math.round(f/t*100)));
  b.classList.add('lp');setP(pc+'%');
  clearTimeout(LP.h);
- if(f>=t){b.classList.add('lpd');LP.h=setTimeout(()=>{if(LP.t+PF.tot<=LP.f+PF.fin){b.classList.remove('lp','lpd');LP.t=LP.f=0;PF.tot=PF.fin=0;PF.ok=0;PF.n=0;setP('0%')}},1500)}
+ if(f>=t){b.classList.add('lpd');LP.h=setTimeout(()=>{if(LP.t<=LP.f){b.classList.remove('lp','lpd');LP.t=LP.f=0;setP('0%');pfIdle()}},1500)}
  else b.classList.remove('lpd');
 }
 function prefetch(list,first){
@@ -6732,7 +6756,7 @@ async function openReader(a){
  sh.innerHTML=`<div class="bar"><button class="ib" id="cl" data-lbl="Back" aria-label="Back" title="Back">${svg('<path d="m14.5 5-7 7 7 7"/>')}</button><button class="ib" id="fdn" aria-label="Back to all feeds" title="Back to all feeds" tabindex="-1" aria-hidden="true" hidden>${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><div class="bs">${esc(f.title)}</div><span id="pc"></span><button class="ib" id="rfocus" data-lbl="Focus" title="Focus mode" aria-label="Focus mode" aria-pressed="false">${FOC_EYE}</button><button class="ib" id="st" data-lbl="Save" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" data-lbl="Listen" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings" hidden>${svg(TUNE)}</button>`:''}<button class="ib" id="fcs" data-lbl="Focus" aria-label="Focus mode" aria-pressed="false" title="Focus mode: hide the controls for distraction-free reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site here" title="View the site here" hidden>${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page" hidden>${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page" hidden>${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" data-lbl="More" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec))+(hasSec(a.sec,a.feedId)?'':`<button class="flw" data-fsec aria-label="Follow ${esc(a.sec||'this section')}">Follow</button>`):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener" href="${esc(a.link)}">Read on ${esc(host(a.link))}</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p>This site can’t be shown inside the app. It may block automated access.</p><div><a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
  for(const lb of sh.querySelectorAll('.bar .ib[data-lbl]')){const sp=document.createElement('span');sp.className='bl';sp.setAttribute('aria-hidden','true');sp.textContent=lb.dataset.lbl;lb.append(sp)}
  if(R.T){cancelAnimationFrame(R.T.raf);R.T.dead=true;R.T=null}
- R.pg=0;R.busy=false;R.web=false;R.auto=false;RDY=null;R.endArmed=false;R.botAt=0;if(!R.keepCtx)R.ctx=cur.filter((x,i,l)=>x&&x.link&&l.findIndex(y=>y.link===x.link)===i);R.keepCtx=false;clearTimeout(R.wd);R.wd=setTimeout(()=>{const n=document.querySelector('.cols .note');if(n&&/^Loading the full article/.test(n.textContent)&&curA){n.innerHTML='<span class="sbadge">Taking too long</span>The full story didn’t finish loading. <button type="button" class="lnk" data-retry>Try again</button> <a class="lnk" href="'+esc(curA.link)+'" target="_blank" rel="noopener">Open the original</a>'}},25000);_vm=isVert();R.inBrief=S.sel==='brief'&&!!(S.brief&&S.brief.links.includes(a.link));if(R.inBrief&&!S.brief.pinned){S.brief.pinned=1;save()}
+ R.pg=0;R.busy=false;R.web=false;R.auto=false;RDY=null;R.endArmed=false;R.botAt=0;if(!R.keepCtx)R.ctx=cur.filter((x,i,l)=>x&&x.link&&l.findIndex(y=>y.link===x.link)===i);R.keepCtx=false;clearTimeout(R.wd);clearInterval(R.tk);R.t0=Date.now();R.lp='Loading the full article…';R.lpUrls=new Set([a.link]);R.tk=setInterval(()=>{const n=document.querySelector('.cols .note');if(!n||!/^Loading the full article/.test(n.textContent)||!curA||curA.link!==a.link){clearInterval(R.tk);return}rdTick()},1000);R.wd=setTimeout(()=>{const n=document.querySelector('.cols .note');if(n&&/^Loading the full article/.test(n.textContent)&&curA){clearInterval(R.tk);n.innerHTML='<span class="sbadge">Taking too long</span>This site is slow to answer, so the full story hasn’t arrived. <button type="button" class="lnk" data-web="1">View the site here</button> <button type="button" class="lnk" data-retry>Try again</button> <a class="lnk" href="'+esc(curA.link)+'" target="_blank" rel="noopener">Open the original</a>'}},16000);_vm=isVert();R.inBrief=S.sel==='brief'&&!!(S.brief&&S.brief.links.includes(a.link));if(R.inBrief&&!S.brief.pinned){S.brief.pinned=1;save()}
  RDTRIG=document.activeElement;$('#rd').classList.add('on');try{$('#rd').tabIndex=-1;$('#rd').focus({preventScroll:true})}catch(e){}applyFs(false);applyFolderTheme();
  const c=$('.cols'),body=c.querySelector('.body'),note=c.querySelector('.note');
  R.heroEl=R.heroMark=null;body.append(fromHTML(a.html,a.link));foldBoiler(body,a);try{heroOnce()}catch(e){}
