@@ -1,4 +1,4 @@
-/* Text size in lists: Compact / Comfortable / Large scale card text only; display type is untouched; Large is one column. */
+/* Feed text size: Compact / Comfortable / Large scale card text only; display type is untouched; Large is one column. */
 const {APP}=require('./env');const {mock,PW}=require('./mock');const {chromium}=require(PW);
 let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else console.log('ok',n)};
 (async()=>{
