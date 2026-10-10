@@ -19,8 +19,9 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    out.wd=!!R.wd;
    /* hero duplicate */
    const hero=document.createElement('img');hero.className='hero';hero.src='https://img.test/photo-big-1024x683.jpg';const sheet=document.querySelector('#sheet');
-   body.prepend(Object.assign(document.createElement('img'),{src:'https://img.test/photo-big.jpg'}));curA.img='https://img.test/photo-big-1024x683.jpg';dedupHero();
-   out.dupGone=![...body.querySelectorAll('img')].some(i=>/photo-big\.jpg/.test(i.src));
+   body.prepend(Object.assign(document.createElement('img'),{src:'https://img.test/photo-big.jpg'}));curA.img='https://img.test/photo-big-1024x683.jpg';body.parentNode.insertBefore(hero,body);heroOnce();
+   /* the body copy is kept and the separate top copy is set aside, so the picture shows once */
+   out.dupGone=![...document.querySelectorAll('.cols>img.hero')].length&&[...body.querySelectorAll('img')].some(i=>/photo-big\.jpg/.test(i.src));
    return out});
   ck(W+' drop cap is just the first letter',r.cap==='A',JSON.stringify(r));
   ck(W+' the word is not eaten',r.word==='AMAZON'||/^AMAZON/.test(r.word||''),JSON.stringify(r));
