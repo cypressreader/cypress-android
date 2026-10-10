@@ -4063,11 +4063,11 @@ function offApply(user){document.body.classList.toggle('offl',!!S.offline);if(us
 offApply(false);
 
 /* ---------- photo colour + face-aware text placement ---------- */
-const IINFO=new Map();let IIS={};try{IIS=JSON.parse(localStorage.getItem('folio-imgi')||'{}')}catch(e){}
+const IINFO=new Map(),IBLOB=new Map();let IIS={};try{IIS=JSON.parse(localStorage.getItem('folio-imgi')||'{}')}catch(e){}
 function imgPixels(url){return new Promise(async res=>{
  let done=false;const fin=v=>{if(!done){done=true;res(v)}};setTimeout(()=>fin(null),9000);
  /* decode the photo off the main thread, straight to a tiny bitmap, so scrolling never stalls on a full-size decode */
- if(typeof createImageBitmap==='function'){try{const r=await fetch(url,NATIVE?{headers:NHDR}:{referrerPolicy:'no-referrer',credentials:'omit'});if(r.ok){const bl=await r.blob();let bm;try{bm=await createImageBitmap(bl,{resizeWidth:40,resizeHeight:40,resizeQuality:'low'})}catch(e){bm=await createImageBitmap(bl)}fin(bm);return}}catch(e){}}
+ if(typeof createImageBitmap==='function'){try{const r=await fetch(url,NATIVE?{headers:NHDR}:{referrerPolicy:'no-referrer',credentials:'omit'});if(r.ok){const bl=await r.blob();IBLOB.set(url,bl);if(IBLOB.size>6)IBLOB.delete(IBLOB.keys().next().value);let bm;try{bm=await createImageBitmap(bl,{resizeWidth:40,resizeHeight:40,resizeQuality:'low'})}catch(e){bm=await createImageBitmap(bl)}fin(bm);return}}catch(e){}}
  const im=new Image();im.crossOrigin='anonymous';im.referrerPolicy='no-referrer';im.onload=()=>fin(im);im.onerror=()=>fin(null);im.src=url});}
 function toTint(r,g,b){const mx=Math.max(r,g,b)/255,mn=Math.min(r,g,b)/255;let h=0,l=(mx+mn)/2,d=mx-mn,sat=d?d/(1-Math.abs(2*l-1)):0;
  if(d){if(mx===r/255)h=((g-b)/255/d)%6;else if(mx===g/255)h=(b-r)/255/d+2;else h=(r-g)/255/d+4;h*=60;if(h<0)h+=360}
@@ -4093,7 +4093,23 @@ function analyzePx(im){
  let fx=50,fy=40;
  if(en>0){fx=(ex/en+.5)/W*100;fy=(ey/en+.5)/H*100}
  if(sn/(W*H)>.02&&sn/(W*H)<.3){const a=(sx/sn+.5)/W*100,b2=(sy/sn+.5)/H*100;fx=a*.8+fx*.2;fy=b2*.8+fy*.2}
- return{v:3,bz:bzn?Math.round(bzs/bzn):0,s:bzn?+(sts/bzn).toFixed(2):0,t:w>0?toTint(r/w,g/w,b/w):'',f:(lowF>.15&&lowF>topF*1.3)?1:0,l:ln?Math.round(ls/ln):0,px:Math.round(Math.max(15,Math.min(85,fx))),py:Math.round(Math.max(15,Math.min(85,fy)))};
+ return{v:4,bz:bzn?Math.round(bzs/bzn):0,s:bzn?+(sts/bzn).toFixed(2):0,t:w>0?toTint(r/w,g/w,b/w):'',f:(lowF>.15&&lowF>topF*1.3)?1:0,l:ln?Math.round(ls/ln):0,px:Math.round(Math.max(15,Math.min(85,fx))),py:Math.round(Math.max(15,Math.min(85,fy)))};
+}
+/* Where to keep a photo when a card crops it. Faces first (the browser's own on-device FaceDetector, where there is one; nothing is uploaded), then, for a portrait photo, a point near the top (faces sit high); otherwise the detail-based point already worked out above. */
+async function faceAdjust(url,o){
+ const bl=IBLOB.get(url);IBLOB.delete(url);if(!bl)return o;
+ try{
+  const bm=await createImageBitmap(bl,{resizeWidth:480,resizeQuality:'low'}),w=bm.width,h=bm.height;
+  o.pt=h>w*1.15?1:0;let face=0;
+  if(typeof FaceDetector==='function'){
+   try{const fs=await new FaceDetector({fastMode:true,maxDetectedFaces:5}).detect(bm);
+    const big=(fs||[]).map(f=>f.boundingBox).filter(b=>b&&b.width*b.height>=w*h*.004);
+    if(big.length){const a=big.reduce((n,b)=>n+b.width*b.height,0);let cx=0,cy=0;big.forEach(b=>{const k=b.width*b.height/a;cx+=(b.x+b.width/2)*k;cy+=(b.y+b.height*.45)*k});o.px=Math.round(Math.max(10,Math.min(90,cx/w*100)));o.py=Math.round(Math.max(10,Math.min(90,cy/h*100)));face=1}}catch(e){}}
+  o.face=face;
+  if(!face&&o.pt){o.px=50;o.py=Math.min(o.py,30)}
+  try{bm.close&&bm.close()}catch(e){}
+ }catch(e){}
+ return o;
 }
 const IIQ=[];let iiRun=0,iiSave=0;
 function iiPump(){
@@ -4106,10 +4122,10 @@ const iiIdle=()=>new Promise(r=>{const go=()=>{if(Date.now()-SCRT<220||document.
 function iiStore(){clearTimeout(iiSave);iiSave=setTimeout(()=>{try{localStorage.setItem('folio-imgi',JSON.stringify(IIS))}catch(e){}},2500)}
 async function imgInfo(url){
  if(!url||!/^https?:/.test(url))return null;
- if(IIS[url]&&IIS[url].v>=3)return IIS[url];
+ if(IIS[url]&&IIS[url].v>=4)return IIS[url];
  if(!IINFO.has(url))IINFO.set(url,new Promise(res=>{
   if(IIQ.length>80){const d=IIQ.shift();d.cancel&&d.cancel()}
-  const job=async()=>{try{const im=await imgPixels(url);if(!im){res(null);return}await iiIdle();const o=analyzePx(im);IIS[url]=o;const k=Object.keys(IIS);if(k.length>250)delete IIS[k[0]];iiStore();res(o)}catch(e){res(null)}};
+  const job=async()=>{try{const im=await imgPixels(url);if(!im){res(null);return}await iiIdle();const o=await faceAdjust(url,analyzePx(im));IIS[url]=o;const k=Object.keys(IIS);if(k.length>250)delete IIS[k[0]];iiStore();res(o)}catch(e){res(null)}};
   job.cancel=()=>{IINFO.delete(url);res(null)};
   IIQ.push(job);iiPump();
  }));
@@ -4119,13 +4135,13 @@ function cardFocus(im,done){
  let fin=false;const end=()=>{if(!fin){fin=true;done&&done()}};
  try{const u=im.getAttribute('src');if(!u||!/^https?:/.test(u)){end();return}
   const put=o=>{if(o&&o.px!=null&&(Math.abs(o.px-50)>6||Math.abs(o.py-50)>6))im.style.objectPosition=o.px+'% '+o.py+'%'};
-  const q=IIS[u];if(q&&q.v>=3){put(q);end();return}
+  const q=IIS[u];if(q&&q.v>=4){put(q);end();return}
   end();imgInfo(u).then(put).catch(()=>{})}catch(e){end()}
 }
 const LUMQ=[];let lumRun=false;
 function cardLum(im){
  if(S.scrim==='strong'||S.scrim==='panel'||!im.getAttribute('src'))return;
- {const q=IIS[im.getAttribute('src')],c0=q&&im.closest&&im.closest('.card');if(q&&c0){if(q.l>125)c0.classList.add('bright');return}}
+ {const q=IIS[im.getAttribute('src')],c0=q&&im.closest&&im.closest('.card');if(q&&q.v>=4&&c0){if(q.l>125)c0.classList.add('bright');return}}
  LUMQ.push(im);if(lumRun)return;lumRun=true;
  const step=async()=>{const x=LUMQ.shift();if(!x){lumRun=false;return}
   try{const o=await imgInfo(x.getAttribute('src'));const c=x.closest&&x.closest('.card');if(o&&c&&o.l>125)c.classList.add('bright')}catch(e){}
@@ -4157,7 +4173,7 @@ document.addEventListener('error',e=>{const im=e.target;if(im&&im.tagName==='IMG
 function imgFx(){
  document.querySelectorAll('#grid .cover').forEach(cv=>{const im=cv.querySelector(':scope>img');if(!im)return;const u=im.getAttribute('src');
   const ap=o=>{if(!o||!cv.isConnected)return;try{const au=document.documentElement.classList.contains('mast-auto');['frost','wash','rule','glow','italic','tint'].forEach(k=>cv.classList.remove('cm-'+k));if(au&&o.l!=null){const h=cv.querySelector('.cvlead h2');cv.classList.add('cm-'+autoMast(o,h?h.textContent:''))}}catch(e){}cv.classList.toggle('flip',!!o.f);try{if(o.px!=null){const ci=cv.querySelector(':scope>img');if(ci)ci.style.objectPosition=o.px+'% '+o.py+'%'}}catch(e){}if(o.t&&isOn('ptint'))cv.style.setProperty('--b',o.t);if(o.l>125&&S.scrim!=='panel')cv.classList.add('bright');if(o.t&&isOn('ctint')&&!/^(cyber|terminal)/.test(document.documentElement.dataset.theme||'')&&document.documentElement.dataset.theme!=='dynamic')document.body.style.setProperty('--tint','color-mix(in srgb,'+o.t+' 22%,var(--bg))')};
-  if(IIS[u])ap(IIS[u]);else imgInfo(u).then(ap)});
+  if(IIS[u]&&IIS[u].v>=4)ap(IIS[u]);else imgInfo(u).then(ap)});
 }
 function openTx(c,a){
  if(!a)return;
@@ -5037,7 +5053,7 @@ const IMGOK=new Set();
 /* a story card is a container: one headline link plus separate Save and Why buttons beside it, never buttons inside a link */
 const chref=c=>(c&&((c.dataset&&c.dataset.href)||c.getAttribute('href')))||'';
 function card(a,i,k){
-  const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],op=q0&&q0.v>=3&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="object-position:${q0.px}% ${q0.py}%"`:'';
+  const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],op=q0&&q0.v>=4&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="object-position:${q0.px}% ${q0.py}%"`:'';
   return `<div class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span>${isPay(a)?PAYB:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="${a.more.length+1} sources report this">${a.more.length+1} sources report this</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}<time>${ago(a.date)}</time></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><p>${esc(a.summary)}</p>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
 }
 /*NEWSROOM*/
