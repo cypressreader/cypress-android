@@ -76,6 +76,8 @@ public class CyNativePlugin extends Plugin {
             r.put("versionCode", code);
             r.put("versionName", pi.versionName);
             r.put("canInstall", can);
+            // the phone's text size setting (1.0 is normal), so the reader can follow it
+            r.put("fontScale", (double) c.getResources().getConfiguration().fontScale);
             call.resolve(r);
         } catch (Exception e) {
             call.reject("info failed: " + e.getMessage());
