@@ -3198,6 +3198,8 @@ html.calm #rd .body{letter-spacing:.012em;word-spacing:.06em}
 #hub .hcmp small{display:block;color:var(--mut);font:600 11px var(--sans)}
 #hub .hcmp p{margin:6px 0 0;color:var(--mut)}
 #hub select{font:inherit;max-width:100%;margin-top:6px}
+
+.svm{margin-bottom:6px}.svl{font:600 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mut);align-self:center;margin-right:4px}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4131,6 +4133,7 @@ function render0(){
  if(inSaved&&S.stag&&!S.saved.some(a=>(a.tags||[]).includes(S.stag)))S.stag='';
  cur=inSaved?S.saved.filter(a=>!S.stag||(a.tags||[]).includes(S.stag)):(q?S.feeds:fs).filter(f=>!(hidePz&&paused(f))).flatMap(f=>items[f.id]||[]);
  if(S.sel.startsWith('k:')&&!q){const k=S.sk.find(x=>'k:'+x.id===S.sel);cur=k?cur.filter(a=>kmatch(k,a)):[]}
+ if(inSaved&&+S.svmin>0){const L=+S.svmin,m=a=>minsOf(a),r=a=>!m(a)?1:m(a)<=L?0:2;cur=cur.slice().sort((a,b)=>r(a)-r(b)||(r(a)===2?m(a)-m(b):r(a)===0?m(a)-m(b):0))}
  if(!savedView){if(S.sort==='source')cur.sort((a,b)=>(fof(a).title||'').localeCompare(fof(b).title||'')||b.date-a.date);else cur.sort((a,b)=>b.date-a.date);cur=cur.slice(0,q?200:(S.sel==='all'&&smartOn()?600:80))}
  if(S.sel==='saved'&&!q)$('#ttl').textContent='Saved';
  if(q)$('#ttl').textContent='Search';
@@ -7758,12 +7761,13 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-dfol]');if
 /* reader overflow menu */
 /* the menu entry says what a tap will do: switch this source to site view, or back to reader view */
 function mnWebLabel(){const fd=curA&&S.feeds.find(x=>x.id===curA.feedId);document.querySelectorAll('#mn [data-act="webpref"]').forEach(b=>{b.textContent=fd&&fd.web?'Reader view for this source':'Site view for this source'})}
-function mnMarkup(){return `<div class="pb mn" id="mn" hidden><div class="mphone"><button data-act="settings">Reading settings</button><button data-act="rp">Playback settings</button><hr></div><button data-act="share">Share</button><button data-act="copy">Copy link</button><button data-act="browser">Open in browser</button><button data-act="web">View the site here</button><button data-act="translate">Translate in browser</button><button data-act="fullscreen">Full screen</button><button data-act="hub">Full coverage</button><button data-act="jump" hidden>Jump to section</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><hr><button data-act="fdn">Show my feeds</button><button data-act="junk">Report junk text</button><button data-act="webpref">Site view for this source</button></div>`}
+function mnMarkup(){return `<div class="pb mn" id="mn" hidden><div class="mphone"><button data-act="settings">Reading settings</button><button data-act="rp">Playback settings</button><hr></div><button data-act="share">Share</button><button data-act="copy">Copy link</button><button data-act="browser">Open in browser</button><button data-act="web">View the site here</button><button data-act="translate">Translate in browser</button><button data-act="fullscreen">Full screen</button><button data-act="gift">Gift this story</button><button data-act="hub">Full coverage</button><button data-act="jump" hidden>Jump to section</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><hr><button data-act="fdn">Show my feeds</button><button data-act="junk">Report junk text</button><button data-act="webpref">Site view for this source</button></div>`}
 async function doAct(k){
  const a=curA;if(!a)return;
  if(k==='fdn'||k==='web'||k==='rp'){const b=$('#'+(k==='web'?'wb':k));if(b)b.click();return}
  if(k==='upnext'){addUpNext(a);return}
  if(k==='hub'){openHub(a);return}
+ if(k==='gift'){giftStory(a);return}
  if(k==='jump'){openJump();return}
  if(k==='browser'){window.open(a.link,'_blank','noopener');return}
  if(k==='translate'){window.open('https://translate.google.com/translate?sl=auto&tl=en&u='+encodeURIComponent(a.link),'_blank','noopener');return}
@@ -8620,7 +8624,7 @@ async function collectionPrompt(a){
 }
 function savedChips(){
  const tags={};S.saved.forEach(a=>(a.tags||[]).forEach(t=>tags[t]=(tags[t]||0)+1));
- return `<div class="schips"><button class="chip ${!S.stag?'on':''}" data-stag="">All ${S.saved.length}</button>${Object.keys(tags).sort().map(t=>`<button class="chip ${S.stag===t?'on':''}" data-stag="${esc(t)}">${esc(t)} ${tags[t]}</button>`).join('')}<button class="tx2 sx" data-sshare>Share this list</button></div>`;
+ return `<div class="schips svm" role="group" aria-label="Time I have"><span class="svl">Time I have</span>${[0,5,15,30].map(m=>`<button type="button" class="chip ${(+S.svmin||0)===m?'on':''}" data-svmin="${m}" aria-pressed="${(+S.svmin||0)===m}">${m?m+' min':'Any'}</button>`).join('')}</div><div class="schips"><button class="chip ${!S.stag?'on':''}" data-stag="">All ${S.saved.length}</button>${Object.keys(tags).sort().map(t=>`<button class="chip ${S.stag===t?'on':''}" data-stag="${esc(t)}">${esc(t)} ${tags[t]}</button>`).join('')}<button class="tx2 sx" data-sshare>Share this list</button></div>`;
 }
 function shareSavedList(){
  const l=S.saved.filter(a=>!S.stag||(a.tags||[]).includes(S.stag));
@@ -11524,4 +11528,36 @@ function cmpHtml(a,b){
  return col(a)+col(b);
 }
 document.addEventListener('change',e=>{const t=e.target;if(!t||t.id!=='hcmpsel')return;const a=findStory(t.dataset.a),b=findStory(t.value),w=$('#hcmp');if(a&&b&&w)w.innerHTML=cmpHtml(a,b)},true);
+
+/* ---------- correction round, cluster 18 ---------- */
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-svmin]');if(!b)return;e.preventDefault();e.stopPropagation();S.svmin=+b.dataset.svmin||0;save();render()},true);
+/* Gift a story: a card image made on this device (picture, headline or your highlighted quote, source, "via CyPress"). Nothing is uploaded. */
+async function giftCard(a,quote){
+ const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+ try{await document.fonts.ready;await document.fonts.load("400 80px 'CyPress Display'")}catch(e){}
+ const DF="'CyPress Display','Instrument Serif',Georgia,serif",SF="system-ui,-apple-system,'Segoe UI',sans-serif",br=(()=>{try{return brand(fof(a))}catch(e){return '#1f6a48'}})();
+ x.fillStyle='#0b1411';x.fillRect(0,0,W,H);
+ const bm=a.img?await edBitmap(a.img):null,ah=bm?640:300;
+ if(bm){const sc=Math.max(W/bm.width,ah/bm.height),dw=bm.width*sc,dh=bm.height*sc;x.save();x.beginPath();x.rect(0,0,W,ah);x.clip();x.drawImage(bm,(W-dw)/2,(ah-dh)/2,dw,dh);x.restore()}
+ else{const g=x.createLinearGradient(0,0,W,ah);g.addColorStop(0,br);g.addColorStop(1,'#0b1411');x.fillStyle=g;x.fillRect(0,0,W,ah)}
+ const g2=x.createLinearGradient(0,ah-220,0,ah);g2.addColorStop(0,'rgba(11,20,17,0)');g2.addColorStop(1,'#0b1411');x.fillStyle=g2;x.fillRect(0,ah-220,W,220);
+ x.fillStyle=br;x.fillRect(90,ah+10,90,6);
+ x.textAlign='left';x.fillStyle='#d1ad55';x.font=`700 26px ${SF}`;x.fillText(String(fof(a).title||host(a.link)).toUpperCase().slice(0,50),90,ah+64);
+ const q=String(quote||'').trim(),txt=q||String(a.title||''),body=q?'“'+txt+'”':txt;
+ let fs=q?(txt.length>200?42:txt.length>120?50:58):(txt.length>90?64:txt.length>60?72:82);x.fillStyle='#f3ead6';x.font=`${q?'italic ':''}400 ${fs}px ${DF}`;
+ let lines=[];const wrap=()=>{lines=[];let ln='';for(const w of body.split(' ')){const tt=ln?ln+' '+w:w;if(x.measureText(tt).width>W-180&&ln){lines.push(ln);ln=w}else ln=tt}if(ln)lines.push(ln)};
+ wrap();const room=H-(ah+90)-190;while(lines.length*fs*1.14>room&&fs>30){fs-=3;x.font=`${q?'italic ':''}400 ${fs}px ${DF}`;wrap()}
+ let y=ah+90+fs;for(const l of lines.slice(0,9)){x.fillText(l,90,y);y+=fs*1.14}
+ if(q){x.fillStyle='rgba(243,234,214,.7)';x.font=`italic 400 30px ${DF}`;x.fillText(String(a.title||'').slice(0,70),90,Math.min(y+24,H-170))}
+ x.strokeStyle='rgba(209,173,85,.4)';x.lineWidth=1.5;x.strokeRect(40,40,W-80,H-80);
+ x.textAlign='center';x.fillStyle='rgba(255,255,255,.55)';x.font=`600 26px ${SF}`;x.fillText('via CyPress',W/2,H-80);
+ return c;
+}
+async function giftStory(a){
+ if(!a)return;
+ let q=String(getSelection()||'').trim();if(q.length<20||q.length>420)q='';
+ if(!q){const h=(S.hl||[]).filter(h=>h.art&&h.art.link===a.link).sort((x,y)=>(y.t||0)-(x.t||0))[0];if(h)q=String(h.q||'').replace(/\s+/g,' ').slice(0,420)}
+ toast('Making your card…');
+ try{const c=await giftCard(a,q);let u=a.link;try{u=await shareUrl(a)}catch(e){}await shareCanvas(c,'cypress-gift-'+dayKey()+'.png',(a.title||'')+' '+u)}catch(e){elog('giftStory',e);toast('Couldn’t make the card')}
+}
 </script></body></html>
