@@ -2931,7 +2931,7 @@ body:not(.narrow):not(.split).reading:not(.sideshow) #sideh{display:flex}
 .bdig li{counter-increment:bd;display:flex;gap:12px;padding:9px 0;border-top:1px solid var(--ln)}.bdig li:first-child{border-top:0}.bdig li::before{content:counter(bd);flex:none;width:1.4em;font:italic 400 26px/1 var(--disp,var(--serif));color:var(--logo)}
 .bi-d{display:block;color:inherit;text-decoration:none}.bi-d b{display:block;font:400 19px/1.22 var(--serif,Georgia,serif)}.bi-d small{display:block;margin-top:3px;font:12px var(--sans);color:var(--mut)}
 .bq{margin:22px 0;padding:18px 4px 14px;border-top:3px double var(--ink);border-bottom:1px solid var(--ln);text-align:center}.bq small{font:700 10.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
-.bq blockquote{margin:10px 0 8px;font:italic 400 clamp(22px,5.6vw,30px)/1.25 var(--disp,var(--serif))}.bq figcaption{font:12.5px var(--sans);color:var(--mut)}.bi-q{color:inherit;text-decoration:underline;text-decoration-color:var(--ln);text-underline-offset:3px}
+.bq blockquote{margin:10px 0 8px;font:italic 400 clamp(22px,5.6vw,30px)/1.25 var(--disp,var(--serif))}.bq figcaption{font:12.5px var(--sans);color:var(--mut)}.bq .bq-by{color:var(--ink);font-weight:700}.bi-q{color:inherit;text-decoration:underline;text-decoration-color:var(--ln);text-underline-offset:3px}
 .bend{margin:26px 0 12px;padding:24px 10px 20px;text-align:center;border-top:3px double var(--ink);border-bottom:1px solid var(--ln)}.bend-m{display:block;font-size:26px;color:var(--logo)}
 .bend h3{margin:2px 0 6px;font:400 32px/1.05 var(--disp,var(--serif))}.bend p{margin:0;font:italic 400 17px var(--disp,var(--serif));color:var(--mut)}.bend .bend-n{margin:6px 0 14px;font:13px var(--sans);font-style:normal}
 /* correction round, cluster 3: since this morning, compact tabs */
@@ -9545,18 +9545,25 @@ function briefDigest(list){
 /* who said it: the name next to the quotation in the story's own text ("..., said Jane Smith" / "Jane Smith said: ..."), else nothing (the caption then names the source, never the headline) */
 function quoteBy(a,q){
  try{
-  const t=String(a.summary||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim(),i=t.indexOf(q);if(i<0)return '';
-  const NM="([A-Z][\\w.'’-]*(?:\\s+(?:(?:of|the|de|van|von|al|bin)\\s+)?[A-Z][\\w.'’-]*)*)",VB="(?:said|says|told|added|wrote|noted|argued|warned|explained)";
-  const after=t.slice(i+q.length,i+q.length+100).replace(/^[,.]?[”"]?[,.]?\s*/,''),before=t.slice(Math.max(0,i-100),i);
-  let m=after.match(new RegExp('^(?:'+VB+'|according to)\\s+(?:the\\s+)?'+NM))||after.match(new RegExp('^'+NM+'\\s+'+VB+'\\b'))||before.match(new RegExp(NM+'\\s+'+VB+'[,:]?\\s*[“"]?$'));
-  const by=m&&m[1]?m[1].trim():'';
-  return by&&by.length<=40&&!/^(The|This|That|It|He|She|They|We|I)$/.test(by)?by:'';
+  const clean=x=>String(x||'').replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ').replace(/\s+/g,' ').trim();
+  let t=clean(a.summary),i=t.indexOf(q);if(i<0){t=clean(a.html);i=t.indexOf(q)}if(i<0)return '';
+  const NM="([A-Z][\\w.'’-]*(?:\\s+(?:(?:of|the|de|van|von|al|bin|da|del)\\s+)?[A-Z][\\w.'’-]*){0,3})",VB="(?:said|says|told|added|wrote|noted|argued|warned|explained|insisted|stressed|admitted|claimed|replied|recalled|tweeted|posted)",TAIL="(?:,\\s*[^,.“”\"]{1,70},)?";
+  const after=t.slice(i+q.length,i+q.length+140).replace(/^[,.]?[”"]?[,.]?\s*/,''),before=t.slice(Math.max(0,i-140),i);
+  const m=after.match(new RegExp('^(?:'+VB+'|according to)\\s+(?:(?:the|a|an|[a-z]+)\\s+){0,4}'+NM))||after.match(new RegExp('^'+NM+TAIL+',?\\s+'+VB+'\\b'))||before.match(new RegExp(NM+TAIL+',?\\s+'+VB+'(?:\\s+on\\s+\\w+)?(?:\\s+that)?[,:]?\\s*[“"]?$'))||before.match(new RegExp(NM+':\\s*[“"]?$'));
+  const by=m&&m[1]?m[1].trim().replace(/[.,’'-]+$/,''):'';
+  /* a bare job title ("Prime Minister", "Police") or a pronoun is not a named speaker */
+  const ROLE=/^(The|This|That|It|He|She|They|We|I|Prime|Minister|President|Secretary|Foreign|Home|Defence|Chancellor|Mayor|Police|Chief|Inspector|Officer|Spokesman|Spokeswoman|Spokesperson|Governor|Senator|Judge|Court|Government|Council|Company|BBC|Reuters|Sir|Dame|Lord|Lady|Dr|Mr|Mrs|Ms|Prof|Professor)$/;
+  const w=by.split(/\s+/);
+  return by&&by.length<=40&&w.some(x=>!ROLE.test(x))&&!/^(The|This|That|It|He|She|They|We|I)\b/.test(by)?by:'';
  }catch(e){return ''}
 }
 function briefQuote(list){
  try{
-  const pool=list.concat(topOf(S.feeds,30,new Set()));
-  for(const a of pool){const q=nrQuoteText(a);if(q&&q.real&&q.q&&q.q.length>=40&&q.q.length<=220){cur.push(a);const by=quoteBy(a,q.q),src=fof(a).title;return `<figure class="bq"><small>Quote of the day</small><blockquote>“${esc(q.q)}”</blockquote><figcaption>— ${by?esc(by)+', ':''}<a class="bi-q" href="${esc(a.link)}" data-i="${cur.length-1}" aria-label="Read the story: ${esc(a.title)}">${esc(src)}</a></figcaption></figure>`}}
+  const pool=list.concat(topOf(S.feeds,30,new Set())),seen=new Set(),cand=[];
+  for(const a of pool){if(seen.has(a.link))continue;seen.add(a.link);const q=nrQuoteText(a);if(q&&q.real&&q.q&&q.q.length>=40&&q.q.length<=220)cand.push({a,q:q.q,by:quoteBy(a,q.q)})}
+  /* a quote with a named speaker wins; the outlet stands in only when no story has one */
+  const pick=cand.find(c=>c.by)||cand[0];
+  if(pick){const{a,q,by}=pick,src=fof(a).title;cur.push(a);return `<figure class="bq"><small>Quote of the day</small><blockquote>“${esc(q)}”</blockquote><figcaption>— ${by?`<b class="bq-by">${esc(by)}</b>, <span class="bq-src">in </span>`:''}<a class="bi-q" href="${esc(a.link)}" data-i="${cur.length-1}" aria-label="Read the story: ${esc(a.title)}">${esc(src)}</a></figcaption></figure>`}
  }catch(e){}
  return '';
 }
