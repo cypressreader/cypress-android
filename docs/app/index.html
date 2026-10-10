@@ -11137,6 +11137,20 @@ function screenMode(){
  if(split&&!$('#rd').classList.contains('on'))splitEmpty();
  if(was&&!split&&!$('#rd').classList.contains('on'))$('#sheet').innerHTML='';
 }
+/* safety net for the header: if a phone's browser ever lays the title out under the menu button, the title is pushed clear of it (measured, so a normal layout is left alone) */
+function hdrClear(){
+ const m=$('#menu'),h=$('.top h1');if(!m||!h)return;
+ h.style.paddingLeft='';
+ if(!m.offsetWidth)return;
+ const mr=m.getBoundingClientRect(),hr=h.getBoundingClientRect();if(!hr.width)return;
+ const pl=parseFloat(getComputedStyle(h).paddingLeft)||0,gap=8;
+ const need=Math.ceil(mr.right+gap-(hr.left+pl));
+ if(need>0)h.style.paddingLeft=(pl+need)+'px'
+}
+function hdrClearSoon(){clearTimeout(hdrClearSoon.t);hdrClearSoon.t=setTimeout(()=>{try{hdrClear()}catch(e){}},60)}
+{const _r=render;render=function(){const r=_r.apply(this,arguments);hdrClearSoon();return r}}
+{const _sm=screenMode;screenMode=function(){const r=_sm.apply(this,arguments);hdrClearSoon();return r}}
+addEventListener('load',hdrClearSoon);try{document.fonts&&document.fonts.ready.then(hdrClearSoon)}catch(e){}
 function splitEmpty(){const s=$('#sheet');if(!s)return;const k=LOGOS[S.logo]?S.logo:'tree';s.innerHTML=`<div class="spe"><span class="lgm" style="--lm:url(data:image/png;base64,${LOGOS[k][0]})"></span><p>Pick a story on the left to read it here.</p></div>`;$('#rd').style.removeProperty('--b')}
 const sbMax=()=>Math.round(Math.min(520,innerWidth*.6));
 function applySbw(){const r=document.documentElement.style;if(S.sbw)r.setProperty('--sw',Math.max(200,Math.min(sbMax(),S.sbw))+'px');else r.removeProperty('--sw')}
