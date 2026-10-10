@@ -14,7 +14,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   items[f.id]=items[f.id].map(a=>({...a,date:now-45*864e5}));openFset(f.id);await w(200);o.dead=!$('#fsdead').hidden&&/45 days/.test($('#fsdead').textContent);$('#fset').close();
   items[f.id]=items[f.id].map(a=>({...a,date:now-36e5}));openFset(f.id);await w(200);o.fresh=$('#fsdead').hidden;$('#fset').close();
   /* section jump */
-  const sec=i=>`<h2>Part ${i}</h2><p>${words(300)}</p>`;
+  const sec=i=>`<h2>Part ${i}</h2><p>${words(300)} Part ${i} ends here.</p>`;
   const a=items[f.id][0];a.html=[1,2,3,4].map(sec).join('');a.summary='x';
   S.sel='all';render();await w(300);openReader(a);await w(2500);
   o.heads=rdHeads().length;
