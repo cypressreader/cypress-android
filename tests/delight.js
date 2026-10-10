@@ -18,7 +18,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   const before=S.fs;SYSFS=1.3;S.sysfs=true;applyFs(false);out.fs13=getComputedStyle($('#rd')).getPropertyValue('--fs');S.sysfs=false;applyFs(false);out.fsOff=getComputedStyle($('#rd')).getPropertyValue('--fs');SYSFS=0;S.sysfs=true;
   out.base=before;
   const a=items[S.feeds[0].id][0];a.more=[{l:'x',t:'t',f:'y'},{l:'x2',t:'t',f:'y'}];out.why=whyMatters(a);
-  out.btns=[...document.querySelectorAll('.dexp')].map(b=>b.textContent);
+  out.btns=[...document.querySelectorAll('.dexp')].map(b=>b.getAttribute('aria-label')||b.textContent);
   return out});
  ck('widget leads with the Daily cover story',r.widgetFirst&&r.widgetN>=3,JSON.stringify(r));
  ck('edition cover is a 1080x1350 picture',r.cover&&r.cover[0]===1080&&r.cover[1]===1350&&r.bright,JSON.stringify(r));

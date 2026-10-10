@@ -3206,6 +3206,36 @@ html.txo #grid img,html.txo #rd img,html.txo #hub img,html.txo .dcv-art>img{disp
 .pku>b{display:block;margin-bottom:4px;font:700 10.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
 .pku button{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--ln,rgba(128,128,128,.2));color:inherit;padding:8px 0;font:inherit;cursor:pointer}
 .pku button:first-of-type{border-top:0}.pku em{display:block;font:600 11px var(--sans);font-style:normal;color:var(--mut)}
+
+/* Today cover follow-up: the cover leads at every width, and the page's admin chrome whispers in one line beneath it */
+.dcov{min-height:min(92svh,860px)}
+@media(min-width:900px){.dcov{min-height:max(560px,calc(100svh - 190px))}}
+.dcov.dct-type{background:radial-gradient(120% 80% at 50% 0,#17503a 0,#0b2119 55%,#06130e 100%)}
+.dcov.dct-type .dcv-art>svg{opacity:.35}
+.dcov.dct-type .dcv-top{border-bottom:1px solid rgba(255,255,255,.28);margin:0 calc(var(--gp,24px) + 14px);padding-bottom:16px}
+.dcov.dct-type .dcv-main{position:relative}
+.dcov.dct-type .dcv-main::before{content:'';display:block;width:64px;height:4px;background:#d1ad55;margin:0 0 20px}
+.dcov.dct-type .dcv-lead h2{font-size:clamp(46px,13.5vw,120px);line-height:.9}
+.dcov.dct-min{background:var(--pn,#f6f1e7)}
+.dcov.dct-min::after{border:2px solid #1c1d1b;box-shadow:inset 0 0 0 5px var(--pn,#f6f1e7),inset 0 0 0 6px rgba(0,0,0,.35)}
+.dcov.dct-min .dcv-mast{color:#1c1d1b}
+.dcov.dct-min .dcv-lead h2{font-size:clamp(36px,9.5vw,84px);line-height:.96}
+.dmeta{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin:2px 0 18px;padding:10px 2px 0;font:400 13px/1.4 var(--sans);color:var(--mut)}
+.dmeta .dml{margin:0;flex:1 1 240px}
+.dmeta .dml b{font-weight:600;color:var(--ink)}
+.dmeta details{flex:0 0 auto}
+.dmeta summary{cursor:pointer;list-style:none;font:600 12px var(--sans);letter-spacing:.04em;color:var(--mut);padding:6px 2px}
+.dmeta summary::-webkit-details-marker{display:none}
+.dmeta summary::after{content:' ▾'}
+.dmeta details[open] summary::after{content:' ▴'}
+.dmeta .dma{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:0 12px;margin:0}
+.dmeta .dma .dexp{background:none;border:0;border-radius:0;padding:6px 0;margin:0;min-height:32px;font:600 12px var(--sans);letter-spacing:0;color:var(--ink);text-decoration:underline;text-decoration-color:var(--ln,rgba(128,128,128,.5));text-underline-offset:3px;cursor:pointer}
+.dmeta .dma .dexp:hover{text-decoration-color:currentColor}
+.dmeta .dmb{flex-basis:100%}
+.dmeta details[open]{flex:1 1 100%}
+.dmeta .dmb{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px}
+.dmeta .dmb>*{flex:0 0 auto}
+.dmeta .dmb>.dwhy,.dmeta .dmb>nav,.dmeta .dmb>section,.dmeta .dmb>div:not(.dexp){flex:1 1 100%}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4816,7 +4846,7 @@ function genreApply(){
 {const _r5=render;render=function(){_r5.apply(this,arguments);try{genreApply()}catch(e){}}}
 /* cluster H: on tablets the Today edition becomes a two-pane spread: the cover stays put on the left while the story flow scrolls on the right. Phones are untouched. */
 function d2Apply(){const g=$('#grid');if(!g)return;
- const want=window.innerWidth>=900&&!document.body.classList.contains('split');
+ const want=false; /* the cover leads the page at every width; the two-pane spread is retired */
  const w=g.querySelector(':scope>.d2'),cv=g.querySelector(':scope>.dcov');
  if(w&&!want){const l=w.querySelector('.d2l'),r=w.querySelector('.d2r');const f=document.createDocumentFragment();[...l.childNodes,...r.childNodes].forEach(n=>f.appendChild(n));w.replaceWith(f);return}
  if(!want||w||!cv)return;
@@ -4825,7 +4855,6 @@ function d2Apply(){const g=$('#grid');if(!g)return;
  let n=wr.nextSibling;while(n){const x=n;n=n.nextSibling;r.appendChild(x)}
 }
 {const _r6=render;render=function(){_r6.apply(this,arguments);try{d2Apply()}catch(e){}}}
-{let t=0,was=window.innerWidth>=900;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{const now=window.innerWidth>=900;if(now!==was){was=now;if(now)try{render()}catch(e){}else try{d2Apply()}catch(e){}}},200)})}
 /* 15: what changed since this morning */
 /* "Since this morning" is worked out once per evening edition and then kept for the session, so the section never changes under your thumb as stories get read */
 let DIFFSNAP=null;
@@ -4964,7 +4993,7 @@ function mastHtml(f,list){
 }
 /*PROGRESS RING*/
 const ringSvg=(n,t,sz,sw)=>{const r=(sz-sw)/2,c=2*Math.PI*r,f=t?Math.min(1,n/t):0;return `<svg class="rg" width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" aria-hidden="true"><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--ln)" stroke-width="${sw}"/><circle class="rgf" cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--rg,#1f8a5b)" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${(c*f).toFixed(1)} ${c.toFixed(1)}"/></svg>`};
-let DGL=[],DAYPOOL=[];
+let DGL=[],DAYPOOL=[],COVSHOWN=false;
 const dgCount=()=>{const n=DGL.filter(l=>S.read[l]).length;return{n,t:DGL.length}};
 let DGP_OPEN=false;
 /* the progress is one quiet line under the cover: a small ring and "3 of 19 read". Tap it for the detail (the rest of the numbers, Play my Daily, the 5-minute read, the reading goal). */
@@ -5451,10 +5480,10 @@ function daySections(list,mode){
  const sh=(id,t,sub,count,unit)=>{n++;const nn=String(n).padStart(2,'0');secs.push([id,nn,t,count,unit]);const dk=(DAYDEK[id]||[])[peHash(edKey()+id)%2]||'';return (n>1?dividerHtml(n):'')+`<div class="dfolio"><span>No. ${issue}</span><span>${t}</span><span>${nn}</span></div><h3 class="dsh" id="dsec-${id}"><span><i class="dsn">${nn}</i> — ${t}</span>${sub?`<small>${sub}</small>`:''}</h3>${dk?`<p class="ddek">${dk}</p>`:''}`};
  /* a pull quote after every fifth headline row, when that story has a line worth lifting */
  const rowsQ=arr=>{let h='',buf='',k=0;const wrap=x=>mode==='w'?`<div class="nr-river"><div class="nr-rv">${x}</div></div>`:`<div class="nr-ph-rows nr-ph-in">${x}</div>`;for(const a of arr){buf+=C(a,'nr nr-row nr-s');k++;if(k%5===0){const pq=pullQuoteHtml(a);if(pq){h+=wrap(buf)+pq;buf=''}}}return h+(buf?wrap(buf):'')};
- const frontCount=front.length+(lead?1:0);
+ const frontCount=front.length+(lead&&!COVSHOWN?1:0);
  SMARTV=true;NRLAB='Next up';
  B.push(`<div class="dsec2">${sh('front','The Front Page','',frontCount,'stories')}</div>`);
- if(lead&&!lead.read){B.push(royalHtml(lead,0));const L=ledeOf(lead),cand=[lead].concat(front),pick=cand.find(x=>{const q=nrQuoteText(x);return q&&q.real&&q.q!==L})||front.find(x=>{const q=nrQuoteText(x);return q&&q.q!==L});const pq=pick?pullQuoteHtml(pick):'';if(pq)B.push(pq)}
+ if(lead&&!lead.read){if(!COVSHOWN)B.push(royalHtml(lead,0));const L=ledeOf(lead),cand=[lead].concat(front),pick=cand.find(x=>{const q=nrQuoteText(x);return q&&q.real&&q.q!==L})||front.find(x=>{const q=nrQuoteText(x);return q&&q.q!==L});const pq=pick?pullQuoteHtml(pick):'';if(pq)B.push(pq)}
  if(front.length)(mode==='w'?nrBlocks(front,base):nrBlocksPhone(front,base)).forEach(b=>B.push(b));
  NRLAB='Latest';SMARTV=false;
  if(diff)B.push(diffHtml(diff,C));
@@ -5541,7 +5570,7 @@ function renderToday(tab0,pool0,seg0,ttl0){
   const ed0=dayEdition(pool),ranked=ed0.length?ed0:byDate.slice(0,ED_N);
   let lead=ranked.find(a=>a.img)||ranked[0]||pool.find(a=>a.img)||pool[0];
   {const busy=Object.values(state).some(v=>v==='load'),pv=LEADK&&pool.find(a=>a.link===LEADK&&a.img&&!S.read[a.link]);if(busy&&pv)lead=pv;LEADK=lead&&lead.link}
-  const unread=uc(S.feeds),newCover=isOn('cover')&&!document.body.classList.contains('split')&&(!S.cvs||S.cvs==='auto'),useCover=newCover||(isOn('cover')&&lead.img&&!document.body.classList.contains('split'));
+  const unread=uc(S.feeds),newCover=isOn('cover')&&!document.body.classList.contains('split')&&(!S.cvs||S.cvs==='auto'),useCover=(COVSHOWN=!!newCover)||(isOn('cover')&&lead.img&&!document.body.classList.contains('split'));
   cur=[lead];
   h+=useCover?(newCover?dayCoverHtml(lead,pool):coverHtml(lead,pool))+`<div class="dateline"><span>Inside · ${esc(shortDate())}</span><small>${S.hideCount?'':unread?unread+' unread in all your feeds':'All caught up'}</small></div>`:`<div class="dateline"><span>${esc(edition())} · ${esc(shortDate())}</span><small>${S.hideCount?'':unread?unread+' unread in all your feeds':'All caught up'}</small></div>`+(WHY[lead.link]=whyLead(lead),card(lead,0,'lead'));
   const shown=new Set(cur.map(a=>a.link));(lead.more||[]).forEach(m=>shown.add(m.l));
@@ -11216,11 +11245,11 @@ function exApply(){
  const g=$('#grid');if(!g)return;const old=g.querySelector('.dexp');
  if(S.sel!=='today'||(($('#q')||{}).value||'').trim()||!g.querySelector('.dwhy.dtd')){g.querySelectorAll('.dexp').forEach(x=>x.remove());return}
  if(old)return;
- const b=document.createElement('button');b.type='button';b.className='tx2 dexp';b.dataset.edexp='1';b.textContent='Export this edition as a PDF';
- const b2=document.createElement('button');b2.type='button';b2.className='tx2 dexp';b2.dataset.edshare='1';b2.textContent='Share this cover';
+ const b=document.createElement('button');b.type='button';b.className='tx2 dexp';b.dataset.edexp='1';b.textContent='Export PDF';b.setAttribute('aria-label','Export this edition as a PDF');
+ const b2=document.createElement('button');b2.type='button';b2.className='tx2 dexp';b2.dataset.edshare='1';b2.textContent='Share cover';b2.setAttribute('aria-label','Share this cover');
  const b3=document.createElement('button');b3.type='button';b3.className='tx2 dexp';b3.dataset.edkindle='1';b3.textContent=S.kindle?'Send to my Kindle':'Send to Kindle';
  const bs=[b,b2,b3];if(S.kindle){const b4=document.createElement('button');b4.type='button';b4.className='tx2 dexp';b4.dataset.kindleset='1';b4.textContent='Change Kindle address';bs.push(b4)}
- const cu=document.createElement('button');cu.type='button';cu.className='tx2 dexp dcu';cu.dataset.catchup='1';cu.textContent='Catch me up · 5 minutes';
+ const cu=document.createElement('button');cu.type='button';cu.className='tx2 dexp dcu';cu.dataset.catchup='1';cu.textContent='Catch me up';cu.setAttribute('aria-label','Catch me up: a five-minute mini-edition');
  g.querySelector('.dwhy.dtd').after(cu,...bs);
 }
 {const _r9=render;render=function(){_r9.apply(this,arguments);try{exApply()}catch(e){}try{if(S.sel==='today'){clearTimeout(biSave.t);biSave.t=setTimeout(biSave,25000)}}catch(e){}}}
@@ -11616,4 +11645,26 @@ function pickupHtml(){
    return `<button type="button" data-prev="${esc(x)}"><em>${esc(fof(a).title||a.ft||'')}${p?' · '+p+'% read':''}</em>${esc(a.title)}</button>`}).join('')}</section>`;
  }catch(e){elog('pickups',e);return ''}
 }
+
+/* the page's admin chrome (date, counts, the four buttons, continue reading, pick-ups, the issue contents) folds into one quiet line under the cover */
+function metaApply(){
+ const g=$('#grid');if(!g||S.sel!=='today')return;
+ const cv=g.querySelector(':scope>.dcov');if(!cv||g.querySelector(':scope>.dmeta'))return;
+ const nodes=[];let n=cv.nextElementSibling;
+ while(n&&!n.classList.contains('dsec2')){nodes.push(n);n=n.nextElementSibling}
+ if(!nodes.length)return;
+ const dl=nodes.find(x=>x.classList.contains('dateline')),dw=nodes.find(x=>x.classList.contains('dtd'));
+ const date=dl&&dl.querySelector('span')?dl.querySelector('span').textContent.trim():'Inside',unread=dl&&dl.querySelector('small')?dl.querySelector('small').textContent.trim():'';
+ const quiet=dw&&/^A quiet/.test(dw.textContent)?dw.textContent.trim():'',nn=(typeof DGL!=='undefined'?DGL.length:0);
+ const line=`<b>${esc(date)}</b> · ${quiet?esc(quiet):nn+(nn===1?' story':' stories')+' in this edition'}${unread&&!quiet?' · '+esc(unread):''}`;
+ const m=document.createElement('div');m.className='dmeta';
+ m.innerHTML=`<p class="dml">${line}</p><div class="dma" role="group" aria-label="Edition actions"></div><details><summary>Continue and contents</summary><div class="dmb"></div></details>`;
+ const box=m.querySelector('.dmb'),acts=m.querySelector('.dma');
+ /* the four edition actions stay on the line as small text links, always visible; the rest folds away */
+ nodes.forEach(x=>{if(x===dl)return;if(x.classList.contains('dexp'))acts.appendChild(x);else box.appendChild(x)});
+ if(!box.children.length)m.querySelector('details').remove();
+ if(dl)dl.remove();
+ cv.after(m);
+}
+{const _rm=render;render=function(){_rm.apply(this,arguments);try{metaApply()}catch(e){elog('metaApply',e)}}}
 </script></body></html>
