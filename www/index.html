@@ -5746,7 +5746,10 @@ function narrowC(){return isOn('pcomp')&&document.body.classList.contains('narro
 function rdVars(){const r=$('#rd');if(!r)return;const nc=narrowC();r.style.setProperty('--lh',nc?Math.min(+S.lh||1.68,1.5):(S.lh||1.68));{const bk=$('.book'),W=bk?bk.clientWidth:innerWidth,cw=isVert()?Math.min(W-60,740):(W>=700?(W-60-56)/2:W-40),chars=cw/((+S.fs||18)*.5);/* justify only when a line holds enough words; narrow columns left-align so gaps do not open up */r.style.setProperty('--ta',(S.just===false||nc||innerWidth<640||chars<52)?'left':'justify')}}
 function imgKey(u){try{let x=String(u||'').split(/[?#]/)[0].toLowerCase();x=x.split('/').filter(Boolean).pop()||'';return x.replace(/\.(jpe?g|png|webp|avif|gif)(\.(jpe?g|png|webp|avif|gif))?$/,'').replace(/[-_@]?\d{2,4}x\d{2,4}/g,'').replace(/[-_](scaled|large|medium|small|thumb(nail)?|full|orig(inal)?|hires|hi-res)$/,'').replace(/@\dx$/,'')}catch(e){return ''}}
 function sameImg(a,b){if(!a||!b)return false;if(String(a).split('?')[0]===String(b).split('?')[0])return true;const x=imgKey(a),y=imgKey(b);if(x.length>=8&&x===y)return true;if(x.length>=5&&x===y&&!/^(image|img|photo|picture|pic|hero|cover|main|lead|thumb|thumbnail|banner|article|featured|default|placeholder|logo|share|og|story|news)\d*$/.test(x))return true;if(x.length<10||y.length<10)return false;let i=0;while(i<x.length&&i<y.length&&x[i]===y[i])i++;return i>=10&&i/Math.min(x.length,y.length)>=.75}
-function dedupHero(){const h=document.querySelector('#sheet .hero'),b=document.querySelector('.cols .body');if(!b)return;const ref=(h&&h.src)||(curA&&curA.img)||'';if(!ref)return;let n=0;let seenText=0;for(const k of [...b.children]){if(n++>8)break;if(seenText>420)break;seenText+=(k.textContent||'').trim().length;const im=k.tagName==='IMG'?k:k.querySelector&&k.querySelector('img');if(im&&sameImg(im.src,ref)){(k.tagName==='IMG'?k:(k.matches&&k.matches('figure,p,div')&&!(k.textContent||'').trim()?k:im)).remove();break}}}
+/* The picture shows once, in the body. The moment a body (the feed's copy, the stored copy or the full page) is in place, and before it can paint, the separate top-of-page copy is set aside; if a later body has no such picture, the top copy goes back. Two never show together. */
+function heroOnce(){const c=document.querySelector('.cols'),b=c&&c.querySelector('.body');if(!b||!curA)return;const ref=curA.img||'';let h=c.querySelector(':scope>img.hero');if(!ref&&!h)return;let hit=false;let n=0,seenText=0;for(const k of [...b.children]){if(n++>8||seenText>420)break;seenText+=(k.textContent||'').trim().length;const im=k.tagName==='IMG'?k:k.querySelector&&k.querySelector('img');if(im&&sameImg(im.src,ref)){hit=true;break}}
+ if(hit&&h){const m=document.createComment('hero');h.replaceWith(m);R.heroEl=h;R.heroMark=m;R.heroFor=curA.link}
+ else if(!hit&&R.heroMark&&R.heroMark.isConnected&&R.heroFor===curA.link&&R.heroEl){R.heroMark.replaceWith(R.heroEl);R.heroEl=R.heroMark=null}}
 function noteFix(){const n=document.querySelector('.cols .note'),b=document.querySelector('.cols .body');if(!n||!b||DEEPBUSY)return;if(n.querySelector("[data-retry]")&&(b.textContent||'').length>2200){n.textContent='Full story loaded.';setTimeout(()=>{if(n.isConnected&&n.textContent==='Full story loaded.')n.remove()},4000)}}
 function layout(){noteFix();
  rdVars();
@@ -6279,7 +6282,7 @@ async function deepTry(a,manual){
  const body=document.querySelector('.cols .body');
  if(f&&body&&f.textContent.length>Math.max(600,body.textContent.length+100)){
   const im=f.querySelector('img');if(im&&a.img&&sameImg(im.src,a.img))im.remove();
-  ttsStop();body.replaceChildren(dropTitle(f,a.title));
+  ttsStop();body.replaceChildren(dropTitle(f,a.title));try{heroOnce()}catch(e){}
   const nt=note();if(nt)nt.textContent='Full story loaded another way.';
   acPut(a.link,body.innerHTML);markReady(a.link);
   S.rt[a.link]=Math.max(1,Math.round(body.textContent.split(/\s+/).length/230));save();
@@ -6643,7 +6646,7 @@ function switchReader(){
  const{n,url}=RDY;RDY=null;
  if(n.textContent.length>body.textContent.length+100){
   const im=n.querySelector('img');if(im&&curA.img&&sameImg(im.src,curA.img))im.remove();
-  ttsStop();body.replaceChildren(dropTitle(n,curA.title));
+  ttsStop();body.replaceChildren(dropTitle(n,curA.title));try{heroOnce()}catch(e){}
   const note=c.querySelector('.note');if(note)note.textContent='Reader view of '+host(url)+'.';
   if(url!==curA.link)ALT=url;
   acPut(curA.link,body.innerHTML);
@@ -6659,7 +6662,7 @@ function toggleWeb(auto){
  w.hidden=false;R.web=true;R.auto=!!auto;b.innerHTML=svg(PAGE);b.title='Back to reader view';loadWeb();
 }
 async function openReader(a){
- const f=fof(a),my=++tok,sh=$('#sheet');curA=a;RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0;R.ready=false;const afterLoad=()=>{try{dedupHero()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;setTimeout(()=>{if(curA===a0)relayout()},800);setTimeout(()=>{if(curA===a0)relayout()},2600);try{document.fonts&&document.fonts.ready.then(()=>{if(curA===a0)relayout()})}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);save();setTimeout(()=>readAhead(a),1200);
+ const f=fof(a),my=++tok,sh=$('#sheet');curA=a;RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0;R.ready=false;const afterLoad=()=>{try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;setTimeout(()=>{if(curA===a0)relayout()},800);setTimeout(()=>{if(curA===a0)relayout()},2600);try{document.fonts&&document.fonts.ready.then(()=>{if(curA===a0)relayout()})}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);save();setTimeout(()=>readAhead(a),1200);
  rdB(brand(f));pushLayer('reader');tip('reader');
  if(a.img&&isOn('ptint'))imgInfo(a.img).then(o=>{if(o&&o.t&&curA===a)rdB(o.t)});
  document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',chref(c)===a.link));
@@ -6670,7 +6673,7 @@ async function openReader(a){
  R.pg=0;R.busy=false;R.web=false;R.auto=false;RDY=null;R.endArmed=false;R.botAt=0;if(!R.keepCtx)R.ctx=cur.filter((x,i,l)=>x&&x.link&&l.findIndex(y=>y.link===x.link)===i);R.keepCtx=false;clearTimeout(R.wd);R.wd=setTimeout(()=>{const n=document.querySelector('.cols .note');if(n&&/^Loading the full article/.test(n.textContent)&&curA){n.innerHTML='<span class="sbadge">Taking too long</span>The full story didn’t finish loading. <button type="button" class="lnk" data-retry>Try again</button> <a class="lnk" href="'+esc(curA.link)+'" target="_blank" rel="noopener">Open the original</a>'}},25000);_vm=isVert();R.inBrief=S.sel==='brief'&&!!(S.brief&&S.brief.links.includes(a.link));if(R.inBrief&&!S.brief.pinned){S.brief.pinned=1;save()}
  RDTRIG=document.activeElement;$('#rd').classList.add('on');try{$('#rd').tabIndex=-1;$('#rd').focus({preventScroll:true})}catch(e){}applyFs(false);applyFolderTheme();
  const c=$('.cols'),body=c.querySelector('.body'),note=c.querySelector('.note');
- body.append(fromHTML(a.html,a.link));foldBoiler(body,a);
+ R.heroEl=R.heroMark=null;body.append(fromHTML(a.html,a.link));foldBoiler(body,a);try{heroOnce()}catch(e){}
  c.addEventListener('load',e=>{const im=e.target;/* a logo or icon in a story keeps its own small size instead of being blown up blurry across the column */if(im&&im.tagName==='IMG'&&im.closest&&im.closest('.body')&&!im.classList.contains('hero')&&im.naturalWidth&&im.naturalWidth<220&&im.naturalHeight<220){im.classList.add('tiny');im.style.setProperty('--tw',im.naturalWidth+'px')}heroSpread();photoPages();relayout()},true);c.addEventListener('error',()=>{heroSpread();relayout()},true);
  /* when the full text is already stored, afterLoad lays the page out once, so skip the layout of the short feed version */
  if(!(acGet(a.link)&&!ytId(a)))layout();
@@ -6680,7 +6683,7 @@ async function openReader(a){
  if(my!==tok)return;
  if(cached&&!textQuality(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')).ok)cached=null;if(cached&&footerish(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')))cached=null;
  if((f.web||(isPay(a)&&f.web!==false))&&!cached&&online())toggleWeb(true);
- if(cached){body.replaceChildren(dropTitle(tidy(fromHTML(cached,a.link)),a.title));foldBoiler(body,a);note.remove();ALT='';afterLoad();return}
+ if(cached){body.replaceChildren(dropTitle(tidy(fromHTML(cached,a.link)),a.title));foldBoiler(body,a);try{heroOnce()}catch(e){}note.remove();ALT='';afterLoad();return}
  if(!online()){note.textContent=S.offline?'Offline mode is on. Showing what’s stored on this device.':'You’re offline. Showing what came with the feed.';afterLoad();return}
  let n=await getFull(a.link),src=a.link;if(n&&footerish(n.textContent)&&body.textContent.trim().length>=80)n=null;
  if(my!==tok){if(n){PFHOT.set(a.link,{n,t:Date.now()});if(PFHOT.size>16)PFHOT.delete(PFHOT.keys().next().value)}return}
@@ -6692,9 +6695,8 @@ async function openReader(a){
  ALT=src!==a.link?src:(!n&&alts[0]?alts[0]:'');
  if(n&&n.textContent.length>Math.max(600,body.textContent.length+100)){
   a.tier=n.tier||(src!==a.link?'mirror':'direct');
-  const im=n.querySelector('img');if(im&&a.img&&sameImg(im.src,a.img))im.remove();
   ttsStop();
-  body.replaceChildren(dropTitle(n,a.title));
+  body.replaceChildren(dropTitle(n,a.title));try{heroOnce()}catch(e){}
   if(n.pw&&src===a.link){a.pw=1;note.innerHTML='This looks like a preview, and the site may want a subscription for the rest. <button type="button" class="lnk" data-web="1">View the site in the app</button>';if(my===tok&&!R.web&&(S.autoWeb||isBing(f.url)||/news\.google\./.test(f.url||'')||/news\.google\./.test(a.link||'')))toggleWeb(true)}else if(n.gated_preview&&src===a.link)note.innerHTML='<span class="sbadge">Subscriber preview</span>The site is holding back the rest of this story.';else if(n.tier==='archive')note.textContent='Full story loaded from a saved copy at the Internet Archive.';else if(n.tier==='morss')note.textContent='Full story loaded through Morss.';else if(src!==a.link)note.textContent='Full story loaded from '+host(src)+'.';else if(n.incomplete&&looksIncomplete(n.textContent,src))note.innerHTML='<span class="sbadge">Truncated source text</span>This may be only the start of the story. <a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener">Open Original Story</a>';else note.remove();
   if(!((n.incomplete&&looksIncomplete(n.textContent,src))||(n.gated_preview&&src===a.link)))acPut(a.link,body.innerHTML);markReady(a.link);
   S.rt[a.link]=Math.max(1,Math.round(body.textContent.split(/\s+/).length/230));const rk=Object.keys(S.rt);if(rk.length>600)delete S.rt[rk[0]];save();

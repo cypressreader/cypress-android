@@ -4,7 +4,7 @@ const {APP}=require('./env');const {mock,PW}=require('./mock');const {chromium}=
 let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else console.log('ok',n)};
 /* same picture, different addresses */
 const src=fs.readFileSync(path.join(__dirname,'..','www','index.html'),'utf8');
-const a0=src.indexOf('function imgKey'),b0=src.indexOf('function dedupHero');eval(src.slice(a0,b0)+';globalThis.sameImg=sameImg;');
+const a0=src.indexOf('function imgKey'),b0=src.indexOf('function heroOnce');eval(src.slice(a0,b0)+';globalThis.sameImg=sameImg;');
 const pairs=[
  ['size suffix','https://cdn.x/a/DSC_4121.jpg','https://cdn.x/a/DSC_4121-1024x683.jpg',true],
  ['other folder, other crop (Verge)','https://platform.theverge.com/wp-content/uploads/sites/2/chorus/uploads/chorus_asset/file/25/Foo_Bar_0004.jpg?quality=90&strip=all&crop=0,10.46,100,79.08','https://platform.theverge.com/wp-content/uploads/sites/2/2025/10/Foo_Bar_0004.jpg?quality=90&strip=all&crop=0,0,100,100&w=2400',true],
