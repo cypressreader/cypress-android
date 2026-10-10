@@ -4739,10 +4739,10 @@ function nextAfter(a){
 }
 function readerFootHtml(a){
  const f=fof(a),nx=nextAfter(a),rel=relatedFor(a).filter(r=>!nx||r.link!==nx.link),mm=n=>{const m=minsOf(n);return m?' · '+m+' min':''};
- return `<aside class="rfoot" aria-label="Keep reading"><p class="rf-fin" aria-hidden="true">❦</p><p class="rf-src">${esc(f.title)}${a.date?' · '+esc(new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'})):''}</p>`
+ return `<div class="rfoot" role="complementary" aria-label="Keep reading"><p class="rf-fin" aria-hidden="true">❦</p><p class="rf-src">${esc(f.title)}${a.date?' · '+esc(new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'})):''}</p>`
   +(nx?`<button type="button" class="rf-next" data-rnext="${esc(nx.link)}"><small>Next up</small><b>${esc(nx.title)}</b><em>${esc(fof(nx).title)}${mm(nx)}</em></button>`:'')
   +((S.jk&&S.jk.r&&S.jk.r.length)?`<button type="button" class="rf-junk" data-junklog>Copy my junk log (${S.jk.r.length})</button>`:'')
-  +(rel.length?`<div class="rf-rel"><p>Related reads</p>${rel.map(r=>`<button type="button" data-rnext="${esc(r.link)}"><b>${esc(r.title)}</b><em>${esc(fof(r).title)}</em></button>`).join('')}</div>`:'')+`</aside>`;
+  +(rel.length?`<div class="rf-rel"><p>Related reads</p>${rel.map(r=>`<button type="button" data-rnext="${esc(r.link)}"><b>${esc(r.title)}</b><em>${esc(fof(r).title)}</em></button>`).join('')}</div>`:'')+`</div>`;
 }
 function decorate14(){
  const b=$('.cols .body');if(!b)return;
@@ -11594,7 +11594,10 @@ function edgeSwipe(dir){
 }
 function rdNext(){
  const c=$('.cols'),a=curA;if(!c||!a||R.web)return;
- const old=c.querySelector('.rnext');if(old&&old.dataset.for===a.link)return;if(old)old.remove();
+ const old=c.querySelector('.rnext');
+ /* in page mode the end card already carries the Up next card and turning the last page flows on, so no extra page is made for it */
+ if(!isVert()){if(old)old.remove();return}
+ if(old&&old.dataset.for===a.link)return;if(old)old.remove();
  if(!isOn('cont'))return;const n=readerNext();if(!n||R.inBrief)return;
  const f=fof(n),m=minsOf(n),el=document.createElement('div');el.className='rnext';el.dataset.for=a.link;
  el.innerHTML=`<small>Up next</small><button type="button" data-rnext>${n.img?`<span class="rn-i"><img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(n.img)}" onerror="this.parentNode.remove()"></span>`:''}<span class="rn-t"><i>${esc(f.title||'')}${m?' · '+m+' min':''}</i><b>${esc(n.title)}</b></span></button><p class="rn-h">${isVert()?'Keep pulling past the end to flow on':'Turn the last page again to flow on'}</p>`;

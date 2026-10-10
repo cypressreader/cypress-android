@@ -9,7 +9,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    S.feeds.slice(0,2).forEach((f,fi)=>{items[f.id]=Array.from({length:5},(_,i)=>({feedId:f.id,title:'Story '+fi+i+' about unique '+['a','b','c','d','e'][i],link:'https://w.test/'+fi+'/'+i,date:now-(i+fi)*36e5,summary:'x',img:'',html:'<p>'+'Body text here, a sentence that goes on. '.repeat(70)+'</p>'}));state[f.id]='ok'});
    S.feeds.slice(2).forEach(x=>items[x.id]=[]);S.scroll=mode;S.sel='all';S.atab='latest';render();await w(500);
    const first=cur[0];openReader(first);await w(1800);
-   const out={first:first.link};const card=document.querySelector('.rnext');out.card=!!card;out.cardTitle=card?card.querySelector('b').textContent:'';out.nextIs=readerNext()&&readerNext().title;
+   const out={first:first.link};const card=document.querySelector('.rnext')||document.querySelector('.rfoot .rf-next');out.card=!!card;out.cardTitle=card?((card.querySelector('b')||card).textContent):'';out.nextIs=readerNext()&&readerNext().title;
    if(mode==='vertical'){const v=vView();v.scrollTop=v.scrollHeight;await w(900);for(let i=0;i<4;i++){document.dispatchEvent(new WheelEvent('wheel',{deltaY:140,bubbles:true}));await w(60)}}
    else{R.pg=R.np-1;show&&show();await w(300);go(1);out.armed=R.endArmed;await w(200);go(1)}
    await w(1800);out.after=curA&&curA.link;out.advanced=curA&&curA.link!==first.link&&curA.title===out.nextIs;
