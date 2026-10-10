@@ -3144,6 +3144,43 @@ html.dkart .sun-m small,html.dkart .sun-t small{color:var(--brass)}
 .rki h2{margin:12px 0 2px;font:400 32px var(--disp,var(--serif))}.rki ol{list-style:none;margin:16px 0 0;padding:0}.rki li{border-top:1px solid var(--ln)}
 .rki li button{all:unset;cursor:pointer;display:block;width:100%;box-sizing:border-box;padding:12px 2px}.rki li b{display:block;font:400 18px/1.25 var(--serif,Georgia,serif)}.rki li small{color:var(--mut);font:12px var(--sans)}
 .rki li button:focus-visible{outline:2px solid var(--logo)}
+
+/* correction round, cluster 15: rotating covers, this day, story hub */
+.dcov.dct-type .dcv-main{margin-top:auto;margin-bottom:auto;padding-top:24px}
+.dcov.dct-type .dcv-sh{background:linear-gradient(180deg,rgba(6,22,16,.55),rgba(6,22,16,.7) 50%,rgba(6,22,16,.9))}
+.dcov.dct-type .dcv-lead h2{font-size:clamp(46px,14vw,96px);line-height:.92;-webkit-line-clamp:7}
+.dcov.dct-type .dcv-lead.long h2{font-size:clamp(38px,11vw,76px)}
+.dcov.dct-min{background:var(--pn,#f6f1e7);color:#1c1d1b}
+.dcov.dct-min::after{border-color:rgba(0,0,0,.28);box-shadow:none}
+.dcov.dct-min .dcv-sh{display:none}
+.dcov.dct-min .dcv-top,.dcov.dct-min .dcv-top *{text-shadow:none}
+.dcov.dct-min .dcv-top{color:#1c1d1b}
+.dcov.dct-min .dcv-lead,.dcov.dct-min .dcv-l,.dcov.dct-min .dcv-note{color:#1c1d1b}
+.dcov.dct-min .dcv-lead h2{text-shadow:none;font-size:clamp(34px,10vw,68px);line-height:1}
+.dcov.dct-min .dcv-lead small{border-bottom:2px solid var(--b);padding-bottom:6px;display:inline-block}
+.dcov.dct-min .dcv-lines{border-top-color:rgba(0,0,0,.3)}
+.dcov.dct-min .dcv-l small{opacity:.7}
+.dcov.dct-min .dcv-why{background:rgba(0,0,0,.12);color:#1c1d1b}
+.tdy{margin:22px auto 8px;max-width:620px;padding:14px 16px;border:1px solid var(--ln,rgba(128,128,128,.3));border-radius:14px;font:400 14px/1.4 var(--sans)}
+.tdy>b{display:block;margin-bottom:6px;font:700 10.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
+.tdy button{display:block;width:100%;text-align:left;background:none;border:0;color:inherit;padding:6px 0;font:inherit;cursor:pointer;border-top:1px solid var(--ln,rgba(128,128,128,.2))}
+.tdy button:first-of-type{border-top:0}
+.tdy em{display:block;font:600 11px var(--sans);color:var(--mut);font-style:normal}
+.cov.covt{display:block;width:100%;text-align:left;background:none;border:1px solid var(--ln,rgba(128,128,128,.3));border-radius:12px;padding:10px 12px;color:inherit;cursor:pointer}
+.cov.covt b{margin:0 0 2px}.cov.covt span{display:block;color:var(--mut)}
+#hub{position:fixed;inset:0;z-index:60;display:none;background:rgba(8,10,14,.6);align-items:flex-end;justify-content:center}
+#hub.on{display:flex}
+#hub .hp{width:min(680px,100%);max-height:92vh;overflow:auto;background:var(--pn,#fff);color:var(--tx,inherit);border-radius:20px 20px 0 0;padding:18px 18px 28px;font:400 15px/1.45 var(--sans);position:relative}
+@media(min-width:700px){#hub{align-items:center}#hub .hp{border-radius:20px}}
+#hub h2{margin:0 0 4px;font:700 22px/1.2 var(--serif,Georgia,serif)}
+#hub .hk{font:700 10.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
+#hub h3{margin:20px 0 6px;font:700 10.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
+#hub .hx{position:absolute;top:10px;right:10px;border:0;background:none;color:inherit;font-size:22px;line-height:1;padding:8px;cursor:pointer}
+#hub .hh{display:block;width:100%;text-align:left;background:none;border:0;color:inherit;padding:0;cursor:pointer;font:inherit}
+#hub .hh img{width:100%;max-height:200px;object-fit:cover;border-radius:12px;margin-bottom:8px}
+#hub .hr{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--ln,rgba(128,128,128,.25));color:inherit;padding:9px 0;font:inherit;text-decoration:none;cursor:pointer}
+#hub .hr small{display:block;color:var(--mut);font:600 11px var(--sans)}
+#hub .hr.now{font-weight:700}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -5217,8 +5254,10 @@ function dayAffinity(){
 function dayScore(a,aff,now){
  const age=Math.max(0,(now-a.date)/36e5);let s=Math.max(3,100*Math.pow(.5,age/8)),why='';
  const af=aff[a.feedId]||1;s*=af;
+ const lk=likeScore(a);if(lk)s*=Math.max(.6,Math.min(1.5,1+lk*.04));
  if(age<12){const t=a.title||'';if(DAYK1.test(t)){s*=1.8;why='Flagged as breaking news.'}else if(DAYK2.test(t)){s*=1.3;why='Marked as live, updated or exclusive.'}}
  const n=(a.more||[]).length;if(n){s*=Math.min(1.6,1+.15*n);if(!why)why='Covered by '+(n+1)+' sources.'}
+ if(!why&&lk>=4)why='Like stories you have given a thumbs up.';
  if(!why&&af>=1.15)why='You often read '+fof(a).title+'.';
  return {s,why:why||'One of the freshest stories from '+fof(a).title+'.'};
 }
@@ -5452,7 +5491,7 @@ async function dpRun(){
 }
 function dayEndCard(){
  const k=LOGOS[S.logo]?S.logo:'tree',am=edKind()==='m';
- return `<section class="endc"><span class="lgm endl" data-fill style="--p:0%;--lm:url(data:image/png;base64,${LOGOS[k][0]})"></span><h3>You’re all caught up for the ${am?'morning':'evening'}</h3><p>${esc(pe('finish',{},'end'))} ${am?'The Evening Edition comes out at 5 PM.':'The Morning Edition comes out at 5 AM.'}</p><button type="button" class="tx2" data-endall>Explore Full Feed</button></section>`;
+ return thisDayHtml()+`<section class="endc"><span class="lgm endl" data-fill style="--p:0%;--lm:url(data:image/png;base64,${LOGOS[k][0]})"></span><h3>You’re all caught up for the ${am?'morning':'evening'}</h3><p>${esc(pe('finish',{},'end'))} ${am?'The Evening Edition comes out at 5 PM.':'The Morning Edition comes out at 5 AM.'}</p><button type="button" class="tx2" data-endall>Explore Full Feed</button></section>`;
 }
 const dtab=()=>DTABS.some(x=>x[0]===S.dtab)?S.dtab:'latest';
 /* minutes to read: the measured time if the story has been opened, else from the feed's own text when that is long enough to mean something (a short teaser says nothing about the real length) */
@@ -6438,7 +6477,7 @@ async function openReader(a){
  if(a.img&&isOn('ptint'))imgInfo(a.img).then(o=>{if(o&&o.t&&curA===a)rdB(o.t)});
  document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',chref(c)===a.link));
  const dt=a.date?new Date(a.date).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'';
- const cov=(a.more&&a.more.length)?`<div class="cov"><b>Also covered by</b>${a.more.map(m=>`<a target="_blank" rel="noopener" href="${esc(m.l)}">${esc(fof({feedId:m.f}).title)}: ${esc(m.t)}</a>`).join('')}</div>`:'';
+ const cov=(a.more&&a.more.length)?hubTeaser(a):'';
  sh.innerHTML=`<div class="bar"><button class="ib" id="cl" data-lbl="Back" aria-label="Back" title="Back">${svg('<path d="m14.5 5-7 7 7 7"/>')}</button><button class="ib" id="fdn" aria-label="Back to all feeds" title="Back to all feeds" tabindex="-1" aria-hidden="true" hidden>${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><div class="bs">${esc(f.title)}</div><span id="pc"></span><button class="ib" id="st" data-lbl="Save" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" data-lbl="Listen" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings" hidden>${svg(TUNE)}</button>`:''}<button class="ib" id="fcs" data-lbl="Focus" aria-label="Focus mode" aria-pressed="false" title="Focus mode: hide the controls for distraction-free reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site here" title="View the site here" hidden>${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page" hidden>${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page" hidden>${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" data-lbl="More" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec))+(hasSec(a.sec,a.feedId)?'':`<button class="flw" data-fsec aria-label="Follow ${esc(a.sec||'this section')}">Follow</button>`):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener" href="${esc(a.link)}">Read on ${esc(host(a.link))}</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p>This site can’t be shown inside the app. It may block automated access.</p><div><a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
  if(R.T){cancelAnimationFrame(R.T.raf);R.T.dead=true;R.T=null}
  R.pg=0;R.busy=false;R.web=false;R.auto=false;RDY=null;R.endArmed=false;R.botAt=0;if(!R.keepCtx)R.ctx=cur.filter((x,i,l)=>x&&x.link&&l.findIndex(y=>y.link===x.link)===i);R.keepCtx=false;clearTimeout(R.wd);R.wd=setTimeout(()=>{const n=document.querySelector('.cols .note');if(n&&/^Loading the full article/.test(n.textContent)&&curA){n.innerHTML='<span class="sbadge">Taking too long</span>The full story didn’t finish loading. <button type="button" class="lnk" data-retry>Try again</button> <a class="lnk" href="'+esc(curA.link)+'" target="_blank" rel="noopener">Open the original</a>'}},25000);_vm=isVert();R.inBrief=S.sel==='brief'&&!!(S.brief&&S.brief.links.includes(a.link));if(R.inBrief&&!S.brief.pinned){S.brief.pinned=1;save()}
@@ -7701,11 +7740,12 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-dfol]');if
 /* reader overflow menu */
 /* the menu entry says what a tap will do: switch this source to site view, or back to reader view */
 function mnWebLabel(){const fd=curA&&S.feeds.find(x=>x.id===curA.feedId);document.querySelectorAll('#mn [data-act="webpref"]').forEach(b=>{b.textContent=fd&&fd.web?'Reader view for this source':'Site view for this source'})}
-function mnMarkup(){return `<div class="pb mn" id="mn" hidden><div class="mphone"><button data-act="settings">Reading settings</button><button data-act="rp">Playback settings</button><hr></div><button data-act="share">Share</button><button data-act="copy">Copy link</button><button data-act="browser">Open in browser</button><button data-act="web">View the site here</button><button data-act="translate">Translate in browser</button><button data-act="fullscreen">Full screen</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><hr><button data-act="fdn">Show my feeds</button><button data-act="junk">Report junk text</button><button data-act="webpref">Site view for this source</button></div>`}
+function mnMarkup(){return `<div class="pb mn" id="mn" hidden><div class="mphone"><button data-act="settings">Reading settings</button><button data-act="rp">Playback settings</button><hr></div><button data-act="share">Share</button><button data-act="copy">Copy link</button><button data-act="browser">Open in browser</button><button data-act="web">View the site here</button><button data-act="translate">Translate in browser</button><button data-act="fullscreen">Full screen</button><button data-act="hub">Full coverage</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><hr><button data-act="fdn">Show my feeds</button><button data-act="junk">Report junk text</button><button data-act="webpref">Site view for this source</button></div>`}
 async function doAct(k){
  const a=curA;if(!a)return;
  if(k==='fdn'||k==='web'||k==='rp'){const b=$('#'+(k==='web'?'wb':k));if(b)b.click();return}
  if(k==='upnext'){addUpNext(a);return}
+ if(k==='hub'){openHub(a);return}
  if(k==='browser'){window.open(a.link,'_blank','noopener');return}
  if(k==='translate'){window.open('https://translate.google.com/translate?sl=auto&tl=en&u='+encodeURIComponent(a.link),'_blank','noopener');return}
  if(k==='fullscreen'){try{if(document.fullscreenElement)document.exitFullscreen();else (document.documentElement.requestFullscreen||(()=>Promise.reject()))().catch(()=>toast('Full screen isn’t available here'))}catch(e){toast('Full screen isn’t available here')}return}
@@ -9922,13 +9962,13 @@ function edArtSvg(am){
  return `<svg class="dcv-svg" viewBox="0 0 400 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false"><defs><linearGradient id="dcg${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset=".55" stop-color="${sky[1]}"/><stop offset="1" stop-color="${sky[2]}"/></linearGradient></defs><rect width="400" height="600" fill="url(#dcg${g})"/>${orb}<path d="M0 410C70 380 130 392 200 372s150-6 200 20V600H0z" fill="${hill[0]}"/><path d="M0 470C80 440 150 462 230 440s120 0 170 18V600H0z" fill="${hill[1]}"/>${tree(46,210,hill[2])}${tree(344,260,hill[2])}${tree(380,170,hill[2])}<path d="M0 530C90 506 170 528 260 512s100 4 140 12V600H0z" fill="${hill[2]}"/></svg>`;
 }
 function dayCoverHtml(lead,pool){covSeen();
- const d=new Date(),start=new Date(d.getFullYear(),0,0),issue=Math.floor((d-start)/864e5),am=edKind()==='m';
+ const d=new Date(),start=new Date(d.getFullYear(),0,0),issue=Math.floor((d-start)/864e5),am=edKind()==='m',tr=coverTreat(lead);
  const lines=[],seen=new Set([lead.feedId]),usedCL=new Set();
  for(const a of pool){if(lines.length>=3)break;if(a===lead||seen.has(a.feedId)||S.read[a.link])continue;seen.add(a.feedId);lines.push(a)}
  cur=[lead];WHY[lead.link]=whyLead(lead);
  const li=lines.map(a=>{cur.push(a);WHY[a.link]='Cover line: a top unread story from '+fof(a).title+', one per site';return `<a class="cvl dcv-l" href="${esc(a.link)}" data-i="${cur.length-1}"><small style="--b:${brand(fof(a))}">${esc(pe('coverline',{},'cl'+cur.length,usedCL))} · ${esc(fof(a).title)}</small><span>${esc(a.title)}</span></a>`}).join('');
  const note=pe('note',{},'cover');
- return `<div class="dcov ${am?'dcm':'dce'}" style="--b:${brand(fof(lead))}"><div class="dcv-art">${edArtSvg(am)}${lead.img?`<img src="${esc(lead.img)}" alt="" referrerpolicy="no-referrer" onload="cvJudge(this)" onerror="this.remove()">`:''}</div><div class="dcv-sh"></div>`
+ return `<div class="dcov ${am?'dcm':'dce'} dct-${tr}" style="--b:${brand(fof(lead))}"><div class="dcv-art">${tr==='min'?'':edArtSvg(am)}${lead.img&&tr==='photo'?`<img src="${esc(lead.img)}" alt="" referrerpolicy="no-referrer" onload="cvJudge(this)" onerror="this.remove()">`:''}</div><div class="dcv-sh"></div>`
   +`<header class="dcv-top"><span class="dcv-mast">CYPRESS</span><span class="dcv-motto">${esc(DAY_MOTTO)}</span><span class="dcv-ed">${esc(edition(d))} · No. ${issue}</span></header>`
   +`<div class="dcv-main"><a class="cvlead dcv-lead${lead.title.length>72?' long':''}" href="${esc(lead.link)}" data-i="0"><small>${esc(fof(lead).title)}</small><h2>${esc(lead.title)}</h2></a>${note?`<p class="dcv-note">${esc(note)}</p>`:''}${li?`<div class="dcv-lines">${li}</div>`:''}</div>`
   +`<div class="dcv-prog"><!--DGP--></div>${WHY[lead.link]?'<button type="button" class="why cvwhy dcv-why" data-why="0" title="Why am I seeing this?" aria-label="Why am I seeing this?">i</button>':''}</div>`;
@@ -11318,4 +11358,75 @@ async function shareEditionCover(){
 }
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-edshare]');if(!b)return;e.preventDefault();e.stopPropagation();shareEditionCover()},true);
 
+
+/* ---------- correction round, cluster 15 ---------- */
+/* The Daily cover rotates between three looks (photo, type, minimal), never the same one two days running. */
+const CVT=['photo','type','min'];
+function coverTreat(lead){
+ const d=new Date();if(d.getHours()<5)d.setDate(d.getDate()-1);
+ const n=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);let c=S.cvt;
+ if(!c||typeof c!=='object')c=S.cvt={};
+ if(c.n!==n){c.p=c.t||c.p||'';c.n=n;c.t=''}
+ if(!c.t||(c.t==='photo'&&!(lead&&lead.img))){
+  const ok=CVT.filter(t=>(t!=='photo'||(lead&&lead.img))&&t!==c.p),pref=CVT[n%3];
+  const t=ok.includes(pref)?pref:(ok[0]||'type');
+  if(t!==c.t){c.t=t;try{save()}catch(e){}}
+ }
+ return c.t;
+}
+/* "This day in your reading": what you read a week, a month, six months or a year ago today, from the history already on the device. */
+function thisDayHtml(){
+ try{
+  const now=new Date(),out=[];
+  const sameDay=(t,days)=>{const a=new Date(now.getFullYear(),now.getMonth(),now.getDate()-days),b=new Date(t);return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()};
+  for(const [days,lab] of [[7,'A week ago today'],[30,'A month ago today'],[182,'Six months ago today'],[365,'A year ago today']]){
+   const h=(S.hist||[]).find(x=>x&&x.t&&x.ti&&sameDay(x.t,days));if(h)out.push([lab,h])
+  }
+  if(!out.length)return '';
+  return `<section class="tdy" aria-label="This day in your reading"><b>This day in your reading</b>${out.slice(0,3).map(([lab,h])=>`<button type="button" data-prev="${esc(webUrl(h.l))}"><em>${lab}${h.ft?' · '+esc(h.ft):''}</em>${esc(h.ti)}</button>`).join('')}</section>`;
+ }catch(e){elog('thisDay',e);return ''}
+}
+/* ---- Story hub ---- */
+function hubOf(a){
+ let tl=[];try{tl=storyTimeline(a)}catch(e){}
+ const cov=(a.more||[]).map(m=>({l:m.l,t:m.t,f:m.f,s:findStory(m.l)}));
+ let latest=a;for(const x of tl.concat(cov.map(c=>c.s).filter(Boolean)))if(x&&(x.date||0)>(latest.date||0))latest=x;
+ const older=tl.filter(x=>x!==a&&x.date&&a.date&&x.date<a.date-24*36e5);
+ return {tl,cov,latest,older};
+}
+function hubTeaser(a){
+ const n=(a.more||[]).length,names=[...new Set(a.more.map(m=>fof({feedId:m.f}).title))].slice(0,2);
+ return `<button type="button" class="cov covt" data-hub><b>${n===1?'1 other source covers this':n+' other sources cover this'}</b><span>${esc(names.join(', '))}${n>names.length?' and more':''} · See the full coverage</span></button>`;
+}
+let HUBT=null;
+function openHub(a){
+ if(!a)return;const H=hubOf(a);
+ if(!H.tl.length&&!H.cov.length){toast('No other coverage of this story yet');return}
+ let el=$('#hub');if(!el){el=document.createElement('div');el.id='hub';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-labelledby','hubt');document.body.append(el)}
+ const fmt=t=>t?new Date(t).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'})+' · '+new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
+ const L=H.latest,dk=(()=>{try{return dekOf(L)||''}catch(e){return ''}})();
+ const row=(x,cls)=>`<button type="button" class="hr${cls||''}" data-hopen="${esc(x.link)}"><small>${esc(fof(x).title||'')}${x.date?' · '+esc(fmt(x.date)):''}</small>${esc(x.title)}</button>`;
+ el.innerHTML=`<div class="hp"><button type="button" class="hx" data-hubx aria-label="Close full coverage">×</button><span class="hk">Full coverage</span>`
+  +`<h2 id="hubt">${esc(a.title)}</h2>`
+  +`<h3>${L===a?'Latest version · this story':'Latest version'}</h3><button type="button" class="hh" data-hopen="${esc(L.link)}">${L.img?`<img src="${esc(L.img)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}<small class="hk">${esc(fof(L).title||'')}${L.date?' · '+esc(fmt(L.date)):''}</small><br><strong>${esc(L.title)}</strong>${dk?`<br><span style="color:var(--mut)">${esc(dk)}</span>`:''}</button>`
+  +(H.tl.length>1?`<h3>The story so far</h3>${H.tl.map(x=>row(x,x===a?' now':'')).join('')}`:'')
+  +(H.cov.length?`<h3>${H.cov.length===1?'Also covered by 1 other source':'Also covered by '+H.cov.length+' other sources'}</h3>${H.cov.map(c=>c.s?row(c.s):`<a class="hr" target="_blank" rel="noopener" href="${esc(c.l)}"><small>${esc(fof({feedId:c.f}).title)}</small>${esc(c.t)}</a>`).join('')}`:'')
+  +(H.older.length?`<h3>Background</h3>${H.older.map(x=>row(x)).join('')}`:'')
+  +`</div>`;
+ HUBT=document.activeElement;el.classList.add('on');
+ const f=el.querySelector('.hx');if(f)f.focus({preventScroll:true});
+}
+function closeHub(){const el=$('#hub');if(!el||!el.classList.contains('on'))return false;el.classList.remove('on');el.innerHTML='';try{if(HUBT&&document.contains(HUBT))HUBT.focus({preventScroll:true})}catch(e){}HUBT=null;return true}
+document.addEventListener('click',e=>{
+ const t=e.target.closest&&e.target.closest('[data-hub],[data-hubx],[data-hopen],#hub');if(!t)return;
+ if(t.matches('[data-hub]')){e.preventDefault();e.stopPropagation();openHub(curA);return}
+ if(t.matches('[data-hubx]')){e.preventDefault();e.stopPropagation();closeHub();return}
+ if(t.matches('[data-hopen]')){e.preventDefault();e.stopPropagation();const l=t.dataset.hopen,st=findStory(l)||(S.hist||[]).map(histStory).find(x=>x.link===l);HUBT=null;closeHub();if(st&&(!curA||curA.link!==l))openReader(st);else if(!st)window.open(l,'_blank','noopener');return}
+ if(t.id==='hub'&&e.target===t){closeHub()}
+},true);
+document.addEventListener('keydown',e=>{
+ const el=$('#hub');if(!el||!el.classList.contains('on'))return;
+ if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closeHub();return}
+ if(e.key==='Tab'){const f=[...el.querySelectorAll('button,a[href]')];if(!f.length)return;const i=f.indexOf(document.activeElement);if(e.shiftKey&&i<=0){e.preventDefault();f[f.length-1].focus()}else if(!e.shiftKey&&i===f.length-1){e.preventDefault();f[0].focus()}}
+},true);
 </script></body></html>
