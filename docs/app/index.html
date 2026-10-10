@@ -3249,6 +3249,15 @@ html.txo #grid img,html.txo #rd img,html.txo #hub img,html.txo .dcv-art>img{disp
 .fr.fr2 .frm{margin:0;font-size:10.5px;opacity:.8}
 .fr.fr2 .frn{justify-content:flex-start}.fr.fr2 .frn u{margin:0}.fr.fr2 .frn u+.frm::before{content:'· '}
 .fr.fr3 .frm{display:none}
+
+/* the More menu: four small labelled groups, compact enough to fit a phone screen without scrolling */
+.mn{width:min(300px,calc(100% - 24px));padding:4px 6px 6px;max-height:calc(100% - 76px);overflow-y:auto;overscroll-behavior:contain}
+.mn .mg{padding:2px 0 4px}.mn .mg+.mg{border-top:1px solid var(--ln);margin-top:2px;padding-top:4px}
+.mn h4{margin:0;padding:4px 8px 2px;font:700 9.5px var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
+.mn .gr{display:grid;grid-template-columns:1fr;gap:1px}.mn .gr.g2{grid-template-columns:1fr 1fr}.mn .gr.g3{grid-template-columns:1fr 1fr 1fr}
+.mn .mg button{padding:8px 8px;font-size:13.5px;line-height:1.2;border-radius:8px;min-height:36px;display:flex;align-items:center}
+.mn .gr.g3 button{justify-content:center;text-align:center;padding:8px 4px}
+.mn .mg button[hidden]{display:none}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -7858,7 +7867,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-dfol]');if
 /* reader overflow menu */
 /* the menu entry says what a tap will do: switch this source to site view, or back to reader view */
 function mnWebLabel(){const fd=curA&&S.feeds.find(x=>x.id===curA.feedId);document.querySelectorAll('#mn [data-act="webpref"]').forEach(b=>{b.textContent=fd&&fd.web?'Reader view for this source':'Site view for this source'})}
-function mnMarkup(){return `<div class="pb mn" id="mn" hidden><div class="mphone"><button data-act="settings">Reading settings</button><button data-act="rp">Playback settings</button><hr></div><button data-act="share">Share</button><button data-act="copy">Copy link</button><button data-act="browser">Open in browser</button><button data-act="web">View the site here</button><button data-act="translate">Translate in browser</button><button data-act="fullscreen">Full screen</button><button data-act="gift">Gift this story</button><button data-act="hub">Full coverage</button><button data-act="jump" hidden>Jump to section</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><hr><button data-act="fdn">Show my feeds</button><button data-act="junk">Report junk text</button><button data-act="webpref">Site view for this source</button></div>`}
+function mnMarkup(){return `<div class="pb mn" id="mn" hidden><section class="mg" role="group" aria-labelledby="mgh1"><h4 id="mgh1">Settings</h4><div class="gr g2"><button data-act="settings">Reading settings</button><button data-act="rp">Playback settings</button></div></section><section class="mg" role="group" aria-labelledby="mgh2"><h4 id="mgh2">Share</h4><div class="gr g3"><button data-act="share">Share</button><button data-act="copy">Copy link</button><button data-act="gift">Gift this story</button></div></section><section class="mg" role="group" aria-labelledby="mgh3"><h4 id="mgh3">View</h4><div class="gr g2"><button data-act="browser">Open in browser</button><button data-act="web">View the site here</button><button data-act="webpref">Site view for this source</button><button data-act="translate">Translate in browser</button><button data-act="fullscreen">Full screen</button><button data-act="fdn">Show my feeds</button></div></section><section class="mg" role="group" aria-labelledby="mgh4"><h4 id="mgh4">Story</h4><div class="gr"><button data-act="hub">Full coverage</button><button data-act="jump" hidden>Jump to section</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><button data-act="junk">Report junk text</button></div></section></div>`}
 async function doAct(k){
  const a=curA;if(!a)return;
  if(k==='fdn'||k==='web'||k==='rp'){const b=$('#'+(k==='web'?'wb':k));if(b)b.click();return}
