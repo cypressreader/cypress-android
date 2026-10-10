@@ -3258,6 +3258,11 @@ html.txo #grid img,html.txo #rd img,html.txo #hub img,html.txo .dcv-art>img{disp
 .mn .mg button{padding:8px 8px;font-size:13.5px;line-height:1.2;border-radius:8px;min-height:36px;display:flex;align-items:center}
 .mn .gr.g3 button{justify-content:center;text-align:center;padding:8px 4px}
 .mn .mg button[hidden]{display:none}
+
+/* a picture that cannot load shows the feed's designed pattern art, never a bare grey box */
+.imgfb{display:flex;align-items:flex-end;justify-content:flex-start;width:100%;max-height:var(--ih);box-sizing:border-box;margin:1em 0;padding:12px 14px;border:0;border-radius:12px;break-inside:avoid;cursor:pointer;color:rgba(255,255,255,.86);text-align:left;font:600 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;background-image:var(--pat),linear-gradient(150deg,color-mix(in srgb,var(--b,#1f6a48) 100%,#fff 10%),color-mix(in srgb,var(--b,#1f6a48) 100%,#0b2119 40%));background-size:96px 96px,auto}
+.imgfb:focus-visible{outline:2px solid var(--ra,var(--logo));outline-offset:3px}
+.imgfb small{display:block;margin-top:2px;font:italic 400 12px var(--serif,Georgia,serif);letter-spacing:0;text-transform:none;opacity:.85}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -11931,4 +11936,34 @@ function fitSide(){
 {const _sd=side;side=function(){_sd.apply(this,arguments);try{fitSide()}catch(e){}}}
 try{const a=document.querySelector('aside');if(a&&window.ResizeObserver){let t=0;new ResizeObserver(()=>{clearTimeout(t);t=setTimeout(()=>{try{fitSide()}catch(e){}},60)}).observe(a)}if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{try{fitSide()}catch(e){}})}catch(e){}
 try{fitSide()}catch(e){}
+
+/* ---------- article pictures: load them in page mode, and show the designed fallback when one cannot load ---------- */
+function imgFallback(im,why){
+ try{
+  if(!im||!im.isConnected||im.dataset.fb||im.classList.contains('hero')||im.closest('.emb'))return;
+  const f=curA?fof(curA):null,wA=+im.getAttribute('width')||0,hA=+im.getAttribute('height')||0;
+  const b=document.createElement('button');b.type='button';b.className='imgfb '+(f?patCls(f):'');b.dataset.imgretry='1';
+  b.setAttribute('aria-label',(im.alt?im.alt+'. ':'')+'Picture could not be loaded. Tap to try again.');
+  if(f)b.style.setProperty('--b',brand(f));
+  b.style.aspectRatio=String(wA>0&&hA>0?Math.min(2,Math.max(.6,wA/hA)):1.6);
+  b.innerHTML='<span>Picture unavailable<small>Tap to try again</small></span>';
+  b._src=im.getAttribute('src');b._alt=im.getAttribute('alt')||'';b._w=wA;b._h=hA;
+  im.dataset.fb='1';im.replaceWith(b);
+  elog('image',(why||'failed')+' '+String(b._src||'').slice(0,120));
+  try{relayout()}catch(e){}
+ }catch(e){}
+}
+document.addEventListener('error',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.closest&&im.closest('.cols .body')&&!im.dataset.oi)imgFallback(im,'error')},true);
+document.addEventListener('load',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.closest&&im.closest('.cols .body')&&im.naturalWidth>0&&im.naturalWidth<=8&&im.naturalHeight<=8&&((+im.getAttribute('width')||0)>=120||!im.getAttribute('width')))imgFallback(im,'blank placeholder')},true);
+document.addEventListener('click',e=>{
+ const b=e.target.closest&&e.target.closest('[data-imgretry]');if(!b)return;e.preventDefault();e.stopPropagation();
+ const im=document.createElement('img');im.alt=b._alt;im.referrerPolicy='no-referrer';im.decoding='async';if(b._w)im.setAttribute('width',b._w);if(b._h)im.setAttribute('height',b._h);
+ im.src=b._src+(String(b._src).includes('?')?'&':'?')+'r='+Date.now()%1e5;b.replaceWith(im);try{relayout()}catch(e){}
+},true);
+/* in page mode the pictures sit in columns far to the right; the browser's lazy loading can leave them empty, so they are asked for as soon as the story opens (unless data saver is on) */
+function eagerImgs(){
+ const b=document.querySelector('.cols .body');if(!b||isOn('dsave')||isOn('txo'))return;
+ b.querySelectorAll('img[loading="lazy"]').forEach(i=>{i.loading='eager'});
+}
+{const _de=decorate;decorate=function(){try{return _de.apply(this,arguments)}finally{try{if(!isVert())eagerImgs()}catch(e){}}}}
 </script></body></html>
