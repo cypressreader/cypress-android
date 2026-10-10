@@ -9804,7 +9804,7 @@ function pdfWrap(s,f,sz,wf,k){
 }
 /* ed: {kind:'The Evening Edition', date:'Friday, October 9', short:'Oct 9', issue:282, cover:{title,source,deck,img:{bytes,w,h}|null}, stories:[{title,source,min,author,link,blocks:[{t:'p'|'h'|'q'|'li',s}]}]} */
 function pdfIssue(ed){
- const PW=595.28,PH=841.89,M=48,CG=22,CW=(PW-2*M-CG)/2,TOP=60,BOT=PH-62,LEAD=12.6,FS=9.6;
+ const PW=595.28,PH=841.89,M=48,SM=56,CG=22,CW=(PW-2*M-CG)/2,TOP=60,BOT=PH-62,LEAD=12.6,FS=9.6;
  const GREEN='#0b2119',DEEP='#06130e',MID='#1f6a48',BRASS='#a8842c',GOLD='#d1ad55',INK='#16181d',GREY='#6b7078';
  const pages=[];let P=null;const IMGS=[];
  const drawImg=(p,im,x,y,w,h)=>{let n=IMGS.indexOf(im)+1;if(!n){IMGS.push(im);n=IMGS.length}(p.imgs=p.imgs||new Set()).add(n);const sc=Math.max(w/im.w,h/im.h),dw=im.w*sc,dh=im.h*sc;p.ops.push(`q ${x.toFixed(2)} ${(PH-y-h).toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)} re W n ${dw.toFixed(2)} 0 0 ${dh.toFixed(2)} ${(x+(w-dw)/2).toFixed(2)} ${(PH-y-h+(h-dh)/2).toFixed(2)} cm /Im${n} Do Q`)};
@@ -9879,7 +9879,7 @@ function pdfIssue(ed){
  let cx=0,cy=0,cc=0;
  const colX=k=>M+k*(CW+CG);
  /* every continuation page carries a slim band of the story's own art under the running head, so no page is only text */
- const strip=(p,st)=>{const sd=hash((st.source||'')+st.title);if(st.img)drawImg(p,st.img,M,50,PW-2*M,38);else art(p,M,50,PW-2*M,38,sd);S(p,M,50,PW-2*M,38,'#c9ccd1',.4);p.top=102};
+ const strip=(p,st)=>{const sd=hash((st.source||'')+st.title);art(p,M,50,PW-2*M,38,sd);S(p,M,50,PW-2*M,38,'#c9ccd1',.4);p.top=102};
  const advance=(foot)=>{if(cc===0){cc=1;cy=P.top}else{newBody(P.foot,TOP);P.sec=curSec;if(curSt)strip(P,curSt);cc=0;cy=P.top}};
  const room=()=>BOT-cy;
  const placePara=(txt,f,sz,lead,opt)=>{
@@ -9950,7 +9950,7 @@ function pdfIssue(ed){
  };
  const rule2=()=>body.filter(pg=>pg.top!==undefined).forEach(pg=>{if(!pg.rule&&pg.ops.length>2&&!pg.noRule){pg.rule=1;L(pg,M+CW+CG/2,pg.top,M+CW+CG/2,BOT,'#d7d9dd',.4)}});
  /* clip a text to n lines of a column; the last line ends at a word with a real ellipsis, never mid-word */
- const bandHead=(p,kicker,title,sub,img,seed)=>{const H=150;if(img)drawImg(p,img,0,0,PW,H);else art(p,0,0,PW,H,seed);grad(p,0,0,PW,H,.25,.9,DEEP);R(p,0,H,PW,2.5,GOLD);R(p,M,60,40,3,GOLD);T(p,M,80,pdfWa(kicker.toUpperCase()),'hb',7.5,GOLD,{tc:1.6});T(p,M,H-34,pdfWa(title),'b',34,'#ffffff');if(sub)T(p,M,H-16,clip(pdfWa(sub),'i',10.5,PW-2*M),'i',10.5,'#d8e8de');p.band=1;return H+26};
+ const bandHead=(p,kicker,title,sub,img,seed)=>{const H=150;art(p,0,0,PW,H,seed);grad(p,0,0,PW,H,.25,.9,DEEP);R(p,0,H,PW,2.5,GOLD);R(p,M,60,40,3,GOLD);T(p,M,80,pdfWa(kicker.toUpperCase()),'hb',7.5,GOLD,{tc:1.6});T(p,M,H-34,pdfWa(title),'b',34,'#ffffff');if(sub)T(p,M,H-16,clip(pdfWa(sub),'i',10.5,PW-2*M),'i',10.5,'#d8e8de');p.band=1;return H+26};
  const hostOf=l=>{try{return new URL(l).hostname.replace(/^www\./,'')}catch(e){return ''}};
  /* the way out to the original is a real button: a filled pill with white text, linked */
  const linkBtn=(p,x,y,uri,sz,mw)=>{const hn=hostOf(uri);if(!hn)return;let lb=pdfWa('Read at '+hn+' \xbb');const h=sz+9;if(pdfW(lb,'hb',sz)+22>(mw||240))lb=clip(lb,'hb',sz,(mw||240)-22);const w=pdfW(lb,'hb',sz)+22;R(p,x+h/2,y,w-h,h,MID);circ(p,x+h/2,y+h/2,h/2,MID,1);circ(p,x+w-h/2,y+h/2,h/2,MID,1);T(p,x+11,y+h/2+sz*.34,lb,'hb',sz,'#ffffff');uriLink(p,x,y,w,h,uri)};
@@ -9962,23 +9962,25 @@ function pdfIssue(ed){
   const t=pdfWa(st.title),seed=hash((st.source||'')+st.title),dk=pdfWa(st.pageDek!==undefined?st.pageDek:st.dek),kk=pdfWa((st.source||'')+'  ·  FEATURE  ·  '+st.min+' MIN READ').toUpperCase();
   const by=pdfWa(st.author?'By '+st.author:st.source||'');
   let y;
-  if(fi%2===0){
+  /* the half-bleed opener is a tall frame: only a picture that is itself nearly upright gets it, a landscape photo would be cut to a third of its width and lose its people */
+  const tallOK=!!st.imgP||(st.imgO===undefined&&st.imgP===undefined&&!!st.img);
+  if(fi%2===0||!tallOK){
    /* full-bleed art with the headline over it */
-   const H=330;if(st.img)drawImg(p,st.img,0,0,PW,H);else art(p,0,0,PW,H,seed);
+   const H=330,pic=st.imgO||st.img;if(pic)drawImg(p,pic,0,0,PW,H);else art(p,0,0,PW,H,seed);
    grad(p,0,H-230,PW,230,0,.9,DEEP);
-   const hs=t.length>110?24:t.length>70?29:34,hl=fitLines(t,'b',hs,PW-2*M,4);
+   const hs=t.length>110?24:t.length>70?29:34,hl=fitLines(t,'b',hs,PW-2*SM,4);
    let yy=H-26-hl.length*hs*1.1;
-   {const kt=clip(kk,'hb',7.5,PW-2*M),kw=pdfW(kt,'hb',7.5)+1.3*(kt.length-1);RA(p,M-7,yy-27,kw+14,17,DEEP,.62)}
-   R(p,M,yy-34,40,3,GOLD);T(p,M,yy-14,clip(kk,'hb',7.5,PW-2*M),'hb',7.5,GOLD,{tc:1.3});
-   hl.forEach(l=>{yy+=hs*1.1;T(p,M,yy-hs*.14,l,'b',hs,'#ffffff')});
+   {const kt=clip(kk,'hb',7.5,PW-2*SM-1.3*kk.length),kw=pdfW(kt,'hb',7.5)+1.3*(kt.length-1);RA(p,SM-7,yy-27,kw+14,17,DEEP,.62)}
+   R(p,SM,yy-34,40,3,GOLD);T(p,SM,yy-14,clip(kk,'hb',7.5,PW-2*SM-1.3*kk.length),'hb',7.5,GOLD,{tc:1.3});
+   hl.forEach(l=>{yy+=hs*1.1;T(p,SM,yy-hs*.14,l,'b',hs,'#ffffff')});
    y=H+22;
-   if(dk){fitLines(dk,'i',13,PW-2*M,3).forEach(l=>{y+=16.5;T(p,M,y,l,'i',13,'#3f4650')});y+=6}
-   if(by){T(p,M,y+10,clip(by,'i',10,PW-2*M),'i',10,GREY);y+=18}
-   L(p,M,y+4,PW-M,y+4,'#c9ccd1',.5);y+=16;
+   if(dk){fitLines(dk,'i',13,PW-2*SM,3).forEach(l=>{y+=16.5;T(p,SM,y,l,'i',13,'#3f4650')});y+=6}
+   if(by){T(p,SM,y+10,clip(by,'i',10,PW-2*SM),'i',10,GREY);y+=18}
+   L(p,SM,y+4,PW-M,y+4,'#c9ccd1',.5);y+=16;
   }else{
    /* half-bleed: the art takes the left half of the page edge to edge, the headline sits beside it */
-   const H=372,wL=Math.round(PW*.47),x0=wL+24,w0=PW-M-x0;
-   if(st.img)drawImg(p,st.img,0,0,wL,H);else art(p,0,0,wL,H,seed);R(p,wL,0,3,H,GOLD);
+   const H=372,wL=Math.round(PW*.47),x0=wL+24,w0=PW-SM-x0;
+   const pic=st.imgP||st.img;if(pic)drawImg(p,pic,0,0,wL,H);else art(p,0,0,wL,H,seed);R(p,wL,0,3,H,GOLD);
    R(p,x0,54,36,3,GOLD);T(p,x0,76,clip(pdfWa((st.source||'')+'  ·  FEATURE').toUpperCase(),'hb',7.5,w0),'hb',7.5,MID,{tc:1.3});
    const hs=t.length>90?21:25,hl=fitLines(t,'b',hs,w0,6);let yy=88;
    hl.forEach(l=>{yy+=hs*1.12;T(p,x0,yy-hs*.14,l,'b',hs,INK)});yy+=8;
@@ -9995,7 +9997,7 @@ function pdfIssue(ed){
    if(nx){const hl=fitLines(pdfWa(nx.title),'b',12,CW,3),h=14+78+8+hl.length*14.5+22;let x=null,y0=0;
     if(cc===0){x=colX(1);y0=P.top+6}else if(room()>=h+10){x=colX(cc);y0=cy+14}
     if(x!=null){const sd=hash((nx.source||'')+nx.title);T(P,x,y0+8,'UP NEXT','hb',7,MID,{tc:1.6});L(P,x,y0+12,x+CW,y0+12,GREEN,.9);
-     if(nx.img)drawImg(P,nx.img,x,y0+18,CW,78);else art(P,x,y0+18,CW,78,sd);S(P,x,y0+18,CW,78,'#c9ccd1',.4);
+     art(P,x,y0+18,CW,78,sd);S(P,x,y0+18,CW,78,'#c9ccd1',.4);
      let yy=y0+18+78+8;hl.forEach(l=>{yy+=14.5;T(P,x,yy-3,l,'b',12,INK)});
      nexts.push({p:P,x,y:y0,w:CW,h:h-6,nx,tx:x,ty:yy+14})}}}
   rule2();
@@ -10007,7 +10009,7 @@ function pdfIssue(ed){
   curSec='Stories';let p=newBody('Stories',TOP);p.sec='Stories';p.noRule=1;const lead=mids.find(s=>s.img);
   let y=bandHead(p,'More to read','Stories',mids.length+(mids.length===1?' story':' stories')+' to read next',lead&&lead.img,hash('stories'+mids.length));
   startIdx.set('stories',body.length-1);
-  const TWd=150,THd=100,GP=18;
+  const TWd=160,THd=90,GP=18;
   mids.forEach((st,k)=>{
    const side=k%2,tw=PW-2*M-TWd-GP,x0=side?M:M+TWd+GP,xt=side?M+tw+GP:M;
    const hl=fitLines(pdfWa(st.title),'b',14.5,tw,3),dkL=st.dek?fitLines(pdfWa(st.dek),'i',10,tw,3):[];
@@ -10015,7 +10017,7 @@ function pdfIssue(ed){
    if(y+th>BOT){p=newBody('Stories',TOP);p.sec='Stories';p.noRule=1;strip(p,st);y=p.top+12;P=p}
    startIdx.set(st,body.indexOf(p));
    const sd=hash((st.source||'')+st.title);
-   if(st.img)drawImg(p,st.img,xt,y,TWd,THd);else art(p,xt,y,TWd,THd,sd);S(p,xt,y,TWd,THd,'#c9ccd1',.4);
+   {const pic=st.imgC||st.img;if(pic)drawImg(p,pic,xt,y,TWd,THd);else art(p,xt,y,TWd,THd,sd)}S(p,xt,y,TWd,THd,'#c9ccd1',.4);
    let yy=y+8;T(p,x0,yy,clip(pdfWa((st.source||'')+'  ·  '+st.min+' MIN READ').toUpperCase(),'hb',7,tw),'hb',7,MID,{tc:1.1});yy+=4;
    hl.forEach(l=>{yy+=16.5;T(p,x0,yy-3,l,'b',14.5,INK)});yy+=4;
    dkL.forEach(l=>{yy+=12.8;T(p,x0,yy-2,l,'i',10,'#4a505a')});
@@ -10055,14 +10057,14 @@ function pdfIssue(ed){
  const contents=[];
  {
   let cp=mk('In this issue');cp.top=TOP;cp.band=1;contents.push(cp);
-  {const c0=ed.cover||{};if(c0.img)drawImg(cp,c0.img,0,0,PW,170);else art(cp,0,0,PW,170,hash(c0.source||c0.title||'cypress'));grad(cp,0,0,PW,170,.35,.92,DEEP)}
+  {const c0=ed.cover||{};art(cp,0,0,PW,170,hash(c0.source||c0.title||'cypress'));grad(cp,0,0,PW,170,.35,.92,DEEP)}
   R(cp,0,170,PW,2.5,GOLD);
   T(cp,M,66,pdfWa(kind.toUpperCase()+'  ·  NO. '+ed.issue),'hb',7.5,GOLD,{tc:1.6});
   T(cp,M,128,'In this issue','b',38,'#f6efdc');
   const sub=pdfWa(ed.stories.length+(ed.stories.length===1?' story':' stories')+(ed.totalMin?'  ·  about '+ed.totalMin+' of reading':''));T(cp,M,152,sub,'i',11.5,'#d8e8de');
   let y=198,pg=cp,num=0;
-  const NW=30,TH=56,TX=M+NW+TH+12,PGW=46,GAP=26,TW=PW-M-TX-PGW-GAP;
-  var contEntries=[];const cStrip=pg=>{const c0=ed.cover||{};if(c0.img)drawImg(pg,c0.img,M,50,PW-2*M,38);else art(pg,M,50,PW-2*M,38,hash(c0.source||'cypress'));S(pg,M,50,PW-2*M,38,'#c9ccd1',.4);T(pg,M,106,'IN THIS ISSUE, CONTINUED','hb',7,MID,{tc:1.4});return 128};
+  const NW=30,TH=56,THW=80,TX=M+NW+THW+12,PGW=46,GAP=26,TW=PW-M-TX-PGW-GAP;
+  var contEntries=[];const cStrip=pg=>{const c0=ed.cover||{};art(pg,M,50,PW-2*M,38,hash(c0.source||'cypress'));S(pg,M,50,PW-2*M,38,'#c9ccd1',.4);T(pg,M,106,'IN THIS ISSUE, CONTINUED','hb',7,MID,{tc:1.4});return 128};
   const groups=[['Features',feats],['Stories',mids],['In Brief',brief]].filter(g=>g[1].length);
   groups.forEach(([gname,gl])=>{
    if(y+100>BOT){pg=mk('In this issue');contents.push(pg);y=cStrip(pg)}
@@ -10075,7 +10077,7 @@ function pdfIssue(ed){
     const e={st,pg,y,h,bi:startIdx.get(st),lines};contEntries.push(e);
     T(pg,M,y+17,String(num).padStart(2,'0'),'b',15,GOLD);
     const ix=M+NW;
-    if(st.img){drawImg(pg,st.img,ix,y,TH,TH);S(pg,ix,y,TH,TH,'#c9ccd1',.4)}else{art(pg,ix,y,TH,TH,hash((st.source||'')+st.title));S(pg,ix,y,TH,TH,'#c9ccd1',.4)}
+    {const pic=st.imgC||st.img,thh=45,ty=y+(TH-thh)/2;if(pic)drawImg(pg,pic,ix,ty,THW,thh);else art(pg,ix,ty,THW,thh,hash((st.source||'')+st.title));S(pg,ix,ty,THW,thh,'#c9ccd1',.4)}
     lines.forEach((l,k)=>T(pg,TX,y+11+k*15.5,l,'b',13,INK));
     let yy=y+11+lines.length*15.5-3;
     if(dk){T(pg,TX,yy+2,dk,'i',9.5,'#5a606a');yy+=13}
@@ -10093,7 +10095,7 @@ function pdfIssue(ed){
   /* the page number sits in its own column at the right margin; a dotted leader joins it to the end of the headline without touching either */
   T(e.pg,PW-M-w,e.y+13,s,'hb',12.5,INK);
   const last=e.lines[e.lines.length-1]||'',ly=e.y+11+(e.lines.length-1)*15.5;
-  leaderOp(e.pg,M+30+56+12+pdfW(last,'b',13)+12,PW-M-w-12,ly-3);
+  leaderOp(e.pg,M+30+80+12+pdfW(last,'b',13)+12,PW-M-w-12,ly-3);
   e.pg.links.push({x:M,y:e.y-4,w:PW-2*M,h:e.h-2,dest:pi});
   e.dest=pi;
  });
@@ -11648,6 +11650,38 @@ async function pdfStory(a,cachedOnly){
  return {l:a.link,title:a.title||'',source:f.title||host(a.link),min,author:a.author?String(a.author).slice(0,60):'',words:r.words,blocks,
   note:r.words<120?'Read the full story at '+host(a.link)+'.':'',imgUrl:a.img||'',dek:dk,pageDek};
 }
+/* A picture set for a frame. A mild crop is aligned on the subject with headroom; a heavy crop would cut people off (headless torsos, a chin in the corner), so such a picture is shown whole, sharp, in front of a blurred copy of itself. The face finder is the device's own, where there is one (nothing is uploaded). */
+const PDFFR={o:595.28/330,c:16/9,p:280/372,k:595.28/841.89};
+async function pdfFrame(bm,fa,foc){
+ const ia=bm.width/bm.height,lost=1-Math.min(fa/ia,ia/fa);
+ const W=Math.min(1000,fa>=1?1000:Math.round(1000*fa)),H=Math.round(W/fa),c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+ x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
+ if(lost<=.12){
+  const sc=Math.max(W/bm.width,H/bm.height),dw=bm.width*sc,dh=bm.height*sc;
+  const px=Math.max(.15,Math.min(.85,((foc&&foc.px)||50)/100)),py=(foc&&foc.pt)?Math.min(.3,((foc.py)||30)/100):Math.max(.15,Math.min(.45,((foc&&foc.py)||40)/100));
+  x.drawImage(bm,(W-dw)*px,(H-dh)*py,dw,dh);
+ }else{
+  const t=document.createElement('canvas');t.width=28;t.height=Math.max(8,Math.round(28/fa));const tx=t.getContext('2d'),sc0=Math.max(t.width/bm.width,t.height/bm.height);tx.drawImage(bm,(t.width-bm.width*sc0)/2,(t.height-bm.height*sc0)/2,bm.width*sc0,bm.height*sc0);
+  x.drawImage(t,0,0,W,H);x.fillStyle='rgba(0,0,0,.32)';x.fillRect(0,0,W,H);
+  const sc=Math.min(W/bm.width,H/bm.height),dw=bm.width*sc,dh=bm.height*sc;x.drawImage(bm,(W-dw)/2,(H-dh)/2,dw,dh);
+ }
+ const bl=await new Promise(res=>c.toBlob(res,'image/jpeg',.82));if(!bl)return null;
+ return {bytes:new Uint8Array(await bl.arrayBuffer()),w:W,h:H};
+}
+async function pdfPics(url,keys){
+ if(!url)return null;
+ try{
+  const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),7000);
+  const r=await fetch(url,NATIVE?{headers:NHDR,signal:ctl.signal}:{referrerPolicy:'no-referrer',credentials:'omit',signal:ctl.signal});clearTimeout(to);
+  if(!r.ok)return null;const bl=await r.blob();
+  const bm=await createImageBitmap(bl);
+  let foc=null;try{IBLOB.set(url,bl);foc=await faceAdjust(url,analyzePx(bm))}catch(e){}
+  const out={ia:bm.width/bm.height};
+  for(const k of keys){if(k==='p'&&out.ia>1.3)continue;out[k]=await pdfFrame(bm,PDFFR[k],foc)}
+  try{bm.close&&bm.close()}catch(e){}
+  return out;
+ }catch(e){return null}
+}
 async function pdfCoverImg(url){
  if(!url)return null;
  try{
@@ -11676,11 +11710,13 @@ function pdfEdMeta(d,kind){
 }
 async function pdfFinish(meta,stories,coverImgUrl){
  const mins=stories.reduce((n,s)=>n+s.min,0),lead=stories[0]||{};
- /* every story's lead picture, fetched a few at a time (best effort: a picture that cannot be fetched is simply left out) */
- let k=0;const work=async()=>{while(k<stories.length){const s=stories[k++];if(s.imgUrl&&k<=24)s.img=await pdfCoverImg(s.imgUrl)}};
- await Promise.all([work(),work(),work()]);
- const cimg=(lead.img)||await pdfCoverImg(coverImgUrl);
- const logo=await pdfLogoImg();
+ /* every story's lead picture, fetched a few at a time (best effort: a picture that cannot be fetched is simply left out). Each is cut for the frames it will fill: the cover, a feature opener, a card. */
+ {let k=0,fe=0;const isFeat=new Set();stories.filter(s=>s.words>=600).slice(0,5).forEach(s=>isFeat.add(s));
+ const work=async()=>{while(k<stories.length){const s=stories[k++];if(!s.imgUrl||k>24)continue;const keys=['c'];if(isFeat.has(s))keys.push('o','p');if(s===stories[0])keys.push('k');
+  const v=await pdfPics(s.imgUrl,keys);if(v){s.imgC=v.c||null;s.imgO=v.o||null;s.imgP=v.p||null;s.imgK=v.k||null;s.img=v.c||null}else{s.imgC=s.imgO=s.imgP=s.imgK=null;s.img=null}}};
+ await Promise.all([work(),work(),work()])}
+ const cimg=(lead.imgK)||(lead.img)||await pdfCoverImg(coverImgUrl);
+const logo=await pdfLogoImg();
  const ed=Object.assign({},meta,{logo,totalMin:mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes',cover:{title:lead.title,source:lead.source,deck:lead.dek||'',img:cimg},stories});
  const r=pdfIssue(ed);
  return new Blob([r.bytes],{type:'application/pdf'});

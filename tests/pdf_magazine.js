@@ -75,7 +75,7 @@ const OUT=process.env.PDFOUT||'/tmp/pdf_magazine';fs.mkdirSync(OUT,{recursive:tr
   for(const [mi,mn] of ['reading order','layout','raw'].entries()){
    const t=flats[mi];
    ck('[real] ('+mn+') no glue at links ("Fish,and", "Shrinkingbetween", "LG$3600")',!/Fish,and|Shrinkingbetween|LG\$3600|Fish,\s*and watching all of Shrinking\s*between/.test(t)||/Fish, and watching all of Shrinking between/.test(t)&&!/Fish,and/.test(t),(t.match(/\S{0,12}Fish,\S{0,12}/)||[''])[0]);
-   ck('[real] ('+mn+') publisher words after links are spaced',/Fish, and watching all of Shrinking between/.test(t.replace(/\s+/g,' '))&&/\$3600 at LG \$3600 at Best Buy/.test(t),'');
+   ck('[real] ('+mn+') publisher words after links are spaced',/Fish, and watching all of Shrinking/.test(t.replace(/\s+/g,' '))&&/\bbetween the hours of 1 and 5AM/.test(t.replace(/\s+/g,' '))&&/\$3600 at LG\s[\s\S]{0,400}\$3600 at Best Buy/.test(t)&&!/LG\$3600/.test(t),'');
   }
   const flat0=flats[0];
   ck('[real] no glued punctuation anywhere',!/[a-z][,;][A-Za-z]{2,}/.test(flat0.replace(/https?:\S+/g,'')),(flat0.match(/\S{0,10}[a-z][,;][A-Za-z]{2,}\S{0,10}/)||[''])[0]);
@@ -91,6 +91,9 @@ const OUT=process.env.PDFOUT||'/tmp/pdf_magazine';fs.mkdirSync(OUT,{recursive:tr
   const rects=[...raw2(OUT+'/real.pdf').matchAll(/\/Rect \[([\d. -]+)\] \/Border \[0 0 0\] \/A << \/S \/URI/g)].map(m=>m[1].trim().split(/\s+/).map(Number));
   ck('[real] "Read at ..." buttons: linked, and button-sized (wide and tall enough to tap)',rects.length>=2&&rects.every(r=>r[2]-r[0]>=85&&r[3]-r[1]>=14),JSON.stringify(rects.slice(0,2)));
   ck('[real] "Read at" text is on the page',/Read at (www\.)?bbc\.co\.uk|Read at techcrunch\.com|Read at theverge\.com/.test(flat0));
+  /* nothing printed outside the page margins (feature openers once lost their first letters at the page edge on some viewers) */
+  {const allbb=cp.execSync('pdftotext -bbox -enc UTF-8 '+OUT+'/real.pdf -',{encoding:'utf8',maxBuffer:1<<26});const ws=[...allbb.matchAll(/<word xMin="([\d.]+)" yMin="[\d.]+" xMax="([\d.]+)" yMax="[\d.]+">([^<]*)<\/word>/g)].map(m=>({x0:+m[1],x1:+m[2],t:m[3]}));
+   const out=ws.filter(w=>w.x0<44||w.x1>595.28-44);ck('[real] every word on every page sits at least 44pt inside the page edge ('+ws.length+' words)',out.length===0,JSON.stringify(out.slice(0,5)))}
   ck('[real] no page errors',!e2.length,e2[0]);
  }
  console.log(bad?'pdf_magazine '+bad+' FAILED':'pdf_magazine all passed');process.exit(bad?1:0);
