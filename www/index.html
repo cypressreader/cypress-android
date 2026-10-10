@@ -2954,7 +2954,7 @@ body:not(.narrow):not(.split).reading:not(.sideshow) #sideh{display:flex}
 .bi.brf-row .bi-t{flex:1;min-width:0}.bi.brf-row b{font:400 19px/1.2 var(--serif,Georgia,serif)}
 .bi-th-w{flex:none;width:68px;height:68px;border-radius:6px;overflow:hidden;background:var(--pn)}.bi-th{display:block;width:100%;height:100%;object-fit:cover}
 .bi.brf-lead{display:block;background:none;border:0;border-bottom:2px solid var(--ink);border-radius:0;padding:4px 2px 16px;margin-bottom:2px}
-.bi.brf-lead .bi-art{display:block;aspect-ratio:2/1;border-radius:8px;overflow:hidden;margin-bottom:12px;background:var(--pn)}
+.bi.brf-lead .bi-art{display:block;position:relative;aspect-ratio:2/1;border-radius:8px;overflow:hidden;margin-bottom:12px;background:var(--pn)}.bi.brf-lead .bi-th{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 30%}
 .bi.brf-lead .bi-t{display:flex;flex-direction:column;gap:4px}.bi-k{font:700 10.5px var(--sans)!important;letter-spacing:.2em;text-transform:uppercase;color:var(--b)!important}
 .bi.brf-lead b{font:400 clamp(28px,7vw,40px)/1.08 var(--disp,var(--serif))}
 .bi.brf-lead .why{position:absolute;top:10px;right:10px}
@@ -8885,7 +8885,7 @@ const atab=()=>DTABS.some(x=>x[0]===S.atab)?S.atab:'latest';
 const allSeg=m=>`<div class="segs bmseg chips" role="tablist" aria-label="All stories">${DTABS.map(([k,t])=>`<button type="button" role="tab" data-bm="${k}" aria-selected="${m===k}" class="${m===k?'on':''}">${k==='latest'&&!smartOn()?'Latest':t}</button>`).join('')}</div>`;
 const bmSeg=m=>{if(m==='latest')m='front';return `<div class="segs bmseg dtabs" role="tablist" aria-label="The Daily">${DLTABS.map(([k,t])=>`<button type="button" role="tab" data-bm="${k}" aria-selected="${m===k}" class="${m===k?'on':''}">${t}</button>`).join('')}</div>`};
 document.addEventListener('click',e=>{const t=e.target.closest('[data-bm]');if(!t)return;const v=t.dataset.bm;if(v==='front'){S.sel='today';S.dgk=''}else if(DTABS.some(x=>x[0]===v)){S.sel='all';S.atab=v}else if(v==='brief'){S.sel='brief';S.dgk=''}else{S.sel='digest';S.dgk=v==='week'?'week':''}save();if(document.body.classList.contains('open'))drawer(false);render();const m=$('main');if(m)m.scrollTop=0});
-function renderBrief(){renderBrief0();const g=$('#grid');if(g)g.insertAdjacentHTML('afterbegin',bmSeg('brief'))}
+function renderBrief(){renderBrief0();const g=$('#grid');if(g){g.insertAdjacentHTML('afterbegin',bmSeg('brief'));/* the lead picture is placed on its subject (faces stay in frame) like the feed cards */g.querySelectorAll('.brf-lead .bi-th').forEach(i=>{try{cardFocus(i)}catch(e){}})}}
 function renderBrief0(){
  $('#ttl').textContent='The Daily';tip('catch');
  const B=briefToday(),list=B.links.map(findStory).filter(Boolean);cur=list.slice();list.forEach((a,i)=>{WHY[a.link]=`Your brief takes the newest unread story from each of your sources, then goes around again. This one is from ${fof(a).title}.`});
