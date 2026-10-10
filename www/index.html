@@ -3237,6 +3237,7 @@ html.txo #grid img,html.txo #rd img,html.txo #hub img,html.txo .dcv-art>img{disp
 .dmeta .dmb{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px}
 .dmeta .dmb>*{flex:0 0 auto}
 .dmeta .dmb>.dwhy,.dmeta .dmb>nav,.dmeta .dmb>section,.dmeta .dmb>div:not(.dexp){flex:1 1 100%}
+.cols .body s,#rd .body s{text-decoration:line-through;text-decoration-thickness:1px;opacity:.78}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -5859,17 +5860,43 @@ function isolateExtras(fr){
  }
  return fr;
 }
-/* literal _underscore italics_ left over from markdown become real emphasis */
-function underscoreItalics(root){
+/* Markdown left in article text (links, bold, italics, strikethrough) becomes real formatting at extraction time. No raw symbols reach the reader.
+   Boundary checks keep snake_case_names, a_b_c and 2*3*4 as they are. (No lookbehind, so older browsers parse it.) */
+const MDRE=/\[([^\]\n]{1,200})\]\((https?:\/\/[^\s)]{1,500})\)|(\*\*|__)(\S(?:[^\n]*?\S)?)\3|~~(\S(?:[^\n]*?\S)?)~~|\*(\S(?:[^*\n]*?\S)?)\*|_(\S(?:[^_\n]*?\S)?)_/g;
+const mdW=c=>!!c&&/\w/.test(c);
+function mdFrag(str,depth){
+ depth=depth||0;const re=new RegExp(MDRE.source,'g');let f=null,last=0,m;
+ const inner=(tag,txt)=>{const e=document.createElement(tag);const sub=depth<3?mdFrag(txt,depth+1):null;if(sub)e.append(sub);else e.textContent=txt;return e};
+ while((m=re.exec(str))){
+  const i=m.index,end=i+m[0].length,pv=str[i-1],nx=str[end];let node=null;
+  if(m[1]!=null){node=document.createElement('a');node.href=m[2];node.target='_blank';node.rel='noopener noreferrer';const sub=depth<3?mdFrag(m[1],depth+1):null;if(sub)node.append(sub);else node.textContent=m[1]}
+  else if(m[3]){if(m[3]==='__'&&(mdW(pv)||mdW(nx))){re.lastIndex=i+2;continue}node=inner('strong',m[4])}
+  else if(m[5]!=null)node=inner('s',m[5]);
+  else if(m[6]!=null){if(mdW(pv)||pv==='*'||mdW(nx)||nx==='*'){re.lastIndex=i+1;continue}node=inner('em',m[6])}
+  else if(m[7]!=null){if(mdW(pv)||mdW(nx)){re.lastIndex=i+1;continue}node=inner('em',m[7])}
+  if(!node)continue;
+  f=f||document.createDocumentFragment();f.append(document.createTextNode(str.slice(last,i)),node);last=end;
+ }
+ if(!f)return null;f.append(document.createTextNode(str.slice(last)));return f;
+}
+function mdInline(root){
  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),todo=[];let n;
- while((n=w.nextNode())){if(/(^|[\s(“"'‘])_[^_\s][^_]{0,100}?_(?=$|[\s.,;:!?)”"'’])/.test(n.nodeValue)&&!(n.parentNode.closest&&n.parentNode.closest('a,code,pre,script,style')))todo.push(n)}
- for(const t of todo){
-  const f=document.createDocumentFragment();let rest=t.nodeValue,m;
-  const re=/(^|[\s(“"'‘])_([^_\s][^_]{0,100}?)_(?=$|[\s.,;:!?)”"'’])/;
-  while((m=rest.match(re))){const at=m.index+m[1].length;f.append(document.createTextNode(rest.slice(0,at)));const em=document.createElement('em');em.textContent=m[2];f.append(em);rest=rest.slice(at+m[2].length+2)}
-  f.append(document.createTextNode(rest));t.replaceWith(f);
+ while((n=w.nextNode())){const v=n.nodeValue;if(v.length>2&&/[*_~]|\]\(/.test(v)&&!(n.parentNode.closest&&n.parentNode.closest('a,code,pre,script,style,textarea')))todo.push(n)}
+ for(const t of todo){const f=mdFrag(t.nodeValue);if(f)t.replaceWith(f)}
+}
+/* the same paragraph twice (an opening line repeated by the page's own markup) shows once */
+function dedupParas(root){
+ const seen=new Set();
+ for(const p of [...root.querySelectorAll('p')]){
+  if(p.closest&&p.closest('blockquote,figure,aside,details,.pq,.rprev'))continue;
+  const t=(p.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();
+  if(t.length<40)continue;
+  if(seen.has(t))p.remove();else seen.add(t);
  }
 }
+function underscoreItalics(root){mdInline(root);dedupParas(root)}
+/* plain-text version of a line that may carry markdown marks (for deks and previews) */
+const unMd=x=>String(x||'').replace(/\[([^\]\n]+)\]\(https?:[^)\s]*\)/g,'$1').replace(/(\*\*|__|~~)(\S(?:[^\n]*?\S)?)\1/g,'$2').replace(/(^|[^\w*])\*(\S(?:[^*\n]*?\S)?)\*(?![\w*])/g,'$1$2').replace(/(^|[^\w_])_(\S(?:[^_\n]*?\S)?)_(?![\w_])/g,'$1$2');
 function tidy(fr){
  if(!fr||!fr.childNodes)return fr;
  try{underscoreItalics(fr)}catch(e){}
@@ -9353,7 +9380,7 @@ function trimWords(s,n){
  return t+'…';
 }
 function dekOf(a,n){
- n=n||150;const strip=x=>String(x||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
+ n=n||150;const strip=x=>unMd(String(x||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim());
  const c=[];
  try{const L=ledeOf(a);if(L)c.push(L)}catch(e){}
  c.push(strip(a.summary));
