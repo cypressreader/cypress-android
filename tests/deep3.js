@@ -84,7 +84,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060],['desk',1280,900]]){
  await E(()=>{S.sel='today';render()});ck('find','topic section on Today with why',await E(()=>{const sec=[...document.querySelectorAll('.sech h2')].some(h=>h.textContent==='story 2');return !sec||Object.values(WHY).some(t=>/topic you follow/.test(t))}));
  // follow from selection
  await E(()=>{S.sel='all';render();openReader(cur.find(a=>a.link.includes('alpha')))});await W(2000);
- await E(()=>{const t=$('.cols .body p').firstChild;const r=document.createRange();r.setStart(t,0);r.setEnd(t,9);getSelection().removeAllRanges();getSelection().addRange(r);document.dispatchEvent(new Event('selectionchange'))});await W(400);
+ await E(()=>{const t=$('.cols .body p:not(.dropcap)').firstChild;const r=document.createRange();r.setStart(t,0);r.setEnd(t,9);getSelection().removeAllRanges();getSelection().addRange(r);document.dispatchEvent(new Event('selectionchange'))});await W(400);
  ck('find','selection bar has Follow and Share',await E(()=>!!$('#selbar [data-s="follow"]')&&!!$('#selbar [data-s="img"]')));
  await p.tap('#selbar [data-s="follow"]');await W(200);ck('find','follow from selection',await E(()=>S.sk.some(k=>k.words[0]==='paragraph')));
  await p.tap('#cl');await W(200);

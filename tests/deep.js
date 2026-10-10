@@ -95,7 +95,7 @@ if(touch){
  // font change inside reader keeps working
  for(const fnt of ['dys','lexend','serif']){await E(f=>{S.font=f;applyFs(true)},fnt);await p.waitForTimeout(250);ck(vp,'font '+fnt+' relayout',await E(()=>R.np>=1&&$('#pc').textContent.includes('/')))}
  // highlight
- const hl=await E(()=>{const t=$('.cols .body p').firstChild;const r=document.createRange();r.setStart(t,0);r.setEnd(t,20);const s=getSelection();s.removeAllRanges();s.addRange(r);document.dispatchEvent(new Event('selectionchange'));return true});
+ const hl=await E(()=>{const t=$('.cols .body p:not(.dropcap)').firstChild;const r=document.createRange();r.setStart(t,0);r.setEnd(t,20);const s=getSelection();s.removeAllRanges();s.addRange(r);document.dispatchEvent(new Event('selectionchange'));return true});
  await p.waitForTimeout(400);
  const sb=await E(()=>!$('#selbar').hidden);ck(vp,'selection bar shows',sb);
  if(sb){await tap('#selbar [data-s="hl"]');await p.waitForTimeout(200);ck(vp,'highlight saved',await E(()=>S.hl.length>=1))}
