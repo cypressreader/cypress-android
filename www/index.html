@@ -3263,6 +3263,10 @@ html.txo #grid img,html.txo #rd img,html.txo #hub img,html.txo .dcv-art>img{disp
 .imgfb{display:flex;align-items:flex-end;justify-content:flex-start;width:100%;max-height:var(--ih);box-sizing:border-box;margin:1em 0;padding:12px 14px;border:0;border-radius:12px;break-inside:avoid;cursor:pointer;color:rgba(255,255,255,.86);text-align:left;font:600 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;background-image:var(--pat),linear-gradient(150deg,color-mix(in srgb,var(--b,#1f6a48) 100%,#fff 10%),color-mix(in srgb,var(--b,#1f6a48) 100%,#0b2119 40%));background-size:96px 96px,auto}
 .imgfb:focus-visible{outline:2px solid var(--ra,var(--logo));outline-offset:3px}
 .imgfb small{display:block;margin-top:2px;font:italic 400 12px var(--serif,Georgia,serif);letter-spacing:0;text-transform:none;opacity:.85}
+.wtick{gap:0}
+.wtick b{position:relative;z-index:2;background:var(--ink);opacity:1}
+.wtick-vp{flex:1 1 auto;min-width:0;overflow:hidden;margin-left:14px;position:relative;z-index:1}
+.wtick-in{width:max-content}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4882,7 +4886,7 @@ function genreApply(){
   g.classList.add('gen-wire');
   const hs=cur.slice().sort((a,b)=>b.date-a.date).slice(0,8);
   const sg1=g.querySelector('.bmseg'),put1=h=>sg1?sg1.insertAdjacentHTML('afterend',h):g.insertAdjacentHTML('afterbegin',h);
-  if(hs.length>=3)put1(`<div class="wtick" aria-hidden="true"><b>Wire</b><div class="wtick-in"><span>${hs.map(a=>esc(wireClock(a.date))+'  '+esc(a.title)).join('</span><span>')}</span></div></div>`);
+  if(hs.length>=3){const sp=`<span>${hs.map(a=>esc(wireClock(a.date))+'  '+esc(a.title)).join('</span><span>')}</span>`;put1(`<div class="wtick" aria-hidden="true"><b>Wire</b><div class="wtick-vp"><div class="wtick-in">${sp}${sp}</div></div></div>`)}
   g.querySelectorAll('.card[data-i] time').forEach(t=>{const a=cur[+t.closest('.card').dataset.i];if(a&&a.date)t.dataset.hm=wireClock(a.date)});
  }else if(k==='week'&&g.querySelector('.dg.wk'))g.classList.add('gen-sun');
 }
