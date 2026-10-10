@@ -2870,6 +2870,16 @@ html.rdx .cols.tplb img.hero{aspect-ratio:16/9;max-height:calc(var(--ih)*.5)}
 .fd-voice{margin:6px 0 22px;padding:2px 0;text-align:center;font:italic 400 18px/1.3 var(--disp,var(--serif));color:var(--fa,var(--logo))}.fd-voice::before,.fd-voice::after{content:" ❦ ";opacity:.6;font-style:normal;font-size:.8em}
 .fd-feat.read b,.fd-deck.read b,.fd-bl.read b{color:var(--mut)}
 @media(min-width:760px){.fd-feat{display:grid;grid-template-columns:1.25fr 1fr;gap:30px;align-items:center}.fd-feat .fd-fa{margin:0;aspect-ratio:3/2}.fd-feat.fd-ft{display:block}.fd-pair .card{aspect-ratio:4/3}.fd-decks{display:grid;grid-template-columns:repeat(3,1fr);gap:0 24px}.fd-deck{border-bottom:1px solid var(--ln)}}
+/* correction round, cluster 2: briefing furniture */
+.bnum{margin:6px 0 18px;padding:12px 0 14px;border-bottom:1px solid var(--ln)}.bnum h3,.bdig h3{margin:0 0 10px;font:700 10.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
+.bn-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:12px}.bn-t b{display:block;font:400 34px/1 var(--disp,var(--serif))}.bn-t small{display:block;margin-top:2px;font:12px var(--sans);color:var(--mut)}
+.bdig{margin:0 0 20px;padding:0 0 6px;border-bottom:1px solid var(--ln)}.bdig ol{margin:0;padding:0;list-style:none;counter-reset:bd}
+.bdig li{counter-increment:bd;display:flex;gap:12px;padding:9px 0;border-top:1px solid var(--ln)}.bdig li:first-child{border-top:0}.bdig li::before{content:counter(bd);flex:none;width:1.4em;font:italic 400 26px/1 var(--disp,var(--serif));color:var(--logo)}
+.bi-d{display:block;color:inherit;text-decoration:none}.bi-d b{display:block;font:400 19px/1.22 var(--serif,Georgia,serif)}.bi-d small{display:block;margin-top:3px;font:12px var(--sans);color:var(--mut)}
+.bq{margin:22px 0;padding:18px 4px 14px;border-top:3px double var(--ink);border-bottom:1px solid var(--ln);text-align:center}.bq small{font:700 10.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
+.bq blockquote{margin:10px 0 8px;font:italic 400 clamp(22px,5.6vw,30px)/1.25 var(--disp,var(--serif))}.bq figcaption{font:12.5px var(--sans);color:var(--mut)}.bi-q{color:inherit;text-decoration:underline;text-decoration-color:var(--ln);text-underline-offset:3px}
+.bend{margin:26px 0 12px;padding:24px 10px 20px;text-align:center;border-top:3px double var(--ink);border-bottom:1px solid var(--ln)}.bend-m{display:block;font-size:26px;color:var(--logo)}
+.bend h3{margin:2px 0 6px;font:400 32px/1.05 var(--disp,var(--serif))}.bend p{margin:0;font:italic 400 17px var(--disp,var(--serif));color:var(--mut)}.bend .bend-n{margin:6px 0 14px;font:13px var(--sans);font-style:normal}
 /* cluster 2: The Briefing */
 .brf{display:block;text-align:center;padding:14px 0 18px;margin-bottom:6px;border-top:3px double var(--ink);border-bottom:1px solid var(--ln)}
 .brf-d{display:block;font:700 10.5px var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--mut)}
@@ -5215,7 +5225,7 @@ function daySections(list,mode){
  if(front.length)(mode==='w'?nrBlocks(front,base):nrBlocksPhone(front,base)).forEach(b=>B.push(b));
  NRLAB='Latest';SMARTV=false;
  if(good)B.push(ritualHtml('good',good));
- if(brief)B.push(`<section class="dsec2">${sh('brief','The Brief','Short reads, a few minutes each',quick.length,'short reads')}<div class="dq">${quick.map(a=>C(a,'nr dq-c')).join('')}</div></section>`);
+ if(brief)B.push(`<section class="dsec2">${sh('brief','Quick Reads','Short reads, a few minutes each',quick.length,'short reads')}<div class="dq">${quick.map(a=>C(a,'nr dq-c')).join('')}</div></section>`);
  if(num)B.push(ritualHtml('num',num.a,num.n));
  if(well.length)B.push(wellHtml(well));
  if(deep.length)B.push(`<section class="dsec2 ddv">${sh('deep','Deep Dives','Settle in',deep.length,'long reads')}${deep.map(a=>`<div class="nr-color">${C(a,'nr nr-colr')}</div>`).join('')}</section>`);
@@ -6251,7 +6261,7 @@ async function openReader(a){
  const cov=(a.more&&a.more.length)?`<div class="cov"><b>Also covered by</b>${a.more.map(m=>`<a target="_blank" rel="noopener" href="${esc(m.l)}">${esc(fof({feedId:m.f}).title)}: ${esc(m.t)}</a>`).join('')}</div>`:'';
  sh.innerHTML=`<div class="bar"><button class="ib" id="fdn" aria-label="Back to all feeds" title="Back to all feeds">${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><div class="bs">${esc(f.title)}</div><span id="pc"></span><button class="ib" id="st" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings">${svg(TUNE)}</button>`:''}<button class="ib" id="fcs" aria-label="Focus mode" aria-pressed="false" title="Focus mode: hide the controls for distraction-free reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site here" title="View the site here">${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page">${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page">${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button><button class="ib" id="cl" aria-label="Close" title="Close">${svg('<path d="M6 6l12 12M18 6 6 18"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec))+(hasSec(a.sec,a.feedId)?'':`<button class="flw" data-fsec aria-label="Follow ${esc(a.sec||'this section')}">Follow</button>`):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener" href="${esc(a.link)}">Read on ${esc(host(a.link))}</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p>This site can’t be shown inside the app. It may block automated access.</p><div><a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
  if(R.T){cancelAnimationFrame(R.T.raf);R.T.dead=true;R.T=null}
- R.pg=0;R.busy=false;R.web=false;R.auto=false;RDY=null;_vm=isVert();R.inBrief=S.sel==='brief'&&!!(S.brief&&S.brief.links.includes(a.link));
+ R.pg=0;R.busy=false;R.web=false;R.auto=false;RDY=null;_vm=isVert();R.inBrief=S.sel==='brief'&&!!(S.brief&&S.brief.links.includes(a.link));if(R.inBrief&&!S.brief.pinned){S.brief.pinned=1;save()}
  RDTRIG=document.activeElement;$('#rd').classList.add('on');try{$('#rd').tabIndex=-1;$('#rd').focus({preventScroll:true})}catch(e){}applyFs(false);applyFolderTheme();
  const c=$('.cols'),body=c.querySelector('.body'),note=c.querySelector('.note');
  body.append(fromHTML(a.html,a.link));foldBoiler(body,a);
@@ -6751,7 +6761,7 @@ $('#grid').onclick=e=>{if(hlClick(e))return;{const mb=e.target.closest('[data-ms
  const fl=e.target.closest('[data-follow]');if(fl){followTopic(fl.dataset.follow);return}
  const uf=e.target.closest('[data-unfollow]');if(uf){const k=S.sk.find(x=>x.id===uf.dataset.unfollow);if(k){const i=S.sk.indexOf(k);S.sk.splice(i,1);S.sel='today';save();render();toast('Stopped following “'+k.name+'”',()=>{S.sk.splice(Math.min(i,S.sk.length),0,k);S.sel='k:'+k.id;save();render()})}return}
  const fr=e.target.closest('[data-frep]');if(fr){const f=S.feeds.find(x=>x.id===fr.dataset.frep);fr.textContent='Working on it…';FLG[f.id]=[];load(f,true);return}
- if(e.target.closest('[data-blisten],[data-play]')){listenBrief();return}
+ if(e.target.closest('[data-blisten],[data-play]')){if(S.brief&&!S.brief.pinned){S.brief.pinned=1;save()}listenBrief();return}
  if(e.target.closest('[data-yir]')){openYir();return}
  if(e.target.closest('[data-bnew]')){briefToday(true);return render()}
  if(e.target.closest('[data-bstart]')){const l=(S.brief.links||[]).map(findStory).filter(Boolean),a=l.find(x=>!S.read[x.link])||l[0];if(a)openReader(a);return}
@@ -8422,11 +8432,14 @@ function hinge(){
 /* ===================== daily brief ===================== */
 function briefToday(force){
  const day=new Date().toDateString();
- if(!force&&S.brief&&S.brief.day===day&&S.brief.links.length)return S.brief;
+ /* the briefing is rebuilt as stories arrive, and only held still once you start reading it (or asked for a 5-minute read), so it can never be stuck at one story from an early load */
+ if(!force&&S.brief&&S.brief.day===day&&S.brief.links.length&&(S.brief.pinned||S.brief.five))return S.brief;
  const per=S.feeds.filter(f=>inDaily(f)&&!paused(f)).map(f=>(items[f.id]||[]).filter(a=>!S.read[a.link]&&!muted(a)).sort((x,y)=>(y.img?1:0)-(x.img?1:0)||y.date-x.date));
  const seen=new Set(),out=[];
  for(let r=0;r<10&&out.length<10;r++)for(const l of per){const a=l[r];if(!a||out.length>=10)continue;const k=a.title.toLowerCase().slice(0,40);if(seen.has(k))continue;seen.add(k);out.push(a.link)}
- S.brief={day,links:out};save();return S.brief;
+ const old=S.brief&&S.brief.day===day?S.brief:null;
+ if(!force&&old&&old.links.join()===out.join())return old;
+ S.brief={day,links:out};return S.brief;
 }
 const DLTABS=[['front','Today'],['brief','Brief'],['edition','Headlines'],['week','Sunday']];
 const atab=()=>DTABS.some(x=>x[0]===S.atab)?S.atab:'latest';
@@ -8444,7 +8457,7 @@ function renderBrief0(){
  const row=(a,i)=>{const f=fof(a),m=readMin(a),th=a.img?`<img class="bi-th" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:'';
   const lead=i===0;
   return `<a class="bi ${lead?'brf-lead':'brf-row'} ${S.read[a.link]?'read':''}" href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}">${lead?`${th?`<span class="bi-art">${th}</span>`:''}<span class="bi-t"><small class="bi-k">The lead</small><small>${esc(f.title)}${m?' · '+m+' min':''}</small><b>${esc(a.title)}</b></span>`:`<span class="bi-t"><small>${esc(f.title)}${m?' · '+m+' min':''}</small><b>${esc(a.title)}</b></span>${th?`<span class="bi-th-w">${th}</span>`:''}`}<span class="why" data-why="${i}" role="button" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</span>${S.read[a.link]?`<i class="bok">${svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>')}</i>`:''}</a>`};
- $('#grid').innerHTML=`<header class="bhead brf"><small class="brf-d">${esc(dl)}</small><h2>The Briefing</h2><p>${B.five?'A 5-minute read · ':''}${list.length} ${list.length===1?'story':'stories'} · about ${mins} min${done?` · ${left} min left`:''}</p><div class="bbar"><span style="width:${Math.round(done/list.length*100)}%"></span></div><div class="bbtns"><button class="tx2" data-blisten>${svg(SPK)} Listen</button><button class="go" data-bstart>${done?'Continue':'Start reading'}</button></div></header>`+list.map(row).join('')+`<button class="lnk bnew" data-bnew>Make a fresh brief</button>`;
+ $('#grid').innerHTML=`<header class="bhead brf"><small class="brf-d">${esc(dl)}</small><h2>The Briefing</h2><p>${B.five?'A 5-minute read · ':''}${list.length} ${list.length===1?'story':'stories'} · about ${mins} min${done?` · ${left} min left`:''}</p><div class="bbar"><span style="width:${Math.round(done/list.length*100)}%"></span></div><div class="bbtns"><button class="tx2" data-blisten>${svg(SPK)} Listen</button><button class="go" data-bstart>${done?'Continue':'Start reading'}</button></div></header>`+briefNumbers(list)+briefDigest(list)+list.map(row).join('')+briefQuote(list)+briefEnd(list,mins);
 }
 function fiveMin(){
  const pool=topOf(S.feeds,60,new Set()).filter(a=>!S.read[a.link]);
@@ -8947,6 +8960,47 @@ PEB.feedstat=[
  {id:'s12',t:'No stories yet.',ok:x=>x.n===0}
 ];
 PE_NEUTRAL.feedstat='A quiet corner of your magazine.';
+/* ---- correction round, cluster 2: the Briefing's furniture ----
+   Overnight in numbers, three headlines to know, a quote of the day, and a designed end. Every figure is counted from the stories on this device. */
+PEB.brieffoot=[
+ {id:'b1',t:'{n} stories from {src} sources, about {mins} minutes in all.',ok:x=>x.n>=3&&x.src>=2},
+ {id:'b2',t:'{read} of {n} read. {left} to go.',ok:x=>x.read>=1&&x.read<x.n},
+ {id:'b3',t:'Every one of the {n} read. Well done.',ok:x=>x.n>=1&&x.read>=x.n},
+ {id:'b4',t:'A short briefing today: {n} {sw}.',ok:x=>x.n<=2}
+];
+PE_NEUTRAL.brieffoot='That is the briefing.';
+function briefNumbers(list){
+ try{
+  const now=new Date(),am=edKind()==='m';const d5=new Date(now);d5.setHours(5,0,0,0);if(d5>now)d5.setDate(d5.getDate()-1);const since=am?new Date(now.getFullYear(),now.getMonth(),now.getDate()-1,18).getTime():d5.getTime();
+  const pool=topOf(S.feeds,400,new Set(),null,true).filter(a=>a.date>=since);
+  if(pool.length<3)return '';
+  const src=new Set(pool.map(a=>a.feedId)).size,multi=pool.filter(a=>(a.more||[]).length>=1).length,mins=pool.reduce((n,a)=>n+(readMin(a)||0),0);
+  const t=(b,l)=>`<div class="bn-t"><b>${b}</b><small>${l}</small></div>`;
+  return `<section class="bnum" aria-label="${am?'Overnight in numbers':'Today in numbers'}"><h3>${am?'Overnight in numbers':'Today in numbers'}</h3><div class="bn-g">${t(pool.length,pool.length===1?'new story':'new stories')}${t(src,src===1?'source':'sources')}${multi?t(multi,'covered by several sites'):''}${mins>=10?t(fmtMin(mins),'of reading'):''}</div></section>`;
+ }catch(e){return ''}
+}
+function briefDigest(list){
+ try{
+  const skip=new Set(list.slice(0,1).map(a=>a.link));
+  const pool=topOf(S.feeds,60,skip).filter(a=>!S.read[a.link]);
+  const three=pool.sort((a,b)=>((b.more||[]).length-(a.more||[]).length)||b.date-a.date).slice(0,3);
+  if(three.length<3)return '';
+  return `<section class="bdig"><h3>Three to know</h3><ol>${three.map(a=>{cur.push(a);WHY[a.link]='One of the three biggest stories right now: covered by the most of your sites.';return `<li><a class="bi-d" href="${esc(a.link)}" data-i="${cur.length-1}"><b>${esc(a.title)}</b><small>${esc(fof(a).title)}${(a.more||[]).length?' · '+((a.more.length)+1)+' sites':''}</small></a></li>`}).join('')}</ol></section>`;
+ }catch(e){return ''}
+}
+function briefQuote(list){
+ try{
+  const pool=list.concat(topOf(S.feeds,30,new Set()));
+  for(const a of pool){const q=nrQuoteText(a);if(q&&q.real&&q.q&&q.q.length>=40&&q.q.length<=220){cur.push(a);return `<figure class="bq"><small>Quote of the day</small><blockquote>“${esc(q.q)}”</blockquote><figcaption><a class="bi-q" href="${esc(a.link)}" data-i="${cur.length-1}">${esc(fof(a).title)}: ${esc(a.title)}</a></figcaption></figure>`}}
+ }catch(e){}
+ return '';
+}
+function briefEnd(list,mins){
+ const read=list.filter(a=>S.read[a.link]).length,nx=nextEdition();
+ const line=pe('brieffoot',{n:list.length,src:new Set(list.map(a=>a.feedId)).size,mins,read,left:list.length-read,sw:list.length===1?'story':'stories'},'bf');
+ return `<section class="bend"><span class="bend-m" aria-hidden="true">❦</span><h3>That’s the briefing</h3><p>${esc(line)}</p><p class="bend-n">Next edition: ${esc(nx.name)}, in ${esc(nx.left)}.</p><button class="lnk bnew" data-bnew>Make a fresh briefing</button></section>`;
+}
+
 /* ---- correction round, cluster 4: a feed is composed, not stamped ----
    One site's list is laid out as modules: a feature, picture pairs, text-only headline-and-deck rows, an "In brief" list, and now and then a line of voice.
    The rhythm follows the site itself (how much it publishes), so a busy site reads dense and a slow one reads like essays. Never two of the same module in a row. */
