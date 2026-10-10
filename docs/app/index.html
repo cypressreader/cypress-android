@@ -3240,6 +3240,15 @@ html.txo #grid img,html.txo #rd img,html.txo #hub img,html.txo .dcv-art>img{disp
 .cols .body s,#rd .body s{text-decoration:line-through;text-decoration-thickness:1px;opacity:.78}
 .cols .body a,#rd .body a{color:inherit;text-decoration-line:underline;text-decoration-style:solid;text-decoration-thickness:1px;text-decoration-color:color-mix(in srgb,currentColor 38%,transparent);text-underline-offset:.2em;text-decoration-skip-ink:auto}
 .cols .body a:hover,.cols .body a:focus-visible,#rd .body a:hover{text-decoration-color:currentColor}
+.fr .frn{display:contents}
+.fr.fr2,.fr.fr3{position:relative}
+.fr.fr2 .frx,.fr.fr3 .frx{position:absolute;right:0;top:50%;transform:translateY(-50%);margin:0;min-height:0;background:var(--pn,#fff);border-radius:6px}
+.fr.fr2{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"c t" ". n";column-gap:8px;row-gap:0;align-items:center}
+.fr.fr2 .frc{grid-area:c}.fr.fr2 .frt{grid-area:t}
+.fr.fr2 .frn{grid-area:n;display:flex;align-items:center;gap:6px;min-width:0}
+.fr.fr2 .frm{margin:0;font-size:10.5px;opacity:.8}
+.fr.fr2 .frn{justify-content:flex-start}.fr.fr2 .frn u{margin:0}.fr.fr2 .frn u+.frm::before{content:'· '}
+.fr.fr3 .frm{display:none}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -3989,7 +3998,7 @@ const trimRead=()=>{const k=Object.keys(S.read);if(k.length>4000)k.slice(0,k.len
 const isSaved=a=>S.saved.some(x=>x.link===a.link);
 function toggleSave(a){if(!a)return;if(isSaved(a))S.saved=S.saved.filter(x=>x.link!==a.link);else{buzz('soft');sfxTone('save');setTimeout(()=>{const b=$('#st');if(b){b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop')}},30);const f=fof(a),{more,...b}=a;S.saved.unshift({...b,st:Date.now(),html:(a.html||'').slice(0,8000),ft:f.title,fu:f.url,fc:brand(f)});capSaved()}save()}
 const staleDays=f=>{const l=items[f.id]||[];if(!l.length||state[f.id]!=='ok')return 0;const n=Math.max(...l.map(a=>a.date||0));return n?Math.floor((Date.now()-n)/864e5):0};
-const feedRow=x=>`<div class="fr ${S.sel==='s:'+x.id?'on':''}${paused(x)?' pz':''}" draggable="true" data-id="${x.id}" data-sel="s:${x.id}"><button type="button" class="frc" style="background:${brand(x)}" data-col="${x.id}" title="Change color" aria-label="Change color of ${esc(x.title)}"></button><button type="button" class="frt">${esc(x.title)}${paused(x)?' (paused)':state[x.id]==='err'?' (offline)':staleDays(x)>=21?` <small class="stl" title="No new stories for ${Math.floor(staleDays(x)/7)} weeks">(quiet ${Math.floor(staleDays(x)/7)}w)</small>`:''}</button>${navDot(()=>uc([x]),()=>newIn([x]))}${frMin([x])}<button type="button" class="frx" data-delx="${x.id}" title="Remove feed" aria-label="Remove ${esc(x.title)}">×</button></div>`;
+const feedRow=x=>`<div class="fr ${S.sel==='s:'+x.id?'on':''}${paused(x)?' pz':''}" draggable="true" data-id="${x.id}" data-sel="s:${x.id}"><button type="button" class="frc" style="background:${brand(x)}" data-col="${x.id}" title="Change color" aria-label="Change color of ${esc(x.title)}"></button><button type="button" class="frt">${esc(x.title)}${paused(x)?' (paused)':state[x.id]==='err'?' (offline)':staleDays(x)>=21?` <small class="stl" title="No new stories for ${Math.floor(staleDays(x)/7)} weeks">(quiet ${Math.floor(staleDays(x)/7)}w)</small>`:''}</button><span class="frn">${navDot(()=>uc([x]),()=>newIn([x]))}${frMin([x])}</span><button type="button" class="frx" data-delx="${x.id}" title="Remove feed" aria-label="Remove ${esc(x.title)}">×</button></div>`;
 const fold=id=>!!(S.fcol&&S.fcol[id]);
 const chev=id=>`<u class="chv ${fold(id)?'':'open'}" data-tgl="${id}" role="button" aria-expanded="${fold(id)?'false':'true'}" aria-label="${fold(id)?'Expand':'Collapse'}" title="${fold(id)?'Expand':'Collapse'}"></u>`;
 function side(){
@@ -11882,4 +11891,16 @@ function wcolsFix(){
 {let t=0;const go=()=>{clearTimeout(t);t=setTimeout(()=>{try{wcolsFix()}catch(e){}},120)};
  addEventListener('resize',go);
  try{const g=$('#grid');if(g)new MutationObserver(go).observe(g,{childList:true})}catch(e){}}
+
+/* ---------- sidebar rows: when the name and "N · M min" cannot share a line, the figures drop to a quieter second line; the name is never cut while a label shows ---------- */
+function fitSide(){
+ document.querySelectorAll('#side-list .fr').forEach(r=>{
+  r.classList.remove('fr2','fr3');
+  const t=r.querySelector('.frt'),m=r.querySelector('.frm');if(!t||!m||!r.clientWidth)return;
+  if(t.scrollWidth>t.clientWidth+1){r.classList.add('fr2');if(t.scrollWidth>t.clientWidth+1){r.classList.remove('fr2');r.classList.add('fr3')}}
+ });
+}
+{const _sd=side;side=function(){_sd.apply(this,arguments);try{fitSide()}catch(e){}}}
+try{const a=document.querySelector('aside');if(a&&window.ResizeObserver){let t=0;new ResizeObserver(()=>{clearTimeout(t);t=setTimeout(()=>{try{fitSide()}catch(e){}},60)}).observe(a)}if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{try{fitSide()}catch(e){}})}catch(e){}
+try{fitSide()}catch(e){}
 </script></body></html>

@@ -7,8 +7,8 @@ await mock(p,{n:6});await p.goto('file://'+APP);await p.waitForTimeout(1500);
 const R=await p.evaluate(async()=>{
  const o={};
  const V='market people government report officials said country economic growth policy during after before several members public leader office national agency reporters statement spokesperson meeting talks deal plan budget security energy prices workers court judge law vote city state nation week month year company bank trade senate'.split(' ');
- const words=n=>Array.from({length:n},(_,i)=>V[(i*7+3)%V.length]).join(' ');
- const para=n=>'<p>'+words(n)+'</p>';
+ const words=(n,o)=>Array.from({length:n},(_,i)=>V[(i*7+3+(o||0))%V.length]).join(' ');
+ const para=(n,o)=>'<p>'+words(n,o)+'</p>';
  const frag=h=>{const d=document.createElement('div');d.innerHTML=h;const f=document.createDocumentFragment();while(d.firstChild)f.append(d.firstChild);return f};
  const of=window.fetchText;
  // canonical url
@@ -24,7 +24,7 @@ const R=await p.evaluate(async()=>{
  o.snapGoogle=await archiveSnapshot('https://news.google.com/rss/articles/abc');
  // archiveFor: saved copy read through the reader pipeline
  const a={title:'Senate budget deal reached after long talks',link:'https://news.test/story',summary:'The Senate reached a budget deal after long talks'};
- const fullPage='<html><body><article><h1>Senate budget deal reached after long talks</h1>'+para(120)+para(120)+para(120)+'</article></body></html>';
+ const fullPage='<html><body><article><h1>Senate budget deal reached after long talks</h1>'+para(120,0)+para(120,5)+para(120,11)+'</article></body></html>';
  const otherPage='<html><body><article><h1>Recipe</h1><p>'+'Flour and sugar and butter and eggs and milk and vanilla for the cake batter. '.repeat(40)+'</p></article></body></html>';
  const seen=[];let mode='full';
  window.fetchText=async(u,ok,lg)=>{seen.push(u);if(/wayback\/available/.test(u)){const t=JSON.stringify({archived_snapshots:{closest:{available:true,status:'200',url:'http://web.archive.org/web/20250105123456/https://news.test/story'}}});ok&&ok(t);return t}
