@@ -110,6 +110,9 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  await p.tap('[data-aspd="1.5"]');ck(vp,'podcast speed',await E(()=>$('.cols .aud audio').playbackRate===1.5&&S.prate===1.5));
  await p.tap('#cl');await W(200);
  await E(()=>openReader(cur.find(a=>a.yt)));await W(800);
+ /* a video shows a tap-to-play card; nothing from YouTube loads until the tap (privacy), then the privacy-enhanced embed plays in place */
+ ck(vp,'youtube card (no player before tap)',await E(()=>!!$('.cols .yt-tap')&&!$('.cols .vid iframe')&&!$('.cols .note')));
+ await E(()=>ytPlay($('.cols .yt-tap')));await W(300);
  ck(vp,'youtube embed',await E(()=>!!$('.cols .vid iframe')&&/youtube-nocookie\.com\/embed\/abcdefghij\d/.test($('.cols .vid iframe').src)&&!$('.cols .note')));
  await p.screenshot({path:`/tmp/t/n-${vp}-video.png`});
  await p.tap('#cl');await W(200);
