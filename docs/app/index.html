@@ -107,6 +107,7 @@ body:not(.narrow) .grid:not(.list) .tpl.t3>.card:nth-child(1),body:not(.narrow) 
 .emb b{font:700 12px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
 .emb q{quotes:none;font:italic 16px/1.4 var(--serif);display:block}
 .emb small{color:var(--mut)}
+.emb.yt-tap{display:block;width:100%;padding:0;border:0;background:none;font:inherit;color:inherit;text-align:left;position:relative}.emb.yt-tap:focus-visible{outline:2px solid var(--logo,#1f6a48);outline-offset:3px;border-radius:10px}
 .emb.yt img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;cursor:pointer}
 .emb.yt .pl{position:absolute;left:50%;top:calc(14px + 28%);transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;background:rgba(0,0,0,.6);display:grid;place-items:center;color:#fff;font-size:22px;padding-left:4px}
 .cols .body pre{white-space:pre;overflow:auto;overflow-wrap:normal;word-break:normal;max-width:100%;max-height:min(60vh,520px);tab-size:2}
@@ -3610,7 +3611,7 @@ function rebuildEmb(c,t){
 function embedOf(c,t){
  try{
   if(t==='IFRAME'){const src=c.getAttribute('src')||c.getAttribute('data-src')||'';let m;
-   if(m=src.match(/(?:youtube(?:-nocookie)?\.com\/embed\/|youtu\.be\/)([\w-]{6,})/)){const a=document.createElement('a');a.className='emb yt';a.href='https://www.youtube.com/watch?v='+m[1];a.target='_blank';a.rel='noopener';a.innerHTML='<img referrerpolicy="no-referrer" alt="" src="https://i.ytimg.com/vi/'+m[1]+'/hqdefault.jpg"><span class="pl">▶</span><b>YouTube video</b><small>Opens in YouTube</small>';return a}
+   if(m=src.match(/(?:youtube(?:-nocookie)?\.com\/embed\/|youtu\.be\/)([\w-]{6,})/))return ytCard(m[1],true);
    if(m=src.match(/player\.vimeo\.com\/video\/(\d+)/)){const a=document.createElement('a');a.className='emb';a.href='https://vimeo.com/'+m[1];a.target='_blank';a.rel='noopener';a.innerHTML='<b>Vimeo video</b><small>Opens in Vimeo</small>';return a}
    return null}
   if(t==='BLOCKQUOTE'){const cl=c.className||'';const k=/twitter-tweet/.test(cl)?'Post on X':/bluesky-embed/.test(cl)?'Post on Bluesky':/instagram-media/.test(cl)?'Instagram post':/tiktok-embed/.test(cl)?'TikTok video':/mastodon/.test(cl)?'Post on Mastodon':'';
@@ -8663,6 +8664,24 @@ function continueRow(){
 }
 
 /* ===================== podcasts and video ===================== */
+/* a video inside a story: a picture with a play button that plays right there on tap (YouTube's own privacy-enhanced embed, loaded only when you tap). If the uploader has switched embedding off, it falls back to a plain 'Opens in YouTube' link */
+function ytCard(id,tap){
+ if(tap){const b=document.createElement('button');b.type='button';b.className='emb yt yt-tap';b.dataset.yt=id;b.setAttribute('aria-label','Play video');b.innerHTML='<img referrerpolicy="no-referrer" alt="" src="https://i.ytimg.com/vi/'+id+'/hqdefault.jpg"><span class="pl" aria-hidden="true">▶</span><b>Play video</b><small>Plays here</small>';return b}
+ const a=document.createElement('a');a.className='emb yt';a.href='https://www.youtube.com/watch?v='+id;a.target='_blank';a.rel='noopener';a.innerHTML='<img referrerpolicy="no-referrer" alt="" src="https://i.ytimg.com/vi/'+id+'/hqdefault.jpg"><span class="pl" aria-hidden="true">▶</span><b>YouTube video</b><small>Opens in YouTube</small>';return a;
+}
+function ytPlay(b){
+ const id=b.dataset.yt;if(!id)return;if(typeof TTS!=='undefined'&&TTS.on)try{ttsStop()}catch(e){}
+ const w=document.createElement('div');w.className='vid yt-live';const f=document.createElement('iframe');
+ f.src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id)+'?autoplay=1&playsinline=1&rel=0&enablejsapi=1';f.title='Video';f.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';f.allowFullscreen=true;f.referrerPolicy='strict-origin-when-cross-origin';
+ w.append(f);b.replaceWith(w);
+ /* the player reports an error (101 / 150: embedding switched off) through postMessage once it is told we are listening */
+ const off=()=>removeEventListener('message',on);
+ const on=e=>{if(!w.isConnected){off();return}if(e.source!==f.contentWindow)return;let d=e.data;try{if(typeof d==='string')d=JSON.parse(d)}catch(_){return}
+  if(d&&d.event==='onError'&&[2,5,100,101,150].includes(+d.info)){off();w.replaceWith(ytCard(id,false))}};
+ addEventListener('message',on);
+ f.addEventListener('load',()=>{try{f.contentWindow.postMessage(JSON.stringify({event:'listening',id:1,channel:'widget'}),'*')}catch(e){}});
+}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.yt-tap');if(b){e.preventDefault();ytPlay(b)}});
 function ytId(a){const m=(a.link||'').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([\w-]{11})/);return a.yt||(m?m[1]:'')}
 function mediaBlock(a){
  const y=ytId(a);
