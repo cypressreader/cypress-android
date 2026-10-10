@@ -3289,6 +3289,11 @@ html.txo #grid img,html.txo #rd img,html.txo #hub img,html.txo .dcv-art>img{disp
 .dcov.dct-fb .dcv-sh{background:linear-gradient(180deg,rgba(4,22,15,.42) 0%,rgba(4,22,15,.12) 30%,rgba(4,22,15,.5) 60%,rgba(3,18,12,.88) 100%)}
 .dcv-art>img.lo{filter:url(#cyduo) contrast(1.04) blur(.4px)}
 @media(min-width:900px){.dcov.dct-type .dcv-lead h2,.dcov.dct-fb .dcv-lead h2{font-size:clamp(44px,6.6vw,92px)}.dcov.dct-type .dcv-lead.long h2,.dcov.dct-fb .dcv-lead.long h2{font-size:clamp(38px,5.4vw,76px)}.dcov.dct-min .dcv-lead h2{font-size:clamp(40px,6vw,84px)}.dcov.dct-min .dcv-lead.long h2{font-size:clamp(36px,4.8vw,68px)}}
+/* Sunday: the week panel fits its content instead of a big mostly-empty card */
+#grid.gen-sun .dg.wk .wkhero{padding:clamp(16px,3vw,22px) clamp(18px,3.4vw,28px)}
+.dg.wk .wkbars{height:72px}
+@media(min-width:700px){.dg.wk .wkhero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);grid-template-areas:"k bars" "big bars" "chips bars" "why why";column-gap:36px;align-items:center}
+.dg.wk .wkhero .wkk{grid-area:k}.dg.wk .wkhero .wkbig{grid-area:big;margin:4px 0 10px}.dg.wk .wkhero .wkbars{grid-area:bars;margin:0;height:104px}.dg.wk .wkhero .wkchips{grid-area:chips}.dg.wk .wkhero .dwhy{grid-area:why;margin:12px 0 0}}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -5535,6 +5540,7 @@ function daySections(list,mode){
  const front=list.slice(0,6);
  /* the two rituals may borrow a story from further down the issue; it is then shown there and not again in the lists */
  const skip=new Set(front.map(a=>a.link));if(lead)skip.add(lead.link);
+ cur.slice(0,base).forEach(a=>{if(a&&a.link)skip.add(a.link)}); /* the cover lines are shown once: not again in The Well or a ritual */
  const good=pickGood(pool,skip);if(good)skip.add(good.link);
  const num=pickNumber(pool,skip);if(num)skip.add(num.a.link);
  const well=pickWell(pool,skip);
@@ -9523,10 +9529,21 @@ function briefDigest(list){
   return `<section class="bdig"><h3>Three to know</h3><ol>${three.map(a=>{cur.push(a);WHY[a.link]='One of the three biggest stories right now: covered by the most sources.';return `<li><a class="bi-d" href="${esc(a.link)}" data-i="${cur.length-1}"><b>${esc(a.title)}</b><small>${esc(fof(a).title)}${(a.more||[]).length?' · '+((a.more.length)+1)+' sources':''}</small></a></li>`}).join('')}</ol></section>`;
  }catch(e){return ''}
 }
+/* who said it: the name next to the quotation in the story's own text ("..., said Jane Smith" / "Jane Smith said: ..."), else nothing (the caption then names the source, never the headline) */
+function quoteBy(a,q){
+ try{
+  const t=String(a.summary||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim(),i=t.indexOf(q);if(i<0)return '';
+  const NM="([A-Z][\\w.'’-]*(?:\\s+(?:(?:of|the|de|van|von|al|bin)\\s+)?[A-Z][\\w.'’-]*)*)",VB="(?:said|says|told|added|wrote|noted|argued|warned|explained)";
+  const after=t.slice(i+q.length,i+q.length+100).replace(/^[,.]?[”"]?[,.]?\s*/,''),before=t.slice(Math.max(0,i-100),i);
+  let m=after.match(new RegExp('^(?:'+VB+'|according to)\\s+(?:the\\s+)?'+NM))||after.match(new RegExp('^'+NM+'\\s+'+VB+'\\b'))||before.match(new RegExp(NM+'\\s+'+VB+'[,:]?\\s*[“"]?$'));
+  const by=m&&m[1]?m[1].trim():'';
+  return by&&by.length<=40&&!/^(The|This|That|It|He|She|They|We|I)$/.test(by)?by:'';
+ }catch(e){return ''}
+}
 function briefQuote(list){
  try{
   const pool=list.concat(topOf(S.feeds,30,new Set()));
-  for(const a of pool){const q=nrQuoteText(a);if(q&&q.real&&q.q&&q.q.length>=40&&q.q.length<=220){cur.push(a);return `<figure class="bq"><small>Quote of the day</small><blockquote>“${esc(q.q)}”</blockquote><figcaption><a class="bi-q" href="${esc(a.link)}" data-i="${cur.length-1}">${esc(fof(a).title)}: ${esc(a.title)}</a></figcaption></figure>`}}
+  for(const a of pool){const q=nrQuoteText(a);if(q&&q.real&&q.q&&q.q.length>=40&&q.q.length<=220){cur.push(a);const by=quoteBy(a,q.q),src=fof(a).title;return `<figure class="bq"><small>Quote of the day</small><blockquote>“${esc(q.q)}”</blockquote><figcaption>— ${by?esc(by)+', ':''}<a class="bi-q" href="${esc(a.link)}" data-i="${cur.length-1}" aria-label="Read the story: ${esc(a.title)}">${esc(src)}</a></figcaption></figure>`}}
  }catch(e){}
  return '';
 }
