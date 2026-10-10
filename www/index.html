@@ -2882,6 +2882,20 @@ html.rdx .cols.tplb img.hero{aspect-ratio:16/9;max-height:calc(var(--ih)*.42)}
 #rd #dial i{background:var(--ra)}
 #rd .cols p.dropcap .dcap{color:var(--ink)}
 .deep-m{margin-top:6px}.deep-end{margin-bottom:96px}
+/* correction round, cluster 9: neutral sidebar, tablet auto-hide while reading */
+:root[data-theme=dynamic] aside{--pn:#f4f5f7;--ln:#e1e3e8;--bg:#f4f5f7;--ink:#16181d;--mut:#6b7078;background:#f4f5f7}
+:root[data-theme=dynamic][data-dm=dark] aside{--pn:#15181e;--ln:#272b33;--bg:#15181e;--ink:#eceef2;--mut:#9aa1ab;background:#15181e}
+:root[data-theme=dynamic] #side-list .nav.on,:root[data-theme=dynamic] #side-list .fh.on,:root[data-theme=dynamic] #side-list .fr.on{background-color:color-mix(in srgb,var(--a1) 16%,transparent);background-image:none;border-radius:12px;box-shadow:inset 3px 0 0 var(--a1)}
+@media(min-width:700px){
+ body:not(.narrow):not(.split){transition:grid-template-columns .28s ease}
+ body:not(.narrow):not(.split).reading:not(.sideshow){grid-template-columns:0 1fr}
+ body:not(.narrow):not(.split).reading aside{overflow:hidden;transform:translateX(-101%);transition:transform .28s ease;min-width:0}
+ body:not(.narrow):not(.split).reading.sideshow aside{position:fixed;inset:0 auto 0 0;width:min(300px,80vw);transform:none;z-index:45;box-shadow:8px 0 44px rgba(0,0,0,.38)}
+}
+#sideh{position:fixed;left:0;top:50%;z-index:44;width:22px;height:68px;margin-top:-34px;border-radius:0 12px 12px 0;background:var(--pn);border:1px solid var(--ln);border-left:0;color:var(--mut);display:none;align-items:center;justify-content:center;box-shadow:2px 0 10px rgba(0,0,0,.12)}
+body:not(.narrow):not(.split).reading:not(.sideshow) #sideh{display:flex}
+@media(max-width:699px){#sideh{display:none!important}}
+@media(prefers-reduced-motion:reduce){body:not(.narrow):not(.split),body:not(.narrow):not(.split).reading aside{transition:none}}
 /* correction round, cluster 2: briefing furniture */
 .bnum{margin:6px 0 18px;padding:12px 0 14px;border-bottom:1px solid var(--ln)}.bnum h3,.bdig h3{margin:0 0 10px;font:700 10.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
 .bn-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:12px}.bn-t b{display:block;font:400 34px/1 var(--disp,var(--serif))}.bn-t small{display:block;margin-top:2px;font:12px var(--sans);color:var(--mut)}
@@ -7489,13 +7503,20 @@ function covTitle(){
 }
 /* Dynamic theme colour: one recipe for the page and the reader, built from the site's own colour (richer than a pale wash, and the same in both places) */
 function anyRgb(c){const r=rgbOf(c);if(r)return r;const m=String(c||'').match(/rgba?\(\s*([\d.]+)[ ,]+([\d.]+)[ ,]+([\d.]+)/i);return m?[+m[1],+m[2],+m[3]]:null}
+/* The Dynamic theme never uses the same background family two editions running (the hue is nudged into another family when it would repeat), and the time of day sets how light it is: light mornings, a warmer afternoon, a deeper evening. */
+function dynFam(h){return Math.floor((((h%360)+360)%360)/45)}
+function dynTod(){const h=new Date().getHours();return h>=5&&h<12?{l:.93,d:.125}:h>=12&&h<17?{l:.905,d:.115}:{l:.865,d:.092}}
 function dynTone(c,dark){
  const r=anyRgb(c);if(!r)return null;
  let[h,s]=rgb2hsl(r);s=Math.max(.5,Math.min(.9,s));
+ try{const k=edKey();if(!S.dyn||S.dyn.k!==k){S.dyn={k,prev:S.dyn?S.dyn.last:-1,last:-1}}
+  let f=dynFam(h);if(f===S.dyn.prev){h=(h+90)%360;f=dynFam(h)}
+  if(S.dyn.last!==f){S.dyn.last=f;clearTimeout(dynTone.t);dynTone.t=setTimeout(()=>{try{save()}catch(e){}},1500)}}catch(e){}
+ const TD=dynTod();
  if(dark&&h>35&&h<100)s=Math.min(s,.45);/* dark yellows and greens turn to mud, so they are held back */
  const H=Math.round(h),P=Math.round(s*100);
- return dark?{bg:hsl2css(h,s*.65,.115),pn:hsl2css(h,s*.55,.15),ln:hsl2css(h,s*.45,.24),glow:'hsl('+H+' '+P+'% 38% / .38)',a:hsl2css(h,s,.7)}
-  :{bg:hsl2css(h,s*.9,.92),pn:hsl2css(h,s*.8,.97),ln:hsl2css(h,s*.55,.82),glow:'hsl('+H+' '+P+'% 78% / .55)',a:hsl2css(h,s,.36)};
+ return dark?{bg:hsl2css(h,s*.65,TD.d),pn:hsl2css(h,s*.55,TD.d+.035),ln:hsl2css(h,s*.45,.24),glow:'hsl('+H+' '+P+'% 38% / .38)',a:hsl2css(h,s,.7)}
+  :{bg:hsl2css(h,s*.9,TD.l),pn:hsl2css(h,s*.8,Math.min(.985,TD.l+.05)),ln:hsl2css(h,s*.55,.82),glow:'hsl('+H+' '+P+'% 78% / .55)',a:hsl2css(h,s,.36)};
 }
 const dynIsDark=()=>document.documentElement.dataset.dm==='dark';
 function rdTone(c){
@@ -11059,5 +11080,19 @@ document.addEventListener('click',async e=>{
 document.addEventListener('change',e=>{if(e.target&&e.target.id==='bid'){S.bidays=+e.target.value;save();biPurge()}});
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-tg="bi"]'))setTimeout(()=>{render();if(isOn('bi'))biSave()},50)},true);
 try{const bd=$('#bid');if(bd)bd.value=String(biDays())}catch(e){}
+
+
+/* ---- correction round, cluster 9: tablets keep the sidebar while you browse and slide it away while you read; a small tab or an edge swipe brings it back ---- */
+{
+ const rd=$('#rd');
+ const h=document.createElement('button');h.id='sideh';h.type='button';h.setAttribute('aria-label','Show feeds');h.title='Show feeds';h.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg>';document.body.append(h);
+ const set=on=>{document.body.classList.toggle('reading',on);if(!on)document.body.classList.remove('sideshow')};
+ if(rd){new MutationObserver(()=>set(rd.classList.contains('on'))).observe(rd,{attributes:true,attributeFilter:['class']});set(rd.classList.contains('on'))}
+ h.onclick=()=>document.body.classList.add('sideshow');
+ document.addEventListener('click',e=>{if(document.body.classList.contains('sideshow')&&!e.target.closest('aside')&&!e.target.closest('#sideh')){document.body.classList.remove('sideshow')}else if(document.body.classList.contains('sideshow')&&e.target.closest('aside [data-sel],aside .fr,aside .nav')){setTimeout(()=>{document.body.classList.remove('sideshow');if(rd&&rd.classList.contains('on')&&typeof closeRd==='function')try{closeRd()}catch(er){}},50)}},true);
+ let sx=null;document.addEventListener('touchstart',e=>{const t=e.touches[0];sx=document.body.classList.contains('reading')&&t.clientX<18?{x:t.clientX,y:t.clientY}:null},{passive:true});
+ document.addEventListener('touchmove',e=>{if(!sx)return;const t=e.touches[0];if(t.clientX-sx.x>48&&Math.abs(t.clientY-sx.y)<40){document.body.classList.add('sideshow');sx=null}},{passive:true});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('sideshow')){document.body.classList.remove('sideshow');e.stopPropagation()}},true);
+}
 
 </script></body></html>
