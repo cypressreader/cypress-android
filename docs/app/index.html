@@ -11427,8 +11427,9 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 
 /* ---------- correction round, cluster 15 ---------- */
 /* The Daily cover rotates between three looks (photo, type, minimal), never the same one two days running. */
-const CVT=['photo','type','min'];
+/* (declared inside the function: the first render runs before this part of the script, so a top-level const here would not exist yet) */
 function coverTreat(lead){
+ const CVT=['photo','type','min'];
  const d=new Date();if(d.getHours()<5)d.setDate(d.getDate()-1);
  const n=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);let c=S.cvt;
  if(!c||typeof c!=='object')c=S.cvt={};
@@ -11623,10 +11624,10 @@ setInterval(()=>{
   if(d.s%30===0)save();
  }catch(e){}
 },5000);
-const pkProg=l=>{const p=S.prog&&S.prog[l];return p?+p.p||0:0};
-const pkSecs=l=>(S.dw&&S.dw[l]?S.dw[l].s:0);
+function pkProg(l){const p=S.prog&&S.prog[l];return p?+p.p||0:0}
+function pkSecs(l){return S.dw&&S.dw[l]?S.dw[l].s:0}
 /* genuine progress: more than a quarter read, or a minute or more with it */
-const pkGenuine=l=>{const p=pkProg(l);return !(S.st&&S.st.fin&&S.st.fin[l])&&p<.97&&(p>.25||pkSecs(l)>=60)};
+function pkGenuine(l){const p=pkProg(l);return !(S.st&&S.st.fin&&S.st.fin[l])&&p<.97&&(p>.25||pkSecs(l)>=60)}
 function pickups(){
  const k=edKey();S.pug=S.pug||{};
  const ok=l=>!S.read[l]||pkProg(l)<.97,live=l=>pkGenuine(l)&&(S.thm||{})[l]!==-1&&(findStory(l)||(S.hist||[]).some(h=>webUrl(h.l)===l));
