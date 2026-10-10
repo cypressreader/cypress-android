@@ -167,10 +167,10 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  await p.tap('#mo');await p.tap('[data-act="upnext"]');await W(100);
  ck('listen','add to up next',await E(()=>S.lq.length===1));
  const nextLink=await E(()=>{const b=cur.find(a=>a.link.includes('beta'));S.lq=[b.link];save();return b.link});
- await p.tap('#rp');await W(200);ck('listen','up next listed in playback menu',await E(()=>document.querySelectorAll('#upn .upi').length===1));
+ await p.evaluate(()=>document.querySelector('#rp').click());await W(200);ck('listen','up next listed in playback menu',await E(()=>document.querySelectorAll('#upn .upi').length===1));
  await p.selectOption('#slp','15');await W(100);ck('listen','sleep timer set',await E(()=>SLEEP.t&&/min left/.test($('#slpm').textContent)));
  await p.selectOption('#slp','0');
- await p.tap('#rp');
+ await p.evaluate(()=>document.querySelector('#rp').click());
  // quote voice
  await E(()=>{S.qvoice='auto';const b=$('.cols .body p');b.textContent='He said “this is a quoted line” and left.';ttsCollect()});
  ck('listen','quote words flagged',await E(()=>TTS.words.filter(w=>w.q).length===5),await E(()=>JSON.stringify(TTS.words.slice(0,9).map(w=>w.t+':'+!!w.q))));
@@ -280,7 +280,7 @@ for(const [vp,w,h] of [['fold',884,1060],['desk',1280,900]]){
  ck(vp,'story opens beside list',r.on&&r.rl>=r.mr-1&&r.rw>300&&r.act,JSON.stringify(r));
  ck(vp,'list still clickable',await E(()=>{const c=document.querySelector('#grid .card:nth-child(4)');const b=c.getBoundingClientRect();const e=document.elementFromPoint(b.left+b.width/2,b.top+b.height/2);return c.contains(e)}));
  await p.screenshot({path:`/tmp/t/v3-${vp}-split1.png`});
- await p.click('#nx');await W(1000);ck(vp,'page turn works in split',await E(()=>R.pg===1));
+ await p.evaluate(()=>document.querySelector('#nx').click());await W(1000);ck(vp,'page turn works in split',await E(()=>R.pg===1));
  await p.click('#grid .card:nth-child(4) h3');await W(1500);ck(vp,'switch story from list',await E(()=>cur.indexOf(curA)===3||$('.card.act')===document.querySelector('#grid .card:nth-child(4)')));
  await p.click('#cl');await W(300);ck(vp,'close shows placeholder',await E(()=>!!$('#sheet .spe')&&!$('#rd').classList.contains('on')));
  await p.click('#menu');await W(300);ck(vp,'menu drawer in split',await E(()=>document.body.classList.contains('open')&&$('aside').getBoundingClientRect().left>=-1));

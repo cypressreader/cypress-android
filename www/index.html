@@ -2881,6 +2881,7 @@ html.rdx .cols.tplb img.hero{aspect-ratio:16/9;max-height:calc(var(--ih)*.42)}
 #rd .cols .pullq{border-left-color:var(--ra)}
 #rd #dial i{background:var(--ra)}
 #rd .cols p.dropcap .dcap{color:var(--ink)}
+.deep-m{margin-top:6px}.deep-end{margin-bottom:96px}
 /* correction round, cluster 2: briefing furniture */
 .bnum{margin:6px 0 18px;padding:12px 0 14px;border-bottom:1px solid var(--ln)}.bnum h3,.bdig h3{margin:0 0 10px;font:700 10.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
 .bn-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:12px}.bn-t b{display:block;font:400 34px/1 var(--disp,var(--serif))}.bn-t small{display:block;margin-top:2px;font:12px var(--sans);color:var(--mut)}
@@ -4234,11 +4235,24 @@ function wireRender(pre,list,T){
  const wset=new Set(wild);
  const an=T?{t:now,visit:false}:wireAnchor(),groups={new:[],hour:[],morning:[],today:[],earlier:[]};
  units.filter(u=>!wset.has(u)).forEach(u=>groups[wireGroup(u.head,an)].push(u));
+ if(!FD)for(const q in groups){
+  groups[q]=mixBy(groups[q],u=>u.head.feedId);
+  /* a burst that cannot be mixed (one source publishing a stack of stories in the same stretch) folds into one expandable block instead of a wall of the same masthead */
+  const g0=groups[q],keep=[];let i=0;
+  while(i<g0.length){
+   let j=i;while(j<g0.length&&g0[j].head.feedId===g0[i].head.feedId)j++;
+   const run=g0.slice(i,j);
+   if(run.length>2){keep.push(run[0]);const rest=run.slice(1);keep.push({head:rest[0].head,more:[...rest[0].more,...rest.slice(1).flatMap(u=>[u.head,...u.more])],sg:rest[0].sg,burst:rest.length,feed:fof(rest[0].head).title})}
+   else keep.push(...run);
+   i=j;
+  }
+  groups[q]=keep;
+ }
  const cn=[],ix=a=>{cn.push(a);return cn.length-1},B=[];let k=0,wi=0,newN=0;
  const rowsWrap=h=>mode==='w'?`<div class="nr-river"><div class="nr-rv">${h}</div></div>`:`<div class="nr-ph-rows nr-ph-in">${h}</div>`;
  const rowHtml=a=>card(a,ix(a),'nr nr-row nr-s');
  let rowBuf='',colBuf='';const flush=()=>{if(rowBuf){B.push(rowsWrap(rowBuf));rowBuf=''}if(colBuf){B.push(`<div class="wcols">${colBuf}</div>`);colBuf=''}};
- const addWild=()=>{const u=wild[wi++];if(!u)return;flush();WHY[u.head.link]='Wild card: from '+fof(u.head).title+', a site you open less often. One turns up on every screen.';B.push(`<div class="wwild"><p class="wwild-k">Wild card</p>${card(u.head,ix(u.head),'mid')}</div>`)};
+ const addWild=(nextF)=>{const lastF=cn.length?cn[cn.length-1].feedId:'';if(wi<wild.length){const t=wild.findIndex((u,i)=>i>=wi&&u.head.feedId!==lastF&&u.head.feedId!==nextF);if(t<0)return;if(t>wi){const x=wild[t];wild[t]=wild[wi];wild[wi]=x}}const u=wild[wi++];if(!u)return;flush();WHY[u.head.link]='Wild card: from '+fof(u.head).title+', a site you open less often. One turns up on every screen.';B.push(`<div class="wwild"><p class="wwild-k">Wild card</p>${card(u.head,ix(u.head),'mid')}</div>`)};
 if(FD){
   let k0=null,u0=null;
   if(FD.isFolder){let bs=-1;for(const q of ['new','hour','morning','today','earlier'])for(const u of groups[q]){const sc=(u.more.length)*3+(u.head.img?2.5:0)+(u.head.date>now-24*36e5?1.5:0)+(S.read[u.head.link]?-3:0)+Math.min(u.head.summary?String(u.head.summary).length:0,300)/300;if(sc>bs){bs=sc;k0=q;u0=u}}}
@@ -4259,15 +4273,15 @@ if(FD){
     continue}
    if(k%12===9&&u.head.img&&!u.more.length){flush();B.push(momentHtml(u.head,ix(u.head)));continue}
    if(u.more.length){
-    flush();WHY[u.head.link]='A developing story: '+(u.more.length+1)+' updates, newest first.';
+    flush();WHY[u.head.link]=u.burst?'A busy stretch: '+(u.more.length+1)+' stories from '+u.feed+' arrived together, so they are folded to keep the list mixed.':'A developing story: '+(u.more.length+1)+' updates, newest first.';
     const id='t'+peHash(u.head.link);
-    B.push(`<div class="wthr">${card(u.head,ix(u.head),'mid')}<button type="button" class="wthr-t" data-thr="${id}" aria-expanded="false">${u.more.length} earlier ${u.more.length===1?'update':'updates'} on this story</button><div class="wthr-b" id="${id}" hidden>${u.more.map(rowHtml).join('')}</div></div>`);
+    B.push(`<div class="wthr">${card(u.head,ix(u.head),'mid')}<button type="button" class="wthr-t" data-thr="${id}" aria-expanded="false">${u.burst?(u.more.length+1)+' more from '+esc(u.feed)+' in this stretch':u.more.length+' earlier '+(u.more.length===1?'update':'updates')+' on this story'}</button><div class="wthr-b" id="${id}" hidden>${u.more.map(rowHtml).join('')}</div></div>`);
    }else if(kind==='row')rowBuf+=rowHtml(u.head);
    else{flush();B.push(card(u.head,ix(u.head),kind==='lead'&&u.head.img?'lead':'mid'))}
-   if(k%7===6)addWild();
+   if(k%7===6)addWild(us[j]?us[j].head.feedId:undefined);
   }
  }
- flush();while(wi<wild.length)addWild();
+ flush();{let guard=wild.length+1;while(wi<wild.length&&guard-->0)addWild()}
   const selFeeds=T?null:S.sel==='all'?S.feeds:S.sel.startsWith('s:')?S.feeds.filter(f=>'s:'+f.id===S.sel):S.sel.startsWith('f:')?S.feeds.filter(f=>f.folder===S.sel.slice(2)):null,
   unread=selFeeds?uc(selFeeds):cn.filter(a=>!S.read[a.link]).length,pend=T?0:WIRE.pend.length,f1=!T&&S.sel.startsWith('s:')?S.feeds.find(x=>'s:'+x.id===S.sel):null,here=S.sel==='all'?'your sites':'here';
  if(!unread&&!pend)B.push(wireCaught(cn,T,FD));
@@ -4978,6 +4992,17 @@ const dealItem=a=>{const t=(a.title||'').trim();if(DEALRX.some(r=>r.test(t)))ret
 const dealHide=a=>!!S.hideDeals&&dealItem(a);
 const muted=a=>ruleHide(a)||junkItem(a)||dealHide(a)||S.mute.some(m=>((a.title||'')+' '+(a.summary||'')).toLowerCase().includes(m));
 const paused=f=>!!(f&&f.snz&&f.snz>Date.now());
+/* never more than two stories in a row from one source, whatever the ranking says; items that cannot be separated (the list is all one source) keep their order */
+function mixBy(arr,key,max){
+ max=max||2;key=key||(a=>a.feedId);const out=[],held=[];
+ const run=k=>{let n=0;for(let i=out.length-1;i>=0&&key(out[i])===k;i--)n++;return n};
+ const drain=()=>{for(let i=0;i<held.length;i++){if(run(key(held[i]))<max){out.push(held.splice(i,1)[0]);return true}}return false};
+ for(const a of arr){
+  if(run(key(a))>=max){held.push(a);continue}
+  out.push(a);while(held.length&&drain());
+ }
+ return out.concat(held);
+}
 const capList=l=>{const n=S.capn==null?8:S.capn;if(!n)return l;const c={};return l.filter(a=>(c[a.feedId]=(c[a.feedId]||0)+1)<=n)};
 const STOPL=new Set(['that','this','with','from','have','will','your','their','about','after','over','into','more','what','when','been','says','they','were','also']);
 const toks=a=>[...new Set(((a.title||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/)).filter(w=>w.length>3&&!STOPL.has(w)))];
@@ -5161,7 +5186,7 @@ function dayRank(pool,byDate,key){
 /* the All list: unread stories ranked, then the ones you've read in date order */
 function smartAll(cur){
  const r=dayRank(cur,cur,'all'),seen=new Set(r.map(a=>a.link));
- return r.concat(cur.filter(a=>!seen.has(a.link)));
+ return mixBy(r.concat(cur.filter(a=>!seen.has(a.link))));
 }
 const smartOn=()=>!S.sort||S.sort==='smart';
 let SMARTV=false;/* true while a ranked list is being laid out: its sections are not in date order, so they get no "Yesterday" style headings */
@@ -5419,11 +5444,12 @@ function renderToday(tab0,pool0,seg0,ttl0){
  list.forEach(a=>{cur.push(a);if(!WHY[a.link])WHY[a.link]=tab==='latest'?(WHY[a.link]||`One of your newest stories, from ${fof(a).title}.`):tab==='quick'?`A short read (about ${minsOf(a)} min) from ${fof(a).title}.`:`A long read (about ${minsOf(a)} min) from ${fof(a).title}.`});
  if(!list.length&&tab!=='latest'){g.innerHTML=h+`<div class="empty dempty">${esc(empty||'Nothing here yet.')}</div>`;return}
  /* with enough stories the list gets the same varied layout the feeds have: a lead story, pairs, photo strips, pull quotes, short headline rows */
+ if(tab!=='latest'){const m0=list.map(a=>a);const mx=mixBy(m0);list.splice(0,list.length,...mx);cur.splice(base,cur.length-base,...mx)}
  const mode=tab==='latest'?(nrMode()||(VW<NRMIN?'p':'w')):(list.length>=6||tab==='deep')?nrMode():'';
  if(label&&!(mode&&(label==='Latest'||tab==='latest')))h+=`<div class="dlh">${esc(label)}</div>`; /* the varied layouts already carry their own Latest heading */
  if(mode){g.classList.add('nr');if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
   let bl;if(tab==='latest'){try{bl=daySections(list,mode)}catch(e){elog('daySections',e);g.innerHTML=h+dayErrorHtml();return}}
-  else bl=tab==='deep'?magHtml(list,base,mode,'deep'):mode==='w'?nrBlocks(list,base):nrBlocksPhone(list,base);
+  else bl=tab==='deep'?deepBlocks(list):mode==='w'?nrBlocks(list,base):nrBlocksPhone(list,base);
   setBlocks(h,bl,9,3);return}
  g.dataset.cards='narrow';g.innerHTML=h+list.map((a,i)=>card(a,base+i,'')).join('')+(tab==='latest'?dayEndCard():'');
  g.querySelectorAll('.card').forEach(c=>{const w=c.querySelector(':scope>.why'),sr=c.querySelector('.src');if(w&&sr)sr.append(w)});
@@ -8429,7 +8455,7 @@ function qaOpen(c,x,y){
  const f=S.feeds.find(x=>x.id===a.feedId),sv=isSaved(a);
  m.dataset.i=i;m.dataset.l=a.link;
  m.innerHTML=`<small>${esc(a.title)}</small>`+[
-  ['save',sv?'Remove from saved':'Save for later'],['share','Share'],['read',S.read[a.link]?'Mark as unread':'Mark as read'],['above','Mark everything above as read'],['coll','Add to a collection…'],...(S.stag&&(a.tags||[]).includes(S.stag)?[['uncoll','Remove from “'+esc(S.stag)+'”']]:[]),['why','Why is this here?'],['more','More like this'],['less','Less like this']
+  ['save',sv?'Remove from saved':'Save for later'],['share','Share'],['read',S.read[a.link]?'Mark as unread':'Mark as read'],['above','Mark everything above as read'],['coll','Add to a collection…'],...(S.stag&&(a.tags||[]).includes(S.stag)?[['uncoll','Remove from “'+esc(S.stag)+'”']]:[]),['why','Why this story?'],['more','More like this'],['less','Less like this']
  ].map(([k,t])=>`<button role="menuitem" data-qa="${k}">${t}</button>`).join('')+(f?`<hr><button role="menuitem" data-qa="mute">Pause ${esc(f.title)} for a week</button><button role="menuitem" data-qa="fset">Settings for ${esc(f.title)}…</button>`:'');
  m.hidden=false;
  const w=m.offsetWidth,h=m.offsetHeight;m.style.left=Math.max(10,Math.min(innerWidth-w-10,x-w/2))+'px';m.style.top=Math.max(10,Math.min(innerHeight-h-10,y+8))+'px';
@@ -9495,6 +9521,23 @@ function sundayPick(wkS){
  const sc=a=>(a.img?3:0)+Math.min(minsOf(a),30)/6+((a.more||[]).length)*1.5+(S.read[a.link]?-2:0);
  return pool.filter(a=>{if(seen.has(a.link))return false;seen.add(a.link);return minsOf(a)>=min}).sort((a,b)=>sc(b)-sc(a)).slice(0,7);
 }
+/* one long read as a big art-directed item: the cover is full width, the rest alternate picture and text */
+function longformItem(a,i,ix,cover,why){
+ const f=fof(a),m=minsOf(a),dk=dekOf(a,170);
+ WHY[a.link]=why;
+ const img=a.img?`<img loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()">`:'';
+ const t=`<span class="sun-t"><small>${i===0?'Cover story':String(i+1).padStart(2,'0')} · ${esc(f.title||'')}${m?' · '+m+' min read':''}</small><b>${esc(a.title)}</b>${dk?`<em>${esc(dk)}</em>`:''}</span>`;
+ return i===0?`<a class="cvlead sun-a sun-c${a.img?'':' noimg'}" href="${esc(a.link)}" data-i="${ix}" style="--b:${brand(f)}">${img}${t}</a>`
+  :`<a class="cvlead sun-a sun-i${a.img?'':' noimg'}" href="${esc(a.link)}" data-i="${ix}" style="--b:${brand(f)}"><span class="sun-im">${img}</span>${t}</a>`;
+}
+/* the Deep reads tab: a nameplate, the long reads one at a time with big art, and a proper end */
+function deepBlocks(list){
+ const B=[],mins=list.reduce((n,a)=>n+(minsOf(a)||0),0),hrs=mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes';
+ B.push(`<header class="sun-m deep-m"><small>Deep reads</small><h2>${list.length===1?'One long read':list.length+' long reads'}</h2><p class="sun-s">${esc(list.length>=2?'About '+hrs+' of reading, from '+new Set(list.map(a=>a.feedId)).size+(new Set(list.map(a=>a.feedId)).size===1?' source':' sources')+'. Take your time.':'For when you have time to settle in.')}</p></header>`);
+ list.forEach((a,i)=>B.push(longformItem(a,i,cur.indexOf(a),i===0,i===0?'The strongest long read among your unread stories.':'A long read of about '+minsOf(a)+' minutes.')));
+ B.push(`<p class="sun-end deep-end">That is every long read for now: ${list.length} ${list.length===1?'story':'stories'}, about ${esc(hrs)}.</p>`);
+ return B;
+}
 function sundayIssue(wkS,wkR){
  const l=sundayPick(wkS);
  if(l.length<3)return `<section class="sun sun-none"><header class="sun-m"><small>The Sunday Issue</small><h2>Not enough long reads yet</h2><p class="sun-s">A story joins the issue once its length is known and it runs about ${Math.min(DEEPMIN,6)} minutes or more.</p></header></section>`;
@@ -9502,12 +9545,7 @@ function sundayIssue(wkS,wkR){
  const line=pe('sunday',{n:l.length,hrs,sites,longest,dow:new Date().getDay()},'sun');
  const word={3:'Three',4:'Four',5:'Five',6:'Six',7:'Seven'}[l.length];
  const one=(a,i)=>{
-  cur.push(a);const ix=cur.length-1,f=fof(a),m=minsOf(a),dk=dekOf(a,170);
-  WHY[a.link]=i===0?'The cover of the Sunday Issue: the best long read of the last 7 days.':'A long read of about '+m+' minutes, picked for the Sunday Issue.';
-  const img=a.img?`<img loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()">`:'';
-  const t=`<span class="sun-t"><small>${i===0?'Cover story':String(i+1).padStart(2,'0')} · ${esc(f.title||'')} · ${m} min read</small><b>${esc(a.title)}</b>${dk?`<em>${esc(dk)}</em>`:''}</span>`;
-  return i===0?`<a class="cvlead sun-a sun-c${a.img?'':' noimg'}" href="${esc(a.link)}" data-i="${ix}" style="--b:${brand(f)}">${img}${t}</a>`
-   :`<a class="cvlead sun-a sun-i${a.img?'':' noimg'}" href="${esc(a.link)}" data-i="${ix}" style="--b:${brand(f)}"><span class="sun-im">${img}</span>${t}</a>`;
+  cur.push(a);return longformItem(a,i,cur.length-1,i===0,i===0?'The cover of the Sunday Issue: the best long read of the last 7 days.':'A long read of about '+minsOf(a)+' minutes, picked for the Sunday Issue.');
  };
  return `<section class="sun" aria-labelledby="sunh"><header class="sun-m"><small>The Sunday Issue</small><h2 id="sunh">${word} long reads</h2><p class="sun-r">${esc(wkR)}</p><p class="sun-s">${esc(line)}</p></header>${l.map(one).join('')}<p class="sun-end">That is the whole issue. The week’s numbers and a day-by-day recap follow.</p></section>`;
 }
@@ -9774,6 +9812,7 @@ function showWhy(a,el){
  if(!a)return;let t=WHY[a.link]||'';
  if(!t){const f=fof(a),fo=S.folders.find(x=>x.id===f.folder);t='From '+(f.title||host(a.link))+(fo?`, in your ${fo.name} folder`:'')+'. It’s one of the newest unread stories from that site.'}
  if(a.more&&a.more.length&&!/sites covered/.test(t))t+=` ${a.more.length+1} sites covered this story.`;
+ try{const ix=cur.indexOf(a);if(S.sel==='all'&&smartOn()&&ix>=0&&cur.length>3)t+=` It sits at ${ix+1} of ${cur.length} in your Smart list.`}catch(e){}
  let p=$('#whyp');if(!p){p=document.createElement('div');p.id='whyp';p.setAttribute('role','status');document.body.append(p)}
  p.textContent=t;const r=el.getBoundingClientRect();p.hidden=false;
  const w=Math.min(280,innerWidth-24);p.style.width=w+'px';p.style.left=Math.max(12,Math.min(innerWidth-w-12,r.left+r.width/2-w/2))+'px';
