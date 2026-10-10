@@ -313,7 +313,12 @@ public class CyNativePlugin extends Plugin {
             i.setType(mime);
             i.putExtra(Intent.EXTRA_STREAM, uri);
             i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            Intent ch = Intent.createChooser(i, "Save or share");
+            String email = call.getString("email", "");
+            if (email.length() > 0) {
+                i.putExtra(Intent.EXTRA_EMAIL, new String[]{email});
+                i.putExtra(Intent.EXTRA_SUBJECT, call.getString("subject", ""));
+            }
+            Intent ch = Intent.createChooser(i, email.length() > 0 ? "Send to Kindle" : "Save or share");
             ch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             getContext().startActivity(ch);
             call.resolve();
