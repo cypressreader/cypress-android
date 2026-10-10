@@ -10,7 +10,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    S.scroll=mode;S.sel='all';render();await w(500);openReader(cur[0]);await w(1800);
    const vis=[...document.querySelectorAll('#rd .bar button')].filter(b=>getComputedStyle(b).display!=='none'&&b.offsetWidth>0).map(b=>b.id);
    document.querySelector('#mo').click();await w(200);const menu=[...document.querySelectorAll('#mn button')].filter(b=>b.offsetParent).map(b=>b.textContent.trim());
-   const kick=document.querySelector('.cols .kick'),cs=kick&&getComputedStyle(kick),lbl=getComputedStyle(document.querySelector('#st'),'::after').content;
+   const kick=document.querySelector('.cols .kick'),cs=kick&&getComputedStyle(kick),lbl=(document.querySelector('#st .bl')||{}).textContent||'';
    return {vis,menu,kickRule:cs&&cs.borderBottomStyle,kickColor:cs&&cs.color,ink:getComputedStyle(document.body).color,lbl}},mode);
   ck(W+' '+mode+' primaries are back, save, listen, more',['cl','st','ra','mo'].every(i=>r.vis.includes(i)),JSON.stringify(r.vis));
   ck(W+' '+mode+' no hamburger, X or page arrows in the bar',!r.vis.includes('fdn')&&!r.vis.includes('pv')&&!r.vis.includes('nx')&&!r.vis.includes('rp')&&!r.vis.includes('wb'),JSON.stringify(r.vis));
