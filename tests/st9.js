@@ -31,7 +31,7 @@ for(const [n,w,h] of [['fold',884,1000],['phone',380,820]]){
  await p.evaluate(async u=>{S.scroll='pages';const a=Object.values(items).flat()[0];a.img=u;openReader(a);await new Promise(r=>setTimeout(r,2500))},IMG('#26d'));
  for(const m of ['hero','split','classic','auto']){
   await E(m=>{S.rl=m;heroSpread();relayout()},m);await p.waitForTimeout(500);
-  const st=await E(()=>({f:!!document.querySelector('.hsf'),c:(document.querySelector('.hsf')||{}).className||'',m:!!document.querySelector('.mnotes'),ord:[...document.querySelector('.cols').children].map(x=>x.className.split(' ')[0]).slice(0,4).join()}));
+  const st=await E(()=>({f:!!document.querySelector('.hsf'),c:(document.querySelector('.hsf')||{}).className||'',m:!!document.querySelector('.mnotes'),ord:[...document.querySelector('.cols').children].map(x=>x.className.split(' ')[0]).filter(c=>c!=='rby').slice(0,4).join()}));
   const wide=w>=700;
   if(m==='hero')ck(n+' layout hero',wide?st.f&&/hs-hero/.test(st.c)&&st.m:!st.f);
   if(m==='split')ck(n+' layout split',wide?st.f&&/hs-split/.test(st.c):!st.f);

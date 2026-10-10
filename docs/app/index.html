@@ -11696,4 +11696,20 @@ function metaApply(){
  cv.after(m);
 }
 {const _rm=render;render=function(){_rm.apply(this,arguments);try{metaApply()}catch(e){elog('metaApply',e)}}}
+
+/* ---------- feed blank spot: a Columns-view group never opens a column it cannot fill ---------- */
+function wcolsFix(){
+ const g=$('#grid');if(!g)return;
+ g.querySelectorAll('.wcols').forEach(el=>{
+  const kids=[...el.children],W=el.clientWidth;if(!kids.length||!W)return;
+  const avail=Math.max(1,Math.floor((W+28)/278));let c=Math.min(avail,kids.length);
+  el.style.columnWidth='auto';
+  for(;c>1;c--){el.style.columnCount=String(c);const lefts=new Set(kids.map(k=>Math.round(k.getBoundingClientRect().left)));if(lefts.size>=c)break}
+  el.style.columnCount=String(c);el.style.columnRuleWidth=c<2?'0':'';
+ });
+}
+{const _rw=render;render=function(){_rw.apply(this,arguments);try{wcolsFix()}catch(e){}}}
+{let t=0;const go=()=>{clearTimeout(t);t=setTimeout(()=>{try{wcolsFix()}catch(e){}},120)};
+ addEventListener('resize',go);
+ try{const g=$('#grid');if(g)new MutationObserver(go).observe(g,{childList:true})}catch(e){}}
 </script></body></html>

@@ -12,7 +12,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
     const l=items[S.feeds[0].id];S.prog[l[5].link]={p:.5,t:now-864e5};S.dw=S.dw||{};S.dw[l[6].link]={s:90,t:now-864e5};
     S.hist=[{l:l[2].link,ti:l[2].title,fid:l[2].feedId,ft:'Src',t:now-7*864e5}];S.saved=[{...l[3],st:now}];
     S.sel=sel;save();saveCache0()},[sel]);
-   await p.reload();await p.waitForTimeout(2200);
+   await p.goto('file://'+APP);await p.waitForTimeout(2200);
    const r=await p.evaluate(()=>({fail:!!document.getElementById('cyfail'),failText:(document.getElementById('cyfail')||{}).textContent||'',boot:document.documentElement.classList.contains('boot'),cover:!!document.querySelector('#grid .dcov, #grid .cover'),cards:document.querySelectorAll('#grid .card').length}));
    const t='['+dev+' '+sel+'] ';
    ck(t+'starts without the crash screen',!r.fail,r.failText.slice(0,200));
