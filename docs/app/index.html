@@ -7151,9 +7151,12 @@ rdEl.addEventListener('pointermove',e=>{
   if(getSelection()+''){D=null;return}
   if(Math.abs(dx)<12&&Math.abs(dy)<12)return;
   if(Math.abs(dx)<=Math.abs(dy)*1.3||isVert()){D=null;return}
-  if(reduced())return;
+  if(D.edge)return;
   const dir=dx<0?1:-1;
-  if(R.busy||R.pg+dir<0||R.pg+dir>=R.np){D=null;return}
+  if(R.busy){D=null;return}
+  /* a swipe past the last (or before the first) page goes to the next (or previous) story, like pulling past the end in scroll mode */
+  if(R.pg+dir<0||R.pg+dir>=R.np){D.edge=dir;return}
+  if(reduced())return;
   startTurn(dir);paperSound();D.act=true;D.dir=dir;D.x0=e.clientX;
   try{$('.book').setPointerCapture(e.pointerId)}catch(_){}
  }
@@ -7166,6 +7169,7 @@ const pend=e=>{
  if(!D||e.pointerId!==D.id)return;
  if(D.act){turnRelease(e.type==='pointercancel');return}
  const dx=e.clientX-D.x,dy=e.clientY-D.y;
+ if(D.edge&&e.type==='pointerup'&&Math.abs(dx)>=60&&Math.abs(dx)>Math.abs(dy)*1.3&&!(getSelection()+'')){const eg=D.edge;D=null;edgeSwipe(eg);return}
  if(e.type==='pointerup'&&reduced()&&Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.3&&!(getSelection()+''))go(dx<0?1:-1);
  D=null;
 };
@@ -11387,6 +11391,28 @@ function advanceNext(){
   const sh=$('#sheet');if(sh&&!fast){sh.classList.add('rn-in');setTimeout(()=>sh.classList.remove('rn-in'),420)}
   const v=vView();if(v)v.scrollTop=0;
  },fast?0:200);
+}
+/* the story before this one in the list you came from (page mode: swipe back on the first page) */
+function readerPrev(){
+ if(!curA||R.inBrief)return null;
+ const L=R.ctx&&R.ctx.length?R.ctx:cur,i=L.findIndex(x=>x.link===curA.link);
+ for(let j=i-1;j>=0;j--){const x=L[j];if(x&&x.link&&x.link!==curA.link&&x.feedId!=null)return x}
+ return null;
+}
+function advanceTo(n,dir){
+ if(!n||R.adv)return;R.adv=true;
+ const bk=$('#rd .book'),fast=reduced();
+ if(bk&&!fast){bk.style.transition='transform .2s ease,opacity .2s';bk.style.transform='translateX('+(dir>0?-26:26)+'px)';bk.style.opacity='0'}
+ setTimeout(()=>{
+  R.keepCtx=true;R.adv=false;
+  try{openReader(n)}catch(e){elog('advanceTo',e)}
+  const sh=$('#sheet');if(sh&&!fast){sh.classList.add('rn-in');setTimeout(()=>sh.classList.remove('rn-in'),420)}
+ },fast?0:200);
+}
+function edgeSwipe(dir){
+ if(R.web||R.busy||R.adv||isVert())return;
+ if(dir>0){if(R.np>0&&isOn('cont')){const n=readerNext();if(n)advanceTo(n,1)}}
+ else{const p=readerPrev();if(p)advanceTo(p,-1)}
 }
 function rdNext(){
  const c=$('.cols'),a=curA;if(!c||!a||R.web)return;
