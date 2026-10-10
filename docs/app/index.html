@@ -3238,6 +3238,8 @@ html.txo #grid img,html.txo #rd img,html.txo #hub img,html.txo .dcv-art>img{disp
 .dmeta .dmb>*{flex:0 0 auto}
 .dmeta .dmb>.dwhy,.dmeta .dmb>nav,.dmeta .dmb>section,.dmeta .dmb>div:not(.dexp){flex:1 1 100%}
 .cols .body s,#rd .body s{text-decoration:line-through;text-decoration-thickness:1px;opacity:.78}
+.cols .body a,#rd .body a{color:inherit;text-decoration-line:underline;text-decoration-style:solid;text-decoration-thickness:1px;text-decoration-color:color-mix(in srgb,currentColor 38%,transparent);text-underline-offset:.2em;text-decoration-skip-ink:auto}
+.cols .body a:hover,.cols .body a:focus-visible,#rd .body a:hover{text-decoration-color:currentColor}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -5661,8 +5663,8 @@ const R={web:false,pg:0,np:1,cpv:1,step:0,busy:false};
 let lq;const relayout=()=>{cancelAnimationFrame(lq);lq=requestAnimationFrame(layout)};
 function narrowC(){return isOn('pcomp')&&document.body.classList.contains('narrow')}
 function rdVars(){const r=$('#rd');if(!r)return;const nc=narrowC();r.style.setProperty('--lh',nc?Math.min(+S.lh||1.68,1.5):(S.lh||1.68));{const bk=$('.book'),W=bk?bk.clientWidth:innerWidth,cw=isVert()?Math.min(W-60,740):(W>=700?(W-60-56)/2:W-40),chars=cw/((+S.fs||18)*.5);/* justify only when a line holds enough words; narrow columns left-align so gaps do not open up */r.style.setProperty('--ta',(S.just===false||nc||innerWidth<640||chars<52)?'left':'justify')}}
-function imgKey(u){try{let x=String(u||'').split(/[?#]/)[0].toLowerCase();x=x.split('/').filter(Boolean).pop()||'';return x.replace(/\.(jpe?g|png|webp|avif|gif)$/,'').replace(/[-_@]?\d{2,4}x\d{2,4}/g,'').replace(/[-_](scaled|large|medium|small|thumb(nail)?|full|orig(inal)?|hires|hi-res)$/,'').replace(/@\dx$/,'')}catch(e){return ''}}
-function sameImg(a,b){if(!a||!b)return false;if(String(a).split('?')[0]===String(b).split('?')[0])return true;const x=imgKey(a),y=imgKey(b);if(x.length>=8&&x===y)return true;if(x.length<10||y.length<10)return false;let i=0;while(i<x.length&&i<y.length&&x[i]===y[i])i++;return i>=10&&i/Math.min(x.length,y.length)>=.75}
+function imgKey(u){try{let x=String(u||'').split(/[?#]/)[0].toLowerCase();x=x.split('/').filter(Boolean).pop()||'';return x.replace(/\.(jpe?g|png|webp|avif|gif)(\.(jpe?g|png|webp|avif|gif))?$/,'').replace(/[-_@]?\d{2,4}x\d{2,4}/g,'').replace(/[-_](scaled|large|medium|small|thumb(nail)?|full|orig(inal)?|hires|hi-res)$/,'').replace(/@\dx$/,'')}catch(e){return ''}}
+function sameImg(a,b){if(!a||!b)return false;if(String(a).split('?')[0]===String(b).split('?')[0])return true;const x=imgKey(a),y=imgKey(b);if(x.length>=8&&x===y)return true;if(x.length>=5&&x===y&&!/^(image|img|photo|picture|pic|hero|cover|main|lead|thumb|thumbnail|banner|article|featured|default|placeholder|logo|share|og|story|news)\d*$/.test(x))return true;if(x.length<10||y.length<10)return false;let i=0;while(i<x.length&&i<y.length&&x[i]===y[i])i++;return i>=10&&i/Math.min(x.length,y.length)>=.75}
 function dedupHero(){const h=document.querySelector('#sheet .hero'),b=document.querySelector('.cols .body');if(!b)return;const ref=(h&&h.src)||(curA&&curA.img)||'';if(!ref)return;let n=0;let seenText=0;for(const k of [...b.children]){if(n++>8)break;if(seenText>420)break;seenText+=(k.textContent||'').trim().length;const im=k.tagName==='IMG'?k:k.querySelector&&k.querySelector('img');if(im&&sameImg(im.src,ref)){(k.tagName==='IMG'?k:(k.matches&&k.matches('figure,p,div')&&!(k.textContent||'').trim()?k:im)).remove();break}}}
 function noteFix(){const n=document.querySelector('.cols .note'),b=document.querySelector('.cols .body');if(!n||!b||DEEPBUSY)return;if(n.querySelector("[data-retry]")&&(b.textContent||'').length>2200){n.textContent='Full story loaded.';setTimeout(()=>{if(n.isConnected&&n.textContent==='Full story loaded.')n.remove()},4000)}}
 function layout(){noteFix();
@@ -5894,7 +5896,25 @@ function dedupParas(root){
   if(seen.has(t))p.remove();else seen.add(t);
  }
 }
-function underscoreItalics(root){mdInline(root);dedupParas(root)}
+/* the end of an article often carries the leftovers of a newsletter box once its lead-in has been stripped ("newsletter and get the latest ... to your inbox"): short trailing blocks that are signup furniture are dropped, never shown as a fragment */
+function dropTailPromo(root){
+ const kids=()=>[...root.children].filter(k=>k.nodeType===1&&!k.matches('.endmark,.rtags,.rfoot,aside,script,style'));
+ const strong=t=>/newsletter|mailing list|your inbox|unsubscribe|recaptcha|sign me up|email address|by (submitting|signing up)|privacy (notice|policy)\b.{0,60}\b(apply|applies)|terms of (service|use)\b.{0,60}\b(apply|applies)/i.test(t);
+ const weak=t=>/sign up|subscribe|e-?mail|delivered|straight to|every (week|day|morning|friday|monday|weekday)|get the (latest|best|top)/i.test(t);
+ const lowerStart=t=>/^[a-z]/.test(t);
+ let dropped=0;
+ for(let guard=0;guard<8;guard++){
+  const k=kids(),last=k[k.length-1];if(!last)break;
+  const t=(last.textContent||'').replace(/\s+/g,' ').trim();
+  if(t.length>260)break;
+  const isForm=!!last.querySelector&&!!last.querySelector('input,button,form,select');
+  if(!t&&!isForm&&!last.querySelector('img'))break;
+  const hit=isForm||strong(t)||(weak(t)&&lowerStart(t))||(dropped&&(weak(t)||lowerStart(t)||/^h[1-6]$/i.test(last.tagName)||/^(sign up|subscribe|submit|e-?mail|join|get started|continue)\b/i.test(t)));
+  if(!hit)break;
+  last.remove();dropped++;
+ }
+}
+function underscoreItalics(root){mdInline(root);dedupParas(root);dropTailPromo(root)}
 /* plain-text version of a line that may carry markdown marks (for deks and previews) */
 const unMd=x=>String(x||'').replace(/\[([^\]\n]+)\]\(https?:[^)\s]*\)/g,'$1').replace(/(\*\*|__|~~)(\S(?:[^\n]*?\S)?)\1/g,'$2').replace(/(^|[^\w*])\*(\S(?:[^*\n]*?\S)?)\*(?![\w*])/g,'$1$2').replace(/(^|[^\w_])_(\S(?:[^_\n]*?\S)?)_(?![\w_])/g,'$1$2');
 function tidy(fr){
