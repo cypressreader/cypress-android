@@ -3267,6 +3267,28 @@ html.txo #grid img,html.txo #rd img,html.txo #hub img,html.txo .dcv-art>img{disp
 .wtick b{position:relative;z-index:2;background:var(--ink);opacity:1}
 .wtick-vp{flex:1 1 auto;min-width:0;overflow:hidden;margin-left:14px;position:relative;z-index:1}
 .wtick-in{width:max-content}
+
+/* Today cover follow-up: the photo is shown whenever there is one; covers without a photo are composed to use the whole height */
+.dcv-num{display:none}.dcv-q{display:none}
+.dcov.dct-type .dcv-q,.dcov.dct-min .dcv-q,.dcov.dct-fb .dcv-q{display:block}
+.dcv-q{margin:20px 0 0;padding:0 0 0 16px;border-left:3px solid #d1ad55;max-width:32em;font:italic 400 clamp(18px,4.6vw,28px)/1.28 var(--disp,Georgia,serif);font-synthesis:none;opacity:.96}
+.dcv-q span{font-style:normal;margin-right:.12em;color:#d1ad55}
+.dcv-q cite{display:block;margin-top:8px;font:600 10.5px var(--sans);font-style:normal;letter-spacing:.16em;text-transform:uppercase;opacity:.75}
+.dcv-q.dcv-qd{border-left-color:#d1ad55}
+.dcov.dct-type .dcv-main,.dcov.dct-min .dcv-main,.dcov.dct-fb .dcv-main{margin-top:auto;margin-bottom:auto;padding-top:24px;padding-bottom:24px}
+.dcov.dct-type .dcv-lead h2,.dcov.dct-fb .dcv-lead h2{font-size:clamp(46px,14.5vw,118px);line-height:.9}
+.dcov.dct-type .dcv-lead.long h2,.dcov.dct-fb .dcv-lead.long h2{font-size:clamp(38px,11.2vw,88px)}
+.dcov.dct-min .dcv-lead h2{font-size:clamp(40px,12vw,96px)}
+.dcov.dct-type .dcv-num,.dcov.dct-fb .dcv-num,.dcov.dct-min .dcv-num{display:block;position:absolute;right:calc(var(--gp,24px) + 4px);top:clamp(96px,22%,200px);z-index:-1;font:400 clamp(150px,44vw,360px)/.8 var(--disp,Georgia,serif);letter-spacing:-.04em;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.16);pointer-events:none;user-select:none}
+.dcov.dct-min .dcv-num{-webkit-text-stroke-color:rgba(0,0,0,.10)}
+.dcov.dct-min .dcv-q{border-left-color:var(--b,#1f6a48);color:#1c1d1b}
+.dcov.dct-min .dcv-q span{color:var(--b,#1f6a48)}
+/* a photo that could not load: the landscape art is lit and the feed's pattern runs over it, so the cover reads as designed */
+.dcov.dct-fb .dcv-art>svg{opacity:1}
+.dcov.dct-fb .dcv-art::after{background-image:var(--pat),linear-gradient(160deg,rgba(14,90,58,.35),rgba(8,40,28,.15) 45%,rgba(8,40,28,.45));background-size:96px 96px,auto;mix-blend-mode:normal;opacity:.9}
+.dcov.dct-fb .dcv-sh{background:linear-gradient(180deg,rgba(4,22,15,.42) 0%,rgba(4,22,15,.12) 30%,rgba(4,22,15,.5) 60%,rgba(3,18,12,.88) 100%)}
+.dcv-art>img.lo{filter:url(#cyduo) contrast(1.04) blur(.4px)}
+@media(min-width:900px){.dcov.dct-type .dcv-lead h2,.dcov.dct-fb .dcv-lead h2{font-size:clamp(44px,6.6vw,92px)}.dcov.dct-type .dcv-lead.long h2,.dcov.dct-fb .dcv-lead.long h2{font-size:clamp(38px,5.4vw,76px)}.dcov.dct-min .dcv-lead h2{font-size:clamp(40px,6vw,84px)}.dcov.dct-min .dcv-lead.long h2{font-size:clamp(36px,4.8vw,68px)}}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -10223,8 +10245,15 @@ function pe(slot,extra,key,skip){
 /* ---- experiment, cluster 8: art-directed cover photo ----
    Every cover picture gets the same treatment: a subtle duotone (shadows pulled to deep green, highlights to warm paper, mixed in at about 60%)
    under one deep gradient. A photo that is missing, too small or the wrong shape is dropped and the per-edition art shows instead. */
+/* The cover photo is shown whenever the story has one: only a picture too small to be a photo at all (an icon, a spacer) is dropped. A dropped or failed picture is logged and the cover switches to its designed fallback look, never a bare void. */
+function cvArtFail(im,why){
+ try{const c=im&&im.closest&&im.closest('.dcov'),u=im&&(im.getAttribute('src')||'');if(im&&im.parentNode)im.remove();
+  if(c&&!c.querySelector('.dcv-art>img')){c.classList.add('dct-fb');c.classList.remove('dct-photo')}
+  elog('cover art',(why||'failed')+' '+String(u).slice(0,120));
+ }catch(e){}
+}
 function cvJudge(im){
- try{const w=im.naturalWidth,h=im.naturalHeight;if(w<700||h<380||h/w>1.25){im.remove();return}im.classList.add('ok')}catch(e){}
+ try{const w=im.naturalWidth,h=im.naturalHeight;if(w<240||h<160){cvArtFail(im,'too small ('+w+'x'+h+')');return}if(w<700||h/w>1.25)im.classList.add('lo');if(h/w>1.25)im.style.objectPosition='50% 28%';im.classList.add('ok')}catch(e){}
 }
 document.body.insertAdjacentHTML('beforeend',`<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="cyduo" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix type="matrix" values=".33 .59 .11 0 0 .33 .59 .11 0 0 .33 .59 .11 0 0 0 0 0 1 0" result="g"/><feComponentTransfer in="g" result="d"><feFuncR type="table" tableValues="0.04 0.93"/><feFuncG type="table" tableValues="0.16 0.88"/><feFuncB type="table" tableValues="0.11 0.78"/></feComponentTransfer><feComposite in="d" in2="SourceGraphic" operator="arithmetic" k1="0" k2=".6" k3=".4" k4="0"/></filter><filter id="cyduoD" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix type="matrix" values=".33 .59 .11 0 0 .33 .59 .11 0 0 .33 .59 .11 0 0 0 0 0 1 0" result="g"/><feComponentTransfer in="g" result="d"><feFuncR type="table" tableValues="0.01 0.9"/><feFuncG type="table" tableValues="0.05 0.74"/><feFuncB type="table" tableValues="0.03 0.5"/></feComponentTransfer><feComposite in="d" in2="SourceGraphic" operator="arithmetic" k1="0" k2=".62" k3=".38" k4="0"/></filter></svg>`);
 function edArtSvg(am){
@@ -10240,9 +10269,9 @@ function dayCoverHtml(lead,pool){covSeen();
  cur=[lead];WHY[lead.link]=whyLead(lead);
  const li=lines.map(a=>{cur.push(a);WHY[a.link]='Cover line: a top unread story from '+fof(a).title+', one per site';return `<a class="cvl dcv-l" href="${esc(a.link)}" data-i="${cur.length-1}"><small style="--b:${brand(fof(a))}">${esc(pe('coverline',{},'cl'+cur.length,usedCL))} · ${esc(fof(a).title)}</small><span>${esc(a.title)}</span></a>`}).join('');
  const note=pe('note',{},'cover');
- return `<div class="dcov ${am?'dcm':'dce'} dct-${tr}" style="--b:${brand(fof(lead))}"><div class="dcv-art">${tr==='min'?'':edArtSvg(am)}${lead.img&&tr==='photo'?`<img src="${esc(lead.img)}" alt="" referrerpolicy="no-referrer" onload="cvJudge(this)" onerror="this.remove()">`:''}</div><div class="dcv-sh"></div>`
+ return `<div class="dcov ${am?'dcm':'dce'} dct-${tr}" style="--b:${brand(fof(lead))}"><div class="dcv-art">${tr==='min'?'':edArtSvg(am)}${lead.img&&tr==='photo'?`<img src="${esc(lead.img)}" alt="" referrerpolicy="no-referrer" onload="cvJudge(this)" onerror="cvArtFail(this,'did not load')">`:''}</div><div class="dcv-sh"></div><span class="dcv-num" aria-hidden="true">${issue}</span>`
   +`<header class="dcv-top"><span class="dcv-mast">CYPRESS</span><span class="dcv-motto">${esc(DAY_MOTTO)}</span><span class="dcv-ed">${esc(edition(d))} · No. ${issue}</span></header>`
-  +`<div class="dcv-main"><a class="cvlead dcv-lead${lead.title.length>72?' long':''}" href="${esc(lead.link)}" data-i="0"><small>${esc(fof(lead).title)}</small><h2>${esc(lead.title)}</h2></a>${note?`<p class="dcv-note">${esc(note)}</p>`:''}${li?`<div class="dcv-lines">${li}</div>`:''}</div>`
+  +`<div class="dcv-main"><a class="cvlead dcv-lead${lead.title.length>72?' long':''}" href="${esc(lead.link)}" data-i="0"><small>${esc(fof(lead).title)}</small><h2>${esc(lead.title)}</h2></a>${(()=>{let q=null;try{q=nrQuoteText(lead)}catch(e){}const t=q&&q.q&&q.q.length>=40?q.q.replace(/[\s,;:–—-]+$/,'')+(/[.!?…]$/.test(q.q)?'':'…'):'';const dk=t?'':(()=>{try{return ledeOf(lead)||dekOf(lead,190)}catch(e){return ''}})();return t?`<blockquote class="dcv-q"><span aria-hidden="true">“</span>${esc(t)}<cite>${esc(fof(lead).title)}</cite></blockquote>`:dk?`<p class="dcv-q dcv-qd">${esc(dk)}</p>`:''})()}${note?`<p class="dcv-note">${esc(note)}</p>`:''}${li?`<div class="dcv-lines">${li}</div>`:''}</div>`
   +`<div class="dcv-prog"><!--DGP--></div>${WHY[lead.link]?'<button type="button" class="why cvwhy dcv-why" data-why="0" title="Why am I seeing this?" aria-label="Why am I seeing this?">i</button>':''}</div>`;
 }
 function coverHtml(lead,pool){covSeen();
