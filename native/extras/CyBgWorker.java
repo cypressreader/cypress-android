@@ -138,18 +138,22 @@ public class CyBgWorker extends Worker {
                 Log.w(TAG, "alerts failed: " + t);
             }
         }
-        if (digestOn && !quiet) {
-            try {
-                doDigest(ctx, digest, all);
-            } catch (Throwable t) {
-                Log.w(TAG, "digest failed: " + t);
-            }
-        }
+        // The morning pack is built first, and the "edition is ready" notice follows it, so the notice means the overnight fetch is done.
+        boolean packReady = true;
         if (packOn) {
             try {
-                doPack(ctx, dir, pack, all, feedOrder, !quiet);
+                String dw = digest == null ? "morning" : digest.optString("when", "morning");
+                boolean editionNotice = digestOn && ("morning".equals(dw) || "both".equals(dw));
+                packReady = doPack(ctx, dir, pack, all, feedOrder, !quiet && !editionNotice);
             } catch (Throwable t) {
                 Log.w(TAG, "pack failed: " + t);
+            }
+        }
+        if (digestOn && !quiet) {
+            try {
+                doDigest(ctx, digest, all, packReady);
+            } catch (Throwable t) {
+                Log.w(TAG, "digest failed: " + t);
             }
         }
         if (widgetOn) {
@@ -290,7 +294,7 @@ public class CyBgWorker extends Worker {
      * Tells you when a digest is ready. The digest itself is put together in the app, from what is already stored,
      * so this only posts a short notice once per slot and day.
      */
-    private static void doDigest(Context ctx, JSONObject dg, List<Item> all) {
+    private static void doDigest(Context ctx, JSONObject dg, List<Item> all, boolean packReady) {
         Calendar cal = Calendar.getInstance();
         int hour = cal.get(Calendar.HOUR_OF_DAY);
         String today = String.format(Locale.US, "%04d-%02d-%02d",
@@ -316,6 +320,7 @@ public class CyBgWorker extends Worker {
             title = "Your evening digest is ready";
         }
         if (slot == null) return;
+        if ("dg_m".equals(slot) && !packReady) return; // wait until the overnight pack is built
         long since = System.currentTimeMillis() - ("dg_w".equals(slot) ? 7L * 86400000L : 24L * 3600000L);
         int n = 0;
         for (Item it : all) if (it.date >= since) n++;
@@ -345,12 +350,12 @@ public class CyBgWorker extends Worker {
 
     // ------------------------------------------------------------------ morning pack
 
-    private static void doPack(Context ctx, File dir, JSONObject pack, List<Item> all, List<String> feedOrder, boolean notify) throws Exception {
+    private static boolean doPack(Context ctx, File dir, JSONObject pack, List<Item> all, List<String> feedOrder, boolean notify) throws Exception {
         Calendar cal = Calendar.getInstance();
         String today = String.format(Locale.US, "%04d-%02d-%02d",
             cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH));
         int hour = pack.optInt("hour", 7);
-        if (cal.get(Calendar.HOUR_OF_DAY) < hour) return;
+        if (cal.get(Calendar.HOUR_OF_DAY) < hour) return false;
 
         File pf = new File(dir, CyExtras.FILE_PACK);
         String existing = CyExtras.readFile(pf);
@@ -363,7 +368,7 @@ public class CyBgWorker extends Worker {
                     if (notify && xi != null && xi.length() > 0 && !today.equals(CyExtras.prefs(ctx).getString("pack_notified", ""))) {
                         announcePack(ctx, today, xi.length());
                     }
-                    return;
+                    return true;
                 }
             } catch (Throwable t) {
                 // rebuild
@@ -399,6 +404,7 @@ public class CyBgWorker extends Worker {
         out.put("items", items);
         CyExtras.writeFile(pf, out.toString());
         if (notify && items.length() > 0) announcePack(ctx, today, items.length());
+        return true;
     }
 
     private static void announcePack(Context ctx, String today, int n) {
