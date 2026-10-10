@@ -3623,6 +3623,8 @@ const abs=(u,b)=>{try{return new URL(u,b).href}catch(e){return''}};
 const SKIP=new Set(['SCRIPT','STYLE','NAV','FOOTER','ASIDE','FORM','IFRAME','NOSCRIPT','SVG','BUTTON','HEAD']);
 const OK=new Set('P H2 H3 H4 UL OL LI BLOCKQUOTE FIGURE FIGCAPTION A STRONG B EM I PRE CODE BR HR IMG TABLE THEAD TBODY TFOOT TR TH TD CAPTION'.split(' '));
 function rebuildEmb(c,t){
+ /* a saved tap-to-play video card is kept as it is when a stored story is cleaned again */
+ if(t==='BUTTON'&&c.classList&&c.classList.contains('yt-tap')){const id=c.getAttribute('data-yt')||'';return /^[\w-]{6,}$/.test(id)?ytCard(id,true):null}
  if((t!=='A'&&t!=='DIV')||!c.classList||!c.classList.contains('emb'))return null;
  const href=c.getAttribute('href')||'',ok=/^https?:\/\//.test(href);let m;
  if(ok&&(m=href.match(/youtube\.com\/watch\?v=([\w-]{6,})/))){return embedOf({getAttribute:k=>k==='src'?'https://www.youtube.com/embed/'+m[1]:''},'IFRAME')}
