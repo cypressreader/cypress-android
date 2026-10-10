@@ -19,6 +19,12 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    /* folder and single-feed views keep it too */
    S.feeds.slice(0,4).forEach(f=>items[f.id].forEach(a=>a.date+=26*36e5));WIRE.tr={};
    const fo=S.folders.find(f=>S.feeds.filter(x=>x.folder===f.id).length>1);if(fo){S.sel='f:'+fo.id;render();await w(900);r.folder=st()}
+   /* all four All stories tabs carry the strip, and a chip opens the topic page directly */
+   for(const t of ['latest','top','quick','deep']){S.sel='all';S.atab=t;_lastSel=null;render();await w(700);r['tab_'+t]=st()}
+   S.atab='latest';S.sel='all';render();await w(700);document.querySelector('.wtrend [data-trend]').click();await w(700);
+   r.topicOpen=!!document.querySelector('.tmast');r.noSearchBar=!document.querySelector('#srch.open');
+   document.querySelector('[data-topicx]').click();await w(600);r.topicClosed=!document.querySelector('.tmast')&&document.querySelector('#q').value==='';
+   document.querySelector('.wtrend [data-trend]').click();await w(500);S.sel='saved';render();await w(400);r.topicEndsOnLeave=!document.querySelector('.tmast')&&document.querySelector('#q').value==='';
    return r});
   for(const k in out)ck(W+' strip '+k,out[k]===true,JSON.stringify(out));
   ck(W+' no page errors',!errs.length,errs[0]);await b.close();

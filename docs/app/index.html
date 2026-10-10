@@ -4082,6 +4082,15 @@ function wireTrending(list,multi){
  const a=pick(3);return a.length?a:pick(2);
 }
 /* The trending strip is computed from everything recent in the selection, not from whatever happens to be on screen, and the last good strip is kept for a while: it stays put when you navigate away and back, or the ranking shifts. */
+function trendStripHtml(tr){
+ return tr&&tr.length?`<div class="wtrend" role="group" aria-label="Trending topics"><span>Trending</span>${tr.map(e=>`<button type="button" data-trend="${esc(e.w)}">${esc(e.w)}<i>${e.n}</i></button>`).join('')}</div>`:'';
+}
+/* a trending chip opens that topic directly: no search bar, just the topic page; leaving the list (or Close topic) ends it */
+let TOPIC=null;
+function openTopic(w){
+ TOPIC={w,sel:S.sel};$('#q').value=w;render();const m=$('main');if(m)m.scrollTop=0;
+}
+{const _rt=render;render=function(){if(TOPIC&&(S.sel!==TOPIC.sel||!$('#q').value)){TOPIC=null;if(!srch.classList.contains('open'))$('#q').value=''}return _rt.apply(this,arguments)}}
 function wireStrip(cn){
  const k=S.sel,now=Date.now();WIRE.tr=WIRE.tr||{};
  let feeds=S.feeds.filter(f=>!paused(f));
@@ -4183,7 +4192,7 @@ function wireRender(pre,list,T){
  const tr=T?[]:wireStrip(cn),clock=vis?wireClock(vis):'';
  const head=pre+(f1?feedMast(f1,unread):'')+(pend?`<button type="button" class="wpill" data-wire="load" aria-live="polite">${pend} new ${pend===1?'story':'stories'} — tap to load</button>`:'')
   +`<div class="wmeta"><div class="nr-meta">${cn.length} stories${S.hideCount?'':' · '+unread+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>${densHtml()}</div>`
-  +(tr.length?`<div class="wtrend" role="group" aria-label="Trending topics"><span>Trending</span>${tr.map(e=>`<button type="button" data-trend="${esc(e.w)}">${esc(e.w)}<i>${e.n}</i></button>`).join('')}</div>`:'');
+  +trendStripHtml(tr);
  g.classList.add('nr','wire');if(T)g.classList.add('wtopic');if(FD){g.classList.add('fed');g.style.setProperty('--fb',brand(FD))}if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
  /* coming back to a place you left: render far enough to include the story that was at the top of the screen */
  let first=9;const wp=S.wirePos;let anchor=-1;
@@ -4217,7 +4226,7 @@ function wireSavePos(){
  document.addEventListener('click',e=>{
   const w=e.target.closest&&e.target.closest('[data-wire]');if(w){e.preventDefault();e.stopPropagation();wireLoad();return}
   const t=e.target.closest&&e.target.closest('[data-thr]');if(t){e.preventDefault();e.stopPropagation();const b=document.getElementById(t.dataset.thr);if(b){const open=b.hidden;b.hidden=!open;t.setAttribute('aria-expanded',String(open));t.classList.toggle('on',open)}return}
-  const tr=e.target.closest&&e.target.closest('[data-trend]');if(tr){e.preventDefault();e.stopPropagation();openSearch(true);$('#q').value=tr.dataset.trend;render()}
+  const tr=e.target.closest&&e.target.closest('[data-trend]');if(tr){e.preventDefault();e.stopPropagation();openTopic(tr.dataset.trend)}
  },true);
 }
 /* ---- experiment, cluster 10: motion ----
@@ -5284,6 +5293,7 @@ function renderToday(tab0,pool0,seg0,ttl0){
  const byDate=pool.slice().sort((a,b)=>b.date-a.date);DAYPOOL=pool;
  for(const k in WHY)delete WHY[k];
  let h=SEG,list=[],label='',empty='';
+ if(tab!=='latest'&&(ttl0==='All stories')){try{h+=trendStripHtml(wireStrip([]))}catch(e){}}
  if(tab==='latest'){
   const ed0=dayEdition(pool),ranked=ed0.length?ed0:byDate.slice(0,ED_N);
   let lead=ranked.find(a=>a.img)||ranked[0]||pool.find(a=>a.img)||pool[0];
@@ -7164,7 +7174,7 @@ $('#mr').onclick=()=>{const add=[];cur.forEach(a=>{[a.link,...(a.more||[]).map(m
  if(add.length)toast('Marked '+cur.length+(cur.length===1?' story':' stories')+' as read',()=>{add.forEach(l=>delete S.read[l]);save();render()})};
 $('#q').oninput=()=>render();
 const srch=$('#srch');
-function openSearch(o){srch.classList.toggle('open',o);if(o)$('#q').focus();else{$('#q').value='';render()}}
+function openSearch(o){srch.classList.toggle('open',o);TOPIC=null;if(o)$('#q').focus();else{$('#q').value='';render()}}
 $('#sb').onclick=()=>openSearch(!srch.classList.contains('open'));
 $('#q').onkeydown=e=>{if(e.key==='Escape'){e.stopPropagation();openSearch(false)}};
 $('main').addEventListener('click',e=>{if(document.body.classList.contains('open')&&!e.target.closest('#menu')){e.preventDefault();e.stopPropagation();drawer(false)}},true);
@@ -9402,7 +9412,7 @@ function topicMast(q,list){
  const f=topicFacts(q,list),stat=pe('topicstat',f,'tp'+q.toLowerCase()),fol=S.sk.some(k=>k.words.length===1&&k.words[0]===q);
  return `<header class="tmast"><small>Topic</small><h2>${esc(q)}</h2><p class="tm-s">${esc(stat)}</p><div class="tm-a">${fol?'<span class="tm-f">Following</span>':`<button class="tx2" type="button" data-follow="${esc(q)}">Follow this topic</button>`}<button class="tx2" type="button" data-topicx>Close topic</button></div></header>`;
 }
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-topicx]');if(!b)return;e.preventDefault();e.stopPropagation();openSearch(false)},true);
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-topicx]');if(!b)return;e.preventDefault();e.stopPropagation();openSearch(false);const m=$('main');if(m)m.scrollTop=0},true);
 /* earlier coverage of the same story, found in the feeds and reading history already on the device */
 function prevStories(a){
  const sg=wsig(a);if(sg.size<3)return [];
