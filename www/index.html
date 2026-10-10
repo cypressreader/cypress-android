@@ -2906,7 +2906,15 @@ html.rdx .cols.tplb img.hero{aspect-ratio:16/9;max-height:calc(var(--ih)*.42)}
  body:not(.narrow):not(.split).reading aside{overflow:hidden;transform:translateX(-101%);transition:transform .28s ease;min-width:0}
  body:not(.narrow):not(.split).reading.sideshow aside{position:fixed;inset:0 auto 0 0;width:min(300px,80vw);transform:none;z-index:45;box-shadow:8px 0 44px rgba(0,0,0,.38)}
 }
-#sideh{position:fixed;left:0;top:50%;z-index:44;width:22px;height:68px;margin-top:-34px;border-radius:0 12px 12px 0;background:var(--pn);border:1px solid var(--ln);border-left:0;color:var(--mut);display:none;align-items:center;justify-content:center;box-shadow:2px 0 10px rgba(0,0,0,.12)}
+/* compositing hygiene for Android web views: the cover parallax and the page-turn leaf are the layers that can leave a duplicate, offset copy of text behind, so on Android they are switched off, and every moving layer is dropped while a drawer is over the page */
+html.android .dcv-art,html.android .dcov .dcv-main{transform:none!important;will-change:auto!important;opacity:1!important}
+html.android .dcv-art{inset:0}
+body.sideshow .tl-leaf,body.open .tl-leaf,#rdnav.on ~ .tl-leaf{display:none!important}
+body.sideshow .cols,body.open .cols{will-change:auto}
+#sidehdr{display:none}
+body.sideshow #sidehdr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}#sidehdr h2{font:700 11px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}#sidehdr .ib{width:34px;height:34px}
+#sideh span{writing-mode:vertical-rl;font:700 10px var(--sans);letter-spacing:.14em;text-transform:uppercase;margin-top:6px}#sideh{flex-direction:column;gap:0}
+#sideh{position:fixed;left:0;top:50%;z-index:44;width:26px;height:92px;margin-top:-46px;border-radius:0 12px 12px 0;background:var(--pn);border:1px solid var(--ln);border-left:0;color:var(--mut);display:none;align-items:center;justify-content:center;box-shadow:2px 0 10px rgba(0,0,0,.12)}
 body:not(.narrow):not(.split).reading:not(.sideshow) #sideh{display:flex}
 @media(max-width:699px){#sideh{display:none!important}}
 @media(prefers-reduced-motion:reduce){body:not(.narrow):not(.split),body:not(.narrow):not(.split).reading aside{transition:none}}
@@ -5237,7 +5245,11 @@ const GRTITLE=[/\(\s*author of\b[^)]*\)\s*$/i,/\(\s*(?=[a-z0-9]*\d)[a-z0-9]{4,}\
 const junkItem=a=>{try{const u=new URL(a.link);for(const[h,ok]of JUNKFEEDS)if(h.test(u.hostname)&&!ok.test(u.pathname))return true}catch(e){}try{const f=fof(a),t=(a.title||'').trim();if(/goodreads\.com/i.test((f&&f.url)||'')&&GRTITLE.some(r=>r.test(t)))return true}catch(e){}return false};
 const DEALRX=[/\b\d{1,2}\s?% (off|discount)\b/i,/\bsave (up to )?(\$|£|€)\d+/i,/(\$|£|€)\d+(\.\d\d)? off\b/i,/\bup to \d+% (off|discount)/i,/\b(best|biggest|early|great|huge)\s+(\w+[\w\x27-]*\s+){0,3}deals?\b/i,/\bdeals? (of the day|alert|roundup|round-up)\b/i,/\b(prime day|prime big deal|black friday|cyber monday|boxing day sales?|labou?r day sales?|memorial day sales?|presidents.? day sales?|back[- ]to[- ]school sales?)\b/i,/\b(coupons?|promo codes?|discount codes?|voucher codes?)\b/i,/\bwhere to buy\b|\bbuying guide\b|\bworth buying\b/i,/\b(lowest|record[- ]low|all[- ]time low) price\b/i,/\b(is|are) on sale (at|for|now|today)\b|\bnow on sale at\b/i,/\b(deals?|sales?|discounts?)\b.{0,30}\b(at|from|on) (amazon|walmart|best buy|target|costco|ebay)\b/i,/^(sponsored|advertisement|advertorial|partner content|promoted|paid post)\s*[:|–—-]/i,/[|–—-]\s*(sponsored|advertisement|partner content|paid post)\s*\)?\s*$/i,/\((sponsored|advertisement|ad)\)/i],DEALURL=/\/(deals?|coupons?|sponsored|advertorial|promo-codes?|paid-content|shopping-deals)(\/|$)/i;
 const dealItem=a=>{const t=(a.title||'').trim();if(DEALRX.some(r=>r.test(t)))return true;try{const u=new URL(a.link);if(DEALURL.test(u.pathname)||/^(deals|coupons|shop)\./i.test(u.hostname))return true}catch(e){}return false};
-const dealHide=a=>!!S.hideDeals&&dealItem(a);
+/* an ad for an event or a sponsor is never a story: ticket pushes, 'N days to ...' countdowns, 'Sponsored' posts and partner content are kept out of every editorial surface (cover, lists, brief), not just re-styled */
+const PROMORX=[/\b(disrupt|techcrunch sessions|stagecraft|early[- ]bird|all stage)\b.{0,80}\b(tickets?|passes|pass|register|registration|save \$?\d|last chance|ends? (today|tonight|soon)|days? (left|to go))\b/i,/\b\d+ days?( left)? (to|until|before) .{0,50}\b(disrupt|summit|conference|expo|festival|event|sale ends)\b/i,/^\W*(sponsored|promoted|partner content|paid post|advertorial|presented by|brought to you by)\b/i,/\b(limited[- ]time|last chance|don.t miss)\b.{0,50}\b(tickets?|passes|offer|discount|save)\b/i,/^\W*(the number|by the numbers)\W{0,3}\$\d+/i];
+const PROMOURL=/\/(sponsored|partner-content|advertorial|promo(tions?)?|events?\/(register|tickets))(\/|$)|[?&](utm_medium=(sponsor|paid)|sponsored=)/i;
+const promoItem=a=>{const t=(a.title||'').trim();if(PROMORX.some(r=>r.test(t)))return true;try{if(PROMOURL.test(new URL(a.link).pathname+new URL(a.link).search))return true}catch(e){}return false};
+const dealHide=a=>(!!S.hideDeals&&dealItem(a))||promoItem(a);
 if(S.autodark===undefined)S.autodark=S.night==='twin';
 /* a muted single word matches whole words only ("ai" does not hide "said"); a muted phrase matches as text */
 const MUTERX={};
@@ -8700,10 +8712,11 @@ function ytPlay(b){
  f.addEventListener('load',()=>{try{f.contentWindow.postMessage(JSON.stringify({event:'listening',id:1,channel:'widget'}),'*')}catch(e){}});
 }
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.yt-tap');if(b){e.preventDefault();ytPlay(b)}});
+try{if(/Android/i.test(navigator.userAgent))document.documentElement.classList.add('android')}catch(e){}
 function ytId(a){const m=(a.link||'').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([\w-]{11})/);return a.yt||(m?m[1]:'')}
 function mediaBlock(a){
  const y=ytId(a);
- if(y)return `<div class="vid"><iframe src="https://www.youtube-nocookie.com/embed/${esc(y)}?rel=0&playsinline=1" title="Video" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`;
+ if(y)return ytCard(y,true).outerHTML;
  if(a.audio)return `<div class="aud"><audio controls preload="none" src="${esc(a.audio)}"></audio><div class="aspd"><span>Speed</span>${[0.8,1,1.25,1.5,1.75,2].map(v=>`<button type="button" data-aspd="${v}" class="${(+S.prate||1)===v?'on':''}">${v}×</button>`).join('')}</div></div>`;
  return'';
 }
@@ -11740,7 +11753,8 @@ try{const bd=$('#bid');if(bd)bd.value=String(biDays())}catch(e){}
 /* ---- correction round, cluster 9: tablets keep the sidebar while you browse and slide it away while you read; a small tab or an edge swipe brings it back ---- */
 {
  const rd=$('#rd');
- const h=document.createElement('button');h.id='sideh';h.type='button';h.setAttribute('aria-label','Show feeds');h.title='Show feeds';h.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg>';document.body.append(h);
+ const h=document.createElement('button');h.id='sideh';h.type='button';h.setAttribute('aria-label','Show feeds');h.title='Show your feeds';h.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg><span aria-hidden="true">Feeds</span>';document.body.append(h);
+ {const as=document.querySelector('aside');if(as&&!$('#sidehdr')){const d=document.createElement('div');d.id='sidehdr';d.innerHTML='<h2>Your feeds</h2><button type="button" class="ib" id="sidehx" aria-label="Close feeds">'+svg('<path d="M6 6l12 12M18 6 6 18"/>')+'</button>';as.prepend(d);d.querySelector('#sidehx').onclick=()=>document.body.classList.remove('sideshow')}}
  const set=on=>{document.body.classList.toggle('reading',on);if(!on)document.body.classList.remove('sideshow')};
  if(rd){new MutationObserver(()=>set(rd.classList.contains('on'))).observe(rd,{attributes:true,attributeFilter:['class']});set(rd.classList.contains('on'))}
  h.onclick=()=>document.body.classList.add('sideshow');
