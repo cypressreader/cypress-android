@@ -4802,7 +4802,7 @@ function junkLogText(){
  return 'CyPress junk log ('+r.length+')\n\n'+r.map(x=>x.u+'\n'+x.t+'\n'+x.h).join('\n\n---\n\n');
 }
 /* the pipeline's two entry points */
-{const _d=decorate;decorate=function(){try{const b=$('.cols .body');if(b&&curA&&!R.web)junkClean(b,curA.link)}catch(e){}return _d.apply(this,arguments)}}
+{const _d=decorate;decorate=function(){try{const b=$('.cols .body');if(b&&curA&&!R.web&&!b.dataset.clean)junkClean(b,curA.link)}catch(e){}return _d.apply(this,arguments)}}
 /* ---- experiment, cluster 14: the magazine article view ----
    A display-serif headline, a drop cap, up to three pull quotes lifted from the article's own sentences, a generous serif body, a live "N min left" pill,
    and an end-of-article footer with a cue to the next story and a few related reads. */
@@ -5636,6 +5636,21 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
    Only on Wi-Fi, never when downloads are off, in Offline or Data saver mode or in low-power mode, one story at a time with a pause between,
    and it stops as soon as you leave The Daily, leave Wi-Fi or the edition changes. A story that fails is not tried again in the same edition. */
 const DPRE={k:'',q:[],tried:new Set(),on:false,t:0,gap:1500};
+/* what a background pass may store as a ready story: the whole text, not a gated preview, a site footer or a stub */
+function acStoreOk(n,a){
+ if(!n||n.pw||acHas(a.link))return false;
+ try{if(footerish(n.textContent||''))return false;const have=fromHTML(a.html||'',a.link).textContent.length;return (n.textContent||'').length>=Math.max(600,have+100)}catch(e){return false}
+}
+/* the network and the battery decide how much a background pass may take: nothing on mobile data, a few stories when the connection or the charge is unknown or low, more on Wi-Fi and on charge */
+function netKind(){try{const c=navigator.connection;if(!c)return 'unknown';if(c.type==='cellular')return 'cell';if(c.type==='wifi'||c.type==='ethernet')return 'wifi';if(/^(slow-2g|2g|3g)$/.test(c.effectiveType||''))return 'cell';return 'unknown'}catch(e){return 'unknown'}}
+const MOBILEUA=(()=>{try{return /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent))}catch(e){return false}})();
+function pfCap(base){
+ let n=base;const k=netKind();if(k==='cell')return 0;
+ if(k==='unknown'&&MOBILEUA)n=Math.min(n,6);
+ if(typeof BATST!=='undefined'&&BATST&&!BATST.charging&&BATST.level<=.5)n=Math.min(n,6);
+ return n;
+}
+const dpCap=()=>pfCap((typeof BATST!=='undefined'&&BATST&&BATST.charging)?40:20);
 function dpOk(){
  try{
   if(S.sel!=='today'||edKey()!==DPRE.k||pfMode()==='off'||S.offline||isOn('dsave')||!online())return false;
@@ -5648,7 +5663,8 @@ function dayPreload(){
  const k=edKey();if(DPRE.k!==k){DPRE.k=k;DPRE.tried=new Set();DPRE.q=[]}
  if(!dpOk()||DPRE.on)return;
  const by=storyMap();
- DPRE.q=DGL.map(l=>by.get(l)).filter(a=>a&&!DPRE.tried.has(a.link)&&!S.rt[a.link]&&!acHas(a.link)&&!S.read[a.link]);
+ /* the edition's own stories, newest first by rank, within the cap and no older than three days; pictures are left to load when you scroll to them */
+ DPRE.q=DGL.map(l=>by.get(l)).filter(a=>a&&!DPRE.tried.has(a.link)&&!S.rt[a.link]&&!acHas(a.link)&&!S.read[a.link]&&(!a.date||Date.now()-a.date<72*36e5)).slice(0,dpCap());
  if(DPRE.q.length)dpRun();
 }
 async function dpRun(){
@@ -5661,11 +5677,10 @@ async function dpRun(){
    if(!dpOk()){DPRE.q=[];break}
    try{
     const n=await getFull(a.link,true);
-    if(n&&!n.pw&&!acHas(a.link)){
-     const have=fromHTML(a.html||'',a.link).textContent.length;
-     if(n.textContent.length>=Math.max(600,have+100)){
-      const d=document.createElement('div');d.append(dropTitle(n,a.title));
-      acPut(a.link,d.innerHTML);markReady(a.link);warmImgs(d,a);
+    if(acStoreOk(n,a)){
+     {
+      const d=document.createElement('div');d.append(dropTitle(n.cloneNode(true),a.title));
+      acPut(a.link,d.innerHTML,1);markReady(a.link);
       S.rt[a.link]=Math.max(1,Math.round(d.textContent.split(/\s+/).length/230));
       clearTimeout(DPRE.st);DPRE.st=setTimeout(save,900);got++;
       /* the sections fill in as lengths arrive, but never while you are scrolling or reading */
@@ -6382,7 +6397,7 @@ const whyHtml=u=>{const l=LG[u];return l&&l.length?`<details class="why"><summar
 const diagText=a=>'CyPress '+APP_LABEL+'\n'+(a?a.link:'')+'\nFeed: '+(a?fof(a).title:'')+'\n'+navigator.userAgent+'\n\n'+[...new Set((a&&LG[a.link])||[])].join('\n');
 /* background preload */
 const PF={q:[],done:new Set(),run:0,n:0,t:0,tot:0,fin:0,deep:0,dt:0};
-let BATLOW=false;(async()=>{try{if(!navigator.getBattery)return;const bt=await navigator.getBattery();const up=()=>{BATLOW=bt.level<=.2&&!bt.charging};['levelchange','chargingchange'].forEach(t=>bt.addEventListener(t,up));up()}catch(e){}})();
+let BATLOW=false,BATST=null;(async()=>{try{if(!navigator.getBattery)return;const bt=await navigator.getBattery();BATST=bt;const up=()=>{BATLOW=bt.level<=.2&&!bt.charging};['levelchange','chargingchange'].forEach(t=>bt.addEventListener(t,up));up()}catch(e){}})();
 const pfMode=()=>S.pfm||(S.preload===false?'off':'top10');
 /* how many stories to get ready: 10 for the standard mode, or the number the person chose (1 to 500) */
 const pfN=()=>pfMode()==='custom'?Math.max(1,Math.min(500,Math.round(+S.pfn)||10)):10;
@@ -6471,11 +6486,12 @@ function pfBar(){
  else b.classList.remove('lpd');
 }
 function prefetch(list,first){
- if(!pfAllowed())return;
+ if(!pfAllowed()||netKind()==='cell')return;
  const add=[];
  for(const a of list){
   if(PF.n>=Math.max(400,pfN()+100))break;
   if(!a.link||PF.done.has(a.link)||acHas(a.link)||S.read[a.link]||(curA&&curA.link===a.link))continue;
+  if(a.date&&Date.now()-a.date>14*864e5)continue;
   PF.done.add(a.link);add.push(a);PF.n++;PF.tot++;
  }
  if(first)PF.q.unshift(...add);else PF.q.push(...add);
@@ -6486,10 +6502,11 @@ function pfKick(){clearTimeout(pfKick.t);pfKick.t=setTimeout(()=>{if(!pfAllowed(
 /* while scrolling, the next ten cards below the screen are read ahead once the finger stops */
 function pfAhead(){
  if(!pfAllowed()||document.hidden||!pfTop())return;
- const by=storyMap(),vh=innerHeight,cs=[...document.querySelectorAll('#grid .card[data-i]')];let a=-1,z=-1;
- cs.forEach((c,i)=>{const r=c.getBoundingClientRect();if(r.top<vh&&r.bottom>0){if(a<0)a=i;z=i}});
- if(a<0)return;
- prefetch(cs.slice(a,z+11).map(c=>by.get(chref(c))).filter(x=>x&&!S.read[x.link]),true)
+ const vh=innerHeight,cs=[...document.querySelectorAll('#grid .card[data-i],#grid .wcol[data-i],#grid .wmom[data-i]')];let z=-1,a0=1e9;
+ for(const c of cs){const r=c.getBoundingClientRect();if(r.top<vh&&r.bottom>0){const k=+c.dataset.i;if(k>z)z=k;if(k<a0)a0=k}}
+ if(z<0||!Array.isArray(cur))return;
+ /* what is on screen, then the next ten in the list's own order (the Smart rank in All stories) */
+ prefetch(cur.slice(Math.max(0,a0),z+11).filter(x=>x&&x.link&&!S.read[x.link]&&!muted(x)),true)
 }
 $('main').addEventListener('scroll',()=>{clearTimeout(pfAhead.t);pfAhead.t=setTimeout(pfAhead,1200)},{passive:true});
 /* stubborn sites: for the first few stories the quick fetch leaves short or cut off, the slower routes (saved copy, Morss, partner copy) are tried quietly in the background, on Wi-Fi only */
@@ -6508,7 +6525,7 @@ function pfList(){
   return o;
  }
  if(pfTop()){
-  const by=storyMap(),out=[],n=pfN(),seen=new Set();
+  const by=storyMap(),out=[],n=pfCap(pfN()),seen=new Set();
   document.querySelectorAll('#grid .card[data-i]').forEach(c=>{const a=by.get(chref(c));if(a&&!S.read[a.link]&&!seen.has(a.link)){seen.add(a.link);out.push(a)}});
   /* the page only draws the first screens of cards, so a bigger number is filled from the rest of the list in the same order */
   if(n>out.length&&Array.isArray(cur))for(const a of cur){if(out.length>=n)break;if(a&&a.link&&!S.read[a.link]&&!seen.has(a.link)){seen.add(a.link);out.push(a)}}
@@ -6664,15 +6681,21 @@ function articleState(a,contentHtml){
  const iso=d=>{try{return d?new Date(d).toISOString():''}catch(e){return ''}};
  return {title:(a&&a.title)||m.headline||'',author:(a&&a.author)||m.author||'',publishDate:iso(m.date)||iso(a&&a.date),contentHtml:contentHtml==null?'':String(contentHtml),tierResolved:(a&&a.tier)||t.tier||'feed'};
 }
+/* while one story is read, the next ones in the queue being read (edition order from The Daily, Smart rank from All stories, feed order in a feed) are fetched, cleaned and stored, so moving on is instant */
 function readAhead(a){
- const by=storyMap(),cards=[...document.querySelectorAll('#grid .card[data-i]')].map(chref);
- const i=cards.indexOf(a.link);let next=[];
- if(i>=0)next=cards.slice(i+1).map(l=>by.get(l)).filter(x=>x&&!S.read[x.link]);
+ const by=storyMap();let next=[];
+ const ctx=(R.ctx||[]).filter(x=>x&&x.link),i=ctx.findIndex(x=>x.link===a.link);
+ if(i>=0)next=ctx.slice(i+1).filter(x=>!S.read[x.link]&&!muted(x));
+ if(!next.length){
+  const cards=[...document.querySelectorAll('#grid .card[data-i]')].map(chref),j=cards.indexOf(a.link);
+  if(j>=0)next=cards.slice(j+1).map(l=>by.get(l)).filter(x=>x&&!S.read[x.link]);
+ }
  if(!next.length){const l=(items[a.feedId]||[]).slice().sort((x,y)=>y.date-x.date),j=l.findIndex(x=>x.link===a.link);if(j>=0)next=l.slice(j+1).filter(x=>!S.read[x.link])}
- /* stories whose feed text is only an excerpt are the ones worth fetching ahead of time */
- next=[...next.slice(0,8)].sort((x,y)=>(isTruncated(y)?1:0)-(isTruncated(x)?1:0)).concat(next.slice(8));
- prefetch(next.slice(0,3),true);
- if(pfTop())prefetch(next.slice(3,pfN()));
+ /* the very next story first; then stories whose feed text is only an excerpt, which are the ones worth fetching ahead of time */
+ const first=next.slice(0,1);PF.nextLink=first[0]&&first[0].link;
+ const rest=[...next.slice(1,9)].sort((x,y)=>(isTruncated(y)?1:0)-(isTruncated(x)?1:0)).concat(next.slice(9));
+ prefetch(first.concat(rest.slice(0,2)),true);
+ if(pfTop())prefetch(rest.slice(2,Math.max(0,pfCap(pfN())-3)));
 }
 function pump(){
  /* reading stories ahead of time waits until you stop scrolling: parsing a page is heavy work for the main thread */
@@ -6683,11 +6706,9 @@ function pump(){
    const n=await pfDeep(a,n0);
    if(n){PFHOT.set(a.link,{n,t:Date.now()});if(PFHOT.size>16)PFHOT.delete(PFHOT.keys().next().value)}
    await quietGap(4000);
-   if(!n||n.pw||acHas(a.link))return;
-   const have=fromHTML(a.html||'',a.link).textContent.length;
-   if(n.textContent.length<Math.max(600,have+100))return;
-   const d=document.createElement('div');d.append(dropTitle(n,a.title));
-   acPut(a.link,d.innerHTML);PF.ok=(PF.ok||0)+1;markReady(a.link);warmImgs(d,a);
+   if(!acStoreOk(n,a))return;
+   const d=document.createElement('div');d.append(dropTitle(n.cloneNode(true),a.title));
+   acPut(a.link,d.innerHTML,1);PF.ok=(PF.ok||0)+1;markReady(a.link);if(PF.nextLink===a.link)warmImgs(d,a);
    S.rt[a.link]=Math.max(1,Math.round(d.textContent.split(/\s+/).length/230));
    clearTimeout(pt);pt=setTimeout(save,900);
   }).catch(()=>{}).finally(()=>{PF.run--;PF.fin++;pfBar();setTimeout(pump,350)});
@@ -6762,12 +6783,17 @@ async function openReader(a){
  R.pg=0;R.busy=false;R.web=false;R.auto=false;RDY=null;R.endArmed=false;R.botAt=0;if(!R.keepCtx)R.ctx=cur.filter((x,i,l)=>x&&x.link&&l.findIndex(y=>y.link===x.link)===i);R.keepCtx=false;clearTimeout(R.wd);clearInterval(R.tk);R.t0=Date.now();R.lp='Loading the full article…';R.lpUrls=new Set([a.link]);R.tk=setInterval(()=>{const n=document.querySelector('.cols .note');if(!n||!/^Loading the full article/.test(n.textContent)||!curA||curA.link!==a.link){clearInterval(R.tk);return}rdTick()},1000);R.wd=setTimeout(()=>{const n=document.querySelector('.cols .note');if(n&&/^Loading the full article/.test(n.textContent)&&curA){clearInterval(R.tk);n.innerHTML='<span class="sbadge">Taking too long</span>This site is slow to answer, so the full story hasn’t arrived. <button type="button" class="lnk" data-web="1">View the site here</button> <button type="button" class="lnk" data-retry>Try again</button> <a class="lnk" href="'+esc(curA.link)+'" target="_blank" rel="noopener">Open the original</a>'}},16000);_vm=isVert();R.inBrief=S.sel==='brief'&&!!(S.brief&&S.brief.links.includes(a.link));if(R.inBrief&&!S.brief.pinned){S.brief.pinned=1;save()}
  RDTRIG=document.activeElement;$('#rd').classList.add('on');try{$('#rd').tabIndex=-1;$('#rd').focus({preventScroll:true})}catch(e){}applyFs(false);applyFolderTheme();
  const c=$('.cols'),body=c.querySelector('.body'),note=c.querySelector('.note');
- R.heroEl=R.heroMark=null;body.append(fromHTML(a.html,a.link));foldBoiler(body,a);try{heroOnce()}catch(e){}
+ R.heroEl=R.heroMark=null;
+ /* a story that was got ready ahead of time goes straight onto the page: no network, no parsing of a page, no cleaning (that was all done when it was fetched) */
+ let fastH=null;if(AC[a.link]&&AC[a.link].c&&!ytId(a)){fastH=acGet(a.link)||await acLoad(a.link);if(my!==tok)return}
+ if(fastH){body.innerHTML=fastH;body.dataset.clean='1'}else{body.append(fromHTML(a.html,a.link));foldBoiler(body,a)}
+ try{heroOnce()}catch(e){}
  c.addEventListener('load',e=>{const im=e.target;/* a logo or icon in a story keeps its own small size instead of being blown up blurry across the column */if(im&&im.tagName==='IMG'&&im.closest&&im.closest('.body')&&!im.classList.contains('hero')&&im.naturalWidth&&im.naturalWidth<220&&im.naturalHeight<220){im.classList.add('tiny');im.style.setProperty('--tw',im.naturalWidth+'px')}heroSpread();photoPages();relayout()},true);c.addEventListener('error',()=>{heroSpread();relayout()},true);
  /* when the full text is already stored, afterLoad lays the page out once, so skip the layout of the short feed version */
  if(!(acGet(a.link)&&!ytId(a)))layout();
  mediaWire();
  if(ytId(a)){note.remove();afterLoad();return}
+ if(fastH){note.remove();ALT='';afterLoad();return}
  let cached=acGet(a.link)||await acLoad(a.link);
  if(my!==tok)return;
  if(cached&&!textQuality(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')).ok)cached=null;if(cached&&footerish(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')))cached=null;
@@ -7758,11 +7784,12 @@ const acGet=l=>AC[l]?AC[l].h:null;
 const acHas=l=>!!AC[l];
 /* only the newest articles stay in memory; the rest are read from storage when opened */
 async function acLoad(l){const e=AC[l];if(!e)return null;if(e.h)return e.h;if(!IDB.ok)return null;const v=await new Promise(res=>{try{const r=IDB.db.transaction('art','readonly').objectStore('art').get(l);r.onsuccess=()=>res(r.result);r.onerror=()=>res(null)}catch(x){res(null)}});if(v&&v.h&&AC[l]){AC[l]=v;return v.h}return null}
-function acTrim(){const ks=Object.keys(AC).filter(k=>AC[k].h).sort((a,b)=>AC[b].t-AC[a].t);for(let i=120;i<ks.length;i++){AC[ks[i]]={t:AC[ks[i]].t,h:''}}}
+function acTrim(){const ks=Object.keys(AC).filter(k=>AC[k].h).sort((a,b)=>AC[b].t-AC[a].t);for(let i=120;i<ks.length;i++){AC[ks[i]]={t:AC[ks[i]].t,h:'',c:AC[ks[i]].c}}}
 const ACTX=new Map();
 function acText(l){const e=AC[l];if(!e||!e.h)return '';let c=ACTX.get(l);if(!c||c.n!==e.h.length){c={n:e.h.length,t:e.h.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ').replace(/\s+/g,' ').toLowerCase()};ACTX.set(l,c);if(ACTX.size>500)ACTX.delete(ACTX.keys().next().value)}return c.t}
-function acPut(l,h){
- AC[l]={h,t:Date.now()};if(Object.keys(AC).length%20===0)acTrim();
+/* c=1 marks a render-ready copy: extracted, cleaned and title-dropped when it was stored, so opening it needs no fetching, parsing or cleaning */
+function acPut(l,h,c){
+ AC[l]={h,t:Date.now(),c:c===undefined?1:(c?1:0)};if(Object.keys(AC).length%20===0)acTrim();
  const drop=[];
  const ks=Object.keys(AC).sort((a,b)=>AC[a].t-AC[b].t).filter(x=>x!==l&&!isSaved({link:x}));
  while(Object.keys(AC).length>AC_MAX&&ks.length){const k=ks.shift();delete AC[k];drop.push(k)}
@@ -8076,7 +8103,7 @@ $('#lhs').onchange=e=>{S.lh=+e.target.value;save();refreshReader()};
 $('#mgn').onchange=e=>{S.mg=+e.target.value;save();refreshReader()};
 $('#srt').onchange=e=>{S.sort=e.target.value;save();render()};
 $('#fsrt').onchange=e=>{S.fsort=e.target.value;save();render();try{renderNav&&renderNav()}catch(_){}if($('#mng')&&$('#mng').open)renderMng();try{toast(S.fsort==='az'?'Feeds and folders are now A to Z':'Back to the order you added them')}catch(_){}};
-$('#acmb').onchange=e=>{S.acMB=+e.target.value;save();const l=Object.keys(AC)[0];if(l)acPut(l,AC[l].h);syncSet()};
+$('#acmb').onchange=e=>{S.acMB=+e.target.value;save();const l=Object.keys(AC)[0];if(l)acPut(l,AC[l].h,AC[l].c);syncSet()};
 $('#capn').onchange=e=>{S.capn=+e.target.value;save();render()};
 $('#arf').onchange=e=>{S.auto=+e.target.value;save();setAuto()};
 $('#nrw').onchange=e=>{S.narrow=e.target.value;save();screenMode();render()};

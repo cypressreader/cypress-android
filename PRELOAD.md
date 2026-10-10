@@ -1,0 +1,4 @@
+# Instant-open audit (what existed, what changed)
+Existing: `dayPreload`/`dpRun` (Wi-Fi Daily pre-download, full text, cleaned HTML stored), `readAhead`, `pfAhead`, `PFHOT` memory cache, `AC`/IndexedDB article cache (300 items / 60 MB), `quietGap` idle gating.
+Changed: entries are flagged render-ready, so a tap shows stored HTML with no fetch, parse or clean (the "decorate" clean pass is skipped for them); read-ahead follows the on-screen order (first+2 immediately, rest capped); All Stories looks ahead by card order; mobile/3G fetches nothing ahead; caps 40 (charging) / 20 (Wi-Fi) / 6 (low battery or unknown network); stories older than 72h (Daily) / 14 days (feed) skipped; pictures stay lazy during bulk. Fixed bug: the pre-download emptied its own in-memory copy.
+Test: `tests/preload_instant.js` asserts zero fetch/parse/clean on the tap path.
