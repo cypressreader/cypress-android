@@ -2908,6 +2908,13 @@ body:not(.narrow):not(.split).reading:not(.sideshow) #sideh{display:flex}
 .rn-h{margin:10px 0 0;font:italic 400 13px var(--serif,Georgia,serif);color:var(--mut)}
 #rnh{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px);z-index:60;padding:7px 14px;border-radius:999px;background:var(--ink);color:var(--pn);font:600 12.5px var(--sans);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}#rnh.on{opacity:.94;transform:translate(-50%,0)}
 @media(prefers-reduced-motion:no-preference){.rn-in .book{animation:rnIn .3s ease both}@keyframes rnIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}}
+/* correction round, cluster 13: pattern art where a picture is missing */
+.card.noimg .ov,#grid .nr-lead.noimg .ov{background-image:var(--pat),linear-gradient(150deg,color-mix(in srgb,var(--b) 100%,#fff 12%),color-mix(in srgb,var(--b) 100%,#000 40%));background-size:96px 96px,auto;background-position:0 0,0 0}
+.bi-pat{display:block;background-image:var(--pat),linear-gradient(150deg,color-mix(in srgb,var(--b,#1f6a48) 100%,#fff 10%),color-mix(in srgb,var(--b,#1f6a48) 100%,#000 38%))!important;background-size:96px 96px,auto}
+.bi-art.bi-pat{aspect-ratio:2/1;border-radius:8px;margin-bottom:12px}
+.sun-c.noimg{background-image:var(--pat),linear-gradient(160deg,color-mix(in srgb,var(--b,#1f6a48) 75%,#0b2119),#0b2119);background-size:96px 96px,auto}
+.sun-i.noimg .sun-im{display:block;height:96px;aspect-ratio:auto;background-image:var(--pat),linear-gradient(150deg,color-mix(in srgb,var(--b,#1f6a48) 100%,#fff 10%),color-mix(in srgb,var(--b,#1f6a48) 100%,#000 38%));background-size:96px 96px,auto}
+.fd-ft::before{content:"";display:block;height:72px;margin-bottom:16px;border-radius:6px;background-image:var(--pat),linear-gradient(150deg,color-mix(in srgb,var(--fa,var(--b,#1f6a48)) 100%,#fff 10%),color-mix(in srgb,var(--fa,var(--b,#1f6a48)) 100%,#000 38%));background-size:96px 96px,auto}
 /* correction round, cluster 2: briefing furniture */
 .bnum{margin:6px 0 18px;padding:12px 0 14px;border-bottom:1px solid var(--ln)}.bnum h3,.bdig h3{margin:0 0 10px;font:700 10.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
 .bn-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:12px}.bn-t b{display:block;font:400 34px/1 var(--disp,var(--serif))}.bn-t small{display:block;margin-top:2px;font:12px var(--sans);color:var(--mut)}
@@ -4283,7 +4290,7 @@ function wireRender(pre,list,T){
  const rowsWrap=h=>mode==='w'?`<div class="nr-river"><div class="nr-rv">${h}</div></div>`:`<div class="nr-ph-rows nr-ph-in">${h}</div>`;
  const rowHtml=a=>card(a,ix(a),'nr nr-row nr-s');
  let rowBuf='',colBuf='';const flush=()=>{if(rowBuf){B.push(rowsWrap(rowBuf));rowBuf=''}if(colBuf){B.push(`<div class="wcols">${colBuf}</div>`);colBuf=''}};
- const addWild=(nextF)=>{const lastF=cn.length?cn[cn.length-1].feedId:'';if(wi<wild.length){const t=wild.findIndex((u,i)=>i>=wi&&u.head.feedId!==lastF&&u.head.feedId!==nextF);if(t<0)return;if(t>wi){const x=wild[t];wild[t]=wild[wi];wild[wi]=x}}const u=wild[wi++];if(!u)return;flush();WHY[u.head.link]='Wild card: from '+fof(u.head).title+', a site you open less often. One turns up on every screen.';B.push(`<div class="wwild"><p class="wwild-k">Wild card</p>${card(u.head,ix(u.head),'mid')}</div>`)};
+ const vf=[];const addWild=(nextF)=>{const lastF=vf.length?vf[vf.length-1]:'';if(wi<wild.length){const t=wild.findIndex((u,i)=>i>=wi&&u.head.feedId!==lastF&&!(vf.length>=2&&vf[vf.length-2]===u.head.feedId&&lastF===u.head.feedId)&&u.head.feedId!==nextF);if(t<0)return;if(t>wi){const x=wild[t];wild[t]=wild[wi];wild[wi]=x}}const u=wild[wi++];if(!u)return;vf.push(u.head.feedId);flush();WHY[u.head.link]='Wild card: from '+fof(u.head).title+', a site you open less often. One turns up on every screen.';B.push(`<div class="wwild"><p class="wwild-k">Wild card</p>${card(u.head,ix(u.head),'mid')}</div>`)};
 if(FD){
   let k0=null,u0=null;
   if(FD.isFolder){let bs=-1;for(const q of ['new','hour','morning','today','earlier'])for(const u of groups[q]){const sc=(u.more.length)*3+(u.head.img?2.5:0)+(u.head.date>now-24*36e5?1.5:0)+(S.read[u.head.link]?-3:0)+Math.min(u.head.summary?String(u.head.summary).length:0,300)/300;if(sc>bs){bs=sc;k0=q;u0=u}}}
@@ -4295,7 +4302,9 @@ if(FD){
   flush();if(dens==='col'&&B.length>2)B.push(dividerHtml(B.length));B.push(`<h3 class="dsh wsec"><span>${esc(wireLabel(key,an))}</span><small>${us.length} ${us.length===1?'story':'stories'}</small></h3>`+(FD?`<p class="wsec-v">${esc(pe('fedgrp',{key,gn:us.length,feed:FD.title||host(FD.url),newest:ago(Math.max(...us.map(u=>u.head.date)))},'fg'+FD.id+key))}</p>`:''));
   if(FD&&dens!=='col'){fedMods(us,FD,{B,ix,card});continue}
   let j=0;
+  vf.length=0;
   for(const u of us){
+   vf.push(u.head.feedId);
    const kind=WIRE_PAT[j%WIRE_PAT.length];j++;k++;
    if(dens==='col'){
     if(j===1&&u.head.img&&!u.more.length){flush();B.push(card(u.head,ix(u.head),'mid'));continue}
@@ -4906,7 +4915,7 @@ const IMGOK=new Set();
 const chref=c=>(c&&((c.dataset&&c.dataset.href)||c.getAttribute('href')))||'';
 function card(a,i,k){
   const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],op=q0&&q0.v>=3&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="object-position:${q0.px}% ${q0.py}%"`:'';
-  return `<div class="card ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span>${isPay(a)?PAYB:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="Covered by ${a.more.length+1} sources">${a.more.length+1} sources</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}<time>${ago(a.date)}</time></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><p>${esc(a.summary)}</p>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
+  return `<div class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span>${isPay(a)?PAYB:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="Covered by ${a.more.length+1} sources">${a.more.length+1} sources</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}<time>${ago(a.date)}</time></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><p>${esc(a.summary)}</p>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
 }
 /*NEWSROOM*/
 const IS_SAFARI=(()=>{try{const u=navigator.userAgent;return /iP(hone|ad|od)/.test(u)||(/Safari\//.test(u)&&!/Chrome\/|Chromium\/|Android|Edg\/|OPR\/|CriOS|FxiOS/.test(u))}catch(e){return false}})();
@@ -8633,9 +8642,9 @@ function renderBrief0(){
  const done=list.filter(a=>S.read[a.link]).length,mins=list.reduce((n,a)=>n+(readMin(a)||3),0),left=list.filter(a=>!S.read[a.link]).reduce((n,a)=>n+(readMin(a)||3),0);
  if(done===list.length){$('#grid').innerHTML=`<div class="bdone"><div class="bck">${svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>')}</div><h2>You’re caught up</h2><p>${list.length} stories from ${new Set(list.map(a=>a.feedId)).size} sources today.</p><button class="tx2" data-bnew>Make a fresh brief</button></div>`;return}
  const dt=new Date(),dl=dt.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
- const row=(a,i)=>{const f=fof(a),m=readMin(a),th=a.img?`<img class="bi-th" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:'';
-  const lead=i===0;
-  return `<a class="bi ${lead?'brf-lead':'brf-row'} ${S.read[a.link]?'read':''}" href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}">${lead?`${th?`<span class="bi-art">${th}</span>`:''}<span class="bi-t"><small class="bi-k">The lead</small><small>${esc(f.title)}${m?' · '+m+' min':''}</small><b>${esc(a.title)}</b></span>`:`<span class="bi-t"><small>${esc(f.title)}${m?' · '+m+' min':''}</small><b>${esc(a.title)}</b></span>${th?`<span class="bi-th-w">${th}</span>`:''}`}<span class="why" data-why="${i}" role="button" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</span>${S.read[a.link]?`<i class="bok">${svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>')}</i>`:''}</a>`};
+ const row=(a,i)=>{const f=fof(a),m=readMin(a),th=a.img?`<img class="bi-th" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('bi-pat');this.remove()">`:'';
+  const lead=i===0,pc=patCls(f);
+  return `<a class="bi ${lead?'brf-lead':'brf-row'} ${S.read[a.link]?'read':''}" href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}">${lead?`${th?`<span class="bi-art ${pc}">${th}</span>`:`<span class="bi-art bi-pat ${pc}" aria-hidden="true"></span>`}<span class="bi-t"><small class="bi-k">The lead</small><small>${esc(f.title)}${m?' · '+m+' min':''}</small><b>${esc(a.title)}</b></span>`:`<span class="bi-t"><small>${esc(f.title)}${m?' · '+m+' min':''}</small><b>${esc(a.title)}</b></span>${th?`<span class="bi-th-w ${pc}">${th}</span>`:`<span class="bi-th-w bi-pat ${pc}" aria-hidden="true"></span>`}`}<span class="why" data-why="${i}" role="button" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</span>${S.read[a.link]?`<i class="bok">${svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>')}</i>`:''}</a>`};
  $('#grid').innerHTML=`<header class="bhead brf"><small class="brf-d">${esc(dl)}</small><h2>The Briefing</h2><p>${B.five?'A 5-minute read · ':''}${list.length} ${list.length===1?'story':'stories'} · about ${mins} min${done?` · ${left} min left`:''}</p><div class="bbar"><span style="width:${Math.round(done/list.length*100)}%"></span></div><div class="bbtns"><button class="tx2" data-blisten>${svg(SPK)} Listen</button><button class="go" data-bstart>${done?'Continue':'Start reading'}</button></div></header>`+briefNumbers(list)+briefDigest(list)+list.map(row).join('')+briefQuote(list)+briefEnd(list,mins);
 }
 function fiveMin(){
@@ -9154,6 +9163,31 @@ PEB.feedstat=[
  {id:'s12',t:'No stories yet.',ok:x=>x.n===0}
 ];
 PE_NEUTRAL.feedstat='A quiet corner of your magazine.';
+/* ---- correction round, cluster 13: designed image fallbacks ----
+   Where a photo is missing or fails, a story card shows pattern art in its source's own colour: one of six motifs (contour lines, cypress trees, dots, hatching, arcs, leaves), chosen from the feed and drawn on the feed's accent. Never a flat gradient. */
+const PATC={};let PATSTY=null;
+function patSvg(f){
+ const h0=peHash((f&&f.id)||'x'),m=h0%6;let hue=200,sat=.5;
+ try{const r=anyRgb(brand(f));if(r){const t=rgb2hsl(r);hue=Math.round(t[0]);sat=Math.max(.35,Math.min(.8,t[1]))}}catch(e){}
+ const st='hsla('+hue+','+Math.round(sat*100)+'%,76%,.26)',fl='hsla('+hue+','+Math.round(sat*100)+'%,76%,.16)';
+ const ln=d=>`<path d="${d}" fill="none" stroke="${st}" stroke-width="1.5" stroke-linecap="round"/>`;
+ let body='';
+ if(m===0)for(let y=18;y<=92;y+=24)body+=ln(`M0 ${y}Q24 ${y-16} 48 ${y}T96 ${y}`);
+ else if(m===1){const t=(x,y,k)=>`<path d="M${x} ${y}C${x-7*k} ${y} ${x-8*k} ${y-34*k} ${x} ${y-66*k}C${x+8*k} ${y-34*k} ${x+7*k} ${y} ${x} ${y}z" fill="${fl}" stroke="${st}" stroke-width="1.2"/>`;body=t(16,92,1)+t(52,92,.8)+t(80,92,1)+t(34,48,.45)+t(68,50,.5)}
+ else if(m===2){for(let y=8;y<96;y+=16)for(let x=((y/16)%2?8:0)+4;x<96;x+=16)body+=`<circle cx="${x}" cy="${y}" r="2.4" fill="${st}"/>`}
+ else if(m===3)for(let o=-96;o<=96;o+=16)body+=ln(`M${o} 96L${o+96} 0`);
+ else if(m===4){for(const r of [18,36,54,72])body+=`<circle cx="0" cy="0" r="${r}" fill="none" stroke="${st}" stroke-width="1.5"/><circle cx="96" cy="96" r="${r}" fill="none" stroke="${st}" stroke-width="1.5"/>`}
+ else{const lf=(x,y,r)=>`<path transform="rotate(${r} ${x} ${y})" d="M${x} ${y}c10-9 21 1 11 14-10 5-15-6-11-14z" fill="${fl}" stroke="${st}" stroke-width="1.2"/>`;body=lf(10,12,10)+lf(52,20,70)+lf(30,56,140)+lf(74,64,210)+lf(8,86,30)+lf(60,88,100)}
+ return `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">${body}</svg>`;
+}
+function patCls(f){
+ if(!f)return '';const k=f.id;if(PATC[k])return PATC[k];
+ const n='pf'+Object.keys(PATC).length;PATC[k]=n;
+ try{if(!PATSTY){PATSTY=document.createElement('style');PATSTY.id='patcss';document.head.append(PATSTY)}
+  PATSTY.appendChild(document.createTextNode('.'+n+'{--pat:url("data:image/svg+xml,'+encodeURIComponent(patSvg(f))+'")}'))}catch(e){}
+ return n;
+}
+
 /* ---- correction round, cluster 5/6: deks and excerpts. HARD RULE: consent banners, newsletter boxes and promo text can never become an excerpt or a dek, anywhere (cards, covers, PDF, share cards). ---- */
 const JK_EX=[
  /\b(cookies?|consent|gdpr|ccpa|privacy (policy|notice|settings)|we and our (\d+ )?partners|accept all|reject all|manage (preferences|settings|choices)|your (privacy )?choices|personali[sz]ed ads|legitimate interest)\b/i,
@@ -9283,7 +9317,7 @@ function fedMods(us,FD,c){
  if(c.first&&(c.lead||us.length)){
   const u=c.lead||us.shift(),a=u.head;why(a,FD.isFolder?'The cover story of '+FD.title+': the strongest story across its sites.':'The lead story from '+(FD.title||host(FD.url))+'.');
   const img=a.img?`<span class="fd-fa"><img loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.remove()"></span>`:'';
-  B.push(link(a,'fd-feat'+(a.img?'':' fd-ft'),`${img}<span class="fd-fb"><small>${FD.isFolder?'Cover story · '+esc(fof(a).title)+' · ':'The lead · '}${esc(when(a))}</small><b>${esc(a.title)}</b>${dk(a)?`<em>${esc(dk(a))}</em>`:''}</span>`)+(u.more.length?(()=>{const id='t'+peHash(a.link);return `<div class="wthr fd-thr"><button type="button" class="wthr-t" data-thr="${id}" aria-expanded="false">${u.more.length} earlier ${u.more.length===1?'update':'updates'} on this story</button><div class="wthr-b" id="${id}" hidden>${u.more.map(x=>c.card(x,ix(x),'nr nr-row nr-s')).join('')}</div></div>`})():''));
+  B.push(link(a,'fd-feat'+(a.img?'':' fd-ft '+patCls(fof(a))),`${img}<span class="fd-fb"><small>${FD.isFolder?'Cover story · '+esc(fof(a).title)+' · ':'The lead · '}${esc(when(a))}</small><b>${esc(a.title)}</b>${dk(a)?`<em>${esc(dk(a))}</em>`:''}</span>`)+(u.more.length?(()=>{const id='t'+peHash(a.link);return `<div class="wthr fd-thr"><button type="button" class="wthr-t" data-thr="${id}" aria-expanded="false">${u.more.length} earlier ${u.more.length===1?'update':'updates'} on this story</button><div class="wthr-b" id="${id}" hidden>${u.more.map(x=>c.card(x,ix(x),'nr nr-row nr-s')).join('')}</div></div>`})():''));
  }
  if(c.leadOnly)return;
  let last='feat';
@@ -9580,8 +9614,8 @@ function longformItem(a,i,ix,cover,why){
  WHY[a.link]=why;
  const img=a.img?`<img loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()">`:'';
  const t=`<span class="sun-t"><small>${i===0?'Cover story':String(i+1).padStart(2,'0')} · ${esc(f.title||'')}${m?' · '+m+' min read':''}</small><b>${esc(a.title)}</b>${dk?`<em>${esc(dk)}</em>`:''}</span>`;
- return i===0?`<a class="cvlead sun-a sun-c${a.img?'':' noimg'}" href="${esc(a.link)}" data-i="${ix}" style="--b:${brand(f)}">${img}${t}</a>`
-  :`<a class="cvlead sun-a sun-i${a.img?'':' noimg'}" href="${esc(a.link)}" data-i="${ix}" style="--b:${brand(f)}"><span class="sun-im">${img}</span>${t}</a>`;
+ return i===0?`<a class="cvlead sun-a sun-c${a.img?'':' noimg'} ${patCls(f)}" href="${esc(a.link)}" data-i="${ix}" style="--b:${brand(f)}">${img}${t}</a>`
+  :`<a class="cvlead sun-a sun-i ${patCls(f)}${a.img?'':' noimg'}" href="${esc(a.link)}" data-i="${ix}" style="--b:${brand(f)}"><span class="sun-im">${img}</span>${t}</a>`;
 }
 /* the Deep reads tab: a nameplate, the long reads one at a time with big art, and a proper end */
 function deepBlocks(list){
