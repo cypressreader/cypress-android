@@ -1,3 +1,5 @@
+/* the version the app under test reports, so a version bump never opens the What's New dialog over every test */
+const APPVER=(()=>{try{return (require('fs').readFileSync(process.env.APP||require('path').resolve(__dirname,'../www/index.html'),'utf8').match(/const APP_VERSION='([^']+)'/)||[])[1]||''}catch(e){return ''}})();
 // shared mock network for playwright tests
 const long=n=>Array.from({length:n},(_,i)=>`<p>Paragraph ${i} of the article body with enough words to look like real reporting, and a bit more text so it reaches a realistic length for extraction.</p>`).join('');
 const feedXml=(name,n)=>`<?xml version="1.0"?><rss xmlns:media="http://search.yahoo.com/mrss/"><channel><title>${name}</title>${Array.from({length:n},(_,i)=>`<item><title>${name} story ${i+1}</title><link>https://${name.toLowerCase()}.test/story-${i+1}</link><pubDate>${new Date(Date.now()-(i+1)*9e5).toUTCString()}</pubDate><description>Short summary for story ${i+1}.</description></item>`).join('')}</channel></rss>`;
@@ -16,5 +18,5 @@ async function mock(p,opt={}){
   return r.abort();
  });
 }
-const seed=(feeds)=>({feeds:feeds.map((n,i)=>({id:'f'+i,title:n,url:`https://${n.toLowerCase()}.test/feed`,folder:i<2?'d1':''})),folders:[{id:'d1',name:'Tech'}],sel:'all',scroll:'pages',ver:'2026.10.09b',smn:1,intro:false,setall:1});
+const seed=(feeds)=>({feeds:feeds.map((n,i)=>({id:'f'+i,title:n,url:`https://${n.toLowerCase()}.test/feed`,folder:i<2?'d1':''})),folders:[{id:'d1',name:'Tech'}],sel:'all',scroll:'pages',ver:APPVER,smn:1,intro:false,setall:1});
 module.exports={mock,seed,PW:require('child_process').execSync('npm root -g').toString().trim()+'/playwright'};

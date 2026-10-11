@@ -1,3 +1,5 @@
+/* the version the app under test reports, so a version bump never opens the What's New dialog over every test */
+const APPVER=(()=>{try{return (require('fs').readFileSync(process.env.APP||require('path').resolve(__dirname,'../www/index.html'),'utf8').match(/const APP_VERSION='([^']+)'/)||[])[1]||''}catch(e){return ''}})();
 const zlib=require('zlib');
 function png(w,h,rgb){const raw=Buffer.alloc((w*3+1)*h);for(let y=0;y<h;y++){raw[y*(w*3+1)]=0;for(let x=0;x<w;x++){const o=y*(w*3+1)+1+x*3;raw[o]=rgb[0];raw[o+1]=(x*255/w)|0;raw[o+2]=rgb[2]}}
  const crc=b=>{let c,t=[];for(let n=0;n<256;n++){c=n;for(let k=0;k<8;k++)c=c&1?0xedb88320^(c>>>1):c>>>1;t[n]=c>>>0}c=0xffffffff;for(const x of b)c=t[(c^x)&255]^(c>>>8);return (c^0xffffffff)>>>0};
@@ -43,5 +45,5 @@ async function mock(p,opt={}){
   return r.abort();
  });
 }
-const seed=(feeds,extra={})=>({feeds:feeds.map((n,i)=>({id:'f'+i,title:n,url:`https://${n.toLowerCase()}.test/feed`,folder:i<2?'d1':''})),folders:[{id:'d1',name:'Tech'}],sel:'all',scroll:'pages',ver:'2026.10.09b',smn:1,intro:false,todayIntro:1,...extra});
+const seed=(feeds,extra={})=>({feeds:feeds.map((n,i)=>({id:'f'+i,title:n,url:`https://${n.toLowerCase()}.test/feed`,folder:i<2?'d1':''})),folders:[{id:'d1',name:'Tech'}],sel:'all',scroll:'pages',ver:APPVER,smn:1,intro:false,todayIntro:1,...extra});
 module.exports={mock,seed,KV,PW:require('child_process').execSync('npm root -g').toString().trim()+'/playwright'};
