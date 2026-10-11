@@ -8,9 +8,14 @@ await mock(p,{n:6});await p.goto('file://'+APP);await p.waitForTimeout(1500);
 const pre=scheme+' ';
 const R=await p.evaluate(async()=>{
  const o={};const hue=c=>rgb2hsl(anyRgb(c))[0],L=c=>lumOf(anyRgb(c));
+ /* the tint's lightness follows the time of day (lighter in the morning, a little deeper in the evening), so the colour checks run at a fixed 10:00 and the time-of-day rule is checked on its own */
+ const gh=Date.prototype.getHours;Date.prototype.getHours=()=>10;
  const tl=dynTone('#6a3df0',false),td=dynTone('#6a3df0',true);
+ Date.prototype.getHours=()=>22;const te=dynTone('#6a3df0',false);Date.prototype.getHours=()=>10;
+ o.eveningDeeper=L(te.bg)<=L(tl.bg);
  o.lightBg=L(tl.bg);o.darkBg=L(td.bg);o.hueL=hue(tl.bg);o.hueD=hue(td.bg);o.hueSite=hue('#6a3df0');
  o.satL=rgb2hsl(anyRgb(tl.bg))[1];
+ Date.prototype.getHours=gh;
  o.olive=dynTone('#c8b400',true);o.oliveSat=rgb2hsl(anyRgb(o.olive.bg))[1];
  o.parse=[!!anyRgb('rgb(10, 20, 30)'),!!anyRgb('#abc'),!!anyRgb('hsl(120,50%,40%)'),anyRgb('nonsense')===null];
  o.accL=rgb2hsl(anyRgb(tl.a))[2];o.accD=rgb2hsl(anyRgb(td.a))[2];
@@ -35,7 +40,7 @@ const R=await p.evaluate(async()=>{
  o.noUi=!document.querySelector('[data-tg=dtone],[data-tg=dacc],[data-tg=dcalm]')&&!$('#dfont');
  o.noKeys=!['dtone','dacc','dcalm','dfont'].some(k=>SET_KEYS.includes(k));
  return o});
-ck(pre+'light tint is light',R.lightBg>.7,String(R.lightBg));ck(pre+'dark tint is dark',R.darkBg<.05,String(R.darkBg));
+ck(pre+'light tint is light',R.lightBg>.7,String(R.lightBg));ck(pre+'evening tint is no lighter than morning',R.eveningDeeper);ck(pre+'dark tint is dark',R.darkBg<.05,String(R.darkBg));
 ck(pre+'tint keeps the site hue',Math.abs(R.hueL-R.hueSite)<4&&Math.abs(R.hueD-R.hueSite)<4,JSON.stringify([R.hueL,R.hueD,R.hueSite]));
 ck(pre+'tint is rich not grey',R.satL>.4,String(R.satL));
 ck(pre+'dark yellow is held back',R.oliveSat<=.45,String(R.oliveSat));
