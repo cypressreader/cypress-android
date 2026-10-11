@@ -8,7 +8,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   await mock(p,{n:10});await p.goto('file://'+APP);await p.waitForTimeout(1200);await p.click('text=Get started').catch(()=>{});await p.waitForTimeout(400);
   const r=await p.evaluate(async([t])=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());const w=ms=>new Promise(r=>setTimeout(r,ms));const now=Date.now();
    S.feeds.slice(0,4).forEach((f,fi)=>{items[f.id]=Array.from({length:16},(_,i)=>({feedId:f.id,title:'Distinct headline '+i+' feed'+fi+' sub'+(i*7+fi),link:'https://w.test/'+fi+'/'+i,img:'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="#468"/></svg>'),date:now-(i*55+fi*9)*6e4,summary:'A long enough summary of this story to count as a lede for sure here, with several words.'}))});
-   const n=Math.floor(Date.UTC(new Date().getFullYear(),new Date().getMonth(),new Date().getDate())/864e5);S.cvt={n,t,p:''};S.sel='today';render();await w(1300);
+   const d0=new Date();if(d0.getHours()<5)d0.setDate(d0.getDate()-1);/* the app's day starts at 05:00 */const n=Math.floor(Date.UTC(d0.getFullYear(),d0.getMonth(),d0.getDate())/864e5);S.cvt={n,t,p:''};S.sel='today';render();await w(1300);
    const g=document.querySelector('#grid'),cv=g.querySelector(':scope>.dcov'),o={};
    o.cover=!!cv;o.noPane=!g.querySelector('.d2,.d2l,.d2r');
    const main=document.querySelector('main').getBoundingClientRect(),cr=cv?cv.getBoundingClientRect():{width:0,height:0};

@@ -13,7 +13,7 @@ const svg=(w,h)=>`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="$
   const r=await p.evaluate(async([t,kind])=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());const w=ms=>new Promise(r=>setTimeout(r,ms));const now=Date.now();
    const u=kind==='none'?'':'https://img.test/'+kind+'.svg';
    S.feeds.slice(0,4).forEach((f,fi)=>{items[f.id]=Array.from({length:16},(_,i)=>({feedId:f.id,title:i?'Headline number '+i+' of feed '+fi+' about subject'+(i*7+fi):'After 4 Hours, Phantom Blade Zero Just Became My Most-Anticipated Action Game Of The Year',link:'https://w.test/'+fi+'/'+i,img:(i===0&&fi===0)?u:'',date:now-(i*55+fi*9)*6e4,summary:i===0?'“I did not expect to feel this way about a game that I had only just started playing,” said the reviewer, adding that the combat was the finest of the year.':'A long enough summary of this story to count as a lede for sure here, with several words.'}))});
-   const n=Math.floor(Date.UTC(new Date().getFullYear(),new Date().getMonth(),new Date().getDate())/864e5);S.cvt={n,t,p:''};S.sel='today';render();await w(2600);
+   const d0=new Date();if(d0.getHours()<5)d0.setDate(d0.getDate()-1);/* the app's day starts at 05:00 */const n=Math.floor(Date.UTC(d0.getFullYear(),d0.getMonth(),d0.getDate())/864e5);S.cvt={n,t,p:''};S.sel='today';render();await w(2600);
    const cv=document.querySelector('#grid .dcov'),o={};if(!cv)return {none:true};
    const cr=cv.getBoundingClientRect(),hd=cv.querySelector('.dcv-top').getBoundingClientRect(),mn=cv.querySelector('.dcv-main').getBoundingClientRect(),pg=cv.querySelector('.dcv-prog').getBoundingClientRect();
    o.cls=cv.className;o.h=cr.height;o.gapTop=mn.top-hd.bottom;o.gapBot=cr.bottom-pg.top-(mn.bottom<pg.top?0:0)>0?pg.top-mn.bottom:0;
