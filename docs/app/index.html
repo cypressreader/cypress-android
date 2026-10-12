@@ -3346,8 +3346,8 @@ html[data-ts="l"] #grid .wcols,html[data-ts="l"] #grid .nr-lsub,html[data-ts="l"
 <dialog id="dlg"><form method="dialog" id="frm">
  <div class="sh dsh"><h2>Add a feed</h2><button type="button" class="ib" id="dlgx" aria-label="Close"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
  <input id="u" placeholder="Search sites or paste an address" aria-label="Search popular sites, or paste an address" required autocomplete="off"><small class="uhint">Try nasa, r/gadgets, @channel or you@mastodon.social</small><div id="pop"></div>
- <details id="adv" class="adv"><summary>Name and folder</summary><label for="n">Name (optional)</label><input id="n">
- <label for="fo">Folder (for an address you paste)</label><select id="fo"></select>
+ <details id="adv" class="adv" open><summary>Name and folder</summary><label for="n">Name (optional)</label><input id="n">
+ <label for="fo">Folder (a pasted address goes here; sites picked from the list go in their own folder)</label><select id="fo"></select>
  <input id="nf" placeholder="New folder name" style="display:none;margin-top:8px"></details>
  <div id="err"></div>
  <div class="row"><button type="button" id="cancel">Cancel</button><button class="go" id="ok">Add feed</button></div>
@@ -7565,7 +7565,7 @@ async function addVerified(u,n,c,btn){
  if(btn){btn.disabled=true;btn.textContent='Checking…'}
  if(await preCheck(u,n)==='no'){if(btn){btn.disabled=false;btn.textContent='Add'}return}
  if(btn)btn.textContent='Adding…';
- try{quickAdd(u,n,c);toast('Added '+n+'. Loading stories…')}
+ try{const {f,fo}=quickAdd(u,n,c);toast('Added '+n+' to “'+fo.name+'”',()=>openAddedFeed(f.id),'Open')}
  catch(_){if(btn){btn.disabled=false;btn.textContent='Add'}toast('Couldn’t add that feed. Try again')}
 }
 const ACH='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
@@ -7624,7 +7624,11 @@ function quickAdd(u,n,c){
  if(!fo){fo={id:'g'+Date.now(),name:c};S.folders.push(fo)}
  const f={id:'x'+Date.now()+Math.random().toString(36).slice(2,5),url:u,title:n,folder:fo.id};
  S.feeds.push(f);save();fillFolders();pop();load(f);
+ return {f,fo};
 }
+/* where a feed went, in words, and a way to go and see it */
+const addedIn=u=>{const f=S.feeds.find(f=>f.url===u||nUrl(f.url)===nUrl(u));if(!f)return'';const fo=S.folders.find(o=>o.id===f.folder);return ' to “'+(fo?fo.name:'Unfiled')+'”'};
+function openAddedFeed(id){const d=$('#dlg');if(d&&d.open)d.close();S.sel='s:'+id;save();render()}
 
 /* --- starter packs + local news --- */
 const PACKS=[
@@ -7663,7 +7667,7 @@ function localHtml(){
  if(LOC.st==='idle')return '<div class="none">Find news about the place you are in.<br><button type="button" class="tx2" data-local="go" style="margin-top:10px">Use my location</button></div>';
  if(LOC.st==='busy')return '<div class="none">Looking for local news…</div>';
  if(LOC.st==='fail')return '<div class="none">'+esc(LOC.msg||'Couldn’t find local news.')+'<br><button type="button" class="tx2" data-local="go" style="margin-top:10px">Try again</button></div>';
- return '<div class="none" style="padding-bottom:4px">Local news for '+esc(LOC.city)+':</div>'+LOC.res.map(r=>`<div class="pf"><b style="background:${brand({url:r.u})}"></b><span>${esc(r.n)}<small>${esc(r.d)}</small></span>${inFeeds(r.u)?'<em>Added</em>':`<button type="button" data-add="${esc(r.u)}" data-n="${esc(r.n)}" data-c="Local">Add</button>`}</div>`).join('')
+ return '<div class="none" style="padding-bottom:4px">Local news for '+esc(LOC.city)+':</div>'+LOC.res.map(r=>`<div class="pf"><b style="background:${brand({url:r.u})}"></b><span>${esc(r.n)}<small>${esc(r.d)}</small></span>${inFeeds(r.u)?'<em>Added'+esc(addedIn(r.u))+'</em>':`<button type="button" data-add="${esc(r.u)}" data-n="${esc(r.n)}" data-c="Local">Add</button>`}</div>`).join('')
 }
 async function localGo(){
  LOC={st:'busy'};pop();
@@ -7683,8 +7687,8 @@ async function localGo(){
  pop();
 }
 $('#u').oninput=()=>{const q=$('#u').value.trim();liveRes=null;pop();liveCheck(q)};
-$('#pop').onclick=e=>{const t=e.target;if(t.dataset&&t.dataset.info){feedInfo(t.dataset.info,t);return}const cb=t.closest&&t.closest('[data-cat]');if(cb){cat=+cb.dataset.cat;pop();popTop()}else if(t.closest&&t.closest('[data-back]')){window.addBackHook();popTop()}else if(t.dataset.pack!==undefined)addPack(+t.dataset.pack,t);else if(t.dataset.local)localGo();else if(t.dataset.add){if(t.dataset.v)addVerified(t.dataset.add,t.dataset.n,t.dataset.c,t);else quickAdd(t.dataset.add,t.dataset.n,t.dataset.c)}};
-$('#add').onclick=()=>{drawer(false);fillFolders();$('#err').textContent='';$('#frm').reset();fillFolders();cat=-9;$('#adv').open=false;pop();dlg.showModal();$('#u').focus()};
+$('#pop').onclick=e=>{const t=e.target;if(t.dataset&&t.dataset.info){feedInfo(t.dataset.info,t);return}const cb=t.closest&&t.closest('[data-cat]');if(cb){cat=+cb.dataset.cat;pop();popTop()}else if(t.closest&&t.closest('[data-back]')){window.addBackHook();popTop()}else if(t.dataset.pack!==undefined)addPack(+t.dataset.pack,t);else if(t.dataset.local)localGo();else if(t.dataset.add){if(t.dataset.v)addVerified(t.dataset.add,t.dataset.n,t.dataset.c,t);else{const r=quickAdd(t.dataset.add,t.dataset.n,t.dataset.c);toast('Added '+t.dataset.n+' to “'+r.fo.name+'”',()=>openAddedFeed(r.f.id),'Open')}}};
+$('#add').onclick=()=>{drawer(false);fillFolders();$('#err').textContent='';$('#frm').reset();fillFolders();cat=-9;$('#adv').open=true;pop();dlg.showModal();$('#u').focus()};
 $('#cancel').onclick=()=>dlg.close();$('#dlgx').onclick=()=>dlg.close();dlg.addEventListener('click',e=>{if(e.target!==dlg)return;const r=dlg.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dlg.close()});
 $('#frm').onsubmit=async e=>{
  e.preventDefault();
@@ -7699,7 +7703,7 @@ $('#frm').onsubmit=async e=>{
   f.title=$('#n').value.trim()||parse(xml,f).title||host(url);
   if(await preCheck(url,f.title,xml)==='no'){btn.disabled=false;btn.textContent='Add feed';return}
   if(f.folder==='__new'){const nm=$('#nf').value.trim()||'New folder';const nf={id:'g'+Date.now(),name:nm};S.folders.push(nf);f.folder=nf.id}
-  S.feeds.push(f);S.sel='s:'+f.id;save();dlg.close();load(f);
+  S.feeds.push(f);S.sel='s:'+f.id;save();dlg.close();load(f);{const fo=S.folders.find(o=>o.id===f.folder);toast('Added “'+f.title+'” to “'+(fo?fo.name:'Unfiled')+'”')}
   if(!known(url))Promise.race([fetchText('https://'+host(url)),new Promise((_,j)=>setTimeout(j,6000))]).then(t=>{const m=new DOMParser().parseFromString(t,'text/html').querySelector('meta[name="theme-color"]');if(m&&/^#[0-9a-f]{3,8}$/i.test(m.content)&&S.feeds.includes(f)){f.color=m.content;save();render()}}).catch(()=>{});
  }catch(x){
   let q=$('#u').value.trim(),bad=false;try{const uu=new URL(/^[a-z][a-z0-9+.-]*:/i.test(q)?q:'https://'+q);bad=!/\./.test(uu.hostname)}catch(_){bad=true}
@@ -8550,7 +8554,7 @@ function tipsCheck(){
  if(S.feeds.length>=8&&!(S.folders||[]).length)return tip('foldershint');
  if(days>=3&&pfMode()==='off')return tip('offlinehint');
 }
-function tip(k){S.tips=S.tips||{};if(S.tips[k]||TIPQ.shown)return;const t=TIPQ.find(x=>x[0]===k);if(!t)return;TIPQ.shown=1;S.tips[k]=1;save();setTimeout(()=>toast(t[2]),t[1])}
+function tip(k){S.tips=S.tips||{};if(S.tips[k]||TIPQ.shown)return;const t=TIPQ.find(x=>x[0]===k);if(!t)return;TIPQ.shown=1;S.tips[k]=1;save();/* a tip never replaces a note that has a button on it (such as "Added … Open") */const go=()=>{const T=$('#toast');if(T&&T.classList.contains('act')&&T.classList.contains('show')){setTimeout(go,3000);return}toast(t[2])};setTimeout(go,t[1])}
 $('#clnx').onclick=()=>$('#cln').close();
 $('#clngo').onclick=()=>{
  const ids=[...document.querySelectorAll('#clnlist [data-cf]:checked')].map(x=>x.dataset.cf);if(!ids.length){toast('Tick a feed first');return}
