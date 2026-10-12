@@ -2642,8 +2642,6 @@ html.smooth .cover::before{mix-blend-mode:normal!important}
 .wthr-b{margin-top:8px;padding-left:12px;border-left:2px solid var(--ln)}
 .wend{grid-column:1/-1;margin:16px 0 40px;text-align:center;color:var(--mut);font:italic 400 14px var(--serif,Georgia,serif)}
 .wend .tx2{margin-top:10px}
-#wpos{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(72px + env(safe-area-inset-bottom));z-index:30;padding:6px 14px;border-radius:999px;background:var(--ink);color:var(--pn);font:600 12px var(--sans);box-shadow:0 4px 14px rgba(0,0,0,.28);pointer-events:none}
-#wpos[hidden]{display:none}
 #grid.wire .wline span{font-weight:700}
 #grid.wire>.card{margin:0 0 14px}#grid.wire>.card.lead{margin-bottom:18px}
 /* experiment, cluster 6: true full-bleed cover. No card chrome: the art runs to the screen edges, the masthead is knocked out of the picture, the signature frame is drawn inside the image */
@@ -4556,17 +4554,6 @@ if(FD){
  if(!T&&!WIRE.restored&&wp&&wp.l&&(wp.sel||'all')===S.sel&&Date.now()-wp.t<12*36e5){anchor=cn.findIndex(a=>a.link===wp.l);if(anchor>=0){const bi=B.findIndex(h=>h.includes(`data-i="${anchor}"`));if(bi>=0)first=Math.max(9,bi+4)}}
  setBlocks(head,B,first,6);
  if(!T&&!WIRE.restored){WIRE.restored=true;if(anchor>=0)setTimeout(()=>{const m=$('main'),c=[...g.querySelectorAll('.card[data-i]')].find(x=>chref(x)===wp.l);if(c&&m&&m.scrollTop<40)m.scrollTop+=c.getBoundingClientRect().top-m.getBoundingClientRect().top-(wp.off||0)},80)}
- wirePos();
-}
-/* "Story N of M new": where you are among the stories that arrived since your last visit */
-function wirePos(){
- let el=$('#wpos');const g=$('#grid'),m=$('main');
- if(!g||!g.classList.contains('wire')||!wireSel()||!WIRE.newN||!m||m.scrollTop<300){if(el)el.hidden=true;return}
- if(!el){el=document.createElement('div');el.id='wpos';el.setAttribute('role','status');document.body.append(el)}
- const vh=innerHeight;let n=0;
- g.querySelectorAll('.card[data-i]').forEach(c=>{const a=cur[+c.dataset.i];if(a&&VIS&&a.date>VIS&&c.getBoundingClientRect().top<vh*.85)n++});
- if(!n){el.hidden=true;return}
- el.hidden=false;el.textContent='Story '+Math.min(n,WIRE.newN)+' of '+WIRE.newN+' new';
 }
 function wireSavePos(){
  const g=$('#grid'),m=$('main');if(!g||!m||!g.classList.contains('wire')||g.classList.contains('wtopic')||!wireSel())return;
@@ -4577,8 +4564,8 @@ function wireSavePos(){
  clearTimeout(wireSavePos.t);wireSavePos.t=setTimeout(()=>{try{save()}catch(e){}},400);
 }
 {
- const m=$('main');let raf=0,idle=0;
- if(m)m.addEventListener('scroll',()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;wirePos()});clearTimeout(idle);idle=setTimeout(wireSavePos,900)},{passive:true});
+ const m=$('main');let idle=0;
+ if(m)m.addEventListener('scroll',()=>{clearTimeout(idle);idle=setTimeout(wireSavePos,900)},{passive:true});
  document.addEventListener('visibilitychange',()=>{if(document.hidden){wireSavePos();WIRE.hid=Date.now()}else if(WIRE.hid&&Date.now()-WIRE.hid>30*60*1e3){WIRE.hid=0;wireReset();WIRE.restored=true}});
  document.addEventListener('click',e=>{
   const w=e.target.closest&&e.target.closest('[data-wire]');if(w){e.preventDefault();e.stopPropagation();wireLoad();return}
