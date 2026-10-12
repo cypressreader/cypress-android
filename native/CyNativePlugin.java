@@ -297,18 +297,27 @@ public class CyNativePlugin extends Plugin {
 
     @PluginMethod
     public void shareFile(PluginCall call) {
+        String step = "reading the request";
         try {
             String name = call.getString("name", "cypress-file");
             String b64 = call.getString("data", "");
             String mime = call.getString("mime", "application/octet-stream");
+            if (b64 == null || b64.length() == 0) {
+                call.reject("Share failed: no file data reached the app's native side (0 bytes)");
+                return;
+            }
+            step = "decoding the file (" + b64.length() + " characters)";
             byte[] bytes = android.util.Base64.decode(b64, android.util.Base64.DEFAULT);
+            step = "writing the file to the cache";
             File dir = new File(getContext().getCacheDir(), "share");
             if (!dir.exists()) dir.mkdirs();
             File f = new File(dir, name.replaceAll("[^A-Za-z0-9._-]", "_"));
             FileOutputStream os = new FileOutputStream(f);
             os.write(bytes);
             os.close();
+            step = "making the file shareable (authority " + getContext().getPackageName() + ".cyfiles)";
             Uri uri = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".cyfiles", f);
+            step = "opening the share sheet";
             Intent i = new Intent(Intent.ACTION_SEND);
             i.setType(mime);
             i.putExtra(Intent.EXTRA_STREAM, uri);
@@ -322,8 +331,12 @@ public class CyNativePlugin extends Plugin {
             ch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             getContext().startActivity(ch);
             call.resolve();
-        } catch (Exception e) {
-            call.reject("Share failed: " + e.getMessage());
+        } catch (Throwable e) {
+            // the real reason, with the step that failed, goes back to the app and into the log
+            // (Throwable, not Exception: running out of memory on a big file must not leave the call hanging)
+            String why = e.getClass().getSimpleName() + ": " + e.getMessage() + " (while " + step + ")";
+            android.util.Log.e("CyNative", "shareFile failed " + why, e);
+            call.reject("Share failed: " + why);
         }
     }
 

@@ -3445,17 +3445,29 @@ const NATIVE=!!(window.Capacitor&&typeof Capacitor.isNativePlatform==='function'
 const NHDR={'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,application/rss+xml,application/atom+xml;q=0.8,*/*;q=0.5','User-Agent':'Mozilla/5.0 (Linux; Android 15; SM-F976U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36'};
 const CyN=()=>{try{if(!NATIVE)return null;const C=window.Capacitor;return (C.Plugins&&C.Plugins.CyNative)||(C.registerPlugin?C.registerPlugin('CyNative'):null)}catch(e){return null}};
 if(NATIVE&&!navigator.share){navigator.share=async d=>{const p=CyN();if(p&&p.shareText)await p.shareText({title:d.title||'',text:d.text||'',url:d.url||''})}}
+/* a failure is shown with its real reason, and can be copied for a bug report */
+function failNote(what,why){const m=what+': '+why;toast(m,()=>{try{navigator.clipboard.writeText(m)}catch(e){}},'Copy');try{elog('saveFile',new Error(m))}catch(e){}}
+function nativeWhy(e){if(e==null)return 'unknown error';if(typeof e==='string')return e;return String(e.message||e.errorMessage||e.code||e)}
 async function saveFile(name,blob,extra){
- const p=CyN();
- if(p&&p.shareFile){
-  try{const data=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]||'');r.onerror=rej;r.readAsDataURL(blob)});await p.shareFile(Object.assign({name,mime:blob.type||'application/octet-stream',data},extra||{}))}
-  catch(e){toast('Couldn’t open the share sheet');return false}
-  return true;
+ saveFile.err='';
+ if(NATIVE){
+  /* inside the app the file goes to the Android share sheet; the browser download does nothing there, so it is never tried */
+  const p=CyN();
+  if(!p||typeof p.shareFile!=='function'){saveFile.err='the Android share plugin (CyNative.shareFile) is not available in this version of the app';failNote('Couldn’t share the file',saveFile.err);return false}
+  try{
+   const data=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]||'');r.onerror=()=>rej(r.error||new Error('could not read the file'));r.readAsDataURL(blob)});
+   if(!data)throw new Error('the file came out empty ('+blob.size+' bytes)');
+   const mb=blob.size>=1048576?(blob.size/1048576).toFixed(1)+' MB':Math.max(1,Math.round(blob.size/1024))+' KB';
+   let to;const limit=new Promise((_,rej)=>{to=setTimeout(()=>rej(new Error('the share sheet did not respond within '+Math.round((saveFile.timeoutMs||25000)/1000)+' seconds (file: '+mb+')')),saveFile.timeoutMs||25000)});
+   try{await Promise.race([p.shareFile(Object.assign({name,mime:blob.type||'application/octet-stream',data},extra||{})),limit])}finally{clearTimeout(to)}
+   return true;
+  }catch(e){saveFile.err=nativeWhy(e);failNote('Couldn’t share the file',saveFile.err);return false}
  }
  return webDownload(name,blob);
 }
 /* a download in the browser: the link is part of the page while it is clicked (some browsers ignore a loose one) and the file stays available for a few minutes, so a slow or repeated save still works */
 function webDownload(name,blob){
+ if(NATIVE)return saveFile(name,blob);/* the browser download does nothing inside the app */
  try{const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;a.rel='noopener';a.style.display='none';document.body.append(a);a.click();setTimeout(()=>{a.remove();setTimeout(()=>URL.revokeObjectURL(u),3e5)},1500);return true}
  catch(e){return false}
 }
@@ -11815,9 +11827,9 @@ async function exportEdition(opts){
   const kd=opts&&opts.kindle,nm='CyPress-'+dayKey()+(km==='m'?'-morning':'-evening')+'.pdf';
   const ok=await saveFile(nm,blob,kd?{email:S.kindle,subject:'CyPress '+(km==='m'?'Morning':'Evening')+' Edition'}:null);
   if(ok&&kd&&!NATIVE){toast('Saved. Attach it to the email that opens');setTimeout(()=>{location.href='mailto:'+encodeURIComponent(S.kindle)+'?subject='+encodeURIComponent('CyPress edition')+'&body='+encodeURIComponent('Attach the PDF you just saved, then send.')},900)}
-  else if(ok&&!NATIVE)toast('Your edition is ready as a PDF. Check your downloads',()=>{webDownload(nm,blob)},'Save PDF');
-  else if(!ok&&!kd)toast('Couldn’t save the PDF. Try again');
- }catch(e){elog('exportEdition',e);toast('Couldn’t make the PDF')}
+  else if(ok&&NATIVE)toast(kd?'Your edition is ready. Pick your email app to send it to your Kindle':'Your edition is ready as a PDF. Pick where to save or send it',()=>{saveFile(nm,blob,kd?{email:S.kindle,subject:'CyPress '+(km==='m'?'Morning':'Evening')+' Edition'}:null)},kd?'Send again':'Save PDF');
+  else if(ok)toast('Your edition is ready as a PDF. Check your downloads',()=>{webDownload(nm,blob)},'Save PDF');
+ }catch(e){elog('exportEdition',e);failNote('Couldn’t make the PDF',nativeWhy(e))}
  finally{EXPBUSY=0}
 }
 function exApply(){
@@ -11884,7 +11896,7 @@ document.addEventListener('click',async e=>{
  const g=$('#grid'),t=e.target.closest&&e.target.closest('[data-bi],[data-biexp],[data-bist]');if(!t||!g||S.sel!=='bi')return;
  e.preventDefault();e.stopPropagation();
  if(t.hasAttribute('data-bist')){const r=g._bi,s=r&&r.stories[+t.dataset.bist];if(s)openReader({title:s.title,link:s.l,feedId:'__bi',date:r.t,html:blocksHtml(s.blocks),summary:'',img:''});return}
- if(t.hasAttribute('data-biexp')){const r=(await biAll()).find(x=>x.id===t.dataset.biexp);if(!r)return;toast('Typesetting this issue…');try{const blob=await pdfFinish({kind:r.kind==='m'?'The Morning Edition':'The Evening Edition',date:r.date,short:r.short,issue:r.issue},r.stories,r.img);const nm='CyPress-'+r.id+'.pdf',ok=await saveFile(nm,blob);if(ok&&!NATIVE)toast('This issue is ready as a PDF. Check your downloads',()=>{webDownload(nm,blob)},'Save PDF');else if(!ok)toast('Couldn’t save the PDF. Try again')}catch(er){elog('biexp',er);toast('Couldn’t make the PDF')}return}
+ if(t.hasAttribute('data-biexp')){const r=(await biAll()).find(x=>x.id===t.dataset.biexp);if(!r)return;toast('Typesetting this issue…');try{const blob=await pdfFinish({kind:r.kind==='m'?'The Morning Edition':'The Evening Edition',date:r.date,short:r.short,issue:r.issue},r.stories,r.img);const nm='CyPress-'+r.id+'.pdf',ok=await saveFile(nm,blob);if(ok&&NATIVE)toast('This issue is ready as a PDF. Pick where to save or send it',()=>{saveFile(nm,blob)},'Save PDF');else if(ok)toast('This issue is ready as a PDF. Check your downloads',()=>{webDownload(nm,blob)},'Save PDF')}catch(er){elog('biexp',er);failNote('Couldn’t make the PDF',nativeWhy(er))}return}
  S.biv=t.dataset.bi||'';render();
 },true);
 document.addEventListener('change',e=>{if(e.target&&e.target.id==='bid'){S.bidays=+e.target.value;save();biPurge()}});
