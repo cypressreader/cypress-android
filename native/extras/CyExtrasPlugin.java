@@ -244,6 +244,20 @@ public class CyExtrasPlugin extends Plugin {
 
     // ---- widget
 
+    // B48: the widget's save button stashes a link; the app picks it up and saves the story
+    @PluginMethod
+    public void widgetSaved(PluginCall call) {
+        try {
+            Context c = getContext();
+            android.content.SharedPreferences p = c.getSharedPreferences("cypress", Context.MODE_PRIVATE);
+            String link = p.getString("widget_save", null);
+            if (link != null) p.edit().remove("widget_save").apply();
+            call.resolve(CyExtras.obj("{\"link\":\"" + (link == null ? "" : link.replace("\\", "\\\\").replace("\"", "\\\"")) + "\"}"));
+        } catch (Throwable t) {
+            call.reject("widgetSaved failed: " + msg(t));
+        }
+    }
+
     @PluginMethod
     public void widgetUpdate(PluginCall call) {
         try {
