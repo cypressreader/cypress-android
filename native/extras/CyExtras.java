@@ -579,6 +579,7 @@ public final class CyExtras {
                 o.put("link", isHttpUrl(link) ? link : "");
                 o.put("src", h.optString("src", ""));
                 o.put("img", h.optString("img", ""));
+                if (h.optBoolean("read", false)) o.put("read", true);
                 out.put(o);
             }
             prefs(c).edit().putString("widget_headlines", out.toString()).apply();
@@ -630,9 +631,20 @@ public final class CyExtras {
         try {
             AppWidgetManager m = AppWidgetManager.getInstance(c);
             int[] ids = m.getAppWidgetIds(new ComponentName(c, CyWidgetProvider.class));
-            if (ids == null || ids.length == 0) return;
-            RemoteViews rv = CyWidgetProvider.build(c);
-            m.updateAppWidget(ids, rv);
+            if (ids != null && ids.length > 0) m.updateAppWidget(ids, CyWidgetProvider.build(c));
+            int[] sids = m.getAppWidgetIds(new ComponentName(c, CyWidgetSmallProvider.class));
+            if (sids != null && sids.length > 0) {
+                // small + large go through their own providers' onUpdate path
+                android.content.Intent u = new android.content.Intent(c, CyWidgetSmallProvider.class);
+                u.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE); u.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, sids);
+                c.sendBroadcast(u);
+            }
+            int[] lids = m.getAppWidgetIds(new ComponentName(c, CyWidgetLargeProvider.class));
+            if (lids != null && lids.length > 0) {
+                android.content.Intent u = new android.content.Intent(c, CyWidgetLargeProvider.class);
+                u.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE); u.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, lids);
+                c.sendBroadcast(u);
+            }
         } catch (Throwable t) {
             Log.w(TAG, "widget update failed: " + t);
         }

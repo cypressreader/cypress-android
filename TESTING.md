@@ -156,3 +156,9 @@ Things that could not be reproduced in a desktop browser and need a check on a r
 - [ ] **Read-ahead.** Read a story; the next one opens instantly. Close the story before it finishes loading: nothing keeps downloading for it.
 - [ ] **Pictures stay lazy.** The save does not fetch pictures (the "offline photos" setting is separate and unchanged). The next story's lead picture may appear a moment after the text, since pictures are no longer warmed up ahead (this changed in 1.72).
 - [ ] **No scroll hitches** on a low-end phone while the edition downloads.
+
+## R4 Item 13 — Safari/macOS PWA performance (needs David's MacBook)
+Code review 2026-10-12 (no Safari on this VM — all unverified on-device):
+- (9) Jank: "Smooth mode" (disables backdrop-filter blurs, shadows, card transitions) is already ON by default in Safari (`applyFx`: `S.smooth=true` when `IS_SAFARI`). No further speculative changes made.
+- (10) Refresh indicator: math verified correct — `pfBar` shows `LP.f/LP.t` (feeds finished / feeds started). A slow fill means feeds genuinely load slowly on Safari, not a miscalibrated indicator. Check on MacBook whether it's network (relay) or render.
+- (11) "Loading the full article…": shows elapsed seconds (`· Ns` via `rdTick`) and a 16s watchdog offers "View the site here" / retry / "Open the original". If Safari sits longer than 16s without the fallback appearing, that's the bug to report.

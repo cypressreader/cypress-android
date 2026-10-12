@@ -30,6 +30,7 @@ public class CyWidgetProvider extends AppWidgetProvider {
     private static final String TAG = "CyWidget";
     static final String ACT_NEXT = "com.cypress.reader.widget.NEXT";
     static final String ACT_PREV = "com.cypress.reader.widget.PREV";
+    static final String ACT_SAVE = "com.cypress.reader.widget.SAVE";
     static final int MAX = 6;
 
     @Override
@@ -47,6 +48,14 @@ public class CyWidgetProvider extends AppWidgetProvider {
         super.onReceive(context, intent);
         try {
             String a = intent == null ? null : intent.getAction();
+            if (ACT_SAVE.equals(a)) {
+                String link = intent.getStringExtra("link");
+                if (link != null && link.length() > 0) {
+                    context.getSharedPreferences("cypress", Context.MODE_PRIVATE)
+                        .edit().putString("widget_save", link).apply();
+                }
+                return;
+            }
             boolean next = ACT_NEXT.equals(a);
             if (!next && !ACT_PREV.equals(a)) return;
             AppWidgetManager m = AppWidgetManager.getInstance(context);
@@ -61,6 +70,13 @@ public class CyWidgetProvider extends AppWidgetProvider {
         }
     }
 
+    private static PendingIntent saveIntent(Context c, String link, int code) {
+        Intent i = new Intent(c, CyWidgetProvider.class);
+        i.setAction(ACT_SAVE);
+        i.putExtra("link", link);
+        return PendingIntent.getBroadcast(c, code, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
     private static PendingIntent switchIntent(Context c, String action, int code) {
         Intent i = new Intent(c, CyWidgetProvider.class);
         i.setAction(action);
@@ -71,6 +87,28 @@ public class CyWidgetProvider extends AppWidgetProvider {
         RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget);
         JSONArray h = CyExtras.readHeadlines(c);
         int n = Math.min(h.length(), MAX);
+        // B48: edition freshness — "N new" badge vs the previous headline set
+        try {
+            android.content.SharedPreferences p = c.getSharedPreferences("cypress", Context.MODE_PRIVATE);
+            java.util.HashSet<String> prev = new java.util.HashSet<>();
+            for (String s2 : p.getString("widget_prev", "").split("\\|")) if (s2.length() > 0) prev.add(s2);
+            int fresh = 0;
+            StringBuilder cur = new StringBuilder();
+            for (int i = 0; i < n; i++) {
+                String l = h.optJSONObject(i).optString("link", "");
+                if (l.length() == 0) continue;
+                if (cur.length() > 0) cur.append('|');
+                cur.append(l);
+                if (!prev.contains(l)) fresh++;
+            }
+            p.edit().putString("widget_prev", cur.toString()).apply();
+            if (fresh > 0 && n > 0) {
+                rv.setTextViewText(R.id.cy_w_new, fresh + " new");
+                rv.setViewVisibility(R.id.cy_w_new, View.VISIBLE);
+            } else {
+                rv.setViewVisibility(R.id.cy_w_new, View.GONE);
+            }
+        } catch (Throwable t) { /* badge is best-effort */ }
         rv.removeAllViews(R.id.cy_w_flip);
         int shown = 0;
         for (int i = 0; i < n; i++) {
@@ -113,6 +151,11 @@ public class CyWidgetProvider extends AppWidgetProvider {
             p.setViewVisibility(R.id.cy_wp_img, View.GONE);
         }
         String nt = next == null ? "" : next.optString("title", "");
+        if (nt.length() > 64) {
+            // B48: cut at a word boundary instead of mid-word
+            int sp = nt.lastIndexOf(' ', 64);
+            nt = nt.substring(0, sp > 40 ? sp : 64).replaceAll("\\s+$", "") + "\u2026";
+        }
         if (nt.length() > 0) {
             p.setTextViewText(R.id.cy_wp_next, "Next  ›  " + nt);
             p.setViewVisibility(R.id.cy_wp_next, View.VISIBLE);
@@ -121,6 +164,13 @@ public class CyWidgetProvider extends AppWidgetProvider {
             p.setViewVisibility(R.id.cy_wp_next, View.GONE);
         }
         p.setOnClickPendingIntent(R.id.cy_wp_root, CyExtras.openIntent(c, o.optString("link", ""), 100 + i));
+        // B48: already-read stories are dimmed so the widget doesn't resurface them
+        if (o.optBoolean("read", false)) {
+            p.setFloat(R.id.cy_wp_head, "setAlpha", 0.45f);
+            p.setFloat(R.id.cy_wp_img, "setAlpha", 0.45f);
+        }
+        // B48: save button on the card
+        p.setOnClickPendingIntent(R.id.cy_wp_save, saveIntent(c, o.optString("link", ""), 130 + i));
         return p;
     }
 
