@@ -3751,6 +3751,9 @@ function pruneJunk(root){
   [...root.children].forEach(e=>{const t=e.textContent.replace(/\s+/g,' ').trim();const pos=seen/all;seen+=e.textContent.length;
    if(t.length&&t.length<80&&!e.querySelector('img')&&/^(P|DIV|FIGCAPTION|SPAN)$/.test(e.tagName)&&CREDITJ.test(t)){e.remove();return}
    if(/^(UL|OL)$/.test(e.tagName)&&(pos<.12||pos>.8)){const li=[...e.children].filter(x=>x.tagName==='LI');if(li.length>=2&&li.length<=10&&li.every(x=>{const tt=x.textContent.replace(/\s+/g,' ').trim();const a=x.querySelectorAll('a');return tt.length<=28&&a.length===1&&a[0].textContent.replace(/\s+/g,' ').trim()===tt}))e.remove()}})}catch(e){}
+ /* a photo credit is never the opening line of the story: a credit-only caption goes (a figure left empty goes with it), and so does a credit sitting before a line break at the top of a paragraph */
+ try{root.querySelectorAll('figcaption').forEach(c=>{const t=c.textContent.replace(/\s+/g,' ').trim();if(t.length&&t.length<80&&CREDITJ.test(t)){const f=c.closest('figure');c.remove();if(f&&!f.querySelector('img,picture,video,iframe')&&!f.textContent.trim())f.remove()}});
+  [...root.querySelectorAll('p,div')].slice(0,6).forEach(e=>{const n0=e.firstChild;if(n0&&n0.nodeType===3&&e.childNodes[1]&&e.childNodes[1].nodeName==='BR'){const t=n0.textContent.replace(/\s+/g,' ').trim();if(t.length<80&&CREDITJ.test(t)){e.childNodes[1].remove();n0.remove()}}})}catch(e){}
  const kids=[...root.querySelectorAll('p,li,div,h2,h3')];/* the article is detached from the page, so isConnected would always be false */
  kids.forEach(e=>{if(e.children.length>8)return;const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length&&t.length<700&&(VIDJ.test(t)||MENUJ.test(t)||CHROMEJ.test(t)||(t.length<400&&STARLIST.test(t))))e.remove()});
  /* lists made only of short labels are menus, not part of the story */
