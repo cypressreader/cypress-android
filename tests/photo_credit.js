@@ -9,6 +9,7 @@ const variants={
  nested:'<div><div><p><small>Fadfebrian/Getty Images</small></p></div>'+P+'</div>',
  inline:'<p><span class="credit">Fadfebrian/Getty Images</span></p>'+P,
  sametext:'<p>Fadfebrian/Getty Images</p>'+P,
+ pipe:'<p>AFP | Getty Images</p>'+P,
  brp:'<p>Fadfebrian/Getty Images<br>'+'It’s easy to lose yourself in the morass of technical terminologies when shopping for internet providers. '.repeat(8)+'</p>'};
 for(const [k,v] of Object.entries(variants)){
  const h='<html><head><title>T</title></head><body><article><h1>Mbps vs MB/s</h1>'+v+P+P+'</article></body></html>';
