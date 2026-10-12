@@ -6775,7 +6775,7 @@ function toggleWeb(auto){
  w.hidden=false;R.web=true;R.auto=!!auto;b.innerHTML=svg(PAGE);b.title='Back to reader view';loadWeb();
 }
 async function openReader(a){
- const f=fof(a),my=++tok,sh=$('#sheet');curA=a;RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0;R.ready=false;const afterLoad=()=>{try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;setTimeout(()=>{if(curA===a0)relayout()},800);setTimeout(()=>{if(curA===a0)relayout()},2600);try{document.fonts&&document.fonts.ready.then(()=>{if(curA===a0)relayout()})}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);save();setTimeout(()=>readAhead(a),1200);
+ const f=fof(a),my=++tok,sh=$('#sheet');curA=a;RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0;R.ready=false;const afterLoad=()=>{try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;setTimeout(()=>{if(curA===a0)relayout()},800);setTimeout(()=>{if(curA===a0)relayout()},2600);try{document.fonts&&document.fonts.ready.then(()=>{if(curA===a0)relayout()})}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);save();setTimeout(()=>readAhead(a),1200);
  rdB(brand(f));pushLayer('reader');tip('reader');
  if(a.img&&isOn('ptint'))imgInfo(a.img).then(o=>{if(o&&o.t&&curA===a)rdB(o.t)});
  document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',chref(c)===a.link));
@@ -8739,10 +8739,19 @@ function wpmTick(f){const now=Date.now();if(R.lf!=null&&R.words>150){const dt=(n
 function bodyEnd(){const b=$('.cols .body');if(!b)return null;const k=[...b.children].filter(e=>!e.matches('.bfold,.endmark,script,style'));return k.pop()||null}
 function pgEnd(){R.ep=null;if(isVert()||!(R.np>1))return;const c=$('.cols'),e=bodyEnd();if(!c||!e)return;const rs=[...e.getClientRects()],r=rs[rs.length-1];if(!r)return;const x=r.left-c.getBoundingClientRect().left;if(!isFinite(x)||!R.step)return;R.ep=Math.max(0,Math.min(R.np-1,Math.floor((x+2)/R.step)))}
 function vEndFrac(){const v=vView();if(!v)return 0;let m=v.scrollHeight-v.clientHeight;const e=bodyEnd();if(e){const endY=e.getBoundingClientRect().bottom-v.getBoundingClientRect().top+v.scrollTop;m=Math.min(m,Math.max(1,endY-v.clientHeight+24))}return m>0?Math.min(1,Math.max(0,v.scrollTop/m)):1}
+/* a story that fits on the screen is already at its end: it counts as read to the end once it has been open for a few seconds */
+function finishWatch(){
+ const a=curA;if(!a||R.web)return;const l=a.link,v=isVert()?vView():null;
+ /* the end of the story text is already on screen (a note or a Related reads block below it does not count) */
+ let fits=false;if(isVert()){const e=bodyEnd();fits=!!(v&&e&&e.getBoundingClientRect().bottom<=v.getBoundingClientRect().bottom-4)}else fits=R.np<2||(R.ep!=null&&R.ep<=R.pg);
+ if(!fits||R._stl===l)return;R._stl=l;clearTimeout(R._st);
+ R._st=setTimeout(()=>{if(curA&&curA.link===l&&$('#rd').classList.contains('on')&&!document.hidden)STAT.finished(l)},4000);
+}
 function setProg(){
  if(!R.ready||!curA)return;
  const l=curA.link,E=R.ep!=null?R.ep:R.np-1;
  {const v=isVert()?vView():null,short=isVert()?(!v||v.scrollHeight<=v.clientHeight+20):R.np<2,fr=isVert()?vEndFrac():(R.np>1?(E>0?Math.min(1,R.pg/E):1):1);if(!S.read[l]&&(short||fr>=.5))markReadA(curA);wpmTick(fr)}
+ finishWatch();
  if(isVert()){const f=vEndFrac(),v=vView();if(!v||v.scrollHeight<=v.clientHeight+20)return;if(f>=.97){if(S.prog[l]){S.prog[l].p=1;S.prog[l].t=Date.now()}STAT.finished(l)}else if(f>.03)S.prog[l]={p:f,t:Date.now()};return}
  if(R.np<2)return;
  if(R.pg>=E)STAT.finished(l);
@@ -10649,7 +10658,7 @@ async function shareCanvas(c,name,text){
 S.st=S.st||{d:{},src:{},tp:{},hr:Array(24).fill(0),fin:{}};
 const dayKey=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const STAT={last:0,touch(){this.last=Date.now()},
- opened(a){const k=dayKey(),d=S.st.d[k]=S.st.d[k]||{m:0,n:0,f:0};d.n++;const f=fof(a);S.st.src[f.title||'?']=(S.st.src[f.title||'?']||0)+1;const fo=S.folders.find(x=>x.id===f.folder);if(fo)S.st.tp[fo.name]=(S.st.tp[fo.name]||0)+1;this.touch();const ks=Object.keys(S.st.d);if(ks.length>420)delete S.st.d[ks.sort()[0]]},
+ opened(a){const k=dayKey();/* a story counts as opened once a day, however many times it is reopened or redrawn */S.st.op=S.st.op||{};if(S.st.op[a.link]===k){this.touch();return}S.st.op[a.link]=k;{const ok=Object.keys(S.st.op);if(ok.length>1500)delete S.st.op[ok[0]]}const d=S.st.d[k]=S.st.d[k]||{m:0,n:0,f:0};d.n++;const f=fof(a);S.st.src[f.title||'?']=(S.st.src[f.title||'?']||0)+1;const fo=S.folders.find(x=>x.id===f.folder);if(fo)S.st.tp[fo.name]=(S.st.tp[fo.name]||0)+1;this.touch();const ks=Object.keys(S.st.d);if(ks.length>420)delete S.st.d[ks.sort()[0]]},
  finished(l){if(S.st.fin[l])return;S.st.fin[l]=dayKey();buzz('soft');sfxTone('finish');const d=S.st.d[dayKey()]=S.st.d[dayKey()]||{m:0,n:0,f:0};d.f++;const ks=Object.keys(S.st.fin);if(ks.length>1500)delete S.st.fin[ks[0]]}};
 {const _fin=STAT.finished.bind(STAT);STAT.finished=function(l){_fin(l);setTimeout(mileCheck,600)}}
 ['pointerdown','keydown','wheel'].forEach(t=>document.addEventListener(t,()=>{if($('#rd').classList.contains('on'))STAT.touch()},{passive:true,capture:true}));
