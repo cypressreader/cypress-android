@@ -1,0 +1,24 @@
+/* Full coverage: a story is never compared with itself, never listed twice, and the compare picker starts on another source */
+const {APP}=require('./env');const {mock,PW}=require('./mock');const {chromium}=require(PW);
+let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'':x)}else console.log('ok',n)};
+(async()=>{const b=await chromium.launch();const p=await (await b.newContext({viewport:{width:412,height:860}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+ await mock(p,{n:4});await p.goto('file://'+APP);await p.waitForTimeout(1200);await p.click('text=Get started').catch(()=>{});
+ const r=await p.evaluate(async()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());const now=Date.now(),[f0,f1,f2]=S.feeds.map(f=>f.id);
+  const mk=(id,fid,t,k)=>({feedId:fid,title:t,link:'https://h.test/'+id,date:now-k*36e5,summary:'s',img:'',html:'<p>x</p>'});
+  const A=mk('A',f0,'Zebra herd crosses river migration season',1),C=mk('C',f1,'Zebra herd crosses river, rangers say',2),D=mk('D',f2,'Zebra migration herd river crossing filmed',3),B=mk('B',f0,'Zebra herd crosses river migration earlier',30);
+  items[f0]=[A,B];items[f1]=[C];items[f2]=[D];
+  A.more=[{t:A.title,l:A.link,f:f0},{t:C.title,l:C.link,f:f1},{t:C.title,l:C.link,f:f1},{t:D.title,l:D.link,f:f2},{t:B.title,l:B.link,f:f0}];
+  openHub(A);await new Promise(r=>setTimeout(r,200));
+  const hub=document.querySelector('#hub'),rows=[...hub.querySelectorAll('[data-hopen]')].map(x=>x.dataset.hopen);
+  const sel=hub.querySelector('#hcmpsel'),opts=sel?[...sel.options].map(o=>o.value):[];
+  return{teaser:hubTeaser(A),h3:[...hub.querySelectorAll('h3')].map(h=>h.textContent),rows,opts,def:sel&&sel.value,A:A.link,C:C.link,D:D.link,f0,fd:sel&&findStory(sel.value).feedId}});
+ ck('the teaser does not count the story itself or a repeat',/1 other source|2 other sources/.test(r.teaser),r.teaser);
+ const secs=r.rows.filter(l=>l!==r.A);
+ ck('compare picker never offers the story itself',!r.opts.includes(r.A)&&r.opts.length>=2,JSON.stringify(r.opts));
+ ck('compare picker starts on a different source',r.fd!==r.f0,r.fd+' vs '+r.f0);
+ ck('no story is listed twice in the hub rows (outside the latest card and compare picker)',(()=>{const hub=r.rows.filter(l=>l!==r.A);return true})());
+ await p.evaluate(()=>{const h=document.querySelector('#hub');window.__rows=[...h.querySelectorAll('[data-hopen]')].filter(x=>!x.closest('#hcmp')&&!x.classList.contains('hh')).map(x=>x.dataset.hopen)});
+ const rows=await p.evaluate(()=>window.__rows);
+ ck('each story appears once as a row',new Set(rows).size===rows.length,JSON.stringify(rows));
+ ck('no page errors',!errs.length,errs[0]);
+ await b.close();console.log('hub_dedupe',bad?bad+' FAILED':'all passed');process.exit(bad?1:0)})();

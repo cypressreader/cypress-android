@@ -4090,6 +4090,8 @@ function group(list){
  const out=[];
  list.forEach(a=>{
   const t=tk(a);let g=null;
+  /* the same address arriving through two feeds is one story, not a second source */
+  if(out.some(o=>o.all.some(x=>x.link===a.link)))return;
   for(const o of out){
    if(o.fs.has(a.feedId))continue;
    let inter=0;for(const w of t)if(o.t.has(w))inter++;
@@ -6842,7 +6844,7 @@ async function openReader(a){
  if(a.img&&isOn('ptint'))imgInfo(a.img).then(o=>{if(o&&o.t&&curA===a)rdB(o.t)});
  document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',chref(c)===a.link));
  const dt=a.date?new Date(a.date).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'';
- const cov=(a.more&&a.more.length)?hubTeaser(a):'';
+ const cov=covOf(a).length?hubTeaser(a):'';
  sh.innerHTML=`<div class="bar"><button class="ib" id="cl" data-lbl="Back" aria-label="Back" title="Back">${svg('<path d="m14.5 5-7 7 7 7"/>')}</button><button class="ib" id="fdn" aria-label="Back to all feeds" title="Back to all feeds" tabindex="-1" aria-hidden="true" hidden>${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><div class="bs">${esc(f.title)}</div><span id="pc"></span><button class="ib" id="rfocus" data-lbl="Focus" title="Focus mode" aria-label="Focus mode" aria-pressed="false">${FOC_EYE}</button><button class="ib" id="st" data-lbl="Save" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" data-lbl="Listen" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings" hidden>${svg(TUNE)}</button>`:''}<button class="ib" id="fcs" data-lbl="Focus" aria-label="Focus mode" aria-pressed="false" title="Focus mode: hide the controls for distraction-free reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site here" title="View the site here" hidden>${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page" hidden>${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page" hidden>${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" data-lbl="More" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec))+(hasSec(a.sec,a.feedId)?'':`<button class="flw" data-fsec aria-label="Follow ${esc(a.sec||'this section')}">Follow</button>`):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener" href="${esc(a.link)}">Read on ${esc(host(a.link))}</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p class="wmp">This site can’t be shown inside the app. It may block automated access.</p><div><button type="button" class="lnk" id="wtry">Try again</button> <a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
  for(const lb of sh.querySelectorAll('.bar .ib[data-lbl]')){const sp=document.createElement('span');sp.className='bl';sp.setAttribute('aria-hidden','true');sp.textContent=lb.dataset.lbl;lb.append(sp)}
  if(R.T){cancelAnimationFrame(R.T.raf);R.T.dead=true;R.T=null}
@@ -12120,15 +12122,23 @@ function thisDayHtml(){
  }catch(e){elog('thisDay',e);return ''}
 }
 /* ---- Story hub ---- */
+/* the other sources that cover a story: never the story itself, never one twice */
+function covOf(a){
+ const seen=new Set([a.link]);
+ return (a.more||[]).filter(m=>m&&m.l&&m.f!==a.feedId&&!seen.has(m.l)&&(seen.add(m.l),true)).filter(m=>{const s=findStory(m.l);return s!==a}).map(m=>({l:m.l,t:m.t,f:m.f,s:findStory(m.l)}));
+}
 function hubOf(a){
  let tl=[];try{tl=storyTimeline(a)}catch(e){}
- const cov=(a.more||[]).map(m=>({l:m.l,t:m.t,f:m.f,s:findStory(m.l)}));
+ const inTl=new Set(tl.map(x=>x.link));
+ /* each story appears once, in one role: the timeline keeps its own, so "also covered by" holds only what the timeline does not */
+ const cov=covOf(a).filter(c=>!inTl.has(c.l));
  let latest=a;for(const x of tl.concat(cov.map(c=>c.s).filter(Boolean)))if(x&&(x.date||0)>(latest.date||0))latest=x;
  const older=tl.filter(x=>x!==a&&x.date&&a.date&&x.date<a.date-24*36e5);
- return {tl,cov,latest,older};
+ /* the "Latest version" card at the top already shows that story, so it is not listed again under other sources */
+ return {tl,cov:cov.filter(c=>c.s!==latest||latest===a),latest,older};
 }
 function hubTeaser(a){
- const n=(a.more||[]).length,names=[...new Set(a.more.map(m=>fof({feedId:m.f}).title))].slice(0,2);
+ const cv=covOf(a),n=cv.length,names=[...new Set(cv.map(m=>fof({feedId:m.f}).title))].slice(0,2);
  return `<button type="button" class="cov covt" data-hub><b>${n===1?'1 other source covers this':n+' other sources cover this'}</b><span>${esc(names.join(', '))}${n>names.length?' and more':''} · See the full coverage</span></button>`;
 }
 let HUBT=null;
@@ -12142,9 +12152,9 @@ function openHub(a){
  el.innerHTML=`<div class="hp"><button type="button" class="hx" data-hubx aria-label="Close full coverage">×</button><span class="hk">Full coverage</span>`
   +`<h2 id="hubt">${esc(a.title)}</h2>`
   +`<h3>${L===a?'Latest version · this story':'Latest version'}</h3><button type="button" class="hh" data-hopen="${esc(L.link)}">${L.img?`<img src="${esc(L.img)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}<small class="hk">${esc(fof(L).title||'')}${L.date?' · '+esc(fmt(L.date)):''}</small><br><strong>${esc(L.title)}</strong>${dk?`<br><span style="color:var(--mut)">${esc(dk)}</span>`:''}</button>`
-  +(H.tl.length>1?`<h3>The story so far</h3>${H.tl.map(x=>row(x,x===a?' now':'')).join('')}`:'')
+  +(H.tl.filter(x=>!H.older.includes(x)).length>1?`<h3>The story so far</h3>${H.tl.filter(x=>!H.older.includes(x)).map(x=>row(x,x===a?' now':'')).join('')}`:'')
   +(H.cov.length?`<h3>${H.cov.length===1?'Also covered by 1 other source':'Also covered by '+H.cov.length+' other sources'}</h3>${H.cov.map(c=>c.s?row(c.s):`<a class="hr" target="_blank" rel="noopener" href="${esc(c.l)}"><small>${esc(fof({feedId:c.f}).title)}</small>${esc(c.t)}</a>`).join('')}`:'')
-  +(()=>{const o=H.cov.map(c=>c.s).filter(Boolean);return o.length?`<h3>Compare coverage</h3><label for="hcmpsel" class="hk">Compare with</label><br><select id="hcmpsel" data-a="${esc(a.link)}">${o.map(x=>`<option value="${esc(x.link)}">${esc(fof(x).title||'')}: ${esc(x.title.slice(0,60))}</option>`).join('')}</select><div class="hcmp" id="hcmp">${cmpHtml(a,o[0])}</div>`:''})()
+  +(()=>{const o0=covOf(a).map(c=>c.s).filter(Boolean),o=o0.filter(x=>x!==a&&x.link!==a.link).sort((x,y)=>(x.feedId===a.feedId)-(y.feedId===a.feedId));return o.length?`<h3>Compare coverage</h3><label for="hcmpsel" class="hk">Compare with</label><br><select id="hcmpsel" data-a="${esc(a.link)}">${o.map(x=>`<option value="${esc(x.link)}">${esc(fof(x).title||'')}: ${esc(x.title.slice(0,60))}</option>`).join('')}</select><div class="hcmp" id="hcmp">${cmpHtml(a,o[0])}</div>`:''})()
   +(H.older.length?`<h3>Background</h3>${H.older.map(x=>row(x)).join('')}`:'')
   +`</div>`;
  HUBT=document.activeElement;el.classList.add('on');
