@@ -743,6 +743,9 @@ u.nd{width:8px;height:8px;padding:0;border-radius:50%;background:var(--logo,var(
 .on{background:var(--bg);color:var(--ink)}
 #side-list .fh{display:flex;align-items:center}#side-list .fh>span{flex:1}.chv{display:inline-block;width:22px;height:22px;margin-left:-4px;margin-right:2px;cursor:pointer;flex:none;position:relative;text-decoration:none}.chv::before{content:'';position:absolute;left:7px;top:6px;width:6px;height:6px;border-right:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:rotate(-45deg);transition:transform .2s}.chv.open::before{transform:rotate(45deg);top:5px}/* a larger touch target than the little arrow itself: taps just around it open and close the folder */.chv::after{content:"";position:absolute;inset:-13px -10px -13px -16px}@media(hover:none){.chv{width:34px;height:26px}.chv::before{left:13px;top:8px}.chv.open::before{top:7px}}.navsep{height:1px;background:var(--ln);margin:10px 6px 6px}.icg[hidden],#icrow[hidden],#icst[hidden]{display:none!important}.icg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:4px 0 12px}.icg button{background:none;border:2px solid transparent;border-radius:16px;padding:6px 2px;color:var(--ink);font:500 11.5px var(--sans);display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer}.icg button.on{border-color:var(--logo)}.icg i{width:52px;height:52px;border-radius:14px;background-size:cover;display:block}@media(max-width:520px){.icg{grid-template-columns:repeat(4,1fr)}}#side-list i{font-style:normal;opacity:0;color:var(--mut);padding:0 4px}
 .fh:hover i,.fr:hover i{opacity:1}
+/* the expand/collapse arrow is a small target: on a phone its tappable area is 44 x 44 px (the folder name beside it still opens the folder), and taps are never held back waiting for a double-tap */
+#side-list{touch-action:manipulation}
+#side-list .chv::after{content:'';position:absolute;inset:-11px -9px;z-index:1}
 @media(hover:none){#side-list i{opacity:.6;padding:6px 10px;font-size:20px;line-height:1}#side-list .fh>i,#side-list .fr>i,#side-list .fh>.frx,#side-list .fr>.frx{display:none}#side-list .chv{width:26px}#side-list .chv::before{left:9px}}
 .fold.over{outline:2px dashed var(--mut);border-radius:10px}
 .addbtn{margin:10px;padding:11px;border-radius:12px;background:var(--ink);color:var(--pn);font-weight:600}
@@ -3358,9 +3361,9 @@ html[data-ts="l"] #grid .wcols,html[data-ts="l"] #grid .nr-lsub,html[data-ts="l"
 #grid .cover:not(.cv-clean):not(.cv-broadcast):not(.cv-plays):not(.cv-collage):not(.cv-italic) .cvlead h2{font:400 clamp(44px,13vw,112px)/.9 var(--disp)!important;letter-spacing:-.014em;font-synthesis:none;text-transform:none;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden}
 #grid .cover:not(.cv-clean):not(.cv-broadcast):not(.cv-plays):not(.cv-collage):not(.cv-italic) .cvlead h2.l1{font-size:clamp(38px,11vw,92px)!important}
 #grid .cover:not(.cv-clean):not(.cv-broadcast):not(.cv-plays):not(.cv-collage):not(.cv-italic) .cvlead h2.l2{font-size:clamp(32px,9.2vw,76px)!important}
-#grid .cover.cv-broadcast .cvlead h2,#grid .cover.cv-plays .cvlead h2,#grid .cover.cv-collage .cvlead h2,#grid .cover.cv-italic .cvlead h2{font-size:clamp(34px,10vw,84px)!important;line-height:.98;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden}
-#grid .cover.cv-broadcast .cvlead h2.l1,#grid .cover.cv-plays .cvlead h2.l1,#grid .cover.cv-collage .cvlead h2.l1,#grid .cover.cv-italic .cvlead h2.l1{font-size:clamp(30px,8.6vw,72px)!important}
-#grid .cover.cv-broadcast .cvlead h2.l2,#grid .cover.cv-plays .cvlead h2.l2,#grid .cover.cv-collage .cvlead h2.l2,#grid .cover.cv-italic .cvlead h2.l2{font-size:clamp(26px,7.2vw,60px)!important}
+#grid .cover.cv-broadcast .cvlead h2,#grid .cover.cv-plays .cvlead h2,#grid .cover.cv-collage .cvlead h2,#grid .cover.cv-italic .cvlead h2{font-size:clamp(40px,12vw,96px)!important;line-height:.98;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden}
+#grid .cover.cv-broadcast .cvlead h2.l1,#grid .cover.cv-plays .cvlead h2.l1,#grid .cover.cv-collage .cvlead h2.l1,#grid .cover.cv-italic .cvlead h2.l1{font-size:clamp(34px,10vw,80px)!important}
+#grid .cover.cv-broadcast .cvlead h2.l2,#grid .cover.cv-plays .cvlead h2.l2,#grid .cover.cv-collage .cvlead h2.l2,#grid .cover.cv-italic .cvlead h2.l2{font-size:clamp(30px,8.6vw,68px)!important}
 #grid .cover:not(.cv-clean):not(.cv-spotlight):not(.cv-broadcast):not(.cv-rail):not(.cv-gallery):not(.cv-gazette) .cvm:not(.cir){font:400 clamp(40px,12vw,92px)/1 var(--disp);letter-spacing:.14em;margin-right:-.14em;font-synthesis:none}
 #grid .cover .cvlines{margin-top:18px}
 #grid .cover .cvl span{font:400 clamp(17px,4.6vw,24px)/1.12 var(--disp)}
@@ -9424,7 +9427,7 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.12d';const APP_LABEL='1.72';
+const APP_VERSION='2026.10.12e';const APP_LABEL='1.73';
 const CHANGES=["Stories that stop at a subscriber gate (like the New York Times verification message) are now spotted, and the app looks for a saved or wire copy of the full story", "If the full story can’t be found, you get the opening paragraphs with a soft fade, a Subscriber Preview card and a button to read it on the original site", "The gate check looks only for real gate messages, so ordinary news pages are not mislabelled as previews"];
 const DEF_ON=new Set(['sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
