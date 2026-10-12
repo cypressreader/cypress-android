@@ -234,8 +234,8 @@ jobs:
             } >> notes.txt
           fi
           if [ -f whats-new.txt ]; then
-            # only this version's section, so the update dialog doesn't open with the oldest notes
-            awk -v L="$APP_LABEL" '$0==L{p=1;next} p&&/^[0-9]+\.[0-9]+[a-z]?$/{exit} p&&/^CyPress v/{exit} p' whats-new.txt >> notes.txt
+            # only this version's section, so the update dialog doesn't open with the oldest notes (compared as text: as numbers 1.70 would match the old 1.7 heading)
+            awk -v L="$APP_LABEL" '$0""==L""{p=1;next} p&&/^[0-9]+\.[0-9]+[a-z]?$/{exit} p&&/^CyPress v/{exit} p' whats-new.txt >> notes.txt
             if [ ! -s notes.txt ] || ! grep -q '^- ' notes.txt; then cat whats-new.txt >> notes.txt; fi
           else echo "CyPress build ${BUILD_NUMBER}" >> notes.txt; fi
           gh release delete "$TAG" --yes --cleanup-tag --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
