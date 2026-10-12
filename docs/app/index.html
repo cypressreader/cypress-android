@@ -941,9 +941,12 @@ main{overscroll-behavior-y:contain}
 .obs h3{font:600 12px var(--sans);letter-spacing:.8px;text-transform:uppercase;color:var(--mut);margin:18px 0 8px}
 .obsl{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
 .obsl button{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--ln);text-align:left;font:500 14px var(--sans);background:var(--pn)}
-.obsl button b{width:12px;height:12px;border-radius:50%;background:var(--b,var(--logo));flex:none;box-shadow:inset 0 0 0 2px var(--pn),0 0 0 1.5px var(--b,var(--logo))}
-.obsl button.on{border-color:var(--ink)}.obsl button.on b{box-shadow:none}
-.obsl button:not(.on){color:var(--mut)}.obsl button:not(.on) b{background:transparent}
+/* one selected state: an empty ring when off, a filled circle with a check when on (the site's colour is only the fill of the check) */
+.obsl button b{box-sizing:border-box;width:20px;height:20px;border-radius:50%;flex:none;display:grid;place-items:center;border:1.5px solid var(--ln);background:transparent;box-shadow:none}
+.obsl button.on{border-color:var(--ink)}
+.obsl button.on b{background:var(--b,var(--logo));border-color:var(--b,var(--logo))}
+.obsl button.on b::after{content:'';display:block;width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:translate(0,-1px) rotate(45deg)}
+.obsl button:not(.on){color:var(--mut)}
 .obown{display:flex;gap:8px}.obown input{flex:1}
 .oblbl{font:600 13px var(--sans);color:var(--mut);margin:18px 0 8px}
 .fgrid.ob4{grid-template-columns:repeat(4,1fr)}@media(max-width:560px){.fgrid.ob4{grid-template-columns:repeat(2,1fr)}}
@@ -9218,7 +9221,7 @@ function obRender(){
  else if(s===2){
   if(!OB.rerun&&!OB.seeded){OB.seeded=1;CAT.filter(c=>OB.topics.has(c.n)).forEach(c=>c.f.slice(0,3).forEach(x=>OB.picks.add(x[1])))}
   const cats=CAT.filter(c=>OB.topics.has(c.n));
-  body=`<h2>Choose your sources</h2><p class="hint"><b id="obcount">${OB.picks.size+OB.custom.length}</b> selected. Tap to add or remove.</p><div class="obs">${cats.map((c,ci)=>`<h3>${esc(c.n)}<button type="button" class="lnk obpk" data-obpack="${ci}">Add all</button></h3><div class="obsl">${c.f.map(x=>`<button type="button" data-obsrc="${esc(x[1])}" class="${OB.picks.has(x[1])?'on':''}" style="--b:${brand({url:x[1]})}"><b></b><span>${esc(x[0])}</span></button>`).join('')}</div>`).join('')}<h3>Your own</h3><div class="obown"><input id="obu" placeholder="Paste a site or feed address" autocomplete="off"><button type="button" class="tx2" data-obaddu>Add</button></div><div class="obsl">${OB.custom.map((u,i)=>`<button type="button" class="on" data-obcus="${i}"><b></b><span>${esc(host(u)||u)}</span></button>`).join('')}</div></div>`;
+  body=`<h2>Choose your sources</h2><p class="hint"><b id="obcount">${OB.picks.size+OB.custom.length}</b> selected. Tap to add or remove.</p><div class="obs">${cats.map((c,ci)=>`<h3>${esc(c.n)}<button type="button" class="lnk obpk" data-obpack="${ci}">Add all</button></h3><div class="obsl">${c.f.map(x=>`<button type="button" data-obsrc="${esc(x[1])}" class="${OB.picks.has(x[1])?'on':''}" aria-pressed="${OB.picks.has(x[1])}" style="--b:${brand({url:x[1]})}"><b></b><span>${esc(x[0])}</span></button>`).join('')}</div>`).join('')}<h3>Your own</h3><div class="obown"><input id="obu" placeholder="Paste a site or feed address" autocomplete="off"><button type="button" class="tx2" data-obaddu>Add</button></div><div class="obsl">${OB.custom.map((u,i)=>`<button type="button" class="on" aria-pressed="true" data-obcus="${i}"><b></b><span>${esc(host(u)||u)}</span></button>`).join('')}</div></div>`;
  }
  else if(s===3){
   const th=[['auto','Auto','linear-gradient(135deg,#fff 50%,#15181e 50%)'],['light','Light','#fff'],['dark','Dark','#15181e'],['dynamic','Dynamic','conic-gradient(#0a8f4a,#7c5cff,#e2231a,#0a8f4a)'],['midnight','Midnight','#0b1220'],['forest','Forest','#15241b'],['rose','Rose','#f4e8e8'],['mono','Mono','linear-gradient(135deg,#fff 50%,#000 50%)'],['cyber','Cyber Rain','linear-gradient(135deg,#070914 45%,#f04cc4 45% 70%,#3fdcf0 70%)'],['cyberdawn','Cyber Dawn','linear-gradient(135deg,#dfe2ec 45%,#b3238a 45% 70%,#1590a8 70%)'],['broadsheet','Sepia','linear-gradient(135deg,#f6f1e3 50%,#17140e 50%)'],['terminal','Terminal','linear-gradient(135deg,#040807 50%,#4dff88 50%)'],['golden','Golden Hour','linear-gradient(135deg,#17100a 50%,#f2b352 50%)'],['crimson','Crimson','linear-gradient(135deg,#12060a 50%,#e5334f 50%)'],['modern','Modern','linear-gradient(135deg,#5b5bf0,#ff5c8a)']];
@@ -9238,8 +9241,8 @@ function obClick(e){
  if(g('data-oblogo')){S.logo=S.logo==='circuit'?'tree':'circuit';applyLogo();save();return obRender()}
  const lg=g('data-oblg');if(lg){S.logo=lg.dataset.oblg;applyLogo();save();return obRender()}
  const tp=g('data-obtop');if(tp){const n=tp.dataset.obtop;OB.topics.has(n)?OB.topics.delete(n):OB.topics.add(n);OB.seeded=0;if(!OB.rerun)OB.picks=new Set();return obRender()}
- const pk=g('data-obpack');if(pk){const c=CAT.filter(x=>OB.topics.has(x.n))[+pk.dataset.obpack];if(c){const us=c.f.map(x=>x[1]),all=us.every(u=>OB.picks.has(u));us.forEach(u=>all?OB.picks.delete(u):OB.picks.add(u));const box=pk.closest('h3').nextElementSibling;box.querySelectorAll('[data-obsrc]').forEach(b=>b.classList.toggle('on',OB.picks.has(b.dataset.obsrc)));pk.textContent=all?'Add all':'Remove all';$('#obcount').textContent=OB.picks.size+OB.custom.length;const nx=$('[data-obnext]');if(nx)nx.disabled=!(OB.picks.size+OB.custom.length)}return}
- const sr=g('data-obsrc');if(sr){const u=sr.dataset.obsrc;OB.picks.has(u)?OB.picks.delete(u):OB.picks.add(u);sr.classList.toggle('on');$('#obcount').textContent=OB.picks.size+OB.custom.length;$('[data-obnext]').disabled=!(OB.picks.size+OB.custom.length);return}
+ const pk=g('data-obpack');if(pk){const c=CAT.filter(x=>OB.topics.has(x.n))[+pk.dataset.obpack];if(c){const us=c.f.map(x=>x[1]),all=us.every(u=>OB.picks.has(u));us.forEach(u=>all?OB.picks.delete(u):OB.picks.add(u));const box=pk.closest('h3').nextElementSibling;box.querySelectorAll('[data-obsrc]').forEach(b=>{const on=OB.picks.has(b.dataset.obsrc);b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))});pk.textContent=all?'Add all':'Remove all';$('#obcount').textContent=OB.picks.size+OB.custom.length;const nx=$('[data-obnext]');if(nx)nx.disabled=!(OB.picks.size+OB.custom.length)}return}
+ const sr=g('data-obsrc');if(sr){const u=sr.dataset.obsrc;OB.picks.has(u)?OB.picks.delete(u):OB.picks.add(u);sr.classList.toggle('on',OB.picks.has(u));sr.setAttribute('aria-pressed',String(OB.picks.has(u)));$('#obcount').textContent=OB.picks.size+OB.custom.length;$('[data-obnext]').disabled=!(OB.picks.size+OB.custom.length);return}
  const cu=g('data-obcus');if(cu){OB.custom.splice(+cu.dataset.obcus,1);return obRender()}
  if(g('data-obaddu'))return obAddU();
  const th=g('data-obth');if(th){S.theme=th.dataset.obth;S.setT=Date.now();save();applyTheme(false);return obRender()}
