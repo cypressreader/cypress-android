@@ -22,7 +22,7 @@ async function boot(b,n,ua){
    return o});
   ck('nothing is fetched ahead on mobile data (cap 0, no story queued)',g.cell===0&&g.cellDp===0&&g.cellPrefetched===0,JSON.stringify(g));
   ck('a slow (3G) connection counts as mobile data',g.slow===0,JSON.stringify(g));
-  ck('Wi-Fi on charge may take the whole edition (40); on a low battery only a few (6); on Wi-Fi with a fair charge 20',g.wifiCharging===40&&g.wifiLow===6&&g.wifiOk===20,JSON.stringify(g));
+  ck('Wi-Fi takes the whole edition (40) on charge and on a fair battery; on a low battery only a few (6)',g.wifiCharging===40&&g.wifiLow===6&&g.wifiOk===40,JSON.stringify(g));
   ck('on Wi-Fi stories are queued',g.wifiPrefetched>0,JSON.stringify(g));
   ck('no page errors (gating)',!p.errs.length,p.errs[0]);await ctx.close()}
  {const {ctx,p}=await boot(b,6,'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/124 Mobile Safari/537.36');
@@ -54,10 +54,14 @@ async function boot(b,n,ua){
  {const {ctx,p}=await boot(b,10);
   const r=await p.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));Object.defineProperty(navigator,'connection',{value:{type:'wifi'},configurable:true});BATST={level:.9,charging:true};
    S.sel='all';S.atab='latest';S.scroll='paged';render();await w(800);
-   const a=cur[0],nx=cur.slice(1,4).map(x=>x.link);Object.keys(AC).forEach(k=>delete AC[k]);PF.done.clear();
-   openReader(a);const t0=Date.now();let got=0;while(Date.now()-t0<45000){got=nx.filter(l=>AC[l]&&AC[l].c).length;if(got>=3)break;await w(500)}
-   return {got,secs:Math.round((Date.now()-t0)/1000),ctx:(R.ctx||[]).length,nextIsCtx1:R.ctx&&R.ctx[1]&&R.ctx[1].link===nx[0],opened:!!AC[a.link]}});
-  ck('while story 1 is read, stories 2-4 of the queue are stored ready ('+r.got+' of 3 in '+r.secs+'s)',r.got>=3&&r.nextIsCtx1,JSON.stringify(r));
+   const a=cur[0],nx=cur.slice(1,4).map(x=>x.link);Object.keys(AC).forEach(k=>delete AC[k]);PF.done.clear();window.__warm=0;const w0=warmImgs;warmImgs=function(){window.__warm++;return w0.apply(this,arguments)};
+   /* the read-ahead's own request: how many stories does it ask for? (the separate top-10 list preload may fetch others, that is a different setting) */
+   window.__ra=[];const p0=prefetch;prefetch=function(l,f){if(window.__inRA)window.__ra.push(l.map(x=>x.link));return p0.apply(this,arguments)};const r0=readAhead;readAhead=function(x){window.__inRA=1;try{return r0.apply(this,arguments)}finally{window.__inRA=0}};
+   openReader(a);const t0=Date.now();let got=0;while(Date.now()-t0<45000){got=nx.filter(l=>AC[l]&&AC[l].c).length;if(got>=1)break;await w(500)}
+   await w(3000);const more=(window.__ra[0]||[]).length-1;
+   return {got,more,warm:window.__warm,secs:Math.round((Date.now()-t0)/1000),ctx:(R.ctx||[]).length,nextIsCtx1:R.ctx&&R.ctx[1]&&R.ctx[1].link===nx[0],opened:!!AC[a.link]}});
+  ck('while story 1 is read, story 2 is stored ready ('+r.secs+'s) and the read-ahead asks for exactly one story (not 3-4)',r.got>=1&&r.more===0&&r.nextIsCtx1,JSON.stringify(r));
+  ck('read-ahead leaves its pictures lazy',r.warm===0,String(r.warm));
   ck('no page errors (read-ahead)',!p.errs.length,p.errs[0]);await ctx.close()}
  /* ---------- viewport lookahead while scrolling All stories ---------- */
  {const {ctx,p}=await boot(b,30);
