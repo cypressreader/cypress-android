@@ -12394,6 +12394,7 @@ function imgFallback(im,why){
   b._src=im.getAttribute('src');b._alt=im.getAttribute('alt')||'';b._w=wA;b._h=hA;
   im.dataset.fb='1';im.replaceWith(b);
   elog('image',(why||'failed')+' '+String(b._src||'').slice(0,120));
+  try{heroOnce()}catch(e){}/* the inline copy is gone, so the lead photo shows at the top again */
   try{relayout()}catch(e){}
  }catch(e){}
 }
@@ -12402,7 +12403,9 @@ document.addEventListener('load',e=>{const im=e.target;if(im&&im.tagName==='IMG'
 document.addEventListener('click',e=>{
  const b=e.target.closest&&e.target.closest('[data-imgretry]');if(!b)return;e.preventDefault();e.stopPropagation();
  const im=document.createElement('img');im.alt=b._alt;im.referrerPolicy='no-referrer';im.decoding='async';if(b._w)im.setAttribute('width',b._w);if(b._h)im.setAttribute('height',b._h);
- im.src=b._src+(String(b._src).includes('?')?'&':'?')+'r='+Date.now()%1e5;b.replaceWith(im);try{relayout()}catch(e){}
+ im.src=b._src+(String(b._src).includes('?')?'&':'?')+'r='+Date.now()%1e5;b.replaceWith(im);
+ im.addEventListener('load',()=>{try{heroOnce()}catch(e){}try{relayout()}catch(e){}},{once:true});/* picture back in the text: the lead photo at the top is hidden again, so it is never shown twice */
+ try{relayout()}catch(e){}
 },true);
 /* in page mode the pictures sit in columns far to the right; the browser's lazy loading can leave them empty, so they are asked for as soon as the story opens (unless data saver is on) */
 function eagerImgs(){
