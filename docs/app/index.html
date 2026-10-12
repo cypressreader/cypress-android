@@ -9295,8 +9295,8 @@ function pcText(){
  return `${PG+1} / ${NP}`+(NP>1?(m?` · ${m} min left`:' · last page'):'');
 }
 
-function dialSync(){const d=$('#dial');if(!d)return;const on=$('#rd').classList.contains('on')&&R.ready&&!R.web&&(isVert()||R.np>1);d.hidden=!on;if(!on)return;const f=isVert()?vEndFrac():Math.min(1,R.pg/Math.max(1,R.ep!=null?R.ep:R.np-1));d.style.setProperty('--f',Math.round(f*1000)/10+'%')}
-(function(){const d=document.createElement('div');d.id='dial';d.hidden=true;d.setAttribute('role','slider');d.setAttribute('aria-label','Position in story');d.innerHTML='<i></i>';$('#rd').append(d);
+function dialSync(){const d=$('#dial');if(!d)return;const on=$('#rd').classList.contains('on')&&R.ready&&!R.web&&(isVert()||R.np>1);d.hidden=!on;if(!on)return;const f=isVert()?vEndFrac():Math.min(1,R.pg/Math.max(1,R.ep!=null?R.ep:R.np-1));d.style.setProperty('--f',Math.round(f*1000)/10+'%');{/* the value a screen reader announces: without these a slider reads 50 everywhere */const pc=Math.round(Math.max(0,Math.min(1,f))*100);d.setAttribute('aria-valuemin','0');d.setAttribute('aria-valuemax','100');d.setAttribute('aria-valuenow',String(pc));d.setAttribute('aria-valuetext',pc>=100?'End of the story':pc<=0?'Start of the story':pc+'% through the story')}}
+(function(){const d=document.createElement('div');d.id='dial';d.hidden=true;d.setAttribute('role','slider');d.setAttribute('aria-label','Position in story');d.setAttribute('aria-orientation','horizontal');d.tabIndex=0;d.innerHTML='<i></i>';$('#rd').append(d);
  const at=e=>{const r=d.getBoundingClientRect(),f=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));if(isVert()){const v=vView();if(v)v.scrollTop=f*(v.scrollHeight-v.clientHeight)}else{const pg=Math.round(f*(R.np-1));if(pg!==R.pg&&!R.busy){R.pg=pg;show()}else d.style.setProperty('--f',f*100+'%')}};
  d.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();d.classList.add('act');try{d.setPointerCapture(e.pointerId)}catch(_){}at(e)});
  d.addEventListener('pointermove',e=>{if(d.classList.contains('act'))at(e)});
