@@ -55,10 +55,12 @@ async function boot(b,n,ua){
   const r=await p.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));Object.defineProperty(navigator,'connection',{value:{type:'wifi'},configurable:true});BATST={level:.9,charging:true};
    S.sel='all';S.atab='latest';S.scroll='paged';render();await w(800);
    const a=cur[0],nx=cur.slice(1,4).map(x=>x.link);Object.keys(AC).forEach(k=>delete AC[k]);PF.done.clear();window.__warm=0;const w0=warmImgs;warmImgs=function(){window.__warm++;return w0.apply(this,arguments)};
+   /* the read-ahead's own request: how many stories does it ask for? (the separate top-10 list preload may fetch others, that is a different setting) */
+   window.__ra=[];const p0=prefetch;prefetch=function(l,f){if(window.__inRA)window.__ra.push(l.map(x=>x.link));return p0.apply(this,arguments)};const r0=readAhead;readAhead=function(x){window.__inRA=1;try{return r0.apply(this,arguments)}finally{window.__inRA=0}};
    openReader(a);const t0=Date.now();let got=0;while(Date.now()-t0<45000){got=nx.filter(l=>AC[l]&&AC[l].c).length;if(got>=1)break;await w(500)}
-   await w(6000);const more=nx.slice(1).filter(l=>AC[l]&&AC[l].c).length;
+   await w(3000);const more=(window.__ra[0]||[]).length-1;
    return {got,more,warm:window.__warm,secs:Math.round((Date.now()-t0)/1000),ctx:(R.ctx||[]).length,nextIsCtx1:R.ctx&&R.ctx[1]&&R.ctx[1].link===nx[0],opened:!!AC[a.link]}});
-  ck('while story 1 is read, story 2 is stored ready ('+r.secs+'s) and exactly one story ahead is fetched (not 3-4)',r.got===1&&r.more===0&&r.nextIsCtx1,JSON.stringify(r));
+  ck('while story 1 is read, story 2 is stored ready ('+r.secs+'s) and the read-ahead asks for exactly one story (not 3-4)',r.got>=1&&r.more===0&&r.nextIsCtx1,JSON.stringify(r));
   ck('read-ahead leaves its pictures lazy',r.warm===0,String(r.warm));
   ck('no page errors (read-ahead)',!p.errs.length,p.errs[0]);await ctx.close()}
  /* ---------- viewport lookahead while scrolling All stories ---------- */
