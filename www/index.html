@@ -3744,8 +3744,25 @@ function pruneConsent(root){
   root.querySelectorAll('ul,ol').forEach(u=>{if(!u.textContent.trim())u.remove()});
  }catch(e){}
 }
+/* privacy-choice legalese and site furniture that some pages leave inside the story ("Notice of Right to Opt-Out of Sale/Sharing", "Allow Sale of My Personal Info", "Ad Choices", "CA Notice", "Got a confidential news tip?"), and the "25m ago" / "15.45 EDT" stamps of live blogs. One block must hold two different legal phrases (or be a known furniture line) to go, and only in the back half of the story or when the page is full of them, so a real piece about privacy law stays. */
+const LEGALJ=[/opt[- ]?outs?\b/i,/sale of my personal/i,/sharing\/processing/i,/targeted advertis/i,/privacy choices?/i,/global privacy control|\bGPC\b/i,/universal (opt|tool)/i,/do not sell/i,/[“"]your rights[”"] section/i,/confirm my choice/i,/authori[sz]ed agents?/i,/\btoggle\b/i,/personal (data|information) processed/i,/sharing your email with third part/i];
+const FURNJ=/^\W*(news tips|got a confidential news tip\??.{0,80}|ad choices|ca notice|please contact us|always active|manage (opt-out )?preferences.*|allow sale of my personal info.*|notice of right to opt-out.*|your privacy choices?|up next|data is a real-time snapshot.{0,160}|(\d+\s?(m|h|min|mins|hrs?|hours?)\s*ago\s*)?(from\s+)?\d{0,3}\s?(m|h)?\s*(ago)?\s*\d{1,2}[.:]\d{2}\s?(am|pm)?\s?(EDT|EST|BST|GMT|UTC|PST|PDT|CST|CDT|CET|CEST|AEDT|AEST|IST|ET|PT)|\d+\s?(m|h|min|hrs?)\s*ago)\W*$/i;
+function pruneLegal(root){
+ try{
+  const bl=[...root.querySelectorAll('p,li,h2,h3,h4,blockquote,div,span,time,td')].filter(e=>!e.querySelector('p,li,h2,h3,h4,blockquote,div,img,figure,table'));
+  const all=root.textContent.length||1;let acc=0;const rows=bl.map(e=>{const t=e.textContent.replace(/\s+/g,' ').trim(),q=acc/all;acc+=e.textContent.length;return{e,t,q,n:LEGALJ.filter(r=>r.test(t)).length,f:t.length<200&&FURNJ.test(t)}});
+  const strong=rows.filter(r=>r.n>=2||(r.n>=1&&r.t.length<90&&/^(h[2-4])$/i.test(r.e.tagName)));
+  const full=strong.length>=4;
+  rows.forEach(r=>{if(!root.contains(r.e))return;if(r.f){r.e.remove();return}if(r.n>=2||(r.n>=1&&r.t.length<90&&/^H[2-4]$/.test(r.e.tagName))){if(r.q>.4||full)r.e.remove()}});
+  /* a bullet or short label left right beside removed legalese goes with it */
+  if(strong.length)rows.forEach(r=>{if(!root.contains(r.e)&&r.e!==root){const p=r.e.parentElement;if(p&&p!==root&&root.contains(p)&&!p.textContent.trim())p.remove()}});
+  root.querySelectorAll('ul,ol,div,p').forEach(u=>{if(root.contains(u)&&u!==root&&!u.textContent.trim()&&!u.querySelector('img,picture,video,iframe'))u.remove()});
+ }catch(e){}
+}
+/* how many blocks of privacy-choice legalese are still in the story after cleaning: the purity check that sends a mostly-notice page to the honest "Cluttered page" note */
+function legalLeft(root){try{return [...root.querySelectorAll('p,li,h2,h3,h4,div')].filter(e=>!e.querySelector('p,li,h2,h3,h4,div')&&LEGALJ.filter(r=>r.test(e.textContent)).length>=2).length}catch(e){return 0}}
 function pruneJunk(root){
- pruneConsent(root);
+ pruneConsent(root);pruneLegal(root);
  /* a lone photo credit ("vfhnb12/Shutterstock") and a short list of topic links ("Gaming, Xbox") at the very start or end are page furniture, not story text */
  try{const all=root.textContent.length||1;let seen=0;
   [...root.children].forEach(e=>{const t=e.textContent.replace(/\s+/g,' ').trim();const pos=seen/all;seen+=e.textContent.length;
@@ -6867,7 +6884,7 @@ async function openReader(a){
   foldBoiler(body,a);
   if(n.gated_preview&&src===a.link)gatePreviewUi(body,a);
   /* an honest fallback: a result that is suspiciously short, or a page that was mostly promotions, says so and offers the real page */
-  if(!n.pw&&!(n.gated_preview&&src===a.link)){const wc=body.textContent.trim().split(/\s+/).filter(Boolean).length,adh=!!(typeof JK!=='undefined'&&JK.last&&JK.last[0]&&JK.last[0].r==='undone');if(wc<140||adh){if(!note.isConnected&&body.parentNode)body.parentNode.insertBefore(note,body);note.hidden=false;note.innerHTML='<span class="sbadge">'+(adh?'Cluttered page':'Very short')+'</span>'+(adh?'This page was mostly promotions, so the text may be incomplete. ':'This may not be the whole story. ')+'<button type="button" class="lnk" data-web="1">View the site here</button>'}}
+  if(!n.pw&&!(n.gated_preview&&src===a.link)){const wc=body.textContent.trim().split(/\s+/).filter(Boolean).length,adh=!!(typeof JK!=='undefined'&&JK.last&&JK.last[0]&&JK.last[0].r==='undone')||legalLeft(body)>=2;if(wc<140||adh){if(!note.isConnected&&body.parentNode)body.parentNode.insertBefore(note,body);note.hidden=false;note.innerHTML='<span class="sbadge">'+(adh?'Cluttered page':'Very short')+'</span>'+(adh?'This page was mostly promotions, so the text may be incomplete. ':'This may not be the whole story. ')+'<button type="button" class="lnk" data-web="1">View the site here</button>'}}
   if(S.autoReader&&R.web&&R.auto)toggleWeb();
  }else{a.tier='feed';note.innerHTML='<span class="sbadge">Truncated source text</span>'+(gated?'The site wouldn’t let the app in, and no saved or syndicated copy turned up, so this is what its feed gave us. ':'Couldn’t get the full story cleanly here, and no saved or syndicated copy turned up, so this is what the site’s feed gave us. ')+'<a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener">Open Original Story</a> <button type="button" class="lnk" data-web="1">View the site in the app</button> <button type="button" class="lnk" data-retry="1">Try another way</button> <button type="button" class="lnk" data-diag="1">Copy details</button>'+whyHtml(a.link);if(my===tok&&!R.web&&online()&&(S.autoWeb||isBing(f.url)||/news\.google\./.test(f.url||'')||/news\.google\./.test(a.link||'')||isPay(a)))toggleWeb(true);if(my===tok&&online())setTimeout(()=>{if(my===tok&&curA===a)deepTry(a,false)},300)}
  layout();afterLoad();
@@ -9673,7 +9690,8 @@ const JK_EX=[
  /\b(all rights reserved|terms (of use|of service|and conditions)|©)\b/i,
  /^\W*(read more|continue reading|click here|tap here|see more|watch now|listen now|follow us|share this)\b/i,
  /^\W*(the post|this post|this article|this story|the article) .{0,80}\b(appeared first on|originally (appeared|published)|first appeared)\b/i,
- /\b(appeared first on|originally published (on|at|in)|click to read|view (the )?(full )?(story|article|gallery))\b/i
+ /\b(appeared first on|originally published (on|at|in)|click to read|view (the )?(full )?(story|article|gallery))\b/i,
+ /\b(store and\/or access information on a device|personali[sz]ed (advertising|ads) and content|we and our (\d+ )?partners|we use cookies|accept all cookies|opt[- ]out of (the )?(sale|sharing)|measure ad performance)\b/i
 ];
 function isJunkText(t){
  t=String(t||'').replace(/\s+/g,' ').trim();if(!t)return true;
@@ -9861,6 +9879,8 @@ function pdfWa(s){
  for(const ch of String(s==null?'':s)){
   const c=ch.charCodeAt(0);
   if(c>=32&&c<127||c>=161&&c<256){o+=ch;continue}
+  /* 128-159 are never real text (they are control codes), so a character in that range is already a WinAnsi byte from an earlier pass: keep it, so a running head that is converted twice keeps its apostrophes and ellipsis */
+  if(c>=128&&c<=159){o+=ch;continue}
   if(PDFWA[ch]){o+=String.fromCharCode(PDFWA[ch]);continue}
   if(/[\u00a0\u2002-\u200a\u202f\u205f\u3000\t\n\r]/.test(ch)){o+=' ';continue}
   if(/[\u200b-\u200f\u2060\ufeff\u00ad]/.test(ch))continue;
