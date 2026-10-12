@@ -1,6 +1,6 @@
 /* Production 1.67 parity: the fixes that shipped on main are alive on the experiment branch.
    (1) story cards: a headline link plus separate Save / Why buttons (no button inside a link, no link inside a button), Save and Why work without opening the story
-   (2) the version shown is the clean "1.70" label
+   (2) the version shown is the clean "1.71" label
    (3) Stats > Top sources rows carry units ("9 stories", "1 story"). Screenshots go to $OUT. */
 const {APP,OUT}=require('./env');const {mock,PW}=require('./mock');const {chromium}=require(PW);
 let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else console.log('ok',n)};
@@ -33,7 +33,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   ck(t+'1.67 cards: headline link plus separate Save / Why buttons (no nesting)',r.hasLink&&r.star&&r.nested===0&&!r.starInLink,JSON.stringify(r));
   ck(t+'Save works and does not open the story',r.saved&&!r.openedBySave,JSON.stringify(r));
   ck(t+'Why works and does not open the story',r.why&&r.whyShown&&!r.openedByWhy,JSON.stringify(r));
-  ck(t+'version label is the clean "1.70"',r.label==='1.70'&&/version 1\.70$/.test(r.about),r.label+' | '+r.about);
+  ck(t+'version label is the clean release label',r.label==='1.71'&&/version 1\.71$/.test(r.about),r.label+' | '+r.about);
   ck(t+"Stats 'Top sources' rows carry units",r.rows.some(x=>/Alpha.*9 stories$/.test(x))&&r.rows.some(x=>/Beta.*1 story$/.test(x)),JSON.stringify(r.rows));
   await p.screenshot({path:OUT+'/parity-stats-'+W+'.png'});
   await p.evaluate(()=>{S.sel='all';render()});await p.waitForTimeout(700);await p.screenshot({path:OUT+'/parity-cards-'+W+'.png'});
