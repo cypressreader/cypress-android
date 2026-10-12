@@ -16,7 +16,7 @@ const THEMES=(process.env.THEMES||'').split(',').filter(x=>x!==undefined);
   for(const [hk,ht] of Object.entries(HEADS))for(const st of STYLES){
    const r=await p.evaluate(async([st,ht])=>{const w=ms=>new Promise(r=>setTimeout(r,ms));const now=Date.now();
     S.feeds.slice(0,4).forEach((f,fi)=>{items[f.id]=Array.from({length:16},(_,i)=>({feedId:f.id,title:i?'Headline number '+i+' of feed '+fi+' about the subject '+(i*7+fi):ht,link:'https://w.test/'+fi+'/'+i,date:now-(i*55+fi*9+5)*6e4,summary:'A standfirst long enough to serve as a deck for the story in a couple of lines.',img:i<8?'https://img.test/x'+i+'.svg':'',html:''}));state[f.id]='ok'});
-    S.cvs=st;S.sel='today';S.cvt={n:0,t:'type',p:''};save();render();await w(1100);try{await document.fonts.ready}catch(e){}await w(150);document.querySelector('main').scrollTop=0;
+    S.cvs=st;S.sel='today';S.cvt={n:0,t:'type',p:''};save();render();await w(500);try{await document.fonts.ready}catch(e){}await w(100);document.querySelector('main').scrollTop=0;
     const cv=document.querySelector('#grid .dcov,#grid .cover');if(!cv)return{none:1};const h=cv.querySelector('.cvlead h2,.dcv-lead h2');if(!h)return{none:2};
     const cr=cv.getBoundingClientRect(),hr=h.getBoundingClientRect(),cs=getComputedStyle(h);const out=[];
     const inter=(a,b)=>Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));
@@ -31,7 +31,7 @@ const THEMES=(process.env.THEMES||'').split(',').filter(x=>x!==undefined);
     const top=cv.querySelector('.cvtop,.dcv-top');if(top){const t=top.getBoundingClientRect();if(inter(hr,t)>6)out.push('overlaps the masthead')}
     if(!cv.classList.contains('dcov')){const im=cv.querySelector(':scope>img');if(im&&['block','gazette','gallery','index','overlap','cinema','chapters','journal'].includes(st)&&getComputedStyle(im).position!=='absolute'){const i=im.getBoundingClientRect();if(inter(hr,i)>6)out.push('overlaps the picture')}}
     return{out,fs:parseFloat(cs.fontSize),h:Math.round(cr.height),lines:Math.round(hr.height/(parseFloat(cs.lineHeight)||parseFloat(cs.fontSize)))}},[st,ht]);
-   checks++;if(r.none){fails.push(`${W}x${H} ${st}/${hk}: no cover rendered (${r.none})`);bad++;continue}
+   process.stdout.write('.');checks++;if(r.none){fails.push(`${W}x${H} ${st}/${hk}: no cover rendered (${r.none})`);bad++;continue}
    if(r.out.length){bad++;fails.push(`${W}x${H} ${st}/${hk} (${r.fs.toFixed(0)}px): ${r.out.join('; ')}`)}
   }
   if(errs.length){bad++;fails.push(W+': page error '+errs[0])}
