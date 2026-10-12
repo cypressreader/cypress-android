@@ -3001,7 +3001,8 @@ body:not(.narrow):not(.split).reading:not(.sideshow) #sideh{display:flex}
 .bi.read b{color:var(--mut)}
 .wtick{grid-column:1/-1;display:flex;align-items:center;gap:12px;margin:0 0 12px;padding:6px 0;border-top:2px solid var(--ink);border-bottom:1px solid var(--ln);overflow:hidden;font:600 12px ui-monospace,Menlo,Consolas,monospace;color:var(--ink)}
 .wtick b{flex:none;padding:2px 8px;background:var(--ink);color:var(--pn);letter-spacing:.2em;text-transform:uppercase;font-size:10.5px}
-.wtick-in{display:flex;gap:28px;white-space:nowrap;animation:wtick 60s linear infinite}
+.wtick-in{display:flex;gap:28px;white-space:nowrap;animation:wtick 40s linear infinite}
+.wtick,.wtick-vp{contain:paint}
 .wtick-in span::before{content:'■ ';color:var(--a1,#0f5a3b)}
 @keyframes wtick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 #grid.gen-wire .card time{font-variant-numeric:tabular-nums}#grid.gen-wire .card .src time::after{content:'  ' attr(data-hm);font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:0;margin-left:6px;opacity:.9}
@@ -5084,9 +5085,9 @@ function genreApply(){
  const k=dayTabKey();
  if(k==='edition'&&g.querySelector('.dg.ed')){
   g.classList.add('gen-wire');
-  const hs=cur.slice().sort((a,b)=>b.date-a.date).slice(0,8);
+  const hs=cur.slice().sort((a,b)=>b.date-a.date).slice(0,4);/* short, and few: the moving strip is drawn as one layer, and a very wide one (all headlines twice over) can exceed a phone GPU's texture size and come out as scrambled glyphs */
   const sg1=g.querySelector('.bmseg'),put1=h=>sg1?sg1.insertAdjacentHTML('afterend',h):g.insertAdjacentHTML('afterbegin',h);
-  if(hs.length>=3){const sp=`<span>${hs.map(a=>esc(wireClock(a.date))+'  '+esc(a.title)).join('</span><span>')}</span>`;put1(`<div class="wtick" aria-hidden="true"><b>Wire</b><div class="wtick-vp"><div class="wtick-in">${sp}${sp}</div></div></div>`)}
+  if(hs.length>=3){const tk=t=>{t=String(t||'').replace(/\s+/g,' ').trim();return t.length>46?t.slice(0,45).replace(/\s+\S*$/,'')+'…':t};const sp=`<span>${hs.map(a=>esc(wireClock(a.date))+'  '+esc(tk(a.title))).join('</span><span>')}</span>`;put1(`<div class="wtick" aria-hidden="true"><b>Wire</b><div class="wtick-vp"><div class="wtick-in">${sp}${sp}</div></div></div>`)}
   g.querySelectorAll('.card[data-i] time').forEach(t=>{const a=cur[+t.closest('.card').dataset.i];if(a&&a.date)t.dataset.hm=wireClock(a.date)});
  }else if(k==='week'&&g.querySelector('.dg.wk'))g.classList.add('gen-sun');
 }
