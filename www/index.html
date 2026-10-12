@@ -10683,15 +10683,23 @@ async function shareUrl(a){
  let bin='';for(let i=0;i<b.length;i++)bin+=String.fromCharCode(b[i]);
  const pl=k+btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
  if(!SHARE_W)return SHARE_BASE+'#'+pl;
- /* ask the share worker for a short code; if it is not set up, offline or slow, the long link still works */
- try{const c=SHORTC[pl];if(c)return SHARE_W+'/s/'+c;
-  const ac=new AbortController(),t=setTimeout(()=>ac.abort(),3500);
+ /* ask the share worker for a short code (only when you share: nothing is sent before that). A slow phone gets a longer wait and one more try before the long link is used; a code made once for a story is remembered on this device */
+ const mem=()=>{try{return JSON.parse(localStorage.getItem('cy_short')||'{}')}catch(e){return{}}};
+ try{const c=SHORTC[pl]||mem()[a.link];if(c&&/^[A-Za-z0-9]{6,12}$/.test(c)){SHORTC[pl]=c;return SHARE_W+'/s/'+c}}catch(e){}
+ let why='';try{toast('Making a short link…')}catch(e){}
+ for(let k=0;k<2;k++){
+  const ac=new AbortController(),t=setTimeout(()=>ac.abort(),k?9000:6000);
   try{const r=await fetch(SHARE_W+'/api/short',{method:'POST',body:pl,headers:{'content-type':'text/plain'},signal:ac.signal});
-   if(r.ok){const j=await r.json();if(j&&/^[A-Za-z0-9]{6,12}$/.test(j.code||'')){SHORTC[pl]=j.code;return SHARE_W+'/s/'+j.code}}}finally{clearTimeout(t)}
- }catch(e){}
+   if(r.ok){const j=await r.json();if(j&&/^[A-Za-z0-9]{6,12}$/.test(j.code||'')){SHORTC[pl]=j.code;try{const m=mem(),ks=Object.keys(m);if(ks.length>300)delete m[ks[0]];m[a.link]=j.code;localStorage.setItem('cy_short',JSON.stringify(m))}catch(e){}return SHARE_W+'/s/'+j.code}why='unexpected reply'}
+   else{why='HTTP '+r.status;if(r.status<500&&r.status!==429)break}}
+  catch(e){why=ac.signal.aborted?'timed out':'no connection'}
+  finally{clearTimeout(t)}
+ }
+ try{SHAREWHY=why;elog('share short link',new Error(why));toast('Couldn’t make a short link ('+why+'), so this is the long one')}catch(e){}
  return SHARE_W+'/s/'+pl;
 }
 const SHORTC={};
+var SHAREWHY='';
 async function articleCard(a){
  const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
  try{await document.fonts.ready}catch(e){}
