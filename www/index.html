@@ -3539,7 +3539,9 @@ const histStory=h=>({feedId:h.fid,title:h.ti,link:webUrl(h.l),date:h.t,html:'',s
 const cleanT=t=>{t=String(t||'');t=t.replace(/<\/?[a-z][a-z0-9]*(\s[^>]*)?>/gi,'');t=dent(t);return t.replace(/<\/?[a-z][a-z0-9]*(\s[^>]*)?>/gi,'').replace(/\s+/g,' ').trim()};
 function fixA(a){if(a&&a.dd!==3){a.title=cleanT(a.title);a.summary=cleanT(a.summary);if(a.gn||/news\.google\.com/.test(a.link||''))a.title=a.title.replace(/\s+[-–|]\s+[^-–|]{2,40}$/,'');a.dd=3}return a}
 const CK='folio-cache';
-try{const c=JSON.parse(localStorage.getItem(CK)||'{}');for(const id in c)items[id]=noTwins(c[id].map(fixA).map(a=>{if(a.gn&&/news\.google\.com/.test(a.link))a.img='';return a}))}catch(e){}
+/* a feed that runs on headline-search stand-ins (Google News / Bing) keeps only its own site's stories: ones saved before that rule, from other sites or whose site cannot be told, are left out when the saved copy is read back (the next refresh brings the right ones) */
+function offSiteSaved(a,f){try{if(!(a.gn||a.bing)||a.os||!f)return false;const sd=siteOf(f);if(!sd)return false;const h=host(a.link);return /news\.google\.|bing\.com/.test(h)||!onSite(h,sd)}catch(e){return false}}
+try{const c=JSON.parse(localStorage.getItem(CK)||'{}');for(const id in c){const fd=S.feeds.find(x=>x.id===id);items[id]=noTwins(c[id].map(fixA).filter(a=>!offSiteSaved(a,fd)).map(a=>{if(a.gn&&/news\.google\.com/.test(a.link))a.img='';return a}))}}catch(e){}
 try{(S.saved||[]).forEach(fixA);(S.hl||[]).forEach(h=>h.art&&fixA(h.art))}catch(e){}
 let SCRT=0;
 /* background work (redraws after a refresh, saving the story cache, reading feeds) waits until you have stopped scrolling */
@@ -11327,7 +11329,7 @@ async function gnewsFeed(f,s,why){
  const x=await fetchText(gnewsFor(s),t=>/<item[\s>]/i.test(t),{push:m=>lg.push('Google News headlines via '+m)});
  const srcHost=new Map();try{new DOMParser().parseFromString(String(x),'text/xml').querySelectorAll('item').forEach(it=>{const l=((it.querySelector('link')||{}).textContent||'').trim(),sc=it.querySelector('source');if(l&&sc){try{srcHost.set(l,new URL(sc.getAttribute('url')||'').hostname)}catch(e){}}})}catch(e){}
  const all=parse(x,f).list.map(a=>({...a,_h:srcHost.get(a.link)||'',link:gnDecode(a.link)||a.link,title:a.title.replace(/\s+-\s+[^-]{2,40}$/,''),img:'',html:'',gn:1}));
- const l=all.filter(a=>onSite(a._h||host(a.link),s));l.forEach(a=>{delete a._h});
+ const l=all.filter(a=>onSite(a._h||host(a.link),s));l.forEach(a=>{delete a._h;a.os=1});
  if(all.length>l.length)lg.push('Google News: left out '+(all.length-l.length)+' stories from other sites');
  if(!l.length){lg.push('Google News: nothing found for '+s);throw new Error('empty')}
  try{ /* Bing's news feed carries photos; borrow them for matching headlines */
@@ -11349,7 +11351,7 @@ async function bingFeed(f,why){
 async function bingFeed0(f,why,s){
  const lg=FLG[f.id]=FLG[f.id]||[];
  const x=await fetchText(bingFor(s),t=>/<item[\s>]/i.test(t),{push:m=>lg.push('Bing headlines via '+m)});
- const p=parseBing(x,f),n0=p.list.length;p.list=p.list.filter(a=>onSite(host(a.link),s));if(n0>p.list.length)lg.push('Bing: left out '+(n0-p.list.length)+' stories from other sites');
+ const p=parseBing(x,f),n0=p.list.length;p.list=p.list.filter(a=>onSite(host(a.link),s));p.list.forEach(a=>{a.os=1});if(n0>p.list.length)lg.push('Bing: left out '+(n0-p.list.length)+' stories from other sites');
  if(!p.list.length){lg.push('Bing headlines: nothing found for '+s);throw new Error('empty')}
  f.via='bing';f.viaWhy=why;return p.list;
 }
