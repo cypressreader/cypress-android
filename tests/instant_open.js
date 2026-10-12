@@ -17,6 +17,7 @@ const SITES=['Alpha','Beta','Gamma','Delta'];
  /* (1) while All stories is open */
  const r1=await p.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));Object.defineProperty(navigator,'connection',{value:{type:'wifi'},configurable:true});BATST={level:.9,charging:true};
   S.sel='all';S.scroll='pages';render();await w(800);window.__warm=0;const w0=warmImgs;warmImgs=function(){window.__warm++;return w0.apply(this,arguments)};
+  {const t=Date.now();while((DPRE.on||PF.run||PF.q.length)&&Date.now()-t<60000)await w(500)}/* let the start-up passes finish first */
   Object.keys(AC).forEach(k=>delete AC[k]);DPRE.tried=new Set();DPRE.k='';dayPreload();const t0=Date.now();
   while(Date.now()-t0<80000){const n=Object.values(AC).filter(e=>e.c&&e.h).length;if(n>=10)break;await w(500)}
   const ready=Object.entries(AC).filter(([l,e])=>e.c&&e.h).map(x=>x[0]);await w(1500);return{n:ready.length,secs:Math.round((Date.now()-t0)/1000),sel:S.sel,warm:window.__warm,links:ready.slice(0,4)}});
