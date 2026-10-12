@@ -3441,7 +3441,12 @@ async function saveFile(name,blob,extra){
   catch(e){toast('Couldn’t open the share sheet');return false}
   return true;
  }
- const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);return true;
+ return webDownload(name,blob);
+}
+/* a download in the browser: the link is part of the page while it is clicked (some browsers ignore a loose one) and the file stays available for a few minutes, so a slow or repeated save still works */
+function webDownload(name,blob){
+ try{const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;a.rel='noopener';a.style.display='none';document.body.append(a);a.click();setTimeout(()=>{a.remove();setTimeout(()=>URL.revokeObjectURL(u),3e5)},1500);return true}
+ catch(e){return false}
 }
 const BRAND=[['techcrunch','#0a9e4b'],['theverge','#6a3df0'],['vox.com','#f5c400'],['wired','#111'],['arstechnica','#ff4e00'],['engadget','#4a3ff0'],['bbc','#bb1919'],['nytimes','#222'],['theguardian','#052962'],['ycombinator','#ff6600'],['hnrss','#ff6600'],['reuters','#ff8000'],['npr','#d62021'],['mashable','#009fd8'],['gizmodo','#1a73e8'],['macrumors','#d0342c'],['9to5','#00a3e0'],['cnet','#e3272b'],['tomshardware','#d6001c'],['zdnet','#e2231a'],['nasa.gov','#0b3d91'],['espn.com','#d6001c'],['polygon.com','#5b2dd8'],['ign.com','#bf1313'],['kotaku','#3ab54a'],['pcgamer','#c8102e'],['gamespot','#e5b800'],['variety.com','#111'],['hollywoodreporter','#222'],['rollingstone','#c8102e'],['pitchfork','#111'],['cnbc.com','#005594'],['forbes.com','#222'],['fortune.com','#e02020'],['businessinsider','#0057b8'],['economist.com','#e3120b'],['a.dj.com','#0274b6'],['washingtonpost','#222'],['politico','#e0201b'],['axios','#3f75ff'],['newyorker','#222'],['theatlantic','#222'],['github','#24292f'],['stackoverflow','#f48024'],['css-tricks','#f36f2a'],['dev.to','#3b49df'],['freecodecamp','#0a0a23'],['lifehacker','#2e9e6b'],['sciencedaily','#a11'],['nature.com','#c9002b'],['space.com','#1e5aa8'],['newscientist','#e2001a'],['quantamagazine','#0072b8'],['technologyreview','#e5002b'],['techradar','#e21f26'],['androidauthority','#2fb56a'],['9to5google','#4285f4'],['aljazeera','#c8963e'],['fastcompany','#111'],['dezeen','#111'],['smashingmagazine','#d33a2c'],['cbsnews','#0a3d91'],['abcnews','#1c4f9c'],['skysports','#d0021b'],['deadline.com','#c8102e'],['reddit.com','#ff4500'],['youtube.com','#e62117']];
 const host=u=>{try{return new URL(u).hostname.replace(/^www\./,'')}catch(e){return ''}};
@@ -7750,10 +7755,10 @@ const hasSec=(n,fid)=>S.sk.some(k=>k.sec===n&&k.fid===fid);
 const kcount=k=>S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>!S.read[a.link]&&kmatch(k,a)).length;
 const readMin=a=>S.rt[a.link]||(a.wc>250?Math.round(a.wc/230):0);
 let pt;
-function toast(m,undo){let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';t.setAttribute('role','status');t.setAttribute('aria-live','polite');document.body.append(t)}
+function toast(m,undo,label){let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';t.setAttribute('role','status');t.setAttribute('aria-live','polite');document.body.append(t)}
  t.textContent='';const sp=document.createElement('span');sp.textContent=m;t.append(sp);
- if(undo){const b=document.createElement('button');b.type='button';b.className='tundo';b.textContent='Undo';b.onclick=()=>{clearTimeout(t._h);t.className='';undo()};t.append(b)}
- t.className=undo?'show act':'show';clearTimeout(t._h);t._h=setTimeout(()=>{t.className=''},undo?6500:1800)}
+ if(undo){const b=document.createElement('button');b.type='button';b.className='tundo';b.textContent=label||'Undo';b.onclick=()=>{clearTimeout(t._h);t.className='';undo()};t.append(b)}
+ t.className=undo?'show act':'show';clearTimeout(t._h);t._h=setTimeout(()=>{t.className=''},undo?(label?14000:6500):1800)}
 async function askRemove(id){const f=S.feeds.find(x=>x.id===id);if(!f)return;if(await askBox({title:'Delete “'+(f.title||host(f.url))+'”?',text:'You can undo right after.',ok:'Delete',danger:true}))removeFeed(id)}
 function removeFeed(id){const i=S.feeds.findIndex(f=>f.id===id);if(i<0)return;const f=S.feeds[i],was=S.sel==='s:'+id;S.feeds.splice(i,1);if(S.health)delete S.health[id];if(was)S.sel='all';save();render();if($('#mng').open)renderMng();
  toast('Removed “'+(f.title||host(f.url))+'”',()=>{S.feeds.splice(Math.min(i,S.feeds.length),0,f);if(was)S.sel='s:'+id;save();render();if($('#mng').open)renderMng()})}
@@ -11201,10 +11206,20 @@ function parseBing(xml,f){
  return{title:'',list:finishList(list)};
 }
 const gnewsFor=d=>'https://news.google.com/rss/search?q='+encodeURIComponent('site:'+d+' when:7d')+'&hl=en-US&gl=US&ceid=US:en';
+/* a headline search for one site can answer with other sites' stories when it finds little; only stories published by the feed's own site belong to that feed */
+function onSite(h,s){
+ h=String(h||'').toLowerCase().replace(/^www\./,'');s=String(s||'').toLowerCase().replace(/^www\./,'');if(!h||!s)return false;
+ if(h===s||h.endsWith('.'+s)||s.endsWith('.'+h))return true;
+ const root=x=>{const p=x.split('.');return (/\.(co|com|org|net|gov|ac)\.[a-z]{2}$/.test(x)?p.slice(-3):p.slice(-2)).join('.')};
+ return root(h)===root(s)||(s==='bbc.com'&&/(^|\.)bbc\.co\.uk$/.test(h));
+}
 async function gnewsFeed(f,s,why){
  const lg=FLG[f.id]=FLG[f.id]||[];
  const x=await fetchText(gnewsFor(s),t=>/<item[\s>]/i.test(t),{push:m=>lg.push('Google News headlines via '+m)});
- const l=parse(x,f).list.map(a=>({...a,link:gnDecode(a.link)||a.link,title:a.title.replace(/\s+-\s+[^-]{2,40}$/,''),img:'',html:'',gn:1}));
+ const srcHost=new Map();try{new DOMParser().parseFromString(String(x),'text/xml').querySelectorAll('item').forEach(it=>{const l=((it.querySelector('link')||{}).textContent||'').trim(),sc=it.querySelector('source');if(l&&sc){try{srcHost.set(l,new URL(sc.getAttribute('url')||'').hostname)}catch(e){}}})}catch(e){}
+ const all=parse(x,f).list.map(a=>({...a,_h:srcHost.get(a.link)||'',link:gnDecode(a.link)||a.link,title:a.title.replace(/\s+-\s+[^-]{2,40}$/,''),img:'',html:'',gn:1}));
+ const l=all.filter(a=>onSite(a._h||host(a.link),s));l.forEach(a=>{delete a._h});
+ if(all.length>l.length)lg.push('Google News: left out '+(all.length-l.length)+' stories from other sites');
  if(!l.length){lg.push('Google News: nothing found for '+s);throw new Error('empty')}
  try{ /* Bing's news feed carries photos; borrow them for matching headlines */
   /* the photos are optional: never hold the headlines back for more than 4s waiting on Bing */
@@ -11225,7 +11240,8 @@ async function bingFeed(f,why){
 async function bingFeed0(f,why,s){
  const lg=FLG[f.id]=FLG[f.id]||[];
  const x=await fetchText(bingFor(s),t=>/<item[\s>]/i.test(t),{push:m=>lg.push('Bing headlines via '+m)});
- const p=parseBing(x,f);if(!p.list.length){lg.push('Bing headlines: nothing found for '+s);throw new Error('empty')}
+ const p=parseBing(x,f),n0=p.list.length;p.list=p.list.filter(a=>onSite(host(a.link),s));if(n0>p.list.length)lg.push('Bing: left out '+(n0-p.list.length)+' stories from other sites');
+ if(!p.list.length){lg.push('Bing headlines: nothing found for '+s);throw new Error('empty')}
  f.via='bing';f.viaWhy=why;return p.list;
 }
 
@@ -11775,7 +11791,8 @@ async function exportEdition(opts){
   const kd=opts&&opts.kindle,nm='CyPress-'+dayKey()+(km==='m'?'-morning':'-evening')+'.pdf';
   const ok=await saveFile(nm,blob,kd?{email:S.kindle,subject:'CyPress '+(km==='m'?'Morning':'Evening')+' Edition'}:null);
   if(ok&&kd&&!NATIVE){toast('Saved. Attach it to the email that opens');setTimeout(()=>{location.href='mailto:'+encodeURIComponent(S.kindle)+'?subject='+encodeURIComponent('CyPress edition')+'&body='+encodeURIComponent('Attach the PDF you just saved, then send.')},900)}
-  else if(ok&&!NATIVE)toast('Your edition is saved as a PDF');
+  else if(ok&&!NATIVE)toast('Your edition is ready as a PDF. Check your downloads',()=>{webDownload(nm,blob)},'Save PDF');
+  else if(!ok&&!kd)toast('Couldn’t save the PDF. Try again');
  }catch(e){elog('exportEdition',e);toast('Couldn’t make the PDF')}
  finally{EXPBUSY=0}
 }
@@ -11843,7 +11860,7 @@ document.addEventListener('click',async e=>{
  const g=$('#grid'),t=e.target.closest&&e.target.closest('[data-bi],[data-biexp],[data-bist]');if(!t||!g||S.sel!=='bi')return;
  e.preventDefault();e.stopPropagation();
  if(t.hasAttribute('data-bist')){const r=g._bi,s=r&&r.stories[+t.dataset.bist];if(s)openReader({title:s.title,link:s.l,feedId:'__bi',date:r.t,html:blocksHtml(s.blocks),summary:'',img:''});return}
- if(t.hasAttribute('data-biexp')){const r=(await biAll()).find(x=>x.id===t.dataset.biexp);if(!r)return;toast('Typesetting this issue…');try{const blob=await pdfFinish({kind:r.kind==='m'?'The Morning Edition':'The Evening Edition',date:r.date,short:r.short,issue:r.issue},r.stories,r.img);await saveFile('CyPress-'+r.id+'.pdf',blob)}catch(er){elog('biexp',er);toast('Couldn’t make the PDF')}return}
+ if(t.hasAttribute('data-biexp')){const r=(await biAll()).find(x=>x.id===t.dataset.biexp);if(!r)return;toast('Typesetting this issue…');try{const blob=await pdfFinish({kind:r.kind==='m'?'The Morning Edition':'The Evening Edition',date:r.date,short:r.short,issue:r.issue},r.stories,r.img);const nm='CyPress-'+r.id+'.pdf',ok=await saveFile(nm,blob);if(ok&&!NATIVE)toast('This issue is ready as a PDF. Check your downloads',()=>{webDownload(nm,blob)},'Save PDF');else if(!ok)toast('Couldn’t save the PDF. Try again')}catch(er){elog('biexp',er);toast('Couldn’t make the PDF')}return}
  S.biv=t.dataset.bi||'';render();
 },true);
 document.addEventListener('change',e=>{if(e.target&&e.target.id==='bid'){S.bidays=+e.target.value;save();biPurge()}});
