@@ -3581,7 +3581,23 @@ async function readText(r){
 }
 /* the web app (cypressreader.com/app) fetches feeds through the site's own fetcher; the Android app goes direct */
 const WEBW=(location.hostname==='cypressreader.com')?location.origin+'/feed?u=':'';
+/* a few publishers turn away anything that doesn't look like a phone browser (thehill.com answers 429 to other agents, 200 to a browser): they get the full set of browser headers */
+const BROWSY=/(^|\.)(thehill\.com|cbsnews\.com|howstuffworks\.com|newscientist\.com)$/i;
+function hdrFor(url){let h='';try{h=new URL(url).hostname}catch(e){}return BROWSY.test(h)?{...NHDR,'Accept-Language':'en-US,en;q=0.9','Upgrade-Insecure-Requests':'1','Sec-Fetch-Dest':'document','Sec-Fetch-Mode':'navigate','Sec-Fetch-Site':'none','Sec-Fetch-User':'?1'}:NHDR}
+/* a site that answers "not you" (401/403/429/451) or hands back a bot-check placeholder (202) is blocking, not slow: remembered on the log so the app can say so, and retried with a short pause before giving up */
+const botCode=c=>c===401||c===403||c===429||c===451||c===202;
 async function fetchText(url,ok,lg){
+ let er;
+ for(let k=0;;k++){
+  if(lg)lg.blocked=false;
+  try{return await fetchText1(url,ok,lg)}catch(e){er=e}
+  if(!(lg&&lg.retry>k&&lg.blocked)||(er&&(er.hard||er.message==='stopped'||er.message==='Offline mode'))||(lg.sig&&lg.sig.aborted))throw er;
+  await new Promise(r=>setTimeout(r,900*Math.pow(2,k)));
+  if(lg.sig&&lg.sig.aborted)throw er;
+  try{lg.push('retrying after a short pause')}catch(e){}
+ }
+}
+async function fetchText1(url,ok,lg){
  if(S.offline)return Promise.reject(new Error('Offline mode'));
  /* Tries the best route first and only starts the next one if it is slow or fails,
     so a launch doesn't fire seven requests per feed. The Android app goes straight to the site. */
@@ -3601,7 +3617,9 @@ async function fetchText(url,ok,lg){
   const to=setTimeout(()=>{dead=true;try{c.abort()}catch(e){}fail('timed out')},ms);
   (async()=>{
    try{
-    const r=await fetch(p(url),p.h?{signal:c.signal,headers:NHDR}:{signal:c.signal});
+    const r=await fetch(p(url),p.h?{signal:c.signal,headers:hdrFor(url)}:{signal:c.signal});
+    if(botCode(r.status)&&lg&&!over)lg.blocked=true;
+    if(r.status===202)throw 'HTTP 202 (bot check, not the page)';
     if(!r.ok){if((p.h||p.w)&&(r.status===404||r.status===410)){const er=new Error('HTTP '+r.status);er.hard=1;throw er}throw 'HTTP '+r.status}
     let t=await readText(r);
     if(p.j){try{t=JSON.parse(t).contents}catch(e){t=''}}
@@ -6231,7 +6249,7 @@ function liteUrl(url){
  }catch(e){}
  return'';
 }
-const fromPage=async(url,lg,tag,sig)=>{let fr=null;const w=lg&&{push:m=>lg.push((tag||'')+m),sig,prog:(i,n,nm)=>rdProg(url,i,n,nm)};await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);try{if(lg)lg.push((tag||'')+'page read: '+Math.round(t.length/1000)+' KB, '+(t.match(/<img\b/gi)||[]).length+' img tags ('+(t.match(/\sdata-(src|lazy-src|original|srcset)=/gi)||[]).length+' lazy), '+(t.match(/<picture\b/gi)||[]).length+' picture, '+(t.match(/<figure\b/gi)||[]).length+' figure, '+(t.match(/<noscript\b/gi)||[]).length+' noscript, '+(/application\/ld\+json/.test(t)?'has':'no')+' structured data; kept '+(x?x.querySelectorAll('img').length:0)+' pictures and '+(x?x.textContent.length:0)+' characters of text')}catch(e){}if(x&&(footerish(x.textContent)||errorPage(t,x.textContent))){try{if(lg)lg.push((tag||'')+'page was an error or notice page, not the story')}catch(e){}return false}if(x&&x.textContent.length>600){fr=x;return true}return false},w);if(fr&&w&&w.won)fr.tier=w.won==='direct'?'direct':'proxy';return fr};
+const fromPage=async(url,lg,tag,sig)=>{let fr=null;const w=lg&&{retry:2,push:m=>lg.push((tag||'')+m),sig,prog:(i,n,nm)=>rdProg(url,i,n,nm)};await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);try{if(lg)lg.push((tag||'')+'page read: '+Math.round(t.length/1000)+' KB, '+(t.match(/<img\b/gi)||[]).length+' img tags ('+(t.match(/\sdata-(src|lazy-src|original|srcset)=/gi)||[]).length+' lazy), '+(t.match(/<picture\b/gi)||[]).length+' picture, '+(t.match(/<figure\b/gi)||[]).length+' figure, '+(t.match(/<noscript\b/gi)||[]).length+' noscript, '+(/application\/ld\+json/.test(t)?'has':'no')+' structured data; kept '+(x?x.querySelectorAll('img').length:0)+' pictures and '+(x?x.textContent.length:0)+' characters of text')}catch(e){}if(x&&(footerish(x.textContent)||errorPage(t,x.textContent))){try{if(lg)lg.push((tag||'')+'page was an error or notice page, not the story')}catch(e){}return false}if(x&&x.textContent.length>600){fr=x;return true}return false},w);if(fr&&w&&w.won)fr.tier=w.won==='direct'?'direct':'proxy';return fr};
 
 /* ---------- is this text really the story? ---------- */
 const SHORTOK=new Set('a i of to in is it on at be by an as do go he if me my no or so up us we am oh ok'.split(' '));
@@ -6743,27 +6761,32 @@ async function loadWeb(){
  if(w.dataset.u===url)return;
  w.dataset.u=url;w.classList.add('ld');msg.hidden=true;fr.hidden=false;
  let html=null,doc=null,rd=null;const link=curA.link,wl=[];
- try{html=await fetchText(url,t=>/<body/i.test(t),wl)}catch(e){}
+ /* the site view never waits forever: a visible step count while it works, and an honest end after ~28 s */
+ const wld=w.querySelector('.wld'),t0=Date.now(),dead=()=>Date.now()-t0>28000,ctl=new AbortController();wl.sig=ctl.signal;
+ const say=m=>{if(wld&&w.dataset.u===url)wld.textContent=m};
+ wl.prog=(i,n,nm)=>say('Loading site… trying route '+i+' of '+n+(nm?' ('+nm+')':''));
+ const stop=setTimeout(()=>ctl.abort(),28000);
+ wl.retry=1;try{html=await fetchText(url,t=>/<body/i.test(t),wl)}catch(e){}
  let burl=url;
- if(!html){const lu=liteUrl(url);if(lu){try{html=await fetchText(lu,t=>/<body/i.test(t),{push:m=>wl.push('lite site via '+m)});burl=lu}catch(e){}}}
- if(!html){try{const r=await fetch('https://r.jina.ai/'+url,{headers:{'X-Return-Format':'html'},signal:AbortSignal.timeout(14000)});const t=await r.text();if(r.ok&&/<body/i.test(t)&&t.length>1500)html=t;else wl.push('jina reader (html): '+(r.ok?'page too short':'HTTP '+r.status))}catch(e){wl.push('jina reader (html): blocked or timed out')}}
+ if(!html&&!dead()){const lu=liteUrl(url);if(lu){say('Loading site… trying the lite version');try{html=await fetchText(lu,t=>/<body/i.test(t),{push:m=>wl.push('lite site via '+m),sig:ctl.signal});burl=lu}catch(e){}}}
+ if(!html&&!dead()){say('Loading site… trying a reader service');try{const r=await fetch('https://r.jina.ai/'+url,{headers:{'X-Return-Format':'html'},signal:AbortSignal.timeout(14000)});const t=await r.text();if(r.ok&&/<body/i.test(t)&&t.length>1500)html=t;else wl.push('jina reader (html): '+(r.ok?'page too short':'HTTP '+r.status))}catch(e){wl.push('jina reader (html): blocked or timed out')}}
  if(html){
   try{rd=tidy(extract(html,url))}catch(e){}
   const d=new DOMParser().parseFromString(html,'text/html');
   d.querySelectorAll('script,noscript,iframe,object,embed').forEach(e=>e.remove());d.querySelectorAll('*').forEach(e=>{for(const a of [...e.attributes])if(/^on/i.test(a.name))e.removeAttribute(a.name)});
   const b=d.createElement('base');b.href=burl;b.target='_blank';d.head.prepend(b);
   doc='<!doctype html>'+d.documentElement.outerHTML;
- }else{
+ }else if(!dead()){
   try{
    const r=await fetch('https://r.jina.ai/'+url,{signal:AbortSignal.timeout(14000)});const t=await r.text();
    if(!r.ok||t.length<=800)wl.push('jina reader (text): '+(r.ok?'page too short':'HTTP '+r.status));
    if(r.ok&&t.length>800){const tmp=document.createElement('div');const mf=md(t,url);if(t.length>1500)rd=tidy(mf.cloneNode(true));tmp.append(mf);doc='<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><base target="_blank"><body style="font:17px/1.6 Georgia,serif;max-width:720px;margin:24px auto;padding:0 18px;color:#222">'+tmp.innerHTML}
   }catch(e){wl.push('jina reader (text): blocked or timed out')}
  }
- w.classList.remove('ld');
+ clearTimeout(stop);w.classList.remove('ld');if(wld)wld.textContent='Loading site…';
  if(w.dataset.u!==url)return;
  if(doc){fr.setAttribute('sandbox','allow-popups allow-popups-to-escape-sandbox');fr.srcdoc=doc}
- else{w.dataset.u='';fr.hidden=true;msg.hidden=false;const dt=msg.querySelector('.why');if(dt){dt.hidden=!wl.length;dt.querySelector('.wl').innerHTML=[...new Set(wl)].map(esc).join('<br>')}}
+ else{w.dataset.u='';fr.hidden=true;msg.hidden=false;const mp=msg.querySelector('.wmp');if(mp)mp.textContent=wl.some(x=>/HTTP (401|403|429|451|202)\b/.test(x))?'This site is turning the app away with a bot check. Trying again in a moment often works.':dead()?'This site is too slow to answer right now. Trying again in a moment often works.':'This site can’t be shown inside the app. It may block automated access.';const dt=msg.querySelector('.why');if(dt){dt.hidden=!wl.length;dt.querySelector('.wl').innerHTML=[...new Set(wl)].map(esc).join('<br>')}}
  if(rd&&rd.textContent.length>600&&curA&&curA.link===link)readerReady(rd,url);
 }
 function readerReady(n,url){
@@ -6799,10 +6822,10 @@ async function openReader(a){
  document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',chref(c)===a.link));
  const dt=a.date?new Date(a.date).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'';
  const cov=(a.more&&a.more.length)?hubTeaser(a):'';
- sh.innerHTML=`<div class="bar"><button class="ib" id="cl" data-lbl="Back" aria-label="Back" title="Back">${svg('<path d="m14.5 5-7 7 7 7"/>')}</button><button class="ib" id="fdn" aria-label="Back to all feeds" title="Back to all feeds" tabindex="-1" aria-hidden="true" hidden>${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><div class="bs">${esc(f.title)}</div><span id="pc"></span><button class="ib" id="rfocus" data-lbl="Focus" title="Focus mode" aria-label="Focus mode" aria-pressed="false">${FOC_EYE}</button><button class="ib" id="st" data-lbl="Save" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" data-lbl="Listen" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings" hidden>${svg(TUNE)}</button>`:''}<button class="ib" id="fcs" data-lbl="Focus" aria-label="Focus mode" aria-pressed="false" title="Focus mode: hide the controls for distraction-free reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site here" title="View the site here" hidden>${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page" hidden>${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page" hidden>${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" data-lbl="More" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec))+(hasSec(a.sec,a.feedId)?'':`<button class="flw" data-fsec aria-label="Follow ${esc(a.sec||'this section')}">Follow</button>`):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener" href="${esc(a.link)}">Read on ${esc(host(a.link))}</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p>This site can’t be shown inside the app. It may block automated access.</p><div><a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
+ sh.innerHTML=`<div class="bar"><button class="ib" id="cl" data-lbl="Back" aria-label="Back" title="Back">${svg('<path d="m14.5 5-7 7 7 7"/>')}</button><button class="ib" id="fdn" aria-label="Back to all feeds" title="Back to all feeds" tabindex="-1" aria-hidden="true" hidden>${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><div class="bs">${esc(f.title)}</div><span id="pc"></span><button class="ib" id="rfocus" data-lbl="Focus" title="Focus mode" aria-label="Focus mode" aria-pressed="false">${FOC_EYE}</button><button class="ib" id="st" data-lbl="Save" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" data-lbl="Listen" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings" hidden>${svg(TUNE)}</button>`:''}<button class="ib" id="fcs" data-lbl="Focus" aria-label="Focus mode" aria-pressed="false" title="Focus mode: hide the controls for distraction-free reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site here" title="View the site here" hidden>${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page" hidden>${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page" hidden>${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" data-lbl="More" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec))+(hasSec(a.sec,a.feedId)?'':`<button class="flw" data-fsec aria-label="Follow ${esc(a.sec||'this section')}">Follow</button>`):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener" href="${esc(a.link)}">Read on ${esc(host(a.link))}</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p class="wmp">This site can’t be shown inside the app. It may block automated access.</p><div><button type="button" class="lnk" id="wtry">Try again</button> <a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
  for(const lb of sh.querySelectorAll('.bar .ib[data-lbl]')){const sp=document.createElement('span');sp.className='bl';sp.setAttribute('aria-hidden','true');sp.textContent=lb.dataset.lbl;lb.append(sp)}
  if(R.T){cancelAnimationFrame(R.T.raf);R.T.dead=true;R.T=null}
- R.pg=0;R.busy=false;R.web=false;R.auto=false;RDY=null;R.endArmed=false;R.botAt=0;if(!R.keepCtx)R.ctx=cur.filter((x,i,l)=>x&&x.link&&l.findIndex(y=>y.link===x.link)===i);R.keepCtx=false;clearTimeout(R.wd);clearInterval(R.tk);R.t0=Date.now();R.lp='Loading the full article…';R.lpUrls=new Set([a.link]);R.tk=setInterval(()=>{const n=document.querySelector('.cols .note');if(!n||!/^Loading the full article/.test(n.textContent)||!curA||curA.link!==a.link){clearInterval(R.tk);return}rdTick()},1000);R.wd=setTimeout(()=>{const n=document.querySelector('.cols .note');if(n&&/^Loading the full article/.test(n.textContent)&&curA){clearInterval(R.tk);n.innerHTML='<span class="sbadge">Taking too long</span>This site is slow to answer, so the full story hasn’t arrived. <button type="button" class="lnk" data-web="1">View the site here</button> <button type="button" class="lnk" data-retry>Try again</button> <a class="lnk" href="'+esc(curA.link)+'" target="_blank" rel="noopener">Open the original</a>'}},16000);_vm=isVert();R.inBrief=S.sel==='brief'&&!!(S.brief&&S.brief.links.includes(a.link));if(R.inBrief&&!S.brief.pinned){S.brief.pinned=1;save()}
+ R.pg=0;R.busy=false;R.web=false;R.auto=false;RDY=null;R.endArmed=false;R.botAt=0;if(!R.keepCtx)R.ctx=cur.filter((x,i,l)=>x&&x.link&&l.findIndex(y=>y.link===x.link)===i);R.keepCtx=false;clearTimeout(R.wd);clearInterval(R.tk);R.t0=Date.now();R.lp='Loading the full article…';R.lpUrls=new Set([a.link]);R.tk=setInterval(()=>{const n=document.querySelector('.cols .note');if(!n||!/^Loading the full article/.test(n.textContent)||!curA||curA.link!==a.link){clearInterval(R.tk);return}rdTick()},1000);R.wd=setTimeout(()=>{const n=document.querySelector('.cols .note');if(n&&/^Loading the full article/.test(n.textContent)&&curA){clearInterval(R.tk);const bl=(LG[curA.link]||[]).some(x=>/HTTP (401|403|429|451|202)\b/.test(String(x)));n.innerHTML=(bl?'<span class="sbadge">Blocked</span>This site is turning the app away (a bot check), so the full story hasn’t arrived. ':'<span class="sbadge">Taking too long</span>This site is slow to answer, so the full story hasn’t arrived. ')+'<button type="button" class="lnk" data-web="1">View the site here</button> <button type="button" class="lnk" data-retry>Try again</button> <a class="lnk" href="'+esc(curA.link)+'" target="_blank" rel="noopener">Open the original</a>'}},16000);_vm=isVert();R.inBrief=S.sel==='brief'&&!!(S.brief&&S.brief.links.includes(a.link));if(R.inBrief&&!S.brief.pinned){S.brief.pinned=1;save()}
  RDTRIG=document.activeElement;$('#rd').classList.add('on');try{$('#rd').tabIndex=-1;$('#rd').focus({preventScroll:true})}catch(e){}applyFs(false);applyFolderTheme();
  const c=$('.cols'),body=c.querySelector('.body'),note=c.querySelector('.note');
  R.heroEl=R.heroMark=null;
@@ -7329,7 +7352,8 @@ $('#rd').onclick=e=>{
  document.querySelectorAll('#pb,#mn').forEach(p=>{if(!p.hidden&&!p.contains(t)&&!t.closest('#rp')&&!t.closest('#mo'))p.hidden=true});
  if(t.closest('#fdn')){rdNav();return}
  if(t.closest('#fcs')){focusTog();return}
- if(t.closest('#wrl')){syncRl();$('#rl').showModal();return}
+ if(t.closest('#wtry')){const w=$('.web');if(w)w.dataset.u='';loadWeb();return}
+  if(t.closest('#wrl')){syncRl();$('#rl').showModal();return}
  const rt=t.closest('[data-rate]');if(rt&&curA){e.preventDefault();rateA(curA,+rt.dataset.rate);return}
  const fb=t.closest('[data-fby]');if(fb&&curA&&curA.by){S.sk.push({id:'k'+Date.now(),name:curA.by,words:[],by:curA.by,t:Date.now()});save();side();hdrFill();toast('Following stories by '+curA.by);return}
  const fsc=t.closest('[data-fsec]');if(fsc&&curA&&curA.sec){S.sk.push({id:'k'+Date.now(),name:curA.sec+' · '+fof(curA).title,words:[],sec:curA.sec,fid:curA.feedId,t:Date.now()});save();side();const k=$('.kick .flw');if(k)k.remove();toast('Following the '+curA.sec+' section');return}
