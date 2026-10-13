@@ -4286,9 +4286,11 @@ function covFit(){
   const h=cv.querySelector('.cvlead h2,.dcv-lead h2');if(!h)return;
   const key=cv.clientWidth+'|'+innerHeight+'|'+(h.textContent||'').length+'|'+cv.className;if(h.dataset.fk===key&&h.style.fontSize)return;
   h.classList.add('cfit');h.style.removeProperty('font-size');
-  const max=parseFloat(getComputedStyle(h).fontSize)||40,min=Math.max(20,Math.round(max*.42));
+  const max=parseFloat(getComputedStyle(h).fontSize)||40,min=Math.max(13,Math.round(max*.2));
   const lim=Math.max(parseFloat(getComputedStyle(cv).minHeight)||0,0)+2;
-  const fits=()=>h.scrollWidth<=h.clientWidth+1&&(!lim||cv.offsetHeight<=lim);
+  /* where the headline sits inside its cover, from layout offsets (a landing animation's movement must not count) */
+  const inside=()=>{let t=0,l=0,e=h;while(e&&e!==cv){t+=e.offsetTop;l+=e.offsetLeft;e=e.offsetParent}if(e!==cv)return true;return t>=-1&&l>=-1&&t+h.offsetHeight<=cv.clientHeight+1&&l+h.offsetWidth<=cv.clientWidth+1};
+  const fits=()=>h.scrollWidth<=h.clientWidth+1&&(!lim||cv.offsetHeight<=lim)&&inside();
   let size=max;
   if(!fits()){let lo=min,hi=max;for(let k=0;k<9&&hi-lo>.5;k++){const mid=(lo+hi)/2;h.style.setProperty('font-size',mid.toFixed(1)+'px','important');if(fits())lo=mid;else hi=mid}size=Math.floor(lo*10)/10}
   h.style.setProperty('font-size',size+'px','important');h.dataset.fk=cv.clientWidth+'|'+innerHeight+'|'+(h.textContent||'').length+'|'+cv.className;
