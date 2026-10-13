@@ -1,15 +1,12 @@
 package com.cypress.reader;
 
-import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
-import android.view.View;
 import android.widget.RemoteViews;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -17,30 +14,39 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Locale;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * Home-screen widget: top stories as photo cards, one at a time with a peek at the next. It switches by itself
- * every few seconds and with the arrow buttons; tapping a card opens that story in CyPress.
+ * Top Story widget (2x2): one big story in the Type cover look, flipped by the arrows and every 30 minutes.
+ * This class also receives the shared tick and the arrow taps for the other widgets; pictures for the Headlines
+ * widget are fetched below. The layouts and the cycling live in CyWidgets.
  */
 public class CyWidgetProvider extends AppWidgetProvider {
 
     private static final String TAG = "CyWidget";
-    static final String ACT_NEXT = "com.cypress.reader.widget.NEXT";
-    static final String ACT_PREV = "com.cypress.reader.widget.PREV";
     static final String ACT_SAVE = "com.cypress.reader.widget.SAVE";
     static final int MAX = 6;
 
     @Override
     public void onUpdate(Context context, AppWidgetManager manager, int[] appWidgetIds) {
         try {
-            RemoteViews rv = build(context);
+            RemoteViews rv = CyWidgets.buildTop(context);
             for (int id : appWidgetIds) manager.updateAppWidget(id, rv);
+            CyWidgets.arm(context, false);
         } catch (Throwable t) {
             // a broken widget must never crash the app
         }
+    }
+
+    @Override
+    public void onEnabled(Context context) {
+        CyWidgets.arm(context, false);
+    }
+
+    @Override
+    public void onDisabled(Context context) {
+        CyWidgets.arm(context, false);
     }
 
     @Override
@@ -54,124 +60,16 @@ public class CyWidgetProvider extends AppWidgetProvider {
                     context.getSharedPreferences("cypress", Context.MODE_PRIVATE)
                         .edit().putString("widget_save", link).apply();
                 }
-                return;
-            }
-            boolean next = ACT_NEXT.equals(a);
-            if (!next && !ACT_PREV.equals(a)) return;
-            AppWidgetManager m = AppWidgetManager.getInstance(context);
-            int[] ids = m.getAppWidgetIds(new ComponentName(context, CyWidgetProvider.class));
-            if (ids == null || ids.length == 0) return;
-            RemoteViews rv = new RemoteViews(context.getPackageName(), R.layout.cy_widget);
-            if (next) rv.showNext(R.id.cy_w_flip);
-            else rv.showPrevious(R.id.cy_w_flip);
-            m.partiallyUpdateAppWidget(ids, rv);
-        } catch (Throwable t) {
-            Log.w(TAG, "switch failed: " + t);
-        }
-    }
-
-    private static PendingIntent saveIntent(Context c, String link, int code) {
-        Intent i = new Intent(c, CyWidgetProvider.class);
-        i.setAction(ACT_SAVE);
-        i.putExtra("link", link);
-        return PendingIntent.getBroadcast(c, code, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-    }
-
-    private static PendingIntent switchIntent(Context c, String action, int code) {
-        Intent i = new Intent(c, CyWidgetProvider.class);
-        i.setAction(action);
-        return PendingIntent.getBroadcast(c, code, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-    }
-
-    static RemoteViews build(Context c) {
-        RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget);
-        JSONArray h = CyExtras.readHeadlines(c);
-        int n = Math.min(h.length(), MAX);
-        // B48: edition freshness — "N new" badge vs the previous headline set
-        try {
-            android.content.SharedPreferences p = c.getSharedPreferences("cypress", Context.MODE_PRIVATE);
-            java.util.HashSet<String> prev = new java.util.HashSet<>();
-            for (String s2 : p.getString("widget_prev", "").split("\\|")) if (s2.length() > 0) prev.add(s2);
-            int fresh = 0;
-            StringBuilder cur = new StringBuilder();
-            for (int i = 0; i < n; i++) {
-                String l = h.optJSONObject(i).optString("link", "");
-                if (l.length() == 0) continue;
-                if (cur.length() > 0) cur.append('|');
-                cur.append(l);
-                if (!prev.contains(l)) fresh++;
-            }
-            p.edit().putString("widget_prev", cur.toString()).apply();
-            if (fresh > 0 && n > 0) {
-                rv.setTextViewText(R.id.cy_w_new, fresh + " new");
-                rv.setViewVisibility(R.id.cy_w_new, View.VISIBLE);
-            } else {
-                rv.setViewVisibility(R.id.cy_w_new, View.GONE);
-            }
-        } catch (Throwable t) { /* badge is best-effort */ }
-        rv.removeAllViews(R.id.cy_w_flip);
-        int shown = 0;
-        for (int i = 0; i < n; i++) {
-            JSONObject o = h.optJSONObject(i);
-            if (o == null || o.optString("title", "").length() == 0) continue;
-            JSONObject nx = n > 1 ? h.optJSONObject((i + 1) % n) : null;
-            rv.addView(R.id.cy_w_flip, page(c, o, nx, i));
-            shown++;
-        }
-        rv.setViewVisibility(R.id.cy_w_empty, shown == 0 ? View.VISIBLE : View.GONE);
-        rv.setViewVisibility(R.id.cy_w_arrows, shown > 1 ? View.VISIBLE : View.GONE);
-        rv.setOnClickPendingIntent(R.id.cy_w_prev, switchIntent(c, ACT_PREV, 71));
-        rv.setOnClickPendingIntent(R.id.cy_w_next, switchIntent(c, ACT_NEXT, 72));
-        rv.setOnClickPendingIntent(R.id.cy_w_title, CyExtras.openIntent(c, null, 90));
-        rv.setOnClickPendingIntent(R.id.cy_w_root, CyExtras.openIntent(c, null, 91));
-        return rv;
-    }
-
-    private static RemoteViews page(Context c, JSONObject o, JSONObject next, int i) {
-        RemoteViews p = new RemoteViews(c.getPackageName(), R.layout.cy_widget_page);
-        String src = o.optString("src", "").trim();
-        p.setTextViewText(R.id.cy_wp_src, src.toUpperCase(Locale.getDefault()));
-        p.setViewVisibility(R.id.cy_wp_src, src.length() == 0 ? View.GONE : View.VISIBLE);
-        p.setTextViewText(R.id.cy_wp_head, o.optString("title", ""));
-        Bitmap b = null;
-        try {
-            File f = imageFile(c, o.optString("img", ""));
-            if (f != null && f.isFile()) {
-                BitmapFactory.Options opt = new BitmapFactory.Options();
-                opt.inPreferredConfig = Bitmap.Config.RGB_565;
-                b = BitmapFactory.decodeFile(f.getAbsolutePath(), opt);
+            } else if (CyWidgets.ACT_TICK.equals(a)) {
+                CyWidgets.tick(context);
+            } else if (CyWidgets.ACT_NEXT.equals(a)) {
+                CyWidgets.flip(context, 1);
+            } else if (CyWidgets.ACT_PREV.equals(a)) {
+                CyWidgets.flip(context, -1);
             }
         } catch (Throwable t) {
-            Log.w(TAG, "picture failed: " + t);
+            Log.w(TAG, "receive failed: " + t);
         }
-        if (b != null) {
-            p.setImageViewBitmap(R.id.cy_wp_img, b);
-            p.setViewVisibility(R.id.cy_wp_img, View.VISIBLE);
-        } else {
-            p.setViewVisibility(R.id.cy_wp_img, View.GONE);
-        }
-        String nt = next == null ? "" : next.optString("title", "");
-        if (nt.length() > 64) {
-            // B48: cut at a word boundary instead of mid-word
-            int sp = nt.lastIndexOf(' ', 64);
-            nt = nt.substring(0, sp > 40 ? sp : 64).replaceAll("\\s+$", "") + "\u2026";
-        }
-        if (nt.length() > 0) {
-            p.setTextViewText(R.id.cy_wp_next, "Next  ›  " + nt);
-            p.setViewVisibility(R.id.cy_wp_next, View.VISIBLE);
-            p.setOnClickPendingIntent(R.id.cy_wp_next, CyExtras.openIntent(c, next.optString("link", ""), 120 + i));
-        } else {
-            p.setViewVisibility(R.id.cy_wp_next, View.GONE);
-        }
-        p.setOnClickPendingIntent(R.id.cy_wp_root, CyExtras.openIntent(c, o.optString("link", ""), 100 + i));
-        // B48: already-read stories are dimmed so the widget doesn't resurface them
-        if (o.optBoolean("read", false)) {
-            p.setFloat(R.id.cy_wp_head, "setAlpha", 0.45f);
-            p.setFloat(R.id.cy_wp_img, "setAlpha", 0.45f);
-        }
-        // B48: save button on the card
-        p.setOnClickPendingIntent(R.id.cy_wp_save, saveIntent(c, o.optString("link", ""), 130 + i));
-        return p;
     }
 
     // ---------------------------------------------------------------- pictures

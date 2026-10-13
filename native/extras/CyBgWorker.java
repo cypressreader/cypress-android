@@ -170,10 +170,30 @@ public class CyBgWorker extends Worker {
                     if (h.length() >= CyWidgetProvider.MAX) break;
                 }
                 // pictures are fetched before the worker finishes, so the system does not stop it half-way
-                if (h.length() > 0) CyExtras.saveHeadlines(ctx, h, true);
-                CyExtras.updateWidgets(ctx);
+                if (h.length() > 0) {
+                    // the widgets show a quiet "Updating…" while the new stories' pictures come in, never old headlines passed off as new
+                    CyWidgets.setUpdating(ctx, true);
+                    CyExtras.updateWidgets(ctx);
+                    CyExtras.saveHeadlines(ctx, h, true);
+                    JSONArray brk = new JSONArray();
+                    java.util.regex.Pattern bp = java.util.regex.Pattern.compile("\\b(breaking(?! bad)|just in|developing)\\b", java.util.regex.Pattern.CASE_INSENSITIVE);
+                    for (Item it : all) {
+                        if (brk.length() >= CyWidgets.TICK_N) break;
+                        if (it.title.length() == 0 || !bp.matcher(it.title).find()) continue;
+                        JSONObject bo = new JSONObject();
+                        bo.put("title", it.title);
+                        bo.put("link", it.link);
+                        bo.put("src", it.feedTitle);
+                        bo.put("brk", true);
+                        brk.put(bo);
+                    }
+                    CyWidgets.saveMeta(ctx, java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY) >= 5 && java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY) < 17 ? "Morning edition" : "Evening edition", brk);
+                }
             } catch (Throwable t) {
                 Log.w(TAG, "widget failed: " + t);
+            } finally {
+                CyWidgets.setUpdating(ctx, false);
+                CyExtras.updateWidgets(ctx);
             }
         }
     }

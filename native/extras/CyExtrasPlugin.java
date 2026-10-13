@@ -265,6 +265,7 @@ public class CyExtrasPlugin extends Plugin {
             JSONObject in = new JSONObject(call.getData().toString());
             JSONArray h = in.optJSONArray("headlines");
             CyExtras.saveHeadlines(c, h == null ? new JSONArray() : h);
+            CyWidgets.saveMeta(c, in.has("edition") ? in.optString("edition", "") : null, in.optJSONArray("breaking"));
             CyExtras.updateWidgets(c);
             call.resolve();
         } catch (Throwable t) {

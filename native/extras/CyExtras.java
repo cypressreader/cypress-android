@@ -583,6 +583,7 @@ public final class CyExtras {
                 out.put(o);
             }
             prefs(c).edit().putString("widget_headlines", out.toString()).apply();
+            CyWidgets.onNewStories(c, out);
             final Context app = c.getApplicationContext();
             if (!hasWidgets(app)) return; // nothing on a home screen: no pictures to fetch
             final JSONArray snap = out;
@@ -610,9 +611,7 @@ public final class CyExtras {
 
     static boolean hasWidgets(Context c) {
         try {
-            AppWidgetManager m = AppWidgetManager.getInstance(c);
-            int[] ids = m.getAppWidgetIds(new ComponentName(c, CyWidgetProvider.class));
-            return ids != null && ids.length > 0;
+            return CyWidgets.any(c);
         } catch (Throwable t) {
             return true; // cannot tell: do the work
         }
@@ -629,22 +628,7 @@ public final class CyExtras {
 
     static void updateWidgets(Context c) {
         try {
-            AppWidgetManager m = AppWidgetManager.getInstance(c);
-            int[] ids = m.getAppWidgetIds(new ComponentName(c, CyWidgetProvider.class));
-            if (ids != null && ids.length > 0) m.updateAppWidget(ids, CyWidgetProvider.build(c));
-            int[] sids = m.getAppWidgetIds(new ComponentName(c, CyWidgetSmallProvider.class));
-            if (sids != null && sids.length > 0) {
-                // small + large go through their own providers' onUpdate path
-                android.content.Intent u = new android.content.Intent(c, CyWidgetSmallProvider.class);
-                u.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE); u.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, sids);
-                c.sendBroadcast(u);
-            }
-            int[] lids = m.getAppWidgetIds(new ComponentName(c, CyWidgetLargeProvider.class));
-            if (lids != null && lids.length > 0) {
-                android.content.Intent u = new android.content.Intent(c, CyWidgetLargeProvider.class);
-                u.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE); u.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, lids);
-                c.sendBroadcast(u);
-            }
+            CyWidgets.refreshAll(c);
         } catch (Throwable t) {
             Log.w(TAG, "widget update failed: " + t);
         }

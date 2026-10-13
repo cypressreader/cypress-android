@@ -9877,7 +9877,7 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.13f';const APP_LABEL='1.86';
+const APP_VERSION='2026.10.13g';const APP_LABEL='1.87';
 const CHANGES=["Stories that stop at a subscriber gate (like the New York Times verification message) are now spotted, and the app looks for a saved or wire copy of the full story", "If the full story can’t be found, you get the opening paragraphs with a soft fade, a Subscriber Preview card and a button to read it on the original site", "The gate check looks only for real gate messages, so ordinary news pages are not mislabelled as previews"];
 const DEF_ON=new Set(['sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
@@ -12329,7 +12329,7 @@ function nativeExtrasUi(x){
    +`<div class="line"><span class="lb">Quiet hours<small>No alerts or pack notifications during these hours</small></span><button class="tg" id="qhon"></button></div><div class="line" id="qhr"><span class="lb">From and to</span><span class="ctl"><select id="qhf">${Array.from({length:24},(_,i)=>`<option value="${i}">${(i%12||12)+(i<12?' am':' pm')}</option>`).join('')}</select><select id="qht">${Array.from({length:24},(_,i)=>`<option value="${i}">${(i%12||12)+(i<12?' am':' pm')}</option>`).join('')}</select></span></div>`
    +(nFeat('tts')?`<div class="line"><span class="lb">Digest notice<small>A quiet notification when your morning, evening or weekly digest is ready. Needs the digest turned on under Magazine and digest</small></span><button class="tg" data-tg="dgnotif"></button></div><div class="line"><span class="lb">Show the cover headline on the lock screen<small>The edition notice carries the front-page headline. Turn this off to keep headlines off your lock screen</small></span><button class="tg" data-tg="dglock"></button></div>`:'')
    +(nFeat('pack')?`<div class="line"><span class="lb">Morning pack<small>Each morning the app gathers the top stories, ready to read</small></span><button class="tg" data-tg="pack"></button></div><div class="line"><span class="lb">Pack time<small>The pack is ready after this hour</small></span><select id="packh">${Array.from({length:12},(_,i)=>`<option value="${i+4}">${((i+4)%12||12)+((i+4)<12?' am':' pm')}</option>`).join('')}</select></div><div class="line"><span class="lb">Open today’s pack</span><button class="tx2" id="packo">Open</button></div>`:'')
-   +(nFeat('widget')?`<div class="line"><span class="lb">Home-screen widget<small>Add the CyPress widget from your home screen’s widget list. This keeps its headlines fresh</small></span><button class="tg" data-tg="widget"></button></div>`:'')
+   +(nFeat('widget')?`<div class="line"><span class="lb">Home-screen widget<small>Add CyPress Top Story, Headlines or Ticker from your home screen’s widget list. This keeps them fresh</small></span><button class="tg" data-tg="widget"></button></div>`:'')
    +`</div>`;
   const anchor=$('#s-app')||$('#s-setup');if(anchor)anchor.before(sec);
   const sn=document.querySelector('#snav [data-go="'+(anchor&&anchor.id||'s-setup')+'"]');if(sn){const nb=document.createElement('button');nb.dataset.go='s-notif';nb.textContent='Alerts';sn.before(nb)}
@@ -12369,7 +12369,11 @@ function nativeExtrasUi(x){
 function widgetList(){let l=[];try{if(typeof DGL!=='undefined'&&DGL.length){l=[LEADK&&findStory(LEADK),...DGL.map(findStory)].filter((a,i,arr)=>a&&a.title&&a.link&&arr.indexOf(a)===i)}}catch(e){}
  if(!l.length)l=(typeof cur!=='undefined'&&cur||[]).filter(a=>a&&a.title&&a.link);if(!l.length)l=Object.values(items).flat().sort((a,b)=>b.date-a.date);
  return l.slice(0,6).map(a=>{let f;try{f=fof(a)}catch(e){}return{title:String(a.title).slice(0,140),link:a.link,src:String((f&&f.title)||'').slice(0,60),img:/^https?:/.test(a.img||'')?a.img:'',read:!!(S.read&&S.read[a.link])}})}
-function widgetPush(){const x=CyX();if(!x||!x.widgetUpdate||!nFeat('widget')||!S.widget)return;try{const top=widgetList();if(top.length)x.widgetUpdate({headlines:top}).catch(()=>{})}catch(e){}}
+/* B67: the Ticker widget cycles breaking stories (last 12 hours, flagged by the same words the Daily uses); with none, the newest stories */
+function widgetBreaking(){try{const now=Date.now(),all=Object.values(items).flat().filter(a=>a&&a.title&&a.link&&a.date),mk=a=>{let f;try{f=fof(a)}catch(e){}return{title:String(a.title).slice(0,140),link:a.link,src:String((f&&f.title)||'').slice(0,60),read:!!(S.read&&S.read[a.link])}};
+ let l=all.filter(a=>now-a.date<432e5&&DAYK1.test(a.title)).sort((p,q)=>q.date-p.date).slice(0,5).map(a=>Object.assign(mk(a),{brk:true}));
+ if(!l.length)l=all.sort((p,q)=>q.date-p.date).slice(0,5).map(mk);return l}catch(e){return[]}}
+function widgetPush(){const x=CyX();if(!x||!x.widgetUpdate||!nFeat('widget')||!S.widget)return;try{const top=widgetList();if(top.length)x.widgetUpdate({headlines:top,breaking:widgetBreaking(),edition:edKind()==='m'?'Morning edition':'Evening edition'}).catch(()=>{})}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)widgetPush();else widgetSavePull()});
 /* B48: stories saved from the home-screen widget */
 async function widgetSavePull(){const x=CyX();if(!x||!x.widgetSaved||!nFeat('widget'))return;try{const r=await x.widgetSaved();const link=r&&r.link;if(!link)return;const a=findStory(link);if(!a){toast('Saved the link — open it once to finish saving');return}if(!isSaved(a)){toggleSave(a);toast('Saved “'+String(a.title||'').slice(0,60)+'”')}else toast('Already saved')}catch(e){}}

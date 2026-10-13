@@ -223,3 +223,17 @@ Things that could not be reproduced in a desktop browser and need a check on a r
 - [ ] Lock the screen or minimise the app while reading: speech continues, and the highlight is on the right word when you come back.
 - [ ] Two-voice quotes (Settings → Quote voice) still switch voices; no double pause around quotes.
 - [ ] In a desktop browser (Chrome/Edge/Safari): highlight follows, paragraph breaths are audible.
+
+## 1.87 Home-screen widgets (B67) — implemented, unverified; must verify on a real phone
+Android only; nothing here could be built or run in the dev environment (the app is compiled by the release build). If the release build fails, read the compile error first: the widget code is the newest Java.
+- [ ] Remove any old CyPress widget from the home screen, then add each of the three from the widget list: "CyPress Top Story" (2x2), "CyPress Headlines" (4x2), "CyPress Ticker" (4x1). They should all show stories after opening CyPress once.
+- [ ] Top Story: big faint number top right, gold source line, serif headline, "1 of 5" and two arrows at the bottom. Arrows flip stories; tapping the headline opens that story; it flips by itself after about 30 minutes.
+- [ ] Headlines: make it taller and shorter. Short = 3 rows without pictures; medium = 3 rows with pictures; tall = 4 rows with pictures. No empty gap at the bottom at any size. Tapping a row opens that story; tapping the CyPress title opens the app.
+- [ ] Ticker: one story, kicker says BREAKING (or LATEST if nothing is breaking), changes about every 15 minutes (Android may delay this in battery saver or Doze; note how late it runs).
+- [ ] New edition: when the morning or evening edition arrives (or after pulling to refresh and leaving the app) all three switch to the new top story and go back to the first one. Watch for the quiet "Updating…" and that old headlines are not shown as new.
+- [ ] Light and dark: switch the phone's dark mode; check all three are readable, no green wash, no clipped text. If a widget keeps the old colours, note it (a widget may need one update to repaint).
+- [ ] Tap targets: arrows and rows feel at least thumb-sized; the screen reader reads "Previous story" and "Next story".
+- [ ] Phone left alone overnight: widgets do not show yesterday's headlines as if current (after about 14 hours they say "Tap to refresh").
+- [ ] Reboot the phone: the Top Story and Ticker keep flipping afterwards.
+- [ ] Z Fold: unfolded and folded home screens both lay the widgets out sensibly.
+- [ ] Read stories are dimmed on all three. (The old Save button on the widget card is gone from the new design.)

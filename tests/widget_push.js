@@ -1,0 +1,23 @@
+/* B67: what the app hands the home-screen widgets: top stories, the edition name, and the Ticker's breaking list */
+const {APP}=require('./env');const {mock,seed,PW}=require('./mock');const {chromium}=require(PW);
+let pass=0,fail=0;const log=[];const ck=(n,c,x='')=>{if(c)pass++;else{fail++;log.push(`FAIL ${n} ${x}`)}};
+(async()=>{const b=await chromium.launch();
+ const ctx=await b.newContext({viewport:{width:380,height:820},hasTouch:true,isMobile:true});const p=await ctx.newPage();
+ await mock(p,{n:6});
+ await p.addInitScript(()=>{window.__w=[];
+  const X={features:async()=>({features:['widget']}),getPendingShare:async()=>({}),getPendingOpen:async()=>({}),widgetUpdate:async a=>{window.__w.push(a)},widgetSaved:async()=>({})};
+  window.Capacitor={isNativePlatform:()=>true,Plugins:{CyNative:{info:async()=>({versionCode:5,versionName:'1',canInstall:true}),setBars:async()=>{}},CyExtras:X}};});
+ await p.addInitScript(s=>{try{if(!localStorage.getItem('folio'))localStorage.setItem('folio',JSON.stringify(s))}catch(e){}},seed(['Alpha','Beta']));
+ await p.goto('file://'+APP);await p.waitForTimeout(1500);
+ const E=(f,a)=>p.evaluate(f,a);
+ await E(()=>{S.widget=true;const a=Object.values(items).flat();a[0].title='BREAKING: storm hits coast';a[0].date=Date.now()-36e5;widgetPush()});await p.waitForTimeout(200);
+ const w=await E(()=>window.__w[window.__w.length-1]);
+ ck('widgetUpdate called',!!w);
+ ck('top stories sent (max 6)',w&&w.headlines.length>0&&w.headlines.length<=6);
+ ck('edition name is Morning or Evening',w&&/^(Morning|Evening) edition$/.test(w.edition),w&&w.edition);
+ ck('breaking list sent, flagged, at most 5',w&&w.breaking.length>0&&w.breaking.length<=5&&w.breaking[0].brk===true&&/BREAKING/.test(w.breaking[0].title),JSON.stringify(w&&w.breaking[0]));
+ ck('every ticker story has a link and source',w&&w.breaking.every(x=>x.link&&typeof x.src==='string'));
+ await E(()=>{Object.values(items).flat().forEach(a=>{a.title=a.title.replace(/breaking/ig,'news')});widgetPush()});await p.waitForTimeout(200);
+ const w2=await E(()=>window.__w[window.__w.length-1]);
+ ck('with nothing breaking the ticker gets the newest stories (not flagged)',w2.breaking.length>0&&!w2.breaking[0].brk);
+ console.log(`${pass} passed, ${fail} failed`);log.forEach(l=>console.log(l));await b.close();process.exit(fail?1:0)})();
