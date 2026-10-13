@@ -13,10 +13,10 @@ Format: "Quote text" — Author
 8. "Reading maketh a full man." — Francis Bacon
 9. "Books are a uniquely portable magic." — Stephen King
 10. "We read to know we are not alone." — William Nicholson
-11. "A room without books is like a body without a soul." — Marcus Tullius Cicero
+11. "A room without books is like a body without a soul." — attributed to Cicero
 12. "The reading of all good books is like conversation with the finest minds of past centuries." — René Descartes
 13. "I cannot live without books." — Thomas Jefferson
-14. "Books serve to show a man that those original thoughts of his aren't very new after all." — Abraham Lincoln
+14. "Books serve to show a man that those original thoughts of his aren't very new after all." — attributed to Abraham Lincoln
 15. "Reading is an act of civilization; it's one of the greatest acts of civilization because it takes the free raw material of the mind and builds castles of possibilities." — Ben Okri
 16. "A book is the only place in which you can examine a fragile thought without breaking it." — Edward Morgan Forster
 17. "Literature is the most agreeable way of ignoring life." — Fernando Pessoa
@@ -30,7 +30,7 @@ Format: "Quote text" — Author
 25. "A book lying idle on a shelf is wasted ammunition." — Henry Miller
 26. "Reading is escape, and the opposite of escape." — Nora Ephron
 27. "Books are the quietest and most constant of friends." — Charles W. Eliot
-28. "The man who does not read has no advantage over the man who cannot read." — Mark Twain
+28. "The man who does not read has no advantage over the man who cannot read." — attributed to Mark Twain
 29. "To read is to voyage through time." — Carl Sagan
 30. "A book is a garden, an orchard, a storehouse, a party, a company by the way, a counselor, a multitude of counselors." — Charles Baudelaire
 31. "Reading is my favorite occupation, when I have leisure for it and books to read." — Anne Brontë
@@ -51,7 +51,7 @@ Format: "Quote text" — Author
 46. "A book is like a garden carried in the pocket." — Chinese proverb
 47. "The greatest gift is a passion for reading." — Elizabeth Hardwick
 48. "Reading should not be presented to children as a chore or duty. It should be offered as a precious gift." — Kate DiCamillo
-49. "Books give a soul to the universe, wings to the mind, flight to the imagination, and life to everything." — Plato
+49. "Books give a soul to the universe, wings to the mind, flight to the imagination, and life to everything." — attributed to Plato
 50. "A book is a version of the world. If you do not like it, ignore it; or offer your own version in return." — Salman Rushdie
 51. "Reading is the key that opens doors to many good things in life." — Ruth Stiles Gannett
 52. "The habit of reading is the only enjoyment in which there is no alloy." — Anthony Trollope
@@ -109,7 +109,7 @@ Format: "Quote text" — Author
 
 102. "A mind needs books as a sword needs a whetstone, if it is to keep its edge." — Tyrion Lannister, Game of Thrones
 103. "You can find magic wherever you look. Sit back and relax, all you need is a book." — Dr. Seuss
-104. "There is more treasure in books than in all the pirate's loot on Treasure Island." — Walt Disney
+104. "There is more treasure in books than in all the pirate's loot on Treasure Island." — attributed to Walt Disney
 105. "When in doubt, go to the library." — Hermione Granger, Harry Potter
 106. "Until I feared I would lose it, I never loved to read. One does not love breathing." — Scout Finch, To Kill a Mockingbird
 107. "Words are, in my not-so-humble opinion, our most inexhaustible source of magic." — Albus Dumbledore, Harry Potter
