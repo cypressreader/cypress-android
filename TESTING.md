@@ -198,3 +198,9 @@ Things that could not be reproduced in a desktop browser and need a check on a r
 - [ ] Tap Save as PDF / Send to Kindle twice quickly: only one file is made and the buttons are greyed while it works.
 - [ ] A story that only has its summary stored (never opened): the note says to open it once first.
 - Honest limits: the share sheet, the email hand-off and how the EPUB looks on a real Kindle cannot be tested in this environment (the EPUB passes the official EPUBCheck validator with no errors or warnings). The old "tap Export PDF several times" problem could not be reproduced here; the new buttons answer immediately and ignore a second tap, but only a phone can confirm.
+
+## 1.83 Cover picker previews — must verify on a real phone
+- [ ] Settings → Cover style → open the picker on the phone: every tile should look like the real cover (not an old design). Check Poster and Italic mix (no photo), Chapters (title, four stories, one photo), Top plays (numbered list), Journal, Gallery, Type.
+- [ ] The tiles scroll smoothly (each is a full cover drawn small, 25 of them); the picker opens without a noticeable pause on your Z Fold.
+- [ ] Quick looks (the 8 small thumbnails in Settings) still look right.
+- [ ] On the unfolded screen the previews use the wide layouts (Photo and text, Triptych).
