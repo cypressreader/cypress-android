@@ -1427,6 +1427,9 @@ html.quiet .cvm{letter-spacing:.06em}
 /* photo pages in the reader */
 /* a large photo is set big but no longer forces its own column (that left half-empty columns before and after it) */
 .body figure.fbp,.body p.fbp{break-inside:avoid;margin:1em 0;display:flex;align-items:center;justify-content:center}
+/* B79: whatever is inside a full-page picture stacks under it and never makes the figure wider than its column */
+.body figure.fbp{flex-direction:column;max-width:100%}.body figure.fbp>*{max-width:100%;min-width:0}
+.cine .body figure figcaption.lcap,.body figure.fbp figcaption.lcap{position:static;background:none;color:var(--mut);padding:8px 0 0;margin:0;font-size:12.5px;line-height:1.45;text-shadow:none}
 .body .fbp img{width:100%;height:auto;max-height:calc(var(--ch)*.72);object-fit:cover;border-radius:14px;margin:0}
 .body figure.fbp figcaption{position:absolute;left:0;right:0;bottom:0;padding:26px 14px 10px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);color:#fff;font-size:13px}
 .body figure.fbp{position:relative}
@@ -2031,7 +2034,7 @@ html:is([data-theme=typewriter],[data-theme=terminal],[data-theme=amber],[data-t
 .cover.cv-collage .cvbot::before{content:'';display:block;aspect-ratio:16/10;margin:0 0 14px;background:var(--ph,none) center/cover;background-color:#8a8f80}
 .cover.cv-collage .cvlead{color:#23281f;margin-bottom:8px;text-align:center}
 .cover.cv-collage .cvlead small{display:block;letter-spacing:.3em;opacity:.7}
-.cover.cv-collage .cvlead h2{font:600 clamp(24px,4.6vw,46px)/1.02 var(--serif);text-transform:uppercase;letter-spacing:.005em;margin-top:8px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.cover.cv-collage .cvlead h2{font:600 clamp(24px,4.6vw,46px)/1.02 var(--serif);text-transform:none;letter-spacing:.005em;margin-top:8px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .cover.cv-collage .cvlines{display:block;border-top:1px solid rgba(0,0,0,.25);padding-top:8px;text-align:center}
 .cover.cv-collage .cvl{display:block;color:#23281f;padding:2px 0}
 .cover.cv-collage .cvl small,.cover.cv-collage .cvth{display:none}
@@ -2048,8 +2051,10 @@ html:is([data-theme=typewriter],[data-theme=terminal],[data-theme=amber],[data-t
 .cover.cv-italic .cvbot{padding:0 22px 22px}
 .cover.cv-italic .cvlead{color:var(--ink);margin-bottom:14px}
 .cover.cv-italic .cvlead small{display:block;color:var(--mut);letter-spacing:.2em}
-.cover.cv-italic .cvlead h2{font:600 clamp(26px,5.4vw,60px)/1 var(--serif);text-transform:uppercase;letter-spacing:-.005em;max-width:15ch;margin-top:10px;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.cover.cv-italic .cvlead h2{font:600 clamp(26px,5.4vw,60px)/1 var(--serif);text-transform:none;letter-spacing:-.005em;max-width:15ch;margin-top:10px;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
 .cover.cv-italic .cvlead h2 i{font-weight:400;font-style:italic}
+/* B77/B78: Collage and Italic mix headlines use the same display face as the Type cover (mixed case, tight, large) instead of heavy all-capitals; the italic words keep a real italic */
+:is(#grid,#cvg,#lkr) .cover.cv-italic .cvlead h2 i{font-family:'Newsreader',Georgia,serif;font-style:italic;font-weight:400;font-synthesis:style;letter-spacing:0}
 .cover.cv-italic .cvlines{border-top:1px solid color-mix(in srgb,var(--ink) 30%,transparent);max-width:60%}
 .cover.cv-italic .cvl{color:var(--ink)}
 .cover.cv-italic .cvl small{color:var(--mut)}
@@ -3395,9 +3400,9 @@ html[data-ts="l"] #grid .wcols,html[data-ts="l"] #grid .nr-lsub,html[data-ts="l"
 :is(#grid,#cvg,#lkr) .cover:not(.cv-clean) .cvtop{padding:calc(var(--gp) + 14px) calc(var(--gp) + 10px) 0}
 :is(#grid,#cvg,#lkr) .cover:not(.cv-clean) .cvbot{padding:0 calc(var(--gp) + 10px) calc(var(--gp) + 16px)}
 :is(#grid,#cvg,#lkr) .cover:not(.cv-clean) .cvlead small{font-size:11.5px;letter-spacing:.2em;margin-bottom:12px}
-:is(#grid,#cvg,#lkr) .cover:not(.cv-clean):not(.cv-broadcast):not(.cv-plays):not(.cv-collage):not(.cv-italic) .cvlead h2{font:400 clamp(44px,13vw,112px)/.9 var(--disp)!important;letter-spacing:-.014em;font-synthesis:none;text-transform:none;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden}
-:is(#grid,#cvg,#lkr) .cover:not(.cv-clean):not(.cv-broadcast):not(.cv-plays):not(.cv-collage):not(.cv-italic) .cvlead h2.l1{font-size:clamp(38px,11vw,92px)!important}
-:is(#grid,#cvg,#lkr) .cover:not(.cv-clean):not(.cv-broadcast):not(.cv-plays):not(.cv-collage):not(.cv-italic) .cvlead h2.l2{font-size:clamp(32px,9.2vw,76px)!important}
+:is(#grid,#cvg,#lkr) .cover:not(.cv-clean):not(.cv-broadcast) .cvlead h2{font:400 clamp(44px,13vw,112px)/.9 var(--disp)!important;letter-spacing:-.014em;font-synthesis:none;text-transform:none;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden}
+:is(#grid,#cvg,#lkr) .cover:not(.cv-clean):not(.cv-broadcast) .cvlead h2.l1{font-size:clamp(38px,11vw,92px)!important}
+:is(#grid,#cvg,#lkr) .cover:not(.cv-clean):not(.cv-broadcast) .cvlead h2.l2{font-size:clamp(32px,9.2vw,76px)!important}
 :is(#grid,#cvg,#lkr) .cover.cv-broadcast .cvlead h2,:is(#grid,#cvg,#lkr) .cover.cv-plays .cvlead h2,:is(#grid,#cvg,#lkr) .cover.cv-collage .cvlead h2,:is(#grid,#cvg,#lkr) .cover.cv-italic .cvlead h2{font-size:clamp(40px,12vw,96px)!important;line-height:.98;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden}
 :is(#grid,#cvg,#lkr) .cover.cv-broadcast .cvlead h2.l1,:is(#grid,#cvg,#lkr) .cover.cv-plays .cvlead h2.l1,:is(#grid,#cvg,#lkr) .cover.cv-collage .cvlead h2.l1,:is(#grid,#cvg,#lkr) .cover.cv-italic .cvlead h2.l1{font-size:clamp(34px,10vw,80px)!important}
 :is(#grid,#cvg,#lkr) .cover.cv-broadcast .cvlead h2.l2,:is(#grid,#cvg,#lkr) .cover.cv-plays .cvlead h2.l2,:is(#grid,#cvg,#lkr) .cover.cv-collage .cvlead h2.l2,:is(#grid,#cvg,#lkr) .cover.cv-italic .cvlead h2.l2{font-size:clamp(30px,8.6vw,68px)!important}
@@ -3855,6 +3860,23 @@ function embedOf(c,t){
 }
 /* an element dropped from between two words (an icon, a button, a hidden tooltip) must not weld them together: "company" + "said" */
 function cleanGap(out,c){try{const nx=c.nextSibling,last=out.lastChild;if(!nx||!last)return;const lt=last.nodeType===3?last.data:(last.textContent||'');if(nx.nodeType===3&&/^[A-Za-z0-9]/.test(nx.data)&&/[A-Za-z0-9]$/.test(lt))out.append(' ')}catch(e){}}
+/* B79: a figure is a picture and its caption. Some sites (Big Think and other WordPress themes) also put the description in a div or paragraph inside the figure; as a loose child it sat beside the picture in the page layout and pushed the figure wider than its column, so text collided and was cut off at the edge. Anything short and loose in a figure now becomes part of its caption. */
+function tidyFigure(e){
+ try{
+  const keep=n=>n.nodeType===1&&/^(IMG|PICTURE|FIGCAPTION|BR|SOURCE)$/.test(n.tagName);
+  const stray=[];
+  [...e.childNodes].forEach(n=>{if(keep(n))return;const t=(n.textContent||'').replace(/\s+/g,' ').trim();if(!t){if(n.nodeType===1&&!n.querySelector('img,picture'))n.remove();return}if(n.nodeType===1&&n.querySelector('img,picture'))return;stray.push([n,t])});
+  const total=stray.reduce((q,x)=>q+x[1].length,0);
+  if(stray.length&&total<=1500){
+   stray.forEach(([n])=>n.remove());
+   let fc=e.querySelector('figcaption');if(!fc){fc=document.createElement('figcaption');e.append(fc)}
+   fc.insertBefore(document.createTextNode(stray.map(x=>x[1]).join(' ')+(fc.firstChild?' ':'')),fc.firstChild);
+  }
+  /* a long caption is set under the picture, never laid over it (the full-page style puts short captions over the foot of the picture) */
+  const c2=e.querySelector('figcaption');if(c2&&c2.textContent.length>140)c2.classList.add('lcap');
+ }catch(x){}
+ return e;
+}
 function clean(n,base){
  const out=document.createDocumentFragment();
  for(const c of n.childNodes){
@@ -3875,6 +3897,7 @@ function clean(n,base){
   if(t==='A'){const h=abs(c.getAttribute('href')||'',base);if(!/^https?:/.test(h)){out.append(clean(c,base));continue}e.href=h;e.target='_blank';e.rel='noopener'}
   if(t==='TD'||t==='TH')['colspan','rowspan'].forEach(k=>{const v=c.getAttribute(k);if(v&&/^\d{1,2}$/.test(v))e.setAttribute(k,v)});
   if(t!=='BR'&&t!=='HR')e.append(clean(c,base));
+  if(t==='FIGURE')tidyFigure(e);
   out.append(e);
  }
  return out;
