@@ -39,5 +39,13 @@ let pass=0,fail=0;const log=[];const ck=(n,c,x='')=>{if(c)pass++;else{fail++;log
  ck('turning the timer off clears it on the phone',sl.cleared===0,JSON.stringify(sl));
  await E(()=>window.__ttsSleep());
  ck('when the phone reports the sleep stop the page stops too',await E(()=>!TTS.on||TTS.paused));
+ /* B87: a voice marked as "reports early" is forgotten after two weeks and can be reset by hand */
+ const vt=await E(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));ttsStop();const vv=bestVoice();const key=(vv&&vv.voiceURI)||'default';
+  S.tnbv=key;S.tnbt=Date.now()-20*864e5;TTS.nb=1;ttsCollect();ttsFrom(0);await w(200);const old={nb:TTS.nb,kept:!!S.tnbv};ttsStop();
+  S.tnbv=key;S.tnbt=Date.now();TTS.nb=0;ttsCollect();ttsFrom(0);await w(200);const fresh={nb:TTS.nb,kept:!!S.tnbv};ttsStop();
+  document.getElementById('vtreset')&&document.getElementById('vtreset').click();const reset={has:!!document.getElementById('vtreset'),cleared:!S.tnbv&&TTS.nb===0};return {old,fresh,reset}});
+ ck('a voice mark older than two weeks is forgotten',vt.old.nb===0&&!vt.old.kept,JSON.stringify(vt));
+ ck('a recent mark is kept',vt.fresh.nb===1&&vt.fresh.kept,JSON.stringify(vt));
+ ck('Settings has a Reset button that clears it',vt.reset.has&&vt.reset.cleared,JSON.stringify(vt));
  await E(()=>ttsStop());
  console.log(`${pass} passed, ${fail} failed`);log.forEach(l=>console.log(l));await b.close();process.exit(fail?1:0)})();
