@@ -9849,7 +9849,7 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.13b';const APP_LABEL='1.82';
+const APP_VERSION='2026.10.13e';const APP_LABEL='1.85';
 const CHANGES=["Stories that stop at a subscriber gate (like the New York Times verification message) are now spotted, and the app looks for a saved or wire copy of the full story", "If the full story can’t be found, you get the opening paragraphs with a soft fade, a Subscriber Preview card and a button to read it on the original site", "The gate check looks only for real gate messages, so ordinary news pages are not mislabelled as previews"];
 const DEF_ON=new Set(['sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
@@ -11869,12 +11869,25 @@ function onSite(h,s){
  const root=x=>{const p=x.split('.');return (/\.(co|com|org|net|gov|ac)\.[a-z]{2}$/.test(x)?p.slice(-3):p.slice(-2)).join('.')};
  return root(h)===root(s)||(s==='bbc.com'&&/(^|\.)bbc\.co\.uk$/.test(h));
 }
+/* A headline search for a whole site (the fallback when a site's own feed is down) must never fill ONE section's feed with the site's other stories: NPR's Life Kit is not NPR's news, and a "Lifestyle" folder must not fill with hard news. On a big multi-section site, a section feed is only covered when the section can be told from the story's address; a feed with no readable section (a numbered NPR feed, a podcast) is left offline rather than filled with strangers. */
+const WIDESITE=/(^|\.)(npr\.org|bbc\.com|bbc\.co\.uk|bbci\.co\.uk|nytimes\.com|theguardian\.com|washingtonpost\.com|cnn\.com|wsj\.com|dj\.com|foxnews\.com|usatoday\.com|latimes\.com|reuters\.com|bloomberg\.com|forbes\.com|medium\.com|yahoo\.com|msn\.com|time\.com|abcnews\.go\.com|nbcnews\.com|cbsnews\.com|apnews\.com|independent\.co\.uk|telegraph\.co\.uk|economist\.com|ft\.com|theatlantic\.com|vox\.com|buzzfeed\.com|huffpost\.com|vice\.com|wired\.com|cnet\.com|businessinsider\.com|substack\.com|globalnews\.ca|cbc\.ca|ctvnews\.ca|thestar\.com|theglobeandmail\.com)$/i;
+function fallbackScope(f){
+ let u;try{u=new URL(f.url)}catch(e){return{ok:true,sec:''}}
+ const h=u.hostname.replace(/^www\./,'');if(!WIDESITE.test(h))return{ok:true,sec:''};
+ const bare=x=>x.replace(/\.(xml|rss|atom|json)$/i,'');
+ const segs=u.pathname.split('/').filter(Boolean).map(bare).filter(x=>x&&!/^(feed|feeds|rss|atom|xml|index|podcast|services|nyt|news|world|articles|latest|topstories|all|main|default|public|rss2\.0)$/i.test(x));
+ const numeric=segs.some(x=>/^\d+$/.test(x)),sec=segs.filter(x=>!/^\d+$/.test(x))[0]||'';
+ if(numeric&&!sec)return{ok:false,sec:''};
+ return{ok:true,sec:sec.toLowerCase()};
+}
+const inSection=(link,sec)=>{if(!sec)return true;try{return new RegExp('/'+sec.replace(/[^a-z0-9]/g,'')+'([/-]|$)','i').test(new URL(link).pathname.replace(/[^a-z0-9/-]/gi,'').toLowerCase())||new RegExp('/'+sec+'([/-]|$)','i').test(new URL(link).pathname.toLowerCase())}catch(e){return false}};
 async function gnewsFeed(f,s,why){
  const lg=FLG[f.id]=FLG[f.id]||[];
+ const sc=fallbackScope(f);if(!sc.ok){lg.push('Headline search not used: this feed is one section of '+s+', and a search for the whole site would fill it with the site’s other stories');throw new Error('no safe fallback')}
  const x=await fetchText(gnewsFor(s),t=>/<item[\s>]/i.test(t),{push:m=>lg.push('Google News headlines via '+m)});
  const srcHost=new Map();try{new DOMParser().parseFromString(String(x),'text/xml').querySelectorAll('item').forEach(it=>{const l=((it.querySelector('link')||{}).textContent||'').trim(),sc=it.querySelector('source');if(l&&sc){try{srcHost.set(l,new URL(sc.getAttribute('url')||'').hostname)}catch(e){}}})}catch(e){}
  const all=parse(x,f).list.map(a=>({...a,_h:srcHost.get(a.link)||'',link:gnDecode(a.link)||a.link,title:a.title.replace(/\s+-\s+[^-]{2,40}$/,''),img:'',html:'',gn:1}));
- const l=all.filter(a=>onSite(a._h||host(a.link),s));l.forEach(a=>{delete a._h;a.os=1});
+ const l=all.filter(a=>onSite(a._h||host(a.link),s)&&inSection(gnDecode(a.link)||a.link,sc.sec));l.forEach(a=>{delete a._h;a.os=1});
  if(all.length>l.length)lg.push('Google News: left out '+(all.length-l.length)+' stories from other sites');
  if(!l.length){lg.push('Google News: nothing found for '+s);throw new Error('empty')}
  try{ /* Bing's news feed carries photos; borrow them for matching headlines */
@@ -11895,8 +11908,9 @@ async function bingFeed(f,why){
 }
 async function bingFeed0(f,why,s){
  const lg=FLG[f.id]=FLG[f.id]||[];
+ const sc=fallbackScope(f);if(!sc.ok){lg.push('Headline search not used: this feed is one section of '+s);throw new Error('no safe fallback')}
  const x=await fetchText(bingFor(s),t=>/<item[\s>]/i.test(t),{push:m=>lg.push('Bing headlines via '+m)});
- const p=parseBing(x,f),n0=p.list.length;p.list=p.list.filter(a=>onSite(host(a.link),s));p.list.forEach(a=>{a.os=1});if(n0>p.list.length)lg.push('Bing: left out '+(n0-p.list.length)+' stories from other sites');
+ const p=parseBing(x,f),n0=p.list.length;p.list=p.list.filter(a=>onSite(host(a.link),s)&&inSection(a.link,sc.sec));p.list.forEach(a=>{a.os=1});if(n0>p.list.length)lg.push('Bing: left out '+(n0-p.list.length)+' stories from other sites');
  if(!p.list.length){lg.push('Bing headlines: nothing found for '+s);throw new Error('empty')}
  f.via='bing';f.viaWhy=why;return p.list;
 }

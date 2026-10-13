@@ -18,11 +18,21 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
   try{await gnewsFeed(f,'zenhabits.net','test');o.gnNone='kept strangers'}catch(e){o.gnNone='threw'}
   try{await bingFeed0(f,'test','zenhabits.net');o.bingNone='kept strangers'}catch(e){o.bingNone='threw'}
   window.fetchText=of;
+  /* a SECTION of a big site is never filled from a search of the whole site (NPR Life Kit is not NPR news) */
+  {const lk={id:'lk',title:'Life Kit',url:'https://feeds.npr.org/510333/podcast.xml',folder:''};
+   const hard=[{t:'Pope to undergo lung surgery',s:'NPR',u:'https://www.npr.org'},{t:'Hurricane nears Mexico',s:'NPR',u:'https://www.npr.org'}];
+   window.fetchText=async(u,ok)=>/news\.google\.com/.test(u)?gn(hard):bing(hard.map(m=>({...m,u:m.u+'/story/'+m.t.length})));
+   try{const l=await gnewsFeed(lk,'npr.org','test');o.lkGn='filled with '+l.length}catch(e){o.lkGn='threw '+e.message}
+   try{const l=await bingFeed0(lk,'test','npr.org');o.lkBing='filled with '+l.length}catch(e){o.lkBing='threw '+e.message}
+   window.fetchText=of;
+   o.scope=[['https://feeds.npr.org/510333/podcast.xml'],['https://rss.nytimes.com/services/xml/rss/nyt/Health.xml'],['https://feeds.bbci.co.uk/news/rss.xml'],['https://www.theguardian.com/lifeandstyle/rss'],['https://techcrunch.com/feed/'],['https://globalnews.ca/feed/'],['https://feeds.bbci.co.uk/news/health/rss.xml']].map(([u])=>{const r=fallbackScope({url:u});return u.replace(/^https:\/\//,'')+' => '+(r.ok?'ok:'+(r.sec||'whole site'):'none')})}
   o.onsite=[onSite('www.bbc.co.uk','bbc.com'),onSite('edition.cnn.com','cnn.com'),onSite('apnews.com','zenhabits.net'),onSite('news.google.com','zenhabits.net')];
   return o});
  ck('Google News fallback keeps only the feed\'s own stories',Array.isArray(r.gn)&&r.gn.length===2&&r.gn.every(t=>/habits|inbox/i.test(t)),JSON.stringify(r.gn));
  ck('Bing fallback keeps only the feed\'s own stories',Array.isArray(r.bing)&&r.bing.length===2&&r.bing.every(t=>/habits|inbox/i.test(t)),JSON.stringify(r.bing));
  ck('a fallback that finds only other sites\' stories leaves the feed empty (offline), not full of strangers',r.gnNone==='threw'&&r.bingNone==='threw',JSON.stringify([r.gnNone,r.bingNone]));
+ ck('a numbered NPR feed (Life Kit) is not filled with NPR hard news by Google or Bing headline search',/threw/.test(r.lkGn)&&/threw/.test(r.lkBing),JSON.stringify([r.lkGn,r.lkBing]));
+ ck('the scope rule: sections need a readable section, a site\'s main feed is covered whole',JSON.stringify(r.scope)===JSON.stringify(['feeds.npr.org/510333/podcast.xml => none','rss.nytimes.com/services/xml/rss/nyt/Health.xml => ok:health','feeds.bbci.co.uk/news/rss.xml => ok:whole site','www.theguardian.com/lifeandstyle/rss => ok:lifeandstyle','techcrunch.com/feed/ => ok:whole site','globalnews.ca/feed/ => ok:whole site','feeds.bbci.co.uk/news/health/rss.xml => ok:health']),JSON.stringify(r.scope));
  ck('site matching: subdomains and the BBC\'s two domains match, other sites do not',r.onsite[0]&&r.onsite[1]&&!r.onsite[2]&&!r.onsite[3],JSON.stringify(r.onsite));
  /* a folder view only shows its own feeds' stories */
  const f2=await p.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));const now=Date.now();
