@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CyPress Widget Concepts</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: #1a1d21;
+    color: #e8eaed;
+    padding: 32px 20px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 24px; margin-bottom: 8px; }
+  .sub { color: #9aa0a6; font-size: 14px; margin-bottom: 32px; }
+  h2 { font-size: 18px; margin: 36px 0 6px; }
+  .note { color: #9aa0a6; font-size: 13px; margin-bottom: 16px; line-height: 1.5; }
+  .stage {
+    background: linear-gradient(135deg, #2d3138 0%, #1f2329 100%);
+    border-radius: 24px;
+    padding: 40px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  /* ---- Widget 1: Top Story 2x2 ---- */
+  .w-topstory {
+    width: 340px; height: 340px;
+    border-radius: 28px;
+    overflow: hidden;
+    position: relative;
+    background: #dfe6dc;
+    color: #1f2a22;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 24px;
+  }
+  .w-topstory .edition-no {
+    position: absolute;
+    top: -10px; right: 8px;
+    font-size: 120px;
+    font-weight: 800;
+    color: transparent;
+    -webkit-text-stroke: 2px rgba(61,107,73,.25);
+    line-height: 1;
+    font-family: Georgia, serif;
+  }
+  .w-topstory .src {
+    font-size: 11px; font-weight: 700;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: #8f7a3c;
+    margin-bottom: 8px;
+  }
+  .w-topstory h3 {
+    font-family: Georgia, serif;
+    font-size: 30px; font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  .w-topstory .meta {
+    font-size: 12px; color: #4d6052;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .w-topstory .brand {
+    font-weight: 800; font-size: 13px; letter-spacing: .02em;
+  }
+  /* ---- Widget 2: Headlines 4x2 ---- */
+  .w-headlines {
+    width: 520px; max-width: 100%;
+    border-radius: 28px;
+    background: #f4f6f3;
+    color: #1f2a22;
+    padding: 20px 22px;
+  }
+  .w-headlines .whead {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+  }
+  .w-headlines .whead .brand { font-weight: 800; font-size: 15px; }
+  .w-headlines .whead .ed { font-size: 11px; color: #4d6052; letter-spacing: .08em; text-transform: uppercase; }
+  .w-headlines .story {
+    display: flex; gap: 14px;
+    padding: 10px 0;
+    border-top: 1px solid #dde3da;
+    align-items: center;
+  }
+  .w-headlines .story:first-of-type { border-top: none; padding-top: 0; }
+  .w-headlines .thumb {
+    width: 56px; height: 56px; border-radius: 14px;
+    flex-shrink: 0;
+    background-size: cover; background-position: center;
+  }
+  .w-headlines .story .txt { flex: 1; min-width: 0; }
+  .w-headlines .story .s {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: #6b7d6f; margin-bottom: 2px;
+  }
+  .w-headlines .story h4 {
+    font-size: 15px; font-weight: 600; line-height: 1.3;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .w-headlines .story .t { font-size: 11px; color: #8a968d; margin-top: 2px; }
+  /* ---- Widget 3: Row 4x1 ---- */
+  .w-row {
+    width: 520px; max-width: 100%;
+    border-radius: 28px;
+    background: #1f2a22;
+    color: #f4f6f3;
+    padding: 16px 22px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .w-row .live {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #7bc98a; flex-shrink: 0;
+    box-shadow: 0 0 0 4px rgba(123,201,138,.2);
+  }
+  .w-row .txt { flex: 1; min-width: 0; }
+  .w-row .s { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #9db3a1; }
+  .w-row h4 {
+    font-size: 15px; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .w-row .brand { font-size: 12px; font-weight: 800; color: #9db3a1; flex-shrink: 0; }
+  /* ---- Dark variants ---- */
+  .dark-row { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+  .w-headlines.dark { background: #1c231e; color: #e8f0e9; }
+  .w-headlines.dark .whead .ed { color: #9db3a1; }
+  .w-headlines.dark .story { border-color: #2c352d; }
+  .w-headlines.dark .story .s { color: #8fa394; }
+  .w-headlines.dark .story .t { color: #6b7d6f; }
+  .principles {
+    background: #24292f;
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-top: 32px;
+  }
+  .principles h2 { margin-top: 0; }
+  .principles li { font-size: 14px; line-height: 1.6; margin-bottom: 8px; color: #c9cfd4; }
+  .principles li b { color: #fff; }
+</style>
+</head>
+<body>
+<h1>CyPress Widget Concepts</h1>
+<p class="sub">Three widgets, designed from research on Google News, NYT, Apple News &amp; Android best practices. No more dark-green wash — these use the Sage "Type" cover language and adapt to light/dark.</p>
+
+<h2>1 &middot; Top Story (2&times;2)</h2>
+<p class="note">One big story. Uses the new "Type" cover language — the outlined edition number, serif headline, sage background. Instantly recognizable as CyPress. Tap opens the story.</p>
+<div class="stage">
+  <div class="w-topstory">
+    <div class="edition-no">285</div>
+    <div class="src">The Independent</div>
+    <h3>Selma Blair reportedly arrested after mid-air incident</h3>
+    <div class="meta"><span class="brand">CyPress</span><span>Morning Edition &middot; 2 min ago</span></div>
+  </div>
+</div>
+
+<h2>2 &middot; Headlines (4&times;2, resizable)</h2>
+<p class="note">3&ndash;4 stories, each a 48dp tap target. Source in small caps, headline in semibold, timestamp faint — one hierarchy. Grows taller = more stories, never dead space. Light and dark versions.</p>
+<div class="stage">
+  <div class="w-headlines">
+    <div class="whead"><span class="brand">CyPress</span><span class="ed">Morning Edition &middot; No. 285</span></div>
+    <div class="story">
+      <div class="thumb" style="background-image:url('https://picsum.photos/112/112?1')"></div>
+      <div class="txt"><div class="s">TechSpot</div><h4>The Atari 800XL is back as a $220 retro machine with a real keyboard</h4><div class="t">12 min ago</div></div>
+    </div>
+    <div class="story">
+      <div class="thumb" style="background-image:url('https://picsum.photos/112/112?2')"></div>
+      <div class="txt"><div class="s">NYT</div><h4>Federal agents search home of Rep. Ilhan Omar</h4><div class="t">34 min ago</div></div>
+    </div>
+    <div class="story">
+      <div class="thumb" style="background-image:url('https://picsum.photos/112/112?3')"></div>
+      <div class="txt"><div class="s">The Independent</div><h4>RJ Mitte: Breaking Bad star dies aged 34</h4><div class="t">1 hr ago</div></div>
+    </div>
+  </div>
+</div>
+<div class="stage">
+  <div class="w-headlines dark">
+    <div class="whead"><span class="brand">CyPress</span><span class="ed">Morning Edition &middot; No. 285</span></div>
+    <div class="story">
+      <div class="thumb" style="background-image:url('https://picsum.photos/112/112?1')"></div>
+      <div class="txt"><div class="s">TechSpot</div><h4>The Atari 800XL is back as a $220 retro machine with a real keyboard</h4><div class="t">12 min ago</div></div>
+    </div>
+    <div class="story">
+      <div class="thumb" style="background-image:url('https://picsum.photos/112/112?2')"></div>
+      <div class="txt"><div class="s">NYT</div><h4>Federal agents search home of Rep. Ilhan Omar</h4><div class="t">34 min ago</div></div>
+    </div>
+    <div class="story">
+      <div class="thumb" style="background-image:url('https://picsum.photos/112/112?3')"></div>
+      <div class="txt"><div class="s">The Independent</div><h4>RJ Mitte: Breaking Bad star dies aged 34</h4><div class="t">1 hr ago</div></div>
+    </div>
+  </div>
+</div>
+
+<h2>3 &middot; Ticker Row (4&times;1)</h2>
+<p class="note">The smallest option — one breaking story, glanceable. Green dot = live/new. Tap opens the story.</p>
+<div class="stage">
+  <div class="w-row">
+    <div class="live"></div>
+    <div class="txt"><div class="s">NYT &middot; Breaking</div><h4>Federal agents search home of Rep. Ilhan Omar</h4></div>
+    <div class="brand">CyPress</div>
+  </div>
+</div>
+
+<div class="principles">
+<h2>Design principles applied</h2>
+<ul>
+<li><b>One job per widget.</b> Top Story = one big story. Headlines = 3&ndash;4 stories. Ticker = breaking. No widget tries to do everything.</li>
+<li><b>Three type roles max.</b> Headline (semibold), source (small caps, muted), timestamp (faint). The eye knows what to read first.</li>
+<li><b>No monotone wash.</b> The old widgets were all dark green — hierarchy collapsed. These use tonal contrast: sage for the hero, white/dark surfaces for lists.</li>
+<li><b>No dead space.</b> The old 2&times;2 was 60% empty. If a widget is tall, it shows more stories.</li>
+<li><b>The "Type" cover language</b> in the Top Story widget makes it unmistakably CyPress — no other news widget looks like that.</li>
+<li><b>Dark mode is designed,</b> not inverted. Dark surfaces, desaturated accents, same hierarchy.</li>
+<li><b>Every story is a 48dp tap target.</b> Brand wordmark opens the app.</li>
+</ul>
+</div>
+</body>
+</html>
