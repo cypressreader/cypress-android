@@ -18,9 +18,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    return out});
   const t='['+W+'] ';
   ck(t+'no floating "Story N of M" pill',r.floating===0&&!r.oldPill,JSON.stringify(r));
-  ck(t+'the position note sits in the pinned bar directly under the header',r.pin&&/^Story \d+ of \d+$/.test(r.pos)&&Math.abs(r.pinTop-r.hdrBottom)<=2,JSON.stringify(r));
-  ck(t+'it follows the scroll',/^Story \d+ of \d+$/.test(r.pos2)&&r.pos2!==r.pos,r.pos+' -> '+r.pos2);
-  ck(t+'it is not a button (not tappable, not announced as one)',r.pe==='none'&&r.role==='DIV',JSON.stringify(r));
+  ck(t+'the pinned bar has no "Story N of M" note (B54): section name and count only',!r.pos&&!r.pos2&&r.pin,JSON.stringify(r));
   ck(t+'no page errors',!errs.length,errs[0]);await p.close();
  }
  await b.close();console.log(bad?'story_pos '+bad+' FAILED':'story_pos all passed');process.exit(bad?1:0);

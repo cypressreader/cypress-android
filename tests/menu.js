@@ -1,7 +1,9 @@
 /* Reader More (···) menu: four labelled groups, every action still reachable, fits a phone screen with nothing cut off. */
 const {APP}=require('./env');const {mock,PW}=require('./mock');const {chromium}=require(PW);
 let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else console.log('ok',n)};
-const WANT={Settings:['settings','rp'],Share:['share','copy','gift'],View:['browser','web','webpref','translate','fullscreen','fdn'],Story:['hub','jump','upnext','unread','junk']};
+/* the trimmed menu (B32): 11 actions. Copy link, Translate, Full screen, Show my feeds and the second site-view item are gone on purpose */
+const WANT={Settings:['settings','rp'],Share:['share','gift'],View:['browser','web'],Story:['hub','jump','upnext','unread','junk']};
+const GONE=['copy','translate','fullscreen','fdn','webpref'];
 (async()=>{
  const b=await chromium.launch();
  for(const [W,H] of [[360,640],[412,740],[320,568],[1100,820]]){
@@ -24,6 +26,7 @@ const WANT={Settings:['settings','rp'],Share:['share','copy','gift'],View:['brow
   const t='['+W+'x'+H+'] ';
   ck(t+'menu opens',r.vis,JSON.stringify(r));
   ck(t+'four labelled groups with quiet headers',r.headers===4&&r.labelled&&Object.keys(r.groups).join()==='Settings,Share,View,Story',JSON.stringify(r.groups));
+  ck(t+'the removed actions are really gone',GONE.every(k=>!Object.values(r.groups).some(l=>l.includes(k))),JSON.stringify(r.groups));
   ck(t+'every action is still in the menu',Object.entries(WANT).every(([g,l])=>l.every(k=>(r.groups[g]||[]).includes(k))),JSON.stringify(r.groups));
   ck(t+'it fits the screen: nothing cut off, no inner scrolling',r.top>=0&&r.bottom<=r.vh&&r.left>=0&&r.right<=r.vw+1&&r.cut===0&&!r.scrolls,JSON.stringify({top:r.top,bottom:r.bottom,vh:r.vh,cut:r.cut,scrolls:r.scrolls}));
   ck(t+'targets stay tappable (30px or taller)',r.small===0,String(r.small));
