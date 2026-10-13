@@ -10596,7 +10596,8 @@ function pdfIssue(ed){
     const ln=lines[i+k],gi=i+k,off=opt.dropLetter&&gi<3?dropW:0,avail=w-off,last=gi===lines.length-1;
     let tw=0;if(opt.just&&!last){const sp=(ln.match(/ /g)||[]).length;if(sp){const g=(avail-pdfW(ln,f,sz))/sp;if(g>=-.2&&g<sz*.55)tw=g}}
     const x=colX(cc)+ind+off,y=cy+lead*(k+1)-lead*.22;
-    if(off&&gi===0){P.ops.push('/Span << /ActualText <'+actualText(opt.dropLetter+ln)+'> >> BDC');T(P,colX(cc)+ind,y+lead*1.82,opt.dropLetter,'b',cs,MID)}
+    /* B80: the big decorative letter is an artifact (no text of its own); the first line alone carries the letter + line as its ActualText, so readers and text extraction see the line in order */
+    if(off&&gi===0){P.ops.push('/Artifact BMC');T(P,colX(cc)+ind,y+lead*1.82,opt.dropLetter,'b',cs,MID);P.ops.push('EMC');P.ops.push('/Span << /ActualText <'+actualText(opt.dropLetter+ln)+'> >> BDC')}
     T(P,x,y,ln,f,sz,opt.color||INK,{tw});
     if(off&&gi===0)P.ops.push('EMC');
     if(opt.bar)L(P,colX(cc)+1,cy+lead*k+2,colX(cc)+1,cy+lead*(k+1)+1,MID,1.4);
