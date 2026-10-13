@@ -6364,7 +6364,17 @@ function dropTailPromo(root){
   last.remove();dropped++;
  }
 }
-function underscoreItalics(root){mdInline(root);dedupParas(root);dropTailPromo(root)}
+/* the same picture twice in a row (a page that puts its lead photo in both a figure and the text) shows once: a later copy of a picture already shown in the opening part of the story is dropped, with its empty wrapper */
+function dedupImgs(root){
+ const seen=[];let n=0;
+ for(const im of [...root.querySelectorAll('img')]){
+  const u=im.getAttribute('src')||im.getAttribute('data-src')||'';if(!u||im.closest('.pq,.rprev'))continue;
+  if(n++>12)break;
+  if(seen.some(x=>sameImg(x,u))){let w=im;while(w.parentElement&&w.parentElement!==root&&!(w.parentElement.textContent||'').trim()&&w.parentElement.querySelectorAll('img').length===1)w=w.parentElement;const cap=w.parentElement&&w.parentElement.tagName==='FIGURE'&&w.parentElement.querySelectorAll('img').length===1&&!(w.parentElement.textContent||'').trim()?w.parentElement:w;cap.remove()}
+  else seen.push(u)
+ }
+}
+function underscoreItalics(root){mdInline(root);dedupParas(root);dedupImgs(root);dropTailPromo(root)}
 /* plain-text version of a line that may carry markdown marks (for deks and previews) */
 /* some publishers drop the space beside a link or italic ("Fish</a>,and watching", "<a>Shrinking</a>between"); put it back where a word plainly ends, and nowhere else */
 const GLUE_W=/^(?:and|the|but|for|nor|of|to|in|on|at|as|is|it|or|by|if|so|an|from|with|that|this|was|were|are|has|had|who|not|all|its|his|her|our|you|they|then|than|when|will|can|said|says|say|also|have|been|over|into|more|most|just|such|them|their|there|here|some|many|much|very|what|which|while|about|after|would|could|should|only|even|still|make|made|take|took|come|came|want|wants|told|tells|call|calls|find|found|gave|give|know|knew|like|look|looks|need|needs|plan|plans|show|shows|once|next|last|both|each|less|same|upon|out|off|new|now|one|two|she|him|how|why|get|got|did|does|may|might|must|shall|are|his|has|began|begin|plus|per|via|amid|says)$/;
