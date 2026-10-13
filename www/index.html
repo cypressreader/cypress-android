@@ -3430,6 +3430,11 @@ html[data-ts="l"] #grid .wcols,html[data-ts="l"] #grid .nr-lsub,html[data-ts="l"
 #grid .cover.ctn,#grid .dcov.ctn{background:var(--ph) center/cover no-repeat}
 #grid .cover.ctn .cvsh,#grid .dcov.ctn .dcv-sh{display:block!important;position:absolute;inset:0;z-index:-2;-webkit-backdrop-filter:blur(26px);backdrop-filter:blur(26px);background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.55))!important}
 #grid .cover.ctn>img,#grid .dcov.ctn .dcv-art>img{border-radius:0;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+/* Index keeps its picture above its list at any width */
+#grid .cover.cv-index{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto auto!important}
+#grid .cover.cv-index .cvtop{grid-column:1!important;grid-row:1!important}
+#grid .cover.cv-index>img{grid-column:1!important;grid-row:2!important;height:auto!important;aspect-ratio:16/10;min-height:0!important}
+#grid .cover.cv-index .cvbot{grid-column:1!important;grid-row:3!important}
 /* Split, like Block, keeps its picture on top at any width (a narrow side column showed only a slice) */
 #grid .cover.cv-split{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto auto!important;max-height:none!important}
 #grid .cover.cv-split>img{grid-column:1!important;grid-row:1!important;height:auto!important;aspect-ratio:4/3;min-height:0!important}
@@ -4358,7 +4363,7 @@ function coverCrop(){
   cv.classList.remove('ctn');['position','left','top','width','height','inset','objectFit','display','zIndex'].forEach(k=>{if(im.dataset.cs)im.style[k]=''});delete im.dataset.cs;
   const ia=im.naturalWidth/im.naturalHeight,r=im.getBoundingClientRect(),cr=cv.getBoundingClientRect();if(r.width<2||r.height<2)return;
   const ca=r.width/r.height,frac=Math.min(ca/ia,ia/ca);if(frac>=.86)return;
-  const full=r.width>=cr.width*.8&&r.height>=cr.height*.5;
+  const full=r.width>=cr.width*.8&&r.height>=cr.height*.5&&getComputedStyle(im).position==='absolute';/* only a background picture can become the band: one that sits in the layout keeps its place */
   im.dataset.cs='1';
   if(full){
    const blocks=[...cv.querySelectorAll(dc?'.dcv-top,.dcv-main,.dcv-prog':'.cvtop,.cvbot')].filter(b=>getComputedStyle(b).position!=='absolute'&&b.offsetHeight>0).map(b=>({t:b.getBoundingClientRect().top-cr.top,b:b.getBoundingClientRect().bottom-cr.top}));
