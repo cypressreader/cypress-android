@@ -3426,6 +3426,15 @@ html[data-ts="l"] #grid .wcols,html[data-ts="l"] #grid .nr-lsub,html[data-ts="l"
 #grid .cover.cv-gallery .cvlead h2,#grid .cover.cv-gallery .cvlead h2.l1,#grid .cover.cv-gallery .cvlead h2.l2{font-size:clamp(28px,8vw,58px)!important;max-width:16ch}
 
 #grid .cover.cv-overlap .cvtop{height:auto!important;max-height:34%;align-items:flex-start}
+/* a wide photo shown whole: a blurred copy of it fills the cover behind it */
+#grid .cover.ctn,#grid .dcov.ctn{background:var(--ph) center/cover no-repeat}
+#grid .cover.ctn .cvsh,#grid .dcov.ctn .dcv-sh{display:block!important;position:absolute;inset:0;z-index:-2;-webkit-backdrop-filter:blur(26px);backdrop-filter:blur(26px);background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.55))!important}
+#grid .cover.ctn>img,#grid .dcov.ctn .dcv-art>img{border-radius:0;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+/* Split, like Block, keeps its picture on top at any width (a narrow side column showed only a slice) */
+#grid .cover.cv-split{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto auto!important;max-height:none!important}
+#grid .cover.cv-split>img{grid-column:1!important;grid-row:1!important;height:auto!important;aspect-ratio:4/3;min-height:0!important}
+#grid .cover.cv-split .cvtop{grid-column:1!important;grid-row:2!important}
+#grid .cover.cv-split .cvbot{grid-column:1!important;grid-row:3!important}
 /* a photo that cannot be seen is not there: Poster and Italic mix are typographic covers */
 #grid .cover.cv-poster>img,#grid .cover.cv-italic>img{display:none}
 /* ---- cover design rules ---- every element earns its place: story boxes are one readable column (no 30 px strips, no "..."), small pictures that cannot be recognisable are gone, a ticker that scrolls text out of view is a plain list */
@@ -4341,13 +4350,36 @@ function covFit(){
   h.style.setProperty('font-size',size+'px','important');h.dataset.fk=cv.clientWidth+'|'+innerHeight+'|'+(h.textContent||'').length+'|'+cv.className;
  })
 }
-{let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{try{document.querySelectorAll('#grid .cfit').forEach(h=>delete h.dataset.fk);covFit()}catch(e){}},160)});try{document.fonts&&document.fonts.ready.then(()=>{document.querySelectorAll('#grid .cfit').forEach(h=>delete h.dataset.fk);covFit()})}catch(e){}}
+/* A cover photo is never sliced to a thin strip (faces cut in half, only a flag showing). When filling the space would cut away more than about a quarter of the picture, the whole picture is shown instead: full width in the clear space between the masthead and the text, over a blurred copy of itself. A narrow cell too small to show a picture is left to the type. */
+function coverCrop(){
+ document.querySelectorAll('#grid .cover,#grid .dcov').forEach(cv=>{
+  const dc=cv.classList.contains('dcov'),im=cv.querySelector(dc?'.dcv-art>img':':scope>img');if(!im)return;
+  if(!(im.complete&&im.naturalWidth)){if(!im.dataset.cc){im.dataset.cc='1';im.addEventListener('load',()=>{delete im.dataset.cc;coverCrop()},{once:true})}return}
+  cv.classList.remove('ctn');['position','left','top','width','height','inset','objectFit','display','zIndex'].forEach(k=>{if(im.dataset.cs)im.style[k]=''});delete im.dataset.cs;
+  const ia=im.naturalWidth/im.naturalHeight,r=im.getBoundingClientRect(),cr=cv.getBoundingClientRect();if(r.width<2||r.height<2)return;
+  const ca=r.width/r.height,frac=Math.min(ca/ia,ia/ca);if(frac>=.72)return;
+  if(/\bcv-(chapters|plays)\b/.test(cv.className))return;/* small story cards: their pictures are thumbnails */
+  const full=r.width>=cr.width*.9&&r.height>=cr.height*.9;
+  im.dataset.cs='1';
+  if(full){
+   const blocks=[...cv.querySelectorAll(dc?'.dcv-top,.dcv-main,.dcv-prog':'.cvtop,.cvbot')].filter(b=>getComputedStyle(b).position!=='absolute'&&b.offsetHeight>0).map(b=>({t:b.getBoundingClientRect().top-cr.top,b:b.getBoundingClientRect().bottom-cr.top}));
+   /* the biggest stretch of the cover with nothing in it */
+   let y=0,best={s:0,e:0};blocks.sort((a,b)=>a.t-b.t).forEach(b=>{if(b.t-y>best.e-best.s)best={s:y,e:b.t};y=Math.max(y,b.b)});if(cr.height-y>best.e-best.s)best={s:y,e:cr.height};
+   const gap=best.e-best.s-12;if(gap<90){/* no room to show it whole: leave the photo out */im.style.display='none';im.dataset.cs='1';return}
+   const w=Math.min(cr.width,gap*ia),h=w/ia;
+   cv.style.setProperty('--ph','url("'+im.currentSrc.replace(/"/g,'%22')+'")');cv.classList.add('ctn');
+   Object.assign(im.style,{position:'absolute',inset:'auto',left:Math.round((cr.width-w)/2)+'px',top:Math.round(best.s+6+(gap-h)/2)+'px',width:Math.round(w)+'px',height:Math.round(h)+'px',objectFit:'cover',zIndex:'-1'});
+  }else if(r.width<190||r.height<190){im.style.display='none'}
+  else{im.style.objectFit='contain'}
+ })
+}
+{let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{try{document.querySelectorAll('#grid .cfit').forEach(h=>delete h.dataset.fk);covFit();coverCrop()}catch(e){}},160)});try{document.fonts&&document.fonts.ready.then(()=>{document.querySelectorAll('#grid .cfit').forEach(h=>delete h.dataset.fk);covFit()})}catch(e){}}
 const WIRE={order:null,known:null,settled:false,pend:[],newN:0,seed:Math.random().toString(36).slice(2),restored:false,hid:0};
 let _lastSel=null;const SELPOS={};/* where each feed was left, so coming back to it resumes there instead of the top */
 let LASTSET=null;
 if(!S.seenBase){S.seenBase=Date.now();try{save()}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){HIDT=Date.now();markSeen(S.sel)}else if(HIDT&&Date.now()-HIDT>18e5){VIS=visFor(S.sel);setTimeout(waterline,300)}});
-function render(){SMARTV=false;LASTSIG=itemsSig();LASTSET=new Set();for(const f of S.feeds)for(const a of (items[f.id]||[]))LASTSET.add(a.link);setTimeout(endObs,60);LK=layoutKey();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){markSeen(_lastSel);VIS=visFor(S.sel);if(mn0&&_lastSel!==null)SELPOS[_lastSel]={y:mn0.scrollTop,t:Date.now(),k:LK};wireSwitch(_lastSel,S.sel);_lastSel=S.sel;pfKick();const sm=SELPOS[S.sel];if(sm&&Date.now()-sm.t<18e5&&sm.k===LK&&sm.y>40)keep=sm.y;else if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();waterline();secOpener();covTitle();covFit();dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=(S.sel==='today'&&!$('#q').value.trim()&&!nrMode())?'narrow':(S.cards||'medium');clearTimeout(PF.t);PF.t=setTimeout(()=>{prefetch(pfList());oiSync()},2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
+function render(){SMARTV=false;LASTSIG=itemsSig();LASTSET=new Set();for(const f of S.feeds)for(const a of (items[f.id]||[]))LASTSET.add(a.link);setTimeout(endObs,60);LK=layoutKey();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){markSeen(_lastSel);VIS=visFor(S.sel);if(mn0&&_lastSel!==null)SELPOS[_lastSel]={y:mn0.scrollTop,t:Date.now(),k:LK};wireSwitch(_lastSel,S.sel);_lastSel=S.sel;pfKick();const sm=SELPOS[S.sel];if(sm&&Date.now()-sm.t<18e5&&sm.k===LK&&sm.y>40)keep=sm.y;else if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();waterline();secOpener();covTitle();covFit();try{coverCrop()}catch(e){}dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=(S.sel==='today'&&!$('#q').value.trim()&&!nrMode())?'narrow':(S.cards||'medium');clearTimeout(PF.t);PF.t=setTimeout(()=>{prefetch(pfList());oiSync()},2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
 function starGuard(){
  /* reads first, writes after, so the page is laid out once instead of once per card */
  try{
