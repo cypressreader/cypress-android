@@ -285,6 +285,17 @@ public class CyExtrasPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void ttsSleepAt(PluginCall call) {
+        try {
+            long stopAt = call.getData().optLong("stopAt", 0L);
+            CyTts.get(getContext()).sleepAt(stopAt);
+            call.resolve();
+        } catch (Throwable t) {
+            call.reject("ttsSleepAt failed: " + msg(t));
+        }
+    }
+
+    @PluginMethod
     public void ttsSpeak(PluginCall call) {
         try {
             String id = call.getString("id", "");

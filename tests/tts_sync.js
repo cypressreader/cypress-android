@@ -9,9 +9,9 @@ let pass=0,fail=0;const log=[];const ck=(n,c,x='')=>{if(c)pass++;else{fail++;log
   const pump=()=>{const a=Q.shift();if(!a){live=null;return}live=a;const g=gen,words=a.text.split(' ');let off=0,i=0;
    setTimeout(()=>{if(live!==a||g!==gen)return;L.ttsStart&&L.ttsStart({id:a.id});const tick=()=>{if(live!==a||g!==gen)return;if(i>=words.length){live=null;L.ttsEnd&&L.ttsEnd({id:a.id});pump();return}
     L.ttsBoundary&&L.ttsBoundary({id:a.id,start:off,end:off+words[i].length,ts:Date.now()-450});off+=words[i].length+1;i++;setTimeout(tick,60)};tick()},10)};
-  const X={features:async()=>({features:['tts']}),getPendingShare:async()=>({}),getPendingOpen:async()=>({}),
+  const X={features:async()=>({features:['tts','ttsSleep']}),getPendingShare:async()=>({}),getPendingOpen:async()=>({}),
    ttsVoices:async()=>({voices:[{id:'v1',name:'English',lang:'en-US',local:true}],ready:true}),
-   ttsSpeak:async a=>{window.__calls.push(a);if(!a.add){Q.length=0;live=null;gen++}Q.push(a);if(!live)pump()},ttsStop:async()=>{Q.length=0;live=null;gen++},
+   ttsSleepAt:async a=>{window.__sleepAt=a},ttsSpeak:async a=>{window.__calls.push(a);if(!a.add){Q.length=0;live=null;gen++}Q.push(a);if(!live)pump()},ttsStop:async()=>{Q.length=0;live=null;gen++},
    addListener:(n,f)=>{L[n]=f;return{remove(){}}}};
   window.Capacitor={isNativePlatform:()=>true,Plugins:{CyNative:{info:async()=>({versionCode:5,versionName:'1',canInstall:true}),setBars:async()=>{}},CyExtras:X}};
  });
@@ -28,5 +28,16 @@ let pass=0,fail=0;const log=[];const ck=(n,c,x='')=>{if(c)pass++;else{fail++;log
  const lag=await E(()=>TTS.lag);
  ck('engine delay measured from timestamps',lag>380&&lag<700,String(lag));
  ck('highlight word advances',await E(()=>TTS.wi>3));
+ /* B85: pause then resume carries on from the word the voice was on, not the (earlier) highlighted word */
+ const rs=await E(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));ttsStop();ttsCollect();ttsFrom(0);await w(1500);const sp=TTS.sp,wi=TTS.wi;ttsPause();const n0=window.__calls.length;ttsToggle();await w(300);const c=window.__calls[n0];return {sp,wi,first:c&&c.text.split(' ')[0],want:TTS.words[sp]&&TTS.words[sp].t}});
+ ck('the highlight is ahead of the voice (word '+rs.wi+' vs '+rs.sp+')',rs.wi>rs.sp,JSON.stringify(rs));
+ ck('resume starts at the word the voice was on, skipping nothing',rs.first===rs.want,JSON.stringify(rs));
+ /* B86: the sleep time goes to the phone, both with new speech and on its own */
+ const sl=await E(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));ttsStop();setSleep('15');await w(100);const own=window.__sleepAt;ttsCollect();ttsFrom(0);await w(400);const c=window.__calls[window.__calls.length-1];const r={own:own&&own.stopAt,sent:c&&c.stopAt,at:SLEEP.at};setSleep('0');await w(100);r.cleared=window.__sleepAt&&window.__sleepAt.stopAt;ttsStop();return r});
+ ck('setting the timer tells the phone the stop time',sl.own&&Math.abs(sl.own-sl.at)<2000,JSON.stringify(sl));
+ ck('speech started with a timer carries the stop time',sl.sent&&Math.abs(sl.sent-sl.at)<2000,JSON.stringify(sl));
+ ck('turning the timer off clears it on the phone',sl.cleared===0,JSON.stringify(sl));
+ await E(()=>window.__ttsSleep());
+ ck('when the phone reports the sleep stop the page stops too',await E(()=>!TTS.on||TTS.paused));
  await E(()=>ttsStop());
  console.log(`${pass} passed, ${fail} failed`);log.forEach(l=>console.log(l));await b.close();process.exit(fail?1:0)})();

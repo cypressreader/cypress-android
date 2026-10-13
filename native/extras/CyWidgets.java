@@ -31,6 +31,7 @@ final class CyWidgets {
     static final String ACT_TICK = "com.cypress.reader.widget.TICK";
     static final String ACT_NEXT = "com.cypress.reader.widget.NEXT";
     static final String ACT_PREV = "com.cypress.reader.widget.PREV";
+    static final String ACT_REFRESH = "com.cypress.reader.widget.REFRESH";
     static final long STEP_MS = 15L * 60L * 1000L;
     static final int TOP_N = 5;
     static final int TICK_N = 5;
@@ -88,7 +89,7 @@ final class CyWidgets {
             if (!first.equals(p.getString("widget_first", ""))) {
                 e.putString("widget_first", first).putInt("widget_top_i", 0).putInt("widget_tick_i", 0);
             }
-            e.putLong("widget_ts", System.currentTimeMillis()).putLong("widget_upd", 0L).apply();
+            e.putLong("widget_ts", System.currentTimeMillis()).putLong("widget_upd", 0L).putInt("widget_pf_n", 0).apply();
         } catch (Throwable t) {
             Log.w(TAG, "new stories: " + t);
         }
@@ -244,6 +245,78 @@ final class CyWidgets {
         }
     }
 
+    // ---------------------------------------------------------------- refresh on tap, pictures, reboot
+
+    /** "Tap to refresh": the tap asks the phone to read the feeds now (and shows "Updating…" meanwhile) instead of just opening the app. */
+    static PendingIntent refreshIntent(Context c, int code) {
+        Intent i = new Intent(c, CyWidgetProvider.class);
+        i.setAction(ACT_REFRESH);
+        return PendingIntent.getBroadcast(c, code, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    static void refreshNow(Context c) {
+        try {
+            setUpdating(c, true);
+            refreshAll(c);
+            CyExtras.runNow(c);
+        } catch (Throwable t) {
+            Log.w(TAG, "refresh failed: " + t);
+        }
+    }
+
+    /** After a restart or an app update: alarms are gone and widgets may hold old pictures, so start the cycle again and redraw. */
+    static void onBoot(Context c) {
+        try {
+            arm(c, true);
+            refreshAll(c);
+            ensurePics(c);
+        } catch (Throwable t) {
+            Log.w(TAG, "boot failed: " + t);
+        }
+    }
+
+    /**
+     * B83: if a picture the Headlines widget wants is not on the phone yet (the first download came while the phone had no network,
+     * or the widget was added before the app had run), fetch it in the background, trying again later with a growing wait.
+     */
+    static void ensurePics(Context c) {
+        try {
+            final Context app = c.getApplicationContext();
+            JSONArray h = CyExtras.readHeadlines(app);
+            boolean missing = false;
+            for (int i = 0; i < h.length() && i < 4; i++) {
+                JSONObject o = h.optJSONObject(i);
+                if (o == null) continue;
+                String u = o.optString("img", "");
+                if (u.length() == 0) continue;
+                File f = CyWidgetProvider.imageFile(app, u);
+                if (f == null || !f.isFile()) {
+                    missing = true;
+                    break;
+                }
+            }
+            if (!missing) return;
+            SharedPreferences p = sp(app);
+            long now = System.currentTimeMillis();
+            int n = p.getInt("widget_pf_n", 0);
+            long wait = Math.min(30L * 60L * 1000L, 60000L << Math.min(n, 5)); // 1, 2, 4, 8, 16, 30 minutes
+            if (now - p.getLong("widget_pf_t", 0L) < wait) return;
+            p.edit().putInt("widget_pf_n", n + 1).putLong("widget_pf_t", now).apply();
+            CyExtras.IMG_EXEC.submit(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        if (CyWidgetProvider.fetchImages(app, CyExtras.readHeadlines(app))) refreshList(app);
+                    } catch (Throwable t) {
+                        Log.w(TAG, "picture retry failed: " + t);
+                    }
+                }
+            });
+        } catch (Throwable t) {
+            Log.w(TAG, "pictures check failed: " + t);
+        }
+    }
+
     // ---------------------------------------------------------------- Top Story 2x2
 
     static RemoteViews buildTop(Context c) {
@@ -279,7 +352,7 @@ final class CyWidgets {
         rv.setViewVisibility(R.id.cy_wt_upd, upd ? View.VISIBLE : View.GONE);
         float alpha = upd ? 0.5f : (o.optBoolean("read", false) ? 0.6f : 1f);
         rv.setFloat(R.id.cy_wt_head, "setAlpha", alpha);
-        PendingIntent story = CyExtras.openIntent(c, link, 310 + i);
+        PendingIntent story = isStale(c) ? refreshIntent(c, 311) : CyExtras.openIntent(c, link, 310 + i);
         rv.setOnClickPendingIntent(R.id.cy_wt_root, story);
         rv.setOnClickPendingIntent(R.id.cy_wt_head, story);
         rv.setOnClickPendingIntent(R.id.cy_wt_src, story);
@@ -300,7 +373,7 @@ final class CyWidgets {
     static RemoteViews buildList(Context c, int heightDp) {
         RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_list);
         JSONArray h = CyExtras.readHeadlines(c);
-        boolean pics = heightDp >= 190;
+        boolean pics = heightDp >= 170; // B83: a 4x2 widget is usually 110-180dp tall, so 190 hid every picture
         int want = heightDp >= 250 ? 4 : 3;
         rv.removeAllViews(R.id.cy_wl_list);
         int shown = 0;
@@ -330,7 +403,8 @@ final class CyWidgets {
         String ed = sp(c).getString("widget_ed", "");
         boolean upd = isUpdating(c);
         rv.setTextViewText(R.id.cy_wl_ed, upd ? "UPDATING…" : (isStale(c) ? "TAP TO REFRESH" : ed.toUpperCase(Locale.getDefault())));
-        PendingIntent open = CyExtras.openIntent(c, null, 390);
+        if (pics) ensurePics(c);
+        PendingIntent open = isStale(c) ? refreshIntent(c, 391) : CyExtras.openIntent(c, null, 390);
         rv.setOnClickPendingIntent(R.id.cy_wl_root, open);
         rv.setOnClickPendingIntent(R.id.cy_wl_head, open);
         rv.setOnClickPendingIntent(R.id.cy_wl_empty, open);
@@ -377,7 +451,7 @@ final class CyWidgets {
         rv.setTextViewText(R.id.cy_wk_src, kick.toUpperCase(Locale.getDefault()));
         rv.setTextViewText(R.id.cy_wk_head, o.optString("title", ""));
         rv.setFloat(R.id.cy_wk_head, "setAlpha", upd ? 0.5f : (o.optBoolean("read", false) ? 0.6f : 1f));
-        PendingIntent story = CyExtras.openIntent(c, o.optString("link", ""), 510 + i);
+        PendingIntent story = isStale(c) ? refreshIntent(c, 511) : CyExtras.openIntent(c, o.optString("link", ""), 510 + i);
         rv.setOnClickPendingIntent(R.id.cy_wk_root, story);
         rv.setOnClickPendingIntent(R.id.cy_wk_head, story);
         return rv;

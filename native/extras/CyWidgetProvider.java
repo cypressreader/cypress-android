@@ -62,6 +62,8 @@ public class CyWidgetProvider extends AppWidgetProvider {
                 }
             } else if (CyWidgets.ACT_TICK.equals(a)) {
                 CyWidgets.tick(context);
+            } else if (CyWidgets.ACT_REFRESH.equals(a)) {
+                CyWidgets.refreshNow(context);
             } else if (CyWidgets.ACT_NEXT.equals(a)) {
                 CyWidgets.flip(context, 1);
             } else if (CyWidgets.ACT_PREV.equals(a)) {

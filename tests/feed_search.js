@@ -40,4 +40,8 @@ const NOT=[['camping',/gaming|game/i],['math',/matt\b/i],['rust',/just one|cookb
   return out});
  ck('typing a topic lists feeds about it, and says why',/Apartment Therapy|Dezeen|Design Milk/.test(ui.topic),ui.topic.slice(0,300));
  ck('a miss never leaves a dead end: it offers "Did you mean" and the manual way',/Did you mean/.test(ui.miss)&&/CTV News/.test(ui.miss)&&/add it (manually|yourself)/i.test(ui.miss),ui.miss.slice(0,300));
+ /* B90 (checked, no change needed): v=1 marks the extended catalogue, which is verified live at the moment it is added; v=0 is the hand-checked starter list. With the same match the hand-checked feed ranks first. The audit's proposed flip (if(r.v)sc+=1) would put the extended ones first and breaks 'arstechnica', 'gurdian' and 'home decor' */
+ {const o=await p.evaluate(()=>{fidx();const mk=(n,u,v)=>({c:'Test',cn:'test',n,u,v,nm:foldQ(n),nw:foldQ(n).split(' '),nmc:foldQ(n).replace(/ /g,''),al:[],hs:'tt',tp:[],tw:new Set()});
+   FIDX.push(mk('Zqxv Gazette','https://a.test/extended',1),mk('Zqxv Gazette Daily','https://b.test/handchecked',0));const r=catSearch('zqxv').map(x=>x.u);return r});
+  ck('a hand-checked starter feed ranks above an extended-catalogue feed with the same match',o.indexOf('https://b.test/handchecked')>=0&&o.indexOf('https://a.test/extended')>=0&&o.indexOf('https://b.test/handchecked')<o.indexOf('https://a.test/extended'),JSON.stringify(o))}
  ck('no page errors',!errs.length,errs[0]);await b.close();console.log(bad?'feed_search '+bad+' FAILED':'feed_search all passed');process.exit(bad?1:0)})();
