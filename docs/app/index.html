@@ -3424,6 +3424,28 @@ html[data-ts="l"] #grid .wcols,html[data-ts="l"] #grid .nr-lsub,html[data-ts="l"
 #grid .cover.cv-gazette .cvlead h2,#grid .cover.cv-gazette .cvlead h2.l1,#grid .cover.cv-gazette .cvlead h2.l2{font-size:clamp(30px,9vw,68px)!important}
 #grid .cover.cv-gallery .cvm{font-size:clamp(34px,9vw,64px)}
 #grid .cover.cv-gallery .cvlead h2,#grid .cover.cv-gallery .cvlead h2.l1,#grid .cover.cv-gallery .cvlead h2.l2{font-size:clamp(28px,8vw,58px)!important;max-width:16ch}
+
+#grid .cover.cv-overlap .cvtop{height:auto!important;max-height:34%;align-items:flex-start}
+/* a photo that cannot be seen is not there: Poster and Italic mix are typographic covers */
+#grid .cover.cv-poster>img,#grid .cover.cv-italic>img{display:none}
+/* ---- cover design rules ---- every element earns its place: story boxes are one readable column (no 30 px strips, no "..."), small pictures that cannot be recognisable are gone, a ticker that scrolls text out of view is a plain list */
+#grid .cover .cvl span,#grid .dcov .dcv-l span{-webkit-line-clamp:unset!important;display:block!important;overflow:visible!important;max-height:none!important;text-overflow:clip!important}
+#grid .cover .cvl small,#grid .dcov .dcv-l small{font-size:11px;letter-spacing:.14em}
+#grid .cover.cv-broadcast .cvlines{display:block;white-space:normal;overflow:visible}
+#grid .cover.cv-broadcast .cvl{display:block;max-width:none;overflow:visible;text-overflow:clip;border-right:0;border-top:1px solid rgba(255,255,255,.16);padding:12px 20px}
+#grid .cover.cv-broadcast .cvl span{font:600 clamp(15px,4vw,19px)/1.25 var(--sans);white-space:normal}
+@media(max-width:699px){
+ #grid .cover:not(.cv-chapters):not(.cv-broadcast) .cvlines{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px 0!important;counter-reset:none}
+ #grid .cover:not(.cv-chapters):not(.cv-broadcast) .cvl{display:block!important;grid-template-columns:none!important;aspect-ratio:auto!important;position:static!important;background:none!important;border-radius:0!important;box-shadow:none!important;padding:0!important;min-width:0}
+ #grid .cover:not(.cv-chapters):not(.cv-index) .cvl .cvth{display:none!important}
+ #grid .cover:not(.cv-chapters):not(.cv-broadcast) .cvl span{position:static!important;font:400 clamp(17px,4.8vw,22px)/1.15 var(--disp)!important;color:inherit}
+ #grid .cover.cv-plays .cvlines{padding:18px 0 0!important}
+ #grid .cover.cv-plays .cvl{counter-increment:cvn;display:grid!important;grid-template-columns:44px minmax(0,1fr)!important;gap:0 10px;align-items:baseline;border-top:1px solid rgba(255,255,255,.18);padding-top:12px!important}
+ #grid .cover.cv-plays .cvlines{counter-reset:cvn}
+ #grid .cover.cv-plays .cvl::before{position:static!important;content:counter(cvn)!important;font:600 34px/1 var(--sans)!important;color:transparent;-webkit-text-stroke:1.2px rgba(255,255,255,.55);z-index:auto}
+ #grid .cover.cv-plays .cvl span{grid-column:2;color:#fff!important}
+}
+@media(min-width:700px){#grid .cover.cv-plays .cvl span{font-size:13.5px!important}}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4290,9 +4312,20 @@ function covFit(){
   const lim=Math.max(parseFloat(getComputedStyle(cv).minHeight)||0,0)+2;
   /* where the headline sits inside its cover, from layout offsets (a landing animation's movement must not count) */
   const inside=()=>{let t=0,l=0,e=h;while(e&&e!==cv){t+=e.offsetTop;l+=e.offsetLeft;e=e.offsetParent}if(e!==cv)return true;return t>=-1&&l>=-1&&t+h.offsetHeight<=cv.clientHeight+1&&l+h.offsetWidth<=cv.clientWidth+1};
-  const fits=()=>h.scrollWidth<=h.clientWidth+1&&(!lim||cv.offsetHeight<=lim)&&inside();
-  let size=max;
-  if(!fits()){let lo=min,hi=max;for(let k=0;k<9&&hi-lo>.5;k++){const mid=(lo+hi)/2;h.style.setProperty('font-size',mid.toFixed(1)+'px','important');if(fits())lo=mid;else hi=mid}size=Math.floor(lo*10)/10}
+  /* a cover whose photo is the background keeps most of the photo clear: the masthead and the text block take at most 62% of the height */
+  const overlay=!/\bcv-(gazette|gallery|index|cinema|chapters|journal|block|split|tri|clean|poster|italic|overlap)\b/.test(cv.className)&&!!cv.querySelector(':scope>img,.dcv-art>img');
+  const top=cv.querySelector('.cvtop,.dcv-top'),bot=cv.querySelector('.cvbot,.dcv-main');
+  const used=()=>(top&&getComputedStyle(top).position!=='absolute'?top.offsetHeight:0)+(bot?[...bot.children].reduce((n,c)=>n+c.offsetHeight+(parseFloat(getComputedStyle(c).marginTop)||0)+(parseFloat(getComputedStyle(c).marginBottom)||0),0)+24:0);
+  let cap=lim;
+  const fits=()=>h.scrollWidth<=h.clientWidth+1&&(!cap||cv.offsetHeight<=cap)&&inside()&&(!overlay||cv.classList.contains('dcov')||used()<=cv.offsetHeight*.62);
+  const search=()=>{h.style.setProperty('font-size',max+'px','important');if(fits())return max;let lo=min,hi=max;for(let k=0;k<9&&hi-lo>.5;k++){const mid=(lo+hi)/2;h.style.setProperty('font-size',mid.toFixed(1)+'px','important');if(fits())lo=mid;else hi=mid}return Math.floor(lo*10)/10};
+  /* a layout with no spare room (a row of photo cards, a floating card) may grow a little for a bigger headline, never more than a fifth of the screen */
+  h.style.setProperty('font-size',min+'px','important');
+  const lines=[...cv.querySelectorAll('.cvlines .cvl,.dcv-lines .dcv-l')];lines.forEach(l=>l.style.removeProperty('display'));
+  cap=Math.max(lim,cv.offsetHeight+Math.round(innerHeight*.2));
+  let size=search();
+  /* too much text over the photo: drop the last story line, one at a time, while the headline would stay big */
+  if(overlay&&!cv.classList.contains('dcov')){let k=lines.length;while(k>0&&(size<max*.6||used()>cv.offsetHeight*.62)){k--;lines[k].style.setProperty('display','none','important');size=search()}}
   h.style.setProperty('font-size',size+'px','important');h.dataset.fk=cv.clientWidth+'|'+innerHeight+'|'+(h.textContent||'').length+'|'+cv.className;
  })
 }
