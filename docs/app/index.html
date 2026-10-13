@@ -2106,7 +2106,7 @@ body:has(#fxl.fx-duo) .top::after{height:2px;background:linear-gradient(90deg,#f
 .arow span{flex:1;min-width:0}.arow b{display:block;font:600 15.5px var(--sans)}.arow small{display:block;color:var(--mut);font-size:12.5px;margin-top:2px}
 .arow svg{flex:none;color:var(--mut)}
 .arow:active{transform:scale(.99)}
-.aback{display:flex;align-items:center;gap:2px;margin:14px 0 0;padding:6px 10px 6px 4px;color:var(--mut);font:600 13.5px var(--sans)}.aback svg{transform:rotate(180deg)}
+.aback{display:inline-flex;align-items:center;gap:4px;margin:12px 0 2px;min-height:44px;padding:0 18px 0 10px;border:1px solid var(--ink);border-radius:22px;background:var(--bg);color:var(--ink);font:700 14.5px var(--sans);cursor:pointer}.aback svg{transform:rotate(180deg)}.aback:hover{background:color-mix(in srgb,var(--ink) 8%,var(--bg))}.ahd{margin:6px 0 4px}
 .ahd{font:600 22px var(--serif);margin:6px 2px 4px}
 .adv{margin-top:18px;border-top:1px solid var(--ln);padding-top:10px}.adv summary{cursor:pointer;font:600 13px var(--sans);color:var(--mut);padding:6px 0}
 .cover .cvlead h2.l1{font-size:clamp(22px,5.6vw,48px)!important}.cover .cvlead h2.l2{font-size:clamp(20px,4.6vw,38px)!important}
@@ -3498,9 +3498,9 @@ html[data-ts="l"] #grid .wcols,html[data-ts="l"] #grid .nr-lsub,html[data-ts="l"
 <input type="color" id="cp" hidden>
 <dialog id="dlg"><form method="dialog" id="frm">
  <div class="sh dsh"><h2>Add a feed</h2><button type="button" class="ib" id="dlgx" aria-label="Close"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
- <input id="u" placeholder="Search sites or paste an address" aria-label="Search popular sites, or paste an address" required autocomplete="off"><small class="uhint">Try nasa, r/gadgets, @channel or you@mastodon.social · <button type="button" class="lnk" id="teach">No feed? Teach CyPress from the site</button> · <button type="button" class="lnk" id="watchadd">Watch a page for changes</button></small><div id="pop"></div>
+ <input id="u" placeholder="Search sites or paste an address" aria-label="Search popular sites, or paste an address" required autocomplete="off"><small class="uhint">Try nasa, r/gadgets, @channel or you@mastodon.social · <button type="button" class="lnk" id="teach">No feed? Teach CyPress from the site</button> · <button type="button" class="lnk" id="watchadd">Watch a page for changes</button> · <button type="button" class="lnk" id="opmlbtn">Import a feed list (OPML)</button></small><div id="pop"></div>
  <details id="adv" class="adv" open><summary>Name and folder</summary><label for="n">Name (optional)</label><input id="n">
- <label for="fo">Folder (a pasted address goes here; sites picked from the list go in their own folder)</label><select id="fo"></select>
+ <label for="fo">Folder</label><select id="fo"></select>
  <p id="fodest" class="hint" style="margin:6px 2px 0"></p>
  <input id="nf" placeholder="New folder name" style="display:none;margin-top:8px"></details>
  <div id="err"></div>
@@ -7822,8 +7822,11 @@ async function findFeed(url){
 }
 const dlg=$('#dlg');
 function fillFolders(){$('#fo').innerHTML=S.folders.map(f=>`<option value="${f.id}">${esc(f.name)}</option>`).join('')+'<option value="__new">New folder…</option>';$('#nf').style.display=$('#fo').value==='__new'?'':'none';dlgDestUpd()}
-function dlgDestUpd(){const d=$('#fodest');if(!d)return;const v=$('#fo').value;const f=S.folders.find(x=>x.id===v);d.textContent=v==='__new'?'New folder':('Will go to: '+(f?f.name:'(choose a folder)'))}
+/* where a feed goes, in words: a pasted address goes to the chosen folder; a site picked from the list goes to the folder named for its topic */
+function destName(){const v=$('#fo').value;if(v==='__new')return ($('#nf').value||'').trim()||'New folder';const f=S.folders.find(x=>x.id===v);return f?f.name:'Unfiled'}
+function dlgDestUpd(){const d=$('#fodest');if(!d)return;d.innerHTML='A pasted address will be added to <b>“'+esc(destName())+'”</b>. Change it with the folder menu above. A site you pick from the list goes into the folder named under it.';try{if(liveRes&&liveRes.hit&&$('#pop'))pop()}catch(e){}}
 $('#fo').onchange=()=>{$('#nf').style.display=$('#fo').value==='__new'?'':'none';dlgDestUpd()};
+$('#nf').addEventListener('input',()=>{try{dlgDestUpd()}catch(e){}});
 const CAT=[
 {n:"Tech",f:[["TechCrunch", "https://techcrunch.com/feed/"], ["The Verge", "https://www.theverge.com/rss/index.xml"], ["Ars Technica", "https://feeds.arstechnica.com/arstechnica/index"], ["Wired", "https://www.wired.com/feed/rss"], ["Engadget", "https://www.engadget.com/rss.xml"], ["Gizmodo", "https://gizmodo.com/feed"], ["CNET", "https://www.cnet.com/rss/news/"], ["TechRadar", "https://www.techradar.com/feeds.xml"],  ["Tom's Hardware", "https://www.tomshardware.com/feeds.xml"], ["ZDNet", "https://www.zdnet.com/rss/news/"], ["Mashable", "https://mashable.com/feeds/rss/all"], ["MIT Technology Review", "https://www.technologyreview.com/feed/"], ["Hacker News", "https://hnrss.org/frontpage"]]},
 {n:"Mobile",f:[["Android Authority", "https://www.androidauthority.com/feed/"], ["SamMobile", "https://www.sammobile.com/feed/"], ["9to5Google", "https://9to5google.com/feed/"], ["XDA", "https://www.xda-developers.com/feed/"], ["Android Police", "https://www.androidpolice.com/feed/"], ["MacRumors", "https://feeds.macrumors.com/MacRumors-All"], ["9to5Mac", "https://9to5mac.com/feed/"], ["Six Colors", "https://sixcolors.com/feed/"], ["Daring Fireball", "https://daringfireball.net/feeds/main"]]},
@@ -7855,32 +7858,34 @@ const CATD=[["CBC News",["cbc"],["canada","canadian news","news"]],["The Atlanti
 (function(){for(const [c,n,u,a] of CATX){let k=CAT.find(x=>x.n===c);if(!k){k={n:c,f:[]};CAT.push(k)}k.f.push([n,u,a])}
  for(const [c,n,u,a] of EXT){let k=CAT.find(x=>x.n===c);if(!k){k={n:c,f:[]};CAT.push(k)}k.f.push([n,u,a,1])}
  for(const [c,n,u,a] of CATY){let k=CAT.find(x=>x.n===c);if(!k){k={n:c,f:[]};CAT.push(k)}k.f.push([n,u,a,1])}
- for(const [n,a] of CATD){for(const c of CAT){const x=c.f.find(y=>y[0]===n);if(x){x[2]=(x[2]||[]).concat(a);break}}}})();
+ for(const [n,a] of CATD){for(const c of CAT){const x=c.f.find(y=>y[0]===n);if(x){x[2]=(x[2]||[]).concat(a);break}}}
+ /* one feed once in a folder, whatever its apostrophes */
+ const nk=t=>String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+ for(const c of CAT){const seen=new Set();c.f=c.f.filter(x=>{const k=nk(x[0]);if(seen.has(k))return false;seen.add(k);return true})}})();
 const ALX={"hacker news":["hn","ycombinator","y combinator"],"the register":["register","el reg"],"venturebeat":["vb"],"mit technology review":["mit tech review","technology review"],"tom's hardware":["toms hardware"],"pcmag":["pc mag"],"omg! ubuntu":["ubuntu","omg ubuntu"],"daring fireball":["gruber","df"],"ieee spectrum":["ieee"],"phonearena":["phone arena"],"appleinsider":["apple insider"],"samsung newsroom":["samsung"],"gsmarena":["gsm arena"],"krebs on security":["krebs","brian krebs"],"schneier on security":["schneier","bruce schneier"],"bleepingcomputer":["bleeping"],"naked security":["sophos"],"openai news":["openai","chatgpt"],"anthropic news":["anthropic","claude"],"google ai blog":["google ai","gemini"],"the batch":["andrew ng"],"import ai":["jack clark"],"css-tricks":["css tricks"],"freecodecamp":["free code camp"],"netflix tech blog":["netflix"],"julia evans":["jvns"],"joel on software":["joel spolsky"],"coding horror":["jeff atwood"],"overreacted":["dan abramov"],"real python":["python"],"rust blog":["rust"],"go blog":["golang"],"kubernetes blog":["k8s"],"chrome for developers":["chrome"],"rock paper shotgun":["rps"],"gamesradar":["games radar"],"xbox wire":["xbox"],"playstation blog":["ps5","playstation"],"steam news":["steam","valve"],"nintendo everything":["switch"],"road & track":["road and track"],"motor trend":["motortrend"],"teslarati":["tesla"],"the guardian world":["guardian"],"the guardian us":["guardian us"],"al jazeera":["aljazeera"],"deutsche welle":["dw"],"france 24":["france24"],"abc news australia":["abc australia"],"cbc news":["cbc canada"],"the independent":["independent uk"],"nyt home":["new york times","nyt","nytimes"],"nyt world":["nyt world"],"nyt technology":["nyt tech"],"washington post":["wapo","washington post"],"usa today":["usa today"],"nbc news":["nbc"],"abc news":["abc us"],"cbs news":["cbs"],"fox news":["fox"],"time":["time magazine"],"the japan times":["japan"],"south china morning post":["scmp"],"times of india":["toi","india"],"the hindu":["india"],"the irish times":["ireland"],"rté news":["rte","ireland"],"stuff nz":["new zealand"],"nz herald":["new zealand"],"sydney morning herald":["smh","australia"],"christian science monitor":["csm"],"the economist":["economist"],"inc.":["inc"],"harvard business review":["hbr"],"business insider":["bi"],"stratechery":["ben thompson"],"fivethirtyeight":["538"],"space.com":["space"],"phys.org":["physorg"],"scientific american":["sciam"],"science magazine":["aaas"],"smithsonian":["smithsonian magazine"],"mit news":["mit"],"eureka alert":["eurekalert"],"spacex":["spacex"],"yale environment 360":["e360"],"medical news today":["mnt"],"mayo clinic news":["mayo"],"who news":["world health organization"],"bbc football":["soccer"],"espn nba":["basketball"],"espn nfl":["football"],"goal.com":["goal"],"formula 1 news":["motorsport"],"cricinfo":["cricket"],"bbc formula 1":["f1"],"bbc rugby union":["rugby"],"nhl":["hockey"],"entertainment weekly":["ew"],"roger ebert":["ebert"],"rotten tomatoes":["rt"],"consequence":["consequence of sound"],"resident advisor":["ra"],"architectural digest":["ad"],"ux collective":["ux"],"nielsen norman group":["nn/g","nngroup"],"literary hub":["lit hub"],"brain pickings":["marginalian","maria popova"],"harper's":["harpers"],"kirkus reviews":["kirkus"],"goodreads blog":["goodreads"],"publishers weekly":["pw"],"tor.com":["tor","scifi","fantasy"],"lit hub crime":["crime reads"],"history.com":["history channel"],"dan carlin":["hardcore history"],"food & wine":["food and wine"],"bon appétit":["bon appetit","bon appetit"],"kenji lópez-alt":["kenji"],"the points guy":["tpg"],"digital photography school":["dps"],"the atlantic photo":["in focus"],"the motley fool":["motley fool"],"mr. money mustache":["mmm"],"money saving expert":["mse"],"ramit sethi":["iwt"],"make:":["make"],"gardeners' world":["gardening"],"bbc news":["bbc"],"bbc world":["bbc"],"the verge":["verge"],"ars technica":["ars"],"techcrunch":["tc"],"wall street journal":["wsj"],"financial times":["ft"],"associated press":["ap"],"ap news":["ap","associated press"],"the new yorker":["new yorker"],"the atlantic":["atlantic"],"cnbc":[],"npr":["national public radio"]};
 const ALIAS={};(function(){for(const c of CAT)for(const x of c.f){const l=(x[2]||[]).concat(ALX[x[0].toLowerCase()]||[]);if(l.length)ALIAS[x[1]]=l}})();
 const foldQ=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
 /* ---------- the feed index and search (B46) ---------- */
 /* B46: topic tags: feeds ABOUT a topic, so "home decor" finds home-decor feeds, not just feeds with those words in the name. Values are feed names in CAT. */
 const TOPICS={
- "home decor":["Dezeen","Design Milk","Apartment Therapy","designboom","ArchDaily","Dwell"],
- "interior design":["Dezeen","Design Milk","Apartment Therapy","ArchDaily","Dwell"],
+ "home decor":["Dezeen","Design Milk","Apartment Therapy","designboom","ArchDaily"],
+ "interior design":["Dezeen","Design Milk","Apartment Therapy","ArchDaily"],
  "architecture":["Dezeen","ArchDaily","designboom"],
  "cooking":["The Kitchn","Serious Eats","Bon Appétit","Budget Bytes"],
  "recipes":["The Kitchn","Serious Eats","Budget Bytes","Bon Appétit"],
  "food":["The Kitchn","Serious Eats","Eater","Bon Appétit","Budget Bytes"],
- "travel":["Condé Nast Traveler","Atlas Obscura","Lonely Planet"],
+ "travel":["Condé Nast Traveler","Atlas Obscura"],
  "gardening":["Gardeners' World","Fine Gardening"],
  "photography":["PetaPixel","DPReview","Fstoppers"],
- "parenting":["Scary Mommy","Fatherly"],
+ "parenting":["Fatherly"],
  "fitness":["Nerd Fitness","Breaking Muscle"],
  "personal finance":["NerdWallet","Investopedia","The Motley Fool","Mr. Money Mustache"],
  "investing":["Investopedia","The Motley Fool","CNBC"],
- "real estate":["Redfin Blog","Zillow"],
- "cars":["Jalopnik","Car and Driver","Top Gear"],
- "cycling":["CyclingTips","BikeRadar"],
+ "cars":["Jalopnik","Car and Driver"],
+ "cycling":["CyclingTips"],
  "running":["Runner's World"],
  "gaming":["IGN","Polygon","Kotaku","PC Gamer","Rock Paper Shotgun"],
- "movies":["Vulture","The Playlist","SlashFilm"],
+ "movies":["Vulture","The Playlist"],
  "music":["Pitchfork","Stereogum","Rolling Stone"],
  "books":["Literary Hub","Electric Literature","The Paris Review","Brain Pickings"],
  "science":["Quanta Magazine","ScienceDaily","New Scientist","Scientific American"],
@@ -7888,12 +7893,10 @@ const TOPICS={
  "ai":["MIT Technology Review","TechCrunch","Ars Technica"],
  "programming":["Stack Overflow Blog","Simon Willison","Martin Fowler","CSS-Tricks","Smashing Magazine"],
  "web design":["Smashing Magazine","CSS-Tricks","A List Apart"],
- "fashion":["Vogue","GQ","Highsnobiety"],
+ "fashion":["GQ"],
  "sports":["ESPN","BBC Sport","Sky Sports"],
- "soccer":["ESPN FC","BBC Sport"],
- "tennis":["Tennis.com"],
- "golf":["Golf Digest"],
- "outdoors":["Outside Magazine","Backpacker"],
+ "soccer":["BBC Sport"],
+ "outdoors":["Backpacker"],
  "news":["BBC News","CNN","Reuters","AP News","NPR","Global News"],
  "world news":["BBC World","Al Jazeera","The Guardian World","Deutsche Welle"],
  "tech news":["TechCrunch","The Verge","Ars Technica","Engadget"],
@@ -7944,7 +7947,8 @@ const TSYN={
  "podcasts":["podcast","audio shows"],"good news":["positive news","uplifting"],"humor":["funny","jokes","satire","comedy"]
 };
 const TCANON={};for(const [k,l] of Object.entries(TSYN))for(const x of l)if(!TCANON[foldQ(x)])TCANON[foldQ(x)]=foldQ(k);
-const lev=(a,b)=>{if(a===b)return 0;const la=a.length,lb=b.length;if(!la)return lb;if(!lb)return la;let p=[],c=[];for(let j=0;j<=lb;j++)p[j]=j;for(let i=1;i<=la;i++){c[0]=i;for(let j=1;j<=lb;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));const t=p;p=c;c=t}return p[lb]};
+/* edit distance where swapping two neighbouring letters counts as one slip ("phsyics" is one slip from "physics") */
+const lev=(a,b)=>{if(a===b)return 0;const la=a.length,lb=b.length;if(!la)return lb;if(!lb)return la;let pp=[],p=[],c=[];for(let j=0;j<=lb;j++)p[j]=j;for(let i=1;i<=la;i++){c[0]=i;for(let j=1;j<=lb;j++){let v=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1])v=Math.min(v,pp[j-2]+1);c[j]=v}pp=p;p=c;c=[]}return p[lb]};
 /* a word without its plural ending, so "recipe" and "recipes", "dog" and "dogs" meet */
 const stemQ=w=>w.length>3?w.replace(/ies$/,'y').replace(/(es|s)$/,''):w;
 const QSTOP=new Set(['the','a','an','of','and','for','to','in','on','at','my','me','feeds','feed','sites','site','about','blog','blogs']);
@@ -8102,21 +8106,21 @@ function pop(){
   head='<div class="agl">'+(sg.length?arow(-1,'For you','Picked from what you already read','#7c5cff'):'')+arow(-2,'Starter packs','Ready-made bundles, added in one tap','#0a8f4a')+arow(-3,'Near you','Local news and weather','#2e7dd7')+arow(-8,'Browse topics',CAT.length+' topics, from '+catSorted()[0][0].n+' to '+catSorted()[CAT.length-1][0].n,'#d98a1a')+'</div>';
  }
  else if(cat===-8){
-  head='<button type="button" class="aback" data-back="1">'+ACH+'<span>Back</span></button><h3 class="ahd">Browse topics</h3><div class="agl">'+catSorted().map(([c,i])=>arow(i,c.n,c.f.length+' sites',ACOL[i%ACOL.length])).join('')+'</div>';
+  head='<button type="button" class="aback" data-back="1" aria-label="Back to the start of Add a feed">'+ACH+'<span>Back</span></button><h3 class="ahd">Browse topics</h3><div class="agl">'+catSorted().map(([c,i])=>arow(i,c.n,c.f.length+' sites',ACOL[i%ACOL.length])).join('')+'</div>';
  }
  else{
   const sg=cat===-1?suggestFeeds():[];
   const ttl=cat===-1?'For you':cat===-2?'Starter packs':cat===-3?'Near you':CAT[cat].n;
-  head='<button type="button" class="aback" data-back="1">'+ACH+'<span>'+(cat>=0?'Topics':'Back')+'</span></button><h3 class="ahd">'+esc(ttl)+'</h3>';
+  head='<button type="button" class="aback" data-back="1" aria-label="'+(cat>=0?'Back to all topics':'Back to the start of Add a feed')+'">'+ACH+'<span>'+(cat>=0?'All topics':'Back')+'</span></button><h3 class="ahd">'+esc(ttl)+'</h3>';
   list=cat===-1?sg:cat<-1?[]:CAT[cat].f.map(x=>({c:CAT[cat].n,n:x[0],u:x[1],v:x[3]?1:0})).sort((a,b)=>a.n.localeCompare(b.n,undefined,{sensitivity:'base',numeric:true}));
  }
  const where=x=>{const f=S.feeds.find(f=>f.url===x.u||nUrl(f.url)===nUrl(x.u)||foldQ(f.title)===foldQ(x.n));if(!f)return'';const fo=S.folders.find(o=>o.id===f.folder);return ' · in '+(fo?fo.name:'Unfiled')};
- const row=x=>`<div class="pf"><b style="background:${brand({url:x.u})}"></b><span>${esc(x.n)}<small>${x.why?esc(x.why):esc(host(x.u))+(q?' in '+esc(x.c):'')}${(inFeeds(x.u)||S.feeds.some(f=>foldQ(f.title)===foldQ(x.n)))?esc(where(x)):''}</small>${INFOC.has(x.u)?'<small class="pfi2">'+esc(INFOC.get(x.u))+'</small>':'<a class="pfi" role="button" tabindex="0" data-info="'+esc(x.u)+'">How often does it post?</a>'}</span>${(inFeeds(x.u)||S.feeds.some(f=>foldQ(f.title)===foldQ(x.n)))?'<em>Added</em>':`<button type="button" data-add="${esc(x.u)}" data-n="${esc(x.n)}" data-c="${esc(x.c)}" ${x.v?'data-v="1"':''}>Add</button>`}</div>`;
+ const row=x=>`<div class="pf"><b style="background:${brand({url:x.u})}"></b><span>${esc(x.n)}<small>${x.why?esc(x.why)+(x.c&&x.c!==destName()&&!/will be added/.test(x.why)&&!(inFeeds(x.u))?' · adds to “'+esc(x.c)+'”':''):esc(host(x.u))+(inFeeds(x.u)?'':' · adds to “'+esc(x.c)+'”')}${(inFeeds(x.u)||S.feeds.some(f=>foldQ(f.title)===foldQ(x.n)))?esc(where(x)):''}</small>${INFOC.has(x.u)?'<small class="pfi2">'+esc(INFOC.get(x.u))+'</small>':'<a class="pfi" role="button" tabindex="0" data-info="'+esc(x.u)+'">How often does it post?</a>'}</span>${(inFeeds(x.u)||S.feeds.some(f=>foldQ(f.title)===foldQ(x.n)))?'<em>Added</em>':`<button type="button" data-add="${esc(x.u)}" data-n="${esc(x.n)}" data-c="${esc(x.c)}" ${x.v?'data-v="1"':''}>Add</button>`}</div>`;
  let extra='';
  if(q&&!list.length){
   if(liveRes&&liveQ===q){
-   if(liveRes.busy)extra='<div class="none">Checking the web for “'+esc(q)+'”…</div>';
-   else if(liveRes.hit){const h=liveRes.hit;extra='<div class="none" style="padding-bottom:4px">Not in the popular list, but this works:</div>'+row({c:'Other',n:h.n,u:h.u,v:0,why:host(h.u)})}
+   if(liveRes.busy){const dm=didYouMean(q);extra='<div class="none">Checking the web for “'+esc(q)+'”…'+(dm.length?'<br>Did you mean: '+dm.map(d=>'<button type="button" class="lnk" data-dym="'+esc(d)+'">'+esc(d)+'</button>').join(' · '):'')+'<br>Or add it yourself: pick a folder below, paste the site’s address, then press “Add feed”.</div>'}
+   else if(liveRes.hit){const h=liveRes.hit,dn=destName();extra='<div class="none" style="padding-bottom:4px">Found a feed on that site:</div>'+row({c:dn,n:h.n,u:h.u,v:0,why:host(h.u)+' · will be added to “'+dn+'”'})}
    else{const dym=didYouMean(q);extra='<div class="none">Nothing found for “'+esc(q)+'”.'+(dym.length?'<br>Did you mean: '+dym.map(d=>'<button type="button" class="lnk" data-dym="'+esc(d)+'">'+esc(d)+'</button>').join(' · '):'')+'<br>You can still add it manually: pick a folder below, type or paste the site’s address, then press “Add feed”.</div>';}
   }else extra='<div class="none">No match in the popular list. You can still add it manually: pick a folder below, type or paste the site’s address, then press “Add feed”.</div>';
  }
@@ -8133,6 +8137,7 @@ function quickAdd(u,n,c){
 /* where a feed went, in words, and a way to go and see it */
 const addedIn=u=>{const f=S.feeds.find(f=>f.url===u||nUrl(f.url)===nUrl(u));if(!f)return'';const fo=S.folders.find(o=>o.id===f.folder);return ' to “'+(fo?fo.name:'Unfiled')+'”'};
 function openAddedFeed(id){const d=$('#dlg');if(d&&d.open)d.close();S.sel='s:'+id;save();render()}
+$('#opmlbtn').onclick=()=>{dlg.close();$('#fi').click()};
 $('#watchadd').onclick=async()=>{
  let q=$('#u').value.trim();if(!q)q=await askBox({title:'Watch a page',text:'Paste the page address (a price, a stock status…):',input:true,ok:'Next',cancel:'Cancel'});
  if(!q)return;q=/^[a-z][a-z0-9+.-]*:/i.test(q)?q:'https://'+q;
@@ -8277,18 +8282,53 @@ $('#exp').onclick=()=>{
  saveFile('folio-feeds.opml',new Blob([`<?xml version="1.0" encoding="UTF-8"?><opml version="2.0"><head><title>CyPress feeds</title></head><body>${b}</body></opml>`],{type:'text/xml'}));
 };
 $('#imp').onclick=()=>$('#fi').click();
+/* OPML (B46): another reader's feed list. Folders (also nested ones) become folders, each feed is checked and de-duplicated, and the person sees what will happen before it does. */
+function opmlParse(text){
+ const out={feeds:[],bad:0,err:''};
+ let d;try{d=new DOMParser().parseFromString(String(text||'').replace(/^﻿/,''),'text/xml')}catch(e){out.err='That file could not be read.';return out}
+ if(d.querySelector('parsererror')||!d.querySelector('opml,body')){out.err='That doesn’t look like an OPML feed list. Export one from your other reader and try again.';return out}
+ const seen=new Set(),at=(el,n)=>el.getAttribute(n)||el.getAttribute(n.toLowerCase())||'';
+ const walk=(el,path)=>{
+  for(const c of [...el.children]){
+   if(c.tagName.toLowerCase()!=='outline')continue;
+   const u=(at(c,'xmlUrl')||(/^(rss|atom)$/i.test(at(c,'type'))?at(c,'url'):'')).trim();
+   if(u){
+    let w='';try{w=webUrl(u)||''}catch(e){}
+    if(!w){out.bad++;continue}
+    const k=nUrl(w);if(seen.has(k))continue;seen.add(k);
+    out.feeds.push({url:w,title:(at(c,'title')||at(c,'text')||host(w)).replace(/\s+/g,' ').trim().slice(0,120),folder:path[0]||'',site:at(c,'htmlUrl')});
+   }else walk(c,path.length?path:[(at(c,'text')||at(c,'title')||'Imported').trim().slice(0,40)]);
+  }
+ };
+ const body=d.querySelector('body');if(body)walk(body,[]);
+ if(!out.feeds.length&&!out.err)out.err=out.bad?'None of the addresses in that file could be used.':'That file has no feeds in it.';
+ return out;
+}
+async function opmlImport(text,name){
+ const r=opmlParse(text);
+ if(r.err){toast(r.err);return}
+ const fresh=r.feeds.filter(f=>!inFeeds(f.url)),dup=r.feeds.length-fresh.length,folders=new Set(fresh.map(f=>f.folder).filter(Boolean));
+ if(!fresh.length){toast('All '+r.feeds.length+' feeds in that file are already in your list.');return}
+ const ok=await askBox({title:'Import '+fresh.length+' feed'+(fresh.length===1?'':'s')+'?',text:(name?'From “'+name+'”. ':'')+(folders.size?'They go into '+folders.size+' folder'+(folders.size===1?'':'s')+' ('+[...folders].slice(0,4).join(', ')+(folders.size>4?', …':'')+')'+(fresh.some(f=>!f.folder)?', and the rest are unfiled':'')+'.':'They are added without folders.')+(dup?'\n'+dup+' already in your list will be skipped.':'')+(r.bad?'\n'+r.bad+' with unusable addresses will be skipped.':''),ok:'Import',cancel:'Cancel'});
+ if(!ok)return;
+ const addedF=[],addedFo=[];
+ for(const f of fresh){
+  let fid='';
+  if(f.folder){let fo=S.folders.find(x=>x.name.toLowerCase()===f.folder.toLowerCase());if(!fo){fo={id:'g'+Date.now()+Math.random().toString(36).slice(2,5),name:f.folder};S.folders.push(fo);addedFo.push(fo)}fid=fo.id}
+  const nf={id:'x'+Date.now()+Math.random().toString(36).slice(2,6),url:f.url,title:f.title,folder:fid};if(/^https?:/i.test(f.site||''))nf.site=f.site;
+  S.feeds.push(nf);addedF.push(nf);
+ }
+ save();fillFolders();render();
+ /* a long list is fetched a few at a time, not all at once */
+ (async()=>{for(let i=0;i<addedF.length;i+=4){await Promise.all(addedF.slice(i,i+4).map(f=>load(f).catch(()=>{})));await new Promise(r=>setTimeout(r,400))}})();
+ toast('Added '+addedF.length+' feed'+(addedF.length===1?'':'s')+(addedFo.length?' and '+addedFo.length+' folder'+(addedFo.length===1?'':'s'):'')+(dup?' ('+dup+' skipped)':''),()=>{
+  S.feeds=S.feeds.filter(f=>!addedF.includes(f));S.folders=S.folders.filter(f=>!addedFo.includes(f));addedF.forEach(f=>{delete items[f.id];delete state[f.id]});save();fillFolders();render()},'Undo');
+}
 $('#fi').onchange=async e=>{
  const file=e.target.files[0];if(!file)return;
- const d=new DOMParser().parseFromString(await file.text(),'text/xml');let n=0;
- const add=(el,folder)=>{const u=el.getAttribute('xmlUrl');if(!u||inFeeds(u))return;S.feeds.push({id:'x'+Date.now()+Math.random().toString(36).slice(2,6),url:u,title:el.getAttribute('title')||el.getAttribute('text')||host(u),folder});n++};
- const body=d.querySelector('body');
- for(const el of body?[...body.children]:[]){
-  if(el.getAttribute('xmlUrl'))add(el,'');
-  else{const nm=el.getAttribute('text')||el.getAttribute('title')||'Imported';let fo=S.folders.find(f=>f.name.toLowerCase()===nm.toLowerCase());
-   if(!fo){fo={id:'g'+Date.now()+Math.random().toString(36).slice(2,5),name:nm};S.folders.push(fo)}
-   [...el.querySelectorAll('outline')].forEach(c=>add(c,fo.id))}
- }
- e.target.value='';save();loadAll();toast(n?`Imported ${n} feeds.`:'No new feeds found in that file.');
+ let t='';try{t=await file.text()}catch(x){}
+ e.target.value='';
+ await opmlImport(t,file.name);
 };
 $('#menu').onclick=()=>drawer(!document.body.classList.contains('open'));
 const secT=x=>String(x||'').replace(/&amp;/gi,'&').replace(/&#0?39;|&apos;/gi,"'").replace(/&quot;/gi,'"');
