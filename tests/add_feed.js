@@ -28,7 +28,8 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
   await p.evaluate(async()=>{S.sel='all';render();$('#add').click();await new Promise(r=>setTimeout(r,200));fillFolders();$('#fo').value=S.folders[1]?S.folders[1].id:S.folders[0].id;$('#u').value='https://pasted.test/feed';$('#n').value='Pasted Site'});
   await p.evaluate(()=>document.querySelector('#frm').requestSubmit());await p.waitForTimeout(3500);
   const q=await p.evaluate(()=>{const tt=document.querySelector('#toast'),f=S.feeds.find(f=>f.title==='Pasted Site'),fo=f&&S.folders.find(o=>o.id===f.folder);return {added:!!f,folder:fo&&fo.name,text:tt?tt.textContent:''}});
-  ck(t+'a pasted address is added and the note names its folder',q.added&&q.folder&&q.text.includes('“'+q.folder+'”'),JSON.stringify(q));
+  const fp=await p.evaluate(()=>{const d=document.getElementById('ask');return d?d.textContent:''});
+  ck(t+'a pasted address is added and a "Feed added" box names its folder',q.added&&q.folder&&fp.includes('Feed added')&&fp.includes('“'+q.folder+'”'),JSON.stringify({q,fp}));
   ck(t+'no page errors',!errs.length,errs[0]);
   await p.context().close();
  }
