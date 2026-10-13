@@ -296,7 +296,7 @@ public class CyExtrasPlugin extends Plugin {
             boolean add = call.getBoolean("add", false);
             // optional sleep deadline, epoch milliseconds; 0 or missing means none
             long stopAt = call.getData().optLong("stopAt", 0L);
-            CyTts.get(getContext()).speak(id, text, rate, pitch, volume, voice, add, stopAt);
+            CyTts.get(getContext()).speak(id, text, rate, pitch, volume, voice, add, stopAt, call.getInt("pause", 0));
             call.resolve();
         } catch (Throwable t) {
             call.reject("ttsSpeak failed: " + msg(t));
