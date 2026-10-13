@@ -10639,7 +10639,7 @@ function pdfIssue(ed){
   cl.forEach(l=>{T(P,colX(cc),cy+3,l,'i',8.6,GREY);cy+=11});cy+=8;
  };
  const placeBlocks=(bl,first,pull)=>{
-  let firstP=first,np=0,pulled=false;const pq=pull?planPull(bl):null;if(pq)bl=pq.bl;
+  let firstP=first,np=0,pulled=false;const pq=pull?planPull(bl):null;if(pq)bl=pq.bl;/* B89: the pull quote goes after the third paragraph, or after the last one in a story with fewer (it used to be lifted out of the text and then never set) */const tp=bl.filter(b=>b.t==='p').length;
   for(let bi=0;bi<bl.length;bi++){
    const b=bl[bi];
    if(b.t==='img'){placeFigure(b);continue}
@@ -10651,9 +10651,10 @@ function pdfIssue(ed){
     if(firstP&&s.length>=140&&/^[A-Za-z]/.test(s)){placePara(s.slice(1),'r',FS,LEAD,{dropLetter:s[0]});firstP=false}
     else placePara(s,'r',FS,LEAD,{});
     cy+=5.5;np++;
-    if(pq&&!pulled&&np===3){pulled=true;placePull(pq.text)}
+    if(pq&&!pulled&&np===Math.min(3,tp)){pulled=true;placePull(pq.text)}
    }
   }
+  if(pq&&!pulled){pulled=true;placePull(pq.text)}
   if(P.endX!=null&&bl.length){T(P,P.endX+4,P.endY,'\x95','b',FS,MID)}
  };
  const rule2=()=>COLS>1&&body.filter(pg=>pg.top!==undefined).forEach(pg=>{if(!pg.rule&&pg.ops.length>2&&!pg.noRule){pg.rule=1;L(pg,M+CW+CG/2,pg.top,M+CW+CG/2,BOT,'#d7d9dd',.4)}});
@@ -12490,12 +12491,12 @@ function pdfBlocks(html){
   const doc=new DOMParser().parseFromString('<body>'+html,'text/html');unglue(doc.body);
   for(const e of doc.body.querySelectorAll('p,h1,h2,h3,h4,blockquote,li')){
    if(words>2400)break;
-   if(e.closest('figure,table,script,style,nav,aside,.rfoot')||(e.tagName==='P'&&e.closest('blockquote,li'))||(e.tagName==='BLOCKQUOTE'&&e.querySelector('p')))continue;
+   if(e.closest('figure,table,script,style,nav,aside,.rfoot')||(e.tagName==='P'&&e.closest('li'))||(e.tagName==='BLOCKQUOTE'&&e.querySelector('p')))continue;/* B88: a quote written as <blockquote><p>…</p></blockquote> (the WordPress way) keeps each of its paragraphs, as quote paragraphs */
    const s=exInline(unMd(plainText(e)).replace(/~~/g,''));if(s.length<2)continue;
    if(s.length<280&&(isJunkText(s)||exChrome(s)))continue;
    /* the same paragraph twice shows once */
    if(s.length>=40&&out.some(o=>o.t==='p'&&o.s.toLowerCase()===s.toLowerCase()))continue;
-   out.push({t:/^H/.test(e.tagName)?'h':e.tagName==='BLOCKQUOTE'?'q':e.tagName==='LI'?'li':'p',s});words+=s.split(' ').length;
+   out.push({t:/^H/.test(e.tagName)?'h':(e.tagName==='BLOCKQUOTE'||(e.tagName==='P'&&e.closest('blockquote')))?'q':e.tagName==='LI'?'li':'p',s});words+=s.split(' ').length;
   }
  }catch(e){}
  return {blocks:out,words};
@@ -12622,11 +12623,11 @@ function exBlocks(html,base){
     seen.push(u);nimg++;let cap='';const fc=e.tagName==='FIGURE'?e.querySelector('figcaption'):null;if(fc){cap=exInline(unMd(plainText(fc)));if(exChrome(cap)||cap.length>240)cap=''}
     out.push({t:'img',u,cap,alt:(im.getAttribute('alt')||'').slice(0,160)});continue;
    }
-   if(e.closest('figure')||(e.tagName==='P'&&e.closest('blockquote,li'))||(e.tagName==='BLOCKQUOTE'&&e.querySelector('p')))continue;
+   if(e.closest('figure')||(e.tagName==='P'&&e.closest('li'))||(e.tagName==='BLOCKQUOTE'&&e.querySelector('p')))continue;/* B88: a quote written as <blockquote><p>…</p></blockquote> (the WordPress way) keeps each of its paragraphs, as quote paragraphs */
    let s=exInline(unMd(plainText(e)).replace(/~~/g,''));if(s.length<2)continue;
    if(s.length<280&&(isJunkText(s)||exChrome(s)))continue;
    if(s.length>=40&&out.some(o=>o.t==='p'&&o.s.toLowerCase()===s.toLowerCase()))continue;
-   out.push({t:/^H/.test(e.tagName)?'h':e.tagName==='BLOCKQUOTE'?'q':e.tagName==='LI'?'li':'p',s});words+=s.split(' ').length;
+   out.push({t:/^H/.test(e.tagName)?'h':(e.tagName==='BLOCKQUOTE'||(e.tagName==='P'&&e.closest('blockquote')))?'q':e.tagName==='LI'?'li':'p',s});words+=s.split(' ').length;
   }
  }catch(e){}
  return {blocks:out,words};
