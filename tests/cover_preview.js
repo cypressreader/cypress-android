@@ -17,7 +17,7 @@ for(const [W,H] of [[412,860],[1100,900]]){
  await p.evaluate(()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());document.getElementById('cvbtn').click()});await p.waitForTimeout(1500);
  const prev=await p.evaluate(()=>{const o={};document.querySelectorAll('#cvg [data-cvk]').forEach(b=>{const c=b.querySelector('.cover');if(!c)return;const im=c.querySelector(':scope>img');o[b.dataset.cvk]={cls:c.className.split(/\s+/).filter(x=>/^cv-/.test(x)).join(' '),ratio:c.offsetHeight/c.offsetWidth,img:!!im&&getComputedStyle(im).display!=='none',tile:b.querySelector('.cvt').clientHeight}});return o});
  const bc=[],br=[],bi=[];
- for(const st of STYLES){const r=real[st],q=prev[st];if(W>=700&&st==='triptych')continue;/* the app only builds the three-photo cover when it has three good photos; otherwise it shows Colour block */if(!r||!q){bc.push(st+': missing');continue}
+ for(const st of STYLES){const r=real[st],q=prev[st];if(W>=700&&st==='triptych')continue;/* the app only builds the three-photo cover when it has three good photos; otherwise it shows Color block */if(!r||!q){bc.push(st+': missing');continue}
   if(r.cls!==q.cls)bc.push(`${st}: app ${r.cls||'photo'} / preview ${q.cls||'photo'}`);
   if(Math.abs(q.ratio/r.ratio-1)>(W>=700?.6:.3))br.push(`${st}: app ${r.ratio.toFixed(2)} / preview ${q.ratio.toFixed(2)}`);
   if(r.img!==q.img&&st!=='clean')bi.push(`${st}: photo ${r.img?'shown':'left out'} in the app, ${q.img?'shown':'left out'} in the preview`)}

@@ -26,7 +26,7 @@ const R=await p.evaluate(async()=>{
   o[id]=r}
  return o});
 for(const [id,a1] of [['highstorm','#66b8ff'],['crimsondawn','#e23a35'],['thevoid','#b79cff']]){const r=R[id];
- ck(id+' colours',r.a1.toLowerCase()===a1&&r.dark,JSON.stringify([r.a1,r.dark]));
+ ck(id+' colors',r.a1.toLowerCase()===a1&&r.dark,JSON.stringify([r.a1,r.dark]));
  ck(id+' symbol defined',r.sym);
  ck(id+' in the theme grid, After sunset and folder lists',r.swatch&&r.sunset&&r.names&&r.genres,JSON.stringify([r.swatch,r.sunset,r.names,r.genres]));
  ck(id+' own fonts',r.fonts);

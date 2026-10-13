@@ -1,4 +1,4 @@
-/* B33: text on a photo card stays readable on a bright, busy photo (measured: the lighter parts of the picture behind the text against the text colour) */
+/* B33: text on a photo card stays readable on a bright, busy photo (measured: the lighter parts of the picture behind the text against the text color) */
 const {APP}=require('./env');const {mock,seed,PW}=require('./mock');const {chromium}=require(PW);const fs=require('fs'),path=require('path');
 let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else console.log('ok',n)};
 const img=fs.readFileSync(path.resolve(__dirname,'fixtures_bright.jpg'));

@@ -1,0 +1,12 @@
+/* B96: one name for one thing, plain words in messages (docs/claude-input/copy-review.md). Scans the app's own text for the wording that review found, so it cannot come back. */
+const fs=require('fs'),path=require('path');
+const app=fs.readFileSync(process.env.APP||path.resolve(__dirname,'../www/index.html'),'utf8');
+const site=['index.html','privacy.html','s.html'].map(f=>fs.readFileSync(path.resolve(__dirname,'../docs/'+f),'utf8')).join('\n');
+let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else console.log('ok',n)};
+const none=(name,rx,text)=>{const m=(text||app).match(rx);ck(name,!m,m&&m[0])};
+none('one spelling: "color", never "colour"',/\b[Cc]olou?rs?\b/.test(app)?/\b[Cc]olou?r(s|ed)?\b/.source&&/\b[Cc]olou(r(s|ed)?)\b/:/(?!)/);
+none('no "colour" on the website or privacy page',/\b[Cc]olou?r/.test(site)&&/\b[Cc]olou(r|red)\b/);
+const BANNED=[['PDF has one name: Save as PDF (no "Make PDF" / "Export as a PDF")',/Make PDF|Export as a PDF/],['the original story has one name (no "Open Original Story", bare "Open the original", "Read on the original site")',/Open Original Story|Open the original<|Read on the original site/],['one name for the web view: "View the site in the app" (not "View the site here")',/View the site here/],['no internal names in messages: CyNative, junk log, the rack, "trying route"',/CyNative\.shareFile\)|junk log|Opening the rack|trying route/],['no machine-log wording: "Rejected:", "jina reader:", "learned pattern", "paywall element"',/Rejected: the text|jina reader:|the learned pattern|a paywall element/],['no first person in the app\'s voice ("The stories I checked")',/The stories I checked/],['one word for reading aloud: no "Read-aloud isn\'t available"',/Read-aloud isn’t/],['one name for the edition: no "whole issue" / "Back to the issue"',/whole issue|Back to the issue/],['the Daily and the Brief keep one name each ("Play my Daily", "the Briefing", "your brief", "A short briefing")',/Play my Daily|the Briefing|your brief\b|A short briefing/],['no developer jargon: "toast", "flow on"',/before the toast pops|to flow on/],['"Could not" is "Couldn\'t" like every other message',/Could not read the icon/],['no "stories is"',/\bstories is ready/]];
+for(const [n,rx] of BANNED)none(n,rx);
+ck('the slogan is the only slogan',!/Read what matters\. Then stop\./.test(app+site));
+console.log(bad?'copy_consistency FAILED '+bad:'copy_consistency all passed');process.exit(bad?1:0);

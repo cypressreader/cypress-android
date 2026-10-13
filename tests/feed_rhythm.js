@@ -1,4 +1,4 @@
-/* Single-feed views are composed: one feature, varied modules, no two of the same module in a row, an accent colour, voice under the time headers, a designed caught-up moment. */
+/* Single-feed views are composed: one feature, varied modules, no two of the same module in a row, an accent color, voice under the time headers, a designed caught-up moment. */
 const {APP}=require('./env');const {mock,PW}=require('./mock');const {chromium}=require(PW);
 let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else console.log('ok',n)};
 const W1=['Why the new chip changes everything','Senate passes sweeping budget deal','Rescue teams reach flooded village','Inside the lab building tomorrow battery','Hands on with the quietest keyboard','Court blocks the merger of two giants','A visual history of the pocket camera','Researchers find water beneath the ice','Streaming prices rise again this autumn','The strange comeback of the flip phone','Airline fined over cancelled flights','New telescope sends back first images','Farmers adopt solar powered tractors','Museum returns stolen statues to Peru','Why cities are banning leaf blowers'];

@@ -62,7 +62,7 @@ ck('poppler opens the file without complaint',/Pages:\s+\d+/.test(info)&&!/Error
 const imgs=(p)=>cp.execSync('pdfimages -list -f '+p+' -l '+p+' '+f,{encoding:'utf8'}).split('\n').filter(l=>/\bimage\b/.test(l)).length;
 ck('full-page cover carries the cover picture',imgs(1)>=1);
 const colors=(p,pre)=>{const o=path.join(os.tmpdir(),pre);cp.execSync('pdftoppm -r 24 -f '+p+' -l '+p+' -singlefile '+f+' '+o);const d=fs.readFileSync(o+'.ppm');const hdr=d.toString('latin1',0,20).match(/^P6\s+(\d+)\s+(\d+)\s+255\s/);const off=hdr?hdr[0].length:15;const set=new Set();for(let i=off;i+2<d.length;i+=3)set.add((d[i]>>4)+','+(d[i+1]>>4)+','+(d[i+2]>>4));return set.size};
-ck('cover is a designed full page, not a flat colour',colors(1,'cv')>=6);
+ck('cover is a designed full page, not a flat color',colors(1,'cv')>=6);
 /* story pages: feature opener art (picture or designed fallback), second feature has no picture so it must use the fallback */
 const fp=storyPages.find(p=>pageTxt[p].includes(T[1].slice(0,30)));
 ck('a feature without a picture gets the designed fallback art (not a blank)',colors(fp,'fa')>=8,String(fp));

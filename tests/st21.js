@@ -8,7 +8,7 @@ await mock(p,{n:6});await p.goto('file://'+APP);await p.waitForTimeout(1500);
 const pre=scheme+' ';
 const R=await p.evaluate(async()=>{
  const o={};const hue=c=>rgb2hsl(anyRgb(c))[0],L=c=>lumOf(anyRgb(c));
- /* the tint's lightness follows the time of day (lighter in the morning, a little deeper in the evening), so the colour checks run at a fixed 10:00 and the time-of-day rule is checked on its own */
+ /* the tint's lightness follows the time of day (lighter in the morning, a little deeper in the evening), so the color checks run at a fixed 10:00 and the time-of-day rule is checked on its own */
  const gh=Date.prototype.getHours;Date.prototype.getHours=()=>10;
  const tl=dynTone('#6a3df0',false),td=dynTone('#6a3df0',true);
  Date.prototype.getHours=()=>22;const te=dynTone('#6a3df0',false);Date.prototype.getHours=()=>10;
@@ -27,7 +27,7 @@ const R=await p.evaluate(async()=>{
  // reader gets the same recipe
  rdB('#6a3df0');o.rbg=$('#rd').style.getPropertyValue('--rbg');o.rexp=dynTone('#6a3df0',dynIsDark()).bg;
  o.sameHue=Math.abs(hue(lay().style.getPropertyValue('--tb').replace(/color-mix.*/,'')||o.tb)-hue(o.rbg))<3;
- // calm: a nearly identical colour is ignored, a different one is applied
+ // calm: a nearly identical color is ignored, a different one is applied
  let n=0;const oa=dynApply;window.dynApply=c=>{n++;oa(c)};
  const base=dynSet.c||'#6a3df0';dynSet.c=base;
  dynSet('#6b3ef1');await new Promise(r=>setTimeout(r,2200));o.nearCalls=n;
@@ -44,13 +44,13 @@ ck(pre+'light tint is light',R.lightBg>.7,String(R.lightBg));ck(pre+'evening tin
 ck(pre+'tint keeps the site hue',Math.abs(R.hueL-R.hueSite)<4&&Math.abs(R.hueD-R.hueSite)<4,JSON.stringify([R.hueL,R.hueD,R.hueSite]));
 ck(pre+'tint is rich not grey',R.satL>.4,String(R.satL));
 ck(pre+'dark yellow is held back',R.oliveSat<=.45,String(R.oliveSat));
-ck(pre+'colour parser',R.parse.every(Boolean),JSON.stringify(R.parse));
+ck(pre+'color parser',R.parse.every(Boolean),JSON.stringify(R.parse));
 ck(pre+'accent contrast direction',R.accL<.5&&R.accD>.6,JSON.stringify([R.accL,R.accD]));
 ck(pre+'page uses the rich tint',/^hsl\(/.test(R.tb),R.tb);
 ck(pre+'reader uses the same recipe',R.rbg===R.rexp&&R.sameHue,JSON.stringify([R.rbg,R.rexp,R.sameHue]));
-ck(pre+'site colour on details',/^hsl\(/.test(R.logo),R.logo);
-ck(pre+'calm: near colour ignored',R.nearCalls===0,String(R.nearCalls));
-ck(pre+'calm: different colour applied',R.farCalls>=1,String(R.farCalls));
+ck(pre+'site color on details',/^hsl\(/.test(R.logo),R.logo);
+ck(pre+'calm: near color ignored',R.nearCalls===0,String(R.nearCalls));
+ck(pre+'calm: different color applied',R.farCalls>=1,String(R.farCalls));
 ck(pre+'slow fade',/2\.8s/.test(R.fade),R.fade);
 ck(pre+'keeps the magazine serif',!/Inter/.test(R.serif),R.serif);
 ck(pre+'no new settings',R.noUi&&R.noKeys);

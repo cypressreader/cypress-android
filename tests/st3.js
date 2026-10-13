@@ -70,12 +70,12 @@ for(const [vp,w,h,touch] of VPS){
  await E(()=>{const a=document.querySelector('.cols .body a[href="https://ex.test/page"]');a.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}))});
  await p.waitForTimeout(700);
  ck(vp,'link opens normally, no preview card',await E(()=>!document.querySelector('#peek.on')&&!LAYER.includes('peek')&&$('#rd').classList.contains('on')),await E(()=>LAYER.join()));
- // --- selection actions + colours
+ // --- selection actions + colors
  await E(()=>{const m=bodyText();const i=m.t.indexOf('fine day');SELV={q:'fine day',off:i};selAct('hl','y');});
  ck(vp,'yellow highlight stored + painted',await E(()=>S.hl[0].c==='y'&&CSS.highlights.get('mark-y')&&CSS.highlights.get('mark-y').size===1));
  await E(()=>{S.hl.unshift({id:'old1',link:curA.link,q:'"Hello," she said',off:0,note:'',t:Date.now(),art:{title:'x',link:curA.link,ft:'x',fc:'#123456'}});applyHl()});
  ck(vp,'old straight-quote highlight still matches',await E(()=>CSS.highlights.get('mark').size>=1));
- ck(vp,'selection bar is colours + note + copy/share/follow',await E(()=>['copy','img','follow','note'].every(k=>document.querySelector(`#selbar [data-s="${k}"]`))&&!['define','translate','search'].some(k=>document.querySelector(`#selbar [data-s="${k}"]`))&&document.querySelectorAll('#selbar .dot').length===4));
+ ck(vp,'selection bar is colors + note + copy/share/follow',await E(()=>['copy','img','follow','note'].every(k=>document.querySelector(`#selbar [data-s="${k}"]`))&&!['define','translate','search'].some(k=>document.querySelector(`#selbar [data-s="${k}"]`))&&document.querySelectorAll('#selbar .dot').length===4));
  // --- page turn feel
  await E(()=>{window.__v=[];navigator.vibrate=n=>{window.__v.push(n);return true};S.tsound=true;R.pg=0;show()});
  await E(()=>go(1));await p.waitForTimeout(100);

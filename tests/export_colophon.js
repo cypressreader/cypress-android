@@ -38,7 +38,7 @@ const unzip=buf=>{const out={};let i=0;while(i<buf.length-30&&buf.readUInt32LE(i
   ck('EPUB ('+m+'): the last page of the book is the colophon',/class="colo"/.test(html)&&/CYPRESS/.test(html)&&/The art of staying informed\./.test(html)&&/Get the app at cypressreader\.com\/app/.test(html),lastHref);
   ck('EPUB ('+m+'): the badge picture is in the book',/<img src="images\/i\d+\.jpg" alt="CyPress"/.test(html));
   ck('EPUB ('+m+'): quote has proper quotation marks and its last two words are tied together (no widow)',/&#8220;[\s\S]+&#160;[^ <]+&#8221;/.test(html)||/“[\s\S]+ [^ <]+”/.test(html),html.slice(html.indexOf('cq')-10,html.indexOf('cq')+200));
-  ck('EPUB ('+m+'): '+(m==='bw'?'black only, no colour':'gold accents'),m==='bw'?!/8a6a14/.test(files['OEBPS/style.css'].toString().split('.colo').slice(1).join(' ')):/8a6a14/.test(files['OEBPS/style.css'].toString().split('.colo').slice(1).join(' ')));
+  ck('EPUB ('+m+'): '+(m==='bw'?'black only, no color':'gold accents'),m==='bw'?!/8a6a14/.test(files['OEBPS/style.css'].toString().split('.colo').slice(1).join(' ')):/8a6a14/.test(files['OEBPS/style.css'].toString().split('.colo').slice(1).join(' ')));
   const ef=os.tmpdir()+'/cy_colo_'+m+'.epub';fs.writeFileSync(ef,buf);
   if(fs.existsSync(EPC)){let o='';try{o=cp.execSync('java -jar "'+EPC+'" "'+ef+'" 2>&1',{encoding:'utf8'})}catch(e){o=String(e.stdout||e)}
    const sum=(o.match(/Messages: ([^\n]+)/)||[])[1]||o.slice(-200);ck('EPUBCheck ('+m+'): '+sum,/0 fatals? \/ 0 errors? \/ 0 warnings?/.test(sum)||/Messages: 0 fatal/.test(o),o.slice(-300))}
