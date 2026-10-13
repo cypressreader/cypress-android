@@ -31,6 +31,12 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   ck(t+'the label sits above the track',r.labelOnTop);
   ck(t+'at no point of the scroll is anything under the label',r.under.length===0&&!r.leak,JSON.stringify(r.under));
   ck(t+'the loop is seamless (the headlines are repeated)',r.copies>=2*3&&r.longEnough,JSON.stringify([r.copies,r.longEnough]));
+  /* tapping a headline in the ticker opens that story (a real tap, with the strip held still) */
+  {await p.evaluate(()=>{const tr=document.querySelector('.wtick-in');tr.getAnimations().forEach(a=>{a.pause();a.currentTime=0})});
+   const bt=await p.evaluate(()=>{const v=document.querySelector('.wtick-vp').getBoundingClientRect();const k=[...document.querySelectorAll('.wtick-in button:not([aria-hidden])')].find(x=>{const q=x.getBoundingClientRect();return q.left>=v.left&&q.left<v.right-60});if(!k)return null;const q=k.getBoundingClientRect();return{x:q.left+30,y:q.top+q.height/2,t:k.textContent}});
+   ck(t+'the ticker has a tappable headline',!!bt);
+   if(bt){await p.mouse.click(bt.x,bt.y);await p.waitForTimeout(700);const o=await p.evaluate(()=>({open:!!document.querySelector('#rd.on,#rd.open,#rd[open],.reader.on')||(typeof curA!=='undefined'&&!!curA),title:typeof curA!=='undefined'&&curA?curA.title:''}));
+    ck(t+'tapping a ticker headline opens that story',o.open&&bt.t.includes(o.title.slice(0,20)),JSON.stringify([bt.t,o]))}}
   ck(t+'no page errors',!errs.length,errs[0]);await p.close();
  }
  await b.close();console.log(bad?'wire_tick '+bad+' FAILED':'wire_tick all passed');process.exit(bad?1:0);

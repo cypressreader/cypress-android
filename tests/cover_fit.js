@@ -13,6 +13,7 @@ const THEMES=(process.env.THEMES||'').split(',').filter(x=>x!==undefined);
   const p=await (await b.newContext({viewport:{width:W,height:H}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));await mock(p,{n:10});
   await p.route('https://img.test/**',r=>r.fulfill({status:200,contentType:'image/svg+xml',body:svg()}));
   await p.goto('file://'+APP);await p.waitForTimeout(1200);await p.click('text=Get started').catch(()=>{});await p.waitForTimeout(400);
+  if(process.env.CSS)await p.addStyleTag({content:process.env.CSS});
   await p.evaluate(th=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());if(th)window.__th=th},process.env.THEME||'');
   for(const [hk,ht] of Object.entries(HEADS).filter(([k])=>!process.env.HEADS||process.env.HEADS.split(',').includes(k)))for(const st of STYLES){
    const r=await p.evaluate(async([st,ht])=>{const w=ms=>new Promise(r=>setTimeout(r,ms));const now=Date.now();
@@ -29,6 +30,7 @@ const THEMES=(process.env.THEMES||'').split(',').filter(x=>x!==undefined);
     const c=document.createElement('canvas').getContext('2d');c.font=cs.fontStyle+' '+cs.fontWeight+' '+cs.fontSize+' '+cs.fontFamily;const inner=h.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);const tt=cs.textTransform==='uppercase'?h.textContent.toUpperCase():h.textContent;
     const lw=Math.max(...tt.split(/\s+/).flatMap(x=>x.split(/(?<=-)/)).map(x=>c.measureText(x).width+(parseFloat(cs.letterSpacing)||0)*x.length));if(lw>inner+3)out.push('a word is wider than the box ('+Math.round(lw)+' > '+Math.round(inner)+')');
     if(hr.left<cr.left-1||hr.right>cr.right+1||hr.bottom>cr.bottom+1||hr.top<cr.top-1)out.push('sticks out of the cover');
+    {const m=cv.querySelector('.cvm');if(m&&m.parentElement){const pr=m.parentElement.getBoundingClientRect(),mr=m.getBoundingClientRect();if(mr.right>pr.right+1||mr.left<pr.left-1||mr.right>cr.right+1)out.push('masthead wider than its column ('+Math.round(mr.width)+' in '+Math.round(pr.width)+')')}}
     const top=cv.querySelector('.cvtop,.dcv-top');if(top){const t=top.getBoundingClientRect();if(inter(hr,t)>6)out.push('overlaps the masthead')}
     if(!cv.classList.contains('dcov')){const im=cv.querySelector(':scope>img');if(im&&['block','gazette','gallery','index','cinema','chapters','journal'].includes(st)&&getComputedStyle(im).position!=='absolute'){const i=im.getBoundingClientRect();if(inter(hr,i)>6)out.push('overlaps the picture')}}
     return{out,fs:parseFloat(cs.fontSize),h:Math.round(cr.height),lines:Math.round(hr.height/(parseFloat(cs.lineHeight)||parseFloat(cs.fontSize)))}},[st,ht]);

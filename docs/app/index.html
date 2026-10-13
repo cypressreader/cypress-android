@@ -3040,7 +3040,7 @@ body:not(.narrow):not(.split).reading:not(.sideshow) #sideh{display:flex}
 .wtick b{flex:none;padding:2px 8px;background:var(--ink);color:var(--pn);letter-spacing:.2em;text-transform:uppercase;font-size:10.5px}
 .wtick-in{display:flex;gap:28px;white-space:nowrap;animation:wtick 40s linear infinite}
 .wtick,.wtick-vp{contain:paint}
-.wtick-in span::before{content:'■ ';color:var(--a1,#0f5a3b)}@keyframes wtick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.wtick-in button::before{content:'■ ';color:var(--a1,#0f5a3b)}.wtick-in button{appearance:none;border:0;background:none;padding:6px 0;margin:-6px 0;font:inherit;color:inherit;cursor:pointer;text-align:left;white-space:nowrap}@keyframes wtick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 #grid.gen-wire .card time{font-variant-numeric:tabular-nums}#grid.gen-wire .card .src time::after{content:'  ' attr(data-hm);font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:0;margin-left:6px;opacity:.9}
 #grid.gen-wire .dmast h2{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.04em;text-transform:uppercase}
 #grid.gen-sun .dg.wk .wkhero{padding:clamp(22px,6vw,44px)}
@@ -3472,6 +3472,7 @@ html[data-ts="l"] #grid .wcols,html[data-ts="l"] #grid .nr-lsub,html[data-ts="l"
  #grid .cover.cv-plays .cvl span{grid-column:2;color:#fff!important}
 }
 @media(min-width:700px){#grid .cover.cv-plays .cvl span{font-size:13.5px!important}}
+#grid .cover.cv-gallery .cvbot{padding:0}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4331,6 +4332,9 @@ const layoutKey=()=>((S.narrow||'auto')==='auto'&&VW<=500)+'|'+(VW<700)+'|'+(VW>
 /* Cover headlines are sized to fit THEIR cover: the largest size (up to the style's own big size) at which the whole headline shows (no hidden lines, no "..."), no word is wider than the box (so none is cut in the middle), and the cover stays within its designed height (so nothing is pushed under the masthead or over a picture panel). Re-done when the window or the fonts change. */
 function covFit(){
  document.querySelectorAll('#grid .cover,#grid .dcov').forEach(cv=>{
+  /* the paper's name must fit its column on one line, whatever the screen shape or letter spacing */
+  const m=cv.querySelector('.cvm'),mb=m&&m.parentElement;
+  if(m&&mb){const mk=mb.clientWidth+'|'+cv.className+'|'+m.textContent;if(m.dataset.mk!==mk){m.style.removeProperty('font-size');const cs=getComputedStyle(mb),av=mb.clientWidth-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0),ow=m.style.whiteSpace;m.style.whiteSpace='nowrap';const w=m.getBoundingClientRect().width;m.style.whiteSpace=ow;if(av>20&&w>av){const f=parseFloat(getComputedStyle(m).fontSize)||40;m.style.setProperty('font-size',Math.max(14,Math.floor(f*av/w*.97))+'px','important')}m.dataset.mk=mk}}
   const h=cv.querySelector('.cvlead h2,.dcv-lead h2');if(!h)return;
   const key=cv.clientWidth+'|'+innerHeight+'|'+(h.textContent||'').length+'|'+cv.className;if(h.dataset.fk===key&&h.style.fontSize)return;
   h.classList.add('cfit');h.style.removeProperty('font-size');
@@ -4343,7 +4347,8 @@ function covFit(){
   const top=cv.querySelector('.cvtop,.dcv-top'),bot=cv.querySelector('.cvbot,.dcv-main');
   const used=()=>(top&&getComputedStyle(top).position!=='absolute'?top.offsetHeight:0)+(bot?[...bot.children].reduce((n,c)=>n+c.offsetHeight+(parseFloat(getComputedStyle(c).marginTop)||0)+(parseFloat(getComputedStyle(c).marginBottom)||0),0)+24:0);
   let cap=lim;
-  const fits=()=>h.scrollWidth<=h.clientWidth+1&&(!cap||cv.offsetHeight<=cap)&&inside()&&(!overlay||cv.classList.contains('dcov')||used()<=cv.offsetHeight*.62);
+  const bx=h.closest('.cvbot,.dcv-main'),inBox=()=>{if(!bx)return true;const c=getComputedStyle(bx);return h.offsetWidth<=bx.clientWidth-(parseFloat(c.paddingLeft)||0)-(parseFloat(c.paddingRight)||0)+1};
+  const fits=()=>h.scrollWidth<=h.clientWidth+1&&inBox()&&(!cap||cv.offsetHeight<=cap)&&inside()&&(!overlay||cv.classList.contains('dcov')||used()<=cv.offsetHeight*.62);
   const search=()=>{h.style.setProperty('font-size',max+'px','important');if(fits())return max;let lo=min,hi=max;for(let k=0;k<9&&hi-lo>.5;k++){const mid=(lo+hi)/2;h.style.setProperty('font-size',mid.toFixed(1)+'px','important');if(fits())lo=mid;else hi=mid}return Math.floor(lo*10)/10};
   /* a layout with no spare room (a row of photo cards, a floating card) may grow a little for a bigger headline, never more than a fifth of the screen */
   h.style.setProperty('font-size',min+'px','important');
@@ -5224,7 +5229,7 @@ function genreApply(){
   g.classList.add('gen-wire');
   const hs=cur.slice().sort((a,b)=>b.date-a.date).slice(0,4);/* short, and few: the moving strip is drawn as one layer, and a very wide one (all headlines twice over) can exceed a phone GPU's texture size and come out as scrambled glyphs */
   const sg1=g.querySelector('.bmseg'),put1=h=>sg1?sg1.insertAdjacentHTML('afterend',h):g.insertAdjacentHTML('afterbegin',h);
-  if(hs.length>=3){const tk=t=>{t=String(t||'').replace(/\s+/g,' ').trim();return t.length>46?t.slice(0,45).replace(/\s+\S*$/,'')+'…':t};const sp=`<span>${hs.map(a=>esc(wireClock(a.date))+'  '+esc(tk(a.title))).join('</span><span>')}</span>`;put1(`<div class="wtick" aria-hidden="true"><b>Wire</b><div class="wtick-vp"><div class="wtick-in">${sp}${sp}</div></div></div>`)}  g.querySelectorAll('.card[data-i] time').forEach(t=>{const a=cur[+t.closest('.card').dataset.i];if(a&&a.date)t.dataset.hm=wireClock(a.date)});
+  if(hs.length>=3){const tk=t=>{t=String(t||'').replace(/\s+/g,' ').trim();return t.length>46?t.slice(0,45).replace(/\s+\S*$/,'')+'…':t};const sp=(h)=>hs.map(a=>`<button type="button" data-wi="${cur.indexOf(a)}"${h?' tabindex="-1" aria-hidden="true"':''}>${esc(wireClock(a.date))}  ${esc(tk(a.title))}</button>`).join('');put1(`<div class="wtick"><b>Wire</b><div class="wtick-vp"><div class="wtick-in">${sp(0)}${sp(1)}</div></div></div>`)}  g.querySelectorAll('.card[data-i] time').forEach(t=>{const a=cur[+t.closest('.card').dataset.i];if(a&&a.date)t.dataset.hm=wireClock(a.date)});
  }else if(k==='week'&&g.querySelector('.dg.wk'))g.classList.add('gen-sun');
 }
 {const _r5=render;render=function(){_r5.apply(this,arguments);try{genreApply()}catch(e){}}}
@@ -6361,7 +6366,17 @@ function dropTailPromo(root){
   last.remove();dropped++;
  }
 }
-function underscoreItalics(root){mdInline(root);dedupParas(root);dropTailPromo(root)}
+/* the same picture twice in a row (a page that puts its lead photo in both a figure and the text) shows once: a later copy of a picture already shown in the opening part of the story is dropped, with its empty wrapper */
+function dedupImgs(root){
+ const seen=[];let n=0;
+ for(const im of [...root.querySelectorAll('img')]){
+  const u=im.getAttribute('src')||im.getAttribute('data-src')||'';if(!u||im.closest('.pq,.rprev'))continue;
+  if(n++>12)break;
+  if(seen.some(x=>sameImg(x,u))){let w=im;while(w.parentElement&&w.parentElement!==root&&!(w.parentElement.textContent||'').trim()&&w.parentElement.querySelectorAll('img').length===1)w=w.parentElement;const cap=w.parentElement&&w.parentElement.tagName==='FIGURE'&&w.parentElement.querySelectorAll('img').length===1&&!(w.parentElement.textContent||'').trim()?w.parentElement:w;cap.remove()}
+  else seen.push(u)
+ }
+}
+function underscoreItalics(root){mdInline(root);dedupParas(root);dedupImgs(root);dropTailPromo(root)}
 /* plain-text version of a line that may carry markdown marks (for deks and previews) */
 /* some publishers drop the space beside a link or italic ("Fish</a>,and watching", "<a>Shrinking</a>between"); put it back where a word plainly ends, and nowhere else */
 const GLUE_W=/^(?:and|the|but|for|nor|of|to|in|on|at|as|is|it|or|by|if|so|an|from|with|that|this|was|were|are|has|had|who|not|all|its|his|her|our|you|they|then|than|when|will|can|said|says|say|also|have|been|over|into|more|most|just|such|them|their|there|here|some|many|much|very|what|which|while|about|after|would|could|should|only|even|still|make|made|take|took|come|came|want|wants|told|tells|call|calls|find|found|gave|give|know|knew|like|look|looks|need|needs|plan|plans|show|shows|once|next|last|both|each|less|same|upon|out|off|new|now|one|two|she|him|how|why|get|got|did|does|may|might|must|shall|are|his|has|began|begin|plus|per|via|amid|says)$/;
@@ -8877,7 +8892,7 @@ function looksFill(){const r=$('#lkr');if(!r)return;const W=340,H=430,pw=64;
  r.innerHTML=LOOKS.map(([n,t,c])=>{const on=(S.theme||'auto')===t&&(S.cvs||'clean')===c;return `<button type="button" data-look="${t}|${c}" class="${on?'on':''}" aria-pressed="${on}"><span class="lkv" aria-hidden="true"><span class="cvi" style="width:${W}px;height:${H}px;transform:scale(${pw/W})">${cvMini(c)}</span></span><b>${n}</b><small>${cvName(c)} cover</small></button>`}).join('')}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-look]');if(!b)return;const [t,c]=b.dataset.look.split('|');S.theme=t;S.cvs=c;S.font='theme';save();applyTheme('fade');if($('#cvs'))$('#cvs').value=c;cvSetBtn();render();syncSet();looksFill()});
 /* cover picker */
-const CVNAMES=[['clean','Clean','One photo, stories below'],['auto','Automatic','Changes daily'],['type','Type','Big headline and edition number, no photo needed'],['photo','Full photo','Photo, text on top'],['poster','Poster','Big colour headline'],['block','Colour block','Photo beside a colour panel'],['split','Side by side','Photo and text (wide screens)'],['triptych','Triptych','Three photos (wide screens)'],['gazette','Gazette','Broadsheet front page'],['gallery','Gallery','Framed print, caption beneath'],['spotlight','Spotlight','Photo with a glass card'],['magazine','Magazine','Giant masthead, inside list'],['broadcast','Broadcast','TV lower third and ticker'],['duotone','Duotone','Photo in the site colour'],['index','Index','Numbered contents list'],['overlap','Overlap','Card floating over photo'],['cinema','Cinema','Letterbox on black'],['rail','Rail','Side spine with masthead'],['titleseq','Title sequence','Giant headline across the photo'],['chapters','Chapters','Big title, row of photo cards'],['journal','Split journal','Photo and a calm paper panel'],['plays','Top plays','Dark hero, numbered cards'],['fact','Fact panel','Photo with a panel of facts'],['collage','Collage','Paper sheet over a photo collage'],['italic','Italic mix','Roman and italic words']];
+const CVNAMES=[['clean','Clean','One photo, stories below'],['auto','Automatic','Changes daily'],['type','Type','Big headline and edition number, no photo needed'],['photo','Full photo','Photo, text on top'],['poster','Poster','Big colour headline, no photo'],['block','Colour block','Photo with a colour panel below'],['split','Photo and text','Photo on top, text below'],['triptych','Triptych','Three photos (wide screens)'],['gazette','Gazette','Broadsheet front page'],['gallery','Gallery','Framed print, caption beneath'],['spotlight','Spotlight','Photo with a glass card'],['magazine','Magazine','Giant masthead, inside list'],['broadcast','Broadcast','TV lower third and ticker'],['duotone','Duotone','Photo in the site colour'],['index','Index','Numbered contents list'],['overlap','Overlap','Card floating over photo'],['cinema','Cinema','Letterbox on black'],['rail','Rail','Side spine with masthead'],['titleseq','Title sequence','Giant headline across the photo'],['chapters','Chapters','Big title, four stories, one photo'],['journal','Journal','Photo and a calm paper panel'],['plays','Top plays','Dark hero, numbered list'],['fact','Fact panel','Photo with a panel of facts'],['collage','Collage','Paper sheet over a photo collage'],['italic','Italic mix','Roman and italic words, no photo']];
 const CVPH='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a6ea5"/><stop offset=".6" stop-color="#e8a56b"/><stop offset="1" stop-color="#2b3a55"/></linearGradient></defs><rect width="400" height="300" fill="url(#g)"/><circle cx="290" cy="110" r="38" fill="#ffe9b0" opacity=".9"/><path d="M0 230 L70 160 L130 215 L210 130 L300 220 L360 170 L400 210 V300 H0Z" fill="#1e2a3f"/><path d="M0 262 L90 215 L170 255 L260 205 L400 258 V300 H0Z" fill="#141c2b"/></svg>');
 /* the Type cover in miniature (the real one needs a whole day's edition to draw) */
 function cvTypeMini(){return '<div class="cvtm"><b class="cvtm-n">285</b><span class="cvtm-m">CYPRESS</span><i class="cvtm-t">Read what matters. Then stop.</i><small class="cvtm-e">MONDAY MORNING EDITION · NO. 285</small><em class="cvtm-s">TECHCRUNCH</em><h5 class="cvtm-h">A big, confident headline for the day’s lead story</h5></div>'}
@@ -9697,7 +9712,7 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.12l';const APP_LABEL='1.80';
+const APP_VERSION='2026.10.13a';const APP_LABEL='1.81';
 const CHANGES=["Stories that stop at a subscriber gate (like the New York Times verification message) are now spotted, and the app looks for a saved or wire copy of the full story", "If the full story can’t be found, you get the opening paragraphs with a soft fade, a Subscriber Preview card and a button to read it on the original site", "The gate check looks only for real gate messages, so ordinary news pages are not mislabelled as previews"];
 const DEF_ON=new Set(['sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
