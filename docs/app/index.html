@@ -8191,9 +8191,11 @@ $('#teach').onclick=async()=>{
   const pick=await askBox({title:'Tap one headline',text:'CyPress will learn the pattern and build a feed from it.\n\n'+cands.slice(0,5).map((c,i)=>(i+1)+'. '+c.t.slice(0,70)).join('\n'),input:true,placeholder:'1-'+Math.min(5,cands.length),ok:'Build feed',cancel:'Cancel'});
   const ix=Math.max(0,Math.min(cands.length-1,(parseInt(pick,10)||1)-1));
   const host=new URL(page).hostname.replace(/^www\./,'');
-  const f={id:'x'+Date.now(),url:page,title:cands[ix].t?host+' (learned)':host+' (learned)',folder:$('#fo').value==='__new'?'':$('#fo').value,learn:{page,rx}};
-  S.feeds.push(f);save();dlg.close();load(f);
-  feedAddedPop(f.title,'Unfiled',f.id);
+  /* B91: the folder chosen in the dialog, including a brand-new one, is used (it used to fall back to Unfiled) */
+  let fid=$('#fo').value;if(fid==='__new'){const nm=$('#nf').value.trim()||'New folder';const nf={id:'g'+Date.now(),name:nm};S.folders.push(nf);fid=nf.id}
+  const f={id:'x'+Date.now(),url:page,title:cands[ix].t?host+' (learned)':host+' (learned)',folder:fid,learn:{page,rx}};
+  S.feeds.push(f);save();dlg.close();load(f);fillFolders();
+  {const fo=S.folders.find(o=>o.id===fid);feedAddedPop(f.title,fo?fo.name:'Unfiled',f.id)}
  }catch(e){toast('Couldn’t read that site')}
 };
 /* B45: a clear confirmation popup naming the feed and its folder, shown when the
