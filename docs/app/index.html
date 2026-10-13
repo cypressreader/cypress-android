@@ -3212,7 +3212,7 @@ html.dkart #fin .fin-frame{border-color:#2d8a5e}
 .sun-end{text-align:center;margin:8px 0 0;font:italic 400 16px var(--disp,var(--serif));color:var(--mut)}
 .sun-none{margin-bottom:20px}.sun-none .sun-m{margin-bottom:0}
 @media(min-width:760px){.sun-i{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:34px;align-items:center}.sun-i:nth-of-type(odd) .sun-im{order:2}.sun-im{margin-bottom:0;aspect-ratio:3/2}.sun-i.noimg{display:block;max-width:34em;margin-left:auto;margin-right:auto}}
-@supports(animation-timeline:view()){@media(prefers-reduced-motion:no-preference){.sun-i{animation:sunrise linear both;animation-timeline:view();animation-range:entry 0% entry 40%}@keyframes sunrise{from{opacity:.0;transform:translateY(26px)}to{opacity:1;transform:none}}}}
+/* (the fade-up on entry that used to run here as a scroll-driven animation made the browser redo styles for every item on every scrolled frame: Deep reads and Sunday stuttered. Items now simply appear.) */
 html.dkart .sun-m small,html.dkart .sun-t small{color:var(--brass)}
 /* cluster M: export button, back issues rack */
 .dexp{grid-column:1/-1;margin:0 0 10px}
@@ -3386,6 +3386,7 @@ html[data-ts="l"] #grid{grid-template-columns:minmax(0,1fr)!important}
 html[data-ts="l"] #grid .nr-rv,html[data-ts="l"] #grid .nr-rv3,html[data-ts="l"] #grid .nr-qk,html[data-ts="l"] #grid .nr-trio,html[data-ts="l"] #grid .fd-pair,html[data-ts="l"] #grid .fd-decks,html[data-ts="l"] #grid .nr-top,html[data-ts="l"] #grid .nr-tr,html[data-ts="l"] #grid .dq{grid-template-columns:minmax(0,1fr)!important}
 html[data-ts="l"] #grid .wcols,html[data-ts="l"] #grid .nr-lsub,html[data-ts="l"] #grid .nr-rl{column-count:1!important;column-width:auto!important}
 
+#grid .cover h2.cfit,#grid .dcov h2.cfit{max-width:100%!important;/* a width in letters (15ch) shrinks along with the type, so a smaller headline would never get more room */-webkit-line-clamp:unset!important;display:block!important;overflow:visible!important;max-height:none!important;overflow-wrap:normal!important;word-break:normal!important;hyphens:manual!important}
 /* ---- cover elevation: every cover style takes the Type cover's scale (full screen, edge to edge, a big display headline, a confident masthead). Only the real covers in the list: the picker previews keep their own small size. ---- */
 #grid .cover:not(.cv-clean){--gp:clamp(14px,3vw,32px);margin:-6px calc(-1 * var(--gp)) 22px;width:auto;max-width:none;border-radius:0;min-height:min(90svh,800px)}
 @media(min-width:700px){#grid .cover:not(.cv-clean){min-height:min(84svh,760px)}}
@@ -3423,6 +3424,54 @@ html[data-ts="l"] #grid .wcols,html[data-ts="l"] #grid .nr-lsub,html[data-ts="l"
 #grid .cover.cv-gazette .cvlead h2,#grid .cover.cv-gazette .cvlead h2.l1,#grid .cover.cv-gazette .cvlead h2.l2{font-size:clamp(30px,9vw,68px)!important}
 #grid .cover.cv-gallery .cvm{font-size:clamp(34px,9vw,64px)}
 #grid .cover.cv-gallery .cvlead h2,#grid .cover.cv-gallery .cvlead h2.l1,#grid .cover.cv-gallery .cvlead h2.l2{font-size:clamp(28px,8vw,58px)!important;max-width:16ch}
+
+#grid .cover.cv-overlap .cvtop{height:auto!important;max-height:34%;align-items:flex-start}
+/* a wide photo shown whole: a blurred copy of it fills the cover behind it */
+#grid .cover.ctn,#grid .dcov.ctn{background:var(--ph) center/cover no-repeat}
+#grid .cover.ctn .cvsh,#grid .dcov.ctn .dcv-sh{display:block!important;position:absolute;inset:0;z-index:-2;-webkit-backdrop-filter:blur(26px);backdrop-filter:blur(26px);background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.55))!important}
+#grid .cover.ctn>img,#grid .dcov.ctn .dcv-art>img{border-radius:0;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+/* Index keeps its picture above its list at any width */
+#grid .cover.cv-index{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto auto!important}
+#grid .cover.cv-index .cvtop{grid-column:1!important;grid-row:1!important}
+#grid .cover.cv-index>img{grid-column:1!important;grid-row:2!important;height:auto!important;aspect-ratio:16/10;min-height:0!important}
+#grid .cover.cv-index .cvbot{grid-column:1!important;grid-row:3!important}
+/* Split, like Block, keeps its picture on top at any width (a narrow side column showed only a slice) */
+#grid .cover.cv-split{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto auto!important;max-height:none!important}
+#grid .cover.cv-split>img{grid-column:1!important;grid-row:1!important;height:auto!important;aspect-ratio:4/3;min-height:0!important}
+#grid .cover.cv-split .cvtop{grid-column:1!important;grid-row:2!important}
+#grid .cover.cv-split .cvbot{grid-column:1!important;grid-row:3!important}
+/* a photo that cannot be seen is not there: Poster and Italic mix are typographic covers */
+#grid .cover.cv-poster>img,#grid .cover.cv-italic>img{display:none}
+/* ---- cover design rules ---- every element earns its place: story boxes are one readable column (no 30 px strips, no "..."), small pictures that cannot be recognisable are gone, a ticker that scrolls text out of view is a plain list */
+#grid .cover .cvl span,#grid .dcov .dcv-l span{-webkit-line-clamp:unset!important;display:block!important;overflow:visible!important;max-height:none!important;text-overflow:clip!important}
+#grid .cover .cvl small,#grid .dcov .dcv-l small{font-size:11px;letter-spacing:.14em}
+#grid .cover.cv-broadcast .cvlines{display:block;white-space:normal;overflow:visible}
+#grid .cover.cv-broadcast .cvl{display:block;max-width:none;overflow:visible;text-overflow:clip;border-right:0;border-top:1px solid rgba(255,255,255,.16);padding:12px 20px}
+#grid .cover.cv-broadcast .cvl span{font:600 clamp(15px,4vw,19px)/1.25 var(--sans);white-space:normal}
+/* the picture of Block always sits above its text, at any screen width (side by side left too little room for a headline) */
+#grid .cover.cv-block{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr) auto auto!important;max-height:none!important}
+#grid .cover.cv-block>img{grid-column:1!important;grid-row:1!important;height:100%!important;min-height:0!important}
+#grid .cover.cv-block .cvtop{grid-column:1!important;grid-row:2!important}
+#grid .cover.cv-block .cvbot{grid-column:1!important;grid-row:3!important}
+/* Chapters shows its four story cards two by two, wide enough to hold their text */
+#grid .cover.cv-chapters{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#grid .cover.cv-chapters>img{grid-column:1/-1!important;grid-row:3!important;aspect-ratio:16/10!important;height:auto!important;border-radius:10px}
+#grid .cover.cv-chapters .cvl:nth-child(1){grid-column:1!important;grid-row:4!important;aspect-ratio:1/1!important}
+#grid .cover.cv-chapters .cvl:nth-child(2){grid-column:2!important;grid-row:4!important;aspect-ratio:1/1!important}
+#grid .cover.cv-chapters .cvl:nth-child(3){grid-column:1/-1!important;grid-row:5!important;aspect-ratio:16/7!important}
+#grid .cover:not(.cv-chapters):not(.cv-broadcast) .cvl{display:block!important;grid-template-columns:none!important}
+@media(max-width:699px){
+ #grid .cover:not(.cv-chapters):not(.cv-broadcast) .cvlines{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px 0!important;counter-reset:none}
+ #grid .cover:not(.cv-chapters):not(.cv-broadcast) .cvl{display:block!important;grid-template-columns:none!important;aspect-ratio:auto!important;position:static!important;background:none!important;border-radius:0!important;box-shadow:none!important;padding:0!important;min-width:0}
+ #grid .cover:not(.cv-chapters):not(.cv-index) .cvl .cvth{display:none!important}
+ #grid .cover:not(.cv-chapters):not(.cv-broadcast) .cvl span{position:static!important;font:400 clamp(17px,4.8vw,22px)/1.15 var(--disp)!important;color:inherit}
+ #grid .cover.cv-plays .cvlines{padding:18px 0 0!important}
+ #grid .cover.cv-plays .cvl{counter-increment:cvn;display:grid!important;grid-template-columns:44px minmax(0,1fr)!important;gap:0 10px;align-items:baseline;border-top:1px solid rgba(255,255,255,.18);padding-top:12px!important}
+ #grid .cover.cv-plays .cvlines{counter-reset:cvn}
+ #grid .cover.cv-plays .cvl::before{position:static!important;content:counter(cvn)!important;font:600 34px/1 var(--sans)!important;color:transparent;-webkit-text-stroke:1.2px rgba(255,255,255,.55);z-index:auto}
+ #grid .cover.cv-plays .cvl span{grid-column:2;color:#fff!important}
+}
+@media(min-width:700px){#grid .cover.cv-plays .cvl span{font-size:13.5px!important}}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4279,13 +4328,62 @@ function secOpener(){
 /* the window width is cached: reading innerWidth in the middle of a redraw forces the browser to lay the page out first */
 let VW=innerWidth;addEventListener('resize',()=>{VW=innerWidth},{passive:true});
 const layoutKey=()=>((S.narrow||'auto')==='auto'&&VW<=500)+'|'+(VW<700)+'|'+(VW>=840);let LK=layoutKey();
-function covFit(){document.querySelectorAll('.cover .cvlead h2').forEach(h=>{const n=(h.textContent||'').trim().length;h.classList.toggle('l1',n>58&&n<=88);h.classList.toggle('l2',n>88)})}
+/* Cover headlines are sized to fit THEIR cover: the largest size (up to the style's own big size) at which the whole headline shows (no hidden lines, no "..."), no word is wider than the box (so none is cut in the middle), and the cover stays within its designed height (so nothing is pushed under the masthead or over a picture panel). Re-done when the window or the fonts change. */
+function covFit(){
+ document.querySelectorAll('#grid .cover,#grid .dcov').forEach(cv=>{
+  const h=cv.querySelector('.cvlead h2,.dcv-lead h2');if(!h)return;
+  const key=cv.clientWidth+'|'+innerHeight+'|'+(h.textContent||'').length+'|'+cv.className;if(h.dataset.fk===key&&h.style.fontSize)return;
+  h.classList.add('cfit');h.style.removeProperty('font-size');
+  const max=parseFloat(getComputedStyle(h).fontSize)||40,min=Math.max(13,Math.round(max*.2));
+  const lim=Math.max(parseFloat(getComputedStyle(cv).minHeight)||0,0)+2;
+  /* where the headline sits inside its cover, from layout offsets (a landing animation's movement must not count) */
+  const inside=()=>{let t=0,l=0,e=h;while(e&&e!==cv){t+=e.offsetTop;l+=e.offsetLeft;e=e.offsetParent}if(e!==cv)return true;return t>=-1&&l>=-1&&t+h.offsetHeight<=cv.clientHeight+1&&l+h.offsetWidth<=cv.clientWidth+1};
+  /* a cover whose photo is the background keeps most of the photo clear: the masthead and the text block take at most 62% of the height */
+  const overlay=!/\bcv-(gazette|gallery|index|cinema|chapters|journal|block|split|tri|clean|poster|italic|overlap)\b/.test(cv.className)&&!!cv.querySelector(':scope>img,.dcv-art>img');
+  const top=cv.querySelector('.cvtop,.dcv-top'),bot=cv.querySelector('.cvbot,.dcv-main');
+  const used=()=>(top&&getComputedStyle(top).position!=='absolute'?top.offsetHeight:0)+(bot?[...bot.children].reduce((n,c)=>n+c.offsetHeight+(parseFloat(getComputedStyle(c).marginTop)||0)+(parseFloat(getComputedStyle(c).marginBottom)||0),0)+24:0);
+  let cap=lim;
+  const fits=()=>h.scrollWidth<=h.clientWidth+1&&(!cap||cv.offsetHeight<=cap)&&inside()&&(!overlay||cv.classList.contains('dcov')||used()<=cv.offsetHeight*.62);
+  const search=()=>{h.style.setProperty('font-size',max+'px','important');if(fits())return max;let lo=min,hi=max;for(let k=0;k<9&&hi-lo>.5;k++){const mid=(lo+hi)/2;h.style.setProperty('font-size',mid.toFixed(1)+'px','important');if(fits())lo=mid;else hi=mid}return Math.floor(lo*10)/10};
+  /* a layout with no spare room (a row of photo cards, a floating card) may grow a little for a bigger headline, never more than a fifth of the screen */
+  h.style.setProperty('font-size',min+'px','important');
+  const lines=[...cv.querySelectorAll('.cvlines .cvl,.dcv-lines .dcv-l')];lines.forEach(l=>l.style.removeProperty('display'));
+  cap=Math.max(lim,cv.offsetHeight+Math.round(innerHeight*.2));
+  let size=search();
+  /* too much text over the photo: drop the last story line, one at a time, while the headline would stay big */
+  if(overlay&&!cv.classList.contains('dcov')){let k=lines.length;while(k>0&&(size<max*.6||used()>cv.offsetHeight*.62)){k--;lines[k].style.setProperty('display','none','important');size=search()}}
+  h.style.setProperty('font-size',size+'px','important');h.dataset.fk=cv.clientWidth+'|'+innerHeight+'|'+(h.textContent||'').length+'|'+cv.className;
+ })
+}
+/* A cover photo is never sliced to a thin strip (faces cut in half, only a flag showing). When filling the space would cut away more than about a quarter of the picture, the whole picture is shown instead: full width in the clear space between the masthead and the text, over a blurred copy of itself. A narrow cell too small to show a picture is left to the type. */
+function coverCrop(){
+ document.querySelectorAll('#grid .cover,#grid .dcov').forEach(cv=>{
+  const dc=cv.classList.contains('dcov'),im=cv.querySelector(dc?'.dcv-art>img':':scope>img');if(!im)return;
+  if(!(im.complete&&im.naturalWidth)){if(!im.dataset.cc){im.dataset.cc='1';im.addEventListener('load',()=>{delete im.dataset.cc;coverCrop()},{once:true})}return}
+  cv.classList.remove('ctn');['position','left','top','width','height','inset','objectFit','display','zIndex'].forEach(k=>{if(im.dataset.cs)im.style[k]=''});delete im.dataset.cs;
+  const ia=im.naturalWidth/im.naturalHeight,r=im.getBoundingClientRect(),cr=cv.getBoundingClientRect();if(r.width<2||r.height<2)return;
+  const ca=r.width/r.height,frac=Math.min(ca/ia,ia/ca);if(frac>=.86)return;
+  const full=r.width>=cr.width*.8&&r.height>=cr.height*.5&&getComputedStyle(im).position==='absolute';/* only a background picture can become the band: one that sits in the layout keeps its place */
+  im.dataset.cs='1';
+  if(full){
+   const blocks=[...cv.querySelectorAll(dc?'.dcv-top,.dcv-main,.dcv-prog':'.cvtop,.cvbot')].filter(b=>getComputedStyle(b).position!=='absolute'&&b.offsetHeight>0).map(b=>({t:b.getBoundingClientRect().top-cr.top,b:b.getBoundingClientRect().bottom-cr.top}));
+   /* the biggest stretch of the cover with nothing in it */
+   let y=0,best={s:0,e:0};blocks.sort((a,b)=>a.t-b.t).forEach(b=>{if(b.t-y>best.e-best.s)best={s:y,e:b.t};y=Math.max(y,b.b)});if(cr.height-y>best.e-best.s)best={s:y,e:cr.height};
+   const gap=best.e-best.s-12;if(gap<90){/* no room to show it whole: leave the photo out */im.style.display='none';im.dataset.cs='1';return}
+   const w=Math.min(cr.width,gap*ia),h=w/ia;
+   cv.style.setProperty('--ph','url("'+im.currentSrc.replace(/"/g,'%22')+'")');cv.classList.add('ctn');
+   Object.assign(im.style,{position:'absolute',inset:'auto',left:Math.round((cr.width-w)/2)+'px',top:Math.round(best.s+6+(gap-h)/2)+'px',width:Math.round(w)+'px',height:Math.round(h)+'px',objectFit:'cover',zIndex:'-1'});
+  }else if(r.width<190||r.height<190){im.style.display='none'}
+  else{im.style.objectFit='contain'}
+ })
+}
+{let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{try{document.querySelectorAll('#grid .cfit').forEach(h=>delete h.dataset.fk);covFit();coverCrop()}catch(e){}},160)});try{document.fonts&&document.fonts.ready.then(()=>{document.querySelectorAll('#grid .cfit').forEach(h=>delete h.dataset.fk);covFit()})}catch(e){}}
 const WIRE={order:null,known:null,settled:false,pend:[],newN:0,seed:Math.random().toString(36).slice(2),restored:false,hid:0};
 let _lastSel=null;const SELPOS={};/* where each feed was left, so coming back to it resumes there instead of the top */
 let LASTSET=null;
 if(!S.seenBase){S.seenBase=Date.now();try{save()}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){HIDT=Date.now();markSeen(S.sel)}else if(HIDT&&Date.now()-HIDT>18e5){VIS=visFor(S.sel);setTimeout(waterline,300)}});
-function render(){SMARTV=false;LASTSIG=itemsSig();LASTSET=new Set();for(const f of S.feeds)for(const a of (items[f.id]||[]))LASTSET.add(a.link);setTimeout(endObs,60);LK=layoutKey();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){markSeen(_lastSel);VIS=visFor(S.sel);if(mn0&&_lastSel!==null)SELPOS[_lastSel]={y:mn0.scrollTop,t:Date.now(),k:LK};wireSwitch(_lastSel,S.sel);_lastSel=S.sel;pfKick();const sm=SELPOS[S.sel];if(sm&&Date.now()-sm.t<18e5&&sm.k===LK&&sm.y>40)keep=sm.y;else if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();waterline();secOpener();covTitle();covFit();dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=(S.sel==='today'&&!$('#q').value.trim()&&!nrMode())?'narrow':(S.cards||'medium');clearTimeout(PF.t);PF.t=setTimeout(()=>{prefetch(pfList());oiSync()},2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
+function render(){SMARTV=false;LASTSIG=itemsSig();LASTSET=new Set();for(const f of S.feeds)for(const a of (items[f.id]||[]))LASTSET.add(a.link);setTimeout(endObs,60);LK=layoutKey();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){markSeen(_lastSel);VIS=visFor(S.sel);if(mn0&&_lastSel!==null)SELPOS[_lastSel]={y:mn0.scrollTop,t:Date.now(),k:LK};wireSwitch(_lastSel,S.sel);_lastSel=S.sel;pfKick();const sm=SELPOS[S.sel];if(sm&&Date.now()-sm.t<18e5&&sm.k===LK&&sm.y>40)keep=sm.y;else if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();waterline();secOpener();covTitle();covFit();try{coverCrop()}catch(e){}dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=(S.sel==='today'&&!$('#q').value.trim()&&!nrMode())?'narrow':(S.cards||'medium');clearTimeout(PF.t);PF.t=setTimeout(()=>{prefetch(pfList());oiSync()},2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
 function starGuard(){
  /* reads first, writes after, so the page is laid out once instead of once per card */
  try{
@@ -7636,7 +7734,7 @@ addEventListener('resize',()=>{if($('#rd').classList.contains('on')){if(R.rf==nu
 
 $('#side-list').onclick=e=>{
  const t=e.target,d=t.dataset;
- if(d.tgl){e.stopPropagation();S.fcol=S.fcol||{};if(S.fcol[d.tgl])delete S.fcol[d.tgl];else S.fcol[d.tgl]=1;save();side();return}
+ {const tg=t.closest&&t.closest('[data-tgl]');if(tg){const id=tg.dataset.tgl;e.stopPropagation();S.fcol=S.fcol||{};/* My Feeds starts collapsed, so "open" is stored as 0 (a missing entry would read as the collapsed default and shut again) */if(id==='_mf')S.fcol._mf=S.fcol._mf?0:1;else if(S.fcol[id])delete S.fcol[id];else S.fcol[id]=1;save();side();return}}
  if(d.delx){return askRemove(d.delx)}
  if(d.delf){return askDelFolder(d.delf)}
  if(d.col){const cp=$('#cp');cp.dataset.id=d.col;try{cp.value=brand(feedOf(d.col))}catch(_){}cp.click();return}
@@ -9599,7 +9697,7 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.12j';const APP_LABEL='1.78';
+const APP_VERSION='2026.10.12l';const APP_LABEL='1.80';
 const CHANGES=["Stories that stop at a subscriber gate (like the New York Times verification message) are now spotted, and the app looks for a saved or wire copy of the full story", "If the full story can’t be found, you get the opening paragraphs with a soft fade, a Subscriber Preview card and a button to read it on the original site", "The gate check looks only for real gate messages, so ordinary news pages are not mislabelled as previews"];
 const DEF_ON=new Set(['sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];

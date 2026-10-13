@@ -10,7 +10,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    document.documentElement.style.setProperty('--sw',sw);
    const names=['TechCrunch','The Verge Review Desk','Ars Technica','BBC World Service News','AP','Wired UK Magazine'];
    S.feeds.slice(0,4).forEach((f,i)=>{f.title=names[i];items[f.id]=Array.from({length:7},(_,k)=>({feedId:f.id,title:'S'+k,link:'https://w.test/'+i+'/'+k,date:now-k*36e5,summary:'x',wc:900}));state[f.id]='ok'});
-   S.sel='all';render();await w(500);if(W<700){try{drawer(true)}catch(e){}}await w(500);fitSide();await w(200);
+   S.fcol=S.fcol||{};S.fcol._mf=0;S.fcol._un=0;S.folders.forEach(f=>{S.fcol[f.id]=0});/* My Feeds starts collapsed: open it so the feed rows are there to measure */side();S.sel='all';render();await w(500);if(W<700){try{drawer(true)}catch(e){}}await w(500);fitSide();await w(200);
    return [...document.querySelectorAll('#side-list .fr')].filter(r=>r.querySelector('.frm')).map(r=>{const t=r.querySelector('.frt'),m=r.querySelector('.frm'),n=r.querySelector('.frn'),tr=t.getBoundingClientRect(),mr=m.getBoundingClientRect();return {name:t.textContent.trim(),cls:r.className,cut:t.scrollWidth>t.clientWidth+1,labelVisible:getComputedStyle(m).display!=='none'&&mr.width>0,below:mr.top>=tr.bottom-2,sameLine:Math.abs((mr.top+mr.height/2)-(tr.top+tr.height/2))<8,fs:parseFloat(getComputedStyle(m).fontSize),nfs:parseFloat(getComputedStyle(t).fontSize),inside:mr.right<=document.querySelector('aside').getBoundingClientRect().right+1}})},[sw,W]);
   const t='['+W+' '+sw+'] ';
   ck(t+'rows with labels exist',r.length>=3,JSON.stringify(r).slice(0,300));
