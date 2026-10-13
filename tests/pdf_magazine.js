@@ -46,7 +46,7 @@ const OUT=process.env.PDFOUT||'/tmp/pdf_magazine';fs.mkdirSync(OUT,{recursive:tr
  const ell=[...flat.matchAll(/([A-Za-z’']+)[,;:]?\s?…/g)].map(m=>m[1].toLowerCase());
  ck('ellipses follow whole words ('+ell.length+' checked)',ell.every(w=>vocab.has(w)&&w.length>=1),ell.filter(w=>!vocab.has(w)).join(','));
  ck('no "?" stand-ins for letters',!/\w\?\w/.test(flat),'');
- ck('back page: logo image and colophon',/Typeset on your device/.test(flat)&&/C\s*Y\s*P\s*R\s*E\s*S\s*S/.test(flat));
+ ck('last page: logo image and colophon (B82)',/The art of staying informed/.test(flat)&&/cypressreader\.com\/app/.test(flat)&&/C\s*Y\s*P\s*R\s*E\s*S\s*S/.test(flat));
  const il=li.split('\n').slice(2).filter(Boolean);ck('last page holds the logo',il.some(l=>+l.trim().split(/\s+/)[0]===r.pages),il.slice(-2).join('|'));
  ck('no page errors',!errs.length,errs[0]);
  /* ---------- real publisher text (BBC, TechCrunch, The Verge): tests/fixtures/pdf_real_feeds.json ---------- */

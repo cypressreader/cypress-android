@@ -10511,6 +10511,12 @@ function pdfWrap(s,f,sz,wf,k){
  return lines;
 }
 /* ed: {kind:'The Evening Edition', date:'Friday, October 9', short:'Oct 9', issue:282, cover:{title,source,deck,img:{bytes,w,h}|null}, stories:[{title,source,min,author,link,blocks:[{t:'p'|'h'|'q'|'li',s}]}]} */
+/* B82: the colophon shared by PDF and Kindle exports. The quote bank below is a starter set of public-domain lines; the approved bank of 100 (35 original) replaces it when it is added to the repo. One quote is picked at random per export. */
+const EXBANK=[['Reading maketh a full man; conference a ready man; and writing an exact man.','Francis Bacon'],['Some books are to be tasted, others to be swallowed, and some few to be chewed and digested.','Francis Bacon'],['For knowledge itself is power.','Francis Bacon'],['What is read with delight is commonly retained.','Samuel Johnson'],['Knowledge is of two kinds. We know a subject ourselves, or we know where we can find information upon it.','Samuel Johnson'],['The greatest part of a writer’s time is spent in reading, in order to write.','Samuel Johnson'],['I cannot live without books.','Thomas Jefferson'],['Our Republic and its press will rise or fall together.','Joseph Pulitzer'],['Books must be read as deliberately and reservedly as they were written.','Henry David Thoreau'],['The unexamined life is not worth living.','Socrates'],['Books are the best of things, well used.','Ralph Waldo Emerson']];
+function exColophon(){
+ const q=EXBANK[Math.floor(Math.random()*EXBANK.length)],d=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+ return {tagline:SLOGAN,quote:q[0],by:q[1],date:d,foot:'This selection was made '+d+' \u00b7 Get the app at cypressreader.com/app'};
+}
 function pdfIssue(ed){
  /* ed.fs: body size in points (readable by default); ed.cols: 1 or 2 text columns; ed.solo: one story only, no cover, contents or back page */
  const COLS=ed.cols||2,FS=ed.fs||10.8,LEAD=Math.round(FS*1.4*10)/10;
@@ -10820,20 +10826,21 @@ function pdfIssue(ed){
   e.pg.links.push({x:M,y:e.y-4,w:PW-2*M,h:e.h-2,dest:pi});
   e.dest=pi;
  });
- /* ---------- back page: the colophon, ended with the CyPress mark ---------- */
- if(!ed.solo){
-  const p=mk('');all.push(p);R(p,0,0,PW,PH,GREEN);S(p,22,22,PW-44,PH-44,'#1f8a5b',2.2);S(p,30,30,PW-60,PH-60,BRASS,.6);
-  const cx0=PW/2,ctr=(y,t,f,sz,c,o)=>{const w=pdfW(t,f,sz)+((o&&o.tc)||0)*(t.length-1);T(p,cx0-w/2,y,t,f,sz,c,o)};
-  ctr(120,'CYPRESS','r',30,'#f6efdc',{tc:9});ctr(142,'The art of staying informed.','i',11.5,'#cfe3d6');
-  R(p,cx0-20,172,40,2,GOLD);
-  const ln=[pdfWa(kind),pdfWa(ed.date||''),(ed.issue?'No. '+ed.issue+'  ·  ':'')+ed.stories.length+(ed.stories.length===1?' story':' stories')+(ed.totalMin?'  ·  about '+ed.totalMin:'')];
-  ctr(210,ln[0],'b',15,'#f3ead6');ctr(232,ln[1],'i',12,'#cfe3d6');ctr(254,pdfWa(ln[2]),'h',8.5,'#9fc4af',{tc:.8});
-  const lg=ed.logo,LS=150,ly=PH/2-10;
-  circ(p,cx0,ly+LS/2,LS*.75,'#0f2e22',1);
-  if(lg){drawImg(p,lg,cx0-LS/2,ly,LS,LS)}else{ctr(PH/2+40,'Fin.','i',70,'#f3ead6')}
-  ctr(ly+LS+54,'That is the whole edition. You can stop here.','i',12.5,'#cfe3d6');
-  const b='Typeset on your device by CyPress. Nothing was sent anywhere.';ctr(PH-110,b,'h',8,'#9fc4af');
-  ctr(PH-92,'CyPress is free, has no accounts and shows no ads.','h',7.6,'#7da995');
+ /* ---------- last page: the colophon (B82): a quiet standalone page, same words as the Kindle book's last page ---------- */
+ {
+  const p=mk('');all.push(p);const cx0=PW/2,ctr=(y,t,f,sz,c,o)=>{const w=pdfW(t,f,sz)+((o&&o.tc)||0)*(t.length-1);T(p,cx0-w/2,y,t,f,sz,c,o)};
+  const GOLDT='#8a6a14',CK=exColophon();
+  const lg=ed.logo,LS=104,ly=150;
+  if(lg)drawImg(p,lg,cx0-LS/2,ly,LS,LS);
+  ctr(ly+LS+58,'CYPRESS','r',24,GOLDT,{tc:9});
+  R(p,cx0-24,ly+LS+74,48,1.1,GOLDT);
+  ctr(ly+LS+102,CK.tagline,'i',12.5,INK);
+  /* the quote, wrapped to a comfortable measure; if the last line would be one word alone, the measure is narrowed until it is not */
+  const qt='\x93'+pdfWa(CK.quote)+'\x94',QS=14.5,QL=21;let mw=330,ql=pdfWrap(qt,'i',QS,()=>mw,1.035);
+  for(let k=0;k<14&&ql.length>=2&&ql[ql.length-1].trim().split(/\s+/).length<2;k++){mw-=14;ql=pdfWrap(qt,'i',QS,()=>mw,1.035)}
+  let qy=ly+LS+160;ql.forEach(l=>{ctr(qy,l,'i',QS,INK);qy+=QL});
+  ctr(qy+10,'\x97 '+pdfWa(CK.by),'h',9,'#333333',{tc:.6});
+  ctr(PH-96,pdfWa(CK.foot),'h',8,'#333333');
   p.back=1;
  }
  /* running heads sit in the top margin and folios in the bottom margin, clear of the text block and of every picture */
@@ -12764,7 +12771,8 @@ figcaption{font-size:.8em;line-height:1.35;margin-top:.4em;font-style:italic${bw
 p.end{font-size:.85em;margin:1.4em 0 0;text-align:center}
 a{color:inherit;text-decoration:${bw?'underline':'none'}}
 .cover{margin:0;padding:0;text-align:center}.cover img{max-width:100%;max-height:100%}
-nav ol{list-style:none;padding:0;margin:0}nav li{margin:0 0 .6em}`;
+nav ol{list-style:none;padding:0;margin:0}nav li{margin:0 0 .6em}
+.colo{text-align:center;margin:18% 8% 0;page-break-before:always}.colo p{margin:0}.clg img{width:5.5em;height:5.5em}.cnm{margin:1.4em 0 0;font-size:1.35em;letter-spacing:.4em;font-weight:bold;${bw?'':'color:#8a6a14'}}.crl{width:3em;margin:.8em auto;border:0;border-top:1px solid ${bw?'#000':'#8a6a14'}}.ctg{font-style:italic;margin:0 0 2.4em}.cq{font-style:italic;font-size:1.1em;line-height:1.5;margin:0 auto .7em;max-width:22em}.cby{font-size:.8em;letter-spacing:.08em;margin:0 0 3.2em}.cft{font-size:.75em;margin-top:2.5em}`;
 async function epubMake(stories,mode,title){
  const bw=mode!=='color',uid='urn:uuid:'+(crypto.randomUUID?crypto.randomUUID():'cypress-'+Date.now().toString(16)),files=[],imgs=[];
  const addImg=async u=>{const j=await exJpeg(u,bw,bw?900:1100);if(!j)return null;const n=imgs.length+1,href='images/i'+n+'.jpg';imgs.push({href,bytes:j.bytes});return href};
@@ -12792,6 +12800,11 @@ async function epubMake(stories,mode,title){
   if(/^https?:/.test(st.l||''))body+=`<p class="end"><a href="${xe(st.l)}">Read the original at ${xe(host(st.l))}</a></p>`;
   chapters.push({id,href:id+'.xhtml',title:st.title,xhtml:`<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en"><head><meta charset="utf-8"/><title>${xe(st.title)}</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body><section epub:type="chapter" id="${id}">${body}</section></body></html>`});
  }
+ /* B82: the colophon is the last page of the book */
+ {const CK=exColophon(),lk=LOGOS[S.logo]?S.logo:'tree';let lh=null;try{lh=await addImg('data:image/png;base64,'+LOGOS[lk][0])}catch(e){}
+  const q=xe(CK.quote).replace(/ ([^ ]+)$/,'&#160;$1');
+  const body=`<div class="colo">${lh?`<p class="clg"><img src="${lh}" alt="CyPress"/></p>`:''}<p class="cnm">CYPRESS</p><hr class="crl"/><p class="ctg">${xe(CK.tagline)}</p><p class="cq">&#8220;${q}&#8221;</p><p class="cby">&#8212; ${xe(CK.by)}</p><p class="cft">${xe(CK.foot)}</p></div>`;
+  chapters.push({id:'colophon',href:'colophon.xhtml',title:'Colophon',xhtml:`<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en"><head><meta charset="utf-8"/><title>Colophon</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body>${body}</body></html>`})}
  const now=new Date().toISOString().replace(/\.\d+Z$/,'Z');
  const nav=`<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en"><head><meta charset="utf-8"/><title>Contents</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body><nav epub:type="toc" id="toc"><h1>Contents</h1><ol>${chapters.map(c=>`<li><a href="${c.href}">${xe(c.title)}</a></li>`).join('')}</ol></nav></body></html>`;
  const ncx=`<?xml version="1.0" encoding="utf-8"?>\n<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><head><meta name="dtb:uid" content="${xe(uid)}"/><meta name="dtb:depth" content="1"/><meta name="dtb:totalPageCount" content="0"/><meta name="dtb:maxPageNumber" content="0"/></head><docTitle><text>${xe(title)}</text></docTitle><navMap>${chapters.map((c,i)=>`<navPoint id="n${i+1}" playOrder="${i+1}"><navLabel><text>${xe(c.title)}</text></navLabel><content src="${c.href}"/></navPoint>`).join('')}</navMap></ncx>`;
