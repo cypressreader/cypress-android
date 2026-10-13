@@ -13,8 +13,10 @@ const unzip=buf=>{const out={};let i=0;while(i<buf.length-30&&buf.readUInt32LE(i
   const o=pdfIssue(ed);let t='';const u=o.bytes;for(let i=0;i<u.length;i+=8192)t+=String.fromCharCode.apply(null,u.subarray(i,i+8192));
   const st=await exStory(a);const mode=async m=>{const bl=await epubMake([st],m,'T');const ab=new Uint8Array(await bl.arrayBuffer());let z='';for(let i=0;i<ab.length;i+=8192)z+=String.fromCharCode.apply(null,ab.subarray(i,i+8192));return btoa(z)};
   /* ten exports: the quote is picked at random */
-  const picks=new Set();for(let i=0;i<40;i++)picks.add(exColophon().quote);
-  return {pdf:btoa(t),pages:o.pages,bw:await mode('bw'),color:await mode('color'),distinct:picks.size,bank:EXBANK.length,slogan:SLOGAN}});
+  const picks=new Set();for(let i=0;i<80;i++)picks.add(exColophon().quote);
+  /* every quote in the bank: wrapped for the PDF page, no one-word last line, within a sane number of lines, every character encodable */
+  const all=EXBANK.map(([q,by])=>{const qt='\x93'+pdfWa(q)+'\x94',ql=exWrapQuote(qt,14.5);return {n:ql.length,last:ql[ql.length-1].trim().split(/\s+/).length,w:Math.max(...ql.map(l=>pdfW(l,'i',14.5))),enc:/[^\x00-\xff]/.test(qt+pdfWa(by)),q:q.slice(0,30)}});
+  return {all,pdf:btoa(t),pages:o.pages,bw:await mode('bw'),color:await mode('color'),distinct:picks.size,bank:EXBANK.length,slogan:SLOGAN}});
  const f=os.tmpdir()+'/cy_colo.pdf';fs.writeFileSync(f,Buffer.from(r.pdf,'base64'));
  const np=+(cp.execSync('pdfinfo "'+f+'" | grep Pages',{encoding:'utf8'}).match(/\d+/)||[0])[0];
  const last=cp.execSync('pdftotext -f '+np+' -l '+np+' -layout "'+f+'" -',{encoding:'utf8'}).split('\n').map(x=>x.trim()).filter(Boolean);
@@ -24,7 +26,11 @@ const unzip=buf=>{const out={};let i=0;while(i<buf.length-30&&buf.readUInt32LE(i
  ck('PDF: the quote sits in typographic quotation marks with its author',qi>=0&&bi>qi&&/”$/.test(last[bi-1]),flat);
  ck('PDF: no single word alone on the quote\'s last line',qi>=0&&bi>qi&&last[bi-1].split(/\s+/).length>=2,last.slice(qi,bi).join(' / '));
  ck('PDF: it is a page of its own (nothing from a story on it)',!/Harbour plan|committee met/.test(flat),flat);
- ck('the quote is picked at random (several different ones in 40 tries from a bank of '+r.bank+')',r.distinct>=3,String(r.distinct));
+ ck('the bank is the approved one: 116 quotes',r.bank===116,String(r.bank));
+ ck('the quote is picked at random (many different ones in 80 tries; got '+r.distinct+')',r.distinct>=15,String(r.distinct));
+ ck('all 116 quotes wrap with no one-word last line',r.all.every(x=>x.last>=2),JSON.stringify(r.all.filter(x=>x.last<2)));
+ ck('all 116 quotes fit the page: at most 8 lines and inside the measure',r.all.every(x=>x.n<=8&&x.w<=340),JSON.stringify(r.all.filter(x=>x.n>8||x.w>340)));
+ ck('every character of every quote and author can be set in the PDF font',r.all.every(x=>!x.enc),JSON.stringify(r.all.filter(x=>x.enc)));
  for(const m of ['bw','color']){
   const buf=Buffer.from(r[m],'base64');const files=unzip(buf);const opf=files['OEBPS/content.opf'].toString();
   const spine=[...opf.matchAll(/<itemref idref="([^"]+)"/g)].map(x=>x[1]);const man={};for(const x of opf.matchAll(/<item id="([^"]+)"[^>]*href="([^"]+)"/g))man[x[1]]=x[2];
