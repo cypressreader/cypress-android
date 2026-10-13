@@ -19,7 +19,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   /* kindle */
   let got=null;const sv=saveFile;saveFile=async(n,bl,x)=>{got={n,x};return true};
   S.kindle='me@kindle.com';DGL=items[f.id].slice(0,3).map(a=>a.link);
-  await exportEdition({kindle:1});o.kindle=got;saveFile=sv;
+  await exKindle([findStory(DGL[0])]);o.kindle=got;saveFile=sv;
   /* calm */
   document.querySelector('#tpre [data-tp="calm"]').click();await w(300);o.calm=document.documentElement.classList.contains('calm');o.font=S.font;
   document.querySelector('#tpre [data-tp="editorial"]').click();await w(300);o.calmOff=!document.documentElement.classList.contains('calm');
