@@ -1197,6 +1197,8 @@ body.split .card.act{outline:3px solid var(--logo);outline-offset:2px}
 .body h2,.body h3,.body h4{font:600 24px/1.2 var(--serif);margin:1.2em 0 .5em;text-align:left;break-after:avoid}
 .body img.tiny{width:auto;max-width:min(100%,var(--tw,120px));height:auto;max-height:none;object-fit:contain;margin:1em auto;cursor:default}
 .body img{width:100%;max-height:var(--ih);object-fit:cover;border-radius:12px;display:block;margin:1em 0;break-inside:avoid}
+.body img:not(.tiny):not([height]){aspect-ratio:auto 3/2}
+.body img[height]:not(.tiny){height:auto}
 .body figure{break-inside:avoid}
 .body{overflow-wrap:break-word}
 .body pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font:.74em/1.55 ui-monospace,'SF Mono',Menlo,Consolas,monospace;background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.8em 1em;border-radius:10px;text-align:left;hyphens:none;max-width:100%}
@@ -3656,6 +3658,7 @@ if(!S.todayIntro){S.todayIntro=1;S.sel='today'}
 if(!FIRST&&!S.onboarded)S.onboarded=1;
 document.documentElement.dataset.theme=S.theme||'auto';
 let QWARN=0;
+let SVSEL=null;/* Saved: null when not picking stories; otherwise the set of picked story links. Declared here, early, because the first draw of the Saved screen reads it */
 /* storage full: drop the story cache and image list (they refill by themselves) so your settings and library still save */
 function quotaFix(){try{localStorage.removeItem('folio-cache');localStorage.removeItem('folio-img');localStorage.setItem('folio',JSON.stringify(S))}catch(e){if(!QWARN){QWARN=1;try{toast('Storage is full, so recent changes may not be saved. Remove old saved stories or free space on your phone')}catch(_){}}}}
 /* small on-device error log (last 100), shown under Diagnostics */
@@ -3865,7 +3868,7 @@ function clean(n,base){
    if((ICONRE.test(s)||ALTICON.test(c.getAttribute('alt')||''))&&!/\.(jpe?g|webp|png|avif)\b/i.test(s)){cleanGap(out,c);continue}
    if(+c.getAttribute('height')<60&&c.getAttribute('height')){cleanGap(out,c);continue}
    if(c.closest&&c.closest('li')&&+(c.getAttribute('width')||999)<200){cleanGap(out,c);continue}
-   const su=abs(s,base);if(!/^https?:/i.test(su)){cleanGap(out,c);continue}const im=document.createElement('img');im.src=su;im.loading='lazy';im.referrerPolicy='no-referrer';out.append(im);continue;
+   const su=abs(s,base);if(!/^https?:/i.test(su)){cleanGap(out,c);continue}const im=document.createElement('img');im.src=su;im.loading='lazy';im.referrerPolicy='no-referrer';/* B61: the picture's own size, when the page states it, lets the browser keep its space before it loads, so the text does not jump down when it arrives */{const iw=+c.getAttribute('width'),ih=+c.getAttribute('height');if(iw>=60&&ih>=60&&iw<=8000&&ih<=8000){im.setAttribute('width',iw);im.setAttribute('height',ih)}}out.append(im);continue;
   }
   if(!OK.has(t)){const sub=clean(c,base);if(/^(SECTION|ARTICLE|HEADER|ASIDE|FIGCAPTION|DT|DD|ADDRESS|CENTER|TR|TD|TH|MAIN)$/.test(t)&&sub.textContent.trim())out.append(' ');/* a div/dd/etc. that holds only running text is a paragraph: without a break its text fuses with its neighbours ("...text.Next...") */if(/^(DIV|SECTION|DT|DD|ADDRESS|HEADER|MAIN)$/.test(t)&&sub.textContent.trim()&&!sub.querySelector('p,ul,ol,table,figure,blockquote,pre,h2,h3,h4,hr,img')){const q=document.createElement('p');q.append(sub);out.append(q)}else out.append(sub);continue}
   const e=document.createElement(t);
@@ -3884,7 +3887,7 @@ function tidyFrag(f){
  for(let k=0;k<3;k++){
   w.querySelectorAll('li').forEach(e=>{if(!e.textContent.trim()&&!e.querySelector('img,video,iframe'))e.remove()});
   w.querySelectorAll('ul,ol').forEach(e=>{if(!e.querySelector('li'))e.remove()});
-  w.querySelectorAll('p,div,span,a,h2,h3,h4,blockquote').forEach(e=>{if(!e.textContent.trim()&&!e.querySelector('img,video,iframe,br'))e.remove()});
+  w.querySelectorAll('p,div,span,a,h2,h3,h4,blockquote').forEach(e=>{if(!e.textContent.trim()&&!e.querySelector('img,video,iframe,br')){/* B60: an empty link or span between two words can be the only thing holding the space ("company<a> </a>said"), so it leaves that space behind */if(/^(A|SPAN)$/.test(e.tagName)){if(e.textContent.length)e.replaceWith(' ');else{rmGap(e);e.remove()}}else e.remove()}});
  }
  const o=document.createDocumentFragment();while(w.firstChild)o.append(w.firstChild);return o;
 }
@@ -4956,9 +4959,10 @@ function parWatch(root){
  const m=$('main');let raf=0,lastT=0;
  /* the pinned section name, the position hairline and the picture drift are caught up about twelve times a second while scrolling, not on every frame: each pass measures the page */
  if(m)m.addEventListener('scroll',()=>{if(raf)return;const wait=Math.max(0,80-(performance.now()-lastT));raf=setTimeout(()=>requestAnimationFrame(()=>{raf=0;lastT=performance.now();const pr=parRead();wireChrome();parWrite(pr)}),wait)},{passive:true});
- const g=$('#grid');if(g&&'MutationObserver' in window)new MutationObserver(()=>{wireChrome.dirty=true;parWatch();wireChrome()}).observe(g,{childList:true});
+ /* B94: the pinned name and the hairline are measured in the next frame, not in the middle of drawing the list: measuring there forced the whole page to be laid out an extra time for every redraw */const wireChromeSoon=()=>{if(wireChrome.q)return;wireChrome.q=requestAnimationFrame(()=>{wireChrome.q=0;wireChrome()})};
+ const g=$('#grid');if(g&&'MutationObserver' in window)new MutationObserver(()=>{wireChrome.dirty=true;parWatch();wireChromeSoon()}).observe(g,{childList:true});
  addEventListener('resize',()=>wireChrome());
- {const _r3=render;render=function(){_r3.apply(this,arguments);wireChrome.dirty=true;parWatch();wireChrome()}}
+ {const _r3=render;render=function(){_r3.apply(this,arguments);wireChrome.dirty=true;parWatch();wireChromeSoon()}}
 }
 /* ---- cluster C: the content-cleaning pipeline ----
    One pipeline for what the reader shows and what the print export sets: (a) the extractor scores text blocks by density, not just by length; (b) blocklists of
@@ -6107,7 +6111,7 @@ function dailyDropcaps(){
 const R={web:false,pg:0,np:1,cpv:1,step:0,busy:false};
 let lq;const relayout=()=>{cancelAnimationFrame(lq);lq=requestAnimationFrame(layout)};
 function narrowC(){return isOn('pcomp')&&document.body.classList.contains('narrow')}
-function rdVars(){const r=$('#rd');if(!r)return;const nc=narrowC();r.style.setProperty('--lh',nc?Math.min(+S.lh||1.68,1.5):(S.lh||1.68));{const bk=$('.book'),W=bk?bk.clientWidth:innerWidth,cw=isVert()?Math.min(W-60,740):(W>=700?(W-60-56)/2:W-40),chars=cw/((+S.fs||18)*.5);/* justify only when a line holds enough words; narrow columns left-align so gaps do not open up */r.style.setProperty('--ta',(S.just===false||nc||innerWidth<640||chars<52)?'left':'justify')}}
+function rdVars(){const r=$('#rd');if(!r)return;const nc=narrowC();r.style.setProperty('--lh',nc?Math.min(+S.lh||1.68,1.5):(S.lh||1.68));{/* B61: a phone always left-aligns, so the page is not measured (that read forced a full layout in the middle of opening a story) */if(S.just===false||nc||innerWidth<640){r.style.setProperty('--ta','left');return}const bk=$('.book'),W=bk?bk.clientWidth:innerWidth,cw=isVert()?Math.min(W-60,740):(W>=700?(W-60-56)/2:W-40),chars=cw/((+S.fs||18)*.5);/* justify only when a line holds enough words; narrow columns left-align so gaps do not open up */r.style.setProperty('--ta',(S.just===false||nc||innerWidth<640||chars<52)?'left':'justify')}}
 function imgKey(u){try{let x=String(u||'').split(/[?#]/)[0].toLowerCase();x=x.split('/').filter(Boolean).pop()||'';return x.replace(/\.(jpe?g|png|webp|avif|gif)(\.(jpe?g|png|webp|avif|gif))?$/,'').replace(/[-_@]?\d{2,4}x\d{2,4}/g,'').replace(/[-_](scaled|large|medium|small|thumb(nail)?|full|orig(inal)?|hires|hi-res)$/,'').replace(/@\dx$/,'')}catch(e){return ''}}
 function sameImg(a,b){if(!a||!b)return false;if(String(a).split('?')[0]===String(b).split('?')[0])return true;const x=imgKey(a),y=imgKey(b);if(x.length>=8&&x===y)return true;if(x.length>=5&&x===y&&!/^(image|img|photo|picture|pic|hero|cover|main|lead|thumb|thumbnail|banner|article|featured|default|placeholder|logo|share|og|story|news)\d*$/.test(x))return true;if(x.length<10||y.length<10)return false;let i=0;while(i<x.length&&i<y.length&&x[i]===y[i])i++;return i>=10&&i/Math.min(x.length,y.length)>=.75}
 /* The picture shows once, in the body. The moment a body (the feed's copy, the stored copy or the full page) is in place, and before it can paint, the separate top-of-page copy is set aside; if a later body has no such picture, the top copy goes back. Two never show together. */
@@ -7135,6 +7139,8 @@ async function openReader(a){
  if(R.T){cancelAnimationFrame(R.T.raf);R.T.dead=true;R.T=null}
  R.pg=0;R.busy=false;R.web=false;R.auto=false;RDY=null;R.endArmed=false;R.botAt=0;if(!R.keepCtx)R.ctx=cur.filter((x,i,l)=>x&&x.link&&l.findIndex(y=>y.link===x.link)===i);R.keepCtx=false;clearTimeout(R.wd);clearInterval(R.tk);R.t0=Date.now();R.lp='Loading the full article…';R.lpUrls=new Set([a.link]);R.tk=setInterval(()=>{const n=document.querySelector('.cols .note');if(!n||!/^Loading the full article/.test(n.textContent)||!curA||curA.link!==a.link){clearInterval(R.tk);return}rdTick()},1000);R.wd=setTimeout(()=>{const n=document.querySelector('.cols .note');if(n&&/^Loading the full article/.test(n.textContent)&&curA){clearInterval(R.tk);const bl=(LG[curA.link]||[]).some(x=>/HTTP (401|403|429|451|202)\b/.test(String(x)));n.innerHTML=(bl?'<span class="sbadge">Blocked</span>This site is turning the app away (a bot check), so the full story hasn’t arrived. ':'<span class="sbadge">Taking too long</span>This site is slow to answer, so the full story hasn’t arrived. ')+'<button type="button" class="lnk" data-web="1">View the site here</button> <button type="button" class="lnk" data-retry>Try again</button> <a class="lnk" href="'+esc(curA.link)+'" target="_blank" rel="noopener">Open the original</a>'}},16000);_vm=isVert();R.inBrief=S.sel==='brief'&&!!(S.brief&&S.brief.links.includes(a.link));if(R.inBrief&&!S.brief.pinned){S.brief.pinned=1;save()}
  RDTRIG=document.activeElement;$('#rd').classList.add('on');try{$('#rd').tabIndex=-1;$('#rd').focus({preventScroll:true})}catch(e){}applyFs(false);applyFolderTheme();
+ /* B61: the panel is on screen (title, bar, empty page) before the heavy work of filling and laying out the text starts, so the tap answers at once instead of freezing until everything is ready */
+ if(!reduced()){await new Promise(r=>{let d=false;const go=()=>{if(!d){d=true;r()}};requestAnimationFrame(()=>setTimeout(go,0));setTimeout(go,120)});if(my!==tok)return}
  const c=$('.cols'),body=c.querySelector('.body'),note=c.querySelector('.note');
  R.heroEl=R.heroMark=null;
  /* a story that was got ready ahead of time goes straight onto the page: no network, no parsing of a page, no cleaning (that was all done when it was fetched) */
@@ -7188,7 +7194,7 @@ let SYSFS=0;
 function sysScale(){
  if(!isOn('sysfs'))return 1;
  let k=SYSFS;
- if(!k){try{const e=document.createElement('div');e.style.cssText='position:absolute;visibility:hidden;font:medium sans-serif;pointer-events:none';e.textContent='x';document.body.append(e);k=parseFloat(getComputedStyle(e).fontSize)/16;e.remove()}catch(er){k=1}}
+ if(!k&&Date.now()-(sysScale.t||0)<60000)k=sysScale.k;if(!k){try{const e=document.createElement('div');e.style.cssText='position:absolute;visibility:hidden;font:medium sans-serif;pointer-events:none';e.textContent='x';document.body.append(e);k=parseFloat(getComputedStyle(e).fontSize)/16;e.remove();sysScale.k=k;sysScale.t=Date.now()}catch(er){k=1}}
  return Math.max(.85,Math.min(2,k||1));
 }
 function applyFs(re){needFont(fontKey());if(S.font==='dys'){document.fonts&&document.fonts.load("18px 'OpenDyslexic'").then(()=>relayout(),()=>{})}const r=$('#rd'),sp=!!S.sep&&S.theme!=='dynamic';{const fz=Math.round((+S.fs||18)*sysScale()*10)/10;r.style.setProperty('--fs',fz+'px');r.style.setProperty('--fsu',fz+'px')}r.style.setProperty('--rf',FONTS[fontKey()]||FONTS.serif);r.style.setProperty('--ls',S.font==='dys'?'.02em':'normal');r.style.setProperty('--ws',S.font==='dys'?'.12em':'normal');rdVars();r.classList.toggle('sep',sp);document.documentElement.classList.toggle('sepp',sp);save();if(re)relayout()}
@@ -9877,7 +9883,7 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.13g';const APP_LABEL='1.87';
+const APP_VERSION='2026.10.13i';const APP_LABEL='1.89';
 const CHANGES=["Stories that stop at a subscriber gate (like the New York Times verification message) are now spotted, and the app looks for a saved or wire copy of the full story", "If the full story can’t be found, you get the opening paragraphs with a soft fade, a Subscriber Preview card and a button to read it on the original site", "The gate check looks only for real gate messages, so ordinary news pages are not mislabelled as previews"];
 const DEF_ON=new Set(['sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
@@ -12427,7 +12433,9 @@ function mergePackFolders(){
 try{const OLDI=/investopedia\.com\/feedbuilder|site(%3A|:)investopedia\.com/i;let mi=0;for(const f of S.feeds)if(OLDI.test(f.url)||OLDI.test(f.oldUrl||'')){mi=1;f.oldUrl=f.url;f.url='https://feeds-api.dotdashmeredith.com/v1/rss/google/f8466ec3-5044-46bc-94b7-2df65f770eff';f.via=''}if(mi)save()}catch(e){}
 try{const FX={'https://feeds.ign.com/ign/all':'https://www.ign.com/rss/v2/articles/feed','https://www.seriouseats.com/feed/serious-eats':'https://feeds-api.dotdashmeredith.com/v1/rss/google/ad57d421-0ff5-41e7-a5da-f2167b6d7f7a','https://www.core77.com/rss':'https://www.core77.com/rss.xml','https://www.espncricinfo.com/rss/content/story/feeds/0.xml':'https://www.cricinfo.com/rss/content/story/feeds/0.xml','https://www.vulture.com/rss/index.xml':'https://feeds.feedburner.com/nymag/vulture'};let c=0;for(const f of S.feeds){const k=FX[f.url];if(k){f.oldUrl=f.url;f.url=k;f.via='';c=1}}if(c)save()}catch(e){}
 try{if(!S.pkfm){S.pkfm=1;const r=mergePackFolders();if(r.moved||r.gone){save();setTimeout(()=>{try{fillFolders();render();toast('Merged starter-pack folders into your matching folders')}catch(e){}},1500)}else save()}}catch(e){}
-render();loadAll();document.documentElement.classList.remove('boot');
+render();document.documentElement.classList.remove('boot');
+/* B94: the first screen is drawn from the saved copy and painted before anything else starts: reading the feeds (network, parsing, a redraw per feed) and the other start-up chores wait for that first paint */
+{let gone=false;const go=()=>{if(gone)return;gone=true;try{loadAll()}catch(e){elog('loadAll',e)}};const raf=window.requestAnimationFrame?window.requestAnimationFrame.bind(window):(f=>setTimeout(f,16));raf(()=>raf(()=>setTimeout(go,0)));setTimeout(go,600)}
 /* one quiet retry for feeds that failed on launch (slow wifi, radio waking up) */
 setTimeout(()=>{if(S.offline||FROZEN||!navigator.onLine)return;S.feeds.filter(f=>state[f.id]==='err'&&!paused(f)).forEach(f=>load(f,true).catch(()=>{}))},15000);
 applyLogo();
@@ -12895,6 +12903,27 @@ async function preloadNext(){
   if(r&&!r.pw&&!acHas(n.link)){const d=document.createElement('div');d.append(dropTitle(r,n.title));if(d.textContent.length>=600){acPut(n.link,d.innerHTML);markReady(n.link);warmImgs(d,n);S.rt[n.link]=Math.max(1,Math.round(d.textContent.split(/\s+/).length/230))}}
  }catch(e){}
 }
+/* B97: when the end of a story is reached, everything its end card offers (Next up, Related reads, Up next) is fetched, cleaned and stored in the background, so tapping any of them opens at once.
+   Same gates as the other background passes (never on mobile data, never in data-saver or offline mode, a few when the network or charge is unknown or low), and nothing is fetched until the end is reached. */
+function recsList(a){
+ const out=[];[nextAfter(a),...relatedFor(a),readerNext()].forEach(x=>{if(x&&x.link&&x.link!==a.link&&!out.some(y=>y.link===x.link))out.push(x)});
+ return out;
+}
+function recsKick(l){
+ const a=curA;if(!a||a.link!==l||R.recsFor===l)return;
+ if(!pfAllowed()||isOn('dsave')||onCell()){return}
+ const cap=pfCap(8);if(cap<1)return;
+ R.recsFor=l;
+ prefetch(recsList(a).slice(0,cap),true);
+}
+function recsCheck(){
+ const a=curA;if(!a||R.web||!R.ready||R.recsFor===a.link)return;
+ let end=false;
+ if(isVert()){const v=vView();end=!v||v.scrollHeight<=v.clientHeight+20||vEndFrac()>=.9}
+ else{const E=R.ep!=null?R.ep:R.np-1;end=R.np<2||R.pg>=E}
+ if(end)recsKick(a.link);
+}
+{const _sp=setProg;setProg=function(){const r=_sp.apply(this,arguments);try{recsCheck()}catch(e){}return r}}
 function rnHint(t){
  let h=$('#rnh');if(!h){h=document.createElement('div');h.id='rnh';h.setAttribute('role','status');($('#rd')||document.body).append(h)}
  h.textContent=t;h.classList.add('on');clearTimeout(h._t);h._t=setTimeout(()=>h.classList.remove('on'),2200);
@@ -13118,7 +13147,7 @@ document.addEventListener('click',async e=>{
 },true);
 
 /* ---------- Saved: pick the stories you want, then make a PDF or a Kindle book from just those ---------- */
-let SVSEL=null;/* null: not picking; otherwise the set of picked story links */
+/* (SVSEL is declared near the top of the script: the Saved screen reads it on the very first draw) */
 const svList=()=>S.saved.filter(a=>!S.stag||(a.tags||[]).includes(S.stag));
 function svBar(){
  let b=$('#svbar');

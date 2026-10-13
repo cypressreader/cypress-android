@@ -237,3 +237,11 @@ Android only; nothing here could be built or run in the dev environment (the app
 - [ ] Reboot the phone: the Top Story and Ticker keep flipping afterwards.
 - [ ] Z Fold: unfolded and folded home screens both lay the widgets out sensibly.
 - [ ] Read stories are dimmed on all three. (The old Save button on the widget card is gone from the new design.)
+
+## 1.89 Instant opens — must verify on a real phone
+- [ ] Wi-Fi: read a story to its end (scroll or turn to the last page), wait about 10 seconds, then tap Next up or a Related read: it should open with no loading note. Try with Airplane mode switched on after waiting: it should still open.
+- [ ] Mobile data only: reach the end of a story; nothing should be downloaded in the background (check data use in Android settings if you can). Same with Data saver on.
+- [ ] Tapping any story in a list: the reading panel appears at once; the text arrives a moment later with a quick fade, no jumping. Try a story with a big top picture on slow Wi-Fi: the text must not jump down when the picture arrives.
+- [ ] Cold start (swipe the app away, open it): time to the first story. Note whether it feels faster than 1.87 on the Z Fold, and whether anything looks empty for a moment (the feed refresh now starts a moment after the first screen).
+- [ ] Words: re-open the Next Web and Vox stories that showed "companysaid" / "Bloomberghas" and a few others; no joined words. (Words glued by the publisher itself with no element between them cannot be told apart and are left as they are.)
+- [ ] The full-edition Wi-Fi pre-download from earlier releases is unchanged (it is already in main; see 1.72 notes). Still must be checked on a phone on and off charge, per its own items.
