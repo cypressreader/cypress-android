@@ -237,3 +237,6 @@ Android only; nothing here could be built or run in the dev environment (the app
 - [ ] Reboot the phone: the Top Story and Ticker keep flipping afterwards.
 - [ ] Z Fold: unfolded and folded home screens both lay the widgets out sensibly.
 - [ ] Read stories are dimmed on all three. (The old Save button on the widget card is gone from the new design.)
+
+## 1.88 Saved start-up crash — must verify on a real phone
+- [ ] Open Saved, close the app completely (swipe it away), open it again: it must open straight onto Saved, not "CyPress couldn't start". Repeat with Today, All stories and a folder open.
