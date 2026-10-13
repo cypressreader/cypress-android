@@ -402,7 +402,7 @@ final class CyWidgets {
         rv.setViewVisibility(R.id.cy_wl_empty, shown == 0 ? View.VISIBLE : View.GONE);
         String ed = sp(c).getString("widget_ed", "");
         boolean upd = isUpdating(c);
-        rv.setTextViewText(R.id.cy_wl_ed, upd ? "UPDATING…" : (isStale(c) ? "TAP TO REFRESH" : ed.toUpperCase(Locale.getDefault())));
+        rv.setTextViewText(R.id.cy_wl_ed, upd ? "UPDATING…" : (isStale(c) ? "TAP TO REFRESH" : (ed.length() > 0 ? ed : "The art of staying informed.").toUpperCase(Locale.getDefault())));
         if (pics) ensurePics(c);
         PendingIntent open = isStale(c) ? refreshIntent(c, 391) : CyExtras.openIntent(c, null, 390);
         rv.setOnClickPendingIntent(R.id.cy_wl_root, open);
