@@ -4166,7 +4166,9 @@ function loadFlush(){clearTimeout(LRT);clearTimeout(LRW);LRT=LRW=0;quietRender()
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&(LRT||LRW))loadFlush()});addEventListener('pagehide',()=>{if(LRT||LRW)loadFlush()});
 function loadRender(){clearTimeout(LRT);LRT=setTimeout(loadFlush,350);if(!LRW)LRW=setTimeout(loadFlush,1500)}
 const INFL=new Map();
-function load(f,fresh){if(INFL.has(f.id))return INFL.get(f.id);const p=load0(f,fresh).finally(()=>INFL.delete(f.id));INFL.set(f.id,p);return p}
+/* B95: at most six feeds are read at the same time (the same six-slot pool the picture fetches use); the rest wait their turn, so a long list or an import never opens dozens of connections at once */
+const LDQ=[];let LDN=0;const ldSlot=()=>LDN<6?(LDN++,Promise.resolve()):new Promise(r=>LDQ.push(r));const ldFree=()=>{const r=LDQ.shift();if(r)r();else LDN--};
+function load(f,fresh){if(INFL.has(f.id))return INFL.get(f.id);const p=(async()=>{await ldSlot();try{if(!S.feeds.includes(f))return;return await load0(f,fresh)}finally{ldFree()}})().finally(()=>INFL.delete(f.id));INFL.set(f.id,p);return p}
 async function load0(f,fresh){
  if(S.offline){state[f.id]=(items[f.id]||[]).length?'ok':'err';render();return}
  state[f.id]='load';LP.t++;pfBar();
@@ -4197,7 +4199,10 @@ function applyRules(f,all){
 }
 const rfSkip=(f,fresh)=>{if(fresh===true||!f.rfm)return false;if(!(items[f.id]||[]).length)return false;if(f.rfm<0)return true;const ok=(S.health[f.id]||{}).ok||0;return Date.now()-ok<f.rfm*6e4};
 let ONT=0;addEventListener('online',()=>{clearTimeout(ONT);ONT=setTimeout(()=>{if(!S.offline&&!FROZEN)loadAll(true)},2000)});
-const loadAll=fresh=>{S.lastLoad=Date.now();return Promise.all(S.feeds.filter(f=>!rfSkip(f,fresh)).map(f=>load(f,fresh===true).catch(()=>{}))).then(r=>{if(LRT||LRW)loadFlush();pfKick();wireSettle();return r})};
+/* B95: a feed that keeps failing is tried less and less often (15 min after the third failure in a row, then 30, 60 … up to a day) instead of on every refresh; pulling to refresh or the refresh button still tries everything */
+const deadWait=f=>{const h=S.health[f.id]||{},n=h.fn||0;if(n<3||!h.fail)return 0;return Math.min(864e5,9e5*Math.pow(2,n-3))};
+const rfDead=(f,fresh)=>{if(fresh===true)return false;const w=deadWait(f);return w>0&&Date.now()-(S.health[f.id].fail||0)<w};
+const loadAll=fresh=>{S.lastLoad=Date.now();return Promise.all(S.feeds.filter(f=>!rfSkip(f,fresh)&&!rfDead(f,fresh)).map(f=>load(f,fresh===true).catch(()=>{}))).then(r=>{if(LRT||LRW)loadFlush();pfKick();wireSettle();return r})};
 
 async function viaJson(f){
  const r=await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(f.url),{signal:AbortSignal.timeout(12000)}),j=await r.json();
@@ -8333,9 +8338,12 @@ function opmlParse(text){
 async function opmlImport(text,name){
  const r=opmlParse(text);
  if(r.err){toast(r.err);return}
- const fresh=r.feeds.filter(f=>!inFeeds(f.url)),dup=r.feeds.length-fresh.length,folders=new Set(fresh.map(f=>f.folder).filter(Boolean));
+ const fresh=r.feeds.filter(f=>!inFeeds(f.url)),dup=r.feeds.length-fresh.length;
  if(!fresh.length){toast('All '+r.feeds.length+' feeds in that file are already in your list.');return}
- const ok=await askBox({title:'Import '+fresh.length+' feed'+(fresh.length===1?'':'s')+'?',text:(name?'From “'+name+'”. ':'')+(folders.size?'They go into '+folders.size+' folder'+(folders.size===1?'':'s')+' ('+[...folders].slice(0,4).join(', ')+(folders.size>4?', …':'')+')'+(fresh.some(f=>!f.folder)?', and the rest are unfiled':'')+'.':'They are added without folders.')+(dup?'\n'+dup+' already in your list will be skipped.':'')+(r.bad?'\n'+r.bad+' with unusable addresses will be skipped.':''),ok:'Import',cancel:'Cancel'});
+ /* B95: one import takes at most 300 feeds; the first 300 in the file are used and the rest are left out (say so, never silently) */
+ const OPML_MAX=300,cut=Math.max(0,fresh.length-OPML_MAX);if(cut)fresh.length=OPML_MAX;
+ const folders=new Set(fresh.map(f=>f.folder).filter(Boolean));
+ const ok=await askBox({title:'Import '+fresh.length+' feed'+(fresh.length===1?'':'s')+'?',text:(name?'From “'+name+'”. ':'')+(folders.size?'They go into '+folders.size+' folder'+(folders.size===1?'':'s')+' ('+[...folders].slice(0,4).join(', ')+(folders.size>4?', …':'')+')'+(fresh.some(f=>!f.folder)?', and the rest are unfiled':'')+'.':'They are added without folders.')+(dup?'\n'+dup+' already in your list will be skipped.':'')+(r.bad?'\n'+r.bad+' with unusable addresses will be skipped.':'')+(cut?'\nThat file has '+(fresh.length+cut)+' feeds; one import takes the first '+fresh.length+'. Import the rest in a second file.':''),ok:'Import',cancel:'Cancel'});
  if(!ok)return;
  const addedF=[],addedFo=[];
  for(const f of fresh){
