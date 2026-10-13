@@ -31,7 +31,7 @@ const THEMES=(process.env.THEMES||'').split(',').filter(x=>x!==undefined);
     const top=cv.querySelector('.cvtop,.dcv-top');if(top){const t=top.getBoundingClientRect();if(inter(hr,t)>6)out.push('overlaps the masthead')}
     if(!cv.classList.contains('dcov')){const im=cv.querySelector(':scope>img');if(im&&['block','gazette','gallery','index','overlap','cinema','chapters','journal'].includes(st)&&getComputedStyle(im).position!=='absolute'){const i=im.getBoundingClientRect();if(inter(hr,i)>6)out.push('overlaps the picture')}}
     return{out,fs:parseFloat(cs.fontSize),h:Math.round(cr.height),lines:Math.round(hr.height/(parseFloat(cs.lineHeight)||parseFloat(cs.fontSize)))}},[st,ht]);
-   process.stdout.write('.');checks++;if(r.none){fails.push(`${W}x${H} ${st}/${hk}: no cover rendered (${r.none})`);bad++;continue}
+   process.stdout.write(st+'/'+hk+' ');checks++;if(r.none){fails.push(`${W}x${H} ${st}/${hk}: no cover rendered (${r.none})`);bad++;continue}
    if(r.out.length){bad++;fails.push(`${W}x${H} ${st}/${hk} (${r.fs.toFixed(0)}px): ${r.out.join('; ')}`)}
   }
   if(errs.length){bad++;fails.push(W+': page error '+errs[0])}
