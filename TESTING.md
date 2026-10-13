@@ -189,6 +189,26 @@ Things that could not be reproduced in a desktop browser and need a check on a r
 - [ ] Settings → Cover style (plain list) shows the same 25 styles and names as the picker.
 - [ ] Re-check from the batch that were already fixed in earlier releases and pass in automated tests only: Related reads opens the right story, short share links, image retry shows one picture, Compare coverage, no ads as cover story, 202/429 sites (thehill.com, howstuffworks.com) load, Saved "Time I have" filter, Clear history asks and says so, trimmed More menu (11 actions), "Story N of M" gone, reading progress inside the bar, side-by-side reading toggle (off by default), Brief links stay in the app.
 
+## 1.85 Feeds — must verify on a real phone
+- [ ] Add a feed → type **ctv**, **nyt**, **wapo**, **gurdian**, **home decor**, **knitting**, **sleep**: sensible results; adding one puts it in the folder named under it and shows "Added to …".
+- [ ] A word that matches nothing (for example **ctvv**) shows "Did you mean …" and the add-it-yourself instructions straight away (not only after the web check ends).
+- [ ] Paste a site address (a blog, a news site, a Medium or Substack page, a WordPress or Blogger site): "Found a feed on that site" appears with "will be added to “<your folder>”"; change the folder menu and the line changes; adding puts it in that folder (no new "Other" folder).
+- [ ] The Back button (inside Browse topics and the other lists) is clearly visible and easy to tap with a thumb.
+- [ ] Settings → Import/Export or Add a feed → **Import a feed list (OPML)**: pick a real OPML file from your other reader (Feedly, Inoreader, NetNewsWire…). The preview counts look right, folders are kept, and Undo works. (The Android file picker cannot be driven here.)
+- [ ] The Lifestyle folder (Life Kit, Lifehacker, The Art of Manliness, Zen Habits): after a refresh, no hard news (Pope, hurricanes, Justice Department…). If Life Kit is unreachable it stays empty/offline instead of showing NPR news.
+- [ ] 734 feeds were "verified" from this server; some may behave differently from your phone (publisher bot checks). If a newly added feed shows no stories, tell me which one so it can be fixed or removed.
+- Not in this phase: click-one-headline training changes, change monitoring, and serving feeds over Wi-Fi (items 7, 9 and 10 of B46; "Teach CyPress" and "Watch a page" already exist from an earlier release).
+
+## 1.84 Export redesign — must verify on a real phone
+- [ ] Open a story → ··· menu → **Save as PDF**: one tap. A note says it is working, then the Android share sheet opens with a PDF. The PDF opens in your PDF app; text is easy to read (not tiny); the headline has no "FOR SUBSCRIBERS"; pictures from the story are in it.
+- [ ] Open a story → ··· menu → **Send to Kindle** (first time): the Kindle address question appears (the field wants the @kindle.com address; the approved-sender note is a separate line). Save it, then your email app opens with an EPUB attached and your Kindle address filled in. Send it and check it arrives on the Kindle (Amazon may take a few minutes; the sending email address must be on Amazon's approved list).
+- [ ] Settings → Stories → **Kindle books**: try both Black and white and Color. On an e-ink Kindle the black and white book should have grey pictures and a high-contrast cover; on a colour Kindle/Kobo the colour book keeps colour. Check the type size is comfortable and the contents (Go to) works.
+- [ ] Saved → **Pick stories**: tap 2 or 3 stories (a check appears, the story does not open), then **Make PDF**: a mini-edition with a cover, contents and the full stories. Also try Send to Kindle from the same bar, Share links, Pick all and Done.
+- [ ] Today (the Daily): there is no Export PDF or Send to Kindle any more; Catch me up and Share cover are still there.
+- [ ] Tap Save as PDF / Send to Kindle twice quickly: only one file is made and the buttons are greyed while it works.
+- [ ] A story that only has its summary stored (never opened): the note says to open it once first.
+- Honest limits: the share sheet, the email hand-off and how the EPUB looks on a real Kindle cannot be tested in this environment (the EPUB passes the official EPUBCheck validator with no errors or warnings). The old "tap Export PDF several times" problem could not be reproduced here; the new buttons answer immediately and ignore a second tap, but only a phone can confirm.
+
 ## 1.83 Cover picker previews — must verify on a real phone
 - [ ] Settings → Cover style → open the picker on the phone: every tile should look like the real cover (not an old design). Check Poster and Italic mix (no photo), Chapters (title, four stories, one photo), Top plays (numbered list), Journal, Gallery, Type.
 - [ ] The tiles scroll smoothly (each is a full cover drawn small, 25 of them); the picker opens without a noticeable pause on your Z Fold.
