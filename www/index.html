@@ -3450,10 +3450,10 @@ html[data-ts="l"] #grid .wcols,html[data-ts="l"] #grid .nr-lsub,html[data-ts="l"
 #grid .cover.cv-block .cvbot{grid-column:1!important;grid-row:3!important}
 /* Chapters shows its four story cards two by two, wide enough to hold their text */
 #grid .cover.cv-chapters{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-#grid .cover.cv-chapters>img{grid-column:1!important;grid-row:3!important}
-#grid .cover.cv-chapters .cvl:nth-child(1){grid-column:2!important;grid-row:3!important}
-#grid .cover.cv-chapters .cvl:nth-child(2){grid-column:1!important;grid-row:4!important}
-#grid .cover.cv-chapters .cvl:nth-child(3){grid-column:2!important;grid-row:4!important}
+#grid .cover.cv-chapters>img{grid-column:1/-1!important;grid-row:3!important;aspect-ratio:16/10!important;height:auto!important;border-radius:10px}
+#grid .cover.cv-chapters .cvl:nth-child(1){grid-column:1!important;grid-row:4!important;aspect-ratio:1/1!important}
+#grid .cover.cv-chapters .cvl:nth-child(2){grid-column:2!important;grid-row:4!important;aspect-ratio:1/1!important}
+#grid .cover.cv-chapters .cvl:nth-child(3){grid-column:1/-1!important;grid-row:5!important;aspect-ratio:16/7!important}
 #grid .cover:not(.cv-chapters):not(.cv-broadcast) .cvl{display:block!important;grid-template-columns:none!important}
 @media(max-width:699px){
  #grid .cover:not(.cv-chapters):not(.cv-broadcast) .cvlines{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px 0!important;counter-reset:none}
@@ -4357,9 +4357,8 @@ function coverCrop(){
   if(!(im.complete&&im.naturalWidth)){if(!im.dataset.cc){im.dataset.cc='1';im.addEventListener('load',()=>{delete im.dataset.cc;coverCrop()},{once:true})}return}
   cv.classList.remove('ctn');['position','left','top','width','height','inset','objectFit','display','zIndex'].forEach(k=>{if(im.dataset.cs)im.style[k]=''});delete im.dataset.cs;
   const ia=im.naturalWidth/im.naturalHeight,r=im.getBoundingClientRect(),cr=cv.getBoundingClientRect();if(r.width<2||r.height<2)return;
-  const ca=r.width/r.height,frac=Math.min(ca/ia,ia/ca);if(frac>=.72)return;
-  if(/\bcv-(chapters|plays)\b/.test(cv.className))return;/* small story cards: their pictures are thumbnails */
-  const full=r.width>=cr.width*.9&&r.height>=cr.height*.9;
+  const ca=r.width/r.height,frac=Math.min(ca/ia,ia/ca);if(frac>=.86)return;
+  const full=r.width>=cr.width*.8&&r.height>=cr.height*.5;
   im.dataset.cs='1';
   if(full){
    const blocks=[...cv.querySelectorAll(dc?'.dcv-top,.dcv-main,.dcv-prog':'.cvtop,.cvbot')].filter(b=>getComputedStyle(b).position!=='absolute'&&b.offsetHeight>0).map(b=>({t:b.getBoundingClientRect().top-cr.top,b:b.getBoundingClientRect().bottom-cr.top}));
