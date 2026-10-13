@@ -3434,6 +3434,18 @@ html[data-ts="l"] #grid .wcols,html[data-ts="l"] #grid .nr-lsub,html[data-ts="l"
 #grid .cover.cv-broadcast .cvlines{display:block;white-space:normal;overflow:visible}
 #grid .cover.cv-broadcast .cvl{display:block;max-width:none;overflow:visible;text-overflow:clip;border-right:0;border-top:1px solid rgba(255,255,255,.16);padding:12px 20px}
 #grid .cover.cv-broadcast .cvl span{font:600 clamp(15px,4vw,19px)/1.25 var(--sans);white-space:normal}
+/* the picture of Block always sits above its text, at any screen width (side by side left too little room for a headline) */
+#grid .cover.cv-block{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr) auto auto!important;max-height:none!important}
+#grid .cover.cv-block>img{grid-column:1!important;grid-row:1!important;height:100%!important;min-height:0!important}
+#grid .cover.cv-block .cvtop{grid-column:1!important;grid-row:2!important}
+#grid .cover.cv-block .cvbot{grid-column:1!important;grid-row:3!important}
+/* Chapters shows its four story cards two by two, wide enough to hold their text */
+#grid .cover.cv-chapters{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#grid .cover.cv-chapters>img{grid-column:1!important;grid-row:3!important}
+#grid .cover.cv-chapters .cvl:nth-child(1){grid-column:2!important;grid-row:3!important}
+#grid .cover.cv-chapters .cvl:nth-child(2){grid-column:1!important;grid-row:4!important}
+#grid .cover.cv-chapters .cvl:nth-child(3){grid-column:2!important;grid-row:4!important}
+#grid .cover:not(.cv-chapters):not(.cv-broadcast) .cvl{display:block!important;grid-template-columns:none!important}
 @media(max-width:699px){
  #grid .cover:not(.cv-chapters):not(.cv-broadcast) .cvlines{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px 0!important;counter-reset:none}
  #grid .cover:not(.cv-chapters):not(.cv-broadcast) .cvl{display:block!important;grid-template-columns:none!important;aspect-ratio:auto!important;position:static!important;background:none!important;border-radius:0!important;box-shadow:none!important;padding:0!important;min-width:0}
@@ -9649,7 +9661,7 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.12k';const APP_LABEL='1.79';
+const APP_VERSION='2026.10.12l';const APP_LABEL='1.80';
 const CHANGES=["Stories that stop at a subscriber gate (like the New York Times verification message) are now spotted, and the app looks for a saved or wire copy of the full story", "If the full story can’t be found, you get the opening paragraphs with a soft fade, a Subscriber Preview card and a button to read it on the original site", "The gate check looks only for real gate messages, so ordinary news pages are not mislabelled as previews"];
 const DEF_ON=new Set(['sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];

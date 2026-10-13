@@ -6,7 +6,7 @@ const STYLES0=['type','photo','poster','block','gazette','gallery','spotlight','
 const STYLES=process.env.STYLES?process.env.STYLES.split(','):STYLES0;
 const PANEL=new Set(['block','gazette','gallery','index','cinema','chapters','journal']);
 const HEADS={short:'Markets rally on rate hopes',aus:'Australia politics live: PM urged to call Trump about execution livestream',long:'After 4 Hours, Phantom Blade Zero Just Became My Most-Anticipated Action Game Of The Year, Say Reviewers Who Played It',word:'Internationalization of telecommunications infrastructure accelerates dramatically'};
-const SIZES=(process.env.SIZES||'320x568,360x740,412x860,515x900,820x1180').split(',').map(s=>s.split('x').map(Number));
+const SIZES=(process.env.SIZES||'412x860').split(',').map(s=>s.split('x').map(Number));
 const THEMES=(process.env.THEMES||'').split(',').filter(x=>x!==undefined);
 (async()=>{const b=await chromium.launch();
  for(const [W,H] of SIZES){
