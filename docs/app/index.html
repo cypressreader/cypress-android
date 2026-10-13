@@ -4331,6 +4331,9 @@ const layoutKey=()=>((S.narrow||'auto')==='auto'&&VW<=500)+'|'+(VW<700)+'|'+(VW>
 /* Cover headlines are sized to fit THEIR cover: the largest size (up to the style's own big size) at which the whole headline shows (no hidden lines, no "..."), no word is wider than the box (so none is cut in the middle), and the cover stays within its designed height (so nothing is pushed under the masthead or over a picture panel). Re-done when the window or the fonts change. */
 function covFit(){
  document.querySelectorAll('#grid .cover,#grid .dcov').forEach(cv=>{
+  /* the paper's name must fit its column on one line, whatever the screen shape or letter spacing */
+  const m=cv.querySelector('.cvm'),mb=m&&m.parentElement;
+  if(m&&mb){const mk=mb.clientWidth+'|'+cv.className+'|'+m.textContent;if(m.dataset.mk!==mk){m.style.removeProperty('font-size');const cs=getComputedStyle(mb),av=mb.clientWidth-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0),ow=m.style.whiteSpace;m.style.whiteSpace='nowrap';const w=m.getBoundingClientRect().width;m.style.whiteSpace=ow;if(av>20&&w>av){const f=parseFloat(getComputedStyle(m).fontSize)||40;m.style.setProperty('font-size',Math.max(14,Math.floor(f*av/w*.97))+'px','important')}m.dataset.mk=mk}}
   const h=cv.querySelector('.cvlead h2,.dcv-lead h2');if(!h)return;
   const key=cv.clientWidth+'|'+innerHeight+'|'+(h.textContent||'').length+'|'+cv.className;if(h.dataset.fk===key&&h.style.fontSize)return;
   h.classList.add('cfit');h.style.removeProperty('font-size');
