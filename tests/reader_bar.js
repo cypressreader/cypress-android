@@ -12,6 +12,8 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    document.querySelector('#mo').click();await w(200);const menu=[...document.querySelectorAll('#mn button')].filter(b=>b.offsetParent).map(b=>b.textContent.trim());
    const kick=document.querySelector('.cols .kick'),cs=kick&&getComputedStyle(kick),lbl=(document.querySelector('#st .bl')||{}).textContent||'';
    return {vis,menu,kickRule:cs&&cs.borderBottomStyle,kickColor:cs&&cs.color,ink:getComputedStyle(document.body).color,lbl}},mode);
+  {const f=await p.evaluate(()=>{const pc=document.getElementById('pc'),fl=[];for(const e of document.querySelectorAll('body *')){if(e.children.length||!/(\d+ ?min left|\bFinished\b|\bleft\b.*\bmin)/i.test(e.textContent||''))continue;const cs=getComputedStyle(e);let n=e,fx=false;while(n&&n!==document.body){const q=getComputedStyle(n).position;if(q==='fixed'||q==='sticky'){fx=true;break}n=n.parentElement}if(fx&&e.offsetParent!==null&&!e.closest('#toast,dialog'))fl.push((e.id||e.className||e.tagName)+':'+e.textContent.trim().slice(0,20))}return{inBar:!!pc&&!!pc.closest('#rd'),floating:fl}});
+  ck(W+' '+mode+' reading progress lives in the reader bar, not in a separate floating pill (B52)',f.inBar&&f.floating.filter(x=>!/^pc:/.test(x)).length===0,JSON.stringify(f))}
   ck(W+' '+mode+' primaries are back, save, listen, more',['cl','st','ra','mo'].every(i=>r.vis.includes(i)),JSON.stringify(r.vis));
   ck(W+' '+mode+' no hamburger, X or page arrows in the bar',!r.vis.includes('fdn')&&!r.vis.includes('pv')&&!r.vis.includes('nx')&&!r.vis.includes('rp')&&!r.vis.includes('wb'),JSON.stringify(r.vis));
   ck(W+' '+mode+' focus eye only in scroll mode',mode==='vertical'?r.vis.includes('fcs'):!r.vis.includes('fcs'),JSON.stringify(r.vis));
