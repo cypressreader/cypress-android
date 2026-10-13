@@ -3040,7 +3040,7 @@ body:not(.narrow):not(.split).reading:not(.sideshow) #sideh{display:flex}
 .wtick b{flex:none;padding:2px 8px;background:var(--ink);color:var(--pn);letter-spacing:.2em;text-transform:uppercase;font-size:10.5px}
 .wtick-in{display:flex;gap:28px;white-space:nowrap;animation:wtick 40s linear infinite}
 .wtick,.wtick-vp{contain:paint}
-.wtick-in span::before{content:'■ ';color:var(--a1,#0f5a3b)}@keyframes wtick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.wtick-in button::before{content:'■ ';color:var(--a1,#0f5a3b)}.wtick-in button{appearance:none;border:0;background:none;padding:6px 0;margin:-6px 0;font:inherit;color:inherit;cursor:pointer;text-align:left;white-space:nowrap}@keyframes wtick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 #grid.gen-wire .card time{font-variant-numeric:tabular-nums}#grid.gen-wire .card .src time::after{content:'  ' attr(data-hm);font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:0;margin-left:6px;opacity:.9}
 #grid.gen-wire .dmast h2{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.04em;text-transform:uppercase}
 #grid.gen-sun .dg.wk .wkhero{padding:clamp(22px,6vw,44px)}
@@ -5227,7 +5227,7 @@ function genreApply(){
   g.classList.add('gen-wire');
   const hs=cur.slice().sort((a,b)=>b.date-a.date).slice(0,4);/* short, and few: the moving strip is drawn as one layer, and a very wide one (all headlines twice over) can exceed a phone GPU's texture size and come out as scrambled glyphs */
   const sg1=g.querySelector('.bmseg'),put1=h=>sg1?sg1.insertAdjacentHTML('afterend',h):g.insertAdjacentHTML('afterbegin',h);
-  if(hs.length>=3){const tk=t=>{t=String(t||'').replace(/\s+/g,' ').trim();return t.length>46?t.slice(0,45).replace(/\s+\S*$/,'')+'…':t};const sp=`<span>${hs.map(a=>esc(wireClock(a.date))+'  '+esc(tk(a.title))).join('</span><span>')}</span>`;put1(`<div class="wtick" aria-hidden="true"><b>Wire</b><div class="wtick-vp"><div class="wtick-in">${sp}${sp}</div></div></div>`)}  g.querySelectorAll('.card[data-i] time').forEach(t=>{const a=cur[+t.closest('.card').dataset.i];if(a&&a.date)t.dataset.hm=wireClock(a.date)});
+  if(hs.length>=3){const tk=t=>{t=String(t||'').replace(/\s+/g,' ').trim();return t.length>46?t.slice(0,45).replace(/\s+\S*$/,'')+'…':t};const sp=(h)=>hs.map(a=>`<button type="button" data-wi="${cur.indexOf(a)}"${h?' tabindex="-1" aria-hidden="true"':''}>${esc(wireClock(a.date))}  ${esc(tk(a.title))}</button>`).join('');put1(`<div class="wtick"><b>Wire</b><div class="wtick-vp"><div class="wtick-in">${sp(0)}${sp(1)}</div></div></div>`)}  g.querySelectorAll('.card[data-i] time').forEach(t=>{const a=cur[+t.closest('.card').dataset.i];if(a&&a.date)t.dataset.hm=wireClock(a.date)});
  }else if(k==='week'&&g.querySelector('.dg.wk'))g.classList.add('gen-sun');
 }
 {const _r5=render;render=function(){_r5.apply(this,arguments);try{genreApply()}catch(e){}}}

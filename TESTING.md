@@ -175,3 +175,5 @@ Things that could not be reproduced in a desktop browser and need a check on a r
 - [ ] The video you tried to send did not reach me (cut-off zip). Screenshots of the worst combinations (theme and cover style named) would let me check them directly.
 
 - [ ] (1.80) Open the Ars Technica "Claude AI submitted false murder tip" story: the phone-icon photo should appear once, not twice in a row. Unverified: synthetic test only, real page markup not reproduced here.
+
+- [ ] (next) WIRE ticker: tap a headline in the moving strip on Headlines/All Stories; that story should open. Tapping works in the automated test only.
