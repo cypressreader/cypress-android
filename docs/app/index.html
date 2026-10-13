@@ -3472,6 +3472,7 @@ html[data-ts="l"] #grid .wcols,html[data-ts="l"] #grid .nr-lsub,html[data-ts="l"
  #grid .cover.cv-plays .cvl span{grid-column:2;color:#fff!important}
 }
 @media(min-width:700px){#grid .cover.cv-plays .cvl span{font-size:13.5px!important}}
+#grid .cover.cv-gallery .cvbot{padding:0}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4346,7 +4347,8 @@ function covFit(){
   const top=cv.querySelector('.cvtop,.dcv-top'),bot=cv.querySelector('.cvbot,.dcv-main');
   const used=()=>(top&&getComputedStyle(top).position!=='absolute'?top.offsetHeight:0)+(bot?[...bot.children].reduce((n,c)=>n+c.offsetHeight+(parseFloat(getComputedStyle(c).marginTop)||0)+(parseFloat(getComputedStyle(c).marginBottom)||0),0)+24:0);
   let cap=lim;
-  const fits=()=>h.scrollWidth<=h.clientWidth+1&&(!cap||cv.offsetHeight<=cap)&&inside()&&(!overlay||cv.classList.contains('dcov')||used()<=cv.offsetHeight*.62);
+  const bx=h.closest('.cvbot,.dcv-main'),inBox=()=>{if(!bx)return true;const c=getComputedStyle(bx);return h.offsetWidth<=bx.clientWidth-(parseFloat(c.paddingLeft)||0)-(parseFloat(c.paddingRight)||0)+1};
+  const fits=()=>h.scrollWidth<=h.clientWidth+1&&inBox()&&(!cap||cv.offsetHeight<=cap)&&inside()&&(!overlay||cv.classList.contains('dcov')||used()<=cv.offsetHeight*.62);
   const search=()=>{h.style.setProperty('font-size',max+'px','important');if(fits())return max;let lo=min,hi=max;for(let k=0;k<9&&hi-lo>.5;k++){const mid=(lo+hi)/2;h.style.setProperty('font-size',mid.toFixed(1)+'px','important');if(fits())lo=mid;else hi=mid}return Math.floor(lo*10)/10};
   /* a layout with no spare room (a row of photo cards, a floating card) may grow a little for a bigger headline, never more than a fifth of the screen */
   h.style.setProperty('font-size',min+'px','important');
