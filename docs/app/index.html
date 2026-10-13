@@ -7292,7 +7292,7 @@ function ttsMark(i){
 }
 function ttsFrom(wi){
  if(!('speechSynthesis' in window)||!TTS.words.length)return;
- const id=++TTS.id;TTS.on=true;TTS.paused=false;TTS.wi=wi;if(curA)TTS.art=curA;
+ const id=++TTS.id;TTS.on=true;TTS.paused=false;TTS.wi=wi;TTS.sp=wi;if(curA)TTS.art=curA;
  if(TTS.cps==null&&S.tcps)TTS.cps=+S.tcps;{const vv=bestVoice();if(S.tnbv&&S.tnbv===((vv&&vv.voiceURI)||'default'))TTS.nb=1;else if(S.tnbv)TTS.nb=0}
  clearInterval(TTS.timer);try{speechSynthesis.cancel()}catch(e){}
  if(curA)document.documentElement.style.setProperty('--hlb',brand(fof(curA)));
@@ -7309,12 +7309,13 @@ function ttsFrom(wi){
   if(w0.hd){prate*=1.06;ppitch=1.08}else if(w0.sh){prate*=1.03;ppitch=1.05}
   /* B25: a breath between sections — longer after a headline or subhead, short between paragraphs, shorter again at a fast rate */
   {const p0=a>0?TTS.words[a-1]:null;let ms=0;if(p0&&p0.b!==w0.b)ms=p0.hd?700:(p0.sh||w0.sh)?480:(!!w0.q!==!!p0.q)?260:340;if(w0.sh&&ms)ms=Math.max(ms,520);u.pauseMs=Math.round(ms/Math.max(.7,Math.min(2,+S.rate||1)))}
+  u.stopAt=(typeof SLEEP!=='undefined'&&SLEEP.t&&SLEEP.at)||0;
   u.rate=prate;u.volume=S.vol==null?1:+S.vol;u.pitch=ppitch;
   const v=bestVoice();if(v){u.voice=v;u.lang=v.lang}
   if(w0.q&&S.qvoice){const qv=quoteVoice();if(qv){u.voice=qv;u.lang=qv.lang}else u.pitch=1.18}
   let real=false,t0=0,early=0,tm1=null;const cps=()=>Math.max(5,Math.min(60,(TTS.cps||14)*(+S.rate||1)));
   /* B24: the highlight is shown a few words early to cancel the delay between the phone's engine and the page. The delay is measured from the timestamp on each report (native) instead of guessed */
-  const lead=()=>{if(S.hlead!=null)return +S.hlead;const nat=window.speechSynthesis&&window.speechSynthesis.native;if(!nat)return NATIVE?2:0;if(TTS.lag==null)return 1;return Math.max(0,Math.min(4,Math.round(TTS.lag/Math.max(120,5.5/cps()*1000))))};const at=(ci,tm)=>{let k=0;while(k+1<off.length&&off[k+1]<=ci)k++;k=Math.min(k+(tm?0:lead()),off.length-1);if(a+k!==TTS.wi||k===0)ttsMark(a+k)};
+  const lead=()=>{if(S.hlead!=null)return +S.hlead;const nat=window.speechSynthesis&&window.speechSynthesis.native;if(!nat)return NATIVE?2:0;if(TTS.lag==null)return 1;return Math.max(0,Math.min(4,Math.round(TTS.lag/Math.max(120,5.5/cps()*1000))))};const at=(ci,tm)=>{let k=0;while(k+1<off.length&&off[k+1]<=ci)k++;TTS.sp=a+k;/* B85: where the voice really is, kept apart from the (earlier) highlighted word */k=Math.min(k+(tm?0:lead()),off.length-1);if(a+k!==TTS.wi||k===0)ttsMark(a+k)};
   u.onstart=()=>{if(id!==TTS.id)return;t0=performance.now();ttsMark(a);clearInterval(TTS.timer);const tmr=tm1=TTS.timer=setInterval(()=>{if(id!==TTS.id||TTS.timer!==tmr){clearInterval(tmr);return}if(real&&!TTS.nb)return;at(Math.max(0,(performance.now()-t0)/1000-.15)*cps(),1)},90)};
   /* some Android speech engines report every word of a chunk up front; if reports run well ahead of real speech, ignore them and pace by the clock */
   u.onboundary=e=>{if(id!==TTS.id||TTS.nb)return;if(e.name&&e.name!=='word')return;const el=(performance.now()-t0)/1000;if(e.charIndex>el*cps()+(TTS.cps?30:70)&&!hid()&&++early>=2){TTS.nb=1;try{const vv=bestVoice();S.tnbv=(vv&&vv.voiceURI)||'default';save()}catch(_){}return}if(e.ts){const lg=Date.now()-e.ts;if(lg>=0&&lg<4000)TTS.lag=TTS.lag==null?lg:TTS.lag*.7+lg*.3}real=true;at(e.charIndex);t0=performance.now()-e.charIndex/Math.max(5,cps())*1000;};
@@ -7330,6 +7331,8 @@ function ttsFrom(wi){
  };
  setTimeout(()=>next(wi),60);
 }
+/* B85: pause, resume and restarts carry on from the word the voice had reached; the highlight runs a few words ahead of it, and resuming from the highlight skipped those words */
+const ttsPos=()=>{const p=TTS.sp;return(p!=null&&p>=0&&p<=TTS.wi&&TTS.wi-p<=8)?p:TTS.wi};
 function ttsPause(){TTS.paused=true;TTS.id++;clearInterval(TTS.timer);try{speechSynthesis.cancel()}catch(e){}raBtn();mediaOff();fpSync()}
 function ttsStop(){R.queueRun=false;TTS.on=false;TTS.paused=false;TTS.id++;TTS.words=[];TTS.sent=[];clearInterval(TTS.timer);try{speechSynthesis.cancel()}catch(e){}try{CSS.highlights.delete('tts');CSS.highlights.delete('tts-s')}catch(e){}raBtn();mediaOff(true);fpSync()}
 function ttsStartWord(){
@@ -7356,7 +7359,7 @@ function ttsToggle(){
  if(!('speechSynthesis' in window)){toast('Reading aloud isn’t available on this device or browser.');return}
  if(!TTS.on){const why=ttsClean();if(why&&!ttsToggle.force){if(R.queueRun||R.briefAudio){toast('Skipping: '+why);ttsEnd(true)}else{toast('Not reading this aloud because '+why+'. Tap Read aloud again to read what’s here');ttsToggle.force=true;setTimeout(()=>{ttsToggle.force=false},6000)}return}}
  if(TTS.on&&!TTS.paused)return ttsPause();
- if(TTS.on&&TTS.paused)return ttsFrom(TTS.wi);
+ if(TTS.on&&TTS.paused)return ttsFrom(ttsPos());
  if(!TTS.on&&!speechSynthesis.getVoices().length){const f=speechSynthesis.voiceState==='failed';toast(f?'The phone’s speech engine didn’t start. Check Text-to-speech output in Android Settings.':'No voices are installed, so reading aloud isn’t available. Add one in '+voiceWhere()+'.');if(NATIVE||f)return}
  ttsCollect();if(!TTS.words.length)return;
  ttsFrom(ttsStartWord());
@@ -7375,7 +7378,7 @@ function ttsSkip(d){
  const k=Math.max(0,Math.min(s.length-1,d>0?cur+1:(TTS.wi-s[cur]>3?cur:cur-1)));
  ttsFrom(s[k]);
 }
-let ta;const ttsApplyLater=()=>{clearTimeout(ta);ta=setTimeout(()=>{if(TTS.on&&!TTS.paused)ttsFrom(TTS.wi)},300)};
+let ta;const ttsApplyLater=()=>{clearTimeout(ta);ta=setTimeout(()=>{if(TTS.on&&!TTS.paused)ttsFrom(ttsPos())},300)};
 function pbMarkup(){
  return `<div class="pb" id="pb" hidden><div class="pbt"><button class="ib" id="pbk2" aria-label="Previous paragraph" title="Previous paragraph">${svg('<path d="M6 6v12M20 6l-8 6 8 6zM12 6l-8 6 8 6z"/>')}</button><button class="ib" id="pbk" aria-label="Previous sentence" title="Previous sentence">${svg(SKB)}</button><button class="ib" id="pbp" aria-label="Play or pause" title="Play or pause">${svg(PLAY)}</button><button class="ib" id="pbn" aria-label="Next sentence" title="Next sentence">${svg(SKF)}</button><button class="ib" id="pbn2" aria-label="Next paragraph" title="Next paragraph">${svg('<path d="M18 6v12M4 6l8 6-8 6zM12 6l8 6-8 6z"/>')}</button></div><label for="pbvoice">Voice</label><select id="pbvoice"></select><label for="pbrate">Speed <b id="pbrv"></b></label><input type="range" id="pbrate" min="0.6" max="2" step="0.1"><label for="pbvol">Volume <b id="pbvv"></b></label><input type="range" id="pbvol" min="0" max="1" step="0.05"><div class="line"><span>Play next story</span><button type="button" class="tg" id="pbq">Off</button></div><div class="line"><span>Sleep timer <small id="slpm"></small></span><select id="slp"><option value="0">Off</option><option value="5">5 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">1 hour</option><option value="eos">End of this story</option></select></div><div id="upn"></div><p class="hint">Volume also follows your device volume. Lock-screen controls show while reading aloud.</p></div>`;
 }
@@ -7405,7 +7408,7 @@ const voiceWhere=()=>NATIVE?'Android Settings > Text-to-speech output':/Mac|iPho
  const finish=(id,err)=>{const c=cur.get(id);if(!c)return;cur.delete(id);syn.speaking=cur.size>0;const u=c.u;try{if(err)u.onerror&&u.onerror({error:err,utterance:u});else u.onend&&u.onend({utterance:u})}catch(e){}};
  /* every utterance goes to the phone straight away; the phone queues them, so speech does not depend on this page staying awake */
  syn.speak=u=>{const id='u'+(++seq),add=cur.size>0;cur.set(id,{u,id});syn.speaking=true;
-  try{Promise.resolve(x.ttsSpeak({id,add,text:String(u.text||''),rate:+u.rate||1,pitch:+u.pitch||1,volume:u.volume==null?1:+u.volume,pause:Math.round(+u.pauseMs||0),voice:(u.voice&&u.voice.voiceURI)||''})).catch(()=>finish(id,'synthesis-failed'))}catch(e){finish(id,'synthesis-failed')}};
+  try{Promise.resolve(x.ttsSpeak({id,add,text:String(u.text||''),rate:+u.rate||1,pitch:+u.pitch||1,volume:u.volume==null?1:+u.volume,pause:Math.round(+u.pauseMs||0),stopAt:Math.round(+u.stopAt||0),voice:(u.voice&&u.voice.voiceURI)||''})).catch(()=>finish(id,'synthesis-failed'))}catch(e){finish(id,'synthesis-failed')}};
  syn.cancel=()=>{const all=[...cur.values()];cur.clear();syn.speaking=false;syn.paused=false;try{Promise.resolve(x.ttsStop()).catch(()=>{})}catch(e){}all.forEach(c=>{if(c.u.onerror){try{c.u.onerror({error:'canceled',utterance:c.u})}catch(e){}}})};
  syn.pause=()=>{syn.cancel();syn.paused=true};syn.resume=()=>{syn.paused=false};
  window.SpeechSynthesisUtterance=function(t){this.text=t||'';this.rate=1;this.pitch=1;this.volume=1;this.voice=null;this.lang=''};
@@ -7413,7 +7416,7 @@ const voiceWhere=()=>NATIVE?'Android Settings > Text-to-speech output':/Mac|iPho
  const on=(n,f)=>{try{const r=x.addListener&&x.addListener(n,f);if(r&&r.catch)r.catch(()=>{})}catch(e){}};
  on('ttsStart',e=>{const c=e&&cur.get(e.id);if(c&&c.u.onstart)try{c.u.onstart({utterance:c.u})}catch(_){}});
  on('ttsBoundary',e=>{const c=e&&cur.get(e.id);if(c&&c.u.onboundary)try{c.u.onboundary({name:'word',ts:e.ts,charIndex:e.start,charLength:(e.end||e.start)-e.start,utterance:c.u})}catch(_){}});
- on('ttsEnd',e=>{if(e)finish(e.id)});on('ttsError',e=>{if(e)finish(e.id,'synthesis-failed')});
+ on('ttsSleep',()=>{try{window.__ttsSleep&&window.__ttsSleep()}catch(_){}});on('ttsEnd',e=>{if(e)finish(e.id)});on('ttsError',e=>{if(e)finish(e.id,'synthesis-failed')});
  const loadVoices=async n=>{try{const r=await x.ttsVoices();syn.voices=((r&&r.voices)||[]).map(v=>({voiceURI:v.id,name:v.name,lang:v.lang,localService:!!v.local,default:false,q:+v.q||0}));syn.voiceState=r&&r.failed?'failed':(syn.voices.length?'ok':'empty');fire('voiceschanged');if(!syn.voices.length&&n>0&&!(r&&r.failed))setTimeout(()=>loadVoices(n-1),1200)}catch(e){syn.voiceState='failed';syn.err=String(e&&e.message||e).slice(0,140);fire('voiceschanged')}};
  syn.reload=()=>loadVoices(2);
  const gone=()=>{try{delete window.speechSynthesis}catch(e){window.speechSynthesis=undefined}try{delete window.SpeechSynthesisUtterance}catch(e){}document.documentElement.classList.add('nospeech')};
@@ -11600,7 +11603,7 @@ function mediaOn(){
   const f=fof(curA);navigator.mediaSession.metadata=new MediaMetadata({title:curA.title,artist:f.title||'',album:'CyPress',artwork:curA.img?[{src:curA.img,sizes:'512x512'}]:[]});
   navigator.mediaSession.playbackState='playing';
   const h=(a,fn)=>{try{navigator.mediaSession.setActionHandler(a,fn)}catch(e){}};
-  h('play',()=>{if(TTS.on&&TTS.paused)ttsFrom(TTS.wi);else if(!TTS.on)ttsToggle()});
+  h('play',()=>{if(TTS.on&&TTS.paused)ttsFrom(ttsPos());else if(!TTS.on)ttsToggle()});
   h('pause',()=>ttsPause());h('stop',()=>ttsStop());
   h('nexttrack',()=>{ttsEnd(true)});h('previoustrack',()=>ttsSkip(-1));
   h('seekforward',()=>ttsSkip(1));h('seekbackward',()=>ttsSkip(-1));
@@ -11613,10 +11616,13 @@ function syncUpNext(){
  box.innerHTML=l.length?`<div class="upt"><b>Up next</b><button type="button" class="lnk" data-upclr>Clear</button></div>`+l.map((a,i)=>`<div class="upi"><span>${esc(a.title)}</span><button type="button" class="ib" data-uprm="${i}" aria-label="Remove">${svg('<path d="M6 6l12 12M18 6 6 18"/>')}</button></div>`).join(''):'<p class="hint">Up next is empty. Use “Add to Up Next” in the ••• menu to build a listening queue.</p>';
  const sl=$('#slp');if(sl){sl.value=SLEEP.eos?'eos':SLEEP.t?String(SLEEP.min):'0'}const sm=$('#slpm');if(sm)sm.textContent=SLEEP.t?Math.max(1,Math.round((SLEEP.at-Date.now())/6e4))+' min left':SLEEP.eos?'Stops after this story':'';
 }
+/* B86: the page's own timer sleeps with the page when the screen is off, so the phone is also told the stop time (epoch ms): it stops the speech itself and tells the page */
+window.__ttsSleep=()=>{clearTimeout(SLEEP.t);SLEEP.t=0;SLEEP.at=0;try{ttsPause()}catch(e){}try{const au=$('.cols .aud audio');if(au)au.pause()}catch(e){}try{mediaOff()}catch(e){}try{syncUpNext()}catch(e){}toast('Sleep timer: stopped')};
+function sleepNative(at){try{const x=CyX();if(x&&x.ttsSleepAt&&nFeat('ttsSleep'))Promise.resolve(x.ttsSleepAt({stopAt:at||0})).catch(()=>{})}catch(e){}}
 function setSleep(v){
- clearTimeout(SLEEP.t);SLEEP.t=0;SLEEP.eos=false;
+ clearTimeout(SLEEP.t);SLEEP.t=0;SLEEP.eos=false;sleepNative(0);
  if(v==='eos'){SLEEP.eos=true;toast('Will stop at the end of this story')}
- else if(+v>0){SLEEP.min=+v;SLEEP.at=Date.now()+v*6e4;SLEEP.t=setTimeout(()=>{SLEEP.t=0;ttsPause();const au=$('.cols .aud audio');if(au)au.pause();mediaOff();toast('Sleep timer: stopped')},v*6e4);toast('Sleep timer: '+v+' min')}
+ else if(+v>0){SLEEP.min=+v;SLEEP.at=Date.now()+v*6e4;SLEEP.t=setTimeout(()=>{SLEEP.t=0;ttsPause();const au=$('.cols .aud audio');if(au)au.pause();mediaOff();toast('Sleep timer: stopped')},v*6e4);toast('Sleep timer: '+v+' min');sleepNative(SLEEP.at)}
  syncUpNext();
 }
 setInterval(()=>{if(SLEEP.t)syncUpNext()},30000);

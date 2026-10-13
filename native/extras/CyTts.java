@@ -480,6 +480,12 @@ final class CyTts {
         mainHandler.postDelayed(r, delay);
     }
 
+    /** B86: the page sets or clears the stop time on its own (0 clears it), without sending any text. */
+    void sleepAt(long stopAt) {
+        if (stopAt > 0) scheduleSleep(stopAt);
+        else cancelSleep();
+    }
+
     private void cancelSleep() {
         synchronized (lock) {
             if (sleepTask != null) {
