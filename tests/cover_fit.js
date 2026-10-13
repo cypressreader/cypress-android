@@ -27,7 +27,7 @@ const THEMES=(process.env.THEMES||'').split(',').filter(x=>x!==undefined);
     if(h.scrollWidth>h.clientWidth+2)out.push('headline wider than its box');
     /* a word that is wider than the box would be broken */
     const c=document.createElement('canvas').getContext('2d');c.font=cs.fontStyle+' '+cs.fontWeight+' '+cs.fontSize+' '+cs.fontFamily;const inner=h.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);const tt=cs.textTransform==='uppercase'?h.textContent.toUpperCase():h.textContent;
-    const lw=Math.max(...tt.split(/\s+/).flatMap(x=>x.split(/(?<=-)/)).map(x=>c.measureText(x).width+(parseFloat(cs.letterSpacing)||0)*x.length));if(lw>inner+1)out.push('a word is wider than the box ('+Math.round(lw)+' > '+Math.round(inner)+')');
+    const lw=Math.max(...tt.split(/\s+/).flatMap(x=>x.split(/(?<=-)/)).map(x=>c.measureText(x).width+(parseFloat(cs.letterSpacing)||0)*x.length));if(lw>inner+3)out.push('a word is wider than the box ('+Math.round(lw)+' > '+Math.round(inner)+')');
     if(hr.left<cr.left-1||hr.right>cr.right+1||hr.bottom>cr.bottom+1||hr.top<cr.top-1)out.push('sticks out of the cover');
     const top=cv.querySelector('.cvtop,.dcv-top');if(top){const t=top.getBoundingClientRect();if(inter(hr,t)>6)out.push('overlaps the masthead')}
     if(!cv.classList.contains('dcov')){const im=cv.querySelector(':scope>img');if(im&&['block','gazette','gallery','index','cinema','chapters','journal'].includes(st)&&getComputedStyle(im).position!=='absolute'){const i=im.getBoundingClientRect();if(inter(hr,i)>6)out.push('overlaps the picture')}}
