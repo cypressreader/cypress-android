@@ -194,3 +194,12 @@ Things that could not be reproduced in a desktop browser and need a check on a r
 - [ ] The tiles scroll smoothly (each is a full cover drawn small, 25 of them); the picker opens without a noticeable pause on your Z Fold.
 - [ ] Quick looks (the 8 small thumbnails in Settings) still look right.
 - [ ] On the unfolded screen the previews use the wide layouts (Photo and text, Triptych).
+
+## 1.86 Read aloud sync and pauses — implemented, unverified; must verify on a real phone (needs real voices)
+- [ ] Android app, any story, tap Read aloud with the phone's own voice: the highlighted word should match the spoken word within about half a second, and stay that way for the whole story (before: seconds behind). Try Rate 1.0, 1.5 and 2.0.
+- [ ] Try two or three different voices (Settings → Voice). Some engines report words late or early; note which and how far off.
+- [ ] Listen for breaths: a clear pause after the headline, after subheadings, and between paragraphs; none in the middle of a paragraph. Pauses should shrink at faster rates.
+- [ ] Skip paragraph/sentence, pause and resume, and changing the rate mid-story still land on the right word.
+- [ ] Lock the screen or minimise the app while reading: speech continues, and the highlight is on the right word when you come back.
+- [ ] Two-voice quotes (Settings → Quote voice) still switch voices; no double pause around quotes.
+- [ ] In a desktop browser (Chrome/Edge/Safari): highlight follows, paragraph breaths are audible.
