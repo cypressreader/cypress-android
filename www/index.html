@@ -10830,8 +10830,8 @@ function pdfIssue(ed){
  {
   const p=mk('');all.push(p);const cx0=PW/2,ctr=(y,t,f,sz,c,o)=>{const w=pdfW(t,f,sz)+((o&&o.tc)||0)*(t.length-1);T(p,cx0-w/2,y,t,f,sz,c,o)};
   const GOLDT='#8a6a14',CK=exColophon();
-  const lg=ed.logo,LS=104,ly=150;
-  if(lg)drawImg(p,lg,cx0-LS/2,ly,LS,LS);
+  const lg=ed.badge||ed.logo,LS=112,ly=146,lw=lg&&lg.w&&lg.h?LS*lg.w/lg.h:LS;
+  if(lg)drawImg(p,lg,cx0-lw/2,ly,lw,LS);
   ctr(ly+LS+58,'CYPRESS','r',24,GOLDT,{tc:9});
   R(p,cx0-24,ly+LS+74,48,1.1,GOLDT);
   ctr(ly+LS+102,CK.tagline,'i',12.5,INK);
@@ -12591,6 +12591,17 @@ async function pdfLogoImg(){
   const bl=await new Promise(r=>c.toBlob(r,'image/jpeg',.92));return {bytes:new Uint8Array(await bl.arrayBuffer()),w:n,h:n};
  }catch(e){return null}
 }
+/* B82: the CyPress badge for a white page: the oval mark in one ink colour (gold, or black for e-ink) on white, trimmed to its oval */
+async function pdfBadgeImg(ink){
+ try{
+  const l=LOGOS[LOGOS[S.logo]?S.logo:'tree'];
+  const im=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src='data:image/png;base64,'+l[0]});
+  const H=480,W=Math.round(H*.7),c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);
+  const t=document.createElement('canvas');t.width=W;t.height=H;const y=t.getContext('2d');y.fillStyle=ink||'#8a6a14';y.fillRect(0,0,W,H);y.globalCompositeOperation='destination-in';
+  const k=H*.98/im.height;y.drawImage(im,(W-im.width*k)/2,(H-im.height*k)/2,im.width*k,im.height*k);x.drawImage(t,0,0);
+  const bl=await new Promise(r=>c.toBlob(r,'image/jpeg',.92));return {bytes:new Uint8Array(await bl.arrayBuffer()),w:W,h:H};
+ }catch(e){return null}
+}
 function pdfEdMeta(d,kind){
  d=d||new Date();const issue=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
  return {kind:kind==='m'?'The Morning Edition':'The Evening Edition',date:d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),short:d.toLocaleDateString('en-US',{month:'short',day:'numeric'}),issue};
@@ -12603,8 +12614,8 @@ async function pdfFinish(meta,stories,coverImgUrl){
   const v=await pdfPics(s.imgUrl,keys);if(v){s.imgC=v.c||null;s.imgO=v.o||null;s.imgP=v.p||null;s.imgK=v.k||null;s.img=v.c||null}else{s.imgC=s.imgO=s.imgP=s.imgK=null;s.img=null}}};
  await Promise.all([work(),work(),work()])}
  const cimg=(lead.imgK)||(lead.img)||await pdfCoverImg(coverImgUrl);
-const logo=await pdfLogoImg();
- const ed=Object.assign({},meta,{logo,totalMin:mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes',cover:{title:lead.title,source:lead.source,deck:lead.dek||'',img:cimg},stories});
+const logo=await pdfLogoImg(),badge=await pdfBadgeImg('#8a6a14');
+ const ed=Object.assign({},meta,{logo,badge,totalMin:mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes',cover:{title:lead.title,source:lead.source,deck:lead.dek||'',img:cimg},stories});
  const r=pdfIssue(ed);
  return new Blob([r.bytes],{type:'application/pdf'});
 }
@@ -12772,7 +12783,7 @@ p.end{font-size:.85em;margin:1.4em 0 0;text-align:center}
 a{color:inherit;text-decoration:${bw?'underline':'none'}}
 .cover{margin:0;padding:0;text-align:center}.cover img{max-width:100%;max-height:100%}
 nav ol{list-style:none;padding:0;margin:0}nav li{margin:0 0 .6em}
-.colo{text-align:center;margin:18% 8% 0;page-break-before:always}.colo p{margin:0}.clg img{width:5.5em;height:5.5em}.cnm{margin:1.4em 0 0;font-size:1.35em;letter-spacing:.4em;font-weight:bold;${bw?'':'color:#8a6a14'}}.crl{width:3em;margin:.8em auto;border:0;border-top:1px solid ${bw?'#000':'#8a6a14'}}.ctg{font-style:italic;margin:0 0 2.4em}.cq{font-style:italic;font-size:1.1em;line-height:1.5;margin:0 auto .7em;max-width:22em}.cby{font-size:.8em;letter-spacing:.08em;margin:0 0 3.2em}.cft{font-size:.75em;margin-top:2.5em}`;
+.colo{text-align:center;margin:18% 8% 0;page-break-before:always}.colo p{margin:0}.clg img{width:4em;height:auto}.cnm{margin:1.4em 0 0;font-size:1.35em;letter-spacing:.4em;font-weight:bold;${bw?'':'color:#8a6a14'}}.crl{width:3em;margin:.8em auto;border:0;border-top:1px solid ${bw?'#000':'#8a6a14'}}.ctg{font-style:italic;margin:0 0 2.4em}.cq{font-style:italic;font-size:1.1em;line-height:1.5;margin:0 auto .7em;max-width:22em}.cby{font-size:.8em;letter-spacing:.08em;margin:0 0 3.2em}.cft{font-size:.75em;margin-top:2.5em}`;
 async function epubMake(stories,mode,title){
  const bw=mode!=='color',uid='urn:uuid:'+(crypto.randomUUID?crypto.randomUUID():'cypress-'+Date.now().toString(16)),files=[],imgs=[];
  const addImg=async u=>{const j=await exJpeg(u,bw,bw?900:1100);if(!j)return null;const n=imgs.length+1,href='images/i'+n+'.jpg';imgs.push({href,bytes:j.bytes});return href};
@@ -12801,7 +12812,7 @@ async function epubMake(stories,mode,title){
   chapters.push({id,href:id+'.xhtml',title:st.title,xhtml:`<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en"><head><meta charset="utf-8"/><title>${xe(st.title)}</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body><section epub:type="chapter" id="${id}">${body}</section></body></html>`});
  }
  /* B82: the colophon is the last page of the book */
- {const CK=exColophon(),lk=LOGOS[S.logo]?S.logo:'tree';let lh=null;try{lh=await addImg('data:image/png;base64,'+LOGOS[lk][0])}catch(e){}
+ {const CK=exColophon(),lk=LOGOS[S.logo]?S.logo:'tree';let lh=null;try{const bd=await pdfBadgeImg(bw?'#000000':'#8a6a14');if(bd){const n=imgs.length+1;lh='images/i'+n+'.jpg';imgs.push({href:lh,bytes:bd.bytes})}}catch(e){}
   const q=xe(CK.quote).replace(/ ([^ ]+)$/,'&#160;$1');
   const body=`<div class="colo">${lh?`<p class="clg"><img src="${lh}" alt="CyPress"/></p>`:''}<p class="cnm">CYPRESS</p><hr class="crl"/><p class="ctg">${xe(CK.tagline)}</p><p class="cq">&#8220;${q}&#8221;</p><p class="cby">&#8212; ${xe(CK.by)}</p><p class="cft">${xe(CK.foot)}</p></div>`;
   chapters.push({id:'colophon',href:'colophon.xhtml',title:'Colophon',xhtml:`<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en"><head><meta charset="utf-8"/><title>Colophon</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body>${body}</body></html>`})}

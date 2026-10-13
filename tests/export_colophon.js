@@ -8,8 +8,8 @@ const unzip=buf=>{const out={};let i=0;while(i<buf.length-30&&buf.readUInt32LE(i
  const r=await p.evaluate(async()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());const f=S.feeds[0];
   const para=t=>`<p>${t} with enough ordinary words to read like real reporting from a well known publication about the harbour.</p>`;
   const a={feedId:f.id,title:'Harbour plan divides the town',link:'https://w.test/co',date:Date.now(),summary:'x',img:'',html:'<p>Everything was great until he arrived, and then the whole plan for the harbour fell apart in one long afternoon of argument.</p>'+['The committee met on Tuesday','The mayor spoke on Monday','The council voted on Friday'].map(para).join('')};
-  const s=await pdfStory(a,false);const logo=await pdfLogoImg();
-  const ed=Object.assign({},pdfEdMeta(new Date(),'m'),{logo,solo:true,totalMin:s.min+' minutes',cover:{title:s.title,source:s.source,deck:s.dek||'',img:null},stories:[s]});
+  const s=await pdfStory(a,false);const logo=await pdfLogoImg(),badge=await pdfBadgeImg('#8a6a14');
+  const ed=Object.assign({},pdfEdMeta(new Date(),'m'),{logo,badge,solo:true,totalMin:s.min+' minutes',cover:{title:s.title,source:s.source,deck:s.dek||'',img:null},stories:[s]});
   const o=pdfIssue(ed);let t='';const u=o.bytes;for(let i=0;i<u.length;i+=8192)t+=String.fromCharCode.apply(null,u.subarray(i,i+8192));
   const st=await exStory(a);const mode=async m=>{const bl=await epubMake([st],m,'T');const ab=new Uint8Array(await bl.arrayBuffer());let z='';for(let i=0;i<ab.length;i+=8192)z+=String.fromCharCode.apply(null,ab.subarray(i,i+8192));return btoa(z)};
   /* ten exports: the quote is picked at random */
