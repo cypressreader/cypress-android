@@ -44,6 +44,7 @@ final class CyTts {
         float rate = 1f, pitch = 1f, volume = 1f;
         String voice;
         int remaining = 0;
+        int pauseMs = 0;
         Job(String id, String text) {
             this.id = id;
             this.text = text;
@@ -280,7 +281,7 @@ final class CyTts {
      * add = false starts a new reading (anything still playing is replaced); add = true queues this text
      * behind what is already playing, so a whole story can be handed over at once and carry on with the app asleep.
      */
-    void speak(String id, String text, float rate, float pitch, float volume, String voice, boolean add, long stopAt) {
+    void speak(String id, String text, float rate, float pitch, float volume, String voice, boolean add, long stopAt, int pauseMs) {
         if (!add) cancelSleep(); // a new reading drops the old sleep deadline
         if (stopAt > 0) scheduleSleep(stopAt);
         Job job = new Job(id, text == null ? "" : text);
@@ -288,6 +289,7 @@ final class CyTts {
         job.pitch = clamp(pitch, .5f, 2f);
         job.volume = clamp(volume, 0f, 1f);
         job.voice = voice;
+        job.pauseMs = Math.max(0, Math.min(2000, pauseMs));
         final int g;
         synchronized (lock) {
             g = add ? gen : ++gen;
@@ -367,6 +369,14 @@ final class CyTts {
                 if (!add) pieces.clear();
                 job.remaining = spans.size();
                 run = ++seq;
+            }
+            // a short silence before this piece of text (paragraph / heading breaks); only between pieces, never first
+            if (add && job.pauseMs > 0) {
+                try {
+                    t.playSilentUtterance(job.pauseMs, TextToSpeech.QUEUE_ADD, job.id + "@" + run + "#p");
+                } catch (Throwable e) {
+                    Log.w(TAG, "pause failed: " + e);
+                }
             }
             for (int i = 0; i < spans.size(); i++) {
                 if (stale(g)) return;
@@ -508,6 +518,7 @@ final class CyTts {
             JSObject o = new JSObject();
             o.put("id", id);
             if (extra != null) o.put("error", extra);
+            o.put("ts", System.currentTimeMillis());
             CyExtras.emit(event, o, false);
         } catch (Throwable t) {
             Log.w(TAG, "emit failed: " + t);
@@ -571,6 +582,7 @@ final class CyTts {
                 o.put("id", p.job.id);
                 o.put("start", p.offset + start);
                 o.put("end", p.offset + end);
+                o.put("ts", System.currentTimeMillis());
                 CyExtras.emit("ttsBoundary", o, false);
             } catch (Throwable t) {
                 Log.w(TAG, "onRangeStart: " + t);
