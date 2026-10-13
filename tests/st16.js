@@ -64,7 +64,7 @@ ck('no page errors',errs.length===0,errs.join('|'));}
  await p.evaluate(()=>{S.sel='all';render();openReader(cur[0])});await p.waitForTimeout(8000);
  const n=await p.evaluate(()=>{const nt=document.querySelector('.cols .note');return {txt:nt?nt.innerText:'',badge:nt&&nt.querySelector('.sbadge')?nt.querySelector('.sbadge').textContent:'',link:nt&&[...nt.querySelectorAll('a')].map(a=>a.textContent+'|'+a.getAttribute('target')+'|'+a.getAttribute('href')).join(';'),body:document.querySelector('.cols .body')?document.querySelector('.cols .body').textContent.length:0}});
  ck('fallback card shows the truncated-text badge',/truncated source text/i.test(n.badge),JSON.stringify(n));
- ck('fallback card has an Open Original Story link that opens outside',/Open Original Story\|_blank\|https:\/\/alpha\.test\//.test(n.link),n.link);
+ ck('fallback card has an Open the original story link that opens outside',/Open the original story\|_blank\|https:\/\/alpha\.test\//.test(n.link),n.link);
  ck('the feed text is still shown',n.body>10,String(n.body));
  ck('no page errors (fallback)',errs.length===0,errs.join('|'));await ctx.close()}
 console.log(pass+' passed, '+fail+' failed');log.forEach(l=>console.log(l));await b.close()})()

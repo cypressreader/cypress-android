@@ -44,16 +44,16 @@ ck('synced key',await p.evaluate(()=>SET_KEYS.includes('sch')));
 {const o=await p.evaluate(()=>{const d=document.createElement('div');const lines=Array.from({length:6},(_,i)=>'<string name="midnight_item_'+i+'">x</string>').join('\n');
  d.innerHTML='<pre>'+lines.replace(/</g,'&lt;')+'</pre><pre>function a(){\n return 1\n}</pre>';document.body.append(d);furnish(d);const r={codex:d.querySelectorAll('details.codex').length,code:d.querySelectorAll('.code').length,txt:(d.querySelector('summary')||{}).textContent};furnish(d);r.again=d.querySelectorAll('details.codex').length;d.remove();return r});
  ck('string dump is collapsed',o.codex===1&&/6 lines/.test(o.txt),JSON.stringify(o));ck('real code keeps copy box',o.code===1);ck('furnish twice is safe',o.again===1)}
-// colour lifting on dark themes must keep working (name clash guard)
+// color lifting on dark themes must keep working (name clash guard)
 {const o=await p.evaluate(async()=>{const s=document.createElement('style');s.textContent='*{transition:none!important}';document.head.append(s);S.theme='dark';S.sch='theme';applyTheme(false);await new Promise(r=>setTimeout(r,80));
  const f={url:'https://x.test/feed',color:'#1a2b6b'};const dark=brand(f);S.theme='light';applyTheme(false);await new Promise(r=>setTimeout(r,80));const light=brand(f);S.theme='dark';applyTheme(false);s.remove();return{dark,light,rgb:rgbOf('#102030'),bd:typeof bgDark()}});
- ck('dark theme lifts dark brand colour',o.dark!==o.light&&o.dark!=='#1a2b6b',JSON.stringify(o));ck('rgbOf still parses hex',Array.isArray(o.rgb)&&o.rgb[0]===16)}
-// the twin's darker accent colours must survive (Dynamic cleanup must not wipe them)
+ ck('dark theme lifts dark brand color',o.dark!==o.light&&o.dark!=='#1a2b6b',JSON.stringify(o));ck('rgbOf still parses hex',Array.isArray(o.rgb)&&o.rgb[0]===16)}
+// the twin's darker accent colors must survive (Dynamic cleanup must not wipe them)
 {const o=await p.evaluate(async()=>{const s=document.createElement('style');s.textContent='*{transition:none!important}';document.head.append(s);const out={};
  for(const th of ['forest','alpenglow','aurora','deepsea','midnight','nebula','golden']){S.theme=th;S.sch='light';S.night='off';applyTheme(false);await new Promise(r=>setTimeout(r,150));const r=document.documentElement;const lg=r.style.getPropertyValue('--logo');out[th]=lg?rgb2hsl(anyRgb(lg))[2]:null}
  S.theme='dynamic';S.sch='theme';applyTheme(false);await new Promise(r=>setTimeout(r,200));S.theme='forest';S.sch='theme';applyTheme(false);await new Promise(r=>setTimeout(r,150));out.cleared=!document.documentElement.style.getPropertyValue('--logo');
  return out});
- for(const th of ['forest','alpenglow','aurora','deepsea','midnight','nebula','golden'])ck('light twin of '+th+' darkens its logo colour',o[th]!==null&&o[th]<=.45,String(o[th]));
+ for(const th of ['forest','alpenglow','aurora','deepsea','midnight','nebula','golden'])ck('light twin of '+th+' darkens its logo color',o[th]!==null&&o[th]<=.45,String(o[th]));
  ck('leaving the twin clears the accent again',o.cleared)}
 ck('no page errors',!errs.length,errs.join('|'));
 console.log('st18',pass,'pass',fail,'fail');log.forEach(l=>console.log(l));await b.close();process.exit(fail?1:0)})();

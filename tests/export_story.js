@@ -92,7 +92,7 @@ const note=p=>p.evaluate(()=>{const t=document.querySelector('#toast');return {m
    ck(`[${mode}] the EPUB is well formed (mimetype first and stored, every file listed exists, XML parses)`,inf&&!inf.err&&inf.first==='mimetype'&&inf.firstStored&&inf.mime==='application/epub+zip'&&!inf.xmlErrors.length&&inf.spineOk&&inf.manifestOk,JSON.stringify(inf).slice(0,300));
    ck(`[${mode}] the EPUB text has the story and none of the labels`,inf&&/opening line of the story/.test(inf.text)&&!/for subscribers|getty|related stories|sign in to continue|advertisement/i.test(inf.text),(inf.text||'').slice(0,200));
    ck(`[${mode}] the story's own picture is kept`,inf&&inf.imgs.length>=2,JSON.stringify(inf.imgs));
-   if(inf.spread){const px=Object.entries(inf.spread);if(mode==='bw')ck('[bw] every picture, and the cover, is grey (no colour)',px.every(([,v])=>v<=2),JSON.stringify(inf.spread));else ck('[color] pictures keep their colour',px.some(([k,v])=>!/cover/.test(k)&&v>20),JSON.stringify(inf.spread))}
+   if(inf.spread){const px=Object.entries(inf.spread);if(mode==='bw')ck('[bw] every picture, and the cover, is grey (no color)',px.every(([,v])=>v<=2),JSON.stringify(inf.spread));else ck('[color] pictures keep their color',px.some(([k,v])=>!/cover/.test(k)&&v>20),JSON.stringify(inf.spread))}
    ck(`[${mode}] type is sized by the reader, not fixed small`,inf&&!/font-size:\s*\d+(\.\d+)?px/.test(inf.css)&&/font-size:1em/.test(inf.css));
    if(process.env.EPUBCHECK){try{const o=execFileSync('java',['-jar',process.env.EPUBCHECK,path.join(TMP,fs.readdirSync(TMP).filter(f=>f.endsWith('.epub')).pop())],{encoding:'utf8'});ck(`[${mode}] epubcheck: no errors`,/0 fatals \/ 0 errors/.test(o),o.slice(-300))}catch(e){const m=String(e.stdout||e.message);ck(`[${mode}] epubcheck: no errors`,/0 fatals \/ 0 errors/.test(m),m.slice(-300))}}}
   const nt=await note(p);ck(`[${mode}] a note says the book is ready`,/kindle book is ready/i.test(nt.msg),nt.msg);
@@ -104,7 +104,7 @@ const note=p=>p.evaluate(()=>{const t=document.querySelector('#toast');return {m
   const st=await p.evaluate(()=>({bar:!!document.getElementById('svbar'),cks:document.querySelectorAll('#grid .svck').length,txt:(document.getElementById('svbar')||{}).textContent||''}));
   ck('Pick stories shows a check on every card and an action bar',st.bar&&st.cks===3&&/0 picked/.test(st.txt),JSON.stringify(st));
   const dis0=await p.evaluate(()=>[...document.querySelectorAll('#svbar [data-svact="pdf"],#svbar [data-svact="kindle"]')].every(b=>b.disabled));
-  ck('with nothing picked, Make PDF and Kindle are off',dis0);
+  ck('with nothing picked, Save as PDF and Kindle are off',dis0);
   const boxes=await p.evaluate(()=>[...document.querySelectorAll('#grid .svck')].map(b=>{const r=b.getBoundingClientRect();return [b.getAttribute('role'),b.getAttribute('aria-checked'),/Pick:/.test(b.getAttribute('aria-label')),r.width>=44&&r.height>=44]}));
   ck('each check is a labelled checkbox with a 44 point target',boxes.every(x=>x[0]==='checkbox'&&x[1]==='false'&&x[2]&&x[3]),JSON.stringify(boxes));
   await p.click('#grid .card[data-href="https://w.test/1"]');await p.click('#grid .svck[data-svpick="https://w.test/3"]');await p.waitForTimeout(300);
@@ -112,7 +112,7 @@ const note=p=>p.evaluate(()=>{const t=document.querySelector('#toast');return {m
   ck('tapping a card picks it (it does not open it); two picked',/2 picked/.test(s2.txt)&&s2.sel.length===2&&!s2.open,JSON.stringify(s2));
   await slow(p);const dl=p.waitForEvent('download',{timeout:90000}).catch(()=>null);
   await p.click('[data-svact="pdf"]');await p.waitForTimeout(300);
-  const n=await hist(p);ck('Make PDF says it is working',/typesetting 2 stories/i.test(n[0]||''),JSON.stringify(n));
+  const n=await hist(p);ck('Save as PDF says it is working',/typesetting 2 stories/i.test(n[0]||''),JSON.stringify(n));
   const d=await dl;ck('a PDF of the picks downloads',!!d);
   if(d){const buf=fs.readFileSync(await d.path()),t=pdfText(buf);
    ck('the mini-edition has the picked stories and not the third',t&&/Attack on Saudi airport/.test(t)&&/Why the council|council changed/.test(t)&&!/Second story about the harbour/.test(t),(t||'').slice(0,160));
@@ -127,7 +127,7 @@ const note=p=>p.evaluate(()=>{const t=document.querySelector('#toast');return {m
  /* 6. settings */
  {const {ctx,p,errs}=await open('web');
   const s=await p.evaluate(async()=>{set.showModal();syncSet();await new Promise(r=>setTimeout(r,300));const m=document.getElementById('kmode'),k=document.getElementById('kset');return {mode:m&&m.value,opts:m?[...m.options].map(o=>o.textContent):[],btn:!!k}});
-  ck('Settings has the Kindle book style (black and white / colour) and the address',s.mode==='bw'&&s.opts.length===2&&s.btn,JSON.stringify(s));
+  ck('Settings has the Kindle book style (black and white / color) and the address',s.mode==='bw'&&s.opts.length===2&&s.btn,JSON.stringify(s));
   ck('no page errors',!errs.length,errs[0]);await ctx.close()}
  /* 7. a story whose text was never stored is fetched before it is typeset */
  {const {ctx,p,errs}=await open('web');

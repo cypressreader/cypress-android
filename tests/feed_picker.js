@@ -20,7 +20,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
   const pk=document.querySelector('[data-obpack]');if(pk){pk.click();await w(150);o.consAll1=consistent();pk.click();await w(150);o.consAll2=consistent()}
   return o});
  ck('every source starts consistent (look = state)',r.initialConsistent);
- ck('unselected: empty ring, no fill, no check, no leftover colour ring',!r.off.on&&!r.off.fill&&!r.off.check&&!r.off.ringShadow,JSON.stringify(r.off));
+ ck('unselected: empty ring, no fill, no check, no leftover color ring',!r.off.on&&!r.off.fill&&!r.off.check&&!r.off.ringShadow,JSON.stringify(r.off));
  ck('selected: filled circle with a check, and the state says pressed',r.on.on&&r.on.fill&&r.on.check&&(r.on.pressed===null||r.on.pressed==='true'),JSON.stringify(r.on));
  ck('tapping again removes every trace (no dot stays behind)',!r.off2.on&&!r.off2.fill&&!r.off2.check&&!r.off2.ringShadow&&r.countOff2===r.countOff,JSON.stringify([r.off2,r.countOff,r.countOff2]));
  ck('the selected count goes up by one and back',r.countOn===r.countOff+1,JSON.stringify([r.countOff,r.countOn]));

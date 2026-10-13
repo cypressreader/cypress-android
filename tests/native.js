@@ -58,7 +58,7 @@ const calls=(p,n)=>p.evaluate(n=>window.__calls.filter(c=>c[0]===n).map(c=>c[1])
   ck('A','update bar shows',/CyPress 7 is ready/.test(await txt(p,'#upd span')||''),await txt(p,'#upd'));
   ck('A','has Update button',!!(await p.$('#upd [data-nupd]')));
   ck('A','asked GitHub about the right repo',p.hits.some(h=>h.u.startsWith('https://api.github.com/repos/me/cypress-android/releases/latest')));
-  const bars=await calls(p,'setBars');ck('A','status bar colour sent',bars.length>0&&/^#[0-9a-f]{6}$/.test(bars[0].color)&&typeof bars[0].light==='boolean',JSON.stringify(bars[0]));
+  const bars=await calls(p,'setBars');ck('A','status bar color sent',bars.length>0&&/^#[0-9a-f]{6}$/.test(bars[0].color)&&typeof bars[0].light==='boolean',JSON.stringify(bars[0]));
   // settings
   await p.evaluate(()=>{document.querySelector('#set').showModal()});await W(300);
   ck('A','App section in settings',!!(await p.$('#s-app')));

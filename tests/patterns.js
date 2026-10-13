@@ -1,4 +1,4 @@
-/* Designed image fallbacks: a missing or failing picture shows pattern art in the source's own colour (never a flat gradient). */
+/* Designed image fallbacks: a missing or failing picture shows pattern art in the source's own color (never a flat gradient). */
 const {APP}=require('./env');const {mock,PW}=require('./mock');const {chromium}=require(PW);
 let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else console.log('ok',n)};
 (async()=>{

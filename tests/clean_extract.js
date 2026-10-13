@@ -1,5 +1,5 @@
 /* Clean extraction: junk lines captured from REAL BBC / The Verge / Ars Technica / The Guardian / Engadget pages are removed by their publisher rules while the story paragraphs stay;
-   a suspiciously short or cluttered result says so and offers "View the site here". */
+   a suspiciously short or cluttered result says so and offers "View the site in the app". */
 const {APP}=require('./env');const {mock,PW}=require('./mock');const {chromium}=require(PW);
 let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else console.log('ok',n)};
 const P=(w,k)=>'<p>'+Array.from({length:w},(_,i)=>['The','committee','met','on','Tuesday','to','discuss','harbour','plans','for','winter','repairs'][(i+k)%12]).join(' ')+'. “We cannot keep doing this and expect a different outcome,” said the council leader after the meeting ended.</p>';
@@ -28,7 +28,7 @@ const CASES=[
   return out},CASES);
  for(const c of r.cases)ck('['+c.name+'] its junk lines are removed and the story paragraphs stay',c.left.length===0&&c.paras>=3,JSON.stringify(c));
  ck('a line reported as junk is skipped in that site\'s next story',r.learned,'');
- ck('a suspiciously short result says so and offers "View the site here"',r.short.btn&&/View the site here/.test(r.short.note),JSON.stringify(r.short));
+ ck('a suspiciously short result says so and offers "View the site in the app"',r.short.btn&&/View the site in the app/.test(r.short.note),JSON.stringify(r.short));
  ck('a normal-length story shows no such notice',!r.long.btn,JSON.stringify(r.long));
  ck('no page errors',!errs.length,errs[0]);
  await b.close();console.log(bad?'clean_extract '+bad+' FAILED':'clean_extract all passed');process.exit(bad?1:0);
