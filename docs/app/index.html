@@ -4349,7 +4349,7 @@ function secOpener(){
  const src=[...new Set(l.map(a=>fof(a).title).filter(Boolean))].slice(0,4);
  const from=src.length>1?'From '+src.slice(0,-1).join(', ')+' and '+src[src.length-1]:'';
  const el=document.createElement('section');el.className='sop'+(lead.img?'':' noimg');el.style.setProperty('--b',brand(fof(lead)));
- el.innerHTML=`${lead.img?`<i style="background-image:url(&quot;${esc(lead.img)}&quot;)"></i>`:''}<div><small>${esc(kind)}</small><h2>${esc(name)}</h2><p>${l.length} stories${S.hideCount?'':' · '+un+' unread'}${nw?' · newest '+esc(ago(nw))+' ago':''}</p>${from?`<p class="sfrom">${esc(from)}</p>`:''}</div>`;
+ el.innerHTML=`${lead.img?`<i style="background-image:url(&quot;${esc(lead.img)}&quot;)"></i>`:''}<div><small>${esc(kind)}</small><h2>${esc(name)}</h2><p>${stN(l.length)}${S.hideCount?'':' · '+un+' unread'}${nw?' · newest '+esc(ago(nw))+' ago':''}</p>${from?`<p class="sfrom">${esc(from)}</p>`:''}</div>`;
  g.prepend(el);
 }
 /* the window width is cached: reading innerWidth in the middle of a redraw forces the browser to lay the page out first */
@@ -4853,7 +4853,7 @@ if(FD){
  newN=vis?cn.filter(a=>a.date>vis).length:0;WIRE.newN=newN;
  const tr=T?[]:wireStrip(cn),clock=vis?wireClock(vis):'';
  const head=pre+(f1?feedMast(f1,unread):FO&&FD?feedMast(FD,unread):'')+(pend?`<button type="button" class="wpill" data-wire="load" aria-live="polite">${pend} new ${pend===1?'story':'stories'} — tap to load</button>`:'')
-  +`<div class="wmeta"><div class="nr-meta">${cn.length} stories${S.hideCount?'':' · '+unread+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>${densHtml()}</div>`
+  +`<div class="wmeta"><div class="nr-meta">${stN(cn.length)}${S.hideCount?'':' · '+unread+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>${densHtml()}</div>`
   +trendStripHtml(tr);
  g.classList.add('nr','wire');if(T)g.classList.add('wtopic');if(FD){g.classList.add('fed');g.style.setProperty('--fb',brand(FD))}if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
  /* coming back to a place you left: render far enough to include the story that was at the top of the screen */
@@ -8317,7 +8317,7 @@ $('#imp').onclick=()=>$('#fi').click();
 function opmlParse(text){
  const out={feeds:[],bad:0,err:''};
  let d;try{d=new DOMParser().parseFromString(String(text||'').replace(/^﻿/,''),'text/xml')}catch(e){out.err='That file could not be read.';return out}
- if(d.querySelector('parsererror')||!d.querySelector('opml,body')){out.err='That doesn’t look like an OPML feed list. Export one from your other reader and try again.';return out}
+ if(d.querySelector('parsererror')||!d.querySelector('opml,body')){out.err='That doesn’t look like a list of feeds from another reader. Export one from that reader (it is called an OPML file) and try again.';return out}
  const seen=new Set(),at=(el,n)=>el.getAttribute(n)||el.getAttribute(n.toLowerCase())||'';
  const walk=(el,path)=>{
   for(const c of [...el.children]){
@@ -9668,7 +9668,7 @@ function renderBrief0(){
  const B=briefToday(),list=B.links.map(findStory).filter(Boolean);cur=list.slice();list.forEach((a,i)=>{WHY[a.link]=`Your brief takes the newest unread story from each of your sources, then goes around again. This one is from ${fof(a).title}.`});
  if(!list.length){$('#grid').innerHTML=`<div class="empty">${S.feeds.some(f=>state[f.id]==='load')?SKEL():'Nothing new to catch up on. Check back later.'}</div>`;return}
  const done=list.filter(a=>S.read[a.link]).length,mins=list.reduce((n,a)=>n+(readMin(a)||3),0),left=list.filter(a=>!S.read[a.link]).reduce((n,a)=>n+(readMin(a)||3),0);
- if(done===list.length){$('#grid').innerHTML=`<div class="bdone"><div class="bck">${svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>')}</div><h2>You’re caught up</h2><p>${list.length} stories from ${new Set(list.map(a=>a.feedId)).size} sources today.</p><button class="tx2" data-bnew>Make a fresh brief</button></div>`;return}
+ if(done===list.length){$('#grid').innerHTML=`<div class="bdone"><div class="bck">${svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>')}</div><h2>You’re caught up</h2><p>${stN(list.length)} from ${new Set(list.map(a=>a.feedId)).size} sources today.</p><button class="tx2" data-bnew>Make a fresh brief</button></div>`;return}
  const dt=new Date(),dl=dt.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
  const row=(a,i)=>{const f=fof(a),m=readMin(a),th=a.img?`<img class="bi-th" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('bi-pat');this.remove()">`:'';
   const lead=i===0,pc=patCls(f);
@@ -11155,6 +11155,8 @@ function peValid(s){return typeof s==='string'&&s.trim().length>=8&&!/[{}]|undef
 function peState(){if(!S.pe||typeof S.pe!=='object')S.pe={};if(!S.pe.h)S.pe.h={};if(!S.pe.c)S.pe.c={};return S.pe}
 const peHash=s=>{let h=5381;for(const c of String(s))h=((h<<5)+h+c.charCodeAt(0))|0;return Math.abs(h)};
 /* slot: 'note' | 'progress' | 'finish' | 'coverline'. key keeps a pick stable (edition + state); skip lists ids already used on this page. */
+/* B96: "1 story", "2 stories" */
+function stN(n){return n+(n===1?' story':' stories')}
 function pe(slot,extra,key,skip){
  const bank=PEB[slot];if(!bank)return '';
  const st=peState(),x=peCtx(extra),k=(typeof edKey==='function'?edKey():'')+'|'+(key||''),held=st.c[slot+'|'+(key||'')];
@@ -11444,7 +11446,7 @@ function dgLetter(k,pool,unread,fresh){
   if(sk.cur>=2)r+=`That is ${sk.cur} days in a row. `;
   if(fav)r+=`${fav[0]} is the site you open most.`;
   paras.push(r.trim());
-  let n=`Your feeds published ${fresh.length} stories in all${src?`, from ${src} ${src===1?'source':'sources'}`:''}.`;
+  let n=`Your feeds published ${stN(fresh.length)} in all${src?`, from ${src} ${src===1?'source':'sources'}`:''}.`;
   if(nm>=2&&multi!==top)n+=` The story that travelled furthest was ${q(multi.title)}, picked up by ${nm} sources.`;
   paras.push(n);
   let x='';
@@ -11606,7 +11608,7 @@ function openYir(){
  requestAnimationFrame(()=>{o.classList.add('in');go(0)});
 }
 async function yirImage(D){
- const c=await quoteImage(`${D.n} stories, ${fmtMin(D.m)} of reading. Top source: ${D.src[0]?D.src[0][0]:'—'}. ${D.pe[0]}. Longest streak: ${D.sk.best} days.`,{title:'My '+D.y+' in CyPress',ft:'Year in review',fc:getComputedStyle(document.documentElement).getPropertyValue('--logo').trim()||'#1f4a33'});
+ const c=await quoteImage(`${stN(D.n)}, ${fmtMin(D.m)} of reading. Top source: ${D.src[0]?D.src[0][0]:'—'}. ${D.pe[0]}. Longest streak: ${D.sk.best} days.`,{title:'My '+D.y+' in CyPress',ft:'Year in review',fc:getComputedStyle(document.documentElement).getPropertyValue('--logo').trim()||'#1f4a33'});
  return c;
 }
 
