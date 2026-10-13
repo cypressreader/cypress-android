@@ -188,3 +188,9 @@ Things that could not be reproduced in a desktop browser and need a check on a r
 - [ ] Share cover: the gold "THE EVENING EDITION · NO." line and the CYPRESS name are clean (letters not squished or overlapping).
 - [ ] Settings → Cover style (plain list) shows the same 25 styles and names as the picker.
 - [ ] Re-check from the batch that were already fixed in earlier releases and pass in automated tests only: Related reads opens the right story, short share links, image retry shows one picture, Compare coverage, no ads as cover story, 202/429 sites (thehill.com, howstuffworks.com) load, Saved "Time I have" filter, Clear history asks and says so, trimmed More menu (11 actions), "Story N of M" gone, reading progress inside the bar, side-by-side reading toggle (off by default), Brief links stay in the app.
+
+## 1.83 Cover picker previews — must verify on a real phone
+- [ ] Settings → Cover style → open the picker on the phone: every tile should look like the real cover (not an old design). Check Poster and Italic mix (no photo), Chapters (title, four stories, one photo), Top plays (numbered list), Journal, Gallery, Type.
+- [ ] The tiles scroll smoothly (each is a full cover drawn small, 25 of them); the picker opens without a noticeable pause on your Z Fold.
+- [ ] Quick looks (the 8 small thumbnails in Settings) still look right.
+- [ ] On the unfolded screen the previews use the wide layouts (Photo and text, Triptych).
