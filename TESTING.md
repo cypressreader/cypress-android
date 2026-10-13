@@ -180,3 +180,11 @@ Things that could not be reproduced in a desktop browser and need a check on a r
 - [ ] Cover masthead: set the cover to Photo and text (formerly Side by side) and Gallery on a tablet or wide screen; "CyPress" must sit fully inside its column, never cut off at the right edge. (Could not reproduce the cut-off on 1.80; the masthead now shrinks to fit as a safety net.)
 - [ ] Gallery cover on a wide screen: the headline stays inside its text column with space at the right.
 - [ ] Cover picker: names read Photo and text and Journal; descriptions match the layouts.
+
+## 1.82 Phase 1 fixes — must verify on a real phone
+- [ ] Photo and text cover (tablet / unfolded): photo is clearly the bigger half, headline and "CyPress" are not oversized next to it. On a phone this style shows as Full photo (it needs a wide screen).
+- [ ] Cards: source names ("BBC News"), "N sources" badges and "Also from…" lines show in full (they wrap onto a second line on very narrow cards). Stats → Top sources shows full names.
+- [ ] Milestone badge (streak or finished-stories): number and label sit comfortably inside the circle. Try a 7-day streak and 1,000 stories if you can trigger them.
+- [ ] Share cover: the gold "THE EVENING EDITION · NO." line and the CYPRESS name are clean (letters not squished or overlapping).
+- [ ] Settings → Cover style (plain list) shows the same 25 styles and names as the picker.
+- [ ] Re-check from the batch that were already fixed in earlier releases and pass in automated tests only: Related reads opens the right story, short share links, image retry shows one picture, Compare coverage, no ads as cover story, 202/429 sites (thehill.com, howstuffworks.com) load, Saved "Time I have" filter, Clear history asks and says so, trimmed More menu (11 actions), "Story N of M" gone, reading progress inside the bar, side-by-side reading toggle (off by default), Brief links stay in the app.
