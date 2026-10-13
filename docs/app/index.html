@@ -8910,6 +8910,8 @@ function cvMini(k){
  return `<div class="cover${cls}" style="--b:#2a5db0;--ph:url(&quot;${CVPH}&quot;)">${ph}<div class="cvsh"></div><div class="cvtop"><span class="cvm">CyPress</span><span class="cvd">Thursday Morning Edition<i class="cvv">Vol. 1, No. 274</i></span></div><div class="cvbot"><span class="cvlead"><small>Android Authority</small><h2>${k==='italic'?cvMix('Samsung is quietly killing one of its newest apps'):'Samsung is quietly killing one of its newest apps'}</h2></span>${lines}</div></div>`;
 }
 function cvName(k){return (CVNAMES.find(x=>x[0]===k)||CVNAMES[0])[1]}
+/* the plain list in Settings is built from the same table as the picker, so the two always agree (names, descriptions and every style) */
+try{const sel=document.getElementById('cvs');if(sel){const v=sel.value;sel.innerHTML=CVNAMES.map(([k,n,d])=>`<option value="${k}">${n}: ${d}</option>`).join('');sel.value=(typeof S!=='undefined'&&S.cvs)||v||'clean'}}catch(e){}
 function cvPickFill(){
  const cur=S.cvs||'clean',wide=innerWidth>=700,W=wide?720:340,H=wide?520:430;
  const g=$('#cvg');g.innerHTML=CVNAMES.map(([k,n,d])=>`<button type="button" data-cvk="${k}" class="${k===cur?'on':''}" aria-pressed="${k===cur}"><div class="cvt" style="aspect-ratio:${W}/${H}"><div class="cvi" style="width:${W}px;height:${H}px">${k==='auto'?'<div class="cvauto"><i><u></u><u></u><u></u><u></u></i>Changes daily</div>':cvMini(k)}</div></div><span><b>${n}</b><small>${d}</small></span></button>`).join('');
