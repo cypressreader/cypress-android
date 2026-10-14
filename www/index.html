@@ -3668,7 +3668,7 @@ body.exbusy [data-exact]{cursor:progress}
 /* 9. DOM-level separation: list rows are flat, cards stack image over headline, columns are true CSS columns with ink rules */
 #grid .card.list-row{display:flex;align-items:center;gap:10px;min-height:0;padding:9px 4px}
 #grid .card.list-row .tx{flex:1;min-width:0;display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:baseline;padding:0}
-#grid .card.list-row .src{grid-column:1/-1}#grid .card.list-row .src img{width:14px;height:14px}
+#grid .card.list-row .src{grid-column:1/-1}#grid .card.list-row .src img{width:16px;height:16px}
 #grid .card.list-row h3{margin:0;font-size:16px;line-height:1.25}
 #grid .card.list-row time{font-size:11.5px;color:var(--mut);white-space:nowrap}
 #grid .card.list-row .star{position:static;flex:none}
@@ -4242,7 +4242,7 @@ const ssList=ss=>String(ss||'').split(/\s+[\d.]+[wx]\s*,?\s*|,\s+/).map(x=>x.tri
 /* the story's text from the JSON a page ships for its scripts (Next.js __NEXT_DATA__, Arc/Fusion globalContent) */
 function payloadParas(root){
  const best={n:0,p:[]},strip=h=>{const d=new DOMParser().parseFromString('<body>'+h,'text/html');return [...d.body.querySelectorAll('p,h2,h3,li,blockquote')].map(x=>x.textContent.replace(/\s+/g,' ').trim()).filter(x=>x.length>=3)};
- const consider=ps=>{ps=ps.filter(x=>x&&x.length>=3);const n=ps.reduce((a,x)=>a+x.length,0);if(ps.length>=3&&n>best.n){best.n=n;best.p=ps}};
+ const consider=ps=>{ps=ps.filter(x=>x&&x.length>=3&&!LEGAL_TXT.test(x));const n=ps.reduce((a,x)=>a+x.length,0);if(ps.length>=3&&n>best.n){best.n=n;best.p=ps}};
  let seen=0;
  const walk=(o,d)=>{
   if(!o||typeof o!=='object'||d>14||seen++>60000)return;
@@ -4323,8 +4323,14 @@ function genBest(d){
 function extract(html,base){const MT={};const r=extract0(html,base,MT);if(r&&MT.v)r.meta=MT.v;if(r&&MT.gate)r.gate=true;if(r&&MT.nofree)r.nofree=true;return r}
 /* removing an inline element from between two words must leave the space it stood for */
 function rmGap(e){try{const pv=e.previousSibling,nx=e.nextSibling;if(pv&&nx&&pv.nodeType===3&&nx.nodeType===3&&/[A-Za-z0-9]$/.test(pv.data)&&/^[A-Za-z0-9]/.test(nx.data))pv.data+=' '}catch(x){}}
+/* first thing after a page arrives: consent and privacy furniture goes before anything reads, cleans or saves the page (html and body themselves are never removed) */
+function consentPurge(d){
+ if(!d||!d.querySelectorAll)return;
+ d.querySelectorAll('[class*="cookie" i],[class*="consent" i],[class*="privacy-policy" i],[class*="gdpr" i]').forEach(e=>{if(e.isConnected&&!/^(HTML|BODY)$/.test(e.tagName))e.remove()});
+ d.querySelectorAll('p,li,div,section,span,aside,small').forEach(e=>{if(e.isConnected&&!e.querySelector('p,li,div,section,aside')&&LEGAL_TXT.test(e.textContent||''))e.remove()});
+}
 function extract0(html,base,MT){
- const d=new DOMParser().parseFromString(html,'text/html');try{junkDom(d,base)}catch(e){}
+ const d=new DOMParser().parseFromString(html,'text/html');try{consentPurge(d)}catch(e){}try{junkDom(d,base)}catch(e){}
  try{if(isOn('txo'))d.querySelectorAll('img,picture,video,iframe,source,amp-img,svg').forEach(e=>e.remove())}catch(e){}
  let ld='';let PL=null;try{PL=payloadOf(d)}catch(e){}
  /* a gate element only counts when it carries a gate message of its own: many pages ship "paywall" styling or markup without holding anything back */
@@ -5887,7 +5893,7 @@ const IMGOK=new Set();
 /* a story card is a container: one headline link plus separate Save and Why buttons beside it, never buttons inside a link */
 const chref=c=>(c&&((c.dataset&&c.dataset.href)||c.getAttribute('href')))||'';
 function listRow(a,i,k,f){
-  return `<div class="card list-row ${k} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}"><div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><time>${ago(a.date)}</time></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
+  return `<div class="card list-row ${k} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}"><div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><time>${ago(a.date)}</time></div></div>`;
 }
 function card(a,i,k){
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
