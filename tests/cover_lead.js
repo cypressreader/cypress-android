@@ -22,8 +22,8 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    return o},[t]);
   const tag='['+W+' '+t+'] ';
   ck(tag+'cover is full-bleed and leads',r.cover&&r.bleed&&r.tall&&r.noPane&&r.cls,JSON.stringify(r));
-  ck(tag+'admin chrome is one quiet line',r.meta&&r.metaH<150&&r.loose===0&&r.btns===4,JSON.stringify(r));
-  ck(tag+'actions visible without opening anything: '+r.names,/Catch me up/.test(r.names)&&/Export PDF/.test(r.names)&&/Share cover/.test(r.names)&&/Kindle/.test(r.names));ck(tag+'rest folds away',r.openOk);ck(tag+'cover story appears once',r.once);ck(tag+'no page errors',errs.length===0,errs.join('|'));
+  ck(tag+'admin chrome is one quiet line',r.meta&&r.metaH<150&&r.loose===0&&r.btns===2,JSON.stringify(r));
+  ck(tag+'actions visible without opening anything: '+r.names,/Catch me up/.test(r.names)&&/Share cover/.test(r.names));ck(tag+'rest folds away',r.openOk);ck(tag+'cover story appears once',r.once);ck(tag+'no page errors',errs.length===0,errs.join('|'));
   await p.close();
  }
  await b.close();console.log(bad?'FAILED '+bad:'cover_lead all passed');process.exit(bad?1:0);

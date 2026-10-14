@@ -308,3 +308,11 @@ Must verify on the device and with real publishers:
 - Manage feeds → "Purge limited feeds…" and the side-menu chip list the flagged feeds, with the reason, and remove only the ticked ones; Undo brings them back.
 - Reader: affiliate notes and buy boxes are gone; "Read original on <site> ↗" opens the publisher outside the app.
 - Subscriber-only stories are no longer pulled from the Internet Archive.
+
+## Preview 1.104: Fold reader and feed fixes
+Must verify on the Fold:
+- Every story opens on page 1 (header 1 / N); only the Continue reading row resumes.
+- Wide reader: page 1 left column holds the picture, kicker, headline and byline; the text and drop cap start at the top of column 2 with nothing above them.
+- Opening and closing a story: the side menu stays the same width behind it, no floating picture, a quick fade. (The close fade uses the browser's page-transition fade, which needs checking in the Android app.)
+- Folder title (Tech) is not cut off at the top; Cards never show three across in a narrow pane.
+- Engadget and TechCrunch stories: no "may receive a commission" line, no bare "Image Credits:" line.
