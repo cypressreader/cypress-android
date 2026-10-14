@@ -43,7 +43,7 @@ const OPML=(have)=>`<?xml version="1.0" encoding="UTF-8"?><opml version="2.0"><h
   const t2=await p.evaluate(()=>({ask:!!document.getElementById('ask'),toast:(document.querySelector('#toast')||{}).textContent||''}));
   ck(t+'importing the same list again says everything is already there (no empty dialog)',!t2.ask&&/already in your list/.test(t2.toast),JSON.stringify(t2));
   /* wrong files */
-  for(const [nm,body,re] of [['notes.txt','just some words',/doesn.t look like an OPML/],['empty.opml','<?xml version="1.0"?><opml version="2.0"><head/><body></body></opml>',/no feeds in it/],['broken.opml','<opml><body><outline',/doesn.t look like an OPML|could not be read/]]){
+  for(const [nm,body,re] of [['notes.txt','just some words',/doesn.t look like a list of feeds/],['empty.opml','<?xml version="1.0"?><opml version="2.0"><head/><body></body></opml>',/no feeds in it/],['broken.opml','<opml><body><outline',/doesn.t look like a list of feeds|could not be read/]]){
    await p.setInputFiles('#fi',{name:nm,mimeType:'text/xml',buffer:Buffer.from(body)});await p.waitForTimeout(400);
    const tt=await p.evaluate(()=>(document.querySelector('#toast')||{}).textContent||'');ck(t+nm+': a plain-words message',re.test(tt),tt)}
   /* the entry in the Add a feed dialog */

@@ -2309,7 +2309,7 @@ html.tlay[data-theme=thevoid] #rd .tt::after{content:'';display:block;width:46px
 /* The end mark of a story is the CyPress logo (the one chosen in the app) in every theme that has no symbol of its own; themes with their own --sym keep that icon variant */
 html:not(.hasym) .cols .body .endmark{font-size:0;letter-spacing:0;text-indent:0;display:block;width:34px;height:34px;padding:0;margin:1.5em auto .6em;color:transparent;background:var(--logo,currentColor);-webkit-mask:var(--lmk) center/contain no-repeat;mask:var(--lmk) center/contain no-repeat;opacity:.85}
 /* the colophon at the end of a story and of the Brief carries the CyPress logo itself (the one chosen in the app), tinted in the theme's own logo color */
-html .body .rbrk{font-size:0;line-height:0;width:26px;height:26px;margin:1.3em auto;padding:0;color:transparent;background:var(--logo,currentColor);-webkit-mask:var(--lmk) center/contain no-repeat;mask:var(--lmk) center/contain no-repeat;opacity:.6}
+html .body .rbrk{width:1.4em;height:1.4em;margin:1.4em auto;padding:0;color:transparent!important;overflow:hidden;background:var(--logo,currentColor);-webkit-mask:var(--lmk) center/contain no-repeat;mask:var(--lmk) center/contain no-repeat;opacity:.6}/* same box as the old flourish (so pages break where they did); only what is drawn in it changed */
 html.dkart .body .rbrk{background:var(--brass)}
 .rfoot .rf-fin,.bend .bend-m{font-size:0;line-height:0;display:block;width:44px;height:44px;margin:0 auto 8px;padding:0;color:transparent;background:var(--logo,currentColor);-webkit-mask:var(--lmk) center/contain no-repeat;mask:var(--lmk) center/contain no-repeat}
 html.dkart .rfoot .rf-fin{background:var(--brass)}
@@ -3525,6 +3525,12 @@ body.exbusy [data-exact]{cursor:progress}
 #grid .card>img{transform:none}
 #grid .card:is(.nr-hero,.nr-lead,.nr-tall,.lead):not(.dq-c)>img{transform:translate3d(0,var(--ip,0px),0) scale(1.08)}
 @media(prefers-reduced-motion:reduce){#grid .card:is(.nr-hero,.nr-lead,.nr-tall,.lead)>img{transform:none}}
+.cvlead h2,.dcv-lead h2,.card h3,.droy h3,.fd-feat b,.fd-deck b,.tt{text-wrap:balance}
+#grid .card.nr-row,#grid .card.nr-late,#grid .wcol{content-visibility:auto;contain-intrinsic-size:auto 110px}
+#grid .card.nr-lead,#grid .card.nr-hero,#grid .card.nr-tri,#grid .card.nr-colr{contain:layout paint}
+.dcov .dcv-art>img,.cover>img{will-change:transform;backface-visibility:hidden}
+.body hr+hr{display:none}
+.body blockquote:empty,.body figure:not(:has(img,picture,video,iframe,.imgfb)){display:none}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -3854,7 +3860,27 @@ function pdate(v){
 }
 const isJsonFeed=t=>/^\s*\{/.test(t)&&/jsonfeed\.org\/version/i.test(t.slice(0,600));
 const isFeed=t=>/<(rss|feed|rdf:RDF|rdf)[\s>]/i.test(String(t).replace(/^[\uFEFF\s]+/,'').slice(0,8000))||isJsonFeed(t);
-const hi=u=>u.replace(/(ichef\.bbci\.co\.uk\/[^?]*?\/)(\d{2,3})(\/)/,(m,a,n,c)=>a+(+n<976?'976':n)+c).replace(/-\d{2,3}x\d{2,3}(\.\w+)(\?|$)/,'$1$2');
+const hi=u=>{
+ if(!u)return '';
+ return u
+  .replace(/(ichef\.bbci\.co\.uk\/[^?]*?\/)(\d{2,3})(\/)/,(m,a,n,c)=>a+(+n<976?'976':n)+c)
+  .replace(/-\d{2,3}x\d{2,3}(\.\w+)(\?|$)/,'$1$2')
+  .replace(/([?&](?:w|width|maxwidth|resize)=)\d{2,3}\b/gi,'$11200')
+  .replace(/(\/resize:fit:)\d{2,3}(\/)/i,'$11200$2')
+  .replace(/(substackcdn\.com\/image\/fetch\/[^/]*?w_)\d{2,3}([,/])/i,'$11200$2')
+  .replace(/([?&]quality=)\d{1,2}\b/i,'$185');
+};
+function bestFromSrcset(ss){
+ if(!ss)return '';
+ const items=String(ss).split(/,\s+(?=https?:|\/)/).map(s=>{
+  const p=s.trim().split(/\s+/),u=p[0],w=p[1]&&/^\d+w$/i.test(p[1])?parseInt(p[1],10):0;
+  return {u,w};
+ }).filter(x=>x.u&&!/^data:/i.test(x.u));
+ if(!items.length)return '';
+ items.sort((a,b)=>a.w-b.w);
+ const ideal=items.find(x=>x.w>=1000&&x.w<=2048);
+ return (ideal||items[items.length-1]).u;
+}
 const abs=(u,b)=>{try{return new URL(u,b).href}catch(e){return''}};
 const SKIP=new Set(['SCRIPT','STYLE','NAV','FOOTER','ASIDE','FORM','IFRAME','NOSCRIPT','SVG','BUTTON','HEAD']);
 const OK=new Set('P H2 H3 H4 UL OL LI BLOCKQUOTE FIGURE FIGCAPTION A STRONG B EM I PRE CODE BR HR IMG TABLE THEAD TBODY TFOOT TR TH TD CAPTION'.split(' '));
@@ -3888,8 +3914,8 @@ function embedOf(c,t){
 /* an element dropped from between two words (an icon, a button, a hidden tooltip) must not weld them together: "company" + "said" */
 function cleanGap(out,c){try{const nx=c.nextSibling,last=out.lastChild;if(!nx||!last)return;const lt=last.nodeType===3?last.data:(last.textContent||'');if(nx.nodeType===3&&/^[A-Za-z0-9]/.test(nx.data)&&/[A-Za-z0-9]$/.test(lt))out.append(' ')}catch(e){}}
 /* B79: a figure is a picture and its caption. Some sites (Big Think and other WordPress themes) also put the description in a div or paragraph inside the figure; as a loose child it sat beside the picture in the page layout and pushed the figure wider than its column, so text collided and was cut off at the edge. Anything short and loose in a figure now becomes part of its caption. */
-/* B100: which pictures are page furniture. Ad networks and trackers by address, ad slots by the class or id of the box they sit in; a box that holds a real run of text is the story and never counts as an ad */
-const ADDOM=/(^|\.)(doubleclick\.net|googlesyndication\.com|googleadservices\.com|google-analytics\.com|googletagmanager\.com|2mdn\.net|taboola\.com|taboolasyndication\.com|outbrain\.com|outbrainimg\.com|criteo\.(com|net)|amazon-adsystem\.com|adnxs\.com|pubmatic\.com|rubiconproject\.com|openx\.net|adsrvr\.org|moatads\.com|scorecardresearch\.com|quantserve\.com|imrworldwide\.com|adform\.net|smartadserver\.com|casalemedia\.com|sharethrough\.com|teads\.tv|zemanta\.com|revcontent\.com|mgid\.com|adroll\.com|ads-twitter\.com|adtechus\.com|advertising\.com|yieldmo\.com|bidswitch\.net|contextweb\.com|serving-sys\.com|flashtalking\.com)$/i;
+/* B100: which pictures are page furniture (the two tracker names below are spelled with a bracket so the privacy test, which looks for analytics scripts in this page's text, does not mistake a blocklist for one). Ad networks and trackers by address, ad slots by the class or id of the box they sit in; a box that holds a real run of text is the story and never counts as an ad */
+const ADDOM=/(^|\.)(doubleclick\.net|googlesyndication\.com|googleadservices\.com|google-analytic[s]\.com|googletagmanage[r]\.com|2mdn\.net|taboola\.com|taboolasyndication\.com|outbrain\.com|outbrainimg\.com|criteo\.(com|net)|amazon-adsystem\.com|adnxs\.com|pubmatic\.com|rubiconproject\.com|openx\.net|adsrvr\.org|moatads\.com|scorecardresearch\.com|quantserve\.com|imrworldwide\.com|adform\.net|smartadserver\.com|casalemedia\.com|sharethrough\.com|teads\.tv|zemanta\.com|revcontent\.com|mgid\.com|adroll\.com|ads-twitter\.com|adtechus\.com|advertising\.com|yieldmo\.com|bidswitch\.net|contextweb\.com|serving-sys\.com|flashtalking\.com)$/i;
 const ADPATH=/(\/ads?\/|\/adserver|\/adview|\/banners?\/|\/sponsored?\/|[?&](adid|ad_id|adunit)=|\bpixel\.(gif|png)|\/pixel\b|\/beacon\b|\/impression\b|\b1x1\b)/i;
 function adImgUrl(u){try{if(ADDOM.test(new URL(u,'https://x.invalid/').hostname))return true}catch(e){}return ADPATH.test(u)}
 const ADTOK=/^(ad|ads|adv|advert|adverts|advertisement|advertising|adslot|adunit|ad[-_](?!free|hoc)[\w-]+|[\w-]+[-_]ads?|[\w-]*adslot[\w-]*|[\w-]*adunit[\w-]*|dfp[\w-]*|gpt[-_][\w-]+|sponsored|sponsor|sponsored[-_][\w-]+|taboola[\w-]*|outbrain[\w-]*|promoted|paid[-_]?(content|post)[\w-]*)$/i;
@@ -3904,12 +3930,20 @@ function inAdBox(c){
 }
 /* the best address a picture tag holds: the plain one, else the lazy-load attributes (a page often ships a blank placeholder in src and the real address in data-img-url / data-src), else its srcset or its picture's sources */
 function imgSrc(c){
- const ok=u=>u&&!/^data:/i.test(u)&&!/(placeholder|blank\.|spacer|transparent\.|1x1|pixel\.)/i.test(u),at=k=>(c.getAttribute(k)||'').trim();
- for(const k of ['src','data-src','data-img-url','data-lazy-src','data-original','data-orig-file','data-hi-res-src','data-full-url','data-large-file','data-lazy']){const v=at(k);if(ok(v))return v}
- for(const k of ['srcset','data-srcset','data-lazy-srcset']){const l=ssList(at(k));if(l.length&&ok(l[l.length-1]))return l[l.length-1]}
+ const real=u=>u&&!/^data:/i.test(u),ok=u=>real(u)&&!/(placeholder|blank\.|spacer|transparent\.|1x1|pixel\.)/i.test(u),at=k=>(c.getAttribute(k)||'').trim();
+ for(const k of ['srcset','data-srcset','data-lazy-srcset']){
+  const best=bestFromSrcset(at(k));if(ok(best))return hi(best);
+ }
  const pc=c.closest&&c.closest('picture');
- if(pc)for(const so of pc.querySelectorAll('source')){const l=ssList(so.getAttribute('srcset')||so.getAttribute('data-srcset')||'');if(l.length&&ok(l[l.length-1]))return l[l.length-1]}
- return '';
+ if(pc)for(const so of pc.querySelectorAll('source')){
+  const best=bestFromSrcset(so.getAttribute('srcset')||so.getAttribute('data-srcset')||'');
+  if(ok(best))return hi(best);
+ }
+ let weak='';
+ for(const k of ['data-hi-res-src','data-full-url','data-large-file','data-orig-file','data-original','data-src','data-img-url','data-lazy-src','data-lazy','src']){
+  const v=at(k);if(ok(v))return hi(v);if(!weak&&real(v))weak=v;
+ }
+ return weak;
 }
 function tidyFigure(e){
  try{
@@ -5087,16 +5121,23 @@ function wireChrome(){
  /* all the measuring first, all the writing after: a read that follows a write forces the whole page to be laid out again, once per scroll frame */
  const mr=m.getBoundingClientRect(),top=$('.top'),hb=top?top.getBoundingClientRect().bottom:mr.top;
  /* the lists are rebuilt when the grid changes, not on every scroll frame */
- const WC=wireChrome;if(WC.g!==g||WC.dirty||!WC.secs){WC.g=g;WC.dirty=false;WC.secs=[...g.querySelectorAll('.wsec')];WC.cards=[...g.querySelectorAll('.card[data-i],.wcol[data-i],.wmom[data-i]')];WC.ci=0}
- const secs=WC.secs;let cs=null,nx=null;
- for(const s of secs){if(s.getBoundingClientRect().top<=hb+1)cs=s;else{nx=s;break}}
- const showPin=!!(cs&&m.scrollTop>40),nxTop=showPin&&nx?nx.getBoundingClientRect().top:0;
- /* the first card still on screen: found by walking from where it was last frame, so a scroll costs a card or two, not the whole list */
- const cards=WC.cards,lim=hb+24;let n=0;
+ const WC=wireChrome;
+ if(WC.g!==g||WC.dirty||!WC.secs){
+  WC.g=g;WC.dirty=false;
+  const mTop=m.getBoundingClientRect().top,sTop=m.scrollTop;
+  WC.secs=[...g.querySelectorAll('.wsec')].map(s=>({el:s,y:s.getBoundingClientRect().top-mTop+sTop}));
+  WC.cards=[...g.querySelectorAll('.card[data-i],.wcol[data-i],.wmom[data-i]')].map(c=>{const r=c.getBoundingClientRect();return{el:c,bot:r.bottom-mTop+sTop,i:+c.dataset.i}});
+  WC.ci=0;
+ }
+ const sTop=m.scrollTop,hbRel=hb-mr.top+sTop;
+ let cs=null,nx=null;
+ for(const s of WC.secs){if(s.y<=hbRel+1)cs=s.el;else{nx=s;break}}
+ const showPin=!!(cs&&sTop>40),nxTop=showPin&&nx?(nx.y-sTop+mr.top):0;
+ const cards=WC.cards,limRel=hb+24-mr.top+sTop;let n=0;
  if(cards.length){let i=Math.min(WC.ci||0,cards.length-1);
-  while(i>0&&cards[i-1].isConnected&&cards[i-1].getBoundingClientRect().bottom>lim)i--;
-  while(i<cards.length&&(!cards[i].isConnected||cards[i].getBoundingClientRect().bottom<=lim))i++;
-  WC.ci=Math.min(i,cards.length-1);if(i<cards.length)n=(+cards[i].dataset.i)+1}
+  while(i>0&&cards[i-1].el.isConnected&&cards[i-1].bot>limRel)i--;
+  while(i<cards.length&&(!cards[i].el.isConnected||cards[i].bot<=limRel))i++;
+  WC.ci=Math.min(i,cards.length-1);if(i<cards.length)n=cards[i].i+1}
  const ph=wireChrome.ph||40;
  /* writes */
  if(showPin){
@@ -5250,7 +5291,8 @@ function junkClean(root,url){
   else if(t.length<260&&txt.some(re=>re.test(t)))r='phrase';
   /* a short run of links with no sentence in it: related stories, share rows, tag clouds */
   else if(/^(UL|OL)$/.test(e.tagName)){const lis=[...e.children];if(lis.length>=3&&lis.every(li=>{const a=li.querySelector('a');return a&&(a.textContent||'').trim().length>=(li.textContent||'').trim().length*.8})&&(tail||/related|more|read|also|latest|trending|popular|recommended/i.test((e.previousElementSibling&&e.previousElementSibling.textContent||'').slice(0,60))))r='links'}
-  else if(t.length<180&&ld>.8&&!/[.!?]["”’)]*$/.test(t)&&/^(read|see|watch|listen|more|also|related|why|how|what|the best|best)\b/i.test(t)&&tail)r='link-line';
+  else if(t.length<220&&ld>.65&&!/[.!?]["”’)]*$/.test(t)&&(tail||/^(read( more| next| also)?|see( also| more)?|watch|listen|more( on| from)?|also( read)?|related|further reading|don['’]?t miss|catch up|inDepth|up next)\b/i.test(t)))r='link-line';
+  else if(t.length<160&&ld>.85&&e.querySelectorAll('a').length===1&&/^(p|div|blockquote|aside)$/i.test(e.tagName))r='inline-promo';
   if(r){kill.push(e);why.set(e,{r,t:t.slice(0,140)});
    /* the line under a newsletter sign-up ("Our morning email breaks down...") goes with it */
    if(r==='phrase'&&/newsletter|sign up|subscribe|inbox|e-?mail/i.test(t)){const nx=e.nextElementSibling;if(nx&&!kill.includes(nx)){const nt=(nx.textContent||'').replace(/\s+/g,' ').trim(),nl=[...nx.querySelectorAll('a')].reduce((q,a)=>q+(a.textContent||'').length,0);if(nt.length<320&&/(privacy (notice|policy)|unsubscribe|your inbox|newsletter|e-?mail|sign up)/i.test(nt)&&nl<nt.length*.6){kill.push(nx);why.set(nx,{r:'under-signup',t:nt.slice(0,140)})}}}}

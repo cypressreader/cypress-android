@@ -34,7 +34,7 @@ const md='Title: x\n\nURL Source: https://x.test/a\n\nMarkdown Content:\n'+['Fir
  ck('ad slot picture is dropped',has('ad-banner')===0&&has('house.jpg')===0,JSON.stringify(r.srcs));
  ck('ad network picture is dropped',!r.srcs.some(s=>/googlesyndication/.test(s)),JSON.stringify(r.srcs));
  ck('gallery: each picture once, no small copies',has('three.jpg')===1&&has('four.jpg')===1,JSON.stringify(r.srcs));
- ck('the picture kept from a gallery is the large one',r.srcs.filter(s=>/three|four/.test(s)).every(s=>/w=421/.test(s)),JSON.stringify(r.srcs));
+ ck('the picture kept from a gallery is the large one',r.srcs.filter(s=>/three|four/.test(s)).every(s=>/w=(421|1200)\b/.test(s)),JSON.stringify(r.srcs));
  ck('a loose credit under a picture becomes part of the same figure (or is dropped), never a loose line',!r.credit||r.creditInFig,JSON.stringify(r));
  ck('the picture with the loose credit is kept',has('five.jpg')===1,JSON.stringify(r.srcs));
  ck('backup reader keeps a picture-only block ("![Image 2: …](url)")',r.mdImgs.some(s=>/uninstall-app-files/.test(s)),JSON.stringify(r.mdImgs));
