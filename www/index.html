@@ -3659,14 +3659,25 @@ body.exbusy [data-exact]{cursor:progress}
 #grid[data-w="card"]>.card>img{order:-1;width:100%}
 #grid[data-w="mag"]>.card:first-of-type,#grid[data-w="mag"] .card.lead{grid-column:1/-1}
 #grid[data-w="mag"] .card:is(.nr-hero,.nr-lead,.lead) h3{font-family:var(--serif);font-weight:700;letter-spacing:-.024em}
-#grid[data-w="col"] .wcols .wcol{border-right:1px solid var(--ln)}
-#grid[data-w="col"] .wcols .wcol:last-child{border-right:0}
 @media(min-width:768px){
 #grid[data-w="card"]:not(.nr),#grid[data-w="mag"]:not(.nr):not(.wire){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;align-items:start}
 #grid[data-w="card"]:not(.nr)>.card,#grid[data-w="mag"]:not(.nr):not(.wire)>.card{display:flex;flex-direction:column}
 #grid[data-w="card"]:not(.nr)>.card>img,#grid[data-w="mag"]:not(.nr):not(.wire)>.card>img{order:-1;width:100%;aspect-ratio:16/10;object-fit:cover}
 }
 @media(min-width:1100px){#grid[data-w="card"]:not(.nr),#grid[data-w="mag"]:not(.nr):not(.wire){grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* 9. DOM-level separation: list rows are flat, cards stack image over headline, columns are true CSS columns with ink rules */
+#grid .card.list-row{display:flex;align-items:center;gap:10px;min-height:0;padding:9px 4px}
+#grid .card.list-row .tx{flex:1;min-width:0;display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:baseline;padding:0}
+#grid .card.list-row .src{grid-column:1/-1}#grid .card.list-row .src img{width:14px;height:14px}
+#grid .card.list-row h3{margin:0;font-size:16px;line-height:1.25}
+#grid .card.list-row time{font-size:11.5px;color:var(--mut);white-space:nowrap}
+#grid .card.list-row .star{position:static;flex:none}
+@media(min-width:768px){
+#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr),#grid[data-w="mag"]:not(.nr):not(.wire)>.card[data-ed]:not(.nr){display:flex;flex-direction:column}
+#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr)>img,#grid[data-w="mag"]:not(.nr):not(.wire)>.card[data-ed]:not(.nr)>img{display:block;width:100%;position:static}
+#grid[data-w="col"] .wcols{column-count:2;column-width:auto;column-rule:1px solid color-mix(in srgb,var(--ink) 28%,transparent)}
+}
+@media(min-width:1100px){#grid[data-w="col"] .wcols{column-count:3}}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4099,14 +4110,11 @@ function tidyFigure(e){
  return e;
 }
 /* legal and cookie furniture: boxes by class, and short paragraphs of consent boilerplate */
-const LEGAL_SEL='div.privacy-policy,div#privacy-policy,section[class*="cookie" i],div[id*="consent" i],div[class*="gdpr" i],div[class*="cmp-" i],div.cc-window,footer,.policy-footer,[data-testid*="cookie" i],[class*="osano" i]';
+const LEGAL_SEL='.privacy-policy,#privacy-policy,[class*="cookie" i],[id*="consent" i],[class*="gdpr" i],[class*="cmp-" i],.cc-window,div.privacy-policy,div#privacy-policy,section[class*="cookie" i],div[id*="consent" i],div[class*="gdpr" i],div[class*="cmp-" i],footer,.policy-footer,[data-testid*="cookie" i],[class*="osano" i]';
 const LEGAL_TXT=/confirm my choices|data co-?ops?\b|allow targeted advertising|opt-?out of other sales/i;
+/* no exceptions: a matching element goes, whatever it wraps */
 function LEGAL_BOX(c){
- try{
-  if(c.matches&&c.matches(LEGAL_SEL)&&!c.querySelector('h1,article,main'))return true;
-  const t=c.textContent||'';
-  return t.length<900&&/^(P|DIV|SPAN|SECTION|ASIDE|LI|UL)$/i.test(c.tagName)&&LEGAL_TXT.test(t);
- }catch(e){return false}
+ try{return !!((c.matches&&c.matches(LEGAL_SEL))||LEGAL_TXT.test(c.textContent||''))}catch(e){return false}
 }
 function clean(n,base){
  const out=document.createDocumentFragment();
@@ -5878,9 +5886,13 @@ const favHost=f=>{const h=host(f.url);if(/(^|\.)(news\.google\.com|bing\.com|fee
 const IMGOK=new Set();
 /* a story card is a container: one headline link plus separate Save and Why buttons beside it, never buttons inside a link */
 const chref=c=>(c&&((c.dataset&&c.dataset.href)||c.getAttribute('href')))||'';
+function listRow(a,i,k,f){
+  return `<div class="card list-row ${k} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}"><div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><time>${ago(a.date)}</time></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
+}
 function card(a,i,k){
+  if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
   const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],op=q0&&q0.v>=4&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="object-position:${q0.px}% ${q0.py}%"`:'';
-  return `<div class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span>${a.sec?`<span class=" ssec">· ${esc(a.sec)}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="${a.more.length+1} sources report this">+${a.more.length} sources</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><p>${esc(a.summary)}</p><div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}<time>${ago(a.date)}</time></div>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
+  return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span>${a.sec?`<span class=" ssec">· ${esc(a.sec)}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="${a.more.length+1} sources report this">+${a.more.length} sources</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><p>${esc(a.summary)}</p><div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}<time>${ago(a.date)}</time></div>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
 }
 /*NEWSROOM*/
 const IS_SAFARI=(()=>{try{const u=navigator.userAgent;return /iP(hone|ad|od)/.test(u)||(/Safari\//.test(u)&&!/Chrome\/|Chromium\/|Android|Edg\/|OPR\/|CriOS|FxiOS/.test(u))}catch(e){return false}})();
