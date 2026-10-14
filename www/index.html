@@ -3603,6 +3603,41 @@ body.exbusy [data-exact]{cursor:progress}
 .wtrend .wtr-k{display:inline-flex;align-items:center;gap:6px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:10.5px}
 .wtrend .wtr-dot{width:7px;height:7px;border-radius:50%;background:#e53935;box-shadow:0 0 8px #e53935;display:inline-block;animation:wtrPulse 2s ease-in-out infinite}
 @keyframes wtrPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.85)}}
+/* ===== flagship pass: four feed rhythms, editorial reader, quiet callouts ===== */
+/* 1a. List: one continuous index between 1px ink hairlines, small-caps tracked source, muted time */
+#grid.list{gap:0;row-gap:0;border-top:1px solid var(--ink);--hl:color-mix(in srgb,var(--ink) 32%,transparent)}
+#grid.list .card{background-color:transparent!important;background-image:linear-gradient(var(--hl),var(--hl))!important;background-size:100% 1px!important;background-position:0 100%!important;background-repeat:no-repeat!important;color:var(--ink);border:0!important;border-radius:0;box-shadow:none!important;outline:0!important;padding:14px 2px}
+#grid.list .card .cfoot{gap:2px 8px}
+#grid.list .card>img{border-radius:6px}
+#grid.list .card .src{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;font-variant-caps:all-small-caps}
+#grid.list .card time,#grid.list .card .rt,#grid.list .card .cfoot{color:var(--mut)}
+#grid.list .card .cfoot{border-top:0;padding-top:0;margin-top:4px}
+#grid.list .card h3{font-family:var(--serif);font-weight:600;letter-spacing:-.01em}
+/* 1b. Cards: framed art-cards, 12px corners, a 1px inner structural line, no drop shadows */
+#grid:not(.list) .card:not(:is(.nr-row,.nr-late,.nr-tri,.nr-pq,.nr-pq0,.nr-pq1,.nr-pq2)){border-radius:12px;box-shadow:inset 0 0 0 1px var(--ln);outline:1px solid color-mix(in srgb,var(--ln) 70%,transparent);outline-offset:-1px}
+/* 1c. Cards density (magazine): dominant hero headline weights over quiet companions */
+#grid.wire:not(:has(.wcols)) .card:is(.nr-hero,.nr-lead,.lead) h3{font-size:clamp(27px,7.4vw,34px);line-height:1.06;font-weight:700;letter-spacing:-.024em}
+@media(min-width:700px){#grid.wire:not(:has(.wcols)) .card:is(.nr-hero,.nr-lead,.lead) h3{font-size:clamp(30px,3.4vw,46px)}}
+#grid.wire:not(:has(.wcols)) .card:is(.nr-row,.nr-late) h3{font-size:17px;line-height:1.22;font-weight:600}
+/* 1d. Columns density (broadsheet): vertical ink rules between columns, quiet serif */
+#grid.wire .wcols{column-gap:34px;column-rule:1px solid color-mix(in srgb,var(--ink) 28%,transparent)}
+#grid.wire .wcol{border-bottom:1px solid color-mix(in srgb,var(--ink) 16%,transparent)}
+#grid.wire .wcol b{font:500 19.5px/1.2 var(--serif);letter-spacing:-.006em}
+#grid.wire .wcol em,#grid.wire .wcol-d{font-family:var(--serif)}
+/* 2. The story header: small-caps kicker, display-serif title, byline; a 700px measure when scrolling down; a float drop cap */
+#rd .cols .kick{font:700 11.5px var(--sans);letter-spacing:.18em;text-transform:uppercase}
+#rd .cols .tt{font-family:var(--disp,var(--serif));font-weight:600;font-size:clamp(32px,5.2vw,56px);line-height:1.04;letter-spacing:-.015em;text-wrap:balance}
+#rd .cols .dt{font:500 13.5px/1.5 var(--sans);color:var(--mut)}
+#rd .cols .dt .by{font-family:var(--serif);font-style:italic;font-size:14.5px;color:var(--ink)}
+#rd.vert .cols>:is(.kick,.tt,.dt,.note,.body,.orig){max-width:700px;margin-left:auto;margin-right:auto}
+#rd .cols .body p.dropcap .dcap{float:left;font-family:var(--disp,var(--serif));font-weight:600;font-size:3.2em;line-height:.75;margin-right:8px;padding:.05em 0 0;color:var(--b,var(--ink))}
+/* 3. Related reading as a quiet callout card */
+.body .rcall{margin:1.3em 0;padding:11px 16px 12px;border-left:3px solid var(--b,var(--ink));border-radius:0 10px 10px 0;background:color-mix(in srgb,var(--b,var(--ink)) 5%,transparent);break-inside:avoid;text-align:left}
+.body .rcall .rcl{display:block;margin:0 0 4px;font:700 10.5px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.body .rcall ul,.body .rcall ol{margin:0;padding-left:1.1em}
+.body .rcall li{margin:3px 0;font-size:.95em}
+/* 4. The reading page takes a very light breath of the photo's color */
+#rd.amb .view{background-color:var(--rbg)}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -7565,7 +7600,8 @@ function toggleWeb(auto){
 async function openReader(a){
  const f=fof(a),my=++tok,sh=$('#sheet');curA=a;RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0;R.ready=false;const afterLoad=()=>{try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;setTimeout(()=>{if(curA===a0)relayout()},800);setTimeout(()=>{if(curA===a0)relayout()},2600);try{document.fonts&&document.fonts.ready.then(()=>{if(curA===a0)relayout()})}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);save();setTimeout(()=>raWhenReady(a,0),1200);
  rdB(brand(f));pushLayer('reader');tip('reader');
- if(a.img&&isOn('ptint'))imgInfo(a.img).then(o=>{if(o&&o.t&&curA===a)rdB(o.t)});
+ try{rdAmbient(null)}catch(e){}
+ if(a.img&&isOn('ptint'))imgInfo(a.img).then(o=>{if(o&&o.t&&curA===a){rdB(o.t);try{rdAmbient(o.t)}catch(e){}}});
  document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',chref(c)===a.link));
  const dt=a.date?new Date(a.date).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'';
  const cov=covOf(a).length?hubTeaser(a):'';
@@ -9009,6 +9045,24 @@ function rdTone(c){
  const T=document.documentElement.dataset.theme==='dynamic'?dynTone(c,dynIsDark()):null;
  if(T){rd.style.setProperty('--rbg',T.bg);rd.style.setProperty('--rpn',T.pn);rd.style.setProperty('--rln',T.ln)}
  else['--rbg','--rpn','--rln'].forEach(k=>rd.style.removeProperty(k))
+}
+/* the reading page takes a 4% breath of the photo's main color (the color the app's own photo reader already found, through a tiny off-screen bitmap with a CORS-safe load). It is only kept when the text stays razor-sharp: contrast must stay at 7 or better and lose no more than a tenth against the plain page */
+function rdAmbient(c){
+ const rd=$('#rd'),v=rd&&rd.querySelector('.view');if(!rd||!v)return;
+ rd.classList.remove('amb');rd.style.removeProperty('--rbg');
+ if(!c||document.documentElement.dataset.theme==='dynamic'||!isOn('ptint'))return;
+ try{
+  const rgb=x=>{const m=String(x).match(/[\d.]+/g);return m&&m.length>=3?m.slice(0,3).map(Number):null};
+  const tmp=document.createElement('i');tmp.style.color=c;document.body.append(tmp);const hue=rgb(getComputedStyle(tmp).color);tmp.remove();
+  const cs=getComputedStyle(v),base=rgb(cs.backgroundColor),ink=rgb(cs.color);
+  if(!hue||!base||!ink)return;
+  const mix=base.map((x,i)=>Math.round(x*.96+hue[i]*.04));
+  const lum=a=>{const f=n=>{n/=255;return n<=.03928?n/12.92:Math.pow((n+.055)/1.055,2.4)};return .2126*f(a[0])+.7152*f(a[1])+.0722*f(a[2])};
+  const cr=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+  const after=cr(ink,mix);
+  if(after<7||after<cr(ink,base)*.9)return;
+  rd.style.setProperty('--rbg','rgb('+mix.join(',')+')');rd.classList.add('amb');
+ }catch(e){}
 }
 function rdB(c){const rd=$('#rd');if(!rd)return;rd.style.setProperty('--b',c);rdTone(c)}
 /* only undoes what the Dynamic theme itself set: the light/dark twin of another theme sets its own accent colors on the same two properties */
@@ -10533,7 +10587,40 @@ function decorate0(){
  const at=ps[Math.floor(ps.length*.45)],q=document.createElement('div');q.className='pullq';q.setAttribute('aria-hidden','true');q.textContent=best.replace(/^["“]|["”]$/g,'');
  at.before(q);
 }
-function decorate(){try{decorate0()}finally{try{cineLongform($('.cols .body'))}catch(e){}}}
+/* a quiet sweep 300 ms after a story has loaded: short newsletter and promo boxes that a site injected into the text fade away, and "Related reading" lists become quiet callout cards. Only the page's own text is looked at (nothing is fetched, nothing behind a paywall is touched) and anything that reads like story text is left alone */
+const SWP_START=/^(sign up|subscribe|join (our|the|thousands)|get (our|the|the best of) (free |daily |weekly )?(newsletter|email)|receive (our|the)|enter your email|never miss|don[’']?t miss out|support (our|independent|quality)|become a (member|subscriber|supporter)|follow us on)\b/i;
+const SWP_MID=/\b(newsletter|inbox|unsubscribe|your email address)\b/i;
+const REL_LABEL=/^(related( reading| stories| story| articles| coverage| posts)?|read more|also read|more from|recommended( for you)?|you may also like|further reading|more on this)\s*:?\s*$/i;
+let SWT=0;
+function sweepSoon(){const b=$('.cols .body');if(!b||b.dataset.sw)return;b.dataset.sw='1';clearTimeout(SWT);SWT=setTimeout(()=>{const b2=$('.cols .body');if(b2)try{readerSweep(b2)}catch(e){}},300)}
+function readerSweep(b){
+ if(!b||!b.isConnected)return;
+ const kids=[...b.children],n=kids.length;let gone=0;
+ kids.forEach((e,i)=>{
+  if(!/^(P|DIV|ASIDE|SECTION|BLOCKQUOTE)$/.test(e.tagName)||e.classList.contains('pullq')||e.classList.contains('endmark')||e.classList.contains('emb'))return;
+  const t=(e.textContent||'').replace(/\s+/g,' ').trim();
+  if(!t||t.length>240||/[.!?]["”’)]*\s.{70,}/.test(t))return;/* a block with real sentences of its own is story text */
+  const links=e.querySelectorAll('a').length;
+  const promo=(SWP_START.test(t)&&(links>=1||t.length<140))||(SWP_MID.test(t)&&/\b(sign up|subscribe|join|get)\b/i.test(t)&&t.length<200&&links>=1);
+  if(!promo||i<2||i>=n-1&&t.length>160)return;
+  e.style.transition='opacity .4s ease';e.style.opacity='0';e.setAttribute('aria-hidden','true');gone++;
+  setTimeout(()=>{try{e.remove();if(!isVert())relayout()}catch(x){}},450);
+ });
+ /* "Related reading": a short list of headline links in the middle of the story (with its label, or the label the cleaner already removed) becomes one calm callout */
+ [...b.children].forEach((e,i,all)=>{
+  if(i<2||i>=all.length-1||e.classList.contains('rcall')||!/^(UL|OL)$/.test(e.tagName))return;
+  const lis=[...e.children].filter(x=>x.tagName==='LI');
+  if(lis.length<2||lis.length>6)return;
+  const headlineLinks=lis.every(li=>{const a=li.querySelector('a'),lt=(li.textContent||'').replace(/\s+/g,' ').trim();return a&&(a.textContent||'').replace(/\s+/g,' ').trim().length>=lt.length*.8&&lt.length>=18&&lt.length<=140&&!/[.!?]$/.test(lt)});
+  if(!headlineLinks)return;
+  const lab=all[i-1],lt=(lab.textContent||'').replace(/\s+/g,' ').trim(),named=/^(P|H2|H3|H4|DIV)$/.test(lab.tagName)&&lt.length<=40&&REL_LABEL.test(lt);
+  const w=document.createElement('div');w.className='rcall';w.setAttribute('role','group');
+  const title=named?lt.replace(/\s*:\s*$/,''):'Related reading';w.setAttribute('aria-label',title);
+  const h=document.createElement('b');h.className='rcl';h.textContent=title;
+  e.before(w);if(named)lab.remove();w.append(h,e);
+ });
+}
+function decorate(){try{decorate0()}finally{try{cineLongform($('.cols .body'))}catch(e){}try{sweepSoon()}catch(e){}}}
 /* ---------- B39 cinematic long reads ---------- */
 let cineRaf=0,cineIO=null;
 function cineScroll(){if(cineRaf)return;cineRaf=requestAnimationFrame(()=>{cineRaf=0;try{cineParallax()}catch(e){}})}
@@ -10645,8 +10732,8 @@ const TH_UP='<path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9
 function rateHtml(a){const v=(S.thm||{})[a.link]||0;return `<span class="rate"><button type="button" class="thb${v>0?' on':''}" data-rate="1" aria-label="More like this" aria-pressed="${v>0}" title="More like this">${svg(TH_UP)}</button><button type="button" class="thb${v<0?' on':''}" data-rate="-1" aria-label="Less like this" aria-pressed="${v<0}" title="Less like this">${svg(TH_DN)}</button></span>`}
 function rateSync(){const a=curA;if(!a)return;const v=(S.thm||{})[a.link]||0;document.querySelectorAll('.cols .thb').forEach(b=>{const on=(+b.dataset.rate)===v;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)})}
 function rateA(a,v){const m=S.thm=S.thm||{},old=m[a.link]||0,nv=old===v?0:v,delta=nv-old;if(nv)m[a.link]=nv;else delete m[a.link];const ks=Object.keys(m);if(ks.length>300)delete m[ks[0]];likeA(a,delta,nv===0?'Rating removed':nv>0?'You’ll see more like this':'You’ll see less like this');rateSync()}
-function dtHtml(a,dt){const m=readMin(a);return [a.by?'<span>By '+esc(a.by)+(hasBy(a.by)?'<button class="flw" disabled>Following</button>':'<button class="flw" data-fby>Follow</button>')+'</span>':'',dt?'<span>'+esc(dt)+'</span>':'',m?'<span>'+m+' min read</span>':'',rateHtml(a),a.cm?`<a class="cmt" href="${esc(a.cm)}" target="_blank" rel="noopener">💬 ${cmLabel(a.cm)}</a>`:''].filter(Boolean).join('')}
-function hdrFill(){const d=$('.cols .dt');if(d&&curA){const dt=curA.date?new Date(curA.date).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'';d.innerHTML=dtHtml(curA,dt)}}
+function dtHtml(a,dt,live){const m=readMin(a)||live||0;return [a.by?'<span class="by">By '+esc(a.by)+(hasBy(a.by)?'<button class="flw" disabled>Following</button>':'<button class="flw" data-fby>Follow</button>')+'</span>':'',dt?'<span>'+esc(dt)+'</span>':'',m?'<span>'+m+' min read</span>':'',rateHtml(a),a.cm?`<a class="cmt" href="${esc(a.cm)}" target="_blank" rel="noopener">💬 ${cmLabel(a.cm)}</a>`:''].filter(Boolean).join('')}
+function hdrFill(){const d=$('.cols .dt');if(d&&curA){const dt=curA.date?new Date(curA.date).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'';/* the reading time follows the text that is really on the page */const bd=$('.cols .body'),wn=bd?(bd.textContent.match(/\S+/g)||[]).length:0;d.innerHTML=dtHtml(curA,dt,wn>=120?Math.max(1,Math.round(wn/230)):0)}}
 const volNo=()=>{const y=new Date().getFullYear();if(!S.born)S.born=y;return Math.max(1,y-S.born+1)};
 function edition(d){d=d||new Date();const h=d.getHours(),n=(h>=5&&h<17)?'Morning':'Evening';return d.toLocaleDateString([],{weekday:'long'})+' '+n+' Edition'}
 const shortDate=d=>(d||new Date()).toLocaleDateString([],{month:'long',day:'numeric'});
