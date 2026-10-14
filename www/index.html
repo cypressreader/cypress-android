@@ -3699,8 +3699,8 @@ body.exbusy [data-exact]{cursor:progress}
 }}
 @media(max-width:899px){#grid .nr-top,#grid .nr-flip.nr-top{grid-template-columns:minmax(0,1fr)!important}#grid .nr-top>*{grid-column:1/-1!important;order:0!important}}
 /* 11. Intrinsic columns and fluid type: widths come from the feed pane, so any screen density or zoom lands on 1, 2 or 3 columns by itself */
-#grid .wcols{column-gap:22px;column-rule:1px solid var(--ln)}
-@container feed (min-width:380px){#grid .wcols{column-width:auto;column-count:2}}
+#grid .wcols{column-gap:14px;column-rule:1px solid var(--ln)}
+@container feed (min-width:270px){#grid .wcols{column-width:auto;column-count:2}}
 #grid.wire:not(:has(.wcols)) .card:is(.nr-hero,.nr-lead,.lead) h3{font-size:clamp(22px,4cqi + 10px,34px)}
 #grid .card[data-ed]:not(.nr-hero,.nr-lead,.lead,.nr-pq) h3{font-size:clamp(15px,2.2vw,19px)}
 @media(min-aspect-ratio:3/4) and (max-width:720px){body:not(.split):not(.narrow){--sw:188px}body:not(.split):not(.narrow)>aside #side-list,body:not(.split):not(.narrow)>aside .addbtn{padding-left:6px;padding-right:6px}}
@@ -3718,6 +3718,13 @@ body.exbusy [data-exact]{cursor:progress}
 #grid[data-w="mag"] .card:is([data-ed],.nr-row,.nr-late):not(.lead):not(.nr-lead):not(.nr-hero)>img{aspect-ratio:16/9!important;max-height:220px;width:100%!important;object-fit:cover;overflow:hidden}
 #grid[data-w="mag"] .fd-fa{max-height:360px}
 }
+/* 13. The photo list: a 96px square picture at the left of every story that has one, then source, headline, two lines of summary and the star */
+#grid .card.list-row{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:0 12px;align-items:center;padding:10px 4px}
+#grid .card.list-row.noimg{grid-template-columns:minmax(0,1fr) auto}
+#grid .card.list-row>.cimg{grid-column:1;width:96px!important;height:96px!important;max-width:96px;transform:none!important;padding:0!important;border:0!important;box-sizing:border-box;aspect-ratio:1/1;object-fit:cover;border-radius:8px;display:block;position:static}
+#grid .card.list-row>.tx{grid-column:2;min-width:0}#grid .card.list-row.noimg>.tx{grid-column:1}
+#grid .card.list-row>.star{grid-column:-2;align-self:start;position:static;opacity:1!important;visibility:visible;display:inline-flex!important;align-items:center;justify-content:center;width:32px;height:32px}
+#grid .card.list-row .ld{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -3920,11 +3927,15 @@ function histAdd(a){if(!a||!a.link)return;try{const f=fof(a);S.hist=S.hist.filte
  if(a.feedId){const o=S.ops[a.feedId]=S.ops[a.feedId]||{n:0,t:0};o.n++;o.t=Date.now()}}catch(e){}}
 const histStory=h=>({feedId:h.fid,title:h.ti,link:webUrl(h.l),date:h.t,html:'',summary:'',img:h.img||'',ft:h.ft,fu:h.fu});
 const cleanT=t=>{t=String(t||'');t=t.replace(/<\/?[a-z][a-z0-9]*(\s[^>]*)?\/?>/gi,' ');t=dent(t);return t.replace(/<\/?[a-z][a-z0-9]*(\s[^>]*)?\/?>/gi,' ').replace(/\s+/g,' ').trim()};
+/* coupon and promo-code pages are sales listings, not stories: they never enter a feed, a cover or a section */
+const CPN_RE=/\b(?:promo codes?|coupon codes?|discount codes?|coupons?\s*:|\d+%\s*off\b.*\b(?:october|november|december|january|february|march|april|may|june|july|august|september|202\d)|verified\s+.*\b(?:promo|coupon|discount))/i,CPN_U=/\/coupons?\/|\/promo-codes?\//i,CPN_M=new WeakMap();
+function isCouponSpam(a){if(!a||typeof a!=='object')return false;let v=CPN_M.get(a);if(v===undefined){try{v=CPN_RE.test(String(a.title||''))||CPN_U.test(String(a.link||''))}catch(e){v=false}CPN_M.set(a,v)}return v}
+function couponSweep(){try{for(const id in items){const l=items[id];if(l&&l.some&&l.some(isCouponSpam))items[id]=l.filter(a=>!isCouponSpam(a))}}catch(e){}}
 function fixA(a){if(a&&a.dd!==3){a.title=cleanT(a.title);a.summary=cleanT(a.summary);if(a.gn||/news\.google\.com/.test(a.link||''))a.title=a.title.replace(/\s+[-–|]\s+[^-–|]{2,40}$/,'');a.dd=3}return a}
 const CK='folio-cache';
 /* a feed that runs on headline-search stand-ins (Google News / Bing) keeps only its own site's stories: ones saved before that rule, from other sites or whose site cannot be told, are left out when the saved copy is read back (the next refresh brings the right ones) */
 function offSiteSaved(a,f){try{if(!(a.gn||a.bing)||a.os||!f)return false;const sd=siteOf(f);if(!sd)return false;const h=host(a.link);return /news\.google\.|bing\.com/.test(h)||!onSite(h,sd)}catch(e){return false}}
-try{const c=JSON.parse(localStorage.getItem(CK)||'{}');for(const id in c){const fd=S.feeds.find(x=>x.id===id);items[id]=noTwins(c[id].map(fixA).filter(a=>!offSiteSaved(a,fd)).map(a=>{if(a.gn&&/news\.google\.com/.test(a.link))a.img='';return a}))}}catch(e){}
+try{const c=JSON.parse(localStorage.getItem(CK)||'{}');for(const id in c){const fd=S.feeds.find(x=>x.id===id);items[id]=noTwins(c[id].map(fixA).filter(a=>!offSiteSaved(a,fd)&&!isCouponSpam(a)).map(a=>{if(a.gn&&/news\.google\.com/.test(a.link))a.img='';return a}))}}catch(e){}
 try{(S.saved||[]).forEach(fixA);(S.hl||[]).forEach(h=>h.art&&fixA(h.art))}catch(e){}
 let SCRT=0;
 /* background work (redraws after a refresh, saving the story cache, reading feeds) waits until you have stopped scrolling */
@@ -4592,7 +4603,7 @@ async function load0(f,fresh){
  const cb=u=>u+(u.includes('?')?'&':'?')+'_cp='+Date.now();
  let got=null;try{got=(await loadFeed(f,fresh)).map(fixA);state[f.id]='ok'}catch(e){state[f.id]='err';tip('health');if(!(e&&e.message==='no site'))elog('feed '+(f.title||'').slice(0,20),e)}
  if(!S.feeds.includes(f)){delete items[f.id];delete state[f.id];LP.f++;pfBar();return}
- if(got){got=noTwins(got);/* B22: a feed's stories must be from its own site - drop strays from any aggregation path that skipped the onSite filter */
+ if(got){got=noTwins(got).filter(a=>!isCouponSpam(a));/* B22: a feed's stories must be from its own site - drop strays from any aggregation path that skipped the onSite filter */
   try{const sd=siteOf(f);if(sd){const n0=got.length;got=got.filter(a=>{if(a.os)return true;return onSite(host(a.link),sd)});if(n0>got.length)(FLG[f.id]=FLG[f.id]||[]).push('dropped '+(n0-got.length)+' off-site stories')}}catch(e){}
   items[f.id]=got;dropGeneric(got)}
  {const pv=S.health[f.id]||{},now=Date.now();S.health[f.id]=state[f.id]==='ok'?{ok:now}:(navigator.onLine?{...pv,fail:now,fn:(pv.fn||0)+1,ff:pv.ff||now}:pv)}saveSoon();
@@ -4845,7 +4856,7 @@ let _lastSel=null;const SELPOS={};/* where each feed was left, so coming back to
 let LASTSET=null;
 if(!S.seenBase){S.seenBase=Date.now();try{save()}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){HIDT=Date.now();markSeen(S.sel)}else if(HIDT&&Date.now()-HIDT>18e5){VIS=visFor(S.sel);setTimeout(waterline,300)}});
-function render(){SMARTV=false;LASTSIG=itemsSig();LASTSET=new Set();for(const f of S.feeds)for(const a of (items[f.id]||[]))LASTSET.add(a.link);setTimeout(endObs,60);LK=layoutKey();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){markSeen(_lastSel);VIS=visFor(S.sel);if(mn0&&_lastSel!==null)SELPOS[_lastSel]={y:mn0.scrollTop,t:Date.now(),k:LK};wireSwitch(_lastSel,S.sel);_lastSel=S.sel;pfKick();const sm=SELPOS[S.sel];if(sm&&Date.now()-sm.t<18e5&&sm.k===LK&&sm.y>40)keep=sm.y;else if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();waterline();secOpener();covTitle();covFit();try{coverCrop()}catch(e){}dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=(S.sel==='today'&&!$('#q').value.trim()&&!nrMode())?'narrow':(S.cards||'medium');clearTimeout(PF.t);PF.t=setTimeout(()=>{prefetch(pfList());oiSync()},2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
+function render(){couponSweep();SMARTV=false;LASTSIG=itemsSig();LASTSET=new Set();for(const f of S.feeds)for(const a of (items[f.id]||[]))LASTSET.add(a.link);setTimeout(endObs,60);LK=layoutKey();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){markSeen(_lastSel);VIS=visFor(S.sel);if(mn0&&_lastSel!==null)SELPOS[_lastSel]={y:mn0.scrollTop,t:Date.now(),k:LK};wireSwitch(_lastSel,S.sel);_lastSel=S.sel;pfKick();const sm=SELPOS[S.sel];if(sm&&Date.now()-sm.t<18e5&&sm.k===LK&&sm.y>40)keep=sm.y;else if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();waterline();secOpener();covTitle();covFit();try{coverCrop()}catch(e){}dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=(S.sel==='today'&&!$('#q').value.trim()&&!nrMode())?'narrow':(S.cards||'medium');clearTimeout(PF.t);PF.t=setTimeout(()=>{prefetch(pfList());oiSync()},2500);imgFx();setTimeout(imgFx,80);setTimeout(starGuard,140);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
 function starGuard(){
  /* reads first, writes after, so the page is laid out once instead of once per card */
  try{
@@ -5010,7 +5021,7 @@ function render0(){
  const hidePz=S.sel==='all'||S.sel.startsWith('f:')||q;
  const inSaved=S.sel==='saved';
  if(inSaved&&S.stag&&!S.saved.some(a=>(a.tags||[]).includes(S.stag)))S.stag='';
- cur=inSaved?S.saved.filter(a=>!S.stag||(a.tags||[]).includes(S.stag)):(q?S.feeds:fs).filter(f=>!(hidePz&&paused(f))).flatMap(f=>items[f.id]||[]);
+ cur=inSaved?S.saved.filter(a=>!S.stag||(a.tags||[]).includes(S.stag)):(q?S.feeds:fs).filter(f=>!(hidePz&&paused(f))).flatMap(f=>items[f.id]||[]).filter(a=>!isCouponSpam(a));
  if(S.sel.startsWith('k:')&&!q){const k=S.sk.find(x=>'k:'+x.id===S.sel);cur=k?cur.filter(a=>kmatch(k,a)):[]}
  if(inSaved&&+S.svmin>0){const L=+S.svmin;cur=cur.filter(a=>{const m=minsOf(a);return !m||m<=L})}
  if(!savedView){if(S.sort==='source')cur.sort((a,b)=>(fof(a).title||'').localeCompare(fof(b).title||'')||b.date-a.date);else cur.sort((a,b)=>b.date-a.date);cur=cur.slice(0,q?200:(S.sel==='all'&&smartOn()?600:80))}
@@ -5939,8 +5950,8 @@ const IMGOK=new Set();
 /* a story card is a container: one headline link plus separate Save and Why buttons beside it, never buttons inside a link */
 const chref=c=>(c&&((c.dataset&&c.dataset.href)||c.getAttribute('href')))||'';
 function listRow(a,i,k,f){
-  const dk=(typeof dekOf==='function'?dekOf(a,140):'')||'',mn=readMin(a);
-  return `<div class="card list-row ${k} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}"><div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3>${dk?`<p class="ld">${esc(dk)}</p>`:''}<time>${ago(a.date)}${mn?' · '+mn+' min':''}</time></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
+  const dk=(typeof dekOf==='function'?dekOf(a,170):'')||'',mn=readMin(a);
+  return `<div class="card list-row ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}">${a.img?`<img class="cimg" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3>${dk?`<p class="ld">${esc(dk)}</p>`:''}<time>${ago(a.date)}${mn?' · '+mn+' min':''}</time></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
 }
 function card(a,i,k){
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
@@ -10521,7 +10532,7 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.14c';const APP_LABEL='1.99';
+const APP_VERSION='2026.10.14d';const APP_LABEL='1.102';
 const CHANGES=["Stories that stop at a subscriber gate (like the New York Times verification message) are now spotted, and the app looks for a saved or wire copy of the full story", "If the full story can’t be found, you get the opening paragraphs with a soft fade, a Subscriber Preview card and a button to read it on the original site", "The gate check looks only for real gate messages, so ordinary news pages are not mislabelled as previews"];
 const DEF_ON=new Set(['cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
@@ -14095,7 +14106,7 @@ function wcolsFix(){
  const g=$('#grid');if(!g)return;
  g.querySelectorAll('.wcols').forEach(el=>{
   const kids=[...el.children],W=el.clientWidth;if(!kids.length||!W)return;
-  const avail=W<352?1:Math.max(2,Math.floor((W+28)/278));let c=Math.min(avail,kids.length);
+  const avail=W<270?1:Math.max(2,Math.floor((W+28)/278));let c=Math.min(avail,kids.length);
   el.style.columnWidth='auto';
   for(;c>1;c--){el.style.columnCount=String(c);const lefts=new Set(kids.map(k=>Math.round(k.getBoundingClientRect().left)));if(lefts.size>=c)break}
   el.style.columnCount=String(c);el.style.columnRuleWidth=c<2?'0':'';
