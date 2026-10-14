@@ -3807,7 +3807,7 @@ async function fetchText1(url,ok,lg){
  add('codetabs',u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u));
  add('corsproxy',u=>'https://corsproxy.io/?url='+encodeURIComponent(u));
  add('allorigins-json',u=>'https://api.allorigins.win/get?url='+encodeURIComponent(u),1);
- const gap=NATIVE?2500:1100,ms=NATIVE?12000:8000;
+ const gap=NATIVE?950:650,ms=NATIVE?7500:6000;
  let over=false;const ctls=[],timers=[];
  const one=(p,c)=>new Promise((res,rej)=>{
   let dead=false;
@@ -3862,6 +3862,7 @@ const isJsonFeed=t=>/^\s*\{/.test(t)&&/jsonfeed\.org\/version/i.test(t.slice(0,6
 const isFeed=t=>/<(rss|feed|rdf:RDF|rdf)[\s>]/i.test(String(t).replace(/^[\uFEFF\s]+/,'').slice(0,8000))||isJsonFeed(t);
 const hi=u=>{
  if(!u)return '';
+ if(typeof isOn==='function'&&isOn('dsave')&&typeof onCell==='function'&&onCell())return u;
  return u
   .replace(/(ichef\.bbci\.co\.uk\/[^?]*?\/)(\d{2,3})(\/)/,(m,a,n,c)=>a+(+n<976?'976':n)+c)
   .replace(/-\d{2,3}x\d{2,3}(\.\w+)(\?|$)/,'$1$2')
@@ -4186,7 +4187,8 @@ function extract0(html,base,MT){
  d.querySelectorAll('.screen-reader-text,.sr-only,.visually-hidden,.visuallyhidden,.u-visually-hidden,.assistive-text,.a11y-text,.sr-text,[class*="screen-reader" i],[class*="sr-only" i],[class*="visually-hidden" i],[class*="visuallyhidden" i]').forEach(e=>{if(e.isConnected&&!e.matches('html,body,article,main')&&!e.querySelector('article,main')&&e.textContent.length<200)e.remove()});
  try{const SRT=/^(list(\s+\d+)?\s+of\s+\d+(\s+items?)?|end of list|(start|beginning) of list)$/i,tw=d.createTreeWalker(d.body||d.documentElement,4),del=[];let n;while(n=tw.nextNode()){if(SRT.test(n.textContent.replace(/\s+/g,' ').trim()))del.push(n)}del.forEach(n=>{const p=n.parentElement;n.remove();if(p&&p.isConnected&&!p.textContent.trim()&&!p.querySelector('img,video,iframe')&&!p.matches('body,html'))p.remove()})}catch(e){}
  /* things that sit on top of the story: consent dialogs, sign-up walls and their dimmed backdrops. Anything holding two real paragraphs is the story, never removed */
- d.querySelectorAll('[class*="paywall" i],[class*="gate" i],[class*="truncate" i],[class*=" subscriber" i],[style*="display:none" i],[style*="display: none" i],[hidden]').forEach(e=>{
+ d.querySelectorAll('[class*="paywall" i],[class*="regwall" i],[class*="metered" i],[class*="piano-" i],[class*="subscriber-only" i],[class*="gated-" i],[style*="display:none" i],[style*="display: none" i],[hidden]').forEach(e=>{
+  if(e.matches('nav,header,footer,aside,[class*="nav" i],[class*="menu" i],[class*="related" i]'))return;
   if([...e.querySelectorAll('p')].filter(p=>p.textContent.trim().length>=110).length>=2){
    e.removeAttribute('hidden');
    if(e.getAttribute('style'))e.setAttribute('style',e.getAttribute('style').replace(/display\s*:\s*none\s*;?/gi,'').replace(/max-height\s*:[^;]+;?/gi,'').replace(/overflow\s*:\s*hidden\s*;?/gi,''));
@@ -4225,15 +4227,22 @@ function extract0(html,base,MT){
     if(gl>=300&&(EXMODE==='gen'||!node||(gl>=700&&gl>=curLen*GENX))){try{gn.generic=true}catch(e){}node=gn}}
   }catch(e){}}
  }
+ const keepImgs=(frag,paras)=>{
+  const figs=node?[...node.querySelectorAll('figure,img')].filter(x=>x.tagName==='FIGURE'||!x.closest('figure')).slice(0,8):[];
+  paras.forEach((x,i)=>{
+   const e=document.createElement('p');e.textContent=x;frag.append(e);
+   if(figs.length&&i>0&&i%3===0)frag.append(figs.shift().cloneNode(true));
+  });
+  while(figs.length)frag.append(figs.shift().cloneNode(true));
+  return frag;
+ };
  if(PL&&PL.join(' ').length>500&&(!node||PL.join(' ').length>node.textContent.length*1.3)&&PL.join(' ').length>=ld.length){
-  const f=document.createDocumentFragment();PL.forEach(x=>{const e=document.createElement('p');e.textContent=x;f.append(e)});
+  const f=keepImgs(document.createDocumentFragment(),PL);
   try{f.payload=true}catch(e){}return f;
  }
  if(ld.length>500&&(!node||ld.length>node.textContent.length*1.3)){
   ld=new DOMParser().parseFromString(ld,'text/html').body.textContent;
-  const f=document.createDocumentFragment();
-  ld.split(/\n+/).filter(x=>x.trim()).forEach(x=>{const e=document.createElement('p');e.textContent=x.trim();f.append(e)});
-  return f;
+  return keepImgs(document.createDocumentFragment(),ld.split(/\n+/).map(x=>x.trim()).filter(Boolean));
  }
  return node;
 }
@@ -6207,40 +6216,61 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)dpSoon(500
 setInterval(()=>{if(!document.hidden)dpSoon(1)},4*6e4);
 async function dpRun(){
  if(DPRE.on)return;DPRE.on=true;let got=0;
- try{
+ const worker=async()=>{
   while(DPRE.q.length){
    if(!dpOk()){DPRE.q=[];break}
-   const a=DPRE.q.shift();DPRE.tried.add(a.link);
-   await quietGap(4000);
+   const a=DPRE.q.shift();if(!a||DPRE.tried.has(a.link)||acHas(a.link))continue;
+   DPRE.tried.add(a.link);
+   await quietGap(2500);
    if(!dpOk()){DPRE.q=[];break}
    try{
-    const n=await getFull(a.link,true);
+    let n=await getFull(a.link,true);
     if(acStoreOk(n,a)){
-     {
-      const d=document.createElement('div');d.append(dropTitle(n.cloneNode(true),a.title));
-      acPut(a.link,d.innerHTML,1);markReady(a.link);
-      S.rt[a.link]=Math.max(1,Math.round(d.textContent.split(/\s+/).length/230));
-      clearTimeout(DPRE.st);DPRE.st=setTimeout(save,900);got++;
-      /* the sections fill in as lengths arrive, but never while you are scrolling or reading */
-      if(S.sel==='today'&&!userBusy()&&!$('#rd').classList.contains('on')&&(document.querySelector('main').scrollTop||0)<150&&(got%4===0||!DPRE.q.length))render();
-     }
+     const d=document.createElement('div');d.append(dropTitle(n.cloneNode(true),a.title));
+     acPut(a.link,d.innerHTML,1);markReady(a.link);
+     S.rt[a.link]=Math.max(1,Math.round(d.textContent.split(/\s+/).length/230));
+     clearTimeout(DPRE.st);DPRE.st=setTimeout(save,900);got++;
+     /* the sections fill in as lengths arrive, but never while you are scrolling or reading */
+     if(S.sel==='today'&&!userBusy()&&!$('#rd').classList.contains('on')&&(document.querySelector('main').scrollTop||0)<150&&(got%4===0||!DPRE.q.length))render();
     }
    }catch(e){}
    await new Promise(r=>setTimeout(r,DPRE.gap));
   }
- }finally{DPRE.on=false}
+ };
+ try{await Promise.all([worker(),worker(),worker()])}finally{DPRE.on=false}
 }
-document.addEventListener('pointerdown',e=>{
- if(S.offline||(isOn('dsave')&&onCell()))return;
- const c=e.target.closest&&e.target.closest('#grid .card[data-i],#grid .cvlead[data-i],#grid .wcol[data-i]');
- if(!c)return;const a=cardStory(c);
- if(a&&a.link&&!acHas(a.link)&&!DPRE.tried.has(a.link)){
-  DPRE.tried.add(a.link);
-  getFull(a.link,true).then(n=>{
-   if(acStoreOk(n,a)){const d=document.createElement('div');d.append(dropTitle(n.cloneNode(true),a.title));acPut(a.link,d.innerHTML,1);markReady(a.link)}
-  }).catch(()=>{});
- }
-},{passive:true});
+{let tdT=0,tdX=0,tdY=0,vpT=0;
+ document.addEventListener('pointerdown',e=>{
+  clearTimeout(tdT);
+  if(S.offline||(isOn('dsave')&&onCell())||!dpOk())return;
+  const c=e.target.closest&&e.target.closest('#grid .card[data-i],#grid .cvlead[data-i],#grid .wcol[data-i]');
+  if(!c)return;tdX=e.clientX;tdY=e.clientY;
+  tdT=setTimeout(()=>{
+   const a=cardStory(c);
+   if(a&&a.link&&!acHas(a.link)&&!DPRE.tried.has(a.link)){
+    DPRE.tried.add(a.link);
+    getFull(a.link,true).then(n=>{
+     if(acStoreOk(n,a)){const d=document.createElement('div');d.append(dropTitle(n.cloneNode(true),a.title));acPut(a.link,d.innerHTML,1);markReady(a.link)}
+    }).catch(()=>{});
+   }
+  },110);
+ },{passive:true});
+ document.addEventListener('pointermove',e=>{if(tdT&&(Math.abs(e.clientX-tdX)>8||Math.abs(e.clientY-tdY)>8)){clearTimeout(tdT);tdT=0}},{passive:true});
+ document.addEventListener('pointercancel',()=>{clearTimeout(tdT);tdT=0},{passive:true});
+ const vpPreload=()=>{
+  if(!dpOk()||$('#rd').classList.contains('on'))return;
+  const vh=innerHeight,cards=[...document.querySelectorAll('#grid .card[data-i],#grid .cvlead[data-i],#grid .wcol[data-i]')];
+  const vis=[];
+  for(const c of cards){
+   const r=c.getBoundingClientRect();
+   if(r.bottom>60&&r.top<vh-40){const a=cardStory(c);if(a&&a.link&&!acHas(a.link)&&!DPRE.tried.has(a.link))vis.push(a);if(vis.length>=4)break}
+  }
+  if(!vis.length)return;
+  DPRE.q=vis.concat((DPRE.q||[]).filter(x=>!vis.includes(x)));
+  dpRun();
+ };
+ const mn=$('main');if(mn)mn.addEventListener('scroll',()=>{clearTimeout(vpT);vpT=setTimeout(vpPreload,380)},{passive:true});
+}
 function dayEndCard(){
  const k=LOGOS[S.logo]?S.logo:'tree',am=edKind()==='m';
  return thisDayHtml()+`<section class="endc"><span class="lgm endl" data-fill style="--p:0%;--lm:url(data:image/png;base64,${LOGOS[k][0]})"></span><h3>You’re all caught up for the ${am?'morning':'evening'}</h3><p>${esc(pe('finish',{},'end'))} ${am?'The Evening Edition comes out at 5 PM.':'The Morning Edition comes out at 5 AM.'}</p><button type="button" class="tx2" data-endall>Explore Full Feed</button></section>`;
@@ -6872,21 +6902,37 @@ async function archiveRead(url){
   return await fromPage(u);
  }catch(e){return null}
 }
+const SROUTE=(()=>{try{return JSON.parse(localStorage.getItem('folio-sroute')||'{}')}catch(e){return{}}})();
+function saveSroute(h,r){if(!h)return;SROUTE[h]={r,t:Date.now()};try{const k=Object.keys(SROUTE);if(k.length>200)delete SROUTE[k[0]];localStorage.setItem('folio-sroute',JSON.stringify(SROUTE))}catch(e){}}
 async function upgradeStub(fr,url){
- const isGated=fr&&(fr.gate||fr.nofree||looksIncomplete(fr.textContent,url));
- if(!fr||!isGated)return fr;
- let hh='';try{hh=new URL(url).hostname}catch(e){}
+ if(S.offline||(isOn('dsave')&&onCell()))return fr;
+ let hh='';try{hh=new URL(url).hostname.replace(/^www\./,'')}catch(e){}
  const w=x=>x?(x.textContent||'').trim().split(/\s+/).length:0;
- const j=await jinaRead(url,HYDRATED.test(hh)?12000:7000);
- if(j&&w(j)>w(fr)*1.25&&!footerish(j.textContent)){j.rescued=true;return j}
- if((fr.gate||fr.nofree||PAYRE.test(hh))&&w(fr)<350){
-  const ar=await archiveRead(url);
-  if(ar&&w(ar)>w(fr)*1.3&&!footerish(ar.textContent)){ar.rescued=true;return ar}
+ const known=SROUTE[hh]&&(Date.now()-SROUTE[hh].t<7*864e5)?SROUTE[hh].r:'';
+ const isGated=!fr||fr.gate||fr.nofree||known||looksIncomplete(fr.textContent,url);
+ if(!isGated)return fr;
+ const baseW=w(fr);
+ const check=cand=>(cand&&w(cand)>Math.max(120,baseW*1.25)&&!footerish(cand.textContent))?cand:null;
+ const jMs=HYDRATED.test(hh)||known==='jina'?6500:5000;
+ const tasks=[jinaRead(url,jMs).then(r=>{const c=check(r);if(!c)throw 0;saveSroute(hh,'jina');c.rescued=true;return c})];
+ if(!fr||fr.gate||fr.nofree||PAYRE.test(hh)||known==='arch'||baseW<350){
+  tasks.push(archiveRead(url).then(r=>{const c=check(r);if(!c)throw 0;saveSroute(hh,'arch');c.rescued=true;return c}));
  }
- if(looksIncomplete(fr.textContent,url))fr.incomplete=true;
+ try{return await Promise.any(tasks)}catch(e){}
+ if(fr&&looksIncomplete(fr.textContent,url))fr.incomplete=true;
  return fr;
 }
-async function getFull0(url,ctx){const fr=await getFull00(url,ctx);return await upgradeStub(fr,url)}
+async function getFull0(url,ctx){
+ let hh='';try{hh=new URL(url).hostname.replace(/^www\./,'')}catch(e){}
+ const known=SROUTE[hh]&&(Date.now()-SROUTE[hh].t<7*864e5)?SROUTE[hh].r:'';
+ if(known||HYDRATED.test(hh)){
+  const [fr,up]=await Promise.all([getFull00(url,ctx).catch(()=>null),upgradeStub(null,url).catch(()=>null)]);
+  const w=x=>x?(x.textContent||'').trim().split(/\s+/).length:0;
+  if(up&&w(up)>w(fr)*1.2)return up;
+  return fr||up;
+ }
+ const fr=await getFull00(url,ctx);return await upgradeStub(fr,url);
+}
 /* real progress while a story loads: how long, and which route is being tried, instead of a static line */
 function rdProg(url,i,n,nm){
  try{if(!curA||(curA.link!==url&&!R.lpUrls.has(url)))return;R.lp=i?('Loading the full article… trying source '+i+' of '+n+(nm?' ('+nm+')':'')):('Loading the full article… trying '+(nm||'another route'));rdTick()}catch(e){}
