@@ -3544,6 +3544,65 @@ body.exbusy [data-exact]{cursor:progress}
 #aapop .aap.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 #aapop .aamore{background:none;border:0;padding:4px 0;color:var(--a1,var(--ink));font:600 13px var(--sans);text-decoration:underline;cursor:pointer}
 #aapop button:focus-visible,#raa:focus-visible{outline:2px solid var(--logo,var(--ink));outline-offset:2px}
+/* --- Print Magazine & Cover Sophistication Overhaul --- */
+/* 1. Small-caps editorial kickers & quiet footers on cards */
+#grid .card .src{font-size:11px;font-weight:700;letter-spacing:.075em;text-transform:uppercase;color:var(--b,var(--a1));gap:6px;margin-bottom:5px;align-items:center}
+#grid .card .src img{width:13px;height:13px;border-radius:3px;opacity:.85;filter:saturate(.9)}
+#grid .card .src .ssec{color:var(--mut);font-weight:600;letter-spacing:.04em}
+#grid .card .cfoot{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:8px;padding-top:7px;border-top:1px solid color-mix(in srgb,var(--ln) 55%,transparent);font:500 11.5px/1.2 var(--sans);color:var(--mut);letter-spacing:.01em}
+#grid .card .cfoot .cby{font-family:var(--serif);font-style:italic;color:var(--ink);opacity:.82;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#grid .card .cfoot .rt::before,#grid .card .cfoot time::before{content:"· ";opacity:.55}
+#grid .card .cfoot>:first-child::before{content:none}
+/* Keep hero/overlay cards clean with light-on-dark footers */
+#grid .card:is(.nr-hero,.nr-lead,.nr-tall,.nr-sp,.nr-sm2,.nr-hs,.lead):not(.noimg) .src{color:rgba(255,255,255,.92)}
+#grid .card:is(.nr-hero,.nr-lead,.nr-tall,.nr-sp,.nr-sm2,.nr-hs,.lead):not(.noimg) .cfoot{color:rgba(255,255,255,.78);border-top-color:rgba(255,255,255,.18)}
+#grid .card:is(.nr-hero,.nr-lead,.nr-tall,.nr-sp,.nr-sm2,.nr-hs,.lead):not(.noimg) .cfoot .cby{color:#fff}
+/* Compact rows keep a single-line rhythm */
+#grid .card:is(.nr-row,.nr-late) .cfoot{margin-top:4px;padding-top:0;border-top:0}
+
+/* legibility guard for the editorial kicker and footer: most cards sit on their brand color or a photo (white text); only the light rows and trio tiles, and the compact and list layouts, take the brand-colored kicker and quiet grey footer */
+#grid .card:not(:is(.nr-row,.nr-late,.nr-tri)) .src{color:rgba(255,255,255,.92)}
+#grid .card:not(:is(.nr-row,.nr-late,.nr-tri)) .src .ssec{color:rgba(255,255,255,.75)}
+#grid .card:not(:is(.nr-row,.nr-late,.nr-tri)) .cfoot{color:rgba(255,255,255,.8);border-top-color:rgba(255,255,255,.18)}
+#grid .card:not(:is(.nr-row,.nr-late,.nr-tri)) .cfoot .cby{color:#fff}
+#grid.list .card .src,[data-cards="compact"] #grid .card .src,[data-cards="narrow"] #grid .card .src{color:var(--b,var(--a1))}
+#grid.list .card .src .ssec,[data-cards="compact"] #grid .card .src .ssec,[data-cards="narrow"] #grid .card .src .ssec{color:var(--mut)}
+#grid.list .card .cfoot,[data-cards="compact"] #grid .card .cfoot,[data-cards="narrow"] #grid .card .cfoot{color:var(--mut);border-top-color:color-mix(in srgb,var(--ln) 55%,transparent)}
+#grid.list .card .cfoot .cby,[data-cards="compact"] #grid .card .cfoot .cby,[data-cards="narrow"] #grid .card .cfoot .cby{color:var(--ink)}
+/* 2. Whisper-quiet Star & Why buttons until hover/saved */
+#grid .card .star:not([aria-pressed="true"]),#grid .card .why{opacity:.28;transition:opacity .18s ease,transform .18s ease}
+#grid .card:hover .star,#grid .card:hover .why,#grid .card:focus-within .star{opacity:.95}
+#grid .card .star[aria-pressed="true"]{opacity:1}
+
+/* 3. Editorial Serif Deck & Lead-in on Lead/Feature Cards */
+#grid .card:is(.lead,.nr-lead,.nr-hero,.nr-colr,.spread) .tx>p{font-family:var(--serif);font-size:15.5px;line-height:1.5;opacity:.92}
+#grid .card:is(.lead,.nr-lead,.nr-hero,.nr-colr,.spread) h3{letter-spacing:-.022em;line-height:1.12}
+
+/* 4. Broadsheet Hairline Dividers in Newsroom Multi-Column Spreads */
+@media(min-width:700px){
+ #grid .nr-trio{gap:0;border-top:1px solid var(--ln);border-bottom:1px solid var(--ln);padding:14px 0}
+ #grid .nr-trio>.card{border-radius:0;border:0;background:transparent;box-shadow:none;padding:0 18px;border-right:1px solid var(--ln)}
+ #grid .nr-trio>.card:first-child{padding-left:0}
+ #grid .nr-trio>.card:last-child{padding-right:0;border-right:0}
+ #grid .nr-trio>.card>img{border-radius:6px}
+}
+
+/* 5. Print-Quality Cover Mastheads, Double-Rule Frame & Numbered Cover Lines */
+#grid .cover .cvtop,#cvg .cover .cvtop{border-top:2px solid rgba(255,255,255,.85);border-bottom:1px solid rgba(255,255,255,.24);padding-top:10px;padding-bottom:10px;margin-bottom:14px}
+#grid .cover .cvm,#cvg .cover .cvm{letter-spacing:-.03em;text-shadow:0 2px 18px rgba(0,0,0,.35)}
+#grid .cover .cvd,#cvg .cover .cvd{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.9}
+#grid .cover .cvsh,#cvg .cover .cvsh{background:linear-gradient(180deg,rgba(6,9,15,.62) 0%,rgba(6,9,15,.12) 28%,rgba(6,9,15,.22) 52%,rgba(6,9,15,.84) 78%,rgba(6,9,15,.96) 100%)}
+#grid .cover .cvlines,#cvg .cover .cvlines{counter-reset:cvl;border-top:1px solid rgba(255,255,255,.22);padding-top:12px;margin-top:14px}
+#grid .cover .cvlines .cvl,#cvg .cover .cvlines .cvl{counter-increment:cvl;position:relative;padding-left:26px}
+#grid .cover .cvlines .cvl::before,#cvg .cover .cvlines .cvl::before{content:"0" counter(cvl);position:absolute;left:0;top:2px;font:700 10.5px/1 var(--sans);letter-spacing:.06em;opacity:.65}
+
+/* 6. Architectural Pull-Quote Spreads & Live Developing Ticker */
+#grid .card.nr-pq0,#grid .pqc{text-align:center;padding:28px 24px;border-top:2px solid var(--b,var(--a1));border-bottom:1px solid var(--ln);border-left:0;border-right:0;border-radius:0;background:color-mix(in srgb,var(--b,var(--a1)) 4%,var(--pn))}
+#grid .card.nr-pq0 .tx>p,#grid .pqc blockquote{font-family:var(--fd,var(--serif));font-style:italic;font-size:clamp(20px,2.5vw,27px);line-height:1.34;letter-spacing:-.015em;max-width:34ch;margin:0 auto 12px}
+#grid .card.nr-pq0 .nr-pqa{justify-content:center;font:600 11px/1.3 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.wtrend .wtr-k{display:inline-flex;align-items:center;gap:6px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:10.5px}
+.wtrend .wtr-dot{width:7px;height:7px;border-radius:50%;background:#e53935;box-shadow:0 0 8px #e53935;display:inline-block;animation:wtrPulse 2s ease-in-out infinite}
+@keyframes wtrPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.85)}}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4950,7 +5009,7 @@ function wireTrending(list,multi){
 }
 /* The trending strip is computed from everything recent in the selection, not from whatever happens to be on screen, and the last good strip is kept for a while: it stays put when you navigate away and back, or the ranking shifts. */
 function trendStripHtml(tr){
- return tr&&tr.length?`<div class="wtrend" role="group" aria-label="Trending topics"><span>Trending</span>${tr.map(e=>`<button type="button" data-trend="${esc(e.w)}">${esc(e.w)}<i>${e.n}</i></button>`).join('')}</div>`:'';
+ return tr&&tr.length?`<div class="wtrend" role="group" aria-label="Trending topics"><span class="wtr-k"><u class="wtr-dot"></u>Developing</span>${tr.map(e=>`<button type="button" data-trend="${esc(e.w)}">${esc(e.w)}<i>${e.n}</i></button>`).join('')}</div>`:'';
 }
 /* a trending chip opens that topic directly: no search bar, just the topic page; leaving the list (or Close topic) ends it */
 let TOPIC=null;
@@ -5745,7 +5804,7 @@ const IMGOK=new Set();
 const chref=c=>(c&&((c.dataset&&c.dataset.href)||c.getAttribute('href')))||'';
 function card(a,i,k){
   const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],op=q0&&q0.v>=4&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="object-position:${q0.px}% ${q0.py}%"`:'';
-  return `<div class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span>${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="${a.more.length+1} sources report this">${a.more.length+1} sources report this</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}<time>${ago(a.date)}</time></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><p>${esc(a.summary)}</p>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
+  return `<div class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span>${a.sec?`<span class=" ssec">· ${esc(a.sec)}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="${a.more.length+1} sources report this">+${a.more.length} sources</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><p>${esc(a.summary)}</p><div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}<time>${ago(a.date)}</time></div>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
 }
 /*NEWSROOM*/
 const IS_SAFARI=(()=>{try{const u=navigator.userAgent;return /iP(hone|ad|od)/.test(u)||(/Safari\//.test(u)&&!/Chrome\/|Chromium\/|Android|Edg\/|OPR\/|CriOS|FxiOS/.test(u))}catch(e){return false}})();
@@ -5769,7 +5828,7 @@ function nrQuoteText(a){
 function nrQuoteHtml(a,idx,look,qt){
  const f=fof(a),src=esc(f.title),ti=esc(a.title);
  const mark='<span class="nr-qm" aria-hidden="true">“</span>';
- const att=`<span class="nr-pqa"><b>${src}</b> · ${ti}</span>`;
+ const spk=typeof quoteBy==='function'?quoteBy(a,qt.q):'';const att='<span class="nr-pqa">'+(spk?'<b>'+esc(spk)+'</b> · ':'')+'<b>'+src+'</b> · <em>'+ti+'</em></span>';
  const open=`<a class="card nr nr-pq nr-pq${look} ${a.img?'':'noimg'}" href="${esc(a.link)}" data-i="${idx}" style="--b:${brand(f)}">`;
  if(look===2&&a.img)return `${open}<img loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()"><div class="ov"></div><div class="tx">${mark}<p>${esc(qt.q)}</p>${att}</div></a>`;
  if(look===1&&a.img)return `${open}<div class="tx">${mark}<p>${esc(qt.q)}</p>${att}</div><img decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="this.classList.add('ok')" onerror="this.parentNode.classList.add('noimg');this.remove()"></a>`;
