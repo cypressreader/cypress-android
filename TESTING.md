@@ -316,3 +316,8 @@ Must verify on the Fold:
 - Opening and closing a story: the side menu stays the same width behind it, no floating picture, a quick fade. (The close fade uses the browser's page-transition fade, which needs checking in the Android app.)
 - Folder title (Tech) is not cut off at the top; Cards never show three across in a narrow pane.
 - Engadget and TechCrunch stories: no "may receive a commission" line, no bare "Image Credits:" line.
+
+## Preview 1.105
+- Wide reader, page 1: picture, kicker, headline and byline in column 1; story text and drop cap start at the top of column 2 on every story (check a TechCrunch story with no standfirst and a BBC one with a bold standfirst). If "At a glance" cannot fit beside the picture it is left out on that page.
+- Cards in a narrow pane: never three across.
+- A single site or a folder opens straight onto its stories in Card and List views (no tall "Section" banner).

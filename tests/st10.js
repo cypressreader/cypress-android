@@ -24,8 +24,8 @@ for(const [n,w,h] of [['fold',884,1000],['phone',380,820]]){
  ck(n+' list card grid not broken',await E(()=>{const c=document.querySelector('#grid .card');if(!c)return false;const r=c.getBoundingClientRect();return r.height<200&&r.width>150}));
  ck(n+' no why in list',await E(()=>{const y=document.querySelector('.grid.list .why');return S.sel==='today'||!y||getComputedStyle(y).display==='none'}));
  // section opener
- await E(()=>{S.sel='s:'+S.feeds[0].id;S.view='cards';save();render()});await p.waitForTimeout(300);
- ck(n+' section opener',await E(()=>!!document.querySelector('.sop,.secop,[class*=sop]')));
+ await E(()=>{S.sop=true;S.sel='s:'+S.feeds[0].id;S.view='cards';save();render()});await p.waitForTimeout(300);
+ ck(n+' section opener (off by default, shows when switched on)',await E(()=>!!document.querySelector('.sop,.secop,[class*=sop]')));
  // update button logic
  ck(n+' update fn exists',await E(()=>typeof nativeUpdateNow==='function'&&typeof nativeAppLine==='function'));
  // reader: timeline, captions

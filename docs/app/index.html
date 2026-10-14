@@ -3732,7 +3732,7 @@ body.exbusy [data-exact]{cursor:progress}
 .pwchip{margin:8px 10px 0;padding:8px 12px;border-radius:999px;border:1px solid color-mix(in srgb,#d98a00 45%,transparent);background:color-mix(in srgb,#d98a00 10%,transparent);color:var(--ink);font:600 12px var(--sans);text-align:left}
 .pwchip[hidden],.pwwarn[hidden]{display:none}
 /* 15. Reader and feed polish (Fold) */
-#rd.cpv2 .cols .body>p:first-of-type{break-before:column}
+#rd.cpv2 .cols .body>:first-child{break-before:column}
 body:not(.narrow):not(.split).reading:not(.sideshow){grid-template-columns:var(--sw,clamp(220px,22vw,290px)) 1fr}
 body:not(.narrow):not(.split).reading:not(.sideshow)>aside{transform:none;transition:none}
 #rd.on{animation:rdfade .15s ease-out}
@@ -3740,7 +3740,8 @@ body:not(.narrow):not(.split).reading:not(.sideshow)>aside{transform:none;transi
 @media(prefers-reduced-motion:reduce){#rd.on{animation:none}}
 .fm-t h2{line-height:1.2;padding:.12em 0 .06em}
 .fmast{margin-top:8px}
-@container feed (max-width:499px){#grid :is(.nr-trio,.nr-sw3,.nr-t3,.nr-rv3,.fd-decks){grid-template-columns:repeat(2,minmax(0,1fr))!important;column-gap:12px}#grid :is(.nr-trio,.nr-sw3,.nr-t3)>.card:nth-child(3){grid-column:1/-1}}
+@container feed (max-width:479px){#grid :is(.nr-trio,.nr-sw3,.nr-t3,.nr-rv,.nr-rv3,.nr-ph-rows,.nr-mid,.nr-sm,.nr-trl,.fd-decks,.wtriad,.wgrid,[data-cols="3"],[data-cols="4"]),#grid [style*="repeat(3"],#grid [style*="repeat(4"]{grid-template-columns:repeat(2,minmax(0,1fr))!important;column-gap:12px}#grid :is(.nr-trio,.nr-sw3,.nr-t3,.wtriad,.wgrid)>*:nth-child(3):last-child{grid-column:1/-1}#grid .wcols{column-count:2!important}}
+@media(max-width:699px){#grid :is(.nr-trio,.nr-sw3,.nr-t3,.nr-rv,.nr-rv3,.fd-decks,.wtriad,.wgrid,[data-cols="3"],[data-cols="4"]){grid-template-columns:repeat(2,minmax(0,1fr))!important}#grid :is(.nr-trio,.nr-sw3,.nr-t3)>.card:nth-child(3){grid-column:1/-1}}
 @media(min-width:500px){@container feed (min-width:300px){
 #grid .card[data-ed]:not(.nr):not(.lead):not(.list-row) .tx{display:flex;flex-direction:column;gap:6px;min-width:0}
 #grid .card[data-ed]:not(.nr):not(.lead):not(.list-row) .src{position:static;display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;margin:0}
@@ -6761,6 +6762,7 @@ function layout(){noteFix();
  R.step=use+gap;
  try{fitHero(c,cw,gap)}catch(e){elog('fitHero',e)}
  try{fillVoids(c,cw,gap)}catch(e){elog('fillVoids',e)}
+ try{fitPage1(c,cw,gap)}catch(e){elog('fitPage1',e)}
  R.np=Math.max(1,Math.ceil(Math.round((c.scrollWidth+gap)/(cw+gap))/R.cpv));
  /* Never-blank guard: if the column measurements collapsed (non-sane column
     height/width, or an absurd page count), the pagination is unusable. Fall
@@ -10382,7 +10384,7 @@ function briefFoot(){
 
 /* ===================== sync between devices ===================== */
 const SYNC_KEYS=['feeds','folders','saved','hl','read','sk','mute','prog','pos','rt'];
-const SET_KEYS=['cine','ts','txo','autodark','night','sysfs','cont','bi','bidays','dglock','haptic','fcheck','hideCount','hideDeals','skippay','nroom','smooth','lowfx','bfold','ptone','grain','pcomp','mag','cover','covers','intro','typo','preload','tlay','dynx','sop','tline','caps','rl','disc','mnote','trend','must','pqc','cray','mast','quiet','fbleed','ctint','scrim','cvs','fth','toc','spread','pqs','folio','endm','dgon','dgwhen','dgwk','dgwd','dgnotif','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','sfx','season','paper','qh','wpm','alk','packh','rmo','hfont','dtap','sdown','ptint','tsound','thaptic','sbw','pfwifi','offimg','keysOn','dsave','acMB','capn','theme','sch','night','font','fs','lh','mg','just','sep','group','hideRead','sort','auto','pfm','pfn','logo','rate','vol','voice','queue','prate','autoWeb','autoReader','view','geo'];
+const SET_KEYS=['cine','ts','txo','autodark','night','sysfs','cont','bi','bidays','dglock','haptic','fcheck','hideCount','hideDeals','skippay','nroom','smooth','lowfx','bfold','ptone','grain','pcomp','mag','cover','covers','intro','typo','preload','tlay','dynx','tline','caps','rl','disc','mnote','trend','must','pqc','cray','mast','quiet','fbleed','ctint','scrim','cvs','fth','toc','spread','pqs','folio','endm','dgon','dgwhen','dgwk','dgwd','dgnotif','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','sfx','season','paper','qh','wpm','alk','packh','rmo','hfont','dtap','sdown','ptint','tsound','thaptic','sbw','pfwifi','offimg','keysOn','dsave','acMB','capn','theme','sch','night','font','fs','lh','mg','just','sep','group','hideRead','sort','auto','pfm','pfn','logo','rate','vol','voice','queue','prate','autoWeb','autoReader','view','geo'];
 LSIG=setSig();
 const b64=u=>{let s='';const b=new Uint8Array(u);for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode(...b.subarray(i,i+8192));return btoa(s)};
 const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
@@ -10582,7 +10584,7 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.14f';const APP_LABEL='1.104';
+const APP_VERSION='2026.10.14g';const APP_LABEL='1.105';
 const CHANGES=["Stories that stop at a subscriber gate (like the New York Times verification message) are now spotted, and the app looks for a saved or wire copy of the full story", "If the full story can’t be found, you get the opening paragraphs with a soft fade, a Subscriber Preview card and a button to read it on the original site", "The gate check looks only for real gate messages, so ordinary news pages are not mislabelled as previews"];
 const DEF_ON=new Set(['cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
@@ -14231,6 +14233,22 @@ function fitHero(c,cw,gap){
  if(room<Math.max(140,H*.28))return;
  im.style.height=room+'px';im.style.maxHeight=room+'px';im.style.aspectRatio='auto';
  const r2=im.getBoundingClientRect();if(Math.floor((r2.left-cr.left+2)/pitch)!==0){im.style.removeProperty('height');im.style.removeProperty('max-height');im.style.removeProperty('aspect-ratio')}
+}
+/* page 1 of the two-column book: the picture, kicker, headline and "At a glance" box stay together in column 1, and the story text starts at the top of column 2. If the box would land in column 2, the picture is made a little shorter; if that is not enough the box is left out for this page */
+function fitPage1(c,cw,gap){
+ const m=c.querySelector(':scope>.mnotes'),hs=c.querySelector(':scope>.hsf'),im=hs&&hs.querySelector('img.hero');
+ const undo=()=>{if(im){im.style.removeProperty('height');im.style.removeProperty('max-height');im.style.removeProperty('object-fit');im.style.removeProperty('aspect-ratio')}};
+ undo();if(m)m.style.removeProperty('display');
+ if(R.cpv!==2||!m||!hs||R.web||isVert()||hs.dataset.m==='hero')return;
+ const pitch=cw+gap,cr=()=>c.getBoundingClientRect();
+ /* everything in the picture block, and the box, must sit inside column 1 */
+ const fits=()=>{const L=cr().left,els=[...(m.style.display==='none'?[]:[m]),...hs.querySelectorAll('*')];for(const e of els)for(const q of e.getClientRects()){if(q.width&&q.height&&q.left-L>=pitch-4)return false}return true};
+ if(fits())return;
+ const shrink=()=>{if(!im)return false;const h0=im.getBoundingClientRect().height;if(h0<=110)return false;for(let k=1;k<=9;k++){const h=Math.max(80,Math.round(h0*(1-k*.09)));im.style.height=h+'px';im.style.maxHeight=h+'px';im.style.aspectRatio='auto';im.style.objectFit='cover';if(fits())return true}return false};
+ if(shrink())return;
+ undo();m.style.display='none';/* the box does not fit beside the picture: leave it out so the story text still starts in column 2 */
+ if(fits())return;
+ shrink();
 }
 function fillVoids(c,cw,gap){
  const bd=c.querySelector('.body');if(!bd||R.web||isVert())return;
