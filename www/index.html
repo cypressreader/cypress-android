@@ -3725,13 +3725,19 @@ body.exbusy [data-exact]{cursor:progress}
 #grid .card.list-row>.tx{grid-column:2;min-width:0}#grid .card.list-row.noimg>.tx{grid-column:1}
 #grid .card.list-row>.star{grid-column:-2;align-self:start;position:static;opacity:1!important;visibility:visible;display:inline-flex!important;align-items:center;justify-content:center;width:32px;height:32px}
 #grid .card.list-row .ld{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* 14. limited-feed marks: quiet amber, never loud */
+.pw-badge{font-size:.82em;opacity:.8;filter:saturate(.7)}
+.pwt{display:inline-block;margin-left:8px;font:700 9.5px var(--sans);letter-spacing:.12em;text-transform:uppercase;font-variant-caps:all-small-caps;color:#a86a00}
+.pwwarn{margin:8px 0 0;padding:9px 12px;border-radius:10px;background:color-mix(in srgb,#d98a00 14%,transparent);color:var(--ink);font:500 13px/1.4 var(--sans);border:1px solid color-mix(in srgb,#d98a00 45%,transparent)}
+.pwchip{margin:8px 10px 0;padding:8px 12px;border-radius:999px;border:1px solid color-mix(in srgb,#d98a00 45%,transparent);background:color-mix(in srgb,#d98a00 10%,transparent);color:var(--ink);font:600 12px var(--sans);text-align:left}
+.pwchip[hidden],.pwwarn[hidden]{display:none}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
 <aside role="navigation" aria-label="Feeds and sections">
  <button class="logo" id="logo" type="button" title="Switch logo" aria-label="CyPress. Switch logo"><span class="lgm" id="lgo"></span><span class="lgw">CyPress</span></button>
  <div id="side-list"></div>
- <button class="addbtn" id="add">Add feed</button>
+ <button type="button" class="pwchip" id="pwchip" hidden>🔒 Review limited feeds</button><button class="addbtn" id="add">Add feed</button>
  <button class="gear" id="gear"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</button>
  <div id="sbh" role="separator" aria-orientation="vertical" aria-label="Resize feeds list" tabindex="0" title="Drag, or use the arrow keys, to resize. Double-click or press Home to reset."></div>
 </aside>
@@ -3743,7 +3749,7 @@ body.exbusy [data-exact]{cursor:progress}
 <input type="color" id="cp" hidden>
 <dialog id="dlg"><form method="dialog" id="frm">
  <div class="sh dsh"><h2>Add a feed</h2><button type="button" class="ib" id="dlgx" aria-label="Close"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
- <input id="u" placeholder="Search sites or paste an address" aria-label="Search popular sites, or paste an address" required autocomplete="off"><small class="uhint">Try nasa, r/gadgets, @channel or you@mastodon.social · <button type="button" class="lnk" id="teach">No feed? Teach CyPress from the site</button> · <button type="button" class="lnk" id="watchadd">Watch a page for changes</button> · <button type="button" class="lnk" id="opmlbtn">Import a feed list (OPML)</button></small><div id="pop"></div>
+ <input id="u" placeholder="Search sites or paste an address" aria-label="Search popular sites, or paste an address" required autocomplete="off"><div id="pwwarn" class="pwwarn" role="status" hidden></div><small class="uhint">Try nasa, r/gadgets, @channel or you@mastodon.social · <button type="button" class="lnk" id="teach">No feed? Teach CyPress from the site</button> · <button type="button" class="lnk" id="watchadd">Watch a page for changes</button> · <button type="button" class="lnk" id="opmlbtn">Import a feed list (OPML)</button></small><div id="pop"></div>
  <details id="adv" class="adv" open><summary>Name and folder</summary><label for="n">Name (optional)</label><input id="n">
  <label for="fo">Folder</label><select id="fo"></select>
  <p id="fodest" class="hint" style="margin:6px 2px 0"></p>
@@ -3770,12 +3776,13 @@ body.exbusy [data-exact]{cursor:progress}
  </div>
  <input type="file" id="fi" accept=".opml,.xml,text/xml" hidden><input type="file" id="fj" accept=".json,application/json" hidden>
 </dialog>
-<dialog id="mng"><div class="sh"><h2>Manage feeds</h2><button class="ib" id="mngx" aria-label="Close"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><div id="mnglist"></div><div class="row"><button type="button" class="tx2" id="cleanb">Suggest feeds to clean up</button><button type="button" class="tx2" id="mngretry">Retry feeds that aren’t working</button></div></dialog>
+<dialog id="mng"><div class="sh"><h2>Manage feeds</h2><button class="ib" id="mngx" aria-label="Close"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><div id="mnglist"></div><div class="row"><button type="button" class="tx2" id="pwb">Purge limited feeds…</button><button type="button" class="tx2" id="cleanb">Suggest feeds to clean up</button><button type="button" class="tx2" id="mngretry">Retry feeds that aren’t working</button></div></dialog>
 <dialog id="cvpk"><div class="sh"><h2>Cover style</h2><button class="ib" id="cvpx" aria-label="Close"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><p class="hint" style="margin:-6px 0 12px">Tap one. These are live miniatures of your front page cover.</p><div class="cvg" id="cvg"></div></dialog>
 <dialog id="kbh"><div class="sh"><h2>Keyboard shortcuts</h2><button class="ib" id="kbx" aria-label="Close"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><div class="kbl"><h3>Lists</h3><p><kbd>J</kbd><kbd>K</kbd> next / previous story</p><p><kbd>Enter</kbd> open</p><p><kbd>S</kbd> save or unsave</p><p><kbd>M</kbd> mark read or unread</p><p><kbd>R</kbd> refresh</p><p><kbd>/</kbd> search</p><h3>Reading</h3><p><kbd>←</kbd><kbd>→</kbd> turn the page</p><p><kbd>N</kbd><kbd>P</kbd> next / previous story</p><p><kbd>S</kbd> save</p><p><kbd>F</kbd> focus mode</p><p><kbd>Esc</kbd> close</p><h3>Anywhere</h3><p><kbd>?</kbd> this list</p></div></dialog>
-<dialog id="prv"><div class="sh"><h2>Your privacy</h2><button class="ib" id="prvx" aria-label="Close"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><div class="kbl"><h3>Stays on this device</h3><p>Your feeds, folders, saved stories, highlights, reading history and settings. There is no CyPress account and no tracking or analytics.</p><h3>What leaves the device</h3><p>Fetching feeds and stories: the Android app contacts each site you follow directly. The web version goes through a relay (CyPress’s own, or free public ones) because browsers can’t read most sites directly. When a story is cut short, CyPress may try the Jina reader, the Internet Archive or Morss.it to get the rest. They see that story’s address. The full list is at cypressreader.com/privacy.html.</p><p>Site icons come from Google’s favicon service, which sees the site name, not your reading.</p><p>If a site blocks feed readers, CyPress asks Bing News or Google News for its headlines. Those services see which site you asked about.</p><p>Updates check GitHub for a new version.</p><p>Sync, only if you turn it on, uses your own relay. Everything is locked with your sync code before it leaves.</p><h3>You are in control</h3><p>Back up or erase everything from Settings. Erase everything removes it all.</p></div></dialog>
+<dialog id="prv"><div class="sh"><h2>Your privacy</h2><button class="ib" id="prvx" aria-label="Close"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><div class="kbl"><h3>Stays on this device</h3><p>Your feeds, folders, saved stories, highlights, reading history and settings. There is no CyPress account and no tracking or analytics.</p><h3>What leaves the device</h3><p>Fetching feeds and stories: the Android app contacts each site you follow directly. The web version goes through a relay (CyPress’s own, or free public ones) because browsers can’t read most sites directly. When a story is cut short, CyPress may try the Jina reader or Morss.it to get the rest. It never tries to get past a paywall. They see that story’s address. The full list is at cypressreader.com/privacy.html.</p><p>Site icons come from Google’s favicon service, which sees the site name, not your reading.</p><p>If a site blocks feed readers, CyPress asks Bing News or Google News for its headlines. Those services see which site you asked about.</p><p>Updates check GitHub for a new version.</p><p>Sync, only if you turn it on, uses your own relay. Everything is locked with your sync code before it leaves.</p><h3>You are in control</h3><p>Back up or erase everything from Settings. Erase everything removes it all.</p></div></dialog>
 <dialog id="foset"><div class="sh"><h2>Folder settings</h2><button class="ib" id="fosx" aria-label="Close"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><div class="sbox"><div class="line"><span class="lb">Name</span><input id="foname" aria-label="Folder name" maxlength="60"></div><div class="line"><span class="lb">Show in The Daily<small>Turn off to keep every site in this folder out of The Daily, the Brief, the Edition and the Week. They still show in All stories and in the folder</small></span><select id="fotoday" aria-label="Show this folder in The Daily"><option value="1">Yes</option><option value="0">No</option></select></div><div class="line"><span class="lb" id="focount"></span><button class="tx2" id="fodel">Delete this folder</button></div></div></dialog>
 <dialog id="fset"><div class="sh"><h2 id="fsn">Feed settings</h2><button class="ib" id="fsx" aria-label="Close"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><div class="sgw"><div class="sct">Feed</div><div class="sbox"><div class="line"><span class="lb">Name</span><input id="fsname" aria-label="Feed name"></div><p class="hint" id="fsdead" hidden></p><div class="line"><span class="lb">Folder</span><select id="fsfold"></select></div></div></div><div class="sgw"><div class="sct">In Your Lists</div><div class="sbox"><div class="line"><span class="lb">Show in The Daily<small>Off keeps it out of The Daily, Brief, Edition and Week</small></span><select id="fstoday"><option value="1">Yes</option><option value="0">No</option></select></div><div class="line"><span class="lb">Pause this feed<small>Hides it for a while</small></span><select id="fssnz"><option value="0">Not paused</option><option value="1">For a day</option><option value="7">For a week</option><option value="30">For a month</option><option value="-1">Until I turn it back on</option></select></div></div></div><details class="smore fmore"><summary><span>More Options</span></summary><div class="sgw"><div class="sct">Reading</div><div class="sbox"><div class="line"><span class="lb">Open stories in<small>Site view shows the publisher’s page</small></span><select id="fsweb"><option value="0">Reader view</option><option value="1">Site view</option></select></div></div></div><div class="sgw"><div class="sct">Updates</div><div class="sbox"><div class="line" id="fsalrow" hidden><span class="lb">New-story alerts<small>A notification when this site publishes</small></span><select id="fsal"><option value="0">Off</option><option value="1">On</option></select></div><div class="line"><span class="lb">Refresh this site<small>Check less often to save battery</small></span><select id="fsrf"><option value="0">With everything else</option><option value="60">At most hourly</option><option value="360">At most every 6 hours</option><option value="1440">At most daily</option><option value="-1">Only when I refresh</option></select></div></div></div><div class="sgw"><div class="sct">Story Rules</div><div class="sbox"><div class="line fsr"><span class="lb">Hide stories containing<small>Words, separated by commas</small></span><input id="fsrh" placeholder="coupon, deals" autocomplete="off"></div><div class="line fsr"><span class="lb">Mark as read when containing<small>For things you rarely open</small></span><input id="fsrr" placeholder="live blog" autocomplete="off"></div><div class="line fsr"><span class="lb">Save automatically when containing<small>Adds matching stories to Saved</small></span><input id="fsrs" placeholder="your keywords" autocomplete="off"></div></div></div></details><div class="sgw"><div class="sct">Remove</div><div class="sbox"><div class="line"><span class="lb">Stop following<small>You can undo right after</small></span><button class="tx2" id="fsdel">Remove feed</button></div></div></div></dialog>
+<dialog id="pwd"><div class="sh"><h2>Purge limited feeds</h2><button class="ib" id="pwdx" aria-label="Close"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><p class="hint">These feeds sit behind a paywall or only send short teasers, so their stories may not open cleanly in Reader view. Tick the ones to remove. You can undo right after.</p><div id="pwdlist"></div><div class="row"><button type="button" class="go" id="pwdgo">Purge Selected Feeds</button></div></dialog>
 <dialog id="cln"><div class="sh"><h2>Clean up your feeds</h2><button class="ib" id="clnx" aria-label="Close"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><p class="hint">Feeds that stopped updating, stopped loading, or that you rarely open. Tick the ones to unfollow. You can undo right after.</p><div id="clnlist"></div><div class="row"><button type="button" class="go" id="clngo">Unfollow selected</button></div></dialog>
 <dialog id="tips"><div class="sh"><h2>Tips and gestures</h2><button class="ib" id="tipsx" aria-label="Close"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><ul id="tipslist"></ul></dialog>
 <dialog id="pkd"><div class="sh"><h2>Your morning pack</h2><button class="ib" id="pkx" aria-label="Close"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><div class="pkl" id="pkl"></div></dialog>
@@ -3927,10 +3934,37 @@ function histAdd(a){if(!a||!a.link)return;try{const f=fof(a);S.hist=S.hist.filte
  if(a.feedId){const o=S.ops[a.feedId]=S.ops[a.feedId]||{n:0,t:0};o.n++;o.t=Date.now()}}catch(e){}}
 const histStory=h=>({feedId:h.fid,title:h.ti,link:webUrl(h.l),date:h.t,html:'',summary:'',img:h.img||'',ft:h.ft,fu:h.fu});
 const cleanT=t=>{t=String(t||'');t=t.replace(/<\/?[a-z][a-z0-9]*(\s[^>]*)?\/?>/gi,' ');t=dent(t);return t.replace(/<\/?[a-z][a-z0-9]*(\s[^>]*)?\/?>/gi,' ').replace(/\s+/g,' ').trim()};
-/* coupon and promo-code pages are sales listings, not stories: they never enter a feed, a cover or a section */
-const CPN_RE=/\b(?:promo codes?|coupon codes?|discount codes?|coupons?\s*:|\d+%\s*off\b.*\b(?:october|november|december|january|february|march|april|may|june|july|august|september|202\d)|verified\s+.*\b(?:promo|coupon|discount))/i,CPN_U=/\/coupons?\/|\/promo-codes?\//i,CPN_M=new WeakMap();
-function isCouponSpam(a){if(!a||typeof a!=='object')return false;let v=CPN_M.get(a);if(v===undefined){try{v=CPN_RE.test(String(a.title||''))||CPN_U.test(String(a.link||''))}catch(e){v=false}CPN_M.set(a,v)}return v}
+/* sales listings, coupon pages and sponsored posts are not stories: they never enter a feed, a cover or a section */
+const CPN_RE=[/\b(?:promo codes?|coupon codes?|discount codes?|coupons?\s*:|save up to \d+\s*(?:%|percent)|\bgift cards?\b.*\b(?:save|off|percent|deal)\b|lowest price ever|drops? to \$\d+|down to \$\d+|\bdeals?\s+of\s+the\s+day\b|best\s+(?:early\s+)?(?:prime day|black friday|cyber monday|memorial day|labor day)\s+deals)/i,/\b\d+%\s*off\b.*\b(?:october|november|december|january|february|march|april|may|june|july|august|september|202\d)\b/i,/\bverified\s+.*\b(?:promo|coupon|discount)\b/i],CPN_U=/\/(?:coupons|promo-codes|deals|sponsored|partner-content)(?:\/|$)/i,CPN_C=/^(?:deals|coupons|sponsored|partner content|commerce)$/i,CPN_M=new WeakMap();
+function isCouponSpam(a){if(!a||typeof a!=='object')return false;let v=CPN_M.get(a);if(v===undefined){try{const t=String(a.title||'');let path=String(a.link||'');try{path=new URL(path).pathname}catch(e){}v=CPN_RE.some(r=>r.test(t))||CPN_U.test(path)||(Array.isArray(a.cats)&&a.cats.some(c=>CPN_C.test(String(c).trim())))}catch(e){v=false}CPN_M.set(a,v)}return v}
 function couponSweep(){try{for(const id in items){const l=items[id];if(l&&l.some&&l.some(isCouponSpam))items[id]=l.filter(a=>!isCouponSpam(a))}}catch(e){}}
+/* limited feeds: paywalled sites and feeds that only ever carry a teaser. Nothing here tries to get past a paywall; it only tells you before you tap */
+const PAYWALL_DOMAINS=['wsj.com','ft.com','bloomberg.com','nytimes.com','theathletic.com','economist.com','newyorker.com','businessinsider.com','telegraph.co.uk','thetimes.co.uk','washingtonpost.com','bostonglobe.com','barrons.com','hbr.org','foreignaffairs.com','stratfor.com'];
+const PW_GATE=/\b(?:subscribe to continue reading|for subscribers only|reached your free article limit|already a subscriber\?\s*sign in|to continue reading this article|this content is for members only)\b/i;
+const pwHost=u=>{try{return new URL(/^[a-z][a-z0-9+.-]*:/i.test(u)?u:'https://'+u).hostname.replace(/^www\./,'').toLowerCase()}catch(e){return ''}};
+const isPaywallDomain=u=>{const h=pwHost(String(u||''));return !!h&&PAYWALL_DOMAINS.some(d=>h===d||h.endsWith('.'+d))};
+const isRestrictedStory=a=>!!a&&(a.restricted===true||isPaywallDomain(a.link));
+function feedRestrictInfo(f){
+ if(!f)return null;
+ if(isPaywallDomain(f.url)||isPaywallDomain(f.site||''))return{why:'Paywalled domain',dom:pwHost(f.url)};
+ const l=items[f.id]||[];if(l.length<3)return null;
+ const n=l.filter(a=>a&&a.restricted===true).length;
+ return n*2>=l.length?{why:'Truncated stories ('+n+' of '+l.length+' affected)',dom:pwHost(f.url)}:null;
+}
+const isRestrictedFeed=f=>!!feedRestrictInfo(f);
+/* a story is marked once the reader has seen what the site really gave: a gate message, or a body no longer than the feed's own snippet */
+function markRestricted(a,text,attempted){
+ try{
+  if(!a||a.restricted===true)return;
+  const t=String(text||''),w=t.trim().split(/\s+/).filter(Boolean).length;
+  if(PW_GATE.test(t)){a.restricted=true;a.rkind='gate'}
+  else if(attempted){const sn=String(a.summary||'').replace(/<[^>]*>/g,' ').trim().split(/\s+/).filter(Boolean).length;if(w<110&&w<=sn){a.restricted=true;a.rkind='teaser'}}
+  if(a.restricted===true)saveSoon();
+ }catch(e){}
+}
+const pwBadge=a=>isRestrictedStory(a)?`<span class="pwt" title="${a.rkind==='teaser'?'Only a short teaser is available':'Needs a subscription'}">🔒 ${a.rkind==='teaser'?'TEASER':'SUBSCRIBER'}</span>`:'';
+/* a feed that only ever sends short snippets, judged from a preview of its stories */
+const teaserFeed=l=>{l=(l||[]).slice(0,10);if(l.length<3)return false;const avg=l.reduce((n,a)=>n+String(a.summary||'').replace(/<[^>]*>/g,' ').trim().split(/\s+/).filter(Boolean).length,0)/l.length;return avg<45&&!l.some(a=>a.ce)};
 function fixA(a){if(a&&a.dd!==3){a.title=cleanT(a.title);a.summary=cleanT(a.summary);if(a.gn||/news\.google\.com/.test(a.link||''))a.title=a.title.replace(/\s+[-–|]\s+[^-–|]{2,40}$/,'');a.dd=3}return a}
 const CK='folio-cache';
 /* a feed that runs on headline-search stand-ins (Google News / Bing) keeps only its own site's stories: ones saved before that rule, from other sites or whose site cannot be told, are left out when the saved copy is read back (the next refresh brings the right ones) */
@@ -4375,10 +4409,11 @@ function extract(html,base){const MT={};const r=extract0(html,base,MT);if(r&&MT.
 /* removing an inline element from between two words must leave the space it stood for */
 function rmGap(e){try{const pv=e.previousSibling,nx=e.nextSibling;if(pv&&nx&&pv.nodeType===3&&nx.nodeType===3&&/[A-Za-z0-9]$/.test(pv.data)&&/^[A-Za-z0-9]/.test(nx.data))pv.data+=' '}catch(x){}}
 /* first thing after a page arrives: consent and privacy furniture goes before anything reads, cleans or saves the page (html and body themselves are never removed) */
+const AFF_TXT=/\b(?:may earn a (?:portion of sales|commission)|earn an affiliate commission|if you buy something (?:from|through) a .* link|independently selected by our editors)\b/i;
 function consentPurge(d){
  let n=0;if(!d||!d.querySelectorAll)return n;
- d.querySelectorAll('[class*="cookie" i],[class*="consent" i],[class*="privacy-policy" i],[class*="gdpr" i]').forEach(e=>{if(e.parentNode&&!/^(HTML|BODY)$/.test(e.tagName)){e.remove();n++}});
- d.querySelectorAll('p,li,div,section,span,aside,small,h2,h3,h4,blockquote,figcaption').forEach(e=>{if(e.parentNode&&!e.querySelector('p,li,div,section,aside')&&LEGAL_TXT.test(e.textContent||'')){e.remove();n++}});
+ d.querySelectorAll('[class*="cookie" i],[class*="consent" i],[class*="privacy-policy" i],[class*="gdpr" i],[class*="affiliate" i],[class*="buy-box" i],[class*="buybox" i],[class*="commerce-" i],[class*="product-callout" i],[data-testid*="commerce" i],[class*="sponsored-" i]').forEach(e=>{if(e.parentNode&&!/^(HTML|BODY)$/.test(e.tagName)){e.remove();n++}});
+ d.querySelectorAll('p,li,div,section,span,aside,small,h2,h3,h4,blockquote,figcaption').forEach(e=>{if(e.parentNode&&!e.querySelector('p,li,div,section,aside')&&(LEGAL_TXT.test(e.textContent||'')||((e.textContent||'').length<350&&AFF_TXT.test(e.textContent||'')))){e.remove();n++}});
  return n;
 }
 /* stored stories get the same scrub when they are opened: n = blocks removed, w = words left */
@@ -4547,7 +4582,7 @@ function parseJsonFeed(txt,f){
   let dur='';const ds=au&&+au.duration_in_seconds;if(ds)dur=ds>=3600?Math.floor(ds/3600)+' h '+Math.round(ds%3600/60)+' min':Math.round(ds/60)+' min';
   const au1=(it.authors&&it.authors[0])||it.author||j.author||{};
   const title=cleanT(String(it.title||'')||text.slice(0,90));
-  return{feedId:f.id,by:String(au1.name||'').slice(0,60),sec:String((it.tags||[])[0]||'').slice(0,30),cm:'',audio:au?abs(au.url,link):'',yt:'',dur,th:'',title,link,date:pdate(it.date_published||it.date_modified||''),img,html,summary:(it.summary?String(it.summary).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim():text).slice(0,170),wc:text?text.split(' ').length:0};
+  return{feedId:f.id,by:String(au1.name||'').slice(0,60),sec:String((it.tags||[])[0]||'').slice(0,30),cats:(Array.isArray(it.tags)?it.tags:[]).map(t=>String(t&&t.name||t||'').trim().toLowerCase().slice(0,40)).filter(Boolean).slice(0,8),ce:!!(it.content_html||it.content_text),cm:'',audio:au?abs(au.url,link):'',yt:'',dur,th:'',title,link,date:pdate(it.date_published||it.date_modified||''),img,html,summary:(it.summary?String(it.summary).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim():text).slice(0,170),wc:text?text.split(' ').length:0};
  });
  return{title:String(j.title||'').trim(),list:finishList(list)};
 }
@@ -4580,11 +4615,11 @@ function parse(xml,f){
   const au=[...el.getElementsByTagName('enclosure'),...el.getElementsByTagName('media:content')].find(e=>/audio/.test(e.getAttribute('type')||'')||/\.(mp3|m4a|aac|ogg)(\?|$)/i.test(e.getAttribute('url')||''));
   const yv=tx(el,'yt:videoId');
   const by=(tx(el,'dc:creator')||(el.getElementsByTagName('author')[0]?tx(el.getElementsByTagName('author')[0],'name'):'')||tx(el,'author')).replace(/^\S+@\S+\s*\((.*)\)$/,'$1').replace(/<[^>]*>/g,' ').replace(/https?:\/\/\S+/g,' ').replace(/\s+/g,' ').trim().slice(0,60);/* an Atom author holds a name and a web address: only the name is the byline */
-  const sec=(el.getElementsByTagName('category')[0]?(el.getElementsByTagName('category')[0].getAttribute('term')||el.getElementsByTagName('category')[0].textContent):'').trim().slice(0,30);
+  const cats=[...el.getElementsByTagName('category')].map(c=>(c.getAttribute('term')||c.textContent||'').trim().toLowerCase().slice(0,40)).filter(Boolean).slice(0,8),ce=!!tx(el,'content:encoded');const sec=(el.getElementsByTagName('category')[0]?(el.getElementsByTagName('category')[0].getAttribute('term')||el.getElementsByTagName('category')[0].textContent):'').trim().slice(0,30);
   let cm=tx(el,'comments');if(!/^https?:/.test(cm)){cm='';const m=(html||'').match(/href="(https?:\/\/(?:www\.|old\.)?(?:reddit\.com\/r\/[^"]+\/comments\/[^"]+|news\.ycombinator\.com\/item\?id=\d+|lobste\.rs\/s\/[^"]+))"/);if(m)cm=m[1]}
   let dur=tx(el,'itunes:duration');if(/^\d+$/.test(dur)){const n=+dur;dur=n>=3600?Math.floor(n/3600)+' h '+Math.round(n%3600/60)+' min':Math.round(n/60)+' min'}else if(/^\d+:\d+(:\d+)?$/.test(dur)){const q=dur.split(':').map(Number);dur=q.length===3?(q[0]?q[0]+' h ':'')+q[1]+' min':q[0]+' min'}else dur='';
   if(!img&&yv)img='https://i.ytimg.com/vi/'+yv+'/hqdefault.jpg';
-  return{feedId:f.id,by,sec,cm,audio:au?abs(au.getAttribute('url'),link):'',yt:yv||'',dur,th:(thu&&thu!==img&&img)?thu:'',title:cleanT(tx(el,'title')),link,date:pdate(tx(el,'pubDate')||tx(el,'published')||tx(el,'updated')||tx(el,'dc:date')),img,html,summary:text.slice(0,170),wc:text?text.split(' ').length:0};
+  return{feedId:f.id,by,sec,cats,ce,cm,audio:au?abs(au.getAttribute('url'),link):'',yt:yv||'',dur,th:(thu&&thu!==img&&img)?thu:'',title:cleanT(tx(el,'title')),link,date:pdate(tx(el,'pubDate')||tx(el,'published')||tx(el,'updated')||tx(el,'dc:date')),img,html,summary:text.slice(0,170),wc:text?text.split(' ').length:0};
  });
  return{title,list:finishList(list)};
 }
@@ -4745,7 +4780,7 @@ const trimRead=()=>{const k=Object.keys(S.read);if(k.length>4000)k.slice(0,k.len
 const isSaved=a=>S.saved.some(x=>x.link===a.link);
 function toggleSave(a){if(!a)return;if(isSaved(a))S.saved=S.saved.filter(x=>x.link!==a.link);else{buzz('soft');sfxTone('save');setTimeout(()=>{const b=$('#st');if(b){b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop')}},30);const f=fof(a),{more,...b}=a;S.saved.unshift({...b,st:Date.now(),html:(a.html||'').slice(0,8000),ft:f.title,fu:f.url,fc:brand(f)});capSaved()}save()}
 const staleDays=f=>{const l=items[f.id]||[];if(!l.length||state[f.id]!=='ok')return 0;const n=Math.max(...l.map(a=>a.date||0));return n?Math.floor((Date.now()-n)/864e5):0};
-const feedRow=x=>`<div class="fr ${S.sel==='s:'+x.id?'on':''}${paused(x)?' pz':''}" draggable="true" data-id="${x.id}" data-sel="s:${x.id}"><button type="button" class="frc" style="background:${brand(x)}" data-col="${x.id}" title="Change color" aria-label="Change color of ${esc(x.title)}"></button><button type="button" class="frt">${esc(x.title)}${paused(x)?' (paused)':state[x.id]==='err'?' (offline)':staleDays(x)>=21?` <small class="stl" title="No new stories for ${Math.floor(staleDays(x)/7)} weeks">(quiet ${Math.floor(staleDays(x)/7)}w)</small>`:''}</button><span class="frn">${navDot(()=>uc([x]),()=>newIn([x]))}${frMin([x])}</span><button type="button" class="frx" data-delx="${x.id}" title="Remove feed" aria-label="Remove ${esc(x.title)}">×</button></div>`;
+const feedRow=x=>`<div class="fr ${S.sel==='s:'+x.id?'on':''}${paused(x)?' pz':''}" draggable="true" data-id="${x.id}" data-sel="s:${x.id}"><button type="button" class="frc" style="background:${brand(x)}" data-col="${x.id}" title="Change color" aria-label="Change color of ${esc(x.title)}"></button><button type="button" class="frt">${esc(x.title)}${isRestrictedFeed(x)?' <span class="pw-badge" title="Limited or paywalled feed" aria-label="Limited or paywalled feed">🔒</span>':''}${paused(x)?' (paused)':state[x.id]==='err'?' (offline)':staleDays(x)>=21?` <small class="stl" title="No new stories for ${Math.floor(staleDays(x)/7)} weeks">(quiet ${Math.floor(staleDays(x)/7)}w)</small>`:''}</button><span class="frn">${navDot(()=>uc([x]),()=>newIn([x]))}${frMin([x])}</span><button type="button" class="frx" data-delx="${x.id}" title="Remove feed" aria-label="Remove ${esc(x.title)}">×</button></div>`;
 const fold=id=>!!(S.fcol&&S.fcol[id]);
 const chev=id=>`<u class="chv ${fold(id)?'':'open'}" data-tgl="${id}" role="button" aria-expanded="${fold(id)?'false':'true'}" aria-label="${fold(id)?'Expand':'Collapse'}" title="${fold(id)?'Expand':'Collapse'}"></u>`;
 function side(){
@@ -5217,7 +5252,7 @@ function momentHtml(a,ix){
 }
 function colItem(u,ix,deck){
  const a=u.head,f=fof(a);WHY[a.link]=u.more.length?'A developing story: '+(u.more.length+1)+' updates, newest first.':'A story from '+f.title+'.';
- return `<a class="cvlead wcol${S.read[a.link]?' read':''}" href="${esc(a.link)}" data-i="${ix(a)}"><small style="--b:${brand(f)}">${esc(f.title)} · ${esc(ago(a.date))}</small><b>${esc(a.title)}</b>${u.more.length?`<em>+${u.more.length} ${u.more.length===1?'update':'updates'}</em>`:''}${deck?(()=>{const d=dekOf(a,140);return d?`<span class="wcol-d">${esc(d)}</span>`:''})():''}</a>`;
+ return `<a class="cvlead wcol${S.read[a.link]?' read':''}" href="${esc(a.link)}" data-i="${ix(a)}"><small style="--b:${brand(f)}">${esc(f.title)} · ${esc(ago(a.date))}</small><b>${esc(a.title)}</b>${pwBadge(a)}${u.more.length?`<em>+${u.more.length} ${u.more.length===1?'update':'updates'}</em>`:''}${deck?(()=>{const d=dekOf(a,140);return d?`<span class="wcol-d">${esc(d)}</span>`:''})():''}</a>`;
 }
 const densHtml=()=>`<div class="wdens" role="group" aria-label="Density"><button type="button" data-wdens="mag" aria-pressed="${S.wdens!=='col'}">Cards</button><button type="button" data-wdens="col" aria-pressed="${S.wdens==='col'}">Columns</button></div>`;
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button[data-wdens]');if(!b)return;e.preventDefault();e.stopPropagation();S.wdens=b.dataset.wdens;save();render()},true);
@@ -5951,12 +5986,12 @@ const IMGOK=new Set();
 const chref=c=>(c&&((c.dataset&&c.dataset.href)||c.getAttribute('href')))||'';
 function listRow(a,i,k,f){
   const dk=(typeof dekOf==='function'?dekOf(a,170):'')||'',mn=readMin(a);
-  return `<div class="card list-row ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}">${a.img?`<img class="cimg" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3>${dk?`<p class="ld">${esc(dk)}</p>`:''}<time>${ago(a.date)}${mn?' · '+mn+' min':''}</time></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
+  return `<div class="card list-row ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}">${a.img?`<img class="cimg" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3>${dk?`<p class="ld">${esc(dk)}</p>`:''}<time>${ago(a.date)}${mn?' · '+mn+' min':''}</time>${pwBadge(a)}</div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
 }
 function card(a,i,k){
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
   const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],op=q0&&q0.v>=4&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="object-position:${q0.px}% ${q0.py}%"`:'';
-  return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span>${a.sec?`<span class=" ssec">· ${esc(a.sec)}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="${a.more.length+1} sources report this">+${a.more.length} sources</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><p>${esc(a.summary)}</p><div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}<time>${ago(a.date)}</time></div>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
+  return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span>${a.sec?`<span class=" ssec">· ${esc(a.sec)}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="${a.more.length+1} sources report this">+${a.more.length} sources</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><p>${esc(a.summary)}</p><div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}${pwBadge(a)}<time>${ago(a.date)}</time></div>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
 }
 /*NEWSROOM*/
 const IS_SAFARI=(()=>{try{const u=navigator.userAgent;return /iP(hone|ad|od)/.test(u)||(/Safari\//.test(u)&&!/Chrome\/|Chromium\/|Android|Edg\/|OPR\/|CriOS|FxiOS/.test(u))}catch(e){return false}})();
@@ -7171,15 +7206,6 @@ async function jinaRead(url,ms){
  catch(e){return null}finally{clearTimeout(to)}
 }
 /* a page that gave only a stub is never accepted as it is: try the reader, keep the longest */
-async function archiveRead(url){
- try{
-  const r=await fetch('https://archive.org/wayback/available?url='+encodeURIComponent(url),{signal:AbortSignal.timeout(6000)});
-  if(!r.ok)return null;const j=await r.json(),snap=j&&j.archived_snapshots&&j.archived_snapshots.closest;
-  if(!snap||!snap.available||!snap.url)return null;
-  const u=snap.url.replace(/^http:/,'https:');
-  return await fromPage(u);
- }catch(e){return null}
-}
 const SROUTE=(()=>{try{return JSON.parse(localStorage.getItem('folio-sroute')||'{}')}catch(e){return{}}})();
 function saveSroute(h,r){if(!h)return;SROUTE[h]={r,t:Date.now()};try{const k=Object.keys(SROUTE);if(k.length>200)delete SROUTE[k[0]];localStorage.setItem('folio-sroute',JSON.stringify(SROUTE))}catch(e){}}
 async function upgradeStub(fr,url){
@@ -7187,15 +7213,14 @@ async function upgradeStub(fr,url){
  let hh='';try{hh=new URL(url).hostname.replace(/^www\./,'')}catch(e){}
  const w=x=>x?(x.textContent||'').trim().split(/\s+/).length:0;
  const known=SROUTE[hh]&&(Date.now()-SROUTE[hh].t<7*864e5)?SROUTE[hh].r:'';
- const isGated=!fr||fr.gate||fr.nofree||known||looksIncomplete(fr.textContent,url);
+ /* a page that says it is for subscribers is shown as it is: no other route is tried to get past a paywall */
+ if(fr&&(fr.gate||fr.nofree||PAYRE.test(hh)))return fr;
+ const isGated=!fr||known||looksIncomplete(fr.textContent,url);
  if(!isGated)return fr;
  const baseW=w(fr);
  const check=cand=>(cand&&w(cand)>Math.max(120,baseW*1.25)&&!footerish(cand.textContent))?cand:null;
  const jMs=HYDRATED.test(hh)||known==='jina'?6500:5000;
  const tasks=[jinaRead(url,jMs).then(r=>{const c=check(r);if(!c)throw 0;saveSroute(hh,'jina');c.rescued=true;return c})];
- if(!fr||fr.gate||fr.nofree||PAYRE.test(hh)||known==='arch'||baseW<350){
-  tasks.push(archiveRead(url).then(r=>{const c=check(r);if(!c)throw 0;saveSroute(hh,'arch');c.rescued=true;return c}));
- }
  try{return await Promise.any(tasks)}catch(e){}
  if(fr&&looksIncomplete(fr.textContent,url))fr.incomplete=true;
  return fr;
@@ -7273,7 +7298,7 @@ function getFull(url,light){
  });
 }
 
-/* last-resort routes for stubborn sites (Time, etc.): browser-rendered reader, AMP copy, archive copy */
+/* last-resort routes for stubborn sites (Time, etc.): browser-rendered reader, AMP copy */
 async function getFullDeep(url,lg){
  url=await gnResolve(url);
  const base=url.replace(/[?#].*$/,'').replace(/\/$/,'');
@@ -7291,8 +7316,7 @@ async function getFullDeep(url,lg){
   jina('reader (browser mode)',{'X-Engine':'browser','X-Return-Format':'markdown','X-No-Cache':'true','X-Timeout':'25'},0),
   jina('reader (page source)',{'X-Return-Format':'html','X-No-Cache':'true'},1),
   fromPage(base+'/amp/',lg,'AMP copy via ').then(x=>{if(!x)throw 0;x.tier='deep';return x}),
-  fromPage(url+(url.includes('?')?'&':'?')+'amp=1',lg,'AMP copy 2 via ').then(x=>{if(!x)throw 0;x.tier='deep';return x}),
-  fromPage('https://web.archive.org/web/2/'+url,lg,'archive copy via ').then(x=>{if(!x)throw 0;x.tier='deep';return x})
+  fromPage(url+(url.includes('?')?'&':'?')+'amp=1',lg,'AMP copy 2 via ').then(x=>{if(!x)throw 0;x.tier='deep';return x})
  ];
  tasks.forEach(t=>t.catch(()=>{}));
  try{return await Promise.any(tasks)}catch(e){return null}
@@ -7529,29 +7553,6 @@ function truncReason(n,url){
 const TRUNCDONE=new Set();
 function needsMore(n,url){return !n||!!n.gated_preview||(wordsOf(n)<400&&(!!n.incomplete||looksIncomplete(n.textContent,url||'')))}
 function canonicalUrl(u){try{const x=new URL(u);x.hash='';[...x.searchParams.keys()].forEach(k=>{if(/^(utm_|fbclid|gclid|mc_|ref$|ref_|cmpid|ocid|ito$|taid)/i.test(k))x.searchParams.delete(k)});return x.href}catch(e){return ''}}
-/* the Internet Archive's public "is there a saved copy" lookup: only a copy that was saved successfully (status 200) counts */
-async function archiveSnapshot(url){
- try{
-  const u=canonicalUrl(url);if(!/^https?:/.test(u)||/(^|\.)(news\.google\.com|bing\.com|archive\.org)$/.test(host(u)))return null;
-  const t=await fetchText('https://archive.org/wayback/available?url='+encodeURIComponent(u),x=>/archived_snapshots/.test(x),{push(){}});
-  const j=JSON.parse(t),c=j&&j.archived_snapshots&&j.archived_snapshots.closest;
-  if(!c||c.available!==true||String(c.status)!=='200'||!c.url)return null;
-  return String(c.url).replace(/^http:/,'https:');
- }catch(e){return null}
-}
-async function archiveFor(a,url){
- try{
-  const snap=await Promise.race([archiveSnapshot(url||a.link),new Promise(r=>setTimeout(()=>r(null),8000))]);if(!snap)return null;
-  /* "id_" asks for the page exactly as it was saved, without the archive's own banner */
-  const raw=snap.replace(/\/web\/(\d{8,14})\//,'/web/$1id_/');
-  for(const u of [...new Set([raw,snap])]){
-   let n=null;try{n=await Promise.race([fromPage(u,[],'archive copy via '),new Promise(r=>setTimeout(()=>r(null),14000))])}catch(e){n=null}
-   if(!n)continue;n=tidy(n);const tx=n.textContent||'';
-   if(tx.length>600&&sameStory(tx,a)&&!footerish(tx)&&textQuality(tx).ok&&!gatedPreview(tx,n.gate,snap)){n.tier='archive';return {n,u:snap}}
-  }
- }catch(e){}
- return null;
-}
 /* Morss.it: a free service that returns a site's feed with the full text filled in. It only takes a feed address, so the story is found in its own site's feed by link */
 const MORSS={t:new Map()};
 async function morssFor(a){
@@ -7575,7 +7576,6 @@ async function morssFor(a){
 /* the steps after the page and the reader have both fallen short: a saved copy first, then the same story from a wire partner */
 async function deeperTiers(a,n,src){
  let best=n,bsrc=src;const longer=m=>m&&(!best||wordsOf(m)>wordsOf(best)*1.25),cut=()=>needsMore(best,bsrc)||truncReason(best,bsrc);
- const ar=await archiveFor(a,src);if(ar&&longer(ar.n)){best=ar.n;bsrc=ar.u}
  if(cut()){const mo=await morssFor(a);if(mo&&longer(mo.n)){best=mo.n;bsrc=mo.u}}
  if(cut()){const mr=await mirrorFor(a);if(mr&&longer(mr.n)){best=mr.n;bsrc=mr.u}}
  if(best===n)TRUNCDONE.add(a.link);/* nothing better turned up: don't repeat the whole search every time the story is reopened */
@@ -7715,14 +7715,14 @@ function toggleWeb(auto){
  w.hidden=false;R.web=true;R.auto=!!auto;b.innerHTML=svg(PAGE);b.title='Back to reader view';loadWeb();
 }
 async function openReader(a){
- const f=fof(a),my=++tok,sh=$('#sheet');curA=a;RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0;R.ready=false;const afterLoad=()=>{legalBody($('.cols .body'));try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;setTimeout(()=>{if(curA===a0)relayout()},800);setTimeout(()=>{if(curA===a0)relayout()},2600);try{document.fonts&&document.fonts.ready.then(()=>{if(curA===a0)relayout()})}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);save();setTimeout(()=>raWhenReady(a,0),1200);
+ const f=fof(a),my=++tok,sh=$('#sheet');curA=a;RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0;R.ready=false;const afterLoad=()=>{legalBody($('.cols .body'));try{markRestricted(a,($('.cols .body')||{}).textContent,false)}catch(e){}try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;setTimeout(()=>{if(curA===a0)relayout()},800);setTimeout(()=>{if(curA===a0)relayout()},2600);try{document.fonts&&document.fonts.ready.then(()=>{if(curA===a0)relayout()})}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);save();setTimeout(()=>raWhenReady(a,0),1200);
  rdB(brand(f));pushLayer('reader');tip('reader');
  try{rdAmbient(null)}catch(e){}
  if(a.img&&isOn('ptint'))imgInfo(a.img).then(o=>{if(o&&o.t&&curA===a){rdB(o.t);try{rdAmbient(o.t)}catch(e){}}});
  document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',chref(c)===a.link));
  const dt=a.date?new Date(a.date).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'';
  const cov=covOf(a).length?hubTeaser(a):'';
- sh.innerHTML=`<div class="bar"><button class="ib" id="cl" data-lbl="Back" aria-label="Back" title="Back">${svg('<path d="m14.5 5-7 7 7 7"/>')}</button><button class="ib" id="fdn" aria-label="Back to all feeds" title="Back to all feeds" tabindex="-1" aria-hidden="true" hidden>${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><div class="bs">${esc(f.title)}</div><span id="pc"></span><button class="ib" id="rfocus" data-lbl="Focus" title="Focus mode" aria-label="Focus mode" aria-pressed="false">${FOC_EYE}</button><button class="ib" id="st" data-lbl="Save" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" data-lbl="Listen" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings" hidden>${svg(TUNE)}</button>`:''}<button class="ib" id="fcs" data-lbl="Focus" aria-label="Focus mode" aria-pressed="false" title="Focus mode: hide the controls for distraction-free reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site in the app" title="View the site in the app" hidden>${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page" hidden>${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page" hidden>${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" data-lbl="More" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec))+(hasSec(a.sec,a.feedId)?'':`<button class="flw" data-fsec aria-label="Follow ${esc(a.sec||'this section')}">Follow</button>`):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}"${heroAR(a)} onerror="this.remove()">`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener" href="${esc(a.link)}">Read on ${esc(host(a.link))}</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p class="wmp">This site can’t be shown inside the app. It may block automated access.</p><div><button type="button" class="lnk" id="wtry">Try again</button> <a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
+ sh.innerHTML=`<div class="bar"><button class="ib" id="cl" data-lbl="Back" aria-label="Back" title="Back">${svg('<path d="m14.5 5-7 7 7 7"/>')}</button><button class="ib" id="fdn" aria-label="Back to all feeds" title="Back to all feeds" tabindex="-1" aria-hidden="true" hidden>${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><div class="bs">${esc(f.title)}</div><span id="pc"></span><button class="ib" id="rfocus" data-lbl="Focus" title="Focus mode" aria-label="Focus mode" aria-pressed="false">${FOC_EYE}</button><button class="ib" id="st" data-lbl="Save" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" data-lbl="Listen" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings" hidden>${svg(TUNE)}</button>`:''}<button class="ib" id="fcs" data-lbl="Focus" aria-label="Focus mode" aria-pressed="false" title="Focus mode: hide the controls for distraction-free reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site in the app" title="View the site in the app" hidden>${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page" hidden>${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page" hidden>${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" data-lbl="More" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec))+(hasSec(a.sec,a.feedId)?'':`<button class="flw" data-fsec aria-label="Follow ${esc(a.sec||'this section')}">Follow</button>`):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}"${heroAR(a)} onerror="this.remove()">`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener noreferrer" href="${esc(a.link)}">Read original on ${esc(host(a.link))} ↗</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p class="wmp">This site can’t be shown inside the app. It may block automated access.</p><div><button type="button" class="lnk" id="wtry">Try again</button> <a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
  /* the text stays hidden for the moment the page columns are being worked out, so the open never shows half-wrapped lines */
  {const rd=$('#rd');rd.classList.add('rdb');clearTimeout(rdbDone.t);rdbDone.t=setTimeout(rdbDone,420)}
  for(const lb of sh.querySelectorAll('.bar .ib[data-lbl]')){const sp=document.createElement('span');sp.className='bl';sp.setAttribute('aria-hidden','true');sp.textContent=lb.dataset.lbl;lb.append(sp)}
@@ -7761,8 +7761,8 @@ async function openReader(a){
   a.tier=n.tier||(src!==a.link?'mirror':'direct');
   ttsStop();
   body.replaceChildren(dropTitle(n,a.title));try{heroOnce()}catch(e){}
-  if(n.pw&&src===a.link){a.pw=1;note.innerHTML='This looks like a preview, and the site may want a subscription for the rest. <button type="button" class="lnk" data-web="1">View the site in the app</button>';if(my===tok&&!R.web&&(S.autoWeb||isBing(f.url)||/news\.google\./.test(f.url||'')||/news\.google\./.test(a.link||'')))toggleWeb(true)}else if(n.gated_preview&&src===a.link)note.innerHTML='<span class="sbadge">Subscriber preview</span>The site is holding back the rest of this story.';else if(n.tier==='archive')note.textContent='Full story loaded from a saved copy at the Internet Archive.';else if(n.tier==='morss')note.textContent='Full story loaded through Morss.';else if(src!==a.link)note.textContent='Full story loaded from '+host(src)+'.';else if(n.incomplete&&looksIncomplete(n.textContent,src))note.innerHTML='<span class="sbadge">Truncated source text</span>This may be only the start of the story. <a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener">Open the original story</a>';else note.remove();
-  legalBody(body);if(!((n.incomplete&&looksIncomplete(n.textContent,src))||(n.gated_preview&&src===a.link)))acPut(a.link,body.innerHTML);markReady(a.link);
+  if(n.pw&&src===a.link){a.pw=1;note.innerHTML='This looks like a preview, and the site may want a subscription for the rest. <button type="button" class="lnk" data-web="1">View the site in the app</button>';if(my===tok&&!R.web&&(S.autoWeb||isBing(f.url)||/news\.google\./.test(f.url||'')||/news\.google\./.test(a.link||'')))toggleWeb(true)}else if(n.gated_preview&&src===a.link)note.innerHTML='<span class="sbadge">Subscriber preview</span>The site is holding back the rest of this story.';else if(n.tier==='morss')note.textContent='Full story loaded through Morss.';else if(src!==a.link)note.textContent='Full story loaded from '+host(src)+'.';else if(n.incomplete&&looksIncomplete(n.textContent,src))note.innerHTML='<span class="sbadge">Truncated source text</span>This may be only the start of the story. <a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener">Open the original story</a>';else note.remove();
+  legalBody(body);try{markRestricted(a,body.textContent,true)}catch(e){}if(!((n.incomplete&&looksIncomplete(n.textContent,src))||(n.gated_preview&&src===a.link)))acPut(a.link,body.innerHTML);markReady(a.link);
   S.rt[a.link]=Math.max(1,Math.round(body.textContent.split(/\s+/).length/230));const rk=Object.keys(S.rt);if(rk.length>600)delete S.rt[rk[0]];save();
   foldBoiler(body,a);
   if(n.gated_preview&&src===a.link)gatePreviewUi(body,a);
@@ -8675,9 +8675,9 @@ function liveCheck(q){
   if(/^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(h))tries.push('https://'+h);
   else if(/^[a-z0-9 ]+$/i.test(q)){const w=q.toLowerCase().replace(/\s+/g,'');tries.push('https://www.'+w+'.com','https://'+w+'.com')}
   let hit=null;
-  for(const u of tries){try{const fd=await Promise.race([findFeed(u),new Promise((_,j)=>setTimeout(j,9000))]);if(fd&&fd.xml){hit={u:fd.url,n:(parse(fd.xml,{id:'x',url:fd.url}).title||host(fd.url)),c:'Other'};break}}catch(_){}}
+  for(const u of tries){try{const fd=await Promise.race([findFeed(u),new Promise((_,j)=>setTimeout(j,9000))]);if(fd&&fd.xml){const pp=parse(fd.xml,{id:'x',url:fd.url});hit={u:fd.url,n:(pp.title||host(fd.url)),c:'Other',pw:teaserFeed(pp.list)||isPaywallDomain(fd.url)};break}}catch(_){}}
   if($('#u').value.trim()!==q)return;
-  liveRes=hit?{hit}:{none:1};pop();
+  liveRes=hit?{hit}:{none:1};pop();pwWarn(q,hit&&hit.pw);
  },700);
 }
 /* ---- before a feed is added: look at what it really delivers and say so, so the person can choose ---- */
@@ -8873,7 +8873,7 @@ async function localGo(){
  }catch(e){LOC={st:'fail',msg:e.message}}
  pop();
 }
-$('#u').oninput=()=>{const q=$('#u').value.trim();liveRes=null;pop();liveCheck(q)};
+$('#u').oninput=()=>{const q=$('#u').value.trim();liveRes=null;pop();pwWarn(q,false);liveCheck(q)};
 $('#pop').onclick=e=>{const t=e.target;if(t.dataset&&t.dataset.dym){$('#u').value=t.dataset.dym;$('#u').oninput();return}if(t.dataset&&t.dataset.info){feedInfo(t.dataset.info,t);return}const cb=t.closest&&t.closest('[data-cat]');if(cb){cat=+cb.dataset.cat;pop();popTop()}else if(t.closest&&t.closest('[data-back]')){window.addBackHook();popTop()}else if(t.dataset.pack!==undefined)addPack(+t.dataset.pack,t);else if(t.dataset.local)localGo();else if(t.dataset.add){if(t.dataset.v)addVerified(t.dataset.add,t.dataset.n,t.dataset.c,t);else{const r=quickAdd(t.dataset.add,t.dataset.n,t.dataset.c);dlgAdded(1,r.fo.name);toast('Added '+t.dataset.n+' to “'+r.fo.name+'”',()=>openAddedFeed(r.f.id),'Open')}}};
 $('#add').onclick=()=>{drawer(false);fillFolders();$('#err').textContent='';$('#frm').reset();fillFolders();cat=-9;$('#adv').open=true;DLGADDED=[];dlgDoneFlip();pop();dlg.showModal()};
 $('#cancel').onclick=()=>dlg.close();$('#dlgx').onclick=()=>dlg.close();dlg.addEventListener('click',e=>{if(e.target!==dlg)return;const r=dlg.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dlg.close()});
@@ -9826,6 +9826,29 @@ $('#clngo').onclick=()=>{
  S.feeds=S.feeds.filter(f=>!ids.includes(f.id));if(ids.some(i=>S.sel==='s:'+i))S.sel='all';save();render();if($('#mng').open)renderMng();$('#cln').close();
  toast('Unfollowed '+gone.length+(gone.length===1?' feed':' feeds'),()=>{gone.sort((a,b)=>a.i-b.i).forEach(x=>S.feeds.splice(Math.min(x.i,S.feeds.length),0,x.f));save();render();if($('#mng').open)renderMng()});
 };
+
+/* ---- limited feeds: add-feed warning, sidebar chip, purge dialog ---- */
+function pwWarn(q,tz){
+ const el=$('#pwwarn');if(!el)return;
+ const show=!!q&&(isPaywallDomain(q)||tz);
+ el.hidden=!show;if(show)el.textContent='⚠ Limited Full-Text Feed: This publisher uses a paywall or truncated RSS feed. Stories may not open cleanly in Reader view.';
+}
+function pwChip(){const c=$('#pwchip');if(c)c.hidden=!S.feeds.some(isRestrictedFeed)}
+function openPurgeLimited(){
+ const l=S.feeds.map(f=>({f,i:feedRestrictInfo(f)})).filter(x=>x.i);
+ $('#pwdlist').innerHTML=l.length?l.map(x=>`<label class="cr2"><input type="checkbox" data-pf="${x.f.id}" checked><b>${esc(x.f.title)}</b><small>${esc(x.i.dom||host(x.f.url))} · ${esc(x.i.why)}</small></label>`).join(''):'<div class="none">All your feeds deliver clean full-text stories.</div>';
+ $('#pwdgo').hidden=!l.length;if(!$('#pwd').open)$('#pwd').showModal();
+}
+$('#pwb').onclick=()=>{if($('#mng').open)$('#mng').close();openPurgeLimited()};
+$('#pwchip').onclick=()=>{drawer(false);openPurgeLimited()};
+$('#pwdx').onclick=()=>$('#pwd').close();
+$('#pwdgo').onclick=()=>{
+ const ids=[...document.querySelectorAll('#pwdlist [data-pf]:checked')].map(x=>x.dataset.pf);if(!ids.length){toast('Tick a feed first');return}
+ const gone=ids.map(id=>({f:S.feeds.find(x=>x.id===id),i:S.feeds.findIndex(x=>x.id===id),it:items[id]})).filter(x=>x.f);
+ S.feeds=S.feeds.filter(f=>!ids.includes(f.id));ids.forEach(id=>{delete items[id];delete state[id]});if(ids.some(i=>S.sel==='s:'+i))S.sel='all';save();render();if($('#mng').open)renderMng();$('#pwd').close();
+ toast('Removed '+gone.length+(gone.length===1?' feed':' feeds'),()=>{gone.sort((a,b)=>a.i-b.i).forEach(x=>{S.feeds.splice(Math.min(x.i,S.feeds.length),0,x.f);if(x.it)items[x.f.id]=x.it});save();render();if($('#mng').open)renderMng()});
+};
+{const _rp=render;render=function(){_rp.apply(this,arguments);try{pwChip()}catch(e){}}}
 $('#fsx').onclick=()=>$('#fset').close();
 $('#fset').addEventListener('change',e=>{const f=S.feeds.find(x=>x.id===$('#fset').dataset.id);if(!f)return;const t=e.target;
  if(t.id==='fsname'){f.title=t.value.trim()||f.title}
@@ -9852,7 +9875,7 @@ $('#sflist').onclick=e=>{const d=e.target.closest('[data-skdel]');if(d){S.sk=S.s
 
 /* relay setup */
 const RELAY_CODE=`// CyPress relay v2
-const UAS=['Mozilla/5.0 (Linux; Android 14; SM-F966U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36','Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15','Mozilla/5.0 (compatible; Feedly/1.0; +http://www.feedly.com/fetcher.html; like FeedFetcher-Google)'];
+const UAS=['Mozilla/5.0 (Linux; Android 14; SM-F966U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36','Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15'];
 export default{async fetch(req,env){
  const H={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET,PUT,OPTIONS','Access-Control-Allow-Headers':'Content-Type'};
  if(req.method==='OPTIONS')return new Response(null,{headers:H});
@@ -9866,7 +9889,7 @@ export default{async fetch(req,env){
  }
  const u=url.searchParams.get('url');
  if(!u)return new Response('CyPress relay is running v2',{headers:H});
- const feedish=/rss|feed|atom|\.xml/i.test(u),order=feedish?[2,0,1]:[0,1,2];let r=null,tries=0;
+ const feedish=/rss|feed|atom|\.xml/i.test(u),order=[0,1];let r=null,tries=0;
  for(const i of order){
   tries++;
   try{
@@ -10532,7 +10555,7 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.14d';const APP_LABEL='1.102';
+const APP_VERSION='2026.10.14e';const APP_LABEL='1.103';
 const CHANGES=["Stories that stop at a subscriber gate (like the New York Times verification message) are now spotted, and the app looks for a saved or wire copy of the full story", "If the full story can’t be found, you get the opening paragraphs with a soft fade, a Subscriber Preview card and a button to read it on the original site", "The gate check looks only for real gate messages, so ordinary news pages are not mislabelled as previews"];
 const DEF_ON=new Set(['cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];

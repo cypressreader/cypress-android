@@ -13,50 +13,22 @@ const R=await p.evaluate(async()=>{
  const of=window.fetchText;
  // canonical url
  o.canon=canonicalUrl('https://news.test/a/b?utm_source=x&id=7&fbclid=zz#top');
- // availability lookups
- const avail=j=>{window.fetchText=async(u,ok)=>{o.lastLookup=u;const t=JSON.stringify(j);ok&&ok(t);return t}};
- avail({archived_snapshots:{closest:{available:true,status:'200',url:'http://web.archive.org/web/20250105123456/https://news.test/story',timestamp:'20250105123456'}}});
- o.snapOk=await archiveSnapshot('https://news.test/story?utm_medium=a');o.lookupUrl=o.lastLookup;
- avail({archived_snapshots:{}});o.snapNone=await archiveSnapshot('https://news.test/story');
- avail({archived_snapshots:{closest:{available:true,status:'404',url:'http://web.archive.org/web/2025/https://news.test/story'}}});o.snap404=await archiveSnapshot('https://news.test/story');
- avail({archived_snapshots:{closest:{available:false,status:'200',url:'http://web.archive.org/web/2025/https://news.test/story'}}});o.snapUnavail=await archiveSnapshot('https://news.test/story');
- window.fetchText=async(u,ok)=>{throw new Error('HTTP 500')};o.snapErr=await archiveSnapshot('https://news.test/story');
- o.snapGoogle=await archiveSnapshot('https://news.google.com/rss/articles/abc');
- // archiveFor: saved copy read through the reader pipeline
- const a={title:'Senate budget deal reached after long talks',link:'https://news.test/story',summary:'The Senate reached a budget deal after long talks'};
- const fullPage='<html><body><article><h1>Senate budget deal reached after long talks</h1>'+para(120,0)+para(120,5)+para(120,11)+'</article></body></html>';
- const otherPage='<html><body><article><h1>Recipe</h1><p>'+'Flour and sugar and butter and eggs and milk and vanilla for the cake batter. '.repeat(40)+'</p></article></body></html>';
- const seen=[];let mode='full';
- window.fetchText=async(u,ok,lg)=>{seen.push(u);if(/wayback\/available/.test(u)){const t=JSON.stringify({archived_snapshots:{closest:{available:true,status:'200',url:'http://web.archive.org/web/20250105123456/https://news.test/story'}}});ok&&ok(t);return t}
-  if(/web\.archive\.org\/web\/20250105123456id_\//.test(u)){if(lg)lg.won='direct';const h=mode==='full'?fullPage:mode==='other'?otherPage:'<html><body><p>tiny</p></body></html>';ok&&ok(h);return h}
-  throw new Error('HTTP 404')};
- const ar=await archiveFor(a,a.link);o.arTier=ar&&ar.n.tier;o.arLong=ar&&wordsOf(ar.n)>300;o.arUsedRaw=seen.some(u=>/20250105123456id_\//.test(u));
- mode='other';o.arOther=await archiveFor(a,a.link);mode='tiny';o.arTiny=await archiveFor(a,a.link);
  // when to look further
  o.needNull=needsMore(null);o.needStub=needsMore(frag(para(250)),'https://news.test/x');o.needSigned=needsMore(frag('<p>'+words(250)+'. Reporting by Jane Doe; Editing by Sam Roe</p>'),'https://news.test/x');o.needFull=needsMore(frag(para(450)+'.'),'https://news.test/x');
+ const a={title:'Senate budget deal reached after long talks',link:'https://news.test/story',summary:'The Senate reached a budget deal after long talks'};
  // the order of the steps
  const stub=frag(para(150));stub.incomplete=true;
- const om=window.mirrorFor,oa=window.archiveFor;let order=[];
- window.archiveFor=async()=>{order.push('archive');return {n:Object.assign(frag(para(400)),{tier:'archive'}),u:'https://web.archive.org/web/1/x'}};
+ const om=window.mirrorFor;let order=[];
  window.mirrorFor=async()=>{order.push('mirror');return {n:Object.assign(frag(para(400)),{tier:'mirror'}),u:'https://apnews.com/x'}};
  const d1=await deeperTiers(a,stub,a.link);o.d1=order.join('>')+' '+(d1.n.tier||'');
- order=[];window.archiveFor=async()=>{order.push('archive');return null};
- const d2=await deeperTiers(a,stub,a.link);o.d2=order.join('>')+' '+(d2.n.tier||'');
  order=[];window.mirrorFor=async()=>{order.push('mirror');return null};
  const d3=await deeperTiers(a,stub,a.link);o.d3=order.join('>')+' '+(d3.n===stub);
- window.mirrorFor=om;window.archiveFor=oa;window.fetchText=of;
+ window.mirrorFor=om;window.fetchText=of;o.noArchive=typeof archiveFor==='undefined'&&typeof archiveSnapshot==='undefined'&&typeof archiveRead==='undefined';
  return o});
 ck('tracking tags are dropped from the address looked up',R.canon==='https://news.test/a/b?id=7',String(R.canon));
-ck('the lookup asks the Wayback availability API with the encoded address',/^https:\/\/archive\.org\/wayback\/available\?url=https%3A%2F%2Fnews\.test%2Fstory/.test(R.lookupUrl||''),String(R.lookupUrl));
-ck('an available 200 snapshot is returned',/^https:\/\/web\.archive\.org\/web\/20250105123456\//.test(R.snapOk||''),String(R.snapOk));
-ck('no snapshot, a 404 snapshot, an unavailable one, an error and a google link all give nothing',R.snapNone===null&&R.snap404===null&&R.snapUnavail===null&&R.snapErr===null&&R.snapGoogle===null,JSON.stringify([R.snapNone,R.snap404,R.snapUnavail,R.snapErr,R.snapGoogle]));
-ck('the saved copy is read through the reader and tagged archive',R.arTier==='archive'&&R.arLong===true);
-ck('the saved copy is fetched as it was saved (id_)',R.arUsedRaw===true);
-ck('a saved copy of a different story is refused',R.arOther===null);ck('a tiny saved copy is refused',R.arTiny===null);
 ck('null, a short stub, and nothing else, need more help',R.needNull===true&&R.needStub===true&&R.needSigned===false&&R.needFull===false,JSON.stringify([R.needNull,R.needStub,R.needSigned,R.needFull]));
-ck('archive is tried first and wins',/^archive(>mirror)? archive$/.test(R.d1),R.d1);
-ck('no saved copy: the wire mirror is next',R.d2==='archive>mirror mirror',R.d2);
-ck('neither: the original is kept',R.d3==='archive>mirror true',R.d3);
+ck('there is no archive step: the wire mirror is tried and wins',R.noArchive===true&&R.d1==='mirror mirror',JSON.stringify([R.noArchive,R.d1]));
+ck('no partner copy: the original is kept',R.d3==='mirror true',R.d3);
 ck('no page errors',errs.length===0,errs.join('|'));}
 // the last card: neither a saved copy nor a mirror, so the feed's text with a badge and a link
 {const ctx=await b.newContext({viewport:{width:884,height:1060}});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));await mock(p,{noArticles:true});

@@ -299,3 +299,12 @@ Must verify on the Fold (folded and unfolded), a tablet and a phone:
 - List: index rows with source, headline, one-line deck, time and a star.
 - Stories saved with a cookie or privacy notice are cleaned or re-fetched when opened (try the Ars Technica Martin Shkreli story).
 - Unfolded Fold (square-ish, under 720px wide): the left menu is about 188px wide.
+
+## Preview 1.103: limited feeds, deal filter, reader cleanup
+Must verify on the device and with real publishers:
+- A deal roundup ("Save up to 20 percent on gift cards…") never appears in Tech, All Stories or a cover. Watch for real headlines wrongly hidden (for example "price drops to $5" in a market story).
+- A paywalled feed (for example the Wall Street Journal) shows a small lock in the side menu; its stories show "Subscriber"; a feed of short teasers gets "Teaser" once stories have been opened.
+- Add feed: typing a paywalled address shows the amber warning before you add it; a normal site does not.
+- Manage feeds → "Purge limited feeds…" and the side-menu chip list the flagged feeds, with the reason, and remove only the ticked ones; Undo brings them back.
+- Reader: affiliate notes and buy boxes are gone; "Read original on <site> ↗" opens the publisher outside the app.
+- Subscriber-only stories are no longer pulled from the Internet Archive.
