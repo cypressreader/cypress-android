@@ -93,8 +93,7 @@ body:not(.narrow) .grid:not(.list) .tpl.t3>.card:nth-child(1),body:not(.narrow) 
 .cmt{display:inline-flex;align-items:center;gap:6px;padding:3px 11px;border-radius:99px;border:1px solid var(--ln);font:600 12.5px var(--sans);color:var(--ink);text-decoration:none}
 .body h2{text-align:center;break-inside:avoid;break-after:avoid}
 .body h2::before{content:'';display:block;width:34px;height:8px;margin:0 auto .55em;background:radial-gradient(circle,var(--b,var(--ink)) 2.2px,transparent 2.7px) 0 50%/11.4px 8px repeat-x}
-.body hr{border:0;text-align:center;height:1.6em;margin:.8em 0;overflow:visible}
-.body hr::after{content:'\2766';color:var(--b,var(--mut));font-size:1.2em}
+.body hr{border:0;display:block;width:26px;height:26px;margin:1.1em auto;overflow:visible;background:var(--logo,currentColor);-webkit-mask:var(--lmk) center/contain no-repeat;mask:var(--lmk) center/contain no-repeat;opacity:.6}/* B103: the small divider in a story is the CyPress tree-C mark, not a generic flourish */
 .body figure{break-inside:avoid;margin:1em 0}
 .cols .body figcaption{font:italic 13px/1.4 var(--serif);color:var(--mut);margin-top:6px;text-align:left}
 .cols .body figcaption .crd{font:600 10.5px var(--sans);font-style:normal;letter-spacing:.06em;text-transform:uppercase;opacity:.8;margin-left:6px}
@@ -2297,6 +2296,8 @@ html.tlay[data-theme=thevoid] #rd .tt::after{content:'';display:block;width:46px
 /* The end mark of a story is the CyPress logo (the one chosen in the app) in every theme that has no symbol of its own; themes with their own --sym keep that icon variant */
 html:not(.hasym) .cols .body .endmark{font-size:0;letter-spacing:0;text-indent:0;display:block;width:34px;height:34px;padding:0;margin:1.5em auto .6em;color:transparent;background:var(--logo,currentColor);-webkit-mask:var(--lmk) center/contain no-repeat;mask:var(--lmk) center/contain no-repeat;opacity:.85}
 /* the colophon at the end of a story and of the Brief carries the CyPress logo itself (the one chosen in the app), tinted in the theme's own logo color */
+html .body .rbrk{font-size:0;line-height:0;width:26px;height:26px;margin:1.3em auto;padding:0;color:transparent;background:var(--logo,currentColor);-webkit-mask:var(--lmk) center/contain no-repeat;mask:var(--lmk) center/contain no-repeat;opacity:.6}
+html.dkart .body .rbrk{background:var(--brass)}
 .rfoot .rf-fin,.bend .bend-m{font-size:0;line-height:0;display:block;width:44px;height:44px;margin:0 auto 8px;padding:0;color:transparent;background:var(--logo,currentColor);-webkit-mask:var(--lmk) center/contain no-repeat;mask:var(--lmk) center/contain no-repeat}
 html.dkart .rfoot .rf-fin{background:var(--brass)}
 /* End-of-story symbols: any theme that defines --sym gets its own mark in place of the plain diamond (the html.hasym class is set when it does) */
@@ -3498,6 +3499,19 @@ html[data-ts="l"] #grid .wcols,html[data-ts="l"] #grid .nr-lsub,html[data-ts="l"
 #svbar button:disabled,[data-exact]:disabled{opacity:.45;cursor:default}
 body.svpick #tabs{display:none}
 body.exbusy [data-exact]{cursor:progress}
+/* B102: no cover style puts a small picture beside big text: Journal and Gallery stack on wide screens too, picture big on top, text under it */
+.cover.cv-journal{grid-template-columns:minmax(0,1fr);min-height:0}
+.cover.cv-journal>img{grid-column:1;grid-row:1;height:auto;aspect-ratio:16/10;max-height:62vh;min-height:0;width:100%}
+.cover.cv-journal .cvtop{grid-column:1;grid-row:2;padding-top:22px}
+.cover.cv-journal .cvbot{grid-column:1;grid-row:3;padding:8px 26px 26px}
+@media(min-width:900px){.cover.cv-gallery{grid-template-columns:minmax(0,1fr);align-items:stretch}.cover.cv-gallery>img{grid-column:1;grid-row:2}.cover.cv-gallery .cvbot{grid-column:1;grid-row:3;text-align:center;align-content:start}.cover.cv-gallery .cvlead h2{margin-left:auto}.cover.cv-gallery .cvlines{justify-content:center;flex-direction:row}.cover.cv-gallery .cvl{text-align:center;max-width:240px}}
+.cover.stk:not(.cv-rail){min-height:0!important}
+/* B104: an image-led card whose text is taller than its shape grows instead of cutting the headline off at the top of the picture */
+#grid .card:is(.nr-hero,.nr-lead,.nr-wide,.nr-tall,.nr-sp,.nr-sm2,.nr-hs){align-items:safe flex-end}
+/* B104: only the big image-led cards drift their picture while you scroll (hero, lead, tall and the wire's lead card); everything else holds still, so the feed never mixes moving and static pictures */
+#grid .card>img{transform:none}
+#grid .card:is(.nr-hero,.nr-lead,.nr-tall,.lead):not(.dq-c)>img{transform:translate3d(0,var(--ip,0px),0) scale(1.08)}
+@media(prefers-reduced-motion:reduce){#grid .card:is(.nr-hero,.nr-lead,.nr-tall,.lead)>img{transform:none}}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -3861,6 +3875,29 @@ function embedOf(c,t){
 /* an element dropped from between two words (an icon, a button, a hidden tooltip) must not weld them together: "company" + "said" */
 function cleanGap(out,c){try{const nx=c.nextSibling,last=out.lastChild;if(!nx||!last)return;const lt=last.nodeType===3?last.data:(last.textContent||'');if(nx.nodeType===3&&/^[A-Za-z0-9]/.test(nx.data)&&/[A-Za-z0-9]$/.test(lt))out.append(' ')}catch(e){}}
 /* B79: a figure is a picture and its caption. Some sites (Big Think and other WordPress themes) also put the description in a div or paragraph inside the figure; as a loose child it sat beside the picture in the page layout and pushed the figure wider than its column, so text collided and was cut off at the edge. Anything short and loose in a figure now becomes part of its caption. */
+/* B100: which pictures are page furniture. Ad networks and trackers by address, ad slots by the class or id of the box they sit in; a box that holds a real run of text is the story and never counts as an ad */
+const ADDOM=/(^|\.)(doubleclick\.net|googlesyndication\.com|googleadservices\.com|google-analytics\.com|googletagmanager\.com|2mdn\.net|taboola\.com|taboolasyndication\.com|outbrain\.com|outbrainimg\.com|criteo\.(com|net)|amazon-adsystem\.com|adnxs\.com|pubmatic\.com|rubiconproject\.com|openx\.net|adsrvr\.org|moatads\.com|scorecardresearch\.com|quantserve\.com|imrworldwide\.com|adform\.net|smartadserver\.com|casalemedia\.com|sharethrough\.com|teads\.tv|zemanta\.com|revcontent\.com|mgid\.com|adroll\.com|ads-twitter\.com|adtechus\.com|advertising\.com|yieldmo\.com|bidswitch\.net|contextweb\.com|serving-sys\.com|flashtalking\.com)$/i;
+const ADPATH=/(\/ads?\/|\/adserver|\/adview|\/banners?\/|\/sponsored?\/|[?&](adid|ad_id|adunit)=|\bpixel\.(gif|png)|\/pixel\b|\/beacon\b|\/impression\b|\b1x1\b)/i;
+function adImgUrl(u){try{if(ADDOM.test(new URL(u,'https://x.invalid/').hostname))return true}catch(e){}return ADPATH.test(u)}
+const ADTOK=/^(ad|ads|adv|advert|adverts|advertisement|advertising|adslot|adunit|ad[-_](?!free|hoc)[\w-]+|[\w-]+[-_]ads?|[\w-]*adslot[\w-]*|[\w-]*adunit[\w-]*|dfp[\w-]*|gpt[-_][\w-]+|sponsored|sponsor|sponsored[-_][\w-]+|taboola[\w-]*|outbrain[\w-]*|promoted|paid[-_]?(content|post)[\w-]*)$/i;
+function inAdBox(c){
+ try{for(let e=c.parentElement,k=0;e&&k<8;e=e.parentElement,k++){
+  if(/^(ARTICLE|MAIN|BODY|HTML)$/.test(e.tagName))break;
+  const cl=(e.getAttribute('class')||'').split(/\s+/).filter(Boolean),idv=e.id||'';
+  const hit=cl.some(t=>ADTOK.test(t))||(idv&&ADTOK.test(idv))||/^(div-gpt-ad|google_ads|ad[-_]?slot|aswift)/i.test(idv)||e.hasAttribute('data-ad')||e.hasAttribute('data-ad-slot')||e.hasAttribute('data-google-query-id')||/advertisement|sponsored/i.test(e.getAttribute('aria-label')||'');
+  if(hit){const paras=[...e.querySelectorAll('p')].filter(q=>q.textContent.trim().length>=120).length;if(paras<2)return true}
+ }}catch(x){}
+ return false;
+}
+/* the best address a picture tag holds: the plain one, else the lazy-load attributes (a page often ships a blank placeholder in src and the real address in data-img-url / data-src), else its srcset or its picture's sources */
+function imgSrc(c){
+ const ok=u=>u&&!/^data:/i.test(u)&&!/(placeholder|blank\.|spacer|transparent\.|1x1|pixel\.)/i.test(u),at=k=>(c.getAttribute(k)||'').trim();
+ for(const k of ['src','data-src','data-img-url','data-lazy-src','data-original','data-orig-file','data-hi-res-src','data-full-url','data-large-file','data-lazy']){const v=at(k);if(ok(v))return v}
+ for(const k of ['srcset','data-srcset','data-lazy-srcset']){const l=ssList(at(k));if(l.length&&ok(l[l.length-1]))return l[l.length-1]}
+ const pc=c.closest&&c.closest('picture');
+ if(pc)for(const so of pc.querySelectorAll('source')){const l=ssList(so.getAttribute('srcset')||so.getAttribute('data-srcset')||'');if(l.length&&ok(l[l.length-1]))return l[l.length-1]}
+ return '';
+}
 function tidyFigure(e){
  try{
   const keep=n=>n.nodeType===1&&/^(IMG|PICTURE|FIGCAPTION|BR|SOURCE)$/.test(n.tagName);
@@ -3884,8 +3921,9 @@ function clean(n,base){
   if(c.nodeType!==1)continue;
   if(/^(P|DIV|SPAN|SECTION|ASIDE|FIGURE)$/i.test(c.tagName)&&c.textContent.length<220&&/^(Ad is Hidden|Paid Promoted|Promoted Stories|Sponsored|Advertisement)/i.test(c.textContent.trim()))continue;
   let t=c.tagName.toUpperCase();{const em=embedOf(c,t)||rebuildEmb(c,t);if(em){out.append(em);continue}}if(SKIP.has(t)){cleanGap(out,c);continue}if(t==='H1')t='H2';if(t==='H5'||t==='H6')t='H4';  if(t==='IMG'){
-   let s=c.getAttribute('src')||c.getAttribute('data-src')||(c.getAttribute('srcset')||'').split(' ')[0];
-   if(!s||s.startsWith('data:')){cleanGap(out,c);continue}
+   let s=imgSrc(c);
+   if(!s){cleanGap(out,c);continue}
+   if(adImgUrl(s)||inAdBox(c)){cleanGap(out,c);continue}
    if(+c.getAttribute('width')<60&&c.getAttribute('width')){cleanGap(out,c);continue}
    if((ICONRE.test(s)||ALTICON.test(c.getAttribute('alt')||''))&&!/\.(jpe?g|webp|png|avif)\b/i.test(s)){cleanGap(out,c);continue}
    if(+c.getAttribute('height')<60&&c.getAttribute('height')){cleanGap(out,c);continue}
@@ -3904,6 +3942,37 @@ function clean(n,base){
 }
 const PROMOP=/(see more like this|personalized homepage feed|receive email updates|follow topics and authors|to your (daily )?(feed|homepage))/i;
 const PROMO2=t=>/^(enjoy the read\?|power up with unlimited access|join our newsletter|original reporting\. fearless)/i.test(t)||(t.length<80&&/^(become a member|join us\.? ?become a member|subscribe (today|to get the best of))/i.test(t));
+/* B100/B101/B-Verge: pictures and their captions as units. A converter's "[Image: address]" left in the text becomes the picture (or goes), a gallery's small copies of pictures already shown are dropped, and a photo credit set loose under a picture is tied to it as its caption */
+const CREDLINE=/^(photo|image|picture|credit|illustration|source|courtesy)s?(\s+by)?\s*[:\/]/i;
+function figureUnits(w){
+ const tw=document.createTreeWalker(w,4),hits=[];let nd;while(nd=tw.nextNode())if(/\[\s*(image|photo|picture|img)\b[^\]]*\]/i.test(nd.data))hits.push(nd);
+ hits.forEach(t=>{
+  const f=document.createDocumentFragment(),re=/\[\s*(?:image|photo|picture|img)\s*\d*\s*:?\s*([^\]]*)\]/gi;let i=0,m;
+  while(m=re.exec(t.data)){
+   f.append(t.data.slice(i,m.index));i=re.lastIndex;
+   const u=(m[1]||'').trim().split(/\s+/)[0]||'';
+   if(/^https?:\/\/\S+$/i.test(u)&&!adImgUrl(u)&&/\.(jpe?g|png|webp|avif|gif)(\?|#|$)|\/(image|img|photo|wp-content|uploads|media|cdn)/i.test(u)){const im=document.createElement('img');im.src=u;im.loading='lazy';im.referrerPolicy='no-referrer';f.append(im)}
+  }
+  f.append(t.data.slice(i));t.replaceWith(f);
+ });
+ const key=u=>u.replace(/[?#].*$/,'').replace(/[-_]\d{2,4}x\d{2,4}(?=\.\w+$)/,'');
+ const groups=new Map();w.querySelectorAll('img').forEach(im=>{const k=key(im.getAttribute('src')||'');if(!k)return;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(im)});
+ const wd=im=>+im.getAttribute('width')||0;
+ groups.forEach(l=>{
+  if(l.length<2)return;let keep=l[0];l.forEach(im=>{if(wd(im)>wd(keep))keep=im});
+  l.forEach(im=>{if(im!==keep)im.remove()});
+ });
+ /* a wrapper (figure, link, div) left with no picture and no words after that goes too */
+ [...w.querySelectorAll('figure,a,div,span,p')].reverse().forEach(e=>{if(e.isConnected&&!e.textContent.trim()&&!e.querySelector('img,picture,video,iframe,br,hr'))e.remove()});
+ [...w.querySelectorAll('img')].forEach(im=>{
+  if(im.closest('figure'))return;
+  let blk=im;while(blk.parentElement&&blk.parentElement!==w&&!blk.parentElement.textContent.trim()&&blk.parentElement.querySelectorAll('img').length===1)blk=blk.parentElement;
+  const nx=blk.nextElementSibling;if(!nx||!/^(P|DIV|SMALL|SPAN|EM|I)$/.test(nx.tagName)||nx.querySelector('img,figure'))return;
+  const tx=nx.textContent.replace(/\s+/g,' ').trim();if(!tx||tx.length>200||!CREDLINE.test(tx))return;
+  const f=document.createElement('figure'),c=document.createElement('figcaption');
+  blk.replaceWith(f);f.append(blk);c.append(...nx.childNodes);nx.remove();f.append(c);tidyFigure(f);
+ });
+}
 function tidyFrag(f){
  const w=document.createElement('div');w.append(f);
  w.querySelectorAll('p,div,li,h2,h3,h4,span,figure').forEach(e=>{if(e.parentNode&&e.tagName!=='LI'){const t=e.textContent.replace(/\s+/g,' ').trim();if(((t.length<260&&PROMOP.test(t))||PROMO2(t))&&!e.querySelector('img')){const n=e.nextElementSibling;if(n&&/^(UL|OL)$/.test(n.tagName)&&n.textContent.length<200)n.remove();e.remove()}}});
@@ -3912,6 +3981,7 @@ function tidyFrag(f){
   w.querySelectorAll('ul,ol').forEach(e=>{if(!e.querySelector('li'))e.remove()});
   w.querySelectorAll('p,div,span,a,h2,h3,h4,blockquote').forEach(e=>{if(!e.textContent.trim()&&!e.querySelector('img,video,iframe,br')){/* B60: an empty link or span between two words can be the only thing holding the space ("company<a> </a>said"), so it leaves that space behind */if(/^(A|SPAN)$/.test(e.tagName)){if(e.textContent.length)e.replaceWith(' ');else{rmGap(e);e.remove()}}else e.remove()}});
  }
+ try{figureUnits(w)}catch(e){}
  const o=document.createDocumentFragment();while(w.firstChild)o.append(w.firstChild);return o;
 }
 /* video pages and menus: drop the "video player was slow" feedback form and runs of one-word link menus that some sites leave inside the article body */
@@ -4075,9 +4145,10 @@ function inline(t,base){
 const GPROMO=/(google[-_ ]?(g|logo|news|discover|preferred|source|icon)\b|preferred[-_ ]?source|add[-_ ]?us[-_ ]?on[-_ ]?google|google-news|googlediscover|gstatic\.com\/images\/branding|\/branding\/googlelogo)/i,GALT=/preferred source|add .{1,50} on google|google (news|discover) (logo|icon|badge)|follow us on google|google logo|google g\b/i,GTXT=/(preferred source|add .{1,50} on google|follow (us )?on google news|add us as a preferred source)/i;
 const ALTICON=/\b(icon|logo|badge|check ?mark|arrow|chevron|verified)\b/i;
 const AUTHJ=/(follow on x\b|follow @\w+|multiple authors|^\s*close\b.*\b(am|pm) et\b|\b\d{1,2}:\d\d (am|pm) et\s*close\b|\b(am|pm) et\s+close\b)/i,JUNKT=/^(close|follow on x|follow on twitter|multiple authors|follow|share|copy link)$/i,ICONRE=/(\.svg\b|check(mark)?|tick|\bicon|badge|sprite|bullet|arrow|chevron|verified)/i;
-const ADRE=/^(Ad is Hidden|Paid Promoted|Promoted Stories|Sponsored|Advertisement|Newsletter\b|Politics News Alerts|Breaking news email alerts|View \d+ more stor|Sign up for|Subscribe to|Read more:|Related:|Up Next)|utm_source=(outbrain|taboola)|Please tell us why you hid|^!\[Image \d+:[^\]]*\]\([^)]*\)\s*$/i;
+const ADRE=/^(Ad is Hidden|Paid Promoted|Promoted Stories|Sponsored|Advertisement|Newsletter\b|Politics News Alerts|Breaking news email alerts|View \d+ more stor|Sign up for|Subscribe to|Read more:|Related:|Up Next)|utm_source=(outbrain|taboola)|Please tell us why you hid/i;
 function md(txt,base){
  txt=txt.replace(/^[\s\S]*?Markdown Content:\s*/,'').replace(/\]\s*\n?\s*\(https?:/g,'](https:').replace(/!\[[^\]]*(Ad is Hidden|hid this ad|Paid Promoted|Sponsored)[^\]]*\]\([^)]*\)/gi,'').replace(/\[(!\[[^\]]*\]\([^)]*\))\]\([^)]*\)/g,'$1').replace(/!\[[^\]]*\]\([^)]*(author|avatar|headshot|profile|logo)[^)]*\)/gi,'');
+ txt=txt.replace(/\[\s*(?:image|photo|picture)\s*\d*\s*:?\s*(https?:\/\/[^\]\s]+)\s*\]/gi,'![]($1)').replace(/!\[[^\]]*\]\((https?:[^)\s]+)[^)]*\)/g,(m,u)=>adImgUrl(u)?'':m);
  const out=document.createDocumentFragment();
  let bl=txt.split(/\n{2,}/).map(x=>x.trim()).filter(Boolean);
  const pl=x=>x.replace(/!\[[^\]]*\]\([^)]*\)/g,'').replace(/\[([^\]]*)\]\([^)]*\)/g,'$1').replace(/[#*_>`-]/g,'').trim();
@@ -4416,7 +4487,7 @@ function coverCrop(){
   const K=(cv.offsetWidth?cv.getBoundingClientRect().width/cv.offsetWidth:1)||1,rc=e=>{const q=e.getBoundingClientRect();return{left:q.left/K,right:q.right/K,top:q.top/K,bottom:q.bottom/K,width:q.width/K,height:q.height/K}};
   const dc=cv.classList.contains('dcov'),im=cv.querySelector(dc?'.dcv-art>img':':scope>img');if(!im)return;
   if(!(im.complete&&im.naturalWidth)){if(!im.dataset.cc){im.dataset.cc='1';im.addEventListener('load',()=>{delete im.dataset.cc;coverCrop()},{once:true})}return}
-  cv.classList.remove('ctn');['position','left','top','width','height','inset','objectFit','display','zIndex'].forEach(k=>{if(im.dataset.cs)im.style[k]=''});delete im.dataset.cs;
+  cv.classList.remove('ctn','stk');cv.querySelectorAll('.cvtop,.cvbot').forEach(t=>{t.style.marginBottom=''});['position','left','top','width','height','inset','objectFit','display','zIndex'].forEach(k=>{if(im.dataset.cs)im.style[k]=''});delete im.dataset.cs;
   const ia=im.naturalWidth/im.naturalHeight,r=rc(im),cr=rc(cv);if(r.width<2||r.height<2)return;
   const ca=r.width/r.height,frac=Math.min(ca/ia,ia/ca);if(frac>=.86)return;
   const full=r.width>=cr.width*.8&&r.height>=cr.height*.5&&getComputedStyle(im).position==='absolute';/* only a background picture can become the band: one that sits in the layout keeps its place */
@@ -4425,6 +4496,17 @@ function coverCrop(){
    const blocks=[...cv.querySelectorAll(dc?'.dcv-top,.dcv-main,.dcv-prog':'.cvtop,.cvbot')].filter(b=>getComputedStyle(b).position!=='absolute'&&b.offsetHeight>0).map(b=>({t:rc(b).top-cr.top,b:rc(b).bottom-cr.top}));
    /* the biggest stretch of the cover with nothing in it */
    let y=0,best={s:0,e:0};blocks.sort((a,b)=>a.t-b.t).forEach(b=>{if(b.t-y>best.e-best.s)best={s:y,e:b.t};y=Math.max(y,b.b)});if(cr.height-y>best.e-best.s)best={s:y,e:cr.height};
+   /* B102: on a tablet or wide screen the picture is never shrunk into a small card between the masthead and the text: it runs the full width of the cover, big, with the text underneath (the way the phone cover reads, only larger) */
+   {const top=dc?null:cv.querySelector('.cvtop'),bot=dc?null:cv.querySelector('.cvbot');
+    if(top&&bot&&cr.width>=520&&!cv.classList.contains('cv-collage')){/* (the Collage cover frames its own picture) */
+     const bw=Math.round(cr.width),maxH=Math.max(300,Math.round(innerHeight*.6));
+     let ih=Math.min(maxH,Math.max(Math.round(bw*.5),Math.round(bw/ia)));ih=Math.max(ih,Math.round(bw/(ia*1.45)));
+     const A=rc(top).top<=rc(bot).top?top:bot;/* the block that reads first (the headline when the cover is flipped); the picture goes right under it and the other block moves down past it */
+     const ty=Math.round(rc(A).bottom-cr.top)+6;
+     A.style.marginBottom=(ih+18)+'px';
+     cv.style.setProperty('--ph','url("'+im.currentSrc.replace(/"/g,'%22')+'")');cv.classList.add('ctn','stk');
+     Object.assign(im.style,{position:'absolute',inset:'auto',left:'0',top:ty+'px',width:bw+'px',height:ih+'px',objectFit:'cover',zIndex:'-1'});
+     return}}
    const gap=best.e-best.s-12;if(gap<90){/* no room to show it whole: leave the photo out */im.style.display='none';im.dataset.cs='1';return}
    const w=Math.min(cr.width,gap*ia),h=w/ia;
    cv.style.setProperty('--ph','url("'+im.currentSrc.replace(/"/g,'%22')+'")');cv.classList.add('ctn');
@@ -4981,7 +5063,7 @@ function parTick(){parWrite(parRead())}
 function parWatch(root){
  if(!('IntersectionObserver' in window))return;
  if(!PARIO)PARIO=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)PARV.add(e.target);else PARV.delete(e.target)});parTick()},{root:$('main'),rootMargin:'120px 0px'});
- (root||document).querySelectorAll('#grid .card:not(.nr-row):not(.dq-c)>img').forEach(im=>{if(!im._pw){im._pw=1;PARIO.observe(im)}});
+ (root||document).querySelectorAll('#grid .card:is(.nr-hero,.nr-lead,.nr-tall,.lead):not(.dq-c)>img').forEach(im=>{if(!im._pw){im._pw=1;PARIO.observe(im)}});
 }
 {
  const m=$('main');let raf=0,lastT=0;
@@ -4992,6 +5074,18 @@ function parWatch(root){
  addEventListener('resize',()=>wireChrome());
  {const _r3=render;render=function(){_r3.apply(this,arguments);wireChrome.dirty=true;parWatch();wireChromeSoon()}}
 }
+/* B104: a card that has a fixed shape (hero, lead, tall...) grows to fit its text when the headline is long or the text is large, so the headline is never cut off at the top of the picture */
+let CGQ=0;
+function cardGrow(){
+ if(CGQ)return;CGQ=requestAnimationFrame(()=>{CGQ=0;try{
+  const cs=[...document.querySelectorAll('#grid .card:is(.nr-hero,.nr-lead,.nr-wide,.nr-tall,.nr-sp,.nr-sm2,.nr-hs)')];if(!cs.length)return;
+  cs.forEach(c=>{c.style.minHeight=''});
+  const rd=cs.map(c=>{const t=c.querySelector(':scope>.tx');return t?[c,t.offsetHeight,c.offsetHeight]:null}).filter(Boolean);
+  rd.forEach(([c,th,ch])=>{if(th>ch+1)c.style.minHeight=th+'px'});
+ }catch(e){}});
+}
+{const _r5=render;render=function(){_r5.apply(this,arguments);cardGrow()}}
+addEventListener('resize',cardGrow);try{document.fonts&&document.fonts.ready.then(cardGrow)}catch(e){}
 /* ---- cluster C: the content-cleaning pipeline ----
    One pipeline for what the reader shows and what the print export sets: (a) the extractor scores text blocks by density, not just by length; (b) blocklists of
    ad, promo, newsletter and sponsored selectors and phrases; (c) per-publisher rules for the top feeds, where promos sit inside the article body; (d) a conservative
