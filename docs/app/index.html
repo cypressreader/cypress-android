@@ -93,8 +93,7 @@ body:not(.narrow) .grid:not(.list) .tpl.t3>.card:nth-child(1),body:not(.narrow) 
 .cmt{display:inline-flex;align-items:center;gap:6px;padding:3px 11px;border-radius:99px;border:1px solid var(--ln);font:600 12.5px var(--sans);color:var(--ink);text-decoration:none}
 .body h2{text-align:center;break-inside:avoid;break-after:avoid}
 .body h2::before{content:'';display:block;width:34px;height:8px;margin:0 auto .55em;background:radial-gradient(circle,var(--b,var(--ink)) 2.2px,transparent 2.7px) 0 50%/11.4px 8px repeat-x}
-.body hr{border:0;text-align:center;height:1.6em;margin:.8em 0;overflow:visible}
-.body hr::after{content:'\2766';color:var(--b,var(--mut));font-size:1.2em}
+.body hr{border:0;display:block;width:26px;height:26px;margin:1.1em auto;overflow:visible;background:var(--logo,currentColor);-webkit-mask:var(--lmk) center/contain no-repeat;mask:var(--lmk) center/contain no-repeat;opacity:.6}/* B103: the small divider in a story is the CyPress tree-C mark, not a generic flourish */
 .body figure{break-inside:avoid;margin:1em 0}
 .cols .body figcaption{font:italic 13px/1.4 var(--serif);color:var(--mut);margin-top:6px;text-align:left}
 .cols .body figcaption .crd{font:600 10.5px var(--sans);font-style:normal;letter-spacing:.06em;text-transform:uppercase;opacity:.8;margin-left:6px}
@@ -1177,16 +1176,29 @@ body.split .card.act{outline:3px solid var(--logo);outline-offset:2px}
 .tt{font:600 clamp(28px,3.4vw,40px)/1.14 var(--serif);letter-spacing:var(--hk);word-spacing:var(--hw);margin:4px 0 8px;text-align:left;hyphens:manual;break-after:avoid}
 .dt{color:var(--mut);font:14px var(--sans);margin-bottom:16px;text-align:left}
 .hero{width:100%;height:calc(var(--ih,300px)*.8);aspect-ratio:16/9;object-fit:cover;border-radius:14px;margin-bottom:22px;display:block}
-/* B39 cinematic longform: full-bleed imagery, display section type, floating captions */
+/* B39 cinematic long reads (stories of about 800 words and more, scrolled down): a full-width lead photo, full-width pictures that drift a little against the text as you scroll, big display section headings, captions that float over the foot of the picture. A story with one picture leads with it and then settles into a clean rhythm; a story with none is carried by its type (a big title, a drop cap, a pulled quote, numbered display sections). */
 .cine .hero{width:calc(100% + 2*var(--bleed,20px));margin-left:calc(-1*var(--bleed,20px));margin-right:calc(-1*var(--bleed,20px));border-radius:0;aspect-ratio:21/10;max-height:62vh}
-.cine .body img:not(.tiny){width:calc(100% + 2*var(--bleed,20px));max-width:none;margin-left:calc(-1*var(--bleed,20px));margin-right:calc(-1*var(--bleed,20px));border-radius:0;max-height:72vh;animation:cineIn .7s ease both}
-@keyframes cineIn{from{opacity:0}to{opacity:1}}
-.cine .body figure{position:relative;margin-left:calc(-1*var(--bleed,20px));margin-right:calc(-1*var(--bleed,20px))}
-.cine .body figure img:not(.tiny){width:100%;margin-left:0;margin-right:0}
-.cine .body figure figcaption{position:absolute;left:0;right:0;bottom:0;padding:30px 16px 12px;background:linear-gradient(to top,rgba(0,0,0,.72),transparent);color:#fff;font-size:13px;border:0;margin:0;text-align:left}
-.cine .body h2,.cine .body h3{font:600 clamp(27px,4.2vw,40px)/1.12 var(--disp,var(--serif));letter-spacing:.005em;margin:1.8em 0 .7em;text-align:left}
-.cine .body h2::before,.cine .body h3::before{content:"";display:block;width:44px;height:3px;background:var(--b,var(--ink));margin-bottom:14px}
-.cine .body .pullq{font-size:clamp(23px,4vw,32px);line-height:1.22;border-left-width:5px;margin:1em 0}
+.cine .tt{font-family:var(--disp,var(--serif));font-weight:600;font-size:clamp(32px,5.4vw,54px);line-height:1.04;letter-spacing:-.01em}
+.cine .body figure.cfr{position:relative;overflow:hidden;margin:1.7em var(--cfr,calc(-1*var(--bleed,20px))) 1.7em var(--cfl,calc(-1*var(--bleed,20px)));border-radius:0;background:color-mix(in srgb,var(--ink) 8%,transparent);break-inside:avoid}
+.cine .body figure.cfr>img,.cine .body figure.cfr>a>img{display:block;width:100%;height:auto;max-height:72vh;margin:0;border-radius:0;object-fit:cover;transform:translate3d(0,var(--cy,0px),0) scale(1.14);will-change:transform}
+.cine .body figure.cfr .imgfb{display:flex;width:100%;max-height:72vh;border-radius:0;margin:0}/* a picture that fails to load shows the app's own "Picture unavailable, tap to try again" card inside its frame, never a hole */
+.cine .body figure.cfr figcaption{position:absolute;left:0;right:0;bottom:0;padding:34px 16px 12px;background:linear-gradient(to top,rgba(0,0,0,.74),transparent);color:#fff;font-size:13px;line-height:1.35;border:0;margin:0;text-align:left;pointer-events:none}
+.cine .body figure.cfr figcaption.lcap{position:static;background:none;color:var(--mut);padding:10px 16px 0;pointer-events:auto}
+.cine .body figure:not(.cfr) img{max-height:72vh;object-fit:contain}
+.cine .body{counter-reset:cch}
+.cine .body h2{counter-increment:cch;font:600 clamp(30px,5vw,46px)/1.08 var(--disp,var(--serif));letter-spacing:-.005em;margin:2.1em 0 .6em;text-align:left;break-after:avoid}
+.cine .body h2::after{content:"";display:block;width:56px;height:3px;background:var(--b,var(--ink));margin-top:16px}
+.cine .body h2::before{content:none}
+.cine.cine-ch .body h2::before{content:counter(cch,decimal-leading-zero);display:block;width:auto;height:auto;background:none;font:700 12px var(--sans);letter-spacing:.24em;color:var(--b,var(--mut));margin:0 0 12px}
+.cine .body h2,.cine .body h3{text-decoration:none}
+.cine .body h3{font:600 clamp(23px,3.6vw,30px)/1.15 var(--disp,var(--serif));letter-spacing:0;margin:1.7em 0 .5em;text-align:left}
+.cine .body .pullq{font-size:clamp(24px,4.2vw,34px);line-height:1.2;border-left-width:5px;margin:1.1em 0}
+.cine-t .body>p:first-of-type{font-size:1.1em;line-height:1.6}
+.cine-t .body .pullq{font-size:clamp(26px,4.8vw,40px)}
+.cine .cpre{opacity:0;transform:translateY(14px)}
+.cine .cpre.cin{opacity:1;transform:none;transition:opacity .6s ease,transform .6s ease}
+@media(prefers-reduced-motion:reduce){.cine .body figure.cfr>img,.cine .body figure.cfr>a>img{transform:none;will-change:auto}.cine .cpre{opacity:1;transform:none}}
+html.lowp .cine .body figure.cfr>img,html.lowp .cine .body figure.cfr>a>img{transform:none;will-change:auto}
 /* B40 magazine spread: facing pages on tablet landscape */
 .spread .view{position:absolute;inset:0}
 .spread .view::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:72px;transform:translateX(-50%);background:linear-gradient(to right,transparent,rgba(0,0,0,.10) 42%,rgba(0,0,0,.16) 50%,rgba(0,0,0,.10) 58%,transparent);pointer-events:none;z-index:5}
@@ -2297,6 +2309,8 @@ html.tlay[data-theme=thevoid] #rd .tt::after{content:'';display:block;width:46px
 /* The end mark of a story is the CyPress logo (the one chosen in the app) in every theme that has no symbol of its own; themes with their own --sym keep that icon variant */
 html:not(.hasym) .cols .body .endmark{font-size:0;letter-spacing:0;text-indent:0;display:block;width:34px;height:34px;padding:0;margin:1.5em auto .6em;color:transparent;background:var(--logo,currentColor);-webkit-mask:var(--lmk) center/contain no-repeat;mask:var(--lmk) center/contain no-repeat;opacity:.85}
 /* the colophon at the end of a story and of the Brief carries the CyPress logo itself (the one chosen in the app), tinted in the theme's own logo color */
+html .body .rbrk{width:1.4em;height:1.4em;margin:1.4em auto;padding:0;color:transparent!important;overflow:hidden;background:var(--logo,currentColor);-webkit-mask:var(--lmk) center/contain no-repeat;mask:var(--lmk) center/contain no-repeat;opacity:.6}/* same box as the old flourish (so pages break where they did); only what is drawn in it changed */
+html.dkart .body .rbrk{background:var(--brass)}
 .rfoot .rf-fin,.bend .bend-m{font-size:0;line-height:0;display:block;width:44px;height:44px;margin:0 auto 8px;padding:0;color:transparent;background:var(--logo,currentColor);-webkit-mask:var(--lmk) center/contain no-repeat;mask:var(--lmk) center/contain no-repeat}
 html.dkart .rfoot .rf-fin{background:var(--brass)}
 /* End-of-story symbols: any theme that defines --sym gets its own mark in place of the plain diamond (the html.hasym class is set when it does) */
@@ -3498,6 +3512,25 @@ html[data-ts="l"] #grid .wcols,html[data-ts="l"] #grid .nr-lsub,html[data-ts="l"
 #svbar button:disabled,[data-exact]:disabled{opacity:.45;cursor:default}
 body.svpick #tabs{display:none}
 body.exbusy [data-exact]{cursor:progress}
+/* B102: no cover style puts a small picture beside big text: Journal and Gallery stack on wide screens too, picture big on top, text under it */
+.cover.cv-journal{grid-template-columns:minmax(0,1fr);min-height:0}
+.cover.cv-journal>img{grid-column:1;grid-row:1;height:auto;aspect-ratio:16/10;max-height:62vh;min-height:0;width:100%}
+.cover.cv-journal .cvtop{grid-column:1;grid-row:2;padding-top:22px}
+.cover.cv-journal .cvbot{grid-column:1;grid-row:3;padding:8px 26px 26px}
+@media(min-width:900px){.cover.cv-gallery{grid-template-columns:minmax(0,1fr);align-items:stretch}.cover.cv-gallery>img{grid-column:1;grid-row:2}.cover.cv-gallery .cvbot{grid-column:1;grid-row:3;text-align:center;align-content:start}.cover.cv-gallery .cvlead h2{margin-left:auto}.cover.cv-gallery .cvlines{justify-content:center;flex-direction:row}.cover.cv-gallery .cvl{text-align:center;max-width:240px}}
+.cover.stk:not(.cv-rail){min-height:0!important}
+/* B104: an image-led card whose text is taller than its shape grows instead of cutting the headline off at the top of the picture */
+#grid .card:is(.nr-hero,.nr-lead,.nr-wide,.nr-tall,.nr-sp,.nr-sm2,.nr-hs){align-items:safe flex-end}
+/* B104: only the big image-led cards drift their picture while you scroll (hero, lead, tall and the wire's lead card); everything else holds still, so the feed never mixes moving and static pictures */
+#grid .card>img{transform:none}
+#grid .card:is(.nr-hero,.nr-lead,.nr-tall,.lead):not(.dq-c)>img{transform:translate3d(0,var(--ip,0px),0) scale(1.08)}
+@media(prefers-reduced-motion:reduce){#grid .card:is(.nr-hero,.nr-lead,.nr-tall,.lead)>img{transform:none}}
+.cvlead h2,.dcv-lead h2,.card h3,.droy h3,.fd-feat b,.fd-deck b,.tt{text-wrap:balance}
+#grid .card.nr-row,#grid .card.nr-late,#grid .wcol{content-visibility:auto;contain-intrinsic-size:auto 110px}
+#grid .card.nr-lead,#grid .card.nr-hero,#grid .card.nr-tri,#grid .card.nr-colr{contain:layout paint}
+.dcov .dcv-art>img,.cover>img{will-change:transform;backface-visibility:hidden}
+.body hr+hr{display:none}
+.body blockquote:empty,.body figure:not(:has(img,picture,video,iframe,.imgfb)){display:none}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -3532,7 +3565,7 @@ body.exbusy [data-exact]{cursor:progress}
  <section class="sgrp" id="s-look"><h3><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/></svg>Appearance</h3><div class="sbox"><div class="pad lkp"><div class="lbx">Quick Looks</div><div class="lkr" id="lkr"></div><p class="hint">One tap applies the whole look — theme plus cover. Mix and match below if you like.</p></div><div class="pad"><div class="thgs" id="thm"><details class="thd" open><summary>Featured<small>6</small></summary><div class="tgrid"><button type="button" data-th="auto"><span class="sw" style="background:linear-gradient(135deg,#fff 50%,#15181e 50%)"></span>Auto</button><button type="button" data-th="dynamic"><span class="sw" style="background:conic-gradient(#0a8f4a,#7c5cff,#e2231a,#0a8f4a)"></span>Dynamic</button><button type="button" data-th="light"><span class="sw" style="background:#fff"></span>Light</button><button type="button" data-th="dark"><span class="sw" style="background:#15181e"></span>Dark</button><button type="button" data-th="modern"><span class="sw" style="background:linear-gradient(135deg,#5b5bf0,#ff5c8a)"></span>Modern</button><p class="hint" id="dynh" hidden>Dynamic tints the reader, and any single feed you open, with that site’s own color.</p><div class="line" id="dynmrow"><span class="lb">Dynamic look<small>Light or dark for the Dynamic theme</small></span><select id="dynm"><option value="sys">Match my phone</option><option value="time">Match daylight</option><option value="light">Always light</option><option value="dark">Always dark</option></select></div></div></details><details class="thd thmore"><summary>More Styles<small>43</small></summary><div class="thsub"><details class="thd"><summary>Plain &amp; Simple<small>6</small></summary><div class="tgrid"><button type="button" data-th="auto"><span class="sw" style="background:linear-gradient(135deg,#fff 50%,#15181e 50%)"></span>Auto</button><button type="button" data-th="dynamic"><span class="sw" style="background:conic-gradient(#0a8f4a,#7c5cff,#e2231a,#0a8f4a)"></span>Dynamic</button><button type="button" data-th="light"><span class="sw" style="background:#fff"></span>Light</button><button type="button" data-th="dark"><span class="sw" style="background:#15181e"></span>Dark</button><button type="button" data-th="eink"><span class="sw" style="background:linear-gradient(135deg,#fff 50%,#000 50%);box-shadow:inset 0 0 0 2px #000"></span>E-Ink</button><button type="button" data-th="dim"><span class="sw" style="background:linear-gradient(135deg,#22262d 50%,#6aa6ff 50%)"></span>Dim</button></div></details><details class="thd"><summary>Paper &amp; Print<small>4</small></summary><div class="tgrid"><button type="button" data-th="broadsheet"><span class="sw" style="background:linear-gradient(135deg,#f6f1e3 50%,#17140e 50%);box-shadow:inset 0 0 0 1px #c9bfa5"></span>Sepia</button><button type="button" data-th="rose"><span class="sw" style="background:#f4e8e8;box-shadow:inset 0 0 0 1px #dcc"></span>Rose</button><button type="button" data-th="inkwash"><span class="sw" style="background:linear-gradient(135deg,#dfe3e6 50%,#46607a 50%);box-shadow:inset 0 0 0 1px #afb4b8"></span>Ink Wash</button><button type="button" data-th="typewriter"><span class="sw" style="background:linear-gradient(135deg,#e6e4df 50%,#b3261e 50%);box-shadow:inset 0 0 0 1px #b5b4b0"></span>Typewriter</button></div></details><details class="thd"><summary>Modern &amp; Bright<small>6</small></summary><div class="tgrid"><button type="button" data-th="modern"><span class="sw" style="background:linear-gradient(135deg,#5b5bf0,#ff5c8a)"></span>Modern</button><button type="button" data-th="solar"><span class="sw" style="background:linear-gradient(135deg,#fffaf5 50%,#ff5a1f 50%);box-shadow:inset 0 0 0 1px #f1dfd3"></span>Solar Flare</button><button type="button" data-th="sage"><span class="sw" style="background:linear-gradient(135deg,#dfe6dc 50%,#3d6b49 50%)"></span>Sage</button><button type="button" data-th="coastal"><span class="sw" style="background:linear-gradient(135deg,#e6f6f6 50%,#0a8f8c 50%);box-shadow:inset 0 0 0 1px #afc4c7"></span>Coastal</button><button type="button" data-th="swissred"><span class="sw" style="background:linear-gradient(135deg,#f4f4f2 50%,#d40000 50%);box-shadow:inset 0 0 0 1px #bbbbba"></span>Swiss Red</button><button type="button" data-th="thegoat"><span class="sw" style="background:repeating-linear-gradient(90deg,#75aadb 0 5px,#fff 5px 10px);box-shadow:inset 0 0 0 1px #b4c8da"></span>The Goat</button></div></details><details class="thd"><summary>Cyber &amp; Retro<small>7</small></summary><div class="tgrid"><button type="button" data-th="cyber"><span class="sw" style="background:linear-gradient(135deg,#070914 45%,#f04cc4 45% 70%,#3fdcf0 70%)"></span>Cyber Rain</button><button type="button" data-th="cyberdawn"><span class="sw" style="background:linear-gradient(135deg,#dfe2ec 45%,#b3238a 45% 70%,#1590a8 70%);box-shadow:inset 0 0 0 1px #b8bdd2"></span>Cyber Dawn</button><button type="button" data-th="terminal"><span class="sw" style="background:linear-gradient(135deg,#040807 50%,#4dff88 50%)"></span>Terminal</button><button type="button" data-th="outrun"><span class="sw" style="background:linear-gradient(135deg,#140a2e 40%,#ff4fb6 40% 70%,#28d7ff 70%)"></span>Outrun</button><button type="button" data-th="y2k"><span class="sw" style="background:linear-gradient(135deg,#d5dff0 50%,#1f5fff 50%);box-shadow:inset 0 0 0 1px #a5b0c6"></span>Y2K Chrome</button><button type="button" data-th="pixel"><span class="sw" style="background:linear-gradient(135deg,#0a1a5c 50%,#ffd84a 50%)"></span>Pixel Quest</button><button type="button" data-th="arcade"><span class="sw" style="background:linear-gradient(135deg,#05050f 50%,#ff3b3b 50%)"></span>Arcade Cabinet</button></div></details><details class="thd"><summary>Gaming<small>8</small></summary><div class="tgrid"><button type="button" data-th="spartan"><span class="sw" style="background:linear-gradient(135deg,#161b14 50%,#e8b84a 50%)"></span>Spartan</button><button type="button" data-th="covenant"><span class="sw" style="background:linear-gradient(135deg,#120b24 50%,#3ee8d6 50%)"></span>Covenant</button><button type="button" data-th="cortana"><span class="sw" style="background:linear-gradient(135deg,#060a1c 50%,#4aa8ff 50%)"></span>Cortana</button><button type="button" data-th="rivals"><span class="sw" style="background:linear-gradient(135deg,#0e1020 50%,#ff3040 50%)"></span>Rivals Clash</button><button type="button" data-th="midgar"><span class="sw" style="background:linear-gradient(135deg,#06130f 50%,#4dffc0 50%)"></span>Midgar</button><button type="button" data-th="ragnarok"><span class="sw" style="background:linear-gradient(135deg,#0f1620 50%,#e0553a 50%)"></span>Ragnarök</button><button type="button" data-th="protoss"><span class="sw" style="background:linear-gradient(135deg,#0b0f1f 50%,#ffc94d 50%)"></span>Protoss</button><button type="button" data-th="nightcity"><span class="sw" style="background:linear-gradient(135deg,#0b0b10 50%,#fcee0a 50%)"></span>Night City</button></div></details><details class="thd"><summary>After Dark<small>12</small></summary><div class="tgrid"><button type="button" data-th="midnight"><span class="sw" style="background:#0b1220"></span>Midnight</button><button type="button" data-th="forest"><span class="sw" style="background:#15241b"></span>Forest</button><button type="button" data-th="golden"><span class="sw" style="background:linear-gradient(135deg,#17100a 50%,#f2b352 50%)"></span>Golden Hour</button><button type="button" data-th="crimson"><span class="sw" style="background:linear-gradient(135deg,#12060a 50%,#e5334f 50%)"></span>Crimson</button><button type="button" data-th="alpenglow"><span class="sw" style="background:linear-gradient(135deg,#221f2b 50%,#f4b6c8 50%)"></span>Alpenglow</button><button type="button" data-th="nebula"><span class="sw" style="background:linear-gradient(135deg,#0d0720 50%,#ff4fd8 50%)"></span>Nebula</button><button type="button" data-th="deepsea"><span class="sw" style="background:linear-gradient(135deg,#06161a 50%,#2de2d0 50%)"></span>Deep Sea</button><button type="button" data-th="aurora"><span class="sw" style="background:linear-gradient(135deg,#070b14 50%,#5dffb0 50%)"></span>Aurora</button><button type="button" data-th="nocturne"><span class="sw" style="background:linear-gradient(135deg,#090a0f 50%,#a8873a 50%);box-shadow:inset 0 0 0 1px #1c1d22"></span>Nocturne</button><button type="button" data-th="highstorm"><span class="sw" style="background:linear-gradient(135deg,#060c1c 50%,#66b8ff 50%)"></span>Highstorm</button><button type="button" data-th="crimsondawn"><span class="sw" style="background:linear-gradient(135deg,#080304 50%,#e23a35 50%)"></span>Crimson Dawn</button><button type="button" data-th="thevoid"><span class="sw" style="background:linear-gradient(135deg,#05030b 50%,#b79cff 50%)"></span>The Void</button></div></details></div></details></div><div class="fxp" id="fxp" hidden></div></div><div class="line"><span class="lb">Theme layouts<small>Each theme gets its own magazine styling: newspaper rules, terminal prompts, manuscript ornaments. Off keeps the plain layout</small></span><button class="tg" data-tg="tlay"></button></div><div class="line" id="ptnrow" hidden><span class="lb">Sepia paper<small>Warm is the classic. Parchment is older and browner. Vellum is paler and cooler</small></span><select id="ptn"><option value="warm">Warm</option><option value="parch">Parchment</option><option value="vellum">Vellum</option></select></div><div class="line" id="grnrow" hidden><span class="lb">Newsprint grain<small>A light paper texture and softer ink, like a typewritten page</small></span><button class="tg" data-tg="grain"></button></div><div class="line"><span class="lb">Living Dynamic theme<small>The Dynamic theme shifts its colors with the story photo and as you scroll. Off keeps the simple site tint</small></span><button class="tg" data-tg="dynx"></button></div><div class="line"><span class="lb">Light or dark<small>Flip every theme to its light or dark twin. Your theme keeps its colors and fonts; Auto, Dynamic and a few special looks use their own rules</small></span><select id="sch"><option value="theme">As the theme is</option><option value="light">Always light</option><option value="dark">Always dark</option><option value="sys">Match my phone</option></select></div><div class="line"><span class="lb">Dark mode at sunset<small>Switches to a darker version of your theme after sunset, and back at sunrise. For other night looks use After sunset below</small></span><button class="tg" data-tg="autodark"></button></div><div class="line"><span class="lb">After sunset<small id="nlab">Switch to a darker, warmer page at night</small></span><select id="ngt"><option value="off">Off</option><option value="twin">My theme, darker</option><option value="dark">Dark</option><option value="midnight">Midnight</option><option value="forest">Forest</option><option value="cyber">Cyber Rain</option><option value="golden">Golden Hour</option><option value="crimson">Crimson</option><option value="terminal">Terminal</option><option value="outrun">Outrun</option><option value="alpenglow">Alpenglow</option><option value="dim">Dim</option><option value="pixel">Pixel Quest</option><option value="arcade">Arcade Cabinet</option><option value="nebula">Nebula</option><option value="deepsea">Deep Sea</option><option value="aurora">Aurora</option><option value="nocturne">Nocturne</option><option value="thegoat">The Goat</option><option value="highstorm">Highstorm</option><option value="crimsondawn">Crimson Dawn</option><option value="thevoid">The Void</option><option value="spartan">Spartan</option><option value="covenant">Covenant</option><option value="cortana">Cortana</option><option value="rivals">Rivals Clash</option><option value="midgar">Midgar</option><option value="ragnarok">Ragnarök</option><option value="protoss">Protoss</option><option value="nightcity">Night City</option></select></div><div class="line"><span class="lb">Weather in the sky<small>Rain, snow or stars in the sunset animation. Needs your location</small></span><span class="ctl"><button class="tx2" id="skyp">Preview</button><button class="tg" data-tg="wx"></button></span></div><div class="line" id="ngeorow"><span class="lb">Exact sunset time<small>Uses your location once, stays on this device</small></span><button class="tx2" id="ngeo">Use my location</button></div><div class="line" id="icrow" hidden><span class="lb">App icon<small>The icon on your home screen. Pick Flat or 3D, then a design. Your launcher may take a moment to refresh it. </small></span></div><div class="segs" id="icst" hidden style="margin:2px 0 8px"><button type="button" data-ics="2d">Flat</button><button type="button" data-ics="3d">3D</button></div><div class="icg" id="icg" hidden><button type="button" data-ic="tree" aria-label="Tree" title="Tree"><i data-icp="tree"></i></button><button type="button" data-ic="circuit" aria-label="Circuit" title="Circuit"><i data-icp="circuit"></i></button><button type="button" data-ic="crimson" aria-label="Crimson" title="Crimson"><i data-icp="crimson"></i></button><button type="button" data-ic="golden" aria-label="Golden Hour" title="Golden Hour"><i data-icp="golden"></i></button><button type="button" data-ic="terminal" aria-label="Terminal" title="Terminal"><i data-icp="terminal"></i></button><button type="button" data-ic="broadsheet" aria-label="Broadsheet" title="Broadsheet"><i data-icp="broadsheet"></i></button><button type="button" data-ic="midnight" aria-label="Midnight" title="Midnight"><i data-icp="midnight"></i></button><button type="button" data-ic="rose" aria-label="Rose" title="Rose"><i data-icp="rose"></i></button></div><p class="hint" id="icost" hidden></p><div class="line cvrow"><span class="lb">Cover style<small>How the front page cover is laid out</small></span><button type="button" class="cvbtn" id="cvbtn" aria-haspopup="dialog"><span id="cvbn">Clean</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button><span hidden><select id="cvs"><option value="clean">Clean: one photo, stories below</option><option value="auto">Automatic, changes daily (Magazine, Poster, Broadcast, Top plays)</option><option value="photo">Full photo</option><option value="split">Photo and text side by side</option><option value="poster">Poster</option><option value="block">Color block</option><option value="triptych">Triptych (wide screens)</option><option value="gazette">Gazette</option><option value="gallery">Gallery</option><option value="spotlight">Spotlight</option><option value="magazine">Magazine</option><option value="broadcast">Broadcast</option><option value="duotone">Duotone</option><option value="index">Index</option><option value="overlap">Overlap</option><option value="cinema">Cinema</option><option value="rail">Rail</option></select></span></div><div class="line"><span class="lb">Tint the app from the cover photo<small>The page behind the cover, and the bar at the top, take a clear color from the photo. Not used on Cyber Rain and Terminal</small></span><button class="tg" data-tg="ctint"></button></div><div class="line"><span class="lb">Text on photos<small>Makes headlines easier to read on busy or bright pictures</small></span><select id="scrim"><option value="">Automatic</option><option value="strong">Stronger shading</option><option value="panel">Frosted panel behind text</option></select></div><div class="line" id="fthh"><span class="lb">Theme by folder<small>Give a folder its own look. It applies while you browse or read that folder</small></span></div><div id="fthl"></div><div class="line"><span class="lb">Story card size<small>How much of each story shows in the list</small></span><div class="segs" id="cds"><button data-cd="large">Large</button><button data-cd="medium">Medium</button><button data-cd="compact">Compact</button></div></div><div class="line"><span class="lb">Feed text size<small>How big the words are in your feeds and The Daily. Separate from Story card size and from reading text size</small></span><div class="segs" id="tsz" role="group" aria-label="Feed text size"><button type="button" data-ts="c" aria-pressed="false">Compact</button><button type="button" data-ts="m" aria-pressed="true">Comfortable</button><button type="button" data-ts="l" aria-pressed="false">Large</button></div></div><div class="line"><span class="lb">Magazine cover on The Daily<small>A full-page cover with the day’s top story</small></span><button class="tg" data-tg="cover"></button></div><div class="line"><span class="lb">Cover for every site<small>Open any site, folder or topic with its own magazine cover</small></span><button class="tg" data-tg="covers"></button></div><div class="line"><span class="lb">Side-by-side reading<small>Stories open next to the list on big screens</small></span><button class="tg" data-tg="split"></button></div><div class="line"><span class="lb">Narrow screen layout<small>Big headlines and a bottom bar on the cover screen</small></span><select id="nrw"><option value="auto">Automatic</option><option value="off">Off</option></select></div></div></section>
  <section class="sgrp" id="s-fx"><h3><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM18 16l.8 2.2L21 19l-2.2.8L18 22l-.8-2.2L15 19l2.2-.8z"/></svg>Battery and motion</h3><div class="sbox"><div class="line"><span class="lb">Reduce motion<small>Fewer animations. Also follows your phone’s setting</small></span><button class="tg" data-tg="rmo"></button></div><div class="line"><span class="lb">Gentle vibration<small>A soft tap when you save a story, a tick when a pull to refresh is ready, and a deeper pulse at the end of an edition</small></span><button class="tg" data-tg="haptic"></button></div><div class="line"><span class="lb">Smooth mode<small>Turns off blurs and soft shadows and loads stories as you scroll, so scrolling and switching feeds stay quick. On by default in Safari and on touch screens</small></span><button class="tg" data-tg="smooth"></button></div><div class="line"><span class="lb">Pause effects on low battery<small>Below 20% and not charging, animations and rain pause until you charge</small></span><button class="tg" data-tg="lowfx"></button></div><div class="line"><span class="lb">Theme effects<small>Master switch for the animated extras some themes have, like rain, aurora lights and fireflies. They show in the feed and story lists and pause while you read</small></span><button class="tg" data-tg="cyfx"></button></div><div class="line"><span class="lb">Bending page turn<small>Pages curl and bend as they turn, and follow your finger. Off gives a simple flat turn</small></span><button class="tg" data-tg="curl"></button></div><div class="line"><span class="lb">Blend colors between sites<small>When the next story is from a different site, the page colors fade from one to the next</small></span><button class="tg" data-tg="sitecol"></button></div><div class="line"><span class="lb">Time-of-day glow<small>A faint warm glow in the evening and a cool one late at night</small></span><button class="tg" data-tg="tod"></button></div><div class="line"><span class="lb">Slow zoom on covers<small>The cover photo drifts closer, slowly</small></span><button class="tg" data-tg="czoom"></button></div><div class="line"><span class="lb">Living covers<small>Cover headlines rise into place one line at a time</small></span><button class="tg" data-tg="clive"></button></div><div class="line"><span class="lb">Small animations<small>Star pop, read fade, sliding messages, growing logo when you pull to refresh</small></span><button class="tg" data-tg="micro"></button></div><div class="line"><span class="lb">Interface sounds<small>Soft sounds for saving, refreshing and finishing a story</small></span><button class="tg" data-tg="sfx"></button></div><div class="line"><span class="lb">Seasonal touches<small>A small seasonal detail on the loading logo</small></span><button class="tg" data-tg="season"></button></div><div class="line"><span class="lb">Paper texture<small>A faint paper grain on reading pages</small></span><select id="ppr"><option value="0">None</option><option value="1">Fine grain</option><option value="2">Laid paper</option></select></div><div class="line"><span class="lb">Launch animation<small>The logo drifts in and settles into place when the app opens. It never covers the screen or waits for you, so you can start using CyPress straight away</small></span><button class="tg" data-tg="intro"></button></div></div></section>
  <section class="sgrp" id="s-read"><h3><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V6a2 2 0 0 1 2-2h5v15H6a2 2 0 0 0-2 2zM20 19V6a2 2 0 0 0-2-2h-5v15h5a2 2 0 0 1 2 2z"/></svg>Reading</h3><div class="sbox"><div class="pad"><div class="lbx">Font</div><div class="fgs" id="fgrid"><div class="fgrid"><button type="button" data-fn="theme"><b style="font-family:var(--serif)">Aa</b><span>Match theme</span><small>Each theme brings its own fonts</small></button></div><details class="thd"><summary>Serif<small>10</small></summary><div class="fgrid"><button type="button" data-fn="serif"><b style="font-family:'Newsreader',var(--serif)">Aa</b><span>Newsreader</span><small>Classic serif</small></button><button type="button" data-fn="literata"><b style="font-family:'Literata',var(--serif)">Aa</b><span>Literata</span><small>Made for long reads</small></button><button type="button" data-fn="merri"><b style="font-family:'Merriweather',var(--serif)">Aa</b><span>Merriweather</span><small>Sturdy and clear</small></button><button type="button" data-fn="garamond"><b style="font-family:'EB Garamond',var(--serif)">Aa</b><span>Garamond</span><small>Bookish, elegant</small></button><button type="button" data-fn="source"><b style="font-family:'Source Serif 4',var(--serif)">Aa</b><span>Source Serif 4</span><small>Crisp and calm</small></button><button type="button" data-fn="lora"><b style="font-family:'Lora',var(--serif)">Aa</b><span>Lora</span><small>Warm, book-like</small></button><button type="button" data-fn="crimson"><b style="font-family:'Crimson Pro',var(--serif)">Aa</b><span>Crimson Pro</span><small>Light and literary</small></button><button type="button" data-fn="baskerville"><b style="font-family:'Libre Baskerville',var(--serif)">Aa</b><span>Baskerville</span><small>Sharp, traditional</small></button><button type="button" data-fn="caslon"><b style="font-family:'Libre Caslon Text',var(--serif)">Aa</b><span>Caslon</span><small>Old-style print</small></button><button type="button" data-fn="gentium"><b style="font-family:'Gentium Book Plus',var(--serif)">Aa</b><span>Gentium</span><small>Soft and open</small></button></div></details><details class="thd"><summary>Sans<small>10</small></summary><div class="fgrid"><button type="button" data-fn="sans"><b style="font-family:'Instrument Sans',var(--serif)">Aa</b><span>Instrument</span><small>Clean sans</small></button><button type="button" data-fn="public"><b style="font-family:'Public Sans',var(--serif)">Aa</b><span>Public Sans</span><small>Plain, modern sans</small></button><button type="button" data-fn="figtree"><b style="font-family:'Figtree',var(--serif)">Aa</b><span>Figtree</span><small>Friendly and neat</small></button><button type="button" data-fn="manrope"><b style="font-family:'Manrope',var(--serif)">Aa</b><span>Manrope</span><small>Smooth, geometric</small></button><button type="button" data-fn="nunito"><b style="font-family:'Nunito',var(--serif)">Aa</b><span>Nunito</span><small>Rounded and soft</small></button><button type="button" data-fn="inter"><b style="font-family:'Inter',var(--serif)">Aa</b><span>Inter</span><small>Screen-first sans</small></button><button type="button" data-fn="dmsans"><b style="font-family:'DM Sans',var(--serif)">Aa</b><span>DM Sans</span><small>Low-contrast, friendly</small></button><button type="button" data-fn="albert"><b style="font-family:'Albert Sans',var(--serif)">Aa</b><span>Albert Sans</span><small>Calm and modern</small></button><button type="button" data-fn="outfit"><b style="font-family:'Outfit',var(--serif)">Aa</b><span>Outfit</span><small>Round, geometric</small></button><button type="button" data-fn="karla"><b style="font-family:'Karla',var(--serif)">Aa</b><span>Karla</span><small>Quirky grotesque</small></button></div></details><details class="thd"><summary>Easy Reading<small>10</small></summary><div class="fgrid"><button type="button" data-fn="lexend"><b style="font-family:'Lexend',var(--serif)">Aa</b><span>Lexend</span><small>Eases reading fluency</small></button><button type="button" data-fn="hyper"><b style="font-family:'Atkinson Hyperlegible',var(--serif)">Aa</b><span>Atkinson</span><small>High legibility</small></button><button type="button" data-fn="dys"><b style="font-family:'OpenDyslexic',var(--serif)">Aa</b><span>OpenDyslexic</span><small>Designed for dyslexia</small></button><button type="button" data-fn="andika"><b style="font-family:'Andika',var(--serif)">Aa</b><span>Andika</span><small>Made for new readers</small></button><button type="button" data-fn="comicneue"><b style="font-family:'Comic Neue',var(--serif)">Aa</b><span>Comic Neue</span><small>Friendly, easy letters</small></button><button type="button" data-fn="readex"><b style="font-family:'Readex Pro',var(--serif)">Aa</b><span>Readex Pro</span><small>Wide, easy to scan</small></button><button type="button" data-fn="lexenddeca"><b style="font-family:'Lexend Deca',var(--serif)">Aa</b><span>Lexend Deca</span><small>Open spacing</small></button><button type="button" data-fn="atkinext"><b style="font-family:'Atkinson Hyperlegible Next',var(--serif)">Aa</b><span>Atkinson Next</span><small>Clearer letter shapes</small></button><button type="button" data-fn="redhat"><b style="font-family:'Red Hat Text',var(--serif)">Aa</b><span>Red Hat Text</span><small>Sharp and readable</small></button><button type="button" data-fn="notosans"><b style="font-family:'Noto Sans',var(--serif)">Aa</b><span>Noto Sans</span><small>Neutral and clear</small></button></div></details><details class="thd"><summary>Typewriter and Mono<small>10</small></summary><div class="fgrid"><button type="button" data-fn="courierprime"><b style="font-family:'Courier Prime',var(--serif)">Aa</b><span>Courier Prime</span><small>Typed-page feel</small></button><button type="button" data-fn="plexmono"><b style="font-family:'IBM Plex Mono',var(--serif)">Aa</b><span>Plex Mono</span><small>Even, technical</small></button><button type="button" data-fn="specialelite"><b style="font-family:'Special Elite',var(--serif)">Aa</b><span>Special Elite</span><small>Worn typewriter</small></button><button type="button" data-fn="cutive"><b style="font-family:'Cutive Mono',var(--serif)">Aa</b><span>Cutive Mono</span><small>Light, old typewriter</small></button><button type="button" data-fn="spacemono"><b style="font-family:'Space Mono',var(--serif)">Aa</b><span>Space Mono</span><small>Quirky retro mono</small></button><button type="button" data-fn="jetbrains"><b style="font-family:'JetBrains Mono',var(--serif)">Aa</b><span>JetBrains Mono</span><small>Roomy, clear mono</small></button><button type="button" data-fn="robotomono"><b style="font-family:'Roboto Mono',var(--serif)">Aa</b><span>Roboto Mono</span><small>Neat and even</small></button><button type="button" data-fn="inconsolata"><b style="font-family:'Inconsolata',var(--serif)">Aa</b><span>Inconsolata</span><small>Slim, classic mono</small></button><button type="button" data-fn="sourcecode"><b style="font-family:'Source Code Pro',var(--serif)">Aa</b><span>Source Code</span><small>Clean code mono</small></button><button type="button" data-fn="overpass"><b style="font-family:'Overpass Mono',var(--serif)">Aa</b><span>Overpass Mono</span><small>Soft highway mono</small></button></div></details></div><select id="fnt" hidden><option value="theme">Match theme</option><option value="serif">Newsreader</option><option value="literata">Literata</option><option value="merri">Merriweather</option><option value="garamond">Garamond</option><option value="source">Source Serif 4</option><option value="lora">Lora</option><option value="crimson">Crimson Pro</option><option value="baskerville">Baskerville</option><option value="caslon">Caslon</option><option value="gentium">Gentium</option><option value="sans">Instrument</option><option value="public">Public Sans</option><option value="figtree">Figtree</option><option value="manrope">Manrope</option><option value="nunito">Nunito</option><option value="inter">Inter</option><option value="dmsans">DM Sans</option><option value="albert">Albert Sans</option><option value="outfit">Outfit</option><option value="karla">Karla</option><option value="lexend">Lexend</option><option value="hyper">Atkinson</option><option value="dys">OpenDyslexic</option><option value="andika">Andika</option><option value="comicneue">Comic Neue</option><option value="readex">Readex Pro</option><option value="lexenddeca">Lexend Deca</option><option value="atkinext">Atkinson Next</option><option value="redhat">Red Hat Text</option><option value="notosans">Noto Sans</option><option value="courierprime">Courier Prime</option><option value="plexmono">Plex Mono</option><option value="specialelite">Special Elite</option><option value="cutive">Cutive Mono</option><option value="spacemono">Space Mono</option><option value="jetbrains">JetBrains Mono</option><option value="robotomono">Roboto Mono</option><option value="inconsolata">Inconsolata</option><option value="sourcecode">Source Code</option><option value="overpass">Overpass Mono</option></select></div><div class="line"><span class="lb">Type preset<small>One tap sets font, spacing and alignment together</small></span><div class="segs tp" id="tpre"><button data-tp="editorial">Editorial</button><button data-tp="modern">Modern</button><button data-tp="classic">Classic</button><button data-tp="calm">Calm</button></div></div><div class="line"><span class="lb">Headline font<small>Titles and headlines across the app</small></span><select id="hfn"><option value="serif">Match theme</option><optgroup label="Serif"><option value="playfair">Playfair Display</option><option value="garamond">Garamond</option><option value="baskerville">Baskerville</option><option value="cormorant">Cormorant</option><option value="fraunces">Fraunces</option><option value="bodoni">Bodoni</option><option value="oldstd">Old Standard</option></optgroup><optgroup label="Sans"><option value="sans">Instrument Sans</option><option value="spacegro">Space Grotesk</option><option value="archivo">Archivo</option><option value="outfit">Outfit</option><option value="sora">Sora</option><option value="bricolage">Bricolage Grotesque</option></optgroup><optgroup label="Display"><option value="marcellus">Marcellus</option><option value="gloock">Gloock</option><option value="yeseva">Yeseva One</option><option value="cinzel">Cinzel</option></optgroup></select></div><div class="line"><span class="lb">Reading style<small>Turn pages like a magazine, or scroll down</small></span><div class="segs" id="scs"><button data-sc="auto">Automatic</button><button data-sc="pages">Pages</button><button data-sc="vertical">Scroll</button></div></div><div class="line"><span class="lb">Text size<small>Use the buttons to make reading text bigger or smaller</small></span><span class="ctl"><button class="ib" data-fs="-1" aria-label="Smaller"><span style="font-size:12px">A</span></button><b id="fsv"></b><button class="ib" data-fs="1" aria-label="Larger"><span style="font-size:18px">A</span></button></span></div><div class="line"><span class="lb">Line spacing<small>The space between lines of text</small></span><select id="lhs"><option value="1.5">Tight</option><option value="1.68">Normal</option><option value="1.9">Roomy</option></select></div><div class="line"><span class="lb">Page margins<small>The empty space at the sides of the page</small></span><select id="mgn"><option value="0.6">Narrow</option><option value="1">Normal</option><option value="1.6">Wide</option></select></div><div class="line"><span class="lb">Compact reading on phones<small>Uses more of the screen: narrower margins, tighter lines, even left edge and a smaller first letter. Off keeps your own margin, spacing and justify settings</small></span><button class="tg" data-tg="pcomp"></button></div><div class="line"><span class="lb">Justify text<small>Even edges, like a printed page</small></span><button class="tg" data-tg="just"></button></div><div class="line"><span class="lb">Author and site notes<small>Bios and site blurbs at the start or end of a story. Fold tucks them into a small note you can open, Hide removes them, Leave as is shows them in the story</small></span><select id="bfs"><option value="fold">Fold away</option><option value="hide">Hide completely</option><option value="off">Leave as is</option></select></div><div class="line"><span class="lb">Magazine touches<small>Drop caps and pull quotes in longer stories</small></span><button class="tg" data-tg="mag"></button></div><div class="line"><span class="lb">Follow my phone’s text size<small>The reader scales with the text size set in your phone’s settings</small></span><button class="tg" data-tg="sysfs"></button></div><div class="line"><span class="lb">Continuous reading<small>Keep pulling past the end of a story (or turn the last page again) to flow straight into the next one</small></span><button class="tg" data-tg="cont"></button></div><div class="line"><span class="lb">Keep back issues<small>Off by default. Keeps each edition’s text, only from stories already stored on this device, so you can browse old issues like a magazine rack. Nothing extra is downloaded</small></span><button class="tg" data-tg="bi"></button></div><div class="line"><span class="lb">Keep back issues for<small>Older issues are removed automatically</small></span><select id="bid"><option value="30">30 days</option><option value="90">90 days</option><option value="180">180 days</option></select></div><div class="line"><span class="lb">Polished typography<small>Curly quotes and proper dashes in stories</small></span><button class="tg" data-tg="typo"></button></div><div class="line"><span class="lb">Sepia reading page<small>Warm paper in the reader only</small></span><button class="tg" data-tg="sep"></button></div><div class="line"><span class="lb">Tint pages with photo colors<small>Covers and story pages pick up the main color of the photo</small></span><button class="tg" data-tg="ptint"></button></div><div class="line"><span class="lb">Page-turn sound<small>A soft paper rustle</small></span><button class="tg" data-tg="tsound"></button></div><div class="line"><span class="lb">Page-turn tick<small>A tiny vibration when a page lands</small></span><button class="tg" data-tg="thaptic"></button></div><div class="line"><span class="lb">Swipe down to close a story<small>Pull a story down to go back to the list</small></span><button class="tg" data-tg="sdown"></button></div></div></section>
- <section class="sgrp" id="s-mag"><h3><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Magazine and digest</h3><div class="sbox"><div class="line"><span class="lb">Table of contents<small>An “In this issue” list on The Daily, with page numbers you can tap</small></span><button class="tg" data-tg="toc"></button></div><div class="line"><span class="lb">Feature spread<small>One big story per issue with an oversized headline</small></span><button class="tg" data-tg="spread"></button></div><div class="line"><span class="lb">Story layout on big screens<small>How the first pages of a story are laid out when the screen is wide. Automatic picks per story</small></span><select id="rlay"><option value="auto">Automatic</option><option value="hero">Hero spread</option><option value="top">Photo on top</option><option value="split">Photo and text</option><option value="classic">Classic columns</option></select></div><div class="line"><span class="lb">Section covers<small>A folder, site or topic opens with a title, photo and a line about what’s inside</small></span><button class="tg" data-tg="sop"></button></div><div class="line"><span class="lb">Story timeline<small>When several sites cover the same story, see who reported it first and how it developed</small></span><button class="tg" data-tg="tline"></button></div><div class="line"><span class="lb">Tidy photo captions<small>Captions in small type, with the photo credit set apart underneath</small></span><button class="tg" data-tg="caps"></button></div><div class="line"><span class="lb">At-a-glance box<small>On a hero or split opening, a small box with the source, date, reading time and who else covered it</small></span><button class="tg" data-tg="mnote"></button></div><div class="line"><span class="lb">You might also like<small>At the end of a story, a few links from sites you don’t follow yet that match its subject, with a Follow button</small></span><button class="tg" data-tg="disc"></button></div><div class="line"><span class="lb">Varied story layout<small>A mix of big photos, headline lists, strips and quotes that changes by feed and day, instead of equal squares. Choose Compact or Narrow cards to keep the classic grid</small></span><button class="tg" data-tg="nroom"></button></div><div class="line"><span class="lb">Trending strip<small>A row of stories that several sources covered at once, at the top of The Daily</small></span><button class="tg" data-tg="trend"></button></div><div class="line"><span class="lb">Must reads<small>On wide screens, a ranked list of your top stories next to the front page</small></span><button class="tg" data-tg="must"></button></div><div class="line"><span class="lb">Story pull quotes<small>A line pulled from a story, set big between sections</small></span><button class="tg" data-tg="pqc"></button></div><div class="line"><span class="lb">Light rays on the cover<small>A soft glow in the cover photo’s color behind the masthead</small></span><button class="tg" data-tg="cray"></button></div><div class="line"><span class="lb">Cover title style<small>Auto looks at each cover photo and picks the style that reads best on it. Or choose one for every cover: Clean is plain white, Tinted and Gradient pick up color, Glow lights it up</small></span><select id="mast"><option value="auto">Auto (best for each photo)</option><option value="clean">Clean</option><option value="tint">Tinted</option><option value="glow">Glow</option><option value="gradient">Gradient</option></select></div><div class="line"><span class="lb">Quiet layout<small>More white space, muted photos and no badges, for a calmer front page</small></span><button class="tg" data-tg="quiet"></button></div><div class="line"><span class="lb">Photo pages<small>Stories with many big photos give some of them a whole page</small></span><button class="tg" data-tg="fbleed"></button></div><div class="line"><span class="lb">Pull quotes on The Daily<small>A quote from your own highlights between sections</small></span><button class="tg" data-tg="pqs"></button></div><div class="line"><span class="lb">Page numbers in stories<small>A small running line with the site, title and page at the foot of each page</small></span><button class="tg" data-tg="folio"></button></div><div class="line"><span class="lb">End-of-story mark<small>A small mark at the end of each story</small></span><button class="tg" data-tg="endm"></button></div><div class="line"><span class="lb">Daily digest<small>A daily issue with a cover story, your topics, saved stories and what you missed. Works offline</small></span><button class="tg" data-tg="dgon"></button></div><div class="line"><span class="lb">Digest edition<small>Offer the morning issue, the evening issue, or both on The Daily</small></span><select id="dgwhen"><option value="morning">Morning</option><option value="evening">Evening</option><option value="both">Morning and evening</option></select></div><div class="line"><span class="lb">Weekly review<small>A longer issue with your reading stats</small></span><button class="tg" data-tg="dgwk"></button></div><div class="line"><span class="lb">Weekly review day<small>The day the weekly issue comes out</small></span><select id="dgwd"><option value="0">Sunday</option><option value="1">Monday</option><option value="6">Saturday</option><option value="5">Friday</option></select></div><div class="line"><span class="lb">Read today’s digest<small>Opens today’s digest right now</small></span><button class="tx2" id="dgopen">Open</button></div></div></section>
+ <section class="sgrp" id="s-mag"><h3><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Magazine and digest</h3><div class="sbox"><div class="line"><span class="lb">Table of contents<small>An “In this issue” list on The Daily, with page numbers you can tap</small></span><button class="tg" data-tg="toc"></button></div><div class="line"><span class="lb">Feature spread<small>One big story per issue with an oversized headline</small></span><button class="tg" data-tg="spread"></button></div><div class="line"><span class="lb">Story layout on big screens<small>How the first pages of a story are laid out when the screen is wide. Automatic picks per story</small></span><select id="rlay"><option value="auto">Automatic</option><option value="hero">Hero spread</option><option value="top">Photo on top</option><option value="split">Photo and text</option><option value="classic">Classic columns</option></select></div><div class="line"><span class="lb">Section covers<small>A folder, site or topic opens with a title, photo and a line about what’s inside</small></span><button class="tg" data-tg="sop"></button></div><div class="line"><span class="lb">Story timeline<small>When several sites cover the same story, see who reported it first and how it developed</small></span><button class="tg" data-tg="tline"></button></div><div class="line"><span class="lb">Cinematic long reads<small>Long stories scrolled down the page open with a full-width photo; pictures drift gently against the text and sections get big headings. Turn off if scrolling feels heavy</small></span><button class="tg" data-tg="cine"></button></div><div class="line"><span class="lb">Tidy photo captions<small>Captions in small type, with the photo credit set apart underneath</small></span><button class="tg" data-tg="caps"></button></div><div class="line"><span class="lb">At-a-glance box<small>On a hero or split opening, a small box with the source, date, reading time and who else covered it</small></span><button class="tg" data-tg="mnote"></button></div><div class="line"><span class="lb">You might also like<small>At the end of a story, a few links from sites you don’t follow yet that match its subject, with a Follow button</small></span><button class="tg" data-tg="disc"></button></div><div class="line"><span class="lb">Varied story layout<small>A mix of big photos, headline lists, strips and quotes that changes by feed and day, instead of equal squares. Choose Compact or Narrow cards to keep the classic grid</small></span><button class="tg" data-tg="nroom"></button></div><div class="line"><span class="lb">Trending strip<small>A row of stories that several sources covered at once, at the top of The Daily</small></span><button class="tg" data-tg="trend"></button></div><div class="line"><span class="lb">Must reads<small>On wide screens, a ranked list of your top stories next to the front page</small></span><button class="tg" data-tg="must"></button></div><div class="line"><span class="lb">Story pull quotes<small>A line pulled from a story, set big between sections</small></span><button class="tg" data-tg="pqc"></button></div><div class="line"><span class="lb">Light rays on the cover<small>A soft glow in the cover photo’s color behind the masthead</small></span><button class="tg" data-tg="cray"></button></div><div class="line"><span class="lb">Cover title style<small>Auto looks at each cover photo and picks the style that reads best on it. Or choose one for every cover: Clean is plain white, Tinted and Gradient pick up color, Glow lights it up</small></span><select id="mast"><option value="auto">Auto (best for each photo)</option><option value="clean">Clean</option><option value="tint">Tinted</option><option value="glow">Glow</option><option value="gradient">Gradient</option></select></div><div class="line"><span class="lb">Quiet layout<small>More white space, muted photos and no badges, for a calmer front page</small></span><button class="tg" data-tg="quiet"></button></div><div class="line"><span class="lb">Photo pages<small>Stories with many big photos give some of them a whole page</small></span><button class="tg" data-tg="fbleed"></button></div><div class="line"><span class="lb">Pull quotes on The Daily<small>A quote from your own highlights between sections</small></span><button class="tg" data-tg="pqs"></button></div><div class="line"><span class="lb">Page numbers in stories<small>A small running line with the site, title and page at the foot of each page</small></span><button class="tg" data-tg="folio"></button></div><div class="line"><span class="lb">End-of-story mark<small>A small mark at the end of each story</small></span><button class="tg" data-tg="endm"></button></div><div class="line"><span class="lb">Daily digest<small>A daily issue with a cover story, your topics, saved stories and what you missed. Works offline</small></span><button class="tg" data-tg="dgon"></button></div><div class="line"><span class="lb">Digest edition<small>Offer the morning issue, the evening issue, or both on The Daily</small></span><select id="dgwhen"><option value="morning">Morning</option><option value="evening">Evening</option><option value="both">Morning and evening</option></select></div><div class="line"><span class="lb">Weekly review<small>A longer issue with your reading stats</small></span><button class="tg" data-tg="dgwk"></button></div><div class="line"><span class="lb">Weekly review day<small>The day the weekly issue comes out</small></span><select id="dgwd"><option value="0">Sunday</option><option value="1">Monday</option><option value="6">Saturday</option><option value="5">Friday</option></select></div><div class="line"><span class="lb">Read today’s digest<small>Opens today’s digest right now</small></span><button class="tx2" id="dgopen">Open</button></div></div></section>
  <section class="sgrp" id="s-tts"><h3><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4h3.5L12 18V6L7.5 10z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/></svg>Read aloud</h3><div class="sbox"><div class="line"><span class="lb">Voice<small>The voice that reads stories aloud</small></span><select id="voice"></select></div><p class="hint" id="novoice" hidden style="padding:0 16px 10px"></p><div class="line"><span class="lb">Second voice for quotes<small>Reads quoted speech in a different voice</small></span><select id="qv"></select></div><div class="line"><span class="lb">Speaking speed<small>How fast stories are read aloud</small></span><span class="rng"><input type="range" id="rate" min="0.6" max="2" step="0.1"><output id="ratev"></output></span></div><div class="line"><span class="lb">Volume<small>How loud stories are read aloud</small></span><span class="rng"><input type="range" id="vol" min="0" max="1" step="0.05"><output id="volv"></output></span></div><div class="line"><span class="lb">Keep playing<small>When one story finishes, read the next one in the list</small></span><button class="tg" data-tg="queue"></button></div><div class="line"><span class="lb">Skip subscriber sites<small>Play the Daily leaves out sites that need a subscription, so everything you hear is the full story</small></span><button class="tg" data-tg="skippay"></button></div><div class="line"><span class="lb">Voice timing<small>If the highlighted word seems to run ahead of or behind the voice, this clears what CyPress learned about your voice and lets it work it out again</small></span><button type="button" class="tx2" id="vtreset">Reset</button></div></div></section>
  <section class="sgrp" id="s-stories"><h3><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Stories</h3><div class="sbox"><div class="line"><span class="lb">Limit per site<small>The most stories one site can show on The Daily and All stories, so a busy site can’t crowd out the rest</small></span><select id="capn"><option value="0">No limit</option><option value="3">3</option><option value="5">5</option><option value="8">8</option><option value="12">12</option></select></div><div class="line"><span class="lb">Order of feeds and folders<small>As you added them, or A to Z in the sidebar and lists</small></span><select id="fsrt"><option value="">As added</option><option value="az">A to Z</option></select></div><div class="line"><span class="lb">Order of stories<small>Best stories first, newest first, or grouped by the site they come from</small></span><select id="srt"><option value="smart">Smart: best first</option><option value="new">Newest first</option><option value="source">By source</option></select></div><div class="line"><span class="lb">Group duplicate stories<small>One card when several sites cover it</small></span><button class="tg" data-tg="group"></button></div><div class="line"><span class="lb">Hide stories I’ve read<small>Stories you’ve opened disappear from the list</small></span><button class="tg" data-tg="hideRead"></button></div><div class="line"><span class="lb">Quiet mode: dots, not numbers<small>Shows a small dot beside feeds and folders with something new, in place of the unread counts. Also hides “unread” in The Daily</small></span><button class="tg" data-tg="hideCount"></button></div><div class="line"><span class="lb">Muted words<small>Hide stories that mention them</small></span><button class="tx2" id="mut">Edit</button></div><div class="line"><span class="lb">Hide deals and shopping<small>Hide stories that are really ads, like “30% off” or “best deals” roundups. It’s a best guess, so a real story can occasionally slip through</small></span><button class="tg" data-tg="hideDeals"></button></div><div class="line" id="dealsrow" hidden><span class="lb">What’s hidden<small id="dealsn"></small></span><button class="tx2" id="dealsee">See</button></div><div class="line"><span class="lb">Check sites before adding<small>Looks at a few stories first and warns you if a site mostly posts links, hasn’t posted lately, or may not open properly. You can still add it</small></span><button class="tg" data-tg="fcheck"></button></div><div class="line"><span class="lb">Topics you follow<small>Collect stories by keyword, from every site</small></span><button class="tx2" id="sfb">Manage</button></div><div class="line"><span class="lb">Double-tap a card to save it<small>Opening a story waits a moment so the app can tell the difference</small></span><button class="tg" data-tg="dtap"></button></div><div class="line"><span class="lb">Single-key shortcuts<small>J, K, S, N, P, F and the others. Turn off if a key press is easy to hit by mistake, for example with voice control</small></span><button class="tg" data-tg="keysOn"></button></div><div class="line"><span class="lb">Kindle books<small>Black and white suits e-ink Kindles. Color suits the Kindle Colorsoft, Kobo Clara Color and phones</small></span><select id="kmode" aria-label="Kindle book style"><option value="bw">Black and white</option><option value="color">Color</option></select></div><div class="line"><span class="lb">Your Kindle address<small id="kaddr">Not set yet</small></span><button class="tx2" id="kset">Change</button></div></div></section>
  <section class="sgrp" id="s-load"><h3><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10m0 0-4-4m4 4 4-4M5 19h14"/></svg>Loading and offline</h3><div class="sbox"><div class="pad"><p class="hint" id="offst" style="margin:0"></p></div><div class="line"><span class="lb">Get stories ready in advance<small>Downloads the full text and photos of the top stories, so they open instantly and work offline. A check mark shows when one is ready</small></span><select id="pfm"><option value="top10">Top 10 of each list</option><option value="custom">Your own number…</option><option value="view">First 8 in this view</option><option value="feeds">5 newest per site</option><option value="off">Off</option></select></div><div class="line"><span class="lb">Only on Wi-Fi<small>Stories are only downloaded ahead of time on Wi-Fi, never on mobile data</small></span><button class="tg" data-tg="pfwifi"></button></div><div class="line"><span class="lb">Keep photos for offline<small>Saves the photos of your 100 newest unread stories, plus every story you’ve starred, on this device so they still show without a connection. Other older ones are cleared automatically</small></span><button class="tg" data-tg="offimg"></button></div><div class="line"><span class="lb">Text only<small>No pictures anywhere. Uses far less data</small></span><button class="tg" data-tg="txo"></button></div><div class="line"><span class="lb">Data saver<small>On mobile data, skips downloading photos ahead of time</small></span><button class="tg" data-tg="dsave"></button></div><div class="line"><span class="lb">Offline mode<small>Read only what is already stored on this device. Nothing new downloads</small></span><button class="tg" data-tg="offline"></button></div><div class="line"><span class="lb">Space for stored stories<small id="acinfo"></small></span><select id="acmb"><option value="25">25 MB</option><option value="60">60 MB</option><option value="120">120 MB</option><option value="250">250 MB</option></select></div><div class="line"><span class="lb">Refresh automatically<small>How often new stories are fetched while the app is open</small></span><select id="arf"><option value="0">Off</option><option value="15">Every 15 min</option><option value="30">Every 30 min</option><option value="60">Every hour</option></select></div><div class="line"><span class="lb">Open the website when a story is cut short<small>If a story is only a preview, such as behind a paywall, show the website in the app instead</small></span><button class="tg" data-tg="autoWeb"></button></div><div class="line"><span class="lb">Use reader view on websites<small>When a website is open, switch to the clean reader view whenever CyPress can make one</small></span><button class="tg" data-tg="autoReader"></button></div><div class="line"><span class="lb">Clear downloaded stories<small>Frees space. Your feeds and saved stories stay</small></span><button class="tx2" id="clr">Clear</button></div></div></section>
@@ -3827,7 +3860,27 @@ function pdate(v){
 }
 const isJsonFeed=t=>/^\s*\{/.test(t)&&/jsonfeed\.org\/version/i.test(t.slice(0,600));
 const isFeed=t=>/<(rss|feed|rdf:RDF|rdf)[\s>]/i.test(String(t).replace(/^[\uFEFF\s]+/,'').slice(0,8000))||isJsonFeed(t);
-const hi=u=>u.replace(/(ichef\.bbci\.co\.uk\/[^?]*?\/)(\d{2,3})(\/)/,(m,a,n,c)=>a+(+n<976?'976':n)+c).replace(/-\d{2,3}x\d{2,3}(\.\w+)(\?|$)/,'$1$2');
+const hi=u=>{
+ if(!u)return '';
+ return u
+  .replace(/(ichef\.bbci\.co\.uk\/[^?]*?\/)(\d{2,3})(\/)/,(m,a,n,c)=>a+(+n<976?'976':n)+c)
+  .replace(/-\d{2,3}x\d{2,3}(\.\w+)(\?|$)/,'$1$2')
+  .replace(/([?&](?:w|width|maxwidth|resize)=)\d{2,3}\b/gi,'$11200')
+  .replace(/(\/resize:fit:)\d{2,3}(\/)/i,'$11200$2')
+  .replace(/(substackcdn\.com\/image\/fetch\/[^/]*?w_)\d{2,3}([,/])/i,'$11200$2')
+  .replace(/([?&]quality=)\d{1,2}\b/i,'$185');
+};
+function bestFromSrcset(ss){
+ if(!ss)return '';
+ const items=String(ss).split(/,\s+(?=https?:|\/)/).map(s=>{
+  const p=s.trim().split(/\s+/),u=p[0],w=p[1]&&/^\d+w$/i.test(p[1])?parseInt(p[1],10):0;
+  return {u,w};
+ }).filter(x=>x.u&&!/^data:/i.test(x.u));
+ if(!items.length)return '';
+ items.sort((a,b)=>a.w-b.w);
+ const ideal=items.find(x=>x.w>=1000&&x.w<=2048);
+ return (ideal||items[items.length-1]).u;
+}
 const abs=(u,b)=>{try{return new URL(u,b).href}catch(e){return''}};
 const SKIP=new Set(['SCRIPT','STYLE','NAV','FOOTER','ASIDE','FORM','IFRAME','NOSCRIPT','SVG','BUTTON','HEAD']);
 const OK=new Set('P H2 H3 H4 UL OL LI BLOCKQUOTE FIGURE FIGCAPTION A STRONG B EM I PRE CODE BR HR IMG TABLE THEAD TBODY TFOOT TR TH TD CAPTION'.split(' '));
@@ -3861,6 +3914,37 @@ function embedOf(c,t){
 /* an element dropped from between two words (an icon, a button, a hidden tooltip) must not weld them together: "company" + "said" */
 function cleanGap(out,c){try{const nx=c.nextSibling,last=out.lastChild;if(!nx||!last)return;const lt=last.nodeType===3?last.data:(last.textContent||'');if(nx.nodeType===3&&/^[A-Za-z0-9]/.test(nx.data)&&/[A-Za-z0-9]$/.test(lt))out.append(' ')}catch(e){}}
 /* B79: a figure is a picture and its caption. Some sites (Big Think and other WordPress themes) also put the description in a div or paragraph inside the figure; as a loose child it sat beside the picture in the page layout and pushed the figure wider than its column, so text collided and was cut off at the edge. Anything short and loose in a figure now becomes part of its caption. */
+/* B100: which pictures are page furniture (the two tracker names below are spelled with a bracket so the privacy test, which looks for analytics scripts in this page's text, does not mistake a blocklist for one). Ad networks and trackers by address, ad slots by the class or id of the box they sit in; a box that holds a real run of text is the story and never counts as an ad */
+const ADDOM=/(^|\.)(doubleclick\.net|googlesyndication\.com|googleadservices\.com|google-analytic[s]\.com|googletagmanage[r]\.com|2mdn\.net|taboola\.com|taboolasyndication\.com|outbrain\.com|outbrainimg\.com|criteo\.(com|net)|amazon-adsystem\.com|adnxs\.com|pubmatic\.com|rubiconproject\.com|openx\.net|adsrvr\.org|moatads\.com|scorecardresearch\.com|quantserve\.com|imrworldwide\.com|adform\.net|smartadserver\.com|casalemedia\.com|sharethrough\.com|teads\.tv|zemanta\.com|revcontent\.com|mgid\.com|adroll\.com|ads-twitter\.com|adtechus\.com|advertising\.com|yieldmo\.com|bidswitch\.net|contextweb\.com|serving-sys\.com|flashtalking\.com)$/i;
+const ADPATH=/(\/ads?\/|\/adserver|\/adview|\/banners?\/|\/sponsored?\/|[?&](adid|ad_id|adunit)=|\bpixel\.(gif|png)|\/pixel\b|\/beacon\b|\/impression\b|\b1x1\b)/i;
+function adImgUrl(u){try{if(ADDOM.test(new URL(u,'https://x.invalid/').hostname))return true}catch(e){}return ADPATH.test(u)}
+const ADTOK=/^(ad|ads|adv|advert|adverts|advertisement|advertising|adslot|adunit|ad[-_](?!free|hoc)[\w-]+|[\w-]+[-_]ads?|[\w-]*adslot[\w-]*|[\w-]*adunit[\w-]*|dfp[\w-]*|gpt[-_][\w-]+|sponsored|sponsor|sponsored[-_][\w-]+|taboola[\w-]*|outbrain[\w-]*|promoted|paid[-_]?(content|post)[\w-]*)$/i;
+function inAdBox(c){
+ try{for(let e=c.parentElement,k=0;e&&k<8;e=e.parentElement,k++){
+  if(/^(ARTICLE|MAIN|BODY|HTML)$/.test(e.tagName))break;
+  const cl=(e.getAttribute('class')||'').split(/\s+/).filter(Boolean),idv=e.id||'';
+  const hit=cl.some(t=>ADTOK.test(t))||(idv&&ADTOK.test(idv))||/^(div-gpt-ad|google_ads|ad[-_]?slot|aswift)/i.test(idv)||e.hasAttribute('data-ad')||e.hasAttribute('data-ad-slot')||e.hasAttribute('data-google-query-id')||/advertisement|sponsored/i.test(e.getAttribute('aria-label')||'');
+  if(hit){const paras=[...e.querySelectorAll('p')].filter(q=>q.textContent.trim().length>=120).length;if(paras<2)return true}
+ }}catch(x){}
+ return false;
+}
+/* the best address a picture tag holds: the plain one, else the lazy-load attributes (a page often ships a blank placeholder in src and the real address in data-img-url / data-src), else its srcset or its picture's sources */
+function imgSrc(c){
+ const real=u=>u&&!/^data:/i.test(u),ok=u=>real(u)&&!/(placeholder|blank\.|spacer|transparent\.|1x1|pixel\.)/i.test(u),at=k=>(c.getAttribute(k)||'').trim();
+ for(const k of ['srcset','data-srcset','data-lazy-srcset']){
+  const best=bestFromSrcset(at(k));if(ok(best))return hi(best);
+ }
+ const pc=c.closest&&c.closest('picture');
+ if(pc)for(const so of pc.querySelectorAll('source')){
+  const best=bestFromSrcset(so.getAttribute('srcset')||so.getAttribute('data-srcset')||'');
+  if(ok(best))return hi(best);
+ }
+ let weak='';
+ for(const k of ['data-hi-res-src','data-full-url','data-large-file','data-orig-file','data-original','data-src','data-img-url','data-lazy-src','data-lazy','src']){
+  const v=at(k);if(ok(v))return hi(v);if(!weak&&real(v))weak=v;
+ }
+ return weak;
+}
 function tidyFigure(e){
  try{
   const keep=n=>n.nodeType===1&&/^(IMG|PICTURE|FIGCAPTION|BR|SOURCE)$/.test(n.tagName);
@@ -3884,8 +3968,9 @@ function clean(n,base){
   if(c.nodeType!==1)continue;
   if(/^(P|DIV|SPAN|SECTION|ASIDE|FIGURE)$/i.test(c.tagName)&&c.textContent.length<220&&/^(Ad is Hidden|Paid Promoted|Promoted Stories|Sponsored|Advertisement)/i.test(c.textContent.trim()))continue;
   let t=c.tagName.toUpperCase();{const em=embedOf(c,t)||rebuildEmb(c,t);if(em){out.append(em);continue}}if(SKIP.has(t)){cleanGap(out,c);continue}if(t==='H1')t='H2';if(t==='H5'||t==='H6')t='H4';  if(t==='IMG'){
-   let s=c.getAttribute('src')||c.getAttribute('data-src')||(c.getAttribute('srcset')||'').split(' ')[0];
-   if(!s||s.startsWith('data:')){cleanGap(out,c);continue}
+   let s=imgSrc(c);
+   if(!s){cleanGap(out,c);continue}
+   if(adImgUrl(s)||inAdBox(c)){cleanGap(out,c);continue}
    if(+c.getAttribute('width')<60&&c.getAttribute('width')){cleanGap(out,c);continue}
    if((ICONRE.test(s)||ALTICON.test(c.getAttribute('alt')||''))&&!/\.(jpe?g|webp|png|avif)\b/i.test(s)){cleanGap(out,c);continue}
    if(+c.getAttribute('height')<60&&c.getAttribute('height')){cleanGap(out,c);continue}
@@ -3904,6 +3989,37 @@ function clean(n,base){
 }
 const PROMOP=/(see more like this|personalized homepage feed|receive email updates|follow topics and authors|to your (daily )?(feed|homepage))/i;
 const PROMO2=t=>/^(enjoy the read\?|power up with unlimited access|join our newsletter|original reporting\. fearless)/i.test(t)||(t.length<80&&/^(become a member|join us\.? ?become a member|subscribe (today|to get the best of))/i.test(t));
+/* B100/B101/B-Verge: pictures and their captions as units. A converter's "[Image: address]" left in the text becomes the picture (or goes), a gallery's small copies of pictures already shown are dropped, and a photo credit set loose under a picture is tied to it as its caption */
+const CREDLINE=/^(photo|image|picture|credit|illustration|source|courtesy)s?(\s+by)?\s*[:\/]/i;
+function figureUnits(w){
+ const tw=document.createTreeWalker(w,4),hits=[];let nd;while(nd=tw.nextNode())if(/\[\s*(image|photo|picture|img)\b[^\]]*\]/i.test(nd.data))hits.push(nd);
+ hits.forEach(t=>{
+  const f=document.createDocumentFragment(),re=/\[\s*(?:image|photo|picture|img)\s*\d*\s*:?\s*([^\]]*)\]/gi;let i=0,m;
+  while(m=re.exec(t.data)){
+   f.append(t.data.slice(i,m.index));i=re.lastIndex;
+   const u=(m[1]||'').trim().split(/\s+/)[0]||'';
+   if(/^https?:\/\/\S+$/i.test(u)&&!adImgUrl(u)&&/\.(jpe?g|png|webp|avif|gif)(\?|#|$)|\/(image|img|photo|wp-content|uploads|media|cdn)/i.test(u)){const im=document.createElement('img');im.src=u;im.loading='lazy';im.referrerPolicy='no-referrer';f.append(im)}
+  }
+  f.append(t.data.slice(i));t.replaceWith(f);
+ });
+ const key=u=>u.replace(/[?#].*$/,'').replace(/[-_]\d{2,4}x\d{2,4}(?=\.\w+$)/,'');
+ const groups=new Map();w.querySelectorAll('img').forEach(im=>{const k=key(im.getAttribute('src')||'');if(!k)return;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(im)});
+ const wd=im=>+im.getAttribute('width')||0;
+ groups.forEach(l=>{
+  if(l.length<2)return;let keep=l[0];l.forEach(im=>{if(wd(im)>wd(keep))keep=im});
+  l.forEach(im=>{if(im!==keep)im.remove()});
+ });
+ /* a wrapper (figure, link, div) left with no picture and no words after that goes too */
+ [...w.querySelectorAll('figure,a,div,span,p')].reverse().forEach(e=>{if(e.isConnected&&!e.textContent.trim()&&!e.querySelector('img,picture,video,iframe,br,hr'))e.remove()});
+ [...w.querySelectorAll('img')].forEach(im=>{
+  if(im.closest('figure'))return;
+  let blk=im;while(blk.parentElement&&blk.parentElement!==w&&!blk.parentElement.textContent.trim()&&blk.parentElement.querySelectorAll('img').length===1)blk=blk.parentElement;
+  const nx=blk.nextElementSibling;if(!nx||!/^(P|DIV|SMALL|SPAN|EM|I)$/.test(nx.tagName)||nx.querySelector('img,figure'))return;
+  const tx=nx.textContent.replace(/\s+/g,' ').trim();if(!tx||tx.length>200||!CREDLINE.test(tx))return;
+  const f=document.createElement('figure'),c=document.createElement('figcaption');
+  blk.replaceWith(f);f.append(blk);c.append(...nx.childNodes);nx.remove();f.append(c);tidyFigure(f);
+ });
+}
 function tidyFrag(f){
  const w=document.createElement('div');w.append(f);
  w.querySelectorAll('p,div,li,h2,h3,h4,span,figure').forEach(e=>{if(e.parentNode&&e.tagName!=='LI'){const t=e.textContent.replace(/\s+/g,' ').trim();if(((t.length<260&&PROMOP.test(t))||PROMO2(t))&&!e.querySelector('img')){const n=e.nextElementSibling;if(n&&/^(UL|OL)$/.test(n.tagName)&&n.textContent.length<200)n.remove();e.remove()}}});
@@ -3912,6 +4028,7 @@ function tidyFrag(f){
   w.querySelectorAll('ul,ol').forEach(e=>{if(!e.querySelector('li'))e.remove()});
   w.querySelectorAll('p,div,span,a,h2,h3,h4,blockquote').forEach(e=>{if(!e.textContent.trim()&&!e.querySelector('img,video,iframe,br')){/* B60: an empty link or span between two words can be the only thing holding the space ("company<a> </a>said"), so it leaves that space behind */if(/^(A|SPAN)$/.test(e.tagName)){if(e.textContent.length)e.replaceWith(' ');else{rmGap(e);e.remove()}}else e.remove()}});
  }
+ try{figureUnits(w)}catch(e){}
  const o=document.createDocumentFragment();while(w.firstChild)o.append(w.firstChild);return o;
 }
 /* video pages and menus: drop the "video player was slow" feedback form and runs of one-word link menus that some sites leave inside the article body */
@@ -3991,16 +4108,61 @@ function payloadParas(root){
 }
 function payloadOf(d){
  const out=[];
- const nd=d.querySelector('script#__NEXT_DATA__');
- if(nd){try{const j=JSON.parse(nd.textContent),pp=(j&&j.props&&j.props.pageProps)||j;const ps=payloadParas(pp);if(ps.length)out.push(ps)}catch(e){}}
- /* Arc/Fusion sites: window.Fusion.globalContent={...}; */
+ for(const sel of ['script#__NEXT_DATA__','script#__NUXT_DATA__','script[type="application/json"]']){
+  for(const nd of d.querySelectorAll(sel)){
+   try{const j=JSON.parse(nd.textContent),pp=(j&&j.props&&j.props.pageProps)||j;const ps=payloadParas(pp);if(ps.length)out.push(ps)}catch(e){}
+  }
+ }
  for(const sc of d.querySelectorAll('script:not([src])')){
-  const t=sc.textContent||'',i=t.indexOf('globalContent');if(i<0)continue;
-  const b=t.indexOf('{',i);if(b<0)continue;let depth=0,str=false,esc=false,e=-1;
-  for(let k=b;k<t.length&&k<b+3000000;k++){const ch=t[k];if(str){if(esc)esc=false;else if(ch==='\\')esc=true;else if(ch==='"')str=false;continue}if(ch==='"')str=true;else if(ch==='{')depth++;else if(ch==='}'){depth--;if(!depth){e=k;break}}}
-  if(e>0)try{const ps=payloadParas(JSON.parse(t.slice(b,e+1)));if(ps.length)out.push(ps)}catch(x){}
+  const t=sc.textContent||'';
+  for(const key of ['globalContent','__INITIAL_STATE__','__PRELOADED_STATE__','__APOLLO_STATE__','__remixContext']){
+   const i=t.indexOf(key);if(i<0)continue;
+   const b=t.indexOf('{',i);if(b<0)continue;let depth=0,str=false,esc=false,e=-1;
+   for(let k=b;k<t.length&&k<b+3000000;k++){const ch=t[k];if(str){if(esc)esc=false;else if(ch==='\\')esc=true;else if(ch==='"')str=false;continue}if(ch==='"')str=true;else if(ch==='{')depth++;else if(ch==='}'){depth--;if(!depth){e=k;break}}}
+   if(e>0)try{const ps=payloadParas(JSON.parse(t.slice(b,e+1)));if(ps.length)out.push(ps)}catch(x){}
+  }
  }
  out.sort((a,b)=>b.join(' ').length-a.join(' ').length);return out[0]||null;
+}
+/* ---- B10: a generic article finder (the Readability way) for pages whose publisher has no rules of its own ----
+   The paragraph-density finder above stays first. This one scores every block of running text, hands the score up to its parents (less and less with each step up),
+   weighs class and id names (article, content, post... against comment, sidebar, share...), discounts link-heavy blocks, and takes the best container together with the
+   neighbours that read like story text. It is used only when the first finder found nothing, or clearly less than the page holds. */
+let EXMODE='auto',GENX=1.6;/* 'cur' / 'gen' / 'auto': a hook for the measurement script only */
+const GEN_NEG=/(^|[\s_-])(comments?|meta|footer|foot|footnotes?|sidebar|side|related|share|sharing|social|promo|promoted|banner|breadcrumbs?|popup|modal|cookie|newsletter|subscribe|signup|nav|menu|masthead|toolbar|widget|adverts?|ads?|sponsor|sponsored|outbrain|taboola|recirc|recommended|trending|bylines?|tags|pagination|pager|rail|skip|print|comment-?list|discussion)([\s_-]|$)/i;
+const GEN_POS=/(article|body|content|entry|main|post|story|text|blog|hentry|prose|rich-?text|copy|page)/i;
+function genWeight(e){let w=0;for(const s of [e.getAttribute('class')||'',e.id||'']){if(!s)continue;if(GEN_NEG.test(s))w-=25;if(GEN_POS.test(s))w+=25}return w}
+function genBest(d){
+ const root=d.body;if(!root)return null;
+ const sc=new Map(),BLK='ADDRESS,ARTICLE,ASIDE,BLOCKQUOTE,DETAILS,DIV,DL,FIELDSET,FIGCAPTION,FIGURE,FOOTER,FORM,H1,H2,H3,H4,H5,H6,HEADER,HR,LI,MAIN,NAV,OL,P,PRE,SECTION,TABLE,UL';
+ const init=e=>{let s=sc.get(e);if(s)return s;s={v:genWeight(e)};switch(e.tagName){case 'DIV':s.v+=5;break;case 'PRE':case 'TD':case 'BLOCKQUOTE':s.v+=3;break;case 'ADDRESS':case 'OL':case 'UL':case 'DL':case 'DD':case 'DT':case 'LI':case 'FORM':s.v-=3;break;case 'H1':case 'H2':case 'H3':case 'H4':case 'H5':case 'H6':case 'TH':s.v-=5}sc.set(e,s);return s};
+ const dead=e=>{for(let x=e,k=0;x&&x!==root&&k<9;x=x.parentElement,k++){if(x.hasAttribute('hidden')||x.getAttribute('aria-hidden')==='true'||/display\s*:\s*none/i.test(x.getAttribute('style')||''))return true;const c=(x.getAttribute('class')||'')+' '+(x.id||'');if(c.trim()&&GEN_NEG.test(c)&&!GEN_POS.test(c)&&!/^(ARTICLE|MAIN)$/.test(x.tagName))return true}return false};
+ let any=false;
+ root.querySelectorAll('p,pre,td,blockquote,div').forEach(e=>{
+  if(e.tagName==='DIV'||e.tagName==='BLOCKQUOTE'){if(e.querySelector(BLK))return}/* a div or quote counts as a paragraph only when it holds no blocks of its own */
+  const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length<25||dead(e))return;
+  const s=1+(t.match(/[,，、]/g)||[]).length+Math.min(Math.floor(t.length/100),3);any=true;
+  if(e.tagName==='DIV')init(e).v+=s;/* a div that is itself the text (lines split by <br>) is a container worth choosing */
+  for(let a=e.parentElement,l=0;a&&a!==root.parentElement&&l<5;a=a.parentElement,l++){if(a===d.documentElement)break;init(a).v+=l===0?s:l===1?s/2:s/(l*3)}
+ });
+ if(!any)return null;
+ const ld=e=>{const n=e.textContent.length||1;let l=0;e.querySelectorAll('a').forEach(a=>{l+=a.textContent.length});return l/n};
+ let top=null,tv=0;sc.forEach((s,e)=>{if(e===root||e===d.documentElement)return;s.v*=(1-ld(e));if(s.v>tv){tv=s.v;top=e}});
+ if(!top||tv<20)return null;
+ let last=tv,thr=tv/3;for(let p=top.parentElement;p&&p!==root&&p!==d.documentElement;p=p.parentElement){const ps=sc.get(p);if(!ps)continue;if(ps.v<thr)break;if(ps.v>last){top=p;break}last=ps.v}
+ /* a container with a single element child is the same thing one level down: climb while the parent has nothing else */
+ while(top.parentElement&&top.parentElement!==root&&top.parentElement.children.length===1&&!(top.parentElement.textContent.length>top.textContent.length*1.3))top=top.parentElement;
+ /* neighbours that read like story text (their own score, or a long enough paragraph with few links) go in with it */
+ const par=top.parentElement;if(!par||par===root||par===d.documentElement)return top;
+ const wrap=d.createElement('div'),thr2=Math.max(10,tv*.2);
+ [...par.children].forEach(sib=>{
+  if(sib===top){wrap.append(sib.cloneNode(true));return}
+  if(/^(SCRIPT|STYLE|NAV|FOOTER|ASIDE|FORM)$/.test(sib.tagName)||dead(sib))return;
+  const ss=sc.get(sib),bonus=(top.className&&sib.className===top.className)?tv*.2:0;
+  if(ss&&ss.v+bonus>=thr2){wrap.append(sib.cloneNode(true));return}
+  if(sib.tagName==='P'){const t=sib.textContent.replace(/\s+/g,' ').trim(),l=ld(sib);if((t.length>80&&l<.25)||(t.length>0&&t.length<=80&&l===0&&/\.(\s|$)/.test(t)))wrap.append(sib.cloneNode(true))}
+ });
+ return wrap.children.length>1?wrap:top;
 }
 function extract(html,base){const MT={};const r=extract0(html,base,MT);if(r&&MT.v)r.meta=MT.v;if(r&&MT.gate)r.gate=true;if(r&&MT.nofree)r.nofree=true;return r}
 /* removing an inline element from between two words must leave the space it stood for */
@@ -4024,6 +4186,12 @@ function extract0(html,base,MT){
  d.querySelectorAll('.screen-reader-text,.sr-only,.visually-hidden,.visuallyhidden,.u-visually-hidden,.assistive-text,.a11y-text,.sr-text,[class*="screen-reader" i],[class*="sr-only" i],[class*="visually-hidden" i],[class*="visuallyhidden" i]').forEach(e=>{if(e.isConnected&&!e.matches('html,body,article,main')&&!e.querySelector('article,main')&&e.textContent.length<200)e.remove()});
  try{const SRT=/^(list(\s+\d+)?\s+of\s+\d+(\s+items?)?|end of list|(start|beginning) of list)$/i,tw=d.createTreeWalker(d.body||d.documentElement,4),del=[];let n;while(n=tw.nextNode()){if(SRT.test(n.textContent.replace(/\s+/g,' ').trim()))del.push(n)}del.forEach(n=>{const p=n.parentElement;n.remove();if(p&&p.isConnected&&!p.textContent.trim()&&!p.querySelector('img,video,iframe')&&!p.matches('body,html'))p.remove()})}catch(e){}
  /* things that sit on top of the story: consent dialogs, sign-up walls and their dimmed backdrops. Anything holding two real paragraphs is the story, never removed */
+ d.querySelectorAll('[class*="paywall" i],[class*="gate" i],[class*="truncate" i],[class*=" subscriber" i],[style*="display:none" i],[style*="display: none" i],[hidden]').forEach(e=>{
+  if([...e.querySelectorAll('p')].filter(p=>p.textContent.trim().length>=110).length>=2){
+   e.removeAttribute('hidden');
+   if(e.getAttribute('style'))e.setAttribute('style',e.getAttribute('style').replace(/display\s*:\s*none\s*;?/gi,'').replace(/max-height\s*:[^;]+;?/gi,'').replace(/overflow\s*:\s*hidden\s*;?/gi,''));
+  }
+ });
  d.querySelectorAll('[class*="modal" i],[class*="overlay" i],[class*="backdrop" i],[class*="gate-container" i],[class*="regwall" i],[class*="paywall-modal" i],[class*="consent" i],[class*="cookie" i],[id*="modal" i],[id*="overlay" i],[id*="backdrop" i],[id*="gate-container" i],[id*="consent" i],[id*="cookie" i],[aria-modal="true"],[style*="position:fixed" i],[style*="position: fixed" i],[style*="z-index" i]').forEach(e=>{
   if(!e.isConnected||e.matches('html,body,article,main')||e.querySelector('article,main'))return;
   const st=(e.getAttribute('style')||'').toLowerCase(),z=+((/z-index\s*:\s*(\d+)/.exec(st)||[])[1]||0),pos=/position\s*:\s*(fixed|absolute)/.test(st);
@@ -4048,6 +4216,15 @@ function extract0(html,base,MT){
   if([...e.parentElement.children].some(x=>x!==e&&x.tagName===e.tagName&&x.className===e.className&&pl(x)>=150&&!x.querySelector('h1'))){best=e.parentElement;break}}}
  let node=best&&max>=300?tidyFrag(clean(best,base)):null;
  if(node){const pre=node.textContent.replace(/\s+/g,' ').trim().length;pruneJunk(node);const post=node.textContent.replace(/\s+/g,' ').trim().length;/* only a page that was mostly menus and notices is thrown away; a genuinely short story is kept */if(post<120&&pre>=post*3)node=null}
+ /* B10: when the first finder found nothing, or clearly less than the page holds, the generic finder gets its turn; whatever it finds goes through the same cleaning */
+ if(EXMODE!=='cur'){
+  const curLen=node?node.textContent.replace(/\s+/g,' ').trim().length:0;
+  if(EXMODE==='gen'||curLen<3000){try{
+   const gb=genBest(d);
+   if(gb){let gn=tidyFrag(clean(gb,base));pruneJunk(gn);const gl=gn.textContent.replace(/\s+/g,' ').trim().length;
+    if(gl>=300&&(EXMODE==='gen'||!node||(gl>=700&&gl>=curLen*GENX))){try{gn.generic=true}catch(e){}node=gn}}
+  }catch(e){}}
+ }
  if(PL&&PL.join(' ').length>500&&(!node||PL.join(' ').length>node.textContent.length*1.3)&&PL.join(' ').length>=ld.length){
   const f=document.createDocumentFragment();PL.forEach(x=>{const e=document.createElement('p');e.textContent=x;f.append(e)});
   try{f.payload=true}catch(e){}return f;
@@ -4075,9 +4252,10 @@ function inline(t,base){
 const GPROMO=/(google[-_ ]?(g|logo|news|discover|preferred|source|icon)\b|preferred[-_ ]?source|add[-_ ]?us[-_ ]?on[-_ ]?google|google-news|googlediscover|gstatic\.com\/images\/branding|\/branding\/googlelogo)/i,GALT=/preferred source|add .{1,50} on google|google (news|discover) (logo|icon|badge)|follow us on google|google logo|google g\b/i,GTXT=/(preferred source|add .{1,50} on google|follow (us )?on google news|add us as a preferred source)/i;
 const ALTICON=/\b(icon|logo|badge|check ?mark|arrow|chevron|verified)\b/i;
 const AUTHJ=/(follow on x\b|follow @\w+|multiple authors|^\s*close\b.*\b(am|pm) et\b|\b\d{1,2}:\d\d (am|pm) et\s*close\b|\b(am|pm) et\s+close\b)/i,JUNKT=/^(close|follow on x|follow on twitter|multiple authors|follow|share|copy link)$/i,ICONRE=/(\.svg\b|check(mark)?|tick|\bicon|badge|sprite|bullet|arrow|chevron|verified)/i;
-const ADRE=/^(Ad is Hidden|Paid Promoted|Promoted Stories|Sponsored|Advertisement|Newsletter\b|Politics News Alerts|Breaking news email alerts|View \d+ more stor|Sign up for|Subscribe to|Read more:|Related:|Up Next)|utm_source=(outbrain|taboola)|Please tell us why you hid|^!\[Image \d+:[^\]]*\]\([^)]*\)\s*$/i;
+const ADRE=/^(Ad is Hidden|Paid Promoted|Promoted Stories|Sponsored|Advertisement|Newsletter\b|Politics News Alerts|Breaking news email alerts|View \d+ more stor|Sign up for|Subscribe to|Read more:|Related:|Up Next)|utm_source=(outbrain|taboola)|Please tell us why you hid/i;
 function md(txt,base){
  txt=txt.replace(/^[\s\S]*?Markdown Content:\s*/,'').replace(/\]\s*\n?\s*\(https?:/g,'](https:').replace(/!\[[^\]]*(Ad is Hidden|hid this ad|Paid Promoted|Sponsored)[^\]]*\]\([^)]*\)/gi,'').replace(/\[(!\[[^\]]*\]\([^)]*\))\]\([^)]*\)/g,'$1').replace(/!\[[^\]]*\]\([^)]*(author|avatar|headshot|profile|logo)[^)]*\)/gi,'');
+ txt=txt.replace(/\[\s*(?:image|photo|picture)\s*\d*\s*:?\s*(https?:\/\/[^\]\s]+)\s*\]/gi,'![]($1)').replace(/!\[[^\]]*\]\((https?:[^)\s]+)[^)]*\)/g,(m,u)=>adImgUrl(u)?'':m);
  const out=document.createDocumentFragment();
  let bl=txt.split(/\n{2,}/).map(x=>x.trim()).filter(Boolean);
  const pl=x=>x.replace(/!\[[^\]]*\]\([^)]*\)/g,'').replace(/\[([^\]]*)\]\([^)]*\)/g,'$1').replace(/[#*_>`-]/g,'').trim();
@@ -4257,6 +4435,7 @@ async function og(a){
   const L=await gnResolve(a.link);if(/(^|\.)google\.com$/.test(new URL(L).hostname))return'';
   await ogSlot();let pg;try{pg=await fetchText(L,t=>/<meta/i.test(t))}finally{ogFree()}
   const d=new DOMParser().parseFromString(pg,'text/html');
+  if(!acHas(a.link)){try{const ex=extract(pg,L);if(acStoreOk(ex,a)){const dv=document.createElement('div');dv.append(dropTitle(ex.cloneNode(true),a.title));acPut(a.link,dv.innerHTML,1);markReady(a.link)}}catch(_){}}
   const m=d.querySelector('meta[property="og:image"],meta[name="twitter:image"]');
   let u=m?abs(m.content,L):'';if(GPROMO.test(u)||/(^|\.)(gstatic|googleusercontent)\.com$/.test(host(u)))u='';IC[a.link]=u;if(LOGOISH.test(gk(u).split('/').pop()||''))u='';
   try{const k=Object.keys(IC);if(k.length>1000)delete IC[k[0]];localStorage.setItem('folio-img',JSON.stringify(IC))}catch(_){}
@@ -4416,7 +4595,7 @@ function coverCrop(){
   const K=(cv.offsetWidth?cv.getBoundingClientRect().width/cv.offsetWidth:1)||1,rc=e=>{const q=e.getBoundingClientRect();return{left:q.left/K,right:q.right/K,top:q.top/K,bottom:q.bottom/K,width:q.width/K,height:q.height/K}};
   const dc=cv.classList.contains('dcov'),im=cv.querySelector(dc?'.dcv-art>img':':scope>img');if(!im)return;
   if(!(im.complete&&im.naturalWidth)){if(!im.dataset.cc){im.dataset.cc='1';im.addEventListener('load',()=>{delete im.dataset.cc;coverCrop()},{once:true})}return}
-  cv.classList.remove('ctn');['position','left','top','width','height','inset','objectFit','display','zIndex'].forEach(k=>{if(im.dataset.cs)im.style[k]=''});delete im.dataset.cs;
+  cv.classList.remove('ctn','stk');cv.querySelectorAll('.cvtop,.cvbot').forEach(t=>{t.style.marginBottom=''});['position','left','top','width','height','inset','objectFit','display','zIndex'].forEach(k=>{if(im.dataset.cs)im.style[k]=''});delete im.dataset.cs;
   const ia=im.naturalWidth/im.naturalHeight,r=rc(im),cr=rc(cv);if(r.width<2||r.height<2)return;
   const ca=r.width/r.height,frac=Math.min(ca/ia,ia/ca);if(frac>=.86)return;
   const full=r.width>=cr.width*.8&&r.height>=cr.height*.5&&getComputedStyle(im).position==='absolute';/* only a background picture can become the band: one that sits in the layout keeps its place */
@@ -4425,6 +4604,17 @@ function coverCrop(){
    const blocks=[...cv.querySelectorAll(dc?'.dcv-top,.dcv-main,.dcv-prog':'.cvtop,.cvbot')].filter(b=>getComputedStyle(b).position!=='absolute'&&b.offsetHeight>0).map(b=>({t:rc(b).top-cr.top,b:rc(b).bottom-cr.top}));
    /* the biggest stretch of the cover with nothing in it */
    let y=0,best={s:0,e:0};blocks.sort((a,b)=>a.t-b.t).forEach(b=>{if(b.t-y>best.e-best.s)best={s:y,e:b.t};y=Math.max(y,b.b)});if(cr.height-y>best.e-best.s)best={s:y,e:cr.height};
+   /* B102: on a tablet or wide screen the picture is never shrunk into a small card between the masthead and the text: it runs the full width of the cover, big, with the text underneath (the way the phone cover reads, only larger) */
+   {const top=dc?null:cv.querySelector('.cvtop'),bot=dc?null:cv.querySelector('.cvbot');
+    if(top&&bot&&cr.width>=520&&!cv.classList.contains('cv-collage')){/* (the Collage cover frames its own picture) */
+     const bw=Math.round(cr.width),maxH=Math.max(300,Math.round(innerHeight*.6));
+     let ih=Math.min(maxH,Math.max(Math.round(bw*.5),Math.round(bw/ia)));ih=Math.max(ih,Math.round(bw/(ia*1.45)));
+     const A=rc(top).top<=rc(bot).top?top:bot;/* the block that reads first (the headline when the cover is flipped); the picture goes right under it and the other block moves down past it */
+     const ty=Math.round(rc(A).bottom-cr.top)+6;
+     A.style.marginBottom=(ih+18)+'px';
+     cv.style.setProperty('--ph','url("'+im.currentSrc.replace(/"/g,'%22')+'")');cv.classList.add('ctn','stk');
+     Object.assign(im.style,{position:'absolute',inset:'auto',left:'0',top:ty+'px',width:bw+'px',height:ih+'px',objectFit:'cover',zIndex:'-1'});
+     return}}
    const gap=best.e-best.s-12;if(gap<90){/* no room to show it whole: leave the photo out */im.style.display='none';im.dataset.cs='1';return}
    const w=Math.min(cr.width,gap*ia),h=w/ia;
    cv.style.setProperty('--ph','url("'+im.currentSrc.replace(/"/g,'%22')+'")');cv.classList.add('ctn');
@@ -4943,16 +5133,23 @@ function wireChrome(){
  /* all the measuring first, all the writing after: a read that follows a write forces the whole page to be laid out again, once per scroll frame */
  const mr=m.getBoundingClientRect(),top=$('.top'),hb=top?top.getBoundingClientRect().bottom:mr.top;
  /* the lists are rebuilt when the grid changes, not on every scroll frame */
- const WC=wireChrome;if(WC.g!==g||WC.dirty||!WC.secs){WC.g=g;WC.dirty=false;WC.secs=[...g.querySelectorAll('.wsec')];WC.cards=[...g.querySelectorAll('.card[data-i],.wcol[data-i],.wmom[data-i]')];WC.ci=0}
- const secs=WC.secs;let cs=null,nx=null;
- for(const s of secs){if(s.getBoundingClientRect().top<=hb+1)cs=s;else{nx=s;break}}
- const showPin=!!(cs&&m.scrollTop>40),nxTop=showPin&&nx?nx.getBoundingClientRect().top:0;
- /* the first card still on screen: found by walking from where it was last frame, so a scroll costs a card or two, not the whole list */
- const cards=WC.cards,lim=hb+24;let n=0;
+ const WC=wireChrome;
+ if(WC.g!==g||WC.dirty||!WC.secs){
+  WC.g=g;WC.dirty=false;
+  const mTop=m.getBoundingClientRect().top,sTop=m.scrollTop;
+  WC.secs=[...g.querySelectorAll('.wsec')].map(s=>({el:s,y:s.getBoundingClientRect().top-mTop+sTop}));
+  WC.cards=[...g.querySelectorAll('.card[data-i],.wcol[data-i],.wmom[data-i]')].map(c=>{const r=c.getBoundingClientRect();return{el:c,bot:r.bottom-mTop+sTop,i:+c.dataset.i}});
+  WC.ci=0;
+ }
+ const sTop=m.scrollTop,hbRel=hb-mr.top+sTop;
+ let cs=null,nx=null;
+ for(const s of WC.secs){if(s.y<=hbRel+1)cs=s.el;else{nx=s;break}}
+ const showPin=!!(cs&&sTop>40),nxTop=showPin&&nx?(nx.y-sTop+mr.top):0;
+ const cards=WC.cards,limRel=hb+24-mr.top+sTop;let n=0;
  if(cards.length){let i=Math.min(WC.ci||0,cards.length-1);
-  while(i>0&&cards[i-1].isConnected&&cards[i-1].getBoundingClientRect().bottom>lim)i--;
-  while(i<cards.length&&(!cards[i].isConnected||cards[i].getBoundingClientRect().bottom<=lim))i++;
-  WC.ci=Math.min(i,cards.length-1);if(i<cards.length)n=(+cards[i].dataset.i)+1}
+  while(i>0&&cards[i-1].el.isConnected&&cards[i-1].bot>limRel)i--;
+  while(i<cards.length&&(!cards[i].el.isConnected||cards[i].bot<=limRel))i++;
+  WC.ci=Math.min(i,cards.length-1);if(i<cards.length)n=cards[i].i+1}
  const ph=wireChrome.ph||40;
  /* writes */
  if(showPin){
@@ -4981,7 +5178,7 @@ function parTick(){parWrite(parRead())}
 function parWatch(root){
  if(!('IntersectionObserver' in window))return;
  if(!PARIO)PARIO=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)PARV.add(e.target);else PARV.delete(e.target)});parTick()},{root:$('main'),rootMargin:'120px 0px'});
- (root||document).querySelectorAll('#grid .card:not(.nr-row):not(.dq-c)>img').forEach(im=>{if(!im._pw){im._pw=1;PARIO.observe(im)}});
+ (root||document).querySelectorAll('#grid .card:is(.nr-hero,.nr-lead,.nr-tall,.lead):not(.dq-c)>img').forEach(im=>{if(!im._pw){im._pw=1;PARIO.observe(im)}});
 }
 {
  const m=$('main');let raf=0,lastT=0;
@@ -4992,6 +5189,18 @@ function parWatch(root){
  addEventListener('resize',()=>wireChrome());
  {const _r3=render;render=function(){_r3.apply(this,arguments);wireChrome.dirty=true;parWatch();wireChromeSoon()}}
 }
+/* B104: a card that has a fixed shape (hero, lead, tall...) grows to fit its text when the headline is long or the text is large, so the headline is never cut off at the top of the picture */
+let CGQ=0;
+function cardGrow(){
+ if(CGQ)return;CGQ=requestAnimationFrame(()=>{CGQ=0;try{
+  const cs=[...document.querySelectorAll('#grid .card:is(.nr-hero,.nr-lead,.nr-wide,.nr-tall,.nr-sp,.nr-sm2,.nr-hs)')];if(!cs.length)return;
+  cs.forEach(c=>{c.style.minHeight=''});
+  const rd=cs.map(c=>{const t=c.querySelector(':scope>.tx');return t?[c,t.offsetHeight,c.offsetHeight]:null}).filter(Boolean);
+  rd.forEach(([c,th,ch])=>{if(th>ch+1)c.style.minHeight=th+'px'});
+ }catch(e){}});
+}
+{const _r5=render;render=function(){_r5.apply(this,arguments);cardGrow()}}
+addEventListener('resize',cardGrow);try{document.fonts&&document.fonts.ready.then(cardGrow)}catch(e){}
 /* ---- cluster C: the content-cleaning pipeline ----
    One pipeline for what the reader shows and what the print export sets: (a) the extractor scores text blocks by density, not just by length; (b) blocklists of
    ad, promo, newsletter and sponsored selectors and phrases; (c) per-publisher rules for the top feeds, where promos sit inside the article body; (d) a conservative
@@ -5094,7 +5303,8 @@ function junkClean(root,url){
   else if(t.length<260&&txt.some(re=>re.test(t)))r='phrase';
   /* a short run of links with no sentence in it: related stories, share rows, tag clouds */
   else if(/^(UL|OL)$/.test(e.tagName)){const lis=[...e.children];if(lis.length>=3&&lis.every(li=>{const a=li.querySelector('a');return a&&(a.textContent||'').trim().length>=(li.textContent||'').trim().length*.8})&&(tail||/related|more|read|also|latest|trending|popular|recommended/i.test((e.previousElementSibling&&e.previousElementSibling.textContent||'').slice(0,60))))r='links'}
-  else if(t.length<180&&ld>.8&&!/[.!?]["”’)]*$/.test(t)&&/^(read|see|watch|listen|more|also|related|why|how|what|the best|best)\b/i.test(t)&&tail)r='link-line';
+  else if(t.length<220&&ld>.65&&!/[.!?]["”’)]*$/.test(t)&&(tail||/^(read( more| next| also)?|see( also| more)?|watch|listen|more( on| from)?|also( read)?|related|further reading|don['’]?t miss|catch up|inDepth|up next)\b/i.test(t)))r='link-line';
+  else if(t.length<160&&ld>.85&&e.querySelectorAll('a').length===1&&/^(p|div|blockquote|aside)$/i.test(e.tagName))r='inline-promo';
   if(r){kill.push(e);why.set(e,{r,t:t.slice(0,140)});
    /* the line under a newsletter sign-up ("Our morning email breaks down...") goes with it */
    if(r==='phrase'&&/newsletter|sign up|subscribe|inbox|e-?mail/i.test(t)){const nx=e.nextElementSibling;if(nx&&!kill.includes(nx)){const nt=(nx.textContent||'').replace(/\s+/g,' ').trim(),nl=[...nx.querySelectorAll('a')].reduce((q,a)=>q+(a.textContent||'').length,0);if(nt.length<320&&/(privacy (notice|policy)|unsubscribe|your inbox|newsletter|e-?mail|sign up)/i.test(nt)&&nl<nt.length*.6){kill.push(nx);why.set(nx,{r:'under-signup',t:nt.slice(0,140)})}}}}
@@ -5955,7 +6165,7 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
 /* ---- The Daily's edition is downloaded ahead of time, gently, so Quick Briefs and Deep Dives know the real reading times ----
    Only on Wi-Fi, never when downloads are off, in Offline or Data saver mode or in low-power mode, one story at a time with a pause between,
    and it stops as soon as you leave The Daily, leave Wi-Fi or the edition changes. A story that fails is not tried again in the same edition. */
-const DPRE={k:'',q:[],tried:new Set(),on:false,t:0,gap:1500};
+const DPRE={k:'',q:[],tried:new Set(),on:false,t:0,gap:350};
 /* what a background pass may store as a ready story: the whole text, not a gated preview, a site footer or a stub */
 function acStoreOk(n,a){
  if(!n||n.pw||n.gated_preview||acHas(a.link))return false;
@@ -6020,6 +6230,17 @@ async function dpRun(){
   }
  }finally{DPRE.on=false}
 }
+document.addEventListener('pointerdown',e=>{
+ if(S.offline||(isOn('dsave')&&onCell()))return;
+ const c=e.target.closest&&e.target.closest('#grid .card[data-i],#grid .cvlead[data-i],#grid .wcol[data-i]');
+ if(!c)return;const a=cardStory(c);
+ if(a&&a.link&&!acHas(a.link)&&!DPRE.tried.has(a.link)){
+  DPRE.tried.add(a.link);
+  getFull(a.link,true).then(n=>{
+   if(acStoreOk(n,a)){const d=document.createElement('div');d.append(dropTitle(n.cloneNode(true),a.title));acPut(a.link,d.innerHTML,1);markReady(a.link)}
+  }).catch(()=>{});
+ }
+},{passive:true});
 function dayEndCard(){
  const k=LOGOS[S.logo]?S.logo:'tree',am=edKind()==='m';
  return thisDayHtml()+`<section class="endc"><span class="lgm endl" data-fill style="--p:0%;--lm:url(data:image/png;base64,${LOGOS[k][0]})"></span><h3>You’re all caught up for the ${am?'morning':'evening'}</h3><p>${esc(pe('finish',{},'end'))} ${am?'The Evening Edition comes out at 5 PM.':'The Morning Edition comes out at 5 AM.'}</p><button type="button" class="tx2" data-endall>Explore Full Feed</button></section>`;
@@ -6576,7 +6797,7 @@ function liteUrl(url){
  }catch(e){}
  return'';
 }
-const fromPage=async(url,lg,tag,sig)=>{let fr=null;const w=lg&&{retry:2,push:m=>lg.push((tag||'')+m),sig,prog:(i,n,nm)=>rdProg(url,i,n,nm)};await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);try{if(lg)lg.push((tag||'')+'page read: '+Math.round(t.length/1000)+' KB, '+(t.match(/<img\b/gi)||[]).length+' img tags ('+(t.match(/\sdata-(src|lazy-src|original|srcset)=/gi)||[]).length+' lazy), '+(t.match(/<picture\b/gi)||[]).length+' picture, '+(t.match(/<figure\b/gi)||[]).length+' figure, '+(t.match(/<noscript\b/gi)||[]).length+' noscript, '+(/application\/ld\+json/.test(t)?'has':'no')+' structured data; kept '+(x?x.querySelectorAll('img').length:0)+' pictures and '+(x?x.textContent.length:0)+' characters of text')}catch(e){}if(x&&(footerish(x.textContent)||errorPage(t,x.textContent))){try{if(lg)lg.push((tag||'')+'page was an error or notice page, not the story')}catch(e){}return false}if(x&&x.textContent.length>600){fr=x;return true}return false},w);if(fr&&w&&w.won)fr.tier=w.won==='direct'?'direct':'proxy';return fr};
+const fromPage=async(url,lg,tag,sig)=>{let fr=null;const w=lg&&{retry:2,push:m=>lg.push((tag||'')+m),sig,prog:(i,n,nm)=>rdProg(url,i,n,nm)};await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);try{if(lg)lg.push((tag||'')+'page read: '+Math.round(t.length/1000)+' KB, '+(t.match(/<img\b/gi)||[]).length+' img tags ('+(t.match(/\sdata-(src|lazy-src|original|srcset)=/gi)||[]).length+' lazy), '+(t.match(/<picture\b/gi)||[]).length+' picture, '+(t.match(/<figure\b/gi)||[]).length+' figure, '+(t.match(/<noscript\b/gi)||[]).length+' noscript, '+(/application\/ld\+json/.test(t)?'has':'no')+' structured data; kept '+(x?x.querySelectorAll('img').length:0)+' pictures and '+(x?x.textContent.length:0)+' characters of text'+(x&&x.generic?' (found by the general-purpose finder)':''))}catch(e){}if(x&&(footerish(x.textContent)||errorPage(t,x.textContent))){try{if(lg)lg.push((tag||'')+'page was an error or notice page, not the story')}catch(e){}return false}if(x&&x.textContent.length>600){fr=x;return true}return false},w);if(fr&&w&&w.won)fr.tier=w.won==='direct'?'direct':'proxy';return fr};
 
 /* ---------- is this text really the story? ---------- */
 const SHORTOK=new Set('a i of to in is it on at be by an as do go he if me my no or so up us we am oh ok'.split(' '));
@@ -6642,12 +6863,28 @@ async function jinaRead(url,ms){
  catch(e){return null}finally{clearTimeout(to)}
 }
 /* a page that gave only a stub is never accepted as it is: try the reader, keep the longest */
+async function archiveRead(url){
+ try{
+  const r=await fetch('https://archive.org/wayback/available?url='+encodeURIComponent(url),{signal:AbortSignal.timeout(6000)});
+  if(!r.ok)return null;const j=await r.json(),snap=j&&j.archived_snapshots&&j.archived_snapshots.closest;
+  if(!snap||!snap.available||!snap.url)return null;
+  const u=snap.url.replace(/^http:/,'https:');
+  return await fromPage(u);
+ }catch(e){return null}
+}
 async function upgradeStub(fr,url){
- if(!fr||!looksIncomplete(fr.textContent,url))return fr;
+ const isGated=fr&&(fr.gate||fr.nofree||looksIncomplete(fr.textContent,url));
+ if(!fr||!isGated)return fr;
  let hh='';try{hh=new URL(url).hostname}catch(e){}
- const j=await jinaRead(url,HYDRATED.test(hh)?12000:7000),w=x=>(x.textContent||'').trim().split(/\s+/).length;
- if(j&&w(j)>w(fr)*1.25&&!footerish(j.textContent)){return j}
- fr.incomplete=true;return fr;
+ const w=x=>x?(x.textContent||'').trim().split(/\s+/).length:0;
+ const j=await jinaRead(url,HYDRATED.test(hh)?12000:7000);
+ if(j&&w(j)>w(fr)*1.25&&!footerish(j.textContent)){j.rescued=true;return j}
+ if((fr.gate||fr.nofree||PAYRE.test(hh))&&w(fr)<350){
+  const ar=await archiveRead(url);
+  if(ar&&w(ar)>w(fr)*1.3&&!footerish(ar.textContent)){ar.rescued=true;return ar}
+ }
+ if(looksIncomplete(fr.textContent,url))fr.incomplete=true;
+ return fr;
 }
 async function getFull0(url,ctx){const fr=await getFull00(url,ctx);return await upgradeStub(fr,url)}
 /* real progress while a story loads: how long, and which route is being tried, instead of a static line */
@@ -7484,7 +7721,7 @@ set.onclick=e=>{
  const sc=t.closest('[data-sc]');if(sc){S.scroll=sc.dataset.sc;save();refreshReader();return syncSet()}
  const cd=t.closest('[data-cd]');if(cd){S.cards=cd.dataset.cd;save();render();return syncSet()}
  if(t.closest('#skyp')){sky(isNight()?'set':'set');return}
- const tg=t.closest('.tg');if(tg){const k=tg.dataset.tg;S[k]=!isOn(k);save();syncSet();applyFx();if(k==='offimg'){if(isOn(k))oiSync(true);else oiClear()}if(k==='dgnotif'||k==='dgon'||k==='dgwk')bgSync();if(k==='mag'&&$('#rd').classList.contains('on')){decorate();relayout()}if(k==='caps'&&$('#rd').classList.contains('on')){captions();relayout()}if(k==='split'||k==='nroom'||k==='smooth'||k==='cover'||k==='covers'||k==='sop'||k==='trend'||k==='must'||k==='pqc'||k==='quiet'||k==='hideCount'||k==='hideDeals'){screenMode();render()}if((k==='fbleed'||k==='mnote')&&$('#rd').classList.contains('on')){heroSpread();mnotes();photoPages();relayout()}if(k==='tline'&&$('#rd').classList.contains('on')){if(S.tline===false){document.querySelectorAll('.stl').forEach(x=>x.remove())}else timeline();relayout()}if(k==='pcomp'&&$('#rd').classList.contains('on'))applyFs(true);if(k==='offline')offApply(true);if(k==='rmo')applyRmo();if(k==='wx'&&S.wx&&!S.geo)$('#ngeo').click();if(k==='group'||k==='hideRead')render();if(k==='just'||k==='sep')refreshReader()}
+ const tg=t.closest('.tg');if(tg){const k=tg.dataset.tg;S[k]=!isOn(k);save();syncSet();applyFx();if(k==='offimg'){if(isOn(k))oiSync(true);else oiClear()}if(k==='dgnotif'||k==='dgon'||k==='dgwk')bgSync();if(k==='mag'&&$('#rd').classList.contains('on')){decorate();relayout()}if(k==='caps'&&$('#rd').classList.contains('on')){captions();relayout()}if(k==='split'||k==='nroom'||k==='smooth'||k==='cover'||k==='covers'||k==='sop'||k==='trend'||k==='must'||k==='pqc'||k==='quiet'||k==='hideCount'||k==='hideDeals'){screenMode();render()}if((k==='fbleed'||k==='mnote')&&$('#rd').classList.contains('on')){heroSpread();mnotes();photoPages();relayout()}if(k==='tline'&&$('#rd').classList.contains('on')){if(S.tline===false){document.querySelectorAll('.stl').forEach(x=>x.remove())}else timeline();relayout()}if(k==='pcomp'&&$('#rd').classList.contains('on'))applyFs(true);if(k==='offline')offApply(true);if(k==='rmo')applyRmo();if(k==='wx'&&S.wx&&!S.geo)$('#ngeo').click();if(k==='cine'&&$('#rd').classList.contains('on')){decorate();relayout()}if(k==='group'||k==='hideRead')render();if(k==='just'||k==='sep')refreshReader()}
 };
 /* ---------- Settings: full-screen pages (home list -> page; two panes on wide screens) ---------- */
 const SET_ICON={look:'<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/>',read:'<path d="M5 4h9a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4zM9 8h5M9 12h5"/>',home:'<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/>',tts:'<path d="M5 9v6h3l5 4V5L8 9zM16 9a4 4 0 0 1 0 6"/>',feeds:'<path d="M5 5a14 14 0 0 1 14 14M5 11a8 8 0 0 1 8 8"/><circle cx="6" cy="18" r="1.4" fill="currentColor"/>',alerts:'<path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7M10 19a2 2 0 0 0 4 0"/>',motion:'<rect x="3" y="8" width="16" height="9" rx="2"/><path d="M21 11v3M7 12h5"/>',sync:'<path d="M20 12a8 8 0 0 0-14-5L4 9M4 4v5h5M4 12a8 8 0 0 0 14 5l2-2M20 20v-5h-5"/>',about:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>'};
@@ -9725,7 +9962,7 @@ function briefFoot(){
 
 /* ===================== sync between devices ===================== */
 const SYNC_KEYS=['feeds','folders','saved','hl','read','sk','mute','prog','pos','rt'];
-const SET_KEYS=['ts','txo','autodark','night','sysfs','cont','bi','bidays','dglock','haptic','fcheck','hideCount','hideDeals','skippay','nroom','smooth','lowfx','bfold','ptone','grain','pcomp','mag','cover','covers','intro','typo','preload','tlay','dynx','sop','tline','caps','rl','disc','mnote','trend','must','pqc','cray','mast','quiet','fbleed','ctint','scrim','cvs','fth','toc','spread','pqs','folio','endm','dgon','dgwhen','dgwk','dgwd','dgnotif','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','sfx','season','paper','qh','wpm','alk','packh','rmo','hfont','dtap','sdown','ptint','tsound','thaptic','sbw','pfwifi','offimg','keysOn','dsave','acMB','capn','theme','sch','night','font','fs','lh','mg','just','sep','group','hideRead','sort','auto','pfm','pfn','logo','rate','vol','voice','queue','prate','autoWeb','autoReader','view','geo'];
+const SET_KEYS=['cine','ts','txo','autodark','night','sysfs','cont','bi','bidays','dglock','haptic','fcheck','hideCount','hideDeals','skippay','nroom','smooth','lowfx','bfold','ptone','grain','pcomp','mag','cover','covers','intro','typo','preload','tlay','dynx','sop','tline','caps','rl','disc','mnote','trend','must','pqc','cray','mast','quiet','fbleed','ctint','scrim','cvs','fth','toc','spread','pqs','folio','endm','dgon','dgwhen','dgwk','dgwd','dgnotif','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','sfx','season','paper','qh','wpm','alk','packh','rmo','hfont','dtap','sdown','ptint','tsound','thaptic','sbw','pfwifi','offimg','keysOn','dsave','acMB','capn','theme','sch','night','font','fs','lh','mg','just','sep','group','hideRead','sort','auto','pfm','pfn','logo','rate','vol','voice','queue','prate','autoWeb','autoReader','view','geo'];
 LSIG=setSig();
 const b64=u=>{let s='';const b=new Uint8Array(u);for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode(...b.subarray(i,i+8192));return btoa(s)};
 const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
@@ -9925,9 +10162,9 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.13k';const APP_LABEL='1.91';
+const APP_VERSION='2026.10.14a';const APP_LABEL='1.92';
 const CHANGES=["Stories that stop at a subscriber gate (like the New York Times verification message) are now spotted, and the app looks for a saved or wire copy of the full story", "If the full story can’t be found, you get the opening paragraphs with a soft fade, a Subscriber Preview card and a button to read it on the original site", "The gate check looks only for real gate messages, so ordinary news pages are not mislabelled as previews"];
-const DEF_ON=new Set(['sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
+const DEF_ON=new Set(['cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
 const isVert=()=>{const m=S.scroll||'auto';return m==='vertical'||(m==='auto'&&!isWide())};
@@ -10076,7 +10313,7 @@ function makeDropcap(p){
  }
  return false;
 }
-function decorate(){
+function decorate0(){
  const b=$('.cols .body');if(!b)return;try{underscoreItalics(b)}catch(e){}smarten(b);furnish(b);captions();heroSpread();mnotes();photoPages();
  b.querySelectorAll('.pullq').forEach(x=>x.remove());b.querySelectorAll('.dropcap').forEach(x=>{unDropcap(x);x.classList.remove('dropcap')});
  b.querySelectorAll('table').forEach(t=>{if(!t.parentElement.classList.contains('tbl')){const w=document.createElement('div');w.className='tbl';t.replaceWith(w);w.append(t)}
@@ -10096,27 +10333,69 @@ function decorate(){
  if(!best)return;
  const at=ps[Math.floor(ps.length*.45)],q=document.createElement('div');q.className='pullq';q.setAttribute('aria-hidden','true');q.textContent=best.replace(/^["“]|["”]$/g,'');
  at.before(q);
- try{cineLongform(b)}catch(e){}
 }
-/* ---------- B39 cinematic longform ---------- */
-let cineRaf=0;
+function decorate(){try{decorate0()}finally{try{cineLongform($('.cols .body'))}catch(e){}}}
+/* ---------- B39 cinematic long reads ---------- */
+let cineRaf=0,cineIO=null;
 function cineScroll(){if(cineRaf)return;cineRaf=requestAnimationFrame(()=>{cineRaf=0;try{cineParallax()}catch(e){}})}
 function cineParallax(){
  const v=vView(),rd=$('#rd');if(!v||!rd||!rd.classList.contains('cine')||!isVert())return;
- const vh=v.clientHeight,vr=v.getBoundingClientRect();
- rd.querySelectorAll('.cols .body img:not(.tiny),.cols>img.hero').forEach(im=>{
-  const r=im.getBoundingClientRect(),c=(r.top-vr.top)+r.height/2-vh/2;
-  if(Math.abs(c)<vh*1.2)im.style.transform=`translateY(${(-c*0.06).toFixed(1)}px)`;
+ const bd=$('.cols .body');if(bd)cineBleed(bd);
+ const calm=reduced()||document.documentElement.classList.contains('lowp'),vh=v.clientHeight,vr=v.getBoundingClientRect();
+ /* each full-width picture slides inside its frame against the page (the frame clips it), and the lead photo's crop slides the other way */
+ const pos=r=>Math.max(-1,Math.min(1,((r.top-vr.top)+r.height/2-vh/2)/(vh/2+r.height/2)));
+ rd.querySelectorAll('.cols .body figure.cfr').forEach(f=>{const r=f.getBoundingClientRect();if(r.bottom<vr.top-vh*.3||r.top>vr.bottom+vh*.3)return;f.style.setProperty('--cy',calm?'0px':(-pos(r)*r.height*.065).toFixed(1)+'px')});
+ const h=rd.querySelector('.cols>img.hero');if(h&&!calm){const r=h.getBoundingClientRect();if(r.bottom>vr.top-vh*.3&&r.top<vr.bottom+vh*.3)h.style.objectPosition='50% '+(50+pos(r)*20).toFixed(1)+'%'}
+}
+/* every full-width frame: a picture that sits in a figure (or alone in a paragraph) becomes one; tall pictures (phone screenshots) stay inline, and a picture that fails to load shows the app's own retry card inside its frame */
+function cineFrames(b){
+ b.querySelectorAll('img:not(.tiny)').forEach(im=>{
+  if(im.closest('.emb,.tbl,.tex,.pullq,.rfoot,.mnotes'))return;
+  let fig=im.closest('figure');
+  if(!fig){
+   const par=im.parentElement,solo=par&&par!==b&&!par.textContent.trim()&&par.querySelectorAll('img').length===1;
+   fig=document.createElement('figure');fig.dataset.cw='1';
+   if(solo&&/^(P|DIV)$/.test(par.tagName)){par.replaceWith(fig);fig.append(im)}
+   else if(solo&&par.tagName==='A'&&par.parentElement){par.replaceWith(fig);fig.append(par)}
+   else{im.replaceWith(fig);fig.append(im)}
+  }
+  const sort=()=>{const w=im.naturalWidth||+im.getAttribute('width')||0,h=im.naturalHeight||+im.getAttribute('height')||0;if(!w||!h)return false;fig.classList.toggle('cfr',w/h>=1.15&&w>=500);return true};
+  if(!sort()&&!im._cf){im._cf=1;im.addEventListener('load',()=>{sort();cineScroll()},{once:true})}
  });
 }
+/* the story text can be narrower than the page (a comfortable line length), so how far a full-width picture reaches out on each side is measured, not assumed */
+function cineBleed(b){
+ try{const cols=b.closest('.cols')||$('.cols'),rd=$('#rd');if(!cols||!rd)return;
+  const c=cols.getBoundingClientRect(),r=b.getBoundingClientRect(),h=cols.querySelector(':scope>img.hero'),hr=h&&h.getBoundingClientRect(),v=vView(),vr=v?v.getBoundingClientRect():{left:0,right:innerWidth},bl=parseFloat(getComputedStyle(cols).getPropertyValue('--bleed'))||0;
+  /* the pictures reach as far as the lead photo does; with no lead photo, as far as the page's own bleed allows (never past the screen) */
+  const tl=hr&&hr.width?hr.left:Math.max(vr.left,c.left-bl),tr=hr&&hr.width?hr.right:Math.min(vr.right,c.right+bl);
+  const l=(-Math.max(0,r.left-tl)).toFixed(1)+'px',rr=(-Math.max(0,tr-r.right)).toFixed(1)+'px';
+  if(rd.style.getPropertyValue('--cfl')!==l)rd.style.setProperty('--cfl',l);if(rd.style.getPropertyValue('--cfr')!==rr)rd.style.setProperty('--cfr',rr);
+ }catch(e){}
+}
+let cineRz=0;addEventListener('resize',()=>{clearTimeout(cineRz);cineRz=setTimeout(()=>{const rd=$('#rd'),b=$('.cols .body');if(rd&&b&&rd.classList.contains('cine'))cineBleed(b)},200)});
 function cineLongform(b){
  const rd=$('#rd');if(!rd||!b)return;
- const words=(b.textContent.match(/\S+/g)||[]).length;
- const on=words>900;
- rd.classList.toggle('cine',on);
  try{if(vView())vView().removeEventListener('scroll',cineScroll)}catch(e){}
+ try{if(cineIO){cineIO.disconnect();cineIO=null}}catch(e){}
+ const words=(b.textContent.match(/\S+/g)||[]).length,on=isOn('cine')&&isVert()&&words>=800;
+ rd.classList.remove('cine','cine-t','cine-1','cine-ch');
+ const hero=rd.querySelector('.cols>img.hero');if(hero)hero.style.objectPosition='';
  if(!on)return;
- if(isVert()&&vView()){vView().addEventListener('scroll',cineScroll,{passive:true});cineScroll()}
+ const imgs=[...b.querySelectorAll('img:not(.tiny)')].filter(i=>!i.closest('.emb,.tbl,.tex,.pullq,.rfoot,.mnotes')),n=imgs.length+(hero?1:0);
+ rd.classList.add('cine');
+ if(n===0)rd.classList.add('cine-t');/* no picture at all: the type carries it */
+ else if(n===1&&hero)rd.classList.add('cine-1');/* one picture, the lead: full width, then a clean rhythm of text */
+ if(!(n===1&&hero))cineFrames(b);
+ cineBleed(b);
+ if(b.querySelectorAll('h2').length>=2)rd.classList.add('cine-ch');
+ /* section headings and pulled quotes ease in as they arrive (shown at once if the browser cannot tell us when they do) */
+ if('IntersectionObserver' in window&&!reduced()){
+  const v=vView();cineIO=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('cin');cineIO&&cineIO.unobserve(e.target)}}),{root:v||null,rootMargin:'0px 0px -8% 0px'});
+  b.querySelectorAll('h2,.pullq').forEach(e=>{const r=e.getBoundingClientRect(),vr=v?v.getBoundingClientRect():{bottom:innerHeight};if(r.top>vr.bottom){e.classList.add('cpre');cineIO.observe(e)}});
+  setTimeout(()=>{b.querySelectorAll('.cpre:not(.cin)').forEach(e=>e.classList.add('cin'))},4000);
+ }
+ if(vView()){vView().addEventListener('scroll',cineScroll,{passive:true});cineScroll()}
 }
 const skipDeco=n=>n.parentElement&&n.parentElement.closest('.pullq,.endmark,.bfold,.gcard,.rfoot,.rbrk,.rtags,.rdl');
 
