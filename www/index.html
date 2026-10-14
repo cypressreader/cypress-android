@@ -3652,6 +3652,21 @@ body.exbusy [data-exact]{cursor:progress}
 /* 7. The four views stay distinct: list = hairline rows, cards = framed art-cards, mag = asymmetric hero spread, col = broadsheet with ink rules */
 #grid.list .card{border-radius:0!important}
 #grid.wire .wcols .wcol:not(:last-child){break-inside:avoid}
+/* 8. Four views, scoped by data-w so they cannot blur together */
+#grid[data-w="list"]{display:block;border-top:1px solid var(--ink)}
+#grid[data-w="list"] .card{background-color:transparent!important;box-shadow:none!important;border-radius:0!important}
+#grid[data-w="card"]>.card:not(.nr-row){border-radius:12px;margin-bottom:18px}
+#grid[data-w="card"]>.card>img{order:-1;width:100%}
+#grid[data-w="mag"]>.card:first-of-type,#grid[data-w="mag"] .card.lead{grid-column:1/-1}
+#grid[data-w="mag"] .card:is(.nr-hero,.nr-lead,.lead) h3{font-family:var(--serif);font-weight:700;letter-spacing:-.024em}
+#grid[data-w="col"] .wcols .wcol{border-right:1px solid var(--ln)}
+#grid[data-w="col"] .wcols .wcol:last-child{border-right:0}
+@media(min-width:768px){
+#grid[data-w="card"]:not(.nr),#grid[data-w="mag"]:not(.nr):not(.wire){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;align-items:start}
+#grid[data-w="card"]:not(.nr)>.card,#grid[data-w="mag"]:not(.nr):not(.wire)>.card{display:flex;flex-direction:column}
+#grid[data-w="card"]:not(.nr)>.card>img,#grid[data-w="mag"]:not(.nr):not(.wire)>.card>img{order:-1;width:100%;aspect-ratio:16/10;object-fit:cover}
+}
+@media(min-width:1100px){#grid[data-w="card"]:not(.nr),#grid[data-w="mag"]:not(.nr):not(.wire){grid-template-columns:repeat(3,minmax(0,1fr))}}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4083,11 +4098,22 @@ function tidyFigure(e){
  }catch(x){}
  return e;
 }
+/* legal and cookie furniture: boxes by class, and short paragraphs of consent boilerplate */
+const LEGAL_SEL='div.privacy-policy,div#privacy-policy,section[class*="cookie" i],div[id*="consent" i],div[class*="gdpr" i],div[class*="cmp-" i],div.cc-window,footer,.policy-footer,[data-testid*="cookie" i],[class*="osano" i]';
+const LEGAL_TXT=/confirm my choices|data co-?ops?\b|allow targeted advertising|opt-?out of other sales/i;
+function LEGAL_BOX(c){
+ try{
+  if(c.matches&&c.matches(LEGAL_SEL)&&!c.querySelector('h1,article,main'))return true;
+  const t=c.textContent||'';
+  return t.length<900&&/^(P|DIV|SPAN|SECTION|ASIDE|LI|UL)$/i.test(c.tagName)&&LEGAL_TXT.test(t);
+ }catch(e){return false}
+}
 function clean(n,base){
  const out=document.createDocumentFragment();
  for(const c of n.childNodes){
   if(c.nodeType===3){out.append(c.textContent);continue}
   if(c.nodeType!==1)continue;
+  if(LEGAL_BOX(c))continue;
   if(/^(P|DIV|SPAN|SECTION|ASIDE|FIGURE)$/i.test(c.tagName)&&c.textContent.length<220&&/^(Ad is Hidden|Paid Promoted|Promoted Stories|Sponsored|Advertisement)/i.test(c.textContent.trim()))continue;
   let t=c.tagName.toUpperCase();{const em=embedOf(c,t)||rebuildEmb(c,t);if(em){out.append(em);continue}}if(SKIP.has(t)){cleanGap(out,c);continue}if(t==='H1')t='H2';if(t==='H5'||t==='H6')t='H4';  if(t==='IMG'){
    let s=imgSrc(c);
@@ -4904,7 +4930,7 @@ function openTx(c,a){
 const skel=n=>skelCap()+'<div class="skc ld" aria-hidden="true"><i></i><i></i><i class="s"></i></div>'+'<div class="skc" aria-hidden="true"></div>'.repeat(n);
 function render0(){
  NRS=nrMode();$('#grid').classList.remove('nr','nrp','wire','wtopic','fed','paper');$('#grid').style.removeProperty('--fb');
- side();$('#grid').classList.toggle('list',S.view==='list');
+ side();$('#grid').classList.toggle('list',S.view==='list');{const g=$('#grid');g.dataset.w=S.view==='list'?'list':'card';g.dataset.wdens=S.wdens==='col'?'col':'mag'}
  let fs=S.feeds,t='All stories';
  if(S.sel.startsWith('f:')){const id=S.sel.slice(2);fs=S.feeds.filter(x=>x.folder===id);t=S.folders.find(f=>f.id===id)?.name||t}
  else if(S.sel.startsWith('s:')){fs=S.feeds.filter(x=>'s:'+x.id===S.sel);t=fs[0]?.title||t}
@@ -5198,7 +5224,7 @@ if(FD){
  const head=pre+(f1?feedMast(f1,unread):FO&&FD?feedMast(FD,unread):'')+(pend?`<button type="button" class="wpill" data-wire="load" aria-live="polite">${pend} new ${pend===1?'story':'stories'} — tap to load</button>`:'')
   +`<div class="wmeta"><div class="nr-meta">${stN(cn.length)}${S.hideCount?'':' · '+unread+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>${densHtml()}</div>`
   +trendStripHtml(tr);
- g.classList.add('nr','wire');if(T)g.classList.add('wtopic');if(FD){g.classList.add('fed');g.style.setProperty('--fb',brand(FD))}if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
+ g.classList.add('nr','wire');g.dataset.w=g.dataset.wdens=S.wdens==='col'?'col':'mag';if(T)g.classList.add('wtopic');if(FD){g.classList.add('fed');g.style.setProperty('--fb',brand(FD))}if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
  /* coming back to a place you left: render far enough to include the story that was at the top of the screen */
  let first=9;const wp=S.wirePos;let anchor=-1;
  if(!T&&!WIRE.restored&&wp&&wp.l&&(wp.sel||'all')===S.sel&&Date.now()-wp.t<12*36e5){anchor=cn.findIndex(a=>a.link===wp.l);if(anchor>=0){const bi=B.findIndex(h=>h.includes(`data-i="${anchor}"`));if(bi>=0)first=Math.max(9,bi+4)}}
