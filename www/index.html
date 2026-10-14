@@ -3638,6 +3638,20 @@ body.exbusy [data-exact]{cursor:progress}
 .body .rcall li{margin:3px 0;font-size:.95em}
 /* 4. The reading page takes a very light breath of the photo's color */
 #rd.amb .view{background-color:var(--rbg)}
+/* 5. Reader hero: fixed box, no layout shift while the photo decodes */
+#rd .cols img.hero:not(.hs-top img.hero),.rd-hero img{contain:layout size;transition:transform .25s ease,opacity .2s ease;will-change:transform}
+.cover img{contain:layout;transition:transform .25s ease,opacity .2s ease}
+/* 6. Tablet and foldable: Cards is a 2 to 3 column grid, photo on top, kicker, headline, quiet byline */
+@media(min-width:768px){
+#grid:not(.list):not(.nr):not(.wire){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;align-items:start}
+#grid:not(.list):not(.nr):not(.wire)>.card{display:flex;flex-direction:column;margin:0}
+#grid:not(.list):not(.nr):not(.wire)>.card>img,#grid:not(.list):not(.nr):not(.wire)>.card .im{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px 12px 0 0;order:-1}
+#grid:not(.list):not(.nr):not(.wire)>.card .cfoot{margin-top:auto;border-top:0;color:var(--mut)}
+}
+@media(min-width:1100px){#grid:not(.list):not(.nr):not(.wire){grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* 7. The four views stay distinct: list = hairline rows, cards = framed art-cards, mag = asymmetric hero spread, col = broadsheet with ink rules */
+#grid.list .card{border-radius:0!important}
+#grid.wire .wcols .wcol:not(:last-child){break-inside:avoid}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -5324,7 +5338,7 @@ addEventListener('resize',cardGrow);try{document.fonts&&document.fonts.ready.the
    (e) "Junk" in the selection bar hides a block, logs the address and its HTML, and teaches the same site's next story. */
 const JK={
  /* (b) classes and ids of ad, promo, newsletter, sponsored and share furniture. Applied to the page before its classes are stripped */
- SEL:'ins.adsbygoogle,[id^="div-gpt-ad" i],[id*="google_ads" i],[data-ad],[data-ad-slot],[data-ad-unit],[class*="adslot" i],[class*="ad-slot" i],[class*="ad-container" i],[class*="ad-wrapper" i],[class*="ad-banner" i],[class*="advert" i],[class*="native-ad" i],[class*="dfp-" i],[class*="sponsor" i],[class*="paid-content" i],[class*="partner-content" i],[class*="outbrain" i],[class*="taboola" i],[class*="newsletter" i],[id*="newsletter" i],[class*="email-signup" i],[class*="signup-form" i],[class*="mailing-list" i],[class*="inline-signup" i],[data-component*="newsletter" i],[data-component*="sign-in-gate" i],[data-component*="support" i],[class*="share-bar" i],[class*="share-tools" i],[class*="social-share" i],[class*="follow-us" i],[class*="you-may-like" i],[class*="more-from" i],[class*="read-next" i],[class*="most-popular" i],[class*="promo-box" i],[class*="promobox" i],[class*="inline-promo" i],[class*="app-promo" i],[class*="donate" i],[class*="contribute-" i],[class*="paywall-promo" i]',
+ SEL:'.privacy-policy,#privacy-policy,[class*="cookie" i],[id*="consent" i],[class*="gdpr" i],[class*="cmp-" i],.cc-window,footer.policy,ins.adsbygoogle,[id^="div-gpt-ad" i],[id*="google_ads" i],[data-ad],[data-ad-slot],[data-ad-unit],[class*="adslot" i],[class*="ad-slot" i],[class*="ad-container" i],[class*="ad-wrapper" i],[class*="ad-banner" i],[class*="advert" i],[class*="native-ad" i],[class*="dfp-" i],[class*="sponsor" i],[class*="paid-content" i],[class*="partner-content" i],[class*="outbrain" i],[class*="taboola" i],[class*="newsletter" i],[id*="newsletter" i],[class*="email-signup" i],[class*="signup-form" i],[class*="mailing-list" i],[class*="inline-signup" i],[data-component*="newsletter" i],[data-component*="sign-in-gate" i],[data-component*="support" i],[class*="share-bar" i],[class*="share-tools" i],[class*="social-share" i],[class*="follow-us" i],[class*="you-may-like" i],[class*="more-from" i],[class*="read-next" i],[class*="most-popular" i],[class*="promo-box" i],[class*="promobox" i],[class*="inline-promo" i],[class*="app-promo" i],[class*="donate" i],[class*="contribute-" i],[class*="paywall-promo" i]',
  /* (b) phrases that mark a block as furniture when the block is short */
  TXT:[
   /^\W*(advertisement|advertisements|ad|sponsored( content| post| by .{1,40})?|paid (post|content|partnership)|promoted( stories| content)?|partner content|advertiser content|story continues (below|after) (the )?advertis\w*|continue reading below|scroll to continue|skip advertisement|ad feedback|advertise with us)\W*$/i,
@@ -5340,6 +5354,7 @@ const JK={
   /^\W*(read more|related|also read|see also|more on this|more from|you (may|might) also like|recommended( for you)?|read next|up next|don.t miss|what to read next|watch next|trending( now)?)\s*[:\-–—]/i,
   /^\W*(related( stories| articles| reading| links| coverage)?|more (stories|articles|news|from [^.]{2,40})|recommended( reading| stories)?|read next|up next|also in [^.]{2,40}|latest (news|stories))\W*$/i,
   /^\W*(sign in|log in|login) to (comment|post|join|read)|^\W*(join|view|read|add) the (conversation|comments|discussion)|^\W*comments?( \(\d+\))?\W*$|^\W*\d+ comments?\W*$/i,
+  /confirm my choices|data co-?ops?\b/i,
   /^\W*(we use cookies|this (site|website) uses cookies|by (continuing|using this site)|cookie (settings|policy|preferences)|manage (cookies|consent|preferences))/i,
   /^\W*(share (this|on)|share via|copy link|print|email this|tweet|pin it|post to)\W*$/i,
   /^\W*(all rights reserved|©|copyright)\s?(\d{4})?/i,
