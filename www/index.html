@@ -3699,10 +3699,25 @@ body.exbusy [data-exact]{cursor:progress}
 }}
 @media(max-width:899px){#grid .nr-top,#grid .nr-flip.nr-top{grid-template-columns:minmax(0,1fr)!important}#grid .nr-top>*{grid-column:1/-1!important;order:0!important}}
 /* 11. Intrinsic columns and fluid type: widths come from the feed pane, so any screen density or zoom lands on 1, 2 or 3 columns by itself */
-#grid[data-w="col"] .wcols,#grid .wcols{column-width:140px;column-count:auto;column-gap:12px;column-rule:1px solid var(--ln)}
+#grid .wcols{column-gap:22px;column-rule:1px solid var(--ln)}
+@container feed (min-width:380px){#grid .wcols{column-width:auto;column-count:2}}
 #grid.wire:not(:has(.wcols)) .card:is(.nr-hero,.nr-lead,.lead) h3{font-size:clamp(22px,4cqi + 10px,34px)}
 #grid .card[data-ed]:not(.nr-hero,.nr-lead,.lead,.nr-pq) h3{font-size:clamp(15px,2.2vw,19px)}
 @media(min-aspect-ratio:3/4) and (max-width:720px){body:not(.split):not(.narrow){--sw:188px}body:not(.split):not(.narrow)>aside #side-list,body:not(.split):not(.narrow)>aside .addbtn{padding-left:6px;padding-right:6px}}
+/* 12. Card view keeps a square thumbnail at the left; Cards (magazine) keeps its pictures on top, capped so a tall screenshot never runs full height */
+@media(min-width:500px){@container feed (min-width:300px){
+#grid[data-w="card"]:not(.nr):not(.wire):not(.list){display:grid;grid-template-columns:minmax(0,1fr);gap:10px;align-items:stretch}
+#grid[data-w="card"]:not(.nr):not(.wire):not(.list)>.card[data-ed]:not(.nr){display:grid!important;grid-template-columns:96px minmax(0,1fr);flex-direction:row!important;gap:0 12px;align-items:center;padding:10px!important;margin:0!important}
+#grid[data-w="card"]:not(.nr):not(.wire):not(.list)>.card[data-ed]:not(.nr).noimg{grid-template-columns:minmax(0,1fr)}
+#grid[data-w="card"]:not(.nr):not(.wire):not(.list)>.card[data-ed]:not(.nr)>img{grid-column:1;grid-row:1;order:0;width:96px!important;height:96px!important;aspect-ratio:1/1!important;object-fit:cover;border-radius:8px}
+#grid[data-w="card"]:not(.nr):not(.wire):not(.list)>.card[data-ed]:not(.nr)>.tx{grid-column:2;grid-row:1;padding:0!important;min-width:0}
+#grid[data-w="card"]:not(.nr):not(.wire):not(.list)>.card[data-ed]:not(.nr).noimg>.tx{grid-column:1}
+#grid[data-w="card"]:not(.nr):not(.wire):not(.list)>.card[data-ed]:not(.nr) :is(.star,.why){top:8px;right:8px}
+}}
+@media(min-width:500px){
+#grid[data-w="mag"] .card:is([data-ed],.nr-row,.nr-late):not(.lead):not(.nr-lead):not(.nr-hero)>img{aspect-ratio:16/9!important;max-height:220px;width:100%!important;object-fit:cover;overflow:hidden}
+#grid[data-w="mag"] .fd-fa{max-height:360px}
+}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -14080,7 +14095,7 @@ function wcolsFix(){
  const g=$('#grid');if(!g)return;
  g.querySelectorAll('.wcols').forEach(el=>{
   const kids=[...el.children],W=el.clientWidth;if(!kids.length||!W)return;
-  const avail=Math.max(1,Math.floor((W+28)/278));let c=Math.min(avail,kids.length);
+  const avail=W<352?1:Math.max(2,Math.floor((W+28)/278));let c=Math.min(avail,kids.length);
   el.style.columnWidth='auto';
   for(;c>1;c--){el.style.columnCount=String(c);const lefts=new Set(kids.map(k=>Math.round(k.getBoundingClientRect().left)));if(lefts.size>=c)break}
   el.style.columnCount=String(c);el.style.columnRuleWidth=c<2?'0':'';
