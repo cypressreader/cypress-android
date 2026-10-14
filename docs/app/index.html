@@ -4108,14 +4108,19 @@ function payloadParas(root){
 }
 function payloadOf(d){
  const out=[];
- const nd=d.querySelector('script#__NEXT_DATA__');
- if(nd){try{const j=JSON.parse(nd.textContent),pp=(j&&j.props&&j.props.pageProps)||j;const ps=payloadParas(pp);if(ps.length)out.push(ps)}catch(e){}}
- /* Arc/Fusion sites: window.Fusion.globalContent={...}; */
+ for(const sel of ['script#__NEXT_DATA__','script#__NUXT_DATA__','script[type="application/json"]']){
+  for(const nd of d.querySelectorAll(sel)){
+   try{const j=JSON.parse(nd.textContent),pp=(j&&j.props&&j.props.pageProps)||j;const ps=payloadParas(pp);if(ps.length)out.push(ps)}catch(e){}
+  }
+ }
  for(const sc of d.querySelectorAll('script:not([src])')){
-  const t=sc.textContent||'',i=t.indexOf('globalContent');if(i<0)continue;
-  const b=t.indexOf('{',i);if(b<0)continue;let depth=0,str=false,esc=false,e=-1;
-  for(let k=b;k<t.length&&k<b+3000000;k++){const ch=t[k];if(str){if(esc)esc=false;else if(ch==='\\')esc=true;else if(ch==='"')str=false;continue}if(ch==='"')str=true;else if(ch==='{')depth++;else if(ch==='}'){depth--;if(!depth){e=k;break}}}
-  if(e>0)try{const ps=payloadParas(JSON.parse(t.slice(b,e+1)));if(ps.length)out.push(ps)}catch(x){}
+  const t=sc.textContent||'';
+  for(const key of ['globalContent','__INITIAL_STATE__','__PRELOADED_STATE__','__APOLLO_STATE__','__remixContext']){
+   const i=t.indexOf(key);if(i<0)continue;
+   const b=t.indexOf('{',i);if(b<0)continue;let depth=0,str=false,esc=false,e=-1;
+   for(let k=b;k<t.length&&k<b+3000000;k++){const ch=t[k];if(str){if(esc)esc=false;else if(ch==='\\')esc=true;else if(ch==='"')str=false;continue}if(ch==='"')str=true;else if(ch==='{')depth++;else if(ch==='}'){depth--;if(!depth){e=k;break}}}
+   if(e>0)try{const ps=payloadParas(JSON.parse(t.slice(b,e+1)));if(ps.length)out.push(ps)}catch(x){}
+  }
  }
  out.sort((a,b)=>b.join(' ').length-a.join(' ').length);return out[0]||null;
 }
@@ -4181,6 +4186,12 @@ function extract0(html,base,MT){
  d.querySelectorAll('.screen-reader-text,.sr-only,.visually-hidden,.visuallyhidden,.u-visually-hidden,.assistive-text,.a11y-text,.sr-text,[class*="screen-reader" i],[class*="sr-only" i],[class*="visually-hidden" i],[class*="visuallyhidden" i]').forEach(e=>{if(e.isConnected&&!e.matches('html,body,article,main')&&!e.querySelector('article,main')&&e.textContent.length<200)e.remove()});
  try{const SRT=/^(list(\s+\d+)?\s+of\s+\d+(\s+items?)?|end of list|(start|beginning) of list)$/i,tw=d.createTreeWalker(d.body||d.documentElement,4),del=[];let n;while(n=tw.nextNode()){if(SRT.test(n.textContent.replace(/\s+/g,' ').trim()))del.push(n)}del.forEach(n=>{const p=n.parentElement;n.remove();if(p&&p.isConnected&&!p.textContent.trim()&&!p.querySelector('img,video,iframe')&&!p.matches('body,html'))p.remove()})}catch(e){}
  /* things that sit on top of the story: consent dialogs, sign-up walls and their dimmed backdrops. Anything holding two real paragraphs is the story, never removed */
+ d.querySelectorAll('[class*="paywall" i],[class*="gate" i],[class*="truncate" i],[class*=" subscriber" i],[style*="display:none" i],[style*="display: none" i],[hidden]').forEach(e=>{
+  if([...e.querySelectorAll('p')].filter(p=>p.textContent.trim().length>=110).length>=2){
+   e.removeAttribute('hidden');
+   if(e.getAttribute('style'))e.setAttribute('style',e.getAttribute('style').replace(/display\s*:\s*none\s*;?/gi,'').replace(/max-height\s*:[^;]+;?/gi,'').replace(/overflow\s*:\s*hidden\s*;?/gi,''));
+  }
+ });
  d.querySelectorAll('[class*="modal" i],[class*="overlay" i],[class*="backdrop" i],[class*="gate-container" i],[class*="regwall" i],[class*="paywall-modal" i],[class*="consent" i],[class*="cookie" i],[id*="modal" i],[id*="overlay" i],[id*="backdrop" i],[id*="gate-container" i],[id*="consent" i],[id*="cookie" i],[aria-modal="true"],[style*="position:fixed" i],[style*="position: fixed" i],[style*="z-index" i]').forEach(e=>{
   if(!e.isConnected||e.matches('html,body,article,main')||e.querySelector('article,main'))return;
   const st=(e.getAttribute('style')||'').toLowerCase(),z=+((/z-index\s*:\s*(\d+)/.exec(st)||[])[1]||0),pos=/position\s*:\s*(fixed|absolute)/.test(st);
@@ -4424,6 +4435,7 @@ async function og(a){
   const L=await gnResolve(a.link);if(/(^|\.)google\.com$/.test(new URL(L).hostname))return'';
   await ogSlot();let pg;try{pg=await fetchText(L,t=>/<meta/i.test(t))}finally{ogFree()}
   const d=new DOMParser().parseFromString(pg,'text/html');
+  if(!acHas(a.link)){try{const ex=extract(pg,L);if(acStoreOk(ex,a)){const dv=document.createElement('div');dv.append(dropTitle(ex.cloneNode(true),a.title));acPut(a.link,dv.innerHTML,1);markReady(a.link)}}catch(_){}}
   const m=d.querySelector('meta[property="og:image"],meta[name="twitter:image"]');
   let u=m?abs(m.content,L):'';if(GPROMO.test(u)||/(^|\.)(gstatic|googleusercontent)\.com$/.test(host(u)))u='';IC[a.link]=u;if(LOGOISH.test(gk(u).split('/').pop()||''))u='';
   try{const k=Object.keys(IC);if(k.length>1000)delete IC[k[0]];localStorage.setItem('folio-img',JSON.stringify(IC))}catch(_){}
@@ -6153,7 +6165,7 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
 /* ---- The Daily's edition is downloaded ahead of time, gently, so Quick Briefs and Deep Dives know the real reading times ----
    Only on Wi-Fi, never when downloads are off, in Offline or Data saver mode or in low-power mode, one story at a time with a pause between,
    and it stops as soon as you leave The Daily, leave Wi-Fi or the edition changes. A story that fails is not tried again in the same edition. */
-const DPRE={k:'',q:[],tried:new Set(),on:false,t:0,gap:1500};
+const DPRE={k:'',q:[],tried:new Set(),on:false,t:0,gap:350};
 /* what a background pass may store as a ready story: the whole text, not a gated preview, a site footer or a stub */
 function acStoreOk(n,a){
  if(!n||n.pw||n.gated_preview||acHas(a.link))return false;
@@ -6218,6 +6230,17 @@ async function dpRun(){
   }
  }finally{DPRE.on=false}
 }
+document.addEventListener('pointerdown',e=>{
+ if(S.offline||(isOn('dsave')&&onCell()))return;
+ const c=e.target.closest&&e.target.closest('#grid .card[data-i],#grid .cvlead[data-i],#grid .wcol[data-i]');
+ if(!c)return;const a=cardStory(c);
+ if(a&&a.link&&!acHas(a.link)&&!DPRE.tried.has(a.link)){
+  DPRE.tried.add(a.link);
+  getFull(a.link,true).then(n=>{
+   if(acStoreOk(n,a)){const d=document.createElement('div');d.append(dropTitle(n.cloneNode(true),a.title));acPut(a.link,d.innerHTML,1);markReady(a.link)}
+  }).catch(()=>{});
+ }
+},{passive:true});
 function dayEndCard(){
  const k=LOGOS[S.logo]?S.logo:'tree',am=edKind()==='m';
  return thisDayHtml()+`<section class="endc"><span class="lgm endl" data-fill style="--p:0%;--lm:url(data:image/png;base64,${LOGOS[k][0]})"></span><h3>You’re all caught up for the ${am?'morning':'evening'}</h3><p>${esc(pe('finish',{},'end'))} ${am?'The Evening Edition comes out at 5 PM.':'The Morning Edition comes out at 5 AM.'}</p><button type="button" class="tx2" data-endall>Explore Full Feed</button></section>`;
@@ -6840,12 +6863,28 @@ async function jinaRead(url,ms){
  catch(e){return null}finally{clearTimeout(to)}
 }
 /* a page that gave only a stub is never accepted as it is: try the reader, keep the longest */
+async function archiveRead(url){
+ try{
+  const r=await fetch('https://archive.org/wayback/available?url='+encodeURIComponent(url),{signal:AbortSignal.timeout(6000)});
+  if(!r.ok)return null;const j=await r.json(),snap=j&&j.archived_snapshots&&j.archived_snapshots.closest;
+  if(!snap||!snap.available||!snap.url)return null;
+  const u=snap.url.replace(/^http:/,'https:');
+  return await fromPage(u);
+ }catch(e){return null}
+}
 async function upgradeStub(fr,url){
- if(!fr||!looksIncomplete(fr.textContent,url))return fr;
+ const isGated=fr&&(fr.gate||fr.nofree||looksIncomplete(fr.textContent,url));
+ if(!fr||!isGated)return fr;
  let hh='';try{hh=new URL(url).hostname}catch(e){}
- const j=await jinaRead(url,HYDRATED.test(hh)?12000:7000),w=x=>(x.textContent||'').trim().split(/\s+/).length;
- if(j&&w(j)>w(fr)*1.25&&!footerish(j.textContent)){return j}
- fr.incomplete=true;return fr;
+ const w=x=>x?(x.textContent||'').trim().split(/\s+/).length:0;
+ const j=await jinaRead(url,HYDRATED.test(hh)?12000:7000);
+ if(j&&w(j)>w(fr)*1.25&&!footerish(j.textContent)){j.rescued=true;return j}
+ if((fr.gate||fr.nofree||PAYRE.test(hh))&&w(fr)<350){
+  const ar=await archiveRead(url);
+  if(ar&&w(ar)>w(fr)*1.3&&!footerish(ar.textContent)){ar.rescued=true;return ar}
+ }
+ if(looksIncomplete(fr.textContent,url))fr.incomplete=true;
+ return fr;
 }
 async function getFull0(url,ctx){const fr=await getFull00(url,ctx);return await upgradeStub(fr,url)}
 /* real progress while a story loads: how long, and which route is being tried, instead of a static line */
