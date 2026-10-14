@@ -37,10 +37,9 @@ const R=await p.evaluate(async()=>{
  const a={title:'World story about the budget and the senate',link:NYT,summary:'The senate budget'};
  const stub=frag(para(200));stub.gated_preview=true;
  const om=window.mirrorFor,oa=window.archiveFor;let order=[];
- window.archiveFor=async()=>{order.push('archive');return {n:Object.assign(frag(para(500)),{tier:'archive'}),u:'https://web.archive.org/web/1/x'}};
- window.mirrorFor=async()=>{order.push('mirror');return null};
+ window.mirrorFor=async()=>{order.push('mirror');return {n:Object.assign(frag(para(500)),{tier:'mirror'}),u:'https://apnews.com/x'}};
  const d1=await deeperTiers(a,stub,NYT);o.cas1=order.join('>')+' '+(d1.n.tier||'');
- order=[];window.archiveFor=async()=>{order.push('archive');return null};window.mirrorFor=async()=>{order.push('mirror');return {n:Object.assign(frag(para(500)),{tier:'mirror'}),u:'https://apnews.com/x'}};
+ order=[];window.archiveFor=undefined;window.mirrorFor=async()=>{order.push('mirror');return {n:Object.assign(frag(para(500)),{tier:'mirror'}),u:'https://apnews.com/x'}};
  const d2=await deeperTiers(a,stub,NYT);o.cas2=order.join('>')+' '+(d2.n.tier||'');
  order=[];window.mirrorFor=async()=>{order.push('mirror');return null};
  const d3=await deeperTiers(a,stub,NYT);o.cas3=order.join('>')+' '+(d3.n===stub);
@@ -58,9 +57,9 @@ ck('a gate-named element with no gate message does not count',R.styleOnly===true
 ck('getFull marks the verification-gate story gated_preview',R.gfFlag===true);
 ck('a gated story always needs the deeper steps',R.needs===true);
 ck('a complete NYT story is not marked',R.fullNotGated===true);
-ck('archive is tried first for a gated story and wins',/^archive(>mirror)? archive$/.test(R.cas1),R.cas1);
-ck('then the wire mirror',R.cas2==='archive>mirror mirror',R.cas2);
-ck('neither: the preview is kept',R.cas3==='archive>mirror true',R.cas3);
+ck('a gated story goes straight to the wire partner (no saved-copy step) and it wins',R.cas1==='mirror mirror',R.cas1);
+ck('there is no archive step any more',typeof archiveFor==='undefined'&&R.cas2==='mirror mirror',R.cas2);
+ck('no partner copy: the preview is kept',R.cas3==='mirror true',R.cas3);
 ck('no page errors',errs.length===0,errs.join('|'));}
 // reader: preview card, fade, link, no caching; and a saved copy replaces the preview
 {const ctx=await b.newContext({viewport:{width:884,height:1060}});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));await mock(p,{n:6});
@@ -79,7 +78,7 @@ ck('no page errors',errs.length===0,errs.join('|'));}
   const o={card:!!card,cardTxt:card?card.textContent:'',href:card?card.querySelector('a').getAttribute('href'):'',tgt:card?card.querySelector('a').getAttribute('target'):'',fade:lastFade.length,mask:lastFade[0]?getComputedStyle(lastFade[0]).webkitMaskImage||getComputedStyle(lastFade[0]).maskImage:'',gateGone:!/verify access/.test(document.querySelector('.cols .body').textContent),note:(document.querySelector('.cols .note')||{}).textContent||'',cached:!!acGet(link),link};
   document.querySelector('#cl').click();await new Promise(r=>setTimeout(r,400));
   // a saved copy found: no preview card
-  TRUNCDONE.delete(link);window.archiveFor=async()=>({n:Object.assign(frag('<p>'+words(300)+'</p><p>'+words(300)+'</p>'),{tier:'archive'}),u:'https://web.archive.org/web/1/x'});
+  TRUNCDONE.delete(link);window.mirrorFor=async()=>({n:Object.assign(frag('<p>'+words(300)+'</p><p>'+words(300)+'</p>'),{tier:'mirror'}),u:'https://apnews.com/x'});
   await openReader(a);await new Promise(r=>setTimeout(r,2500));
   o.noCardWhenArchived=!document.querySelector('.cols .gcard');o.archNote=(document.querySelector('.cols .note')||{}).textContent||'';
   window.getFull=og;window.archiveFor=oa;window.mirrorFor=om;return o});
@@ -89,6 +88,6 @@ ck('no page errors',errs.length===0,errs.join('|'));}
  ck('the gate message itself is removed from the text',U.gateGone===true);
  ck('a preview is not stored as the full story',U.cached===false);
  ck('the page says it is a subscriber preview',/Subscriber preview/.test(U.note),U.note);
- ck('a saved copy replaces the preview',U.noCardWhenArchived===true&&/Internet Archive/.test(U.archNote),U.archNote);
+ ck('a copy from a wire partner replaces the preview',U.noCardWhenArchived===true,U.archNote);
  ck('no page errors (reader)',errs.length===0,errs.join('|'));await ctx.close()}
 console.log(pass+' passed, '+fail+' failed');log.forEach(l=>console.log(l));await b.close()})()

@@ -256,6 +256,14 @@ Android only; nothing here could be built or run in the dev environment (the app
 - [ ] Cyber Dawn and Pixel themes: the headings use Rajdhani and Silkscreen (check once on Wi-Fi after choosing the theme).
 - [ ] Privacy: please check in the Cloudflare dashboard (Analytics and Logs → Web Analytics) that automatic installation of the web analytics script is OFF for cypressreader.com. A check of the live pages found no such script (home, app and a share page), but the dashboard setting could not be seen here. If it is on, tell me and the privacy page will be changed back to name it.
 
+## Preview: flagship audio and reader (branch preview/flagship-audio) — must verify on a real phone
+- [ ] Feed rhythms: List (flat index, hairlines, tracked small-caps source, muted time), Cards (12px framed cards, no shadows), Headlines → Cards (big lead headline over small companions) and Columns (ruled serif columns). Check them on the phone and tablet in a light and a dark theme.
+- [ ] Reader: the header (kicker, display title, byline with the author and a reading time counted from the text), the 700px measure when scrolling down, and the new drop cap on a feature story.
+- [ ] Quiet sweep and callouts: open stories that carry a newsletter box or a "Related reading" list. The box should fade out about 0.3 s after the text appears; the list becomes a callout card. Tell me about any real text that disappears.
+- [ ] Photo tint: with Settings → "Tint pages with photo colors" on, a story with a photo takes a faint color on the page (a 4% breath; it is skipped whenever it would cost legibility). Check a dark theme and Sepia.
+- [ ] Lock screen: start Listen, lock the phone, and use play, pause and skip from the lock screen and from Bluetooth headphones. (Already built in 1.86; unchanged here.)
+- [ ] Read-aloud highlight: already driven by the voice's own word reports with the clock only as a fallback (1.86); unchanged here. If it still runs ahead, Settings → Reading → Voice timing → Reset.
+
 ## 1.93 Settings and reader UX — must verify on a real phone
 - [ ] Reader "Aa" button: open any story, tap Aa. A−/A+, Auto/Pages/Scroll, Tight/Normal/Roomy and the sepia switch should reflow the story live without closing it; Escape (keyboard) or a tap on the story closes the popover; TalkBack should read each button with its own name and say which pill is selected. Check it does not cover the reader bar buttons on a small phone and that it is easy to reach with one thumb.
 - [ ] Settings → Reading and Listening: the sample passage at the top follows font, size, spacing and alignment. Fonts are real Google fonts only on a phone; I could only test with fallbacks here.
@@ -282,3 +290,34 @@ Android only; nothing here could be built or run in the dev environment (the app
 - [ ] Read aloud: if the highlight looks early or late, Settings → Read aloud → Voice timing → Reset clears it.
 - [ ] B26 (stutter in Deep reads and Sunday): not reproducible here at 4x slowed CPU (no slow frames), and the 1.79 fix is still in. Please scroll Deep reads and the Sunday issue on the Z Fold and say if it still stutters.
 - [ ] Wording (B96): skim Settings, the Daily, the reader menu, a failed story load and the read-aloud messages for anything that still sounds off. Things to look at specifically: Saved's pick bar says Save as PDF; a story that will not load says "View the site in the app"; the loading line says "trying source 2 of 5"; the end of a story says "Turn the last page again to go on to the next story". The wording list is checked by an automatic test (copy_consistency).
+
+## Preview: feed layout by pane width (branch preview/flagship-audio)
+Must verify on the Fold (folded and unfolded), a tablet and a phone:
+- Cards: image on top of every story; 1 column when narrow, 2 once the feed pane is about 475px wide.
+- Single-site lead story: stacked (picture above headline) until the pane is about 640px wide, then a 55/45 side-by-side split; the headline never becomes a tall narrow column.
+- Columns: 1, 2 or 3 newspaper columns with thin rules, depending on the pane width, at any display zoom.
+- List: index rows with source, headline, one-line deck, time and a star.
+- Stories saved with a cookie or privacy notice are cleaned or re-fetched when opened (try the Ars Technica Martin Shkreli story).
+- Unfolded Fold (square-ish, under 720px wide): the left menu is about 188px wide.
+
+## Preview 1.103: limited feeds, deal filter, reader cleanup
+Must verify on the device and with real publishers:
+- A deal roundup ("Save up to 20 percent on gift cards…") never appears in Tech, All Stories or a cover. Watch for real headlines wrongly hidden (for example "price drops to $5" in a market story).
+- A paywalled feed (for example the Wall Street Journal) shows a small lock in the side menu; its stories show "Subscriber"; a feed of short teasers gets "Teaser" once stories have been opened.
+- Add feed: typing a paywalled address shows the amber warning before you add it; a normal site does not.
+- Manage feeds → "Purge limited feeds…" and the side-menu chip list the flagged feeds, with the reason, and remove only the ticked ones; Undo brings them back.
+- Reader: affiliate notes and buy boxes are gone; "Read original on <site> ↗" opens the publisher outside the app.
+- Subscriber-only stories are no longer pulled from the Internet Archive.
+
+## Preview 1.104: Fold reader and feed fixes
+Must verify on the Fold:
+- Every story opens on page 1 (header 1 / N); only the Continue reading row resumes.
+- Wide reader: page 1 left column holds the picture, kicker, headline and byline; the text and drop cap start at the top of column 2 with nothing above them.
+- Opening and closing a story: the side menu stays the same width behind it, no floating picture, a quick fade. (The close fade uses the browser's page-transition fade, which needs checking in the Android app.)
+- Folder title (Tech) is not cut off at the top; Cards never show three across in a narrow pane.
+- Engadget and TechCrunch stories: no "may receive a commission" line, no bare "Image Credits:" line.
+
+## Preview 1.105
+- Wide reader, page 1: picture, kicker, headline and byline in column 1; story text and drop cap start at the top of column 2 on every story (check a TechCrunch story with no standfirst and a BBC one with a bold standfirst). If "At a glance" cannot fit beside the picture it is left out on that page.
+- Cards in a narrow pane: never three across.
+- A single site or a folder opens straight onto its stories in Card and List views (no tall "Section" banner).
