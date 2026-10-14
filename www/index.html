@@ -761,7 +761,7 @@ u.nd{width:8px;height:8px;padding:0;border-radius:50%;background:var(--logo,var(
 @media(hover:none){#side-list i{opacity:.6;padding:6px 10px;font-size:20px;line-height:1}#side-list .fh>i,#side-list .fr>i,#side-list .fh>.frx,#side-list .fr>.frx{display:none}#side-list .chv{width:26px}#side-list .chv::before{left:9px}}
 .fold.over{outline:2px dashed var(--mut);border-radius:10px}
 .addbtn{margin:10px;padding:11px;border-radius:12px;background:var(--ink);color:var(--pn);font-weight:600}
-main{overflow:auto;min-width:0;background:var(--tint,transparent)}
+main{overflow:auto;min-width:0;background:var(--tint,transparent);container-type:inline-size;container-name:feed}
 .top{display:flex;align-items:center;gap:10px;padding:clamp(16px,3vw,28px) clamp(14px,3vw,32px) 12px;position:sticky;top:0;background:linear-gradient(var(--tint,var(--bg)) 70%,transparent);z-index:5}
 .top h1{font:600 clamp(24px,3.4vw,40px)/1.1 var(--serif);letter-spacing:var(--hk);word-spacing:var(--hw);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #menu{display:none}
@@ -3641,14 +3641,13 @@ body.exbusy [data-exact]{cursor:progress}
 /* 5. Reader hero: fixed box, no layout shift while the photo decodes */
 #rd .cols img.hero:not(.hs-top img.hero),.rd-hero img{contain:layout size;transition:transform .25s ease,opacity .2s ease;will-change:transform}
 .cover img{contain:layout;transition:transform .25s ease,opacity .2s ease}
-/* 6. Tablet and foldable: Cards is a 2 to 3 column grid, photo on top, kicker, headline, quiet byline */
-@media(min-width:768px){
-#grid:not(.list):not(.nr):not(.wire){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;align-items:start}
+/* 6. Container-aware (the feed pane, not the screen): Cards is an intrinsic auto-fill grid, photo on top, kicker, headline, quiet byline */
+@container feed (min-width:475px){
+#grid:not(.list):not(.nr):not(.wire){display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:14px;align-items:start}
 #grid:not(.list):not(.nr):not(.wire)>.card{display:flex;flex-direction:column;margin:0}
 #grid:not(.list):not(.nr):not(.wire)>.card>img,#grid:not(.list):not(.nr):not(.wire)>.card .im{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px 12px 0 0;order:-1}
 #grid:not(.list):not(.nr):not(.wire)>.card .cfoot{margin-top:auto;border-top:0;color:var(--mut)}
 }
-@media(min-width:1100px){#grid:not(.list):not(.nr):not(.wire){grid-template-columns:repeat(3,minmax(0,1fr))}}
 /* 7. The four views stay distinct: list = hairline rows, cards = framed art-cards, mag = asymmetric hero spread, col = broadsheet with ink rules */
 #grid.list .card{border-radius:0!important}
 #grid.wire .wcols .wcol:not(:last-child){break-inside:avoid}
@@ -3659,25 +3658,50 @@ body.exbusy [data-exact]{cursor:progress}
 #grid[data-w="card"]>.card>img{order:-1;width:100%}
 #grid[data-w="mag"]>.card:first-of-type,#grid[data-w="mag"] .card.lead{grid-column:1/-1}
 #grid[data-w="mag"] .card:is(.nr-hero,.nr-lead,.lead) h3{font-family:var(--serif);font-weight:700;letter-spacing:-.024em}
-@media(min-width:768px){
-#grid[data-w="card"]:not(.nr),#grid[data-w="mag"]:not(.nr):not(.wire){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;align-items:start}
+@container feed (min-width:475px){
+#grid[data-w="card"]:not(.nr),#grid[data-w="mag"]:not(.nr):not(.wire){display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:14px;align-items:start}
 #grid[data-w="card"]:not(.nr)>.card,#grid[data-w="mag"]:not(.nr):not(.wire)>.card{display:flex;flex-direction:column}
 #grid[data-w="card"]:not(.nr)>.card>img,#grid[data-w="mag"]:not(.nr):not(.wire)>.card>img{order:-1;width:100%;aspect-ratio:16/10;object-fit:cover}
 }
-@media(min-width:1100px){#grid[data-w="card"]:not(.nr),#grid[data-w="mag"]:not(.nr):not(.wire){grid-template-columns:repeat(3,minmax(0,1fr))}}
 /* 9. DOM-level separation: list rows are flat, cards stack image over headline, columns are true CSS columns with ink rules */
 #grid .card.list-row{display:flex;align-items:center;gap:10px;min-height:0;padding:9px 4px}
 #grid .card.list-row .tx{flex:1;min-width:0;display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:baseline;padding:0}
 #grid .card.list-row .src{grid-column:1/-1}#grid .card.list-row .src img{width:16px;height:16px}
 #grid .card.list-row h3{margin:0;font-size:16px;line-height:1.25}
 #grid .card.list-row time{font-size:11.5px;color:var(--mut);white-space:nowrap}
-#grid .card.list-row .star{position:static;flex:none}
-@media(min-width:768px){
+@container feed (min-width:475px){
 #grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr),#grid[data-w="mag"]:not(.nr):not(.wire)>.card[data-ed]:not(.nr){display:flex;flex-direction:column}
 #grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr)>img,#grid[data-w="mag"]:not(.nr):not(.wire)>.card[data-ed]:not(.nr)>img{display:block;width:100%;position:static}
-#grid[data-w="col"] .wcols{column-count:2;column-width:auto;column-rule:1px solid color-mix(in srgb,var(--ink) 28%,transparent)}
+
 }
-@media(min-width:1100px){#grid[data-w="col"] .wcols{column-count:3}}
+/* 10. Fold pass: the lead reads across the page, Cards stacks every story image-over-text, List rows are index lines, Columns is a broadsheet */
+.fd-feat{display:block}.fd-feat .fd-fa{aspect-ratio:16/9;margin:0 0 18px}.fd-fb b{font-size:clamp(22px,4cqi + 10px,34px);max-width:28em}.fd-fb em{max-width:44em}
+@container feed (min-width:640px){.fd-feat:not(.fd-ft){display:grid;grid-template-columns:55fr 45fr;gap:30px;align-items:center}.fd-feat .fd-fa{margin:0}}
+#grid .card.list-row .ld{grid-column:1/-1;margin:0;font:400 13.5px/1.35 var(--sans);color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#grid .card.list-row .tx{grid-template-columns:1fr}#grid .card.list-row time{grid-column:1/-1}
+#grid .card.list-row .star{position:static;flex:none;opacity:1}
+@container feed (min-width:475px){
+#grid[data-w="mag"] :is(.nr-rv,.nr-sm,.nr-mid,.nr-trl,.nr-ph-rows){display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:14px}
+#grid[data-w="mag"] .card:is(.nr-row,.nr-late){display:flex!important;flex-direction:column;padding:0!important;border-top:0!important}
+#grid[data-w="mag"] .card:is(.nr-row,.nr-late)>img{order:-1;float:none!important;position:static!important;width:100%!important;height:auto!important;aspect-ratio:16/9;margin:0 0 10px!important;border-radius:12px;grid-column:auto!important}
+#grid[data-w="mag"] .card:is(.nr-row,.nr-late)>.tx{display:block!important}
+#grid.wire[data-w="mag"]{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:0 14px}
+#grid.wire[data-w="mag"]>*{grid-column:1/-1}
+#grid.wire[data-w="mag"]>.card[data-ed]:not(.lead):not(.nr){grid-column:auto;display:flex;flex-direction:column;margin-bottom:22px}
+#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr)>img,#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr)>img,#grid[data-w="mag"]:not(.nr):not(.wire)>.card[data-ed]:not(.nr)>img{order:-1;position:static!important;inset:auto;width:100%!important;height:auto!important;aspect-ratio:16/9;object-fit:cover;transform:none!important}
+}
+@container feed (min-width:475px){
+#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr),#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr),#grid[data-w="mag"]:not(.nr):not(.wire)>.card[data-ed]:not(.nr){display:flex!important;flex-direction:column!important;aspect-ratio:auto!important;min-height:0!important;height:auto!important;background-color:var(--pn,transparent)!important;color:var(--ink)!important}
+#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr)>.ov,#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr)>.ov,#grid[data-w="mag"]:not(.nr):not(.wire)>.card[data-ed]:not(.nr)>.ov{display:none!important}
+#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr)>.tx,#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr)>.tx,#grid[data-w="mag"]:not(.nr):not(.wire)>.card[data-ed]:not(.nr)>.tx{position:static!important;color:var(--ink)!important;text-shadow:none!important;padding:12px 16px 14px;background:none!important}
+#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr) :is(.src,.cfoot,.cby,time,.rt,.also,p),#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr) :is(.src,.cfoot,.cby,time,.rt,.also,p),#grid[data-w="mag"]:not(.nr):not(.wire)>.card[data-ed]:not(.nr) :is(.src,.cfoot,.cby,time,.rt,.also,p){color:var(--mut)!important;text-shadow:none!important}
+#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr)>.star,#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr)>.why{top:10px}
+}
+/* 11. Intrinsic columns and fluid type: widths come from the feed pane, so any screen density or zoom lands on 1, 2 or 3 columns by itself */
+#grid[data-w="col"] .wcols,#grid .wcols{column-width:230px;column-count:auto;column-gap:22px;column-rule:1px solid var(--ln)}
+#grid.wire:not(:has(.wcols)) .card:is(.nr-hero,.nr-lead,.lead) h3{font-size:clamp(22px,4cqi + 10px,34px)}
+#grid .card[data-ed]:not(.nr-hero,.nr-lead,.lead,.nr-pq) h3{font-size:clamp(16px,2.2cqi + 10px,22px)}
+@media(min-aspect-ratio:3/4) and (max-width:720px){body:not(.split):not(.narrow){--sw:188px}body:not(.split):not(.narrow)>aside #side-list,body:not(.split):not(.narrow)>aside .addbtn{padding-left:6px;padding-right:6px}}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4111,7 +4135,7 @@ function tidyFigure(e){
 }
 /* legal and cookie furniture: boxes by class, and short paragraphs of consent boilerplate */
 const LEGAL_SEL='.privacy-policy,#privacy-policy,[class*="cookie" i],[id*="consent" i],[class*="gdpr" i],[class*="cmp-" i],.cc-window,div.privacy-policy,div#privacy-policy,section[class*="cookie" i],div[id*="consent" i],div[class*="gdpr" i],div[class*="cmp-" i],footer,.policy-footer,[data-testid*="cookie" i],[class*="osano" i]';
-const LEGAL_TXT=/confirm my choices|data co-?ops?\b|allow targeted advertising|opt-?out of other sales/i;
+const LEGAL_TXT=/confirm my choices|data co-?ops?\b|allow targeted advertising|opt-?out of other|privacy_administration@condenast|resident of colorado, connecticut|these cookies are necessary for the website|we use audience measurement cookies|skip to content\s*ars technica/i;
 /* no exceptions: a matching element goes, whatever it wraps */
 function LEGAL_BOX(c){
  try{return !!((c.matches&&c.matches(LEGAL_SEL))||LEGAL_TXT.test(c.textContent||''))}catch(e){return false}
@@ -4325,10 +4349,16 @@ function extract(html,base){const MT={};const r=extract0(html,base,MT);if(r&&MT.
 function rmGap(e){try{const pv=e.previousSibling,nx=e.nextSibling;if(pv&&nx&&pv.nodeType===3&&nx.nodeType===3&&/[A-Za-z0-9]$/.test(pv.data)&&/^[A-Za-z0-9]/.test(nx.data))pv.data+=' '}catch(x){}}
 /* first thing after a page arrives: consent and privacy furniture goes before anything reads, cleans or saves the page (html and body themselves are never removed) */
 function consentPurge(d){
- if(!d||!d.querySelectorAll)return;
- d.querySelectorAll('[class*="cookie" i],[class*="consent" i],[class*="privacy-policy" i],[class*="gdpr" i]').forEach(e=>{if(e.isConnected&&!/^(HTML|BODY)$/.test(e.tagName))e.remove()});
- d.querySelectorAll('p,li,div,section,span,aside,small').forEach(e=>{if(e.isConnected&&!e.querySelector('p,li,div,section,aside')&&LEGAL_TXT.test(e.textContent||''))e.remove()});
+ let n=0;if(!d||!d.querySelectorAll)return n;
+ d.querySelectorAll('[class*="cookie" i],[class*="consent" i],[class*="privacy-policy" i],[class*="gdpr" i]').forEach(e=>{if(e.parentNode&&!/^(HTML|BODY)$/.test(e.tagName)){e.remove();n++}});
+ d.querySelectorAll('p,li,div,section,span,aside,small,h2,h3,h4,blockquote,figcaption').forEach(e=>{if(e.parentNode&&!e.querySelector('p,li,div,section,aside')&&LEGAL_TXT.test(e.textContent||'')){e.remove();n++}});
+ return n;
 }
+/* stored stories get the same scrub when they are opened: n = blocks removed, w = words left */
+function legalClean(h){const t=document.createElement('template');t.innerHTML=h;const n=consentPurge(t.content);return{h:n?t.innerHTML:h,n,w:(t.content.textContent||'').trim().split(/\s+/).filter(Boolean).length}}
+function legalBody(b){try{return b?consentPurge(b):0}catch(e){return 0}}
+const RD_RF=new Set();
+function acDrop(l){delete AC[l];try{if(IDB.ok)idbTx('readwrite',st=>st.delete(l))}catch(e){}}
 function extract0(html,base,MT){
  const d=new DOMParser().parseFromString(html,'text/html');try{consentPurge(d)}catch(e){}try{junkDom(d,base)}catch(e){}
  try{if(isOn('txo'))d.querySelectorAll('img,picture,video,iframe,source,amp-img,svg').forEach(e=>e.remove())}catch(e){}
@@ -5163,7 +5193,7 @@ function colItem(u,ix,deck){
  return `<a class="cvlead wcol${S.read[a.link]?' read':''}" href="${esc(a.link)}" data-i="${ix(a)}"><small style="--b:${brand(f)}">${esc(f.title)} · ${esc(ago(a.date))}</small><b>${esc(a.title)}</b>${u.more.length?`<em>+${u.more.length} ${u.more.length===1?'update':'updates'}</em>`:''}${deck?(()=>{const d=dekOf(a,140);return d?`<span class="wcol-d">${esc(d)}</span>`:''})():''}</a>`;
 }
 const densHtml=()=>`<div class="wdens" role="group" aria-label="Density"><button type="button" data-wdens="mag" aria-pressed="${S.wdens!=='col'}">Cards</button><button type="button" data-wdens="col" aria-pressed="${S.wdens==='col'}">Columns</button></div>`;
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-wdens]');if(!b)return;e.preventDefault();e.stopPropagation();S.wdens=b.dataset.wdens;save();render()},true);
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button[data-wdens]');if(!b)return;e.preventDefault();e.stopPropagation();S.wdens=b.dataset.wdens;save();render()},true);
 function wireRender(pre,list,T){
  const g=$('#grid'),mode=nrMode(),now=Date.now(),vis=T?0:VIS,units=wireThreads(list);
  const FO=!T&&S.sel.startsWith('f:')?S.folders.find(x=>'f:'+x.id===S.sel):null;
@@ -5893,7 +5923,8 @@ const IMGOK=new Set();
 /* a story card is a container: one headline link plus separate Save and Why buttons beside it, never buttons inside a link */
 const chref=c=>(c&&((c.dataset&&c.dataset.href)||c.getAttribute('href')))||'';
 function listRow(a,i,k,f){
-  return `<div class="card list-row ${k} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}"><div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><time>${ago(a.date)}</time></div></div>`;
+  const dk=(typeof dekOf==='function'?dekOf(a,140):'')||'',mn=readMin(a);
+  return `<div class="card list-row ${k} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}"><div class="tx"><div class="src"><img alt="" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3>${dk?`<p class="ld">${esc(dk)}</p>`:''}<time>${ago(a.date)}${mn?' · '+mn+' min':''}</time></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
 }
 function card(a,i,k){
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
@@ -7657,7 +7688,7 @@ function toggleWeb(auto){
  w.hidden=false;R.web=true;R.auto=!!auto;b.innerHTML=svg(PAGE);b.title='Back to reader view';loadWeb();
 }
 async function openReader(a){
- const f=fof(a),my=++tok,sh=$('#sheet');curA=a;RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0;R.ready=false;const afterLoad=()=>{try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;setTimeout(()=>{if(curA===a0)relayout()},800);setTimeout(()=>{if(curA===a0)relayout()},2600);try{document.fonts&&document.fonts.ready.then(()=>{if(curA===a0)relayout()})}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);save();setTimeout(()=>raWhenReady(a,0),1200);
+ const f=fof(a),my=++tok,sh=$('#sheet');curA=a;RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0;R.ready=false;const afterLoad=()=>{legalBody($('.cols .body'));try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;setTimeout(()=>{if(curA===a0)relayout()},800);setTimeout(()=>{if(curA===a0)relayout()},2600);try{document.fonts&&document.fonts.ready.then(()=>{if(curA===a0)relayout()})}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);save();setTimeout(()=>raWhenReady(a,0),1200);
  rdB(brand(f));pushLayer('reader');tip('reader');
  try{rdAmbient(null)}catch(e){}
  if(a.img&&isOn('ptint'))imgInfo(a.img).then(o=>{if(o&&o.t&&curA===a){rdB(o.t);try{rdAmbient(o.t)}catch(e){}}});
@@ -7676,7 +7707,7 @@ async function openReader(a){
  const c=$('.cols'),body=c.querySelector('.body'),note=c.querySelector('.note');
  R.heroEl=R.heroMark=null;
  /* a story that was got ready ahead of time goes straight onto the page: no network, no parsing of a page, no cleaning (that was all done when it was fetched) */
- let fastH=null;if(AC[a.link]&&AC[a.link].c&&!ytId(a)){fastH=acGet(a.link)||await acLoad(a.link);if(my!==tok)return}
+ let fastH=null;if(AC[a.link]&&AC[a.link].c&&!ytId(a)){fastH=acGet(a.link)||await acLoad(a.link);if(my!==tok)return;if(fastH){const lc=legalClean(fastH);if((lc.n||lc.w<150)&&!RD_RF.has(a.link)&&online()){RD_RF.add(a.link);acDrop(a.link);fastH=null}else if(lc.n)fastH=lc.h}}
  if(fastH){body.innerHTML=fastH;body.dataset.clean='1'}else{body.append(fromHTML(a.html,a.link));foldBoiler(body,a)}
  try{heroOnce()}catch(e){}
  c.addEventListener('load',e=>{const im=e.target;/* a logo or icon in a story keeps its own small size instead of being blown up blurry across the column */if(im&&im.tagName==='IMG'&&im.closest&&im.closest('.body')&&!im.classList.contains('hero')&&im.naturalWidth&&im.naturalWidth<220&&im.naturalHeight<220){im.classList.add('tiny');im.style.setProperty('--tw',im.naturalWidth+'px')}heroSpread();photoPages();relayout()},true);c.addEventListener('error',()=>{heroSpread();relayout()},true);
@@ -7687,7 +7718,7 @@ async function openReader(a){
  if(fastH){note.remove();ALT='';afterLoad();return}
  let cached=acGet(a.link)||await acLoad(a.link);
  if(my!==tok)return;
- if(cached&&!textQuality(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')).ok)cached=null;if(cached&&footerish(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')))cached=null;
+ if(cached&&!textQuality(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')).ok)cached=null;if(cached&&footerish(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')))cached=null;if(cached){const lc=legalClean(cached);if((lc.n||lc.w<150)&&!RD_RF.has(a.link)&&online()){RD_RF.add(a.link);acDrop(a.link);cached=null}else if(lc.n)cached=lc.h}
  if((f.web||(isPay(a)&&f.web!==false))&&!cached&&online())toggleWeb(true);
  if(cached){body.replaceChildren(dropTitle(tidy(fromHTML(cached,a.link)),a.title));foldBoiler(body,a);try{heroOnce()}catch(e){}note.remove();ALT='';afterLoad();return}
  if(!online()){note.textContent=S.offline?'Offline mode is on. Showing what’s stored on this device.':'You’re offline. Showing what came with the feed.';afterLoad();return}
@@ -7704,7 +7735,7 @@ async function openReader(a){
   ttsStop();
   body.replaceChildren(dropTitle(n,a.title));try{heroOnce()}catch(e){}
   if(n.pw&&src===a.link){a.pw=1;note.innerHTML='This looks like a preview, and the site may want a subscription for the rest. <button type="button" class="lnk" data-web="1">View the site in the app</button>';if(my===tok&&!R.web&&(S.autoWeb||isBing(f.url)||/news\.google\./.test(f.url||'')||/news\.google\./.test(a.link||'')))toggleWeb(true)}else if(n.gated_preview&&src===a.link)note.innerHTML='<span class="sbadge">Subscriber preview</span>The site is holding back the rest of this story.';else if(n.tier==='archive')note.textContent='Full story loaded from a saved copy at the Internet Archive.';else if(n.tier==='morss')note.textContent='Full story loaded through Morss.';else if(src!==a.link)note.textContent='Full story loaded from '+host(src)+'.';else if(n.incomplete&&looksIncomplete(n.textContent,src))note.innerHTML='<span class="sbadge">Truncated source text</span>This may be only the start of the story. <a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener">Open the original story</a>';else note.remove();
-  if(!((n.incomplete&&looksIncomplete(n.textContent,src))||(n.gated_preview&&src===a.link)))acPut(a.link,body.innerHTML);markReady(a.link);
+  legalBody(body);if(!((n.incomplete&&looksIncomplete(n.textContent,src))||(n.gated_preview&&src===a.link)))acPut(a.link,body.innerHTML);markReady(a.link);
   S.rt[a.link]=Math.max(1,Math.round(body.textContent.split(/\s+/).length/230));const rk=Object.keys(S.rt);if(rk.length>600)delete S.rt[rk[0]];save();
   foldBoiler(body,a);
   if(n.gated_preview&&src===a.link)gatePreviewUi(body,a);
@@ -10474,7 +10505,7 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.14b';const APP_LABEL='1.93';
+const APP_VERSION='2026.10.14c';const APP_LABEL='1.99';
 const CHANGES=["Stories that stop at a subscriber gate (like the New York Times verification message) are now spotted, and the app looks for a saved or wire copy of the full story", "If the full story can’t be found, you get the opening paragraphs with a soft fade, a Subscriber Preview card and a button to read it on the original site", "The gate check looks only for real gate messages, so ordinary news pages are not mislabelled as previews"];
 const DEF_ON=new Set(['cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];

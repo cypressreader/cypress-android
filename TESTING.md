@@ -290,3 +290,12 @@ Android only; nothing here could be built or run in the dev environment (the app
 - [ ] Read aloud: if the highlight looks early or late, Settings → Read aloud → Voice timing → Reset clears it.
 - [ ] B26 (stutter in Deep reads and Sunday): not reproducible here at 4x slowed CPU (no slow frames), and the 1.79 fix is still in. Please scroll Deep reads and the Sunday issue on the Z Fold and say if it still stutters.
 - [ ] Wording (B96): skim Settings, the Daily, the reader menu, a failed story load and the read-aloud messages for anything that still sounds off. Things to look at specifically: Saved's pick bar says Save as PDF; a story that will not load says "View the site in the app"; the loading line says "trying source 2 of 5"; the end of a story says "Turn the last page again to go on to the next story". The wording list is checked by an automatic test (copy_consistency).
+
+## Preview: feed layout by pane width (branch preview/flagship-audio)
+Must verify on the Fold (folded and unfolded), a tablet and a phone:
+- Cards: image on top of every story; 1 column when narrow, 2 once the feed pane is about 475px wide.
+- Single-site lead story: stacked (picture above headline) until the pane is about 640px wide, then a 55/45 side-by-side split; the headline never becomes a tall narrow column.
+- Columns: 1, 2 or 3 newspaper columns with thin rules, depending on the pane width, at any display zoom.
+- List: index rows with source, headline, one-line deck, time and a star.
+- Stories saved with a cookie or privacy notice are cleaned or re-fetched when opened (try the Ars Technica Martin Shkreli story).
+- Unfolded Fold (square-ish, under 720px wide): the left menu is about 188px wide.
