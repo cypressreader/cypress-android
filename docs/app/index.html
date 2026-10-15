@@ -3809,7 +3809,12 @@ html.dkart .dcov.dct-min .dgp.qp .qp-bar{background:rgba(18,18,18,.78)}
 #tmini .tmb{background:var(--pn)!important;color:var(--ink)!important;width:44px!important;height:44px!important;margin:0 2px}
 #tmini .tmx{width:36px;height:36px;opacity:.8}
 @media(max-width:380px){#tmini .tmrw{display:none}#tmini .tmth{width:40px;height:40px}}
-body.hasdock main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+body.hasdock main{padding-bottom:calc(var(--dockh,64px) + var(--tabh,0px) + 24px)}
+/* the locked sidebar leaves the player's height free at its foot, so Settings stays clear of it */
+body.hasdock:not(.narrow)>aside{padding-bottom:var(--dockh,64px)}
+/* the slide-out drawer sits above the player; the player dims with the page behind it */
+body.open>aside,body.split.open>aside,body:not(.narrow):not(.split).reading.sideshow>aside{z-index:90}
+body.open #tmini,body.sideshow #tmini{z-index:19;opacity:.5;pointer-events:none}
 #rd.ghost{visibility:hidden!important;pointer-events:none!important;transition:none!important;animation:none!important}
 /* a story thumbnail: its picture, or the CyPress tree on the app's green */
 .dth{position:relative;display:block;overflow:hidden;border-radius:9px;background:linear-gradient(150deg,#2a7a55,#0b2119);color:#f3ead6;--cyk:#0b2119}
@@ -8093,10 +8098,11 @@ function tminiToggle(){
 function tminiSync(){
  const rd=$('#rd'),seen=rd.classList.contains('on')&&!rd.classList.contains('ghost');
  const show=!!((TTS.on||DIG.on)&&!seen&&('speechSynthesis' in window));
- document.body.classList.toggle('hasdock',show);
+ document.body.classList.toggle('hasdock',show);if(!show){const r=document.documentElement.style;r.setProperty('--dockh','0px');r.setProperty('--tabh','0px')}
  let e=$('#tmini');if(!show&&!e)return;e=tmini();e.hidden=!show;
  if(!show){const d=$('#tdr');if(d&&d.open)d.close();return}
- const tb=$('#tabs');e.style.bottom=(tb&&getComputedStyle(tb).display!=='none'&&tb.offsetHeight)?tb.offsetHeight+'px':'0px';
+ const tb=$('#tabs'),tbh=(tb&&getComputedStyle(tb).display!=='none'&&tb.offsetHeight)||0;e.style.bottom=tbh+'px';
+ {const r=document.documentElement.style;r.setProperty('--dockh',e.offsetHeight+'px');r.setProperty('--tabh',tbh+'px')}/* what the player takes up, so the page and the sidebar can leave room for it */
  const m=digModel(),c=m.chap[m.i],run=TTS.on&&!TTS.paused,multi=m.chap.length>1;
  e.querySelector('.tmt').textContent=c?c.a.title:'Getting your Daily ready…';
  {const th=e.querySelector('.tmth'),k=(c&&c.a.link)||'';if(th.dataset.k!==k){th.dataset.k=k;th.innerHTML=digThumb(c&&c.a)}}
@@ -10885,8 +10891,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.15r';const APP_LABEL='1.106';
-const CHANGES=["One Share button: it sends the story as a magazine-style picture card with the link written in the message, so chat apps show the card instead of a second, plain link preview. The separate \"Gift this story\" button is gone.","The Daily player has a new look: a small picture of the story beside the headline, a thin progress line along the top, and a Now Playing sheet with a blurred cover backdrop, a sharp cover, a moving playing mark on the current story and times in a tidy column. On a wide screen the sheet splits in two. Stories without a picture show the CyPress tree.","For store policy, CyPress now respects paywalls: a story behind a paywall shows its free preview and a link to the original, instead of trying to uncover hidden text.","The Daily now plays like a podcast: tap \"Play Daily\" on the cover's status strip and a player docks at the bottom while the stories are read one after another, with the next ones getting ready ahead of time. Tap the player for the story list, a scrubber with a tick where each story starts, and speeds from 1× to 2×. Lock-screen and Bluetooth buttons (play, pause, back, next, seek) work for the whole Daily.","The Daily's status strip shows \"6 stories left • ~18m\" with Play Daily always one tap away, and its text is readable on every cover.","Text on frosted panels over photos has a firmer backing, so it stays readable on any picture.","PDF and e-book exports: larger text, roomier lines and column gutters, a heavier pull quote, a drop cap in e-books, and page footers with the publication, page number and issue in solid black for e-ink screens.","Read aloud keeps playing when you go back to the feed. A small floating button lets you pause, resume (from the same spot) or stop it, and it no longer opens the story's picture."];
+const APP_VERSION='2026.10.15s';const APP_LABEL='1.106';
+const CHANGES=["Fixed: the Daily player no longer covers the Settings button in the side list on tablets, and the slide-out menu on phones now sits above the player.","One Share button: it sends the story as a magazine-style picture card with the link written in the message, so chat apps show the card instead of a second, plain link preview. The separate \"Gift this story\" button is gone.","The Daily player has a new look: a small picture of the story beside the headline, a thin progress line along the top, and a Now Playing sheet with a blurred cover backdrop, a sharp cover, a moving playing mark on the current story and times in a tidy column. On a wide screen the sheet splits in two. Stories without a picture show the CyPress tree.","For store policy, CyPress now respects paywalls: a story behind a paywall shows its free preview and a link to the original, instead of trying to uncover hidden text.","The Daily now plays like a podcast: tap \"Play Daily\" on the cover's status strip and a player docks at the bottom while the stories are read one after another, with the next ones getting ready ahead of time. Tap the player for the story list, a scrubber with a tick where each story starts, and speeds from 1× to 2×. Lock-screen and Bluetooth buttons (play, pause, back, next, seek) work for the whole Daily.","The Daily's status strip shows \"6 stories left • ~18m\" with Play Daily always one tap away, and its text is readable on every cover.","Text on frosted panels over photos has a firmer backing, so it stays readable on any picture.","PDF and e-book exports: larger text, roomier lines and column gutters, a heavier pull quote, a drop cap in e-books, and page footers with the publication, page number and issue in solid black for e-ink screens."];
 const DEF_ON=new Set(['cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
