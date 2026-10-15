@@ -3762,6 +3762,12 @@ main{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 #rdprog{position:fixed;top:0;left:0;right:0;height:2px;z-index:90;pointer-events:none;background:transparent}#rdprog i{display:block;height:100%;width:100%;background:var(--logo);transform:scaleX(0);transform-origin:0 50%}#rdprog[hidden]{display:none}
 #rd .cols .body p.dropcap .dcap.dc-k{margin-right:2px;padding-right:0;letter-spacing:-.04em}
 .fr-bold{display:inline!important;margin:0!important;padding:0!important;font-weight:bold!important;break-inside:avoid!important}
+/* top-centre pill that drops in, like a phone's island */
+#toast{top:calc(10px + env(safe-area-inset-top,0px));bottom:auto;left:50%;right:auto;margin:0;z-index:95;border-radius:999px;transform:translate(-50%,-150%) scale(.7);transform-origin:50% 0;transition:transform .45s cubic-bezier(.2,1.25,.3,1),opacity .18s;box-shadow:0 8px 28px rgba(0,0,0,.28)}
+#toast.show{transform:translate(-50%,0) scale(1);opacity:1}
+body.narrow #toast{bottom:auto}html.micro #toast{animation:none}
+@media(prefers-reduced-motion:reduce){#toast{transform:translate(-50%,0);transition:opacity .15s}}
+.fbar.burn{grid-column:1/-1}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -5113,7 +5119,7 @@ function render0(){
   $('#grid').innerHTML=(S.sel==='all'&&!q?allSeg('latest'):'')+`<div class="empty">${q?'No stories match that search.':S.sel==='saved'?'Nothing saved yet. Tap the star on any story.':S.sel.startsWith('k:')&&!busy?'No stories match this smart folder yet.':S.hideRead&&!busy&&fs.some(f=>(items[f.id]||[]).length)?'All caught up. Turn off “Hide stories I’ve read” in Settings to see older stories.':busy?SKEL():fs.length?'No stories have loaded yet.'+EA('rf','hl'):'No feeds here yet.'+EA('ad','sp')}</div>`;return;
  }
  let pre='';
- if(S.sel==='all'&&!q)pre=allSeg('latest');
+ if(S.sel==='all'&&!q)pre=allSeg('latest')+burnCard();
  if(S.sel==='saved'&&!q&&S.saved.length)pre=shelfMast()+savedChips();
  if(q&&!S.sk.some(k=>k.words.length===1&&k.words[0]===q))pre=topicMast(q,cur);
  if(!q&&S.sel.startsWith('s:')){const f=S.feeds.find(x=>'s:'+x.id===S.sel);if(f&&paused(f))pre=`<div class="fbar"><span>${esc(f.title)} is paused${f.snz>8e15?'':' until '+esc(new Date(f.snz).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}))}. Its stories are hidden from Today and All stories.</span><button class="tx2" data-resume="${f.id}">Resume</button></div>`;else if(f&&f.via==='bing')pre=`<div class="fbar"><span>Showing ${esc(f.title)} headlines from Bing News, because ${f.viaWhy==='stale'?'the site’s own feed is out of date':'the site blocks feed readers'}. Stories still open from ${esc(siteOf(f))}.</span></div>`;else if(f&&state[f.id]==='err')pre=`<div class="fbar"><span><b>We couldn’t refresh ${esc(f.title)}.</b> ${esc(feedReason(f))}. ${esc(lastOkTxt(f))}.</span><button class="tx2" data-frep="${f.id}">Try again</button></div>`}
@@ -6163,6 +6169,23 @@ const MUTERX={};
 function muteHit(m,t){if(!/\s/.test(m)){let r=MUTERX[m];if(!r)r=MUTERX[m]=new RegExp('(^|[^\\p{L}\\p{N}])'+m.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^\\p{L}\\p{N}]|$)','iu');return r.test(t)}return t.includes(m)}
 const muted=a=>ruleHide(a)||junkItem(a)||dealHide(a)||(S.mute.length&&(()=>{const t=((a.title||'')+' '+(a.summary||'')).toLowerCase();return S.mute.some(m=>muteHit(String(m).toLowerCase(),t))})());
 const paused=f=>!!(f&&f.snz&&f.snz>Date.now());
+/* A busy feed you haven't opened a single story from in 30 days: offer, gently and once in a while, to pause it. Feeds from before this check get their 30 days counted from the first time it runs. */
+function burnFeed(){
+ const now=Date.now(),D=864e5;let stamped=false;
+ S.feeds.forEach(f=>{if(!f.at){f.at=now;stamped=true}});if(stamped)try{save()}catch(e){}
+ const nd=S.nudged||{};
+ for(const f of S.feeds){
+  if(paused(f)||now-f.at<30*D||(nd[f.id]&&now-nd[f.id]<60*D))continue;
+  const l=items[f.id]||[];if(l.filter(a=>a.date&&now-a.date<30*D).length<20)continue;
+  if(S.hist.some(h=>h.fid===f.id&&now-h.t<30*D))continue;
+  return f;
+ }
+ return null;
+}
+function burnCard(){
+ try{const f=burnFeed();if(!f)return '';const n=esc(f.title||host(f.url));
+  return `<div class="fbar burn" role="region" aria-label="Suggestion"><span>You haven’t read ${n} lately. Want to pause it to keep your daily list clean?</span><button type="button" class="tx2" data-bpause="${f.id}" aria-label="Pause ${n}">Pause it</button><button type="button" class="tx2" data-bkeep="${f.id}" aria-label="Keep ${n}">Keep it</button></div>`}catch(e){return ''}
+}
 /* never more than two stories in a row from one source, whatever the ranking says; items that cannot be separated (the list is all one source) keep their order */
 function mixBy(arr,key,max){
  max=max||2;key=key||(a=>a.feedId);const out=[],held=[];
@@ -6563,6 +6586,8 @@ function dayPreload(){
 function dpSoon(ms){clearTimeout(DPRE.t2);DPRE.t2=setTimeout(()=>{try{dayPreload()}catch(e){}},ms)}
 setTimeout(()=>dpSoon(1),9000);
 addEventListener('online',()=>dpSoon(4000));
+/* Saves and read marks are kept on the phone the moment they happen; when the connection comes back, anything the sync relay hasn't seen yet is sent quietly */
+addEventListener('online',()=>{if(S.sync&&S.relay)setTimeout(()=>{try{syncNow()}catch(e){}},2500)});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)dpSoon(5000)});
 setInterval(()=>{if(!document.hidden)dpSoon(1)},4*6e4);
 async function dpRun(){
@@ -7880,7 +7905,10 @@ function tmini(){let e=$('#tmini');if(e)return e;
  let d=null;
  e.addEventListener('pointerdown',ev=>{if(ev.target.closest('.tmx'))return;const r=e.getBoundingClientRect();d={x:ev.clientX,y:ev.clientY,l:r.left,t:r.top,m:0};try{e.setPointerCapture(ev.pointerId)}catch(_){}});
  e.addEventListener('pointermove',ev=>{if(!d)return;const dx=ev.clientX-d.x,dy=ev.clientY-d.y;if(!d.m&&Math.hypot(dx,dy)<6)return;d.m=1;tminiPlace(d.l+dx,d.t+dy)});
- e.addEventListener('pointerup',()=>{if(!d)return;const m=d.m;d=null;if(m){const r=e.getBoundingClientRect(),right=r.left+r.width/2>innerWidth/2;tminiPlace(right?innerWidth-60:4,r.top);S.tmpos={x:right?1:0,y:r.top/innerHeight};save();return}tminiTap()});
+ e.addEventListener('pointerup',()=>{if(!d)return;const m=d.m;d=null;if(m){const r=e.getBoundingClientRect(),right=r.left+r.width/2>innerWidth/2;tminiPlace(right?innerWidth-60:4,r.top);S.tmpos={x:right?1:0,y:r.top/innerHeight};save();return}
+  /* the tap's own click arrives after this: Play opens the story, so that click would land on whatever is now under the finger (the story's picture). Swallow it. */
+  {const kill=ev=>{ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation()};document.addEventListener('click',kill,{capture:true,once:true});setTimeout(()=>document.removeEventListener('click',kill,true),600)}
+  tminiTap()});
  e.addEventListener('pointercancel',()=>{d=null});
  e.querySelector('.tmb').addEventListener('click',ev=>{if(ev.detail===0)tminiTap()});/* keyboard and screen-reader activation (a touch or mouse tap is handled on pointer-up) */
  e.querySelector('.tmx').addEventListener('click',ev=>{ev.stopPropagation();ttsStop();tminiSync()});
@@ -8352,7 +8380,7 @@ $('#gear').onclick=()=>{drawer(false);setBuild();setAdopt();setCounts();syncSet(
 $('#rate').oninput=e=>{S.rate=+e.target.value;$('#ratev').value=S.rate.toFixed(1)+'×';save()};
 $('#vol').oninput=e=>{S.vol=+e.target.value;$('#volv').value=Math.round(S.vol*100)+'%';save()};
 $('#voice').onchange=e=>{S.voice=e.target.value;save()};
-$('#grid').onclick=e=>{if(hlClick(e))return;{const mb=e.target.closest('[data-msnz]');if(mb){const f=S.feeds.find(x=>x.id===mb.dataset.msnz);if(f){const old=f.snz||0;f.snz=Date.now()+7*864e5;save();render();toast('Paused '+f.title+' for a week',()=>{f.snz=old;save();render()})}return}}if(e.target.closest('[data-five]')){fiveMin();return}if(e.target.closest('[data-endall]')){S.sel='all';save();render();return}const sb=e.target.closest('.sech button');if(sb){S.sel=sb.dataset.sel;save();return render()}const st=e.target.closest('.star');if(st){e.preventDefault();toggleSave(cur[+st.dataset.star]);render();return}const wy=e.target.closest('[data-why]');if(wy){e.preventDefault();e.stopPropagation();showWhy(cur[+wy.dataset.why],wy);return}
+$('#grid').onclick=e=>{if(hlClick(e))return;{const bp=e.target.closest('[data-bpause]'),bk=e.target.closest('[data-bkeep]');if(bp||bk){const f=S.feeds.find(x=>x.id===(bp||bk).dataset[bp?'bpause':'bkeep']);if(f){S.nudged=S.nudged||{};S.nudged[f.id]=Date.now();if(bp){const old=f.snz||0;f.snz=9e15;save();render();toast('Paused '+(f.title||'feed'),()=>{f.snz=old;delete S.nudged[f.id];save();render()})}else{save();render()}}return}}{const mb=e.target.closest('[data-msnz]');if(mb){const f=S.feeds.find(x=>x.id===mb.dataset.msnz);if(f){const old=f.snz||0;f.snz=Date.now()+7*864e5;save();render();toast('Paused '+f.title+' for a week',()=>{f.snz=old;save();render()})}return}}if(e.target.closest('[data-five]')){fiveMin();return}if(e.target.closest('[data-endall]')){S.sel='all';save();render();return}const sb=e.target.closest('.sech button');if(sb){S.sel=sb.dataset.sel;save();return render()}const st=e.target.closest('.star');if(st){e.preventDefault();toggleSave(cur[+st.dataset.star]);render();return}const wy=e.target.closest('[data-why]');if(wy){e.preventDefault();e.stopPropagation();showWhy(cur[+wy.dataset.why],wy);return}
  const stg=e.target.closest('[data-stag]');if(stg){S.stag=stg.dataset.stag;save();render();return}
  if(e.target.closest('[data-sshare]')){shareSavedList();return}
  if(e.target.closest('[data-hexport]')){exportHighlights();return}
@@ -9057,7 +9085,7 @@ const hasSec=(n,fid)=>S.sk.some(k=>k.sec===n&&k.fid===fid);
 const kcount=k=>S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>!S.read[a.link]&&kmatch(k,a)).length;
 const readMin=a=>S.rt[a.link]||(a.wc>250?Math.round(a.wc/230):0);
 let pt;
-function toast(m,undo,label){let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';t.setAttribute('role','status');t.setAttribute('aria-live','polite');document.body.append(t)}
+function toast(m,undo,label){try{if(/^(Saved|Removed from saved|Marked as)/.test(m))buzz(10)}catch(e){}let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';t.setAttribute('role','status');t.setAttribute('aria-live','polite');document.body.append(t)}
  t.textContent='';const sp=document.createElement('span');sp.textContent=m;t.append(sp);
  if(undo){const b=document.createElement('button');b.type='button';b.className='tundo';b.textContent=label||'Undo';b.onclick=()=>{clearTimeout(t._h);t.className='';undo()};t.append(b)}
  t.className=undo?'show act':'show';clearTimeout(t._h);t._h=setTimeout(()=>{t.className=''},undo?(label?14000:6500):1800)}
@@ -10341,7 +10369,7 @@ function ptEl(){let e=$('#pts');if(!e){e=document.createElement('div');e.id='pts
 /* sits just left of the first button on the right of the bar, over the empty part of the bar */
 function ptPlace(e){const top=$('.top'),tr=top.getBoundingClientRect(),b=['#mr','#vw','#ref','#srch'].map(q=>$(q)).find(x=>x&&x.getBoundingClientRect().width>0);if(b){const l=b.getBoundingClientRect().left;e.style.right=Math.max(0,tr.right-l+4)+'px'}}
 function ptDraw(off,p,label,cls){const e=ptEl(),g=$('#grid');if(!e.classList.contains('on')){ptPlace(e);e.classList.add('on')}
- const k=Math.round(p*60);if(k!==PT.last){PT.last=k;const gg=e.querySelector('.ptg');gg.style.setProperty('--p1',Math.min(1,p*1.5).toFixed(3));gg.style.setProperty('--p2',Math.max(0,(p-.45)/.55).toFixed(3));if(p>=1&&!PT.rdy){PT.rdy=1;buzz('tick')}else if(p<.9)PT.rdy=0}
+ const k=Math.round(p*60);if(k!==PT.last){PT.last=k;const gg=e.querySelector('.ptg');gg.style.setProperty('--p1',Math.min(1,p*1.5).toFixed(3));gg.style.setProperty('--p2',Math.max(0,(p-.45)/.55).toFixed(3));if(p>=1&&!PT.rdy){PT.rdy=1;buzz(15)}else if(p<.9)PT.rdy=0}
  const lb=$('#ptlb'),l=lb.querySelector('span');lb.style.setProperty('--o',off+'px');lb.classList.toggle('on',cls!=='busy'&&off>=22);if(l.textContent!==label)l.textContent=label;
  e.classList.toggle('ptready',cls==='ptready');e.classList.toggle('busy',cls==='busy');
  g.style.transform=off?'translateY('+off+'px)':''}
@@ -10626,8 +10654,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.15m';const APP_LABEL='1.106';
-const CHANGES=["Fixed: with Focus reading on, read aloud no longer spells words out letter by letter.","Fixed: \"Focus reading\" no longer breaks the text into a staircase.","Read aloud keeps playing when you go back to the feed. A small floating button lets you pause, resume or stop it while you browse.","New \"Focus reading\" switch (Settings → Reading): bolds the first letters of each word to help your eye skim along a line.","The phone's status bar now matches your theme the moment you switch it, instead of lagging a step behind.","Fixed: switching a story from Pages back to Scroll no longer squashes the picture or hides the text.","Fixed: on a fully open Fold, stories in Scroll mode could squash the picture and hide the text. The half-folded layout now only applies when the phone is actually half-folded.","Swipe a card right to mark it read or unread, left to save or unsave, with a small tick when you've pulled far enough."];
+const APP_VERSION='2026.10.15n';const APP_LABEL='1.106';
+const CHANGES=["Fixed: tapping Play on the floating read-aloud button no longer opens the story's picture.","Notices now drop in from the top as a small floating pill, with a gentle tick when you save a story.","Pull-to-refresh gives a firmer tick when you've pulled far enough.","If you haven't opened a single story from a busy feed in 30 days, CyPress offers to pause it (once in a while, and you can say no).","When your phone comes back online, saved stories and read marks sync quietly.","Fixed: with Focus reading on, read aloud no longer spells words out letter by letter.","Fixed: \"Focus reading\" no longer breaks the text into a staircase.","Read aloud keeps playing when you go back to the feed. A small floating button lets you pause, resume or stop it while you browse."];
 const DEF_ON=new Set(['cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;

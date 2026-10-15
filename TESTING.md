@@ -349,3 +349,6 @@ Must verify on a phone (web app and APK): Focus reading on: text flows in normal
 
 ## Read aloud with Focus reading; back while listening (preview/polish-106)
 Must verify on a phone: Focus reading on + Read aloud: words are spoken whole and the highlight follows them. Start Read aloud, then Back / edge-swipe: the story closes straight to the feed, audio carries on, the pill shows, and no prompt or picture view appears. If a prompt still shows, note its exact wording and which app draws it (it is not from CyPress).
+
+## Batch 6 (preview/polish-106)
+Must verify on a phone: (1) read aloud, back to feed, tap Play on the pill: the story opens and audio resumes, nothing else opens. (2) Notices appear top-centre as a pill with a small vibration on Save; check it clears the status bar/camera cut-out and is tappable for Undo. (3) Pull to refresh: fill follows the pull; stronger tick at the threshold. (4) Sync on: go offline, save/mark stories, go online: sync runs by itself within a few seconds. (5) A busy feed with no reads for 30 days shows the pause suggestion on All stories (feeds get their 30-day clock from the first time this version runs).
