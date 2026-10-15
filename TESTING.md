@@ -340,3 +340,6 @@ Must verify on the Fold: (1) fully open inner screen, Scroll mode: picture keeps
 
 ## Mode switch (preview/polish-106)
 Must verify on the Fold (inner screen): open a story in Scroll, switch to Pages, then back to Scroll (also with a half-fold and unfold in between): picture keeps its shape and the text is all there.
+
+## Batch 5 (preview/polish-106)
+Must verify on the Fold/phone: switch Paper > Obsidian > Midnight: the status bar colour follows immediately with no one-step lag. Settings > Reading > Focus reading: on/off in both Scroll and Pages; check the page count still looks right and highlights/read-aloud still work.
