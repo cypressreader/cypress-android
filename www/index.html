@@ -6749,6 +6749,16 @@ function heroOnce(){const c=document.querySelector('.cols'),b=c&&c.querySelector
  else if(!hit&&R.heroMark&&R.heroMark.isConnected&&R.heroFor===curA.link&&R.heroEl){R.heroMark.replaceWith(R.heroEl);R.heroEl=R.heroMark=null}}
 function noteFix(){const n=document.querySelector('.cols .note'),b=document.querySelector('.cols .body');if(!n||!b||DEEPBUSY)return;if(n.querySelector("[data-retry]")&&(b.textContent||'').length>2200){n.textContent='Full story loaded.';setTimeout(()=>{if(n.isConnected&&n.textContent==='Full story loaded.')n.remove()},4000)}}
 function rdbDone(){const rd=document.getElementById('rd');if(rd)requestAnimationFrame(()=>requestAnimationFrame(()=>rd.classList.remove('rdb')))}
+/* leaving Pages (or the half-folded layout) for Scroll: take back everything the paged layout put on the story, so nothing of it squashes the picture or the text */
+function pagesUndo(c){
+ const rd=$('#rd');rd.classList.remove('cpv2','tpg','spread');
+ c.querySelectorAll('img.hero').forEach(im=>{['height','max-height','object-fit'].forEach(q=>im.style.removeProperty(q));
+  const d=IMGDIM.get(im.getAttribute('src'))||(im.complete&&im.naturalWidth?[im.naturalWidth,im.naturalHeight]:null);
+  if(d&&d[0]>0&&d[1]>0)im.style.aspectRatio=Math.max(.6,Math.min(2.4,d[0]/d[1])).toFixed(3);else im.style.removeProperty('aspect-ratio')});
+ c.querySelectorAll(':scope>.mnotes').forEach(m=>m.style.removeProperty('display'));
+ c.querySelectorAll('.body [data-fit]').forEach(f=>{f.style.removeProperty('--ih');delete f.dataset.fit});
+ if(!document.body.classList.contains('flexp')){rd.style.removeProperty('--segtop');rd.style.removeProperty('--segbot')}
+}
 function layout(){noteFix();
  rdVars();
  const bk=$('.book'),c=$('.cols');if(!bk||!c)return;
@@ -6757,6 +6767,7 @@ function layout(){noteFix();
  flexUi();
  const vert=isVert();$('#rd').classList.toggle('vert',vert);$('#rd').classList.toggle('tpg',!vert&&isWide());
  R.words=((c.querySelector('.body')||c).textContent.match(/\S+/g)||[]).length+((c.querySelector('.tt')||{}).textContent||'').split(' ').length;
+ if(vert)pagesUndo(c);
  if(vert){const W=bk.clientWidth,H=bk.clientHeight,P=Math.round((W>700?34:(narrowC()?12:18))*(narrowC()?Math.min(+S.mg||1,1):(+S.mg||1)));
   c.style.cssText=`position:relative;left:auto;top:auto;width:auto;max-width:${narrowC()?W:Math.min(W-2*P,740)}px;margin:0 auto;padding:${P}px ${W>=700?0:P}px ${Math.round(H*.35)}px;column-count:1;height:auto;transform:none;--ih:${Math.round(H*.55)}px;--bleed:${P}px`;
   R.cpv=1;R.np=1;R.pg=0;R.step=0;vWire();show();if(R.rf!=null){const f=R.rf;R.rf=null;R.sf=null;R.af={f,t:Date.now()};rdSetFrac(f);rdFollow()}else rdReapply();return}
@@ -10599,8 +10610,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.15i';const APP_LABEL='1.106';
-const CHANGES=["Fixed: on a fully open Fold, stories in Scroll mode could squash the picture and hide the text. The half-folded layout now only applies when the phone is actually half-folded.","Swipe a card right to mark it read or unread, left to save or unsave, with a small tick when you've pulled far enough.","With a mouse or pen, you can drag a story card into another app beside it to share its title and link.","Big first letters in A, T, V and W stories sit snugger against the text.","The screen stays awake while you read a story, and a thin line at the top shows how far through a scrolling story you are.","Long headlines on cards are held to a tidy size, and the home-screen icon menu now has The Daily.","One brand: the botanical Cy tree crest is now the only logo and app icon; the logo-switching and app-icon pickers are gone","Settings → Appearance & Theme: a simple Dynamic | Paper | Obsidian switch, a \"follow the article's photo colors\" toggle, and every other palette tucked into \"Show Advanced Color Palettes\""];
+const APP_VERSION='2026.10.15j';const APP_LABEL='1.106';
+const CHANGES=["Fixed: switching a story from Pages back to Scroll no longer squashes the picture or hides the text.","Fixed: on a fully open Fold, stories in Scroll mode could squash the picture and hide the text. The half-folded layout now only applies when the phone is actually half-folded.","Swipe a card right to mark it read or unread, left to save or unsave, with a small tick when you've pulled far enough.","With a mouse or pen, you can drag a story card into another app beside it to share its title and link.","Big first letters in A, T, V and W stories sit snugger against the text.","The screen stays awake while you read a story, and a thin line at the top shows how far through a scrolling story you are.","Long headlines on cards are held to a tidy size, and the home-screen icon menu now has The Daily.","One brand: the botanical Cy tree crest is now the only logo and app icon; the logo-switching and app-icon pickers are gone"];
 const DEF_ON=new Set(['cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
