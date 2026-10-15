@@ -5,6 +5,8 @@ const have=c=>{try{cp.execSync('which '+c,{stdio:'ignore'});return true}catch(e)
 if(!have('pdftotext')||!have('pdfimages')){console.log('pdf_layout skipped (poppler not installed)');process.exit(0)}
 const html=fs.readFileSync(path.join(__dirname,'..','www','index.html'),'utf8');
 const a=html.indexOf('const PDFW={'),b=html.indexOf('\n}\n',html.indexOf('return {bytes:out,pages:all.length',a))+3;
+/* the typesetter slice below uses constants declared earlier in the app (the slogan on the colophon) */
+const SLOGAN=(html.match(/const SLOGAN='([^']*)'/)||[])[1]||'';
 eval(html.slice(a,b)+';globalThis.pdfIssue=pdfIssue;');
 /* a tiny valid JPEG (1x1, grey), scaled by the PDF viewer */
 const JPG=Buffer.from('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/yQALCAABAAEBAREA/8wABgAQEAX/2gAIAQEAAD8A0s8g/9k=','base64');
@@ -31,7 +33,9 @@ let heads=0,foot=0;
 for(let p=3;p<=r.pages-1;p++){
  const top=tx('-f '+p+' -l '+p+' -x 0 -y 0 -W 596 -H 42').trim(),bottom=tx('-f '+p+' -l '+p+' -x 0 -y 800 -W 596 -H 42').trim();
  if(top&&!/^CYPRESS/.test(top))ck('page '+p+' top margin holds only the running head',false,top.slice(0,60));else if(top)heads++;
- if(!/^\d+$/.test(bottom))ck('page '+p+' bottom margin holds only the page number',false,bottom.slice(0,60));else foot++;
+ /* the foot is a folio line: the publication, the page number, the kind of issue */
+ const fm=bottom.replace(/\s+/g,' ').match(/^CYPRESS (\d+) [A-Z][A-Z ]*$/);
+ if(!fm||+fm[1]!==p)ck('page '+p+' bottom margin holds only the folio (publication, page number, issue)',false,bottom.slice(0,60));else foot++;
 }
 ck('running heads appear',heads>=1);ck('folios on every inner page',foot===r.pages-3);
 console.log('pdf_layout',bad?bad+' FAILED':'all passed');process.exit(bad?1:0);

@@ -4,6 +4,8 @@ const have=c=>{try{cp.execSync('which '+c,{stdio:'ignore'});return true}catch(e)
 if(!have('pdftotext')||!have('pdfimages')||!have('pdftoppm')){console.log('pdf_overhaul skipped (poppler not installed)');process.exit(0)}
 const html=fs.readFileSync(path.join(__dirname,'..','www','index.html'),'utf8');
 const a=html.indexOf('const PDFW={'),b=html.indexOf('\n}\n',html.indexOf('return {bytes:out,pages:all.length',a))+3;
+/* the typesetter slice below uses constants declared earlier in the app (the slogan on the colophon) */
+const SLOGAN=(html.match(/const SLOGAN='([^']*)'/)||[])[1]||'';
 eval(html.slice(a,b)+';globalThis.pdfIssue=pdfIssue;');
 const JPG=Buffer.from('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/yQALCAABAAEBAREA/8wABgAQEAX/2gAIAQEAAD8A0s8g/9k=','base64');
 const im={bytes:new Uint8Array(JPG),w:1,h:1};
@@ -35,7 +37,8 @@ const vocab=new Set(DEK.split(/\s+/).map(w=>w.replace(/[.,]$/,'')));
 ck('summaries end in a real ellipsis after a whole word',cut.length>=1&&cut.every(w=>vocab.has(w.replace(/[.,]$/,''))),JSON.stringify(cut));
 /* 3. drop caps keep their letter */
 const raw=all;const pageTxt=[null,...[...Array(r.pages)].map((_,k)=>tx('-f '+(k+1)+' -l '+(k+1)))];const storyPages=[...Array(r.pages)].map((_,k)=>k+1).filter(p=>p>=2&&!/In this issue/.test(pageTxt[p]));
-ck('every drop cap carries its letter (The ... not he ...)',(raw.match(/T\s?he committee met on Tuesday to discuss/g)||[]).length>=1&&(raw.match(/he committee met on Tuesday to discuss/g)||[]).length===(raw.match(/T\s?he committee met on Tuesday to discuss/g)||[]).length,'');
+const rawF=raw.replace(/\s+/g,' ');/* the lines wrap at a different place at a different type size: compare the words, not the line breaks */
+ck('every drop cap carries its letter (The ... not he ...)',(rawF.match(/T\s?he committee met on Tuesday to discuss/g)||[]).length>=1&&(rawF.match(/he committee met on Tuesday to discuss/g)||[]).length===(rawF.match(/T\s?he committee met on Tuesday to discuss/g)||[]).length,'');
 const ds=[...raw.matchAll(/(?:^|\n)([A-Z])\n?([a-z]+ [a-z]+ [a-z]+)/g)].length;
 ck('drop caps are drawn',ds>=1||/T\s*he committee/.test(raw));
 /* 5. briefs are a digest: each headline appears once with its one-line summary (never split, never repeated) */

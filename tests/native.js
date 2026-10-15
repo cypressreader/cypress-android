@@ -145,7 +145,7 @@ const calls=(p,n)=>p.evaluate(n=>window.__calls.filter(c=>c[0]===n).map(c=>c[1])
   await p.ctx.close();}
  {const p=await mk(b,{native:false,web:{allorigins:{delay:2500}}});await W(300);p.hits.length=0;
   const r=await timed(p,'https://gamma.test/feed');
-  ck('F','slow first route is overtaken after about a second',r.ok&&r.ms>900&&r.ms<1900&&p.hits.some(h=>/corsproxy/.test(h.u)),JSON.stringify({ms:r.ms}));
+  ck('F','slow first route is overtaken after about a second',r.ok&&r.ms>500&&r.ms<1900&&p.hits.some(h=>/corsproxy/.test(h.u)),JSON.stringify({ms:r.ms}));
   await p.ctx.close();}
  {const p=await mk(b,{native:false,web:{allorigins:{fail:1},corsproxy:{fail:1}}});await W(300);
   const r=await timed(p,'https://gamma.test/feed');

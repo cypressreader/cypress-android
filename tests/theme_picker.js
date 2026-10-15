@@ -8,7 +8,8 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
   $('#set').showModal();await w(300);document.querySelectorAll('#thm details').forEach(d=>{d.open=true});await w(400);const themes=[...new Set([...document.querySelectorAll('#thm button[data-th]')].map(b=>b.dataset.th))];
     const bads=[];for(const th of themes){document.querySelector('#thm button[data-th="'+th+'"]').click();await w(120);
    const on=[...document.querySelectorAll('#thm button.on')],pr=[...document.querySelectorAll('#thm button[aria-pressed="true"]')];
-   if(on.length!==1||pr.length!==1||on[0].dataset.th!==th||(S.theme||'auto')!==th)bads.push([th,on.length,pr.length,S.theme])}
+   /* the quick switch and the full list can show the same theme: count themes, not buttons */const onT=new Set(on.filter(b=>b.dataset.th).map(b=>b.dataset.th)),prT=new Set(pr.filter(b=>b.dataset.th).map(b=>b.dataset.th));
+   if(onT.size!==1||prT.size!==1||!onT.has(th)||(S.theme||'auto')!==th)bads.push([th,[...onT],[...prT],S.theme])}
   return {n:themes.length,bads}});
  ck('the picker lists several themes',r.n>=20,String(r.n));
  ck('for every theme, exactly one button is pressed and it is the active theme',!r.bads.length,JSON.stringify(r.bads.slice(0,4)));
@@ -21,7 +22,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
   const bgOf=el=>{for(let e=el;e;e=e.parentElement){const q=L(getComputedStyle(e).backgroundColor);if(q&&q.a>.5)return q.l}return L(getComputedStyle(document.body).backgroundColor).l};
   const out={};for(const [th,sch] of [['typewriter','light'],['typewriter','dark'],['light','light'],['mono','light'],['sepia','light'],['dark','dark'],['rose','light'],['inkwash','light']]){
    S.theme=th;S.sch=sch;S.cvt={n:dn,t:'min',p:''};applyTheme(false);S.sel='today';render();await w(600);
-   const t=[...document.querySelectorAll('#grid *')].find(e=>e.children.length===0&&/\d+ of \d+ read/.test(e.textContent));if(!t){out[th+'/'+sch]='missing';continue}
+   const t=[...document.querySelectorAll('#grid *')].find(e=>e.children.length===0&&/\d+ (stories|story) left|Edition finished/.test(e.textContent));if(!t){out[th+'/'+sch]='missing';continue}
    const f=L(getComputedStyle(t).color).l,g=bgOf(t),hi=Math.max(f,g)+.05,lo=Math.min(f,g)+.05;out[th+'/'+sch]=+(hi/lo).toFixed(2)}
   return out});
  const low=Object.entries(c).filter(([k,v])=>v==='missing'||v<4.5);

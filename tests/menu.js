@@ -2,7 +2,7 @@
 const {APP}=require('./env');const {mock,PW}=require('./mock');const {chromium}=require(PW);
 let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else console.log('ok',n)};
 /* the trimmed menu (B32): 11 actions, plus Save as PDF and Send to Kindle (B66) = 13. Copy link, Translate, Full screen, Show my feeds and the second site-view item are gone on purpose */
-const WANT={Settings:['settings','rp'],Share:['share','gift','pdf','kindle'],View:['browser','web'],Story:['hub','jump','upnext','unread','junk']};
+const WANT={Settings:['settings','rp'],Share:['share','pdf','kindle'],View:['browser','web'],Story:['hub','jump','upnext','unread','junk']};
 const GONE=['copy','translate','fullscreen','fdn','webpref'];
 (async()=>{
  const b=await chromium.launch();

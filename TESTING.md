@@ -358,3 +358,12 @@ Must verify on a phone: in every feed layout (cards, list, Daily, wire/columns),
 
 ## Swipe release on text rows (preview/polish-106)
 Must verify on the Fold/phone, in every layout: swipe a text-only story left past the gold mark and let go: it saves (toast + star); right past the green mark: read/unread toggles; a short swipe does nothing. If it still does not act, note which layout and which row type.
+
+## Batch 7 (preview/polish-106): Daily podcast player, status strip, exports
+Must verify on a phone (APK for background audio): (1) Daily cover: status strip reads "N stories left • ~Xm ⌄" with Play Daily on the right, readable on light and dark covers; tapping the left side opens the drawer, tapping Play Daily starts the Daily without opening it. (2) The dock appears above the tab bar; headline/publisher, play-pause, back 15s, previous/next story, thin progress line. Tap it: chapter drawer with scrubber (ticks at each story), queue, speed 1x/1.25x/1.5x/2x. Seek and jump keep the read-along highlight when you open the story ("Open this story"). (3) Lock screen / Bluetooth: play, pause, next, previous, seek bar. (4) Leave the app for several minutes: it keeps reading through all stories. (5) Frosted panels on Daily covers and featured cards: text readable over dark, bright and busy photos. (6) Export a PDF and an e-book to an e-ink reader or viewer: type size/spacing, pull quote, footers.
+
+## Batch 8 (preview/polish-106): store compliance, player look, one Share
+Must verify on the APK/phone: (1) Share on a story (card menu and reader menu): the share sheet gets the card picture and a message "Read this in CyPress: <link>" (APK: new native text field with the picture); in Messages/WhatsApp the card shows without a second link preview. No "Gift this story" anywhere. (2) A paywalled story shows only its preview plus the link to the original (no hidden text appears). (3) Daily player: thumbnail in the dock and list, 2px top progress line, Now Playing sheet blur/aurora, equalizer on the playing row, two-column layout on the open Fold.
+
+## Short share links (preview/polish-106)
+Must verify on the APK/phone: Share a story with Settings > Sync and Backup > Shorten shared links on: the message reads "Read this in CyPress: https://is.gd/..." next to the card; the Share button shows a spinner briefly. Switch it off, or go offline/airplane mode: the message carries the publisher's own address. Check the short link opens the CyPress share page (uses the live site worker, docs/worker/SHORT-LINKS.md).

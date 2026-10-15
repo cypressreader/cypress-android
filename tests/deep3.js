@@ -122,7 +122,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  ck(vp,'why popover on screen',await E(()=>{const r=$('#whyp').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight}));
  // card sizes
  for(const c of ['large','compact','medium']){await E(c=>{S.cards=c;S.sel='all';render()},c);await W(150);
-  const r=await E(()=>{const cs=[...document.querySelectorAll('#grid .card')];const a=cs[0].getBoundingClientRect();return{w:a.width,h:a.height,cols:new Set(cs.slice(0,6).map(x=>Math.round(x.getBoundingClientRect().left))).size,hs:document.documentElement.scrollWidth<=innerWidth+1}});
+  const r=await E(()=>{const cs=[...document.querySelectorAll('#grid .card')];/* the feed now opens with a mix of card shapes: judge the tallest of the first six */const a=cs.slice(0,6).map(x=>x.getBoundingClientRect()).sort((p,q)=>q.height-p.height)[0];return{w:a.width,h:a.height,cols:new Set(cs.slice(0,6).map(x=>Math.round(x.getBoundingClientRect().left))).size,hs:document.documentElement.scrollWidth<=innerWidth+1}});
   if(c==='large')ck(vp,'large cards bigger',r.h>=260&&(w<500?r.cols===1:r.cols<=2),JSON.stringify(r));
   if(c==='compact')ck(vp,'compact cards short',r.h<140,JSON.stringify(r));
   ck(vp,c+' no h-scroll',r.hs);
@@ -229,7 +229,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  const p=await mk(b,{seedData:seed(SITES,{ver:'2026.09.28'})});await W(1200);
  ck('update','what’s new shows after update',await p.E(()=>$('#wn')&&$('#wn').open&&document.querySelectorAll('#wn li').length>=1));
  await p.screenshot({path:'/tmp/t/v3-wn.png'});
- await p.click('#wn .go');await W(200);await p.reload();await W(2500);ck('update','only once',await p.E(()=>!$('#wn')));
+ await p.click('#wn .go');await W(900);/* give the saved version time to reach storage before the reload (a loaded machine needs it) */await p.reload();await W(2500);ck('update','only once',await p.E(()=>!$('#wn')));
  ck('update','update check parses version',await p.E(()=>/const APP_VERSION='([^']+)'/.test(document.documentElement.innerHTML)));
  await p.ctx.close()}
 {// update banner via http server

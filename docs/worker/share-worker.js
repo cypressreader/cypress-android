@@ -9,7 +9,7 @@ const PAGES = 'https://cypressreader.github.io/cypress-android/';
 const APK = 'https://github.com/cypressreader/cypress-android/releases/latest/download/cypress.apk';
 const MAXB = 8 * 1024 * 1024;
 const SHORT_TTL = 60 * 60 * 24 * 400; // short links stay valid for about 13 months
-const ALLOWED_ORIGINS = ['https://cypressreader.com', 'https://www.cypressreader.com', 'https://localhost', 'capacitor://localhost', 'http://localhost'];
+const ALLOWED_ORIGINS = ['https://cypressreader.com', 'https://www.cypressreader.com', 'https://localhost', 'capacitor://localhost', 'http://localhost', 'https://cypressreader.github.io'];
 
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const okUrl = (u, https) => { try { const x = new URL(String(u)); return (https ? x.protocol === 'https:' : /^https?:$/.test(x.protocol)) ? x.href : ''; } catch (e) { return ''; } };

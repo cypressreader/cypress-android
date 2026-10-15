@@ -9,6 +9,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   items[f.id]=Array.from({length:12},(_,i)=>({feedId:f.id,title:'Story number '+i+' about topic '+i,link:'https://w.test/'+i,date:now-i*36e5,summary:'x',img:'',wc:690}));
   S.feeds.slice(1).forEach(x=>items[x.id]=[]);state[f.id]='ok';S.read={};
   /* sidebar */
+  S.fcol=S.fcol||{};S.fcol._mf=0;S.fcol._un=0;S.folders.forEach(x=>{S.fcol[x.id]=0});/* My Feeds starts collapsed: open it so the rows are there */side();
   render();await w(500);const row=document.querySelector('.fr[data-sel="s:'+f.id+'"]');o.lbl=row&&(row.querySelector('.frm')||{}).textContent;o.lblRow=row&&row.querySelector('.frm')&&row.querySelector('u')?true:false;
   S.hideCount=true;render();await w(300);o.hidden=!document.querySelector('.fr .frm');S.hideCount=false;render();
   /* catch me up */
