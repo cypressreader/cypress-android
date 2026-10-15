@@ -321,3 +321,10 @@ Must verify on the Fold:
 - Wide reader, page 1: picture, kicker, headline and byline in column 1; story text and drop cap start at the top of column 2 on every story (check a TechCrunch story with no standfirst and a BBC one with a bold standfirst). If "At a glance" cannot fit beside the picture it is left out on that page.
 - Cards in a narrow pane: never three across.
 - A single site or a folder opens straight onto its stories in Card and List views (no tall "Section" banner).
+
+## Preview 1.106 (branch preview/polish-106)
+Must verify on a real phone / the Fold:
+- Android: the launcher icon is the tree crest (deep-green frame, tinted version on Android 13+) and the app starts from it after updating over an older build that had another icon chosen. Share-to-CyPress still works. No icon picker in Settings.
+- Wide reader: swipe through a long story; no blank page, no half-empty column; page 1 column 2 starts with the story text; "The story so far" sits a few paragraphs in.
+- Settings → Appearance & Theme: Dynamic | Paper | Obsidian switch, the photo-color toggle, and the advanced palettes (renamed: Tempest, Bastion, Synapse, Apex, Strata, Eclipse, Aether, Neon, Scarlet Dawn, Duel, Paragon). A saved old choice (for example the former Highstorm) keeps its look under the new name.
+- Pull quotes and story endings look clean; no ornaments.

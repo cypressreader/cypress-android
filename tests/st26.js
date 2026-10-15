@@ -12,7 +12,7 @@ const R=await p.evaluate(async()=>{
  o.swatch=!!document.querySelector('#thm [data-th=nocturne]');
  o.group=[...document.querySelectorAll('#thm details.thd')].find(d=>/After Dark/.test(d.querySelector('summary').textContent));
  o.groupHas=!!(o.group&&o.group.querySelector('[data-th=nocturne]'));o.groupCount=o.group&&o.group.querySelector('summary small').textContent;o.group=undefined;
- o.more=[...document.querySelectorAll('#thm summary')].find(x=>/More Styles/.test(x.textContent)).querySelector('small').textContent;
+ o.more=[...document.querySelectorAll('#thm summary')].find(x=>/Advanced Color Palettes/.test(x.textContent)).querySelector('small').textContent;
  o.sunset=!!document.querySelector('#ngt option[value=nocturne]');
  o.names=THEME_NAMES.some(x=>x[0]==='nocturne');o.genres=THEME_GENRES.some(g=>(g[1]||[]).includes('nocturne'));
  o.fonts=[THB.nocturne,THF.nocturne,THH.nocturne];
@@ -27,7 +27,7 @@ ck('light twin is light and readable',!R.light.dark&&R.light.ct>=7,JSON.stringif
 ck('flips back to dark',R.darkAgain.dark);
 ck('swatch in the theme grid',R.swatch);
 ck('in the After Dark group, count updated',R.groupHas&&R.groupCount==='12',JSON.stringify([R.groupHas,R.groupCount]));
-ck('More Styles count updated',R.more==='38',R.more);
+ck('Advanced palettes count updated',R.more==='40',R.more);
 ck('available for After sunset',R.sunset&&R.nightEff==='nocturne',JSON.stringify([R.sunset,R.nightEff]));
 ck('listed for folder themes',R.names&&R.genres);
 ck('has its own fonts',R.fonts.every(Boolean),JSON.stringify(R.fonts));

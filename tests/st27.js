@@ -9,7 +9,7 @@ const R=await p.evaluate(async()=>{
  document.querySelectorAll('dialog[open]').forEach(d=>d.close());
  const body=Array.from({length:5},()=>'<p>Not whether he accepts the diagnosis on paper. Whether he actually believes, in the car, at the dinner table, in the moment when the homework is not done again.</p>').join('');
  const f=S.feeds[0],now=Date.now();items[f.id]=Array.from({length:3},(_,i)=>({feedId:f.id,title:'Whether his dad believes the ADHD is real '+i,link:'https://w.test/'+i,date:now-i*36e5,summary:'x',html:body}));
- for(const [id,name,a1] of [['highstorm','Highstorm','#66b8ff'],['crimsondawn','Crimson Dawn','#e23a35'],['thevoid','The Void','#b79cff']]){
+ for(const [id,name,a1] of [['highstorm','Tempest','#66b8ff'],['crimsondawn','Scarlet Dawn','#e23a35'],['thevoid','The Void','#b79cff']]){
   const r={};S.theme=id;S.sch='theme';S.night='off';S.sel='all';applyTheme(false);render();await new Promise(x=>setTimeout(x,700));
   const cs=getComputedStyle(document.documentElement);r.a1=cs.getPropertyValue('--a1').trim();r.sym=/^url\(/.test(cs.getPropertyValue('--sym').trim());r.dark=lumOf(anyRgb(getComputedStyle(document.body).backgroundColor))<.2;
   r.swatch=!!document.querySelector('#thm [data-th='+id+']');r.label=(document.querySelector('#thm [data-th='+id+']')||{textContent:''}).textContent;r.sunset=!!document.querySelector('#ngt option[value='+id+']');

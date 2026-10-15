@@ -41,36 +41,9 @@ public class CyExtrasPlugin extends Plugin {
     @PluginMethod
     public void features(PluginCall call) {
         try {
-            call.resolve(CyExtras.obj("{\"features\":[\"icon\",\"share\",\"media\",\"alerts\",\"pack\",\"widget\",\"back\",\"tts\",\"ttsSleep\",\"dsave\",\"dataSaver\"]}"));
+            call.resolve(CyExtras.obj("{\"features\":[\"share\",\"media\",\"alerts\",\"pack\",\"widget\",\"back\",\"tts\",\"ttsSleep\",\"dsave\",\"dataSaver\"]}"));
         } catch (Throwable t) {
             call.reject("features failed: " + msg(t));
-        }
-    }
-
-    // ---- launcher icon
-
-    @PluginMethod
-    public void setAppIcon(PluginCall call) {
-        try {
-            String icon = call.getString("icon", "tree");
-            String now = CyExtras.setIcon(getContext(), icon);
-            JSObject r = new JSObject();
-            r.put("icon", now);
-            call.resolve(r);
-        } catch (Throwable t) {
-            call.reject("setAppIcon failed: " + msg(t));
-        }
-    }
-
-    @PluginMethod
-    public void getAppIcon(PluginCall call) {
-        try {
-            JSObject r = new JSObject();
-            r.put("icon", CyExtras.getIcon(getContext()));
-            r.put("states", CyExtras.iconStates(getContext()));
-            call.resolve(r);
-        } catch (Throwable t) {
-            call.reject("getAppIcon failed: " + msg(t));
         }
     }
 

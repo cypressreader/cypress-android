@@ -24,14 +24,9 @@ PKG_DIR = os.path.join(MAIN, 'java', 'com', 'cypress', 'reader')
 BUILD = os.environ.get('BUILD_NUMBER', '1').strip() or '1'
 LABEL = os.environ.get('APP_LABEL', '').strip() or ('1.0.' + BUILD)
 ICON = os.environ.get('ICON', 'tree').strip() or 'tree'
-BASE_LOGOS = ('tree', 'circuit', 'crimson', 'golden', 'terminal', 'broadsheet', 'midnight', 'rose')
+BASE_LOGOS = ('tree',)  # one brand only: the botanical tree crest
 
-def _has3d(l):
-    d = os.path.join(ROOT, 'icons', l + '3d')
-    return os.path.isfile(os.path.join(d, 'values', 'ic_launcher_background.xml')) and \
-        len(glob.glob(os.path.join(d, 'mipmap-*dpi', '*.png'))) >= 15
-# 3D variants ("tree3d" ...) are added only when their folders are complete, so a missing folder never blocks the build.
-LOGOS = BASE_LOGOS + tuple(l + '3d' for l in BASE_LOGOS if _has3d(l))
+LOGOS = BASE_LOGOS
 
 REPO = os.environ.get('GITHUB_REPOSITORY', '').strip()
 # Optional extras (notifications, background audio, widget, icon switch, share target).
@@ -108,22 +103,6 @@ SHARE_FILTER = """            <intent-filter>
             </intent-filter>
 """
 
-ALIAS_TMPL = """        <activity-alias
-            android:name=".%(name)s"
-            android:enabled="%(enabled)s"
-            android:exported="true"
-            android:icon="@mipmap/ic_launcher_%(logo)s"
-            android:roundIcon="@mipmap/ic_launcher_%(logo)s_round"
-            android:label="@string/app_name"
-            android:targetActivity=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity-alias>
-"""
-
-
 def patch_config_changes():
     """Adds |density to MainActivity's android:configChanges so a display-size change does not recreate the page.
     Works on whatever value the template has, does nothing if density is already there, and never stops the build."""
@@ -154,7 +133,7 @@ def patch_config_changes():
 
 
 def edit_manifest():
-    """Launcher entry moves from MainActivity to two switchable aliases; MainActivity becomes a share target."""
+    """MainActivity keeps its launcher entry and also becomes a share target."""
     if not os.path.isfile(MANIFEST):
         xdie('android/app/src/main/AndroidManifest.xml is missing.')
     if os.path.isfile(BACKUP):
@@ -177,17 +156,19 @@ def edit_manifest():
         xdie('Could not find the end of the MainActivity element.')
     body = s[st.end():end]
 
-    filters = list(re.finditer(r'[ \t]*<intent-filter\b[^>]*>.*?</intent-filter>[ \t]*\n?', body, re.S))
-    launcher = [m for m in filters
-                if 'android.intent.action.MAIN' in m.group(0) and 'android.intent.category.LAUNCHER' in m.group(0)]
-    if len(launcher) != 1:
-        xdie('Expected exactly one MAIN/LAUNCHER intent-filter on MainActivity, found %d.' % len(launcher))
-    body = body[:launcher[0].start()] + body[launcher[0].end():]
     if 'android.intent.action.SEND' not in body:
         body = body.rstrip() + '\n\n' + SHARE_FILTER + '        '
-    aliases = '\n'.join(ALIAS_TMPL % {'name': 'Icon' + l.capitalize(), 'logo': l, 'enabled': 'true' if ICON == l else 'false'} for l in LOGOS)
     close = end + len('</activity>')
-    s = s[:st.end()] + body + '</activity>\n\n' + aliases + s[close:]
+    s = s[:st.end()] + body + '</activity>' + s[close:]
+    # the launcher shows the tree crest in its deep-green frame (and the wallpaper-tinted version on Android 13+)
+    app_tag = re.search(r'<application\b[^>]*>', s)
+    tag = app_tag.group(0)
+    for attr, val in (('android:icon', '@mipmap/ic_launcher_tree'), ('android:roundIcon', '@mipmap/ic_launcher_tree_round')):
+        if re.search(attr + r'\s*=\s*"[^"]*"', tag):
+            tag = re.sub(attr + r'\s*=\s*"[^"]*"', attr + '="' + val + '"', tag)
+        else:
+            tag = tag[:-1] + ' ' + attr + '="' + val + '">'
+    s = s[:app_tag.start()] + tag + s[app_tag.end():]
     open(MANIFEST, 'w', encoding='utf-8').write(s)
     check_manifest()
 
@@ -211,26 +192,14 @@ def check_manifest():
     mains = [a for a in app.findall('activity') if a.get(ANDROID_NS + 'name') == '.MainActivity']
     if len(mains) != 1:
         xdie('MainActivity went missing from the edited manifest.')
-    if has(mains[0], 'category', 'android.category.LAUNCHER') or has(mains[0], 'category', 'android.intent.category.LAUNCHER'):
-        xdie('MainActivity still has a LAUNCHER filter.')
+    if not has(mains[0], 'category', 'android.intent.category.LAUNCHER'):
+        xdie('MainActivity lost its LAUNCHER filter.')
+    if app.get(ANDROID_NS + 'icon') != '@mipmap/ic_launcher_tree':
+        xdie('The application does not use the tree launcher icon.')
+    if app.findall('activity-alias'):
+        xdie('The manifest still has launcher icon aliases; the app has one icon only.')
     if not has(mains[0], 'action', 'android.intent.action.SEND'):
         xdie('MainActivity has no share (SEND) filter.')
-    found = {}
-    for a in app.findall('activity-alias'):
-        found[a.get(ANDROID_NS + 'name')] = a
-    for name, logo in (('.Icon' + l.capitalize(), l) for l in LOGOS):
-        a = found.get(name)
-        if a is None:
-            xdie('Alias %s is missing.' % name)
-        if a.get(ANDROID_NS + 'targetActivity') != '.MainActivity':
-            xdie('Alias %s does not point to MainActivity.' % name)
-        if a.get(ANDROID_NS + 'icon') != '@mipmap/ic_launcher_' + logo:
-            xdie('Alias %s has the wrong icon.' % name)
-        if not (has(a, 'action', 'android.intent.action.MAIN') and has(a, 'category', 'android.intent.category.LAUNCHER')):
-            xdie('Alias %s has no MAIN/LAUNCHER filter.' % name)
-        want = 'true' if ICON == logo else 'false'
-        if a.get(ANDROID_NS + 'enabled') != want:
-            xdie('Alias %s has the wrong enabled state.' % name)
 
 
 def adaptive_xml(logo, suffix):
@@ -266,7 +235,7 @@ FRAME_TREE = ('<?xml version="1.0" encoding="utf-8"?>\n'
 
 
 def install_extra_icons():
-    """Both logos, under names the launcher aliases point at."""
+    """The tree crest, under the names the manifest points at."""
     for logo in LOGOS:
         src_root = os.path.join(ROOT, 'icons', logo)
         n = 0
@@ -332,7 +301,7 @@ def apply_extras():
     say('added the WorkManager library')
 
     edit_manifest()
-    say('launcher icon switch (2 aliases) and share target added to the manifest')
+    say('share target and tree launcher icon added to the manifest')
 
     for f in java:
         copy(f, os.path.join(PKG_DIR, os.path.basename(f)))
@@ -342,7 +311,8 @@ def apply_extras():
     say('added %d extras code files and %d resource files' % (len(java), len(res)))
 
     install_extra_icons()
-    say('installed both launcher icons for the switcher')
+    say('installed the tree launcher icon')
+
 
 
 def strip_extras():
@@ -437,7 +407,7 @@ say('version set to %s (build number %s)' % (LABEL, BUILD))
 # 3. launcher icon -------------------------------------------------------------------------
 icons = os.path.join(ROOT, 'icons', ICON)
 if not os.path.isdir(icons):
-    die('There is no icon set called "%s". In .github/workflows/build-apk.yml, ICON must be one of: tree, circuit, crimson, golden, terminal, broadsheet, midnight, rose.' % ICON)
+    die('There is no icon set called "%s". In .github/workflows/build-apk.yml.' % ICON)
 removed = 0
 for pat in ('mipmap*/ic_launcher*', 'drawable*/ic_launcher*', 'values/ic_launcher_background.xml'):
     for f in glob.glob(os.path.join(RES, pat)):

@@ -25,16 +25,16 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # Which logo the app icon uses. Change the word to  circuit  for the circuit-board logo.
+  # The app icon is the botanical Cy tree crest (the only brand).
   ICON: tree
-  # 1 = also build the optional extras (notifications, background audio, widget, icon switch, share target).
+  # 1 = also build the optional extras (notifications, background audio, widget, share target).
   # If they fail to compile the build fails and nothing is published. Set to 0 to never include them.
   EXTRAS: "1"
   # Only a manual run with "allow_degraded" ticked may build without the extras (published as a pre-release).
   ALLOW_DEGRADED: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_degraded && '1' || '0' }}
   BUILD_NUMBER: ${{ github.run_number }}
   # The version name people see. Change it when you want a new release label (1.3, 1.4, ...). The build number behind it always counts up by itself.
-  APP_LABEL: "1.105"
+  APP_LABEL: "1.106"
 
 jobs:
   build:
@@ -133,6 +133,15 @@ jobs:
           console.log('Web app check passed (' + n + ' inline script' + (n === 1 ? '' : 's') + ' parsed).');
           JS
 
+      - name: Write the split context files (css, html, js and a symbol map)
+        run: node scripts/export-context.js context
+      - name: Keep the context files with the build
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-context
+          path: context/
+          retention-days: 30
+
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
@@ -229,7 +238,7 @@ jobs:
           : > notes.txt
           if [ "$DEGRADED" = "1" ]; then
             {
-              echo "**PRE-RELEASE, reduced build.** This build does NOT include the optional extras (notifications, background audio, widget, icon switch, share target) because they failed to compile. It is not offered as an update to phones. Do not use it unless you know why."
+              echo "**PRE-RELEASE, reduced build.** This build does NOT include the optional extras (notifications, background audio, widget, share target) because they failed to compile. It is not offered as an update to phones. Do not use it unless you know why."
               echo ""
             } >> notes.txt
           fi

@@ -24,7 +24,7 @@ for(const [vp,w,h,touch] of [['phone',380,820,true],['desktop',1280,900,false]])
   ck(tag+' no extras section',await E(()=>!document.querySelector('#s-notif')));
   ck(tag+' logo tap still works',await E(()=>{$('#logo').click();return true}));
  }else{
-  ck(tag+' features detected',await E(()=>nFeat('alerts')&&nFeat('icon')));
+  ck(tag+' features detected',await E(()=>nFeat('alerts')));
   ck(tag+' notifications section',await E(()=>!!document.querySelector('#s-notif')));
   ck(tag+' bgConfigure sent',(await calls('bg')).length>=1);
   // alerts toggle

@@ -14,7 +14,7 @@ for(const [n,w,h] of [['fold',884,1000],['phone',380,820]]){
  ck(n+' folder expands',await E(()=>document.querySelectorAll('#side-list .fold')[0].querySelectorAll('.fr').length>0));
  // reading mode auto
  ck(n+' auto mode',await E(()=>isVert()===(!isWide())));
- ck(n+' app icon hidden on web',await E(()=>document.querySelector('#icg').hidden));
+ ck(n+' no app-icon picker (one brand only)',await E(()=>!document.querySelector('#icg,#icrow,#icst')));
  // theme fonts
  ck(n+' match theme font',await E(()=>{S.theme='forest';applyTheme(false);return fontKey()==='domine'&&getComputedStyle(document.documentElement).getPropertyValue('--serif').includes('Domine')}));
  ck(n+' explicit font wins',await E(()=>{S.font='lora';const k=fontKey();S.font=undefined;return k==='lora'}));
