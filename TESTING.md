@@ -328,3 +328,6 @@ Must verify on a real phone / the Fold:
 - Wide reader: swipe through a long story; no blank page, no half-empty column; page 1 column 2 starts with the story text; "The story so far" sits a few paragraphs in.
 - Settings → Appearance & Theme: Dynamic | Paper | Obsidian switch, the photo-color toggle, and the advanced palettes (renamed: Tempest, Bastion, Synapse, Apex, Strata, Eclipse, Aether, Neon, Scarlet Dawn, Duel, Paragon). A saved old choice (for example the former Highstorm) keeps its look under the new name.
 - Pull quotes and story endings look clean; no ornaments.
+
+## Batch 2 (preview/polish-106): half-folded foldable
+Must verify on the Fold: open a story and half-fold the phone like a laptop (tabletop). The story text should sit on the top half and the page controls on the bottom half, and it should follow when you fold or unfold. (Tested here only with a simulated two-segment screen.)

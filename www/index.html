@@ -10589,8 +10589,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.15f';const APP_LABEL='1.106';
-const CHANGES=["One brand: the botanical Cy tree crest is now the only logo and app icon; the logo-switching and app-icon pickers are gone","Settings → Appearance & Theme: a simple Dynamic | Paper | Obsidian switch, a \"follow the article's photo colors\" toggle, and every other palette tucked into \"Show Advanced Color Palettes\"","Some palette names are now generic: Tempest, Bastion, Synapse, Apex, Strata, Eclipse, Aether, Neon, Scarlet Dawn, Duel and Paragon (your saved choice carries over)","Cleaner story pages: pull quotes are quiet inset quotes, the section dividers and ornaments are gone, and the end-of-story block stays inside its column","\"The story so far\" now sits a few paragraphs into the story, so the text always starts on page 1","Cards and cover lines clip their own text, long headlines stop at four lines, the bottom of the feed clears the phone's gesture bar, and the selection dots are easier to tap","Every picture in the feed states its shape and loads lazily (the first few load at once), so the page does not jump as pictures arrive","The pinned section bar (\"This morning\", \"Earlier\") is solid, so stories no longer show faintly through it"];
+const APP_VERSION='2026.10.15g';const APP_LABEL='1.106';
+const CHANGES=["One brand: the botanical Cy tree crest is now the only logo and app icon; the logo-switching and app-icon pickers are gone","Settings → Appearance & Theme: a simple Dynamic | Paper | Obsidian switch, a \"follow the article's photo colors\" toggle, and every other palette tucked into \"Show Advanced Color Palettes\"","Some palette names are now generic: Tempest, Bastion, Synapse, Apex, Strata, Eclipse, Aether, Neon, Scarlet Dawn, Duel and Paragon (your saved choice carries over)","Cleaner story pages: pull quotes are quiet inset quotes, the section dividers and ornaments are gone, and the end-of-story block stays inside its column","\"The story so far\" now sits a few paragraphs into the story, so the text always starts on page 1","Cards and cover lines clip their own text, long headlines stop at four lines, the bottom of the feed clears the phone's gesture bar, and the selection dots are easier to tap","Every picture in the feed states its shape and loads lazily (the first few load at once), so the page does not jump as pictures arrive","Half-folded foldables (tabletop): the story keeps its text on the top half and the controls on the bottom half, and follows the fold when it changes"];
 const DEF_ON=new Set(['cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -12609,7 +12609,8 @@ function skyWeather(el,k){
 
 /* ---------- Fold: flex posture ---------- */
 function flexHinge(){
- try{const sg=window.viewport&&window.viewport.segments;if(!sg||sg.length!==2)return null;const [a,b]=sg;if(Math.abs(a.x-b.x)>2||b.y<a.y+a.height-1)return null;return{top:a.y+a.height,bot:b.y}}catch(e){return null}
+ /* the standard place for the fold's two halves is visualViewport.segments; window.viewport.segments is the older name some builds still use */
+ try{const vv=window.visualViewport,sg=(vv&&vv.segments&&vv.segments.length?vv.segments:null)||(window.viewport&&window.viewport.segments);if(!sg||sg.length!==2)return null;const [a,b]=sg;if(Math.abs(a.x-b.x)>2||b.y<a.y+a.height-1)return null;return{top:a.y+a.height,bot:b.y}}catch(e){return null}
 }
 function flexUi(){
  const rd=$('#rd'),fh=flexHinge();rd.classList.toggle('flex',!!fh);document.body.classList.toggle('flexp',!!fh);
@@ -12618,6 +12619,10 @@ function flexUi(){
   p.addEventListener('click',e=>{const b=e.target.closest('[data-fp]');if(!b)return;e.stopPropagation();const k=b.dataset.fp;if(k==='prev')go(-1);else if(k==='next')go(1);else if(k==='play')ttsToggle();else if(k==='close')closeRd();else{S.fs=Math.max(14,Math.min(26,S.fs+(k==='bigger'?1:-1)));save();applyFs(true)}fpSync()})}
  fpSync();
 }
+/* half-folded (tabletop) changes arrive as a posture change or a change in the number of stacked screen segments, not always as a resize: lay the open story out again for them */
+{const again=()=>{try{if($('#rd').classList.contains('on')){flexUi();relayout()}}catch(e){}};
+ try{if(navigator.devicePosture&&navigator.devicePosture.addEventListener)navigator.devicePosture.addEventListener('change',again)}catch(e){}
+ try{const mq=matchMedia('(vertical-viewport-segments: 2)');if(mq.addEventListener)mq.addEventListener('change',again)}catch(e){}}
 function fpSync(){const c=$('#fpc');if(c)c.textContent=curA?(fof(curA).title+' · '+pcText()):'';const pl=$('#fpad [data-fp="play"]');if(pl)pl.innerHTML=svg(TTS.on&&!TTS.paused?PAUSE:SPK)}
 
 /* ---------- narrow cover screen + side by side ---------- */
