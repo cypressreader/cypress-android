@@ -4,12 +4,9 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -40,7 +37,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * Static helper hub for the optional CyPress extras (icon switch, share target, notifications,
+ * Static helper hub for the optional CyPress extras (share target, notifications,
  * background sync, widget). Everything here is defensive: nothing throws into the caller unless
  * the method says so.
  */
@@ -57,8 +54,6 @@ public final class CyExtras {
     static final String DIGEST_URL = "cypress:digest";
     static final String WORK_NAME = "cy_bg_sync";
     static final String WORK_NOW = "cy_bg_sync_now";
-    static final String ICON_TREE = "com.cypress.reader.IconTree";
-    static final String ICON_CIRCUIT = "com.cypress.reader.IconCircuit";
     static final String FILE_ITEMS = "bg_items.json";
     static final String FILE_PACK = "pack.json";
 
@@ -187,72 +182,6 @@ public final class CyExtras {
             pendingOpen = null;
             return u;
         }
-    }
-
-    // ---------------------------------------------------------------- launcher icon
-
-    static boolean isAliasEnabled(Context c, String cls) throws Exception {
-        PackageManager pm = c.getPackageManager();
-        ComponentName cn = new ComponentName(c, cls);
-        int st = pm.getComponentEnabledSetting(cn);
-        if (st == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) return true;
-        if (st == PackageManager.COMPONENT_ENABLED_STATE_DISABLED) return false;
-        // DEFAULT: whatever the manifest says
-        ActivityInfo ai = pm.getActivityInfo(cn, PackageManager.MATCH_DISABLED_COMPONENTS);
-        return ai.enabled;
-    }
-
-    static final String[] ICONS = {"tree", "circuit", "crimson", "golden", "terminal", "broadsheet", "midnight", "rose",
-        "tree3d", "circuit3d", "crimson3d", "golden3d", "terminal3d", "broadsheet3d", "midnight3d", "rose3d"};
-
-    /** One line such as "tree:off circuit:ON" so the app can show exactly what Android has enabled. */
-    static String iconStates(Context c) {
-        StringBuilder b = new StringBuilder();
-        for (String i : ICONS) {
-            String st;
-            try {
-                st = isAliasEnabled(c, aliasOf(i)) ? "ON" : "off";
-            } catch (Throwable t) {
-                st = "missing";
-            }
-            if (b.length() > 0) b.append(' ');
-            b.append(i).append(':').append(st);
-        }
-        return b.toString();
-    }
-
-    static String aliasOf(String icon) {
-        return "com.cypress.reader.Icon" + Character.toUpperCase(icon.charAt(0)) + icon.substring(1);
-    }
-
-    static String getIcon(Context c) throws Exception {
-        for (String i : ICONS) {
-            if (isAliasEnabled(c, aliasOf(i))) return i;
-        }
-        return "tree";
-    }
-
-    static String setIcon(Context c, String icon) throws Exception {
-        boolean known = false;
-        for (String i : ICONS) if (i.equals(icon)) known = true;
-        if (!known) throw new IllegalArgumentException("unknown icon: " + icon);
-        PackageManager pm = c.getPackageManager();
-        ComponentName on = new ComponentName(c, aliasOf(icon));
-        // Every alias must exist (throws NameNotFoundException if the manifest edit was not applied).
-        pm.getActivityInfo(on, PackageManager.MATCH_DISABLED_COMPONENTS);
-        // Enable the new one BEFORE disabling the others, so there is always a launcher entry.
-        pm.setComponentEnabledSetting(on, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
-        for (String i : ICONS) {
-            if (i.equals(icon)) continue;
-            try {
-                ComponentName other = new ComponentName(c, aliasOf(i));
-                pm.getActivityInfo(other, PackageManager.MATCH_DISABLED_COMPONENTS);
-                pm.setComponentEnabledSetting(other, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-            } catch (PackageManager.NameNotFoundException ignored) {
-                // A 3D set that was not built into this version; nothing to disable.
-            }
-        }
-        return icon;
     }
 
     // ---------------------------------------------------------------- notifications

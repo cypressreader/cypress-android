@@ -9,7 +9,8 @@ CyPress is a privacy-first, magazine-style RSS reader. Free, no accounts, no ads
 - `docs/index.html` — marketing site. Privacy page at `docs/privacy.html`.
 - `docs/app/sw.js` — service worker.
 - `tests/` — run one test with `node tests/stNN.js` (e.g. `node tests/st19.js`).
-- `whats-new.txt` — update alongside version bumps.
+- `whats-new.txt` — update alongside version bumps (required: see Versioning).
+- `scripts/export-context.js` — splits `www/index.html` into `context/app.css`, `app.html`, `app.js` plus `debug.json` (a map of every top-level symbol and its line). The build runs it on every build and keeps the result as the `cypress-context` artifact; `context/` is not committed. Run `node scripts/export-context.js` locally for a smaller view of the app; never edit the split files.
 - Android build checks the inline script: do NOT split `www/index.html` into modules.
 
 ## Map of `www/index.html` (line numbers drift — grep the symbol, then read only surrounding lines)
@@ -40,6 +41,7 @@ CyPress is a privacy-first, magazine-style RSS reader. Free, no accounts, no ads
 - When presenting options, give the trade-off in one line each, then a clear recommendation.
 
 ## Versioning
+- **Release notes are required on every version bump.** Whenever `APP_VERSION` / `APP_LABEL` change, add a matching section to `whats-new.txt` in the same commit (plain-language bullets, newest section first, headed by the Android label such as `1.106`). The in-app What's New dialog and the release page both read that file, so a bump without notes is incomplete. After editing `whats-new.txt`, run `node scripts/sync-whats-new.js` (it copies the current version's notes into the dialog's `CHANGES` list in both index.html files); `tests/syntax.js` fails if they are out of step.
 - Web build stamp is date-based (e.g. `2026.10.08h`), shown in Settings → About and Help.
 - Android uses separate release numbering (e.g. `1.63`).
 - Keep the two consistent everywhere both appear (notably "What's New" dialogs). Never invent a third scheme.
