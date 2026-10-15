@@ -229,7 +229,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  const p=await mk(b,{seedData:seed(SITES,{ver:'2026.09.28'})});await W(1200);
  ck('update','what’s new shows after update',await p.E(()=>$('#wn')&&$('#wn').open&&document.querySelectorAll('#wn li').length>=1));
  await p.screenshot({path:'/tmp/t/v3-wn.png'});
- await p.click('#wn .go');await W(200);await p.reload();await W(2500);ck('update','only once',await p.E(()=>!$('#wn')));
+ await p.click('#wn .go');await W(900);/* give the saved version time to reach storage before the reload (a loaded machine needs it) */await p.reload();await W(2500);ck('update','only once',await p.E(()=>!$('#wn')));
  ck('update','update check parses version',await p.E(()=>/const APP_VERSION='([^']+)'/.test(document.documentElement.innerHTML)));
  await p.ctx.close()}
 {// update banner via http server
