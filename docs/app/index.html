@@ -7923,8 +7923,15 @@ async function tminiTap(){
  if(!TTS.on||Date.now()-(tminiTap.t||0)<450)return;tminiTap.t=Date.now();
  if(!TTS.paused)return ttsPause();
  const a=TTS.art;if(!a)return ttsStop();
+ /* opening the story starts it fresh and forgets where the voice was: note the word first, and carry on from it */
+ const pos={wi:ttsPos(),n:TTS.words.length};
  await openReader(a);
- if(curA===a)try{ttsToggle.force=true;ttsToggle()}catch(e){}
+ if(curA!==a)return;
+ try{
+  ttsCollect();
+  if(pos.n>0&&Math.abs(TTS.words.length-pos.n)<=Math.max(3,pos.n*.02)&&TTS.words.length){const wi=Math.max(0,Math.min(TTS.words.length-1,pos.wi));ttsFrom(wi);ttsMark(wi)}
+  else{ttsToggle.force=true;ttsToggle()}
+ }catch(e){}
 }
 setInterval(()=>{if(TTS.on||($('#tmini')&&!$('#tmini').hidden))tminiSync()},1200);
 const BOILER=/^\W*(subscribe|sign up (for|to)|newsletter|all rights reserved|©|copyright|follow us|click here|advertisement|already a subscriber|log in|sign in|read more|this article (originally )?appeared|support (our|independent) journalism|share this|terms of (use|service)|privacy policy)|(all rights reserved|©\s*\d{4})/i;
@@ -10241,8 +10248,10 @@ function swEnd(){const c=SW.c,act=SW.act;SW.act=false;if(!c)return;SW.c=null;con
  setTimeout(render,280);
 }
 $('#grid').addEventListener('pointerdown',e=>{
- if(e.pointerType==='mouse'||!e.isPrimary)return;const c=e.target.closest('.card,.cr');if(!c||e.target.closest('.star,.nr-ph-strip,.dq'))return;
- SW.hit=false;SW.c=c;SW.a=cardStory(c);SW.x=e.clientX;SW.y=e.clientY;SW.act=false;SW.dx=0;SW.id=e.pointerId;
+ if(e.pointerType==='mouse'||!e.isPrimary)return;const c=e.target.closest('.card,.cr,.cvlead,.cvl,.wline,a[data-i]');if(!c||e.target.closest('.star,.nr-ph-strip,.dq'))return;
+ /* text stories (headline rows, columns, lead links) swipe just like picture cards; things that aren't a story (rules, labels) and horizontal strips don't */
+ const st=cardStory(c);if(!st||(!c.matches('.card,.cr')&&c.closest('.strip,.crow')))return;
+ SW.hit=false;SW.c=c;SW.a=st;SW.x=e.clientX;SW.y=e.clientY;SW.act=false;SW.dx=0;SW.id=e.pointerId;
 });
 $('#grid').addEventListener('pointermove',e=>{
  const c=SW.c;if(!c||e.pointerId!==SW.id)return;const dx=e.clientX-SW.x,dy=e.clientY-SW.y;
@@ -10654,8 +10663,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.15n';const APP_LABEL='1.106';
-const CHANGES=["Fixed: tapping Play on the floating read-aloud button no longer opens the story's picture.","Notices now drop in from the top as a small floating pill, with a gentle tick when you save a story.","Pull-to-refresh gives a firmer tick when you've pulled far enough.","If you haven't opened a single story from a busy feed in 30 days, CyPress offers to pause it (once in a while, and you can say no).","When your phone comes back online, saved stories and read marks sync quietly.","Fixed: with Focus reading on, read aloud no longer spells words out letter by letter.","Fixed: \"Focus reading\" no longer breaks the text into a staircase.","Read aloud keeps playing when you go back to the feed. A small floating button lets you pause, resume or stop it while you browse."];
+const APP_VERSION='2026.10.15o';const APP_LABEL='1.106';
+const CHANGES=["Swiping a story right or left (read / save) now also works on text-only stories and column rows, not just picture cards.","Fixed: pressing Play on the floating read-aloud button now carries on from where you were, instead of starting the story over.","Fixed: tapping Play on the floating read-aloud button no longer opens the story's picture.","Notices now drop in from the top as a small floating pill, with a gentle tick when you save a story.","Pull-to-refresh gives a firmer tick when you've pulled far enough.","If you haven't opened a single story from a busy feed in 30 days, CyPress offers to pause it (once in a while, and you can say no).","When your phone comes back online, saved stories and read marks sync quietly.","Fixed: with Focus reading on, read aloud no longer spells words out letter by letter."];
 const DEF_ON=new Set(['cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
