@@ -3737,10 +3737,16 @@ body:not(.narrow):not(.split).reading:not(.sideshow)>aside{transform:none;transi
 .body .rfoot a,.body .rfoot li{overflow-wrap:anywhere}
 .body>:is(.stl,.rprev),.body .rcall{break-inside:avoid}
 /* 19. Hero and feature cards: the headline is capped so it can never outgrow the card, with the text box clipped and a dark scrim under it */
-#grid .card.spread h3,#grid .card:is(.nr-hero,.nr-lead,.lead) h3,#grid.wire:not(:has(.wcols)) .card:is(.nr-hero,.nr-lead,.lead,.spread) h3{font-size:clamp(1.5rem,4vw,2.2rem)!important;line-height:1.1}
 #grid .card:is(.spread,.nr-hero,.nr-lead,.lead){overflow:hidden}
 #grid .card:is(.spread,.nr-hero,.nr-lead,.lead):not(.noimg)>.tx{overflow:hidden;max-height:100%;box-sizing:border-box}
 #grid .card.spread:not(.noimg)>.ov,#grid .card:is(.nr-hero,.nr-lead,.lead):not(.noimg)>.ov{background:linear-gradient(to top,rgba(15,15,15,.92) 0%,rgba(15,15,15,.55) 55%,transparent 100%)!important}
+/* 20. No card headline can outgrow its card, whatever the card style; the pinned section bar is solid so nothing shows through it */
+.card h3,#grid .card h3,#grid .card:is(.spread,.nr-hero,.nr-lead,.lead,.nr-sp,.nr-tall,.nr-wide,.nr-sm2,.nr-hs,.nr-colr,.pf0,.pf1,.pf2) h3,#grid.wire:not(:has(.wcols)) .card h3,.card.spread h3{font-size:clamp(1.15rem,2.5vw,1.6rem)!important;line-height:1.15!important;overflow-wrap:anywhere;hyphens:auto}
+#grid .card.nr-pq p,#grid .card.nr-pq0 p,#grid .card.nr-pq1 p,#grid .card.nr-pq2 p,#grid .card .nr-pqa{font-size:clamp(1.05rem,2.3vw,1.45rem)!important;line-height:1.25!important}
+#grid .card .tx{min-width:0;max-width:100%;overflow:hidden}
+#wpin{background:linear-gradient(var(--tint,transparent),var(--tint,transparent)),var(--bg)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.top{background:linear-gradient(var(--tint,transparent),var(--tint,transparent)),var(--bg)}
+#grid .wsec,#grid .dsh,#grid .wline{contain:layout;position:relative;z-index:1}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -10572,8 +10578,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.15c';const APP_LABEL='1.106';
-const CHANGES=["One brand: the botanical Cy tree crest is now the only logo and app icon; the logo-switching and app-icon pickers are gone","Settings → Appearance & Theme: a simple Dynamic | Paper | Obsidian switch, a \"follow the article's photo colors\" toggle, and every other palette tucked into \"Show Advanced Color Palettes\"","Some palette names are now generic: Tempest, Bastion, Synapse, Apex, Strata, Eclipse, Aether, Neon, Scarlet Dawn, Duel and Paragon (your saved choice carries over)","Cleaner story pages: pull quotes are quiet inset quotes, the section dividers and ornaments are gone, and the end-of-story block stays inside its column","\"The story so far\" now sits a few paragraphs into the story, so the text always starts on page 1","The top of a feed no longer blinks while many feeds refresh: the page redraws at most every few seconds, and the first pictures are ready before they are shown","Photo cards have a darker fade at the bottom so headlines are easy to read on any picture, and the big feature and lead cards keep their headline at a sensible size","Page 1 of the two-column reader always fills the right column with the start of the story; the \"At a glance\" box stays with the picture, or is left out when it cannot fit"];
+const APP_VERSION='2026.10.15d';const APP_LABEL='1.106';
+const CHANGES=["One brand: the botanical Cy tree crest is now the only logo and app icon; the logo-switching and app-icon pickers are gone","Settings → Appearance & Theme: a simple Dynamic | Paper | Obsidian switch, a \"follow the article's photo colors\" toggle, and every other palette tucked into \"Show Advanced Color Palettes\"","Some palette names are now generic: Tempest, Bastion, Synapse, Apex, Strata, Eclipse, Aether, Neon, Scarlet Dawn, Duel and Paragon (your saved choice carries over)","Cleaner story pages: pull quotes are quiet inset quotes, the section dividers and ornaments are gone, and the end-of-story block stays inside its column","\"The story so far\" now sits a few paragraphs into the story, so the text always starts on page 1","The pinned section bar (\"This morning\", \"Earlier\") is solid, so stories no longer show faintly through it","The top of a feed no longer blinks while many feeds refresh: the page redraws at most every few seconds, and the first pictures are ready before they are shown","Photo cards have a darker fade at the bottom so headlines are easy to read on any picture, and no card headline can grow past about 26 px or spill out of its card"];
 const DEF_ON=new Set(['cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
