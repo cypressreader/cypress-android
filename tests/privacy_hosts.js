@@ -3,7 +3,7 @@ const fs=require('fs'),path=require('path');
 const app=fs.readFileSync(process.env.APP||path.resolve(__dirname,'../www/index.html'),'utf8');
 const priv=fs.readFileSync(path.resolve(__dirname,'../docs/privacy.html'),'utf8').replace(/<[^>]*>/g,' ');
 let bad=0;
-const SERVICES=[['is.gd','is.gd'],['api.rss2json.com','rss2json'],['allorigins.win','allorigins'],['codetabs.com','codetabs'],['corsproxy.io','corsproxy'],['r.jina.ai','jina'],['web.archive.org','archive'],['morss.it','morss'],['youtube-nocookie.com','youtube-nocookie'],['i.ytimg.com','ytimg'],['cdn.jsdelivr.net','jsdelivr'],['fonts.googleapis.com','google fonts'],['nominatim.openstreetmap.org','nominatim'],['open-meteo.com','open-meteo'],['api.github.com','github'],['google.com/s2/favicons','google'],['static.cloudflareinsights.com','cloudflare analytics']];
+const SERVICES=[['api.rss2json.com','rss2json'],['allorigins.win','allorigins'],['codetabs.com','codetabs'],['corsproxy.io','corsproxy'],['r.jina.ai','jina'],['web.archive.org','archive'],['morss.it','morss'],['youtube-nocookie.com','youtube-nocookie'],['i.ytimg.com','ytimg'],['cdn.jsdelivr.net','jsdelivr'],['fonts.googleapis.com','google fonts'],['nominatim.openstreetmap.org','nominatim'],['open-meteo.com','open-meteo'],['api.github.com','github'],['google.com/s2/favicons','google'],['static.cloudflareinsights.com','cloudflare analytics']];
 for(const [host,word] of SERVICES){
  const used=app.includes(host);const said=priv.toLowerCase().includes(word);
  if(used&&!said){bad++;console.log('FAIL the app calls',host,'but the privacy page does not mention',word)}else console.log('ok',host,used?'(used, disclosed)':'(not used)')}
