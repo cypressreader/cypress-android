@@ -343,3 +343,6 @@ Must verify on the Fold (inner screen): open a story in Scroll, switch to Pages,
 
 ## Batch 5 (preview/polish-106)
 Must verify on the Fold/phone: switch Paper > Obsidian > Midnight: the status bar colour follows immediately with no one-step lag. Settings > Reading > Focus reading: on/off in both Scroll and Pages; check the page count still looks right and highlights/read-aloud still work.
+
+## Focus reading fix + read-aloud after leaving a story (preview/polish-106)
+Must verify on a phone (web app and APK): Focus reading on: text flows in normal lines, in Scroll and Pages. Start Read aloud, press Back to the feed: audio carries on and the floating pill shows; pause/resume/stop from the pill; browse and open another story (the old audio stops). Web app only: audio may still stop when the browser hides the page or the screen locks; that is the browser, the APK is the reliable case.

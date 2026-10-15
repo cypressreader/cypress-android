@@ -3761,7 +3761,7 @@ main{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 .card h1,.cvlead:not(.dcv-lead) h1,.card .headline,.cvlead:not(.dcv-lead) .headline,.cvlead:not(.dcv-lead) .wmom-t b,.cvlead:not(.dcv-lead) .fd-fb b{font-size:clamp(1.15rem,4vw,1.7rem)!important;line-height:1.15!important;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical}
 #rdprog{position:fixed;top:0;left:0;right:0;height:2px;z-index:90;pointer-events:none;background:transparent}#rdprog i{display:block;height:100%;width:100%;background:var(--logo);transform:scaleX(0);transform-origin:0 50%}#rdprog[hidden]{display:none}
 #rd .cols .body p.dropcap .dcap.dc-k{margin-right:2px;padding-right:0;letter-spacing:-.04em}
-.body span.fr{font-weight:700}
+.fr-bold{display:inline!important;margin:0!important;padding:0!important;font-weight:bold!important;break-inside:avoid!important}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -7882,6 +7882,7 @@ function tmini(){let e=$('#tmini');if(e)return e;
  e.addEventListener('pointermove',ev=>{if(!d)return;const dx=ev.clientX-d.x,dy=ev.clientY-d.y;if(!d.m&&Math.hypot(dx,dy)<6)return;d.m=1;tminiPlace(d.l+dx,d.t+dy)});
  e.addEventListener('pointerup',()=>{if(!d)return;const m=d.m;d=null;if(m){const r=e.getBoundingClientRect(),right=r.left+r.width/2>innerWidth/2;tminiPlace(right?innerWidth-60:4,r.top);S.tmpos={x:right?1:0,y:r.top/innerHeight};save();return}tminiTap()});
  e.addEventListener('pointercancel',()=>{d=null});
+ e.querySelector('.tmb').addEventListener('click',ev=>{if(ev.detail===0)tminiTap()});/* keyboard and screen-reader activation (a touch or mouse tap is handled on pointer-up) */
  e.querySelector('.tmx').addEventListener('click',ev=>{ev.stopPropagation();ttsStop();tminiSync()});
  tminiHome();addEventListener('resize',tminiHome);
  return e}
@@ -8053,7 +8054,7 @@ const rdSig=a=>{try{return [S.saved.length,(S.hl||[]).length,JSON.stringify(S.lk
 let RDSIG='';
 let RDTRIG=null;
 const closeRd=fromPop=>{if(document.startViewTransition&&!reduced()&&$('#rd').classList.contains('on')&&!closeRd.busy){closeRd.busy=1;try{const vt=document.startViewTransition(()=>{closeRd0(fromPop)});vt.finished.then(()=>{closeRd.busy=0},()=>{closeRd.busy=0});return}catch(e){closeRd.busy=0}}closeRd0(fromPop)};
-const closeRd0=fromPop=>{try{raCancel()}catch(e){}const was=curA,same=!!was&&RDSIG===rdSig(was)&&/^(all|f:|s:|k:)/.test(S.sel||'');$('#rd').classList.remove('focus');if(fromPop!==true){dropLayer('rdnav');dropLayer('reader')}else dropLayer('rdnav');const nv=$('#rdnav');if(nv){nv.classList.remove('on');nv.hidden=true}tok++;R.busy=false;ttsStop();hlClear();$('#selbar').hidden=true;$('#rd').classList.remove('on','flex','vert');try{if(RDTRIG&&RDTRIG.isConnected&&RDTRIG!==document.body)RDTRIG.focus({preventScroll:true})}catch(e){};curA=null;applyFolderTheme();if(document.body.classList.contains('split'))splitEmpty();if(same){try{side();dgProgUpdate()}catch(e){}}else render()};
+const closeRd0=fromPop=>{try{raCancel()}catch(e){}const was=curA,same=!!was&&RDSIG===rdSig(was)&&/^(all|f:|s:|k:)/.test(S.sel||'');$('#rd').classList.remove('focus');if(fromPop!==true){dropLayer('rdnav');dropLayer('reader')}else dropLayer('rdnav');const nv=$('#rdnav');if(nv){nv.classList.remove('on');nv.hidden=true}tok++;R.busy=false;/* read-aloud keeps going when you back out to the feed: the floating pill (#tmini) carries the controls */if(!(TTS.on&&('speechSynthesis' in window)))ttsStop();hlClear();$('#selbar').hidden=true;$('#rd').classList.remove('on','flex','vert');try{if(RDTRIG&&RDTRIG.isConnected&&RDTRIG!==document.body)RDTRIG.focus({preventScroll:true})}catch(e){};curA=null;try{tminiSync()}catch(e){}applyFolderTheme();if(document.body.classList.contains('split'))splitEmpty();if(same){try{side();dgProgUpdate()}catch(e){}}else render()};
 const set=$('#set');
 function bestVoice(){const vs=speechSynthesis.getVoices();if(S.voice){const m=vs.find(v=>v.voiceURI===S.voice);if(m)return m}const L=(navigator.language||'en').slice(0,2).toLowerCase(),c=vs.filter(v=>(v.lang||'').toLowerCase().startsWith(L));if(!c.length||!c.some(v=>v.q))return null;return c.slice().sort((a,b)=>(b.q||0)-(a.q||0)||(a.localService?0:1)-(b.localService?0:1))[0]}
 function voiceOpts(){const L=(navigator.language||'en').slice(0,2),vs=speechSynthesis.getVoices().slice().sort((a,b)=>(a.lang.startsWith(L)?0:1)-(b.lang.startsWith(L)?0:1)||(b.q||0)-(a.q||0)||a.name.localeCompare(b.name));return (vs.length?'<option value="">Best available</option>':'<option value="">No voices found</option>')+vs.map(v=>`<option value="${esc(v.voiceURI)}">${esc(v.name)} (${esc(v.lang)})</option>`).join('')}
@@ -10617,8 +10618,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.15l';const APP_LABEL='1.106';
-const CHANGES=["New \"Focus reading\" switch (Settings → Reading): bolds the first letters of each word to help your eye skim along a line.","The phone's status bar now matches your theme the moment you switch it, instead of lagging a step behind.","Fixed: switching a story from Pages back to Scroll no longer squashes the picture or hides the text.","Fixed: on a fully open Fold, stories in Scroll mode could squash the picture and hide the text. The half-folded layout now only applies when the phone is actually half-folded.","Swipe a card right to mark it read or unread, left to save or unsave, with a small tick when you've pulled far enough.","With a mouse or pen, you can drag a story card into another app beside it to share its title and link.","Big first letters in A, T, V and W stories sit snugger against the text.","The screen stays awake while you read a story, and a thin line at the top shows how far through a scrolling story you are."];
+const APP_VERSION='2026.10.15m';const APP_LABEL='1.106';
+const CHANGES=["Fixed: \"Focus reading\" no longer breaks the text into a staircase.","Read aloud keeps playing when you go back to the feed. A small floating button lets you pause, resume or stop it while you browse.","New \"Focus reading\" switch (Settings → Reading): bolds the first letters of each word to help your eye skim along a line.","The phone's status bar now matches your theme the moment you switch it, instead of lagging a step behind.","Fixed: switching a story from Pages back to Scroll no longer squashes the picture or hides the text.","Fixed: on a fully open Fold, stories in Scroll mode could squash the picture and hide the text. The half-folded layout now only applies when the phone is actually half-folded.","Swipe a card right to mark it read or unread, left to save or unsave, with a small tick when you've pulled far enough.","With a mouse or pen, you can drag a story card into another app beside it to share its title and link."];
 const DEF_ON=new Set(['cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -10838,14 +10839,14 @@ function rdProg(){const rd=$('#rd'),v=vView();let b=$('#rdprog');
 /* Focus reading: the first letters of each word are set heavier, so the eye can skim along a line. Words are only wrapped, never changed, so listening, highlights and search see the same text. */
 function focusRead(b){
  if(!b)return;
- b.querySelectorAll('span.fr').forEach(x=>x.replaceWith(document.createTextNode(x.textContent)));
+ b.querySelectorAll('span.fr-bold').forEach(x=>x.replaceWith(document.createTextNode(x.textContent)));
  b.normalize();
  if(!isOn('focusr'))return;
  const w=document.createTreeWalker(b,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.nodeValue.trim()&&!n.parentElement.closest('pre,code,script,style,.dcap,.tbl,.emb,.mnotes,.rfoot,.pullq')?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT}),ns=[];
  for(let n;n=w.nextNode();)ns.push(n);
  ns.forEach(n=>{const t=n.nodeValue;if(!/\p{L}{2}/u.test(t))return;const f=document.createDocumentFragment();let i=0;
   for(const m of t.matchAll(/\p{L}[\p{L}\p{M}]*(?:['’]\p{L}+)*/gu)){const L=m[0].length,k=L<2?0:L<=3?1:L<=5?2:L<=7?3:4;if(!k)continue;
-   if(m.index>i)f.append(t.slice(i,m.index));const e=document.createElement('span');e.className='fr';e.textContent=m[0].slice(0,k);f.append(e,m[0].slice(k));i=m.index+L}
+   if(m.index>i)f.append(t.slice(i,m.index));const e=document.createElement('span');e.className='fr-bold';e.textContent=m[0].slice(0,k);f.append(e,m[0].slice(k));i=m.index+L}
   if(i){if(i<t.length)f.append(t.slice(i));n.replaceWith(f)}});
 }
 function decorate(){try{decorate0()}finally{try{focusRead($('.cols .body'))}catch(e){}try{cineLongform($('.cols .body'))}catch(e){}try{sweepSoon()}catch(e){}}}
@@ -12457,6 +12458,8 @@ function mediaOn(){
   h('seekforward',()=>ttsSkip(1));h('seekbackward',()=>ttsSkip(-1));
  }catch(e){}
 }
+/* the silent track is what keeps a browser tab's audio alive while the screen is off or the tab is hidden: if the page gets it paused while reading aloud, start it again when the page is back or hidden */
+document.addEventListener('visibilitychange',()=>{try{if(TTS.on&&!TTS.paused&&silentAu&&silentAu.paused)silentAu.play().catch(()=>{})}catch(e){}});
 function mediaOff(stop){try{if(silentAu)silentAu.pause()}catch(e){}try{if('mediaSession' in navigator)navigator.mediaSession.playbackState=stop?'none':'paused'}catch(e){}}
 function addUpNext(a){if(!a)return;if(!S.lq.includes(a.link)){S.lq.push(a.link);save()}toast('Added to Up Next ('+S.lq.length+')');syncUpNext()}
 function syncUpNext(){
