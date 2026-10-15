@@ -3747,6 +3747,15 @@ body:not(.narrow):not(.split).reading:not(.sideshow)>aside{transform:none;transi
 #wpin{background:linear-gradient(var(--tint,transparent),var(--tint,transparent)),var(--bg)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 .top{background:linear-gradient(var(--tint,transparent),var(--tint,transparent)),var(--bg)}
 #grid .wsec,#grid .dsh,#grid .wline{contain:layout;position:relative;z-index:1}
+/* 21. Audit fixes: one headline cap for every card and cover line; cards and cover lines clip and contain what they paint; section bars sit above the cards; safe bottom edge; bigger touch targets */
+.card h2,.card h3,.cvlead:not(.dcv-lead) h2,.cvlead:not(.dcv-lead) h3,.card .headline{font-size:clamp(1.15rem,4vw,1.7rem)!important;line-height:1.15!important;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical}
+.card,.cvl,.cvlead{position:relative;overflow:hidden;contain:layout paint}
+#grid .wsec,#grid .dsh,#grid .wline,#grid .sech{position:relative;z-index:4;background:linear-gradient(var(--tint,transparent),var(--tint,transparent)),var(--bg)}
+main{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.selbar .dot{position:relative;margin:9px}
+.selbar .dot::after{content:"";position:absolute;inset:-9px;border-radius:50%}
+.strip::-webkit-scrollbar-thumb{background:var(--mut);border-radius:4px}
+.card>img{backface-visibility:hidden;-webkit-backface-visibility:hidden}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -10578,8 +10587,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.15d';const APP_LABEL='1.106';
-const CHANGES=["One brand: the botanical Cy tree crest is now the only logo and app icon; the logo-switching and app-icon pickers are gone","Settings → Appearance & Theme: a simple Dynamic | Paper | Obsidian switch, a \"follow the article's photo colors\" toggle, and every other palette tucked into \"Show Advanced Color Palettes\"","Some palette names are now generic: Tempest, Bastion, Synapse, Apex, Strata, Eclipse, Aether, Neon, Scarlet Dawn, Duel and Paragon (your saved choice carries over)","Cleaner story pages: pull quotes are quiet inset quotes, the section dividers and ornaments are gone, and the end-of-story block stays inside its column","\"The story so far\" now sits a few paragraphs into the story, so the text always starts on page 1","The pinned section bar (\"This morning\", \"Earlier\") is solid, so stories no longer show faintly through it","The top of a feed no longer blinks while many feeds refresh: the page redraws at most every few seconds, and the first pictures are ready before they are shown","Photo cards have a darker fade at the bottom so headlines are easy to read on any picture, and no card headline can grow past about 26 px or spill out of its card"];
+const APP_VERSION='2026.10.15e';const APP_LABEL='1.106';
+const CHANGES=["One brand: the botanical Cy tree crest is now the only logo and app icon; the logo-switching and app-icon pickers are gone","Settings → Appearance & Theme: a simple Dynamic | Paper | Obsidian switch, a \"follow the article's photo colors\" toggle, and every other palette tucked into \"Show Advanced Color Palettes\"","Some palette names are now generic: Tempest, Bastion, Synapse, Apex, Strata, Eclipse, Aether, Neon, Scarlet Dawn, Duel and Paragon (your saved choice carries over)","Cleaner story pages: pull quotes are quiet inset quotes, the section dividers and ornaments are gone, and the end-of-story block stays inside its column","\"The story so far\" now sits a few paragraphs into the story, so the text always starts on page 1","Cards and cover lines clip their own text, long headlines stop at four lines, the bottom of the feed clears the phone's gesture bar, and the selection dots are easier to tap","The pinned section bar (\"This morning\", \"Earlier\") is solid, so stories no longer show faintly through it","The top of a feed no longer blinks while many feeds refresh: the page redraws at most every few seconds, and the first pictures are ready before they are shown"];
 const DEF_ON=new Set(['cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;

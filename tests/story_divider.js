@@ -13,7 +13,7 @@ const P=k=>'<p>'+('Paragraph '+k+' of the story, long enough to count as real te
    const hr=body.querySelector('hr');return {hr:hr&&q(hr),hrAfter:hr&&q(hr,'::after'),brk:q(d),nhr:body.querySelectorAll('hr').length}},P(1)+P(2)+'<hr>'+P(3)+P(4));
   ck(th+': a rule in a story is drawn with the CyPress mark',r.nhr>=1&&/url|var/.test(r.hr.mask)&&r.hr.mask!=='none',JSON.stringify(r.hr));
   ck(th+': the rule no longer carries the generic flourish',!r.hrAfter||/^(none|normal)$/.test(r.hrAfter.content),JSON.stringify(r.hrAfter));
-  ck(th+': the section break is drawn with the CyPress mark',/url|var/.test(r.brk.mask)&&r.brk.mask!=='none'&&r.brk.color==='rgba(0, 0, 0, 0)',JSON.stringify(r.brk));
+  ck(th+': the section break is a plain thin rule (no ornament)',r.brk.mask==='none'&&r.brk.w>=40&&r.brk.color==='rgba(0, 0, 0, 0)',JSON.stringify(r.brk));
   ck(th+': the marks are small ('+r.hr.w+'px)',r.hr.w>=18&&r.hr.w<=40,JSON.stringify(r));
   ck(th+': no page errors',!errs.length,errs[0]);await p.close()}
  await b.close();console.log(bad?'FAILED '+bad:'story_divider all '+n+' passed');process.exit(bad?1:0)})();
