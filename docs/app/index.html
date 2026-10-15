@@ -2564,7 +2564,6 @@ html{font-synthesis-weight:none}
 #grid.nrp>.nr-psec{margin-bottom:6px}
 .fivr{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .nospeech [data-play]{display:none!important}
-#tmini{position:fixed;z-index:70;width:56px;height:56px;touch-action:none;user-select:none;-webkit-user-select:none}#tmini[hidden]{display:none}#tmini .tmb{width:56px;height:56px;border-radius:50%;border:0;background:var(--ink);color:var(--bg);display:grid;place-items:center;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:grab;-webkit-tap-highlight-color:transparent}#tmini .tmb svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}#tmini .tmx{position:absolute;top:-6px;right:-6px;width:24px;height:24px;padding:0;border-radius:50%;background:var(--pn);color:var(--ink);border:1px solid var(--ln);display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.25)}#tmini .tmx svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
 .tx2.playd{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:800}
 body.narrow #tlp{display:none}
 body.narrow .top h1{font-size:clamp(20px,5.6vw,26px)}
@@ -3771,6 +3770,63 @@ body.narrow #toast{bottom:auto}html.micro #toast{animation:none}
 /* every swipeable story row hands horizontal drags to the swipe, like cards do; without this a phone's browser claims the drag on plain links and cancels it before the release, so the action never ran */
 #grid .cvlead,#grid .cvl,#grid .wline,#grid a[data-i]{touch-action:pan-y}
 #grid .strip a[data-i],#grid .crow a[data-i],#grid .strip .cvlead,#grid .crow .cvlead{touch-action:pan-x pan-y}
+
+/* frosted panels: a firm base fill behind the words, so they read over any photo while the blur stays */
+.cover.cm-frost .cvlead{background:rgba(14,16,22,.76)}html.smooth .cover.cm-frost .cvlead{background:rgba(14,16,22,.82)}
+.cover.cv-spotlight .cvbot{background:rgba(10,12,16,.78)}html.scrim-panel .card .tx{background:rgba(6,8,12,.76)}html.scrim-panel .cover .cvbot{background:rgba(6,8,12,.76)}
+.dcov .dgp:not(.qp){background:rgba(7,26,19,.78)}.dgoal{background:rgba(7,26,19,.76)}.hsf.hs-hero .hov .flw,.hsf.hs-hero .hov .cmt{background:rgba(0,0,0,.62)}
+html.dkart .dcov .dgp:not(.qp),html.dkart .dgoal{background:rgba(3,14,10,.82)}
+/* covers set in dark ink: the panels behind that ink are light, never dark (dark words on a dark pane were unreadable) */
+.dcov.dct-min .dgoal,.dcov.dct-min .dgp:not(.qp){background:rgba(255,255,255,.78);color:var(--ink);border-color:color-mix(in srgb,var(--ink) 22%,transparent)}
+html.dkart .dcov.dct-min .dgoal,html.dkart .dcov.dct-min .dgp:not(.qp){background:rgba(18,18,18,.78)}
+/* the Daily's status strip: progress on the left, Play Daily always one tap away on the right */
+.dgp.qp .qp-bar{display:flex;align-items:center;gap:10px;padding:6px 6px 6px 12px;border-radius:16px;background:rgba(10,18,14,.76);border:1px solid rgba(255,255,255,.22);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.dgp.qp .qp-l{flex:1;min-width:0;border-top:0;padding:6px 2px;font:600 13.5px var(--sans);font-style:normal;color:#fff}
+.dgp.qp .qp-s{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff}
+.dgp.qp .qp-l i{margin-left:2px;opacity:.85;transition:transform .2s;font-size:17px}
+.dcov .dgp.qp .dplay,.dgp.qp .dplay{all:unset;box-sizing:border-box;flex:none;display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:9px 15px;border-radius:999px;background:#fff;color:#0b2119;font:700 13.5px var(--sans);min-height:40px}
+.dgp.qp .dplay:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.dcov.dct-min .dgp.qp .qp-bar{background:rgba(255,255,255,.78);border-color:color-mix(in srgb,var(--ink) 25%,transparent)}
+.dcov.dct-min .dgp.qp .qp-l,.dcov.dct-min .dgp.qp .qp-s{color:var(--ink)}.dcov.dct-min .dgp.qp .dplay{background:var(--ink);color:var(--bg)}
+.dcov .dgp.qp .dplay{background:#fff;color:#0b2119}.dcov.dct-min .dgp.qp .dplay{background:var(--ink);color:var(--bg)}.dcov .dgp.qp .dplay *{color:inherit}
+.dgp.qp .qp-s{white-space:normal;line-height:1.2;font-size:13px}.dgp.qp .qp-bar{gap:8px;padding-left:10px}.dgp.qp .dplay{padding:9px 12px}
+html.dkart .dcov.dct-min .dgp.qp .qp-bar{background:rgba(18,18,18,.78)}
+.nospeech .dgp.qp .dplay{display:none}
+
+/* the docked player (replaces the small floating pill) */
+#tmini{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;height:auto;z-index:70;display:flex;align-items:center;gap:6px;padding:10px 8px calc(8px + env(safe-area-inset-bottom,0px)) 14px;background:var(--ink);color:var(--pn);box-shadow:0 -6px 22px rgba(0,0,0,.28);touch-action:manipulation;user-select:none;-webkit-user-select:none;border-radius:16px 16px 0 0}
+#tmini[hidden]{display:none}
+#tmini .tmline{position:absolute;left:0;right:0;top:0;height:3px;background:color-mix(in srgb,var(--pn) 22%,transparent);border-radius:16px 16px 0 0;overflow:hidden}#tmini .tmline i{display:block;height:100%;background:var(--logo);transform-origin:0 50%;transform:scaleX(0)}
+#tmini .tmopen{all:unset;box-sizing:border-box;flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;cursor:pointer;padding:4px 0;color:inherit}
+#tmini .tmopen:focus-visible,#tmini button:focus-visible{outline:2px solid var(--pn);outline-offset:2px;border-radius:8px}
+#tmini .tmt{font:700 14.5px/1.2 var(--sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#tmini .tmp{font:500 12px/1.2 var(--sans);opacity:.78;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tmini .tmc{display:flex;align-items:center;flex:none}
+#tmini .tmc button,#tmini .tmx{all:unset;box-sizing:border-box;position:relative;width:42px;height:42px;display:grid;place-items:center;cursor:pointer;color:inherit;border-radius:50%;-webkit-tap-highlight-color:transparent}
+#tmini .tmc button[hidden]{display:none}
+#tmini .tmrw b{position:absolute;font:800 8.5px var(--sans);top:50%;left:50%;transform:translate(-50%,-38%)}
+#tmini .tmb{background:var(--pn)!important;color:var(--ink)!important;width:44px!important;height:44px!important;margin:0 2px}
+#tmini .tmx{width:36px;height:36px;opacity:.8}
+body.hasdock main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+#rd.ghost{visibility:hidden!important;pointer-events:none!important;transition:none!important;animation:none!important}
+/* the chapter drawer */
+#tdr{position:fixed;inset:auto 0 0 0;margin:0 auto;width:min(560px,100vw);max-width:100vw;max-height:88vh;border:0;border-radius:22px 22px 0 0;padding:16px 18px calc(16px + env(safe-area-inset-bottom,0px));background:var(--pn);color:var(--ink);box-shadow:0 -10px 40px rgba(0,0,0,.35);overflow-y:auto}
+#tdr::backdrop{background:rgba(0,0,0,.45)}#tdr[open]{animation:tdup .28s cubic-bezier(.2,.9,.3,1)}@keyframes tdup{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){#tdr[open]{animation:none}}
+#tdr .tdh{display:flex;align-items:center;justify-content:space-between}#tdr .tdh h2{margin:0;font:700 13px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+#tdr .tdn{margin:10px 0 14px;display:flex;flex-direction:column;gap:3px}#tdr .tdt{font:700 19px/1.2 var(--serif)}#tdr .tdp{color:var(--mut);font:500 13px var(--sans)}
+#tdr #tdsc{position:relative;height:30px;display:flex;align-items:center;cursor:pointer;touch-action:none}#tdr #tdsc:focus-visible{outline:2px solid var(--logo);outline-offset:2px;border-radius:6px}
+#tdr .tdbar{position:absolute;left:0;right:0;height:6px;border-radius:3px;background:var(--ln);overflow:hidden}#tdr .tdf{display:block;height:100%;background:var(--logo);transform-origin:0 50%;transform:scaleX(0)}
+#tdr .tdks i{position:absolute;top:50%;width:2px;height:14px;margin:-7px 0 0 -1px;background:var(--ink);opacity:.55;border-radius:1px}
+#tdr .tdtm{display:flex;justify-content:space-between;font:600 12px var(--sans);color:var(--mut);margin:2px 0 8px}
+#tdr .tdc{display:flex;align-items:center;justify-content:center;gap:10px}#tdr .tdc .ib{width:46px;height:46px}
+#tdr .tdpl{all:unset;box-sizing:border-box;width:58px;height:58px;border-radius:50%;background:var(--ink);color:var(--pn);display:grid;place-items:center;cursor:pointer}#tdr .tdpl:focus-visible{outline:2px solid var(--logo);outline-offset:3px}
+#tdr .tds{display:flex;gap:8px;justify-content:center;margin:14px 0}#tdr .tds button{all:unset;box-sizing:border-box;min-width:54px;min-height:40px;display:grid;place-items:center;padding:0 12px;border-radius:999px;border:1px solid var(--ln);font:700 13px var(--sans);cursor:pointer;color:var(--ink)}
+#tdr .tds button[aria-checked=true]{background:var(--ink);color:var(--pn);border-color:var(--ink)}#tdr .tds button:focus-visible{outline:2px solid var(--logo);outline-offset:2px}
+#tdr .tdq{list-style:none;margin:6px 0 10px;padding:0;border-top:1px solid var(--ln)}#tdr .tdq li{border-bottom:1px solid var(--ln)}
+#tdr .tdq button{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:12px;padding:11px 2px;cursor:pointer;color:var(--ink);min-height:48px}#tdr .tdq button:focus-visible{outline:2px solid var(--logo);outline-offset:-2px;border-radius:8px}
+#tdr .tdg{flex:none;width:30px;height:30px;border-radius:50%;border:1px solid var(--ln);display:grid;place-items:center}#tdr .tdq [aria-current] .tdg{background:var(--logo);color:#fff;border-color:var(--logo)}
+#tdr .tdit{flex:1;min-width:0;font:600 14px/1.25 var(--sans);display:flex;flex-direction:column;gap:2px}#tdr .tdit small{font:500 12px var(--sans);color:var(--mut)}
+#tdr .tdo{width:100%}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -6015,10 +6071,13 @@ let DGP_OPEN=false;
 /* the progress is one quiet line under the cover: a small ring and "3 of 19 read". Tap it for the detail (the rest of the numbers, Play the Daily, the 5-minute read, the reading goal). */
 function dgProgHtml(){
  const{n,t}=dgCount();if(t<3)return'';const done=n>=t,g=goalOf(),m=Math.round(readToday()*10)/10;
+ const left=t-n,mins=DGL.filter(l=>!S.read[l]).reduce((x,l)=>{const a=findStory(l);return x+(a?(readMin(a)||3):0)},0);
+ const sum=done?'Edition finished':left+(left===1?' story':' stories')+' left'+(mins?' • ~'+mins+'m':'');
  const tail=g?` · ${Math.floor(m)} min of your ${g}-min goal`:'';
- return `<div class="dgp qp${done?' done':''}${DGP_OPEN?' open':''}" data-dgp><button type="button" class="qp-l" data-qpt aria-expanded="${DGP_OPEN}"><span class="rgw">${ringSvg(n,t,22,3)}</span><span class="qp-s" role="status">${done?'Edition finished':n+' of '+t+' read'}${tail}</span><i aria-hidden="true">${DGP_OPEN?'−':'+'}</i></button><div class="dgd"${DGP_OPEN?'':' hidden'}><p class="dgq">${esc(pe('progress',{},(done?'done':n?'mid':'start')))}</p><p>${done?'You have read everything in this edition.':(t-n)+' '+(t-n===1?'story':'stories')+' left in this edition'}</p>${fiveBtns()}${goalHtml()}</div></div>`;
+ const play=(typeof fiveBtns==='function'&&fiveBtns())?`<button type="button" class="dplay" data-play aria-label="Play the Daily"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg><span>Play Daily</span></button>`:'';
+ return `<div class="dgp qp${done?' done':''}${DGP_OPEN?' open':''}" data-dgp><div class="qp-bar"><button type="button" class="qp-l" data-qpt aria-expanded="${DGP_OPEN}" aria-label="${esc(sum)}. Show more"><span class="rgw">${ringSvg(n,t,22,3)}</span><span class="qp-s" role="status">${esc(sum)}</span><i aria-hidden="true">⌄</i></button>${play}</div><div class="dgd"${DGP_OPEN?'':' hidden'}><p class="dgq">${esc(pe('progress',{},(done?'done':n?'mid':'start')))}</p><p>${done?'You have read everything in this edition.':left+' '+(left===1?'story':'stories')+' left in this edition'}${esc(tail)}</p>${(typeof fiveBtns==='function'&&fiveBtns())?'<div class="dgb"><button type="button" data-five>⏱ I have 5 minutes</button></div>':''}${goalHtml()}</div></div>`;
 }
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-qpt]');if(!b)return;e.preventDefault();e.stopPropagation();DGP_OPEN=!DGP_OPEN;const p=b.closest('.dgp');p.classList.toggle('open',DGP_OPEN);b.setAttribute('aria-expanded',String(DGP_OPEN));b.querySelector('i').textContent=DGP_OPEN?'−':'+';const d=p.querySelector('.dgd');if(d)d.hidden=!DGP_OPEN},true);
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-qpt]');if(!b)return;e.preventDefault();e.stopPropagation();DGP_OPEN=!DGP_OPEN;const p=b.closest('.dgp');p.classList.toggle('open',DGP_OPEN);b.setAttribute('aria-expanded',String(DGP_OPEN));b.querySelector('i').style.transform=DGP_OPEN?'rotate(180deg)':'';const d=p.querySelector('.dgd');if(d)d.hidden=!DGP_OPEN},true);
 function dgProgUpdate(){const el=document.querySelector('#grid [data-dgp]');if(!el||S.sel!=='today')return;const h=dgProgHtml();if(!h)return;const t=document.createElement('div');t.innerHTML=h;el.replaceWith(t.firstChild)}
 /* this badge means "saved on this device, opens offline". It is not a read mark (a read story is shown faded), so it is an arrow into a tray, not a tick, and a tap says so */
 const RDY_MARK='<span class="rdy" role="img" title="Saved on this device. Opens offline." aria-label="Saved for offline reading"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10m-4-3.5 4 4 4-4M5 19h14"/></svg></span>';
@@ -7898,45 +7957,169 @@ function raBtn(){
  try{tminiSync()}catch(e){}
 }
 
-/* a floating pause button for when a story is still being read aloud but its page isn't open. Drag it anywhere; it snaps to the nearest edge */
-function tminiPlace(x,y){const e=$('#tmini');if(!e)return;const w=56;e.style.left=Math.max(4,Math.min(innerWidth-w-4,x))+'px';e.style.top=Math.max(8,Math.min(innerHeight-w-8,y))+'px';e.style.right='auto';e.style.bottom='auto'}
-function tminiHome(){const p=S.tmpos;if(p&&typeof p.y==='number')tminiPlace(p.x>.5?innerWidth-60:4,p.y*innerHeight);else tminiPlace(innerWidth-70,innerHeight-150)}
-function tmini(){let e=$('#tmini');if(e)return e;
- e=document.createElement('div');e.id='tmini';e.hidden=true;
- e.innerHTML='<button type="button" class="tmb"></button><button type="button" class="tmx" aria-label="Stop reading" title="Stop">'+svg('<path d="M7 7l10 10M17 7 7 17"/>')+'</button>';
- document.body.append(e);
- let d=null;
- e.addEventListener('pointerdown',ev=>{if(ev.target.closest('.tmx'))return;const r=e.getBoundingClientRect();d={x:ev.clientX,y:ev.clientY,l:r.left,t:r.top,m:0};try{e.setPointerCapture(ev.pointerId)}catch(_){}});
- e.addEventListener('pointermove',ev=>{if(!d)return;const dx=ev.clientX-d.x,dy=ev.clientY-d.y;if(!d.m&&Math.hypot(dx,dy)<6)return;d.m=1;tminiPlace(d.l+dx,d.t+dy)});
- e.addEventListener('pointerup',()=>{if(!d)return;const m=d.m;d=null;if(m){const r=e.getBoundingClientRect(),right=r.left+r.width/2>innerWidth/2;tminiPlace(right?innerWidth-60:4,r.top);S.tmpos={x:right?1:0,y:r.top/innerHeight};save();return}
-  /* the tap's own click arrives after this: Play opens the story, so that click would land on whatever is now under the finger (the story's picture). Swallow it. */
-  {const kill=ev=>{ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation()};document.addEventListener('click',kill,{capture:true,once:true});setTimeout(()=>document.removeEventListener('click',kill,true),600)}
-  tminiTap()});
- e.addEventListener('pointercancel',()=>{d=null});
- e.querySelector('.tmb').addEventListener('click',ev=>{if(ev.detail===0)tminiTap()});/* keyboard and screen-reader activation (a touch or mouse tap is handled on pointer-up) */
- e.querySelector('.tmx').addEventListener('click',ev=>{ev.stopPropagation();ttsStop();tminiSync()});
- tminiHome();addEventListener('resize',tminiHome);
- return e}
-function tminiSync(){
- const show=!!(TTS.on&&!$('#rd').classList.contains('on')&&('speechSynthesis' in window));
- let e=$('#tmini');if(!show&&!e)return;e=tmini();e.hidden=!show;if(!show)return;
- const run=!TTS.paused,b=e.querySelector('.tmb'),nm=TTS.art?TTS.art.title:'';
- b.innerHTML=svg(run?PAUSE:PLAY,!run);b.setAttribute('aria-label',run?'Pause story':'Resume story');e.title=(run?'Pause: ':'Resume: ')+nm}
-async function tminiTap(){
- if(!TTS.on||Date.now()-(tminiTap.t||0)<450)return;tminiTap.t=Date.now();
- if(!TTS.paused)return ttsPause();
- const a=TTS.art;if(!a)return ttsStop();
- /* opening the story starts it fresh and forgets where the voice was: note the word first, and carry on from it */
- const pos={wi:ttsPos(),n:TTS.words.length};
- await openReader(a);
- if(curA!==a)return;
- try{
-  ttsCollect();
-  if(pos.n>0&&Math.abs(TTS.words.length-pos.n)<=Math.max(3,pos.n*.02)&&TTS.words.length){const wi=Math.max(0,Math.min(TTS.words.length-1,pos.wi));ttsFrom(wi);ttsMark(wi)}
-  else{ttsToggle.force=true;ttsToggle()}
- }catch(e){}
+/* ===================== The Daily as a podcast: one queue, one player. It sits on top of the read-aloud engine above (same voices, prosody and read-along highlight). ===================== */
+const DIG={on:false,links:[],i:0,tok:0};
+const DIGC=new Map();/* link -> estimated characters of the story, so the timeline can be shown before a story has been opened */
+const digCps=()=>15*(+S.rate||1);/* about 15 characters a second at normal speed */
+function digChars(a,active){
+ if(active&&TTS.words.length){let ch=0;for(const w of TTS.words)ch+=w.t.length+1;DIGC.set(a.link,ch);return ch}
+ if(DIGC.has(a.link))return DIGC.get(a.link);
+ const c=AC[a.link]&&AC[a.link].h;let ch;
+ if(c)ch=c.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').length;
+ else{const m=readMin(a);ch=m?m*1380:Math.max(300,(a.summary||'').length+(a.title||'').length)}
+ DIGC.set(a.link,ch);return ch;
 }
-setInterval(()=>{if(TTS.on||($('#tmini')&&!$('#tmini').hidden))tminiSync()},1200);
+function digModel(){
+ const links=DIG.on?DIG.links:(TTS.art?[TTS.art.link]:[]),chap=[];let t=0;
+ links.forEach(l=>{const a=(TTS.art&&TTS.art.link===l)?TTS.art:findStory(l);if(!a)return;const act=TTS.art&&TTS.art.link===l;const d=Math.max(5,Math.round(digChars(a,act)/digCps()));chap.push({a,l,dur:d,start:t});t+=d});
+ let ci=chap.findIndex(c=>DIG.on?c.l===DIG.links[DIG.i]:true);if(ci<0)ci=0;
+ const c=chap[ci];let pos=c?c.start:0;
+ if(c&&TTS.words.length&&TTS.art&&TTS.art.link===c.l)pos+=Math.min(1,TTS.wi/Math.max(1,TTS.words.length))*c.dur;
+ return{chap,i:ci,tot:t,pos};
+}
+const digFmt=s=>{s=Math.max(0,Math.round(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')};
+function digWarm(){
+ /* the story playing, the one before and the next two are kept ready, so there is no gap between stories */
+ try{const L=DIG.links,i=DIG.i,want=[L[i+1],L[i+2],L[i-1]].map(l=>l&&findStory(l)).filter(Boolean);if(want.length)prefetch(want,true)}catch(e){}
+}
+function digInit(links){DIG.on=true;DIG.links=links.slice();DIG.i=0;DIG.tok++;R.briefAudio=true;R.audioList=links.slice()}
+async function digGo(i,o){
+ o=o||{};if(!DIG.on)return;
+ if(i>=DIG.links.length)return digEnd(true);
+ if(i<0)i=0;
+ const a=findStory(DIG.links[i]);if(!a){DIG.links.splice(i,1);return digGo(i,o)}
+ const my=++DIG.tok;DIG.i=i;
+ ttsStop();tminiSync();
+ const vis=$('#rd').classList.contains('on')&&!$('#rd').classList.contains('ghost');
+ R.ghostNext=!vis;R.digOpen=true;
+ try{await openReader(a)}catch(e){}
+ R.digOpen=false;
+ if(my!==DIG.tok||!DIG.on||curA!==a)return;
+ if(o.fr==null&&isOn('skippay')){const why=ttsClean();if(why){toast('Skipped “'+a.title.slice(0,40)+'”: '+why);return digGo(i+(o.back?-1:1),o)}}
+ mediaOn();mediaNative();
+ const go=()=>{
+  if(my!==DIG.tok||curA!==a)return;
+  if(o.fr!=null){ttsCollect();if(TTS.words.length){const wi=Math.max(0,Math.min(TTS.words.length-1,Math.floor(o.fr*TTS.words.length)));ttsFrom(wi);ttsMark(wi);return}}
+  ttsToggle.force=true;ttsToggle();
+ };
+ if(o.intro)speak(o.intro,go);else go();
+ digWarm();tminiSync();
+}
+function digEnd(done){
+ const was=DIG.on;DIG.on=false;DIG.tok++;R.briefAudio=false;
+ const rd=$('#rd');if(rd.classList.contains('ghost')){rd.classList.remove('on','ghost','flex','vert');curA=null}
+ if(TTS.on)ttsStop();
+ if(was&&done){speak('That’s your Daily. You’re all caught up.',()=>{if(!TTS.on)mediaNativeStop()})}
+ tminiSync();
+}
+function digSeekTo(sec){
+ const m=digModel();if(!m.chap.length)return;sec=Math.max(0,Math.min(m.tot-1,sec));
+ let k=0;for(let j=0;j<m.chap.length;j++)if(m.chap[j].start<=sec)k=j;
+ const fr=Math.max(0,Math.min(.999,(sec-m.chap[k].start)/m.chap[k].dur));
+ if(k===m.i&&TTS.words.length){const wi=Math.max(0,Math.min(TTS.words.length-1,Math.floor(fr*TTS.words.length)));ttsFrom(wi);ttsMark(wi)}
+ else if(DIG.on)digGo(k,{fr,back:k<m.i});
+}
+const digSeekBy=d=>{const m=digModel();digSeekTo(m.pos+d)};
+function digPrev(){const m=digModel();if(!DIG.on||(m.chap[m.i]&&m.pos-m.chap[m.i].start>4)||DIG.i<=0){digSeekTo(m.chap[m.i]?m.chap[m.i].start:0);return}digGo(DIG.i-1,{back:1})}
+function digNext(){if(DIG.on)digGo(DIG.i+1,{})}
+/* a story opened by hand, or a Daily story shown in the background, uses the same reader; the background one is simply not seen */
+{const _or=openReader;openReader=async function(a){
+  const gh=!!R.ghostNext;R.ghostNext=false;
+  if(!R.digOpen&&DIG.on)digEnd(false);
+  $('#rd').classList.toggle('ghost',gh);
+  const r=await _or.call(this,a);
+  if(gh){try{dropLayer('reader')}catch(e){}}
+  return r;
+ }}
+{const _te=ttsEnd;ttsEnd=async function(manual){
+  if(!DIG.on)return _te.apply(this,arguments);
+  const a=curA;
+  if(!manual&&a){S.read[a.link]=1;(a.more||[]).forEach(m=>{S.read[m.l]=1});save();try{dgProgUpdate()}catch(e){}}
+  if(SLEEP.eos&&!manual){SLEEP.eos=false;syncUpNext();toast('Sleep timer: stopped');digEnd(false);return}
+  const nx=findStory(DIG.links[DIG.i+1]);
+  return digGo(DIG.i+1,{intro:(!manual&&nx)?('Next. From '+fof(nx).title+'.'):''});
+ }}
+/* ---------- the docked player ---------- */
+const DK_PLAY='<path d="M8 5.5v13l11-6.5z" fill="currentColor" stroke="none"/>',DK_PAUSE='<path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor" stroke="none"/>';
+const dkI=(p,s)=>`<svg viewBox="0 0 24 24" width="${s||22}" height="${s||22}" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+function tmini(){let e=$('#tmini');if(e)return e;
+ e=document.createElement('div');e.id='tmini';e.hidden=true;e.setAttribute('role','region');e.setAttribute('aria-label','Now playing');
+ e.innerHTML=`<div class="tmline" aria-hidden="true"><i></i></div><button type="button" class="tmopen" aria-label="Open the player and story list"><span class="tmt"></span><span class="tmp"></span></button><div class="tmc"><button type="button" class="tmrw" aria-label="Back 15 seconds">${dkI('<path d="M12 5a7 7 0 1 1-6.3 4"/><path d="M12 2 8.5 5 12 8"/>',22)}<b>15</b></button><button type="button" class="tmpv" aria-label="Previous story">${dkI('<path d="M7 5v14"/><path d="M19 5.5v13L9 12z" fill="currentColor"/>')}</button><button type="button" class="tmb" aria-label="Pause"></button><button type="button" class="tmnx" aria-label="Next story">${dkI('<path d="M17 5v14"/><path d="M5 5.5v13L15 12z" fill="currentColor"/>')}</button></div><button type="button" class="tmx" aria-label="Stop reading" title="Stop">${dkI('<path d="M7 7l10 10M17 7 7 17"/>',18)}</button>`;
+ document.body.append(e);
+ e.querySelector('.tmb').addEventListener('click',()=>tminiToggle());
+ e.querySelector('.tmrw').addEventListener('click',()=>digSeekBy(-15));
+ e.querySelector('.tmpv').addEventListener('click',()=>digPrev());
+ e.querySelector('.tmnx').addEventListener('click',()=>digNext());
+ e.querySelector('.tmx').addEventListener('click',()=>{digEnd(false);ttsStop();tminiSync()});
+ e.querySelector('.tmopen').addEventListener('click',()=>tdrOpen());
+ return e;
+}
+function tminiToggle(){
+ if(!TTS.on){if(DIG.on&&curA){ttsToggle.force=true;ttsToggle()}return}
+ if(!TTS.paused)return ttsPause();
+ ttsFrom(ttsPos());
+}
+function tminiSync(){
+ const rd=$('#rd'),seen=rd.classList.contains('on')&&!rd.classList.contains('ghost');
+ const show=!!((TTS.on||DIG.on)&&!seen&&('speechSynthesis' in window));
+ document.body.classList.toggle('hasdock',show);
+ let e=$('#tmini');if(!show&&!e)return;e=tmini();e.hidden=!show;
+ if(!show){const d=$('#tdr');if(d&&d.open)d.close();return}
+ const tb=$('#tabs');e.style.bottom=(tb&&getComputedStyle(tb).display!=='none'&&tb.offsetHeight)?tb.offsetHeight+'px':'0px';
+ const m=digModel(),c=m.chap[m.i],run=TTS.on&&!TTS.paused,multi=m.chap.length>1;
+ e.querySelector('.tmt').textContent=c?c.a.title:'Getting your Daily ready…';
+ e.querySelector('.tmp').textContent=c?(fof(c.a).title+(multi?' · '+(m.i+1)+' of '+m.chap.length:'')):'';
+ const b=e.querySelector('.tmb');b.innerHTML=dkI(run?DK_PAUSE:DK_PLAY,24);b.setAttribute('aria-label',run?'Pause':'Play');
+ e.querySelector('.tmpv').hidden=!multi;e.querySelector('.tmnx').hidden=!multi;
+ e.querySelector('.tmline i').style.transform='scaleX('+(m.tot?Math.min(1,m.pos/m.tot):0).toFixed(4)+')';
+ tdrUpdate(m);
+ try{if('mediaSession' in navigator&&navigator.mediaSession.setPositionState&&m.tot>0)navigator.mediaSession.setPositionState({duration:m.tot,position:Math.min(m.tot,Math.max(0,m.pos)),playbackRate:+S.rate||1})}catch(x){}
+}
+/* ---------- the chapter drawer: scrubber with a tick where each story starts, the queue, and playback speed ---------- */
+function tdr(){let d=$('#tdr');if(d)return d;
+ d=document.createElement('dialog');d.id='tdr';d.setAttribute('aria-labelledby','tdr-t');
+ d.innerHTML=`<div class="tdh"><h2 id="tdr-t">Now playing</h2><button type="button" class="ib" id="tdx" aria-label="Close player">${dkI('<path d="M6 6l12 12M18 6 6 18"/>',19)}</button></div><div class="tdn"><b class="tdt"></b><small class="tdp"></small></div><div id="tdsc" role="slider" tabindex="0" aria-label="Position in the Daily" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0"><div class="tdbar"><i class="tdf"></i></div><span class="tdks"></span></div><div class="tdtm"><span class="tdcur">0:00</span><span class="tdtot">0:00</span></div><div class="tdc"><button type="button" class="ib" data-d="rw" aria-label="Back 15 seconds">${dkI('<path d="M12 5a7 7 0 1 1-6.3 4"/><path d="M12 2 8.5 5 12 8"/>',22)}</button><button type="button" class="ib" data-d="pv" aria-label="Previous story">${dkI('<path d="M7 5v14"/><path d="M19 5.5v13L9 12z" fill="currentColor"/>')}</button><button type="button" class="tdpl" data-d="pl" aria-label="Pause"></button><button type="button" class="ib" data-d="nx" aria-label="Next story">${dkI('<path d="M17 5v14"/><path d="M5 5.5v13L15 12z" fill="currentColor"/>')}</button><button type="button" class="ib" data-d="fw" aria-label="Forward 15 seconds">${dkI('<path d="M12 5a7 7 0 1 0 6.3 4"/><path d="M12 2l3.5 3L12 8"/>',22)}</button></div><div class="tds" role="radiogroup" aria-label="Playback speed">${[1,1.25,1.5,2].map(v=>`<button type="button" role="radio" data-sp="${v}" aria-checked="false">${v}×</button>`).join('')}</div><ol class="tdq" aria-label="Stories in this listen"></ol><button type="button" class="tx2 tdo">Open this story</button>`;
+ document.body.append(d);
+ d.querySelector('#tdx').onclick=()=>d.close();
+ d.addEventListener('click',e=>{if(e.target===d)d.close()});
+ d.querySelector('.tdc').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;const k=b.dataset.d;if(k==='rw')digSeekBy(-15);else if(k==='fw')digSeekBy(15);else if(k==='pv')digPrev();else if(k==='nx')digNext();else if(k==='pl')tminiToggle();setTimeout(tminiSync,60)});
+ d.querySelector('.tds').addEventListener('click',e=>{const b=e.target.closest('[data-sp]');if(!b)return;S.rate=+b.dataset.sp;save();const r=$('#rate');if(r)r.value=S.rate;const rv=$('#ratev');if(rv)rv.value=S.rate.toFixed(1)+'×';if(TTS.on&&!TTS.paused)ttsFrom(ttsPos());tminiSync()});
+ d.querySelector('.tdq').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b)return;const k=+b.dataset.k;if(DIG.on)digGo(k,{});else tminiToggle();setTimeout(tminiSync,60)});
+ d.querySelector('.tdo').addEventListener('click',async()=>{d.close();const a=curA||TTS.art;if(!a)return;const wi=ttsPos(),n=TTS.words.length,rd=$('#rd');
+   if(rd.classList.contains('on')&&rd.classList.contains('ghost')&&curA===a){rd.classList.remove('ghost');pushLayer('reader');tminiSync();try{layout()}catch(x){}return}
+   R.digOpen=true;await openReader(a);R.digOpen=false;if(curA!==a)return;ttsCollect();if(TTS.words.length&&n&&Math.abs(TTS.words.length-n)<=Math.max(3,n*.02)){ttsFrom(wi);ttsMark(wi)}});
+ const sc=d.querySelector('#tdsc');let drag=null;
+ const at=ev=>{const r=sc.getBoundingClientRect();return Math.max(0,Math.min(1,(ev.clientX-r.left)/Math.max(1,r.width)))};
+ sc.addEventListener('pointerdown',ev=>{drag={f:at(ev)};try{sc.setPointerCapture(ev.pointerId)}catch(_){}tdrPreview(drag.f)});
+ sc.addEventListener('pointermove',ev=>{if(!drag)return;drag.f=at(ev);tdrPreview(drag.f)});
+ sc.addEventListener('pointerup',()=>{if(!drag)return;const f=drag.f;drag=null;const m=digModel();digSeekTo(f*m.tot);setTimeout(tminiSync,80)});
+ sc.addEventListener('pointercancel',()=>{drag=null});
+ sc.addEventListener('keydown',e=>{const m=digModel();let t=null;if(e.key==='ArrowRight'||e.key==='ArrowUp')t=m.pos+15;else if(e.key==='ArrowLeft'||e.key==='ArrowDown')t=m.pos-15;else if(e.key==='Home')t=0;else if(e.key==='End')t=m.tot-1;if(t==null)return;e.preventDefault();digSeekTo(t);setTimeout(tminiSync,80)});
+ tdr.drag=()=>!!drag;
+ return d;
+}
+function tdrOpen(){const d=tdr();tdr.sig='';if(!d.open)d.showModal();tdrUpdate(digModel())}
+function tdrPreview(f){const d=$('#tdr');if(!d)return;const m=digModel();d.querySelector('.tdf').style.transform='scaleX('+f.toFixed(4)+')';d.querySelector('.tdcur').textContent=digFmt(f*m.tot)}
+function tdrUpdate(m){
+ const d=$('#tdr');if(!d||!d.open)return;
+ const c=m.chap[m.i],run=TTS.on&&!TTS.paused;
+ d.querySelector('.tdt').textContent=c?c.a.title:'Getting your Daily ready…';
+ d.querySelector('.tdp').textContent=c?fof(c.a).title:'';
+ const pl=d.querySelector('.tdpl');pl.innerHTML=dkI(run?DK_PAUSE:DK_PLAY,28);pl.setAttribute('aria-label',run?'Pause':'Play');
+ const multi=m.chap.length>1;d.querySelector('[data-d=pv]').hidden=!multi;d.querySelector('[data-d=nx]').hidden=!multi;
+ const sig=m.chap.map(x=>x.l+x.dur).join('|')+'|'+m.i+'|'+(+S.rate||1)+'|'+run;
+ if(tdr.sig!==sig){tdr.sig=sig;
+  d.querySelector('.tdks').innerHTML=m.chap.slice(1).map(x=>`<i style="left:${(x.start/m.tot*100).toFixed(2)}%"></i>`).join('');
+  d.querySelector('.tdq').innerHTML=m.chap.map((x,k)=>`<li><button type="button" data-k="${k}"${k===m.i?' aria-current="true"':''} aria-label="${k===m.i?(run?'Playing: ':'Current: '):'Play '}${esc(x.a.title)}, ${digFmt(x.dur)}"><span class="tdg">${k===m.i&&run?dkI(DK_PAUSE,16):dkI(DK_PLAY,16)}</span><span class="tdit">${esc(x.a.title)}<small>${esc(fof(x.a).title)} · ${digFmt(x.dur)}</small></span></button></li>`).join('');
+  d.querySelectorAll('[data-sp]').forEach(b=>b.setAttribute('aria-checked',String(+b.dataset.sp===(+S.rate||1))));
+ }
+ if(!(tdr.drag&&tdr.drag())){d.querySelector('.tdf').style.transform='scaleX('+(m.tot?Math.min(1,m.pos/m.tot):0).toFixed(4)+')';d.querySelector('.tdcur').textContent=digFmt(m.pos)}
+ d.querySelector('.tdtot').textContent=digFmt(m.tot);
+ const sc=d.querySelector('#tdsc');sc.setAttribute('aria-valuemax',String(Math.round(m.tot)));sc.setAttribute('aria-valuenow',String(Math.round(m.pos)));sc.setAttribute('aria-valuetext',digFmt(m.pos)+' of '+digFmt(m.tot));
+ d.querySelector('.tdo').hidden=!(curA||TTS.art);
+}
+setInterval(()=>{if(TTS.on||DIG.on||($('#tmini')&&!$('#tmini').hidden))tminiSync()},1000);
+
 const BOILER=/^\W*(subscribe|sign up (for|to)|newsletter|all rights reserved|©|copyright|follow us|click here|advertisement|already a subscriber|log in|sign in|read more|this article (originally )?appeared|support (our|independent) journalism|share this|terms of (use|service)|privacy policy)|(all rights reserved|©\s*\d{4})/i;
 function ttsCollect(){
  const w=[],bp=new Map(),junk=b=>{if(b.classList&&b.classList.contains('tt'))return false;if(bp.has(b))return bp.get(b);const t=(b.textContent||'').trim(),r=t.length<160&&(BOILER.test(t)||PWRE.test(t))||t.length<40&&/^(advertisement|sponsored|ad|share|related|read more|more from|photo|image|credit|getty|source:)/i.test(t);bp.set(b,r);return r};
@@ -10666,8 +10849,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.15p';const APP_LABEL='1.106';
-const CHANGES=["Read aloud keeps playing when you go back to the feed. A small floating button lets you pause, resume (from the same spot) or stop it, and it no longer opens the story's picture.","Swipe a story right to mark it read or unread, left to save or unsave, with a small tick when you've pulled far enough. It works on text-only stories and column rows as well as picture cards.","New \"Focus reading\" switch (Settings → Reading): bolds the first letters of each word to help your eye skim along a line. Read aloud still says every word whole.","Notices now drop in from the top as a small floating pill, with a gentle tick when you save a story.","Pull-to-refresh gives a firmer tick when you've pulled far enough.","If you haven't opened a single story from a busy feed in 30 days, CyPress offers to pause it (once in a while, and you can say no).","When your phone comes back online, saved stories and read marks sync quietly.","The screen stays awake while you read a story, and a thin line at the top shows how far through a scrolling story you are."];
+const APP_VERSION='2026.10.15q';const APP_LABEL='1.106';
+const CHANGES=["The Daily now plays like a podcast: tap \"Play Daily\" on the cover's status strip and a player docks at the bottom while the stories are read one after another, with the next ones getting ready ahead of time. Tap the player for the story list, a scrubber with a tick where each story starts, and speeds from 1× to 2×. Lock-screen and Bluetooth buttons (play, pause, back, next, seek) work for the whole Daily.","The Daily's status strip shows \"6 stories left • ~18m\" with Play Daily always one tap away, and its text is readable on every cover.","Text on frosted panels over photos has a firmer backing, so it stays readable on any picture.","PDF and e-book exports: larger text, roomier lines and column gutters, a heavier pull quote, a drop cap in e-books, and page footers with the publication, page number and issue in solid black for e-ink screens.","Read aloud keeps playing when you go back to the feed. A small floating button lets you pause, resume (from the same spot) or stop it, and it no longer opens the story's picture.","Swipe a story right to mark it read or unread, left to save or unsave, with a small tick when you've pulled far enough. It works on text-only stories and column rows as well as picture cards.","New \"Focus reading\" switch (Settings → Reading): bolds the first letters of each word to help your eye skim along a line. Read aloud still says every word whole.","Notices now drop in from the top as a small floating pill, with a gentle tick when you save a story."];
 const DEF_ON=new Set(['cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -11392,9 +11575,9 @@ function exColophon(){
 }
 function pdfIssue(ed){
  /* ed.fs: body size in points (readable by default); ed.cols: 1 or 2 text columns; ed.solo: one story only, no cover, contents or back page */
- const COLS=ed.cols||2,FS=ed.fs||10.8,LEAD=Math.round(FS*1.4*10)/10;
- const PW=595.28,PH=841.89,M=48,SM=56,CG=22,MB=COLS===1?64:M,CW=(PW-2*MB-(COLS-1)*CG)/COLS,TOP=60,BOT=PH-62;
- const GREEN='#0b2119',DEEP='#06130e',MID='#1f6a48',BRASS='#a8842c',GOLD='#d1ad55',INK='#16181d',GREY='#6b7078';
+ const COLS=ed.cols||2,FS=ed.fs||11.6,LEAD=Math.round(FS*1.48*10)/10;
+ const PW=595.28,PH=841.89,M=48,SM=56,CG=34,MB=COLS===1?64:M,CW=(PW-2*MB-(COLS-1)*CG)/COLS,TOP=60,BOT=PH-62;
+ const GREEN='#0b2119',DEEP='#06130e',MID='#1f6a48',BRASS='#a8842c',GOLD='#d1ad55',INK='#16181d',GREY='#33373e';
  const pages=[];let P=null;const IMGS=[];
  const drawImg=(p,im,x,y,w,h)=>{let n=IMGS.indexOf(im)+1;if(!n){IMGS.push(im);n=IMGS.length}(p.imgs=p.imgs||new Set()).add(n);const sc=Math.max(w/im.w,h/im.h),dw=im.w*sc,dh=im.h*sc;p.ops.push(`q ${x.toFixed(2)} ${(PH-y-h).toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)} re W n ${dw.toFixed(2)} 0 0 ${dh.toFixed(2)} ${(x+(w-dw)/2).toFixed(2)} ${(PH-y-h+(h-dh)/2).toFixed(2)} cm /Im${n} Do Q`)};
  const mk=(foot)=>({ops:[],foot:foot||'',top:TOP,links:[]});
@@ -11468,7 +11651,7 @@ function pdfIssue(ed){
  let cx=0,cy=0,cc=0;
  const colX=k=>MB+k*(CW+CG);
  /* every continuation page carries a slim band of the story's own art under the running head, so no page is only text */
- const strip=(p,st)=>{const sd=hash((st.source||'')+st.title);art(p,M,50,PW-2*M,38,sd);S(p,M,50,PW-2*M,38,'#c9ccd1',.4);p.top=102};
+ const strip=(p,st)=>{const sd=hash((st.source||'')+st.title);art(p,M,50,PW-2*M,38,sd);S(p,M,50,PW-2*M,38,'#7d828a',.4);p.top=102};
  const advance=(foot)=>{if(cc<COLS-1){cc++;cy=P.top}else{newBody(P.foot,TOP);P.sec=curSec;if(curSt)strip(P,curSt);cc=0;cy=P.top}};
  const room=()=>BOT-cy;
  const placePara=(txt,f,sz,lead,opt)=>{
@@ -11505,11 +11688,12 @@ function pdfIssue(ed){
  };
  /* a pull quote: set large between rules, kept in one piece */
  const placePull=(txt)=>{
-  const lines=wrapS(txt,'i',13.6,()=>CW-10),need=lines.length*17+26;
+  /* a pull quote: large italic serif, indented, between a heavy rule above and a hairline below (solid black, so it holds on e-ink too) */
+  const sz=15.5,ld=20,lines=wrapS(txt,'i',sz,()=>CW-18),need=lines.length*ld+36;
   if(room()<need)advance();
-  cy+=8;L(P,colX(cc),cy,colX(cc)+34,cy,GOLD,1.6);cy+=4;
-  lines.forEach(l=>{cy+=17;T(P,colX(cc)+4,cy-4,l,'i',13.6,GREEN)});
-  cy+=9;L(P,colX(cc),cy,colX(cc)+34,cy,GOLD,1.6);cy+=10;
+  cy+=10;L(P,colX(cc),cy,colX(cc)+CW,cy,INK,2.4);cy+=4;
+  lines.forEach(l=>{cy+=ld;T(P,colX(cc)+14,cy-5,l,'i',sz,INK)});
+  cy+=9;L(P,colX(cc),cy,colX(cc)+CW,cy,INK,.5);cy+=12;
  };
  /* the pull quote is lifted out of the story, not copied: a quote block, or the quoted sentence of a later paragraph, leaves the body text and is set large instead, so it is never printed twice */
  const planPull=(bl)=>{
@@ -11526,7 +11710,7 @@ function pdfIssue(ed){
   const im=b.im;if(!im)return;
   let w=CW,h=Math.min(w*im.h/im.w,w*.8);const cl=b.cap?fitLines(pdfWa(b.cap),'i',8.6,CW,3):[],ex=cl.length*11+29;
   if(room()<h+ex){const av=room()-ex;if(av>=140){h=av;w=Math.min(CW,h*im.w/im.h)}else advance()}
-  cy+=4;const fx=colX(cc)+(CW-w)/2;drawImg(P,im,fx,cy,w,h);S(P,fx,cy,w,h,'#c9ccd1',.4);cy+=h+9;
+  cy+=4;const fx=colX(cc)+(CW-w)/2;drawImg(P,im,fx,cy,w,h);S(P,fx,cy,w,h,'#7d828a',.4);cy+=h+9;
   cl.forEach(l=>{T(P,colX(cc),cy+3,l,'i',8.6,GREY);cy+=11});cy+=8;
  };
  const placeBlocks=(bl,first,pull)=>{
@@ -11536,7 +11720,7 @@ function pdfIssue(ed){
    if(b.t==='img'){placeFigure(b);continue}
    const s=pdfWa(b.s);if(!s.trim())continue;
    if(b.t==='h')placeHead(s,'b',11,13.6,9,2*LEAD);
-   else if(b.t==='q'){cy+=2;placePara(s,'i',FS+.6,LEAD+.6,{ind:12,bar:1,color:'#333a44'});cy+=4}
+   else if(b.t==='q'){cy+=2;placePara(s,'i',FS+.6,LEAD+.6,{ind:12,bar:1,color:'#1b1e24'});cy+=4}
    else if(b.t==='li')placePara('\x95 '+s,'r',FS,LEAD,{ind:8});
    else{
     if(firstP&&s.length>=140&&/^[A-Za-z]/.test(s)){placePara(s.slice(1),'r',FS,LEAD,{dropLetter:s[0]});firstP=false}
@@ -11574,9 +11758,9 @@ function pdfIssue(ed){
    R(p,SM,yy-34,40,3,GOLD);T(p,SM,yy-14,clip(kk,'hb',7.5,PW-2*SM-1.3*kk.length),'hb',7.5,GOLD,{tc:1.3});
    hl.forEach(l=>{yy+=hs*1.1;T(p,SM,yy-hs*.14,l,'b',hs,'#ffffff')});
    y=H+22;
-   if(dk){fitLines(dk,'i',13,PW-2*SM,3).forEach(l=>{y+=16.5;T(p,SM,y,l,'i',13,'#3f4650')});y+=6}
+   if(dk){fitLines(dk,'i',13,PW-2*SM,3).forEach(l=>{y+=16.5;T(p,SM,y,l,'i',13,'#262a31')});y+=6}
    if(by){T(p,SM,y+10,clip(by,'i',10,PW-2*SM),'i',10,GREY);y+=18}
-   L(p,SM,y+4,PW-M,y+4,'#c9ccd1',.5);y+=16;
+   L(p,SM,y+4,PW-M,y+4,'#7d828a',.5);y+=16;
   }else{
    /* half-bleed: the art takes the left half of the page edge to edge, the headline sits beside it */
    const H=372,wL=Math.round(PW*.47),x0=wL+24,w0=PW-SM-x0;
@@ -11585,9 +11769,9 @@ function pdfIssue(ed){
    const hs=t.length>90?21:25,hl=fitLines(t,'b',hs,w0,6);let yy=88;
    hl.forEach(l=>{yy+=hs*1.12;T(p,x0,yy-hs*.14,l,'b',hs,INK)});yy+=8;
    const room2=Math.max(0,Math.floor((H-30-yy-20)/15));
-   if(dk&&room2>=2){fitLines(dk,'i',11.5,w0,Math.min(7,room2)).forEach(l=>{yy+=14.5;T(p,x0,yy,l,'i',11.5,'#4a505a')});yy+=6}
+   if(dk&&room2>=2){fitLines(dk,'i',11.5,w0,Math.min(7,room2)).forEach(l=>{yy+=14.5;T(p,x0,yy,l,'i',11.5,'#262a31')});yy+=6}
    if(by){T(p,x0,Math.min(yy+12,H-18),clip(by,'i',9.5,w0),'i',9.5,GREY);T(p,x0,Math.min(yy+25,H-6),pdfWa(st.min+' min read'),'h',7.6,MID)}
-   L(p,M,H+14,PW-M,H+14,'#c9ccd1',.5);y=H+30;
+   L(p,M,H+14,PW-M,H+14,'#7d828a',.5);y=H+30;
   }
   p.top=y;cy=y;cc=0;
   placeBlocks(st.blocks,true,true);
@@ -11597,7 +11781,7 @@ function pdfIssue(ed){
    if(nx&&COLS>1){const hl=fitLines(pdfWa(nx.title),'b',12,CW,3),h=14+78+8+hl.length*14.5+22;let x=null,y0=0;
     if(cc===0){x=colX(1);y0=P.top+6}else if(room()>=h+10){x=colX(cc);y0=cy+14}
     if(x!=null){const sd=hash((nx.source||'')+nx.title);T(P,x,y0+8,'UP NEXT','hb',7,MID,{tc:1.6});L(P,x,y0+12,x+CW,y0+12,GREEN,.9);
-     art(P,x,y0+18,CW,78,sd);S(P,x,y0+18,CW,78,'#c9ccd1',.4);
+     art(P,x,y0+18,CW,78,sd);S(P,x,y0+18,CW,78,'#7d828a',.4);
      let yy=y0+18+78+8;hl.forEach(l=>{yy+=14.5;T(P,x,yy-3,l,'b',12,INK)});
      nexts.push({p:P,x,y:y0,w:CW,h:h-6,nx,tx:x,ty:yy+14})}}}
   rule2();
@@ -11617,12 +11801,12 @@ function pdfIssue(ed){
    if(y+th>BOT){p=newBody('Stories',TOP);p.sec='Stories';p.noRule=1;strip(p,st);y=p.top+12;P=p}
    startIdx.set(st,body.indexOf(p));
    const sd=hash((st.source||'')+st.title);
-   {const pic=st.imgC||st.img;if(pic)drawImg(p,pic,xt,y,TWd,THd);else art(p,xt,y,TWd,THd,sd)}S(p,xt,y,TWd,THd,'#c9ccd1',.4);
+   {const pic=st.imgC||st.img;if(pic)drawImg(p,pic,xt,y,TWd,THd);else art(p,xt,y,TWd,THd,sd)}S(p,xt,y,TWd,THd,'#7d828a',.4);
    let yy=y+8;T(p,x0,yy,clip(pdfWa((st.source||'')+'  ·  '+st.min+' MIN READ').toUpperCase(),'hb',7,tw),'hb',7,MID,{tc:1.1});yy+=4;
    hl.forEach(l=>{yy+=16.5;T(p,x0,yy-3,l,'b',14.5,INK)});yy+=4;
-   dkL.forEach(l=>{yy+=12.8;T(p,x0,yy-2,l,'i',10,'#4a505a')});
+   dkL.forEach(l=>{yy+=12.8;T(p,x0,yy-2,l,'i',10,'#262a31')});
    linkBtn(p,x0,yy+9,st.l,8.4,tw)
-   y+=th;if(k<mids.length-1)L(p,M,y-8,PW-M,y-8,'#dfe1e5',.5);
+   y+=th;if(k<mids.length-1)L(p,M,y-8,PW-M,y-8,'#9a9ea5',.5);
   });
   storyP=p;storyEnd=y;
  }
@@ -11644,7 +11828,7 @@ function pdfIssue(ed){
    if(BOT-ys[c]<need){p=newBody('In brief',TOP);p.sec='In brief';strip(p,st);ys[0]=ys[1]=p.top+10;c=0;first=false}
    startIdx.set(st,body.indexOf(p));
    const x=colX(c);let yy=ys[c];
-   if(yy>p.top+14)L(p,x,yy-8,x+CW,yy-8,'#dfe1e5',.5);
+   if(yy>p.top+14)L(p,x,yy-8,x+CW,yy-8,'#9a9ea5',.5);
    T(p,x,yy+8,String(st.no).padStart(2,'0'),'b',10,GOLD);T(p,x+22,yy+7.5,clip(pdfWa((st.source||'').toUpperCase()+'  ·  '+st.min+' MIN'),'hb',6.6,CW-22),'hb',6.6,MID,{tc:.9});yy+=10;
    hl.forEach(l=>{yy+=13;T(p,x+22,yy-2,l,'b',11,INK)});yy+=3;
    sm.forEach(l=>{yy+=11.4;T(p,x,yy-1,l,'r',8.8,'#3a4048')});
@@ -11664,11 +11848,11 @@ function pdfIssue(ed){
   const sub=pdfWa(ed.stories.length+(ed.stories.length===1?' story':' stories')+(ed.totalMin?'  ·  about '+ed.totalMin+' of reading':''));T(cp,M,152,sub,'i',11.5,'#d8e8de');
   let y=198,pg=cp,num=0;
   const NW=30,TH=56,THW=80,TX=M+NW+THW+12,PGW=46,GAP=26,TW=PW-M-TX-PGW-GAP;
-  var contEntries=[];const cStrip=pg=>{const c0=ed.cover||{};art(pg,M,50,PW-2*M,38,hash(c0.source||'cypress'));S(pg,M,50,PW-2*M,38,'#c9ccd1',.4);T(pg,M,106,'IN THIS ISSUE, CONTINUED','hb',7,MID,{tc:1.4});return 128};
+  var contEntries=[];const cStrip=pg=>{const c0=ed.cover||{};art(pg,M,50,PW-2*M,38,hash(c0.source||'cypress'));S(pg,M,50,PW-2*M,38,'#7d828a',.4);T(pg,M,106,'IN THIS ISSUE, CONTINUED','hb',7,MID,{tc:1.4});return 128};
   const groups=[['Features',feats],['Stories',mids],['In Brief',brief]].filter(g=>g[1].length);
   groups.forEach(([gname,gl])=>{
    if(y+100>BOT){pg=mk('In this issue');contents.push(pg);y=cStrip(pg)}
-   T(pg,M,y+8,gname.toUpperCase(),'hb',8,MID,{tc:2.2});L(pg,M+pdfW(gname.toUpperCase(),'hb',8)+2.2*gname.length+14,y+5.5,PW-M,y+5.5,'#c9ccd1',.5);y+=24;
+   T(pg,M,y+8,gname.toUpperCase(),'hb',8,MID,{tc:2.2});L(pg,M+pdfW(gname.toUpperCase(),'hb',8)+2.2*gname.length+14,y+5.5,PW-M,y+5.5,'#7d828a',.5);y+=24;
    gl.forEach(st=>{
     num++;
     const lines=fitLines(pdfWa(st.title)||'Untitled','b',13,TW,3),dk=st.dek?clip(pdfWa(st.dek),'i',9.5,PW-M-TX-GAP):'';
@@ -11677,7 +11861,7 @@ function pdfIssue(ed){
     const e={st,pg,y,h,bi:startIdx.get(st),lines};contEntries.push(e);
     T(pg,M,y+17,String(num).padStart(2,'0'),'b',15,GOLD);
     const ix=M+NW;
-    {const pic=st.imgC||st.img,thh=45,ty=y+(TH-thh)/2;if(pic)drawImg(pg,pic,ix,ty,THW,thh);else art(pg,ix,ty,THW,thh,hash((st.source||'')+st.title));S(pg,ix,ty,THW,thh,'#c9ccd1',.4)}
+    {const pic=st.imgC||st.img,thh=45,ty=y+(TH-thh)/2;if(pic)drawImg(pg,pic,ix,ty,THW,thh);else art(pg,ix,ty,THW,thh,hash((st.source||'')+st.title));S(pg,ix,ty,THW,thh,'#7d828a',.4)}
     lines.forEach((l,k)=>T(pg,TX,y+11+k*15.5,l,'b',13,INK));
     let yy=y+11+lines.length*15.5-3;
     if(dk){T(pg,TX,yy+2,dk,'i',9.5,'#5a606a');yy+=13}
@@ -11718,11 +11902,14 @@ function pdfIssue(ed){
  /* running heads sit in the top margin and folios in the bottom margin, clear of the text block and of every picture */
  all.forEach((p,i)=>{
   if(i===0||p.back)return;
-  const n=String(i+1),w=pdfW(n,'r',9.5);
-  T(p,(PW-w)/2,PH-34,n,'r',9.5,INK);L(p,PW/2-26,PH-40,PW/2-w/2-6,PH-40,'#c9ccd1',.4);L(p,PW/2+w/2+6,PH-40,PW/2+26,PH-40,'#c9ccd1',.4);
+  /* foot: the publication, the page number in bold, the kind of issue, on a solid black rule (no pale greys: they vanish on e-ink) */
+  const n=String(i+1),w=pdfW(n,'hb',9.5),dt=clip(kind.toUpperCase(),'h',7,150),dw=pdfW(dt,'h',7);
+  L(p,M,PH-44,PW-M,PH-44,INK,.6);
+  T(p,M,PH-30,'CYPRESS','hb',7,INK,{tc:1.6});T(p,(PW-w)/2,PH-30,n,'hb',9.5,INK);T(p,PW-M-dw,PH-30,dt,'h',7,INK);
   if(p.band||p.open)return;
-  const rt=clip(pdfWa(p.foot||''),'h',6.8,PW-2*M-190),rw=pdfW(rt,'h',6.8);
-  T(p,M,32,'CYPRESS  ·  '+(p.sec?p.sec.toUpperCase():kind.replace(/^The /,'').toUpperCase()),'hb',6.5,MID,{tc:1.4});T(p,PW-M-rw,32,rt,'h',6.8,GREY);L(p,M,38,PW-M,38,'#c9ccd1',.4);
+  /* head: the publication and section on the left, the story's title on the right */
+  const rt=clip(pdfWa(p.foot||''),'h',7,PW-2*M-190),rw=pdfW(rt,'h',7);
+  T(p,M,32,'CYPRESS  ·  '+(p.sec?p.sec.toUpperCase():kind.replace(/^The /,'').toUpperCase()),'hb',6.8,INK,{tc:1.4});T(p,PW-M-rw,32,rt,'h',7,INK);L(p,M,38,PW-M,38,INK,.6);
  });
  /* ---------- file ---------- */
  const enc=s=>{const b=new Uint8Array(s.length);for(let i=0;i<s.length;i++)b[i]=s.charCodeAt(i)&255;return b};
@@ -12497,13 +12684,13 @@ function mediaOn(){
  try{if(!silentAu){silentAu=new Audio(silentUrl());silentAu.loop=true;silentAu.volume=.01}silentAu.play().catch(()=>{})}catch(e){}
  if(!('mediaSession' in navigator)||!curA)return;
  try{
-  const f=fof(curA);navigator.mediaSession.metadata=new MediaMetadata({title:curA.title,artist:f.title||'',album:'CyPress',artwork:curA.img?[{src:curA.img,sizes:'512x512'}]:[]});
+  const f=fof(curA);navigator.mediaSession.metadata=new MediaMetadata({title:curA.title,artist:f.title||'',album:DIG.on?'The Daily · '+(DIG.i+1)+' of '+DIG.links.length:'CyPress',artwork:curA.img?[{src:curA.img,sizes:'512x512'}]:[]});
   navigator.mediaSession.playbackState='playing';
   const h=(a,fn)=>{try{navigator.mediaSession.setActionHandler(a,fn)}catch(e){}};
   h('play',()=>{if(TTS.on&&TTS.paused)ttsFrom(ttsPos());else if(!TTS.on)ttsToggle()});
   h('pause',()=>ttsPause());h('stop',()=>ttsStop());
-  h('nexttrack',()=>{ttsEnd(true)});h('previoustrack',()=>ttsSkip(-1));
-  h('seekforward',()=>ttsSkip(1));h('seekbackward',()=>ttsSkip(-1));
+  h('nexttrack',()=>{ttsEnd(true)});h('previoustrack',()=>{if(DIG.on)digPrev();else ttsSkip(-1)});
+  h('seekforward',()=>digSeekBy(15));h('seekbackward',()=>digSeekBy(-15));h('seekto',d=>{if(d&&d.seekTime!=null)digSeekTo(d.seekTime)});
  }catch(e){}
 }
 /* the silent track is what keeps a browser tab's audio alive while the screen is off or the tab is hidden: if the page gets it paused while reading aloud, start it again when the page is back or hidden */
@@ -12547,9 +12734,11 @@ function briefAudioList(){
 function listenBrief(){
  if(!('speechSynthesis' in window)){toast('Reading aloud isn’t available on this device or browser.');return}
  const links=briefAudioList(),l=links.map(findStory).filter(Boolean);if(!l.length){toast('Nothing left to read aloud');return}
- S.lq=l.slice(1).map(a=>a.link);R.briefAudio=true;R.audioList=links;save();
- const mins=l.reduce((n,a)=>n+(readMin(a)||3),0);
- openReader(l[0]).then(()=>{if(!$('#rd').classList.contains('on'))return;const why=ttsClean();if(why){toast('Skipped “'+l[0].title.slice(0,40)+'”: '+why);S.lq=S.lq.filter(k=>k!==l[0].link);ttsEnd(true);return}mediaOn();mediaNative();speak(`Here’s your Daily. ${l.length} ${l.length===1?'story':'stories'}, about ${mins} minutes, read in full. First, from ${fof(l[0]).title}.`,()=>{if(curA===l[0]&&!TTS.on)ttsToggle()})});
+ S.lq=[];save();
+ const mins=Math.max(1,Math.round(l.reduce((n,a)=>n+(readMin(a)||3),0)));
+ /* the Daily plays from the feed: the player docks at the bottom and the stories are read in the background, one after another */
+ digInit(l.map(a=>a.link));
+ digGo(0,{intro:`Here’s your Daily. ${l.length} ${l.length===1?'story':'stories'}, about ${mins} minutes, read in full. First, from ${fof(l[0]).title}.`});
 }
 
 /* ---------- launch animation ---------- */
@@ -13651,14 +13840,16 @@ async function exCover(stories,label,gray){
  const bl=await new Promise(r=>c.toBlob(r,'image/jpeg',.88));return new Uint8Array(await bl.arrayBuffer());
 }
 const EX_CSS=bw=>`html,body{margin:0;padding:0}
-body{font-family:serif;font-size:1em;line-height:1.55;text-align:left;color:#000;orphans:2;widows:2}
+body{font-family:serif;font-size:1.06em;line-height:1.5;text-align:left;color:#000;orphans:2;widows:2}
 h1{font-size:1.7em;line-height:1.2;margin:0 0 .35em;page-break-after:avoid}
 h2,h3,h4{font-size:1.2em;line-height:1.3;margin:1.3em 0 .4em;page-break-after:avoid}
-p{margin:0 0 .85em;text-indent:0}
+p{margin:0 0 .9em;text-indent:0}
+p.first::first-letter{float:left;font-size:3.2em;line-height:.82;padding:.05em .09em 0 0;font-weight:bold}
 p.by{font-size:.9em;margin:0 0 1.1em${bw?'':';color:#4a5058'}}
 p.src{font-size:.8em;letter-spacing:.08em;text-transform:uppercase;margin:0 0 .5em${bw?'':';color:#1f6a48'}}
 p.dek{font-style:italic;font-size:1.08em;margin:0 0 1.1em}
-blockquote{margin:1em 0 1em 1em;padding:0 0 0 .9em;border-left:3px solid ${bw?'#000':'#1f6a48'};font-style:italic}
+blockquote{margin:1.5em 0 1.5em 1.1em;padding:.7em 0 .7em .1em;border-top:3px solid ${bw?'#000':'#1f6a48'};border-bottom:1px solid #000;font-style:italic;font-size:1.18em;line-height:1.4}
+blockquote p{margin:0}
 ul{margin:.4em 0 .9em 1.2em;padding:0}li{margin:0 0 .3em}
 figure{margin:1.1em 0;padding:0;text-align:center;page-break-inside:avoid}
 figure img{max-width:100%;height:auto}
@@ -13681,14 +13872,14 @@ async function epubMake(stories,mode,title){
   /* the lead picture first, unless the text already carries it */
   const hasLead=st.imgUrl&&bl.some(b=>b.t==='img'&&sameImg(b.u,st.imgUrl));
   if(st.imgUrl&&!hasLead){const h=await addImg(st.imgUrl);if(h)body+=`<figure><img src="${h}" alt=""/></figure>`}
-  let inList=false;
+  let inList=false,fp=true;
   for(const b of bl){
    if(b.t!=='li'&&inList){body+='</ul>';inList=false}
    if(b.t==='img'){const h=await addImg(b.u);if(h)body+=`<figure><img src="${h}" alt="${xe(b.alt)}"/>${b.cap?`<figcaption>${xe(b.cap)}</figcaption>`:''}</figure>`}
    else if(b.t==='h')body+=`<h2>${xe(b.s)}</h2>`;
    else if(b.t==='q')body+=`<blockquote><p>${xe(b.s)}</p></blockquote>`;
    else if(b.t==='li'){if(!inList){body+='<ul>';inList=true}body+=`<li>${xe(b.s)}</li>`}
-   else body+=`<p>${xe(b.s)}</p>`;
+   else{const fc=!fp&&0;if(fp&&b.s.length>=140&&/^[A-Za-z]/.test(b.s)){fp=false;body+=`<p class="first">${xe(b.s)}</p>`}else body+=`<p>${xe(b.s)}</p>`}
   }
   if(inList)body+='</ul>';
   if(st.note)body+=`<p class="dek">${xe(st.note)}</p>`;
@@ -13803,7 +13994,7 @@ try{const bd=$('#bid');if(bd)bd.value=String(biDays())}catch(e){}
  const rd=$('#rd');
  const h=document.createElement('button');h.id='sideh';h.type='button';h.setAttribute('aria-label','Show feeds');h.title='Show your feeds';h.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg><span aria-hidden="true">Feeds</span>';document.body.append(h);
  {const as=document.querySelector('aside');if(as&&!$('#sidehdr')){const d=document.createElement('div');d.id='sidehdr';d.innerHTML='<h2>Your feeds</h2><button type="button" class="ib" id="sidehx" aria-label="Close feeds">'+svg('<path d="M6 6l12 12M18 6 6 18"/>')+'</button>';as.prepend(d);d.querySelector('#sidehx').onclick=()=>document.body.classList.remove('sideshow')}}
- const set=on=>{document.body.classList.toggle('reading',on);if(!on)document.body.classList.remove('sideshow')};
+ const set=on=>{on=on&&!rd.classList.contains('ghost');document.body.classList.toggle('reading',on);if(!on)document.body.classList.remove('sideshow')};
  if(rd){new MutationObserver(()=>set(rd.classList.contains('on'))).observe(rd,{attributes:true,attributeFilter:['class']});set(rd.classList.contains('on'))}
  h.onclick=()=>document.body.classList.add('sideshow');
  document.addEventListener('click',e=>{if(document.body.classList.contains('sideshow')&&!e.target.closest('aside')&&!e.target.closest('#sideh')){document.body.classList.remove('sideshow')}else if(document.body.classList.contains('sideshow')&&e.target.closest('aside [data-sel],aside .fr,aside .nav')){setTimeout(()=>{document.body.classList.remove('sideshow');if(rd&&rd.classList.contains('on')&&typeof closeRd==='function')try{closeRd()}catch(er){}},50)}},true);

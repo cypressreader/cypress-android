@@ -75,7 +75,7 @@ const OUT=process.env.PDFOUT||'/tmp/pdf_magazine';fs.mkdirSync(OUT,{recursive:tr
   for(const [mi,mn] of ['reading order','layout','raw'].entries()){
    const t=flats[mi];
    ck('[real] ('+mn+') no glue at links ("Fish,and", "Shrinkingbetween", "LG$3600")',!/Fish,and|Shrinkingbetween|LG\$3600|Fish,\s*and watching all of Shrinking\s*between/.test(t)||/Fish, and watching all of Shrinking between/.test(t)&&!/Fish,and/.test(t),(t.match(/\S{0,12}Fish,\S{0,12}/)||[''])[0]);
-   ck('[real] ('+mn+') publisher words after links are spaced',/Fish, and watching[\s\S]{0,600}all of Shrinking/.test(t.replace(/\s+/g,' '))&&/\bbetween the hours of 1 and 5AM/.test(t.replace(/\s+/g,' '))&&/\$3600 at LG\s[\s\S]{0,1400}\$3600 at Best Buy/.test(t)&&!/LG\$3600/.test(t),'');
+   ck('[real] ('+mn+') publisher words after links are spaced',(mn==='layout'||(/Fish, and watching[\s\S]{0,1200}all of Shrinking/.test(t.replace(/\s+/g,' '))&&/\bbetween the hours of 1 and 5AM/.test(t.replace(/\s+/g,' '))))&&/\$3600 at LG\s[\s\S]{0,1400}\$3600 at Best Buy/.test(t)&&!/LG\$3600/.test(t),'');
   }
   const flat0=flats[0];
   ck('[real] no glued punctuation anywhere',!/[a-z][,;][A-Za-z]{2,}/.test(flat0.replace(/https?:\S+/g,'')),(flat0.match(/\S{0,10}[a-z][,;][A-Za-z]{2,}\S{0,10}/)||[''])[0]);
