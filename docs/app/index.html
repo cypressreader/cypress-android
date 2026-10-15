@@ -7892,7 +7892,7 @@ function tminiSync(){
  const run=!TTS.paused,b=e.querySelector('.tmb'),nm=TTS.art?TTS.art.title:'';
  b.innerHTML=svg(run?PAUSE:PLAY,!run);b.setAttribute('aria-label',run?'Pause story':'Resume story');e.title=(run?'Pause: ':'Resume: ')+nm}
 async function tminiTap(){
- if(!TTS.on)return;
+ if(!TTS.on||Date.now()-(tminiTap.t||0)<450)return;tminiTap.t=Date.now();
  if(!TTS.paused)return ttsPause();
  const a=TTS.art;if(!a)return ttsStop();
  await openReader(a);
@@ -7920,6 +7920,14 @@ function ttsCollect(){
    w[i+1].t=w[i].t+w[i+1].t;w[i+1].s=w[i].s;w.splice(i,1);
   }
  }
+ /* Focus reading splits a word into pieces (the bold start and the rest). Speech must get the whole word, or the voice spells the pieces out: join them back into one word */
+ for(let i=w.length-2;i>=0;i--){
+  const a=w[i],b=w[i+1];
+  if(a.n===b.n||a.b!==b.b||a.e!==a.n.data.length||b.s!==0)continue;
+  if(!((a.n.parentElement&&a.n.parentElement.closest('.fr-bold'))||(b.n.parentElement&&b.n.parentElement.closest('.fr-bold'))))continue;
+  try{const r=new Range();r.setStart(a.n,a.e);r.setEnd(b.n,0);if(r.toString()!=='')continue}catch(e){continue}
+  a.t+=b.t;a.n2=b.n2||b.n;a.e2=b.n2?b.e2:b.e;w.splice(i+1,1);
+ }
  TTS.words=w;TTS.sent=[];
  w.forEach((x,i)=>{if(i===0||x.b!==w[i-1].b||ENDS.test(w[i-1].t))TTS.sent.push(i)});
 }
@@ -7938,8 +7946,8 @@ function ttsChunk(a){
 function ttsMark(i){
  const w=TTS.words[i];if(!w)return;TTS.wi=i;
  try{
-  const r=new Range();r.setStart(w.n,w.s);r.setEnd(w.n,w.e);
-  if(window.CSS&&CSS.highlights&&window.Highlight){CSS.highlights.set('tts',new Highlight(r));try{const sn=TTS.sent;let lo=0,hi=sn.length-1;while(lo<hi){const m=(lo+hi+1)>>1;if(sn[m]<=i)lo=m;else hi=m-1}const s0=sn[lo],e0=(sn[lo+1]==null?TTS.words.length:sn[lo+1])-1,A0=TTS.words[s0],B0=TTS.words[e0];if(A0&&B0){const rs=new Range();rs.setStart(A0.n,A0.s);rs.setEnd(B0.n,B0.e);CSS.highlights.set('tts-s',new Highlight(rs))}}catch(_){}}
+  const r=new Range();r.setStart(w.n,w.s);r.setEnd(w.n2||w.n,w.n2?w.e2:w.e);
+  if(window.CSS&&CSS.highlights&&window.Highlight){CSS.highlights.set('tts',new Highlight(r));try{const sn=TTS.sent;let lo=0,hi=sn.length-1;while(lo<hi){const m=(lo+hi+1)>>1;if(sn[m]<=i)lo=m;else hi=m-1}const s0=sn[lo],e0=(sn[lo+1]==null?TTS.words.length:sn[lo+1])-1,A0=TTS.words[s0],B0=TTS.words[e0];if(A0&&B0){const rs=new Range();rs.setStart(A0.n,A0.s);rs.setEnd(B0.n2||B0.n,B0.n2?B0.e2:B0.e);CSS.highlights.set('tts-s',new Highlight(rs))}}catch(_){}}
   /* B24: following the word (scroll / page turn) reads layout, which is the slow part; do it at most ~7 times a second so reports never pile up behind it */
   const nowF=Date.now(),c=(nowF-(TTS.fl||0)>140)?($('.cols')):null;if(c)TTS.fl=nowF;
   if(c&&!R.web&&isVert()){const v=vView(),rr=r.getBoundingClientRect(),vr=v.getBoundingClientRect();if((rr.top<vr.top+30||rr.bottom>vr.bottom-60)&&Date.now()-(TTS.um||0)>8000)v.scrollTo({top:v.scrollTop+rr.top-vr.top-vr.height*.3,behavior:'smooth'})}
@@ -8000,9 +8008,9 @@ function ttsPause(){TTS.paused=true;TTS.id++;clearInterval(TTS.timer);try{speech
 function ttsStop(){R.queueRun=false;TTS.on=false;TTS.paused=false;TTS.id++;TTS.words=[];TTS.sent=[];clearInterval(TTS.timer);try{speechSynthesis.cancel()}catch(e){}try{CSS.highlights.delete('tts');CSS.highlights.delete('tts-s')}catch(e){}raBtn();mediaOff(true);fpSync()}
 function ttsStartWord(){
  const c=$('.cols'),w=TTS.words;if(!c||!w.length)return 0;
- if(isVert()){const v=vView();if(!v||v.scrollTop<20)return 0;const top=v.getBoundingClientRect().top;for(let i=0;i<w.length;i+=3){const r=new Range();r.setStart(w[i].n,w[i].s);r.setEnd(w[i].n,w[i].e);if(r.getBoundingClientRect().top>=top)return i}return 0}
+ if(isVert()){const v=vView();if(!v||v.scrollTop<20)return 0;const top=v.getBoundingClientRect().top;for(let i=0;i<w.length;i+=3){const r=new Range();r.setStart(w[i].n,w[i].s);r.setEnd(w[i].n2||w[i].n,w[i].n2?w[i].e2:w[i].e);if(r.getBoundingClientRect().top>=top)return i}return 0}
  if(R.pg===0)return 0;
- const c0=c.getBoundingClientRect().left,pg=i=>{const r=new Range();r.setStart(w[i].n,w[i].s);r.setEnd(w[i].n,w[i].e);return Math.floor((r.getBoundingClientRect().left-c0+2)/R.step)};
+ const c0=c.getBoundingClientRect().left,pg=i=>{const r=new Range();r.setStart(w[i].n,w[i].s);r.setEnd(w[i].n2||w[i].n,w[i].n2?w[i].e2:w[i].e);return Math.floor((r.getBoundingClientRect().left-c0+2)/R.step)};
  let lo=0,hi=w.length-1,ans=0;
  while(lo<=hi){const m=(lo+hi)>>1;if(pg(m)>=R.pg){ans=m;hi=m-1}else lo=m+1}
  return ans;
@@ -10619,7 +10627,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.10.15m';const APP_LABEL='1.106';
-const CHANGES=["Fixed: \"Focus reading\" no longer breaks the text into a staircase.","Read aloud keeps playing when you go back to the feed. A small floating button lets you pause, resume or stop it while you browse.","New \"Focus reading\" switch (Settings → Reading): bolds the first letters of each word to help your eye skim along a line.","The phone's status bar now matches your theme the moment you switch it, instead of lagging a step behind.","Fixed: switching a story from Pages back to Scroll no longer squashes the picture or hides the text.","Fixed: on a fully open Fold, stories in Scroll mode could squash the picture and hide the text. The half-folded layout now only applies when the phone is actually half-folded.","Swipe a card right to mark it read or unread, left to save or unsave, with a small tick when you've pulled far enough.","With a mouse or pen, you can drag a story card into another app beside it to share its title and link."];
+const CHANGES=["Fixed: with Focus reading on, read aloud no longer spells words out letter by letter.","Fixed: \"Focus reading\" no longer breaks the text into a staircase.","Read aloud keeps playing when you go back to the feed. A small floating button lets you pause, resume or stop it while you browse.","New \"Focus reading\" switch (Settings → Reading): bolds the first letters of each word to help your eye skim along a line.","The phone's status bar now matches your theme the moment you switch it, instead of lagging a step behind.","Fixed: switching a story from Pages back to Scroll no longer squashes the picture or hides the text.","Fixed: on a fully open Fold, stories in Scroll mode could squash the picture and hide the text. The half-folded layout now only applies when the phone is actually half-folded.","Swipe a card right to mark it read or unread, left to save or unsave, with a small tick when you've pulled far enough."];
 const DEF_ON=new Set(['cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;

@@ -346,3 +346,6 @@ Must verify on the Fold/phone: switch Paper > Obsidian > Midnight: the status ba
 
 ## Focus reading fix + read-aloud after leaving a story (preview/polish-106)
 Must verify on a phone (web app and APK): Focus reading on: text flows in normal lines, in Scroll and Pages. Start Read aloud, press Back to the feed: audio carries on and the floating pill shows; pause/resume/stop from the pill; browse and open another story (the old audio stops). Web app only: audio may still stop when the browser hides the page or the screen locks; that is the browser, the APK is the reliable case.
+
+## Read aloud with Focus reading; back while listening (preview/polish-106)
+Must verify on a phone: Focus reading on + Read aloud: words are spoken whole and the highlight follows them. Start Read aloud, then Back / edge-swipe: the story closes straight to the feed, audio carries on, the pill shows, and no prompt or picture view appears. If a prompt still shows, note its exact wording and which app draws it (it is not from CyPress).
