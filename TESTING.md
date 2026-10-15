@@ -331,3 +331,6 @@ Must verify on a real phone / the Fold:
 
 ## Batch 2 (preview/polish-106): half-folded foldable
 Must verify on the Fold: open a story and half-fold the phone like a laptop (tabletop). The story text should sit on the top half and the page controls on the bottom half, and it should follow when you fold or unfold. (Tested here only with a simulated two-segment screen.)
+
+## Batch 3 (preview/polish-106): reading experience
+Must verify on a real phone: open a story and leave the phone idle past the screen timeout (screen should stay on; lock/unlock and switch apps, it should release and re-acquire). Scroll a long story in Scroll mode: thin line at the top fills left to right; no line in paged (Folio) mode. Android 13+: with themed icons on, the app icon is tinted (new monochrome icon); long-press the icon and see The Daily shortcut (may need reinstall of the web app / APK).
