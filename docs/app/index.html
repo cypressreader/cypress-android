@@ -10892,7 +10892,7 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.15u';const APP_LABEL='1.106';
+const APP_VERSION='2026.10.15v';const APP_LABEL='1.106';
 const CHANGES=["Shared links are now short. A new switch, \"Shorten shared links\" (Settings, Sync and Backup, on by default), makes the link short through CyPress's own link service when you tap Share. If it is off, or is.gd does not answer, the story's own web address is shared instead. The Share button shows a small spinner while it works.","Fixed: the Daily player no longer covers the Settings button in the side list on tablets, and the slide-out menu on phones now sits above the player.","One Share button: it sends the story as a magazine-style picture card with the link written in the message, so chat apps show the card instead of a second, plain link preview. The separate \"Gift this story\" button is gone.","The Daily player has a new look: a small picture of the story beside the headline, a thin progress line along the top, and a Now Playing sheet with a blurred cover backdrop, a sharp cover, a moving playing mark on the current story and times in a tidy column. On a wide screen the sheet splits in two. Stories without a picture show the CyPress tree.","For store policy, CyPress now respects paywalls: a story behind a paywall shows its free preview and a link to the original, instead of trying to uncover hidden text.","The Daily now plays like a podcast: tap \"Play Daily\" on the cover's status strip and a player docks at the bottom while the stories are read one after another, with the next ones getting ready ahead of time. Tap the player for the story list, a scrubber with a tick where each story starts, and speeds from 1× to 2×. Lock-screen and Bluetooth buttons (play, pause, back, next, seek) work for the whole Daily.","The Daily's status strip shows \"6 stories left • ~18m\" with Play Daily always one tap away, and its text is readable on every cover.","Text on frosted panels over photos has a firmer backing, so it stays readable on any picture."];
 const DEF_ON=new Set(['shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
@@ -12408,18 +12408,18 @@ async function sharePayload(a){
  return pl;
 }
 /* The link that goes in a shared message. With "Shorten shared links" on, the CyPress link is turned into a short cypressreader.com/s/xxxxxx one by CyPress's own short-link service (only when you share; nothing is sent before). If that fails or is slow, or the switch is off, the story's own web address is shared instead: never the long packed link. */
-const SHORT_API='https://cypressreader.com/api/shorten';
+const SHORT_API='https://cypressreader.com/api/short';
 async function shareLink(a){
  if(!isOn('shortlinks')||!a||!a.link)return a&&a.link||'';
- const OK=/^https:\/\/cypressreader\.com\/s\/[A-Za-z0-9]{6}$/;
+ const OK=/^https:\/\/cypressreader\.com\/s\/[A-Za-z0-9]{6,12}$/;
  const mem=()=>{try{return JSON.parse(localStorage.getItem('cy_short3')||'{}')}catch(e){return{}}};
  const hit=mem()[a.link];if(hit&&OK.test(hit))return hit;
  if(navigator.onLine===false)return a.link;
  let sh='';
  try{
-  const long=SHARE_BASE+'#'+await sharePayload(a),ac=new AbortController(),t=setTimeout(()=>ac.abort(),6000);
-  try{const r=await fetch(SHORT_API,{method:'POST',body:long,headers:{'content-type':'text/plain'},signal:ac.signal,referrerPolicy:'no-referrer'});
-   if(r.ok){const j=await r.json();if(j&&OK.test(j.url||''))sh=j.url}}
+  const pl=await sharePayload(a),ac=new AbortController(),t=setTimeout(()=>ac.abort(),6000);
+  try{const r=await fetch(SHORT_API,{method:'POST',body:pl,headers:{'content-type':'text/plain'},signal:ac.signal,referrerPolicy:'no-referrer'});
+   if(r.ok){const j=await r.json(),u='https://cypressreader.com/s/'+(j&&j.code||'');if(OK.test(u))sh=u}}
   finally{clearTimeout(t)}
  }catch(e){elog('short link',e)}
  if(sh){try{const m=mem(),ks=Object.keys(m);if(ks.length>300)delete m[ks[0]];m[a.link]=sh;localStorage.setItem('cy_short3',JSON.stringify(m))}catch(e){}return sh}
