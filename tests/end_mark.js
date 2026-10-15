@@ -20,9 +20,9 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   const t='['+W+'] ';
   ck(t+'the story ends with an end mark',r.hasMark,'');
   const noSym=r.themes.filter(x=>!x.sym&&!x.none),sym=r.themes.filter(x=>x.sym);
-  ck(t+'themes without their own symbol ('+noSym.length+') show the app logo (a '+'logo mask, sized, not text)',noSym.length>=2&&noSym.every(x=>/data:image\/png/.test(x.mask)&&x.w>=28&&x.h>=28&&x.fs==='0px'),JSON.stringify(noSym.filter(x=>!(/data:image\/png/.test(x.mask)&&x.w>=28)).slice(0,3)));
+  ck(t+'themes without their own symbol ('+noSym.length+') show the app logo (a '+'logo mask, sized, not text)',noSym.length>=2&&noSym.every(x=>/data:image\/(png|svg)/.test(x.mask)&&x.w>=28&&x.h>=28&&x.fs==='0px'),JSON.stringify(noSym.filter(x=>!(/data:image\/(png|svg)/.test(x.mask)&&x.w>=28)).slice(0,3)));
   ck(t+'themes with their own icon variant ('+sym.length+') keep it, sized',sym.length>=5&&sym.every(x=>x.w>=28&&x.h>=28),JSON.stringify(sym.filter(x=>x.w<28)));
-  ck(t+'the end-of-story colophon is the CyPress logo in every theme (no text flourish)',r.foot&&r.themes.every(x=>x.ff&&x.ff.fs==='0px'&&x.ff.w>=28&&/data:image\/png/.test(x.ff.m)),JSON.stringify(r.themes.filter(x=>!(x.ff&&x.ff.fs==='0px'&&x.ff.w>=28&&/data:image\/png/.test(x.ff.m))).slice(0,3)));
+  /* (1.106 removed the separate end-of-story colophon block; the end mark itself is checked above) */
   ck(t+'every theme was checked and has a mark',r.themes.every(x=>!x.none),JSON.stringify(r.themes.filter(x=>x.none)));
   await p.evaluate(()=>{S.theme='light';applyTheme()});await p.waitForTimeout(200);
   await p.evaluate(()=>{const v=document.querySelector('.cols .body .endmark');v&&v.scrollIntoView({block:'center'})});await p.waitForTimeout(250);await p.screenshot({path:OUT+'/endmark-light-'+W+'.png'});

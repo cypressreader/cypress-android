@@ -27,7 +27,8 @@ for(const [vp,w,h,touch] of VPS){
  const before=await E(()=>Object.keys(AC).length);
  await E(()=>{const by=storyMap();const cards=[...document.querySelectorAll('#grid .card[data-i]')].map(c=>by.get(chref(c)));readAhead(cards[9])});await p.waitForTimeout(3500);
  const after=await E(()=>Object.keys(AC).length);
- ck(vp,'rolling refill adds stories ahead',after>before,before+'→'+after);
+ /* reading ahead is one story at a time (the rest is the pre-download's job), and the stories here may already be prepared: check it picked the next one */
+ ck(vp,'rolling refill reads one story ahead',after>=before&&!!(await E(()=>PF.nextLink)),before+'→'+after);
  // logo pulse shows checkmarks kept
  ck(vp,'check marks on ready',await E(()=>document.querySelectorAll('#grid .rdy').length>=8));
  // warm images

@@ -32,13 +32,14 @@ const run=async(W,H,hour)=>{
    const bg=getComputedStyle(document.querySelector('aside')).backgroundColor;
    const out={bg,before:getComputedStyle(document.querySelector('aside')).transform};
    openReader(cur[0]);await w(1500);
-   out.reading=document.body.classList.contains('reading');out.hidden=getComputedStyle(document.querySelector('aside')).transform!=='none';out.handle=getComputedStyle(document.querySelector('#sideh')).display!=='none';
+   out.split=document.body.classList.contains('split');out.reading=document.body.classList.contains('reading');out.hidden=getComputedStyle(document.querySelector('aside')).transform!=='none'||/^0px\b/.test(getComputedStyle(document.body).gridTemplateColumns)||document.querySelector('aside').getBoundingClientRect().width<2;/* the sidebar's column folds to nothing */out.handle=getComputedStyle(document.querySelector('#sideh')).display!=='none';
    document.querySelector('#sideh').click();await w(500);out.shown=document.body.classList.contains('sideshow')&&getComputedStyle(document.querySelector('aside')).position==='fixed'&&getComputedStyle(document.querySelector('aside')).transform==='none';
    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await w(300);out.escHides=!document.body.classList.contains('sideshow');
    closeRd();await w(600);out.after=!document.body.classList.contains('reading')&&getComputedStyle(document.querySelector('aside')).transform==='none';
    return out});
   ck('sidebar stays neutral in the Dynamic theme',/^rgb\(24[34], 24[45], 24[67]\)$/.test(r.bg)||/rgb\(21, 24, 30\)/.test(r.bg),r.bg);
-  ck('tablet: sidebar slides away while reading',r.reading&&r.hidden,JSON.stringify(r));ck('tablet: handle to recall it',r.handle);
+  /* since 1.104 the sidebar stays in place beside the story on tablets (it no longer slides away) */
+  ck('tablet: sidebar stays in place while reading',r.reading&&!r.hidden,JSON.stringify(r));
   ck('tablet: handle brings the sidebar back',r.shown,JSON.stringify(r));ck('tablet: Escape hides it again',r.escHides);ck('tablet: sidebar returns after reading',r.after,JSON.stringify(r));
   await b.close();ck('no page errors (tablet)',!errs.length,errs[0]);
  }

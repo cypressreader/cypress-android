@@ -3657,7 +3657,7 @@ body.exbusy [data-exact]{cursor:progress}
 #grid .card.list-row .tx{grid-template-columns:1fr}#grid .card.list-row time{grid-column:1/-1}
 #grid .card.list-row .star{position:static;flex:none;opacity:1}
 @media(min-width:500px){@container feed (min-width:300px){
-#grid[data-w="mag"] :is(.nr-rv,.nr-sm,.nr-mid,.nr-trl,.nr-ph-rows){display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,155px),1fr));gap:12px}
+#grid[data-w="mag"] :is(.nr-rv,.nr-sm,.nr-mid,.nr-trl,.nr-ph-rows){display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,155px),1fr));gap:12px;align-items:start}
 #grid[data-w="mag"] .card:is(.nr-row,.nr-late){display:flex!important;flex-direction:column;padding:0!important;border-top:0!important}
 #grid[data-w="mag"] .card:is(.nr-row,.nr-late)>img{order:-1;float:none!important;position:static!important;width:100%!important;height:auto!important;aspect-ratio:16/9;margin:0 0 10px!important;border-radius:12px;grid-column:auto!important}
 #grid[data-w="mag"] .card:is(.nr-row,.nr-late)>.tx{display:block!important}
@@ -3726,7 +3726,7 @@ body:not(.narrow):not(.split).reading:not(.sideshow)>aside{transform:none;transi
 }}
 .apseg{padding:4px 0 8px}.apseg .segs{display:flex;width:100%;margin:6px 0 10px}.apseg .segs button{flex:1}
 /* 16. Headline legibility: every photo card gets a dark scrim from the bottom, so the white headline reads on any picture */
-#grid .card:not(.noimg):not(.list-row):not(.nr-row):not(.nr-late):not(.nr-tri)>.ov{background:linear-gradient(to top,rgba(15,15,15,.92) 0%,transparent 100%)!important}
+#grid .card:not(.noimg):not(.list-row):not(.nr-row):not(.nr-late):not(.nr-tri)>.ov{background:linear-gradient(to top,rgba(15,15,15,.93) 0%,rgba(15,15,15,.9) 46%,transparent 100%)!important}
 /* 17. Pull quotes: an editorial inset, set in italic serif between two short rules, no box and no side bar */
 .pullq,.cine .body .pullq,.cine-t .body .pullq,html.rdx .pullq,#rd .cols .pullq,html.dkart .pullq{border:0!important;border-left:0!important;padding:1.1em .6em;margin:1.4em auto;text-align:center;position:relative;max-width:34em}
 .pullq::before,.pullq::after{content:"";display:block;width:36px;height:2px;margin:0 auto;background:var(--ra,var(--b,var(--ink)));opacity:.7}
@@ -3738,7 +3738,7 @@ body:not(.narrow):not(.split).reading:not(.sideshow)>aside{transform:none;transi
 /* 19. Hero and feature cards: the headline is capped so it can never outgrow the card, with the text box clipped and a dark scrim under it */
 #grid .card:is(.spread,.nr-hero,.nr-lead,.lead){overflow:hidden}
 #grid .card:is(.spread,.nr-hero,.nr-lead,.lead):not(.noimg)>.tx{overflow:hidden;max-height:100%;box-sizing:border-box}
-#grid .card.spread:not(.noimg)>.ov,#grid .card:is(.nr-hero,.nr-lead,.lead):not(.noimg)>.ov{background:linear-gradient(to top,rgba(15,15,15,.92) 0%,rgba(15,15,15,.55) 55%,transparent 100%)!important}
+#grid .card.spread:not(.noimg)>.ov,#grid .card:is(.nr-hero,.nr-lead,.lead):not(.noimg)>.ov{background:linear-gradient(to top,rgba(15,15,15,.93) 0%,rgba(15,15,15,.9) 50%,rgba(15,15,15,.5) 76%,transparent 100%)!important}
 /* 20. No card headline can outgrow its card, whatever the card style; the pinned section bar is solid so nothing shows through it */
 .card h3,#grid .card h3,#grid .card:is(.spread,.nr-hero,.nr-lead,.lead,.nr-sp,.nr-tall,.nr-wide,.nr-sm2,.nr-hs,.nr-colr,.pf0,.pf1,.pf2) h3,#grid.wire:not(:has(.wcols)) .card h3,.card.spread h3{font-size:clamp(1.15rem,2.5vw,1.6rem)!important;line-height:1.15!important;overflow-wrap:anywhere;hyphens:auto}
 #grid .card.nr-pq p,#grid .card.nr-pq0 p,#grid .card.nr-pq1 p,#grid .card.nr-pq2 p,#grid .card .nr-pqa{font-size:clamp(1.05rem,2.3vw,1.45rem)!important;line-height:1.25!important}
@@ -3827,6 +3827,10 @@ body.hasdock main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 #tdr .tdg{flex:none;width:30px;height:30px;border-radius:50%;border:1px solid var(--ln);display:grid;place-items:center}#tdr .tdq [aria-current] .tdg{background:var(--logo);color:#fff;border-color:var(--logo)}
 #tdr .tdit{flex:1;min-width:0;font:600 14px/1.25 var(--sans);display:flex;flex-direction:column;gap:2px}#tdr .tdit small{font:500 12px var(--sans);color:var(--mut)}
 #tdr .tdo{width:100%}
+/* on a picture card the offline-ready badge sits under the star, not over the reading time in the bottom corner */
+#grid .card:not(.list-row):not(.nr-row)>img~.rdy{top:54px;bottom:auto;right:12px}
+/* a very long unbroken word in a pull quote's source line wraps instead of running off the card */
+#grid .nr-pqa,#grid .nr-pqa em{overflow-wrap:anywhere;min-width:0;max-width:100%}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -7988,7 +7992,7 @@ async function digGo(i,o){
  if(i>=DIG.links.length)return digEnd(true);
  if(i<0)i=0;
  const a=findStory(DIG.links[i]);if(!a){DIG.links.splice(i,1);return digGo(i,o)}
- const my=++DIG.tok;DIG.i=i;
+ const my=++DIG.tok;DIG.i=i;S.lq=DIG.links.slice(i+1);
  ttsStop();tminiSync();
  const vis=$('#rd').classList.contains('on')&&!$('#rd').classList.contains('ghost');
  R.ghostNext=!vis;R.digOpen=true;
@@ -8037,7 +8041,7 @@ function digNext(){if(DIG.on)digGo(DIG.i+1,{})}
   if(!manual&&a){S.read[a.link]=1;(a.more||[]).forEach(m=>{S.read[m.l]=1});save();try{dgProgUpdate()}catch(e){}}
   if(SLEEP.eos&&!manual){SLEEP.eos=false;syncUpNext();toast('Sleep timer: stopped');digEnd(false);return}
   const nx=findStory(DIG.links[DIG.i+1]);
-  return digGo(DIG.i+1,{intro:(!manual&&nx)?('Next. From '+fof(nx).title+'.'):''});
+  return digGo(DIG.i+1,{intro:(!manual&&nx)?('Story '+(DIG.i+2)+' of '+DIG.links.length+'. From '+fof(nx).title+'.'):''});
  }}
 /* ---------- the docked player ---------- */
 const DK_PLAY='<path d="M8 5.5v13l11-6.5z" fill="currentColor" stroke="none"/>',DK_PAUSE='<path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor" stroke="none"/>';
@@ -10276,7 +10280,7 @@ try{root.classList.toggle('pdark',/dark/.test(getComputedStyle(root).colorScheme
  themeFonts(th);applyFx();try{const bb=($('#rd').style.getPropertyValue('--b')||'').trim();if(bb)rdTone(bb)}catch(e){}if((S.font||'theme')==='theme'&&$('#rd').classList.contains('on'))refreshReader();
  try{barSync()}catch(e){}
 }
-/* the colour of the phone's status bar: the page colour the theme is settling on (read from a probe that never fades), not whatever shade the page is part-way through fading to */
+/* the color of the phone's status bar: the page color the theme is settling on (read from a probe that never fades), not whatever shade the page is part-way through fading to */
 function barRGB(){
  let pr=document.getElementById('bgprobe');if(!pr){pr=document.createElement('i');pr.id='bgprobe';pr.setAttribute('aria-hidden','true');pr.style.cssText='position:fixed;left:-9px;top:0;width:1px;height:1px;pointer-events:none;transition:none!important;background:var(--bg)';document.body.append(pr)}
  const m=(getComputedStyle(pr).backgroundColor||'').match(/[\d.]+/g);if(!m||m.length<3||(m.length>3&&+m[3]<.5))return null;return m.slice(0,3).map(Number);
@@ -12734,7 +12738,7 @@ function briefAudioList(){
 function listenBrief(){
  if(!('speechSynthesis' in window)){toast('Reading aloud isn’t available on this device or browser.');return}
  const links=briefAudioList(),l=links.map(findStory).filter(Boolean);if(!l.length){toast('Nothing left to read aloud');return}
- S.lq=[];save();
+ S.lq=l.slice(1).map(a=>a.link);save();/* Up Next shows the rest of the Daily */
  const mins=Math.max(1,Math.round(l.reduce((n,a)=>n+(readMin(a)||3),0)));
  /* the Daily plays from the feed: the player docks at the bottom and the stories are read in the background, one after another */
  digInit(l.map(a=>a.link));
@@ -13840,7 +13844,7 @@ async function exCover(stories,label,gray){
  const bl=await new Promise(r=>c.toBlob(r,'image/jpeg',.88));return new Uint8Array(await bl.arrayBuffer());
 }
 const EX_CSS=bw=>`html,body{margin:0;padding:0}
-body{font-family:serif;font-size:1.06em;line-height:1.5;text-align:left;color:#000;orphans:2;widows:2}
+body{font-family:serif;font-size:1em;line-height:1.5;text-align:left;color:#000;orphans:2;widows:2}
 h1{font-size:1.7em;line-height:1.2;margin:0 0 .35em;page-break-after:avoid}
 h2,h3,h4{font-size:1.2em;line-height:1.3;margin:1.3em 0 .4em;page-break-after:avoid}
 p{margin:0 0 .9em;text-indent:0}

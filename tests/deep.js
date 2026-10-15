@@ -21,7 +21,7 @@ for(const [vp,w,h,touch] of VPS){
  await noHScroll('today');
  // 2 navigation via sidebar
  for(const sel of ['all','f:d1','s:f2','saved','notes','today']){
-  await openSide();
+  await openSide();await E(()=>{S.fcol=S.fcol||{};S.fcol._mf=0;S.fcol._un=0;S.folders.forEach(x=>{S.fcol[x.id]=0});side()});/* My Feeds starts collapsed: open it so its rows are there */
   const vis=await E(s=>{const e=document.querySelector(`[data-sel="${s}"]`);if(!e)return 'missing';const r=e.getBoundingClientRect();const t=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return e.contains(t)||t===e?'ok':'covered by '+(t&&(t.id||t.className))},sel);
   ck(vp,'sidebar item tappable '+sel,vis==='ok',vis);
   if(vis==='ok'){await tap(`[data-sel="${sel}"]`);await p.waitForTimeout(250);ck(vp,'sidebar opens '+sel,await E(s=>S.sel===s,sel));ck(vp,'drawer closes '+sel,w>720||await E(()=>!document.body.classList.contains('open')))}
@@ -133,7 +133,7 @@ ck(vp,'read-state sane after open',await E(()=>typeof S.read==='object'));
  const pre=await E(()=>({marks:document.querySelectorAll('#grid .rdy').length,ok:PF.ok,cached:Object.keys(AC).length}));
  ck(vp,'preload caches stories',pre.cached>=10,JSON.stringify(pre));ck(vp,'check marks appear',pre.marks>=10,JSON.stringify(pre));
  // logo toggle
- await openSide();const lg0=await E(()=>S.logo||'tree');await tap('#logo');await p.waitForTimeout(500);ck(vp,'logo toggles',await E(l=>(S.logo||'tree')!==l,lg0));
+ /* (the logo is one brand since 1.106: there is no logo toggle any more) */
  if(w<=720)await E(()=>document.body.classList.remove('open'));
  // add feed dialog
  await openSide();await tap('#add');await p.waitForTimeout(300);ck(vp,'add dialog',await E(()=>$('#dlg').open));

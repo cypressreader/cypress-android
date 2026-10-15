@@ -122,7 +122,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  ck(vp,'why popover on screen',await E(()=>{const r=$('#whyp').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight}));
  // card sizes
  for(const c of ['large','compact','medium']){await E(c=>{S.cards=c;S.sel='all';render()},c);await W(150);
-  const r=await E(()=>{const cs=[...document.querySelectorAll('#grid .card')];const a=cs[0].getBoundingClientRect();return{w:a.width,h:a.height,cols:new Set(cs.slice(0,6).map(x=>Math.round(x.getBoundingClientRect().left))).size,hs:document.documentElement.scrollWidth<=innerWidth+1}});
+  const r=await E(()=>{const cs=[...document.querySelectorAll('#grid .card')];/* the feed now opens with a mix of card shapes: judge the tallest of the first six */const a=cs.slice(0,6).map(x=>x.getBoundingClientRect()).sort((p,q)=>q.height-p.height)[0];return{w:a.width,h:a.height,cols:new Set(cs.slice(0,6).map(x=>Math.round(x.getBoundingClientRect().left))).size,hs:document.documentElement.scrollWidth<=innerWidth+1}});
   if(c==='large')ck(vp,'large cards bigger',r.h>=260&&(w<500?r.cols===1:r.cols<=2),JSON.stringify(r));
   if(c==='compact')ck(vp,'compact cards short',r.h<140,JSON.stringify(r));
   ck(vp,c+' no h-scroll',r.hs);

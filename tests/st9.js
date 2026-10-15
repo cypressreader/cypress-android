@@ -8,9 +8,10 @@ for(const [n,w,h] of [['fold',884,1000],['phone',380,820]]){
  const E=(f,a)=>p.evaluate(f,a);
  // sidebar
  ck(n+' sidebar order',await E(()=>{const t=[...document.querySelectorAll('#side-list .nav')].map(x=>x.textContent.replace(/\d+$/,'').trim());return t.indexOf('All stories')<t.indexOf('Saved')&&t.slice(-4).join()==='Saved,Highlights,History,Stats'}));
- await E(()=>{document.querySelector('#side-list [data-tgl]:not([data-tgl=daily])').click()});
- ck(n+' folder collapses',await E(()=>!!S.fcol&&Object.keys(S.fcol).length===1&&document.querySelectorAll('#side-list .fold')[0].querySelectorAll('.fr').length===0));
- await E(()=>{document.querySelector('#side-list [data-tgl]:not([data-tgl=daily])').click()});
+ await E(()=>{S.fcol={_mf:0};S.folders.forEach(x=>{S.fcol[x.id]=0});side();/* My Feeds and its folders start collapsed: open them, then collapse one folder */document.querySelector('#side-list [data-tgl]:not([data-tgl=daily]):not([data-tgl^=_])').click()});
+ await p.waitForTimeout(400);
+ ck(n+' folder collapses',await E(()=>!!S.fcol&&Object.entries(S.fcol).filter(([k,v])=>k[0]!=='_'&&v===1).length===1&&document.querySelectorAll('#side-list .fold')[0].querySelectorAll('.fr').length===0));
+ await E(()=>{document.querySelector('#side-list [data-tgl]:not([data-tgl=daily]):not([data-tgl^=_])').click()});await p.waitForTimeout(400);
  ck(n+' folder expands',await E(()=>document.querySelectorAll('#side-list .fold')[0].querySelectorAll('.fr').length>0));
  // reading mode auto
  ck(n+' auto mode',await E(()=>isVert()===(!isWide())));

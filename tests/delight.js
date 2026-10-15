@@ -24,7 +24,8 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
  ck('edition cover is a 1080x1350 picture',r.cover&&r.cover[0]===1080&&r.cover[1]===1350&&r.bright,JSON.stringify(r));
  ck('reader follows the system text size',Math.abs(parseFloat(r.fs13)-r.base*1.3)<.6&&parseFloat(r.fsOff)===r.base,JSON.stringify(r));
  ck('copy says sources',/Covered by 3 sources/.test(r.why),r.why);
- ck('Today offers the cover share beside the PDF',r.btns.includes('Share this cover')&&r.btns.includes('Export this edition as a PDF'),JSON.stringify(r.btns));
+ /* (the whole-edition PDF was removed in 1.84; the per-story PDF and Kindle exports remain) */
+ ck('Today offers the cover share beside Catch me up',r.btns.includes('Share this cover')&&r.btns.some(x=>/^Catch me up/.test(x)),JSON.stringify(r.btns));
  ck('no page errors',!errs.length,errs[0]);await b.close();
  console.log('delight',bad?bad+' FAILED':'all passed');process.exit(bad?1:0);
 })();
