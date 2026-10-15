@@ -64,7 +64,8 @@ ck('a long story ending on a full stop is complete',R.longDot===false);ck('800 w
 ck('reuters.com is always sent deeper',R.hydratedLong===true);ck('bloomberg.com is always sent deeper',R.hydratedSub===true);
 ck('Next.js payload paragraphs beat a 2-paragraph page',R.nextHas===true,String(R.nextLen));
 ck('Arc-style content blocks read from the payload',R.arcHas===true);ck('HTML body string in the payload is read',R.htmlHas===true);
-ck('Fusion globalContent is read',R.fusionHas===true);ck('a complete page is left alone',R.leftAlone===true);
+/* (removed for store policy: the app no longer mines a page's script state for story text; a gated story shows its preview and a link) */
+ck('a complete page is left alone',R.leftAlone===true);
 ck('a stub on reuters.com is replaced by the reader’s full text',R.reutersLong===true&&R.reutersTier==='reader'&&R.jinaHits>=1,JSON.stringify([R.reutersTier,R.reutersLong,R.jinaHits]));
 ck('if the reader fails, the stub is kept and marked',R.keptStub===true&&R.markedIncomplete===true);
 ck('a full story from an ordinary site never calls the reader',R.noJinaForFull===true);

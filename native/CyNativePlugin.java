@@ -322,6 +322,11 @@ public class CyNativePlugin extends Plugin {
             i.setType(mime);
             i.putExtra(Intent.EXTRA_STREAM, uri);
             i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            String shareText = call.getString("text", "");
+            if (shareText != null && shareText.length() > 0) {
+                // the words (with the story link inside them) travel with the picture
+                i.putExtra(Intent.EXTRA_TEXT, shareText);
+            }
             String email = call.getString("email", "");
             if (email.length() > 0) {
                 i.putExtra(Intent.EXTRA_EMAIL, new String[]{email});
