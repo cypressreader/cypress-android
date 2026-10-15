@@ -871,7 +871,7 @@ html:root.night{--hl:rgba(255,150,60,.42)}
 /* instant pressed feedback on touch screens, so a tap feels answered before the page has finished changing */
 @media(hover:none){.nav:active,.fr:active,.fh:active{background:color-mix(in srgb,var(--ink) 9%,transparent)}.card:active,.tri:active,.cvl:active{opacity:.86}.ib:active,.tx2:active{opacity:.7}}
 #swl{position:fixed;z-index:4;border-radius:20px;display:flex;align-items:center;padding:0 22px;font:700 14px var(--sans);color:#fff;pointer-events:none;transition:background .2s,opacity .2s}
-#swl.sv{background:#c99a12;justify-content:flex-start}#swl.rdm{background:#2f7d57;justify-content:flex-end}
+#swl.sv{background:#c99a12;justify-content:flex-end}#swl.rdm{background:#2f7d57;justify-content:flex-start}
 #swl span{display:flex;align-items:center;gap:8px;opacity:.75;transform:scale(.92);transition:transform .15s,opacity .15s}
 #swl.hit span{opacity:1;transform:scale(1.08)}#swl.out{opacity:0}
 main{overscroll-behavior-y:contain}
@@ -3760,6 +3760,7 @@ main{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 /* 1.106 headline clamp + containment (collision pass) */
 .card h1,.cvlead:not(.dcv-lead) h1,.card .headline,.cvlead:not(.dcv-lead) .headline,.cvlead:not(.dcv-lead) .wmom-t b,.cvlead:not(.dcv-lead) .fd-fb b{font-size:clamp(1.15rem,4vw,1.7rem)!important;line-height:1.15!important;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical}
 #rdprog{position:fixed;top:0;left:0;right:0;height:2px;z-index:90;pointer-events:none;background:transparent}#rdprog i{display:block;height:100%;width:100%;background:var(--logo);transform:scaleX(0);transform-origin:0 50%}#rdprog[hidden]{display:none}
+#rd .cols .body p.dropcap .dcap.dc-k{margin-right:2px;padding-right:0;letter-spacing:-.04em}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -9853,7 +9854,7 @@ function openCleanup(){
 $('#cleanb').onclick=openCleanup;$('#tipsx').onclick=()=>$('#tips').close();
 const TIPLIST=[["⤓", "A small <b>arrow into a tray</b> on a story means it is <b>saved on your device</b> and opens even offline. It does not mean you have read it: a read story is shown faded."], ["👉", "Swipe a card <b>right to save</b>, <b>left to mark read</b>."], ["✋", "<b>Press and hold</b> a card for quick actions: save, share, mark above as read, pause a site, more or less like this."], ["📖", "<b>Swipe the page</b> or tap the edges to turn it. <b>Tap the middle</b> to hide the controls (focus mode)."], ["⬇️", "<b>Swipe down</b> on a story to close it."], ["↔️", "Swipe in from the <b>left edge</b> to open your feeds. Drag the edge of the list to resize it, double-tap it to reset."], ["🔗", "<b>Tap a link</b> in a story for a quick preview. Select text to highlight, add a note, look up a word, translate or search."], ["🔄", "<b>Pull down</b> on your stories to refresh. The logo fills as it works."], ["🌳", "<b>Tap the logo</b> to switch between the tree and the circuit board."], ["🔎", "Search also finds stories you read earlier. Your reading history lives under <b>History</b>."]];
 function openTips(){$('#tipslist').innerHTML=TIPLIST.map(([i,t])=>`<li><i>${i}</i><span>${t}</span></li>`).join('');if(!$('#tips').open)$('#tips').showModal()}
-const TIPQ=[['card',4500,'Tip: swipe a card right to save it, left to mark it read. Press and hold for more.'],['reader',2500,'Tip: swipe the page to turn it. Tap the middle to hide the controls.'],['catch',1500,'Tip: The Daily has four views. Today is your personal front page, Brief is a quick list, Headlines is what all your sites are reporting and Week is the review.'],['health',1500,'Tip: if a site stops loading, Manage feeds in Settings can fix its address or show why.'],['dailyhint',800,'Tip: your feeds can become a personal daily magazine. Open The Daily from the menu to see today’s issue.'],['foldershint',800,'Tip: with this many feeds, folders help. Manage feeds in Settings lets you group them.'],['offlinehint',800,'Tip: want stories ready without a connection? Turn on “Get stories ready in advance” in Settings.']];
+const TIPQ=[['card',4500,'Tip: swipe a card right to mark it read, left to save it. Press and hold for more.'],['reader',2500,'Tip: swipe the page to turn it. Tap the middle to hide the controls.'],['catch',1500,'Tip: The Daily has four views. Today is your personal front page, Brief is a quick list, Headlines is what all your sites are reporting and Week is the review.'],['health',1500,'Tip: if a site stops loading, Manage feeds in Settings can fix its address or show why.'],['dailyhint',800,'Tip: your feeds can become a personal daily magazine. Open The Daily from the menu to see today’s issue.'],['foldershint',800,'Tip: with this many feeds, folders help. Manage feeds in Settings lets you group them.'],['offlinehint',800,'Tip: want stories ready without a connection? Turn on “Get stories ready in advance” in Settings.']];
 /* introduce features when they become useful, one quiet tip at a time */
 function tipsCheck(){
  if(!S.feeds||!S.feeds.length||document.querySelector('dialog[open]')||$('#rd').classList.contains('on'))return;
@@ -10180,13 +10181,13 @@ function swEnd(){const c=SW.c,act=SW.act;SW.act=false;if(!c)return;SW.c=null;con
  SW.block=Date.now();
  if(!hit)return;
  const a=SW.a||cardStory(c);if(!a)return;
- if(dx>0){toggleSave(a);toast(isSaved(a)?'Saved':'Removed from saved')}
+ if(dx<0){toggleSave(a);toast(isSaved(a)?'Saved':'Removed from saved')}
  else{if(S.read[a.link]){delete S.read[a.link];toast('Marked as unread')}else{S.read[a.link]=1;(a.more||[]).forEach(m=>S.read[m.l]=1);toast('Marked as read')}save()}
  setTimeout(render,280);
 }
 $('#grid').addEventListener('pointerdown',e=>{
  if(e.pointerType==='mouse'||!e.isPrimary)return;const c=e.target.closest('.card,.cr');if(!c||e.target.closest('.star,.nr-ph-strip,.dq'))return;
- SW.c=c;SW.a=cardStory(c);SW.x=e.clientX;SW.y=e.clientY;SW.act=false;SW.dx=0;SW.id=e.pointerId;
+ SW.hit=false;SW.c=c;SW.a=cardStory(c);SW.x=e.clientX;SW.y=e.clientY;SW.act=false;SW.dx=0;SW.id=e.pointerId;
 });
 $('#grid').addEventListener('pointermove',e=>{
  const c=SW.c;if(!c||e.pointerId!==SW.id)return;const dx=e.clientX-SW.x,dy=e.clientY-SW.y;
@@ -10194,13 +10195,18 @@ $('#grid').addEventListener('pointermove',e=>{
   const r=c.getBoundingClientRect(),l=document.createElement('div');l.id='swl';l.style.cssText=`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px`;document.body.append(l);c.style.zIndex=5;c.style.position='relative'}
  SW.dx=dx;const a=SW.a||cardStory(c),l=$('#swl'),w=c.offsetWidth,hit=Math.abs(dx)>Math.min(110,w*.32);
  c.style.transform=`translateX(${dx*.92}px) rotate(${dx/w*2}deg)`;
- if(l&&a){const save=dx>0;l.className=(save?'sv':'rdm')+(hit?' hit':'');l.innerHTML=save?`<span>${svg('<path d="M12 4.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 9.8l5-.7z"/>')}${isSaved(a)?'Unsave':'Save'}</span>`:`<span>${svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>')}${S.read[a.link]?'Unread':'Read'}</span>`}
+ if(hit!==!!SW.hit){SW.hit=hit;if(hit)buzz('tick')}
+ if(l&&a){const save=dx<0;l.className=(save?'sv':'rdm')+(hit?' hit':'');l.innerHTML=save?`<span>${svg('<path d="M12 4.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 9.8l5-.7z"/>')}${isSaved(a)?'Unsave':'Save'}</span>`:`<span>${svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>')}${S.read[a.link]?'Unread':'Read'}</span>`}
 });
 $('#grid').addEventListener('touchmove',e=>{if(SW.c&&SW.act&&e.cancelable)e.preventDefault()},{passive:false});
 $('#grid').addEventListener('pointerdown',()=>{if(!SW.c)SW.act=false},true);
 window.addEventListener('resize',()=>{if(SW.c&&SW.act)swEnd();SW.c=null;SW.act=false});
 document.addEventListener('touchend',()=>{if(!SW.c)SW.act=false},{passive:true});
 $('#grid').addEventListener('pointerup',swEnd);$('#grid').addEventListener('pointercancel',()=>{if(SW.c&&SW.act)swEnd();SW.c=null;SW.act=false});
+/* mouse or pen: a card can be dragged out to a messaging or notes app beside it (split screen) as its title and link. Touch keeps its press-and-hold menu. */
+$('#grid').addEventListener('pointerover',e=>{if(e.pointerType==='touch')return;const c=e.target.closest&&e.target.closest('.card,.cr');if(c&&!c.draggable)c.draggable=true});
+$('#grid').addEventListener('dragstart',e=>{const c=e.target.closest&&e.target.closest('.card,.cr');if(!c)return;const a=cardStory(c),u=a&&a.link;if(!u||!/^https?:/i.test(u)){e.preventDefault();return}
+ const t=a.title||'';e.dataTransfer.effectAllowed='copy';e.dataTransfer.setData('text/uri-list',u);e.dataTransfer.setData('text/plain',t?t+'\n'+u:u)});
 $('#grid').addEventListener('click',e=>{if(SW.block&&Date.now()-SW.block<400){e.preventDefault();e.stopImmediatePropagation()}},true);
 
 
@@ -10593,8 +10599,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.15h';const APP_LABEL='1.106';
-const CHANGES=["The screen stays awake while you read a story, and a thin line at the top shows how far through a scrolling story you are.","Long headlines on cards are held to a tidy size, and the home-screen icon menu now has The Daily.","One brand: the botanical Cy tree crest is now the only logo and app icon; the logo-switching and app-icon pickers are gone","Settings → Appearance & Theme: a simple Dynamic | Paper | Obsidian switch, a \"follow the article's photo colors\" toggle, and every other palette tucked into \"Show Advanced Color Palettes\"","Some palette names are now generic: Tempest, Bastion, Synapse, Apex, Strata, Eclipse, Aether, Neon, Scarlet Dawn, Duel and Paragon (your saved choice carries over)","Cleaner story pages: pull quotes are quiet inset quotes, the section dividers and ornaments are gone, and the end-of-story block stays inside its column","\"The story so far\" now sits a few paragraphs into the story, so the text always starts on page 1","Cards and cover lines clip their own text, long headlines stop at four lines, the bottom of the feed clears the phone's gesture bar, and the selection dots are easier to tap"];
+const APP_VERSION='2026.10.15i';const APP_LABEL='1.106';
+const CHANGES=["Fixed: on a fully open Fold, stories in Scroll mode could squash the picture and hide the text. The half-folded layout now only applies when the phone is actually half-folded.","Swipe a card right to mark it read or unread, left to save or unsave, with a small tick when you've pulled far enough.","With a mouse or pen, you can drag a story card into another app beside it to share its title and link.","Big first letters in A, T, V and W stories sit snugger against the text.","The screen stays awake while you read a story, and a thin line at the top shows how far through a scrolling story you are.","Long headlines on cards are held to a tidy size, and the home-screen icon menu now has The Daily.","One brand: the botanical Cy tree crest is now the only logo and app icon; the logo-switching and app-icon pickers are gone","Settings → Appearance & Theme: a simple Dynamic | Paper | Obsidian switch, a \"follow the article's photo colors\" toggle, and every other palette tucked into \"Show Advanced Color Palettes\""];
 const DEF_ON=new Set(['cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -10738,7 +10744,7 @@ function makeDropcap(p){
   if(!/\S/.test(n.nodeValue))continue;
   const m=n.nodeValue.match(/^(\s*)([“"‘']?)([A-Za-z0-9\u00C0-\u024F])/);if(!m)return false;
   const lead=m[1],cap=m[2]+m[3],rest=n.nodeValue.slice(m[0].length);
-  const sp=document.createElement('span');sp.className='dcap';sp.textContent=cap;
+  const sp=document.createElement('span');sp.className='dcap'+(/^[ATVW]$/.test(m[3])?' dc-k':'');sp.textContent=cap;
   const parent=n.parentNode;if(lead)parent.insertBefore(document.createTextNode(lead),n);parent.insertBefore(sp,n);n.nodeValue=rest;
   return true;
  }
@@ -12627,7 +12633,11 @@ function skyWeather(el,k){
 /* ---------- Fold: flex posture ---------- */
 function flexHinge(){
  /* the standard place for the fold's two halves is visualViewport.segments; window.viewport.segments is the older name some builds still use */
- try{const vv=window.visualViewport,sg=(vv&&vv.segments&&vv.segments.length?vv.segments:null)||(window.viewport&&window.viewport.segments);if(!sg||sg.length!==2)return null;const [a,b]=sg;if(Math.abs(a.x-b.x)>2||b.y<a.y+a.height-1)return null;return{top:a.y+a.height,bot:b.y}}catch(e){return null}
+ try{const vv=window.visualViewport,sg=(vv&&vv.segments&&vv.segments.length?vv.segments:null)||(window.viewport&&window.viewport.segments);if(!sg||sg.length!==2)return null;const [a,b]=sg;if(Math.abs(a.x-b.x)>2||b.y<a.y+a.height-1)return null;
+  /* only when the phone is physically half-folded: a fully open Fold can still report two screen segments, and trusting them squashed the story to a thin strip */
+  const dp=navigator.devicePosture;if(dp?dp.type!=='folded':matchMedia('(device-posture: continuous)').matches)return null;
+  const top=a.y+a.height,H=innerHeight;if(!(a.height>=H*.2&&b.height>=H*.2&&top>0&&b.y<H))return null;
+  return{top,bot:b.y}}catch(e){return null}
 }
 function flexUi(){
  const rd=$('#rd'),fh=flexHinge();rd.classList.toggle('flex',!!fh);document.body.classList.toggle('flexp',!!fh);

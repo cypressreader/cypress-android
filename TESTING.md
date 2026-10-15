@@ -334,3 +334,6 @@ Must verify on the Fold: open a story and half-fold the phone like a laptop (tab
 
 ## Batch 3 (preview/polish-106): reading experience
 Must verify on a real phone: open a story and leave the phone idle past the screen timeout (screen should stay on; lock/unlock and switch apps, it should release and re-acquire). Scroll a long story in Scroll mode: thin line at the top fills left to right; no line in paged (Folio) mode. Android 13+: with themed icons on, the app icon is tinted (new monochrome icon); long-press the icon and see The Daily shortcut (may need reinstall of the web app / APK).
+
+## Batch 4 (preview/polish-106): tactile
+Must verify on the Fold: (1) fully open inner screen, Scroll mode: picture keeps its shape, text shows; half-fold like a laptop still splits the story (top) and controls (bottom). (2) Feed card swipe: right = Read/Unread (green), left = Save/Unsave (gold); a small vibration tick when you pass the release point. (3) Split screen with a notes/messaging app: drag a card with a mouse or S Pen and drop; title and link arrive (touch long-press keeps the quick menu). (4) Stories whose first letter is A, T, V or W: the big first letter sits close to the text.

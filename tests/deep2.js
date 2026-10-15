@@ -148,13 +148,13 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  await E(()=>{S.sel='all';render();$('main').scrollTop=0});await W(200);
  const cardBox=async n=>E(n=>{const c=document.querySelectorAll('#grid .card')[n];c.scrollIntoView({block:'center'});const r=c.getBoundingClientRect();return{x:r.left,y:r.top,w:r.width,h:r.height,link:cur[+c.dataset.i].link}},n);
  let cb=await cardBox(2);await W(100);cb=await cardBox(2);
- await p.touchDrag(cb.x+cb.w*.2,cb.y+cb.h/2,cb.x+cb.w*.2+170,cb.y+cb.h/2+4,12);await W(500);
- ck(vp,'swipe right saves',await E(l=>S.saved.some(x=>x.link===l),cb.link));
+ await p.touchDrag(cb.x+cb.w*.8,cb.y+cb.h/2,cb.x+cb.w*.8-170,cb.y+cb.h/2+4,12);await W(500);
+ ck(vp,'swipe left saves',await E(l=>S.saved.some(x=>x.link===l),cb.link));
  ck(vp,'swipe did not open story',await E(()=>!$('#rd').classList.contains('on')));
  cb=await cardBox(3);await W(100);cb=await cardBox(3);
  const wasRead=await E(l=>!!S.read[l],cb.link);
- await p.touchDrag(cb.x+cb.w*.8,cb.y+cb.h/2,cb.x+cb.w*.8-170,cb.y+cb.h/2+4,12);await W(500);
- ck(vp,'swipe left toggles read',await E(l=>!!S.read[l],cb.link)!==wasRead);
+ await p.touchDrag(cb.x+cb.w*.2,cb.y+cb.h/2,cb.x+cb.w*.2+170,cb.y+cb.h/2+4,12);await W(500);
+ ck(vp,'swipe right toggles read',await E(l=>!!S.read[l],cb.link)!==wasRead);
  cb=await cardBox(4);await W(100);cb=await cardBox(4);
  await p.touchDrag(cb.x+cb.w*.5,cb.y+cb.h/2,cb.x+cb.w*.5+30,cb.y+cb.h/2,4,30);await W(400);
  ck(vp,'short swipe does nothing',await E(l=>!S.saved.some(x=>x.link===l),cb.link));
