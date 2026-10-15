@@ -3768,6 +3768,9 @@ main{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 body.narrow #toast{bottom:auto}html.micro #toast{animation:none}
 @media(prefers-reduced-motion:reduce){#toast{transform:translate(-50%,0);transition:opacity .15s}}
 .fbar.burn{grid-column:1/-1}
+/* every swipeable story row hands horizontal drags to the swipe, like cards do; without this a phone's browser claims the drag on plain links and cancels it before the release, so the action never ran */
+#grid .cvlead,#grid .cvl,#grid .wline,#grid a[data-i]{touch-action:pan-y}
+#grid .strip a[data-i],#grid .crow a[data-i],#grid .strip .cvlead,#grid .crow .cvlead{touch-action:pan-x pan-y}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -10266,7 +10269,7 @@ $('#grid').addEventListener('touchmove',e=>{if(SW.c&&SW.act&&e.cancelable)e.prev
 $('#grid').addEventListener('pointerdown',()=>{if(!SW.c)SW.act=false},true);
 window.addEventListener('resize',()=>{if(SW.c&&SW.act)swEnd();SW.c=null;SW.act=false});
 document.addEventListener('touchend',()=>{if(!SW.c)SW.act=false},{passive:true});
-$('#grid').addEventListener('pointerup',swEnd);$('#grid').addEventListener('pointercancel',()=>{if(SW.c&&SW.act)swEnd();SW.c=null;SW.act=false});
+$('#grid').addEventListener('pointerup',swEnd);$('#grid').addEventListener('touchend',()=>{if(SW.c&&SW.act)swEnd()},{passive:true});$('#grid').addEventListener('pointercancel',()=>{if(SW.c&&SW.act)swEnd();SW.c=null;SW.act=false});
 /* mouse or pen: a card can be dragged out to a messaging or notes app beside it (split screen) as its title and link. Touch keeps its press-and-hold menu. */
 $('#grid').addEventListener('pointerover',e=>{if(e.pointerType==='touch')return;const c=e.target.closest&&e.target.closest('.card,.cr');if(c&&!c.draggable)c.draggable=true});
 $('#grid').addEventListener('dragstart',e=>{const c=e.target.closest&&e.target.closest('.card,.cr');if(!c)return;const a=cardStory(c),u=a&&a.link;if(!u||!/^https?:/i.test(u)){e.preventDefault();return}
@@ -10663,8 +10666,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.15o';const APP_LABEL='1.106';
-const CHANGES=["Swiping a story right or left (read / save) now also works on text-only stories and column rows, not just picture cards.","Fixed: pressing Play on the floating read-aloud button now carries on from where you were, instead of starting the story over.","Fixed: tapping Play on the floating read-aloud button no longer opens the story's picture.","Notices now drop in from the top as a small floating pill, with a gentle tick when you save a story.","Pull-to-refresh gives a firmer tick when you've pulled far enough.","If you haven't opened a single story from a busy feed in 30 days, CyPress offers to pause it (once in a while, and you can say no).","When your phone comes back online, saved stories and read marks sync quietly.","Fixed: with Focus reading on, read aloud no longer spells words out letter by letter."];
+const APP_VERSION='2026.10.15p';const APP_LABEL='1.106';
+const CHANGES=["Fixed: swiping a text-only story now actually saves it or marks it read when you let go.","Swiping a story right or left (read / save) now also works on text-only stories and column rows, not just picture cards.","Fixed: pressing Play on the floating read-aloud button now carries on from where you were, instead of starting the story over.","Fixed: tapping Play on the floating read-aloud button no longer opens the story's picture.","Notices now drop in from the top as a small floating pill, with a gentle tick when you save a story.","Pull-to-refresh gives a firmer tick when you've pulled far enough.","If you haven't opened a single story from a busy feed in 30 days, CyPress offers to pause it (once in a while, and you can say no).","When your phone comes back online, saved stories and read marks sync quietly."];
 const DEF_ON=new Set(['cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;

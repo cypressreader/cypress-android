@@ -355,3 +355,6 @@ Must verify on a phone: (1) read aloud, back to feed, tap Play on the pill: the 
 
 ## Swipe on text stories + resume from the pill (preview/polish-106)
 Must verify on a phone: in every feed layout (cards, list, Daily, wire/columns), swipe a text-only story right (Read/Unread, green) and left (Save/Unsave, gold) with the tick at the release point; horizontal strips still scroll normally. Read aloud 2-3 minutes in, Back, Pause on the pill, Play: the story opens and speech continues from the same spot with the highlight on that word.
+
+## Swipe release on text rows (preview/polish-106)
+Must verify on the Fold/phone, in every layout: swipe a text-only story left past the gold mark and let go: it saves (toast + star); right past the green mark: read/unread toggles; a short swipe does nothing. If it still does not act, note which layout and which row type.
