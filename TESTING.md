@@ -328,3 +328,33 @@ Must verify on a real phone / the Fold:
 - Wide reader: swipe through a long story; no blank page, no half-empty column; page 1 column 2 starts with the story text; "The story so far" sits a few paragraphs in.
 - Settings → Appearance & Theme: Dynamic | Paper | Obsidian switch, the photo-color toggle, and the advanced palettes (renamed: Tempest, Bastion, Synapse, Apex, Strata, Eclipse, Aether, Neon, Scarlet Dawn, Duel, Paragon). A saved old choice (for example the former Highstorm) keeps its look under the new name.
 - Pull quotes and story endings look clean; no ornaments.
+
+## Batch 2 (preview/polish-106): half-folded foldable
+Must verify on the Fold: open a story and half-fold the phone like a laptop (tabletop). The story text should sit on the top half and the page controls on the bottom half, and it should follow when you fold or unfold. (Tested here only with a simulated two-segment screen.)
+
+## Batch 3 (preview/polish-106): reading experience
+Must verify on a real phone: open a story and leave the phone idle past the screen timeout (screen should stay on; lock/unlock and switch apps, it should release and re-acquire). Scroll a long story in Scroll mode: thin line at the top fills left to right; no line in paged (Folio) mode. Android 13+: with themed icons on, the app icon is tinted (new monochrome icon); long-press the icon and see The Daily shortcut (may need reinstall of the web app / APK).
+
+## Batch 4 (preview/polish-106): tactile
+Must verify on the Fold: (1) fully open inner screen, Scroll mode: picture keeps its shape, text shows; half-fold like a laptop still splits the story (top) and controls (bottom). (2) Feed card swipe: right = Read/Unread (green), left = Save/Unsave (gold); a small vibration tick when you pass the release point. (3) Split screen with a notes/messaging app: drag a card with a mouse or S Pen and drop; title and link arrive (touch long-press keeps the quick menu). (4) Stories whose first letter is A, T, V or W: the big first letter sits close to the text.
+
+## Mode switch (preview/polish-106)
+Must verify on the Fold (inner screen): open a story in Scroll, switch to Pages, then back to Scroll (also with a half-fold and unfold in between): picture keeps its shape and the text is all there.
+
+## Batch 5 (preview/polish-106)
+Must verify on the Fold/phone: switch Paper > Obsidian > Midnight: the status bar colour follows immediately with no one-step lag. Settings > Reading > Focus reading: on/off in both Scroll and Pages; check the page count still looks right and highlights/read-aloud still work.
+
+## Focus reading fix + read-aloud after leaving a story (preview/polish-106)
+Must verify on a phone (web app and APK): Focus reading on: text flows in normal lines, in Scroll and Pages. Start Read aloud, press Back to the feed: audio carries on and the floating pill shows; pause/resume/stop from the pill; browse and open another story (the old audio stops). Web app only: audio may still stop when the browser hides the page or the screen locks; that is the browser, the APK is the reliable case.
+
+## Read aloud with Focus reading; back while listening (preview/polish-106)
+Must verify on a phone: Focus reading on + Read aloud: words are spoken whole and the highlight follows them. Start Read aloud, then Back / edge-swipe: the story closes straight to the feed, audio carries on, the pill shows, and no prompt or picture view appears. If a prompt still shows, note its exact wording and which app draws it (it is not from CyPress).
+
+## Batch 6 (preview/polish-106)
+Must verify on a phone: (1) read aloud, back to feed, tap Play on the pill: the story opens and audio resumes, nothing else opens. (2) Notices appear top-centre as a pill with a small vibration on Save; check it clears the status bar/camera cut-out and is tappable for Undo. (3) Pull to refresh: fill follows the pull; stronger tick at the threshold. (4) Sync on: go offline, save/mark stories, go online: sync runs by itself within a few seconds. (5) A busy feed with no reads for 30 days shows the pause suggestion on All stories (feeds get their 30-day clock from the first time this version runs).
+
+## Swipe on text stories + resume from the pill (preview/polish-106)
+Must verify on a phone: in every feed layout (cards, list, Daily, wire/columns), swipe a text-only story right (Read/Unread, green) and left (Save/Unsave, gold) with the tick at the release point; horizontal strips still scroll normally. Read aloud 2-3 minutes in, Back, Pause on the pill, Play: the story opens and speech continues from the same spot with the highlight on that word.
+
+## Swipe release on text rows (preview/polish-106)
+Must verify on the Fold/phone, in every layout: swipe a text-only story left past the gold mark and let go: it saves (toast + star); right past the green mark: read/unread toggles; a short swipe does nothing. If it still does not act, note which layout and which row type.
