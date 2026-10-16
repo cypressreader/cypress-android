@@ -116,10 +116,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  await E(()=>{$('main').scrollTop=0});
  if(await E(()=>!!document.querySelector('.cover [data-why]'))){await p.tap('.cover [data-why]');await W(200);ck(vp,'why popover on cover',await E(()=>!$('#whyp').hidden&&/Top story/.test($('#whyp').textContent)))}else ck(vp,'no empty info button on cover',true);
  await E(()=>{{const w=$('#whyp');if(w)w.hidden=true}});
- const wc=await E(()=>{const w=document.querySelector('#grid .card [data-why]');w.scrollIntoView({block:'center'});const r=w.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}});await W(200);
- await p.touchscreen.tap(wc.x,wc.y);await W(300);
- ck(vp,'why on card, no story opened',await E(()=>!$('#whyp').hidden&&$('#whyp').textContent.length>20&&!$('#rd').classList.contains('on')),await E(()=>$('#whyp').textContent));
- ck(vp,'why popover on screen',await E(()=>{const r=$('#whyp').getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight}));
+ ck(vp,'no info button on cards',await E(()=>[...document.querySelectorAll('#grid .card [data-why]')].every(b=>getComputedStyle(b).display==='none')));
  // card sizes
  for(const c of ['large','compact','medium']){await E(c=>{S.cards=c;S.sel='all';render()},c);await W(150);
   const r=await E(()=>{const cs=[...document.querySelectorAll('#grid .card')];/* the feed now opens with a mix of card shapes: judge the tallest of the first six */const a=cs.slice(0,6).map(x=>x.getBoundingClientRect()).sort((p,q)=>q.height-p.height)[0];return{w:a.width,h:a.height,cols:new Set(cs.slice(0,6).map(x=>Math.round(x.getBoundingClientRect().left))).size,hs:document.documentElement.scrollWidth<=innerWidth+1}});
