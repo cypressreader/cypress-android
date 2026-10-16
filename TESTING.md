@@ -370,3 +370,6 @@ Must verify on the APK/phone: Share a story with Settings > Sync and Backup > Sh
 
 ## Halcyon theme (preview/polish-106)
 Must verify on the phone: Settings > Look > Halcyon. Light phone shows cream paper with a green masthead; dark phone shows ink-green with brass. Switching the phone's dark mode while the app is open flips it. Check small text (source labels, times, drawer, Daily player) is comfortable outdoors. Cormorant Garamond headlines need a connection the first time they load.
+
+## Phone polish (preview/polish-106)
+Must verify on the phone/APK: story cards at 190px minimum width (check a narrow phone shows sensible columns); reader buttons easy to tap and the bottom of the page clear of the gesture bar; the lead picture is shorter so text starts sooner; the installed app / browser top bar is deep green (the preview site still shows its orange preview marker on purpose).
