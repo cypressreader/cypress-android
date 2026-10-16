@@ -38,8 +38,10 @@ for(const [vp,w,h,touch] of VPS){
  await E(()=>{if(typeof openSearch==='function')openSearch(false)});
  // 4 star/save
  await E(()=>{S.sel='all';render()});
- await tap('#grid .card [data-star]');await p.waitForTimeout(200);
- ck(vp,'star saves',await E(()=>S.saved.length===1));
+ /* cards carry no save button any more: save is a swipe or press-and-hold */
+ ck(vp,'no star button on cards',await E(()=>[...document.querySelectorAll('#grid .card [data-star]')].every(b=>getComputedStyle(b).display==='none')));
+ await E(()=>{const c=document.querySelector('#grid .card');toggleSave(items[S.feeds.find(f=>items[f.id]&&items[f.id].length).id].find(a=>a.link===c.dataset.href))});await p.waitForTimeout(200);
+ ck(vp,'saving still works',await E(()=>S.saved.length===1));
  // 5 open reader
  await tap('#grid .card:nth-child(2) h3');await p.waitForTimeout(2500);
  ck(vp,'reader open',await E(()=>$('#rd').classList.contains('on')));
