@@ -106,12 +106,20 @@
 
   /* 4. nothing leaves the demo: outside links and windows just explain that this is a demo */
   function note() { try { if (window.toast) window.toast('This is a demo. Get CyPress Reader to read the real thing.'); } catch (e) {} }
+  function isDemoHost(h) { try { return /\.demo\.invalid$/.test(new URL(h, location.href).hostname); } catch (e) { return false; } }
+  /* links to real outside sites are stopped before anything else sees them */
   document.addEventListener('click', function (e) {
     var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
     if (!a) return;
     var h = a.getAttribute('href') || '';
-    if (/^(https?:|mailto:|tel:)/i.test(h) && h.indexOf(location.origin) !== 0) { e.preventDefault(); e.stopPropagation(); note(); }
+    if (/^(https?:|mailto:|tel:)/i.test(h) && h.indexOf(location.origin) !== 0 && !isDemoHost(h)) { e.preventDefault(); e.stopPropagation(); note(); }
   }, true);
+  /* story links point at the sample sites: the app opens those in its own reader, and if it does not, nothing may navigate away */
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a || !isDemoHost(a.getAttribute('href') || '')) return;
+    if (!e.defaultPrevented) { e.preventDefault(); note(); }
+  }, false);
   window.open = function () { note(); return null; };
   /* say clearly, once the app is up, that nothing here is real news */
   window.addEventListener('load', function () { setTimeout(function () { try { if (window.toast) window.toast('Demo: these are made-up sample stories, not real news.'); } catch (e) {} }, 2500); });
