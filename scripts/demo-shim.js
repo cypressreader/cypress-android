@@ -40,6 +40,7 @@
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   /* pictures are small abstract SVGs kept next to the demo (docs/demo/art-0.svg and so on) */
   function artUrl(n) { return new URL('/demo/art-' + n + '.svg', location.href).href; }
+  var NOTE = 'Sample story: invented for the CyPress Reader demo. It is not real news.';
   function inline(t) { return esc(t).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>'); }
   /* turns the story markup in scripts/demo-content.js into article HTML */
   function body(f, i) {
@@ -65,12 +66,12 @@
         '<dc:creator>' + AUTH[st.by % AUTH.length] + '</dc:creator><category>' + esc(st.sec) + '</category>' +
         '<description>' + esc(st.s) + '</description>' + art + '</item>';
     }).join('');
-    return '<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>' + f.name + '</title><link>https://' + f.id + '.demo.invalid/</link><description>' + f.cat + ' sample stories</description>' + items + '</channel></rss>';
+    return '<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>' + f.name + ' (sample)</title><link>https://' + f.id + '.demo.invalid/</link><description>' + f.cat + ' sample stories, made up for the demo</description>' + items + '</channel></rss>';
   }
   function articleHtml(f, i) {
     var st = f.stories[i], t = esc(st.t);
     var lead = st.lead === false ? '' : '<img src="' + artUrl(pic(D.feeds.indexOf(f), i)) + '" alt="" width="1600" height="1000">';
-    return '<!doctype html><html><head><title>' + t + '</title></head><body><article><h1>' + t + '</h1>' + lead + body(f, i) + '</article></body></html>';
+    return '<!doctype html><html><head><title>' + t + '</title></head><body><article><h1>' + t + '</h1>' + lead + '<p><em>' + NOTE + '</em></p>' + body(f, i) + '<p><em>' + NOTE + '</em></p></article></body></html>';
   }
   function respond(host, path) {
     var fi = -1;
@@ -92,7 +93,7 @@
 
   /* 3. the starting state: opens on The Daily, no setup screens */
   var seed = {
-    feeds: D.feeds.map(function (f, i) { return { id: 'f' + i, title: f.name, url: 'https://' + f.id + '.demo.invalid/feed', folder: '' }; }),
+    feeds: D.feeds.map(function (f, i) { return { id: 'f' + i, title: f.name + ' (sample)', url: 'https://' + f.id + '.demo.invalid/feed', folder: '' }; }),
     folders: [], sel: 'today', scroll: 'pages', ver: D.ver, smn: 1, intro: false, setall: 1, theme: 'halcyon', cvs: 'auto', tips: {}
   };
   seed.rt = {};
@@ -109,4 +110,6 @@
     if (/^(https?:|mailto:|tel:)/i.test(h) && h.indexOf(location.origin) !== 0) { e.preventDefault(); e.stopPropagation(); note(); }
   }, true);
   window.open = function () { note(); return null; };
+  /* say clearly, once the app is up, that nothing here is real news */
+  window.addEventListener('load', function () { setTimeout(function () { try { if (window.toast) window.toast('Demo: these are made-up sample stories, not real news.'); } catch (e) {} }, 2500); });
 })();
