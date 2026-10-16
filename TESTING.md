@@ -376,3 +376,6 @@ Must verify on the phone/APK: story cards at 190px minimum width (check a narrow
 
 ## Homepage live demo (docs/demo.html)
 Must verify on a phone and a desktop browser at cypressreader.com: tap "Try it live" in the phone frame; it opens The Daily with made-up stories; tapping a story opens the reader with text; All stories shows picture cards; no Settings or Add feed; any outside link says "This is a demo"; "Close the demo" returns to the picture. Check it does not change your own web app data (open cypressreader.com/app before and after). Light and dark follow your device.
+
+## Tablet page for phone visitors (docs/tablet.html)
+Must verify on a real phone: on cypressreader.com under the phone demo, tap "See the tablet layout, live"; the page opens with the tablet layout (sidebar and columns) shrunk to fit; rotating sideways makes it bigger; pinch-to-zoom works and does not trap scrolling; "Back to the site" returns home. Also check it on an iPhone (Safari) and an Android phone (Chrome).
