@@ -56,6 +56,18 @@ em{font-style:italic;color:var(--brass)}
 .stage{display:flex;justify-content:center;padding:52px 0 90px}
 .phone{width:min(300px,78vw);background:#08130d;border:2px solid var(--line);border-radius:44px;padding:11px;box-shadow:0 60px 110px -30px rgba(0,0,0,.75)}
 .phone img{display:block;width:100%;height:auto;border-radius:34px}
+.demo{display:flex;flex-direction:column;align-items:center;gap:14px}
+.skipdemo{position:absolute;left:-9999px}.skipdemo:focus{position:static;color:var(--cream)}
+.screen{position:relative;width:274px;height:593px;border-radius:34px;overflow:hidden;background:#08130d}
+.screen .poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:0;transition:opacity .6s}
+.screen .poster.off{opacity:0;pointer-events:none}
+.screen iframe{position:absolute;left:0;top:0;width:390px;height:844px;border:0;transform:scale(.7026);transform-origin:0 0;background:#0a1a10}
+.try{display:none;position:absolute;left:50%;bottom:34px;transform:translateX(-50%);min-height:48px;padding:12px 26px;border-radius:999px;border:1px solid var(--brass);background:var(--brass);color:#14231a;font:600 15px var(--sans);letter-spacing:.04em;cursor:pointer;box-shadow:0 14px 30px -10px rgba(0,0,0,.7)}
+.js .try{display:block}.try:hover{background:#d6b660}
+.try.busy{opacity:.8;cursor:progress}
+.demonote{font-size:14px;color:var(--dim);text-align:center}
+.closedemo{background:none;border:1px solid var(--line);color:var(--mut);border-radius:999px;padding:10px 20px;font:500 14px var(--sans);cursor:pointer}.closedemo:hover{color:var(--cream);border-color:var(--brass)}
+
 /* sections */
 section{padding:104px 0}
 .head{text-align:center;max-width:44rem;margin:0 auto 54px}
@@ -158,7 +170,16 @@ footer .sl{font:italic 500 20px var(--serif);color:var(--mut);margin-top:8px}
  <p class="lede">Add the sites you follow and CyPress Reader gathers them into one front page: big photos, clear headlines, and an ending, so you can read, finish, and get on with your day.</p>
  <div class="btns"><a class="btn" href="https://cypressreader.com/get">Get CyPress Reader for Android</a><a class="btn alt" href="https://cypressreader.com/app/">Open in your browser</a></div>
  <p class="small">On iPhone or iPad, <a href="#iphone">add it to your Home Screen in three steps</a>.</p>
- <div class="stage"><div class="phone"><img src="shots/phone-daily.jpg" width="780" height="1688" alt="The Daily on a phone: the day’s top story in large type on a deep green page, with the next headlines below"></div></div>
+ <div class="stage"><div class="demo">
+  <a class="skipdemo" href="#features">Skip the demo</a>
+  <div class="phone"><div class="screen">
+   <img class="poster" id="demoPoster" src="shots/phone-daily.jpg" width="780" height="1688" alt="The Daily on a phone: the day’s top story in large type on a deep green page, with the next headlines below">
+   <button type="button" class="try" id="tryBtn"><span>Try it live</span></button>
+   <iframe id="demoFrame" title="CyPress Reader live demo, with made-up sample stories" sandbox="allow-scripts" hidden></iframe>
+  </div></div>
+  <p class="demonote" id="demoNote">Sample stories, made up for the demo. Tap to try it.</p>
+  <button type="button" class="closedemo" id="closeDemo" hidden>Close the demo</button>
+ </div></div>
 </div></section>
 
 <section class="how" id="features"><div class="w">
@@ -265,6 +286,19 @@ footer .sl{font:italic 500 20px var(--serif);color:var(--mut);margin-top:8px}
  els.forEach(function(e){io.observe(e)});
  setTimeout(function(){els.forEach(function(e){e.classList.add('in')})},3500);
  document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('.menu .sheet a');if(a){var m=document.querySelector('.menu');if(m)m.open=false}});
+})();
+
+(function(){
+ var btn=document.getElementById('tryBtn'),fr=document.getElementById('demoFrame'),po=document.getElementById('demoPoster'),cl=document.getElementById('closeDemo'),nt=document.getElementById('demoNote');
+ if(!btn||!fr)return;
+ btn.addEventListener('click',function(){
+  btn.classList.add('busy');btn.firstChild.textContent='Opening…';
+  fr.onload=function(){po.classList.add('off');btn.style.display='none';nt.textContent='A working copy of CyPress Reader with made-up stories. Tap anything.';cl.hidden=false;try{fr.focus()}catch(e){}};
+  fr.hidden=false;fr.src='demo.html';
+ });
+ cl.addEventListener('click',function(){
+  fr.onload=null;fr.src='about:blank';fr.hidden=true;po.classList.remove('off');btn.style.display='';btn.classList.remove('busy');btn.firstChild.textContent='Try it live';nt.textContent='Sample stories, made up for the demo. Tap to try it.';cl.hidden=true;btn.focus();
+ });
 })();
 </script>
 </body></html>

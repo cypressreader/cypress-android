@@ -7,6 +7,7 @@ CyPress is a privacy-first, magazine-style RSS reader. Free, no accounts, no ads
 - `www/index.html` — the app. Single file: CSS, then markup, then one inline script. **This is the source of truth.**
 - `docs/app/index.html` — deployed copy. Must stay identical to `www/index.html`. A PostToolUse hook in `.claude/settings.json` copies it automatically after edits — verify with `diff` before pushing.
 - `docs/index.html` — marketing site. Privacy page at `docs/privacy.html`.
+- `docs/demo.html` — the live demo on the homepage: the real app on a made-up sample edition (no network, nothing saved). **Generated** by `node scripts/build-demo.js` from `www/index.html` (sample stories in `scripts/demo-content.js`, behaviour in `scripts/demo-shim.js`); never edit it by hand. The editor hook rebuilds it after edits to `www/index.html`.
 - `docs/app/sw.js` — service worker.
 - `tests/` — run one test with `node tests/stNN.js` (e.g. `node tests/st19.js`).
 - `whats-new.txt` — update alongside version bumps (required: see Versioning).
