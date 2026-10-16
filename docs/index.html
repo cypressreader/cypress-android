@@ -54,14 +54,21 @@ em{font-style:italic;color:var(--brass)}
 .hero .small{margin-top:20px;font-size:14.5px;color:var(--dim)}
 .hero .small a{color:var(--cream)}
 .stage{display:flex;justify-content:center;padding:52px 0 90px}
-.phone{width:min(300px,78vw);background:#08130d;border:2px solid var(--line);border-radius:44px;padding:11px;box-shadow:0 60px 110px -30px rgba(0,0,0,.75)}
+.phone{width:min(300px,calc(100vw - 48px));background:#08130d;border:2px solid var(--line);border-radius:44px;padding:11px;box-shadow:0 60px 110px -30px rgba(0,0,0,.75)}
 .phone img{display:block;width:100%;height:auto;border-radius:34px}
 .demo{display:flex;flex-direction:column;align-items:center;gap:14px}
 .skipdemo{position:absolute;left:-9999px}.skipdemo:focus{position:static;color:var(--cream)}
-.screen{position:relative;width:274px;height:593px;border-radius:34px;overflow:hidden;background:#08130d}
+.screen{position:relative;width:100%;aspect-ratio:var(--ar,390/844);border-radius:34px;overflow:hidden;background:#08130d}
+.demo[data-dev=tablet] .phone{width:min(740px,calc(100vw - 48px));border-radius:32px;padding:13px}
+.demo[data-dev=tablet] .screen{border-radius:18px}
 .screen .poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:0;transition:opacity .6s}
 .screen .poster.off{opacity:0;pointer-events:none}
-.screen iframe{position:absolute;left:0;top:0;width:390px;height:844px;border:0;transform:scale(.7026);transform-origin:0 0;background:#0a1a10}
+.screen iframe{position:absolute;left:0;top:0;width:var(--dw,390px);height:var(--dh,844px);border:0;transform:scale(var(--s,.7));transform-origin:0 0;background:#0a1a10}
+.devsw{display:none;gap:6px;background:rgba(12,38,25,.7);border:1px solid var(--line);border-radius:999px;padding:4px}
+.devsw button{background:none;border:0;color:var(--mut);font:600 14px var(--sans);letter-spacing:.04em;padding:9px 22px;border-radius:999px;cursor:pointer;min-height:40px}
+.devsw button[aria-checked=true]{background:var(--brass);color:#14231a}
+.js .devsw{display:flex}
+@media(max-width:759px){.js .devsw{display:none}}
 .try{display:none;position:absolute;left:50%;bottom:34px;transform:translateX(-50%);min-height:48px;padding:12px 26px;border-radius:999px;border:1px solid var(--brass);background:var(--brass);color:#14231a;font:600 15px var(--sans);letter-spacing:.04em;cursor:pointer;box-shadow:0 14px 30px -10px rgba(0,0,0,.7)}
 .js .try{display:block}.try:hover{background:#d6b660}
 .try.busy{opacity:.8;cursor:progress}
@@ -173,7 +180,8 @@ footer .sl{font:italic 500 20px var(--serif);color:var(--mut);margin-top:8px}
  <p class="lede">Add the sites you follow and CyPress Reader gathers them into one front page: big photos, clear headlines, and an ending, so you can read, finish, and get on with your day.</p>
  <div class="btns"><a class="btn" href="https://cypressreader.com/get">Get CyPress Reader for Android</a><a class="btn alt" href="https://cypressreader.com/app/">Open in your browser</a></div>
  <p class="small">On iPhone or iPad, <a href="#iphone">add it to your Home Screen in three steps</a>.</p>
- <div class="stage"><div class="demo">
+ <div class="stage"><div class="demo" data-dev="phone">
+  <div class="devsw" id="devSw" role="radiogroup" aria-label="Try it on"><button type="button" role="radio" aria-checked="true" data-d="phone">Phone</button><button type="button" role="radio" aria-checked="false" data-d="tablet" tabindex="-1">Tablet</button></div>
   <a class="skipdemo" href="#features">Skip the demo</a>
   <div class="phone"><div class="screen">
    <img class="poster" id="demoPoster" src="shots/phone-daily.jpg" width="780" height="1688" alt="The Daily on a phone: the day’s top story in large type on a deep green page, with the next headlines below">
@@ -297,15 +305,22 @@ footer .sl{font:italic 500 20px var(--serif);color:var(--mut);margin-top:8px}
 })();
 
 (function(){
- var btn=document.getElementById('tryBtn'),fr=document.getElementById('demoFrame'),po=document.getElementById('demoPoster'),cl=document.getElementById('closeDemo'),nt=document.getElementById('demoNote');
+ var btn=document.getElementById('tryBtn'),fr=document.getElementById('demoFrame'),po=document.getElementById('demoPoster'),cl=document.getElementById('closeDemo'),nt=document.getElementById('demoNote'),demo=document.querySelector('.demo'),sc=document.querySelector('.screen'),sw=document.getElementById('devSw');
  if(!btn||!fr)return;
+ var DEV={phone:{w:390,h:844,poster:'shots/phone-daily.jpg',alt:po.alt,r:'390/844'},tablet:{w:1024,h:768,poster:'shots/tablet-daily.jpg',alt:'The Daily on a tablet: a sidebar of sections on the left and the top story in large type on a night-blue cover',r:'1024/768'}};
+ var cur='phone',running=false,idle='Sample stories, invented for this demo. Not real news. Tap to try it.';
+ function fit(){var d=DEV[cur];sc.style.setProperty('--dw',d.w+'px');sc.style.setProperty('--dh',d.h+'px');sc.style.setProperty('--ar',d.r);sc.style.setProperty('--s',(sc.clientWidth/d.w).toFixed(4))}
+ function setDev(k){if(!DEV[k])return;cur=k;demo.setAttribute('data-dev',k);[].forEach.call(sw.querySelectorAll('button'),function(b){var on=b.getAttribute('data-d')===k;b.setAttribute('aria-checked',on);b.tabIndex=on?0:-1});if(!running){po.src=DEV[k].poster;po.alt=DEV[k].alt}fit()}
+ sw.addEventListener('click',function(e){var b=e.target.closest('button');if(b)setDev(b.getAttribute('data-d'))});
+ sw.addEventListener('keydown',function(e){var k=e.key;if(k!=='ArrowRight'&&k!=='ArrowLeft'&&k!=='ArrowDown'&&k!=='ArrowUp')return;e.preventDefault();var n=cur==='phone'?'tablet':'phone';setDev(n);sw.querySelector('[data-d='+n+']').focus()});
+ window.addEventListener('resize',fit);fit();
  btn.addEventListener('click',function(){
-  btn.classList.add('busy');btn.firstChild.textContent='Opening…';
+  btn.classList.add('busy');btn.firstChild.textContent='Opening…';running=true;
   fr.onload=function(){po.classList.add('off');btn.style.display='none';nt.textContent='A working copy of CyPress Reader. The stories are invented for the demo and are not real news.';cl.hidden=false;try{fr.focus()}catch(e){}};
   fr.hidden=false;fr.src='demo.html';
  });
  cl.addEventListener('click',function(){
-  fr.onload=null;fr.src='about:blank';fr.hidden=true;po.classList.remove('off');btn.style.display='';btn.classList.remove('busy');btn.firstChild.textContent='Try it live';nt.textContent='Sample stories, invented for this demo. Not real news. Tap to try it.';cl.hidden=true;btn.focus();
+  fr.onload=null;fr.src='about:blank';fr.hidden=true;running=false;po.classList.remove('off');po.src=DEV[cur].poster;po.alt=DEV[cur].alt;btn.style.display='';btn.classList.remove('busy');btn.firstChild.textContent='Try it live';nt.textContent=idle;cl.hidden=true;btn.focus();
  });
 })();
 </script>
