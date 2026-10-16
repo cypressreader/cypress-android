@@ -38,31 +38,39 @@
   var NOW = Date.now();
   var AUTH = ['Mara Quill', 'Tom Ashby', 'Ines Varga', 'Leo Marsh', 'Priya Nand', 'Jonas Reed'];
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-  function body(f, i) {
-    var st = f.stories[i], n = st[2], out = [], off = i * 3;
-    for (var k = 0; k < n; k++) {
-      out.push('<p>' + esc(f.paras[(off + k) % f.paras.length]) + '</p>');
-      if (k === 1 && n >= 5) out.push('<blockquote>' + esc(f.quote) + '</blockquote>');
-    }
-    return out.join('');
-  }
   /* pictures are small abstract SVGs kept next to the demo (docs/demo/art-0.svg and so on) */
   function artUrl(n) { return new URL('/demo/art-' + n + '.svg', location.href).href; }
-  function hasImg(fi, i) { return (i + fi) % 5 !== 4; }
+  function inline(t) { return esc(t).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>'); }
+  /* turns the story markup in scripts/demo-content.js into article HTML */
+  function body(f, i) {
+    return f.stories[i].body.split(/\n\s*\n/).map(function (blk) {
+      blk = blk.trim();
+      if (!blk) return '';
+      if (blk.indexOf('## ') === 0) return '<h2>' + inline(blk.slice(3)) + '</h2>';
+      if (blk.indexOf('> ') === 0) return '<blockquote>' + inline(blk.slice(2)) + '</blockquote>';
+      var fg = blk.match(/^!(\d+)\s*\|\s*([\s\S]*)$/);
+      if (fg) return '<figure><img src="' + artUrl(+fg[1]) + '" alt="' + esc(fg[2]) + '" width="1600" height="1000"><figcaption>' + inline(fg[2]) + '</figcaption></figure>';
+      if (blk.indexOf('- ') === 0) return '<ul>' + blk.split('\n').map(function (l) { return '<li>' + inline(l.replace(/^-\s*/, '')) + '</li>'; }).join('') + '</ul>';
+      return '<p>' + inline(blk.replace(/\n/g, ' ')) + '</p>';
+    }).join('');
+  }
+  function words(f, i) { return f.stories[i].body.replace(/^!\d+\s*\|/gm, ' ').replace(/^(##\s|>\s|-\s)/gm, ' ').split(/\s+/).filter(Boolean).length; }
+  function pic(fi, i) { return fi * 6 + i; }
   function feedXml(f, fi) {
     var items = f.stories.map(function (st, i) {
       var when = new Date(NOW - (i * 95 + fi * 31 + 18) * 60000).toUTCString();
       var link = 'https://' + f.id + '.demo.invalid/a/' + i;
-      var art = hasImg(fi, i) ? '<media:content url="' + artUrl((i + fi * 2) % 6) + '" medium="image" type="image/svg+xml" width="1600" height="1000"/>' : '';
-      return '<item><title>' + esc(st[0]) + '</title><link>' + link + '</link><guid>' + link + '</guid><pubDate>' + when + '</pubDate>' +
-        '<dc:creator>' + AUTH[(i + fi) % AUTH.length] + '</dc:creator><category>' + esc(st[3]) + '</category>' +
-        '<description>' + esc(st[1]) + '</description>' + art + '</item>';
+      var art = st.lead === false ? '' : '<media:content url="' + artUrl(pic(fi, i)) + '" medium="image" type="image/svg+xml" width="1600" height="1000"/>';
+      return '<item><title>' + esc(st.t) + '</title><link>' + link + '</link><guid>' + link + '</guid><pubDate>' + when + '</pubDate>' +
+        '<dc:creator>' + AUTH[st.by % AUTH.length] + '</dc:creator><category>' + esc(st.sec) + '</category>' +
+        '<description>' + esc(st.s) + '</description>' + art + '</item>';
     }).join('');
     return '<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>' + f.name + '</title><link>https://' + f.id + '.demo.invalid/</link><description>' + f.cat + ' sample stories</description>' + items + '</channel></rss>';
   }
   function articleHtml(f, i) {
-    var t = esc(f.stories[i][0]);
-    return '<!doctype html><html><head><title>' + t + '</title></head><body><article><h1>' + t + '</h1>' + body(f, i) + '</article></body></html>';
+    var st = f.stories[i], t = esc(st.t);
+    var lead = st.lead === false ? '' : '<img src="' + artUrl(pic(D.feeds.indexOf(f), i)) + '" alt="" width="1600" height="1000">';
+    return '<!doctype html><html><head><title>' + t + '</title></head><body><article><h1>' + t + '</h1>' + lead + body(f, i) + '</article></body></html>';
   }
   function respond(host, path) {
     var fi = -1;
@@ -87,6 +95,8 @@
     feeds: D.feeds.map(function (f, i) { return { id: 'f' + i, title: f.name, url: 'https://' + f.id + '.demo.invalid/feed', folder: '' }; }),
     folders: [], sel: 'today', scroll: 'pages', ver: D.ver, smn: 1, intro: false, setall: 1, theme: 'halcyon', cvs: 'auto', tips: {}
   };
+  seed.rt = {};
+  D.feeds.forEach(function (f) { f.stories.forEach(function (st, i) { seed.rt['https://' + f.id + '.demo.invalid/a/' + i] = Math.max(1, Math.round(words(f, i) / 230)); }); });
   (D.tipKeys || []).forEach(function (k) { seed.tips[k] = 1; });
   window.localStorage.setItem('folio', JSON.stringify(seed));
 
