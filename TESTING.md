@@ -373,3 +373,6 @@ Must verify on the phone: Settings > Look > Halcyon. Light phone shows cream pap
 
 ## Phone polish (preview/polish-106)
 Must verify on the phone/APK: story cards at 190px minimum width (check a narrow phone shows sensible columns); reader buttons easy to tap and the bottom of the page clear of the gesture bar; the lead picture is shorter so text starts sooner; the installed app / browser top bar is deep green (the preview site still shows its orange preview marker on purpose).
+
+## Homepage live demo (docs/demo.html)
+Must verify on a phone and a desktop browser at cypressreader.com: tap "Try it live" in the phone frame; it opens The Daily with made-up stories; tapping a story opens the reader with text; All stories shows picture cards; no Settings or Add feed; any outside link says "This is a demo"; "Close the demo" returns to the picture. Check it does not change your own web app data (open cypressreader.com/app before and after). Light and dark follow your device.
