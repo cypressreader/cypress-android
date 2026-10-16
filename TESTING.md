@@ -367,3 +367,6 @@ Must verify on the APK/phone: (1) Share on a story (card menu and reader menu): 
 
 ## Short share links (preview/polish-106)
 Must verify on the APK/phone: Share a story with Settings > Sync and Backup > Shorten shared links on: the message reads "Read this in CyPress: https://is.gd/..." next to the card; the Share button shows a spinner briefly. Switch it off, or go offline/airplane mode: the message carries the publisher's own address. Check the short link opens the CyPress share page (uses the live site worker, docs/worker/SHORT-LINKS.md).
+
+## Halcyon theme (preview/polish-106)
+Must verify on the phone: Settings > Look > Halcyon. Light phone shows cream paper with a green masthead; dark phone shows ink-green with brass. Switching the phone's dark mode while the app is open flips it. Check small text (source labels, times, drawer, Daily player) is comfortable outdoors. Cormorant Garamond headlines need a connection the first time they load.
