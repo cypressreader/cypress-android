@@ -149,6 +149,8 @@ body:not(.narrow) .grid:not(.list) .tpl.t3>.card:nth-child(1),body:not(.narrow) 
 .schips .chip{padding:7px 14px;border-radius:99px;border:1px solid var(--ln);font:600 13.5px var(--sans);background:var(--pn);color:var(--ink);min-height:36px}
 .schips .chip.on{background:var(--ink);color:var(--pn);border-color:var(--ink)}
 .schips .sx{margin-left:auto}
+@media(max-width:699px){.schips.svm .svl{flex:0 0 100%}.schips.svm{gap:6px}.schips.svm .chip{padding:7px 12px}}/* on a phone the label has its own line and all four time choices share the next one */
+@media(max-width:360px){.schips.svm .chip{padding:7px 9px}}
 #cln,#tips{width:min(560px,94vw)}
 #cln .cr2{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:start;padding:12px 0;border-bottom:1px solid var(--ln)}
 #cln .cr2 small{grid-column:2;color:var(--mut)}
@@ -9322,6 +9324,14 @@ $('#q').oninput=()=>render();
 const srch=$('#srch');
 function openSearch(o){srch.classList.toggle('open',o);TOPIC=null;if(o)$('#q').focus();else{$('#q').value='';render()}}
 $('#sb').onclick=()=>openSearch(!srch.classList.contains('open'));
+/* an open but empty search box closes by itself once the keyboard is gone and you scroll, or move to another page (it used to stay stuck on screen) */
+{const q=$('#q'),vv=window.visualViewport;let gone=true,hmin=0,selAt='';
+ const vh=()=>vv?vv.height:innerHeight,shut=()=>{if(gone&&srch.classList.contains('open')&&!q.value.trim()&&document.activeElement!==q)openSearch(false)};
+ q.addEventListener('focus',()=>{gone=false;hmin=vh();selAt=S.sel});
+ q.addEventListener('blur',()=>{gone=true});
+ if(vv)vv.addEventListener('resize',()=>{if(document.activeElement===q){hmin=Math.min(hmin||vh(),vh());if(vh()>hmin+80){gone=true;q.blur()}}});
+ $('main').addEventListener('scroll',shut,{passive:true});
+ const _r=render;render=function(){const r=_r.apply(this,arguments);try{if(gone&&S.sel!==selAt)shut()}catch(e){}return r}}
 $('#q').onkeydown=e=>{if(e.key==='Escape'){e.stopPropagation();openSearch(false)}};
 $('main').addEventListener('click',e=>{if(document.body.classList.contains('open')&&!e.target.closest('#menu')){e.preventDefault();e.stopPropagation();drawer(false)}},true);
 $('#dealsee').onclick=()=>{const l=dealList();askBox({title:'Hidden as deals and shopping',text:l.length?l.slice(0,40).map(a=>'• '+a.title+' ('+fof(a).title+')').join('\n')+(l.length>40?'\n…and '+(l.length-40)+' more':''):'Nothing is being hidden right now.',ok:'Close',cancel:'Cancel'})};$('#mut').onclick=async()=>{const v=await askBox({title:'Hide words',text:'Stories containing these words are hidden from every feed. Separate them with commas.',input:true,value:S.mute.join(', '),ok:'Save'});if(v===null)return;S.mute=v.split(',').map(x=>x.trim().toLowerCase()).filter(Boolean);save();render()};
