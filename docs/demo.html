@@ -421,7 +421,7 @@ figure.pqs figcaption{margin-top:12px;font:600 12px var(--sans);letter-spacing:.
 .dg.ed .edin b{display:block;font:700 11.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
 .dg.ed .edin span{display:block;font:600 17px var(--serif);margin-top:4px}.dg.ed .edin small{display:block;margin-top:3px;font:500 12.5px var(--sans);color:var(--mut)}
 .dg.ed .edin small button{appearance:none;border:0;background:none;padding:2px 4px;font:inherit;color:inherit;cursor:pointer;border-radius:6px;text-decoration:underline;text-underline-offset:3px;text-decoration-color:color-mix(in srgb,currentColor 45%,transparent)}
-.dg.ed .edin small button i{font-style:normal;opacity:.75}
+.dg.ed .edin small button i{font-style:normal;opacity:.75;margin-left:.4em}.dg.ed .edin small button{margin:0 .2em;white-space:nowrap}.dg.ed .edin small{line-height:1.7}
 .dg.wk{padding-top:6px}.dg.ed:has(.nr-top),.dg.wk:has(.nr-top,.nr-color,.nr-mos,.nr-ph-big){max-width:1200px}
 .dg.wk .wkhero{border-radius:22px;padding:20px 20px 16px;background:linear-gradient(135deg,color-mix(in srgb,var(--a1) 16%,var(--pn)),color-mix(in srgb,var(--a2,var(--a1)) 10%,var(--pn)));border:1px solid var(--ln)}
 .dg.wk .wkk{display:block;font:700 11.5px var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
@@ -2658,6 +2658,8 @@ html{font-synthesis-weight:none}
 #grid.nrp .nr-meta{margin:0 0 12px;font-size:13.5px}
 .nr-ph-top,.nr-ph-rows,.nr-ph-duo,.nr-ph-big,.nr-ph-strip-w,.nr-ph-feat{margin-bottom:26px}
 #grid .card.nr-hero{aspect-ratio:4/5;width:100%;border-radius:22px}
+@media(max-width:699px){.dg.ed .card.nr-hero{aspect-ratio:3/4}}
+.dg.ed .dfront{margin:0 0 16px}
 #grid .nr-hero h3{font-size:clamp(25px,7.4vw,32px);line-height:1.08;font-weight:var(--fw,700);letter-spacing:-.012em}
 #grid .nr-hero .tx{padding:22px 20px 20px}
 #grid .nr-hero p{font-size:15px;-webkit-line-clamp:2}
@@ -2671,6 +2673,8 @@ html{font-synthesis-weight:none}
 .nr-ph-late h4,.nr-ph-rows h4,.nr-ph-strip-w h4,.nr-quick h4{font:800 12px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--ink);margin:0;padding:10px 0 6px}
 /* section headings sit above their heavy rule */
 .nr-ph-late h4,.nr-ph-rows h4{font-size:18px;line-height:1.1;letter-spacing:.12em;padding:8px 0 9px;border-bottom:3px solid var(--ink)}
+/* section labels (Latest, Earlier today, Keep exploring...) use the same big serif heading as the Daily's sections */
+.nr-ph-late h4,.nr-ph-rows h4,.nr-ph-strip-w h4,.nr-quick h4,.nr-rail h4,.nr-sec>h4{font:400 clamp(26px,7vw,34px)/1.05 var(--disp);letter-spacing:-.005em;text-transform:none;border-bottom:1px solid var(--ink);padding:0 0 10px;margin:0 0 6px;font-synthesis:none}
 .nr-ph-late>.card:nth-child(2),.nr-ph-rows>.card:nth-child(2){border-top:0!important}
 .nr-ph-duo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 #grid .card.nr-sm2{aspect-ratio:3/4;width:100%;border-radius:16px}
@@ -6816,7 +6820,9 @@ function daySections(list,mode){
  B.unshift(`<nav class="dtoc" aria-label="In this issue"><h4>In this issue</h4><ol>${secs.map(([id,nn,t,c,u])=>`<li><button type="button" data-dsec="dsec-${id}"><i>${nn}</i><span>${t}</span><em>${c} ${c===1&&u==='stories'?'story':u}</em></button></li>`).join('')}</ol>${rit.length?`<p class="dtoc-r">Also: ${rit.join(' · ')}</p>`:''}</nav>`);
  return B;
 }
-document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-dsec]');if(!t)return;const el=document.getElementById(t.dataset.dsec);if(el){e.preventDefault();e.stopPropagation();el.scrollIntoView({behavior:reduced()?'auto':'smooth',block:'start'})}},true);
+/* jump to the top of a section, just below the docked tabs */
+function jumpTop(el,top){const mn=$('main'),mt=$('#mtabs'),off=(mt?mt.offsetHeight||38:0)+6,t=top||el,beh=reduced()?'auto':'smooth';if(mn)mn.scrollTo({top:mn.scrollTop+t.getBoundingClientRect().top-mn.getBoundingClientRect().top-off,behavior:beh});else el.scrollIntoView({behavior:beh,block:'start'})}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-dsec]');if(!t)return;const el=document.getElementById(t.dataset.dsec);if(el){e.preventDefault();e.stopPropagation();const pv=el.previousElementSibling;jumpTop(el,pv&&pv.classList.contains('dfolio')?pv:el)}},true);
 /* ---- The Daily's edition is downloaded ahead of time, gently, so Quick Briefs and Deep Dives know the real reading times ----
    Only on Wi-Fi, never when downloads are off, in Offline or Data saver mode or in low-power mode, one story at a time with a pause between,
    and it stops as soon as you leave The Daily, leave Wi-Fi or the edition changes. A story that fails is not tried again in the same edition. */
@@ -12726,7 +12732,7 @@ function edStats(k,pool,fresh){
 }
 document.addEventListener('click',e=>{
  const ed=e.target.closest&&e.target.closest('[data-edin]');
- if(ed){e.preventDefault();const t=document.getElementById(ed.dataset.edin);if(t)t.scrollIntoView({behavior:'smooth',block:'start'});return}
+ if(ed){e.preventDefault();const t=document.getElementById(ed.dataset.edin);if(t)jumpTop(t);return}
  const st=e.target.closest&&e.target.closest('[data-edstory]');
  if(st){e.preventDefault();const a=findStory(st.dataset.edstory);if(a)openReader(a);return}
  const go=e.target.closest&&e.target.closest('[data-edgo]');
@@ -12833,9 +12839,10 @@ function renderDigest(){
  }else{
  const secs=[],NM=nrMode(),fp=NM?topOf(S.feeds,26,new Set()):[],useNews=NM&&fp.length>=6;
  if(useNews)fp.forEach(a=>{skip.add(a.link);(a.more||[]).forEach(m=>skip.add(m.l))});
- if(lead&&!useNews){skip.add(lead.link);secs.push(['Cover story',[lead],'The top-ranked story, with a photo when there is one','lead'])}
+ /* the list view has the same first section as the tile view: "The front page", its top story as a big photo card, then the next most important stories */
+ if(lead&&!useNews)skip.add(lead.link);
  const rest=useNews?[]:topOf(S.feeds,7,skip).filter(a=>a!==lead).slice(0,6);rest.forEach(a=>skip.add(a.link));
- if(rest.length)secs.push(['The rest of the front page',rest,'Next most important stories right now','mid']);
+ if(!useNews&&(lead||rest.length))secs.push(['The front page',(lead?[lead]:[]).concat(rest),'The top stories right now, ranked by how many sources cover them','front']);
  const tsecs=S.sk.map(t=>[t.name,topOf(S.feeds,useNews?6:3,skip,a=>kmatch(t,a)&&a.date>=since-2*864e5),`Matches “${t.name}”, a topic you follow.`,'mid']).filter(x=>x[1].length);
  tsecs.forEach(x=>x[1].forEach(a=>skip.add(a.link)));
  const sv=S.saved.filter(a=>!S.read[a.link]).slice(0,4);
@@ -12848,7 +12855,7 @@ function renderDigest(){
  h+=`<div class="edin"><b>In this issue</b><span>${edN=n+sv.length+miss.length} stories · about ${edM=mn+sv.length*3+miss.length*3} minutes</span><small>${names.join(' · ')}</small></div>`}
  const regL=(l,why)=>{const b=cur.length;l.forEach(a=>{cur.push(a);WHY[a.link]=why});return b};
  if(useNews){const b=regL(fp,'On the front page: ranked by how many sources cover it, and how new it is.');h+=`<div class="dsec nws" id="edin-front"><h3>The front page</h3></div>`+(NM==='w'?nrBlocks(fp,b,{seed:3,tv:0,seq:NEWS_W}):nrBlocksPhone(fp,b,{seed:3,seq:NEWS_P})).join('');dgNr=true}
- for(const [ni,[n,l,why,kind]] of all.entries()){h+=`<div class="dsec" id="edin-s${ni}"><h3>${esc(n)}</h3></div>`+(kind==='lead'?l.map(a=>mk(a,'lead',why)).join(''):`<div class="dgrid">${l.map(a=>mk(a,'mid',why)).join('')}</div>`)}
+ for(const [ni,[n,l,why,kind]] of all.entries()){h+=`<div class="dsec" id="edin-s${ni}"><h3>${esc(n)}</h3></div>`+(kind==='front'?`<div class="dfront">${mk(l[0],'lead',why)}</div>`+(l.length>1?`<div class="dgrid">${l.slice(1).map(a=>mk(a,'mid',why)).join('')}</div>`:''):kind==='lead'?l.map(a=>mk(a,'lead',why)).join(''):`<div class="dgrid">${l.map(a=>mk(a,'mid',why)).join('')}</div>`)}
  tsecs.forEach(([n,l,why],ti)=>{if(useNews&&l.length>=3){dgNr=true;const b=regL(l,why);h+=`<div class="dsec nws" id="edin-t${ti}"><h3>${esc(n)}</h3></div>`+(NM==='w'?nrSecHtml(l,b,ti):nrSecPhone(l,b,ti))}else h+=`<div class="dsec" id="edin-t${ti}"><h3>${esc(n)}</h3></div><div class="dgrid">${l.map(a=>mk(a,'mid',why)).join('')}</div>`});
  if(sv.length)h+=`<div class="dsec" id="edin-sv"><h3>Saved, still unread</h3></div><div class="dgrid">${sv.map(a=>mk(findStory(a.link)||a,'mid','You saved this and haven’t read it yet.')).join('')}</div>`;
  if(miss.length)h+=useNews?`<div class="dsec nws" id="edin-miss"><h3>In case you missed it</h3></div><section class="nr-quick"><div class="nr-qk">${miss.map(a=>mk(a,'nr nr-late','Unread, and widely covered in the last few days.')).join('')}</div></section>`:`<div class="dsec" id="edin-miss"><h3>In case you missed it</h3></div><div class="dgrid">${miss.map(a=>mk(a,'mid','Unread, and widely covered in the last few days.')).join('')}</div>`;
