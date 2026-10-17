@@ -175,7 +175,8 @@ body>aside .logo .lgm,#tlp{transition:--p .45s ease,transform .45s cubic-bezier(
 :root{--ghost:color-mix(in srgb,var(--logo) 17%,transparent);--lead:color-mix(in srgb,var(--logo) 45%,#fff)}
 #tlp{display:none;flex:none;width:0;height:28px;margin:0;opacity:0;overflow:hidden;background:var(--logo);-webkit-mask:var(--lm) center/contain no-repeat;mask:var(--lm) center/contain no-repeat;transition:width .3s,opacity .3s,margin .3s}
 @media(max-width:720px){#tlp{display:block}}
-.top:has(#pts.on) #tlp{width:0!important;opacity:0!important;margin:0!important}/* one refresh sign at a time: the growing tree, not the leaf beside the title */
+.top:has(#pts.on) #tlp{width:0!important;opacity:0!important;margin:0!important}
+#pts{background:transparent!important;box-shadow:none;border:0}@media(max-width:699px){.top:has(#pts.on) #ttl{visibility:hidden}}/* the tree has no box behind it; on a phone the title steps aside while it shows *//* one refresh sign at a time: the growing tree, not the leaf beside the title */
 @media(max-width:720px){body:not(.open)>aside .logo .lgm{transition:none!important;animation:none!important}}
 body.split #tlp{display:block}
 body.lp #tlp{width:28px;opacity:1;margin:0 4px 0 2px}
@@ -2441,8 +2442,10 @@ html.tlay:is([data-theme=thegoat],[data-theme=thegoatd]) #rd .tt::after{content:
 :root[data-theme=halcyond]{--bg:#0c2619;--pn:#123524;--ink:#f3ecdc;--mut:#c9bd9f;--ln:#2a4a38;--logo:#c9a24a;--hl:rgba(201,162,74,.28);--serif:'Literata',Georgia,serif;--fd:'Cormorant Garamond',Georgia,serif;--a1:#c9a24a;--a2:#d6b660;--a3:#e2c27a;--m1:#0c2619;--m2:#c9a24a;--m3:#123524;--m4:#b08d3e;color-scheme:dark}
 html.tlay:is([data-theme=halcyon],[data-theme=halcyond]) #grid .card{border:1px solid var(--ln);border-radius:12px}
 html.tlay:is([data-theme=halcyon],[data-theme=halcyond]) .card .src,html.tlay:is([data-theme=halcyon],[data-theme=halcyond]) #rd .kick{text-transform:uppercase;letter-spacing:.2em;font-size:10.5px;color:var(--a2)}
-html[data-theme=halcyon] #grid .card .src,html[data-theme=halcyon] #grid .card .src .sn,html[data-theme=halcyon] #grid .card .src .ssec,html[data-theme=halcyon] #rd .kick{color:#7d5f14}
-html[data-theme=halcyond] #grid :is(.card,.wcol) .src .sn,html[data-theme=halcyond] #grid .card .src .ssec,html[data-theme=halcyond] #rd .kick{color:var(--a2)}/* small brass labels on cream use the site's darker brass so they stay readable */
+html[data-theme=halcyon] #grid .card:is(.nr-row,.nr-late,.nr-tri,.list-row,.noimg) .src,html[data-theme=halcyon] #grid .card:is(.nr-row,.nr-late,.nr-tri,.list-row,.noimg) .src .sn,html[data-theme=halcyon] #grid .card:is(.nr-row,.nr-late,.nr-tri,.list-row,.noimg) .src .ssec,html[data-theme=halcyon] #rd .kick{color:#7d5f14}
+html[data-theme=halcyond] #grid :is(.card,.wcol) .src .sn,html[data-theme=halcyond] #grid .card .src .ssec,html[data-theme=halcyond] #rd .kick{color:var(--a2)}
+/* on a photo card the labels stay light so they read over the picture */
+html[data-theme=halcyon] #grid .card:not(:is(.nr-row,.nr-late,.nr-tri,.list-row,.noimg)) .src,html[data-theme=halcyon] #grid .card:not(:is(.nr-row,.nr-late,.nr-tri,.list-row,.noimg)) .src .sn,html[data-theme=halcyon] #grid .card:not(:is(.nr-row,.nr-late,.nr-tri,.list-row,.noimg)) .src .ssec{color:#e2c27a}/* small brass labels on cream use the site's darker brass so they stay readable */
 html:is([data-theme=halcyon],[data-theme=halcyond]) #grid.list .card h3{font-family:var(--fd)}
 /* main buttons: green with cream type on cream paper, brass with deep-green type on the dark green (the website's two buttons) */
 html[data-theme=halcyon] :is(button.go,.row .go,.tx2.go){background:#123524;color:#f3ecdc;border-color:transparent}
@@ -2955,7 +2958,7 @@ html.pdark #grid.paper{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .wmom-t b{display:block;font:400 clamp(34px,9.5vw,64px)/.94 var(--disp);letter-spacing:-.01em;text-shadow:0 2px 18px rgba(0,0,0,.5)}
 @media(min-width:700px){.wmom{aspect-ratio:21/9}}
 .wmeta{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px}.wmeta .nr-meta{margin:0}
-.wdens{flex:none;display:inline-flex;border:1px solid var(--ln);border-radius:999px;overflow:hidden}
+.wmeta{flex-wrap:wrap;max-width:100%}#grid.wire{overflow-x:clip}.wdens{flex:none;display:inline-flex;border:1px solid var(--ln);border-radius:999px;overflow:hidden}
 .wdens button{padding:4px 11px;border:0;background:transparent;color:var(--mut);font:600 11px var(--sans);letter-spacing:.04em;cursor:pointer}.wdens button[aria-pressed=true]{background:var(--ink);color:var(--pn)}
 .wcols{grid-column:1/-1;column-width:250px;column-gap:28px;column-rule:1px solid var(--ln);margin:0 0 22px}
 .wcol{display:block;break-inside:avoid;padding:11px 0 12px;border-bottom:1px solid var(--ln);color:var(--ink);text-decoration:none}
@@ -10826,7 +10829,6 @@ function ptEl(){let e=$('#pts');if(!e){e=document.createElement('div');e.id='pts
 /* sits just left of the first button on the right of the bar, over the empty part of the bar */
 function ptPlace(e){const top=$('.top'),tr=top.getBoundingClientRect(),b=['#mr','#vw','#ref','#srch'].map(q=>$(q)).find(x=>x&&x.getBoundingClientRect().width>0);
  /* the tree's backing is the bar's own color (a themed bar was showing a page-colored box), and on a phone it sits in the middle of the bar */
- try{const bg=getComputedStyle(top).backgroundColor;e.style.background=bg&&!/rgba\(0, 0, 0, 0\)|transparent/.test(bg)?bg:''}catch(x){}
  if(innerWidth<700){e.style.left='50%';e.style.right='auto';e.style.transform='translateX(-50%)';e.style.padding='0 8px'}
  else{e.style.left='';e.style.transform='';if(b){const l=b.getBoundingClientRect().left;e.style.right=Math.max(0,tr.right-l+4)+'px'}}}
 function ptDraw(off,p,label,cls){const e=ptEl(),g=$('#grid');if(!e.classList.contains('on')){ptPlace(e);e.classList.add('on')}
