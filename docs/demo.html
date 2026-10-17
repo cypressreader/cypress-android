@@ -3509,7 +3509,8 @@ html.txo #grid img,html.txo #rd img,html.txo #hub img,html.txo .dcv-art>img{disp
 .dcov.dct-type .dcv-lead h2,.dcov.dct-fb .dcv-lead h2{font-size:clamp(46px,14.5vw,118px);line-height:.9}
 .dcov.dct-type .dcv-lead.long h2,.dcov.dct-fb .dcv-lead.long h2{font-size:clamp(38px,11.2vw,88px)}
 .dcov.dct-min .dcv-lead h2{font-size:clamp(40px,12vw,96px)}
-.dcov.dct-type .dcv-num,.dcov.dct-fb .dcv-num,.dcov.dct-min .dcv-num{display:block;position:absolute;right:calc(var(--gp,24px) + 4px);top:clamp(96px,22%,200px);z-index:-1;font:400 clamp(150px,44vw,360px)/.8 var(--disp,Georgia,serif);letter-spacing:-.04em;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.16);pointer-events:none;user-select:none}
+.dcov.dct-type .dcv-num,.dcov.dct-fb .dcv-num,.dcov.dct-min .dcv-num{display:block;align-self:flex-end;position:relative;margin:14px calc(var(--gp,24px) + 4px) 0 0;z-index:0;font:400 clamp(110px,32vw,260px)/.8 var(--disp,Georgia,serif);letter-spacing:-.04em;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.16);pointer-events:none;user-select:none}
+.dcov:is(.dct-type,.dct-fb,.dct-min) .dcv-top{order:-1}/* the big outlined number sits in its own space under the masthead, so no text ever runs over it */
 .dcov.dct-min .dcv-num{-webkit-text-stroke-color:rgba(0,0,0,.10)}
 .dcov.dct-min .dcv-q{border-left-color:var(--b,#1f6a48);color:#1c1d1b}
 .dcov.dct-min .dcv-q span{color:var(--b,#1f6a48)}
@@ -12513,7 +12514,7 @@ function dayCoverHtml(lead,pool){covSeen();
  const li=lines.map(a=>{cur.push(a);WHY[a.link]='Cover line: a top unread story from '+fof(a).title+', one per site';return `<a class="cvl dcv-l" href="${esc(a.link)}" data-i="${cur.length-1}"><small style="--b:${brand(fof(a))}">${esc(pe('coverline',{},'cl'+cur.length,usedCL))} · ${esc(fof(a).title)}</small><span>${esc(a.title)}</span></a>`}).join('');
  const note=pe('note',{},'cover');
  return `<div class="dcov ${am?'dcm':'dce'} dct-${tr}" style="--b:${brand(fof(lead))}"><div class="dcv-art">${tr==='min'?'':edArtSvg(am)}${lead.img&&tr==='photo'?`<img src="${esc(lead.img)}" alt="" referrerpolicy="no-referrer" onload="cvJudge(this)" onerror="cvArtFail(this,'did not load')">`:''}</div><div class="dcv-sh"></div><span class="dcv-num" aria-hidden="true">${issue}</span>`
-  +`<header class="dcv-top"><span class="dcv-mast">CYPRESS</span><span class="dcv-motto">${esc(DAY_MOTTO)}</span><span class="dcv-ed">${esc(edition(d))} · Vol. ${String(d.getFullYear()).slice(-2)} · No. ${issue}</span></header>`
+  +`<header class="dcv-top"><span class="dcv-mast">CYPRESS</span><span class="dcv-motto">${esc(DAY_MOTTO)}</span><span class="dcv-ed">${esc(edition(d))} · <span style="white-space:nowrap">Vol. ${String(d.getFullYear()).slice(-2)} · No. ${issue}</span></span></header>`
   +`<div class="dcv-main"><a class="cvlead dcv-lead${lead.title.length>72?' long':''}" href="${esc(lead.link)}" data-i="0"><small>${esc(fof(lead).title)}</small><h2>${esc(lead.title)}</h2></a>${(()=>{let q=null;try{q=nrQuoteText(lead)}catch(e){}const t=q&&q.q&&q.q.length>=40?q.q.replace(/[\s,;:–—-]+$/,'')+(/[.!?…]$/.test(q.q)?'':'…'):'';const dk=t?'':(()=>{try{return ledeOf(lead)||dekOf(lead,190)}catch(e){return ''}})();return t?`<blockquote class="dcv-q"><span aria-hidden="true">“</span>${esc(t)}<cite>${esc(fof(lead).title)}</cite></blockquote>`:dk?`<p class="dcv-q dcv-qd">${esc(dk)}</p>`:''})()}${note?`<p class="dcv-note">${esc(note)}</p>`:''}${li?`<div class="dcv-lines">${li}</div>`:''}</div>`
   +`<div class="dcv-prog"><!--DGP--></div>${WHY[lead.link]?'<button type="button" class="why cvwhy dcv-why" data-why="0" title="Why am I seeing this?" aria-label="Why am I seeing this?">i</button>':''}</div>`;
 }
