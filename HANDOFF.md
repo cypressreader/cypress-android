@@ -18,6 +18,7 @@ Nothing from 1.107 is merged to `main` or built. **The user must say "build"/"me
 - Tests that pass: `tests/syntax.js`, `st5`, `st18`, `st27`, `st29`, `control`. Pre-existing failures (also fail on main, not ours): `st26` ("Advanced palettes count 41"), `deep2` (waits for `[data-oblg="circuit"]`), `deep3` ("update only once", fold-posture crash). `deep3` has the weather block removed.
 
 ## 2. Architectural & styling rules
+- Session memory tooling: `scripts/turn-counter.js` + `UserPromptSubmit` hook (counts in `.git/turn-counter.json`, nudges from message 8); `.claude/settings.json` deny-list mirrors `.claudeignore`. Needs a fresh session to take effect.
 - Single-file app. Edit only `www/index.html`; the hook copies to `docs/app/index.html` and rebuilds `docs/demo.html`. Don't read those two copies.
 - Fonts: Literata body (`--serif`), Cormorant Garamond (`--fd`), narrow display serif `--disp` for headlines. Colors are theme variables (`--bg --pn --ink --mut --ln --a1 --a2 --logo`); Halcyon palette as above. Photo cards = white text over dark overlay; row/list cards = `--ink`/`--mut`.
 - `#grid.list .card…` list styles are strong; to override on list view add `#grid.list` selectors and avoid fighting them (a forced hero card in list view failed).

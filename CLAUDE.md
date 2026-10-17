@@ -37,6 +37,7 @@ Key symbols in `www/index.html` (grep the name, then read ±30 lines): `render0`
 
 ## 4. Memory protocol
 - **Silent saving:** whenever a task or bug fix is finished, update `HANDOFF.md` on disk (Working & Locked, Dead Ends, Active State, Next 3 Tasks) and commit it with the work. No announcement needed.
+- **Turn counter (mechanical):** the `UserPromptSubmit` hook in `.claude/settings.json` runs `scripts/turn-counter.js`; from the 8th user message of a session it injects a `[turn-counter]` reminder. When you see it, follow the alarm below at once.
 - **Auto-handoff alarm:** when a milestone finishes OR the conversation reaches about 8–10 turns, STOP, make sure `HANDOFF.md` is current and committed, then show exactly:
 
   🛑 **WEEKLY QUOTA CHECKPOINT: START A NEW SESSION** 🛑
