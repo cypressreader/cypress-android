@@ -2756,10 +2756,13 @@ html.smooth .cover::before{mix-blend-mode:normal!important}
 .bmseg.dtabs button::after{content:'';position:absolute;left:16%;right:16%;bottom:-1px;height:2px;border-radius:2px;background:var(--a1,var(--ink));transform:scaleX(0);transition:transform .22s ease}
 .bmseg.dtabs button.on::after{transform:scaleX(1)}
 @media(prefers-reduced-motion:reduce){.bmseg.dtabs button::after{transition:none}}
-.bmseg.chips{gap:6px;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;margin:2px 0 12px}
+.bmseg.chips{gap:5px;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scrollbar-width:none;margin:2px 0 12px}
 .bmseg.chips::-webkit-scrollbar{display:none}
-.bmseg.chips button{flex:none;min-width:0;padding:4px 11px;border-radius:999px;border:1px solid var(--ln);background:transparent;color:var(--mut);font-size:12px;font-weight:500;box-shadow:none!important;white-space:nowrap}
+@media(max-width:699px){.bmseg.chips{justify-content:safe center}}
+.bmseg.chips button{flex:none;min-width:0;padding:5px 10px;border-radius:999px;border:1px solid var(--ln);background:transparent;color:var(--mut);font-size:13.5px;font-weight:500;box-shadow:none!important;white-space:nowrap}
 .bmseg.chips button.on{background:color-mix(in srgb,var(--ink) 9%,transparent);border-color:color-mix(in srgb,var(--ink) 40%,transparent);color:var(--ink);font-weight:600}
+@media(max-width:420px){.bmseg.chips{gap:4px}.bmseg.chips button{font-size:13px;padding:5px 8px}}
+@media(max-width:380px){.bmseg.chips button{font-size:12.5px;padding:5px 7px}}
 /* experiment, cluster 2: the Daily's cover */
 .dcov{grid-column:1/-1;position:relative;isolation:isolate;overflow:hidden;border-radius:20px;color:#fff;min-height:min(88vh,740px);display:flex;flex-direction:column;background:#0f2a22;box-shadow:0 0 0 2px #0f5a3b}
 .dcov::after{content:'';position:absolute;inset:9px;border:1px solid rgba(255,255,255,.28);border-radius:13px;pointer-events:none;z-index:3}
@@ -5351,7 +5354,7 @@ const skel=n=>skelCap()+'<div class="skc ld" aria-hidden="true"><i></i><i></i><i
 function render0(){
  NRS=nrMode();$('#grid').classList.remove('nr','nrp','wire','wtopic','fed','paper');$('#grid').style.removeProperty('--fb');
  side();$('#grid').classList.toggle('list',S.view==='list');{const g=$('#grid');g.dataset.w=S.view==='list'?'list':'card';g.dataset.wdens=S.wdens==='col'?'col':'mag'}
- let fs=S.feeds,t='All stories';
+ let fs=S.feeds,t='All Stories';
  if(S.sel.startsWith('f:')){const id=S.sel.slice(2);fs=S.feeds.filter(x=>x.folder===id);t=S.folders.find(f=>f.id===id)?.name||t}
  else if(S.sel.startsWith('s:')){fs=S.feeds.filter(x=>'s:'+x.id===S.sel);t=fs[0]?.title||t}
  else if(S.sel.startsWith('k:')){const k=S.sk.find(x=>'k:'+x.id===S.sel);if(k)t=k.name}
@@ -5359,7 +5362,7 @@ function render0(){
  document.body.style.setProperty('--tint',(S.theme==='dynamic'&&S.sel.startsWith('s:')&&fs[0])?`color-mix(in srgb,${brand(fs[0])} 8%,var(--bg))`:'');
  const q=$('#q').value.trim().toLowerCase();
  if(S.sel==='today'&&!q)return renderToday();
- if(S.sel==='all'&&!q&&atab()!=='latest'){let p=S.feeds.filter(f=>!paused(f)).flatMap(f=>items[f.id]||[]).filter(a=>!muted(a));p.sort((a,b)=>b.date-a.date);p=p.slice(0,300);if(S.hideRead)p=p.filter(a=>!S.read[a.link]);if(S.group!==false)p=group(p);return renderToday(atab(),p,allSeg(atab()),'All stories')}
+ if(S.sel==='all'&&!q&&atab()!=='latest'){let p=S.feeds.filter(f=>!paused(f)).flatMap(f=>items[f.id]||[]).filter(a=>!muted(a));p.sort((a,b)=>b.date-a.date);p=p.slice(0,300);if(S.hideRead)p=p.filter(a=>!S.read[a.link]);if(S.group!==false)p=group(p);return renderToday(atab(),p,allSeg(atab()),'All Stories')}
  if(S.sel==='brief'&&!q)return renderBrief();
  if(S.sel==='stats'&&!q)return renderStats();
  if(S.sel==='bi'&&!q)return renderBack();
@@ -6946,7 +6949,7 @@ function renderToday(tab0,pool0,seg0,ttl0){
  const byDate=pool.slice().sort((a,b)=>b.date-a.date);DAYPOOL=pool;
  for(const k in WHY)delete WHY[k];
  let h=SEG,list=[],label='',empty='';
- if(tab!=='latest'&&(ttl0==='All stories')){try{h+=trendStripHtml(wireStrip([]))}catch(e){}}
+ if(tab!=='latest'&&(ttl0==='All Stories')){try{h+=trendStripHtml(wireStrip([]))}catch(e){}}
  if(tab==='latest'){
   const ed0=dayEdition(pool),ranked=ed0.length?ed0:byDate.slice(0,ED_N);
   let lead=ranked.find(a=>a.img&&!noCover(a))||ranked.find(a=>!noCover(a))||ranked.find(a=>a.img)||ranked[0]||pool.find(a=>a.img)||pool[0];
@@ -6980,7 +6983,8 @@ function renderToday(tab0,pool0,seg0,ttl0){
  /* with enough stories the list gets the same varied layout the feeds have: a lead story, pairs, photo strips, pull quotes, short headline rows */
  if(tab!=='latest'){const m0=list.map(a=>a);const mx=mixBy(m0);list.splice(0,list.length,...mx);cur.splice(base,cur.length-base,...mx)}
  const mode=tab==='latest'?(nrMode()||(VW<NRMIN?'p':'w')):(list.length>=6||tab==='deep')?nrMode():'';
- if(label&&!(mode&&(label==='Latest'||tab==='latest')))h+=`<div class="dlh">${esc(label)}</div>`; /* the varied layouts already carry their own Latest heading */
+ if(tab!=='latest'){if(!(tab==='deep'&&mode))h+=tabMast(tab,list)} /* every All stories view opens with the same kind of heading, in the list and the tile view alike */
+ else if(label&&!(mode&&(label==='Latest'||tab==='latest')))h+=`<div class="dlh">${esc(label)}</div>`; /* the varied layouts already carry their own Latest heading */
  if(mode){g.classList.add('nr');if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
   let bl;if(tab==='latest'){try{bl=daySections(list,mode)}catch(e){elog('daySections',e);g.innerHTML=h+dayErrorHtml();return}}
   else bl=tab==='deep'?deepBlocks(list):mode==='w'?nrBlocks(list,base):nrBlocksPhone(list,base);
@@ -12216,6 +12220,13 @@ function longformItem(a,i,ix,cover,why){
   :`<a class="cvlead sun-a sun-i ${patCls(f)}${a.img?'':' noimg'}" href="${esc(a.link)}" data-i="${ix}" style="--b:${brand(f)}"><span class="sun-im">${img}</span>${t}</a>`;
 }
 /* the Deep reads tab: a nameplate, the long reads one at a time with big art, and a proper end */
+function tabMast(tab,list){
+ const n=list.length,mins=list.reduce((t,a)=>t+(minsOf(a)||0),0),hrs=mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes',src=new Set(list.map(a=>a.feedId)).size;
+ const T={top:['Top stories',n===1?'One top story':n+' top stories','The stories covered by the most of your sites over the last three days.'],
+  quick:['Quick reads',n===1?'One quick read':n+' quick reads','Each takes about 1 to 3 minutes. About '+hrs+' of reading in all.'],
+  deep:['Deep reads',n===1?'One long read':n+' long reads','About '+hrs+' of reading, from '+src+(src===1?' source':' sources')+'.']}[tab]||['','',''];
+ return `<header class="sun-m ${tab}-m"><small>${T[0]}</small><h2>${T[1]}</h2><p class="sun-s">${esc(T[2])}</p></header>`;
+}
 function deepBlocks(list){
  const B=[],mins=list.reduce((n,a)=>n+(minsOf(a)||0),0),hrs=mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes';
  B.push(`<header class="sun-m deep-m"><small>Deep reads</small><h2>${list.length===1?'One long read':list.length+' long reads'}</h2><p class="sun-s">${esc(list.length>=2?'About '+hrs+' of reading, from '+new Set(list.map(a=>a.feedId)).size+(new Set(list.map(a=>a.feedId)).size===1?' source':' sources')+'. Take your time.':'For when you have time to settle in.')}</p></header>`);
