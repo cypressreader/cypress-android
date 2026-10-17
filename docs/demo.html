@@ -1569,13 +1569,13 @@ html.quiet .cvm{letter-spacing:.06em}
 .cols>.hsf:not(:has(img)){display:none}
 .cols>.hsf img.hero{width:100%;height:100%;max-height:none;object-fit:cover;border-radius:16px;margin:0;display:block}
 /* photo on top: a wide photo keeps its own shape across the column, the title sits under it and the story flows on below */
-.cols>.hsf.hs-top{height:auto;break-after:auto;margin-bottom:22px}
+.cols>.hsf.hs-top{height:auto;break-after:auto;break-inside:auto;margin-bottom:22px}/* a tall header may run into the next column instead of pushing the text away and leaving a blank column */
 .cols>.hsf.hs-split{height:auto;break-after:auto;margin-bottom:22px}
 .cols>.hsf.hs-split img.hero{height:auto;aspect-ratio:16/9;object-fit:cover}
 .cols>.hsf.hs-top img.hero{height:auto;aspect-ratio:auto;object-fit:contain;border-radius:14px}
 .hsf.hs-top .hov{position:static;background:none;padding:24px 2px 4px;color:var(--ink)}
 .hsf.hs-top .hov .kick,.hsf.hs-top .hov .dt,.hsf.hs-top .hov .dt span{color:var(--mut);opacity:1}
-.hsf.hs-top .hov .tt{color:var(--ink);font-size:clamp(24px,3vw,38px);line-height:1.1;margin:6px 0 6px}
+.hsf.hs-top .hov .tt,.cine .hsf.hs-top .hov .tt{color:var(--ink);font-size:clamp(24px,3vw,38px);line-height:1.1;margin:6px 0 6px}
 .hsf.hs-hero .hov{position:absolute;left:0;right:0;bottom:0;padding:90px 24px 24px;background:linear-gradient(to top,rgba(0,0,0,.88),rgba(0,0,0,.45) 55%,transparent);color:#fff;border-radius:0 0 16px 16px}
 .hsf.hs-hero .hov .kick{color:#fff;opacity:.85}
 .hsf.hs-hero .hov .kick .flw{color:#fff;border-color:rgba(255,255,255,.5)}
@@ -2439,7 +2439,8 @@ html.tlay:is([data-theme=thegoat],[data-theme=thegoatd]) #rd .tt::after{content:
 html.tlay:is([data-theme=halcyon],[data-theme=halcyond]) #grid .card{border:1px solid var(--ln);border-radius:12px}
 html.tlay:is([data-theme=halcyon],[data-theme=halcyond]) .card .src,html.tlay:is([data-theme=halcyon],[data-theme=halcyond]) #rd .kick{text-transform:uppercase;letter-spacing:.2em;font-size:10.5px;color:var(--a2)}
 /* one headline face for every story in Halcyon (cards, list rows, covers, the reader): the narrow display serif, whether or not themed layouts are on */
-html:is([data-theme=halcyon],[data-theme=halcyond]) :is(#grid .card h3,#grid .card h3 a,.cvlead h2,.cvlead h3,#rd .tt,.dlead h3,.dcov h2){font-family:var(--disp);font-weight:400;letter-spacing:-.003em;font-synthesis:none}
+html:is([data-theme=halcyon],[data-theme=halcyond]) #grid.wire .wcol b{font:400 22px/1.12 var(--disp);letter-spacing:-.003em;font-synthesis:none}
+html:is([data-theme=halcyon],[data-theme=halcyond]) :is(#grid .card h3,#grid .card h3 a,.cvlead h2,.cvlead h3,#rd .tt,.dlead h3,.dcov h2){font-family:var(--disp)!important;font-weight:400!important;letter-spacing:-.003em;font-synthesis:none}
 .tt{break-inside:avoid}
 html[data-theme=halcyon] .top{--pn:#123524;--ink:#efe6d2;--mut:#c4b68c;--logo:#d6b660;--ln:#2d5240;background:#123524!important;color:#efe6d2;box-shadow:none}
 html:is([data-theme=halcyon],[data-theme=halcyond]) body>aside{background-image:none!important;border-right:1px solid var(--ln)}
@@ -2550,7 +2551,7 @@ html{font-synthesis-weight:none}
 .nr-spr{border-top:3px solid var(--ink)}.nr-spr>.card:first-child{border-top:0!important}
 .nr-color{margin-bottom:34px}
 #grid .card.nr-colr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:stretch;border-radius:24px;background:var(--b);min-height:310px;width:100%;color:#fff}
-#grid .nr-colr>img{position:static;grid-column:2;grid-row:1;height:100%;width:100%;object-fit:cover;z-index:auto;border-radius:0}
+#grid .nr-colr>img{position:static;grid-column:2;grid-row:1;height:100%;max-height:380px;width:100%;object-fit:cover;z-index:auto;border-radius:0}/* a tall portrait photo used to stretch the whole card and leave a big empty area beside the text */
 #grid .nr-colr>.ov{display:none}
 #grid .nr-colr .tx{grid-column:1;grid-row:1;padding:38px 40px;align-self:center;text-shadow:none}
 #grid .nr-colr h3{font-size:clamp(26px,2.7vw,42px);line-height:1.04;font-weight:var(--fw,700);letter-spacing:-.015em}
@@ -3901,6 +3902,7 @@ body:not(.narrow):not(.split).reading:not(.sideshow)>aside{transform:none;transi
 #grid .wsec,#grid .dsh,#grid .wline{contain:layout;position:relative;z-index:1}
 /* 21. Audit fixes: one headline cap for every card and cover line; cards and cover lines clip and contain what they paint; section bars sit above the cards; safe bottom edge; bigger touch targets */
 .card h2,.card h3,.cvlead:not(.dcv-lead) h2,.cvlead:not(.dcv-lead) h3,.card .headline{font-size:calc(clamp(1.15rem,4vw,1.7rem)*var(--csz,1))!important;line-height:1.15!important;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical}
+#grid .card:is(.nr-row,.nr-late,.list-row) h3{-webkit-line-clamp:7}/* a headline in a row is shown in full instead of ending in ... */
 .card,.cvl,.cvlead{position:relative;overflow:hidden;contain:layout paint}
 #grid .wsec,#grid .dsh,#grid .wline,#grid .sech{position:relative;z-index:4;background:linear-gradient(var(--tint,transparent),var(--tint,transparent)),var(--bg)}
 main{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
