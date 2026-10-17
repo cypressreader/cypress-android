@@ -398,3 +398,6 @@ Implemented, unverified on a tablet: (1) open stories with a very long headline 
 
 ## Polish pass (preview, 1.107)
 Implemented, checked in a desktop browser only for: reader header across the top on a tablet, the Well grid staying on screen, the solid Daily tab bar. Not checked on a device: rank-badge spacing in All stories "Also new", the cover edition line spacing, Settings cover previews, the Quick looks fade at the right edge, the stories-left pill chevron, the vertical spine text on wide screens, the "Loading the full article" note going away once text shows, and the "Filed under" tags no longer showing "Read". Also check justified text breaks long words with hyphens on the phone.
+
+## The Well on tablets (preview, 1.107)
+Implemented, unverified on a tablet: The Well ("Pictures from your sites") now uses equal picture frames. Check at about 780, 1000 and 1100 px wide (or a real tablet), light and dark: no single tall portrait setting the row height, captions line up, and nothing runs past the screen edge. Expected: two columns (3:2) below 1000 px, with a wide first picture when there are three; three or four equal 4:5 columns from 1000 px.
