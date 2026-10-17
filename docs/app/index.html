@@ -50,6 +50,7 @@ body>aside .logo .lgm,#tlp{transition:--p .45s ease,transform .45s cubic-bezier(
 :root{--ghost:color-mix(in srgb,var(--logo) 17%,transparent);--lead:color-mix(in srgb,var(--logo) 45%,#fff)}
 #tlp{display:none;flex:none;width:0;height:28px;margin:0;opacity:0;overflow:hidden;background:var(--logo);-webkit-mask:var(--lm) center/contain no-repeat;mask:var(--lm) center/contain no-repeat;transition:width .3s,opacity .3s,margin .3s}
 @media(max-width:720px){#tlp{display:block}}
+.top:has(#pts.on) #tlp{width:0!important;opacity:0!important;margin:0!important}/* one refresh sign at a time: the growing tree, not the leaf beside the title */
 @media(max-width:720px){body:not(.open)>aside .logo .lgm{transition:none!important;animation:none!important}}
 body.split #tlp{display:block}
 body.lp #tlp{width:28px;opacity:1;margin:0 4px 0 2px}
@@ -10675,7 +10676,11 @@ const ptClamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 const PR={y:null},PT={T:210,busy:0,last:-1};
 function ptEl(){let e=$('#pts');if(!e){e=document.createElement('div');e.id='pts';e.innerHTML='<div class="ptg">'+PT_SVG+'</div>';$('.top').append(e);const lb=document.createElement('div');lb.id='ptlb';lb.innerHTML='<span role="status" aria-live="polite"></span>';$('main').insertBefore(lb,$('#grid'))}return e}
 /* sits just left of the first button on the right of the bar, over the empty part of the bar */
-function ptPlace(e){const top=$('.top'),tr=top.getBoundingClientRect(),b=['#mr','#vw','#ref','#srch'].map(q=>$(q)).find(x=>x&&x.getBoundingClientRect().width>0);if(b){const l=b.getBoundingClientRect().left;e.style.right=Math.max(0,tr.right-l+4)+'px'}}
+function ptPlace(e){const top=$('.top'),tr=top.getBoundingClientRect(),b=['#mr','#vw','#ref','#srch'].map(q=>$(q)).find(x=>x&&x.getBoundingClientRect().width>0);
+ /* the tree's backing is the bar's own color (a themed bar was showing a page-colored box), and on a phone it sits in the middle of the bar */
+ try{const bg=getComputedStyle(top).backgroundColor;e.style.background=bg&&!/rgba\(0, 0, 0, 0\)|transparent/.test(bg)?bg:''}catch(x){}
+ if(innerWidth<700){e.style.left='50%';e.style.right='auto';e.style.transform='translateX(-50%)';e.style.padding='0 8px'}
+ else{e.style.left='';e.style.transform='';if(b){const l=b.getBoundingClientRect().left;e.style.right=Math.max(0,tr.right-l+4)+'px'}}}
 function ptDraw(off,p,label,cls){const e=ptEl(),g=$('#grid');if(!e.classList.contains('on')){ptPlace(e);e.classList.add('on')}
  const k=Math.round(p*60);if(k!==PT.last){PT.last=k;const gg=e.querySelector('.ptg');gg.style.setProperty('--p1',Math.min(1,p*1.5).toFixed(3));gg.style.setProperty('--p2',Math.max(0,(p-.45)/.55).toFixed(3));if(p>=1&&!PT.rdy){PT.rdy=1;buzz(15)}else if(p<.9)PT.rdy=0}
  const lb=$('#ptlb'),l=lb.querySelector('span');lb.style.setProperty('--o',off+'px');lb.classList.toggle('on',cls!=='busy'&&off>=22);if(l.textContent!==label)l.textContent=label;
