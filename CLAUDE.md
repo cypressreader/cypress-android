@@ -41,6 +41,7 @@ Key symbols in `www/index.html` (grep the name, then read ±30 lines): `render0`
 - **Auto-handoff alarm:** when a milestone finishes OR the conversation reaches about 8–10 turns, STOP, make sure `HANDOFF.md` is current and committed, then show exactly:
 
   🛑 **WEEKLY QUOTA CHECKPOINT: START A NEW SESSION** 🛑
+  When on a working branch (not `main`), the very first thing under the banner is this 1-click copy line, in a code fence, with the real branch name: `Checkout branch <current-branch-name>, read CLAUDE.md and HANDOFF.md, and Continue.`
   `HANDOFF.md` and `CLAUDE.md` are updated on disk. Open a new session and simply type: `Continue`
 
   and under it a copy-ready block (in a code fence) containing the current "Active state" and "Next 3 tasks" from `HANDOFF.md`, in case the next chat is not attached to this repo.

@@ -47,7 +47,8 @@ STAMP="$(date -u '+%Y-%m-%d %H:%M') UTC"
 
 URL=""
 if [ "$DRY" = 0 ]; then
-  URL="$(git remote get-url preview 2>/dev/null)" || die "no 'preview' remote. Run: git remote add preview https://github.com/cypressreader/cypress-preview.git"
+  git remote get-url preview >/dev/null 2>&1 || git remote add preview https://github.com/cypressreader/cypress-preview.git
+  URL="$(git remote get-url preview)"
   case "$URL" in
     *cypress-preview*) ;;
     *) die "the 'preview' remote ($URL) is not the cypress-preview repo; refusing to push" ;;

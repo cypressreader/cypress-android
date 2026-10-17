@@ -9,7 +9,9 @@ let raw = ''; process.stdin.on('data', d => raw += d).on('end', () => {
   let s = { sid: '', n: 0 }; try { s = JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) {}
   if (s.sid !== sid) s = { sid, n: 0 };
   s.n++; try { fs.writeFileSync(f, JSON.stringify(s)); } catch (e) {}
+  let br = ''; try { br = require('child_process').execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch (e) {}
+  const onBranch = br && br !== 'main' && br !== 'master' && br !== 'HEAD';
   if (s.n >= 8) {
-    console.log('[turn-counter] This is message ' + s.n + ' of this session. Per CLAUDE.md section 4: finish the current step, update HANDOFF.md on disk (Active state, Next 3 tasks, Dead ends) and commit it, then STOP and show the "🛑 WEEKLY QUOTA CHECKPOINT: START A NEW SESSION 🛑" banner with the copy-ready handoff block. Do not start new work after the banner.');
+    console.log('[turn-counter] This is message ' + s.n + ' of this session. Per CLAUDE.md section 4: finish the current step, update HANDOFF.md on disk (Active state, Next 3 tasks, Dead ends) and commit it, then STOP and show the "🛑 WEEKLY QUOTA CHECKPOINT: START A NEW SESSION 🛑" banner with the copy-ready handoff block. Do not start new work after the banner.' + (onBranch ? ' We are on working branch `' + br + '`, so put this exact copy line at the very top of the banner, in a code fence: Checkout branch ' + br + ', read CLAUDE.md and HANDOFF.md, and Continue.' : ''));
   }
 });
