@@ -395,3 +395,6 @@ Implemented, unverified on a phone. Must verify on the APK/phone:
 
 ## Reader blank column, row headlines, tall photos (preview, 1.107)
 Implemented, unverified on a tablet: (1) open stories with a very long headline on a tablet in Halcyon dark (e.g. a TechCrunch story): the headline should be the narrow serif at a moderate size and the text should start right after the byline, with no empty column. I could not reproduce the blank column here, so the fix (letting a tall header run into the next column) is a best guess; send a screenshot if it still happens. (2) The Daily on a tablet: row headlines show in full, no tall stretched photo cards, All Stories column headlines are not oversized.
+
+## Polish pass (preview, 1.107)
+Implemented, checked in a desktop browser only for: reader header across the top on a tablet, the Well grid staying on screen, the solid Daily tab bar. Not checked on a device: rank-badge spacing in All stories "Also new", the cover edition line spacing, Settings cover previews, the Quick looks fade at the right edge, the stories-left pill chevron, the vertical spine text on wide screens, the "Loading the full article" note going away once text shows, and the "Filed under" tags no longer showing "Read". Also check justified text breaks long words with hyphens on the phone.
