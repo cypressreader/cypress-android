@@ -123,17 +123,17 @@ async function story(u, payload) {
   if (!page.ok) return new Response('Try again in a moment', { status: 502 });
   let html = await page.text();
 
-  const title = (o && typeof o.t === 'string' && o.t.trim()) ? o.t.trim().slice(0, 160) : 'A story shared from CyPress';
+  const title = (o && typeof o.t === 'string' && o.t.trim()) ? o.t.trim().slice(0, 160) : 'A story shared from CyPress Reader';
   const source = (o && typeof o.s === 'string') ? o.s.slice(0, 60) : '';
   const desc = (o && typeof o.x === 'string' && o.x.trim())
     ? o.x.trim().slice(0, 200)
     : 'Open it to read, and see how news looks in CyPress.';
   const img = o ? okUrl(o.i, true) : '';
-  const image = img || u.origin + '/logo.png';
+  const image = img || u.origin + '/og.png?v=2';
 
   const tags =
     '<meta property="og:type" content="article">' +
-    '<meta property="og:site_name" content="CyPress' + (source ? ' · ' + esc(source) : '') + '">' +
+    '<meta property="og:site_name" content="CyPress Reader' + (source ? ' · ' + esc(source) : '') + '">' +
     '<meta property="og:title" content="' + esc(title) + '">' +
     '<meta property="og:description" content="' + esc(desc) + '">' +
     '<meta property="og:image" content="' + esc(image) + '">' +
@@ -148,7 +148,7 @@ async function story(u, payload) {
   html = html
     .replace(/<meta property="og:[^>]*>\s*/g, '')
     .replace(/<meta name="description"[^>]*>\s*/g, '')
-    .replace(/<title>[\s\S]*?<\/title>/, '<title>' + esc(title) + ' · CyPress</title>')
+    .replace(/<title>[\s\S]*?<\/title>/, '<title>' + esc(title) + ' · CyPress Reader</title>')
     .replace('<head>', '<head><base href="' + u.origin + '/">')
     .replace('</head>', tags + '</head>');
 

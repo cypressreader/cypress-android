@@ -31,15 +31,6 @@ ck('all themes both ways readable',!bad.length,bad.join(', '));
 await p.evaluate(()=>{S.sch='dark';syncSet()});ck('select shows value',await p.evaluate(()=>$('#sch').value)==='dark');
 await p.evaluate(()=>{const e=$('#sch');e.value='light';e.dispatchEvent(new Event('change'))});ck('select saves',await p.evaluate(()=>S.sch)==='light');
 ck('synced key',await p.evaluate(()=>SET_KEYS.includes('sch')));
-// after sunset: my theme, darker
-{const q=async(th,sch,night,nowN)=>p.evaluate(async([th,sch,night,nowN])=>{const s=document.createElement('style');s.textContent='*{transition:none!important}';document.head.append(s);const o=window.isNight;window.isNight=()=>nowN;S.theme=th;S.sch=sch;S.night=night;applyTheme(false);await new Promise(r=>setTimeout(r,2300));
- const m=getComputedStyle(document.body).backgroundColor.match(/[\d.]+/g).map(Number);const r={eff:document.documentElement.dataset.theme,dark:lumOf(m)<.2,night:document.documentElement.classList.contains('night')};window.isNight=o;s.remove();S.night='off';return r},[th,sch,night,nowN]);
- r=await q('broadsheet','theme','twin',true);ck('twin at night is dark sepia',r.dark&&r.eff==='broadsheet'&&r.night,JSON.stringify(r));
- r=await q('broadsheet','theme','twin',false);ck('twin by day is normal',!r.dark&&!r.night,JSON.stringify(r));
- r=await q('broadsheet','light','twin',true);ck('twin beats Always light at night',r.dark,JSON.stringify(r));
- r=await q('midnight','theme','twin',true);ck('already-dark theme stays',r.dark&&r.eff==='midnight');
- r=await q('broadsheet','theme','dark',true);ck('fixed night theme still works',r.dark&&r.eff==='dark');
- ck('option exists',await p.evaluate(()=>!!document.querySelector('#ngt option[value=twin]')));}
 // code dumps
 {const o=await p.evaluate(()=>{const d=document.createElement('div');const lines=Array.from({length:6},(_,i)=>'<string name="midnight_item_'+i+'">x</string>').join('\n');
  d.innerHTML='<pre>'+lines.replace(/</g,'&lt;')+'</pre><pre>function a(){\n return 1\n}</pre>';document.body.append(d);furnish(d);const r={codex:d.querySelectorAll('details.codex').length,code:d.querySelectorAll('.code').length,txt:(d.querySelector('summary')||{}).textContent};furnish(d);r.again=d.querySelectorAll('details.codex').length;d.remove();return r});

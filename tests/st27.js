@@ -12,7 +12,7 @@ const R=await p.evaluate(async()=>{
  for(const [id,name,a1] of [['highstorm','Tempest','#66b8ff'],['crimsondawn','Scarlet Dawn','#e23a35'],['thevoid','The Void','#b79cff']]){
   const r={};S.theme=id;S.sch='theme';S.night='off';S.sel='all';applyTheme(false);render();await new Promise(x=>setTimeout(x,700));
   const cs=getComputedStyle(document.documentElement);r.a1=cs.getPropertyValue('--a1').trim();r.sym=/^url\(/.test(cs.getPropertyValue('--sym').trim());r.dark=lumOf(anyRgb(getComputedStyle(document.body).backgroundColor))<.2;
-  r.swatch=!!document.querySelector('#thm [data-th='+id+']');r.label=(document.querySelector('#thm [data-th='+id+']')||{textContent:''}).textContent;r.sunset=!!document.querySelector('#ngt option[value='+id+']');
+  r.swatch=!!document.querySelector('#thm [data-th='+id+']');r.label=(document.querySelector('#thm [data-th='+id+']')||{textContent:''}).textContent;
   r.names=THEME_NAMES.some(x=>x[0]===id&&x[1]===name);r.genres=THEME_GENRES.some(g=>(g[1]||[]).includes(id));r.fonts=[THB[id],THF[id],THH[id]].every(Boolean);
   document.querySelector('#grid .card[data-i]').click();await new Promise(x=>setTimeout(x,2200));
   const tt=document.querySelector('#rd .tt');
@@ -28,7 +28,7 @@ const R=await p.evaluate(async()=>{
 for(const [id,a1] of [['highstorm','#66b8ff'],['crimsondawn','#e23a35'],['thevoid','#b79cff']]){const r=R[id];
  ck(id+' colors',r.a1.toLowerCase()===a1&&r.dark,JSON.stringify([r.a1,r.dark]));
  ck(id+' symbol defined',r.sym);
- ck(id+' in the theme grid, After sunset and folder lists',r.swatch&&r.sunset&&r.names&&r.genres,JSON.stringify([r.swatch,r.sunset,r.names,r.genres]));
+ ck(id+' in the theme grid and folder lists',r.swatch&&r.names&&r.genres,JSON.stringify([r.swatch,r.names,r.genres]));
  ck(id+' own fonts',r.fonts);
  ck(id+' accent rule under title',r.rule);
  ck(id+' no watermark behind the title',r.mark);

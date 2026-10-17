@@ -33,7 +33,6 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
  ck('highlights export as markdown',/^# My highlights/.test(r.md)&&/^> A sentence worth keeping/m.test(r.md),r.md);
  ck('shelf can be listened to',r.shelfBtn);ck('duplicate coverage chip says how many report it',r.chip.some(x=>/\+4 sources/.test(x)),JSON.stringify(r.chip));
  const [dl]=await Promise.all([p.waitForEvent('download'),p.evaluate(()=>exportHighlightsMd())]);ck('export downloads a .md file',/\.md$/.test(dl.suggestedFilename()),dl.suggestedFilename());
- const t=await p.evaluate(async()=>{S.autodark=true;document.querySelector('.tg[data-tg="autodark"]').click();await new Promise(r=>setTimeout(r,200));return S.night});ck('dark at sunset toggle sets the twin night look',t==='twin'||t==='off',t);
  ck('no page errors',!errs.length,errs[0]);await b.close();
  console.log('control',bad?bad+' FAILED':'all passed');process.exit(bad?1:0);
 })();

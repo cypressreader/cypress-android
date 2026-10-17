@@ -59,6 +59,7 @@ CyPress is a privacy-first, magazine-style RSS reader. Free, no accounts, no ads
 ## Hard rules — feeds & content
 - The open RSS ecosystem still serves HTTP content. Do not blanket-ban cleartext; keep first-party traffic HTTPS-only and degrade gracefully with publisher HTTP.
 - Copy: plain language, no jargon (no "RSS", no "rail"); title-case theme names; watch pluralization ("1 story").
+- **US spelling** everywhere users read it (app, site, demo stories, release notes): color, favorite, center, catalog, neighbor, harbor, gray, recognize. Leave code identifiers, CSS names and comments alone.
 
 ## Hard rules — performance
 - Stay fast on low-end devices. Stagger background work, throttle re-renders, respect offline / data-saver / low-power modes.

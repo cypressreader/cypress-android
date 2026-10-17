@@ -379,3 +379,16 @@ Must verify on a phone and a desktop browser at cypressreader.com: tap "Try it l
 
 ## Tablet page for phone visitors (docs/tablet.html)
 Must verify on a real phone: on cypressreader.com under the phone demo, tap "See the tablet layout, live"; the page opens with the tablet layout (sidebar and columns) shrunk to fit; rotating sideways makes it bigger; pinch-to-zoom works and does not trap scrolling; "Back to the site" returns home. Also check it on an iPhone (Safari) and an Android phone (Chrome).
+
+## Batch 1.107 (preview): location and sunset removed, Daily and All Stories tidy-up
+Implemented, unverified on a phone. Must verify on the APK/phone:
+(1) **No location anywhere.** After installing the new APK, App info > Permissions must not list Location, and no location prompt may appear in Settings, the Add dialog or "Near you". (The permission lines are gone from both native manifests; this needs the next APK build to take effect.)
+(2) **Near you.** Add a feed > Near you: type "Leeds", "Lyon, France", "Pune", "Sydney NSW"; Find news (or Enter on the keyboard) shows Google and Bing results in the phone's language; Add puts the feed in a "Local" folder; "Save to my places" keeps the place (up to 10), Remove forgets it, saved places survive closing the app.
+(3) **Light or dark.** Settings > Look: no "After sunset", "Weather in the sky" or "Exact sunset time" rows. "Light or dark" has As the theme is / Always light / Always dark / Follow my phone. Anyone who had After sunset on should land on Follow my phone. Dynamic look has no "Match daylight".
+(4) **Search box.** Tap Search at the bottom, type nothing, close the keyboard with the keyboard's own hide button, then scroll: the box should go away. Also: close the keyboard, then tap The Daily or All: the box should go away. (Uses the on-screen keyboard height; cannot be checked on a desktop.)
+(5) **Long press.** Press and hold on a feed in the sidebar, on settings labels and on buttons: no text highlights. Reader text and text boxes still select.
+(6) **Pull to refresh.** The growing tree sits in the middle of the top bar on a phone, with the bar's own color behind it (check Halcyon and a light theme), and the small leaf by the title stays hidden while it shows.
+(7) **Feed settings on a phone.** "Refresh this site" shows the full-width choice under its name with "Check less often to save battery" under it; Stop following says what it does; the confirmation reads Remove and "You can undo this right after or add it back later."
+(8) **Feed text size and Story card size.** Compact/Comfortable/Large changes The Daily's headings too; Story card size buttons read Compact, Medium, Large and the headline grows with them.
+(9) **ABC News.** The starter-list address (abcnews.com/abcnews/topstories) loads and parses here (25 stories) but could not be reproduced as failing; check on the phone that ABC News shows stories after being added. If it still shows none, remove it from the starter list.
+(10) **Shared-link page** (docs/s.html): open a real shared link on a phone; it should be green and brass, show the tree badge and read "CyPress Reader". The worker in docs/worker/share-worker.js changed (preview picture and names), so it has to be pasted into Cloudflare again before the short links show the new wording.

@@ -13,11 +13,8 @@ const R=await p.evaluate(async()=>{
  o.group=[...document.querySelectorAll('#thm details.thd')].find(d=>/After Dark/.test(d.querySelector('summary').textContent));
  o.groupHas=!!(o.group&&o.group.querySelector('[data-th=nocturne]'));o.groupCount=o.group&&o.group.querySelector('summary small').textContent;o.group=undefined;
  o.more=[...document.querySelectorAll('#thm summary')].find(x=>/Advanced Color Palettes/.test(x.textContent)).querySelector('small').textContent;
- o.sunset=!!document.querySelector('#ngt option[value=nocturne]');
  o.names=THEME_NAMES.some(x=>x[0]==='nocturne');o.genres=THEME_GENRES.some(g=>(g[1]||[]).includes('nocturne'));
  o.fonts=[THB.nocturne,THF.nocturne,THH.nocturne];
- // after sunset can pick it
- S.theme='light';S.sch='theme';S.night='nocturne';const on=window.isNight;window.isNight=()=>true;applyTheme(false);await new Promise(r=>setTimeout(r,120));o.nightEff=document.documentElement.dataset.theme;window.isNight=on;S.night='off';
  return o});
 ck('dark: near-black background',R.dark.dark&&R.dark.eff==='nocturne'&&/9, 10, 15|#090a0f/i.test(R.dark.bg+R.dark.bgv),JSON.stringify([R.dark.bg,R.dark.bgv]));
 ck('gold accent',/#a8873a/i.test(R.dark.a1),R.dark.a1);
@@ -28,7 +25,6 @@ ck('flips back to dark',R.darkAgain.dark);
 ck('swatch in the theme grid',R.swatch);
 ck('in the After Dark group, count updated',R.groupHas&&R.groupCount==='12',JSON.stringify([R.groupHas,R.groupCount]));
 ck('Advanced palettes count updated',R.more==='40',R.more);
-ck('available for After sunset',R.sunset&&R.nightEff==='nocturne',JSON.stringify([R.sunset,R.nightEff]));
 ck('listed for folder themes',R.names&&R.genres);
 ck('has its own fonts',R.fonts.every(Boolean),JSON.stringify(R.fonts));
 ck('no page errors',!errs.length,errs.join('|'));

@@ -28,11 +28,9 @@ r=await st('dark');ck('Always dark gives the away kit',r.eff==='thegoatd'&&r.dar
 r=await st('light');ck('Always light gives the home kit',r.eff==='thegoat'&&!r.dark);
 await p.emulateMedia({colorScheme:'dark'});r=await st('light');ck('Always light beats a dark phone',r.eff==='thegoat'&&!r.dark);
 await p.emulateMedia({colorScheme:'light'});r=await st('sys');ck('Match my phone (light)',r.eff==='thegoat');
-r=await st('theme','thegoat');ck('After sunset with Paragon as the night theme gives the away kit',r.eff==='thegoatd'&&r.dark,JSON.stringify(r));
-r=await st('theme','twin');ck('After sunset "my theme, darker" gives the away kit',r.eff==='thegoatd'&&r.dark,JSON.stringify(r));
 // registration
-const reg=await p.evaluate(()=>({sw:!!document.querySelector('#thm [data-th=thegoat]'),label:(document.querySelector('#thm [data-th=thegoat]')||{textContent:''}).textContent,sunset:!!document.querySelector('#ngt option[value=thegoat]'),names:THEME_NAMES.some(x=>x[0]==='thegoat'&&x[1]==='Paragon'),genres:THEME_GENRES.some(g=>(g[1]||[]).includes('thegoat')),fonts:[THB.thegoat,THF.thegoat,THH.thegoat].every(Boolean)}));
-ck('in the theme grid as Paragon',reg.sw&&reg.label==='Paragon',JSON.stringify(reg));ck('After sunset and folder lists',reg.sunset&&reg.names&&reg.genres);ck('has fonts',reg.fonts);
+const reg=await p.evaluate(()=>({sw:!!document.querySelector('#thm [data-th=thegoat]'),label:(document.querySelector('#thm [data-th=thegoat]')||{textContent:''}).textContent,names:THEME_NAMES.some(x=>x[0]==='thegoat'&&x[1]==='Paragon'),genres:THEME_GENRES.some(g=>(g[1]||[]).includes('thegoat')),fonts:[THB.thegoat,THF.thegoat,THH.thegoat].every(Boolean)}));
+ck('in the theme grid as Paragon',reg.sw&&reg.label==='Paragon',JSON.stringify(reg));ck('folder lists',reg.names&&reg.genres);ck('has fonts',reg.fonts);
 // end mark: the 10 with three stars, in both kits
 const end=await p.evaluate(async()=>{const out={};const body=Array.from({length:4},()=>'<p>Not whether he accepts the diagnosis on paper. Whether he actually believes, in the car, at the dinner table, in the moment when the homework is not done again.</p>').join('');
  const f=S.feeds[0],now=Date.now();items[f.id]=Array.from({length:3},(_,i)=>({feedId:f.id,title:'Whether his dad believes the ADHD is real '+i,link:'https://w.test/'+i,date:now-i*36e5,summary:'x',html:body}));

@@ -38,7 +38,7 @@ Writers who work at length talk about this constantly. A piece is built like a j
 
 The feed, as a format, is built for continuing. Its job is to make sure there is always another item below the one you are looking at. That is a fine job for a tool that helps you find things. It is a poor fit for the experience of reading something properly.
 
-Designers we spoke to described the trade-off plainly. A feed optimises for the next tap. A story optimises for the last line. The two goals pull in opposite directions, and for a while the feed was winning simply because it was easier to measure.
+Designers we spoke to described the trade-off plainly. A feed optimizes for the next tap. A story optimizes for the last line. The two goals pull in opposite directions, and for a while the feed was winning simply because it was easier to measure.
 
 - A feed has no edges. A story does.
 - A feed rewards the quick glance. A story rewards the settled hour.
@@ -91,7 +91,7 @@ If you want to test it yourself, the experiment is small and cheap.
 - Finish it. If you stop halfway, note why.
 - After a week, notice what you remember.
 
-Some readers go further. They keep a small notebook of the long pieces they have finished, with a line or two about each, and say that rereading it on a grey afternoon is a pleasure in its own right. It is a record, they say, of attention given and well spent, which is more than most of our days can claim.
+Some readers go further. They keep a small notebook of the long pieces they have finished, with a line or two about each, and say that rereading it on a gray afternoon is a pleasure in its own right. It is a record, they say, of attention given and well spent, which is more than most of our days can claim.
 
 The simplest test is the one most of us already use. At the end of a reading session, do you feel done, or do you feel pulled? The best tools leave you with the first feeling, and the best writers have always known how to give it to you.`,
         },
@@ -134,9 +134,9 @@ The trouble is that most of us have forgotten how. We reach for the phone in eve
 
 ## Start very small
 
-The advice from people who practise this is gentle and consistent. Do not begin with an hour. Begin with a minute, and make it a specific minute, one you can recognise every day.
+The advice from people who practice this is gentle and consistent. Do not begin with an hour. Begin with a minute, and make it a specific minute, one you can recognize every day.
 
-!27 | The window seat, a good place to practise. No phone required.
+!27 | The window seat, a good place to practice. No phone required.
 
 A teacher who has done this for years starts with the kettle. While it boils, she looks out of the window and does nothing else. She says it took a fortnight before it stopped feeling strange.
 
@@ -162,7 +162,7 @@ The people who stick with it rarely describe it as productive, and they are slig
           t: 'The accessibility feature everyone ended up using', s: 'Captions, large text and voice control started as help for some and became tools for all.', sec: 'Design', by: 3,
           body: `Many of the features we now take for granted started life as help for a particular group of people. Captions were built for viewers who could not hear. Large text was built for readers who could not see small print. Voice control was built for people who could not easily use their hands.
 
-Today, all three are used by millions who would never think of themselves as needing help. That pattern is so common that designers have a name for it: the curb-cut effect, after the sloped kerbs that were meant for wheelchairs and turned out to help parents with prams, travellers with cases and anyone on a bicycle.
+Today, all three are used by millions who would never think of themselves as needing help. That pattern is so common that designers have a name for it: the curb-cut effect, after the sloped curbs that were meant for wheelchairs and turned out to help parents with prams, travelers with cases and anyone on a bicycle.
 
 ## Captions on, sound off
 
@@ -188,7 +188,7 @@ A few habits show up in the teams that do it well:
 - They treat settings as a feature, not a hiding place.
 - They write labels that make sense when read aloud.
 
-The result is rarely dramatic. It is simply software that feels considerate, which most people can recognise even when they cannot say why.`,
+The result is rarely dramatic. It is simply software that feels considerate, which most people can recognize even when they cannot say why.`,
         },
         {
           t: 'Inside the town that rebuilt its library', s: 'Volunteers, a leaky roof and four years of Saturday mornings.', sec: 'Community', by: 4,
@@ -216,9 +216,9 @@ There was never a grand plan. The group started by cataloguing what was there, f
 
 ## What it cost, and what it gave
 
-The total bill came to a little under what the council had budgeted for a single year of keeping the doors closed. Most of it was materials. Almost none of it was labour, because almost all of that was given.
+The total bill came to a little under what the council had budgeted for a single year of keeping the doors closed. Most of it was materials. Almost none of it was labor, because almost all of that was given.
 
-The deeper return is harder to count. The volunteers talk about a sense of knowing their neighbours that they did not have before. A teenager who came to fix shelves now runs the Saturday desk. A widower who had not left the house much now arrives early to put the kettle on.
+The deeper return is harder to count. The volunteers talk about a sense of knowing their neighbors that they did not have before. A teenager who came to fix shelves now runs the Saturday desk. A widower who had not left the house much now arrives early to put the kettle on.
 
 !30 | The new reading nook, finished last spring.
 
@@ -247,7 +247,7 @@ None of this is dramatic, which is rather the point. The habits are small enough
       stories: [
         {
           t: 'What a quiet morning does for the mind', s: 'Researchers say the first hour of the day shapes the other fifteen.', sec: 'Mind', by: 0,
-          body: `The first hour after waking is quieter than it looks. Cortisol is high, attention is fresh, and the mind has not yet been handed the day’s demands. What fills that hour tends to colour the rest.
+          body: `The first hour after waking is quieter than it looks. Cortisol is high, attention is fresh, and the mind has not yet been handed the day’s demands. What fills that hour tends to color the rest.
 
 In a small study, volunteers spent twenty minutes each morning with a book, a notebook or a window. Compared with a group who began with messages, they reported feeling less rushed by lunchtime. The effect was modest but steady.
 
@@ -275,7 +275,7 @@ The researchers are careful about what they claim. Sleep, work and family all ma
 Most participants kept at least part of the habit after the study ended. A few described it, with some surprise, as the part of the day they would miss most.`,
         },
         {
-          t: 'The harbour seals that learned to wait for the tide', s: 'A colony off a northern coast has changed its whole schedule, and nobody told them to.', sec: 'Nature', by: 1,
+          t: 'The harbor seals that learned to wait for the tide', s: 'A colony off a northern coast has changed its whole schedule, and nobody told them to.', sec: 'Nature', by: 1,
           body: `Naturalists have long noted that animals keep schedules we rarely see. Tides, light and temperature set a rhythm, and the animals that follow it closely tend to waste less effort. On one northern coast, that rhythm has recently shifted, and a colony of seals has shifted with it.
 
 Observers have counted the animals each dawn for three seasons. As a channel silted up and the tide arrived later, the colony moved its resting hours by almost forty minutes.
@@ -290,7 +290,7 @@ Within a season, the colony’s habits had changed. Seals that waited for the ri
 
 ## How it spread
 
-Nobody is certain how the change travelled. The older seals may lead and the younger ones copy, or each animal may simply feel the water rise at the same moment and move. What the records show is patience.
+Nobody is certain how the change traveled. The older seals may lead and the younger ones copy, or each animal may simply feel the water rise at the same moment and move. What the records show is patience.
 
 > What the records show is patience.
 
@@ -314,7 +314,7 @@ Sensors placed along a line from the trunk to the field showed the pattern clear
 
 That steadiness is a gift to everything that lives nearby. Moss, fungi, small mammals and a great many insects use the oak’s patch as a refuge, and some of them travel out into the valley from there.
 
-> One old tree can hold a whole neighbourhood together.
+> One old tree can hold a whole neighborhood together.
 
 ## The insect count
 
@@ -322,7 +322,7 @@ The team counted more than a thousand species of insect in and around the tree, 
 
 ## What this means for the valley
 
-The farmers who graze the nearby fields say they have noticed the effect for years. Lambs shelter under the crown in spring storms. A neighbouring orchard blossoms a little earlier than those further away.
+The farmers who graze the nearby fields say they have noticed the effect for years. Lambs shelter under the crown in spring storms. A neighboring orchard blossoms a little earlier than those further away.
 
 - The tree cools the ground in summer and warms it in winter.
 - It supports more insect species than any other single point in the valley.
@@ -364,7 +364,7 @@ In one small city, that is starting to change. Over three years, the council rep
 
 !35 | The same street before and after the new lamps. The glow above the rooftops is gone.
 
-The changes were modest. The new lamps are lower in power and warmer in colour. They carry shields so that light falls on the street and not the clouds. A few are fitted with sensors that dim them in the quiet hours.
+The changes were modest. The new lamps are lower in power and warmer in color. They carry shields so that light falls on the street and not the clouds. A few are fitted with sensors that dim them in the quiet hours.
 
 > The best light is the light that lands where it is needed.
 
@@ -377,7 +377,7 @@ Measurements from a rooftop sensor show the sky above the city is about a third 
 You do not need a council to help. Households can make a difference with a few small choices.
 
 - Fit outdoor lights with shields, and point them downward.
-- Choose warm colours over cool white.
+- Choose warm colors over cool white.
 - Turn lights off when they are not needed.
 
 The astronomers who studied the city’s lights say that the change cost less than expected and saved money on power. They are careful to add that it is also a pleasure, and that on a quiet night there is nothing quite like being able to look up.`,
@@ -410,8 +410,8 @@ Today’s kettles are efficient, quiet and sometimes clever, with temperature se
       id: 'harbor', name: 'Harbor', cat: 'Places',
       stories: [
         {
-          t: 'The harbour that learned to run on tides', s: 'Engineers and fishermen built something neither expected.', sec: 'Energy', by: 0,
-          body: `The harbour at Marrow Bay sits at the end of a long, shallow inlet, and for most of a century its tides were a nuisance. Boats waited for water, and water came and went on its own timetable. Then, one winter, someone at a harbour meeting asked a question that sounded like a joke. If the tide was going to arrive twice a day regardless, could it do something useful while it was here?
+          t: 'The harbor that learned to run on tides', s: 'Engineers and fishermen built something neither expected.', sec: 'Energy', by: 0,
+          body: `The harbor at Marrow Bay sits at the end of a long, shallow inlet, and for most of a century its tides were a nuisance. Boats waited for water, and water came and went on its own timetable. Then, one winter, someone at a harbor meeting asked a question that sounded like a joke. If the tide was going to arrive twice a day regardless, could it do something useful while it was here?
 
 What followed took six years, a great deal of tea and a surprising amount of patience. It also changed how a small town thinks about its own shoreline.
 
@@ -419,7 +419,7 @@ What followed took six years, a great deal of tea and a surprising amount of pat
 
 The idea was taken up by a small team: two engineers from the nearby university, three fishermen and a retired teacher who kept the minutes. None of them thought of themselves as pioneers. They thought of themselves as people with a problem and a good deal of water.
 
-!24 | The harbour wall at Marrow Bay, from the old fish quay.
+!24 | The harbor wall at Marrow Bay, from the old fish quay.
 
 They spent two winters on the plan. It was not fast, and it was not glamorous, but it was carefully done. The first task was simply to measure: how high the water rose, how fast it moved, and where the channel carried it.
 
@@ -447,7 +447,7 @@ The first Saturday it ran, the whole town watched the pier lights come on. There
 
 Over the next four years, more units followed. Each was added only after a season of measurements, and each went to a place agreed with the fishermen. The team published its figures openly, including those that did not look good.
 
-By the fifth year, the harbour was producing enough power to keep its own lights burning and to sell a little back. The numbers are modest, but every household on the front reports the same thing: the bills are steadier.
+By the fifth year, the harbor was producing enough power to keep its own lights burning and to sell a little back. The numbers are modest, but every household on the front reports the same thing: the bills are steadier.
 
 ## What the town says
 
@@ -459,11 +459,11 @@ There is a plaque now. It lists the names of everyone who helped, including the 
 
 The team has always published its figures, including the awkward ones. In the first year, the units produced about two thirds of what the engineers had hoped. A silt build-up in the channel cost them a month. A cold snap iced a sensor and stopped one unit for a week. A fishing boat caught a line in a mooring cable, and nobody has ever been quite sure how.
 
-The second year was better. The units were moved, the sensors were fitted with heaters, and the fishermen suggested a change to the marker buoys that made them far easier to see at dusk. By the third year the harbour was producing a little more than the original estimate, and the engineers wrote in their report that the credit belonged to people who had never done a calculation in their lives.
+The second year was better. The units were moved, the sensors were fitted with heaters, and the fishermen suggested a change to the marker buoys that made them far easier to see at dusk. By the third year the harbor was producing a little more than the original estimate, and the engineers wrote in their report that the credit belonged to people who had never done a calculation in their lives.
 
 !27 | The measurement log, kept in pencil by the retired teacher.
 
-Costs were modest by the standards of such projects, and most of them were borne by a grant that the town had very nearly not applied for. Volunteers provided much of the labour. A local boatbuilder supplied moorings at cost. The team is cautious about comparing the project with larger schemes, and says that its main achievement is not the power but the proof that a small place can do something careful and lasting.
+Costs were modest by the standards of such projects, and most of them were borne by a grant that the town had very nearly not applied for. Volunteers provided much of the labor. A local boatbuilder supplied moorings at cost. The team is cautious about comparing the project with larger schemes, and says that its main achievement is not the power but the proof that a small place can do something careful and lasting.
 
 ## A winter storm
 
@@ -471,15 +471,15 @@ The real test came in the fourth winter, when a storm blew in from the north-eas
 
 When the water went down, the units were still in place, and still turning. A few markers had been bent. One cable had worn. But nothing had failed, and the lights on the pier, which had gone out for an hour during the worst of it, came back on by themselves.
 
-The harbour master, a quiet man who does not say much at meetings, was asked afterwards how he felt. He said it was the first time in thirty years he had watched a storm and not worried about the electricity. Then he went back to checking the moorings, and did not mention it again.
+The harbor master, a quiet man who does not say much at meetings, was asked afterwards how he felt. He said it was the first time in thirty years he had watched a storm and not worried about the electricity. Then he went back to checking the moorings, and did not mention it again.
 
-There is a small shed on the quay now, painted the colour of the fishing boats, where the team keeps its tools and its tea. Visitors are welcome to look in. On the wall hangs the first sketch of the project, drawn on the back of a harbour-meeting agenda, with a question mark beside the turbine and a note in the retired teacher’s hand: ask the fishermen first.
+There is a small shed on the quay now, painted the color of the fishing boats, where the team keeps its tools and its tea. Visitors are welcome to look in. On the wall hangs the first sketch of the project, drawn on the back of a harbor-meeting agenda, with a question mark beside the turbine and a note in the retired teacher’s hand: ask the fishermen first.
 
 ## Would it work elsewhere?
 
 Visitors ask whether the idea would work elsewhere. The honest answer, the team says, is sometimes. Every coast has its own tide, and every town has its own patience. A site needs a strong, regular flow, a sheltered channel and, above all, people willing to measure carefully before they build.
 
-They have shared their notes with three other harbours. One has begun a trial. Another has decided, after a year of measuring, that its tides were too weak, and counted the year as well spent.
+They have shared their notes with three other harbors. One has begun a trial. Another has decided, after a year of measuring, that its tides were too weak, and counted the year as well spent.
 
 !26 | Dawn at the pier. The lights run on the tide.
 
@@ -487,15 +487,15 @@ They have shared their notes with three other harbours. One has begun a trial. A
 
 In the evenings, the turbine’s hum mixes with the gulls, and people sit on the wall with something warm to drink. Nobody quite planned that part, but it has become the best of it. The hum is steady and low, a sound that the town has come to find reassuring, in the way that people grow fond of a clock.
 
-Younger residents have taken to it too. The school visits each spring, and the children are shown the units from the pier and asked to guess how much power each makes. Most guess far too much. They are then taken to the harbour office, shown the logbook and allowed to write the day’s reading in pencil, which is, by common agreement, the best part of the trip.
+Younger residents have taken to it too. The school visits each spring, and the children are shown the units from the pier and asked to guess how much power each makes. Most guess far too much. They are then taken to the harbor office, shown the logbook and allowed to write the day’s reading in pencil, which is, by common agreement, the best part of the trip.
 
-At the end of a long day, a fisherman named Tom Ashby sits on the slipway with a flask. He says he used to listen for the weather. These days, he says, he listens to the harbour, and the harbour has been saying the same quiet thing for years: that the water will come, and that someone will be ready for it.`,
+At the end of a long day, a fisherman named Tom Ashby sits on the slipway with a flask. He says he used to listen for the weather. These days, he says, he listens to the harbor, and the harbor has been saying the same quiet thing for years: that the water will come, and that someone will be ready for it.`,
         },
         {
           t: 'How a village taught itself to bake again', s: 'Flour, patience and one very old oven.', sec: 'Food', by: 1,
           body: `When the village bakery closed, the nearest loaf was eleven miles away. For a year, people drove. Then someone noticed that the old bread oven behind the chapel hall was still there, and that nobody had checked whether it worked.
 
-It did, more or less. It had a crack down one side and a chimney full of jackdaws’ nests, but the brick was sound. A group of neighbours spent a month clearing it, and on a cold Saturday in March they lit it for the first time in forty years.
+It did, more or less. It had a crack down one side and a chimney full of jackdaws’ nests, but the brick was sound. A group of neighbors spent a month clearing it, and on a cold Saturday in March they lit it for the first time in forty years.
 
 ## The first loaves
 
@@ -525,11 +525,11 @@ The oldest baker, aged eighty-one, now teaches children from the school on the l
           t: 'The night market that keeps its own clock', s: 'Stalls open at ten, close at dawn, and nobody has ever needed a sign.', sec: 'Culture', by: 2,
           body: `The night market begins at ten, though nobody has ever been able to say who decided that. By half past, the lanterns are lit, the first pans are hot and the long street is filled with the smell of ginger and charcoal.
 
-It runs until dawn. By the time the sky is grey, the stalls have been wiped down, the lanterns are out and the street has returned to being a street. There are no signs. There never have been. Everyone who comes knows where to go.
+It runs until dawn. By the time the sky is gray, the stalls have been wiped down, the lanterns are out and the street has returned to being a street. There are no signs. There never have been. Everyone who comes knows where to go.
 
 ## A market with its own habits
 
-The vendors describe an unwritten set of manners. The oldest stalls sit at the top of the street and take the best corners. Newcomers begin at the bottom and work their way up, one season at a time. Nobody undercuts a neighbour, and anyone short of change is quietly helped.
+The vendors describe an unwritten set of manners. The oldest stalls sit at the top of the street and take the best corners. Newcomers begin at the bottom and work their way up, one season at a time. Nobody undercuts a neighbor, and anyone short of change is quietly helped.
 
 !28 | The lanterns go up at nine and come down at dawn.
 
@@ -542,12 +542,12 @@ Visitors are welcome, but they are expected to behave like guests. That means ar
 The food changes with the season, but a few staples never leave. There is a noodle soup cooked in a pot that is older than the street. There are skewers of grilled mushroom, sweet buns still hot from the steamer and a dark tea served in tiny cups.
 
 - Noodle soup, from a pot that has not been emptied in forty years.
-- Grilled skewers, flavoured with a pepper the vendor keeps secret.
+- Grilled skewers, flavored with a pepper the vendor keeps secret.
 - Sweet buns, sold out by midnight on most nights.
 
 ## Why it lasts
 
-The market has survived rent rises, rain and a great many changes in the neighbourhood. Its vendors say that the secret is its hours. By being open when almost nothing else is, it has become a place for people who work late, keep odd hours or simply cannot sleep.
+The market has survived rent rises, rain and a great many changes in the neighborhood. Its vendors say that the secret is its hours. By being open when almost nothing else is, it has become a place for people who work late, keep odd hours or simply cannot sleep.
 
 For many of them, it is also a kind of living room. They come for the soup and stay for the company, and when the dawn arrives and the lanterns go out, they walk home with the pleasant sense of having been somewhere that was entirely, quietly theirs.`,
         },
@@ -555,7 +555,7 @@ For many of them, it is also a kind of living room. They come for the soup and s
           t: 'A walking route that follows the old canal', s: 'Twelve gentle miles, three good cafés and one very opinionated heron.', sec: 'Travel', by: 3,
           body: `The old canal has not carried a boat in sixty years, but it still goes somewhere. A flat, easy path follows its bank for twelve miles, from the stone bridge at Linden Row to the lock at Whitsun Mill, and it makes one of the quietest walks in the county.
 
-The path is wide enough for two, level enough for a pushchair and shaded for most of the way. In spring, the banks are thick with primroses. In autumn, the water is covered in fallen leaves, and the whole route takes on the colour of old brass.
+The path is wide enough for two, level enough for a pushchair and shaded for most of the way. In spring, the banks are thick with primroses. In autumn, the water is covered in fallen leaves, and the whole route takes on the color of old brass.
 
 ## The route
 
@@ -581,7 +581,7 @@ Bring comfortable shoes, a little water and an unhurried mind. The path asks for
         },
         {
           t: 'Why every town should have a clock tower', s: 'A planner’s case for the oldest public gadget of all.', sec: 'Cities', by: 4,
-          body: `Walk through the centre of almost any old town, and sooner or later you will look up. There, above the market or the station or the square, will be a clock. It will be slightly wrong, and nobody will mind.
+          body: `Walk through the center of almost any old town, and sooner or later you will look up. There, above the market or the station or the square, will be a clock. It will be slightly wrong, and nobody will mind.
 
 A planner named Jonas Reed has spent a career arguing that every town should have one. His case is simple, and it is not about the time.
 
@@ -611,7 +611,7 @@ The planner admits that the idea is old-fashioned. That, he says, is rather the 
           t: 'The last ferry of the season', s: 'On the final crossing, the regulars bring cake.', sec: 'Travel', by: 5,
           body: `The ferry from Sable Point to the island makes its last crossing of the year on the final Friday in October. It leaves at ten past four, as it always does, and it is nearly always full.
 
-By tradition, regulars bring cake. There are carrot cakes and lemon cakes and one dense fruit cake that has appeared every year for more than a decade, wrapped in a tea towel and handed round with a plastic knife. Nobody organises it. It just happens.
+By tradition, regulars bring cake. There are carrot cakes and lemon cakes and one dense fruit cake that has appeared every year for more than a decade, wrapped in a tea towel and handed round with a plastic knife. Nobody organizes it. It just happens.
 
 ## The crossing
 
@@ -629,7 +629,7 @@ When the ferry stops, the island changes. The cafés close. The path to the ligh
 
 - The shop keeps a stock of everything that does not spoil.
 - The lifeboat crew trains on Sunday mornings.
-- The school holds its carol service in the harbour hall.
+- The school holds its carol service in the harbor hall.
 
 ## Last off
 
@@ -644,13 +644,13 @@ By six, the lights of the island were small and gold across the water. The ferry
       stories: [
         {
           t: 'Reading the new tide tables', s: 'The year’s numbers are out, and they say more about us than about the sea.', sec: 'Society', by: 0,
-          body: `Every autumn, a slim booklet of numbers arrives at harbour offices, boatyards and a surprising number of kitchen tables. It is the tide table for the coming year, and for people who live by the sea, it is the nearest thing to a calendar of their lives.
+          body: `Every autumn, a slim booklet of numbers arrives at harbor offices, boatyards and a surprising number of kitchen tables. It is the tide table for the coming year, and for people who live by the sea, it is the nearest thing to a calendar of their lives.
 
 This year’s edition has some changes. The highest tides of the year are slightly higher. The lowest are slightly lower. The ordinary tides, the ones that carry fishing boats out and back, are unchanged, which is a comfort.
 
 ## What the numbers mean
 
-!32 | A page of the new tide tables, annotated by the harbour master.
+!32 | A page of the new tide tables, annotated by the harbor master.
 
 A tide table is a prediction, and an old one. It is built from centuries of measurement and the careful arithmetic of the moon and sun. Its makers say the work is quiet, repetitive and rarely thanked.
 
@@ -658,13 +658,13 @@ A tide table is a prediction, and an old one. It is built from centuries of meas
 
 ## Why they still matter
 
-You might think that phones had made the booklet redundant. Many harbour workers disagree. A printed table does not need a signal. It lies flat on a chart table. It can be checked at a glance, and written on, and kept in a pocket that gets wet.
+You might think that phones had made the booklet redundant. Many harbor workers disagree. A printed table does not need a signal. It lies flat on a chart table. It can be checked at a glance, and written on, and kept in a pocket that gets wet.
 
 ## A few things worth knowing
 
 - The highest tides fall around the new and full moons.
 - Weather can make a real tide differ from its prediction by several inches.
-- A table is always for one place. Nearby harbours may differ by an hour or more.
+- A table is always for one place. Nearby harbors may differ by an hour or more.
 
 The booklet’s editor says he likes to think of it as a letter to the year ahead, written in numbers. He admits that nobody reads it for the prose, and that the prose is not the point.`,
         },
@@ -734,13 +734,13 @@ Near the entrance, she keeps a small shelf. Nothing on it is new, and nothing is
 
 !34 | The shelf by the door, refilled every Monday.
 
-The shelf is emptied weekly. Regulars say that Monday is their favourite day, though they are careful not to say so too loudly, in case it changes.
+The shelf is emptied weekly. Regulars say that Monday is their favorite day, though they are careful not to say so too loudly, in case it changes.
 
 > The best service is the moment someone leaves with a book they did not expect to want.
 
-## What a catalogue cannot do
+## What a catalog cannot do
 
-Libraries have catalogues, of course, and good ones. But a catalogue answers questions. It does not ask them. A librarian who knows her readers can say, without being asked, that you might like a certain novel, or a certain book of walks, or a very small book of poems.
+Libraries have catalogs, of course, and good ones. But a catalog answers questions. It does not ask them. A librarian who knows her readers can say, without being asked, that you might like a certain novel, or a certain book of walks, or a very small book of poems.
 
 She describes the work as a kind of slow conversation. It happens over months or years, and it is built from small things: a glance at what someone is carrying, a remark about the weather, a reader’s face when a particular title comes up.
 
@@ -756,7 +756,7 @@ She is not against technology. Her library lends e-books and runs a booking syst
 
 The hours between two and four are quiet. A man in a raincoat returns a cookbook and asks, shyly, for something about birds. A girl of nine arrives with her grandfather and asks whether there is a book about a dog who can fly. There is, as it happens, and the librarian walks them to it herself.
 
-By half past four, the light in the windows has turned grey, and the lamps come on. The librarian tidies the shelf, writes a few notes and tucks them into the front covers.
+By half past four, the light in the windows has turned gray, and the lamps come on. The librarian tidies the shelf, writes a few notes and tucks them into the front covers.
 
 ## A Saturday in the children’s section
 
@@ -768,13 +768,13 @@ The librarian who runs it is a former primary teacher called Ines Varga. She doe
 
 A boy of seven told her last month that he did not like reading. She asked what he did like. He said volcanoes. She handed him a book on volcanoes, a book of poems that happened to contain one volcano, and a very old comic about an island that exploded. He has been back every Saturday since.
 
-## What the catalogue cannot see
+## What the catalog cannot see
 
-The library’s catalogue is a good one, and the staff are proud of it. But it can only tell you what the library holds. It cannot tell you what a person is looking for when they do not yet know.
+The library’s catalog is a good one, and the staff are proud of it. But it can only tell you what the library holds. It cannot tell you what a person is looking for when they do not yet know.
 
 Priya Nand says that this is where most of the real work begins. A reader asks for a book on gardening, and a good librarian asks whether it is for a window box or a field. A reader asks for something to cheer them up, and a good librarian does not reach for a joke book. She reaches for something kind.
 
-> A catalogue answers questions. A librarian hears the one underneath.
+> A catalog answers questions. A librarian hears the one underneath.
 
 None of this can be easily measured, which is one reason libraries are hard to defend in a budget meeting. Priya says she has stopped trying to defend them with figures. She invites the people who ask to come and spend a Saturday.
 

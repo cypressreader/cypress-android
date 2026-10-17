@@ -289,14 +289,13 @@ for(const [vp,w,h] of [['fold',884,1060],['desk',1280,900]]){
 /* settings rows present and working */
 {const p=await mk(b,{w:380,h:820,mob:true,seedData:seed(SITES)});const E=p.E;
  await E(()=>$('#gear').click());await W(300);
- for(const sel of ['#scs [data-sc="vertical"]','#cds [data-cd="large"]','.tg[data-tg="mag"]','.tg[data-tg="cover"]','.tg[data-tg="intro"]','.tg[data-tg="split"]','.tg[data-tg="wx"]','#nrw','#qv','#skyp'])ck('settings',sel+' present',await E(s=>!!$(s),sel));
+ for(const sel of ['#scs [data-sc="vertical"]','#cds [data-cd="large"]','.tg[data-tg="mag"]','.tg[data-tg="cover"]','.tg[data-tg="intro"]','.tg[data-tg="split"]','#nrw','#qv'])ck('settings',sel+' present',await E(s=>!!$(s),sel));
  await E(()=>$('#scs [data-sc="vertical"]').click());ck('settings','scroll setting',await E(()=>S.scroll==='vertical'));
  await E(()=>$('#cds [data-cd="compact"]').click());ck('settings','cards setting',await E(()=>S.cards==='compact'));
  await E(()=>$('.tg[data-tg="mag"]').click());ck('settings','mag toggle off',await E(()=>S.mag===false&&$('.tg[data-tg="mag"]').textContent==='Off'));
  ck('settings','defaults on for cover/intro',await E(()=>$('.tg[data-tg="cover"]').textContent==='On'));
  ck('settings','quote voice options',await E(()=>$('#qv').options.length>=2));
  ck('settings','fits phone',await E(()=>$('.sbody').scrollWidth<=$('.sbody').clientWidth+1));
- await E(()=>$('#skyp').click());await W(300);ck('settings','sky preview',await E(()=>!!$('#sky')));
  ck('settings','no errors',p.errs.length===0,p.errs.join('|'));await p.ctx.close()}
 
 await b.close();

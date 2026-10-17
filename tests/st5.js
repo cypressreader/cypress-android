@@ -51,11 +51,11 @@ for(const [vp,w,h,touch] of [['phone',380,820,true],['desktop',1280,900,false]])
  await p.click('#pop [data-pack="0"]');await p.waitForTimeout(1200);
  ck(vp+' pack adds several',await E(()=>S.feeds.length)>=n1+4,await E(()=>S.feeds.length)+'');
  ck(vp+' pack folder',await E(()=>S.folders.some(f=>f.name==='Tech morning'||f.name==='Tech')));
- await E(()=>{navigator.geolocation.getCurrentPosition=cb=>cb({coords:{latitude:51.5,longitude:-0.12}});fetchText=async()=>JSON.stringify({address:{city:'Testville'}})});
+ await E(()=>{window.findFeed=async u=>({xml:'<rss/>',url:u})});
  await E(()=>{const k=document.querySelector('#pop [data-back]');k&&k.click()});await p.waitForTimeout(150);
  await p.click('[data-cat="-3"]');await p.waitForTimeout(100);
- ck(vp+' near you prompt',await E(()=>/Use my location/.test(document.querySelector('#pop').textContent)));
- await p.click('[data-local]');await p.waitForTimeout(800);
+ ck(vp+' near you prompt',await E(()=>/Town, city or region/.test(document.querySelector('#pop').textContent)&&!/Use my location/.test(document.querySelector('#pop').textContent)));
+ await p.fill('#locq','Testville');await p.press('#locq','Enter');await p.waitForTimeout(800);
  ck(vp+' local results',await E(()=>/Testville/.test(document.querySelector('#pop').textContent)),await E(()=>document.querySelector('#pop').textContent));
  ck(vp+' no errors',errs.length===0,errs.join('|'));
  await ctx.close();}
