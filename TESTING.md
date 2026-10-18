@@ -401,6 +401,3 @@ Implemented, checked in a desktop browser only for: reader header across the top
 
 ## The Well on tablets (preview, 1.107)
 Implemented, unverified on a tablet: The Well ("Pictures from your sites") now uses equal picture frames. Check at about 780, 1000 and 1100 px wide (or a real tablet), light and dark: no single tall portrait setting the row height, captions line up, and nothing runs past the screen edge. Expected: two columns (3:2) below 1000 px, with a wide first picture when there are three; three or four equal 4:5 columns from 1000 px.
-
-## Daily quote is tappable (preview, 1.107)
-Implemented, unverified on a phone: the big quote on The Daily (front page, and between rows) now opens the story it came from. Tap anywhere on the quote, or the source line ("SOURCE · Read the story"); it should open the reader. Check it does not fight scrolling and that the quote still looks the same.
