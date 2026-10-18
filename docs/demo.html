@@ -1572,7 +1572,6 @@ html.quiet .cvm{letter-spacing:.06em}
 .cols>.hsf img.hero{width:100%;height:100%;max-height:none;object-fit:cover;border-radius:16px;margin:0;display:block}
 /* photo on top: a wide photo keeps its own shape across the column, the title sits under it and the story flows on below */
 .cols>.hsf.hs-top{height:auto;break-after:auto;break-inside:auto;margin-bottom:22px}
-.cols>.hsf.hs-top{column-span:all}
 .cols>.hsf.hs-top img.hero{object-fit:cover;max-height:300px}/* the title block sits above the text across the full width instead of filling its own column *//* a tall header may run into the next column instead of pushing the text away and leaving a blank column */
 .cols>.hsf.hs-split{height:auto;break-after:auto;margin-bottom:22px}
 .cols>.hsf.hs-split img.hero{height:auto;aspect-ratio:16/9;object-fit:cover}
@@ -1588,6 +1587,9 @@ html.quiet .cvm{letter-spacing:.06em}
 
 .mnotes{break-inside:avoid;margin:0 0 1.2em;padding:12px 16px;border-left:3px solid var(--a1);background:color-mix(in srgb,var(--a1) 8%,transparent);border-radius:0 12px 12px 0;font-family:var(--sans)}
 .mnotes b{display:block;font:700 10.5px var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--a1);margin-bottom:6px}
+.whyit{break-inside:avoid;margin:1.1em 0 1.3em;padding:.85em 1.1em;border-left:4px solid var(--a1);border-radius:0 .6em .6em 0;background:color-mix(in srgb,var(--a1) 8%,var(--pn,transparent));color:var(--ink)}
+.whyit b{display:block;margin-bottom:.45em;font-size:.65em;font-weight:600;font-style:normal;letter-spacing:.18em;text-transform:uppercase;color:var(--a1)}
+.whyit p{margin:0;font-style:italic;line-height:1.65;color:inherit;text-align:left;text-indent:0}
 .mnotes dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0;font-size:13.5px}
 .mnotes dt{color:var(--mut)}.mnotes dd{margin:0;color:var(--ink)}
 
@@ -2835,6 +2837,7 @@ html.smooth .cover::before{mix-blend-mode:normal!important}
 .dpq{margin:4px 0 30px;padding:6px 0 6px 20px;border-left:3px solid var(--a1,var(--ink))}
 .dpq p{margin:0 0 8px;font:italic 500 clamp(21px,5.4vw,30px)/1.25 var(--serif,Georgia,serif);color:var(--ink)}
 .dpq cite{font:700 10.5px var(--sans);font-style:normal;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.dpq{position:relative}.dpq .dpq-a{display:inline;position:static;overflow:visible;contain:none;color:inherit;text-decoration:none}/* other link rules clip and contain links; this one must stretch over the whole quote */.dpq-a::after{content:"";position:absolute;inset:0}.dpq-a span{opacity:.7}.dpq-a:focus-visible{outline:2px solid var(--a1,currentColor);outline-offset:4px}.dpq:active{opacity:.8}
 .drit{margin:0 0 30px;padding:18px 20px;border:1px solid var(--ln);border-top:3px solid var(--a1,var(--ink));border-radius:4px 4px 14px 14px;background:var(--pn);text-align:center}
 .drt-k{margin:0 0 8px;font:700 10.5px var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--mut)}
 .drt-n{display:block;margin:0 0 6px;font:700 clamp(44px,13vw,72px)/1 var(--serif,Georgia,serif);color:var(--a1,var(--ink));letter-spacing:-.02em}
@@ -6732,7 +6735,7 @@ function royalHtml(a,ix){
 }
 function pullQuoteHtml(a){
  const q=nrQuoteText(a);if(!q||!q.q)return '';
- return `<blockquote class="dpq"><p>“${esc(q.q)}”</p><cite>${esc(fof(a).title)}</cite></blockquote>`;
+ const i=cur.indexOf(a);return `<blockquote class="dpq"><p>“${esc(q.q)}”</p><cite>${i<0?esc(fof(a).title):`<a class="cvlead dpq-a" href="${esc(a.link)}" data-i="${i}" aria-label="Read the story: ${esc(a.title)}">${esc(fof(a).title)}<span aria-hidden="true"> · Read the story</span></a>`}</cite></blockquote>`;
 }
 function pickGood(pool,skip){
  const lim=Date.now()-48*36e5;
@@ -11206,7 +11209,20 @@ function heroSpread(){
  if(want==='hero'||want==='top'){const ov=document.createElement('div');ov.className='hov';['.kick','.tt','.dt'].forEach(q=>{const e=c.querySelector(':scope>'+q);if(e)ov.append(e)});fig.append(ov);if(want==='hero')imgInfo(im.getAttribute('src')).then(o=>{if(o&&o.l>105)fig.classList.add('bright')}).catch(()=>{})}
  mnotes();
 }
-function mnotes(){
+/* "Why it matters": the story's own description in an editor's-note box between the byline and the text; skipped when it only repeats how the article starts */
+function whyBox(){
+ const c=$('.cols');if(!c)return;c.querySelectorAll(':scope>.whyit').forEach(x=>x.remove());
+ const a=curA,bd=c.querySelector(':scope>.body');if(!a||!bd)return;
+ const nz=t=>String(t||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').toLowerCase().replace(/[…]|\.{3}/g,' ').replace(/[^\p{L}\p{N}\s]/gu,'').replace(/\s+/g,' ').trim();
+ const raw=String(a.summary||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+ if(raw.length<30||isJunkText(raw))return;
+ const d=nz(raw).slice(0,80),first=nz([...bd.querySelectorAll(':scope>p')].slice(0,2).map(p=>p.textContent).join(' '));
+ if(d.length<20)return;const k=Math.min(d.length,80);if(first.includes(d.slice(0,k))||d.includes(first.slice(0,Math.min(first.length,k)))&&first.length>=20)return;
+ const el=document.createElement('aside');el.className='whyit';el.setAttribute('aria-label','Why it matters');el.innerHTML='<b aria-hidden="true">Why it matters</b><p></p>';el.querySelector('p').textContent=raw;
+ c.insertBefore(el,c.querySelector(':scope>.note')||bd);
+}
+function mnotes(){mnotes0();try{whyBox()}catch(e){}}
+function mnotes0(){
  const c=$('.cols');if(!c)return;
  c.querySelectorAll(':scope>.mnotes').forEach(x=>x.remove());
  if(!c.querySelector(':scope>.hsf')||!isOn('mnote')||!curA)return;
@@ -14845,7 +14861,7 @@ function fitPage1(c,cw,gap){
  const m=c.querySelector(':scope>.mnotes'),hs=c.querySelector(':scope>.hsf'),im=hs&&hs.querySelector('img.hero');
  const undo=()=>{if(im){im.style.removeProperty('height');im.style.removeProperty('max-height');im.style.removeProperty('object-fit');im.style.removeProperty('aspect-ratio')}};
  undo();if(m)m.style.removeProperty('display');
- if(R.cpv!==2||!m||!hs||R.web||isVert()||hs.dataset.m==='hero'||getComputedStyle(hs).columnSpan==='all')return;/* a title block across the full width needs no squeezing into column 1 */
+ if(R.cpv!==2||!m||!hs||R.web||isVert()||hs.dataset.m==='hero')return;
  const pitch=cw+gap,cr=()=>c.getBoundingClientRect();
  /* everything in the picture block, and the box, must sit inside column 1 */
  const fits=()=>{const L=cr().left,els=[...(m.style.display==='none'?[]:[m]),...hs.querySelectorAll('*')];for(const e of els)for(const q of e.getClientRects()){if(q.width&&q.height&&q.left-L>=pitch-4)return false}return true};

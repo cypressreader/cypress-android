@@ -39,6 +39,12 @@ Nothing from 1.107 is merged to `main` or built. **The user must say "build"/"me
 - Mistakes to avoid: `pkill -f` kills your own shell; backgrounded `git stash`; a stray `cat > $UNSET/x` hangs a command; my local test server dies between commands; tests that use port 8765 collide with a manual server; don't commit `cypress-gemini-audit/`.
 - Verified root causes: card summaries were cut mid-word by `text.slice(0,170)` in the feed parser (now `trimWords`); the `.src .sn{flex:1}` pushed topic tags to the far edge; `#mtabs` background was 92% translucent; `.dcv-lead h2` line-height .88 clipped descenders; Today lead in list view inherited `.card.list` grid with a 4:5 hero ratio.
 
+## 3b. Batch 2 notes (this session)
+- Reader page view bug (FIXES 14): `.cols>.hsf.hs-top{column-span:all}` (added in the polish pass) made a full-width title block that left one or two lines of text on page 1. Removed it and the matching `fitPage1` skip. Do not re-add a spanning header in the paged reader.
+- Daily quote link (FIXES 12): `.cvlead`/`a[data-i]` rules give links `position:relative;overflow:hidden;contain:layout paint`, which clipped a stretched `::after` overlay. `.dpq .dpq-a` overrides them.
+- "Why it matters" (FIXES 15): `whyBox()` in `mnotes()`; uses `a.summary`, fuzzy duplicate check (first ~80 chars).
+- Quick browser repro recipe: load `docs/demo.html` in Playwright (`tests/mock` gives `PW`), set `cur[0].img` to a 1600x1000 data URL, `openReader(cur[0])`.
+
 ## 4. Active state & next 3 tasks
 **Where we are:** the 1.107 preview batch is published and waiting for the user's review. The user was investigating (a) "Cards and columns is gone" (answered: Story card size must be Medium/Large, view button on tiles; user has not replied), (b) a possible heavy-sans reader title, (c) The Well on tablets (queued as FIXES.md item 11, not started). Then the user asked for this HANDOFF/CLAUDE.md/.claudeignore setup (done).
 
