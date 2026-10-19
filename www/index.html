@@ -4022,7 +4022,6 @@ body:not(.narrow) .grid:not(.list) .tpl.t2>.card.noimg .tx{grid-column:1}
 /* FIXES 24: wide pictures crop toward the top third (heads were cut), and source names are a readable size on tablets */
 #grid .card>img{object-position:50% 30%}
 @media(min-width:700px){html #grid .card .src{font-size:11.5px}}
-#grid .card.orph{grid-column:1/-1!important}
 /* FIXES 17: reading sheet. The "Aa" panel is a short sheet at the bottom of the story (no dark backdrop, the story stays visible above it) */
 #aapop{top:auto;right:0;left:0;margin:0 auto;bottom:0;width:min(560px,100%);max-height:58vh;overflow:auto;border-radius:20px 20px 0 0;border-bottom:0;padding:6px 16px calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 34px rgba(0,0,0,.28);animation:aaup .22s ease-out}
 @keyframes aaup{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
@@ -6591,8 +6590,8 @@ function endCard(){
  return `<section class="endc"><span class="lgm endl" data-fill style="--p:0%;--lm:url(data:image/png;base64,${LOGOS[k][0]})"></span><h3>That’s today’s issue</h3><p>${esc(msg+did)}</p><small>A new edition is on its way tomorrow.</small>${un?'<button type="button" class="tx2" data-endall>See all stories</button>':''}</section>`;
 }
 let ENDIO=null;
-/* a story left alone at the end of a two-or-more column row stretches across the row (tablets) */
-function fixOrph(){try{const g=document.getElementById('grid');if(!g)return;g.querySelectorAll('.orph').forEach(c=>c.classList.remove('orph'));if(innerWidth<700)return;const ps=new Set([g]);g.querySelectorAll(':scope>div').forEach(d=>ps.add(d));ps.forEach(P=>{if(getComputedStyle(P).display!=='grid')return;if(getComputedStyle(P).gridTemplateColumns.split(' ').length<2)return;const k=[...P.children].filter(c=>c.offsetWidth);const L=k.filter(c=>c.classList.contains('card')).pop();if(!L)return;const lr=L.getBoundingClientRect(),pr=P.getBoundingClientRect();if(lr.width>pr.width*.6)return;if(k.some(o=>o!==L&&o.getBoundingClientRect().top<lr.bottom-10&&o.getBoundingClientRect().bottom>lr.top+10))return;L.classList.add('orph')})}catch(e){}}
+/* the last row of a multi-column grid (tablets) never leaves empty columns: its stories widen to fill the row */
+function fixOrph(){try{const g=document.getElementById('grid');if(!g)return;g.querySelectorAll('.orph').forEach(c=>{c.classList.remove('orph');c.style.gridColumn=''});if(innerWidth<700)return;const ps=new Set([g]);g.querySelectorAll(':scope>div').forEach(d=>ps.add(d));ps.forEach(P=>{const cs=getComputedStyle(P);if(cs.display!=='grid')return;const n=cs.gridTemplateColumns.split(' ').length;if(n<2)return;const k=[...P.children].filter(c=>c.offsetWidth&&c.classList.contains('card'));if(!k.length)return;const T=k[k.length-1].getBoundingClientRect().top;const row=k.filter(c=>c.getBoundingClientRect().top>T-10);const all=[...P.children].filter(c=>c.offsetWidth);if(row.length>=n||all.some(o=>!row.includes(o)&&o.getBoundingClientRect().top>T-10&&o.getBoundingClientRect().left>row[0].getBoundingClientRect().left+5&&!o.classList.contains('card')&&o.getBoundingClientRect().top<T+40))return;const base=Math.floor(n/row.length),ex=n%row.length;row.forEach((c,i)=>{c.classList.add('orph');c.style.gridColumn='span '+(base+(i<ex?1:0))})})}catch(e){}}
 {let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(fixOrph,200)},{passive:true})}
 function endObs(){
  document.querySelectorAll('.endc:not([data-o])').forEach(el=>{el.dataset.o='1';const l=el.querySelector('[data-fill]');if(!l)return;
