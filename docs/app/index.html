@@ -3713,6 +3713,7 @@ body.exbusy [data-exact]{cursor:progress}
 #grid .card.list-row .star{position:static;flex:none;opacity:1}
 @media(min-width:500px){@container feed (min-width:300px){
 #grid[data-w="mag"] :is(.nr-rv,.nr-sm,.nr-mid,.nr-trl,.nr-ph-rows){display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px;align-items:start}
+#grid[data-w="mag"] :is(.nr-rv,.nr-rv3)>.card:last-child:is(:nth-child(odd),:nth-child(3n+1),:nth-child(3n+2)){grid-column:auto}
 #grid[data-w="mag"] .card:is(.nr-row,.nr-late){display:flex!important;flex-direction:column;padding:0!important;border-top:0!important}
 #grid[data-w="mag"] .card:is(.nr-row,.nr-late)>img{order:-1;float:none!important;position:static!important;width:100%!important;height:auto!important;aspect-ratio:16/9;margin:0 0 10px!important;border-radius:12px;grid-column:auto!important}
 #grid[data-w="mag"] .card:is(.nr-row,.nr-late)>.tx{display:block!important}
@@ -4029,6 +4030,7 @@ body:not(.narrow) .grid:not(.list) .tpl.t2>.card.noimg .tx{grid-column:1}
 #grid .fd-fa{width:100%}
 /* FIXES 26: a story without a picture, sitting where its neighbors have pictures, gets a tinted tile (its source color and first letter, like the small rows) so the row lines up */
 @media(min-width:700px){#grid:not(.list):not([data-cards="narrow"]):not([data-cards="compact"]) .card.noimg:is(.mid,.nr-tri):not(.nr-lead):not(.nr-hero)::before{content:attr(data-ini);display:grid;place-items:center;position:static;inset:auto;width:100%;height:auto;aspect-ratio:16/9;max-height:170px;margin:0;border-radius:0;background:color-mix(in srgb,var(--b) 24%,var(--pn,var(--bg)));color:color-mix(in srgb,var(--b) 70%,var(--ink));font:700 clamp(44px,8vw,72px)/1 var(--fd,Georgia,serif);text-transform:uppercase;box-shadow:none}}
+@media(min-width:700px){#grid[data-w="mag"]:not([data-cards="narrow"]):not([data-cards="compact"]):not(.nrp) .card.card:is(.nr-row,.nr-late):not(.nr-m).noimg::before{content:attr(data-ini)!important;display:grid!important;place-items:center;grid-column:1;grid-row:1;width:100%;aspect-ratio:16/9;max-height:170px;border-radius:12px;margin:0 0 10px;background:color-mix(in srgb,var(--b) 24%,var(--pn,var(--bg)));color:color-mix(in srgb,var(--b) 70%,var(--ink));font:700 clamp(44px,8vw,72px)/1 var(--fd,Georgia,serif);text-transform:uppercase;position:static;height:auto;flex:none}}
 /* FIXES 17: reading sheet. The "Aa" panel is a short sheet at the bottom of the story (no dark backdrop, the story stays visible above it) */
 #aapop{top:auto;right:0;left:0;margin:0 auto;bottom:0;width:min(560px,100%);max-height:58vh;overflow:auto;border-radius:20px 20px 0 0;border-bottom:0;padding:6px 16px calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 34px rgba(0,0,0,.28);animation:aaup .22s ease-out}
 @keyframes aaup{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
@@ -6598,7 +6600,7 @@ function endCard(){
 }
 let ENDIO=null;
 /* the last row of a multi-column grid (tablets) never leaves empty columns: its stories widen to fill the row */
-function fixOrph(){try{const g=document.getElementById('grid');if(!g)return;g.querySelectorAll('.orph').forEach(c=>{c.classList.remove('orph');c.style.gridColumn=''});if(innerWidth<700)return;const ps=new Set([g]);g.querySelectorAll(':scope>div,.nr-rv,.nr-sm,.nr-mid,.nr-trl').forEach(d=>ps.add(d));ps.forEach(P=>{const cs=getComputedStyle(P);if(cs.display!=='grid')return;const n=cs.gridTemplateColumns.split(' ').length;if(n<2)return;const k=[...P.children].filter(c=>c.offsetWidth&&c.classList.contains('card'));if(!k.length)return;const T=k[k.length-1].getBoundingClientRect().top;const row=k.filter(c=>c.getBoundingClientRect().top>T-10);const all=[...P.children].filter(c=>c.offsetWidth);if(row.length>=n||all.some(o=>!row.includes(o)&&o.getBoundingClientRect().top>T-10&&o.getBoundingClientRect().left>row[0].getBoundingClientRect().left+5&&!o.classList.contains('card')&&o.getBoundingClientRect().top<T+40))return;const base=Math.floor(n/row.length),ex=n%row.length;row.forEach((c,i)=>{c.classList.add('orph');c.style.gridColumn='span '+(base+(i<ex?1:0))})})}catch(e){}}
+function fixOrph(){try{const g=document.getElementById('grid');if(!g)return;g.querySelectorAll('.orph').forEach(c=>{c.classList.remove('orph');c.style.gridColumn=''});if(innerWidth<700)return;const ps=new Set([g]);g.querySelectorAll(':scope>div,.nr-rv,.nr-sm,.nr-mid,.nr-trl').forEach(d=>ps.add(d));ps.forEach(P=>{const cs=getComputedStyle(P);if(cs.display!=='grid')return;const n=cs.gridTemplateColumns.split(' ').length;if(n<2)return;const kids=[...P.children].filter(c=>c.offsetWidth);if(kids.some(c=>/span\s*[2-9]/.test(getComputedStyle(c).gridRowEnd)))return;const rows=[];kids.forEach(c=>{const t=c.getBoundingClientRect().top,r=rows[rows.length-1];if(r&&Math.abs(r.t-t)<10)r.k.push(c);else rows.push({t,k:[c]})});rows.forEach(({k:row})=>{if(row.length>=n||!row.every(c=>c.classList.contains('card')))return;let used=0;for(const c of row){const q=getComputedStyle(c),m=/span\s*(\d+)/.exec(q.gridColumnEnd);if(q.gridColumnStart!=='auto'&&!/span/.test(q.gridColumnStart)||q.gridColumnEnd!=='auto'&&!m)return;used+=m?+m[1]:1}if(used>=n)return;const base=Math.floor(n/row.length),ex=n%row.length;row.forEach((c,i)=>{c.classList.add('orph');c.style.gridColumn='span '+(base+(i<ex?1:0))})})})}catch(e){}}
 {let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(fixOrph,200)},{passive:true})}
 function endObs(){
  document.querySelectorAll('.endc:not([data-o])').forEach(el=>{el.dataset.o='1';const l=el.querySelector('[data-fill]');if(!l)return;
@@ -11197,8 +11199,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.19l';const APP_LABEL='1.119';
-const CHANGES=["The page turn now lands like Play Books: the page unfolds as it comes down and touches the far side near its outer edge","Tapping to turn a page is slower and gentler, in both directions, so you can enjoy the motion"];
+const APP_VERSION='2026.10.19m';const APP_LABEL='1.120';
+const CHANGES=["Fixed blank space on tablets: when a row of stories has room left over, the cards now stretch to fill it instead of leaving an empty gap","Stories without a picture now show their site's first letter on a colored tile in the Cards view, so they line up with picture stories"];
 const DEF_ON=new Set(['shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
