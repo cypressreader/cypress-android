@@ -419,8 +419,7 @@ figure.pqs figcaption{margin-top:12px;font:600 12px var(--sans);letter-spacing:.
 .dmag-f div{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.dmag-f button{border:1px solid var(--ln);background:var(--pn);color:var(--ink);border-radius:99px;padding:9px 18px;font:600 14px var(--sans);cursor:pointer}
 #grid .nr-top.nr-one{display:block}@media(min-width:700px){#grid .nr-top.nr-one .card.nr-lead{aspect-ratio:2/1;min-height:0;max-height:520px;height:auto}}#grid .nr-top.nr-one>.nr-lw{padding:0}
 #grid .nr-trio.nr-t1,#grid .nr-trio.nr-t2{grid-template-columns:repeat(auto-fit,minmax(0,1fr))}
-#grid .nr-trio:has(>:nth-child(2):last-child){grid-template-columns:repeat(2,minmax(0,1fr))}#grid .nr-trio:has(>:only-child){grid-template-columns:minmax(0,1fr)}
-@media(min-width:700px){#grid .nr-strip:has(>:nth-child(3):last-child){grid-template-columns:repeat(3,minmax(0,1fr))}#grid .nr-strip:has(>:nth-child(2):last-child){grid-template-columns:repeat(2,minmax(0,1fr))}#grid .nr-strip:has(>:only-child){grid-template-columns:minmax(0,1fr)}}
+@media(min-width:700px){#grid .nr-strip.nr-s3{grid-template-columns:repeat(3,minmax(0,1fr))}#grid .nr-strip.nr-s2{grid-template-columns:repeat(2,minmax(0,1fr))}#grid .nr-strip.nr-s1{grid-template-columns:minmax(0,1fr)}}
 .dg.ed .edbox{margin:16px auto 0;max-width:46em;border:1px solid var(--ln);border-radius:16px;background:var(--pn);padding:12px 14px}
 .dg.ed .edts{display:flex;gap:8px;flex-wrap:wrap}.dg.ed .edt{flex:1 1 90px;text-align:center;padding:4px 6px;appearance:none;border:0;background:none;font:inherit;color:inherit;cursor:pointer;border-radius:10px}.dg.ed .edt:active{background:color-mix(in srgb,var(--ink) 8%,transparent)}
 .dg.ed button.edl{appearance:none;border:0;background:none;width:100%;cursor:pointer;font:inherit;color:inherit}
@@ -4149,7 +4148,7 @@ body:not(.narrow) .grid:not(.list) .tpl.t2>.card.noimg .tx{grid-column:1}
 /* FIXES 24: wide pictures crop toward the top third (heads were cut), and source names are a readable size on tablets */
 #grid .card>img{object-position:50% 30%}
 /* v1.107 bug hunt: quiet image placeholders, letter tile when a favicon fails */
-#grid .card:not(.noimg):has(>img:not(.ld)){background:color-mix(in srgb,var(--b) 28%,var(--pn))}
+#grid .card:not(.noimg){background:color-mix(in srgb,var(--b) 28%,var(--pn))}
 .src .fvl{display:inline-grid;place-items:center;flex:none;width:16px;height:16px;border-radius:4px;font:700 10px/1 var(--sans);text-transform:uppercase;background:color-mix(in srgb,var(--b) 30%,var(--pn));color:var(--ink)}
 @media(min-width:700px){html #grid .card .src{font-size:11.5px}}
 /* FIXES 25: the feed's lead picture fills its width (max-height with aspect-ratio was shrinking the width) */
@@ -6520,10 +6519,10 @@ function nrBlocks(l,base,o){
  const river=max=>{const ix=P.pick(null,max);if(!ix.length)return false;B.push(`<section class="nr-river">${SMARTV?'':`<h4>${nrAge(l[ix[0]])}</h4>`}<div class="nr-rv">${ix.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`);return true};
  while(P.left()>0&&guard++<90){
   const t=seq[n++%seq.length];let ix,done=false;
-  if(t==='trio'&&(ix=P.pick(nrHas,3,true))){B.push(`<section class="nr-trio">${ix.map(i=>C(i,'nr-tri')).join('')}</section>`);done=true}
+  if(t==='trio'&&(ix=P.pick(nrHas,3,true))){B.push(`<section class="nr-trio${ix.length<3?' nr-t'+ix.length:''}">${ix.map(i=>C(i,'nr-tri')).join('')}</section>`);done=true}
   else if(t==='split'&&(ix=P.pick(nrHas,1,true))){const tx=P.pick(null,3);B.push(`<section class="nr-split${(fl++%2)?' nr-flip':''}"><div class="nr-spl">${C(ix[0],'nr-sp')}</div><div class="nr-spr">${tx.map(i=>C(i,'nr-row')).join('')}</div></section>`);done=true}
   else if(t==='mosaic'&&(ix=P.pick(nrHas,5,true))){B.push(`<section class="nr-mos">${ix.map((i,k)=>C(i,'nr-m'+(k+1))).join('')}</section>`);done=true}
-  else if(t==='strip'&&(ix=P.pick(nrHas,4,true))){B.push(`<section class="nr-strip">${ix.map(i=>C(i,'nr-tall')).join('')}</section>`);done=true}
+  else if(t==='strip'&&(ix=P.pick(nrHas,4,true))){B.push(`<section class="nr-strip${ix.length<4?' nr-s'+ix.length:''}">${ix.map(i=>C(i,'nr-tall')).join('')}</section>`);done=true}
   else if(t==='color'&&(ix=P.pick(a=>nrHas(a)&&(a.summary||'').length>60,1,true))){B.push(`<section class="nr-color">${C(ix[0],'nr-colr')}</section>`);done=true}
   else if(t==='quote'){const lk=((qn++ +seed)%2)*2,need=lk>0;ix=P.pick(a=>(!need||nrHas(a))&&nrQuoteText(a),1,true);if(ix){B.push(`<section class="nr-quote">${nrQuoteHtml(l[ix[0]],base+ix[0],lk,nrQuoteText(l[ix[0]]))}</section>`);done=true}else continue}
   else if(t==='sect'&&(ix=P.pick(nrHas,4,true))){const src=fof(l[ix[0]]).title;B.push(`<section class="nr-sect"><h4><span style="background:${brand(fof(l[ix[0]]))}"></span>More from ${esc(src)}</h4><div class="nr-sc"><div class="nr-scl">${C(ix[0],'nr-sp')}</div><div class="nr-scr">${ix.slice(1).map(i=>C(i,'nr-row nr-tl')).join('')}</div></div></section>`);done=true}
