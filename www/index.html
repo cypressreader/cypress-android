@@ -7186,8 +7186,8 @@ function startTurn(dir){
  T.cr.style.background='linear-gradient(to right,rgba(0,0,0,.2),rgba(0,0,0,0))';T.cl.style.background='linear-gradient(to left,rgba(0,0,0,.2),rgba(0,0,0,0))';
  cast.append(T.cr,T.cl);
  const leaf=mkEl('tl-leaf',`left:${hx}px;width:${hw}px`);
- if(isOn('curl')&&!reduced()&&R.np<400&&($('.view').querySelectorAll('*').length<1600)&&($('.view').querySelectorAll('img').length<24)){
-  const N=(navigator.hardwareConcurrency||8)<=4?16:28,sw=hw/N;let par=leaf;T.st=[];T.N=N;T.sw=sw;
+ if(isOn('curl')&&curlN!==-1&&!reduced()&&R.np<400&&($('.view').querySelectorAll('*').length<1600)&&($('.view').querySelectorAll('img').length<24)){
+  const N=curlN>0?curlN:(navigator.hardwareConcurrency||8)<=4?12:20,sw=hw/N;let par=leaf;T.st=[];T.N=N;T.sw=sw;
   for(let i=0;i<N;i++){
    const el=mkEl('tl-s',`left:${i?sw:0}px;width:${sw+1}px`);
    const f=mkEl('tf');f.append(mkBox(pgF,hx+i*sw));const fs=shade('to right');fs.style.background='#000';f.append(fs);el.append(f);
@@ -7214,6 +7214,15 @@ function startTurn(dir){
  return T;
 }
 var CR=.3;
+/* the curl adapts to the device: if frames take too long on a turn, the next turns use fewer strips, and finally the plain flip (-1). Remembered on this device only. */
+let curlN=0;try{curlN=+localStorage.getItem('cy_curlN')||0}catch(_){}
+function curlTune(T){
+ const d=T.dts;if(!T.st||!d||d.length<8)return;
+ const m=d.slice().sort((x,y)=>x-y)[d.length>>1];
+ if(m<=26)return;
+ curlN=T.N>8?Math.max(8,Math.round(T.N*.6)):-1;
+ try{localStorage.setItem('cy_curlN',String(curlN))}catch(_){}
+}
 function setAng(a){
  const T=R.T;if(!T)return;T.ang=a;
  const r=a*Math.PI/180,s=Math.sin(r),c=Math.cos(r);let tip=T.hx+T.hw*c;
@@ -7239,6 +7248,7 @@ function anim(from,to,dur,ease,done){
  const T=R.T,t0=performance.now();
  const f=now=>{
   if(R.T!==T||T.dead)return;
+  if(T.st){const d=T.dts||(T.dts=[]);if(T.lt!=null)d.push(now-T.lt);T.lt=now}
   const p=Math.max(0,Math.min(1,(now-t0)/dur));
   setAng(from+(to-from)*ease(p));
   if(p<1)T.raf=requestAnimationFrame(f);else done();
@@ -7247,6 +7257,7 @@ function anim(from,to,dur,ease,done){
 }
 function endTurn(ok){
  const T=R.T;if(!T)return;R.T=null;cancelAnimationFrame(T.raf);
+ curlTune(T);
  if(ok&&!T.dead&&T.my===tok){R.pg=T.to;show();turnTick()}
  T.els.forEach(e=>e.remove());
  const bk=$('.book');if(bk)bk.classList.remove('turning');
@@ -11157,8 +11168,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.19e';const APP_LABEL='1.112';
-const CHANGES=["Turning a page now curls like real paper: the page bends and rolls over as it turns, follows your finger exactly, and settles gently when you let go","Page turns are a little slower and softer, in both directions"];
+const APP_VERSION='2026.10.19f';const APP_LABEL='1.113';
+const CHANGES=["Page turns now adjust to your device: if the curl is not smooth, the app automatically uses a simpler curl, and then a plain page flip, so turning pages stays smooth"];
 const DEF_ON=new Set(['shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
