@@ -1,7 +1,24 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git push origin HEAD:main)"
+      "Bash(git push origin HEAD:main)",
+      "Bash(git remote*)",
+      "Bash(bash scripts/publish-preview.sh*)"
+    ],
+    "deny": [
+      "Read(./node_modules/**)",
+      "Read(./package-lock.json)",
+      "Read(./yarn.lock)",
+      "Read(./pnpm-lock.yaml)",
+      "Read(./dist/**)",
+      "Read(./build/**)",
+      "Read(./**/*.min.js)",
+      "Read(./**/*.min.css)",
+      "Read(./**/*.map)",
+      "Read(./docs/app/index.html)",
+      "Read(./docs/demo.html)",
+      "Read(./context/**)",
+      "Read(./backup/**)"
     ]
   },
   "hooks": {
@@ -12,6 +29,16 @@
           {
             "type": "command",
             "command": "input=$(cat); if echo \"$input\" | grep -q '\"file_path\"[^}]*www/index.html'; then cp www/index.html docs/app/index.html && node scripts/build-demo.js >/dev/null && echo 'Hook: synced docs/app/index.html and rebuilt docs/demo.html'; fi"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/turn-counter.js\""
           }
         ]
       }

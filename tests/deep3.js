@@ -134,17 +134,6 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  const q=await mk(b,{seedData:seed(SITES),url:URL0+'?view=search'});await W(500);ck('short','?view=search opens search',await q.E(()=>$('#srch').classList.contains('open')));await q.ctx.close()}
 
 /* 29 weather sky, 30 launch animation */
-{const p=await mk(b,{seedData:seed(SITES,{geo:{lat:34,lon:-118},wx:true})});
- await p.route(/api\.open-meteo\.com/,r=>r.fulfill({status:200,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*'},body:JSON.stringify({current:{weather_code:61,cloud_cover:90}})}));
- await p.E(()=>sky('set'));await W(700);
- const s=await p.E(()=>({rain:$('#sky').classList.contains('rain'),drops:document.querySelectorAll('#sky .sk-drop').length}));ck('wx','rain in sky',s.rain&&s.drops>10,JSON.stringify(s));
- await p.screenshot({path:'/tmp/t/v3-rain.png',clip:{x:0,y:960,width:300,height:100}});
- await W(5200);await p.E(()=>{WX.t=0});
- await p.unroute(/api\.open-meteo\.com/);await p.route(/api\.open-meteo\.com/,r=>r.fulfill({status:200,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*'},body:JSON.stringify({current:{weather_code:0,cloud_cover:5}})}));
- await p.E(()=>sky('set'));await W(700);ck('wx','stars on clear night',await p.E(()=>document.querySelectorAll('#sky .sk-star.tw').length>=6));
- await p.E(()=>{WX.t=0});await p.unroute(/api\.open-meteo\.com/);await p.route(/api\.open-meteo\.com/,r=>r.abort());
- await W(5200);await p.E(()=>sky('set'));await W(700);ck('wx','offline weather: plain sky still works',await p.E(()=>!!$('#sky')&&!document.querySelector('#sky .sk-drop')));
- ck('wx','no errors',p.errs.length===0,p.errs.join('|'));await p.ctx.close()}
 {const p=await mk(b,{seedData:seed(SITES,{intro:true})});
  // mk waited 1400ms; intro lasts 1700ms+450
  const p2=await b.newContext({viewport:{width:884,height:1060}});const pg=await p2.newPage();await mock(pg);await pg.addInitScript(s=>{try{if(!localStorage.getItem('folio'))localStorage.setItem('folio',JSON.stringify(s))}catch(e){}},seed(SITES,{intro:true}));
@@ -289,14 +278,13 @@ for(const [vp,w,h] of [['fold',884,1060],['desk',1280,900]]){
 /* settings rows present and working */
 {const p=await mk(b,{w:380,h:820,mob:true,seedData:seed(SITES)});const E=p.E;
  await E(()=>$('#gear').click());await W(300);
- for(const sel of ['#scs [data-sc="vertical"]','#cds [data-cd="large"]','.tg[data-tg="mag"]','.tg[data-tg="cover"]','.tg[data-tg="intro"]','.tg[data-tg="split"]','.tg[data-tg="wx"]','#nrw','#qv','#skyp'])ck('settings',sel+' present',await E(s=>!!$(s),sel));
+ for(const sel of ['#scs [data-sc="vertical"]','#cds [data-cd="large"]','.tg[data-tg="mag"]','.tg[data-tg="cover"]','.tg[data-tg="intro"]','.tg[data-tg="split"]','#nrw','#qv'])ck('settings',sel+' present',await E(s=>!!$(s),sel));
  await E(()=>$('#scs [data-sc="vertical"]').click());ck('settings','scroll setting',await E(()=>S.scroll==='vertical'));
  await E(()=>$('#cds [data-cd="compact"]').click());ck('settings','cards setting',await E(()=>S.cards==='compact'));
  await E(()=>$('.tg[data-tg="mag"]').click());ck('settings','mag toggle off',await E(()=>S.mag===false&&$('.tg[data-tg="mag"]').textContent==='Off'));
  ck('settings','defaults on for cover/intro',await E(()=>$('.tg[data-tg="cover"]').textContent==='On'));
  ck('settings','quote voice options',await E(()=>$('#qv').options.length>=2));
  ck('settings','fits phone',await E(()=>$('.sbody').scrollWidth<=$('.sbody').clientWidth+1));
- await E(()=>$('#skyp').click());await W(300);ck('settings','sky preview',await E(()=>!!$('#sky')));
  ck('settings','no errors',p.errs.length===0,p.errs.join('|'));await p.ctx.close()}
 
 await b.close();

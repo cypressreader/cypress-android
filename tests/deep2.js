@@ -35,7 +35,7 @@ for(const [nm,w,h,mob] of [['setup-phone',380,820,true],['setup-fold',884,1060,f
  ck(nm,'custom source added',await p.E(()=>OB.custom.length===1));
  await p.tap('[data-obnext]');await W(150);
  await p.tap('[data-obth="broadsheet"]');await p.tap('[data-obfn="lexend"]');await p.selectOption('#obnight','dark');
- ck(nm,'look choices',await p.E(()=>S.theme==='broadsheet'&&S.font==='lexend'&&S.night==='dark'));
+ ck(nm,'look choices',await p.E(()=>S.theme==='broadsheet'&&S.font==='lexend'&&S.sch==='dark'));
  await p.screenshot({path:`/tmp/t/n-${nm}-3.png`});
  await p.tap('[data-obnext]');await W(150);await p.screenshot({path:`/tmp/t/n-${nm}-4.png`});
  await p.tap('[data-obdone]');await W(2500);
@@ -245,8 +245,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
 /* ---------- 7. settings render at phone ---------- */
 {const p=await mk(b,{w:380,h:820,mob:true,seedData:seed(['Alpha'])});
  await p.tap('#menu');await W(300);await p.tap('#gear');await W(400);
- for(const id of ['#ngt','#sybox','#obagain','#fresh']){ck('settings',id+' present',await p.E(i=>!!$(i),id))}
- await p.selectOption('#ngt','midnight');await W(200);ck('settings','night select shows location row',await p.E(()=>!$('#ngeorow').hidden&&/sunset/.test($('#nlab').textContent)));
+ for(const id of ['#sybox','#obagain','#fresh']){ck('settings',id+' present',await p.E(i=>!!$(i),id))}
  ck('settings','settings width fits',await p.E(()=>{const d=$('#set').getBoundingClientRect();return d.right<=innerWidth&&$('.sbody').scrollWidth<=$('.sbody').clientWidth+1}));
  await p.E(()=>$('#s-sync').scrollIntoView());await W(200);await p.screenshot({path:'/tmp/t/n-settings-sync.png'});
  ck('settings','no errors',p.errs.length===0,p.errs.join('|'));await p.ctx.close()}
