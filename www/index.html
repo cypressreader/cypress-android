@@ -4003,6 +4003,27 @@ body:not(.narrow) .grid:not(.list) .tpl.t2>.card.noimg .tx{grid-column:1}
 #grid[data-cards="compact"] .card>img{display:block;position:static;grid-column:1;grid-row:1;width:100%;height:auto;min-height:0;aspect-ratio:3/2;object-fit:cover;border-radius:8px}
 #grid[data-cards="compact"] .card.noimg::before{content:attr(data-ini);display:grid;place-items:center;grid-column:1;grid-row:1;width:100%;aspect-ratio:3/2;border-radius:8px;background:color-mix(in srgb,var(--b) 20%,var(--pn,var(--bg)));color:color-mix(in srgb,var(--b) 72%,var(--ink));font:700 clamp(20px,6vw,26px)/1 var(--fd,Georgia,serif);text-transform:uppercase;position:static;inset:auto;height:auto;margin:0}
 #grid[data-cards="compact"] .card>.tx{grid-column:2;grid-row:1;padding:0 30px 0 0;display:flex;flex-direction:column;min-width:0}
+/* FIXES 17: reading sheet. The "Aa" panel is a short sheet at the bottom of the story (no dark backdrop, the story stays visible above it) */
+#aapop{top:auto;right:0;left:0;margin:0 auto;bottom:0;width:min(560px,100%);max-height:58vh;overflow:auto;border-radius:20px 20px 0 0;border-bottom:0;padding:6px 16px calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 34px rgba(0,0,0,.28);animation:aaup .22s ease-out}
+@keyframes aaup{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){#aapop{animation:none}}
+body:has(#tmini:not([hidden])) #aapop{bottom:66px;border-radius:20px;border-bottom:1px solid var(--ln)}
+#aapop .aahd{display:flex;align-items:center;gap:8px;padding:4px 0 6px;position:relative;touch-action:none}
+#aapop .aahd b{flex:1;font:700 12px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
+#aapop .aagrip{position:absolute;left:50%;top:-2px;width:38px;height:4px;margin-left:-19px;border-radius:2px;background:var(--ln)}
+#aapop .aahd .ib{width:34px;height:34px}
+#aapop .aarow.aacol{flex-direction:column;align-items:stretch;gap:6px}
+#aapop .aascr{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:none}
+#aapop .aascr::-webkit-scrollbar{display:none}
+#aapop .aathc{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;flex:none}
+#aapop .aasw{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--sb);color:var(--si);border:1.5px solid color-mix(in srgb,var(--si) 40%,transparent);font:700 10px/1 Georgia,serif;font-style:normal}
+#aapop .aap.on .aasw{border-color:var(--bg)}
+#aapop .aaq{flex-wrap:wrap;justify-content:flex-end}
+#raaf{display:none;position:fixed;right:14px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:60;width:48px;height:48px;border-radius:50%;border:1px solid var(--ln);background:var(--pn);color:var(--ink);font:600 16px/1 var(--serif);box-shadow:0 6px 20px rgba(0,0,0,.25);cursor:pointer;place-items:center}
+#rd.on #raaf{display:grid}
+#rd:has(#aapop:not([hidden])) #raaf{display:none!important}
+body:has(#tmini:not([hidden])) #raaf{bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+#raaf:focus-visible,#aapop .aathc:focus-visible{outline:2px solid var(--logo,var(--ink));outline-offset:2px}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -5994,6 +6015,7 @@ function focusInstall(){
   aa.innerHTML='<span style="font:600 15px/1 var(--serif)">Aa</span>';
   b.before(aa);
  }
+ try{aaFab()}catch(e){}
 }
 /* the soft highlight: the paragraph at the reading line (a little above the middle) of the scrolling reader */
 function focusLine(){
@@ -6012,10 +6034,17 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&S.rfocus&&$('#rd').classList
 {const _d2=decorate;decorate=function(){try{return _d2.apply(this,arguments)}finally{try{focusInstall();focusApply()}catch(e){}}}}
 /* the "Aa" button in the reader bar: text size, reading style, line spacing and sepia without leaving the story; the story reflows as you tap */
 const AA_LH=[['Tight',1.5],['Normal',1.68],['Roomy',1.9]];
+const AA_TH=[['light','Light','#eceef2','#14171c'],['dark','Dark','#0d0f13','#eceef2'],['broadsheet','Sepia','#ebe5d5','#17140e'],['dim','Dim','#22262d','#e3e6ec'],['halcyon','Halcyon','#f3ecdc','#123524'],['midnight','Midnight','#0b1220','#e6ecf7'],['forest','Forest','#0f1a14','#e4efe6'],['eink','E-Ink','#ffffff','#000000']];
+const AA_FN=[['theme','Theme'],['literata','Serif'],['sans','Sans'],['atkinext','Readable']];
+let aaOpener=null;
 function aaBuild(){
  let pop=$('#aapop');if(pop)return pop;
  pop=document.createElement('div');pop.id='aapop';pop.hidden=true;pop.setAttribute('role','dialog');pop.setAttribute('aria-label','Text and appearance');
- pop.innerHTML='<div class="aarow"><span>Text size</span><span class="aaq"><button type="button" class="ib" data-fs="-1" aria-label="Smaller text">A−</button><output id="aafsv" aria-live="polite"></output><button type="button" class="ib" data-fs="1" aria-label="Larger text">A+</button></span></div>'
+ pop.innerHTML='<div class="aahd"><span class="aagrip" id="aagrip" aria-hidden="true"></span><b>Text and appearance</b><button type="button" class="ib" id="aax" aria-label="Close text and appearance">'+svg('<path d="M6 6l12 12M18 6L6 18"/>')+'</button></div>'
+  +'<div class="aarow aacol"><span id="aathl">Theme</span><span class="aascr" role="radiogroup" aria-labelledby="aathl">'+AA_TH.map(([id,n,bg,ink])=>'<button type="button" class="aap aathc" role="radio" data-aath="'+id+'" aria-checked="false"><i class="aasw" style="--sb:'+bg+';--si:'+ink+'" aria-hidden="true">A</i>'+n+'</button>').join('')+'<button type="button" class="aap aathc" id="aaall">All themes…</button></span></div>'
+  +'<div class="aarow"><span id="aafnl">Font</span><span class="aaq" role="radiogroup" aria-labelledby="aafnl">'+AA_FN.map(([id,n])=>'<button type="button" class="aap" role="radio" data-aafn="'+id+'" aria-checked="false">'+n+'</button>').join('')+'</span></div>'
+  +'<div class="aarow"><span>Focus reading</span><button type="button" class="aap" data-tg="focusr" aria-label="Focus reading"></button></div>'
+  +'<div class="aarow"><span>Text size</span><span class="aaq"><button type="button" class="ib" data-fs="-1" aria-label="Smaller text">A−</button><output id="aafsv" aria-live="polite"></output><button type="button" class="ib" data-fs="1" aria-label="Larger text">A+</button></span></div>'
   +'<div class="aarow"><span>Reading style</span><span class="aaq" role="group" aria-label="Reading style"><button type="button" class="aap" data-sc="auto">Auto</button><button type="button" class="aap" data-sc="pages">Pages</button><button type="button" class="aap" data-sc="vertical">Scroll</button></span></div>'
   +'<div class="aarow"><span>Line spacing</span><span class="aaq" role="group" aria-label="Line spacing">'+AA_LH.map(([n,v])=>'<button type="button" class="aap" data-lh="'+v+'">'+n+'</button>').join('')+'</span></div>'
   +'<div class="aarow"><span>Sepia reading page</span><button type="button" class="aap" data-tg="sep" aria-label="Sepia reading page"></button></div>'
@@ -6027,27 +6056,34 @@ function aaSync(){
  $('#aafsv').textContent=(S.fs||18)+'px';
  pop.querySelectorAll('[data-sc]').forEach(b=>{const on=b.dataset.sc===(S.scroll||'auto');b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))});
  pop.querySelectorAll('[data-lh]').forEach(b=>{const on=Math.abs((+S.lh||1.68)-+b.dataset.lh)<.02;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))});
+ const th=S.theme||'auto';pop.querySelectorAll('[data-aath]').forEach(b=>{const on=b.dataset.aath===th;b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on))});
+ pop.querySelectorAll('[data-aafn]').forEach(b=>{const on=b.dataset.aafn===(S.font||'theme');b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on))});
+ {const fb=pop.querySelector('[data-tg="focusr"]'),fo=isOn('focusr');fb.classList.toggle('on',fo);fb.setAttribute('aria-pressed',String(fo));fb.textContent=fo?'On':'Off'}
  const sp=pop.querySelector('[data-tg="sep"]'),so=!!S.sep;sp.classList.toggle('on',so);sp.setAttribute('aria-pressed',String(so));sp.textContent=so?'On':'Off';
 }
-function aaClose(back){const pop=$('#aapop'),aa=$('#raa');if(pop&&!pop.hidden){pop.hidden=true;if(aa){aa.setAttribute('aria-expanded','false');if(back)aa.focus()}}}
+function aaClose(back){const pop=$('#aapop'),aa=$('#raa');if(pop&&!pop.hidden){pop.hidden=true;pop.style.transform='';if(aa)aa.setAttribute('aria-expanded','false');const o=(aaOpener&&document.contains(aaOpener)&&!aaOpener.hidden)?aaOpener:aa;aaOpener=null;if(back&&o)o.focus()}}
 function aaToggle(){
  const pop=aaBuild();
  if(!pop.hidden){aaClose(true);return}
- aaSync();pop.hidden=false;const aa=$('#raa');if(aa)aa.setAttribute('aria-expanded','true');
- const f=pop.querySelector('button');if(f)f.focus();
+ aaOpener=document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#raa,#raaf')||$('#raa');aaSync();pop.hidden=false;const aa=$('#raa');if(aa)aa.setAttribute('aria-expanded','true');
+ const f=pop.querySelector('#aax');if(f)f.focus();
 }
 document.addEventListener('click',e=>{
  const t=e.target;if(!t.closest)return;
- if(t.closest('#raa')){e.preventDefault();e.stopPropagation();aaToggle();return}
+ if(t.closest('#raa,#raaf')){e.preventDefault();e.stopPropagation();aaToggle();return}
  const pop=$('#aapop');if(!pop||pop.hidden)return;
  if(!t.closest('#aapop')){aaClose(false);return}
  const b=t.closest('button');if(!b)return;
- if(b.id==='aamore'){aaClose(false);try{$('#gear').onclick()}catch(x){}try{setShow('read')}catch(x){}return}
- const fz=b.dataset.fs,sc=b.dataset.sc,lh=b.dataset.lh,tg=b.dataset.tg;
+ if(b.id==='aax'){aaClose(true);return}
+ if(b.id==='aamore'||b.id==='aaall'){aaClose(false);try{$('#gear').onclick()}catch(x){}try{setShow('read')}catch(x){}return}
+ const fz=b.dataset.fs,sc=b.dataset.sc,lh=b.dataset.lh,tg=b.dataset.tg,ath=b.dataset.aath,afn=b.dataset.aafn;
  if(fz){S.fs=Math.max(14,Math.min(26,(+S.fs||18)+ +fz));save();applyFs(true)}
  else if(sc){S.scroll=sc;save();refreshReader()}
  else if(lh){S.lh=+lh;save();applyFs(true)}
  else if(tg==='sep'){S.sep=!S.sep;save();applyFs(true)}
+ else if(tg==='focusr'){S.focusr=!isOn('focusr');save();syncSet();applyFx();decorate();relayout()}
+ else if(ath){S.theme=ath;applyTheme(false);save();render()}
+ else if(afn){S.font=afn;needFont(afn);save();refreshReader()}
  else return;
  aaSync();try{syncSet()}catch(x){}
 },true);
@@ -6057,6 +6093,13 @@ document.addEventListener('keydown',e=>{
  if(e.key==='Tab'){const bs=[...pop.querySelectorAll('button')];if(!bs.length)return;const f=bs[0],l=bs[bs.length-1];if(e.shiftKey&&document.activeElement===f){e.preventDefault();l.focus()}else if(!e.shiftKey&&document.activeElement===l){e.preventDefault();f.focus()}}
 },true);
 try{new MutationObserver(()=>{const r=$('#rd');if(r&&!r.classList.contains('on'))aaClose(false)}).observe($('#rd'),{attributes:true,attributeFilter:['class']})}catch(e){}
+/* a thumb-height "Aa" button opens the same sheet; dragging the sheet down closes it */
+function aaFab(){if($('#raaf')||!$('#rd'))return;const b=document.createElement('button');b.type='button';b.id='raaf';b.setAttribute('aria-label','Reading appearance');b.setAttribute('aria-haspopup','dialog');b.innerHTML='<span aria-hidden="true">Aa</span>';$('#rd').append(b)}
+{let y0=null;const pd=e=>{const g=e.target.closest&&e.target.closest('#aapop .aahd');if(!g||e.target.closest('button'))return;y0=e.clientY};
+ document.addEventListener('pointerdown',pd,true);
+ document.addEventListener('pointermove',e=>{if(y0==null)return;const pop=$('#aapop'),d=Math.max(0,e.clientY-y0);if(pop)pop.style.transform='translateY('+d+'px)'},true);
+ const up=e=>{if(y0==null)return;const d=e.clientY-y0;y0=null;const pop=$('#aapop');if(!pop)return;if(d>70)aaClose(true);else pop.style.transform=''};
+ document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',up,true)}
 
 {let raf=0;document.addEventListener('scroll',e=>{if(!S.rfocus||!e.target.closest)return;if(!e.target.closest('#rd'))return;if(!raf)raf=requestAnimationFrame(()=>{raf=0;focusLine()})},{capture:true,passive:true})}
 /* ---- cluster F: Daily intelligence ----
