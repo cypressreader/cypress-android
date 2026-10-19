@@ -924,7 +924,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}/* a phone's own font s
 .ib:hover{background:var(--bg)}
 .ib:disabled{opacity:.3;cursor:default}
 #pc{color:var(--mut);font-size:14px;min-width:56px;text-align:center}
-.book{position:relative;flex:1;min-height:0;margin:0 clamp(12px,3vw,24px) clamp(14px,2.5vw,22px);perspective:900px;touch-action:pan-y}
+.book{position:relative;flex:1;min-height:0;margin:0 clamp(12px,3vw,24px) clamp(14px,2.5vw,22px);perspective:1700px;touch-action:pan-y}
 .view{position:absolute;inset:0;overflow:hidden;background:var(--pn);border:1px solid var(--ln);border-radius:14px}
 .book.one.turning{clip-path:inset(-80px 0 -80px 0)}
 .tl{position:absolute;top:0;height:100%;overflow:hidden;pointer-events:none}
@@ -7338,7 +7338,7 @@ function startTurn(dir){
  setAng(T.ang);
  return T;
 }
-var CR=.15;
+var BOW=1.1;
 /* the curl adapts to the device: if frames take too long on a turn, the next turns use fewer strips, and finally the plain flip (-1). Remembered on this device only. */
 let curlN=0;try{curlN=+localStorage.getItem('cy_curlN2')||0}catch(_){}
 function curlTune(T){
@@ -7354,26 +7354,19 @@ function setAng(a){
  if(!T.st)T.leaf.style.transform=`rotateY(${-a}deg)`;
  let tipx=null;
  if(T.st){
-  /* a real curl: the paper lies flat until a contact line, rolls over a cylinder of radius r, then lies flat (face down) beyond it; the contact line is solved so the free edge follows the usual flip path */
-  const N=T.N,PI=Math.PI,p=Math.pow(Math.max(0,Math.min(1,(T.dir>0?a:180-a)/180)),1.2)/* the page trails the finger a little at first, then catches up: it slides and bubbles before it flips */,k=(1+Math.cos(p*PI))*T.hw/(2+PI);
-  const r=Math.max(.5,Math.min(Math.max(46,Math.min(130,T.hw*CR))*Math.min(Math.pow(Math.min(1,p/.35),2),(1-p)*7),k)),c=(2+PI)*(k-r)/2;
-  /* the squish: before the page starts to flip, its middle bubbles up (an arch that grows, then melts into the roll) */
-  /* beyond the roll the paper is not held up at the roll's height: it slopes back down onto the page (without this the whole turned page floated, enlarged, above the book) */
-  const lr=T.hw-c-PI*r,eps=lr>8?Math.min(.9,2*r/lr):0;
-  /* the paper first stays flat and follows the finger: the free edge slides toward the spine, so the paper has to buckle into an arch (slope th0*cos(pi*u/L), whose chord is L*J0(th0)); as the arch grows it hands over to the roll, which flips the page */
-  const dch=Math.max(-1,Math.min(1,Math.cos(p*PI))),J0=t=>{let q=1,sm=1;for(let n=1;n<9;n++){q*=-(t*t/4)/(n*n);sm+=q}return sm};
-  let th0=0;if(dch<1){let lo=0,hi=2.405;for(let n=0;n<22;n++){const m=(lo+hi)/2;if(J0(m)>Math.max(0,dch))lo=m;else hi=m}th0=(lo+hi)/2}
-  const w=Math.max(0,Math.min(1,(p-.34)/.3)),wh=w*w*(3-2*w);
-  /* the two shapes (arch and roll) are blended as positions, not as angles: adding angles made the surface spike toward the camera (and flash) while one shape handed over to the other */
-  const dr=T.dir>0?1:-1,P=[[0,0]];
-  {let ax=0,az=0,rx=0,rz=0;
-   for(let i=0;i<N;i++){const u=(i+.5)*T.sw,ta=th0*Math.cos(PI*u/T.hw),tr=Math.max(0,Math.min(PI,(u-c)/r))+(u>c+PI*r?eps:0);
-    ax+=T.sw*Math.cos(ta);az+=T.sw*Math.sin(ta);rx+=T.sw*Math.cos(tr);rz+=T.sw*Math.sin(tr);
-    P.push([ax+(rx-ax)*wh,az+(rz-az)*wh])}}
+  /* the page is a hinged sheet that bows while it flips. Its heading along the sheet is th(u)=alpha+cos(alpha)*theta0*cos(pi*u/L): alpha is the hinge angle (0 flat on the right, pi flat on the left), theta0 the bow. The bow grows while the page is still flat (the arch), stays while it swings over, and fades as it lands flat on the other side (cos(alpha) flips sign, so the bow always lifts toward the reader). alpha is solved so the free edge follows the finger: chord = L*cos(alpha)*J0(cos(alpha)*theta0) */
+  const N=T.N,PI=Math.PI,p=Math.pow(Math.max(0,Math.min(1,(T.dir>0?a:180-a)/180)),1.2)/* the page trails the finger a little at first, then catches up */,dr=T.dir>0?1:-1;
+  const J0=t=>{let q=1,sm=1;for(let n=1;n<9;n++){q*=-(t*t/4)/(n*n);sm+=q}return sm};
+  const want=Math.cos(p*PI),ac=Math.min(1,Math.abs(want));
+  let th0=0;if(ac<1){let lo=0,hi=2.405;for(let n=0;n<20;n++){const m=(lo+hi)/2;if(J0(m)>ac)lo=m;else hi=m}th0=(lo+hi)/2}
+  th0=Math.min(th0,BOW);
+  let al=0;{let lo=0,hi=PI;for(let n=0;n<22;n++){const m=(lo+hi)/2,cm=Math.cos(m);if(cm*J0(cm*th0)>want)lo=m;else hi=m}al=(lo+hi)/2}
+  const cs=Math.cos(al)*th0;
+  const P=[[0,0]];{let px=0,pz=0;for(let i=0;i<N;i++){const t=al+cs*Math.cos(PI*(i+.5)/N);px+=T.sw*Math.cos(t);pz+=T.sw*Math.sin(t);P.push([px,pz])}}
   let x=T.hx;
   T.st.forEach((q,i)=>{
-   const ex=P[i+1][0]-P[i][0],ez=P[i+1][1]-P[i][1],t0=Math.atan2(ez,ex),sx=Math.max(.5,Math.min(1.5,Math.hypot(ex,ez)/T.sw)),th=T.dir>0?t0:PI-t0/* turning back is the mirror image of turning forward */,dg=th*180/PI;
-   q.el.style.transform=`translate3d(${(dr*P[i][0]).toFixed(1)}px,0,${P[i][1].toFixed(1)}px) rotateY(${(-dg).toFixed(2)}deg) scaleX(${sx.toFixed(3)})`;
+   const t0=al+cs*Math.cos(PI*(i+.5)/N),th=T.dir>0?t0:PI-t0/* turning back is the mirror image of turning forward */,dg=th*180/PI;
+   q.el.style.transform=`translate3d(${(dr*P[i][0]).toFixed(1)}px,0,${P[i][1].toFixed(1)}px) rotateY(${(-dg).toFixed(2)}deg)`;
    const o=Math.round(16*Math.abs(Math.sin(th)));if(o!==q.o){q.o=o;const v=(o/100).toFixed(2);q.fs.style.opacity=v;q.bs.style.opacity=v}
   });
   x=T.hx+dr*P[N][0];
