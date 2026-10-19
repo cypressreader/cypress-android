@@ -33,7 +33,7 @@ Last updated: 2026-10-19 · Branch: `claude/cool-darwin-nkj7it` · Code: web `20
 - Visual-Test (AI Studio) repo: **user said do NOT port its visual enhancements yet**; review together first. Items to fix if ported: panel drag-to-close, OLED in `THEME_NAMES`/`twinApply`, no fake storage breakdown. Details in the archive §3c.
 
 ## 4. Active state & next 3 tasks
-**Page turn (2026-10-19, preview, unverified on device):** to match Play Books the curl shading was lightened (strip shade .3→.12, fallback .42→.2, under-page .32→.14, edge cast .34→.2), `.book` perspective 3200→5200, tap-turn duration 780→620 ms (`go()`). Logic in `startTurn/setAng` untouched. Test: `TESTING.md` last entry.
+**Page turn (2026-10-19, preview, unverified on device):** to match Play Books the curl shading was lightened (strip shade .3→.12, fallback .42→.2, under-page .32→.14, edge cast .34→.2), `.book` perspective 3200→5200, tap-turn duration 780→620 ms (`go()`). Round 2 (user: 'looks like a floppy board being flipped'): strips 9→16 (6→10 on low-end), bend `CB=70°` (was 26) concentrated at the free edge (`CP=2.4` weights), in `setAng`. Round 1 kept: lighter shading, 5200 perspective, 620 ms. Test: `TESTING.md` last entry.
 **State:** 1.111 released and unverified on devices (everything in `TESTING.md` for 1.107-1.111). Nothing unreleased on the branch except this trimmed handoff.
 1. Wait for the user's device feedback on 1.111 (feed jump/flash on return; blank half in Cards-view short rows; tablet rows/tiles). Fix what they report.
 2. FIXES 19 remainder (only after their tablet/fold screenshots): `@container` rules for worst components; Settings tablet layout. Muse item 1 (Daily Brief clipped banner) needs a screenshot.
