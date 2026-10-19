@@ -7360,10 +7360,13 @@ function setAng(a){
   /* the squish: before the page starts to flip, its middle bubbles up (an arch that grows, then melts into the roll) */
   /* beyond the roll the paper is not held up at the roll's height: it slopes back down onto the page (without this the whole turned page floated, enlarged, above the book) */
   const lr=T.hw-c-PI*r,eps=lr>8?Math.min(.9,2*r/lr):0;
-  const bub=Math.pow(Math.sin(PI*Math.min(1,p/.42)),.6)*BUB;
+  /* the paper first stays flat and follows the finger: the free edge slides toward the spine, so the paper has to buckle into an arch (slope th0*cos(pi*u/L), whose chord is L*J0(th0)); as the arch grows it hands over to the roll, which flips the page */
+  const dch=Math.max(-1,Math.min(1,Math.cos(p*PI))),J0=t=>{let q=1,sm=1;for(let n=1;n<9;n++){q*=-(t*t/4)/(n*n);sm+=q}return sm};
+  let th0=0;if(dch<1){let lo=0,hi=2.405;for(let n=0;n<22;n++){const m=(lo+hi)/2;if(J0(m)>Math.max(0,dch))lo=m;else hi=m}th0=(lo+hi)/2}
+  const w=Math.max(0,Math.min(1,(p-.2)/.3)),wh=w*w*(3-2*w);
   let x=T.hx,z=0,dx=0;
   T.st.forEach((q,i)=>{
-   const u=(i+.5)*T.sw,bu=(u-T.hw*.05)/(T.hw*.9),t0=Math.max(0,Math.min(PI,(u-c)/r))+(u>c+PI*r?eps:0)+(bub>0&&bu>0&&bu<1?bub*Math.sin(2*PI*bu):0),th=T.dir>0?t0:PI-t0/* turning back is the mirror image of turning forward */,dg=th*180/PI;
+   const u=(i+.5)*T.sw,t0=wh*(Math.max(0,Math.min(PI,(u-c)/r))+(u>c+PI*r?eps:0))+(1-wh)*th0*Math.cos(PI*u/T.hw),th=T.dir>0?t0:PI-t0/* turning back is the mirror image of turning forward */,dg=th*180/PI;
    q.el.style.transform=`translate3d(${dx.toFixed(1)}px,0,${z.toFixed(1)}px) rotateY(${(-dg).toFixed(2)}deg)`;
    const o=Math.round(16*Math.abs(Math.sin(th)));if(o!==q.o){q.o=o;const v=(o/100).toFixed(2);q.fs.style.opacity=v;q.bs.style.opacity=v}
    dx+=T.sw*Math.cos(th);z+=T.sw*Math.sin(th);x+=T.sw*Math.cos(th);
