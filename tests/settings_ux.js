@@ -10,11 +10,11 @@ const P=k=>'<p>'+('Paragraph '+k+' of the story with enough ordinary words to ma
   /* reader: the Aa popover */
   await p.evaluate(async html=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());const f=S.feeds[0];const a={feedId:f.id,title:'Aa story',link:'https://w.test/aa',date:Date.now(),summary:'x',img:'',html};items[f.id]=[a,...(items[f.id]||[])];S.sel='all';S.scroll='vertical';S.fs=18;S.lh=1.68;S.sep=false;render();await openReader(a);await new Promise(r=>setTimeout(r,2200))},P(1)+P(2)+P(3)+P(4));
   const q=(sel)=>p.evaluate(s=>{const e=document.querySelector(s);if(!e)return null;const r=e.getBoundingClientRect(),cs=getComputedStyle(e);return {hidden:e.hidden,w:Math.round(r.width),h:Math.round(r.height),disp:cs.display,exp:e.getAttribute('aria-expanded'),role:e.getAttribute('role'),txt:e.textContent.trim().slice(0,40)}},sel);
-  const aa=await q('#raa');ck(t+'the reader bar has an Aa button with an accessible name',aa&&aa.w>0,JSON.stringify(aa));
-  const nm=await p.evaluate(()=>{const e=document.getElementById('raa');return e.getAttribute('aria-label')});ck(t+'it is named "Text and appearance"',nm==='Text and appearance',nm);
-  await p.click('#raa');await p.waitForTimeout(300);
+  const openAa=async()=>{await p.click('#mo');await p.waitForTimeout(150);await p.click('[data-act=aa]');};
+  ck(t+'the reader bar has no Aa buttons (Text and appearance is in the ... menu)',!(await q('#raa'))&&!(await q('#raaf')));
+  await openAa();await p.waitForTimeout(300);
   let pop=await q('#aapop');ck(t+'tapping Aa opens the popover (a dialog, on screen)',pop&&!pop.hidden&&pop.w>200&&pop.role==='dialog',JSON.stringify(pop));
-  ck(t+'Aa reports that it is expanded',(await q('#raa')).exp==='true');
+  
   const fs0=await p.evaluate(()=>S.fs);await p.click('#aapop [data-fs="1"]');await p.waitForTimeout(400);
   const r1=await p.evaluate(()=>({fs:S.fs,ro:document.getElementById('aafsv').textContent,css:document.getElementById('rd').style.getPropertyValue('--fs'),open:document.getElementById('rd').classList.contains('on'),pop:!document.getElementById('aapop').hidden}));
   ck(t+'A+ makes the text bigger, shows the size, reflows the story and keeps the reader and popover open',r1.fs===fs0+1&&r1.ro===(fs0+1)+'px'&&parseFloat(r1.css)>=fs0+1&&r1.open&&r1.pop,JSON.stringify(r1));
@@ -30,10 +30,10 @@ const P=k=>'<p>'+('Paragraph '+k+' of the story with enough ordinary words to ma
   await p.click('#aapop [data-sc="vertical"]');await p.waitForTimeout(400);
   await p.keyboard.press('Escape');await p.waitForTimeout(200);
   const esc=await p.evaluate(()=>({hid:document.getElementById('aapop').hidden,foc:document.activeElement&&document.activeElement.id,rd:document.getElementById('rd').classList.contains('on')}));
-  ck(t+'Escape closes the popover, returns focus to Aa and leaves the story open',esc.hid&&esc.foc==='raa'&&esc.rd,JSON.stringify(esc));
-  await p.click('#raa');await p.waitForTimeout(200);await p.evaluate(()=>{const e=document.querySelector('.cols .tt')||document.querySelector('.cols .body p');e.dispatchEvent(new MouseEvent('click',{bubbles:true}))});await p.waitForTimeout(250);await p.evaluate(()=>{document.getElementById('rd').classList.remove('hbar','nobar','chromeoff')});
+  ck(t+'Escape closes the popover, returns focus to the ... button and leaves the story open',esc.hid&&esc.foc==='mo'&&esc.rd,JSON.stringify(esc));
+  await openAa();await p.waitForTimeout(200);await p.evaluate(()=>{const e=document.querySelector('.cols .tt')||document.querySelector('.cols .body p');e.dispatchEvent(new MouseEvent('click',{bubbles:true}))});await p.waitForTimeout(250);await p.evaluate(()=>{document.getElementById('rd').classList.remove('hbar','nobar','chromeoff')});
   ck(t+'tapping the story closes the popover',await p.evaluate(()=>document.getElementById('aapop').hidden));
-  await p.click('#raa');await p.waitForTimeout(200);await p.click('#aamore');await p.waitForTimeout(700);
+  await openAa();await p.waitForTimeout(200);await p.click('#aamore');await p.waitForTimeout(700);
   const mo=await p.evaluate(()=>({set:document.getElementById('set').open,pg:SETP,title:document.getElementById('settitle').textContent}));
   ck(t+'"More reading settings…" opens Settings on the Reading page',mo.set&&mo.pg==='read',JSON.stringify(mo));
   /* settings: the live sample passage */
