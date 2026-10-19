@@ -7288,6 +7288,8 @@ function show(){
  if(R.ready&&curA){if(R.pg>0&&R.pg<R.np-1)S.pos[curA.link]=R.pg;else delete S.pos[curA.link];const pk=Object.keys(S.pos);if(pk.length>300)delete S.pos[pk[0]];clearTimeout(pt);pt=setTimeout(save,700)}
 }
 const eOut2=p=>1-Math.pow(1-p,2.2),ePage=p=>(1-Math.pow(1-p,3))*(.55+.45*Math.min(1,p/.3));
+/* turning back starts with the curl already tight, so it needs a gentle start (the forward turn's fast start would look abrupt) */
+const eBack=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
 const mkEl=(c,st)=>{const e=document.createElement('div');e.className=c;if(st)e.style.cssText=st;return e};
 function mkBox(pg,x0){
  const bk=$('.book'),v=$('.view').cloneNode(true),c=v.querySelector('.cols');
@@ -7343,7 +7345,7 @@ function setAng(a){
  if(T.st){
   /* a real curl: the paper lies flat until a contact line, rolls over a cylinder of radius r, then lies flat (face down) beyond it; the contact line is solved so the free edge follows the usual flip path */
   const N=T.N,PI=Math.PI,p=Math.max(0,Math.min(1,a/180)),k=(1+Math.cos(p*PI))*T.hw/(2+PI);
-  const r=Math.max(.5,Math.min(Math.max(46,Math.min(130,T.hw*CR))*Math.min(1,p*7),k)),c=(2+PI)*(k-r)/2;
+  const r=Math.max(.5,Math.min(Math.max(46,Math.min(130,T.hw*CR))*Math.min(1,p*7,(1-p)*7),k)),c=(2+PI)*(k-r)/2;
   let x=T.hx,pv=0;
   T.st.forEach((q,i)=>{
    const th=Math.max(0,Math.min(PI,((i+.5)*T.sw-c)/r)),dg=th*180/PI;
@@ -7387,7 +7389,7 @@ function go(d){
  if(R.web||R.busy||to<0||to>=R.np)return;
  if(reduced()){R.pg=to;show();return}
  const T=startTurn(d);paperSound();
- anim(T.ang,d>0?180:0,620,ePage,()=>endTurn(true));
+ anim(T.ang,d>0?180:0,d>0?620:700,d>0?ePage:eBack,()=>endTurn(true));
 }
 let D=null;
 function turnRelease(cancel,ts){
