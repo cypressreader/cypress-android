@@ -7307,6 +7307,7 @@ function go(d){
 let D=null;
 function turnRelease(cancel,ts){
  const T=R.T,d=D;D=null;if(!T||!d)return;
+ if(d.raf){cancelAnimationFrame(d.raf);d.raf=0}if(d.pa!=null&&!T.dead)setAng(d.pa);
  /* speed only counts if the finger was still moving when it lifted: a drag that rests before letting go is a slow drag, not a flick */
  let vx=0;const sm=d.s;if(sm.length>1){const a=sm[0],b=sm[sm.length-1];if(b.t>a.t&&!(ts&&ts-b.t>120))vx=(b.x-a.x)/(b.t-a.t)}
  const flick=-vx*T.dir,prog=T.dir>0?T.ang:180-T.ang;
@@ -9007,7 +9008,9 @@ rdEl.addEventListener('pointermove',e=>{
  const T=R.T;if(!T)return;
  D.s.push({t:e.timeStamp,x:e.clientX});while(D.s.length>2&&D.s[0].t<e.timeStamp-110)D.s.shift();
  const xt=Math.max(-T.hw,Math.min(T.hw,T.xt0+(e.clientX-D.x0)*1.35));
- setAng(Math.acos(xt/T.hw)*180/Math.PI);
+ /* one update per screen refresh, using the newest finger position (a 120 Hz touch screen can report several moves per frame) */
+ const dd=D;dd.pa=Math.acos(xt/T.hw)*180/Math.PI;
+ if(!dd.raf)dd.raf=requestAnimationFrame(()=>{dd.raf=0;if(dd.pa!=null&&R.T===T&&!T.dead)setAng(dd.pa)});
 });
 const pend=e=>{
  if(!D||e.pointerId!==D.id)return;
@@ -11193,8 +11196,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.19j';const APP_LABEL='1.117';
-const CHANGES=["The page turn no longer gets stuck on a simpler curl after one slow moment: it forgets that choice when the app updates and only simplifies after two slow turns in a row"];
+const APP_VERSION='2026.10.19k';const APP_LABEL='1.118';
+const CHANGES=["Dragging a page turn is smoother: the page now redraws once per screen refresh instead of for every tiny finger movement"];
 const DEF_ON=new Set(['shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
