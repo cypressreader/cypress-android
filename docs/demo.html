@@ -4161,6 +4161,8 @@ body:not(.narrow):not(.split).sidehide:not(.sideshow) #sideh{display:flex}
 @media(prefers-reduced-motion:reduce){body.sidehide>aside{transition:none!important}}
 /* FIXES 19: source names in Halcyon list rows were set in the display serif with fake small caps (mixed-case look); use the same small sans capitals as the other rows */
 html[data-theme^=halcyon] #grid .card.list-row .src .sn{font:800 10.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;font-variant-caps:normal}
+/* FIXES 20 update 3: with the side bar hidden, the menu button (top left) opens your feeds instead of the edge tab */
+@media(min-width:700px){body:not(.narrow):not(.split).sidehide #menu{display:grid}body:not(.narrow):not(.split).sidehide:not(.reading) #sideh{display:none!important}}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -8684,6 +8686,17 @@ function applyLogo(){const k=LOGOS[S.logo]?S.logo:'tree',l=LOGOS[k],b=$('#logo')
 function dealList(){const seen=new Set(),o=[];for(const f of S.feeds)for(const a of (items[f.id]||[]))if(dealItem(a)&&!seen.has(a.link)){seen.add(a.link);o.push(a)}return o}
 function dealSync(){const r=$('#dealsrow');if(!r)return;r.hidden=!S.hideDeals;if(S.hideDeals){const n=dealList().length;$('#dealsn').textContent=n?n+' stor'+(n===1?'y':'ies')+' hidden right now':'Nothing hidden right now'}}
 const sideMode=()=>S.sideh||(S.sidehide?'always':'off');
+/* the menu button says whether your feeds are showing, and a big screen gets a one-time tip that the side bar can be hidden */
+try{new MutationObserver(()=>{const m=$('#menu'),b=document.body;if(m){if(b.classList.contains('sidehide'))m.setAttribute('aria-expanded',String(b.classList.contains('sideshow')));else m.removeAttribute('aria-expanded')}}).observe(document.body,{attributes:true,attributeFilter:['class']})}catch(e){}
+function sideTip(n){
+ S.tips=S.tips||{};const b=document.body;
+ if(S.tips.sideh||sideMode()!=='off'||VW<700||b.classList.contains('narrow')||b.classList.contains('split'))return;
+ const busy=document.querySelector('dialog[open]')||$('#rd').classList.contains('on')||TIPQ.shown||userBusy();
+ if(busy){if((n||0)<12)setTimeout(()=>sideTip((n||0)+1),60000);return}
+ S.tips.sideh=1;save();
+ toast('Tip: on a big screen you can hide the side bar for more room. Your feeds stay under the menu button. You can change this in Settings.',()=>{S.sideh='always';delete S.sidehide;save();screenMode();render();syncSet();toast('Side bar hidden. Settings → Look changes this.')},'Hide it')
+}
+setTimeout(()=>{try{sideTip(0)}catch(e){}},240000);
 function syncSet(){dealSync();{const e=$('#sidehs');if(e)e.value=sideMode()}
  {const sc=$('#sch');if(sc)sc.value=S.sch||'theme'}{const dm=$('#dynm');if(dm){dm.value=S.dynm||'sys';const l=$('#dynmrow');if(l)l.hidden=(S.theme||'auto')!=='dynamic'}}{const pp=$('#ppr');if(pp)pp.value=String(S.paper||0)}{const mm=$('#mast');if(mm)mm.value=S.mast||'clean'}{const c=$('#cvs');if(c)c.value=S.cvs||'clean';cvSetBtn();looksFill();const sc=$('#scrim');if(sc)sc.value=S.scrim||'';fthFill()}{const a=$('#dgwhen');if(a)a.value=S.dgwhen||'morning';const b=$('#dgwd');if(b)b.value=String(S.dgwd==null?0:S.dgwd)}['source','lora','crimson','public'].forEach(needFont);syncUi();
  {const el=$('#offst');if(el){const c=Object.keys(AC).length,last=S.feeds.reduce((m,f)=>Math.max(m,(S.health[f.id]||{}).ok||0),0),t=last?new Date(last).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
@@ -9658,7 +9671,7 @@ $('#fi').onchange=async e=>{
  e.target.value='';
  await opmlImport(t,file.name);
 };
-$('#menu').onclick=()=>drawer(!document.body.classList.contains('open'));
+$('#menu').onclick=()=>{const b=document.body;if(b.classList.contains('sidehide')){b.classList.toggle('sideshow');return}drawer(!b.classList.contains('open'))};
 const secT=x=>String(x||'').replace(/&amp;/gi,'&').replace(/&#0?39;|&apos;/gi,"'").replace(/&quot;/gi,'"');
 const kmatch=(k,a)=>k.by?a.by===k.by:k.sec?(a.sec===k.sec&&a.feedId===k.fid):k.words.some(w=>((a.title||'')+' '+(a.summary||'')).toLowerCase().includes(w));
 const kdesc=k=>k.by?'stories by '+k.by:k.sec?'the '+k.sec+' section':k.words.join(', ');
@@ -14402,7 +14415,7 @@ try{const bd=$('#bid');if(bd)bd.value=String(biDays())}catch(e){}
  const set=on=>{on=on&&!rd.classList.contains('ghost');document.body.classList.toggle('reading',on);if(!on)document.body.classList.remove('sideshow')};
  if(rd){new MutationObserver(()=>set(rd.classList.contains('on'))).observe(rd,{attributes:true,attributeFilter:['class']});set(rd.classList.contains('on'))}
  h.onclick=()=>document.body.classList.add('sideshow');
- document.addEventListener('click',e=>{if(document.body.classList.contains('sideshow')&&!e.target.closest('aside')&&!e.target.closest('#sideh')){document.body.classList.remove('sideshow')}else if(document.body.classList.contains('sideshow')&&e.target.closest('aside [data-sel],aside .fr,aside .nav')){setTimeout(()=>{document.body.classList.remove('sideshow');if(rd&&rd.classList.contains('on')&&typeof closeRd==='function')try{closeRd()}catch(er){}},50)}},true);
+ document.addEventListener('click',e=>{if(document.body.classList.contains('sideshow')&&!e.target.closest('aside')&&!e.target.closest('#sideh,#menu')){document.body.classList.remove('sideshow')}else if(document.body.classList.contains('sideshow')&&e.target.closest('aside [data-sel],aside .fr,aside .nav')){setTimeout(()=>{document.body.classList.remove('sideshow');if(rd&&rd.classList.contains('on')&&typeof closeRd==='function')try{closeRd()}catch(er){}},50)}},true);
  let sx=null;document.addEventListener('touchstart',e=>{const t=e.touches[0];sx=(document.body.classList.contains('reading')||document.body.classList.contains('sidehide'))&&t.clientX<18?{x:t.clientX,y:t.clientY}:null},{passive:true});
  document.addEventListener('touchmove',e=>{if(!sx)return;const t=e.touches[0];if(t.clientX-sx.x>48&&Math.abs(t.clientY-sx.y)<40){document.body.classList.add('sideshow');sx=null}},{passive:true});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('sideshow')){document.body.classList.remove('sideshow');e.stopPropagation()}},true);
