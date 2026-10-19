@@ -441,3 +441,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - **Return-to-feed stall (preview):** with a big feed (hundreds of stories), opening a story and going back should no longer freeze for a moment. Cause: the 0.15 s cross-fade used on close took a snapshot of the whole page. It is now skipped when the feed has more than 40 cards on screen (small lists keep it). Check on the phone and in Chrome.
 
 - **Return-to-feed, part 2 (preview):** read part of a story (scroll it a little), then go back to All Stories. The feed should not redraw or flicker; the story's small progress bar updates in place. Daily and other views still redraw as before.
+
+- **No fade when closing a story (preview):** going back to the feed is now instant (no cross-fade between the story and the feed). Check there is no stutter or flash, in Chrome and on the phone.
