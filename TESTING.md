@@ -435,3 +435,20 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - **Bug-hunt fixes (preview):** (a) All Stories pills (Smart / Top stories / Quick reads / Deep reads) centered on tablets; (d) reader: "Loading the full article…" disappears once the text shows. Check on tablet and phone.
 
 - **Empty space in short card rows (preview):** on a tablet/wide screen, a row with only two or three picture cards (strip or three-across block) now fills the width instead of leaving the right side blank. Check All Stories, Smart view.
+
+- **Blank right half in Cards view (preview):** in All Stories → Smart with Cards view on a tablet, a short row of picture cards (2 or 3 cards) should now stretch across the width instead of sitting in the left half. Cause: the card rows used "as many 190 px columns as fit" and left empty columns. Now empty columns collapse (`auto-fit`) and the short-row filler also runs on these rows. Unverified: could not reproduce the exact row from the demo data.
+
+- **Return-to-feed stall (preview):** with a big feed (hundreds of stories), opening a story and going back should no longer freeze for a moment. Cause: the 0.15 s cross-fade used on close took a snapshot of the whole page. It is now skipped when the feed has more than 40 cards on screen (small lists keep it). Check on the phone and in Chrome.
+
+- **Return-to-feed, part 2 (preview):** read part of a story (scroll it a little), then go back to All Stories. The feed should not redraw or flicker; the story's small progress bar updates in place. Daily and other views still redraw as before.
+
+- **No fade when closing a story (preview):** going back to the feed is now instant (no cross-fade between the story and the feed). Check there is no stutter or flash, in Chrome and on the phone.
+
+- **Same place after going back (preview):** scroll a long way down All Stories, open a story, go back: the story that was at the top of the screen should be at the same spot again, even if pictures loaded or the list moved meanwhile. Scrolling yourself right after returning cancels the correction.
+
+- **Cookie text in "Why it matters" (preview):** open the Ars Technica story "Disney found a way to buy Character.AI without buying its lawsuits": the box should no longer contain cookie-banner wording (or should not show at all).
+- **Debug note (preview only):** add `?dbg=1` to the preview address to see a small black note each time the whole feed is rebuilt (count + time). Use it while opening/closing stories to see whether a rebuild happens when cards move.
+
+- **List no longer jumps while scrolling (preview):** All Stories (Smart, Cards view): scroll down and back up, open stories and return. Cards should stay put (no sliding, no sudden jumps). Cause: lazily drawn cards (`content-visibility:auto`, guessed 260 px) changed height when they scrolled into view; turned off for `#grid.wire`. Watch for slower scrolling on the phone; if so, tell me.
+
+- **Feed no longer squeezed while a story is open (preview):** on a mid-width window or tablet (roughly 500-900 px wide, not split view), open a story and go back: the list should return at the same height and spot with no flash. Cause: while reading, the sidebar column came back and squeezed the hidden feed to ~220 px, so the whole list re-wrapped twice. Now the feed keeps its width (`--mw`, `rdFreeze`).

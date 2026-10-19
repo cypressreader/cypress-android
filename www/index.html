@@ -3712,7 +3712,7 @@ body.exbusy [data-exact]{cursor:progress}
 #grid .card.list-row .tx{grid-template-columns:1fr}#grid .card.list-row time{grid-column:1/-1}
 #grid .card.list-row .star{position:static;flex:none;opacity:1}
 @media(min-width:500px){@container feed (min-width:300px){
-#grid[data-w="mag"] :is(.nr-rv,.nr-sm,.nr-mid,.nr-trl,.nr-ph-rows){display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:12px;align-items:start}
+#grid[data-w="mag"] :is(.nr-rv,.nr-sm,.nr-mid,.nr-trl,.nr-ph-rows){display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px;align-items:start}
 #grid[data-w="mag"] .card:is(.nr-row,.nr-late){display:flex!important;flex-direction:column;padding:0!important;border-top:0!important}
 #grid[data-w="mag"] .card:is(.nr-row,.nr-late)>img{order:-1;float:none!important;position:static!important;width:100%!important;height:auto!important;aspect-ratio:16/9;margin:0 0 10px!important;border-radius:12px;grid-column:auto!important}
 #grid[data-w="mag"] .card:is(.nr-row,.nr-late)>.tx{display:block!important}
@@ -4022,6 +4022,8 @@ body:not(.narrow) .grid:not(.list) .tpl.t2>.card.noimg .tx{grid-column:1}
 #grid[data-cards="compact"] .card:is(.nr-lead,.nr-hero) h3,#grid[data-cards="narrow"] .card:is(.nr-lead,.nr-hero) h3,#grid[data-cards="compact"] .card:is(.nr-lead,.nr-hero) h3 a,#grid[data-cards="narrow"] .card:is(.nr-lead,.nr-hero) h3 a{color:var(--ink)!important;font-size:calc(clamp(1.1rem,2.2vw,1.4rem)*var(--csz,1))!important}
 /* FIXES 24: wide pictures crop toward the top third (heads were cut), and source names are a readable size on tablets */
 #grid .card>img{object-position:50% 30%}
+/* All Stories list: cards drawn lazily at a guessed 260 px height made the list jump when they scrolled into view (about 30 times more layout shift than drawing them all; no slower to build) */
+#grid.wire .card,#grid.wire .card.nr-row,#grid.wire .card.nr-late,#grid.wire .wcol{content-visibility:visible}
 @media(min-width:700px){html #grid .card .src{font-size:11.5px}}
 /* FIXES 25: the feed's lead picture fills its width (max-height with aspect-ratio was shrinking the width) */
 #grid .fd-fa{width:100%}
@@ -6596,7 +6598,7 @@ function endCard(){
 }
 let ENDIO=null;
 /* the last row of a multi-column grid (tablets) never leaves empty columns: its stories widen to fill the row */
-function fixOrph(){try{const g=document.getElementById('grid');if(!g)return;g.querySelectorAll('.orph').forEach(c=>{c.classList.remove('orph');c.style.gridColumn=''});if(innerWidth<700)return;const ps=new Set([g]);g.querySelectorAll(':scope>div').forEach(d=>ps.add(d));ps.forEach(P=>{const cs=getComputedStyle(P);if(cs.display!=='grid')return;const n=cs.gridTemplateColumns.split(' ').length;if(n<2)return;const k=[...P.children].filter(c=>c.offsetWidth&&c.classList.contains('card'));if(!k.length)return;const T=k[k.length-1].getBoundingClientRect().top;const row=k.filter(c=>c.getBoundingClientRect().top>T-10);const all=[...P.children].filter(c=>c.offsetWidth);if(row.length>=n||all.some(o=>!row.includes(o)&&o.getBoundingClientRect().top>T-10&&o.getBoundingClientRect().left>row[0].getBoundingClientRect().left+5&&!o.classList.contains('card')&&o.getBoundingClientRect().top<T+40))return;const base=Math.floor(n/row.length),ex=n%row.length;row.forEach((c,i)=>{c.classList.add('orph');c.style.gridColumn='span '+(base+(i<ex?1:0))})})}catch(e){}}
+function fixOrph(){try{const g=document.getElementById('grid');if(!g)return;g.querySelectorAll('.orph').forEach(c=>{c.classList.remove('orph');c.style.gridColumn=''});if(innerWidth<700)return;const ps=new Set([g]);g.querySelectorAll(':scope>div,.nr-rv,.nr-sm,.nr-mid,.nr-trl').forEach(d=>ps.add(d));ps.forEach(P=>{const cs=getComputedStyle(P);if(cs.display!=='grid')return;const n=cs.gridTemplateColumns.split(' ').length;if(n<2)return;const k=[...P.children].filter(c=>c.offsetWidth&&c.classList.contains('card'));if(!k.length)return;const T=k[k.length-1].getBoundingClientRect().top;const row=k.filter(c=>c.getBoundingClientRect().top>T-10);const all=[...P.children].filter(c=>c.offsetWidth);if(row.length>=n||all.some(o=>!row.includes(o)&&o.getBoundingClientRect().top>T-10&&o.getBoundingClientRect().left>row[0].getBoundingClientRect().left+5&&!o.classList.contains('card')&&o.getBoundingClientRect().top<T+40))return;const base=Math.floor(n/row.length),ex=n%row.length;row.forEach((c,i)=>{c.classList.add('orph');c.style.gridColumn='span '+(base+(i<ex?1:0))})})}catch(e){}}
 {let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(fixOrph,200)},{passive:true})}
 function endObs(){
  document.querySelectorAll('.endc:not([data-o])').forEach(el=>{el.dataset.o='1';const l=el.querySelector('[data-fill]');if(!l)return;
@@ -8279,6 +8281,7 @@ function digPrev(){const m=digModel();if(!DIG.on||(m.chap[m.i]&&m.pos-m.chap[m.i
 function digNext(){if(DIG.on)digGo(DIG.i+1,{})}
 /* a story opened by hand, or a Daily story shown in the background, uses the same reader; the background one is simply not seen */
 {const _or=openReader;openReader=async function(a){
+  if(!$('#rd').classList.contains('on')){rdAnchorSave();rdFreeze(true)}
   const gh=!!R.ghostNext;R.ghostNext=false;
   if(!R.digOpen&&DIG.on)digEnd(false);
   $('#rd').classList.toggle('ghost',gh);
@@ -8545,11 +8548,21 @@ function syncPb(){
  $('#pbrate').value=r;$('#pbrv').textContent=r.toFixed(1)+'×';$('#pbvol').value=v;$('#pbvv').textContent=Math.round(v*100)+'%';raBtn();const q=$('#pbq');if(q){q.classList.toggle('on',!!S.queue);q.textContent=S.queue?'On':'Off'}
 }
 /* leaving a story only needs a full redraw if something that changes the list happened in it (saved, highlighted, followed, partly read). Merely reading is already shown on the cards */
+const rdBase=sg=>String(sg).replace(/\|[^|]*$/,'');
 const rdSig=a=>{try{return [S.saved.length,(S.hl||[]).length,JSON.stringify(S.lk||0).length,(S.mute||[]).length,(S.sk||[]).length,S.hideRead?1:0,a?Math.round(100*progOf(a.link)):0].join('|')}catch(e){return Math.random()}};
 let RDSIG='';
 let RDTRIG=null;
-const closeRd=fromPop=>{if(document.startViewTransition&&!reduced()&&$('#rd').classList.contains('on')&&!closeRd.busy){closeRd.busy=1;try{const vt=document.startViewTransition(()=>{closeRd0(fromPop)});vt.finished.then(()=>{closeRd.busy=0},()=>{closeRd.busy=0});return}catch(e){closeRd.busy=0}}closeRd0(fromPop)};
-const closeRd0=fromPop=>{try{raCancel()}catch(e){}const was=curA,same=!!was&&RDSIG===rdSig(was)&&/^(all|f:|s:|k:)/.test(S.sel||'');$('#rd').classList.remove('focus');if(fromPop!==true){dropLayer('rdnav');dropLayer('reader')}else dropLayer('rdnav');const nv=$('#rdnav');if(nv){nv.classList.remove('on');nv.hidden=true}tok++;R.busy=false;/* read-aloud keeps going when you back out to the feed: the floating pill (#tmini) carries the controls */if(!(TTS.on&&('speechSynthesis' in window)))ttsStop();hlClear();$('#selbar').hidden=true;$('#rd').classList.remove('on','flex','vert');try{if(RDTRIG&&RDTRIG.isConnected&&RDTRIG!==document.body)RDTRIG.focus({preventScroll:true})}catch(e){};curA=null;try{tminiSync()}catch(e){}applyFolderTheme();if(document.body.classList.contains('split'))splitEmpty();if(same){try{side();dgProgUpdate()}catch(e){}}else render()};
+/* no cross-fade on close: it snapshots the whole page and stuttered while the feed was still repainting */
+const closeRd=fromPop=>closeRd0(fromPop);
+const closeRd0=fromPop=>{try{raCancel()}catch(e){}const was=curA,feedSel=/^(all|f:|s:|k:)/.test(S.sel||''),same=!!was&&RDSIG===rdSig(was)&&feedSel,soft=!same&&!!was&&feedSel&&rdBase(RDSIG)===rdBase(rdSig(was));$('#rd').classList.remove('focus');if(fromPop!==true){dropLayer('rdnav');dropLayer('reader')}else dropLayer('rdnav');const nv=$('#rdnav');if(nv){nv.classList.remove('on');nv.hidden=true}tok++;R.busy=false;/* read-aloud keeps going when you back out to the feed: the floating pill (#tmini) carries the controls */if(!(TTS.on&&('speechSynthesis' in window)))ttsStop();hlClear();$('#selbar').hidden=true;$('#rd').classList.remove('on','flex','vert');try{if(RDTRIG&&RDTRIG.isConnected&&RDTRIG!==document.body)RDTRIG.focus({preventScroll:true})}catch(e){};curA=null;try{tminiSync()}catch(e){}applyFolderTheme();if(document.body.classList.contains('split'))splitEmpty();if(same||soft){try{side();dgProgUpdate();if(soft)patchProg(was)}catch(e){}}else render();if(feedSel)rdAnchorRestore()};
+/* going back to the feed: put the story that was at the top of the screen back at the same spot, even if the list moved while the story was open (pictures loading, a refresh) */
+/* while a story is open the feed is hidden behind it, but the sidebar column comes back and squeezes the feed to a sliver on mid-width windows; the whole list then re-wraps twice (open and close) and the scroll position jumps. Keep the feed at the width it had. */
+function rdFreeze(on){const b=document.body;if(!on){b.style.removeProperty('grid-template-columns');return}if(b.classList.contains('narrow')||b.classList.contains('split')||b.style.gridTemplateColumns)return;const g=getComputedStyle(b).gridTemplateColumns;if(g&&g!=='none')b.style.setProperty('grid-template-columns',g)}
+let RDANC=null;
+function rdAnchorSave(){try{const m=$('main'),mt=m.getBoundingClientRect().top;RDANC=null;for(const c of m.querySelectorAll('#grid .card[data-href]')){const r=c.getBoundingClientRect();if(r.width&&r.bottom>mt+40){RDANC={h:c.dataset.href,o:r.top-mt,sel:S.sel};return}}}catch(e){RDANC=null}}
+function rdAnchorRestore(){const A=RDANC;if(!A||A.sel!==S.sel)return;const m=$('main');let moved=false;const stop=()=>{moved=true};m.addEventListener('wheel',stop,{once:true,passive:true});m.addEventListener('touchstart',stop,{once:true,passive:true});m.addEventListener('keydown',stop,{once:true});let c0=null;const fix=()=>{if(moved)return;if(!c0||!c0.isConnected)c0=[...m.querySelectorAll('#grid .card[data-href]')].find(x=>x.dataset.href===A.h);if(!c0)return;const d=(c0.getBoundingClientRect().top-m.getBoundingClientRect().top)-A.o;if(Math.abs(d)>2)m.scrollTop+=d};fix();/* every frame for the first second, before it is painted, so a wrong spot never shows even for a moment */let n=0;const tick=()=>{fix();if(!moved&&++n<60)requestAnimationFrame(tick)};requestAnimationFrame(tick);setTimeout(fix,1200)}
+/* reading only moves a story's progress bar: update that one bar instead of rebuilding hundreds of cards */
+function patchProg(a){const p=progOf(a.link);document.querySelectorAll('#grid .card[data-href]').forEach(c=>{if(c.dataset.href!==a.link)return;let g=c.querySelector(':scope>.prg');if(!p){if(g)g.remove();return}if(!g){g=document.createElement('span');g.className='prg';g.appendChild(document.createElement('span'));const t=c.querySelector(':scope>.tx');c.insertBefore(g,t||null)}g.firstElementChild.style.width=Math.round(p*100)+'%'})}
 const set=$('#set');
 function bestVoice(){const vs=speechSynthesis.getVoices();if(S.voice){const m=vs.find(v=>v.voiceURI===S.voice);if(m)return m}const L=(navigator.language||'en').slice(0,2).toLowerCase(),c=vs.filter(v=>(v.lang||'').toLowerCase().startsWith(L));if(!c.length||!c.some(v=>v.q))return null;return c.slice().sort((a,b)=>(b.q||0)-(a.q||0)||(a.localService?0:1)-(b.localService?0:1))[0]}
 function voiceOpts(){const L=(navigator.language||'en').slice(0,2),vs=speechSynthesis.getVoices().slice().sort((a,b)=>(a.lang.startsWith(L)?0:1)-(b.lang.startsWith(L)?0:1)||(b.q||0)-(a.q||0)||a.name.localeCompare(b.name));return (vs.length?'<option value="">Best available</option>':'<option value="">No voices found</option>')+vs.map(v=>`<option value="${esc(v.voiceURI)}">${esc(v.name)} (${esc(v.lang)})</option>`).join('')}
@@ -11136,8 +11149,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.19c';const APP_LABEL='1.110';
-const CHANGES=["Going back to your feed after reading a story is smoother: two small visual touches from 1.108 (the muted color behind story pictures and the letter tile for a missing news icon) have been taken out"];
+const APP_VERSION='2026.10.19d';const APP_LABEL='1.111';
+const CHANGES=["Going back to your feed after reading a story is now calm: the list comes back exactly where you left it, with no jump, flash or jitter, and reading part of a story no longer rebuilds the whole list","The All Stories list no longer shifts under your finger while you scroll (cards used to change height as they came into view)","In Cards view, a short row of picture cards now stretches across the width instead of leaving a blank space","The closing fade between a story and the feed is gone, which removes a stutter on large feeds","Cookie-banner wording no longer shows up in the \"Why it matters\" box"];
 const DEF_ON=new Set(['shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -11648,8 +11661,11 @@ const JK_EX=[
 function isJunkText(t){
  t=String(t||'').replace(/\s+/g,' ').trim();if(!t)return true;
  try{if(typeof JK!=='undefined'&&JK.TXT&&JK.TXT.some(r=>r.test(t)))return true}catch(e){}
+ if(COOKIEJ.test(t))return true;
  return JK_EX.some(r=>r.test(t));
 }
+/* a site's cookie-banner wording that got into a summary (Why it matters, excerpts) */
+const COOKIEJ=/(this (web)?site uses (essential |some )?cookies|these cookies are (set|necessary|used|required)|cookies are set by (a range of|third)|\bwe use (essential )?cookies\b|cookie (policy|settings|preferences|consent) )/i;
 /* shorten at a word boundary (or a sentence end), with a proper ellipsis; never mid-word */
 /* a stored excerpt that was cut mid-word (older saved stories) is tidied when it is shown */
 function sumOf(t){t=String(t||'');return t.length>=150&&!/[.!?…"”’)]$/.test(t)?trimWords(t,t.length-1):t}
@@ -13285,7 +13301,7 @@ function applySbw(){const r=document.documentElement.style;if(S.sbw)r.setPropert
  h.addEventListener('keydown',e=>{const cur=Math.round($('aside').getBoundingClientRect().width);if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();S.sbw=Math.max(200,Math.min(sbMax(),cur+(e.key==='ArrowRight'?16:-16)));applySbw();save()}else if(e.key==='Home'||e.key==='Escape'){delete S.sbw;applySbw();save()}});
  applySbw();
 })();
-addEventListener('resize',()=>{applySbw();clearTimeout(screenMode.t);screenMode.t=setTimeout(()=>{screenMode();if($('#rd').classList.contains('on'))flexUi();if(layoutKey()!==LK&&!$('#rd').classList.contains('on')&&!document.body.classList.contains('open'))render()},120)});
+addEventListener('resize',()=>{try{rdFreeze(false)}catch(e){}applySbw();clearTimeout(screenMode.t);screenMode.t=setTimeout(()=>{screenMode();if($('#rd').classList.contains('on'))flexUi();if(layoutKey()!==LK&&!$('#rd').classList.contains('on')&&!document.body.classList.contains('open'))render()},120)});
 
 /* A one-time heads-up for people who had the old newest-first All list: it is now sorted best first, and Settings says where to switch back */
 function smartNotice(){
@@ -14318,7 +14334,7 @@ try{const bd=$('#bid');if(bd)bd.value=String(biDays())}catch(e){}
  const rd=$('#rd');
  const h=document.createElement('button');h.id='sideh';h.type='button';h.setAttribute('aria-label','Show feeds');h.title='Show your feeds';h.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg><span aria-hidden="true">Feeds</span>';document.body.append(h);
  {const as=document.querySelector('aside');if(as&&!$('#sidehdr')){const d=document.createElement('div');d.id='sidehdr';d.innerHTML='<h2>Your feeds</h2><button type="button" class="ib" id="sidehx" aria-label="Close feeds">'+svg('<path d="M6 6l12 12M18 6 6 18"/>')+'</button>';as.prepend(d);d.querySelector('#sidehx').onclick=()=>document.body.classList.remove('sideshow')}}
- const set=on=>{on=on&&!rd.classList.contains('ghost');document.body.classList.toggle('reading',on);if(!on)document.body.classList.remove('sideshow')};
+ const set=on=>{on=on&&!rd.classList.contains('ghost');if(on)rdFreeze(true);document.body.classList.toggle('reading',on);if(!on){document.body.classList.remove('sideshow');/* the sidebar column slides for about .28 s; hold the feed's width until it has finished */clearTimeout(set.t);set.t=setTimeout(()=>{if(!document.body.classList.contains('reading'))rdFreeze(false)},480)}};
  if(rd){new MutationObserver(()=>set(rd.classList.contains('on'))).observe(rd,{attributes:true,attributeFilter:['class']});set(rd.classList.contains('on'))}
  h.onclick=()=>document.body.classList.add('sideshow');
  document.addEventListener('click',e=>{if(document.body.classList.contains('sideshow')&&!e.target.closest('aside')&&!e.target.closest('#sideh,#menu')){document.body.classList.remove('sideshow')}else if(document.body.classList.contains('sideshow')&&e.target.closest('aside [data-sel],aside .fr,aside .nav')&&!e.target.closest('[data-tgl],.frc,.frx,.mfh,[data-col],[data-delf],[data-delx]')){setTimeout(()=>{document.body.classList.remove('sideshow');if(rd&&rd.classList.contains('on')&&typeof closeRd==='function')try{closeRd()}catch(er){}},50)}},true);
