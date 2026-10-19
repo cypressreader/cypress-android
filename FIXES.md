@@ -67,3 +67,11 @@
    - **Design pass, one screen at a time:** start with The Daily, then feed rows (item 16's uniform row is the first piece), the reader (header, columns, the Why it matters box, the reading sheet from item 17), and Settings. Known tablet problems so far: The Well (item 11), reader title block/columns (item 14), row headlines and thumbnails, the cover.
    - **Ask David for:** two or three tablet or fold screenshots of the worst screens; sample data cannot show everything (real photos, long headlines, many feeds).
    - **Needs a real tablet or fold to confirm** (`TESTING.md` entry when built).
+
+20. **Hide the side bar on tablets (more room for feeds, The Daily, All Stories).** On screens wider than 720 px the side bar is a permanent column (`www/index.html:16`, `--sw` = `clamp(220px,22vw,290px)`), about a third of a 768-900 px tablet. Below 720 px and in side-by-side mode it is already a slide-over drawer opened by the `#menu` button (`drawer()` ~13416; drawer CSS in the `@media(max-width:720px)` block ~1318-1329 and `body.split` ~1057-1062). Plan:
+   - Add a `body.sidehide` class that reuses the drawer rules at any width (share the rules between the 720 px block and the class rather than duplicating), shows `#menu`, and keeps the side bar overlaying the content so cards never reflow when it opens.
+   - A setting "Hide the side bar" (plain language, remembered, off by default). Optional second step only if David wants it after trying: auto-hide in portrait, open in landscape.
+   - Fix the spots that assume the column: `#mtabs{width:calc(100% - 260px)}` at ≥900 px (~3064), and anything in the layout code that uses `VW` or the container width for magazine layouts (check `nrOn`, `NRMIN`, covers).
+   - Accessibility: `#menu` needs `aria-expanded`, a unique name, keyboard operation; overlay keeps the drawer's focus trap and focus return.
+   - Do this together with item 19 (tablet pass) so the tablet layout is not reworked twice.
+   - **Check:** screenshots at 768/900/1100 with the side bar shown and hidden (light, dark, Halcyon); `st5`, `st18`, `st27`, `st29`, `control`, `tests/syntax.js`. **Needs a real tablet and a fold** to confirm (`TESTING.md` entry when built).

@@ -52,7 +52,7 @@ Nothing from 1.107 is merged to `main` or built. **The user must say "build"/"me
 - Good ideas the user may approve later: pure-black OLED theme, swipe color wash, reading presets, Clear image cache button, bottom reading sheet (now FIXES 17), "Updated since this morning" badge.
 
 ## 4. Active state & next 3 tasks (updated 2026-10-19)
-**Where we are:** branch `claude/cool-darwin-nkj7it`, preview published at commit `4fcefcd` (app code is current; later commits are notes only). Built and on the preview, waiting for the user to check on a device: FIXES 11 (The Well tablets), 12 (Daily quote opens its story), 14 (reader page view; also likely fixes 13), 15 (Why it matters box). FIXES 1-10 are done or checked. **Queued, not started: 16, 17, 18, 19.** Nothing is merged or built; the user must say "build".
+**Where we are:** branch `claude/cool-darwin-nkj7it`, preview published at commit `4fcefcd` (app code is current; later commits are notes only). Built and on the preview, waiting for the user to check on a device: FIXES 11 (The Well tablets), 12 (Daily quote opens its story), 14 (reader page view; also likely fixes 13), 15 (Why it matters box). FIXES 1-10 are done or checked. **Queued, not started: 16, 17, 19, 20 (20 = hide side bar on tablets, build with 19).** Nothing is merged or built; the user must say "build".
 
 **Next 3 tasks (when the user says start the batch):**
 1. (DONE 2026-10-19, unverified on device) FIXES 18: make the "Why it matters" label/bar and `.mnotes` readable in dark themes (lighter accent or mix toward `--ink`, aim 4.5:1); check light, dark, E-Ink, Halcyon.
