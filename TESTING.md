@@ -390,7 +390,7 @@ Implemented, unverified on a phone. Must verify on the APK/phone:
 (6) **Pull to refresh.** The growing tree sits in the middle of the top bar on a phone, with the bar's own color behind it (check Halcyon and a light theme), and the small leaf by the title stays hidden while it shows.
 (7) **Feed settings on a phone.** "Refresh this site" shows the full-width choice under its name with "Check less often to save battery" under it; Stop following says what it does; the confirmation reads Remove and "You can undo this right after or add it back later."
 (8) **Feed text size and Story card size.** Compact/Comfortable/Large changes The Daily's headings too; Story card size buttons read Compact, Medium, Large and the headline grows with them.
-(9) **ABC News.** The starter-list address (abcnews.com/abcnews/topstories) loads and parses here (25 stories) but could not be reproduced as failing; check on the phone that ABC News shows stories after being added. If it still shows none, remove it from the starter list.
+(9) **ABC News.** Removed from the starter list (it showed no stories on the phone).
 (10) **Shared-link page** (docs/s.html): open a real shared link on a phone; it should be green and brass, show the tree badge and read "CyPress Reader". The worker in docs/worker/share-worker.js changed (preview picture and names), so it has to be pasted into Cloudflare again before the short links show the new wording.
 
 ## Reader blank column, row headlines, tall photos (preview, 1.107)
@@ -419,3 +419,6 @@ Must verify on a real tablet. (1) Headlines and Today: on a tablet 900 px or wid
 ## Tablet list: two columns, whole-word summaries, tinted picture slot (FIXES 22, preview 1.107)
 On a tablet / unfolded Fold, All Stories in list view (and the Daily rows): with the side bar hidden or on a screen about 900 px wide or more, rows should sit in two columns; section headings span both. Row summaries end in "…" instead of being cut mid-word. A row whose picture is slow or missing shows a tinted block (or the brand letter) instead of a blank gap. Check phones still show one column. Implemented, unverified on a real device (checked here only with sample stories at 1080 and 1440 px).
 Part 2 (same entry): on a tablet, a story card with its picture above the headline (Wild Card, wire "Cards" view) has a picture no taller than about 170 px, and the pinned section name under the title bar is a slim strip. Check on the Fold that the pinned name is still readable and does not cover the first story. Unverified on a real device.
+
+
+**Pure Black theme + side-bar tip (2026-10-19):** on the phone, pick Pure Black (Settings → Look, Essentials) and check the background is true black and text/labels are readable; with Follow my phone set to a light phone it should fall back to Light. On a tablet, tap "Hide it" in the one-time tip and check the side bar hides only in portrait.
