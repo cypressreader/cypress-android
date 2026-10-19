@@ -7176,6 +7176,7 @@ function mkBox(pg,x0){
 }
 function shade(dir){const e=document.createElement('i');e.className='tsh';e.style.background=`linear-gradient(${dir},rgba(0,0,0,.55),rgba(0,0,0,0) 65%)`;return e}
 function startTurn(dir){
+ curlGet();
  const bk=$('.book'),W=bk.clientWidth,two=R.cpv===2,hw=two?W/2:W,hx=two?W/2:0,to=R.pg+dir;
  const T=R.T={my:tok,dir,to,hw,hx,two,ang:dir>0?0:180,dead:false,els:[]};
  R.busy=true;bk.classList.add('turning');bk.classList.toggle('one',!two);
@@ -7215,13 +7216,16 @@ function startTurn(dir){
 }
 var BOW=1.7;
 /* the curl adapts to the device: if frames take too long on a turn, the next turns use fewer strips, and finally the plain flip (-1). Remembered on this device only. */
-let curlN=0;try{curlN=+localStorage.getItem('cy_curlN2')||0}catch(_){}
+let curlN=0,curlSlow=0,curlRead=false;
+/* the choice is forgotten whenever the app updates (an old, coarse choice would otherwise outlive the fix that made it unnecessary), and it takes two slow turns in a row to step down */
+function curlGet(){if(curlRead)return;curlRead=true;try{const o=JSON.parse(localStorage.getItem('cy_curl')||'null');if(o&&o.v===APP_VERSION)curlN=+o.n||0}catch(_){}}
 function curlTune(T){
  const d=T.dts;if(!T.st||!d||d.length<8)return;
  const m=d.slice().sort((x,y)=>x-y)[d.length>>1];
- if(m<=24)return;
+ if(m<=30){curlSlow=0;return}
+ if(++curlSlow<2)return;curlSlow=0;
  curlN=T.N>8?Math.max(8,Math.round(T.N*.55)):-1;
- try{localStorage.setItem('cy_curlN2',String(curlN))}catch(_){}
+ try{localStorage.setItem('cy_curl',JSON.stringify({v:APP_VERSION,n:curlN}))}catch(_){}
 }
 function setAng(a){
  const T=R.T;if(!T)return;T.ang=a;
@@ -7253,6 +7257,7 @@ function setAng(a){
 }
 /* warm-up: the first page turn of a story used to hitch while the browser built the turn's layers for the first time. Once the story has settled, build one turn invisibly for two frames, then throw it away, so the first real turn starts warm. */
 function rdWarm(){
+ curlGet();
  if(!isOn('curl')||curlN===-1||reduced()||R.busy||R.T||R.web||isVert()||!R.ready||R.np<2||D)return;
  const go1=()=>{
   if(R.busy||R.T||D||R.web||isVert()||!$('.book'))return;
@@ -11188,8 +11193,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.19i';const APP_LABEL='1.116';
-const CHANGES=["Page turns now look and move like a real paper page: it stays flat and bubbles up in the middle as you drag, then swings over and settles on the other side","Turning back mirrors turning forward, and the page follows your finger smoothly in both directions"];
+const APP_VERSION='2026.10.19j';const APP_LABEL='1.117';
+const CHANGES=["The page turn no longer gets stuck on a simpler curl after one slow moment: it forgets that choice when the app updates and only simplifies after two slow turns in a row"];
 const DEF_ON=new Set(['shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
