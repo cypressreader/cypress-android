@@ -1,6 +1,6 @@
 # HANDOFF — live session memory (read first, update silently after every finished task)
 
-Last updated: 2026-10-17 · Branch: `claude/cool-darwin-nkj7it` (pushed; last preview publish = commit `73e7813`) · App version in code: web `2026.10.17a`, Android label `1.107` (not released).
+Last updated: 2026-10-19 · Branch: `claude/cool-darwin-nkj7it` (pushed; last preview publish = `6cb9dc7`) · App version in code: web `2026.10.17a`, Android label `1.107` (not released).
 Nothing from 1.107 is merged to `main` or built. **The user must say "build"/"merge" to ship.**
 
 ## 1. Working & locked ("Do Not Break": verified here, don't change core logic without asking)
@@ -51,13 +51,13 @@ Nothing from 1.107 is merged to `main` or built. **The user must say "build"/"me
 - **The user said: do NOT port the visual enhancements yet.** First get the working repo, examine it, then review together. Review notes for later: fix items 6 (panel drag-to-close; `sdown` is swipe-down-to-close-the-reader, not a sheet handler), 8 (register OLED in `THEME_NAMES`/`twinApply`), 9 (drop the fake storage breakdown; real total only).
 - Good ideas the user may approve later: pure-black OLED theme, swipe color wash, reading presets, Clear image cache button, bottom reading sheet (now FIXES 17), "Updated since this morning" badge.
 
-## 4. Active state & next 3 tasks (updated 2026-10-19)
-**Where we are:** branch `claude/cool-darwin-nkj7it`, preview published at commit `4fcefcd` (app code is current; later commits are notes only). Built and on the preview, waiting for the user to check on a device: FIXES 11 (The Well tablets), 12 (Daily quote opens its story), 14 (reader page view; also likely fixes 13), 15 (Why it matters box). FIXES 1-10 are done or checked. **Queued, not started: 16, 17, 19, 20 (20 = hide side bar on tablets, build with 19).** Nothing is merged or built; the user must say "build".
-
-**Next 3 tasks (when the user says start the batch):**
-1. (DONE) FIXES 18: make the "Why it matters" label/bar and `.mnotes` readable in dark themes (lighter accent or mix toward `--ink`, aim 4.5:1); check light, dark, E-Ink, Halcyon.
-2. FIXES 16: one uniform story row (picture left, time always right-aligned, brand-colored tile for rows with no picture, big picture cards unchanged except time bottom-right). Six places put the picture on the right (see FIXES 16). Then FIXES 17 (reading sheet that reuses `#aapop` settings) and FIXES 19 (tablet pass: size bands, container queries, throwaway screenshot script at 600/768/900/1100; ask the user for tablet screenshots).
-3. On "build": merge into `main`, confirm `APP_LABEL` 1.107 matches `whats-new.txt` and the workflow, remind about pasting `docs/worker/share-worker.js` into Cloudflare, and the `TESTING.md` items.
-
-**Open questions for the user:** narrow serif for all headlines or Cormorant; Compact label wording; ABC News keep or remove; bring back a pure-black theme (a "black" theme was retired earlier); a warm evening tint (clock-based) is close to the removed "after sunset" mode; the Visual-Test review (above).
-**Working notes:** the user wants fixes queued in `FIXES.md` one at a time and built later, not built immediately. The reading-quote tap bug root cause: other link rules gave `a[data-i]` `overflow:hidden; contain:layout paint`, clipping a stretched overlay (fixed with `.dpq .dpq-a`). Do not re-add a full-width title block (`column-span:all`) in the paged reader. The turn-counter hook now works in a fresh session.
+## 4. Active state & next 3 tasks (updated 2026-10-19, end of batch 3)
+**Where we are:** branch `claude/cool-darwin-nkj7it`, preview published at commit `6cb9dc7` (app code current). Nothing merged or built; the user must say "build".
+**Built this session, all on the preview and all waiting for the user's device check** (each has a `TESTING.md` entry): FIXES 16 (uniform story row: picture or brand-letter tile on the left, "N min read · age" right-aligned; applies to Next up/rails/Quick hits, All Stories list view, the Smart Cards view on phones, narrow cards, `.tpl.t2`, and Compact boxes now show a small picture; `.nr-colr`/`.nr-pq1` big feature cards deliberately left), FIXES 17 (the "Aa" panel `#aapop` is now a bottom sheet with Theme/Font/Focus reading, plus a round thumb-height "Aa" button `#raaf`), FIXES 18 (Why it matters contrast, confirmed by the user), FIXES 19 first pass (Halcyon list source names; sweep at 600/768/900/1100 found nothing else with sample data), FIXES 20 (Settings → Look → "Hide the side bar": Never default / In portrait or on a square screen / Always; hamburger `#menu` at top left opens feeds; `#sideh` tab only inside a story; one-time tip `sideTip()` after ~4 min with a "Hide it" button).
+**Locked (verified here, do not change without asking):** "Why it matters" stays as is (only shows when the feed gives a distinct description; user agreed). Compact keeps boxes but with pictures (user's call). Do not re-add a spanning title block in the paged reader.
+**Mistakes/lessons:** the wire "Cards" view sets `data-w="mag"`; selectors that exclude `[data-w=mag]` skip it (rows rule uses `:is(:not([data-w=mag]),.nrp)`). `[data-cards="compact"] #grid …` selectors in old CSS never match (data-cards is ON `#grid`). Throwaway screenshot scripts live in the scratchpad, never in the repo.
+**Next 3 tasks:**
+1. Wait for the user's device feedback on the preview items above (and their tablet/fold screenshots for FIXES 19: worst screens, real photos, long headlines). Fix what they report.
+2. FIXES 19 remainder (only after screenshots): convert the worst components to `@container` rules; Settings tablet layout.
+3. On "build": merge into `main`, confirm `APP_LABEL` 1.107 matches `whats-new.txt` and the workflow (add notes for 16/17/20 to `whats-new.txt` first), remind about pasting `docs/worker/share-worker.js` into Cloudflare, and the `TESTING.md` items.
+**Open questions for the user:** narrow serif for all headlines or Cormorant; ABC News keep or remove; pure-black theme; warm evening tint; Visual-Test review (do NOT port yet); should "Hide it" default to portrait-only instead of Always.
