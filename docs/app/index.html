@@ -7234,11 +7234,12 @@ function setAng(a){
  let tipx=null;
  if(T.st){
   /* the page is a hinged sheet that bows while it flips. Its heading along the sheet is th(u)=alpha+cos(alpha)*theta0*cos(pi*u/L): alpha is the hinge angle (0 flat on the right, pi flat on the left), theta0 the bow. The bow grows while the page is still flat (the arch), stays while it swings over, and fades as it lands flat on the other side (cos(alpha) flips sign, so the bow always lifts toward the reader). alpha is solved so the free edge follows the finger: chord = L*cos(alpha)*J0(cos(alpha)*theta0) */
-  const N=T.N,PI=Math.PI,p=Math.pow(Math.max(0,Math.min(1,(T.dir>0?a:180-a)/180)),1.2)/* the page trails the finger a little at first, then catches up */,dr=T.dir>0?1:-1;
+  const N=T.N,PI=Math.PI,p=(f=>f<.5?Math.pow(f,1.2):Math.min(1,.435+(f-.5)*2.05))(Math.max(0,Math.min(1,(T.dir>0?a:180-a)/180)))/* the page trails the finger a little at first (the bubble), then catches up and is fully unfolded by 78% of the finger angle, like Play Books */,dr=T.dir>0?1:-1;
   const J0=t=>{let q=1,sm=1;for(let n=1;n<9;n++){q*=-(t*t/4)/(n*n);sm+=q}return sm};
   const want=Math.cos(p*PI),ac=Math.min(1,Math.abs(want));
   let th0=0;if(ac<1){let lo=0,hi=2.405;for(let n=0;n<20;n++){const m=(lo+hi)/2;if(J0(m)>ac)lo=m;else hi=m}th0=(lo+hi)/2}
-  th0=Math.min(th0,BOW);
+  /* while the page swings down onto the other side the bow shrinks, so that when it first touches down its edge is already about 80% of the way to the outer edge (a constant bow left it landing near the middle) */
+  th0=Math.min(th0,want<0?BOW+(.95-BOW)*Math.min(1,-want/.8):BOW);
   const al=Math.acos(Math.max(-1,Math.min(1,want/J0(th0))));/* smooth and monotone; the free edge ends up within a few percent of the finger */
   const cs=Math.cos(al)*th0;
   const P=[[0,0]];{let px=0,pz=0;for(let i=0;i<N;i++){const t=al+cs*Math.cos(PI*(i+.5)/N);px+=T.sw*Math.cos(t);pz+=T.sw*Math.sin(t);P.push([px,pz])}}
@@ -7302,7 +7303,7 @@ function go(d){
  if(R.web||R.busy||to<0||to>=R.np)return;
  if(reduced()){R.pg=to;show();return}
  const T=startTurn(d);paperSound();
- anim(T.ang,d>0?180:0,d>0?720:800,d>0?ePage:eBack,()=>endTurn(true));
+ anim(T.ang,d>0?180:0,1280,eBack,()=>endTurn(true));
 }
 let D=null;
 function turnRelease(cancel,ts){
@@ -11196,8 +11197,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.19k';const APP_LABEL='1.118';
-const CHANGES=["Dragging a page turn is smoother: the page now redraws once per screen refresh instead of for every tiny finger movement"];
+const APP_VERSION='2026.10.19l';const APP_LABEL='1.119';
+const CHANGES=["The page turn now lands like Play Books: the page unfolds as it comes down and touches the far side near its outer edge","Tapping to turn a page is slower and gentler, in both directions, so you can enjoy the motion"];
 const DEF_ON=new Set(['shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
