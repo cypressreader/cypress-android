@@ -55,7 +55,7 @@ Nothing from 1.107 is merged to `main` or built. **The user must say "build"/"me
 **Where we are:** branch `claude/cool-darwin-nkj7it`, preview published at commit `4fcefcd` (app code is current; later commits are notes only). Built and on the preview, waiting for the user to check on a device: FIXES 11 (The Well tablets), 12 (Daily quote opens its story), 14 (reader page view; also likely fixes 13), 15 (Why it matters box). FIXES 1-10 are done or checked. **Queued, not started: 16, 17, 18, 19.** Nothing is merged or built; the user must say "build".
 
 **Next 3 tasks (when the user says start the batch):**
-1. FIXES 18 (quick): make the "Why it matters" label/bar and `.mnotes` readable in dark themes (lighter accent or mix toward `--ink`, aim 4.5:1); check light, dark, E-Ink, Halcyon.
+1. (DONE 2026-10-19, unverified on device) FIXES 18: make the "Why it matters" label/bar and `.mnotes` readable in dark themes (lighter accent or mix toward `--ink`, aim 4.5:1); check light, dark, E-Ink, Halcyon.
 2. FIXES 16: one uniform story row (picture left, time always right-aligned, brand-colored tile for rows with no picture, big picture cards unchanged except time bottom-right). Six places put the picture on the right (see FIXES 16). Then FIXES 17 (reading sheet that reuses `#aapop` settings) and FIXES 19 (tablet pass: size bands, container queries, throwaway screenshot script at 600/768/900/1100; ask the user for tablet screenshots).
 3. On "build": merge into `main`, confirm `APP_LABEL` 1.107 matches `whats-new.txt` and the workflow, remind about pasting `docs/worker/share-worker.js` into Cloudflare, and the `TESTING.md` items.
 
