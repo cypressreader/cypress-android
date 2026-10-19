@@ -7165,6 +7165,8 @@ function show(){
 const eOut2=p=>1-Math.pow(1-p,2.2),ePage=p=>(1-Math.pow(1-p,3))*(.55+.45*Math.min(1,p/.3));
 /* turning back starts with the curl already tight, so it needs a gentle start (the forward turn's fast start would look abrupt) */
 const eBack=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+/* after letting go: a soft start (paper has weight) and a long, gentle settle */
+const eRel=p=>1-Math.pow(1-p,1.7);
 const mkEl=(c,st)=>{const e=document.createElement('div');e.className=c;if(st)e.style.cssText=st;return e};
 function mkBox(pg,x0){
  const bk=$('.book'),v=$('.view').cloneNode(true),c=v.querySelector('.cols');
@@ -7264,7 +7266,7 @@ function go(d){
  if(R.web||R.busy||to<0||to>=R.np)return;
  if(reduced()){R.pg=to;show();return}
  const T=startTurn(d);paperSound();
- anim(T.ang,d>0?180:0,d>0?620:700,d>0?ePage:eBack,()=>endTurn(true));
+ anim(T.ang,d>0?180:0,d>0?720:800,d>0?ePage:eBack,()=>endTurn(true));
 }
 let D=null;
 function turnRelease(cancel,ts){
@@ -7274,9 +7276,9 @@ function turnRelease(cancel,ts){
  const flick=-vx*T.dir,prog=T.dir>0?T.ang:180-T.ang;
  let ok=prog>90;if(flick>.4)ok=true;else if(flick<-.4)ok=false;
  const tgt=ok?(T.dir>0?180:0):(T.dir>0?0:180),rem=Math.abs(tgt-T.ang)/180;
- let dur=160+rem*640;if(ok&&flick>.4)dur*=Math.max(.6,1-flick*.15);
+ let dur=380+rem*820;if(ok&&flick>.4)dur*=Math.max(.75,1-flick*.1);
  R.noClick=true;setTimeout(()=>{R.noClick=false},350);
- anim(T.ang,tgt,dur,eOut2,()=>endTurn(ok));
+ anim(T.ang,tgt,dur,eRel,()=>endTurn(ok));
 }
 let ALT='',RDY=null;
 function outLinks(a){
