@@ -450,3 +450,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - **Debug note (preview only):** add `?dbg=1` to the preview address to see a small black note each time the whole feed is rebuilt (count + time). Use it while opening/closing stories to see whether a rebuild happens when cards move.
 
 - **List no longer jumps while scrolling (preview):** All Stories (Smart, Cards view): scroll down and back up, open stories and return. Cards should stay put (no sliding, no sudden jumps). Cause: lazily drawn cards (`content-visibility:auto`, guessed 260 px) changed height when they scrolled into view; turned off for `#grid.wire`. Watch for slower scrolling on the phone; if so, tell me.
+
+- **Feed no longer squeezed while a story is open (preview):** on a mid-width window or tablet (roughly 500-900 px wide, not split view), open a story and go back: the list should return at the same height and spot with no flash. Cause: while reading, the sidebar column came back and squeezed the hidden feed to ~220 px, so the whole list re-wrapped twice. Now the feed keeps its width (`--mw`, `rdFreeze`).
