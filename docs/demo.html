@@ -7338,7 +7338,7 @@ function startTurn(dir){
  setAng(T.ang);
  return T;
 }
-var CR=.22,BUB=1.7;
+var CR=.22,BUB=.62;
 /* the curl adapts to the device: if frames take too long on a turn, the next turns use fewer strips, and finally the plain flip (-1). Remembered on this device only. */
 let curlN=0;try{curlN=+localStorage.getItem('cy_curlN2')||0}catch(_){}
 function curlTune(T){
@@ -7363,7 +7363,7 @@ function setAng(a){
   const bub=Math.pow(Math.sin(PI*Math.min(1,p/.42)),.6)*BUB;
   let x=T.hx,z=0,dx=0;
   T.st.forEach((q,i)=>{
-   const u=(i+.5)*T.sw,bu=(u-T.hw*.18)/(T.hw*.64),th=Math.max(0,Math.min(PI,(u-c)/r))+(u>c+PI*r?eps:0)+(bub>0&&bu>0&&bu<1?bub*Math.sin(2*PI*bu):0),dg=th*180/PI;
+   const u=(i+.5)*T.sw,bu=(u-T.hw*.05)/(T.hw*.9),th=Math.max(0,Math.min(PI,(u-c)/r))+(u>c+PI*r?eps:0)+(bub>0&&bu>0&&bu<1?bub*Math.sin(2*PI*bu):0),dg=th*180/PI;
    q.el.style.transform=`translate3d(${dx.toFixed(1)}px,0,${z.toFixed(1)}px) rotateY(${(-dg).toFixed(2)}deg)`;
    const o=Math.round(16*Math.abs(Math.sin(th)));if(o!==q.o){q.o=o;const v=(o/100).toFixed(2);q.fs.style.opacity=v;q.bs.style.opacity=v}
    dx+=T.sw*Math.cos(th);z+=T.sw*Math.sin(th);x+=T.sw*Math.cos(th);
