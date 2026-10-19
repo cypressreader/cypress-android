@@ -4098,6 +4098,12 @@ html.lowp #tdr .tdaur{animation:none}
 #grid:not([data-w=mag]) .card.card:is(.nr-row,.nr-late):not(.nr-m) .cfoot .cby{display:none}
 #grid:not([data-w=mag]) .card.card:is(.nr-row,.nr-late):not(.nr-m) .cfoot :is(.rt,time)::before{content:none}
 #grid:not([data-w=mag]) .card.card:is(.nr-row,.nr-late):not(.nr-m) .cfoot .rt~time::before{content:'\00b7';margin-right:6px;opacity:.55}
+#grid .card.list-row{grid-template-columns:clamp(84px,22%,120px) minmax(0,1fr) auto;gap:0 14px;align-items:start}
+#grid .card.list-row.noimg{grid-template-columns:clamp(84px,22%,120px) minmax(0,1fr) auto}
+#grid .card.list-row>.cimg{width:100%!important;height:auto!important;max-width:none;aspect-ratio:3/2;border-radius:10px}
+#grid .card.list-row.noimg::before{content:attr(data-ini);display:grid;place-items:center;grid-column:1;grid-row:1;width:100%;aspect-ratio:3/2;border-radius:10px;background:color-mix(in srgb,var(--b) 20%,var(--pn,var(--bg)));color:color-mix(in srgb,var(--b) 72%,var(--ink));font:700 clamp(22px,7vw,30px)/1 var(--fd,Georgia,serif);text-transform:uppercase}
+#grid .card.list-row>.tx,#grid .card.list-row.noimg>.tx{grid-column:2}
+#grid .card.list-row time{text-align:right;justify-self:end}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -6347,7 +6353,7 @@ const IMGOK=new Set();
 const chref=c=>(c&&((c.dataset&&c.dataset.href)||c.getAttribute('href')))||'';
 function listRow(a,i,k,f){
   const dk=(typeof dekOf==='function'?dekOf(a,170):'')||'',mn=readMin(a);
-  return `<div class="card list-row ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}">${a.img?`<img class="cimg" width="96" height="96" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="tx"><div class="src"><img alt="" width="16" height="16" loading="lazy" decoding="async" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3>${dk?`<p class="ld">${esc(dk)}</p>`:''}<time>${ago(a.date)}${mn?' · '+mn+' min':''}</time>${pwBadge(a)}</div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
+  return `<div class="card list-row ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}">${a.img?`<img class="cimg" width="96" height="96" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="tx"><div class="src"><img alt="" width="16" height="16" loading="lazy" decoding="async" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3>${dk?`<p class="ld">${esc(dk)}</p>`:''}<time>${mn?mn+' min read · ':''}${ago(a.date)}</time>${pwBadge(a)}</div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
 }
 function card(a,i,k){
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
