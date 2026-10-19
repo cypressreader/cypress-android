@@ -61,5 +61,5 @@ Nothing from 1.107 is merged to `main` or built. **The user must say "build"/"me
 **Next 3 tasks:**
 1. Wait for the user's device feedback on the preview items above (and their tablet/fold screenshots for FIXES 19: worst screens, real photos, long headlines). Fix what they report.
 2. FIXES 19 remainder (only after screenshots): convert the worst components to `@container` rules; Settings tablet layout.
-3. Release notes for 16/17/20/21 are still NOT in `whats-new.txt` (do before build; check the file's section order first). On "build": merge into `main`, confirm `APP_LABEL` 1.107 matches `whats-new.txt` and the workflow (add notes for 16/17/20 to `whats-new.txt` first), remind about pasting `docs/worker/share-worker.js` into Cloudflare, and the `TESTING.md` items.
+3. Release notes for 16/17/20/21 are now in `whats-new.txt` (1.107). On "build": merge into `main`, confirm `APP_LABEL` 1.107 matches `whats-new.txt` and the workflow, remind about pasting `docs/worker/share-worker.js` into Cloudflare, and the `TESTING.md` items.
 **Open questions for the user:** narrow serif for all headlines or Cormorant; ABC News keep or remove; pure-black theme; warm evening tint; Visual-Test review (do NOT port yet); should "Hide it" default to portrait-only instead of Always.
