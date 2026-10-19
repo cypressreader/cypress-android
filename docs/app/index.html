@@ -7245,6 +7245,19 @@ function setAng(a){
  if(tipx!=null)tip=tipx;T.cr.style.left=tip+'px';T.cr.style.opacity=c>0?s:0;
  T.cl.style.left=(tip-90)+'px';T.cl.style.opacity=c<0?s:0;
 }
+/* warm-up: the first page turn of a story used to hitch while the browser built the turn's layers for the first time. Once the story has settled, build one turn invisibly for two frames, then throw it away, so the first real turn starts warm. */
+function rdWarm(){
+ if(!isOn('curl')||curlN===-1||reduced()||R.busy||R.T||R.web||isVert()||!R.ready||R.np<2||D)return;
+ const go1=()=>{
+  if(R.busy||R.T||D||R.web||isVert()||!$('.book'))return;
+  const d=R.pg+1<R.np?1:-1;let T;
+  try{T=startTurn(d)}catch(e){return}
+  T.els.forEach(e=>{e.style.opacity='.01'});
+  setAng(d>0?20:160);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(R.T===T)endTurn(false)}));
+ };
+ if(window.requestIdleCallback)requestIdleCallback(go1,{timeout:1500});else setTimeout(go1,300);
+}
 function anim(from,to,dur,ease,done){
  const T=R.T,t0=performance.now();
  const f=now=>{
@@ -8135,7 +8148,7 @@ function toggleWeb(auto){
  w.hidden=false;R.web=true;R.auto=!!auto;b.innerHTML=svg(PAGE);b.title='Back to reader view';loadWeb();
 }
 async function openReader(a){
- const f=fof(a),my=++tok,sh=$('#sheet');curA=a;RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0,wantResume=RD_CONT;RD_CONT=false;R.navAt=0;R.ready=false;const afterLoad=()=>{legalBody($('.cols .body'));try{markRestricted(a,($('.cols .body')||{}).textContent,false)}catch(e){}try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;setTimeout(()=>{if(curA===a0)relayout()},800);setTimeout(()=>{if(curA===a0)relayout()},2600);try{document.fonts&&document.fonts.ready.then(()=>{if(curA===a0)relayout()})}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if(!wantResume){R.pg=0;try{show()}catch(e){}/* page 1 again once the pictures have settled, unless the reader has already turned a page */const t0=Date.now();for(const ms of [0,350,900]){setTimeout(()=>{if(my===tok&&!isVert()&&R.pg>0&&!(R.navAt&&R.navAt>=t0-50)){R.pg=0;try{show()}catch(e){}}},ms)}}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);save();setTimeout(()=>raWhenReady(a,0),1200);
+ const f=fof(a),my=++tok,sh=$('#sheet');curA=a;RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0,wantResume=RD_CONT;RD_CONT=false;R.navAt=0;R.ready=false;const afterLoad=()=>{legalBody($('.cols .body'));try{markRestricted(a,($('.cols .body')||{}).textContent,false)}catch(e){}try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;setTimeout(()=>{if(curA===a0)relayout()},800);setTimeout(()=>{if(curA===a0)relayout()},2600);setTimeout(()=>{if(curA===a0)rdWarm()},3300);try{document.fonts&&document.fonts.ready.then(()=>{if(curA===a0)relayout()})}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if(!wantResume){R.pg=0;try{show()}catch(e){}/* page 1 again once the pictures have settled, unless the reader has already turned a page */const t0=Date.now();for(const ms of [0,350,900]){setTimeout(()=>{if(my===tok&&!isVert()&&R.pg>0&&!(R.navAt&&R.navAt>=t0-50)){R.pg=0;try{show()}catch(e){}}},ms)}}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);save();setTimeout(()=>raWhenReady(a,0),1200);
  rdB(brand(f));pushLayer('reader');tip('reader');
  try{rdAmbient(null)}catch(e){}
  if(a.img&&isOn('ptint'))imgInfo(a.img).then(o=>{if(o&&o.t&&curA===a){rdB(o.t);try{rdAmbient(o.t)}catch(e){}}});
@@ -11169,8 +11182,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.19g';const APP_LABEL='1.114';
-const CHANGES=["The page-turn curl is lighter to draw, so it runs smoother on tablets and phones","The curl settles on the right level for your device faster"];
+const APP_VERSION='2026.10.19h';const APP_LABEL='1.115';
+const CHANGES=["The first page turn in a story is now as smooth as the rest: the app gets the turn ready quietly a few seconds after a story opens"];
 const DEF_ON=new Set(['shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
