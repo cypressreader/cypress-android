@@ -437,3 +437,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - **Empty space in short card rows (preview):** on a tablet/wide screen, a row with only two or three picture cards (strip or three-across block) now fills the width instead of leaving the right side blank. Check All Stories, Smart view.
 
 - **Blank right half in Cards view (preview):** in All Stories → Smart with Cards view on a tablet, a short row of picture cards (2 or 3 cards) should now stretch across the width instead of sitting in the left half. Cause: the card rows used "as many 190 px columns as fit" and left empty columns. Now empty columns collapse (`auto-fit`) and the short-row filler also runs on these rows. Unverified: could not reproduce the exact row from the demo data.
+
+- **Return-to-feed stall (preview):** with a big feed (hundreds of stories), opening a story and going back should no longer freeze for a moment. Cause: the 0.15 s cross-fade used on close took a snapshot of the whole page. It is now skipped when the feed has more than 40 cards on screen (small lists keep it). Check on the phone and in Chrome.
