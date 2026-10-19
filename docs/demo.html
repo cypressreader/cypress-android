@@ -7360,7 +7360,7 @@ function setAng(a){
   const want=Math.cos(p*PI),ac=Math.min(1,Math.abs(want));
   let th0=0;if(ac<1){let lo=0,hi=2.405;for(let n=0;n<20;n++){const m=(lo+hi)/2;if(J0(m)>ac)lo=m;else hi=m}th0=(lo+hi)/2}
   th0=Math.min(th0,BOW);
-  let al=0;if(th0>=BOW-.001){let lo=0,hi=PI;for(let n=0;n<22;n++){const m=(lo+hi)/2,cm=Math.cos(m);if(cm*J0(cm*th0)>want)lo=m;else hi=m}al=(lo+hi)/2}
+  const al=Math.acos(Math.max(-1,Math.min(1,want/J0(th0))));/* smooth and monotone; the free edge ends up within a few percent of the finger */
   const cs=Math.cos(al)*th0;
   const P=[[0,0]];{let px=0,pz=0;for(let i=0;i<N;i++){const t=al+cs*Math.cos(PI*(i+.5)/N);px+=T.sw*Math.cos(t);pz+=T.sw*Math.sin(t);P.push([px,pz])}}
   let x=T.hx;
