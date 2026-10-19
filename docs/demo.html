@@ -7363,7 +7363,8 @@ function setAng(a){
   const J0=t=>{let q=1,sm=1;for(let n=1;n<9;n++){q*=-(t*t/4)/(n*n);sm+=q}return sm};
   const want=Math.cos(p*PI),ac=Math.min(1,Math.abs(want));
   let th0=0;if(ac<1){let lo=0,hi=2.405;for(let n=0;n<20;n++){const m=(lo+hi)/2;if(J0(m)>ac)lo=m;else hi=m}th0=(lo+hi)/2}
-  th0=Math.min(th0,BOW);
+  /* while the page swings down onto the other side the bow shrinks, so that when it first touches down its edge is already about 80% of the way to the outer edge (a constant bow left it landing near the middle) */
+  th0=Math.min(th0,want<0?BOW+(.95-BOW)*Math.min(1,-want/.8):BOW);
   const al=Math.acos(Math.max(-1,Math.min(1,want/J0(th0))));/* smooth and monotone; the free edge ends up within a few percent of the finger */
   const cs=Math.cos(al)*th0;
   const P=[[0,0]];{let px=0,pz=0;for(let i=0;i<N;i++){const t=al+cs*Math.cos(PI*(i+.5)/N);px+=T.sw*Math.cos(t);pz+=T.sw*Math.sin(t);P.push([px,pz])}}
