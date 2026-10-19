@@ -427,3 +427,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 
 **FIXES 24 + Aa buttons (2026-10-19):** (1) In a story, the ... menu starts with Text and appearance; it opens the same bottom sheet, and Esc/close returns focus to the ... button; there are no Aa buttons in the bar or floating. Check on the phone and tablet. (2) Tablets: a story alone at the end of a row stretches across it; wide pictures crop toward the top third; source names are 11.5 px. Checked in a desktop browser with test photos only.
 **FIXES 25:** feed lead ("Cover story"/"The lead") picture should span the full column in Cards view on a wide tablet.
+
+**FIXES 26:** on the tablet, a story with no picture beside picture stories (Cards view) shows a tinted tile with the source's first letter at the picture height. Seen only with test data in a desktop browser.
