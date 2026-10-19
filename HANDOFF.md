@@ -59,6 +59,7 @@ Nothing from 1.107 is merged to `main` or built. **The user must say "build"/"me
 **Locked (verified here, do not change without asking):** "Why it matters" stays as is (only shows when the feed gives a distinct description; user agreed). Compact keeps boxes but with pictures (user's call). Do not re-add a spanning title block in the paged reader.
 **Mistakes/lessons:** the wire "Cards" view sets `data-w="mag"`; selectors that exclude `[data-w=mag]` skip it (rows rule uses `:is(:not([data-w=mag]),.nrp)`). `[data-cards="compact"] #grid …` selectors in old CSS never match (data-cards is ON `#grid`). Throwaway screenshot scripts live in the scratchpad, never in the repo.
 **FIXES 22 (2026-10-19, waiting for device check):** tablet list view = two columns (`#grid.list` auto-fit 430px, headings span), row summaries clamp to 2 lines with "…" (the old rule left display:flow-root + fixed height so text was clipped mid-word), picture slot has a tint. Rule lives just before the "FIXES 17" CSS block.
+FIXES 22 part 2: tablet picture-above-headline cards capped at 170 px (`@media(min-width:700px)`), `#wpin` slimmed; same CSS block.
 **Next 3 tasks:**
 1. Wait for the user's device feedback on the preview items above (and their tablet/fold screenshots for FIXES 19: worst screens, real photos, long headlines). Fix what they report.
 2. FIXES 19 remainder (only after screenshots): convert the worst components to `@container` rules; Settings tablet layout.
