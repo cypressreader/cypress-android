@@ -8554,6 +8554,8 @@ let RDTRIG=null;
 const closeRd=fromPop=>closeRd0(fromPop);
 const closeRd0=fromPop=>{try{raCancel()}catch(e){}const was=curA,feedSel=/^(all|f:|s:|k:)/.test(S.sel||''),same=!!was&&RDSIG===rdSig(was)&&feedSel,soft=!same&&!!was&&feedSel&&rdBase(RDSIG)===rdBase(rdSig(was));$('#rd').classList.remove('focus');if(fromPop!==true){dropLayer('rdnav');dropLayer('reader')}else dropLayer('rdnav');const nv=$('#rdnav');if(nv){nv.classList.remove('on');nv.hidden=true}tok++;R.busy=false;/* read-aloud keeps going when you back out to the feed: the floating pill (#tmini) carries the controls */if(!(TTS.on&&('speechSynthesis' in window)))ttsStop();hlClear();$('#selbar').hidden=true;$('#rd').classList.remove('on','flex','vert');try{if(RDTRIG&&RDTRIG.isConnected&&RDTRIG!==document.body)RDTRIG.focus({preventScroll:true})}catch(e){};curA=null;try{tminiSync()}catch(e){}applyFolderTheme();if(document.body.classList.contains('split'))splitEmpty();if(same||soft){try{side();dgProgUpdate();if(soft)patchProg(was)}catch(e){}}else render();if(feedSel)rdAnchorRestore()};
 /* going back to the feed: put the story that was at the top of the screen back at the same spot, even if the list moved while the story was open (pictures loading, a refresh) */
+/* ?dbg=1 on the address: a small note says every time the whole feed is rebuilt and what asked for it (for tracking down cards that move) */
+if(/[?&]dbg=1\b/.test(location.search)){const _rn=render;let rn=0;render=function(){rn++;let w='';try{const L=Error.stackTraceLimit;Error.stackTraceLimit=30;w=(new Error().stack||'').split('\n').slice(1,14).map(l=>(/at (?:async )?([\w$.]+)/.exec(l)||[])[1]||'?').filter((x,i,l)=>x!==l[i-1]).slice(0,8).join(' < ');Error.stackTraceLimit=L}catch(e){}let b=document.getElementById('dbgb');if(!b){b=document.createElement('div');b.id='dbgb';b.setAttribute('aria-hidden','true');b.style.cssText='position:fixed;left:8px;bottom:64px;z-index:99999;max-width:92vw;background:#000c;color:#fff;font:11px/1.35 monospace;padding:6px 8px;border-radius:6px;pointer-events:none;white-space:pre-wrap';document.body.appendChild(b)}b.textContent='feed rebuilt #'+rn+' at '+new Date().toLocaleTimeString()+'\n'+w+(b.dataset.p?'\nbefore: '+b.dataset.p:'');b.dataset.p=w.split(' < ')[0];return _rn.apply(this,arguments)}}
 let RDANC=null;
 function rdAnchorSave(){try{const m=$('main'),mt=m.getBoundingClientRect().top;RDANC=null;for(const c of m.querySelectorAll('#grid .card[data-href]')){const r=c.getBoundingClientRect();if(r.width&&r.bottom>mt+40){RDANC={h:c.dataset.href,o:r.top-mt,sel:S.sel};return}}}catch(e){RDANC=null}}
 function rdAnchorRestore(){const A=RDANC;if(!A||A.sel!==S.sel)return;const m=$('main');let moved=false;const stop=()=>{moved=true};m.addEventListener('wheel',stop,{once:true,passive:true});m.addEventListener('touchstart',stop,{once:true,passive:true});m.addEventListener('keydown',stop,{once:true});const fix=()=>{if(moved)return;const c=[...m.querySelectorAll('#grid .card[data-href]')].find(x=>x.dataset.href===A.h);if(!c)return;const d=(c.getBoundingClientRect().top-m.getBoundingClientRect().top)-A.o;if(Math.abs(d)>2)m.scrollTop+=d};fix();[120,400,900].forEach(t=>setTimeout(fix,t))}
@@ -11657,8 +11659,11 @@ const JK_EX=[
 function isJunkText(t){
  t=String(t||'').replace(/\s+/g,' ').trim();if(!t)return true;
  try{if(typeof JK!=='undefined'&&JK.TXT&&JK.TXT.some(r=>r.test(t)))return true}catch(e){}
+ if(COOKIEJ.test(t))return true;
  return JK_EX.some(r=>r.test(t));
 }
+/* a site's cookie-banner wording that got into a summary (Why it matters, excerpts) */
+const COOKIEJ=/(this (web)?site uses (essential |some )?cookies|these cookies are (set|necessary|used|required)|cookies are set by (a range of|third)|\bwe use (essential )?cookies\b|cookie (policy|settings|preferences|consent) )/i;
 /* shorten at a word boundary (or a sentence end), with a proper ellipsis; never mid-word */
 /* a stored excerpt that was cut mid-word (older saved stories) is tidied when it is shown */
 function sumOf(t){t=String(t||'');return t.length>=150&&!/[.!?…"”’)]$/.test(t)?trimWords(t,t.length-1):t}
