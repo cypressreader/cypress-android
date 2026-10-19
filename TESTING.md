@@ -443,3 +443,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - **Return-to-feed, part 2 (preview):** read part of a story (scroll it a little), then go back to All Stories. The feed should not redraw or flicker; the story's small progress bar updates in place. Daily and other views still redraw as before.
 
 - **No fade when closing a story (preview):** going back to the feed is now instant (no cross-fade between the story and the feed). Check there is no stutter or flash, in Chrome and on the phone.
+
+- **Same place after going back (preview):** scroll a long way down All Stories, open a story, go back: the story that was at the top of the screen should be at the same spot again, even if pictures loaded or the list moved meanwhile. Scrolling yourself right after returning cancels the correction.
