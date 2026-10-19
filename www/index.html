@@ -799,13 +799,13 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}/* a phone's own font s
 .ib:hover{background:var(--bg)}
 .ib:disabled{opacity:.3;cursor:default}
 #pc{color:var(--mut);font-size:14px;min-width:56px;text-align:center}
-.book{position:relative;flex:1;min-height:0;margin:0 clamp(12px,3vw,24px) clamp(14px,2.5vw,22px);perspective:5200px;touch-action:pan-y}
+.book{position:relative;flex:1;min-height:0;margin:0 clamp(12px,3vw,24px) clamp(14px,2.5vw,22px);perspective:1700px;touch-action:pan-y}
 .view{position:absolute;inset:0;overflow:hidden;background:var(--pn);border:1px solid var(--ln);border-radius:14px}
 .book.one.turning{clip-path:inset(-80px 0 -80px 0)}
 .tl{position:absolute;top:0;height:100%;overflow:hidden;pointer-events:none}
 .tl-under{z-index:2}
 .tl-cast{position:absolute;inset:0;z-index:3;overflow:hidden;pointer-events:none}
-.tl-cast i{position:absolute;top:0;bottom:0;width:90px;opacity:0}
+.tl-cast i{position:absolute;top:0;bottom:0;width:170px;opacity:0}
 .tl-leaf{position:absolute;top:0;height:100%;z-index:4;transform-origin:left center;transform-style:preserve-3d;will-change:transform;pointer-events:none}
 .tf{position:absolute;inset:0;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--pn)}
 .tf.bk{transform:rotateY(180deg)}
@@ -7183,7 +7183,7 @@ function startTurn(dir){
  const face=(cls,pg,x0)=>{const f=mkEl('tf '+cls);f.style.width=hw+'px';if(pg!=null)f.append(mkBox(pg,x0));return f};
  const cast=mkEl('tl-cast');
  T.cr=document.createElement('i');T.cl=document.createElement('i');
- T.cr.style.background='linear-gradient(to right,rgba(0,0,0,.2),rgba(0,0,0,0))';T.cl.style.background='linear-gradient(to left,rgba(0,0,0,.2),rgba(0,0,0,0))';
+ T.cr.style.background='linear-gradient(to right,rgba(0,0,0,.2),rgba(0,0,0,.08) 35%,rgba(0,0,0,.02) 70%,rgba(0,0,0,0))';T.cl.style.background='linear-gradient(to left,rgba(0,0,0,.2),rgba(0,0,0,.08) 35%,rgba(0,0,0,.02) 70%,rgba(0,0,0,0))';
  cast.append(T.cr,T.cl);
  const leaf=mkEl('tl-leaf',`left:${hx}px;width:${hw}px`);
  if(isOn('curl')&&curlN!==-1&&!reduced()&&R.np<400&&($('.view').querySelectorAll('*').length<1600)&&($('.view').querySelectorAll('img').length<24)){
@@ -7213,7 +7213,7 @@ function startTurn(dir){
  setAng(T.ang);
  return T;
 }
-var CR=.3;
+var BOW=1.7;
 /* the curl adapts to the device: if frames take too long on a turn, the next turns use fewer strips, and finally the plain flip (-1). Remembered on this device only. */
 let curlN=0;try{curlN=+localStorage.getItem('cy_curlN2')||0}catch(_){}
 function curlTune(T){
@@ -7229,21 +7229,27 @@ function setAng(a){
  if(!T.st)T.leaf.style.transform=`rotateY(${-a}deg)`;
  let tipx=null;
  if(T.st){
-  /* a real curl: the paper lies flat until a contact line, rolls over a cylinder of radius r, then lies flat (face down) beyond it; the contact line is solved so the free edge follows the usual flip path */
-  const N=T.N,PI=Math.PI,p=Math.max(0,Math.min(1,a/180)),k=(1+Math.cos(p*PI))*T.hw/(2+PI);
-  const r=Math.max(.5,Math.min(Math.max(46,Math.min(130,T.hw*CR))*Math.min(Math.pow(Math.min(1,p/.35),2),(1-p)*7),k)),c=(2+PI)*(k-r)/2;
-  let x=T.hx,z=0,dx=0;
+  /* the page is a hinged sheet that bows while it flips. Its heading along the sheet is th(u)=alpha+cos(alpha)*theta0*cos(pi*u/L): alpha is the hinge angle (0 flat on the right, pi flat on the left), theta0 the bow. The bow grows while the page is still flat (the arch), stays while it swings over, and fades as it lands flat on the other side (cos(alpha) flips sign, so the bow always lifts toward the reader). alpha is solved so the free edge follows the finger: chord = L*cos(alpha)*J0(cos(alpha)*theta0) */
+  const N=T.N,PI=Math.PI,p=Math.pow(Math.max(0,Math.min(1,(T.dir>0?a:180-a)/180)),1.2)/* the page trails the finger a little at first, then catches up */,dr=T.dir>0?1:-1;
+  const J0=t=>{let q=1,sm=1;for(let n=1;n<9;n++){q*=-(t*t/4)/(n*n);sm+=q}return sm};
+  const want=Math.cos(p*PI),ac=Math.min(1,Math.abs(want));
+  let th0=0;if(ac<1){let lo=0,hi=2.405;for(let n=0;n<20;n++){const m=(lo+hi)/2;if(J0(m)>ac)lo=m;else hi=m}th0=(lo+hi)/2}
+  th0=Math.min(th0,BOW);
+  const al=Math.acos(Math.max(-1,Math.min(1,want/J0(th0))));/* smooth and monotone; the free edge ends up within a few percent of the finger */
+  const cs=Math.cos(al)*th0;
+  const P=[[0,0]];{let px=0,pz=0;for(let i=0;i<N;i++){const t=al+cs*Math.cos(PI*(i+.5)/N);px+=T.sw*Math.cos(t);pz+=T.sw*Math.sin(t);P.push([px,pz])}}
+  let x=T.hx;
   T.st.forEach((q,i)=>{
-   const th=Math.max(0,Math.min(PI,((i+.5)*T.sw-c)/r)),dg=th*180/PI;
-   q.el.style.transform=`translate3d(${dx.toFixed(1)}px,0,${z.toFixed(1)}px) rotateY(${(-dg).toFixed(2)}deg)`;
-   const o=Math.round(30*Math.sin(th));if(o!==q.o){q.o=o;const v=(o/100).toFixed(2);q.fs.style.opacity=v;q.bs.style.opacity=v}
-   dx+=T.sw*Math.cos(th);z+=T.sw*Math.sin(th);x+=T.sw*Math.cos(th);
+   const t0=al+cs*Math.cos(PI*(i+.5)/N),th=T.dir>0?t0:PI-t0/* turning back is the mirror image of turning forward */,dg=th*180/PI;
+   q.el.style.transform=`translate3d(${(dr*P[i][0]).toFixed(1)}px,0,${P[i][1].toFixed(1)}px) rotateY(${(-dg).toFixed(2)}deg)`;
+   const o=Math.round(16*Math.abs(Math.sin(th)));if(o!==q.o){q.o=o;const v=(o/100).toFixed(2);q.fs.style.opacity=v;q.bs.style.opacity=v}
   });
+  x=T.hx+dr*P[N][0];
   tipx=x;
  }else{T.fs.style.opacity=.2*s;T.bs.style.opacity=.2*s;if(T.sn){T.sn.style.opacity=(.9*s*s).toFixed(3);T.sn.style.backgroundPosition=(100-a/180*100)+'% 0'}}
  if(T.us)T.us.style.opacity=.14*s;
  if(tipx!=null)tip=tipx;T.cr.style.left=tip+'px';T.cr.style.opacity=c>0?s:0;
- T.cl.style.left=(tip-90)+'px';T.cl.style.opacity=c<0?s:0;
+ T.cl.style.left=(tip-170)+'px';T.cl.style.opacity=c<0?s:0;
 }
 /* warm-up: the first page turn of a story used to hitch while the browser built the turn's layers for the first time. Once the story has settled, build one turn invisibly for two frames, then throw it away, so the first real turn starts warm. */
 function rdWarm(){
@@ -11182,8 +11188,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.19h';const APP_LABEL='1.115';
-const CHANGES=["The first page turn in a story is now as smooth as the rest: the app gets the turn ready quietly a few seconds after a story opens"];
+const APP_VERSION='2026.10.19i';const APP_LABEL='1.116';
+const CHANGES=["Page turns now look and move like a real paper page: it stays flat and bubbles up in the middle as you drag, then swings over and settles on the other side","Turning back mirrors turning forward, and the page follows your finger smoothly in both directions"];
 const DEF_ON=new Set(['shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
