@@ -429,3 +429,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 **FIXES 25:** feed lead ("Cover story"/"The lead") picture should span the full column in Cards view on a wide tablet.
 
 **FIXES 26:** on the tablet, a story with no picture beside picture stories (Cards view) shows a tinted tile with the source's first letter at the picture height. Seen only with test data in a desktop browser.
+
+- **Near you "Added" bug (preview):** with one Google/Bing News place already in your feeds, search a different place in Add a feed → Near you. It must show "Add", not "Added to …". Old cause: `nUrl` dropped the `?q=` part, so all searches looked identical.
