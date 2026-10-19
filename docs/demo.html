@@ -4156,6 +4156,9 @@ body:not(.narrow):not(.split).sidehide>main{grid-column:2}
 body:not(.narrow):not(.split).sidehide>aside{overflow:hidden;transform:translateX(-101%);transition:transform .28s ease,visibility 0s .28s;min-width:0;visibility:hidden}
 body:not(.narrow):not(.split).sidehide.sideshow>aside{position:fixed;inset:0 auto 0 0;width:min(300px,80vw);transform:none;z-index:90;box-shadow:8px 0 44px rgba(0,0,0,.38);visibility:visible;transition:transform .28s ease}
 body:not(.narrow):not(.split).sidehide:not(.sideshow) #sideh{display:flex}
+/* FIXES 21: on a wide tablet the reader keeps a comfortable line (about 33 characters-widths of text per column) and the spare room becomes margin; the lead story's headline grows with the room */
+@media(min-width:1200px){#rd .book{width:100%;max-width:calc(var(--fs,18px)*66 + 116px);margin-left:auto;margin-right:auto}}
+@media(min-width:900px){#grid .nr-top .card:is(.nr-lead,.nr-hero) h3{font-size:calc(clamp(1.7rem,3.3cqi,2.9rem)*var(--csz,1))!important;line-height:1.08!important}#grid .nr-top .card:is(.nr-lead,.nr-hero) .tx>p{font-size:clamp(16px,1.5cqi,19px)}}
 }
 @media(min-width:900px){body.sidehide:not(.split) #mtabs{left:0;width:100%}}
 @media(prefers-reduced-motion:reduce){body.sidehide>aside{transition:none!important}}
@@ -6184,6 +6187,7 @@ function aaBuild(){
   +'<div class="aarow"><span id="aafnl">Font</span><span class="aaq" role="radiogroup" aria-labelledby="aafnl">'+AA_FN.map(([id,n])=>'<button type="button" class="aap" role="radio" data-aafn="'+id+'" aria-checked="false">'+n+'</button>').join('')+'</span></div>'
   +'<div class="aarow"><span>Focus reading</span><button type="button" class="aap" data-tg="focusr" aria-label="Focus reading"></button></div>'
   +'<div class="aarow"><span>Text size</span><span class="aaq"><button type="button" class="ib" data-fs="-1" aria-label="Smaller text">A−</button><output id="aafsv" aria-live="polite"></output><button type="button" class="ib" data-fs="1" aria-label="Larger text">A+</button></span></div>'
+  +'<div class="aarow"><span>Large print</span><button type="button" class="aap" data-tg="lp" aria-label="Large print"></button></div>'
   +'<div class="aarow"><span>Reading style</span><span class="aaq" role="group" aria-label="Reading style"><button type="button" class="aap" data-sc="auto">Auto</button><button type="button" class="aap" data-sc="pages">Pages</button><button type="button" class="aap" data-sc="vertical">Scroll</button></span></div>'
   +'<div class="aarow"><span>Line spacing</span><span class="aaq" role="group" aria-label="Line spacing">'+AA_LH.map(([n,v])=>'<button type="button" class="aap" data-lh="'+v+'">'+n+'</button>').join('')+'</span></div>'
   +'<div class="aarow"><span>Sepia reading page</span><button type="button" class="aap" data-tg="sep" aria-label="Sepia reading page"></button></div>'
@@ -6198,6 +6202,7 @@ function aaSync(){
  const th=S.theme||'auto';pop.querySelectorAll('[data-aath]').forEach(b=>{const on=b.dataset.aath===th;b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on))});
  pop.querySelectorAll('[data-aafn]').forEach(b=>{const on=b.dataset.aafn===(S.font||'theme');b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on))});
  {const fb=pop.querySelector('[data-tg="focusr"]'),fo=isOn('focusr');fb.classList.toggle('on',fo);fb.setAttribute('aria-pressed',String(fo));fb.textContent=fo?'On':'Off'}
+ {const lb=pop.querySelector('[data-tg="lp"]'),lo=!!S.lp;lb.classList.toggle('on',lo);lb.setAttribute('aria-pressed',String(lo));lb.textContent=lo?'On':'Off'}
  const sp=pop.querySelector('[data-tg="sep"]'),so=!!S.sep;sp.classList.toggle('on',so);sp.setAttribute('aria-pressed',String(so));sp.textContent=so?'On':'Off';
 }
 function aaClose(back){const pop=$('#aapop'),aa=$('#raa');if(pop&&!pop.hidden){pop.hidden=true;pop.style.transform='';if(aa)aa.setAttribute('aria-expanded','false');const o=(aaOpener&&document.contains(aaOpener)&&!aaOpener.hidden)?aaOpener:aa;aaOpener=null;if(back&&o)o.focus()}}
@@ -6220,6 +6225,7 @@ document.addEventListener('click',e=>{
  else if(sc){S.scroll=sc;save();refreshReader()}
  else if(lh){S.lh=+lh;save();applyFs(true)}
  else if(tg==='sep'){S.sep=!S.sep;save();applyFs(true)}
+ else if(tg==='lp'){/* Large print: bigger text and roomier lines; turning it off restores the earlier size */if(S.lp){S.fs=S.lp.fs;S.lh=S.lp.lh;S.lp=null}else{S.lp={fs:+S.fs||18,lh:+S.lh||1.68};S.fs=24;S.lh=1.8}save();applyFs(true);aaSync()}
  else if(tg==='focusr'){S.focusr=!isOn('focusr');save();syncSet();applyFx();decorate();relayout()}
  else if(ath){S.theme=ath;applyTheme(false);save();render()}
  else if(afn){S.font=afn;needFont(afn);save();refreshReader()}
@@ -11032,7 +11038,7 @@ function briefFoot(){
 
 /* ===================== sync between devices ===================== */
 const SYNC_KEYS=['feeds','folders','saved','hl','read','sk','mute','prog','pos','rt'];
-const SET_KEYS=['sideh','shortlinks','focusr','cine','ts','txo','sysfs','cont','bi','bidays','dglock','haptic','fcheck','hideCount','hideDeals','skippay','nroom','smooth','lowfx','bfold','ptone','grain','pcomp','mag','cover','covers','intro','typo','preload','tlay','dynx','tline','caps','rl','disc','mnote','trend','must','pqc','cray','mast','quiet','fbleed','ctint','scrim','cvs','fth','toc','spread','pqs','folio','endm','dgon','dgwhen','dgwk','dgwd','dgnotif','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','sfx','season','paper','qh','wpm','alk','packh','rmo','hfont','dtap','sdown','ptint','tsound','thaptic','sbw','pfwifi','offimg','keysOn','dsave','acMB','capn','theme','sch','night','font','fs','lh','mg','just','sep','group','hideRead','sort','auto','pfm','pfn','logo','rate','vol','voice','queue','prate','autoWeb','autoReader','view','geo'];
+const SET_KEYS=['sideh','lp','shortlinks','focusr','cine','ts','txo','sysfs','cont','bi','bidays','dglock','haptic','fcheck','hideCount','hideDeals','skippay','nroom','smooth','lowfx','bfold','ptone','grain','pcomp','mag','cover','covers','intro','typo','preload','tlay','dynx','tline','caps','rl','disc','mnote','trend','must','pqc','cray','mast','quiet','fbleed','ctint','scrim','cvs','fth','toc','spread','pqs','folio','endm','dgon','dgwhen','dgwk','dgwd','dgnotif','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','sfx','season','paper','qh','wpm','alk','packh','rmo','hfont','dtap','sdown','ptint','tsound','thaptic','sbw','pfwifi','offimg','keysOn','dsave','acMB','capn','theme','sch','night','font','fs','lh','mg','just','sep','group','hideRead','sort','auto','pfm','pfn','logo','rate','vol','voice','queue','prate','autoWeb','autoReader','view','geo'];
 LSIG=setSig();
 const b64=u=>{let s='';const b=new Uint8Array(u);for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode(...b.subarray(i,i+8192));return btoa(s)};
 const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
