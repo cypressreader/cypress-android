@@ -226,7 +226,7 @@ html[data-theme=dark].paper1 #rd .view,html[data-theme=dark].paper2 #rd .view{ba
 html.pdark.paper1 .tf,html.pdark.paper1 #rd .view{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .95 0 0 0 0 .92 0 0 0 0 .85 0 0 0 .13 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-blend-mode:normal}
 html.pdark.paper2 .tf,html.pdark.paper2 #rd .view{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.02 .5' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .95 0 0 0 0 .92 0 0 0 0 .85 0 0 0 .17 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-blend-mode:normal}
 /* curl strips */
-.tl-s{position:absolute;top:0;height:100%;transform-origin:left center;transform-style:preserve-3d}
+.tl-s{position:absolute;top:0;height:100%;transform-origin:left center;transform-style:preserve-3d;will-change:transform}
 .tl-s .tf{background:var(--pn)}
 /* time of day glow */
 body.tod-a::before,body.tod-b::before{content:'';position:fixed;left:0;right:0;top:0;height:220px;pointer-events:none;z-index:1;opacity:.5}
@@ -7187,12 +7187,12 @@ function startTurn(dir){
  cast.append(T.cr,T.cl);
  const leaf=mkEl('tl-leaf',`left:${hx}px;width:${hw}px`);
  if(isOn('curl')&&curlN!==-1&&!reduced()&&R.np<400&&($('.view').querySelectorAll('*').length<1600)&&($('.view').querySelectorAll('img').length<24)){
-  const N=curlN>0?curlN:(navigator.hardwareConcurrency||8)<=4?12:20,sw=hw/N;let par=leaf;T.st=[];T.N=N;T.sw=sw;
+  const N=curlN>0?curlN:(navigator.hardwareConcurrency||8)<=4?10:16,sw=hw/N;T.st=[];T.N=N;T.sw=sw;
   for(let i=0;i<N;i++){
-   const el=mkEl('tl-s',`left:${i?sw:0}px;width:${sw+1}px`);
+   const el=mkEl('tl-s',`left:0;width:${sw+1}px`);
    const f=mkEl('tf');f.append(mkBox(pgF,hx+i*sw));const fs=shade('to right');fs.style.background='#000';f.append(fs);el.append(f);
    const b=mkEl('tf bk');if(two)b.append(mkBox(pgB,hw-(i+1)*sw));const bs=shade('to left');bs.style.background='#000';b.append(bs);el.append(b);
-   par.append(el);par=el;T.st.push({el,fs,bs});
+   leaf.append(el);T.st.push({el,fs,bs,o:-1});
   }
  }else{
  const f=face('',pgF,hx);T.fs=shade('to right');f.append(T.fs);T.sn=mkEl('tsheen');f.append(T.sn);
@@ -7215,28 +7215,29 @@ function startTurn(dir){
 }
 var CR=.3;
 /* the curl adapts to the device: if frames take too long on a turn, the next turns use fewer strips, and finally the plain flip (-1). Remembered on this device only. */
-let curlN=0;try{curlN=+localStorage.getItem('cy_curlN')||0}catch(_){}
+let curlN=0;try{curlN=+localStorage.getItem('cy_curlN2')||0}catch(_){}
 function curlTune(T){
  const d=T.dts;if(!T.st||!d||d.length<8)return;
  const m=d.slice().sort((x,y)=>x-y)[d.length>>1];
- if(m<=26)return;
- curlN=T.N>8?Math.max(8,Math.round(T.N*.6)):-1;
- try{localStorage.setItem('cy_curlN',String(curlN))}catch(_){}
+ if(m<=24)return;
+ curlN=T.N>8?Math.max(8,Math.round(T.N*.55)):-1;
+ try{localStorage.setItem('cy_curlN2',String(curlN))}catch(_){}
 }
 function setAng(a){
  const T=R.T;if(!T)return;T.ang=a;
  const r=a*Math.PI/180,s=Math.sin(r),c=Math.cos(r);let tip=T.hx+T.hw*c;
- T.leaf.style.transform=`rotateY(${-a}deg)`;
+ if(!T.st)T.leaf.style.transform=`rotateY(${-a}deg)`;
  let tipx=null;
  if(T.st){
   /* a real curl: the paper lies flat until a contact line, rolls over a cylinder of radius r, then lies flat (face down) beyond it; the contact line is solved so the free edge follows the usual flip path */
   const N=T.N,PI=Math.PI,p=Math.max(0,Math.min(1,a/180)),k=(1+Math.cos(p*PI))*T.hw/(2+PI);
   const r=Math.max(.5,Math.min(Math.max(46,Math.min(130,T.hw*CR))*Math.min(Math.pow(Math.min(1,p/.35),2),(1-p)*7),k)),c=(2+PI)*(k-r)/2;
-  let x=T.hx,pv=0;
+  let x=T.hx,z=0,dx=0;
   T.st.forEach((q,i)=>{
    const th=Math.max(0,Math.min(PI,((i+.5)*T.sw-c)/r)),dg=th*180/PI;
-   if(i)q.el.style.transform=`rotateY(${(-(dg-pv)).toFixed(2)}deg)`;else T.leaf.style.transform=`rotateY(${(-dg).toFixed(2)}deg)`;
-   pv=dg;const o=(.3*Math.sin(th)).toFixed(3);q.fs.style.opacity=o;q.bs.style.opacity=o;x+=T.sw*Math.cos(th);
+   q.el.style.transform=`translate3d(${dx.toFixed(1)}px,0,${z.toFixed(1)}px) rotateY(${(-dg).toFixed(2)}deg)`;
+   const o=Math.round(30*Math.sin(th));if(o!==q.o){q.o=o;const v=(o/100).toFixed(2);q.fs.style.opacity=v;q.bs.style.opacity=v}
+   dx+=T.sw*Math.cos(th);z+=T.sw*Math.sin(th);x+=T.sw*Math.cos(th);
   });
   tipx=x;
  }else{T.fs.style.opacity=.2*s;T.bs.style.opacity=.2*s;if(T.sn){T.sn.style.opacity=(.9*s*s).toFixed(3);T.sn.style.backgroundPosition=(100-a/180*100)+'% 0'}}
