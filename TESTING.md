@@ -448,3 +448,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 
 - **Cookie text in "Why it matters" (preview):** open the Ars Technica story "Disney found a way to buy Character.AI without buying its lawsuits": the box should no longer contain cookie-banner wording (or should not show at all).
 - **Debug note (preview only):** add `?dbg=1` to the preview address to see a small black note each time the whole feed is rebuilt (count + time). Use it while opening/closing stories to see whether a rebuild happens when cards move.
+
+- **List no longer jumps while scrolling (preview):** All Stories (Smart, Cards view): scroll down and back up, open stories and return. Cards should stay put (no sliding, no sudden jumps). Cause: lazily drawn cards (`content-visibility:auto`, guessed 260 px) changed height when they scrolled into view; turned off for `#grid.wire`. Watch for slower scrolling on the phone; if so, tell me.
