@@ -422,3 +422,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 
 
 **Pure Black theme + side-bar tip (2026-10-19):** on the phone, pick Pure Black (Settings → Look, Essentials) and check the background is true black and text/labels are readable; with Follow my phone set to a light phone it should fall back to Light. On a tablet, tap "Hide it" in the one-time tip and check the side bar hides only in portrait.
+
+**FIXES 23 (2026-10-19):** on the tablet, Compact: the first (lead) story should be a short row with a small picture, not a tall empty box. Medium/Large: no source name hidden under the picture of 3-up or feature cards (picture used to grow over it). Reproduced and checked with test pictures in a desktop browser at 800-1280 px; not seen on the real tablet yet.
