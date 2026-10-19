@@ -924,13 +924,13 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}/* a phone's own font s
 .ib:hover{background:var(--bg)}
 .ib:disabled{opacity:.3;cursor:default}
 #pc{color:var(--mut);font-size:14px;min-width:56px;text-align:center}
-.book{position:relative;flex:1;min-height:0;margin:0 clamp(12px,3vw,24px) clamp(14px,2.5vw,22px);perspective:5200px;touch-action:pan-y}
+.book{position:relative;flex:1;min-height:0;margin:0 clamp(12px,3vw,24px) clamp(14px,2.5vw,22px);perspective:1800px;touch-action:pan-y}
 .view{position:absolute;inset:0;overflow:hidden;background:var(--pn);border:1px solid var(--ln);border-radius:14px}
 .book.one.turning{clip-path:inset(-80px 0 -80px 0)}
 .tl{position:absolute;top:0;height:100%;overflow:hidden;pointer-events:none}
 .tl-under{z-index:2}
 .tl-cast{position:absolute;inset:0;z-index:3;overflow:hidden;pointer-events:none}
-.tl-cast i{position:absolute;top:0;bottom:0;width:90px;opacity:0}
+.tl-cast i{position:absolute;top:0;bottom:0;width:170px;opacity:0}
 .tl-leaf{position:absolute;top:0;height:100%;z-index:4;transform-origin:left center;transform-style:preserve-3d;will-change:transform;pointer-events:none}
 .tf{position:absolute;inset:0;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--pn)}
 .tf.bk{transform:rotateY(180deg)}
@@ -7308,7 +7308,7 @@ function startTurn(dir){
  const face=(cls,pg,x0)=>{const f=mkEl('tf '+cls);f.style.width=hw+'px';if(pg!=null)f.append(mkBox(pg,x0));return f};
  const cast=mkEl('tl-cast');
  T.cr=document.createElement('i');T.cl=document.createElement('i');
- T.cr.style.background='linear-gradient(to right,rgba(0,0,0,.2),rgba(0,0,0,0))';T.cl.style.background='linear-gradient(to left,rgba(0,0,0,.2),rgba(0,0,0,0))';
+ T.cr.style.background='linear-gradient(to right,rgba(0,0,0,.2),rgba(0,0,0,.08) 35%,rgba(0,0,0,.02) 70%,rgba(0,0,0,0))';T.cl.style.background='linear-gradient(to left,rgba(0,0,0,.2),rgba(0,0,0,.08) 35%,rgba(0,0,0,.02) 70%,rgba(0,0,0,0))';
  cast.append(T.cr,T.cl);
  const leaf=mkEl('tl-leaf',`left:${hx}px;width:${hw}px`);
  if(isOn('curl')&&curlN!==-1&&!reduced()&&R.np<400&&($('.view').querySelectorAll('*').length<1600)&&($('.view').querySelectorAll('img').length<24)){
@@ -7338,7 +7338,7 @@ function startTurn(dir){
  setAng(T.ang);
  return T;
 }
-var CR=.3;
+var CR=.22;
 /* the curl adapts to the device: if frames take too long on a turn, the next turns use fewer strips, and finally the plain flip (-1). Remembered on this device only. */
 let curlN=0;try{curlN=+localStorage.getItem('cy_curlN2')||0}catch(_){}
 function curlTune(T){
@@ -7361,14 +7361,14 @@ function setAng(a){
   T.st.forEach((q,i)=>{
    const th=Math.max(0,Math.min(PI,((i+.5)*T.sw-c)/r)),dg=th*180/PI;
    q.el.style.transform=`translate3d(${dx.toFixed(1)}px,0,${z.toFixed(1)}px) rotateY(${(-dg).toFixed(2)}deg)`;
-   const o=Math.round(30*Math.sin(th));if(o!==q.o){q.o=o;const v=(o/100).toFixed(2);q.fs.style.opacity=v;q.bs.style.opacity=v}
+   const o=Math.round(16*Math.sin(th));if(o!==q.o){q.o=o;const v=(o/100).toFixed(2);q.fs.style.opacity=v;q.bs.style.opacity=v}
    dx+=T.sw*Math.cos(th);z+=T.sw*Math.sin(th);x+=T.sw*Math.cos(th);
   });
   tipx=x;
  }else{T.fs.style.opacity=.2*s;T.bs.style.opacity=.2*s;if(T.sn){T.sn.style.opacity=(.9*s*s).toFixed(3);T.sn.style.backgroundPosition=(100-a/180*100)+'% 0'}}
  if(T.us)T.us.style.opacity=.14*s;
  if(tipx!=null)tip=tipx;T.cr.style.left=tip+'px';T.cr.style.opacity=c>0?s:0;
- T.cl.style.left=(tip-90)+'px';T.cl.style.opacity=c<0?s:0;
+ T.cl.style.left=(tip-170)+'px';T.cl.style.opacity=c<0?s:0;
 }
 /* warm-up: the first page turn of a story used to hitch while the browser built the turn's layers for the first time. Once the story has settled, build one turn invisibly for two frames, then throw it away, so the first real turn starts warm. */
 function rdWarm(){
