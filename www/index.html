@@ -7183,7 +7183,7 @@ function startTurn(dir){
  cast.append(T.cr,T.cl);
  const leaf=mkEl('tl-leaf',`left:${hx}px;width:${hw}px`);
  if(isOn('curl')&&!reduced()&&R.np<400&&($('.view').querySelectorAll('*').length<1600)&&($('.view').querySelectorAll('img').length<24)){
-  const N=(navigator.hardwareConcurrency||8)<=4?10:16,sw=hw/N;let par=leaf;T.st=[];T.N=N;T.sw=sw;
+  const N=(navigator.hardwareConcurrency||8)<=4?16:28,sw=hw/N;let par=leaf;T.st=[];T.N=N;T.sw=sw;
   for(let i=0;i<N;i++){
    const el=mkEl('tl-s',`left:${i?sw:0}px;width:${sw+1}px`);
    const f=mkEl('tf');f.append(mkBox(pgF,hx+i*sw));const fs=shade('to right');fs.style.background='#000';f.append(fs);el.append(f);
@@ -7209,19 +7209,22 @@ function startTurn(dir){
  setAng(T.ang);
  return T;
 }
-var CB=135,CP=2;
+var CR=.3;
 function setAng(a){
  const T=R.T;if(!T)return;T.ang=a;
  const r=a*Math.PI/180,s=Math.sin(r),c=Math.cos(r);let tip=T.hx+T.hw*c;
  T.leaf.style.transform=`rotateY(${-a}deg)`;
  let tipx=null;
  if(T.st){
-  const pa=T.pa==null?a:T.pa;T.pa=a;T.v=(T.v||0)*.55+(a-pa)*.45;
-  const pr=(T.dir>0?a:180-a)/180,rip=pr>.5?7*Math.sin((pr-.5)*Math.PI*5)*(1-pr)*2:0;
-  const tot=(T.dir>0?1:-1)*(CB*s+rip)+Math.max(-46,Math.min(46,T.v*2.8))*(.3+.7*s),N=T.N;let x=T.hx,wsum=0;
-  const wt=i=>.05+Math.pow(i/(N-1),CP);for(let i=1;i<N;i++)wsum+=wt(i);
-  let ai=a;
-  T.st.forEach((q,i)=>{if(i){const j=tot*wt(i)/wsum;q.el.style.transform=`rotateY(${j.toFixed(2)}deg)`;ai-=j}const o=Math.abs(Math.sin(ai*Math.PI/180))*.12;q.fs.style.opacity=o.toFixed(3);q.bs.style.opacity=o.toFixed(3);x+=T.sw*Math.cos(ai*Math.PI/180)});
+  /* a real curl: the paper lies flat until a contact line, rolls over a cylinder of radius r, then lies flat (face down) beyond it; the contact line is solved so the free edge follows the usual flip path */
+  const N=T.N,PI=Math.PI,p=Math.max(0,Math.min(1,a/180)),k=(1+Math.cos(p*PI))*T.hw/(2+PI);
+  const r=Math.max(.5,Math.min(Math.max(46,Math.min(130,T.hw*CR))*Math.min(1,p*7),k)),c=(2+PI)*(k-r)/2;
+  let x=T.hx,pv=0;
+  T.st.forEach((q,i)=>{
+   const th=Math.max(0,Math.min(PI,((i+.5)*T.sw-c)/r)),dg=th*180/PI;
+   if(i)q.el.style.transform=`rotateY(${(-(dg-pv)).toFixed(2)}deg)`;else T.leaf.style.transform=`rotateY(${(-dg).toFixed(2)}deg)`;
+   pv=dg;const o=(.3*Math.sin(th)).toFixed(3);q.fs.style.opacity=o;q.bs.style.opacity=o;x+=T.sw*Math.cos(th);
+  });
   tipx=x;
  }else{T.fs.style.opacity=.2*s;T.bs.style.opacity=.2*s;if(T.sn){T.sn.style.opacity=(.9*s*s).toFixed(3);T.sn.style.backgroundPosition=(100-a/180*100)+'% 0'}}
  if(T.us)T.us.style.opacity=.14*s;
