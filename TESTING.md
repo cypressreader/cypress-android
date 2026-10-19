@@ -432,6 +432,6 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 
 - **Near you "Added" bug (preview):** with one Google/Bing News place already in your feeds, search a different place in Add a feed → Near you. It must show "Add", not "Added to …". Old cause: `nUrl` dropped the `?q=` part, so all searches looked identical.
 
-- **Bug-hunt fixes (preview):** (a) All Stories pills (Smart / Top stories / Quick reads / Deep reads) centered on tablets; (b) a failed favicon shows a small letter tile, not a broken-image icon; (c) photo cards show a muted tint (not bright orange/pale blue) until the picture loads; (d) reader: "Loading the full article…" disappears once the text shows. Check on tablet and phone.
+- **Bug-hunt fixes (preview):** (a) All Stories pills (Smart / Top stories / Quick reads / Deep reads) centered on tablets; (d) reader: "Loading the full article…" disappears once the text shows. Check on tablet and phone.
 
 - **Empty space in short card rows (preview):** on a tablet/wide screen, a row with only two or three picture cards (strip or three-across block) now fills the width instead of leaving the right side blank. Check All Stories, Smart view.
