@@ -429,3 +429,7 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 **FIXES 25:** feed lead ("Cover story"/"The lead") picture should span the full column in Cards view on a wide tablet.
 
 **FIXES 26:** on the tablet, a story with no picture beside picture stories (Cards view) shows a tinted tile with the source's first letter at the picture height. Seen only with test data in a desktop browser.
+
+- **Near you "Added" bug (preview):** with one Google/Bing News place already in your feeds, search a different place in Add a feed → Near you. It must show "Add", not "Added to …". Old cause: `nUrl` dropped the `?q=` part, so all searches looked identical.
+
+- **Bug-hunt fixes (preview):** (a) All Stories pills (Smart / Top stories / Quick reads / Deep reads) centered on tablets; (b) a failed favicon shows a small letter tile, not a broken-image icon; (c) photo cards show a muted tint (not bright orange/pale blue) until the picture loads; (d) reader: "Loading the full article…" disappears once the text shows. Check on tablet and phone.
