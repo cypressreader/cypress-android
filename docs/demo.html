@@ -7432,6 +7432,7 @@ function go(d){
 let D=null;
 function turnRelease(cancel,ts){
  const T=R.T,d=D;D=null;if(!T||!d)return;
+ if(d.raf){cancelAnimationFrame(d.raf);d.raf=0}if(d.pa!=null&&!T.dead)setAng(d.pa);
  /* speed only counts if the finger was still moving when it lifted: a drag that rests before letting go is a slow drag, not a flick */
  let vx=0;const sm=d.s;if(sm.length>1){const a=sm[0],b=sm[sm.length-1];if(b.t>a.t&&!(ts&&ts-b.t>120))vx=(b.x-a.x)/(b.t-a.t)}
  const flick=-vx*T.dir,prog=T.dir>0?T.ang:180-T.ang;
@@ -9132,7 +9133,9 @@ rdEl.addEventListener('pointermove',e=>{
  const T=R.T;if(!T)return;
  D.s.push({t:e.timeStamp,x:e.clientX});while(D.s.length>2&&D.s[0].t<e.timeStamp-110)D.s.shift();
  const xt=Math.max(-T.hw,Math.min(T.hw,T.xt0+(e.clientX-D.x0)*1.35));
- setAng(Math.acos(xt/T.hw)*180/Math.PI);
+ /* one update per screen refresh, using the newest finger position (a 120 Hz touch screen can report several moves per frame) */
+ const dd=D;dd.pa=Math.acos(xt/T.hw)*180/Math.PI;
+ if(!dd.raf)dd.raf=requestAnimationFrame(()=>{dd.raf=0;if(dd.pa!=null&&R.T===T&&!T.dead)setAng(dd.pa)});
 });
 const pend=e=>{
  if(!D||e.pointerId!==D.id)return;
