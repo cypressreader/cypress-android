@@ -7230,7 +7230,7 @@ function setAng(a){
  let tipx=null;
  if(T.st){
   /* a real curl: the paper lies flat until a contact line, rolls over a cylinder of radius r, then lies flat (face down) beyond it; the contact line is solved so the free edge follows the usual flip path */
-  const N=T.N,PI=Math.PI,p=Math.max(0,Math.min(1,a/180)),k=(1+Math.cos(p*PI))*T.hw/(2+PI);
+  const N=T.N,PI=Math.PI,p=Math.max(0,Math.min(1,(T.dir>0?a:180-a)/180)),k=(1+Math.cos(p*PI))*T.hw/(2+PI);
   const r=Math.max(.5,Math.min(Math.max(46,Math.min(130,T.hw*CR))*Math.min(Math.pow(Math.min(1,p/.35),2),(1-p)*7),k)),c=(2+PI)*(k-r)/2;
   /* the squish: before the page starts to flip, its middle bubbles up (an arch that grows, then melts into the roll) */
   /* beyond the roll the paper is not held up at the roll's height: it slopes back down onto the page (without this the whole turned page floated, enlarged, above the book) */
@@ -7238,7 +7238,7 @@ function setAng(a){
   const bub=Math.pow(Math.sin(PI*Math.min(1,p/.42)),.6)*BUB;
   let x=T.hx,z=0,dx=0;
   T.st.forEach((q,i)=>{
-   const u=(i+.5)*T.sw,bu=(u-T.hw*.05)/(T.hw*.9),th=Math.max(0,Math.min(PI,(u-c)/r))+(u>c+PI*r?eps:0)+(bub>0&&bu>0&&bu<1?bub*Math.sin(2*PI*bu):0),dg=th*180/PI;
+   const u=(i+.5)*T.sw,bu=(u-T.hw*.05)/(T.hw*.9),t0=Math.max(0,Math.min(PI,(u-c)/r))+(u>c+PI*r?eps:0)+(bub>0&&bu>0&&bu<1?bub*Math.sin(2*PI*bu):0),th=T.dir>0?t0:PI-t0/* turning back is the mirror image of turning forward */,dg=th*180/PI;
    q.el.style.transform=`translate3d(${dx.toFixed(1)}px,0,${z.toFixed(1)}px) rotateY(${(-dg).toFixed(2)}deg)`;
    const o=Math.round(16*Math.abs(Math.sin(th)));if(o!==q.o){q.o=o;const v=(o/100).toFixed(2);q.fs.style.opacity=v;q.bs.style.opacity=v}
    dx+=T.sw*Math.cos(th);z+=T.sw*Math.sin(th);x+=T.sw*Math.cos(th);
