@@ -484,3 +484,6 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 
 ## Search button stays pale (unverified)
 - Halcyon (and other dark-header themes) on a phone: tap the magnifier, then the search box opens; the round button keeps the header color (no pale circle). Also check the other round header buttons after a tap.
+
+## Daily section headers (unverified on device)
+- Halcyon light and dark, phone and tablet: each Today section shows trees with a sun (morning) or moon (evening), the VOL/number/No. row, the big caps title and the small tagline. Check long titles wrap and nothing is clipped; check the "In this issue" links still jump to the right section.
