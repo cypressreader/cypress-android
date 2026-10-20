@@ -495,3 +495,8 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 ## Settings search and folder switch (unverified on device)
 - Settings search: type "make text bigger", "dark mode", "stop notifications at night", "too much mobile data", "add a website"; the right setting is first or near the top.
 - Theme by folder: switch it off, the folder looks go away; switch it on, they return.
+
+## Settings decluttering (unverified on device)
+- Every Settings page: the common settings are visible, the rest are under Advanced. Open Advanced on Look, Reading, Feeds, Downloads: nothing is lost, Reset this section is at the bottom of it.
+- Battery and Motion: Custom shows the seven detail switches; Full, Calm or Off hide them.
+- Settings home: each row shows its current value.
