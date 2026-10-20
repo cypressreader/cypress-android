@@ -39,7 +39,5 @@ Last updated: 2026-10-19 · Branch: `claude/cool-darwin-nkj7it` · Code: web `20
 **Letter tiles (preview, unverified on device):** picture-less `.nr-row` cards in the Cards view (`data-w=mag`, 700px+, not Compact) now get the site's first-letter tile (rule after the `.mid/.nr-tri` one, `::before` from `data-ini`), so they no longer leave a gap beside picture cards.
 **Muse batch (2026-10-20, preview, unverified on device):** B107 bottom Search tab toggles and any tab change closes the bar; B111 static `<h1 id="ttl">` now "All Stories"; B120 Brief "Overnight in numbers" tile says "to read them all" (it totals the whole new-story pool, the header totals the brief list); Wire ticker 40s -> 28s. B113 (ticker first item clipped) judged not a bug: it is a scrolling marquee.
 **Daily section headers redesign: tried and dropped (2026-10-20).** The user did not like the built version or any of 5 divider ideas (sun's journey, hills, treeline, winding path, flourish); reverted, preview matches 1.121. Do not retry unless they ask.
-**Next 3 tasks:**
-1. Wait for the user's device feedback on 1.111 (feed jump/flash on return; blank half in Cards-view short rows; tablet rows/tiles). Fix what they report.
-2. FIXES 19 remainder (only after their tablet/fold screenshots): `@container` rules for worst components; Settings tablet layout. Muse item 1 (Daily Brief clipped banner) needs a screenshot.
-3. Visual-Test review with the user (do not port first).
+**Resolved (user, 2026-10-20):** device feedback items from 1.111 (feed jump/flash, Cards-view gaps, tablet rows/tiles) are FIXED. FIXES 19 remainder (`@container`, Settings tablet, Daily Brief banner) is FIXED. Visual-Test review is DROPPED (not needed; do not port).
+**Next 3 tasks:** none queued. Wait for the user's next request (new bugs, or `build` / `merge` to release).
