@@ -13891,13 +13891,16 @@ function nativeSetup(){
  setTimeout(nativeBars,700);
 }
 
+/* a restored backup may only bring back a secure (https) relay address; sync settings are never taken from a file */
+const safeRelay=v=>{try{const x=new URL(String(v||'').trim());return x.protocol==='https:'&&!x.username&&!x.password?relayUrl(x.href):''}catch(e){return''}};
 /* full backup */
 async function makeBackup(){const d={...S};delete d.key;['sync','syncB','syncMsg','syncRem','syncSig','syncAt','imt'].forEach(k=>delete d[k]);return saveFile('cypress-backup.json',new Blob([JSON.stringify(d)],{type:'application/json'}))}
 $('#bke').onclick=()=>{makeBackup()};
 $('#bki').onclick=()=>$('#fj').click();
 $('#fj').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let d;try{d=JSON.parse(await f.text());if(!d||!Array.isArray(d.feeds)||!Array.isArray(d.folders))throw 0}catch(err){toast('That file isn’t a CyPress backup');return}
- if(!(await askBox({title:'Replace everything with this backup?',text:'Your current feeds, saved stories and settings will be replaced.',ok:'Replace',danger:true})))return;
- d=cleanLib(d);freezeApp();try{localStorage.setItem('folio',JSON.stringify(d))}catch(err){FROZEN=false;toast('There isn’t enough storage space to restore that backup');return}
+ const rl=safeRelay(d.relay);
+ if(!(await askBox({title:'Replace everything with this backup?',text:'Your current feeds, saved stories and settings will be replaced.'+(rl?'\nThis backup also sets your relay to '+rl+'. Only continue if you trust it.':''),ok:'Replace',danger:true})))return;
+ d=cleanLib(d);['sync','syncB','syncMsg','syncRem','syncSig','syncAt','relay'].forEach(k=>delete d[k]);if(rl)d.relay=rl;freezeApp();try{localStorage.setItem('folio',JSON.stringify(d))}catch(err){FROZEN=false;toast('There isn’t enough storage space to restore that backup');return}
  location.reload()};
 
 /* installable app support (works when hosted) */

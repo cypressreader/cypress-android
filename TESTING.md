@@ -465,3 +465,7 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - Android: share a story/backup, wait 2+ days (or set the phone clock), confirm old files in cache/share are cleared.
 - Reader: open a story that needs the full article; the loading line should count "trying source 2 of 4" etc.
 - Feed with a video: video card still shows and plays.
+
+## Audit batch 2 (unverified)
+- Web: open /app/?view=today and /app/?view=brief once online; DevTools > Application > Cache shows one /app/ page, not one per shortcut. Go offline, reload a shortcut: app still opens.
+- Restore a backup made with your own relay: relay address shows in the confirm box and is kept. A backup with an http:// relay: relay is dropped.
