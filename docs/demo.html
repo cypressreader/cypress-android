@@ -10828,7 +10828,7 @@ function ytPlay(b){
 }
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.yt-tap');if(b){e.preventDefault();ytPlay(b)}});
 try{if(/Android/i.test(navigator.userAgent))document.documentElement.classList.add('android')}catch(e){}
-function ytId(a){const m=(a.link||'').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([\w-]{11})/);return a.yt||(m?m[1]:'')}
+function ytId(a){const m=(a.link||'').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([\w-]{11})/);const y=a.yt||(m?m[1]:'');return /^[\w-]{6,20}$/.test(y)?y:''}
 function mediaBlock(a){
  const y=ytId(a);
  if(y)return ytCard(y,true).outerHTML;
@@ -11139,7 +11139,6 @@ async function syncKeys(code){
 }
 function newCode(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',r=crypto.getRandomValues(new Uint8Array(16));let s='';r.forEach((v,i)=>{s+=A[v%A.length];if(i%4===3&&i<15)s+='-'});return s}
 function syncBase(){return (S.relay||'').replace(/\/?\?url=$/,'').replace(/[?&]url=$/,'')}
-function snapshot(){const o={v:1,t:Date.now(),set:{},setT:S.setT||0};SYNC_KEYS.forEach(k=>o[k]=S[k]);SET_KEYS.forEach(k=>{if(S[k]!==undefined)o.set[k]=S[k]});return o}
 const keyed={feeds:f=>f.url,folders:f=>f.id,saved:x=>x.link,hl:h=>h.t+'|'+h.q,sk:k=>k.id,mute:m=>m};
 const H32=str=>{let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)+str.length.toString(36)};
 /* per-item modified times, learned by noticing when an item's content changes, so the newer edit wins on both devices */
@@ -11178,7 +11177,7 @@ function mergeIn(r){
   if(Object.keys(remap).length)S.feeds.forEach(f=>{if(remap[f.folder])f.folder=remap[f.folder]})}
  const fids=new Set(S.folders.map(f=>f.id));S.feeds.forEach(f=>{if(f.folder&&!fids.has(f.folder))f.folder=''});
  const ids=new Set();S.feeds.forEach(f=>{if(ids.has(f.id))f.id='x'+Math.random().toString(36).slice(2,9);ids.add(f.id)});
- S.read={...(r.read||{}),...S.read};
+ S.read={...(r.read||{}),...S.read};trimRead();
  for(const k of ['prog','pos','rt']){const m={...(r[k]||{})};for(const [a,v] of Object.entries(S[k]||{})){if(k==='prog'&&m[a]&&(m[a].t||0)>(v.t||0))continue;m[a]=v}S[k]=m}
  if((r.setT||0)>(S.setT||0)){Object.assign(S,r.set||{});S.setT=r.setT;LSIG=setSig()}
  S.saved.sort((a,b)=>(b.st||0)-(a.st||0));
@@ -11430,7 +11429,7 @@ function mnotes0(){
  c.querySelectorAll(':scope>.mnotes').forEach(x=>x.remove());
  if(!c.querySelector(':scope>.hsf')||!isOn('mnote')||!curA)return;
  const a=curA,f=fof(a),min=S.rt[a.link]||Math.max(1,Math.round(((c.querySelector('.body')||c).textContent.split(/\s+/).length)/230)),n=(a.more||[]).length;
- rows=[['Source',f.title||host(a.link)],['Published',a.date?new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'}):''],['Reading time',min+' min'],n?['Also covered by',(a.more.slice(0,3).map(m=>fof({feedId:m.f}).title).join(', '))+(n>3?' and '+(n-3)+' more':'')]:null].filter(r=>r&&r[1]);
+ const rows=[['Source',f.title||host(a.link)],['Published',a.date?new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'}):''],['Reading time',min+' min'],n?['Also covered by',(a.more.slice(0,3).map(m=>fof({feedId:m.f}).title).join(', '))+(n>3?' and '+(n-3)+' more':'')]:null].filter(r=>r&&r[1]);
  const el=document.createElement('aside');el.className='mnotes';el.innerHTML='<b>At a glance</b><dl>'+rows.map(r=>`<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join('')+'</dl>';
  const nt=c.querySelector(':scope>.note'),bd=c.querySelector(':scope>.body');c.insertBefore(el,nt||bd);
 }
@@ -11545,16 +11544,16 @@ function readerSweep(b){
 /* reader: keep the screen awake while a story is open, and a thin progress line for scrolling (not paged) stories */
 let rdWl=null;
 async function rdWake(on){try{if(on){if(!rdWl&&navigator.wakeLock&&!document.hidden){rdWl=await navigator.wakeLock.request('screen');rdWl.addEventListener('release',()=>{rdWl=null})}}else if(rdWl){const w=rdWl;rdWl=null;await w.release()}}catch(e){rdWl=null}}
-function rdProg(){const rd=$('#rd'),v=vView();let b=$('#rdprog');
+function rdProgBar(){const rd=$('#rd'),v=vView();let b=$('#rdprog');
  const show=rd&&rd.classList.contains('on')&&v&&isVert()&&!rd.classList.contains('flex');
  if(!show){if(b)b.hidden=true;return}
  if(!b){b=document.createElement('div');b.id='rdprog';b.setAttribute('aria-hidden','true');b.innerHTML='<i></i>';document.body.append(b)}
  b.hidden=false;const m=v.scrollHeight-v.clientHeight;b.firstChild.style.transform='scaleX('+(m>0?Math.min(1,Math.max(0,v.scrollTop/m)):0).toFixed(3)+')'}
 (function(){const rd=document.getElementById('rd');if(!rd)return;let t=0;
- new MutationObserver(()=>{rdWake(rd.classList.contains('on'));rdProg()}).observe(rd,{attributes:true,attributeFilter:['class']});
- document.addEventListener('scroll',e=>{if(t||!e.target||!e.target.classList||!e.target.classList.contains('view'))return;t=requestAnimationFrame(()=>{t=0;rdProg()})},true);
+ new MutationObserver(()=>{rdWake(rd.classList.contains('on'));rdProgBar()}).observe(rd,{attributes:true,attributeFilter:['class']});
+ document.addEventListener('scroll',e=>{if(t||!e.target||!e.target.classList||!e.target.classList.contains('view'))return;t=requestAnimationFrame(()=>{t=0;rdProgBar()})},true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)rdWake(false);else if(rd.classList.contains('on'))rdWake(true)});
- addEventListener('resize',()=>rdProg())})();
+ addEventListener('resize',()=>rdProgBar())})();
 /* Focus reading: the first letters of each word are set heavier, so the eye can skim along a line. Words are only wrapped, never changed, so listening, highlights and search see the same text. */
 function focusRead(b){
  if(!b)return;
