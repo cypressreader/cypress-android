@@ -8175,7 +8175,7 @@ async function openReader(a){
  {const rd=$('#rd');rd.classList.add('rdb');clearTimeout(rdbDone.t);rdbDone.t=setTimeout(rdbDone,420)}
  for(const lb of sh.querySelectorAll('.bar .ib[data-lbl]')){const sp=document.createElement('span');sp.className='bl';sp.setAttribute('aria-hidden','true');sp.textContent=lb.dataset.lbl;lb.append(sp)}
  if(R.T){cancelAnimationFrame(R.T.raf);R.T.dead=true;R.T=null}
- R.pg=0;R.busy=false;R.web=false;R.auto=false;RDY=null;R.endArmed=false;R.botAt=0;if(!R.keepCtx)R.ctx=cur.filter((x,i,l)=>x&&x.link&&l.findIndex(y=>y.link===x.link)===i);R.keepCtx=false;clearTimeout(R.wd);clearInterval(R.tk);R.t0=Date.now();R.lp='Loading the full article…';R.lpUrls=new Set([a.link]);R.tk=setInterval(()=>{const n=document.querySelector('.cols .note');if(!n||!/^Loading the full article/.test(n.textContent)||!curA||curA.link!==a.link){clearInterval(R.tk);return}rdTick()},1000);R.wd=setTimeout(()=>{const n=document.querySelector('.cols .note');if(n&&/^Loading the full article/.test(n.textContent)&&curA){clearInterval(R.tk);const bl=(LG[curA.link]||[]).some(x=>/HTTP (401|403|429|451|202)\b/.test(String(x)));n.innerHTML=(bl?'<span class="sbadge">Blocked</span>This site is turning the app away (a bot check), so the full story hasn’t arrived. ':'<span class="sbadge">Taking too long</span>This site is slow to answer, so the full story hasn’t arrived. ')+'<button type="button" class="lnk" data-web="1">View the site in the app</button> <button type="button" class="lnk" data-retry>Try again</button> <a class="lnk" href="'+esc(curA.link)+'" target="_blank" rel="noopener">Open the original story</a>'}},16000);_vm=isVert();R.inBrief=S.sel==='brief'&&!!(S.brief&&S.brief.links.includes(a.link));if(R.inBrief&&!S.brief.pinned){S.brief.pinned=1;save()}
+ R.pg=0;R.busy=false;R.web=false;R.auto=false;RDY=null;R.endArmed=false;R.botAt=0;if(!R.keepCtx)R.ctx=cur.filter((x,i,l)=>x&&x.link&&l.findIndex(y=>y.link===x.link)===i);R.keepCtx=false;clearTimeout(R.wd);clearInterval(R.tk);R.t0=Date.now();MZ.t0=R.t0;MZ.a=null;R.lp='Loading the full article…';R.lpUrls=new Set([a.link]);R.tk=setInterval(()=>{const n=document.querySelector('.cols .note');if(!n||!/^Loading the full article/.test(n.textContent)||!curA||curA.link!==a.link){clearInterval(R.tk);return}rdTick()},1000);R.wd=setTimeout(()=>{const n=document.querySelector('.cols .note');if(n&&/^Loading the full article/.test(n.textContent)&&curA){clearInterval(R.tk);const bl=(LG[curA.link]||[]).some(x=>/HTTP (401|403|429|451|202)\b/.test(String(x)));n.innerHTML=(bl?'<span class="sbadge">Blocked</span>This site is turning the app away (a bot check), so the full story hasn’t arrived. ':'<span class="sbadge">Taking too long</span>This site is slow to answer, so the full story hasn’t arrived. ')+'<button type="button" class="lnk" data-web="1">View the site in the app</button> <button type="button" class="lnk" data-retry>Try again</button> <a class="lnk" href="'+esc(curA.link)+'" target="_blank" rel="noopener">Open the original story</a>'}},16000);_vm=isVert();R.inBrief=S.sel==='brief'&&!!(S.brief&&S.brief.links.includes(a.link));if(R.inBrief&&!S.brief.pinned){S.brief.pinned=1;save()}
  RDTRIG=document.activeElement;$('#rd').classList.add('on');try{$('#rd').tabIndex=-1;$('#rd').focus({preventScroll:true})}catch(e){}applyFs(false);applyFolderTheme();
  /* B61: the panel is on screen (title, bar, empty page) before the heavy work of filling and laying out the text starts, so the tap answers at once instead of freezing until everything is ready */
  if(!reduced()){await new Promise(r=>{let d=false;const go=()=>{if(!d){d=true;r()}};requestAnimationFrame(()=>setTimeout(go,0));setTimeout(go,120)});if(my!==tok)return}
@@ -8190,13 +8190,13 @@ async function openReader(a){
  if(!(acGet(a.link)&&!ytId(a)))layout();
  mediaWire();
  if(ytId(a)){note.remove();afterLoad();return}
- if(fastH){note.remove();ALT='';afterLoad();return}
+ if(fastH){mzDone('ready',a);note.remove();ALT='';afterLoad();return}
  let cached=acGet(a.link)||await acLoad(a.link);
  if(my!==tok)return;
  if(cached&&!textQuality(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')).ok)cached=null;if(cached&&footerish(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')))cached=null;if(cached){const lc=legalClean(cached);if((lc.n||lc.w<150)&&!RD_RF.has(a.link)&&online()){RD_RF.add(a.link);acDrop(a.link);cached=null}else if(lc.n)cached=lc.h}
  if((f.web||(isPay(a)&&f.web!==false))&&!cached&&online())toggleWeb(true);
- if(cached){body.replaceChildren(dropTitle(tidy(fromHTML(cached,a.link)),a.title));foldBoiler(body,a);try{heroOnce()}catch(e){}note.remove();ALT='';afterLoad();return}
- if(!online()){note.textContent=S.offline?'Offline mode is on. Showing what’s stored on this device.':'You’re offline. Showing what came with the feed.';afterLoad();return}
+ if(cached){mzDone('stored',a);body.replaceChildren(dropTitle(tidy(fromHTML(cached,a.link)),a.title));foldBoiler(body,a);try{heroOnce()}catch(e){}note.remove();ALT='';afterLoad();return}
+ if(!online()){mzDone('offline',a);note.textContent=S.offline?'Offline mode is on. Showing what’s stored on this device.':'You’re offline. Showing what came with the feed.';afterLoad();return}
  let n=await getFull(a.link),src=a.link;if(n&&footerish(n.textContent)&&body.textContent.trim().length>=80)n=null;
  if(my!==tok){if(n){PFHOT.set(a.link,{n,t:Date.now()});if(PFHOT.size>16)PFHOT.delete(PFHOT.keys().next().value)}return}
  const alts=outLinks(a);
@@ -8204,6 +8204,7 @@ async function openReader(a){
  let gated=false;try{gated=(LG[a.link]||[]).some(x=>/HTTP (401|402|403|429|451)\b/.test(String(x)))}catch(e){}
  if(online()&&!TRUNCDONE.has(a.link)&&(needsMore(n,src)||truncReason(n,src))){const dr=await Promise.race([deeperTiers(a,n,src),new Promise(r=>setTimeout(()=>r(null),34000))]);if(my!==tok)return;if(dr&&dr.n){n=dr.n;src=dr.src}}
  if(my!==tok)return;
+ mzDone(n?'network':'feed',a,src!==a.link?'mirror':(n&&n.tier)||'direct');
  ALT=src!==a.link?src:(!n&&alts[0]?alts[0]:'');
  if(n&&n.textContent.length>Math.max(600,body.textContent.length+100)){
   a.tier=n.tier||(src!==a.link?'mirror':'direct');
@@ -10343,10 +10344,21 @@ function siteCheckOpen(){
  d.addEventListener('close',()=>{SCHK.stop=true;setTimeout(()=>d.remove(),50)});
 }
 $('#schkb').onclick=()=>{const d=$('#set');try{d&&d.open&&d.close()}catch(e){}setTimeout(siteCheckOpen,300)};
+/* speed log, kept on this device only and never sent anywhere: how each story opened (already stored / stored / fetched / offline) and how long it took, so "tap and wait" can be measured. It is added to the text of Copy diagnostics (no titles or links, only the site name). */
+const MZ={t0:0,a:null,L:(()=>{try{return JSON.parse(localStorage.getItem('folio-mz')||'[]')}catch(e){return[]}})()};
+function mzDone(k,a,r){try{if(!MZ.t0||MZ.a)return;MZ.a=a;let h='';try{h=new URL(a.link).hostname.replace(/^www\./,'')}catch(e){}
+ MZ.L.push({t:Date.now(),k,ms:Date.now()-MZ.t0,h,r:r||'',n:netKind()});if(MZ.L.length>80)MZ.L.splice(0,MZ.L.length-80);localStorage.setItem('folio-mz',JSON.stringify(MZ.L))}catch(e){}}
+function mzSum(){const o=['','Story opening (last '+MZ.L.length+' taps)'];
+ try{const by={};MZ.L.forEach(x=>(by[x.k]=by[x.k]||[]).push(x.ms));
+  for(const k of Object.keys(by)){const v=by[k].sort((a,b)=>a-b);o.push(' '+k+': '+v.length+' · median '+v[v.length>>1]+' ms · slowest '+v[v.length-1]+' ms')}
+  const sl=MZ.L.filter(x=>x.ms>3000).slice(-8);if(sl.length)o.push(' slow (over 3 s): '+sl.map(x=>x.k+' '+x.h+(x.r?' via '+x.r:'')+' '+Math.round(x.ms/100)/10+'s').join(' | '))}catch(e){}
+ try{const c=navigator.connection||{};o.push('Preload: mode '+pfMode()+' · allowed now '+dpOk()+' · cap '+dpCap()+' of '+ED_N+' · netKind '+netKind()+' · connection.type '+c.type+' · effectiveType '+c.effectiveType+' · saveData '+c.saveData+' · charging '+(BATST?BATST.charging+' '+Math.round(BATST.level*100)+'%':'unknown'))}catch(e){o.push('Preload: could not read')}
+ try{o.push('Stored stories: '+Object.keys(AC).length+' · Daily '+(DGL&&DGL.length?DGL.filter(l=>acHas(l)).length+' of '+DGL.length+' ready':'not built yet')+' · tried this session '+DPRE.tried.size)}catch(e){}
+ return o.join('\n')}
 $('#diagb').onclick=async()=>{
  const bad=S.feeds.filter(f=>state[f.id]==='err').map(f=>host(f.url)+': '+(FLG[f.id]||[]).slice(0,4).join('; ')).slice(0,8);
  let nat='web';try{const p=CyN();if(p){const i=await p.info();nat='native '+i.versionName+' ('+i.versionCode+')'}}catch(e){}
- const t=['CyPress diagnostics','app '+APP_VERSION+' · '+nat,'screen '+innerWidth+'x'+innerHeight+' @'+devicePixelRatio,'ua '+navigator.userAgent.slice(0,140),'theme '+(S.theme||'auto')+' · cover '+(S.cvs||'clean')+' · view '+(S.view||'tiles')+(S.setall?' · all settings':''),'feeds '+S.feeds.length+' · failing '+bad.length+' · saved '+S.saved.length,'last refresh '+(S.lastLoad?new Date(S.lastLoad).toISOString():'never'),'online '+navigator.onLine+(S.offline?' · offline mode':''),bad.length?'failing: '+bad.join(' | '):'',ELOG.length?'recent errors:\n'+ELOG.slice(-15).map(x=>new Date(x.t).toISOString().slice(11,19)+' '+x.g+' '+x.m).join('\n'):''].filter(Boolean).join('\n');
+ const t=['CyPress diagnostics','app '+APP_VERSION+' · '+nat,'screen '+innerWidth+'x'+innerHeight+' @'+devicePixelRatio,'ua '+navigator.userAgent.slice(0,140),'theme '+(S.theme||'auto')+' · cover '+(S.cvs||'clean')+' · view '+(S.view||'tiles')+(S.setall?' · all settings':''),'feeds '+S.feeds.length+' · failing '+bad.length+' · saved '+S.saved.length,'last refresh '+(S.lastLoad?new Date(S.lastLoad).toISOString():'never'),'online '+navigator.onLine+(S.offline?' · offline mode':''),bad.length?'failing: '+bad.join(' | '):'',ELOG.length?'recent errors:\n'+ELOG.slice(-15).map(x=>new Date(x.t).toISOString().slice(11,19)+' '+x.g+' '+x.m).join('\n'):''].filter(Boolean).join('\n')+mzSum();
  try{await navigator.clipboard.writeText(t);toast('Diagnostics copied')}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.append(ta);ta.select();try{document.execCommand('copy');toast('Diagnostics copied')}catch(_){toast('Couldn’t copy')}ta.remove()}
 };
 
@@ -10703,7 +10715,7 @@ function ytPlay(b){
 }
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.yt-tap');if(b){e.preventDefault();ytPlay(b)}});
 try{if(/Android/i.test(navigator.userAgent))document.documentElement.classList.add('android')}catch(e){}
-function ytId(a){const m=(a.link||'').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([\w-]{11})/);return a.yt||(m?m[1]:'')}
+function ytId(a){const m=(a.link||'').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([\w-]{11})/);const y=a.yt||(m?m[1]:'');return /^[\w-]{6,20}$/.test(y)?y:''}
 function mediaBlock(a){
  const y=ytId(a);
  if(y)return ytCard(y,true).outerHTML;
@@ -11014,7 +11026,6 @@ async function syncKeys(code){
 }
 function newCode(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',r=crypto.getRandomValues(new Uint8Array(16));let s='';r.forEach((v,i)=>{s+=A[v%A.length];if(i%4===3&&i<15)s+='-'});return s}
 function syncBase(){return (S.relay||'').replace(/\/?\?url=$/,'').replace(/[?&]url=$/,'')}
-function snapshot(){const o={v:1,t:Date.now(),set:{},setT:S.setT||0};SYNC_KEYS.forEach(k=>o[k]=S[k]);SET_KEYS.forEach(k=>{if(S[k]!==undefined)o.set[k]=S[k]});return o}
 const keyed={feeds:f=>f.url,folders:f=>f.id,saved:x=>x.link,hl:h=>h.t+'|'+h.q,sk:k=>k.id,mute:m=>m};
 const H32=str=>{let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)+str.length.toString(36)};
 /* per-item modified times, learned by noticing when an item's content changes, so the newer edit wins on both devices */
@@ -11053,7 +11064,7 @@ function mergeIn(r){
   if(Object.keys(remap).length)S.feeds.forEach(f=>{if(remap[f.folder])f.folder=remap[f.folder]})}
  const fids=new Set(S.folders.map(f=>f.id));S.feeds.forEach(f=>{if(f.folder&&!fids.has(f.folder))f.folder=''});
  const ids=new Set();S.feeds.forEach(f=>{if(ids.has(f.id))f.id='x'+Math.random().toString(36).slice(2,9);ids.add(f.id)});
- S.read={...(r.read||{}),...S.read};
+ S.read={...(r.read||{}),...S.read};trimRead();
  for(const k of ['prog','pos','rt']){const m={...(r[k]||{})};for(const [a,v] of Object.entries(S[k]||{})){if(k==='prog'&&m[a]&&(m[a].t||0)>(v.t||0))continue;m[a]=v}S[k]=m}
  if((r.setT||0)>(S.setT||0)){Object.assign(S,r.set||{});S.setT=r.setT;LSIG=setSig()}
  S.saved.sort((a,b)=>(b.st||0)-(a.st||0));
@@ -11199,8 +11210,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.20a';const APP_LABEL='1.121';
-const CHANGES=["Tapping Search in the bottom bar again now closes it, and switching to another tab closes it too","The top title now reads \"All Stories\" from the very first moment","The Brief tab total now says \"to read them all\", so it no longer looks like it disagrees with the story count at the top","The Wire ticker scrolls faster"];
+const APP_VERSION='2026.10.20b';const APP_LABEL='1.122';
+const CHANGES=["Fixed the \"Loading the full article\" message so it updates as the app tries each source","Safer videos: a video in a story is only shown when its ID looks like a real one","Restoring a backup no longer brings back sync settings, and only keeps a secure relay address, which it now shows before you confirm","The web version keeps one saved copy of the app instead of one for every shortcut","Old shared files are cleared from the phone after two days","New: Settings, Copy diagnostics now includes how fast your stories opened, to help make opening stories faster (nothing is sent anywhere)"];
 const DEF_ON=new Set(['shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 const isOn=k=>(k==='caps'||k==='typo')?true:DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -11305,7 +11316,7 @@ function mnotes0(){
  c.querySelectorAll(':scope>.mnotes').forEach(x=>x.remove());
  if(!c.querySelector(':scope>.hsf')||!isOn('mnote')||!curA)return;
  const a=curA,f=fof(a),min=S.rt[a.link]||Math.max(1,Math.round(((c.querySelector('.body')||c).textContent.split(/\s+/).length)/230)),n=(a.more||[]).length;
- rows=[['Source',f.title||host(a.link)],['Published',a.date?new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'}):''],['Reading time',min+' min'],n?['Also covered by',(a.more.slice(0,3).map(m=>fof({feedId:m.f}).title).join(', '))+(n>3?' and '+(n-3)+' more':'')]:null].filter(r=>r&&r[1]);
+ const rows=[['Source',f.title||host(a.link)],['Published',a.date?new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'}):''],['Reading time',min+' min'],n?['Also covered by',(a.more.slice(0,3).map(m=>fof({feedId:m.f}).title).join(', '))+(n>3?' and '+(n-3)+' more':'')]:null].filter(r=>r&&r[1]);
  const el=document.createElement('aside');el.className='mnotes';el.innerHTML='<b>At a glance</b><dl>'+rows.map(r=>`<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join('')+'</dl>';
  const nt=c.querySelector(':scope>.note'),bd=c.querySelector(':scope>.body');c.insertBefore(el,nt||bd);
 }
@@ -11420,16 +11431,16 @@ function readerSweep(b){
 /* reader: keep the screen awake while a story is open, and a thin progress line for scrolling (not paged) stories */
 let rdWl=null;
 async function rdWake(on){try{if(on){if(!rdWl&&navigator.wakeLock&&!document.hidden){rdWl=await navigator.wakeLock.request('screen');rdWl.addEventListener('release',()=>{rdWl=null})}}else if(rdWl){const w=rdWl;rdWl=null;await w.release()}}catch(e){rdWl=null}}
-function rdProg(){const rd=$('#rd'),v=vView();let b=$('#rdprog');
+function rdProgBar(){const rd=$('#rd'),v=vView();let b=$('#rdprog');
  const show=rd&&rd.classList.contains('on')&&v&&isVert()&&!rd.classList.contains('flex');
  if(!show){if(b)b.hidden=true;return}
  if(!b){b=document.createElement('div');b.id='rdprog';b.setAttribute('aria-hidden','true');b.innerHTML='<i></i>';document.body.append(b)}
  b.hidden=false;const m=v.scrollHeight-v.clientHeight;b.firstChild.style.transform='scaleX('+(m>0?Math.min(1,Math.max(0,v.scrollTop/m)):0).toFixed(3)+')'}
 (function(){const rd=document.getElementById('rd');if(!rd)return;let t=0;
- new MutationObserver(()=>{rdWake(rd.classList.contains('on'));rdProg()}).observe(rd,{attributes:true,attributeFilter:['class']});
- document.addEventListener('scroll',e=>{if(t||!e.target||!e.target.classList||!e.target.classList.contains('view'))return;t=requestAnimationFrame(()=>{t=0;rdProg()})},true);
+ new MutationObserver(()=>{rdWake(rd.classList.contains('on'));rdProgBar()}).observe(rd,{attributes:true,attributeFilter:['class']});
+ document.addEventListener('scroll',e=>{if(t||!e.target||!e.target.classList||!e.target.classList.contains('view'))return;t=requestAnimationFrame(()=>{t=0;rdProgBar()})},true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)rdWake(false);else if(rd.classList.contains('on'))rdWake(true)});
- addEventListener('resize',()=>rdProg())})();
+ addEventListener('resize',()=>rdProgBar())})();
 /* Focus reading: the first letters of each word are set heavier, so the eye can skim along a line. Words are only wrapped, never changed, so listening, highlights and search see the same text. */
 function focusRead(b){
  if(!b)return;
@@ -13892,13 +13903,16 @@ function nativeSetup(){
  setTimeout(nativeBars,700);
 }
 
+/* a restored backup may only bring back a secure (https) relay address; sync settings are never taken from a file */
+const safeRelay=v=>{try{const x=new URL(String(v||'').trim());return x.protocol==='https:'&&!x.username&&!x.password?relayUrl(x.href):''}catch(e){return''}};
 /* full backup */
 async function makeBackup(){const d={...S};delete d.key;['sync','syncB','syncMsg','syncRem','syncSig','syncAt','imt'].forEach(k=>delete d[k]);return saveFile('cypress-backup.json',new Blob([JSON.stringify(d)],{type:'application/json'}))}
 $('#bke').onclick=()=>{makeBackup()};
 $('#bki').onclick=()=>$('#fj').click();
 $('#fj').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let d;try{d=JSON.parse(await f.text());if(!d||!Array.isArray(d.feeds)||!Array.isArray(d.folders))throw 0}catch(err){toast('That file isn’t a CyPress backup');return}
- if(!(await askBox({title:'Replace everything with this backup?',text:'Your current feeds, saved stories and settings will be replaced.',ok:'Replace',danger:true})))return;
- d=cleanLib(d);freezeApp();try{localStorage.setItem('folio',JSON.stringify(d))}catch(err){FROZEN=false;toast('There isn’t enough storage space to restore that backup');return}
+ const rl=safeRelay(d.relay);
+ if(!(await askBox({title:'Replace everything with this backup?',text:'Your current feeds, saved stories and settings will be replaced.'+(rl?'\nThis backup also sets your relay to '+rl+'. Only continue if you trust it.':''),ok:'Replace',danger:true})))return;
+ d=cleanLib(d);['sync','syncB','syncMsg','syncRem','syncSig','syncAt','relay'].forEach(k=>delete d[k]);if(rl)d.relay=rl;freezeApp();try{localStorage.setItem('folio',JSON.stringify(d))}catch(err){FROZEN=false;toast('There isn’t enough storage space to restore that backup');return}
  location.reload()};
 
 /* installable app support (works when hosted) */

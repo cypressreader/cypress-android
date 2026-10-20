@@ -460,3 +460,15 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - **First page turn no longer hitches (preview):** in 1.114 the first one or two turns after opening a story dropped frames (up to 120 ms). The app now prepares the turn quietly about 3 seconds after a story opens. Open a story, wait a few seconds, then turn the page: the first turn should be as smooth as the later ones. Also check that turning pages in the first 3 seconds still works, and that nothing flickers while you read.
 
 - **New page turn (1.116, confirmed by the user on a tablet in the browser):** check in the APK on the tablet and on a phone: turn pages by dragging slowly, flicking and tapping, both directions. Look for smooth frames (no tearing or blank patches), the bubble before the flip, and a soft landing. If it stutters on a phone, the app steps down to fewer slices automatically; tell me which phone.
+
+## Audit batch 1 (unverified)
+- Android: share a story/backup, wait 2+ days (or set the phone clock), confirm old files in cache/share are cleared.
+- Reader: open a story that needs the full article; the loading line should count "trying source 2 of 4" etc.
+- Feed with a video: video card still shows and plays.
+
+## Audit batch 2 (unverified)
+- Web: open /app/?view=today and /app/?view=brief once online; DevTools > Application > Cache shows one /app/ page, not one per shortcut. Go offline, reload a shortcut: app still opens.
+- Restore a backup made with your own relay: relay address shows in the confirm box and is kept. A backup with an http:// relay: relay is dropped.
+
+## Step 0 measurement (unverified)
+- Use the app for a day (include a cold open in the morning, tap Daily stories straight away). Settings > Copy diagnostics, paste it: "Story opening" shows ready/stored/network counts and times; "Preload" shows netKind, connection.type and the cap. If connection.type is undefined and netKind is unknown, the Fold is capped at 6 stories.

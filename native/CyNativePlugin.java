@@ -53,11 +53,13 @@ public class CyNativePlugin extends Plugin {
     public void load() {
         // tidy up old downloads
         try {
-            File d = new File(getContext().getCacheDir(), "apk");
-            File[] fs = d.listFiles();
-            if (fs != null) {
-                for (File f : fs) {
-                    if (System.currentTimeMillis() - f.lastModified() > 2L * 24 * 3600 * 1000) f.delete();
+            for (String sub : new String[]{"apk", "share"}) {
+                File d = new File(getContext().getCacheDir(), sub);
+                File[] fs = d.listFiles();
+                if (fs != null) {
+                    for (File f : fs) {
+                        if (System.currentTimeMillis() - f.lastModified() > 2L * 24 * 3600 * 1000) f.delete();
+                    }
                 }
             }
         } catch (Exception e) {
