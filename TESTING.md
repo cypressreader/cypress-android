@@ -491,3 +491,7 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 ## Theme renames and Light/dark tiles (unverified on device)
 - Settings > Look and Layout: Light or dark is the first thing on the page. Tap Phone, Light, Dark, Theme: the app changes at once, the caption changes, TalkBack reads it as a selected option. Arrow keys move between tiles.
 - Advanced Color Palettes > Plain & Simple: Cypress first, then Light & Dark, Black & White. Black & White + Dark gives a true black page.
+
+## Settings search and folder switch (unverified on device)
+- Settings search: type "make text bigger", "dark mode", "stop notifications at night", "too much mobile data", "add a website"; the right setting is first or near the top.
+- Theme by folder: switch it off, the folder looks go away; switch it on, they return.
