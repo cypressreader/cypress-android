@@ -14758,47 +14758,17 @@ document.addEventListener('change',e=>{const t=e.target;if(!t||t.id!=='hcmpsel')
 
 /* ---------- correction round, cluster 18 ---------- */
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-svmin]');if(!b)return;e.preventDefault();e.stopPropagation();S.svmin=+b.dataset.svmin||0;save();render()},true);
-/* Gift a story: a card image made on this device (picture, headline or your highlighted quote, source, "via CyPress"). Nothing is uploaded. */
-async function giftCard(a,quote){
- const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
- try{await document.fonts.ready;await document.fonts.load("400 80px 'CyPress Display'")}catch(e){}
- const DF="'CyPress Display','Instrument Serif',Georgia,serif",SF="system-ui,-apple-system,'Segoe UI',sans-serif",br=(()=>{try{return brand(fof(a))}catch(e){return '#1f6a48'}})();
- x.fillStyle='#0b1411';x.fillRect(0,0,W,H);
- const bm=a.img?await edBitmap(a.img):null,ah=bm?640:300;
- if(bm){const sc=Math.max(W/bm.width,ah/bm.height),dw=bm.width*sc,dh=bm.height*sc;x.save();x.beginPath();x.rect(0,0,W,ah);x.clip();x.drawImage(bm,(W-dw)/2,(ah-dh)/2,dw,dh);x.restore()}
- else{const g=x.createLinearGradient(0,0,W,ah);g.addColorStop(0,br);g.addColorStop(1,'#0b1411');x.fillStyle=g;x.fillRect(0,0,W,ah)}
- const g2=x.createLinearGradient(0,ah-220,0,ah);g2.addColorStop(0,'rgba(11,20,17,0)');g2.addColorStop(1,'#0b1411');x.fillStyle=g2;x.fillRect(0,ah-220,W,220);
- x.fillStyle=br;x.fillRect(90,ah+10,90,6);
- x.textAlign='left';x.fillStyle='#d1ad55';x.font=`700 26px ${SF}`;x.fillText(String(fof(a).title||host(a.link)).toUpperCase().slice(0,50),90,ah+64);
- const q=String(quote||'').trim(),txt=q||String(a.title||''),body=q?'“'+txt+'”':txt;
- let fs=q?(txt.length>200?42:txt.length>120?50:58):(txt.length>90?64:txt.length>60?72:82);x.fillStyle='#f3ead6';x.font=`${q?'italic ':''}400 ${fs}px ${DF}`;
- let lines=[];const wrap=()=>{lines=[];let ln='';for(const w of body.split(' ')){const tt=ln?ln+' '+w:w;if(x.measureText(tt).width>W-180&&ln){lines.push(ln);ln=w}else ln=tt}if(ln)lines.push(ln)};
- wrap();const room=H-(ah+90)-190;while(lines.length*fs*1.14>room&&fs>30){fs-=3;x.font=`${q?'italic ':''}400 ${fs}px ${DF}`;wrap()}
- let y=ah+90+fs;for(const l of lines.slice(0,9)){x.fillText(l,90,y);y+=fs*1.14}
- if(q){x.fillStyle='rgba(243,234,214,.7)';x.font=`italic 400 30px ${DF}`;x.fillText(String(a.title||'').slice(0,70),90,Math.min(y+24,H-170))}
- x.strokeStyle='rgba(209,173,85,.4)';x.lineWidth=1.5;x.strokeRect(40,40,W-80,H-80);
- x.textAlign='center';x.fillStyle='rgba(255,255,255,.55)';x.font=`600 26px ${SF}`;x.fillText('via CyPress',W/2,H-80);
- return c;
-}
-/* Share: one action. The story goes out as a magazine card made on this device (the picture, the headline or your highlighted quote, the source, "via CyPress"), with the short link written into the message. The link is deliberately not sent as a separate "url", so messaging apps show the card instead of a second, redundant web preview. */
+/* Share: one action. The short link goes out in the message and the app that receives it builds the preview (picture, headline, source) from the link page. */
 /* a quiet spinner on the Share button while the short link is fetched */
 function shareBusy(on){document.querySelectorAll('[data-act="share"]').forEach(b=>{b.classList.toggle('busy',on);if(on)b.setAttribute('aria-busy','true');else b.removeAttribute('aria-busy')})}
 async function shareStory(a){
  if(!a)return;
- let q=String(getSelection()||'').trim();if(q.length<20||q.length>420)q='';
- if(!q){const h=(S.hl||[]).filter(h=>h.art&&h.art.link===a.link).sort((x,y)=>(y.t||0)-(x.t||0))[0];if(h)q=String(h.q||'').replace(/\s+/g,' ').slice(0,420)}
  shareBusy(true);let u=a.link;try{u=await shareLink(a)}catch(e){elog('shareLink',e)}finally{shareBusy(false)}
  const text='Read this in CyPress: '+u;
  try{if(navigator.clipboard)await navigator.clipboard.writeText(u)}catch(e){}/* the link is also kept on the clipboard, in case the target drops the message */
- toast('Making your card…');
- try{
-  const c=await giftCard(a,q);
-  await shareCanvas(c,'cypress-'+dayKey()+'.png',text,null,a.title||'CyPress',u);
- }catch(e){elog('shareStory',e);
-  /* no card: the link alone, still without a separate url */
-  try{if(navigator.share)await navigator.share({title:a.title||'CyPress',text});else{await navigator.clipboard.writeText(u);toast('Link copied')}}catch(x){}
- }
+ try{if(navigator.share)await navigator.share({title:a.title||'CyPress',text});else toast('Link copied')}catch(x){}
 }
+
 
 /* ---------- correction round, cluster 19 ---------- */
 /* Text only: pictures are taken off the stories on this device (and put back when switched off), so none are downloaded for lists or covers */
