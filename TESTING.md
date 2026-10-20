@@ -475,3 +475,9 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 
 ## Share = link only (unverified)
 - Android: open a story, Share. The share sheet should offer text "Read this in CyPress: https://cypressreader.com/s/..." and no picture. Send it to Discord/Messages/WhatsApp: the app's own preview should appear once, and the link should open the CyPress page with "Read the full story".
+
+## Settings reorganized (unverified on device)
+- Settings on phone and tablet: Feeds and Stories holds Manage feeds and Import or export feeds; Downloads and Storage holds Get stories ready, Wi-Fi, offline, back issues. Android: Morning pack and Pack time show under Downloads and Storage.
+- Turn Story alerts, Morning pack, Keep back issues, Daily digest off: their extra rows (keywords/Test, Pack time/Open, days, edition) disappear; on: they return.
+- Switches look like real switches, flip with a tap, and TalkBack still reads On/Off.
+- Shorten shared links is under About and Help > More Options > Sharing.

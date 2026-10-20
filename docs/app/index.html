@@ -1931,6 +1931,16 @@ html:is([data-theme=typewriter],[data-theme=terminal],[data-theme=amber],[data-t
 #set .spsm h5{font:600 19px/1.2 var(--serif);margin:6px 0 8px}
 #set .spsm p{font:400 15px/var(--lh,1.55) var(--serif);margin:0;color:var(--ink)}
 #set .sflash{animation:sfl 1.8s ease}
+/* calmer pages: no gray panels, more air between groups, larger labels, real switches */
+#set .sct{margin:30px 6px 6px}
+#set .sgw>.sbox,#set .smore .sbox{background:none;padding:0;border-radius:0;border-top:1px solid var(--ln)}
+#set .sbox .line{padding:14px 4px}
+#set .sbox .line .lb{font-size:15.5px}
+#set .sbox .tg{font-size:0;color:transparent;width:52px;min-width:52px;height:32px;min-height:32px;padding:0;border:0;border-radius:999px;position:relative;background:color-mix(in srgb,var(--mut) 40%,transparent);transition:background .18s}
+#set .sbox .tg::after{content:'';position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .18s}
+#set .sbox .tg.on{background:var(--a1)}
+#set .sbox .tg.on::after{transform:translateX(20px)}
+@media(prefers-reduced-motion:reduce){#set .sbox .tg,#set .sbox .tg::after{transition:none}}
 @keyframes sfl{0%,60%{background:color-mix(in srgb,var(--a1,#7c5cff) 22%,transparent)}100%{background:transparent}}
 #set .line[hidden],#set .hint[hidden]{display:none!important}
 #setlegacy{display:none!important}
@@ -8686,7 +8696,7 @@ set.onclick=e=>{
  const tg=t.closest('.tg');if(tg){const k=tg.dataset.tg;S[k]=!isOn(k);save();syncSet();applyFx();if(k==='offimg'){if(isOn(k))oiSync(true);else oiClear()}if(k==='dgnotif'||k==='dgon'||k==='dgwk')bgSync();if(k==='mag'&&$('#rd').classList.contains('on')){decorate();relayout()}if(k==='focusr'&&$('#rd').classList.contains('on')){decorate();relayout()}if(k==='caps'&&$('#rd').classList.contains('on')){captions();relayout()}if(k==='split'||k==='nroom'||k==='smooth'||k==='cover'||k==='covers'||k==='sop'||k==='trend'||k==='must'||k==='pqc'||k==='quiet'||k==='hideCount'||k==='hideDeals'){screenMode();render()}if((k==='fbleed'||k==='mnote')&&$('#rd').classList.contains('on')){heroSpread();mnotes();photoPages();relayout()}if(k==='tline'&&$('#rd').classList.contains('on')){if(S.tline===false){document.querySelectorAll('.stl').forEach(x=>x.remove())}else timeline();relayout()}if(k==='pcomp'&&$('#rd').classList.contains('on'))applyFs(true);if(k==='offline')offApply(true);if(k==='rmo')applyRmo();if(k==='cine'&&$('#rd').classList.contains('on')){decorate();relayout()}if(k==='group'||k==='hideRead')render();if(k==='just'||k==='sep')refreshReader()}
 };
 /* ---------- Settings: full-screen pages (home list -> page; two panes on wide screens) ---------- */
-const SET_ICON={look:'<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/>',read:'<path d="M5 4h9a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4zM9 8h5M9 12h5"/>',home:'<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/>',tts:'<path d="M5 9v6h3l5 4V5L8 9zM16 9a4 4 0 0 1 0 6"/>',feeds:'<path d="M5 5a14 14 0 0 1 14 14M5 11a8 8 0 0 1 8 8"/><circle cx="6" cy="18" r="1.4" fill="currentColor"/>',alerts:'<path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7M10 19a2 2 0 0 0 4 0"/>',motion:'<rect x="3" y="8" width="16" height="9" rx="2"/><path d="M21 11v3M7 12h5"/>',sync:'<path d="M20 12a8 8 0 0 0-14-5L4 9M4 4v5h5M4 12a8 8 0 0 0 14 5l2-2M20 20v-5h-5"/>',about:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>'};
+const SET_ICON={look:'<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/>',read:'<path d="M5 4h9a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4zM9 8h5M9 12h5"/>',home:'<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/>',tts:'<path d="M5 9v6h3l5 4V5L8 9zM16 9a4 4 0 0 1 0 6"/>',dl:'<path d="M12 4v10m0 0-4-4m4 4 4-4M5 19h14"/>',feeds:'<path d="M5 5a14 14 0 0 1 14 14M5 11a8 8 0 0 1 8 8"/><circle cx="6" cy="18" r="1.4" fill="currentColor"/>',alerts:'<path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7M10 19a2 2 0 0 0 4 0"/>',motion:'<rect x="3" y="8" width="16" height="9" rx="2"/><path d="M21 11v3M7 12h5"/>',sync:'<path d="M20 12a8 8 0 0 0-14-5L4 9M4 4v5h5M4 12a8 8 0 0 0 14 5l2-2M20 20v-5h-5"/>',about:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>'};
 const SET_MERGE={
  tint:{p:'Tint the app from the cover photo',s:['Tint pages with photo colors'],label:'Tint from photos',sub:'The app, covers and story pages pick up the main color of the photo you are looking at'},
  pq:{p:'Story pull quotes',s:['Pull quotes on Today'],label:'Pull quotes',sub:'A line pulled out big between sections, from stories and from your own highlights'},
@@ -8698,11 +8708,11 @@ const SET_HIDE=['Tidy photo captions','Polished typography','Sepia reading page'
 const SET_PAGES=[
  {id:'look',t:'Appearance',d:'Theme, colors and cover style',c:'#7c5cff',lead:'Pick how CyPress looks. The preview below changes as you choose.',prev:1,
   main:[{items:['P:lkp','P:thm','L:Cover style','L:Cover title style','L:App icon','L:Theme layouts','L:Sepia paper','L:Newsprint grain']}],
-  more:[{items:['L:Living Dynamic theme','M:tint','L:Text on photos','L:Theme by folder','L:Paper texture']}],
+  more:[{h:'Theme extras',items:['L:Living Dynamic theme','M:tint','L:Text on photos','L:Paper texture']},{h:'Per folder',items:['L:Theme by folder']}],
   rst:['theme','dynm','cvs','mast','ptone','paper','scrim','ptint']},
  {id:'read',t:'Reading',d:'Fonts, size and story layout',c:'#0a8f4a',lead:'How a story looks while you read it.',
   main:[{items:['P:rprev','L:Reading style','L:Text size','L:Type preset','P:font','L:Headline font','L:Line spacing','L:Page margins','L:Compact reading on phones']}],
-  more:[{items:['L:Justify text','L:Author and site notes','L:Magazine touches','M:marks','M:pq','L:Swipe down to close a story','L:Table of contents','L:Feature spread','L:Story timeline','L:At-a-glance box','L:You might also like','L:Photo pages']}],
+  more:[{h:'Page details',items:['L:Justify text','L:Author and site notes','L:Magazine touches','M:marks','M:pq','L:Photo pages','L:Swipe down to close a story']},{h:'Story extras',items:['L:Table of contents','L:Feature spread','L:Story timeline','L:At-a-glance box','L:You might also like']}],
   rst:['font','hfont','fs','lh','mg','rl','scroll','endm','pqs']},
  {id:'home',t:'Home and Covers',d:'Today page, cards and wide screens',c:'#e2742a',lead:'What you see when you open CyPress, and how stories are laid out on big screens.',
   main:[{items:['L:Magazine cover on The Daily','M:covers','L:Story card size','L:Feed text size','L:Side-by-side reading','L:Narrow screen layout','L:Varied story layout']}],
@@ -8712,23 +8722,27 @@ const SET_PAGES=[
   main:[{items:['L:Voice','L:Speaking speed','L:Volume','L:Keep playing','L:Skip subscriber sites']}],
   more:[{items:['L:Second voice for quotes']}],
   rst:['rate','vol','voice','prate']},
- {id:'feeds',t:'Feeds and Loading',d:'Story order, refresh and offline',c:'#0e9aa7',lead:'How stories are chosen, fetched and stored.',
-  main:[{h:'Your Stories',items:['L:Order of feeds and folders','L:Order of stories','L:Hide stories I’ve read','L:Hide unread numbers','L:Muted words','L:Topics you follow']},{h:'Loading',items:['L:Get stories ready in advance','L:Refresh automatically','L:Offline mode','L:Only on Wi-Fi']}],
-  more:[{h:'Your Stories',items:['L:Limit per site','L:Group duplicate stories','L:Double-tap a card to save it']},{h:'Loading and Storage',items:['L:Data saver','L:Space for stored stories','L:Open the website when a story is cut short','L:Use reader view on websites','L:Clear downloaded stories']}],
-  rst:['sort','fsort','auto','acMB','capn','pfm']},
+ {id:'feeds',t:'Feeds and Stories',d:'Your feeds, story order and filters',c:'#0e9aa7',lead:'Which sites you follow, and how their stories are chosen and shown.',
+  main:[{h:'Your feeds',items:['L:Manage feeds','L:Import or export feeds']},{h:'Your stories',items:['L:Order of feeds and folders','L:Order of stories','L:Hide stories I’ve read','L:Hide unread numbers','L:Muted words','L:Topics you follow']}],
+  more:[{h:'Your stories',items:['L:Limit per site','L:Group duplicate stories','L:Double-tap a card to save it']}],
+  rst:['sort','fsort','capn']},
+ {id:'dl',t:'Downloads and Storage',d:'Get ready ahead, offline, back issues',c:'#0b7285',lead:'Keep stories ready to read without surprises, and decide how much room they can use.',
+  main:[{h:'Downloads',items:['L:Get stories ready in advance','L:Only on Wi-Fi','L:Refresh automatically','L:Offline mode']},{h:'Back issues',items:['L:Keep back issues','L:Keep back issues for']}],
+  more:[{h:'Storage',items:['L:Data saver','L:Space for stored stories','L:Open the website when a story is cut short','L:Use reader view on websites','L:Clear downloaded stories']}],
+  rst:['auto','acMB','pfm']},
  {id:'alerts',t:'Digest and Alerts',d:'Daily digest and notifications',c:'#e2231a',lead:'A short digest of the day’s best stories, and notifications when you want them.',
   main:[{h:'Digest',items:['L:Daily digest','L:Digest edition','L:Weekly review','L:Weekly review day','L:Read today’s digest']}],more:[],rst:null},
  {id:'motion',t:'Battery and Motion',d:'Animation and theme effects',c:'#c27b00',lead:'Less movement saves battery and is easier on the eyes.',
   main:[{items:['X:motion','L:Theme effects','L:Pause effects on low battery','L:Smooth mode']}],
   more:[{h:'Customize Motion',items:['L:Bending page turn','L:Blend colors between sites','L:Time-of-day glow','L:Slow zoom on covers','L:Living covers','L:Small animations','L:Launch animation']}],
   rst:['rmo']},
- {id:'sync',t:'Sync and Backup',d:'Devices, backups and feed files',c:'#3b5bdb',lead:'Keep your feeds and settings safe, and move them between devices.',
-  main:[{h:'Sync Between Devices',items:['P:sync']},{h:'Backup and Feeds',items:['L:Back up everything','L:Manage feeds','L:Import or export feeds']},{h:'Sharing',items:['L:Shorten shared links']}],more:[],rst:null},
+ {id:'sync',t:'Sync and Backup',d:'Devices and backups',c:'#3b5bdb',lead:'Keep your feeds and settings safe, and move them between devices.',
+  main:[{h:'Sync Between Devices',items:['P:sync']},{h:'Backup',items:['L:Back up everything']}],more:[],rst:null},
  {id:'about',t:'About and Help',d:'Tips, shortcuts and version',c:'#6b7280',lead:'The art of staying informed. Help, privacy and the app itself.',
   main:[{items:['L:Tips and gestures','L:Privacy','L:Keyboard shortcuts','L:Redo setup']}],
-  more:[{h:'Developer and diagnostics',fold:1,items:['L:Copy support info','L:Test sites on this phone','L:Check scrolling','L:Test suggested feeds']},{h:'Reset',items:['X:resetlook','L:Erase everything and start over']}],rst:null}
+  more:[{h:'Sharing',items:['L:Shorten shared links']},{h:'Developer and diagnostics',fold:1,items:['L:Copy support info','L:Test sites on this phone','L:Check scrolling','L:Test suggested feeds']},{h:'Reset',items:['X:resetlook','L:Erase everything and start over']}],rst:null}
 ];
-const SET_GROUPS=[['look','read'],['motion','feeds'],['alerts','sync'],['about']];
+const SET_GROUPS=[['look','read'],['motion'],['feeds','dl'],['alerts','sync'],['about']];
 /* Fewer, clearer pages: layout lives under Look, read aloud lives under Reading. Battery and motion keeps its own page so anything that costs battery is easy to find. */
 const SET_ALIAS={home:'look',tts:'read'};
 (function(){const by=id=>SET_PAGES.find(p=>p.id===id);
@@ -8740,7 +8754,7 @@ const SET_ALIAS={home:'look',tts:'read'};
  R.main=R.main.concat(tag(T.main,'Read Aloud'));R.more=(R.more||[]).concat(tag(T.more,'Read Aloud'));R.rst=(R.rst||[]).concat(T.rst||[]);
  [H,T].forEach(x=>SET_PAGES.splice(SET_PAGES.indexOf(x),1));
 })();
-const SET_SECPG={'s-look':'look','s-fx':'motion','s-read':'read','s-mag':'look','s-tts':'read','s-stories':'feeds','s-load':'feeds','s-data':'sync','s-sync':'sync','s-setup':'about','s-notif':'alerts','s-app':'about'};
+const SET_SECPG={'s-look':'look','s-fx':'motion','s-read':'read','s-mag':'look','s-tts':'read','s-stories':'feeds','s-load':'dl','s-data':'sync','s-sync':'sync','s-setup':'about','s-notif':'alerts','s-app':'about'};
 let SET_BUILT=false,SETP=null;const SET_IX={},SET_USED=new Set();
 const setWide=()=>VW>=760;
 const setNorm=s=>(s||'').replace(/\s+/g,' ').trim();
@@ -8825,6 +8839,7 @@ function setAdopt(){
   const sec=$('#'+id);if(!sec||sec.dataset.ad)return;sec.dataset.ad='1';if(!sec.querySelector(':scope>.sbox'))return;
   const page=$('#sp-'+pg);const h3=sec.querySelector(':scope>h3');const h4=document.createElement('h4');h4.className='sct';h4.textContent=h;if(h3)h3.replaceWith(h4);else sec.prepend(h4);sec.className='sgw';
   const first=page.querySelector('.sgw');if(first)first.before(sec);else page.append(sec);
+  if(id==='s-notif'){const pk=[...sec.querySelectorAll('.line')].filter(l=>l.querySelector('[data-tg="pack"],#packh,#packo'));if(pk.length){const dl=$('#sp-dl');const w=document.createElement('div');w.className='sgw';w.innerHTML='<h4 class="sct">Morning pack</h4><div class="sbox"></div>';pk.forEach(l=>w.lastChild.append(l));const bi=[...dl.querySelectorAll('.sct')].find(h=>h.textContent==='Back issues');if(bi)bi.parentNode.before(w);else dl.append(w)}}
   if(setReady())setTimeout(()=>{setCounts();setSum()},0)});
 }
 const setReady=()=>SET_BUILT;
@@ -8834,13 +8849,17 @@ function setLeftovers(){
   e.nodes.forEach(n=>bx.append(n))});
 }
 function setCounts(){document.querySelectorAll('.spage .smore').forEach(m=>{m.querySelector('.smn').textContent=m.querySelectorAll('.line').length+' more'})}
+/* Controls that only matter when their switch is on stay out of sight until it is. */
+const SET_DEPS=[['#alke',()=>isOn('alerts')],['#alkt',()=>isOn('alerts')],['#packh',()=>isOn('pack')],['#packo',()=>isOn('pack')],['#bid',()=>isOn('bi')],['#dgwhen',()=>isOn('dgon')],['#dgwd',()=>isOn('dgwk')],['[data-tg="dglock"]',()=>isOn('dgnotif')]];
+function setDeps(){SET_DEPS.forEach(([q,f])=>{const c=document.querySelector('#setpane '+q);const l=c&&c.closest('.line');if(l)l.hidden=!f()})}
 function setSum(){
+ setDeps();
  const q=(s)=>document.querySelector(s);const t={};
  const tb=q('#thm button.on');t.look=(tb?tb.textContent.replace(/\d+$/,'').trim():'Auto')+' · '+cvName(S.cvs||'clean')+' cover';t.motion='Motion '+moLevel()+(isOn('lowfx')?' · pauses effects on low battery':'');
  const fb=q('#fgrid [data-fn].on');t.read=(fb&&fb.querySelector('span')?fb.querySelector('span').textContent:'Match theme')+' · '+S.fs+'px · speed '+(S.rate||1).toFixed(1)+'×';
  t.home=isOn('cover')?'Magazine cover on · '+({small:'small',medium:'medium',large:'large'}[S.cards||'medium']||'medium')+' cards':'Magazine cover off';
  t.tts='Speed '+(S.rate||1).toFixed(1)+'×';
- const ar=q('#arf');t.feeds=(S.offline?'Offline mode':(ar&&ar.value!=='0'&&ar.selectedOptions[0]?'Refresh '+ar.selectedOptions[0].textContent.toLowerCase():'Refresh by hand'));
+ const ar=q('#arf');t.feeds='Feeds, story order and filters';t.dl=(S.offline?'Offline mode':(ar&&ar.value!=='0'&&ar.selectedOptions[0]?'Refresh '+ar.selectedOptions[0].textContent.toLowerCase():'Refresh by hand'));
  t.alerts=isOn('dgon')?'Digest on':'Digest off';
  const ml=moLevel();t.motion='Motion '+(ml==='custom'?'custom':ml)+' · effects '+(isOn('cyfx')?'on':'off');
  t.sync='Devices, backups and feed files';t.about='Tips, shortcuts and version '+APP_LABEL;
