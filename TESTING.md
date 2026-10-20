@@ -481,3 +481,6 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - Turn Story alerts, Morning pack, Keep back issues, Daily digest off: their extra rows (keywords/Test, Pack time/Open, days, edition) disappear; on: they return.
 - Switches look like real switches, flip with a tap, and TalkBack still reads On/Off.
 - Shorten shared links is under About and Help > More Options > Sharing.
+
+## Search button stays pale (unverified)
+- Halcyon (and other dark-header themes) on a phone: tap the magnifier, then the search box opens; the round button keeps the header color (no pale circle). Also check the other round header buttons after a tap.
