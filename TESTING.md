@@ -469,3 +469,6 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 ## Audit batch 2 (unverified)
 - Web: open /app/?view=today and /app/?view=brief once online; DevTools > Application > Cache shows one /app/ page, not one per shortcut. Go offline, reload a shortcut: app still opens.
 - Restore a backup made with your own relay: relay address shows in the confirm box and is kept. A backup with an http:// relay: relay is dropped.
+
+## Step 0 measurement (unverified)
+- Use the app for a day (include a cold open in the morning, tap Daily stories straight away). Settings > Copy diagnostics, paste it: "Story opening" shows ready/stored/network counts and times; "Preload" shows netKind, connection.type and the cap. If connection.type is undefined and netKind is unknown, the Fold is capped at 6 stories.

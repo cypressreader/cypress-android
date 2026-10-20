@@ -8300,7 +8300,7 @@ async function openReader(a){
  {const rd=$('#rd');rd.classList.add('rdb');clearTimeout(rdbDone.t);rdbDone.t=setTimeout(rdbDone,420)}
  for(const lb of sh.querySelectorAll('.bar .ib[data-lbl]')){const sp=document.createElement('span');sp.className='bl';sp.setAttribute('aria-hidden','true');sp.textContent=lb.dataset.lbl;lb.append(sp)}
  if(R.T){cancelAnimationFrame(R.T.raf);R.T.dead=true;R.T=null}
- R.pg=0;R.busy=false;R.web=false;R.auto=false;RDY=null;R.endArmed=false;R.botAt=0;if(!R.keepCtx)R.ctx=cur.filter((x,i,l)=>x&&x.link&&l.findIndex(y=>y.link===x.link)===i);R.keepCtx=false;clearTimeout(R.wd);clearInterval(R.tk);R.t0=Date.now();R.lp='Loading the full article…';R.lpUrls=new Set([a.link]);R.tk=setInterval(()=>{const n=document.querySelector('.cols .note');if(!n||!/^Loading the full article/.test(n.textContent)||!curA||curA.link!==a.link){clearInterval(R.tk);return}rdTick()},1000);R.wd=setTimeout(()=>{const n=document.querySelector('.cols .note');if(n&&/^Loading the full article/.test(n.textContent)&&curA){clearInterval(R.tk);const bl=(LG[curA.link]||[]).some(x=>/HTTP (401|403|429|451|202)\b/.test(String(x)));n.innerHTML=(bl?'<span class="sbadge">Blocked</span>This site is turning the app away (a bot check), so the full story hasn’t arrived. ':'<span class="sbadge">Taking too long</span>This site is slow to answer, so the full story hasn’t arrived. ')+'<button type="button" class="lnk" data-web="1">View the site in the app</button> <button type="button" class="lnk" data-retry>Try again</button> <a class="lnk" href="'+esc(curA.link)+'" target="_blank" rel="noopener">Open the original story</a>'}},16000);_vm=isVert();R.inBrief=S.sel==='brief'&&!!(S.brief&&S.brief.links.includes(a.link));if(R.inBrief&&!S.brief.pinned){S.brief.pinned=1;save()}
+ R.pg=0;R.busy=false;R.web=false;R.auto=false;RDY=null;R.endArmed=false;R.botAt=0;if(!R.keepCtx)R.ctx=cur.filter((x,i,l)=>x&&x.link&&l.findIndex(y=>y.link===x.link)===i);R.keepCtx=false;clearTimeout(R.wd);clearInterval(R.tk);R.t0=Date.now();MZ.t0=R.t0;MZ.a=null;R.lp='Loading the full article…';R.lpUrls=new Set([a.link]);R.tk=setInterval(()=>{const n=document.querySelector('.cols .note');if(!n||!/^Loading the full article/.test(n.textContent)||!curA||curA.link!==a.link){clearInterval(R.tk);return}rdTick()},1000);R.wd=setTimeout(()=>{const n=document.querySelector('.cols .note');if(n&&/^Loading the full article/.test(n.textContent)&&curA){clearInterval(R.tk);const bl=(LG[curA.link]||[]).some(x=>/HTTP (401|403|429|451|202)\b/.test(String(x)));n.innerHTML=(bl?'<span class="sbadge">Blocked</span>This site is turning the app away (a bot check), so the full story hasn’t arrived. ':'<span class="sbadge">Taking too long</span>This site is slow to answer, so the full story hasn’t arrived. ')+'<button type="button" class="lnk" data-web="1">View the site in the app</button> <button type="button" class="lnk" data-retry>Try again</button> <a class="lnk" href="'+esc(curA.link)+'" target="_blank" rel="noopener">Open the original story</a>'}},16000);_vm=isVert();R.inBrief=S.sel==='brief'&&!!(S.brief&&S.brief.links.includes(a.link));if(R.inBrief&&!S.brief.pinned){S.brief.pinned=1;save()}
  RDTRIG=document.activeElement;$('#rd').classList.add('on');try{$('#rd').tabIndex=-1;$('#rd').focus({preventScroll:true})}catch(e){}applyFs(false);applyFolderTheme();
  /* B61: the panel is on screen (title, bar, empty page) before the heavy work of filling and laying out the text starts, so the tap answers at once instead of freezing until everything is ready */
  if(!reduced()){await new Promise(r=>{let d=false;const go=()=>{if(!d){d=true;r()}};requestAnimationFrame(()=>setTimeout(go,0));setTimeout(go,120)});if(my!==tok)return}
@@ -8315,13 +8315,13 @@ async function openReader(a){
  if(!(acGet(a.link)&&!ytId(a)))layout();
  mediaWire();
  if(ytId(a)){note.remove();afterLoad();return}
- if(fastH){note.remove();ALT='';afterLoad();return}
+ if(fastH){mzDone('ready',a);note.remove();ALT='';afterLoad();return}
  let cached=acGet(a.link)||await acLoad(a.link);
  if(my!==tok)return;
  if(cached&&!textQuality(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')).ok)cached=null;if(cached&&footerish(cached.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ')))cached=null;if(cached){const lc=legalClean(cached);if((lc.n||lc.w<150)&&!RD_RF.has(a.link)&&online()){RD_RF.add(a.link);acDrop(a.link);cached=null}else if(lc.n)cached=lc.h}
  if((f.web||(isPay(a)&&f.web!==false))&&!cached&&online())toggleWeb(true);
- if(cached){body.replaceChildren(dropTitle(tidy(fromHTML(cached,a.link)),a.title));foldBoiler(body,a);try{heroOnce()}catch(e){}note.remove();ALT='';afterLoad();return}
- if(!online()){note.textContent=S.offline?'Offline mode is on. Showing what’s stored on this device.':'You’re offline. Showing what came with the feed.';afterLoad();return}
+ if(cached){mzDone('stored',a);body.replaceChildren(dropTitle(tidy(fromHTML(cached,a.link)),a.title));foldBoiler(body,a);try{heroOnce()}catch(e){}note.remove();ALT='';afterLoad();return}
+ if(!online()){mzDone('offline',a);note.textContent=S.offline?'Offline mode is on. Showing what’s stored on this device.':'You’re offline. Showing what came with the feed.';afterLoad();return}
  let n=await getFull(a.link),src=a.link;if(n&&footerish(n.textContent)&&body.textContent.trim().length>=80)n=null;
  if(my!==tok){if(n){PFHOT.set(a.link,{n,t:Date.now()});if(PFHOT.size>16)PFHOT.delete(PFHOT.keys().next().value)}return}
  const alts=outLinks(a);
@@ -8329,6 +8329,7 @@ async function openReader(a){
  let gated=false;try{gated=(LG[a.link]||[]).some(x=>/HTTP (401|402|403|429|451)\b/.test(String(x)))}catch(e){}
  if(online()&&!TRUNCDONE.has(a.link)&&(needsMore(n,src)||truncReason(n,src))){const dr=await Promise.race([deeperTiers(a,n,src),new Promise(r=>setTimeout(()=>r(null),34000))]);if(my!==tok)return;if(dr&&dr.n){n=dr.n;src=dr.src}}
  if(my!==tok)return;
+ mzDone(n?'network':'feed',a,src!==a.link?'mirror':(n&&n.tier)||'direct');
  ALT=src!==a.link?src:(!n&&alts[0]?alts[0]:'');
  if(n&&n.textContent.length>Math.max(600,body.textContent.length+100)){
   a.tier=n.tier||(src!==a.link?'mirror':'direct');
@@ -10468,10 +10469,21 @@ function siteCheckOpen(){
  d.addEventListener('close',()=>{SCHK.stop=true;setTimeout(()=>d.remove(),50)});
 }
 $('#schkb').onclick=()=>{const d=$('#set');try{d&&d.open&&d.close()}catch(e){}setTimeout(siteCheckOpen,300)};
+/* speed log, kept on this device only and never sent anywhere: how each story opened (already stored / stored / fetched / offline) and how long it took, so "tap and wait" can be measured. It is added to the text of Copy diagnostics (no titles or links, only the site name). */
+const MZ={t0:0,a:null,L:(()=>{try{return JSON.parse(localStorage.getItem('folio-mz')||'[]')}catch(e){return[]}})()};
+function mzDone(k,a,r){try{if(!MZ.t0||MZ.a)return;MZ.a=a;let h='';try{h=new URL(a.link).hostname.replace(/^www\./,'')}catch(e){}
+ MZ.L.push({t:Date.now(),k,ms:Date.now()-MZ.t0,h,r:r||'',n:netKind()});if(MZ.L.length>80)MZ.L.splice(0,MZ.L.length-80);localStorage.setItem('folio-mz',JSON.stringify(MZ.L))}catch(e){}}
+function mzSum(){const o=['','Story opening (last '+MZ.L.length+' taps)'];
+ try{const by={};MZ.L.forEach(x=>(by[x.k]=by[x.k]||[]).push(x.ms));
+  for(const k of Object.keys(by)){const v=by[k].sort((a,b)=>a-b);o.push(' '+k+': '+v.length+' · median '+v[v.length>>1]+' ms · slowest '+v[v.length-1]+' ms')}
+  const sl=MZ.L.filter(x=>x.ms>3000).slice(-8);if(sl.length)o.push(' slow (over 3 s): '+sl.map(x=>x.k+' '+x.h+(x.r?' via '+x.r:'')+' '+Math.round(x.ms/100)/10+'s').join(' | '))}catch(e){}
+ try{const c=navigator.connection||{};o.push('Preload: mode '+pfMode()+' · allowed now '+dpOk()+' · cap '+dpCap()+' of '+ED_N+' · netKind '+netKind()+' · connection.type '+c.type+' · effectiveType '+c.effectiveType+' · saveData '+c.saveData+' · charging '+(BATST?BATST.charging+' '+Math.round(BATST.level*100)+'%':'unknown'))}catch(e){o.push('Preload: could not read')}
+ try{o.push('Stored stories: '+Object.keys(AC).length+' · Daily '+(DGL&&DGL.length?DGL.filter(l=>acHas(l)).length+' of '+DGL.length+' ready':'not built yet')+' · tried this session '+DPRE.tried.size)}catch(e){}
+ return o.join('\n')}
 $('#diagb').onclick=async()=>{
  const bad=S.feeds.filter(f=>state[f.id]==='err').map(f=>host(f.url)+': '+(FLG[f.id]||[]).slice(0,4).join('; ')).slice(0,8);
  let nat='web';try{const p=CyN();if(p){const i=await p.info();nat='native '+i.versionName+' ('+i.versionCode+')'}}catch(e){}
- const t=['CyPress diagnostics','app '+APP_VERSION+' · '+nat,'screen '+innerWidth+'x'+innerHeight+' @'+devicePixelRatio,'ua '+navigator.userAgent.slice(0,140),'theme '+(S.theme||'auto')+' · cover '+(S.cvs||'clean')+' · view '+(S.view||'tiles')+(S.setall?' · all settings':''),'feeds '+S.feeds.length+' · failing '+bad.length+' · saved '+S.saved.length,'last refresh '+(S.lastLoad?new Date(S.lastLoad).toISOString():'never'),'online '+navigator.onLine+(S.offline?' · offline mode':''),bad.length?'failing: '+bad.join(' | '):'',ELOG.length?'recent errors:\n'+ELOG.slice(-15).map(x=>new Date(x.t).toISOString().slice(11,19)+' '+x.g+' '+x.m).join('\n'):''].filter(Boolean).join('\n');
+ const t=['CyPress diagnostics','app '+APP_VERSION+' · '+nat,'screen '+innerWidth+'x'+innerHeight+' @'+devicePixelRatio,'ua '+navigator.userAgent.slice(0,140),'theme '+(S.theme||'auto')+' · cover '+(S.cvs||'clean')+' · view '+(S.view||'tiles')+(S.setall?' · all settings':''),'feeds '+S.feeds.length+' · failing '+bad.length+' · saved '+S.saved.length,'last refresh '+(S.lastLoad?new Date(S.lastLoad).toISOString():'never'),'online '+navigator.onLine+(S.offline?' · offline mode':''),bad.length?'failing: '+bad.join(' | '):'',ELOG.length?'recent errors:\n'+ELOG.slice(-15).map(x=>new Date(x.t).toISOString().slice(11,19)+' '+x.g+' '+x.m).join('\n'):''].filter(Boolean).join('\n')+mzSum();
  try{await navigator.clipboard.writeText(t);toast('Diagnostics copied')}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.append(ta);ta.select();try{document.execCommand('copy');toast('Diagnostics copied')}catch(_){toast('Couldn’t copy')}ta.remove()}
 };
 
