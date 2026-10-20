@@ -2915,6 +2915,26 @@ html.pdark #grid.paper{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .ddiv::before,.ddiv::after{content:'';flex:1;height:1px;background:currentColor;opacity:.55}
 .ddiv svg{flex:none;width:112px;height:32px}
 .ddek{margin:0 0 20px;font:400 17px/1.55 var(--serif,Georgia,serif);color:var(--mut);max-width:34em}
+/* Daily section header: one block (rule + trees + sun or moon, Vol./No., outlined number, centered title) */
+.dhd{grid-column:1/-1;position:relative;margin:26px 0 14px;padding-top:30px;color:var(--ink)}
+.dsec2:first-child .dhd,.dhd:first-child{margin-top:6px}
+.dart{position:relative;display:flex;align-items:flex-start;height:76px}
+.dart::before,.dart::after{content:'';flex:1;border-top:1.5px solid currentColor;margin-top:39px}
+.dart svg{flex:none;width:260px;height:76px;overflow:visible}
+.dart .rule{stroke:currentColor;stroke-width:1.5}
+.dart .trees{fill:var(--logo,var(--ink))}
+.dart .sun>circle,.dart .sun .glow{fill:var(--a2,var(--a1,var(--ink)))}.dart .sun .glow{opacity:.2}
+.dart .rays{stroke:var(--a2,var(--a1,var(--ink)));stroke-width:2;stroke-linecap:round}
+.dart .moon{display:none;fill:var(--ink)}
+.dstars{display:none;position:absolute;inset:0;pointer-events:none}
+.dstars i{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--ink);opacity:.85}
+html.pdark .dart .sun{display:none}html.pdark .dart .moon{display:inline}html.pdark .dstars{display:block}
+html.pdark .dart .trees{fill:color-mix(in srgb,var(--ink) 50%,var(--bg))}
+.dfolio2{position:relative;display:flex;justify-content:space-between;margin-top:-22px;font:600 11.5px/1 var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--mut)}
+.dttl2{position:relative;height:60px;border-bottom:1px solid currentColor;margin-top:2px}
+.dn2{position:absolute;left:0;bottom:2px;font:700 clamp(36px,9vw,56px)/1 'Playfair Display',Georgia,serif;color:transparent;-webkit-text-stroke:1.1px var(--mut);letter-spacing:-.02em}
+.dh2{position:absolute;left:0;right:0;bottom:6px;margin:0;padding:0 52px;box-sizing:border-box;text-align:center;font:700 clamp(25px,6.6vw,40px)/1.05 'Playfair Display',Georgia,serif!important;letter-spacing:.015em!important;text-transform:none!important;color:var(--ink)}
+@media(min-width:600px){.dttl2{height:72px}.dh2{padding:0 72px}}
 @media(min-width:900px){.dsec2 .dfolio{position:absolute;left:-20px;top:4px;margin:0;writing-mode:vertical-rl;transform:rotate(180deg);gap:14px;white-space:nowrap}}
 .card h3{font-size-adjust:.5}
 /* experiment, cluster 10: motion */
@@ -6892,6 +6912,10 @@ function colophonHtml(count){
  return `<footer class="colo"><b>Colophon</b><p>The ${am?'Morning':'Evening'} Edition, No. ${issue}. ${count} ${count===1?'story':'stories'}, chosen on this device from the sites you follow. Set in ${esc(fontName('--serif','Georgia'))} and ${esc(fontName('--sans','the system sans'))}. Nothing here was sent anywhere.</p></footer>`;
 }
 /* print furniture: folio running heads with the edition number, illustrated section dividers, a dek with a drop cap under each section head */
+function dayArt(n){
+ /* the Daily's section header art: a rule that dips around five cypress trees, with a sun (light themes) or a crescent moon and stars (dark themes) above; html.pdark picks which one shows */
+ return `<div class="dart" role="presentation"><svg viewBox="0 0 260 76" aria-hidden="true" focusable="false"><g class="sun"><circle class="glow" cx="130" cy="26" r="30"/><g class="rays"><line x1="105.0" y1="26.0" x2="97.0" y2="26.0"/><line x1="105.9" y1="19.5" x2="98.1" y2="17.5"/><line x1="108.3" y1="13.5" x2="101.4" y2="9.5"/><line x1="112.3" y1="8.3" x2="106.7" y2="2.7"/><line x1="117.5" y1="4.3" x2="113.5" y2="-2.6"/><line x1="123.5" y1="1.9" x2="121.5" y2="-5.9"/><line x1="130.0" y1="1.0" x2="130.0" y2="-7.0"/><line x1="136.5" y1="1.9" x2="138.5" y2="-5.9"/><line x1="142.5" y1="4.3" x2="146.5" y2="-2.6"/><line x1="147.7" y1="8.3" x2="153.3" y2="2.7"/><line x1="151.7" y1="13.5" x2="158.6" y2="9.5"/><line x1="154.1" y1="19.5" x2="161.9" y2="17.5"/><line x1="155.0" y1="26.0" x2="163.0" y2="26.0"/></g><circle cx="130" cy="26" r="19"/></g><g class="moon"><defs><mask id="dmk${n}"><rect x="0" y="-20" width="260" height="90" fill="#fff"/><circle cx="139" cy="19" r="17" fill="#000"/></mask></defs><circle cx="130" cy="26" r="19" mask="url(#dmk${n})"/></g><path class="rule" d="M0 40H25C65 40 78 72 130 72C182 72 195 40 235 40H260" fill="none"/><g class="trees"><path d="M76 68C70 68 69 51.9 76 42C83 51.9 82 68 76 68z"/><path d="M103 71C97 71 96 48.7 103 35C110 48.7 109 71 103 71z"/><path d="M130 73C124 73 123 47.0 130 31C137 47.0 136 73 130 73z"/><path d="M157 71C151 71 150 48.7 157 35C164 48.7 163 71 157 71z"/><path d="M184 68C178 68 177 51.9 184 42C191 51.9 190 68 184 68z"/></g></svg><span class="dstars"><i style="left:7%;top:8px"></i><i style="left:10%;top:8px"></i><i style="left:14%;top:30px"></i><i style="left:23%;top:32px"></i><i style="left:28%;top:12px"></i><i style="left:41%;top:7px"></i><i style="left:58%;top:20px"></i><i style="left:65%;top:14px"></i><i style="left:75%;top:8px"></i><i style="left:83%;top:16px"></i><i style="left:98%;top:12px"></i><i style="left:3%;top:20px"></i></span></div>`;
+}
 function dividerHtml(n){
  const t=(x,h)=>`<path d="M${x} 30C${x-4} 30 ${x-5} ${30-h*.6} ${x} ${30-h}C${x+5} ${30-h*.6} ${x+4} 30 ${x} 30z"/>`;
  const sets=[[[20,22],[46,16],[56,28],[70,18],[92,24]],[[14,16],[34,26],[56,20],[78,28],[100,16]],[[24,20],[44,28],[56,14],[68,26],[88,18]]][n%3];
@@ -6962,7 +6986,7 @@ function daySections(list,mode){
  const brief=quick.length>=2;if(!brief)quick.forEach(a=>more.unshift(a));
  let n=0;const secs=[];
  const issue=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/864e5);
- const sh=(id,t,sub,count,unit)=>{n++;const nn=String(n).padStart(2,'0');secs.push([id,nn,t,count,unit]);const dk=(DAYDEK[id]||[])[peHash(edKey()+id)%2]||'';return (n>1?dividerHtml(n):'')+`<div class="dfolio"><span>Vol. ${String(new Date().getFullYear()).slice(-2)} · No. ${issue}</span><span>${nn}</span></div><h3 class="dsh" id="dsec-${id}"><span><i class="dsn">${nn}</i> — ${t}</span></h3>${dk?`<p class="ddek">${dk}</p>`:''}`};
+ const sh=(id,t,sub,count,unit)=>{n++;const nn=String(n).padStart(2,'0');secs.push([id,nn,t,count,unit]);const dk=(DAYDEK[id]||[])[peHash(edKey()+id)%2]||'';try{needFont('playfair')}catch(e){}return `<div class="dhd">${dayArt(n)}<div class="dfolio2"><span>Vol. ${String(new Date().getFullYear()).slice(-2)}</span><span>No. ${issue}</span></div><div class="dttl2"><span class="dn2" aria-hidden="true">${nn}</span><h3 class="dh2" id="dsec-${id}">${t.replace(/\b[a-z]/g,c=>c.toUpperCase())}</h3></div></div>${dk?`<p class="ddek">${dk}</p>`:''}`};
  /* a pull quote after every fifth headline row, when that story has a line worth lifting */
  const rowsQ=arr=>{let h='',buf='',k=0;const wrap=x=>mode==='w'?`<div class="nr-river"><div class="nr-rv">${x}</div></div>`:`<div class="nr-ph-rows nr-ph-in">${x}</div>`;for(const a of arr){buf+=C(a,'nr nr-row nr-s');k++;if(k%5===0){const pq=pullQuoteHtml(a);if(pq){h+=wrap(buf)+pq;buf=''}}}return h+(buf?wrap(buf):'')};
  const frontCount=front.length+(lead&&!COVSHOWN?1:0);
@@ -6987,7 +7011,7 @@ function daySections(list,mode){
 }
 /* jump to the top of a section, just below the docked tabs */
 function jumpTop(el,top){const mn=$('main'),mt=$('#mtabs'),off=(mt?mt.offsetHeight||38:0)+6,t=top||el,beh=reduced()?'auto':'smooth';if(mn)mn.scrollTo({top:mn.scrollTop+t.getBoundingClientRect().top-mn.getBoundingClientRect().top-off,behavior:beh});else el.scrollIntoView({behavior:beh,block:'start'})}
-document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-dsec]');if(!t)return;const el=document.getElementById(t.dataset.dsec);if(el){e.preventDefault();e.stopPropagation();const pv=el.previousElementSibling;jumpTop(el,pv&&pv.classList.contains('dfolio')?pv:el)}},true);
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-dsec]');if(!t)return;const el=document.getElementById(t.dataset.dsec);if(el){e.preventDefault();e.stopPropagation();const hd=el.closest('.dhd');jumpTop(el,hd||el)}},true);
 /* ---- The Daily's edition is downloaded ahead of time, gently, so Quick Briefs and Deep Dives know the real reading times ----
    Only on Wi-Fi, never when downloads are off, in Offline or Data saver mode or in low-power mode, one story at a time with a pause between,
    and it stops as soon as you leave The Daily, leave Wi-Fi or the edition changes. A story that fails is not tried again in the same edition. */
@@ -8347,7 +8371,7 @@ async function openReader(a){
  layout();afterLoad();
 }
 const FONTS={serif:"'Newsreader',Georgia,serif",literata:"'Literata',Georgia,serif",merri:"'Merriweather',Georgia,serif",garamond:"'EB Garamond',Georgia,serif",sans:"'Instrument Sans',system-ui,sans-serif",lexend:"'Lexend',system-ui,sans-serif",hyper:"'Atkinson Hyperlegible','Instrument Sans',sans-serif",dys:"'OpenDyslexic','Lexend',sans-serif"};
-const FONTLINK={literata:'Literata:opsz,wght@7..72,400..700',merri:'Merriweather:wght@400;700',garamond:'EB+Garamond:wght@400;600',lexend:'Lexend:wght@400;600'};
+const FONTLINK={literata:'Literata:opsz,wght@7..72,400..700',merri:'Merriweather:wght@400;700',garamond:'EB+Garamond:wght@400;600',lexend:'Lexend:wght@400;600',playfair:'Playfair+Display:wght@600;700'};
 function needFont(k){
  if(k==='dys'){if(!$('#dysf')){const st=document.createElement('style');st.id='dysf';st.textContent="@font-face{font-family:'OpenDyslexic';font-display:swap;src:url(https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/woff/OpenDyslexic-Regular.woff) format('woff'),url(https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/compiled/OpenDyslexic-Regular.otf) format('opentype')}@font-face{font-family:'OpenDyslexic';font-weight:700;font-display:swap;src:url(https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/woff/OpenDyslexic-Bold.woff) format('woff'),url(https://cdn.jsdelivr.net/gh/antijingoist/opendyslexic@master/compiled/OpenDyslexic-Bold.otf) format('opentype')}";document.head.append(st)}needFont('lexend');return}
  const f=FONTLINK[k];if(!f||document.querySelector('link[data-f="'+k+'"]'))return;
