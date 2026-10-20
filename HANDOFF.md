@@ -2,7 +2,7 @@
 Old detail (dated session logs, FIXES 16-26 notes, debugging traces) lives in `HANDOFF-ARCHIVE.md`: don't read it on boot, `grep` it only if needed.
 Keep THIS file under ~8 KB: when it grows past that, move finished/dated items to the archive and keep only rules, open items and the next tasks.
 
-Last updated: 2026-10-19 · Branch: `claude/cool-darwin-nkj7it` · Code: web `2026.10.20a`, Android label **1.121** (1.120 = blank-space fix + letter tiles) (1.119 = page turn landing) (merged to main on the user's build; check Releases for v1.119; 1.118 = (hinged bowed page turn, LOCKED by user "Perfect"); 1.115 = warm first turn, 1.114 = flat strips, 1.113 = adaptive curl, 1.112 = curl, 1.111 = tag `v131`). Branch is clean and level with `main`.
+Last updated: 2026-10-19 · Branch: `claude/cool-darwin-nkj7it` · Code: web `2026.10.20b`, Android label **1.122** (1.121 = search tab fix etc.) (1.120 = blank-space fix + letter tiles) (1.119 = page turn landing) (merged to main on the user's build; check Releases for v1.119; 1.118 = (hinged bowed page turn, LOCKED by user "Perfect"); 1.115 = warm first turn, 1.114 = flat strips, 1.113 = adaptive curl, 1.112 = curl, 1.111 = tag `v131`). Branch is clean and level with `main`.
 
 ## 1. Working & locked (verified; don't change core logic without asking)
 - **Halcyon theme** (`halcyon`/`halcyond`): website palette (cream `#f3ecdc`, green `#123524`/`#0c2619`, brass `#c9a24a`/`#b08d3e`), follows phone via `twinApply`. Headlines use `--disp` (narrow display serif) with `!important` (user's choice). Dark-brass labels on cream `#7d5f14`; light-brass `#e2c27a` on dark `.noimg` lead/hero cards (`.noimg` ≠ cream card).
