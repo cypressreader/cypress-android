@@ -1380,6 +1380,7 @@ button.go{padding:11px 22px;border-radius:999px;background:var(--ink);color:var(
 :root[data-theme=dark]{--hl:rgba(110,160,255,.4)}
 :root[data-theme=dynamic]{--hl:color-mix(in srgb,var(--hlb,#f5c400) 38%,transparent)}
 ::highlight(tts){background-color:var(--hl)}
+html.ttssm ::highlight(tts-s){background-color:var(--hl)}
 .sheet{position:relative}
 .ib.on{background:var(--ink);color:var(--pn)}
 .pb{position:absolute;top:62px;right:clamp(12px,3vw,24px);width:min(310px,calc(100% - 24px));background:var(--pn);border:1px solid var(--ln);border-radius:18px;padding:14px 16px 12px;z-index:9;box-shadow:0 18px 50px rgba(0,0,0,.28)}
@@ -8645,6 +8646,7 @@ function ttsChunk(a){
  while(b<w.length){
   len+=w[b].t.length+1;b++;
   if(b>=w.length)break;
+  if(TTS.sm){if(TTS.ssn!==TTS.sent){TTS.ss=new Set(TTS.sent);TTS.ssn=TTS.sent}if(TTS.ss.has(b))break}
   if(w[b].b!==w[b-1].b)break;
   if(!!w[b].q!==!!w[b-1].q&&S.qvoice)break;
   if(len>(TTS.nb?110:200)&&ENDS.test(w[b-1].t))break;
@@ -8656,7 +8658,7 @@ function ttsMark(i){
  const w=TTS.words[i];if(!w)return;TTS.wi=i;
  try{
   const r=new Range();r.setStart(w.n,w.s);r.setEnd(w.n2||w.n,w.n2?w.e2:w.e);
-  if(window.CSS&&CSS.highlights&&window.Highlight){CSS.highlights.set('tts',new Highlight(r));try{const sn=TTS.sent;let lo=0,hi=sn.length-1;while(lo<hi){const m=(lo+hi+1)>>1;if(sn[m]<=i)lo=m;else hi=m-1}const s0=sn[lo],e0=(sn[lo+1]==null?TTS.words.length:sn[lo+1])-1,A0=TTS.words[s0],B0=TTS.words[e0];if(A0&&B0){const rs=new Range();rs.setStart(A0.n,A0.s);rs.setEnd(B0.n2||B0.n,B0.n2?B0.e2:B0.e);CSS.highlights.set('tts-s',new Highlight(rs))}}catch(_){}}
+  if(window.CSS&&CSS.highlights&&window.Highlight){if(TTS.sm)CSS.highlights.delete('tts');else CSS.highlights.set('tts',new Highlight(r));try{const sn=TTS.sent;let lo=0,hi=sn.length-1;while(lo<hi){const m=(lo+hi+1)>>1;if(sn[m]<=i)lo=m;else hi=m-1}const s0=sn[lo],e0=(sn[lo+1]==null?TTS.words.length:sn[lo+1])-1,A0=TTS.words[s0],B0=TTS.words[e0];if(A0&&B0){const rs=new Range();rs.setStart(A0.n,A0.s);rs.setEnd(B0.n2||B0.n,B0.n2?B0.e2:B0.e);CSS.highlights.set('tts-s',new Highlight(rs))}}catch(_){}}
   /* B24: following the word (scroll / page turn) reads layout, which is the slow part; do it at most ~7 times a second so reports never pile up behind it */
   const nowF=Date.now(),c=(nowF-(TTS.fl||0)>140)?($('.cols')):null;if(c)TTS.fl=nowF;
   if(c&&!R.web&&isVert()){const v=vView(),rr=r.getBoundingClientRect(),vr=v.getBoundingClientRect();if((rr.top<vr.top+30||rr.bottom>vr.bottom-60)&&Date.now()-(TTS.um||0)>8000)v.scrollTo({top:v.scrollTop+rr.top-vr.top-vr.height*.3,behavior:'smooth'})}
@@ -8677,6 +8679,8 @@ function ttsFrom(wi){
  raBtn();mediaOn();fpSync();
  /* in the Android app the whole rest of the story is handed to the phone's speech engine at once, so reading carries on while the app is minimised and the page is asleep */
  const pre=!!(window.speechSynthesis&&window.speechSynthesis.native),BATCH=pre?60:1;
+ /* Sentence mode: word-by-word timing depends on the phone's voice reporting each word, and most Android voices do not (or report early), so the highlight drifted. In the app, and for any voice that has shown it cannot, the sentence being read is highlighted instead: every voice reports where each sentence starts. */
+ TTS.sm=pre||!!TTS.nb;document.documentElement.classList.toggle('ttssm',!!TTS.sm);
  const hid=()=>document.hidden||Date.now()-(TTS.vis||0)<4000;
  const chunk=(a,b,last,first)=>{
   const off=[];let txt='';if(first)TTS.wi=a;
@@ -8694,7 +8698,7 @@ function ttsFrom(wi){
   let real=false,t0=0,early=0,tm1=null;const cps=()=>Math.max(5,Math.min(60,(TTS.cps||14)*(+S.rate||1)));
   /* B24: the highlight is shown a few words early to cancel the delay between the phone's engine and the page. The delay is measured from the timestamp on each report (native) instead of guessed */
   const lead=()=>{if(S.hlead!=null)return +S.hlead;const nat=window.speechSynthesis&&window.speechSynthesis.native;if(!nat)return NATIVE?2:0;if(TTS.lag==null)return 1;return Math.max(0,Math.min(4,Math.round(TTS.lag/Math.max(120,5.5/cps()*1000))))};const at=(ci,tm)=>{let k=0;while(k+1<off.length&&off[k+1]<=ci)k++;TTS.sp=a+k;/* B85: where the voice really is, kept apart from the (earlier) highlighted word */k=Math.min(k+(tm?0:lead()),off.length-1);if(a+k!==TTS.wi||k===0)ttsMark(a+k)};
-  u.onstart=()=>{if(id!==TTS.id)return;t0=performance.now();ttsMark(a);clearInterval(TTS.timer);const tmr=tm1=TTS.timer=setInterval(()=>{if(id!==TTS.id||TTS.timer!==tmr){clearInterval(tmr);return}if(real&&!TTS.nb)return;at(Math.max(0,(performance.now()-t0)/1000-.15)*cps(),1)},90)};
+  u.onstart=()=>{if(id!==TTS.id)return;t0=performance.now();ttsMark(a);if(!pre&&!TTS.sm)setTimeout(()=>{if(id!==TTS.id||real||TTS.sm)return;TTS.sm=1;TTS.nb=1;document.documentElement.classList.add('ttssm');try{const vv=bestVoice();S.tnbv=(vv&&vv.voiceURI)||'default';S.tnbt=Date.now();save()}catch(_){}try{ttsMark(TTS.wi)}catch(_){}},1800);clearInterval(TTS.timer);const tmr=tm1=TTS.timer=setInterval(()=>{if(id!==TTS.id||TTS.timer!==tmr){clearInterval(tmr);return}if(real&&!TTS.nb)return;at(Math.max(0,(performance.now()-t0)/1000-.15)*cps(),1)},90)};
   /* some Android speech engines report every word of a chunk up front; if reports run well ahead of real speech, ignore them and pace by the clock */
   u.onboundary=e=>{if(id!==TTS.id||TTS.nb)return;if(e.name&&e.name!=='word')return;const el=(performance.now()-t0)/1000;if(e.charIndex>el*cps()+(TTS.cps?30:70)&&!hid()&&++early>=2){TTS.nb=1;try{const vv=bestVoice();S.tnbv=(vv&&vv.voiceURI)||'default';S.tnbt=Date.now();save()}catch(_){}return}if(e.ts){const lg=Date.now()-e.ts;if(lg>=0&&lg<4000)TTS.lag=TTS.lag==null?lg:TTS.lag*.7+lg*.3}real=true;at(e.charIndex);t0=performance.now()-e.charIndex/Math.max(5,cps())*1000;};
   const done=(ok)=>{if(id!==TTS.id)return;if(tm1)clearInterval(tm1);if(ok===1&&t0&&!hid()){const el=(performance.now()-t0)/1000-.25;if(el>1.5&&txt.length>40){const m=Math.max(5,Math.min(40,txt.length/el/(+S.rate||1)));TTS.cps=TTS.cps?TTS.cps*.6+m*.4:m;S.tcps=Math.round(TTS.cps*10)/10}}if(last)next(b)};
@@ -8714,7 +8718,7 @@ const ttsPos=()=>{const p=TTS.sp;return(p!=null&&p>=0&&p<=TTS.wi&&TTS.wi-p<=8)?p
 function ttsResetTiming(){delete S.tnbv;delete S.tnbt;delete S.tcps;TTS.nb=0;TTS.cps=null;TTS.lag=null;save();toast('Voice timing reset')}
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#vtreset'))ttsResetTiming()});
 function ttsPause(){TTS.paused=true;TTS.id++;clearInterval(TTS.timer);try{speechSynthesis.cancel()}catch(e){}raBtn();mediaOff();fpSync()}
-function ttsStop(){R.queueRun=false;TTS.on=false;TTS.paused=false;TTS.id++;TTS.words=[];TTS.sent=[];clearInterval(TTS.timer);try{speechSynthesis.cancel()}catch(e){}try{CSS.highlights.delete('tts');CSS.highlights.delete('tts-s')}catch(e){}raBtn();mediaOff(true);fpSync()}
+function ttsStop(){document.documentElement.classList.remove('ttssm');R.queueRun=false;TTS.on=false;TTS.paused=false;TTS.id++;TTS.words=[];TTS.sent=[];clearInterval(TTS.timer);try{speechSynthesis.cancel()}catch(e){}try{CSS.highlights.delete('tts');CSS.highlights.delete('tts-s')}catch(e){}raBtn();mediaOff(true);fpSync()}
 function ttsStartWord(){
  const c=$('.cols'),w=TTS.words;if(!c||!w.length)return 0;
  if(isVert()){const v=vView();if(!v||v.scrollTop<20)return 0;const top=v.getBoundingClientRect().top;for(let i=0;i<w.length;i+=3){const r=new Range();r.setStart(w[i].n,w[i].s);r.setEnd(w[i].n2||w[i].n,w[i].n2?w[i].e2:w[i].e);if(r.getBoundingClientRect().top>=top)return i}return 0}
