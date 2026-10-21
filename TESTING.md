@@ -509,7 +509,7 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - Look > Advanced > Front page style: Varied, Classic, Quiet each change the front page at once (Varied is the default).
 - Reading > Advanced > Magazine look: turn Magazine touches off; Photo pages and Feature spread disappear.
 
-## Read-aloud sentence highlight (unverified on device)
+## Read-aloud sentence highlight (confirmed better on Samsung Z Fold; still try a second voice)
 - Samsung Z Fold, Android app: open a story, Listen. The whole sentence being read is shaded and moves on to the next sentence when the voice does, on every voice you try (Samsung, Google). No single-word marker any more in the app.
 - Check the voice does not sound choppier than before (each sentence is now its own spoken piece). The page should still scroll or turn by itself.
 - Browser (Brave): same, after about two seconds if the voice sends no word timings.
