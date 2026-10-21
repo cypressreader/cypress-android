@@ -500,3 +500,7 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - Every Settings page: the common settings are visible, the rest are under Advanced. Open Advanced on Look, Reading, Feeds, Downloads: nothing is lost, Reset this section is at the bottom of it.
 - Battery and Motion: Custom shows the seven detail switches; Full, Calm or Off hide them.
 - Settings home: each row shows its current value.
+
+## Settings audit pass (unverified on device)
+- Downloads and Storage > Pictures: Show all / Save data on mobile / No pictures. No pictures hides every photo; the other two bring them back.
+- Settings > Look > Advanced shows The Daily group (Trending strip, Must reads); Reading > Advanced shows Websites and Moving between stories; Feeds > Advanced shows Filtering, Adding sites, Kindle.
