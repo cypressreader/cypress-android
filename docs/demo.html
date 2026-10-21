@@ -7371,8 +7371,9 @@ function startTurn(dir){
  T.cr.style.background='linear-gradient(to right,rgba(0,0,0,.2),rgba(0,0,0,.08) 35%,rgba(0,0,0,.02) 70%,rgba(0,0,0,0))';T.cl.style.background='linear-gradient(to left,rgba(0,0,0,.2),rgba(0,0,0,.08) 35%,rgba(0,0,0,.02) 70%,rgba(0,0,0,0))';
  cast.append(T.cr,T.cl);
  const leaf=mkEl('tl-leaf',`left:${hx}px;width:${hw}px`);
- if(isOn('curl')&&curlN!==-1&&!reduced()&&R.np<400&&($('.view').querySelectorAll('*').length<1600)&&($('.view').querySelectorAll('img').length<24)){
-  const N=curlN>0?curlN:(navigator.hardwareConcurrency||8)<=4?10:16,sw=hw/N;T.st=[];T.N=N;T.sw=sw;
+ const cp=curlPlan();curlNote(cp);
+ if(cp.N){
+  const N=cp.N,sw=hw/N;T.st=[];T.N=N;T.sw=sw;T.cap=cp.cap;
   for(let i=0;i<N;i++){
    const el=mkEl('tl-s',`left:0;width:${sw+1}px`);
    const f=mkEl('tf');f.append(mkBox(pgF,hx+i*sw));const fs=shade('to right');fs.style.background='#000';f.append(fs);el.append(f);
@@ -7399,17 +7400,41 @@ function startTurn(dir){
  return T;
 }
 var BOW=1.7;
-/* the curl adapts to the device: if frames take too long on a turn, the next turns use fewer strips, and finally the plain flip (-1). Remembered on this device only. */
-let curlN=0,curlSlow=0,curlRead=false;
-/* the choice is forgotten whenever the app updates (an old, coarse choice would otherwise outlive the fix that made it unnecessary), and it takes two slow turns in a row to step down */
-function curlGet(){if(curlRead)return;curlRead=true;try{const o=JSON.parse(localStorage.getItem('cy_curl')||'null');if(o&&o.v===APP_VERSION)curlN=+o.n||0}catch(_){}}
+/* the curl adapts to the device, but it never gives up on the book turn for good (a flat page used to stick to every story after one slow one):
+   - curlN is the device-wide strip count (0 = the default 16, or 10 on a 4-core phone). Two slow turns in a row step it down to at least 8; four quick turns in a row step it back up. Forgotten when the app updates.
+   - a heavy story gets fewer strips instead of a flat page: the strips share the same budget the old size limits allowed (strips x page elements, strips x pictures). Only a truly huge story (under 6 strips) turns flat.
+   - a story where even the minimum is slow turns flat for that story only (curlFlat), never for the rest of the session.
+   - the first turn of each story is not measured (the browser is still building its layers). */
+let curlN=0,curlSlow=0,curlFast=0,curlRead=false,curlFlat='',curlSeen='';
+const curlLog=[];
+const curlKey=()=>(typeof curA!=='undefined'&&curA&&curA.link)||'';
+function curlGet(){if(curlRead)return;curlRead=true;try{const o=JSON.parse(localStorage.getItem('cy_curl')||'null');if(o&&o.v===APP_VERSION)curlN=Math.max(0,+o.n||0)}catch(_){}}
+function curlPlan(){
+ curlGet();
+ const v=$('.view');
+ if(!isOn('curl'))return{N:0,why:'curl is off'};
+ if(reduced())return{N:0,why:'reduced motion'};
+ if(!v)return{N:0,why:'no page'};
+ if(R.np>=400)return{N:0,why:'very long story ('+R.np+' pages)'};
+ if(curlFlat&&curlFlat===curlKey())return{N:0,why:'slow on this story'};
+ const els=v.querySelectorAll('*').length,imgs=v.querySelectorAll('img').length;
+ const base=curlN>0?curlN:(navigator.hardwareConcurrency||8)<=4?10:16;
+ const N=Math.min(base,Math.floor(25600/Math.max(1,els)),Math.floor(384/Math.max(1,imgs)));
+ if(N<6)return{N:0,why:'too heavy ('+els+' parts, '+imgs+' pictures)',els,imgs};
+ return{N,cap:N<base,els,imgs};
+}
+function curlNote(p){curlLog.push(p.N?'curl '+p.N:'flat: '+p.why);if(curlLog.length>12)curlLog.shift()}
 function curlTune(T){
  const d=T.dts;if(!T.st||!d||d.length<8)return;
+ const key=curlKey();if(curlSeen!==key){curlSeen=key;curlSlow=0;curlFast=0;return}
  const m=d.slice().sort((x,y)=>x-y)[d.length>>1];
+ const save=()=>{try{localStorage.setItem('cy_curl',JSON.stringify({v:APP_VERSION,n:curlN}))}catch(_){}};
+ if(m<=20&&!T.cap){curlSlow=0;if(curlN>0&&++curlFast>=4){curlFast=0;curlN=curlN<10?10:0;save()}return}
+ curlFast=0;
  if(m<=30){curlSlow=0;return}
  if(++curlSlow<2)return;curlSlow=0;
- curlN=T.N>8?Math.max(8,Math.round(T.N*.55)):-1;
- try{localStorage.setItem('cy_curl',JSON.stringify({v:APP_VERSION,n:curlN}))}catch(_){}
+ if(T.cap||T.N<=8){curlFlat=key;return}
+ curlN=Math.max(8,Math.round(T.N*.55));save();
 }
 function setAng(a){
  const T=R.T;if(!T)return;T.ang=a;
@@ -7443,7 +7468,7 @@ function setAng(a){
 /* warm-up: the first page turn of a story used to hitch while the browser built the turn's layers for the first time. Once the story has settled, build one turn invisibly for two frames, then throw it away, so the first real turn starts warm. */
 function rdWarm(){
  curlGet();
- if(!isOn('curl')||curlN===-1||reduced()||R.busy||R.T||R.web||isVert()||!R.ready||R.np<2||D)return;
+ if(!isOn('curl')||!curlPlan().N||reduced()||R.busy||R.T||R.web||isVert()||!R.ready||R.np<2||D)return;
  const go1=()=>{
   if(R.busy||R.T||D||R.web||isVert()||!$('.book'))return;
   const d=R.pg+1<R.np?1:-1;let T;
@@ -10601,6 +10626,7 @@ function mzSum(){const o=['','Story opening (last '+MZ.L.length+' taps)'];
  try{const by={};MZ.L.forEach(x=>(by[x.k]=by[x.k]||[]).push(x.ms));
   for(const k of Object.keys(by)){const v=by[k].sort((a,b)=>a-b);o.push(' '+k+': '+v.length+' · median '+v[v.length>>1]+' ms · slowest '+v[v.length-1]+' ms')}
   const sl=MZ.L.filter(x=>x.ms>3000).slice(-8);if(sl.length)o.push(' slow (over 3 s): '+sl.map(x=>x.k+' '+x.h+(x.r?' via '+x.r:'')+' '+Math.round(x.ms/100)/10+'s').join(' | '))}catch(e){}
+ try{o.push('Page turns: strips '+(curlN>0?curlN:'default')+' · flat here '+(curlFlat?'yes':'no')+' · last '+curlLog.length+': '+(curlLog.join(', ')||'none yet'))}catch(e){}
  try{const P=acPools();o.push('Stored stories: saved '+P.saved+' · today '+P.today+' · rolling '+P.rolling+' of '+P.cap)}catch(e){}
  try{const c=navigator.connection||{};o.push('Preload: mode '+pfMode()+' · keep '+pfN()+' · charging only '+isOn('pfpow')+' · allowed now '+dpOk()+' · cap '+dpCap()+' of '+ED_N+' · netKind '+netKind()+' · connection.type '+c.type+' · effectiveType '+c.effectiveType+' · saveData '+c.saveData+' · charging '+(BATST?BATST.charging+' '+Math.round(BATST.level*100)+'%':'unknown'))}catch(e){o.push('Preload: could not read')}
  try{o.push('Stored stories: '+Object.keys(AC).length+' · Daily '+(DGL&&DGL.length?DGL.filter(l=>acHas(l)).length+' of '+DGL.length+' ready':'not built yet')+' · tried this session '+DPRE.tried.size)}catch(e){}

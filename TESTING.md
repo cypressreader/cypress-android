@@ -523,3 +523,8 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - Settings > Downloads and Storage: Keep 50 / 100 / 200 ready. Copy diagnostics shows "saved N · today N · rolling N of 100".
 - Save a few stories, use the app for a day: saved and today never drop; rolling stays at the chosen number and the oldest (read ones first) are replaced.
 - Turn on "Fill up only while charging": unplugged on Wi-Fi it stops at 50; plug in and it fills up to your number.
+
+## Page turn: book curl in every story (unverified on device)
+- Open a short story (about 5 pages) and a long, picture-heavy one in the same session and turn pages in both: every turn is the bowed book page, never the old flat card. Turn forward and back.
+- Settings > Copy diagnostics shows a "Page turns" line, e.g. "strips default · flat here no · last 12: curl 16, curl 16 ...". If a story ever turns flat, the line says why (too heavy, slow on this story, reduced motion).
+- A very heavy story should show fewer strips (e.g. "curl 8") rather than "flat". Send me the Page turns line if you still see a flat turn.
