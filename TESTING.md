@@ -504,3 +504,7 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 ## Settings audit pass (unverified on device)
 - Downloads and Storage > Pictures: Show all / Save data on mobile / No pictures. No pictures hides every photo; the other two bring them back.
 - Settings > Look > Advanced shows The Daily group (Trending strip, Must reads); Reading > Advanced shows Websites and Moving between stories; Feeds > Advanced shows Filtering, Adding sites, Kindle.
+
+## Front page style and magazine group (unverified on device)
+- Look > Advanced > Front page style: Varied, Classic, Quiet each change the front page at once (Varied is the default).
+- Reading > Advanced > Magazine look: turn Magazine touches off; Photo pages and Feature spread disappear.

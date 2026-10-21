@@ -1931,6 +1931,7 @@ html:is([data-theme=typewriter],[data-theme=terminal],[data-theme=amber],[data-t
 #set .spsm h5{font:600 19px/1.2 var(--serif);margin:6px 0 8px}
 #set .spsm p{font:400 15px/var(--lh,1.55) var(--serif);margin:0;color:var(--ink)}
 #set .sflash{animation:sfl 1.8s ease}
+#set .line.sdep{padding-left:22px;border-left:2px solid var(--ln);margin-left:4px}
 #dynmrow{display:none!important}
 #set .schd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;font:600 13px var(--sans);color:var(--mut)}
 #set .schd button{padding:8px 14px;border-radius:999px;border:1.5px solid var(--ln);background:none;color:var(--mut);font:600 13px var(--sans);cursor:pointer}
@@ -8737,7 +8738,7 @@ const SET_MERGE={
  covers:{p:'Cover for every site',s:['Section covers'],label:'Covers for sites, folders and topics',sub:'Open any site, folder or topic with its own magazine cover'}
 };
 const SET_MK={pqc:['pqs'],folio:['endm'],covers:['sop']};
-const SET_HIDE=['Light or dark','Sepia paper','Newsprint grain','Data saver','Text only','Living Dynamic theme','Tint the app from the cover photo','Tint pages with photo colors','Paper texture','Tidy photo captions','Polished typography','Sepia reading page','Page-turn sound','Page-turn tick','Light rays on the cover','Seasonal touches','Interface sounds','Reduce motion'];
+const SET_HIDE=['Light or dark','Varied story layout','Quiet layout','Sepia paper','Newsprint grain','Data saver','Text only','Living Dynamic theme','Tint the app from the cover photo','Tint pages with photo colors','Paper texture','Tidy photo captions','Polished typography','Sepia reading page','Page-turn sound','Page-turn tick','Light rays on the cover','Seasonal touches','Interface sounds','Reduce motion'];
 const SET_PAGES=[
  {id:'look',t:'Appearance',d:'Theme, colors and cover style',c:'#7c5cff',lead:'Pick how CyPress looks. The preview below changes as you choose.',prev:1,
   main:[{items:['X:sch','P:lkp','P:thm','L:Cover style','L:App icon']}],
@@ -8745,11 +8746,11 @@ const SET_PAGES=[
   rst:['theme','dynm','cvs','mast','ptone','paper','scrim','ptint']},
  {id:'read',t:'Reading',d:'Fonts, size and story layout',c:'#0a8f4a',lead:'How a story looks while you read it.',
   main:[{items:['P:rprev','L:Reading style','L:Text size','L:Type preset','P:font']}],
-  more:[{h:'Text details',items:['L:Headline font','L:Line spacing','L:Page margins','L:Compact reading on phones','L:Follow my phone’s text size','L:Focus reading']},{h:'Page details',items:['L:Justify text','L:Author and site notes','L:Magazine touches','M:marks','M:pq','L:Photo pages','L:Swipe down to close a story']},{h:'Story extras',items:['L:Table of contents','L:Feature spread','L:Story timeline','L:At-a-glance box','L:You might also like','L:Cinematic long reads']},{h:'Moving between stories',items:['L:Continuous reading']},{h:'Websites',items:['L:Open the website when a story is cut short','L:Use reader view on websites']}],
+  more:[{h:'Text details',items:['L:Headline font','L:Line spacing','L:Page margins','L:Compact reading on phones','L:Follow my phone’s text size','L:Focus reading']},{h:'Page details',items:['L:Justify text','L:Author and site notes','L:Swipe down to close a story']},{h:'Magazine look',items:['L:Magazine touches','L:Photo pages','L:Feature spread','M:pq','M:marks']},{h:'Story extras',items:['L:Table of contents','L:Story timeline','L:At-a-glance box','L:You might also like','L:Cinematic long reads']},{h:'Moving between stories',items:['L:Continuous reading']},{h:'Websites',items:['L:Open the website when a story is cut short','L:Use reader view on websites']}],
   rst:['font','hfont','fs','lh','mg','rl','scroll','endm','pqs']},
  {id:'home',t:'Home and Covers',d:'Today page, cards and wide screens',c:'#e2742a',lead:'What you see when you open CyPress, and how stories are laid out on big screens.',
   main:[{items:['L:Magazine cover on The Daily','L:Story card size','L:Feed text size']}],
-  more:[{items:['M:covers','L:Side-by-side reading','L:Narrow screen layout','L:Varied story layout','L:Story layout on big screens','L:Quiet layout','L:Hide the side bar']},{h:'The Daily',items:['L:Trending strip','L:Must reads']}],
+  more:[{items:['M:covers','L:Side-by-side reading','X:fpst','L:Narrow screen layout','L:Story layout on big screens','L:Hide the side bar']},{h:'The Daily',items:['L:Trending strip','L:Must reads']}],
   rst:['cards','ts','narrow','sop']},
  {id:'tts',t:'Read Aloud',d:'Voice, speed and volume',c:'#1e88e5',lead:'Have CyPress read a story to you. Open a story and tap Listen.',
   main:[{items:['L:Voice','L:Speaking speed','L:Volume']}],
@@ -8815,6 +8816,7 @@ function setItems(items){
   else if(k==='X:motion')out.push(setMotionLine());
   else if(k==='X:sch')out.push(setSchLine());
   else if(k==='X:pics')out.push(setPicsLine());
+  else if(k==='X:fpst')out.push(setFsLine());
   else if(k==='X:resetlook')out.push(setResetLine());
   else out.push(...setTake(k));
  });
@@ -8830,6 +8832,14 @@ function setSchLine(){
  d.innerHTML='<span class="lb">Light, dark or Dynamic<small id="schh"></small></span><div class="schs" id="schv" role="radiogroup" aria-label="Light, dark or Dynamic">'+SCH_OPTS.map(([k,n,l,ic])=>`<button type="button" role="radio" data-sch="${k}" aria-checked="false" aria-label="${l}" tabindex="-1"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ic}</svg><span>${n}</span></button>`).join('')+'</div><div class="schd" id="schd" role="radiogroup" aria-label="Dynamic is" hidden><span>Dynamic is</span>'+[['sys','Match my phone'],['light','Light'],['dark','Dark']].map(([k,n])=>`<button type="button" role="radio" data-dm="${k}" aria-checked="false">${n}</button>`).join('')+'</div>';
  return d}
 /* Pictures: Data saver and Text only were two switches for one idea, so they are one choice (the two saved settings are kept) */
+/* Front page style: Varied, Classic and Quiet were three separate switches for how the lists look; they are one choice (nroom and quiet are still the saved settings) */
+const FS_OPTS=[['varied','Varied','A mix of big photos, headline lists, strips and quotes that changes by feed and day. Choose Compact cards to keep the classic grid.'],['classic','Classic','Equal story cards in an even grid.'],['quiet','Quiet','More white space, muted photos and no badges, for a calmer front page.']];
+function setFsLine(){
+ const d=document.createElement('div');d.className='line';d.id='fsrow';
+ d.innerHTML='<span class="lb">Front page style<small id="fstyh"></small></span><div class="segs" id="fstyv" role="group" aria-label="Front page style">'+FS_OPTS.map(([k,n])=>`<button type="button" data-fsty="${k}" aria-pressed="false">${n}</button>`).join('')+'</div>';return d}
+const fsCur=()=>isOn('quiet')?'quiet':isOn('nroom')?'varied':'classic';
+function fsSync(){const v=$('#fstyv');if(!v)return;const c=fsCur();v.querySelectorAll('[data-fsty]').forEach(b=>{const on=b.dataset.fsty===c;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))});const h=$('#fstyh');if(h)h.textContent=(FS_OPTS.find(x=>x[0]===c)||[])[2]||''}
+set.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-fsty]');if(!b)return;const k=b.dataset.fsty;S.quiet=k==='quiet';S.nroom=k==='varied';save();syncSet();applyFx();try{screenMode()}catch(x){}render()});
 const PIC_HINT={all:'Photos load as usual.',save:'On mobile data, photos are not downloaded ahead of time. On Wi-Fi nothing changes.',none:'No pictures anywhere. Uses far less data.'};
 function setPicsLine(){
  const d=document.createElement('div');d.className='line';d.id='picrow';
@@ -8910,14 +8920,15 @@ function setLeftovers(){
 }
 function setCounts(){document.querySelectorAll('.spage .smore').forEach(m=>{m.querySelector('.smn').textContent=m.querySelectorAll('.line').length+' more'})}
 /* Controls that only matter when their switch is on stay out of sight until it is. */
-const SET_DEPS=[['#alke',()=>isOn('alerts')],['#alkt',()=>isOn('alerts')],['#packh',()=>isOn('pack')],['#packo',()=>isOn('pack')],['#bid',()=>isOn('bi')],['#dgwhen',()=>isOn('dgon')],['#dgwd',()=>isOn('dgwk')],['[data-tg="dglock"]',()=>isOn('dgnotif')],['[data-tg="pfwifi"]',()=>($('#pfm')||{}).value!=='off'],['#dgwk',()=>isOn('dgon')],['[data-tg="fbleed"]',()=>isOn('mag')],['[data-tg="spread"]',()=>isOn('mag')],['[data-tg="lowfx"]',()=>isOn('cyfx')],['[data-tg="dgwk"]',()=>isOn('dgon')]];
-function setDeps(){{const g=document.querySelector('#setpane [data-cg="mocus"]');if(g)g.hidden=!(S.moc||moLevel()==='custom')}SET_DEPS.forEach(([q,f])=>{const c=document.querySelector('#setpane '+q);const l=c&&c.closest('.line');if(l)l.hidden=!f()})}
+const SET_DEPS=[['#alke',()=>isOn('alerts')],['#alkt',()=>isOn('alerts')],['#packh',()=>isOn('pack')],['#packo',()=>isOn('pack')],['#bid',()=>isOn('bi')],['#dgwhen',()=>isOn('dgon')],['#dgwd',()=>isOn('dgwk')],['[data-tg="dglock"]',()=>isOn('dgnotif')],['[data-tg="pfwifi"]',()=>($('#pfm')||{}).value!=='off'],['#dgwk',()=>isOn('dgon')],['[data-tg="fbleed"]',()=>isOn('mag')],['[data-tg="keysOn"]',()=>!matchMedia('(hover:none)').matches],['[data-tg="spread"]',()=>isOn('mag')],['[data-tg="lowfx"]',()=>isOn('cyfx')],['[data-tg="dgwk"]',()=>isOn('dgon')]];
+const SET_INDENT=['#alke','#alkt','#packh','#packo','#bid','#dgwhen','#dgwd','[data-tg="dglock"]','[data-tg="pfwifi"]','[data-tg="fbleed"]','[data-tg="spread"]','[data-tg="lowfx"]'];
+function setDeps(){SET_INDENT.forEach(q=>{const c=document.querySelector('#setpane '+q),l=c&&c.closest('.line');if(l)l.classList.add('sdep')});{const g=document.querySelector('#setpane [data-cg="mocus"]');if(g)g.hidden=!(S.moc||moLevel()==='custom')}SET_DEPS.forEach(([q,f])=>{const c=document.querySelector('#setpane '+q);const l=c&&c.closest('.line');if(l)l.hidden=!f()})}
 set.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('[data-tg="fthon"]')))return;setTimeout(()=>{
  if(!S.fthon&&S.fth&&Object.keys(S.fth).length){S.fthOff=S.fth;delete S.fth;save();applyTheme(false)}/* switching it off pauses the folder themes; they come back when it is switched on again */
  else if(S.fthon&&S.fthOff){S.fth=S.fthOff;delete S.fthOff;save();applyTheme(false)}
  try{fthFill()}catch(x){}syncSet()},0)});
 function setSum(){
- setDeps();schSync();picSync();{const f=$('#fthl');if(f)f.hidden=!isOn('fthon');const h=$('#fthh');if(h&&!isOn('fthon'))h.hidden=true}
+ setDeps();schSync();picSync();fsSync();{const f=$('#fthl');if(f)f.hidden=!isOn('fthon');const h=$('#fthh');if(h&&!isOn('fthon'))h.hidden=true}
  const q=(s)=>document.querySelector(s);const t={};
  const tb=q('#thm button[data-th].on'),sc=schCur(),SCN={sys:'follows phone',light:'always light',dark:'always dark',dynamic:'colors follow stories'};t.look=((S.theme||'auto')==='dynamic'?'Dynamic':(tb?tb.textContent.replace(/\d+$/,'').trim():'Cypress'))+(SCN[sc]&&sc!=='dynamic'?' · '+SCN[sc]:'')+' · '+cvName(S.cvs||'clean')+' cover';t.motion='Motion '+moLevel()+(isOn('lowfx')?' · pauses effects on low battery':'');
  const fb=q('#fgrid [data-fn].on');t.read=(fb&&fb.querySelector('span')?fb.querySelector('span').textContent:'Match theme')+' · '+S.fs+'px · speed '+(S.rate||1).toFixed(1)+'×';
