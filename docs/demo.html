@@ -7319,6 +7319,7 @@ function layout(){noteFix();
  try{fitHero(c,cw,gap)}catch(e){elog('fitHero',e)}
  try{fillVoids(c,cw,gap)}catch(e){elog('fillVoids',e)}
  try{fitPage1(c,cw,gap)}catch(e){elog('fitPage1',e)}
+ try{if(fitWhy(c,cw,gap))fillVoids(c,cw,gap)}catch(e){elog('fitWhy',e)}
  R.np=Math.max(1,Math.ceil(Math.round((c.scrollWidth+gap)/(cw+gap))/R.cpv));
  try{trimBlankPages(c)}catch(e){elog('trimBlankPages',e)}
  /* Never-blank guard: if the column measurements collapsed (non-sane column
@@ -15205,6 +15206,16 @@ function fitPage1(c,cw,gap){
  undo();m.style.display='none';/* the box does not fit beside the picture: leave it out so the story text still starts in column 2 */
  if(fits())return;
  shrink();
+}
+/* the story text normally starts at the top of a fresh column (#rd.cpv2 .cols .body>:first-child). On page 1 the "Why it matters" box can land at the top of column 2 when it does not fit under the picture block; the forced break then pushed the text to the next page and left the rest of column 2 empty. In that case the text follows the box. Returns true when the break was lifted. */
+function fitWhy(c,cw,gap){
+ const bd=c.querySelector(':scope>.body'),f=bd&&bd.firstElementChild;if(!f)return false;
+ f.style.removeProperty('break-before');
+ if(R.cpv!==2||R.web||isVert())return false;
+ const w=c.querySelector(':scope>.whyit');if(!w||!w.getClientRects().length)return false;
+ const pitch=cw+gap,ci=Math.floor((w.getBoundingClientRect().left-c.getBoundingClientRect().left+2)/pitch);
+ if(ci<1)return false;
+ f.style.setProperty('break-before','auto');return true;
 }
 /* the page count comes from the width of the column strip, which can run a column or two past the last text (a margin, a hidden box); a page with nothing on it is never offered */
 function trimBlankPages(c){

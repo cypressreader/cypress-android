@@ -528,3 +528,7 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - Open a short story (about 5 pages) and a long, picture-heavy one in the same session and turn pages in both: every turn is the bowed book page, never the old flat card. Turn forward and back.
 - Settings > Copy diagnostics shows a "Page turns" line, e.g. "strips default · flat here no · last 12: curl 16, curl 16 ...". If a story ever turns flat, the line says why (too heavy, slow on this story, reduced motion).
 - A very heavy story should show fewer strips (e.g. "curl 8") rather than "flat". Send me the Page turns line if you still see a flat turn.
+
+## Page 1: no empty column before the story text (unverified on device)
+- Open a story with a picture and a "Why it matters" box on the Fold (two pages side by side): the story text starts right under the box on page 1, no big empty space and no need to turn the page first.
+- Stories without a box, or where the box fits under the picture, still start the text at the top of the right column.
