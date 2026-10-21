@@ -513,3 +513,8 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - Samsung Z Fold, Android app: open a story, Listen. The whole sentence being read is shaded and moves on to the next sentence when the voice does, on every voice you try (Samsung, Google). No single-word marker any more in the app.
 - Check the voice does not sound choppier than before (each sentence is now its own spoken piece). The page should still scroll or turn by itself.
 - Browser (Brave): same, after about two seconds if the voice sends no word timings.
+
+## Cheap fixes from the diagnostics (unverified on device)
+- Plugged in on Wi-Fi: Settings > Copy diagnostics shows "cap 60 of 40" (it was 40 of 40); stories prepared goes above 40.
+- Open a story, switch apps for a minute, come back: Copy diagnostics no longer lists a huge wait for that open.
+- After a refresh where many feeds failed at once (e.g. a Wi-Fi switch), most of them recover on their own about 15 seconds later.
