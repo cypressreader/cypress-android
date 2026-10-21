@@ -114,12 +114,16 @@ ck(vp,'read-state sane after open',await E(()=>typeof S.read==='object'));
  const setInfo=await E(()=>{const d=$('#set').getBoundingClientRect();return{w:d.width,h:d.height,iw:innerWidth,ih:innerHeight,ov:$('.sbody').scrollWidth>$('.sbody').clientWidth+1}});
  ck(vp,'settings fits screen',setInfo.w<=setInfo.iw&&setInfo.h<=setInfo.ih&&!setInfo.ov,JSON.stringify(setInfo));
  await p.screenshot({path:`/tmp/t/deep-${vp}-settings.png`});
- await E(()=>document.querySelectorAll('#thm details').forEach(d=>d.open=true));for(const th of ['dark','broadsheet','dynamic','light','auto']){await tap(`[data-th="${th}"]`);await p.waitForTimeout(80);ck(vp,'theme '+th,await E(t=>S.theme===t&&document.documentElement.dataset.theme===t,th))}
+ await E(()=>document.querySelectorAll('#thm details').forEach(d=>d.open=true));for(const th of ['broadsheet','auto']){await tap(`[data-th="${th}"]`);await p.waitForTimeout(80);ck(vp,'theme '+th,await E(t=>S.theme===t&&document.documentElement.dataset.theme===t,th))}
+ /* Dynamic, Light and Dark are the tiles at the top of Look (the Light and Dark themes were retired: Light & Dark plus a tile covers them) */
+ await tap('[data-sch="dynamic"]');await p.waitForTimeout(150);ck(vp,'theme dynamic',await E(()=>S.theme==='dynamic'&&document.documentElement.dataset.theme==='dynamic'));
+ for(const m of ['light','dark']){await tap(`[data-sch="${m}"]`);await p.waitForTimeout(150);ck(vp,'theme '+m,await E(m=>S.sch===m&&S.theme==='auto'&&(m==='dark'?document.documentElement.dataset.theme==='dark':/^(auto|light)$/.test(document.documentElement.dataset.theme)),m))}
+ await E(()=>{S.sch='theme';save();applyTheme(false);syncSet()});await p.waitForTimeout(100);
  await tap('[data-fn="literata"]');ck(vp,'font tile',await E(()=>S.font==='literata'));
  await tap('[data-fs="1"]');ck(vp,'text size +',await E(()=>S.fs===19));await tap('[data-fs="-1"]');
  for(const k of ['just','group','hideRead','autoWeb','autoReader','queue']){const before=await E(k=>$(`.tg[data-tg="${k}"]`).classList.contains('on'),k);await tap(`.tg[data-tg="${k}"]`);await p.waitForTimeout(60);const after=await E(k=>$(`.tg[data-tg="${k}"]`).classList.contains('on'),k);ck(vp,'toggle '+k,before!==after);await tap(`.tg[data-tg="${k}"]`);await p.waitForTimeout(60)}
- for(const [id,v] of [['#lhs','1.9'],['#mgn','0.6'],['#srt','source'],['#arf','15'],['#pfm','feeds']]){await p.selectOption(id,v);ck(vp,'select '+id,true)}
- ck(vp,'select values stored',await E(()=>S.lh===1.9&&S.mg===0.6&&S.sort==='source'&&S.auto===15&&S.pfm==='feeds'));
+ for(const [id,v] of [['#lhs','1.9'],['#mgn','0.6'],['#srt','source'],['#arf','15'],['#pfm','50']]){await p.selectOption(id,v);ck(vp,'select '+id,true)}
+ ck(vp,'select values stored',await E(()=>S.lh===1.9&&S.mg===0.6&&S.sort==='source'&&S.auto===15&&S.pfm==='custom'&&S.pfn===50));
  const [dl]=await Promise.all([p.waitForEvent('download',{timeout:3000}).catch(()=>null),tap('#exp')]);ck(vp,'OPML export downloads',!!dl);
  const [dl2]=await Promise.all([p.waitForEvent('download',{timeout:3000}).catch(()=>null),tap('#bke')]);ck(vp,'backup export downloads',!!dl2);
  await tap('#mut');await p.waitForTimeout(200);const mutOpen=await E(()=>[...document.querySelectorAll('dialog')].filter(d=>d.open).map(d=>d.id));ck(vp,'muted words editor opens',mutOpen.length>=1,mutOpen.join());
@@ -130,7 +134,7 @@ ck(vp,'read-state sane after open',await E(()=>typeof S.read==='object'));
  await E(()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close()));
  await openSide();await tap('#gear');await p.waitForTimeout(300);await E(()=>{syncRl();$('#rl').showModal()});await p.waitForTimeout(300);ck(vp,'relay dialog',await E(()=>$('#rl').open));
  await E(()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close()));
- // preload with checkmarks (feeds mode set above)
+ // preload with checkmarks (keep 50 ready, set above)
  await E(()=>{S.sel='all';PF.done.clear();PF.n=0;render()});await p.waitForTimeout(9000);
  const pre=await E(()=>({marks:document.querySelectorAll('#grid .rdy').length,ok:PF.ok,cached:Object.keys(AC).length}));
  ck(vp,'preload caches stories',pre.cached>=10,JSON.stringify(pre));ck(vp,'check marks appear',pre.marks>=10,JSON.stringify(pre));

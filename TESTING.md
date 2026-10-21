@@ -472,3 +472,54 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 
 ## Step 0 measurement (unverified)
 - Use the app for a day (include a cold open in the morning, tap Daily stories straight away). Settings > Copy diagnostics, paste it: "Story opening" shows ready/stored/network counts and times; "Preload" shows netKind, connection.type and the cap. If connection.type is undefined and netKind is unknown, the Fold is capped at 6 stories.
+
+## Share = link only (unverified)
+- Android: open a story, Share. The share sheet should offer text "Read this in CyPress: https://cypressreader.com/s/..." and no picture. Send it to Discord/Messages/WhatsApp: the app's own preview should appear once, and the link should open the CyPress page with "Read the full story".
+
+## Settings reorganized (unverified on device)
+- Settings on phone and tablet: Feeds and Stories holds Manage feeds and Import or export feeds; Downloads and Storage holds Get stories ready, Wi-Fi, offline, back issues. Android: Morning pack and Pack time show under Downloads and Storage.
+- Turn Story alerts, Morning pack, Keep back issues, Daily digest off: their extra rows (keywords/Test, Pack time/Open, days, edition) disappear; on: they return.
+- Switches look like real switches, flip with a tap, and TalkBack still reads On/Off.
+- Shorten shared links is under About and Help > More Options > Sharing.
+
+## Search button stays pale (unverified)
+- Halcyon (and other dark-header themes) on a phone: tap the magnifier, then the search box opens; the round button keeps the header color (no pale circle). Also check the other round header buttons after a tap.
+
+## Daily section headers (unverified on device)
+- Halcyon light and dark, phone and tablet: each Today section shows trees with a sun (morning) or moon (evening), the VOL/number/No. row, the big caps title and the small tagline. Check long titles wrap and nothing is clipped; check the "In this issue" links still jump to the right section.
+
+## Theme renames and Light/dark tiles (unverified on device)
+- Settings > Look and Layout: Light or dark is the first thing on the page. Tap Phone, Light, Dark, Theme: the app changes at once, the caption changes, TalkBack reads it as a selected option. Arrow keys move between tiles.
+- Advanced Color Palettes > Plain & Simple: Cypress first, then Light & Dark, Black & White. Black & White + Dark gives a true black page.
+
+## Settings search and folder switch (unverified on device)
+- Settings search: type "make text bigger", "dark mode", "stop notifications at night", "too much mobile data", "add a website"; the right setting is first or near the top.
+- Theme by folder: switch it off, the folder looks go away; switch it on, they return.
+
+## Settings decluttering (unverified on device)
+- Every Settings page: the common settings are visible, the rest are under Advanced. Open Advanced on Look, Reading, Feeds, Downloads: nothing is lost, Reset this section is at the bottom of it.
+- Battery and Motion: Custom shows the seven detail switches; Full, Calm or Off hide them.
+- Settings home: each row shows its current value.
+
+## Settings audit pass (unverified on device)
+- Downloads and Storage > Pictures: Show all / Save data on mobile / No pictures. No pictures hides every photo; the other two bring them back.
+- Settings > Look > Advanced shows The Daily group (Trending strip, Must reads); Reading > Advanced shows Websites and Moving between stories; Feeds > Advanced shows Filtering, Adding sites, Kindle.
+
+## Front page style and magazine group (unverified on device)
+- Look > Advanced > Front page style: Varied, Classic, Quiet each change the front page at once (Varied is the default).
+- Reading > Advanced > Magazine look: turn Magazine touches off; Photo pages and Feature spread disappear.
+
+## Read-aloud sentence highlight (confirmed better on Samsung Z Fold; still try a second voice)
+- Samsung Z Fold, Android app: open a story, Listen. The whole sentence being read is shaded and moves on to the next sentence when the voice does, on every voice you try (Samsung, Google). No single-word marker any more in the app.
+- Check the voice does not sound choppier than before (each sentence is now its own spoken piece). The page should still scroll or turn by itself.
+- Browser (Brave): same, after about two seconds if the voice sends no word timings.
+
+## Cheap fixes from the diagnostics (unverified on device)
+- Plugged in on Wi-Fi: Settings > Copy diagnostics shows "cap 60 of 40" (it was 40 of 40); stories prepared goes above 40.
+- Open a story, switch apps for a minute, come back: Copy diagnostics no longer lists a huge wait for that open.
+- After a refresh where many feeds failed at once (e.g. a Wi-Fi switch), most of them recover on their own about 15 seconds later.
+
+## Stored-story budgets (unverified on device)
+- Settings > Downloads and Storage: Keep 50 / 100 / 200 ready. Copy diagnostics shows "saved N · today N · rolling N of 100".
+- Save a few stories, use the app for a day: saved and today never drop; rolling stays at the chosen number and the oldest (read ones first) are replaced.
+- Turn on "Fill up only while charging": unplugged on Wi-Fi it stops at 50; plug in and it fills up to your number.

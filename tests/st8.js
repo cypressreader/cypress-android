@@ -32,7 +32,7 @@ for(const [vp,w,h,touch] of [['phone',380,820,true],['desktop',1280,900,false]])
    await E(()=>document.querySelector('#ra').click());await p.waitForTimeout(900);
    ck(tag+' speak called',await E(()=>window.__calls.some(c=>c[0]==='speak'&&c[1].text.length>20)));
    ck(tag+' TTS on and advancing',await E(()=>TTS.on&&TTS.wi>0),JSON.stringify(await E(()=>({on:TTS.on,wi:TTS.wi}))));
-   ck(tag+' highlight',await E(()=>{try{return CSS.highlights.has('tts')}catch(e){return true}}));
+   ck(tag+' highlight',await E(()=>{try{return CSS.highlights.has('tts')||CSS.highlights.has('tts-s')}catch(e){return true}}));
    await E(()=>document.querySelector('#ra').click());await p.waitForTimeout(200);
    ck(tag+' pause calls stop',await E(()=>window.__calls.some(c=>c[0]==='stop')));
    ck(tag+' paused state',await E(()=>TTS.paused===true));

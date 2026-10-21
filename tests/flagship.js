@@ -25,7 +25,7 @@ const svg=i=>`<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000"
   ck(`${W}: list source line is tracked small caps`,R.list.tr==='uppercase'&&R.list.ls>=1.2,JSON.stringify(R.list));
   ck(`${W}: card view has 12px corners, an inner frame line and no drop shadow`,R.cards.radius==='12px'&&/inset/.test(R.cards.shadow)&&!/rgba\(0, 0, 0, 0\.\d+\) 0px [1-9]/.test(R.cards.shadow)&&R.cards.outline==='1px',JSON.stringify(R.cards));
   ck(`${W}: magazine density: no card headline is bigger than 26px (lead ${R.cards.h3}px, companion ${R.cards.rowh3}px)`,R.cards.h3<=26&&R.cards.rowh3<=26&&R.cards.h3>=16,JSON.stringify(R.cards));
-  ck(`${W}: columns density has vertical rules and a serif face`,R.col.n>0&&R.col.rule==='1px'&&/serif|Newsreader|Georgia|Source|Literata|Merri|Garamond|Playfair|Lora|Charter/i.test(R.col.ff),JSON.stringify(R.col));
+  ck(`${W}: columns density has vertical rules and a serif face`,R.col.n>0&&R.col.rule==='1px'&&/serif|CyPress Display|Newsreader|Georgia|Source|Literata|Merri|Garamond|Playfair|Lora|Charter/i.test(R.col.ff),JSON.stringify(R.col));
   ck(`${W}: no page errors`,!errs.length,errs[0]);await p.close()}
  /* ---- reader ---- */
  for(const [W,H] of [[1280,800],[390,800]]){
