@@ -18,7 +18,7 @@ for(const [vp,w,h,touch] of VPS){
  await p.waitForTimeout(3000);
  await p.waitForFunction(()=>!document.body.classList.contains('lp'),null,{timeout:15000}).catch(()=>{});
  ck(vp,'progress clears when done',await E(()=>!document.body.classList.contains('lp')));
- ck(vp,'default preload mode top10',await E(()=>pfMode()==='top10'));
+ ck(vp,'default preload is keep 100 ready',await E(()=>pfMode()==='custom'&&pfN()===100));
  // top 10 in view cached
  await E(()=>{S.sel='all';S.capn=0;render()});await p.waitForTimeout(6000);
  const c10=await E(()=>{const by=storyMap();const l=[...document.querySelectorAll('#grid .card[data-i]')].map(c=>by.get(chref(c))).filter(Boolean).slice(0,10);return l.filter(a=>acGet(a.link)).length+'/'+l.length});
