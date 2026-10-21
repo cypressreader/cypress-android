@@ -518,3 +518,8 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - Plugged in on Wi-Fi: Settings > Copy diagnostics shows "cap 60 of 40" (it was 40 of 40); stories prepared goes above 40.
 - Open a story, switch apps for a minute, come back: Copy diagnostics no longer lists a huge wait for that open.
 - After a refresh where many feeds failed at once (e.g. a Wi-Fi switch), most of them recover on their own about 15 seconds later.
+
+## Stored-story budgets (unverified on device)
+- Settings > Downloads and Storage: Keep 50 / 100 / 200 ready. Copy diagnostics shows "saved N · today N · rolling N of 100".
+- Save a few stories, use the app for a day: saved and today never drop; rolling stays at the chosen number and the oldest (read ones first) are replaced.
+- Turn on "Fill up only while charging": unplugged on Wi-Fi it stops at 50; plug in and it fills up to your number.
