@@ -523,3 +523,32 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - Settings > Downloads and Storage: Keep 50 / 100 / 200 ready. Copy diagnostics shows "saved N · today N · rolling N of 100".
 - Save a few stories, use the app for a day: saved and today never drop; rolling stays at the chosen number and the oldest (read ones first) are replaced.
 - Turn on "Fill up only while charging": unplugged on Wi-Fi it stops at 50; plug in and it fills up to your number.
+
+## Page turn: book curl in every story (unverified on device)
+- Open a short story (about 5 pages) and a long, picture-heavy one in the same session and turn pages in both: every turn is the bowed book page, never the old flat card. Turn forward and back.
+- Settings > Copy diagnostics shows a "Page turns" line, e.g. "strips default · flat here no · last 12: curl 16, curl 16 ...". If a story ever turns flat, the line says why (too heavy, slow on this story, reduced motion).
+- A very heavy story should show fewer strips (e.g. "curl 8") rather than "flat". Send me the Page turns line if you still see a flat turn.
+
+## Page 1: no empty column before the story text (unverified on device)
+- Open a story with a picture and a "Why it matters" box on the Fold (two pages side by side): the story text starts right under the box on page 1, no big empty space and no need to turn the page first.
+- Stories without a box, or where the box fits under the picture, still start the text at the top of the right column.
+
+## All stories: New tag, magazine look, quote cards (unverified on device)
+- Pull to refresh on All stories until the "N new stories - tap to load" pill appears, then tap it: the list re-ranks, scrolls to the top, and the stories that were waiting show a small "New" tag. Switching to another list clears the tags.
+- Phone: lead cards are taller with a bigger headline; photo cards show more of the picture while the white text stays easy to read on bright photos; cards with no picture show a faint big initial behind the headline.
+- Section headers (Last hour, This morning ...): story count sits above the title, a short bar under the line. Check the pinned header while scrolling is not too tall.
+- A date heading ("Thursday, October 22") sits under the filter chips. Top stories / Quick reads / Deep reads keep their own headings.
+- About every fifth card on the phone can be a centered quote card with "Read the story": tapping it opens the story. No quote cards on a tablet or wide window (by design). Look for double quote marks or odd cut-offs.
+- Light, dark and a few themes (Cypress, Black & White) still look right with the above.
+
+## Short sites read ahead first (unverified on device)
+- Add a site whose feed only carries a few lines (a teaser feed), refresh, then on Wi-Fi leave the list open for a minute: its stories should open with the full text ready (no wait). Settings > Copy diagnostics slow-open counts should not get worse.
+- Paywalled sites are not fetched ahead beyond what the app did before.
+
+## Tracking tags removed from outgoing links; Short sites first switch (unverified on device)
+- Open a story whose link has "?utm_source=..." (most newsletter-style feeds), then "Open in browser" / "Open the original story": the address in the browser has no utm_/fbclid tags. Share a story as a plain link (turn off short links): the same. Links with other parameters (a search term, an id) are left alone.
+- Settings > Downloads and Storage: "Short sites first" is on by default, greyed out when "Get stories ready in advance" is Off, and has its own spoken name for a screen reader.
+
+## Slow story: "Read it on the site" after 10 seconds (unverified on device)
+- Open a story from a slow site (9to5google, lifehacker, The Atlantic were slow in the 2026-10-22 diagnostics). While "Loading the full article…" counts the seconds, after 10 seconds a "Read it on the site" button appears next to it. Tap it: the site opens inside the reader (same as the globe button), and the text version is still reachable with the same button.
+- A story that loads in under 10 seconds never shows the button.
