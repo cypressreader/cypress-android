@@ -552,3 +552,7 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 ## Slow story: "Read it on the site" after 10 seconds (unverified on device)
 - Open a story from a slow site (9to5google, lifehacker, The Atlantic were slow in the 2026-10-22 diagnostics). While "Loading the full article…" counts the seconds, after 10 seconds a "Read it on the site" button appears next to it. Tap it: the site opens inside the reader (same as the globe button), and the text version is still reachable with the same button.
 - A story that loads in under 10 seconds never shows the button.
+
+## Junk button hides a whole box (unverified on device)
+- In a story that has a sign-up or promo box (a heading with a bullet list under it), long-press the heading, drag the handle down to the last bullet, then tap Junk: the whole box disappears ("Hidden. Thanks...") and Undo brings it back. Before this fix it said "Could not find that block" unless you selected a single bullet.
+- Selecting most of the story and tapping Junk shows "That is too much of the story to hide" and hides nothing.
