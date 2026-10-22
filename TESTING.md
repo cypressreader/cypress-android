@@ -564,3 +564,4 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 ## Stubborn story: slow routes now start alongside the search (1.125, branch)
 - Open a story from a site that blocks the app. Expect: no flash of the "Couldn't get the full story" message, one wait, then either the full story or the final message with a **Try again** button.
 - Total wait should be shorter than before (was: syndication search up to 34 s, then 30 s more).
+- At 16 s the loading note no longer says 'Blocked' with a Try again button while routes are still running; it says the app is still trying other routes. 'Try again' appears only when everything has failed.
