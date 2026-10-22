@@ -4346,6 +4346,10 @@ function markRestricted(a,text,attempted){
 const pwBadge=a=>isRestrictedStory(a)?`<span class="pwt" title="${a.rkind==='teaser'?'Only a short teaser is available':'Needs a subscription'}">🔒 ${a.rkind==='teaser'?'TEASER':'SUBSCRIBER'}</span>`:'';
 /* a feed that only ever sends short snippets, judged from a preview of its stories */
 const teaserFeed=l=>{l=(l||[]).slice(0,10);if(l.length<3)return false;const avg=l.reduce((n,a)=>n+String(a.summary||'').replace(/<[^>]*>/g,' ').trim().split(/\s+/).filter(Boolean).length,0)/l.length;return avg<45&&!l.some(a=>a.ce)};
+/* short feeds: a site whose feed carries only a few lines is remembered, so its full pages are read ahead first. The answer is worked out again at every refresh,
+   so a site that starts sending whole stories drops off the list by itself. Paywalled sites are left out: nothing here tries to get past a paywall. */
+function shortNote(f,got){try{if(!f||!got||got.length<3)return;const m=S.shortF=S.shortF||{},was=!!m[f.id],now=teaserFeed(got)&&!isRestrictedFeed(f);if(now&&!was){m[f.id]=Date.now();saveSoon()}else if(!now&&was){delete m[f.id];saveSoon()}}catch(e){}}
+const isShortFeed=f=>!!(f&&S.shortF&&S.shortF[f.id]);
 function fixA(a){if(a&&a.dd!==3){a.title=cleanT(a.title);a.summary=cleanT(a.summary);if(a.gn||/news\.google\.com/.test(a.link||''))a.title=a.title.replace(/\s+[-–|]\s+[^-–|]{2,40}$/,'');a.dd=3}return a}
 const CK='folio-cache';
 /* a feed that runs on headline-search stand-ins (Google News / Bing) keeps only its own site's stories: ones saved before that rule, from other sites or whose site cannot be told, are left out when the saved copy is read back (the next refresh brings the right ones) */
@@ -5008,7 +5012,7 @@ async function load0(f,fresh){
  if(!S.feeds.includes(f)){delete items[f.id];delete state[f.id];LP.f++;pfBar();return}
  if(got){got=noTwins(got).filter(a=>!isCouponSpam(a));/* B22: a feed's stories must be from its own site - drop strays from any aggregation path that skipped the onSite filter */
   try{const sd=siteOf(f);if(sd){const n0=got.length;got=got.filter(a=>{if(a.os)return true;return onSite(host(a.link),sd)});if(n0>got.length)(FLG[f.id]=FLG[f.id]||[]).push('dropped '+(n0-got.length)+' off-site stories')}}catch(e){}
-  items[f.id]=got;dropGeneric(got)}
+  items[f.id]=got;dropGeneric(got);shortNote(f,got)}
  {const pv=S.health[f.id]||{},now=Date.now();S.health[f.id]=state[f.id]==='ok'?{ok:now}:(navigator.onLine?{...pv,fail:now,fn:(pv.fn||0)+1,ff:pv.ff||now}:pv)}saveSoon();
  LP.f++;pfBar();
  if(state[f.id]==='ok')applyRules(f);loadRender();gnPrefetch(items[f.id]).then(()=>enrich(f.id));if($('#mng').open)renderMng();
@@ -7976,11 +7980,15 @@ function prefetch(list,first){
   if(a.date&&Date.now()-a.date>14*864e5)continue;
   PF.done.add(a.link);add.push(a);PF.n++;PF.tot++;
  }
+ /* stories from short-feed sites go to the front of the line */
+ if(S.shortF&&add.length>1){const w=a=>isShortFeed(S.feeds.find(x=>x.id===a.feedId))?0:1;add.sort((x,y)=>w(x)-w(y))}
  if(first)PF.q.unshift(...add);else PF.q.push(...add);
  pfBar();pump();
 }
 /* the nearest stories start getting ready as soon as a list is showing (a feed switch, a refresh), not only after one is opened */
-function pfKick(){clearTimeout(pfKick.t);pfKick.t=setTimeout(()=>{if(!pfAllowed()||document.hidden)return;prefetch(pfList(),true)},1500)}
+/* the newest unread stories of each short-feed site, even when no list on screen shows them */
+function shortAhead(){try{const o=[];for(const f of S.feeds){if(!isShortFeed(f)||paused(f))continue;o.push(...(items[f.id]||[]).filter(a=>a&&a.link&&!S.read[a.link]&&!muted(a)).sort((x,y)=>y.date-x.date).slice(0,3))}return o}catch(e){return[]}}
+function pfKick(){clearTimeout(pfKick.t);pfKick.t=setTimeout(()=>{if(!pfAllowed()||document.hidden)return;prefetch(pfList().concat(shortAhead()),true)},1500)}
 /* while scrolling, the next ten cards below the screen are read ahead once the finger stops */
 function pfAhead(){
  if(!pfAllowed()||document.hidden||!pfTop())return;
