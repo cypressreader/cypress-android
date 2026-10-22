@@ -8495,7 +8495,7 @@ async function openReader(a){
  if(online()&&!TRUNCDONE.has(a.link)&&(needsMore(n,src)||truncReason(n,src))){const dr=await Promise.race([deeperTiers(a,n,src),new Promise(r=>setTimeout(()=>r(null),34000))]);if(my!==tok)return;if(dr&&dr.n){n=dr.n;src=dr.src}}
  if(my!==tok)return;
  if(!n&&deepP){const d=await Promise.race([deepP,new Promise(r=>setTimeout(()=>r(null),30000))]);if(my!==tok)return;if(d){const df=tidy(d.cloneNode(true));if(df.textContent.length>600&&textQuality(df.textContent).ok){df.tier='deep';n=df}}}
- mzDone(n?'network':'feed',a,src!==a.link?'mirror':(n&&n.tier)||'direct');
+ mzDone(n?'network':'feed',a,src!==a.link?'mirror':(n&&n.tier)||(deepRan?'slow routes failed':'direct'));
  ALT=src!==a.link?src:(!n&&alts[0]?alts[0]:'');
  if(n&&n.textContent.length>Math.max(600,body.textContent.length+100)){
   a.tier=n.tier||(src!==a.link?'mirror':'direct');
@@ -10713,6 +10713,7 @@ function mzDone(k,a,r){try{if(!MZ.t0||MZ.a)return;MZ.a=a;let h='';try{h=new URL(
 function mzSum(){const o=['','Story opening (last '+MZ.L.length+' taps)'];
  try{const by={};MZ.L.forEach(x=>(by[x.k]=by[x.k]||[]).push(x.ms));
   for(const k of Object.keys(by)){const v=by[k].sort((a,b)=>a-b);o.push(' '+k+': '+v.length+' · median '+v[v.length>>1]+' ms · slowest '+v[v.length-1]+' ms')}
+  const dp=MZ.L.filter(x=>x.r==='deep'||x.r==='slow routes failed');if(dp.length)o.push(' stubborn stories (slow routes ran alongside the search): '+dp.length+' · rescued '+dp.filter(x=>x.r==='deep').length+' · median '+dp.map(x=>x.ms).sort((m,n)=>m-n)[dp.length>>1]+' ms');
   const sl=MZ.L.filter(x=>x.ms>3000).slice(-8);if(sl.length)o.push(' slow (over 3 s): '+sl.map(x=>x.k+' '+x.h+(x.r?' via '+x.r:'')+' '+Math.round(x.ms/100)/10+'s').join(' | '))}catch(e){}
  try{o.push('Page turns: strips '+(curlN>0?curlN:'default')+' · flat here '+(curlFlat?'yes':'no')+' · last '+curlLog.length+': '+(curlLog.join(', ')||'none yet'))}catch(e){}
  try{const P=acPools();o.push('Stored stories: saved '+P.saved+' · today '+P.today+' · rolling '+P.rolling+' of '+P.cap)}catch(e){}
