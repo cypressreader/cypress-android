@@ -565,3 +565,8 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - Open a story from a site that blocks the app. Expect: no flash of the "Couldn't get the full story" message, one wait, then either the full story or the final message with a **Try again** button.
 - Total wait should be shorter than before (was: syndication search up to 34 s, then 30 s more).
 - At 16 s the loading note no longer says 'Blocked' with a Try again button while routes are still running; it says the app is still trying other routes. 'Try again' appears only when everything has failed.
+
+## Feed descriptions, Preview and shorter setup (1.125, branch)
+- Setup step 2: each topic shows 8 sites with a one-line description, the first 3 ticked, 'Show N more' below. 'Add the first 3' replaces 'Add all'. Check on a phone that two topics fit without a wall and that the tick circles stay readable.
+- Add a feed > Browse topics: well-known sites show a description; 'Preview' (was 'How often does it post?') shows how often and the 3 latest headlines. Needs real network: try a site that blocks the app and confirm 'Couldn't check this one'.
+- Not done: search box inside setup step 2; sites outside the first 8 of each topic have no description yet (they show their address).
