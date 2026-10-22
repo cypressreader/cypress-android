@@ -556,3 +556,7 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 ## Junk button hides a whole box (unverified on device)
 - In a story that has a sign-up or promo box (a heading with a bullet list under it), long-press the heading, drag the handle down to the last bullet, then tap Junk: the whole box disappears ("Hidden. Thanks...") and Undo brings it back. Before this fix it said "Could not find that block" unless you selected a single bullet.
 - Selecting most of the story and tapping Junk shows "That is too much of the story to hide" and hides nothing.
+
+## Junk hides the whole box; many more sign-up phrases (unverified on device)
+- Long-press ONE word inside a sign-up box (heading + bullets, a promo card) and tap Junk: the whole box goes in one step, Undo brings it back. A stray line in the middle of the story still hides just that line.
+- Open stories from a few sites that have sign-up boxes, account prompts, "Already have an account?", "Thanks for reading ... Subscribe for free", Medium member boxes, "Listen on Spotify" rows: they should be gone. Tell me about any story paragraph that disappeared by mistake (send Settings, Junk log / the story link).

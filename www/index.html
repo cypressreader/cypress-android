@@ -5900,7 +5900,34 @@ const JK={
   /^\W*(getty images|getty|reuters|afp|epa|epa-efe|pa media|pa wire|associated press|ap photo|ap|shutterstock|alamy|bloomberg|anadolu|rex|(ap|reuters|getty images?)\/[\w .-]{2,30})( via [\w .-]{1,30})?\W*$/i,
   /^\W*view (image|photo|gallery) in (fullscreen|full screen)\W*$/i,
   /^\W*(show|hide) (caption|more|less)\W*$/i,
-  /^\W*\[ ?x? ?\]\s*(on|off)\W*$/i
+  /^\W*\[ ?x? ?\]\s*(on|off)\W*$/i,
+  /* account and sign-up boxes inside stories: a heading that promises benefits, the list of benefits, the small print, the "already a member" line */
+  /^\W*unlock\b.{0,70}\b(content|features|access|benefits|articles|stories|perks)\b.{0,50}\b(free|account|sign|log)/i,
+  /^(?=(?:.{0,260}?\b(fewer ads|ad-?free|personali[sz]e (your|content|the)|tailored to your interests|top authors|exclusive (features|content|offers|newsletters)|follow (and|&) like|engage in discussions|save your favou?rites|sync across devices)\b){2})/i,
+  /^\W*(engage|join|take part) in (the )?(discussions?|conversations?)\b.{0,40}$/i,
+  /^\W*by (creating (an|your) account|signing up|subscribing|registering|joining|continuing|clicking|submitting)\b.{0,80}\b(you )?(agree|accept|consent|acknowledge)/i,
+  /^\W*already (have an account|a (member|subscriber|user|paid subscriber))\??.{0,40}$/i,
+  /^\W*(log ?in|sign ?in) (or|and) (sign ?up|register|create (an )?account|join)\b.{0,40}$/i,
+  /^\W*(create|start|open|get) (a |your )?(free )?(account|profile)( now| today| for free)?\W*$/i,
+  /^\W*(sign up|register|join|subscribe)( now| today| here)?( for| it'?s)? free\W*$/i,
+  /^\W*(sign|log) in to (continue|keep reading|read (more|the rest)|unlock)\b.{0,40}$/i,
+  /^\W*(thanks|thank you) for (signing up|subscribing|joining)\b.{0,60}$/i,
+  /^\W*(check|look in|see) your (inbox|e-?mail)\b.{0,60}$/i,
+  /\b(subscribe|sign up|register)( for free| now| today| here)? (to )?(get|receive|and get|and receive|for)\b.{0,50}\b(newsletters?|updates|alerts|stories|emails?)\b/i,
+  /^\W*(never miss|don'?t miss (out|a (story|thing|update))|stay (up to date|informed|ahead|in the loop)|get the (latest|best|top) (news|stories|of))\b.{0,90}\b(inbox|e-?mail|newsletter|alerts?|sign up|subscribe)\b/i,
+  /^\W*(get|download|install) (the )?(free |our |new )?(\w+ )?app\b.{0,60}$|^\W*(available|download) (on|from|in) the (app store|google play)\b|^\W*get it on (google play|the app store)\W*$/i,
+  /^\W*(listen|read) (to )?this (article|story|post)(\s.{0,40})?\W*$/i,
+  /^\W*(listen|subscribe) (on|via|with) (apple podcasts?|spotify|google podcasts?|amazon music|youtube music|pocket casts|overcast|stitcher|iheart ?radio)\b.{0,60}$/i,
+  /^\W*(share|post|send|tweet|pin|save|email) (this )?(story|article|post|page)?\s*(on|to|via|with) (facebook|twitter|x|whatsapp|linkedin|reddit|pinterest|flipboard|messenger|e-?mail|bluesky|threads)\W*$/i,
+  /^\W*(support|help (fund|support|us)|donate|contribute|make a (contribution|donation|gift)|become a (member|supporter|friend))\b.{0,70}\b(journalism|reporting|nonprofit|independent|newsroom|mission|work|us|today|now)\W*$/i,
+  /^\W*(your|our) (support|donation|membership|contribution|generosity) (helps|powers|funds|keeps|makes|means|allows)\b.{0,100}$/i,
+  /^\W*(thanks|thank you) for reading\b.{0,80}\b(subscribe|share|support|follow|sign up|join)\b/i,
+  /^\W*subscribe (for free )?to receive new posts\b|^\W*upgrade to paid\W*$|^\W*discussion about this post\W*$|^\W*leave a comment\W*$|^\W*ready for more\??\W*$|^\W*(already a )?paid subscriber\?? sign in\W*$/i,
+  /^\W*(member-only story|press enter or click to view image in full size|sign up to discover human stories|distraction-free reading|organi[sz]e your knowledge with lists and highlights|tell your story\.? find your audience|earn money for your writing|listen to audio narrations|read offline with the medium app|support writers you read most)\b/i,
+  /^\W*(was this (article|story|post) helpful|did you (enjoy|like) this (article|story)|what do you think\?|tell us what you think|have a (tip|story)\?|send us a tip)\b.{0,60}$/i,
+  /^\W*(more|top|latest|trending|popular|related|recommended|editor'?s picks?) (stories|news|articles|reads|from [^.]{2,40}|videos?)( for you| right now| today)?\W*$/i,
+  /^\W*(most (read|popular|shared|viewed|emailed|commented)|top stories|more to explore|keep reading|continue reading|you might also like|you may also like|around the web|from our partners|sponsored links|promoted links)\W*$/i,
+  /^\W*(advertis(e|ing|ement) (with us|here)|ad choices|adchoices|do not sell( or share)? my (personal )?(info|information)|your privacy choices|manage (your )?privacy)\W*$/i
  ],
  /* (c) rules for the top feeds, where promos sit inside the body. h: the site, sel: extra selectors, txt: extra phrases for short blocks */
  PUB:[
@@ -5986,6 +6013,17 @@ function junkClean(root,url){
  if(isFrag){while(w.firstChild)root.append(w.firstChild)}
 }
 /* (e) Junk: hide the block(s) containing the selected text, log the address and the HTML, and teach this site's next story */
+/* a block inside a small, compact box (a sign-up heading with its bullets, a promo card) grows to the whole box: the biggest wrapper that is still short, holds at least two blocks and no story paragraphs */
+function junkBox(el,body,leaf){
+ const bt=(body.textContent||'').length;let best=null,c=el.parentElement;
+ while(c&&c!==body&&body.contains(c)){
+  const t=(c.textContent||'').replace(/\s+/g,' ').trim().length;
+  if(t>600||t>bt*.25||jkNarrative(c))break;
+  if(leaf.filter(x=>c.contains(x)).length>=2)best=c;
+  c=c.parentElement;
+ }
+ return best;
+}
 function junkReport(q,rg){
  const body=$('.cols .body');if(!body||!curA)return;
  const key=String(q||'').replace(/\s+/g,' ').trim().slice(0,60);if(key.length<4){toast('Select the junk text first');return}
@@ -5995,10 +6033,12 @@ function junkReport(q,rg){
  if(!hits.length)hits=leaf.filter(e=>(e.textContent||'').replace(/\s+/g,' ').includes(key));
  if(!hits.length){toast('Could not find that block');return}
  {const bt=(body.textContent||'').length,ht=hits.reduce((n,e)=>n+(e.textContent||'').length,0);if(bt>400&&ht>bt*.5){toast('That is too much of the story to hide');return}}
+ /* one block hit by a short selection: hide the whole box around it when there is one */
+ let learn=hits;if(hits.length===1){const bx=junkBox(hits[0],body,leaf);if(bx){learn=leaf.filter(x=>bx.contains(x));hits=[bx]}}
  const host=jkHost(curA.link);S.jk=S.jk||{};S.jk.r=S.jk.r||[];S.jk.t=S.jk.t||{};
  const rec=hits.slice(0,12).map(e=>({u:curA.link,t:(e.textContent||'').replace(/\s+/g,' ').trim().slice(0,300),h:e.outerHTML.slice(0,2000),at:Date.now()}));
  S.jk.r=rec.concat(S.jk.r).slice(0,JK.LEARN);
- const added=[];hits.slice(0,12).forEach(e=>{const n=jkNorm(e.textContent);if(n.length>=12&&n.length<=160){const l=S.jk.t[host]||(S.jk.t[host]=[]);if(!l.includes(n)){l.unshift(n);if(l.length>JK.LEARN)l.pop();added.push([host,n])}}});
+ const added=[];learn.slice(0,12).forEach(e=>{const n=jkNorm(e.textContent);if(n.length>=12&&n.length<=160){const l=S.jk.t[host]||(S.jk.t[host]=[]);if(!l.includes(n)){l.unshift(n);if(l.length>JK.LEARN)l.pop();added.push([host,n])}}});
  hits.forEach(e=>e.setAttribute('hidden',''));
  try{getSelection().removeAllRanges()}catch(e){}$('#selbar').hidden=true;SELV=null;save();
  try{layout()}catch(e){}
