@@ -7923,8 +7923,12 @@ function rdProg(url,i,n,nm){
 function rdTick(){
  const n=document.querySelector('.cols .note');if(!n||!/^Loading the full article/.test(n.textContent))return;
  if(R.ready&&document.querySelector('.cols .body')&&document.querySelector('.cols .body').textContent.length>400){n.remove();return}/* the article is on screen: the loading note and its timer go away */
- const sec=Math.max(0,Math.round((Date.now()-(R.t0||Date.now()))/1000));n.textContent=(R.lp||'Loading the full article…')+(sec>=2?' · '+sec+'s':'');
+ const sec=Math.max(0,Math.round((Date.now()-(R.t0||Date.now()))/1000));let t=n.querySelector('.nt');if(!t){n.textContent='';t=document.createElement('span');t.className='nt';n.append(t)}
+ t.textContent=(R.lp||'Loading the full article…')+(sec>=2?' · '+sec+'s':'');
+ /* a slow site: after 10 seconds the way out is offered, so a long wait does not end with only the short version */
+ if(sec>=10&&!R.web&&!n.querySelector('[data-wait]')){const b=document.createElement('button');b.type='button';b.className='tx2';b.dataset.wait='web';b.textContent='Read it on the site';b.style.marginLeft='10px';n.append(b)}
 }
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-wait="web"]');if(!b)return;e.preventDefault();e.stopPropagation();if(!R.web)toggleWeb(false)},true);
 async function getFull00(url,ctx){
  if(S.offline)return null;
  const orig=url;url=await gnResolve(url);

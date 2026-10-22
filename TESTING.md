@@ -548,3 +548,7 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 ## Tracking tags removed from outgoing links; Short sites first switch (unverified on device)
 - Open a story whose link has "?utm_source=..." (most newsletter-style feeds), then "Open in browser" / "Open the original story": the address in the browser has no utm_/fbclid tags. Share a story as a plain link (turn off short links): the same. Links with other parameters (a search term, an id) are left alone.
 - Settings > Downloads and Storage: "Short sites first" is on by default, greyed out when "Get stories ready in advance" is Off, and has its own spoken name for a screen reader.
+
+## Slow story: "Read it on the site" after 10 seconds (unverified on device)
+- Open a story from a slow site (9to5google, lifehacker, The Atlantic were slow in the 2026-10-22 diagnostics). While "Loading the full article…" counts the seconds, after 10 seconds a "Read it on the site" button appears next to it. Tap it: the site opens inside the reader (same as the globe button), and the text version is still reachable with the same button.
+- A story that loads in under 10 seconds never shows the button.
