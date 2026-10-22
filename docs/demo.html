@@ -4241,6 +4241,15 @@ html[data-theme^=halcyon] #grid .card.list-row .src .sn{font:800 10.5px var(--sa
 #grid.wire .card.noimg:not(.lead) h3{font-family:var(--disp)!important;font-weight:700;font-size:clamp(23px,4.4vw,30px)!important;line-height:1.05!important;text-wrap:balance}
 .wsec{margin-top:34px}
 .cols .body figcaption,.body figcaption,.body p.cap{font:italic 400 13px/1.45 var(--serif);border-left:0;padding:7px 0 0;border-top:1px solid var(--ln);margin:6px 0 1.2em}
+/* magazine pass 2 (2026-10-22): lighter photo scrim, section kicker, masthead, quote card on the phone */
+#grid.wire .card:not(.noimg):not(.list-row):not(.nr-row):not(.nr-late):not(.nr-tri)>.ov{background:linear-gradient(to top,rgba(8,20,13,.93) 0%,rgba(8,20,13,.84) 30%,rgba(8,20,13,.42) 56%,transparent 80%)!important}
+#grid.wire h3.dsh.wsec{flex-wrap:wrap;align-items:baseline;row-gap:2px;padding-bottom:12px;position:relative}
+#grid.wire h3.dsh.wsec small{order:-1;flex:0 0 100%;font:700 10px var(--sans);font-style:normal;letter-spacing:.16em;text-transform:uppercase;color:var(--a1,var(--brass,var(--mut)))}
+#grid.wire h3.dsh.wsec::after{content:'';position:absolute;left:0;bottom:-3px;width:44px;height:3px;background:var(--a1,var(--brass,var(--ink)))}
+.tmast.tm-day{text-align:center}
+.tmast.tm-day h2{font-size:clamp(28px,6vw,44px)}
+#grid.wire .dpq{grid-column:1/-1;text-align:center;border-left:0;border-top:1px solid var(--ink);border-bottom:1px solid var(--ln);padding:26px 14px 20px;margin:10px 0 18px}
+#grid.wire .dpq p{text-wrap:balance;font-size:clamp(22px,6vw,30px);font-style:italic;font-weight:500}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -5593,7 +5602,7 @@ function render0(){
   $('#grid').innerHTML=(S.sel==='all'&&!q?allSeg('latest'):'')+`<div class="empty">${q?'No stories match that search.':S.sel==='saved'?'Nothing saved yet. Tap the star on any story.':S.sel.startsWith('k:')&&!busy?'No stories match this smart folder yet.':S.hideRead&&!busy&&fs.some(f=>(items[f.id]||[]).length)?'All caught up. Turn off “Hide stories I’ve read” in Settings to see older stories.':busy?SKEL():fs.length?'No stories have loaded yet.'+EA('rf','hl'):'No feeds here yet.'+EA('ad','sp')}</div>`;return;
  }
  let pre='';
- if(S.sel==='all'&&!q)pre=allSeg('latest')+burnCard();
+ if(S.sel==='all'&&!q)pre=allSeg('latest')+latestMast()+burnCard();
  if(S.sel==='saved'&&!q&&S.saved.length)pre=shelfMast()+savedChips();
  if(q&&!S.sk.some(k=>k.words.length===1&&k.words[0]===q))pre=topicMast(q,cur);
  if(!q&&S.sel.startsWith('s:')){const f=S.feeds.find(x=>'s:'+x.id===S.sel);if(f&&paused(f))pre=`<div class="fbar"><span>${esc(f.title)} is paused${f.snz>8e15?'':' until '+esc(new Date(f.snz).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}))}. Its stories are hidden from Today and All stories.</span><button class="tx2" data-resume="${f.id}">Resume</button></div>`;else if(f&&f.via==='bing')pre=`<div class="fbar"><span>Showing ${esc(f.title)} headlines from Bing News, because ${f.viaWhy==='stale'?'the site’s own feed is out of date':'the site blocks feed readers'}. Stories still open from ${esc(siteOf(f))}.</span></div>`;else if(f&&state[f.id]==='err')pre=`<div class="fbar"><span><b>We couldn’t refresh ${esc(f.title)}.</b> ${esc(feedReason(f))}. ${esc(lastOkTxt(f))}.</span><button class="tx2" data-frep="${f.id}">Try again</button></div>`}
@@ -5799,7 +5808,7 @@ function wireRender(pre,list,T){
   }
   groups[q]=keep;
  }
- const cn=[],ix=a=>{cn.push(a);return cn.length-1},B=[];let k=0,wi=0,newN=0;
+ const cn=[],ix=a=>{cn.push(a);return cn.length-1},B=[];let k=0,wi=0,newN=0,qgap=0;
  const rowsWrap=h=>mode==='w'?`<div class="nr-river"><div class="nr-rv">${h}</div></div>`:`<div class="nr-ph-rows nr-ph-in">${h}</div>`;
  const rowHtml=a=>card(a,ix(a),'nr nr-row nr-s');
  let rowBuf='',colBuf='';const flush=()=>{if(rowBuf){B.push(rowsWrap(rowBuf));rowBuf=''}if(colBuf){B.push(`<div class="wcols">${colBuf}</div>`);colBuf=''}};
@@ -5831,6 +5840,7 @@ if(FD){
     B.push(`<div class="wthr">${card(u.head,ix(u.head),'mid')}<button type="button" class="wthr-t" data-thr="${id}" aria-expanded="false">${u.burst?(u.more.length+1)+' more from '+esc(u.feed)+' in this stretch':u.more.length+' earlier '+(u.more.length===1?'update':'updates')+' on this story'}</button><div class="wthr-b" id="${id}" hidden>${u.more.map(rowHtml).join('')}</div></div>`);
    }else if(kind==='row')rowBuf+=rowHtml(u.head);
    else{flush();B.push(card(u.head,ix(u.head),kind==='lead'&&u.head.img?'lead':'mid'))}
+   qgap++;if(mode!=='w'&&qgap>=5&&!u.more.length&&!S.read[u.head.link]){const q0=nrQuoteText(u.head);if(q0&&q0.real&&q0.q.length<=180){const pq=pullQuoteHtml(u.head);if(pq){flush();B.push(pq);qgap=0}}}
    if(k%7===6)addWild(us[j]?us[j].head.feedId:undefined);
   }
  }
@@ -12659,6 +12669,8 @@ function longformItem(a,i,ix,cover,why){
   :`<a class="cvlead sun-a sun-i ${patCls(f)}${a.img?'':' noimg'}" href="${esc(a.link)}" data-i="${ix}" style="--b:${brand(f)}"><span class="sun-im">${img}</span>${t}</a>`;
 }
 /* the Deep reads tab: a nameplate, the long reads one at a time with big art, and a proper end */
+/* the Smart view opens with a small masthead too: the day in the display serif, so All stories matches the other tabs */
+function latestMast(){const d=new Date(),day=d.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});return `<header class="tmast tm-day"><small>All stories</small><h2>${esc(day)}</h2></header>`}
 function tabMast(tab,list){
  const n=list.length,mins=list.reduce((t,a)=>t+(minsOf(a)||0),0),hrs=mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes',src=new Set(list.map(a=>a.feedId)).size;
  const T={top:['Top stories',n===1?'One top story':n+' top stories','The stories covered by the most of your sites over the last three days.'],
