@@ -2750,6 +2750,7 @@ html.smooth .cover::before{mix-blend-mode:normal!important}
 .colo b{display:block;margin-bottom:6px;font:700 10.5px var(--sans);letter-spacing:.24em;text-transform:uppercase}
 .colo p{margin:0 auto;max-width:34em;font:italic 400 13.5px/1.55 var(--serif,Georgia,serif)}
 /* experiment, cluster 5: the All stories wire */
+.card .newtag{position:absolute;top:10px;left:10px;z-index:3;padding:3px 9px;border-radius:999px;background:var(--ink);color:var(--pn);font:700 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 .wpill{grid-column:1/-1;position:sticky;top:8px;z-index:8;justify-self:center;margin:2px 0 12px;padding:9px 18px;border:0;border-radius:999px;background:var(--ink);color:var(--pn);font:700 13px var(--sans);box-shadow:0 6px 20px rgba(0,0,0,.28);cursor:pointer}
 .wsec{grid-column:1/-1}
 .wtrend{grid-column:1/-1;display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 0 16px;padding:2px 0}
@@ -5489,7 +5490,7 @@ let WIREX={};
 function wireSwitch(prev,next){
  if(prev&&/^(all|s:|f:|k:)/.test(prev))WIREX[prev]={order:WIRE.order,known:WIRE.known,anchor:WIRE.anchor,sig:WIRE.sig,settled:WIRE.settled,pend:WIRE.pend,newN:WIRE.newN,restored:WIRE.restored};
  const s=WIREX[next]||{order:null,known:null,anchor:null,sig:undefined,settled:next==='all'?WIRE.settled:true,pend:[],newN:0,restored:false};
- Object.assign(WIRE,s);
+ Object.assign(WIRE,s);WIRE.fresh=null;
 }
 /* what can be known about a feed from its own stories and your reading history */
 function feedFacts(f){
@@ -5517,7 +5518,9 @@ function folderPseudo(fo){
 }
 function wireReset(){WIREX={};WIRE.order=null;WIRE.known=null;WIRE.anchor=null;WIRE.settled=false;clearTimeout(wireReset.t);wireReset.t=setTimeout(wireSettle,8000)}
 function wireSettle(){WIRE.settled=true;clearTimeout(wireReset.t);if(wireSel()&&!WIRE.order&&!(($('#q')||{}).value||'').trim()){try{render()}catch(e){}}}
-function wireLoad(){WIRE.order=null;WIRE.known=null;WIRE.anchor=null;WIRE.settled=true;render();const m=$('main');if(m)m.scrollTop=0}
+/* after tapping the pill, the stories that were waiting wear a small 'New' tag so you can see where the ranking put them */
+function markFresh(){const F=WIRE.fresh,g=$('#grid');if(!F||!g)return;g.querySelectorAll('.card:not(.fresh)').forEach(c=>{if(F.has(chref(c))){c.classList.add('fresh');const t=document.createElement('span');t.className='newtag';t.textContent='New';c.append(t)}})}
+function wireLoad(){WIRE.fresh=new Set(WIRE.pend.map(a=>a.link));WIRE.order=null;WIRE.known=null;WIRE.anchor=null;WIRE.settled=true;render();markFresh();const m=$('main');if(m)m.scrollTop=0}
 /* the ranking is made once; later renders only re-use it. Returns the list to show; WIRE.pend holds stories that arrived since */
 function wireList(cur0){
  const rank=l=>S.sel!=='all'?l:smartOn()?smartAll(l):capList(l);
@@ -6499,10 +6502,11 @@ let NRIO=null;
 let NRMORE=null;
 function setBlocks(head,B,first,step){
  const g=$('#grid');if(NRIO){NRIO.disconnect();NRIO=null}NRMORE=null;
- if(B.length<=first+2||!('IntersectionObserver' in window)){g.innerHTML=head+B.join('');return}
+ if(B.length<=first+2||!('IntersectionObserver' in window)){g.innerHTML=head+B.join('');markFresh();return}
  let k=first;g.innerHTML=head+B.slice(0,k).join('')+'<div class="nr-more" aria-hidden="true"></div>';
+ markFresh();
  const s=g.querySelector('.nr-more');
- const next=()=>{if(k>=B.length)return false;const n=B.slice(k,k+step);k+=n.length;s.insertAdjacentHTML('beforebegin',n.join(''));setTimeout(endObs,60);setTimeout(fixOrph,140);waterline();if(k>=B.length){if(NRIO){NRIO.disconnect();NRIO=null}s.remove();NRMORE=null;return false}return true};
+ const next=()=>{if(k>=B.length)return false;const n=B.slice(k,k+step);k+=n.length;s.insertAdjacentHTML('beforebegin',n.join(''));markFresh();setTimeout(endObs,60);setTimeout(fixOrph,140);waterline();if(k>=B.length){if(NRIO){NRIO.disconnect();NRIO=null}s.remove();NRMORE=null;return false}return true};
  NRMORE=next;
  NRIO=new IntersectionObserver(es=>{if(!es.some(e=>e.isIntersecting))return;if(next()&&NRIO){NRIO.unobserve(s);NRIO.observe(s)}},{root:$('main'),rootMargin:'1600px 0px'});
  NRIO.observe(s);
