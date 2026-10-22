@@ -544,3 +544,7 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 ## Short sites read ahead first (unverified on device)
 - Add a site whose feed only carries a few lines (a teaser feed), refresh, then on Wi-Fi leave the list open for a minute: its stories should open with the full text ready (no wait). Settings > Copy diagnostics slow-open counts should not get worse.
 - Paywalled sites are not fetched ahead beyond what the app did before.
+
+## Tracking tags removed from outgoing links; Short sites first switch (unverified on device)
+- Open a story whose link has "?utm_source=..." (most newsletter-style feeds), then "Open in browser" / "Open the original story": the address in the browser has no utm_/fbclid tags. Share a story as a plain link (turn off short links): the same. Links with other parameters (a search term, an id) are left alone.
+- Settings > Downloads and Storage: "Short sites first" is on by default, greyed out when "Get stories ready in advance" is Off, and has its own spoken name for a screen reader.
