@@ -560,3 +560,7 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 ## Junk hides the whole box; many more sign-up phrases (unverified on device)
 - Long-press ONE word inside a sign-up box (heading + bullets, a promo card) and tap Junk: the whole box goes in one step, Undo brings it back. A stray line in the middle of the story still hides just that line.
 - Open stories from a few sites that have sign-up boxes, account prompts, "Already have an account?", "Thanks for reading ... Subscribe for free", Medium member boxes, "Listen on Spotify" rows: they should be gone. Tell me about any story paragraph that disappeared by mistake (send Settings, Junk log / the story link).
+
+## Stubborn story: slow routes now start alongside the search (1.125, branch)
+- Open a story from a site that blocks the app. Expect: no flash of the "Couldn't get the full story" message, one wait, then either the full story or the final message with a **Try again** button.
+- Total wait should be shorter than before (was: syndication search up to 34 s, then 30 s more).
