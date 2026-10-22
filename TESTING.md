@@ -532,7 +532,3 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 ## Page 1: no empty column before the story text (unverified on device)
 - Open a story with a picture and a "Why it matters" box on the Fold (two pages side by side): the story text starts right under the box on page 1, no big empty space and no need to turn the page first.
 - Stories without a box, or where the box fits under the picture, still start the text at the top of the right column.
-
-## Flip through pages (experiment) (unverified on device)
-- Settings > Home and Covers > "Flip through pages (experiment)": off by default. On: The Daily, All, a site or a folder show swipeable magazine pages (cover, editorial, photo, text feature, in brief, two stories). Check on the phone: swipe feels smooth, pages fit above the bottom bar, tapping a story opens the normal reader and closing returns to the same page, light/dark and each theme look right, turning it off restores the normal feed.
-- Not covered: Saved, Search and Near you keep the normal feed. No stories are shown twice; pictures under 480x270 are never used.
