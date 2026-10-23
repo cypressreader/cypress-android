@@ -4155,6 +4155,9 @@ html.magx #grid.fed.wire h3.dsh.wsec>span{color:#fff}
 html.magx #grid.fed.wire h3.dsh.wsec small{color:rgba(255,255,255,.82)}
 html.magx #grid.fed.wire h3.dsh.wsec::after{display:none}
 html.magx #grid.fed.wire h3.dsh.wsec .dsr{color:#fff;border-color:rgba(255,255,255,.6);background:transparent}
+html.magx .wmom img{transition:opacity .28s ease}
+html.magx .wmom img:not(.ok){opacity:0}
+html.magx #grid.fed .wmom.fd-spl img{filter:none}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -5685,7 +5688,7 @@ const WIRE_PAT=['lead','mid','row','row','row','mid','row'];
    Every dozen stories an edge-to-edge picture breaks the card grid. A small switch picks the density: magazine cards, or a tight newspaper-column headline river. */
 function momentHtml(a,ix){
  const f=fof(a);WHY[a.link]='A picture break: a story with a strong photo from '+f.title+'.';
- return `<a class="cvlead wmom" href="${esc(a.link)}" data-i="${ix}" style="--b:${brand(f)}"><img loading="lazy" decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()"><span class="wmom-t"><small>${esc(f.title)} · ${esc(ago(a.date))} ago</small><b>${esc(a.title)}</b></span></a>`;
+ return `<a class="cvlead wmom" href="${esc(a.link)}" data-i="${ix}" style="--b:${brand(f)}"><img ${IMGOK.has(a.img)?'class="ok" ':''}loading="lazy" decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="this.classList.add('ok');IMGOK.add(this.getAttribute('src'))" onerror="this.parentNode.classList.add('noimg');this.remove()"><span class="wmom-t"><small>${esc(f.title)} · ${esc(ago(a.date))} ago</small><b>${esc(a.title)}</b></span></a>`;
 }
 function colItem(u,ix,deck){
  const a=u.head,f=fof(a);WHY[a.link]=u.more.length?'A developing story: '+(u.more.length+1)+' updates, newest first.':'A story from '+f.title+'.';
@@ -6614,6 +6617,23 @@ function nrBlocksPhone(l,base,o){
  }
  return B;
 }
+/* Pictures ahead of the scroll: lazy pictures within about three screens start downloading now, and the big openers are decoded before they arrive, so a picture is already there when its story scrolls in */
+let WARMT=0;
+function aheadImgs(){
+ WARMT=0;
+ try{
+  if(!isOn('mag3')||document.hidden||(navigator.connection&&navigator.connection.saveData))return;
+  const g=$('#grid');if(!g||!g.querySelectorAll)return;const lim=innerHeight*3.2;
+  g.querySelectorAll('img[loading=lazy]').forEach(im=>{
+   const r=im.getBoundingClientRect();if(r.top>lim||r.bottom<-innerHeight)return;
+   im.loading='eager';
+   if(im.decode&&im.closest('.wmom,.nr-lead,.nr-hero,.lead,.fd-fa'))im.decode().catch(()=>{});
+  });
+ }catch(e){}
+}
+const aheadSoon=()=>{if(!WARMT)WARMT=setTimeout(aheadImgs,160)};
+addEventListener('scroll',aheadSoon,{passive:true,capture:true});
+try{new MutationObserver(aheadSoon).observe($('#grid'),{childList:true})}catch(e){}
 let NRIO=null;
 /* Puts the first blocks in the page and adds the rest as you scroll (Smooth mode), so switching feeds in Safari stays quick */
 let NRMORE=null;
