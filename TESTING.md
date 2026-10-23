@@ -576,3 +576,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - [ ] Magazine pass 3 (side preview): Saved opens with a photo masthead and mixed layouts; a search/topic page has a photo masthead; lead photos show a small "Photo: name" only when the feed gives a credit; a big-number card appears in long lists; section underline colors vary. Check text is readable on every masthead photo, in light and dark themes.
 - [ ] Settings > Magazine and digest > 'Photo magazine look (testing)': turning it off puts feed, folder, Saved and search pages back exactly as before (no photo cover, no full-width picture story, no colored bands, no credits, no big-number card); turning it on brings them back without restarting.
 - [ ] Scroll a long feed or folder page at normal speed and fast: full-width picture stories should already show their photo as they come into view (no plain colored block, no pop, no flicker). Compare with the switch off.
+
+- [ ] Daily return speed (2026-10-23): open a feed, then tap The Daily in the menu. The menu should close at once and the Daily appear right after, not 2 s later.
