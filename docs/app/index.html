@@ -4159,6 +4159,20 @@ html.magx #grid.fed.wire h3.dsh.wsec .dsr{color:#fff;border-color:rgba(255,255,2
 html.magx .wmom img{transition:opacity .28s ease}
 html.magx .wmom img:not(.ok){opacity:0}
 html.magx #grid.fed .wmom.fd-spl img{filter:none}
+/* list view variety: a big picture row and a quote row now and then (see lrKind) */
+#grid .card.list-row.lr-feat{display:block;position:relative;padding:12px 4px 16px}
+#grid .card.list-row.lr-feat>.cimg{width:100%!important;height:auto!important;max-width:none;aspect-ratio:16/9;border-radius:14px;margin:0 0 10px}
+#grid .card.list-row.lr-feat>.tx{display:block}
+#grid .card.list-row.lr-feat .src{margin:0 0 4px}
+#grid .card.list-row.lr-feat h3{font-size:clamp(1.3rem,5.4vw,1.75rem);line-height:1.15;margin:0 0 6px}
+#grid .card.list-row.lr-feat .ld{font-size:14.5px;-webkit-line-clamp:3;margin:0 0 6px}
+#grid .card.list-row.lr-feat>.star{position:absolute;top:20px;right:12px;background:rgba(10,20,15,.55);color:#fff;border-radius:99px}
+#grid .card.list-row.lr-quote{display:block;position:relative;padding:18px 44px 18px 18px;margin:6px 0;border-radius:14px!important;background:color-mix(in srgb,var(--b,var(--a1)) 12%,var(--bg))!important;background-image:none!important}
+#grid .card.list-row.lr-quote .lr-qm{display:block;font:700 46px/.55 var(--disp,Georgia,serif);height:22px;color:var(--b,var(--a1));margin:6px 0 4px}
+#grid .card.list-row.lr-quote .lr-q{margin:0 0 10px;font:italic 400 clamp(1.15rem,4.6vw,1.45rem)/1.3 var(--disp,Georgia,serif);color:var(--ink)}
+#grid .card.list-row.lr-quote .tx{display:block}
+#grid .card.list-row.lr-quote h3{font-size:14px;font-weight:600;margin:0 0 2px;color:var(--mut)}
+#grid .card.list-row.lr-quote>.star{position:absolute;top:10px;right:6px}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -6529,9 +6543,19 @@ const favHost=f=>{const h=host(f.url);if(/(^|\.)(news\.google\.com|bing\.com|fee
 const IMGOK=new Set();
 /* a story card is a container: one headline link plus separate Save and Why buttons beside it, never buttons inside a link */
 const chref=c=>(c&&((c.dataset&&c.dataset.href)||c.getAttribute('href')))||'';
+/* The list view is still one column of stories, but it is not one repeated row: every few rows a story steps forward as a big picture, and now and then a story with a quote in it shows the quote. Compact card size keeps plain rows. */
+const lrWeak=u=>{const d=IMGDIM.get(u);return !!d&&(Math.min(d[0],d[1])<240||d[0]/d[1]>3.2||d[1]/d[0]>2.4)};
+function lrKind(a,i){
+ if(nrDense()||S.view!=='list')return '';
+ const r=i%9;
+ if((r===0||r===4)&&a.img&&!lrWeak(a.img))return 'feat';
+ if(r===7&&nrQuoteText(a)&&!(a.img&&r===4))return 'quote';
+ return '';
+}
 function listRow(a,i,k,f){
-  const dk=(typeof dekOf==='function'?dekOf(a,170):'')||'',mn=readMin(a);
-  return `<div class="card list-row ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}">${a.img?`<img class="cimg" width="96" height="96" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="tx"><div class="src"><img alt="" width="16" height="16" loading="lazy" decoding="async" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3>${dk?`<p class="ld">${esc(dk)}</p>`:''}<time>${mn?mn+' min read · ':''}${ago(a.date)}</time>${pwBadge(a)}</div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
+  const dk=(typeof dekOf==='function'?dekOf(a,170):'')||'',mn=readMin(a),lk=lrKind(a,i),qt=lk==='quote'?nrQuoteText(a):null;
+  if(lk==='quote'&&qt)return `<div class="card list-row lr-quote ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}"><div class="tx"><span class="lr-qm" aria-hidden="true">“</span><p class="lr-q">${esc(qt.q)}</p><div class="src"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><time>${mn?mn+' min read · ':''}${ago(a.date)}</time></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
+  return `<div class="card list-row${lk==='feat'?' lr-feat':''} ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}">${a.img?`<img class="cimg" width="96" height="96" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="tx"><div class="src"><img alt="" width="16" height="16" loading="lazy" decoding="async" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3>${dk?`<p class="ld">${esc(dk)}</p>`:''}<time>${mn?mn+' min read · ':''}${ago(a.date)}</time>${pwBadge(a)}</div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
 }
 function card(a,i,k){
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));

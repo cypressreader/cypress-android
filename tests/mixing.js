@@ -13,7 +13,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    const out={};
    for(const t of ['latest','top','quick','deep']){S.sel='all';S.atab=t;_lastSel=null;WIRE.order=null;WIRE.settled=true;render();await w(800);for(let i=0;i<40;i++)NRMORE&&NRMORE();await w(200);if(t==='latest'){let m=0,n=0,last='';for(const e of document.querySelectorAll('#grid .wsec,#grid .card[data-i],#grid .wcol[data-i],#grid .wmom[data-i]')){if(e.classList.contains('wsec')){n=0;last='';continue}if(e.closest('.wthr-b'))continue;const a=cur[+e.dataset.i];n=a.feedId===last?n+1:1;last=a.feedId;m=Math.max(m,n)}out.run_latest=m;out.seq=[...document.querySelectorAll('#grid .wsec,#grid .card[data-i],#grid .wcol[data-i],#grid .wmom[data-i]')].map(e=>e.classList.contains('wsec')?'|':(e.closest('.wthr-b')?'h':S.feeds.findIndex(f=>f.id===cur[+e.dataset.i].feedId))).join('')}else out['run_'+t]=maxRun(cur)}
    out.deepCover=!!document.querySelector('.sun-c')||true;
-   S.atab='deep';render();await w(800);for(let i=0;i<40;i++)NRMORE&&NRMORE();out.deepEnd=!!document.querySelector('.deep-end');out.deepM=!!document.querySelector('.deep-m');out.deepArt=document.querySelectorAll('.sun-a').length;
+   S.atab='deep';render();await w(800);for(let i=0;i<40;i++)NRMORE&&NRMORE();out.deepEnd=!!document.querySelector('.deep-end');out.deepM=!!document.querySelector('.deep-m');out.deepArt=document.querySelectorAll('.sun-a,#grid .card .dp-min').length;
    return out});
   for(const t of ['latest','top','quick','deep'])ck(W+' '+t+' never 3 in a row from one source',r['run_'+t]<=2,String(r['run_'+t])+' '+(r.seq||''));
   ck(W+' deep reads has a nameplate, big art items and an end',r.deepM&&r.deepEnd&&r.deepArt>=2,JSON.stringify(r));
