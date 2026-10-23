@@ -9365,7 +9365,7 @@ $('#side-list').onclick=e=>{
  if(d.delx){return askRemove(d.delx)}
  if(d.delf){return askDelFolder(d.delf)}
  if(d.col){const cp=$('#cp');cp.dataset.id=d.col;try{cp.value=brand(feedOf(d.col))}catch(_){}cp.click();return}
- const s=t.closest('[data-sel]');if(s){S.sel=s.dataset.sel;saveSoon();drawer(false);if(S.sel==='today')requestAnimationFrame(()=>setTimeout(render,0));else render()}/* the Daily is the heaviest page: let the menu close and paint first */
+ const s=t.closest('[data-sel]');if(s){const nt0=performance.now(),ns=s.dataset.sel,go=()=>{const b=performance.now();render();NAVB=performance.now()-b};S.sel=ns;saveSoon();drawer(false);if(S.sel==='today')requestAnimationFrame(()=>setTimeout(go,0));else go();navLog(nt0,ns)}/* the Daily is the heaviest page: let the menu close and paint first */
 };
 $('#cp').oninput=e=>{const f=feedOf(e.target.dataset.id);f.color=e.target.value;save();render()};
 async function askDelFolder(id){const fo=S.folders.find(f=>f.id===id);if(!fo)return;const n=S.feeds.filter(f=>f.folder===id).length;
@@ -10693,7 +10693,16 @@ const MZ={t0:0,a:null,L:(()=>{try{return JSON.parse(localStorage.getItem('folio-
 document.addEventListener('visibilitychange',()=>{if(document.hidden)MZ.h0=Date.now();else if(MZ.h0){if(MZ.t0&&!MZ.a)MZ.hid=(MZ.hid||0)+Date.now()-MZ.h0;MZ.h0=0}});
 function mzDone(k,a,r){try{if(!MZ.t0||MZ.a)return;MZ.a=a;let h='';try{h=new URL(a.link).hostname.replace(/^www\./,'')}catch(e){}
  MZ.L.push({t:Date.now(),k,ms:Math.max(0,Date.now()-MZ.t0-(MZ.hid||0)-(MZ.h0?Date.now()-MZ.h0:0)),h,r:r||'',n:netKind()});if(MZ.L.length>80)MZ.L.splice(0,MZ.L.length-80);localStorage.setItem('folio-mz',JSON.stringify(MZ.L))}catch(e){}}
+/* menu taps: how long from the tap until the new page was on screen, and how much of that was building it (kept in memory, shown under Copy diagnostics) */
+const NAVL=[],LT={n:0,ms:0,max:0};let NAVB=0;
+function navLog(t0,sel){requestAnimationFrame(()=>setTimeout(()=>{NAVL.push({k:sel==='today'?'Daily':sel[0]==='s'?'feed':sel[0]==='f'?'folder':sel,ms:Math.round(performance.now()-t0),b:Math.round(NAVB)});if(NAVL.length>40)NAVL.shift()},0))}
+try{new PerformanceObserver(l=>{for(const e of l.getEntries()){LT.n++;LT.ms+=e.duration;if(e.duration>LT.max)LT.max=e.duration}}).observe({entryTypes:['longtask']})}catch(e){}
 function mzSum(){const o=['','Story opening (last '+MZ.L.length+' taps)'];
+ try{const by={};NAVL.forEach(x=>(by[x.k]=by[x.k]||[]).push(x));const q=(v)=>{v=v.slice().sort((a,b)=>a-b);return v[v.length>>1]};
+  o.push('Menu taps (this session, tap to page shown): '+(Object.keys(by).map(k=>k+' x'+by[k].length+' median '+q(by[k].map(x=>x.ms))+' ms (build '+q(by[k].map(x=>x.b))+') slowest '+Math.max(...by[k].map(x=>x.ms))).join(' · ')||'none yet'));
+  const lf=localStorage.getItem('folio')||'';let all=0;for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);all+=k.length+(localStorage.getItem(k)||'').length}
+  o.push('Library size '+Math.round(lf.length/1024)+' KB of '+Math.round(all/1024)+' KB stored · stories in memory '+Object.values(items).reduce((n,l)=>n+l.length,0)+' · feeds '+S.feeds.length+' · read marks '+Object.keys(S.read).length+' · history '+(S.hist||[]).length+' · saved '+S.saved.length);
+  o.push('Busy spells over 50 ms since launch: '+LT.n+' · total '+Math.round(LT.ms)+' ms · longest '+Math.round(LT.max)+' ms · uptime '+Math.round(performance.now()/1000)+' s')}catch(e){}
  try{const by={};MZ.L.forEach(x=>(by[x.k]=by[x.k]||[]).push(x.ms));
   for(const k of Object.keys(by)){const v=by[k].sort((a,b)=>a-b);o.push(' '+k+': '+v.length+' · median '+v[v.length>>1]+' ms · slowest '+v[v.length-1]+' ms')}
   const dp=MZ.L.filter(x=>x.r==='deep'||x.r==='slow routes failed');if(dp.length)o.push(' stubborn stories (slow routes ran alongside the search): '+dp.length+' · rescued '+dp.filter(x=>x.r==='deep').length+' · median '+dp.map(x=>x.ms).sort((m,n)=>m-n)[dp.length>>1]+' ms');
