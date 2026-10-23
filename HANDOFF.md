@@ -2,7 +2,7 @@
 Old detail (dated session logs, FIXES 16-26 notes, debugging traces) lives in `HANDOFF-ARCHIVE.md`: don't read it on boot, `grep` it only if needed.
 Keep THIS file under ~8 KB: when it grows past that, move finished/dated items to the archive and keep only rules, open items and the next tasks.
 
-Last updated: 2026-10-23 · Branch: `claude/magazine-sections` · Code: web `2026.10.23b`, Android label **1.126 (MERGED TO `main` 2026-10-23 on David's `build`; check Releases for v1.126)**, previous 1.125 (also built 2026-10-23). Older labels: see archive.
+Last updated: 2026-10-23 · Branch: `claude/magazine-sections` · Code: web `2026.10.23c`, Android label **1.127 (MERGED TO `main` 2026-10-23 on David's `build`; check Releases for v1.127)**, previous 1.126 (built same day). Older labels: see archive.
 
 ## 1. Working & locked (verified; don't change core logic without asking)
 - **Halcyon theme** (`halcyon`/`halcyond`): website palette (cream `#f3ecdc`, green `#123524`/`#0c2619`, brass `#c9a24a`/`#b08d3e`), follows phone via `twinApply`. Headlines use `--disp` (narrow display serif) with `!important` (user's choice). Dark-brass labels on cream `#7d5f14`; light-brass `#e2c27a` on dark `.noimg` lead/hero cards (`.noimg` ≠ cream card).
