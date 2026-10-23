@@ -5183,7 +5183,7 @@ function markSeen(sel){
  const t=Date.now(),ks=[sel];
  if(sel==='all'){S.feeds.forEach(f=>ks.push('s:'+f.id));S.folders.forEach(f=>ks.push('f:'+f.id))}
  else if(sel.startsWith('f:'))S.feeds.filter(x=>x.folder===sel.slice(2)).forEach(f=>ks.push('s:'+f.id));
- S.seen=S.seen||{};ks.forEach(k=>S.seen[k]=t);save()
+ S.seen=S.seen||{};ks.forEach(k=>S.seen[k]=t);saveSoon()/* batched: rewriting the whole library on every page change made each tap slower */
 }
 const newIn=(fs,key)=>fs.reduce((n,f)=>n+(paused(f)?0:(items[f.id]||[]).filter(a=>a.date>seenOf(key||'s:'+f.id)&&!S.read[a.link]&&!junkItem(a)&&!dealHide(a)).length),0);
 const dotU='<u class="nd" role="img" aria-label="New stories"></u>';
@@ -9338,7 +9338,7 @@ $('#side-list').onclick=e=>{
  if(d.delx){return askRemove(d.delx)}
  if(d.delf){return askDelFolder(d.delf)}
  if(d.col){const cp=$('#cp');cp.dataset.id=d.col;try{cp.value=brand(feedOf(d.col))}catch(_){}cp.click();return}
- const s=t.closest('[data-sel]');if(s){S.sel=s.dataset.sel;save();drawer(false);if(S.sel==='today')requestAnimationFrame(()=>setTimeout(render,0));else render()}/* the Daily is the heaviest page: let the menu close and paint first */
+ const s=t.closest('[data-sel]');if(s){S.sel=s.dataset.sel;saveSoon();drawer(false);if(S.sel==='today')requestAnimationFrame(()=>setTimeout(render,0));else render()}/* the Daily is the heaviest page: let the menu close and paint first */
 };
 $('#cp').oninput=e=>{const f=feedOf(e.target.dataset.id);f.color=e.target.value;save();render()};
 async function askDelFolder(id){const fo=S.folders.find(f=>f.id===id);if(!fo)return;const n=S.feeds.filter(f=>f.folder===id).length;
