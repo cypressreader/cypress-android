@@ -8303,7 +8303,7 @@ const pfDeepOk=()=>pfAllowed()&&!onCell()&&!isOn('dsave')&&!document.hidden;
 async function pfDeep(a,n){
  if(Date.now()-PF.dt>36e5){PF.dt=Date.now();PF.deep=0}
  if(PF.deep>=6||!pfDeepOk()||TRUNCDONE.has(a.link))return n;
- if(!(!n||needsMore(n,a.link)||(isTruncated(a)&&truncReason(n,a.link))))return n;
+ if(!(!n||needsMore(n,a.link)||(isTruncated(a)&&truncReason(n,a.link,true))))return n;
  PF.deep++;await quietGap(4000);
  try{const d=await deeperTiers(a,n,a.link);return d&&d.n?d.n:n}catch(e){return n}
 }
@@ -8374,10 +8374,11 @@ const wordsOf=n=>{const t=((n&&n.textContent)||'').trim();return t?t.split(/\s+/
 /* a story still needs help when nothing came back, or only a short start did (a short story that ends properly is left alone) */
 /* Why a story should be treated as cut short, or '' when it looks complete: under 500 words, the page says it isn't free,
    a subscribe or read-more prompt (or a paywall, fade or gate element) at the end, or text that stops mid-thought */
-function truncReason(n,url){
+function truncReason(n,url,own){
  if(!n)return 'no text';
  const t=String(n.textContent||'').replace(/\s+/g,' ').trim(),words=t?t.split(' ').length:0;
- if(words<500)return 'under 500 words';
+ /* a story the site's own page gave us in full (200 words or more, nothing else wrong below) is simply a short story: searching other routes for it only made the reader wait */
+ if(words<500&&!(own&&words>=200))return 'under 500 words';
  if(n.nofree)return 'the page marks the story as not free';
  const tail=t.slice(-400);
  for(const el of Array.from(n.children||[]).slice(-4)){
@@ -8417,7 +8418,7 @@ async function morssFor(a){
 }
 /* the steps after the page and the reader have both fallen short: a saved copy first, then the same story from a wire partner */
 async function deeperTiers(a,n,src){
- let best=n,bsrc=src;const longer=m=>m&&(!best||wordsOf(m)>wordsOf(best)*1.25),cut=()=>needsMore(best,bsrc)||truncReason(best,bsrc);
+ let best=n,bsrc=src;const longer=m=>m&&(!best||wordsOf(m)>wordsOf(best)*1.25),cut=()=>needsMore(best,bsrc)||truncReason(best,bsrc,bsrc===a.link);
  if(cut()){const mo=await morssFor(a);if(mo&&longer(mo.n)){best=mo.n;bsrc=mo.u}}
  if(cut()){const mr=await mirrorFor(a);if(mr&&longer(mr.n)){best=mr.n;bsrc=mr.u}}
  if(best===n)TRUNCDONE.add(a.link);/* nothing better turned up: don't repeat the whole search every time the story is reopened */
@@ -8598,7 +8599,7 @@ async function openReader(a){
  let gated=false;try{gated=(LG[a.link]||[]).some(x=>/HTTP (401|402|403|429|451)\b/.test(String(x)))}catch(e){}
  /* nothing came back: the slow browser-rendered routes start now, alongside the syndication search, instead of after it */
  let deepP=null,deepRan=false;if(!n&&online()&&!TRUNCDONE.has(a.link)){deepRan=true;deepP=getFullDeep(a.link,LG['deep:'+a.link]=[]).catch(()=>null)}
- if(online()&&!TRUNCDONE.has(a.link)&&(needsMore(n,src)||truncReason(n,src))){const dr=await Promise.race([deeperTiers(a,n,src),new Promise(r=>setTimeout(()=>r(null),34000))]);if(my!==tok)return;if(dr&&dr.n){n=dr.n;src=dr.src}}
+ if(online()&&!TRUNCDONE.has(a.link)&&(needsMore(n,src)||truncReason(n,src,src===a.link))){const dr=await Promise.race([deeperTiers(a,n,src),new Promise(r=>setTimeout(()=>r(null),34000))]);if(my!==tok)return;if(dr&&dr.n){n=dr.n;src=dr.src}}
  if(my!==tok)return;
  if(!n&&deepP){const d=await Promise.race([deepP,new Promise(r=>setTimeout(()=>r(null),30000))]);if(my!==tok)return;if(d){const df=tidy(d.cloneNode(true));if(df.textContent.length>600&&textQuality(df.textContent).ok){df.tier='deep';n=df}}}
  mzDone(n?'network':'feed',a,src!==a.link?'mirror':(n&&n.tier)||(deepRan?'slow routes failed':'direct'));
