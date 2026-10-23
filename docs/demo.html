@@ -4284,7 +4284,19 @@ html.magx #grid.fed.wire h3.dsh.wsec .dsr{color:#fff;border-color:rgba(255,255,2
 html.magx .wmom img{transition:opacity .28s ease}
 html.magx .wmom img:not(.ok){opacity:0}
 html.magx #grid.fed .wmom.fd-spl img{filter:none}
-/* list view variety: a big picture row and a quote row now and then (see lrKind) */
+/* a story with no picture is a text row: no letter tile standing where a picture would be, the headline gets the whole width and a thin line in the site's color marks it */
+#grid .card.card:is(.list-row,.nr-row,.nr-late).noimg::before{content:none!important;display:none!important}
+#grid .card.card.list-row.noimg{grid-template-columns:minmax(0,1fr) auto!important;border-left:3px solid color-mix(in srgb,var(--b,var(--a1)) 70%,transparent);padding-left:12px}
+#grid .card.card.list-row.noimg>.tx{grid-column:1!important}
+#grid:is(:not([data-w=mag]),.nrp) .card.card:is(.nr-row,.nr-late):not(.nr-m).noimg{grid-template-columns:minmax(0,1fr)!important;border-left:3px solid color-mix(in srgb,var(--b,var(--a1)) 70%,transparent);padding-left:12px!important}
+#grid:is(:not([data-w=mag]),.nrp) .card.card:is(.nr-row,.nr-late):not(.nr-m).noimg>.tx{grid-column:1!important}
+#grid:is(:not([data-w=mag]),.nrp) .card.card:is(.nr-row,.nr-late):not(.nr-m).noimg::before{content:none!important;display:none!important}
+@media(min-width:700px){#grid[data-w="mag"]:not([data-cards="narrow"]):not([data-cards="compact"]):not(.nrp) .card.card:is(.nr-row,.nr-late):not(.nr-m).noimg::before{content:none!important;display:none!important}}
+#grid[data-cards="compact"] .card.noimg::before{content:none!important;display:none!important}
+#grid .card.list-row.lr-type h3{font-size:clamp(1.2rem,4.8vw,1.5rem);line-height:1.2}
+#grid .card.list-row.lr-type .ld{-webkit-line-clamp:3;font-size:14.5px}
+#grid .card.list-row.lr-type{padding-top:14px;padding-bottom:14px}
+/* list view variety: a big picture row and a quote row every few rows (see lrKind) */
 #grid .card.list-row.lr-feat{display:block;position:relative;padding:12px 4px 16px}
 #grid .card.list-row.lr-feat>.cimg{width:100%!important;height:auto!important;max-width:none;aspect-ratio:16/9;border-radius:14px;margin:0 0 10px}
 #grid .card.list-row.lr-feat>.tx{display:block}
@@ -6672,15 +6684,15 @@ const chref=c=>(c&&((c.dataset&&c.dataset.href)||c.getAttribute('href')))||'';
 const lrWeak=u=>{const d=IMGDIM.get(u);return !!d&&(Math.min(d[0],d[1])<240||d[0]/d[1]>3.2||d[1]/d[0]>2.4)};
 function lrKind(a,i){
  if(nrDense()||S.view!=='list')return '';
- const r=i%9;
- if((r===0||r===4)&&a.img&&!lrWeak(a.img))return 'feat';
- if(r===7&&nrQuoteText(a)&&!(a.img&&r===4))return 'quote';
+ const r=i%5;
+ if(r===0){if(a.img&&!lrWeak(a.img))return 'feat';return a.img?'':'type'}
+ if(r===2){if(nrQuoteText(a))return 'quote';return a.img?'':'type'}
  return '';
 }
 function listRow(a,i,k,f){
   const dk=(typeof dekOf==='function'?dekOf(a,170):'')||'',mn=readMin(a),lk=lrKind(a,i),qt=lk==='quote'?nrQuoteText(a):null;
   if(lk==='quote'&&qt)return `<div class="card list-row lr-quote ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}"><div class="tx"><span class="lr-qm" aria-hidden="true">“</span><p class="lr-q">${esc(qt.q)}</p><div class="src"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><time>${mn?mn+' min read · ':''}${ago(a.date)}</time></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
-  return `<div class="card list-row${lk==='feat'?' lr-feat':''} ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}">${a.img?`<img class="cimg" width="96" height="96" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="tx"><div class="src"><img alt="" width="16" height="16" loading="lazy" decoding="async" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3>${dk?`<p class="ld">${esc(dk)}</p>`:''}<time>${mn?mn+' min read · ':''}${ago(a.date)}</time>${pwBadge(a)}</div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
+  return `<div class="card list-row${lk==='feat'?' lr-feat':lk==='type'?' lr-type':''} ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}">${a.img?`<img class="cimg" width="96" height="96" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="tx"><div class="src"><img alt="" width="16" height="16" loading="lazy" decoding="async" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3>${dk?`<p class="ld">${esc(dk)}</p>`:''}<time>${mn?mn+' min read · ':''}${ago(a.date)}</time>${pwBadge(a)}</div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
 }
 function card(a,i,k){
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
