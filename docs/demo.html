@@ -1094,7 +1094,7 @@ main{overscroll-behavior-y:contain}
 .obsl button.on b{background:var(--b,var(--logo));border-color:var(--b,var(--logo))}
 .obsl button.on b::after{content:'';display:block;width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:translate(0,-1px) rotate(45deg)}
 .obsl button:not(.on){color:var(--mut)}
-.obown{display:flex;gap:8px}.obown input{flex:1}
+.obown{display:flex;gap:8px}.obown input{flex:1}.obq{width:100%;box-sizing:border-box;margin:0 0 12px}
 .oblbl{font:600 13px var(--sans);color:var(--mut);margin:18px 0 8px}
 .fgrid.ob4{grid-template-columns:repeat(4,1fr)}@media(max-width:560px){.fgrid.ob4{grid-template-columns:repeat(2,1fr)}}
 .obtips{text-align:left;color:var(--mut);font-size:14.5px;line-height:1.5;padding-left:20px;max-width:420px}.obtips li{margin:5px 0}
@@ -11517,7 +11517,7 @@ function obRender(){
  else if(s===2){
   if(!OB.rerun&&!OB.seeded){OB.seeded=1;CAT.filter(c=>OB.topics.has(c.n)).forEach(c=>c.f.slice(0,3).forEach(x=>OB.picks.add(x[1])))}
   const cats=CAT.filter(c=>OB.topics.has(c.n));
-  body=`<h2>Choose your sources</h2><p class="hint"><b id="obcount">${OB.picks.size+OB.custom.length}</b> selected. Tap to add or remove.</p><div class="obs">${cats.map((c,ci)=>{const ex=OB.more.has(c.n)||c.f.slice(8).some(x=>OB.picks.has(x[1])),vis=ex?c.f:c.f.slice(0,8),f3=c.f.slice(0,3).every(x=>OB.picks.has(x[1]));return `<h3>${esc(c.n)}<button type="button" class="lnk obpk" data-obpack="${ci}">${f3?'Remove the first 3':'Add the first 3'}</button></h3><div class="obsl d">${vis.map(x=>`<button type="button" data-obsrc="${esc(x[1])}" class="${OB.picks.has(x[1])?'on':''}" aria-pressed="${OB.picks.has(x[1])}" style="--b:${brand({url:x[1]})}"><b></b><span>${esc(x[0])}${BLURB[x[0]]?'<small>'+esc(BLURB[x[0]])+'</small>':''}</span></button>`).join('')}</div>${!ex&&c.f.length>8?`<button type="button" class="obmore" data-obmore="${esc(c.n)}">Show ${c.f.length-8} more ${esc(c.n)} sites</button>`:''}`}).join('')}<h3>Your own</h3><div class="obown"><input id="obu" placeholder="Paste a site or feed address" autocomplete="off"><button type="button" class="tx2" data-obaddu>Add</button></div><div class="obsl">${OB.custom.map((u,i)=>`<button type="button" class="on" aria-pressed="true" data-obcus="${i}"><b></b><span>${esc(host(u)||u)}</span></button>`).join('')}</div></div>`;
+  body=`<h2>Choose your sources</h2><p class="hint"><b id="obcount">${OB.picks.size+OB.custom.length}</b> selected. Tap to add or remove.</p><div class="obs"><input id="obq" class="obq" type="search" placeholder="Search every site" aria-label="Search every site" autocomplete="off" value="${esc(OB.q||'')}"><div id="obres" hidden></div><div id="obtop">${cats.map((c,ci)=>{const ex=OB.more.has(c.n)||c.f.slice(8).some(x=>OB.picks.has(x[1])),vis=ex?c.f:c.f.slice(0,8),f3=c.f.slice(0,3).every(x=>OB.picks.has(x[1]));return `<h3>${esc(c.n)}<button type="button" class="lnk obpk" data-obpack="${ci}">${f3?'Remove the first 3':'Add the first 3'}</button></h3><div class="obsl d">${vis.map(x=>`<button type="button" data-obsrc="${esc(x[1])}" class="${OB.picks.has(x[1])?'on':''}" aria-pressed="${OB.picks.has(x[1])}" style="--b:${brand({url:x[1]})}"><b></b><span>${esc(x[0])}${BLURB[x[0]]?'<small>'+esc(BLURB[x[0]])+'</small>':''}</span></button>`).join('')}</div>${!ex&&c.f.length>8?`<button type="button" class="obmore" data-obmore="${esc(c.n)}">Show ${c.f.length-8} more ${esc(c.n)} sites</button>`:''}`}).join('')}<h3>Your own</h3><div class="obown"><input id="obu" placeholder="Paste a site or feed address" autocomplete="off"><button type="button" class="tx2" data-obaddu>Add</button></div><div class="obsl">${OB.custom.map((u,i)=>`<button type="button" class="on" aria-pressed="true" data-obcus="${i}"><b></b><span>${esc(host(u)||u)}</span></button>`).join('')}</div></div></div>`;
  }
  else if(s===3){
   const th=[['halcyon','Cypress','linear-gradient(135deg,#0c2619 50%,#c9a24a 50%)'],['auto','Light & Dark','linear-gradient(135deg,#fff 50%,#15181e 50%)'],['dynamic','Dynamic','conic-gradient(#0a8f4a,#7c5cff,#e2231a,#0a8f4a)'],['midnight','Midnight','#0b1220'],['forest','Forest','#15241b'],['rose','Rose','#f4e8e8'],['mono','Mono','linear-gradient(135deg,#fff 50%,#000 50%)'],['cyber','Cyber Rain','linear-gradient(135deg,#070914 45%,#f04cc4 45% 70%,#3fdcf0 70%)'],['cyberdawn','Cyber Dawn','linear-gradient(135deg,#dfe2ec 45%,#b3238a 45% 70%,#1590a8 70%)'],['broadsheet','Sepia','linear-gradient(135deg,#f6f1e3 50%,#17140e 50%)'],['terminal','Terminal','linear-gradient(135deg,#040807 50%,#4dff88 50%)'],['golden','Golden Hour','linear-gradient(135deg,#17100a 50%,#f2b352 50%)'],['crimson','Crimson','linear-gradient(135deg,#12060a 50%,#e5334f 50%)'],['modern','Modern','linear-gradient(135deg,#5b5bf0,#ff5c8a)']];
@@ -11530,6 +11530,16 @@ function obRender(){
  const n=$('#obnight');if(n)n.value=S.sch||'theme';
  if(n)n.onchange=()=>{S.sch=n.value;S.setT=Date.now();save();applyTheme(false)};
  const u=$('#obu');if(u)u.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();obAddU()}};
+ const q=$('#obq');if(q){q.oninput=()=>{OB.q=q.value;obSearch()};q.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();q.blur()}};if(OB.q)obSearch()}
+}
+function obSearch(){
+ const r=$('#obres'),t=$('#obtop');if(!r||!t)return;
+ const q=(OB.q||'').trim().toLowerCase();
+ if(!q){r.hidden=true;t.hidden=false;r.innerHTML='';return}
+ const seen=new Set(),hits=[];
+ CAT.forEach(c=>c.f.forEach(x=>{if(seen.has(x[1]))return;seen.add(x[1]);const hay=(x[0]+' '+c.n+' '+host(x[1])+' '+(BLURB[x[0]]||'')).toLowerCase();if(q.split(/\s+/).every(w=>hay.includes(w)))hits.push(x)}));
+ t.hidden=true;r.hidden=false;
+ r.innerHTML=`<p class="hint" role="status">${hits.length?hits.length+(hits.length===1?' site':' sites'):'No sites'} found${hits.length>40?'. Showing the first 40':''}.</p><div class="obsl d">${hits.slice(0,40).map(x=>`<button type="button" data-obsrc="${esc(x[1])}" class="${OB.picks.has(x[1])?'on':''}" aria-pressed="${OB.picks.has(x[1])}" style="--b:${brand({url:x[1]})}"><b></b><span>${esc(x[0])}${BLURB[x[0]]?'<small>'+esc(BLURB[x[0]])+'</small>':''}</span></button>`).join('')}</div>${hits.length?'':'<p class="hint">Try another word, or paste an address under “Your own”.</p>'}`;
 }
 function obAddU(){const u=$('#obu');let v=(u.value||'').trim();if(!v)return;if(!/^https?:/.test(v))v='https://'+v;if(!host(v)){toast('That doesn’t look like an address');return}if(!OB.custom.includes(v)&&!OB.picks.has(v))OB.custom.push(v);obRender();setTimeout(()=>{const x=$('#obu');if(x)x.focus()},0)}
 function obClick(e){
