@@ -5456,7 +5456,34 @@ let _lastSel=null;const SELPOS={};/* where each feed was left, so coming back to
 let LASTSET=null;
 if(!S.seenBase){S.seenBase=Date.now();try{save()}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){HIDT=Date.now();markSeen(S.sel)}else if(HIDT&&Date.now()-HIDT>18e5){VIS=visFor(S.sel);setTimeout(waterline,300)}});
-function render(){couponSweep();SMARTV=false;LASTSIG=itemsSig();LASTSET=new Set();for(const f of S.feeds)for(const a of (items[f.id]||[]))LASTSET.add(a.link);setTimeout(endObs,60);setTimeout(fixOrph,140);LK=layoutKey();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){markSeen(_lastSel);VIS=visFor(S.sel);if(mn0&&_lastSel!==null)SELPOS[_lastSel]={y:mn0.scrollTop,t:Date.now(),k:LK};wireSwitch(_lastSel,S.sel);_lastSel=S.sel;pfKick();const sm=SELPOS[S.sel];if(sm&&Date.now()-sm.t<18e5&&sm.k===LK&&sm.y>40)keep=sm.y;else if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();waterline();secOpener();covTitle();covFit();try{coverCrop()}catch(e){}dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=(S.sel==='today'&&!$('#q').value.trim()&&!nrMode())?'narrow':(S.cards||'medium');clearTimeout(PF.t);PF.t=setTimeout(()=>{prefetch(pfList());oiSync()},2500);imgFx();setTimeout(imgFx,80);setTimeout(()=>(window.requestIdleCallback||setTimeout)(starGuard,{timeout:1500}),400);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
+/* Coming back to The Daily from another page: when nothing has changed, the finished page is put back as it was instead of being built again (the build and the browser's layout work are most of the delay). Any new story, read mark, setting, size or hour change, or more than 4 minutes, builds it fresh. */
+let DCACHE=null,DSTAMP='',DSTAMPT=0,DNAV=false,DREST=0,DRES=false,DSTAMP0='';
+const dailySig=()=>{try{return itemsSig()+'|'+setSig()+'|'+VW+'x'+innerHeight+'|'+document.body.classList.contains('split')+'|'+document.documentElement.dataset.theme+'|'+(document.documentElement.dataset.dm||'')+'|'+document.documentElement.classList.contains('pdark')+'|'+S.theme+S.font+S.hfont+'|'+edKey()+'|'+((S.edn&&S.edn.l)||[]).length+'|'+Object.keys(S.prog||{}).length+'|'+(S.hist||[]).length+'|'+new Date().toDateString()+new Date().getHours()+'|'+$('#q').value+'|'+Object.values(state).filter(v=>v==='load').length}catch(e){return ''}};
+function dailyStash(){
+ DCACHE=null;
+ try{
+  const g=$('#grid');if(!DSTAMP||!cur.length||!g.classList.contains('paper'))return;
+  const sn=g.querySelector('.nr-more'),fr=document.createDocumentFragment();
+  const c={sig:DSTAMP,t:DSTAMPT,nr:g.classList.contains('nr'),nrp:g.classList.contains('nrp'),cards:g.dataset.cards,ttl:$('#ttl').textContent,cur:cur.slice(),dgl:DGL.slice(),pool:DAYPOOL,cov:COVSHOWN,lead:LEADK,why:Object.assign({},WHY),more:sn?NRMORE:null};
+  while(g.firstChild)fr.append(g.firstChild);c.fr=fr;DCACHE=c;
+ }catch(e){DCACHE=null}
+}
+function dailyRestore(){
+ const c=DCACHE;DCACHE=null;
+ try{
+  if(!c||Date.now()-c.t>24e4||c.sig!==dailySig())return false;DSTAMP0=c.sig;
+  const g=$('#grid');
+  g.classList.add('paper');g.classList.toggle('nr',c.nr);g.classList.toggle('nrp',c.nrp);if(c.cards)g.dataset.cards=c.cards;
+  $('#ttl').textContent=c.ttl;g.textContent='';g.append(c.fr);
+  cur=c.cur;DGL=c.dgl;DAYPOOL=c.pool;COVSHOWN=c.cov;LEADK=c.lead;for(const k in WHY)delete WHY[k];Object.assign(WHY,c.why);
+  if(NRIO){NRIO.disconnect();NRIO=null}NRMORE=null;
+  const sn=c.more&&g.querySelector('.nr-more');
+  if(sn){NRMORE=c.more;NRIO=new IntersectionObserver(es=>{if(!es.some(e=>e.isIntersecting))return;if(NRMORE&&NRMORE()&&NRIO){NRIO.unobserve(sn);NRIO.observe(sn)}},{root:$('main'),rootMargin:'1600px 0px'});NRIO.observe(sn)}
+  clearTimeout(DPRE.t);DPRE.t=setTimeout(dayPreload,2500);
+  DREST=c.t;DRES=true;return true;
+ }catch(e){return false}
+}
+function render(){couponSweep();SMARTV=false;LASTSIG=itemsSig();LASTSET=new Set();for(const f of S.feeds)for(const a of (items[f.id]||[]))LASTSET.add(a.link);setTimeout(endObs,60);setTimeout(fixOrph,140);LK=layoutKey();DNAV=S.sel!==_lastSel;DRES=false;if(DNAV&&_lastSel==='today')dailyStash();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){markSeen(_lastSel);VIS=visFor(S.sel);if(mn0&&_lastSel!==null)SELPOS[_lastSel]={y:mn0.scrollTop,t:Date.now(),k:LK};wireSwitch(_lastSel,S.sel);_lastSel=S.sel;pfKick();const sm=SELPOS[S.sel];if(sm&&Date.now()-sm.t<18e5&&sm.k===LK&&sm.y>40)keep=sm.y;else if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();DNAV=false;if(S.sel==='today'&&cur.length&&!Object.values(state).some(v=>v==='load')&&!$('#q').value.trim()){DSTAMP=DRES?DSTAMP0:dailySig();DSTAMPT=DREST||Date.now();DREST=0}else{DSTAMP='';DREST=0}waterline();secOpener();covTitle();covFit();try{coverCrop()}catch(e){}dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=(S.sel==='today'&&!$('#q').value.trim()&&!nrMode())?'narrow':(S.cards||'medium');clearTimeout(PF.t);PF.t=setTimeout(()=>{prefetch(pfList());oiSync()},2500);imgFx();setTimeout(imgFx,80);if(!DRES)setTimeout(()=>(window.requestIdleCallback||setTimeout)(starGuard,{timeout:1500}),400);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
 function starGuard(){
  /* reads first, writes after, so the page is laid out once instead of once per card */
  try{
@@ -5611,7 +5638,7 @@ function render0(){
  $('#ttl').textContent=t;
  document.body.style.setProperty('--tint',(S.theme==='dynamic'&&S.sel.startsWith('s:')&&fs[0])?`color-mix(in srgb,${brand(fs[0])} 8%,var(--bg))`:'');
  const q=$('#q').value.trim().toLowerCase();
- if(S.sel==='today'&&!q)return renderToday();
+ if(S.sel==='today'&&!q){if(DNAV&&dailyRestore())return;return renderToday()}
  if(S.sel==='all'&&!q&&atab()!=='latest'){let p=S.feeds.filter(f=>!paused(f)).flatMap(f=>items[f.id]||[]).filter(a=>!muted(a));p.sort((a,b)=>b.date-a.date);p=p.slice(0,300);if(S.hideRead)p=p.filter(a=>!S.read[a.link]);if(S.group!==false)p=group(p);return renderToday(atab(),p,allSeg(atab()),'All Stories')}
  if(S.sel==='brief'&&!q)return renderBrief();
  if(S.sel==='stats'&&!q)return renderStats();
@@ -6034,7 +6061,7 @@ function cardGrow(){
   rd.forEach(([c,th,ch])=>{if(th>ch+1)c.style.minHeight=th+'px'});
  }catch(e){}});
 }
-{const _r5=render;render=function(){_r5.apply(this,arguments);cardGrow()}}
+{const _r5=render;render=function(){_r5.apply(this,arguments);if(!DRES)cardGrow()}}
 addEventListener('resize',cardGrow);try{document.fonts&&document.fonts.ready.then(cardGrow)}catch(e){}
 /* ---- cluster C: the content-cleaning pipeline ----
    One pipeline for what the reader shows and what the print export sets: (a) the extractor scores text blocks by density, not just by length; (b) blocklists of
