@@ -5154,19 +5154,19 @@ const svg=(d,on)=>`<svg viewBox="0 0 24 24" width="19" height="19" fill="${on?'c
 const STAR='<path d="m12 3.8 2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.7 6.9 19.5l1-5.7-4.1-4 5.7-.8z"/>';
 const starSvg=on=>svg(STAR,on);
 const STOP=new Set('with from that this have will after over into about their they been were what when your more than them says said just also could would news'.split(' '));
+const TKC=new WeakMap();
 function group(list){
- const tk=a=>new Set((a.title||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>3&&!STOP.has(w)));
- const out=[];
+ const tk=a=>{let t=TKC.get(a);if(!t||t.ti!==a.title){t=new Set((a.title||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>3&&!STOP.has(w)));t.ti=a.title;TKC.set(a,t)}return t};/* each story's words are worked out once */
+ /* same grouping as comparing every story with every earlier group, but only groups that share a word with the story are looked at (the Daily groups every story you have, so the full comparison got slow) */
+ const out=[],seen=new Set(),idx=new Map();
  list.forEach(a=>{
-  const t=tk(a);let g=null;
   /* the same address arriving through two feeds is one story, not a second source */
-  if(out.some(o=>o.all.some(x=>x.link===a.link)))return;
-  for(const o of out){
-   if(o.fs.has(a.feedId))continue;
-   let inter=0;for(const w of t)if(o.t.has(w))inter++;
-   if(inter>=3&&inter/(t.size+o.t.size-inter)>=.45){g=o;break}
-  }
-  if(g){g.all.push(a);g.fs.add(a.feedId)}else out.push({t,all:[a],fs:new Set([a.feedId])});
+  if(seen.has(a.link))return;seen.add(a.link);
+  const t=tk(a),cnt=new Map();let best=-1;
+  for(const w of t){const l=idx.get(w);if(l)for(const gi of l)cnt.set(gi,(cnt.get(gi)||0)+1)}
+  for(const[gi,inter]of cnt){if(inter<3||(best>=0&&gi>best))continue;const o=out[gi];if(o.fs.has(a.feedId))continue;if(inter/(t.size+o.t.size-inter)>=.45)best=gi}
+  if(best>=0){const g=out[best];g.all.push(a);g.fs.add(a.feedId)}
+  else{const gi=out.length;out.push({t,all:[a],fs:new Set([a.feedId])});for(const w of t){let l=idx.get(w);if(!l)idx.set(w,l=[]);l.push(gi)}}
  });
  return out.map(o=>{const lead=o.all.find(x=>x.img)||o.all[0];return{...lead,more:o.all.filter(x=>x!==lead).map(m=>({t:m.title,l:m.link,f:m.feedId}))}});
 }
@@ -6688,13 +6688,14 @@ const JUNKFEEDS=[[/(^|\.)goodreads\.com$/,/\/blog\//]];
 const GRTITLE=[/\(\s*author of\b[^)]*\)\s*$/i,/\(\s*(?=[a-z0-9]*\d)[a-z0-9]{4,}\s*\)\s*$/,/\(\s*[a-z]{10,}\s*\)\s*$/,/^[A-Z]{1,4}\d{2,5}$/];
 /* every story is checked against these filters many times per render: parse each link once */
 const UPARSE=new Map();const urlOf=l=>{let u=UPARSE.get(l);if(u===undefined){try{u=new URL(l)}catch(e){u=null}if(UPARSE.size>8000)UPARSE.clear();UPARSE.set(l,u)}return u};
-const junkItem=a=>{try{const u=urlOf(a.link);if(!u)throw 0;for(const[h,ok]of JUNKFEEDS)if(h.test(u.hostname)&&!ok.test(u.pathname))return true}catch(e){}try{const f=fof(a),t=(a.title||'').trim();if(/goodreads\.com/i.test((f&&f.url)||'')&&GRTITLE.some(r=>r.test(t)))return true}catch(e){}return false};
+const memoItem=fn=>{const m=new WeakMap();return a=>{const k=a.title+'|'+a.link+'|'+a.feedId,e=m.get(a);if(e&&e.k===k)return e.v;const v=fn(a);m.set(a,{k,v});return v}};/* these checks only depend on the story itself, and run for every story many times per page */
+const junkItem=memoItem(a=>{try{const u=urlOf(a.link);if(!u)throw 0;for(const[h,ok]of JUNKFEEDS)if(h.test(u.hostname)&&!ok.test(u.pathname))return true}catch(e){}try{const f=fof(a),t=(a.title||'').trim();if(/goodreads\.com/i.test((f&&f.url)||'')&&GRTITLE.some(r=>r.test(t)))return true}catch(e){}return false});
 const DEALRX=[/\b\d{1,2}\s?% (off|discount)\b/i,/\bsave (up to )?(\$|£|€)\d+/i,/(\$|£|€)\d+(\.\d\d)? off\b/i,/\bup to \d+% (off|discount)/i,/\b(best|biggest|early|great|huge)\s+(\w+[\w\x27-]*\s+){0,3}deals?\b/i,/\bdeals? (of the day|alert|roundup|round-up)\b/i,/\b(prime day|prime big deal|black friday|cyber monday|boxing day sales?|labou?r day sales?|memorial day sales?|presidents.? day sales?|back[- ]to[- ]school sales?)\b/i,/\b(coupons?|promo codes?|discount codes?|voucher codes?)\b/i,/\bwhere to buy\b|\bbuying guide\b|\bworth buying\b/i,/\b(lowest|record[- ]low|all[- ]time low) price\b/i,/\b(is|are) on sale (at|for|now|today)\b|\bnow on sale at\b/i,/\b(deals?|sales?|discounts?)\b.{0,30}\b(at|from|on) (amazon|walmart|best buy|target|costco|ebay)\b/i,/^(sponsored|advertisement|advertorial|partner content|promoted|paid post)\s*[:|–—-]/i,/[|–—-]\s*(sponsored|advertisement|partner content|paid post)\s*\)?\s*$/i,/\((sponsored|advertisement|ad)\)/i],DEALURL=/\/(deals?|coupons?|sponsored|advertorial|promo-codes?|paid-content|shopping-deals)(\/|$)/i;
-const dealItem=a=>{const t=(a.title||'').trim();if(DEALRX.some(r=>r.test(t)))return true;try{const u=urlOf(a.link);if(u&&(DEALURL.test(u.pathname)||/^(deals|coupons|shop)\./i.test(u.hostname)))return true}catch(e){}return false};
+const dealItem=memoItem(a=>{const t=(a.title||'').trim();if(DEALRX.some(r=>r.test(t)))return true;try{const u=urlOf(a.link);if(u&&(DEALURL.test(u.pathname)||/^(deals|coupons|shop)\./i.test(u.hostname)))return true}catch(e){}return false});
 /* an ad for an event or a sponsor is never a story: ticket pushes, 'N days to ...' countdowns, 'Sponsored' posts and partner content are kept out of every editorial surface (cover, lists, brief), not just re-styled */
 const PROMORX=[/\b(disrupt|techcrunch sessions|stagecraft|early[- ]bird|all stage)\b.{0,80}\b(tickets?|passes|pass|register|registration|save \$?\d|last chance|ends? (today|tonight|soon)|days? (left|to go))\b/i,/\b\d+ days?( left)? (to|until|before) .{0,50}\b(disrupt|summit|conference|expo|festival|event|sale ends)\b/i,/^\W*(sponsored|promoted|partner content|paid post|advertorial|presented by|brought to you by)\b/i,/\b(limited[- ]time|last chance|don.t miss)\b.{0,50}\b(tickets?|passes|offer|discount|save)\b/i,/^\W*(the number|by the numbers)\W{0,3}\$\d+/i];
 const PROMOURL=/\/(sponsored|partner-content|advertorial|promo(tions?)?|events?\/(register|tickets))(\/|$)|[?&](utm_medium=(sponsor|paid)|sponsored=)/i;
-const promoItem=a=>{const t=(a.title||'').trim();if(PROMORX.some(r=>r.test(t)))return true;try{const u=urlOf(a.link);if(u&&PROMOURL.test(u.pathname+u.search))return true}catch(e){}return false};
+const promoItem=memoItem(a=>{const t=(a.title||'').trim();if(PROMORX.some(r=>r.test(t)))return true;try{const u=urlOf(a.link);if(u&&PROMOURL.test(u.pathname+u.search))return true}catch(e){}return false});
 const dealHide=a=>(!!S.hideDeals&&dealItem(a))||promoItem(a);
 /* B6/B7 ad-blindness: commerce/promo is never a cover story, never styled as an
    editorial card, and demoted or labeled everywhere else — one coherent rule */
