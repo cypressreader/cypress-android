@@ -552,3 +552,29 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 ## Slow story: "Read it on the site" after 10 seconds (unverified on device)
 - Open a story from a slow site (9to5google, lifehacker, The Atlantic were slow in the 2026-10-22 diagnostics). While "Loading the full article…" counts the seconds, after 10 seconds a "Read it on the site" button appears next to it. Tap it: the site opens inside the reader (same as the globe button), and the text version is still reachable with the same button.
 - A story that loads in under 10 seconds never shows the button.
+
+## Junk button hides a whole box (unverified on device)
+- In a story that has a sign-up or promo box (a heading with a bullet list under it), long-press the heading, drag the handle down to the last bullet, then tap Junk: the whole box disappears ("Hidden. Thanks...") and Undo brings it back. Before this fix it said "Could not find that block" unless you selected a single bullet.
+- Selecting most of the story and tapping Junk shows "That is too much of the story to hide" and hides nothing.
+
+## Junk hides the whole box; many more sign-up phrases (unverified on device)
+- Long-press ONE word inside a sign-up box (heading + bullets, a promo card) and tap Junk: the whole box goes in one step, Undo brings it back. A stray line in the middle of the story still hides just that line.
+- Open stories from a few sites that have sign-up boxes, account prompts, "Already have an account?", "Thanks for reading ... Subscribe for free", Medium member boxes, "Listen on Spotify" rows: they should be gone. Tell me about any story paragraph that disappeared by mistake (send Settings, Junk log / the story link).
+
+## Stubborn story: slow routes now start alongside the search (1.125, branch)
+- Open a story from a site that blocks the app. Expect: no flash of the "Couldn't get the full story" message, one wait, then either the full story or the final message with a **Try again** button.
+- Total wait should be shorter than before (was: syndication search up to 34 s, then 30 s more).
+- At 16 s the loading note no longer says 'Blocked' with a Try again button while routes are still running; it says the app is still trying other routes. 'Try again' appears only when everything has failed.
+
+## Feed descriptions, Preview and shorter setup (1.125, branch)
+- Setup step 2: each topic shows 8 sites with a one-line description, the first 3 ticked, 'Show N more' below. 'Add the first 3' replaces 'Add all'. Check on a phone that two topics fit without a wall and that the tick circles stay readable.
+- Add a feed > Browse topics: well-known sites show a description; 'Preview' (was 'How often does it post?') shows how often and the 3 latest headlines. Needs real network: try a site that blocks the app and confirm 'Couldn't check this one'.
+- Not done: search box inside setup step 2; sites outside the first 8 of each topic have no description yet (they show their address).
+
+- [ ] Setup step 2 search box: type a site name (e.g. "scientific"), tap a result, clear the box; the topic lists return with the pick kept and the count right. Check the keyboard doesn't cover results on a phone.
+
+- [ ] Magazine pass 3 (side preview): Saved opens with a photo masthead and mixed layouts; a search/topic page has a photo masthead; lead photos show a small "Photo: name" only when the feed gives a credit; a big-number card appears in long lists; section underline colors vary. Check text is readable on every masthead photo, in light and dark themes.
+- [ ] Settings > Magazine and digest > 'Photo magazine look (testing)': turning it off puts feed, folder, Saved and search pages back exactly as before (no photo cover, no full-width picture story, no colored bands, no credits, no big-number card); turning it on brings them back without restarting.
+- [ ] Scroll a long feed or folder page at normal speed and fast: full-width picture stories should already show their photo as they come into view (no plain colored block, no pop, no flicker). Compare with the switch off.
+
+- [ ] Daily return speed (2026-10-23): open a feed, then tap The Daily in the menu. The menu should close at once and the Daily appear right after, not 2 s later.
