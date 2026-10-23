@@ -5162,9 +5162,11 @@ function group(list){
  list.forEach(a=>{
   /* the same address arriving through two feeds is one story, not a second source */
   if(seen.has(a.link))return;seen.add(a.link);
-  const t=tk(a),cnt=new Map();let best=-1;
-  for(const w of t){const l=idx.get(w);if(l)for(const gi of l)cnt.set(gi,(cnt.get(gi)||0)+1)}
-  for(const[gi,inter]of cnt){if(inter<3||(best>=0&&gi>best))continue;const o=out[gi];if(o.fs.has(a.feedId))continue;if(inter/(t.size+o.t.size-inter)>=.45)best=gi}
+  const t=tk(a);let best=-1;
+  /* a group sharing 3 or more words must share at least one of the story's rarest words (all but its 2 most common), so only those word lists are read */
+  if(t.size>=3){const ws=[...t].map(w=>[w,(idx.get(w)||[]).length]).sort((x,y)=>x[1]-y[1]).slice(0,t.size-2),cand=new Set();
+   for(const[w]of ws){const l=idx.get(w);if(l)for(const gi of l)cand.add(gi)}
+   for(const gi of cand){if(best>=0&&gi>best)continue;const o=out[gi];if(o.fs.has(a.feedId))continue;let inter=0;for(const w of t)if(o.t.has(w))inter++;if(inter>=3&&inter/(t.size+o.t.size-inter)>=.45)best=gi}}
   if(best>=0){const g=out[best];g.all.push(a);g.fs.add(a.feedId)}
   else{const gi=out.length;out.push({t,all:[a],fs:new Set([a.feedId])});for(const w of t){let l=idx.get(w);if(!l)idx.set(w,l=[]);l.push(gi)}}
  });
