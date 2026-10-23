@@ -4138,6 +4138,21 @@ html[data-theme^=halcyon] #grid .card.list-row .src .sn{font:800 10.5px var(--sa
 .tmast.art small,.tmast.art .tm-s,.tmast.art h2{color:#fff}
 .tmast.art .tx2{color:#fff;border-color:rgba(255,255,255,.65);background:rgba(0,0,0,.28)}
 #grid.wire h3.dsh.wsec::after{background:var(--sa,var(--a1,var(--brass,var(--ink))))}
+/* magazine pass 4 (2026-10-23): feed and folder pages. Photo cover, full-bleed picture story, colored section bands */
+.fmast.fm-art{position:relative;overflow:hidden;isolation:isolate;align-items:flex-end;min-height:clamp(210px,52vw,320px);margin:2px 0 10px;padding:clamp(18px,4vw,30px);border:0;border-radius:14px;color:#fff;background:var(--mt,var(--mb))}
+.fmast.fm-art>.tmart{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
+.fmast.fm-art::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(to top,rgba(6,12,10,.92),rgba(6,12,10,.5) 62%,rgba(6,12,10,.25))}
+.fmast.fm-art h2,.fmast.fm-art .fm-d,.fmast.fm-art .fm-n,.fmast.fm-art .fm-n small{color:#fff}
+.fmast.fm-art h2{font-size:clamp(34px,8vw,56px);line-height:1}
+.fmast.fm-art .fm-mark{background:rgba(255,255,255,.18);color:#fff}
+#grid.fed .wmom.fd-spl{aspect-ratio:4/3}
+@media(min-width:700px){#grid.fed .wmom.fd-spl{aspect-ratio:21/9}}
+#grid.fed .wmom.fd-spl .wmom-t b{font-size:clamp(30px,8.5vw,56px)!important;line-height:.98!important}
+#grid.fed.wire h3.dsh.wsec{background:var(--sa,color-mix(in srgb,var(--fa) 62%,#000))!important;color:#fff;border-bottom:0;border-radius:10px;padding:14px 16px;margin-top:30px}
+#grid.fed.wire h3.dsh.wsec>span{color:#fff}
+#grid.fed.wire h3.dsh.wsec small{color:rgba(255,255,255,.82)}
+#grid.fed.wire h3.dsh.wsec::after{display:none}
+#grid.fed.wire h3.dsh.wsec .dsr{color:#fff;border-color:rgba(255,255,255,.6);background:transparent}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -5543,11 +5558,11 @@ function feedFacts(f){
  return {rate:r,perweek:Math.max(1,Math.round(rate*7)),u:un.length,behind,behindtxt:behind+' '+(behind===1?'day':'days'),gap,gaptxt:gap===0?'today':gap===1?'yesterday':gap+' days ago',rdays,n:L.length};
 }
 
-function feedMast(f,unread){
- const col=brand(f),hs=host(f.url).replace(/^www\./,''),nm=esc(f.title||hs),fo=S.folders.find(x=>x.id===f.folder);
+function feedMast(f,unread,list){
+ const col=brand(f),m=mastArt(list),hs=host(f.url).replace(/^www\./,''),nm=esc(f.title||hs),fo=S.folders.find(x=>x.id===f.folder);
  const desc=f.desc?esc(String(f.desc).replace(/\s+/g,' ').slice(0,110)):esc(hs+(fo?' · in '+fo.name:''));
  const ft=feedFacts(f),stat=pe('feedstat',ft,'fs'+f.id);
- return `<header class="fmast" style="--mb:${col}"><span class="fm-mark" aria-hidden="true">${esc((f.title||hs).trim().charAt(0).toUpperCase())}</span><div class="fm-t"><h2>${nm}</h2><p class="fm-d">${desc}</p></div>${S.hideCount?'':`<span class="fm-n" title="Unread stories"><b>${unread}</b><small>unread</small></span>`}</header><p class="fm-s">${esc(stat)}</p>`;
+ return `<header class="fmast${m.c?' fm-art':''}" style="--mb:${col}${m.t?';--mt:'+m.t:''}">${m.i}<span class="fm-mark" aria-hidden="true">${esc((f.title||hs).trim().charAt(0).toUpperCase())}</span><div class="fm-t"><h2>${nm}</h2><p class="fm-d">${desc}</p></div>${S.hideCount?'':`<span class="fm-n" title="Unread stories"><b>${unread}</b><small>unread</small></span>`}</header><p class="fm-s">${esc(stat)}</p>`;
 }
 /* a folder (News, Tech, ...) gets the same masthead and section-front treatment as a single site */
 function folderPseudo(fo){
@@ -5750,7 +5765,7 @@ if(FD){
  cur=cn;
  newN=vis?cn.filter(a=>a.date>vis).length:0;WIRE.newN=newN;
  const tr=T?[]:wireStrip(cn),clock=vis?wireClock(vis):'';
- const head=pre+(f1?feedMast(f1,unread):FO&&FD?feedMast(FD,unread):'')+(pend?`<button type="button" class="wpill" data-wire="load" aria-live="polite">${pend} new ${pend===1?'story':'stories'} — tap to load</button>`:'')
+ const head=pre+(f1?feedMast(f1,unread,cn):FO&&FD?feedMast(FD,unread,cn):'')+(pend?`<button type="button" class="wpill" data-wire="load" aria-live="polite">${pend} new ${pend===1?'story':'stories'} — tap to load</button>`:'')
   +`<div class="wmeta"><div class="nr-meta">${stN(cn.length)}${S.hideCount?'':' · '+unread+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>${densHtml()}</div>`
   +trendStripHtml(tr);
  g.classList.add('nr','wire');g.dataset.w=g.dataset.wdens=S.wdens==='col'?'col':'mag';if(T)g.classList.add('wtopic');if(FD){g.classList.add('fed');g.style.setProperty('--fb',brand(FD))}if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
@@ -6445,7 +6460,7 @@ function saveFlourish(a){
 try{document.documentElement.classList.toggle('dkart',!!bgDark())}catch(e){}
 function mastHtml(f,list){
  if(!f)return'';
- return feedMast(f,uc([f]));
+ return feedMast(f,uc([f]),list);
 }
 /*PROGRESS RING*/
 const ringSvg=(n,t,sz,sw)=>{const r=(sz-sw)/2,c=2*Math.PI*r,f=t?Math.min(1,n/t):0;return `<svg class="rg" width="${sz}" height="${sz}" viewBox="0 0 ${sz} ${sz}" aria-hidden="true"><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--ln)" stroke-width="${sw}"/><circle class="rgf" cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--rg,#1f8a5b)" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${(c*f).toFixed(1)} ${c.toFixed(1)}"/></svg>`};
@@ -12131,6 +12146,7 @@ function fedFactsToday(f){
  return Object.assign({},ft,{today:L.length,readn:L.filter(a=>S.read[a.link]).length,avg:Math.round(reads/days*10)/10});
 }
 function fedMods(us,FD,c){
+ if(c.first)FED_SP[FD.id]=0;/* the picture-story count starts again on every draw, then runs on from section to section */
  const {B,ix}=c,ft=fedFactsToday(FD),cls=ft.rate>=8?0:ft.rate>=3?1:2;
  const SEQ=[['mid','brief','pair','deck','brief','mid','voice','pair'],['pair','deck','mid','brief','mid','pair','voice','deck'],['mid','deck','mid','pair','deck','voice','mid','brief']][cls];
  const rot=peHash(FD.id)%3;let mi=FED_I[FD.id]||0,i=0;
@@ -12146,8 +12162,9 @@ function fedMods(us,FD,c){
   B.push(link(a,'fd-feat'+(a.img?'':' fd-ft '+patCls(fof(a))),`${img}<span class="fd-fb"><small>${FD.isFolder?'Cover story · '+esc(fof(a).title)+' · ':'The lead · '}${esc(when(a))}</small><b>${esc(a.title)}</b>${dk(a)?`<em>${esc(dk(a))}</em>`:''}</span>`)+(u.more.length?(()=>{const id='t'+peHash(a.link);return `<div class="wthr fd-thr"><button type="button" class="wthr-t" data-thr="${id}" aria-expanded="false">${u.more.length} earlier ${u.more.length===1?'update':'updates'} on this story</button><div class="wthr-b" id="${id}" hidden>${u.more.map(x=>c.card(x,ix(x),'nr nr-row nr-s')).join('')}</div></div>`})():''));
  }
  if(c.leadOnly)return;
- let last='feat';
+ let last='feat',spl=FED_SP[FD.id]||0;
  while(us.length){
+  if(++spl>=4&&us.length>=3){const t=us.find(u=>!u.more.length&&nrHas(u.head));if(t){us.splice(us.indexOf(t),1);B.push(momentHtml(t.head,ix(t.head)).replace('class="cvlead wmom"','class="cvlead wmom fd-spl"'));spl=0;last='splash';continue}}
   let m=SEQ[(mi+rot)%SEQ.length];mi++;
   if(m==='voice'){
    const t=pe('fedvoice',ft,'fv'+FD.id+mi);if(t&&t!==PE_NEUTRAL.fedvoice&&last!=='voice'){B.push(`<p class="fd-voice">${esc(t)}</p>`);last='voice'}
@@ -12171,9 +12188,9 @@ function fedMods(us,FD,c){
   }
   last=m;
  }
- FED_I[FD.id]=mi;
+ FED_I[FD.id]=mi;FED_SP[FD.id]=spl;
 }
-const FED_I={};
+const FED_I={},FED_SP={};
 
 /* ---- experiment, cluster M: print mode ----
    A PDF (one story, or a pick from Saved) is typeset on the device: selectable text in Times, and for a pick a cover, contents and two-column story pages. (Whole-edition export was removed in 1.84.)
@@ -12772,9 +12789,9 @@ function shelfFacts(){
  return {n:l.length,u:un.length,mins,oldestD:od,oldest:od+' days'};
 }
 function mastArt(list){
- const g=(list||[]).filter(x=>x.img&&!imgWeak(x.img)),a=g[1]||g[0];/* the second picture: the first is the opening story just below */if(!a)return{c:'',i:'',s:''};
+ const g=(list||[]).filter(x=>x.img&&!imgWeak(x.img)),a=g[1]||g[0];/* the second picture: the first is the opening story just below */if(!a)return{c:'',i:'',s:'',t:''};
  const t=IIS[a.img];
- return{c:' art',s:t&&t.t&&t.v>=4?` style="--mt:${t.t}"`:'',i:`<img class="tmart" alt="" referrerpolicy="no-referrer" loading="lazy" decoding="async" src="${esc(a.img)}" onerror="this.parentNode.classList.remove('art');this.remove()">`};
+ return{c:' art',t:t&&t.t&&t.v>=4?t.t:'',s:t&&t.t&&t.v>=4?` style="--mt:${t.t}"`:'',i:`<img class="tmart" alt="" referrerpolicy="no-referrer" loading="lazy" decoding="async" src="${esc(a.img)}" onerror="this.parentNode.classList.remove('art','fm-art');this.remove()">`};
 }
 function shelfMast(){
  const f=shelfFacts(),m=mastArt(S.saved);
