@@ -572,3 +572,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - Not done: search box inside setup step 2; sites outside the first 8 of each topic have no description yet (they show their address).
 
 - [ ] Setup step 2 search box: type a site name (e.g. "scientific"), tap a result, clear the box; the topic lists return with the pick kept and the count right. Check the keyboard doesn't cover results on a phone.
+
+- [ ] Magazine pass 3 (side preview): Saved opens with a photo masthead and mixed layouts; a search/topic page has a photo masthead; lead photos show a small "Photo: name" only when the feed gives a credit; a big-number card appears in long lists; section underline colors vary. Check text is readable on every masthead photo, in light and dark themes.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Publish a branch of CyPress to the separate PREVIEW site (never to production).
 #
-#   scripts/publish-preview.sh <branch> [--dry-run] [--out <dir>]
+#   scripts/publish-preview.sh <branch> [--dry-run] [--out <dir>] [--slot <name>]
 #
 # What it does
 #   1. Reads the branch from git (your working tree is not touched).
@@ -16,6 +16,7 @@
 # `preview` remote that is not the cypress-preview repo.
 #
 #   --dry-run   build and stamp into a folder, but do not push (used for checking)
+#   --slot NAME publish to a side address (…/cypress-preview/NAME/app/) and leave the main preview untouched
 #   --out DIR   where --dry-run writes the site (default: a temp folder that is printed)
 set -euo pipefail
 
@@ -23,11 +24,12 @@ die() { echo "publish-preview: $*" >&2; exit 1; }
 
 BRANCH="${1:-}"; [ -n "$BRANCH" ] && [ "${BRANCH#-}" = "$BRANCH" ] || die "usage: $0 <branch> [--dry-run] [--out <dir>]"
 shift
-DRY=0; OUT=""
+DRY=0; OUT=""; SLOT=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --dry-run) DRY=1 ;;
     --out) OUT="${2:?--out needs a folder}"; shift ;;
+    --slot) SLOT="${2:?--slot needs a name}"; shift ;;
     *) die "unknown option $1" ;;
   esac
   shift
@@ -108,6 +110,23 @@ printf 'Preview of %s @ %s (%s)\n' "$BRANCH" "$SHA" "$STAMP" > "$SITE/docs/PREVI
 if [ "$DRY" = 1 ]; then
   [ -n "$OUT" ] || { mkdir -p /tmp/cypress-preview-dry && rm -rf /tmp/cypress-preview-dry/* && cp -R "$SITE/." /tmp/cypress-preview-dry/ && SITE=/tmp/cypress-preview-dry; }
   echo "dry run: stamped site is in $SITE/docs (serve that folder to look at it)"
+  exit 0
+fi
+
+if [ -n "$SLOT" ]; then
+  case "$SLOT" in *[!a-z0-9-]*|"") die "--slot must be lowercase letters, digits and dashes" ;; esac
+  case "$SLOT" in app|docs) die "--slot cannot be 'app' or 'docs'" ;; esac
+  PV="$WORK/pv"
+  git clone -q --depth 1 -b main "$URL" "$PV" || die "could not fetch the preview site"
+  rm -rf "$PV/docs/$SLOT"; mkdir -p "$PV/docs/$SLOT"; cp -R "$SITE/docs/app" "$PV/docs/$SLOT/app"
+  printf 'Side preview "%s" of %s @ %s (%s)\n' "$SLOT" "$BRANCH" "$SHA" "$STAMP" > "$PV/docs/$SLOT/PREVIEW.txt"
+  cd "$PV"; git add -A
+  git -c user.name="$(git -C "$ROOT" config user.name || echo preview)" -c user.email="$(git -C "$ROOT" config user.email || echo preview@example.invalid)" \
+    commit -q -m "Side preview $SLOT: $BRANCH @ $SHA ($STAMP)"
+  git push -q "$URL" main
+  SLUG="$(printf '%s' "$URL" | sed -E 's#^.*github.com[:/]([^/]+)/([^/.]+)(\.git)?$#\1 \2#')"
+  echo; echo "Published $BRANCH @ $SHA as side preview '$SLOT' (the main preview is untouched)."
+  echo "Open (GitHub Pages can take a minute to refresh): https://${SLUG% *}.github.io/${SLUG#* }/$SLOT/app/"
   exit 0
 fi
 

@@ -4126,6 +4126,18 @@ html[data-theme^=halcyon] #grid .card.list-row .src .sn{font:800 10.5px var(--sa
 .tmast.tm-day h2{font-size:clamp(28px,6vw,44px)}
 #grid.wire .dpq{grid-column:1/-1;text-align:center;border-left:0;border-top:1px solid var(--ink);border-bottom:1px solid var(--ln);padding:26px 14px 20px;margin:10px 0 18px}
 #grid.wire .dpq p{text-wrap:balance;font-size:clamp(22px,6vw,30px);font-style:italic;font-weight:500}
+/* magazine pass 3 (2026-10-23): photo credits, big-number break, shelf and topic covers made from a story photo, section bar colour */
+#grid .pcr{display:none}
+#grid .card:is(.lead,.nr-lead,.nr-hero,.nr-wide,.nr-colr) .pcr{display:block;position:absolute;left:12px;top:12px;z-index:2;max-width:55%;font:italic 500 10.5px/1.3 var(--sans);color:rgba(255,255,255,.88);text-shadow:0 1px 3px rgba(0,0,0,.7);pointer-events:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nr-stat{grid-column:1/-1;display:flex;align-items:baseline;justify-content:center;gap:16px;flex-wrap:wrap;text-align:center;margin:18px 0;padding:22px 14px;border-top:1px solid var(--ink);border-bottom:1px solid var(--ln)}
+.nr-stat b{font:700 clamp(92px,28vw,150px)/.85 var(--disp,var(--serif));color:var(--a1,var(--ink));letter-spacing:-.02em}
+.nr-stat span{font:italic 500 clamp(16px,3.4vw,22px)/1.25 var(--disp,var(--serif));max-width:16em;text-wrap:balance}
+.tmast.art{position:relative;overflow:hidden;isolation:isolate;border:0;border-radius:14px;color:#fff;padding:clamp(26px,6vw,46px) clamp(16px,4vw,30px);margin-bottom:18px;background:var(--mt,#1f4a33)}
+.tmast.art>.tmart{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
+.tmast.art::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(to top,rgba(8,14,12,.9),rgba(8,14,12,.5) 70%,rgba(8,14,12,.3))}
+.tmast.art small,.tmast.art .tm-s,.tmast.art h2{color:#fff}
+.tmast.art .tx2{color:#fff;border-color:rgba(255,255,255,.65);background:rgba(0,0,0,.28)}
+#grid.wire h3.dsh.wsec::after{background:var(--sa,var(--a1,var(--brass,var(--ink))))}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -4961,6 +4973,8 @@ function firstImg(html,base){
  return '';
 }
 const tx=(el,n)=>el.getElementsByTagName(n)[0]?.textContent?.trim()||'';
+/* a photo credit as printed under a magazine picture: a name or an agency, never a web address or a sentence */
+const cleanCr=t=>{t=String(t||'').replace(/<[^>]*>/g,' ').replace(/^\s*(photo|image|credit|photograph)s?\s*(by|:)?\s*/i,'').replace(/\s+/g,' ').trim();return t&&t.length<=48&&!/https?:|www\./i.test(t)?t:''};
 /* JSON Feed (jsonfeed.org): same story shape as RSS items */
 function parseJsonFeed(txt,f){
  let j;try{j=JSON.parse(txt)}catch(e){return{title:'',list:[]}}
@@ -5003,6 +5017,7 @@ function parse(xml,f){
   if(!img)img=firstImg(html,link);
   img=img?hi(abs(img,link)):'';
   const thu=tnE?abs(tnE.getAttribute('url'),link):'';
+  const pcr=cleanCr(tx(el,'media:credit')||tx(el,'media:copyright'));
   const text=new DOMParser().parseFromString(html,'text/html').body.textContent.replace(/\s+/g,' ').trim();
   const au=[...el.getElementsByTagName('enclosure'),...el.getElementsByTagName('media:content')].find(e=>/audio/.test(e.getAttribute('type')||'')||/\.(mp3|m4a|aac|ogg)(\?|$)/i.test(e.getAttribute('url')||''));
   const yv=tx(el,'yt:videoId');
@@ -5011,7 +5026,7 @@ function parse(xml,f){
   let cm=tx(el,'comments');if(!/^https?:/.test(cm)){cm='';const m=(html||'').match(/href="(https?:\/\/(?:www\.|old\.)?(?:reddit\.com\/r\/[^"]+\/comments\/[^"]+|news\.ycombinator\.com\/item\?id=\d+|lobste\.rs\/s\/[^"]+))"/);if(m)cm=m[1]}
   let dur=tx(el,'itunes:duration');if(/^\d+$/.test(dur)){const n=+dur;dur=n>=3600?Math.floor(n/3600)+' h '+Math.round(n%3600/60)+' min':Math.round(n/60)+' min'}else if(/^\d+:\d+(:\d+)?$/.test(dur)){const q=dur.split(':').map(Number);dur=q.length===3?(q[0]?q[0]+' h ':'')+q[1]+' min':q[0]+' min'}else dur='';
   if(!img&&yv)img='https://i.ytimg.com/vi/'+yv+'/hqdefault.jpg';
-  return{feedId:f.id,by,sec,cats,ce,cm,audio:au?abs(au.getAttribute('url'),link):'',yt:yv||'',dur,th:(thu&&thu!==img&&img)?thu:'',title:cleanT(tx(el,'title')),link,date:pdate(tx(el,'pubDate')||tx(el,'published')||tx(el,'updated')||tx(el,'dc:date')),img,html,summary:trimWords(text,170),wc:text?text.split(' ').length:0};
+  return{feedId:f.id,by,sec,cats,ce,cm,audio:au?abs(au.getAttribute('url'),link):'',yt:yv||'',dur,th:(thu&&thu!==img&&img)?thu:'',pcr,title:cleanT(tx(el,'title')),link,date:pdate(tx(el,'pubDate')||tx(el,'published')||tx(el,'updated')||tx(el,'dc:date')),img,html,summary:trimWords(text,170),wc:text?text.split(' ').length:0};
  });
  return{title,list:finishList(list)};
 }
@@ -5494,8 +5509,8 @@ function render0(){
  if(cur.length>3)tip('card');
  if(wireOn()&&wireSel()&&!q&&cur.length>=6&&nrMode()&&S.view!=='list'){wireRender(pre,cur);return}
  if(q&&S.sel!=='saved'&&wireOn()&&cur.length>=4&&nrMode()&&S.view!=='list'){wireRender(pre,cur,true);return}
- if(nrOn()&&!q&&S.sel!=='saved'&&cur.length>=6){const ms=cur.reduce((m,a)=>Math.max(m,a.date),0),un=cur.filter(a=>!S.read[a.link]).length;$('#grid').classList.add('nr');setBlocks(pre+((!q&&S.sel.startsWith('s:'))?mastHtml(S.feeds.find(x=>'s:'+x.id===S.sel),cur):`<div class="nr-meta">${cur.length} stories${S.hideCount?'':' · '+un+' unread'} · newest ${ago(ms)} ago</div>`),nrBlocks(cur,0),3,2);return}
- if(nrPhoneOn()&&!q&&S.sel!=='saved'&&cur.length>=6){const ms=cur.reduce((m,a)=>Math.max(m,a.date),0),un=cur.filter(a=>!S.read[a.link]).length;$('#grid').classList.add('nr','nrp');setBlocks(pre+((!q&&S.sel.startsWith('s:'))?mastHtml(S.feeds.find(x=>'s:'+x.id===S.sel),cur):`<div class="nr-meta">${cur.length} stories${S.hideCount?'':' · '+un+' unread'} · newest ${ago(ms)} ago</div>`),nrBlocksPhone(cur,0),3,2);return}
+ if(nrOn()&&cur.length>=(inSaved||q?3:6)){const ms=cur.reduce((m,a)=>Math.max(m,a.date),0),un=cur.filter(a=>!S.read[a.link]).length;$('#grid').classList.add('nr');setBlocks(pre+((!q&&S.sel.startsWith('s:'))?mastHtml(S.feeds.find(x=>'s:'+x.id===S.sel),cur):`<div class="nr-meta">${cur.length} stories${S.hideCount?'':' · '+un+' unread'} · newest ${ago(ms)} ago</div>`),nrBlocks(cur,0).concat(savedView?[shelfEnd(cur)]:[]),3,2);return}
+ if(nrPhoneOn()&&cur.length>=(inSaved||q?3:6)){const ms=cur.reduce((m,a)=>Math.max(m,a.date),0),un=cur.filter(a=>!S.read[a.link]).length;$('#grid').classList.add('nr','nrp');setBlocks(pre+((!q&&S.sel.startsWith('s:'))?mastHtml(S.feeds.find(x=>'s:'+x.id===S.sel),cur):`<div class="nr-meta">${cur.length} stories${S.hideCount?'':' · '+un+' unread'} · newest ${ago(ms)} ago</div>`),nrBlocksPhone(cur,0).concat(savedView?[shelfEnd(cur)]:[]),3,2);return}
  setBlocks(pre+(cov||''),(cov?cur.slice(covN):cur).map((a,i)=>card(a,i+(cov?covN:0),'mid')).concat(savedView&&cur.length?[shelfEnd(cur)]:[]),24,12);
 }
 
@@ -5661,6 +5676,8 @@ function colItem(u,ix,deck){
 }
 const densHtml=()=>`<div class="wdens" role="group" aria-label="Density"><button type="button" data-wdens="mag" aria-pressed="${S.wdens!=='col'}">Cards</button><button type="button" data-wdens="col" aria-pressed="${S.wdens==='col'}">Columns</button></div>`;
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button[data-wdens]');if(!b)return;e.preventDefault();e.stopPropagation();S.wdens=b.dataset.wdens;save();render()},true);
+/* the bar under a section heading takes its color from the section's lead photo, once that photo has been looked at on the device */
+const secTint=us=>{const a=us.find(u=>u.head.img&&IIS[u.head.img]&&IIS[u.head.img].t&&IIS[u.head.img].v>=4);return a?` style="--sa:${IIS[a.head.img].t}"`:''};
 function wireRender(pre,list,T){
  const g=$('#grid'),mode=nrMode(),now=Date.now(),vis=T?0:VIS,units=wireThreads(list);
  const FO=!T&&S.sel.startsWith('f:')?S.folders.find(x=>'f:'+x.id===S.sel):null;
@@ -5697,7 +5714,7 @@ if(FD){
  }
  for(const key of ['new','hour','morning','today','earlier']){
   const us=groups[key];if(!us.length)continue;
-  flush();if(dens==='col'&&B.length>2)B.push(dividerHtml(B.length));B.push(`<h3 class="dsh wsec"><span>${esc(wireLabel(key,an))}</span><small>${us.length} ${us.length===1?'story':'stories'}</small>${(SECR[key]=us.flatMap(u=>[u.head.link].concat((u.more||[]).map(m=>m.link))).filter(l=>!S.read[l])).length?`<button type="button" class="dsr" data-secread="${key}" aria-label="Mark ${esc(wireLabel(key,an))} as read">Mark read</button>`:''}</h3>`+(FD?`<p class="wsec-v">${esc(pe('fedgrp',{key,gn:us.length,feed:FD.title||host(FD.url),newest:ago(Math.max(...us.map(u=>u.head.date)))},'fg'+FD.id+key))}</p>`:''));
+  flush();if(dens==='col'&&B.length>2)B.push(dividerHtml(B.length));B.push(`<h3 class="dsh wsec"${secTint(us)}><span>${esc(wireLabel(key,an))}</span><small>${us.length} ${us.length===1?'story':'stories'}</small>${(SECR[key]=us.flatMap(u=>[u.head.link].concat((u.more||[]).map(m=>m.link))).filter(l=>!S.read[l])).length?`<button type="button" class="dsr" data-secread="${key}" aria-label="Mark ${esc(wireLabel(key,an))} as read">Mark read</button>`:''}</h3>`+(FD?`<p class="wsec-v">${esc(pe('fedgrp',{key,gn:us.length,feed:FD.title||host(FD.url),newest:ago(Math.max(...us.map(u=>u.head.date)))},'fg'+FD.id+key))}</p>`:''));
   if(FD&&dens!=='col'){fedMods(us,FD,{B,ix,card});continue}
   let j=0;
   vf.length=0;
@@ -5709,13 +5726,13 @@ if(FD){
     colBuf+=colItem(u,ix,j%3===0);
     if(j%9===0&&!u.more.length){const pq=pullQuoteHtml(u.head);if(pq){flush();B.push(pq)}}
     continue}
-   if(k%12===9&&u.head.img&&!u.more.length){flush();B.push(momentHtml(u.head,ix(u.head)));continue}
+   if(k%12===9&&u.head.img&&!imgWeak(u.head.img)&&!u.more.length){flush();B.push(momentHtml(u.head,ix(u.head)));continue}
    if(u.more.length){
     flush();WHY[u.head.link]=u.burst?'A busy stretch: '+(u.more.length+1)+' stories from '+u.feed+' arrived together, so they are folded to keep the list mixed.':'A developing story: '+(u.more.length+1)+' updates, newest first.';
     const id='t'+peHash(u.head.link);
     B.push(`<div class="wthr">${card(u.head,ix(u.head),'mid')}<button type="button" class="wthr-t" data-thr="${id}" aria-expanded="false">${u.burst?(u.more.length+1)+' more from '+esc(u.feed)+' in this stretch':u.more.length+' earlier '+(u.more.length===1?'update':'updates')+' on this story'}</button><div class="wthr-b" id="${id}" hidden>${u.more.map(rowHtml).join('')}</div></div>`);
    }else if(kind==='row')rowBuf+=rowHtml(u.head);
-   else{flush();B.push(card(u.head,ix(u.head),kind==='lead'&&u.head.img?'lead':'mid'))}
+   else{flush();B.push(card(u.head,ix(u.head),kind==='lead'&&u.head.img&&!imgWeak(u.head.img)?'lead':'mid'))}
    qgap++;if(mode!=='w'&&qgap>=5&&!u.more.length&&!S.read[u.head.link]){const q0=nrQuoteText(u.head);if(q0&&q0.real&&q0.q.length<=180){const pq=pullQuoteHtml(u.head);if(pq){flush();B.push(pq);qgap=0}}}
    if(k%7===6)addWild(us[j]?us[j].head.feedId:undefined);
   }
@@ -6464,7 +6481,7 @@ function listRow(a,i,k,f){
 function card(a,i,k){
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
   const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],op=q0&&q0.v>=4&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="object-position:${q0.px}% ${q0.py}%"`:'';
-  return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="${i<6?'eager':'lazy'}" decoding="${i<6?'sync':'async'}"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><img alt="" width="16" height="16" loading="lazy" decoding="async" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span>${a.sec?`<span class=" ssec">· ${esc(a.sec)}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="${a.more.length+1} sources report this">+${a.more.length} sources</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><p>${esc(sumOf(a.summary))}</p><div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}${pwBadge(a)}<time>${ago(a.date)}</time></div>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
+  return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="${i<6?'eager':'lazy'}" decoding="${i<6?'sync':'async'}"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div>${a.img&&a.pcr?`<span class="pcr">Photo: ${esc(a.pcr)}</span>`:''}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><img alt="" width="16" height="16" loading="lazy" decoding="async" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span>${a.sec?`<span class=" ssec">· ${esc(a.sec)}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="${a.more.length+1} sources report this">+${a.more.length} sources</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><p>${esc(sumOf(a.summary))}</p><div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}${pwBadge(a)}<time>${ago(a.date)}</time></div>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
 }
 /*NEWSROOM*/
 const IS_SAFARI=(()=>{try{const u=navigator.userAgent;return /iP(hone|ad|od)/.test(u)||(/Safari\//.test(u)&&!/Chrome\/|Chromium\/|Android|Edg\/|OPR\/|CriOS|FxiOS/.test(u))}catch(e){return false}})();
@@ -6474,10 +6491,12 @@ const nrDense=()=>S.cards==='compact'||S.cards==='narrow';
 const nrOn=()=>isOn('nroom')&&!nrDense()&&VW>=NRMIN&&!document.body.classList.contains('split')&&!document.body.classList.contains('narrow')&&S.view!=='list';
 const nrAge=a=>{const h=(Date.now()-a.date)/36e5;return h<18?'Earlier today':h<42?'Yesterday':h<144?'This week':'Earlier'};
 function nrPick(l){const used=new Set();return{left:()=>l.length-used.size,isUsed:i=>used.has(i),pick(pred,n,exact){const r=[];for(let i=0;i<l.length&&r.length<n;i++){if(!used.has(i)&&(!pred||pred(l[i])))r.push(i)}if(exact&&r.length<n)return null;r.forEach(i=>used.add(i));return r}}}
-const nrHas=a=>!!a.img;
+/* a picture that is tiny, or a thin banner, makes a poor opener: it is left to the small slots */
+const imgWeak=u=>{const d=IMGDIM.get(u);return !!d&&(Math.min(d[0],d[1])<240||d[0]/d[1]>3.2||d[1]/d[0]>2.4)};
+const nrHas=a=>!!a.img&&!imgWeak(a.img);
 /* Different feeds, and different days, get different arrangements, so the page never settles into one repeated pattern */
 const nrHash=s=>{let h=7;for(const c of String(s)+Math.floor(Date.now()/864e5))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)};
-const NRPAT=[['seg','quote','trio','split','river','mosaic','sect','quote','color','strip','quick'],['split','quote','seg','strip','trio','color','quote','river','sect','mosaic','quick'],['trio','color','quote','seg','mosaic','split','sect','quote','river','strip','quick']];
+const NRPAT=[['seg','quote','trio','split','stat','river','mosaic','sect','quote','color','strip','quick'],['split','quote','seg','strip','stat','trio','color','quote','river','sect','mosaic','quick'],['trio','stat','color','quote','seg','mosaic','split','sect','quote','river','strip','quick']];
 /* Pull quotes: a line in quotation marks from the story summary when there is one, otherwise its sharpest sentence */
 function nrQuoteText(a){
  const t=String(a.summary||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
@@ -6493,6 +6512,16 @@ function nrQuoteHtml(a,idx,look,qt){
  if(look===2&&a.img)return `${open}<img loading="lazy" decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()"><div class="ov"></div><div class="tx">${mark}<p>${esc(qt.q)}</p>${att}</div></a>`;
  if(look===1&&a.img)return `${open}<div class="tx">${mark}<p>${esc(qt.q)}</p>${att}</div><img decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="this.classList.add('ok')" onerror="this.parentNode.classList.add('noimg');this.remove()"></a>`;
  return `${open.replace('nr-pq'+look,'nr-pq0')}<div class="tx">${mark}<p>${esc(qt.q)}</p>${att}</div></a>`;
+}
+/* A big-number break between stories: a plain fact about the list, shown once per page */
+function nrStatHtml(l){
+ if(l.length<10)return '';
+ const by={};l.forEach(a=>{const t=fof(a).title||'';by[t]=(by[t]||0)+1});
+ const top=Object.entries(by).sort((x,y)=>y[1]-x[1])[0];
+ if(top&&top[1]>=3&&top[1]/l.length>=.25)return `<section class="nr-stat"><b>${top[1]}</b><span>of these ${l.length} stories come from ${esc(top[0])}</span></section>`;
+ const un=l.filter(a=>!S.read[a.link]).length;
+ if(un>=3&&un<l.length)return `<section class="nr-stat"><b>${un}</b><span>of these ${l.length} stories are still unread</span></section>`;
+ return '';
 }
 let NRLAB='Latest';
 /* The Daily's "Next up" borrows the look of "Since this morning" (big serif heading, count on the right, rows with a thumbnail); every other label keeps the small caps heading */
@@ -6512,7 +6541,7 @@ function nrBlocks(l,base,o){
   const mid=P.pick(nrHas,4),sub=P.pick(null,4),rail=P.pick(null,6);
   B.push(`<section class="nr-top${tv===2?' nr-flip':''}"><div class="nr-lw">${C(lead[0],'nr-lead')}${sub.length?`<div class="nr-lsub">${sub.map(i=>C(i,'nr-late')).join('')}</div>`:''}</div><div class="nr-mid">${mid.map(i=>C(i,'nr-row nr-m')).join('')}</div>${rail.length?`<div class="nr-rail">${nrLH(rail.length)}<div class="nr-rl">${rail.map(i=>C(i,nrLC())).join('')}</div></div>`:''}</section>`);
  }
- const seq=(o&&o.seq)||NRPAT[(seed>>3)%3];let n=0,guard=0,fl=0,qn=0;
+ const seq=(o&&o.seq)||NRPAT[(seed>>3)%3];let n=0,guard=0,fl=0,qn=0,statDone=false;
  const river=max=>{const ix=P.pick(null,max);if(!ix.length)return false;B.push(`<section class="nr-river">${SMARTV?'':`<h4>${nrAge(l[ix[0]])}</h4>`}<div class="nr-rv">${ix.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`);return true};
  while(P.left()>0&&guard++<90){
   const t=seq[n++%seq.length];let ix,done=false;
@@ -6524,6 +6553,7 @@ function nrBlocks(l,base,o){
   else if(t==='quote'){const lk=((qn++ +seed)%2)*2,need=lk>0;ix=P.pick(a=>(!need||nrHas(a))&&nrQuoteText(a),1,true);if(ix){B.push(`<section class="nr-quote">${nrQuoteHtml(l[ix[0]],base+ix[0],lk,nrQuoteText(l[ix[0]]))}</section>`);done=true}else continue}
   else if(t==='sect'&&(ix=P.pick(nrHas,4,true))){const src=fof(l[ix[0]]).title;B.push(`<section class="nr-sect"><h4><span style="background:${brand(fof(l[ix[0]]))}"></span>More from ${esc(src)}</h4><div class="nr-sc"><div class="nr-scl">${C(ix[0],'nr-sp')}</div><div class="nr-scr">${ix.slice(1).map(i=>C(i,'nr-row nr-tl')).join('')}</div></div></section>`);done=true}
   else if(t==='quick'&&(ix=P.pick(null,9,true))){B.push(`<section class="nr-quick"><h4>Quick hits</h4><div class="nr-qk">${ix.map(i=>C(i,'nr-late')).join('')}</div></section>`);done=true}
+  else if(t==='stat'){const h=statDone?'':nrStatHtml(l);statDone=true;if(h){B.push(h);done=true}else continue}
   else if(t==='seg'){const main=P.pick(null,6),side=P.pick(null,5);if(main.length){B.push(`<section class="nr-seg"><div class="nr-sm">${main.map(i=>C(i,'nr-row')).join('')}</div>${side.length?`<div class="nr-side"><h4>Also new</h4>${side.map(i=>C(i,'nr-late nr-n')).join('')}</div>`:''}</section>`);done=true}}
   if(!done&&!river(8))break;
  }
@@ -6544,13 +6574,13 @@ function nrSecHtml(l,base,vi){
 const nrPhoneOn=()=>isOn('nroom')&&!nrDense()&&VW<NRMIN&&!document.body.classList.contains('split')&&S.view!=='list';
 const nrMode=()=>nrOn()?'w':nrPhoneOn()?'p':'';
 /* Edition reads like a newspaper (columns, rules, headline rows, quotes); the Week reads like a magazine (color features, big photos, strips) */
-const NEWS_W=['seg','river','trio','quote','split','sect','river','quick'],NEWS_P=['rows','duo','quote','feat','rows','duo','quick'],MAG_W=['color','quote','mosaic','strip','split','quote','color','trio'],MAG_P=['big','color','strip','quote','feat','duo','color','big'];
-const NRPP=[['rows','duo','quote','big','strip','color','feat','quick'],['duo','feat','rows','quote','color','strip','big','quick'],['color','rows','duo','strip','quote','feat','big','quick']];
+const NEWS_W=['seg','river','trio','quote','split','sect','river','quick'],NEWS_P=['rows','duo','quote','feat','rows','duo','quick'],MAG_W=['color','quote','mosaic','strip','split','stat','quote','color','trio'],MAG_P=['big','color','strip','quote','stat','feat','duo','color','big'];
+const NRPP=[['rows','duo','quote','big','stat','strip','color','feat','quick'],['duo','feat','rows','quote','stat','color','strip','big','quick'],['color','rows','stat','duo','strip','quote','feat','big','quick']];
 function nrBlocksPhone(l,base,o){
  const P=nrPick(l),C=(i,k)=>card(l[i],base+i,'nr '+k),B=[],seed=o&&o.seed!=null?o.seed:nrHash(S.sel);
  const hero=P.pick(nrHas,1,true)||P.pick(null,1),late=P.pick(null,4);
  B.push(`<section class="nr-ph-top">${C(hero[0],'nr-hero')}${late.length?`<div class="nr-ph-late">${nrLH(late.length)}${late.map(i=>C(i,nrLC())).join('')}</div>`:''}</section>`);
- const seq=(o&&o.seq)||NRPP[(seed>>3)%3];let n=0,guard=0,qn=0;
+ const seq=(o&&o.seq)||NRPP[(seed>>3)%3];let n=0,guard=0,qn=0,statDone=false;
  const rows=max=>{const ix=P.pick(null,max);if(!ix.length)return false;B.push(`<section class="nr-ph-rows${SMARTV?' nr-ph-in':''}">${SMARTV?'':`<h4>${nrAge(l[ix[0]])}</h4>`}${ix.map(i=>C(i,'nr-row nr-s')).join('')}</section>`);return true};
  while(P.left()>0&&guard++<90){
   const t=seq[n++%seq.length];let ix,done=false;
@@ -6560,6 +6590,7 @@ function nrBlocksPhone(l,base,o){
   else if(t==='strip'&&(ix=P.pick(nrHas,4,true))){B.push(`<section class="nr-ph-strip-w"><h4>Keep exploring</h4><div class="nr-ph-strip">${ix.map(i=>C(i,'nr-hs')).join('')}</div></section>`);done=true}
   else if(t==='color'&&(ix=P.pick(a=>nrHas(a)&&(a.summary||'').length>60,1,true))){B.push(`<section class="nr-color">${C(ix[0],'nr-colr')}</section>`);done=true}
   else if(t==='quote'){const lk=((qn++ +seed)%2)*2,need=lk>0;ix=P.pick(a=>(!need||nrHas(a))&&nrQuoteText(a),1,true);if(ix){B.push(`<section class="nr-quote">${nrQuoteHtml(l[ix[0]],base+ix[0],lk,nrQuoteText(l[ix[0]]))}</section>`);done=true}else continue}
+  else if(t==='stat'){const h=statDone?'':nrStatHtml(l);statDone=true;if(h){B.push(h);done=true}else continue}
   else if(t==='feat'&&(ix=P.pick(nrHas,1,true))){const tx=P.pick(null,3);B.push(`<section class="nr-ph-feat">${C(ix[0],'nr-tri')}<div class="nr-ph-fl">${tx.map(i=>C(i,'nr-late')).join('')}</div></section>`);done=true}
   else if(t==='quick'&&(ix=P.pick(null,6,true))){B.push(`<section class="nr-quick"><h4>Quick hits</h4><div class="nr-qk">${ix.map(i=>C(i,'nr-late')).join('')}</div></section>`);done=true}
   if(!done&&!rows(6))break;
@@ -12740,9 +12771,14 @@ function shelfFacts(){
  const l=S.saved,now=Date.now(),un=l.filter(a=>!S.read[a.link]),mins=un.reduce((n,a)=>n+(readMin(a)||0),0),old=l.reduce((m,a)=>Math.min(m,a.st||now),now),od=Math.floor((now-old)/864e5);
  return {n:l.length,u:un.length,mins,oldestD:od,oldest:od+' days'};
 }
+function mastArt(list){
+ const g=(list||[]).filter(x=>x.img&&!imgWeak(x.img)),a=g[1]||g[0];/* the second picture: the first is the opening story just below */if(!a)return{c:'',i:'',s:''};
+ const t=IIS[a.img];
+ return{c:' art',s:t&&t.t&&t.v>=4?` style="--mt:${t.t}"`:'',i:`<img class="tmart" alt="" referrerpolicy="no-referrer" loading="lazy" decoding="async" src="${esc(a.img)}" onerror="this.parentNode.classList.remove('art');this.remove()">`};
+}
 function shelfMast(){
- const f=shelfFacts();
- return `<header class="tmast shelf"><small>Saved</small><h2>Your shelf</h2><p class="tm-s">${esc(pe('shelfstat',f,'shelf'))}</p>${('speechSynthesis' in window)&&f.u>0?'<div class="tm-a"><button class="tx2" type="button" data-shelfplay>Listen to your shelf</button></div>':''}</header>`;
+ const f=shelfFacts(),m=mastArt(S.saved);
+ return `<header class="tmast shelf${m.c}"${m.s}>${m.i}<small>Saved</small><h2>Your shelf</h2><p class="tm-s">${esc(pe('shelfstat',f,'shelf'))}</p>${('speechSynthesis' in window)&&f.u>0?'<div class="tm-a"><button class="tx2" type="button" data-shelfplay>Listen to your shelf</button></div>':''}</header>`;
 }
 function shelfEnd(list){
  const un=list.filter(a=>!S.read[a.link]).length,mins=list.reduce((n,a)=>n+(readMin(a)||0),0);
@@ -12771,7 +12807,8 @@ PEB.topicstat=[
 PE_NEUTRAL.topicstat='What your sites have said about this.';
 function topicMast(q,list){
  const f=topicFacts(q,list),stat=pe('topicstat',f,'tp'+q.toLowerCase()),fol=S.sk.some(k=>k.words.length===1&&k.words[0]===q);
- return `<header class="tmast"><small>Topic</small><h2>${esc(q)}</h2><p class="tm-s">${esc(stat)}</p><div class="tm-a">${fol?'<span class="tm-f">Following</span>':`<button class="tx2" type="button" data-follow="${esc(q)}">Follow this topic</button>`}<button class="tx2" type="button" data-topicmute="${esc(q)}">Mute this topic</button><button class="tx2" type="button" data-topicx>Close topic</button></div></header>`;
+ const m=mastArt(list);
+ return `<header class="tmast${m.c}"${m.s}>${m.i}<small>Topic</small><h2>${esc(q)}</h2><p class="tm-s">${esc(stat)}</p><div class="tm-a">${fol?'<span class="tm-f">Following</span>':`<button class="tx2" type="button" data-follow="${esc(q)}">Follow this topic</button>`}<button class="tx2" type="button" data-topicmute="${esc(q)}">Mute this topic</button><button class="tx2" type="button" data-topicx>Close topic</button></div></header>`;
 }
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-topicx]');if(!b)return;e.preventDefault();e.stopPropagation();openSearch(false);const m=$('main');if(m)m.scrollTop=0},true);
 /* earlier coverage of the same story, found in the feeds and reading history already on the device */
