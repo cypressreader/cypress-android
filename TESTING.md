@@ -578,3 +578,4 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - [ ] Scroll a long feed or folder page at normal speed and fast: full-width picture stories should already show their photo as they come into view (no plain colored block, no pop, no flicker). Compare with the switch off.
 
 - [ ] Daily return speed (2026-10-23): open a feed, then tap The Daily in the menu. The menu should close at once and the Daily appear right after, not 2 s later.
+- [ ] Daily page cache (2026-10-23, side preview): feed -> The Daily should reopen fast with no cover flicker; mark a story read or pull to refresh, then reopen: it must show the change (fresh build); scroll to the bottom of a restored Daily: more sections must still load.
