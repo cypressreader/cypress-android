@@ -3035,6 +3035,7 @@ html.rdx .cols.tplb img.hero{aspect-ratio:16/9;max-height:calc(var(--ih)*.42)}
 #rd #dial i{background:var(--ra)}
 #rd .cols p.dropcap .dcap{color:var(--ink)}
 .deep-m{margin-top:6px}.deep-end{margin-bottom:96px}
+.dp-min{position:absolute;top:10px;left:10px;z-index:3;padding:3px 9px;border-radius:99px;background:rgba(10,20,15,.72);color:#fff;font:700 11px/1.3 var(--ui,system-ui);letter-spacing:.04em;text-transform:uppercase;pointer-events:none}.nr-row .dp-min,.nr-late .dp-min,.nr-s .dp-min{display:none}.dp-stat b{font-variant-numeric:tabular-nums}
 /* correction round, cluster 9: neutral sidebar, tablet auto-hide while reading */
 :root[data-theme=dynamic] body>aside{--pn:#f4f5f7;--ln:#e1e3e8;--bg:#f4f5f7;--ink:#16181d;--mut:#6b7078;background:#f4f5f7}
 :root[data-theme=dynamic][data-dm=dark] body>aside{--pn:#15181e;--ln:#272b33;--bg:#15181e;--ink:#eceef2;--mut:#9aa1ab;background:#15181e}
@@ -7257,7 +7258,7 @@ function renderToday(tab0,pool0,seg0,ttl0){
  else if(label&&!(mode&&(label==='Latest'||tab==='latest')))h+=`<div class="dlh">${esc(label)}</div>`; /* the varied layouts already carry their own Latest heading */
  if(mode){g.classList.add('nr');if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
   let bl;if(tab==='latest'){try{bl=daySections(list,mode)}catch(e){elog('daySections',e);g.innerHTML=h+dayErrorHtml();return}}
-  else bl=tab==='deep'?deepBlocks(list):mode==='w'?nrBlocks(list,base):nrBlocksPhone(list,base);
+  else bl=tab==='deep'?deepBlocks(list,base,mode):mode==='w'?nrBlocks(list,base):nrBlocksPhone(list,base);
   setBlocks(h,bl,9,3);return}
  g.dataset.cards='narrow';g.innerHTML=h+list.map((a,i)=>card(a,base+i,'')).join('')+(tab==='latest'?dayEndCard():'');
  g.querySelectorAll('.card').forEach(c=>{const w=c.querySelector(':scope>.why'),sr=c.querySelector('.src');if(w&&sr)sr.append(w)});
@@ -12743,10 +12744,17 @@ function tabMast(tab,list){
   deep:['Deep reads',n===1?'One long read':n+' long reads','About '+hrs+' of reading, from '+src+(src===1?' source':' sources')+'.']}[tab]||['','',''];
  return `<header class="sun-m ${tab}-m"><small>${T[0]}</small><h2>${T[1]}</h2><p class="sun-s">${esc(T[2])}</p></header>`;
 }
-function deepBlocks(list){
+function deepBlocks(list,base,mode){
  const B=[],mins=list.reduce((n,a)=>n+(minsOf(a)||0),0),hrs=mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes';
  B.push(`<header class="sun-m deep-m"><small>Deep reads</small><h2>${list.length===1?'One long read':list.length+' long reads'}</h2><p class="sun-s">${esc(list.length>=2?'About '+hrs+' of reading, from '+new Set(list.map(a=>a.feedId)).size+(new Set(list.map(a=>a.feedId)).size===1?' source':' sources')+'. Take your time.':'For when you have time to settle in.')}</p></header>`);
- list.forEach((a,i)=>B.push(longformItem(a,i,cur.indexOf(a),i===0,i===0?'The strongest long read among your unread stories.':'A long read of about '+minsOf(a)+' minutes.')));
+ /* in the tile view the long reads get the same mix as the other tabs (a big opener, pairs, strips, pull-quotes, a big number), each card carrying its reading time as a badge; with the Compact card size (or very few reads) it stays one big card after another */
+ if(mode&&base!=null&&list.length>=4){
+  const lab0=NRLAB;NRLAB='More to settle into';let bl;try{bl=(mode==='w'?nrBlocks:nrBlocksPhone)(list,base,{seed:7})}finally{NRLAB=lab0}
+  const chip=h=>h.replace(/(<(?:div|a)\b[^>]*class="card[^"]*"[^>]*data-i="(\d+)"[^>]*>)/g,(m,tag,i)=>{const a=cur[+i],mn=a&&minsOf(a);return mn?tag+`<span class="dp-min" aria-hidden="true">${mn} min</span>`:tag});
+  bl.forEach(x=>B.push(chip(x)));
+  const top=list.reduce((m,a)=>minsOf(a)>minsOf(m)?a:m,list[0]);
+  if(list.length>=6&&B.length>4)B.splice(3,0,`<section class="nr-stat dp-stat"><b>${minsOf(top)}</b><span>minutes: the longest read here, from ${esc(fof(top).title||'')}</span></section>`);
+ }else list.forEach((a,i)=>B.push(longformItem(a,i,cur.indexOf(a),i===0,i===0?'The strongest long read among your unread stories.':'A long read of about '+minsOf(a)+' minutes.')));
  B.push(`<p class="sun-end deep-end">That is every long read for now: ${list.length} ${list.length===1?'story':'stories'}, about ${esc(hrs)}.</p>`);
  return B;
 }

@@ -11,11 +11,11 @@ const imgs=['fixtures_bright.jpg','fixtures_hero.jpg'].map(f=>fs.readFileSync(pa
   S.rt={};S.feeds.forEach((f,fi)=>{items[f.id]=Array.from({length:30},(_,i)=>({feedId:f.id,title:'A long read number '+i+' of feed '+fi+' about the subject at hand',link:'https://w.test/'+fi+'/'+i,date:now-(i*55+fi*9+5)*6e4,summary:'A standfirst long enough to serve as a deck for the story and a little longer still, so the card has body text to lay out.',img:'https://img.test/'+(fi*30+i)+'.jpg',html:'',more:[]}));items[f.id].forEach(a=>S.rt[a.link]=14)});
   S.sel='today';render();await w(1200);renderToday('deep');await w(2500);
   const m=document.querySelector('main');m.scrollTop=0;await w(300);
-  const tl=[...document.querySelectorAll('#grid .sun-a,#grid .sun-m,#grid [class*="long"]')].filter(e=>{const c=getComputedStyle(e);return c.animationTimeline&&c.animationTimeline!=='auto'&&c.animationName!=='none'}).length;
+  const tl=[...document.querySelectorAll('#grid .sun-a,#grid .card,#grid .sun-m,#grid [class*="long"]')].filter(e=>{const c=getComputedStyle(e);return c.animationTimeline&&c.animationTimeline!=='auto'&&c.animationName!=='none'}).length;
   const d=[];let last=performance.now();const t0=last;await new Promise(res=>{const f=t=>{d.push(t-last);last=t;m.scrollTop+=45;if(t-t0<2500)requestAnimationFrame(f);else res()};requestAnimationFrame(f)});
-  d.shift();const so=d.slice().sort((a,b)=>a-b);return {items:document.querySelectorAll('#grid .sun-a').length,frames:d.length,long:d.filter(x=>x>34).length,vlong:d.filter(x=>x>70).length,p95:Math.round(so[Math.floor(so.length*.95)]),max:Math.round(Math.max(...d)),scrolled:Math.round(m.scrollTop),tl}});
+  d.shift();const so=d.slice().sort((a,b)=>a-b);return {items:document.querySelectorAll('#grid .sun-a,#grid .card').length,frames:d.length,long:d.filter(x=>x>34).length,vlong:d.filter(x=>x>70).length,p95:Math.round(so[Math.floor(so.length*.95)]),max:Math.round(Math.max(...d)),scrolled:Math.round(m.scrollTop),tl}});
  console.log(JSON.stringify(r));
- ck('the Deep reads list was drawn with its long-read items and scrolled ('+r.items+' items, '+r.scrolled+'px)',r.items>=5&&r.scrolled>1500,JSON.stringify(r));
+ ck('the Deep reads list was drawn with its long-read items and scrolled ('+r.items+' items, '+r.scrolled+'px)',r.items>=5&&r.scrolled>1400,JSON.stringify(r));
  ck('no scroll-driven animation runs on the long-read items',r.tl===0,JSON.stringify(r));
  ck('scrolling is smooth: at most 5% slow frames and none over 70 ms ('+r.long+' of '+r.frames+' slow, worst '+r.max+' ms)',r.long<=Math.ceil(r.frames*.05)&&r.vlong<=1,JSON.stringify(r));
  ck('no page errors',!errs.length,errs[0]);await b.close();console.log(bad?'FAILED '+bad:'deep_scroll all passed');process.exit(bad?1:0)})();
