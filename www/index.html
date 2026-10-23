@@ -5255,6 +5255,7 @@ function secOpener(){
 let VW=innerWidth;addEventListener('resize',()=>{VW=innerWidth},{passive:true});
 const layoutKey=()=>((S.narrow||'auto')==='auto'&&VW<=500)+'|'+(VW<700)+'|'+(VW>=840);let LK=layoutKey();
 /* Cover headlines are sized to fit THEIR cover: the largest size (up to the style's own big size) at which the whole headline shows (no hidden lines, no "..."), no word is wider than the box (so none is cut in the middle), and the cover stays within its designed height (so nothing is pushed under the masthead or over a picture panel). Re-done when the window or the fonts change. */
+const COVFC=new Map();
 function covFit(){
  document.querySelectorAll('#grid .cover,#grid .dcov,#cvg .cover').forEach(cv=>{
   /* the paper's name must fit its column on one line, whatever the screen shape or letter spacing */
@@ -5262,6 +5263,9 @@ function covFit(){
   if(m&&mb){const mk=mb.clientWidth+'|'+cv.className+'|'+m.textContent;if(m.dataset.mk!==mk){m.style.removeProperty('font-size');const cs=getComputedStyle(mb),av=mb.clientWidth-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0),ow=m.style.whiteSpace;m.style.whiteSpace='nowrap';const w=m.getBoundingClientRect().width;m.style.whiteSpace=ow;if(av>20&&w>av){const f=parseFloat(getComputedStyle(m).fontSize)||40;m.style.setProperty('font-size',Math.max(14,Math.floor(f*av/w*.97))+'px','important')}m.dataset.mk=mk}}
   const h=cv.querySelector('.cvlead h2,.dcv-lead h2');if(!h)return;
   const key=cv.clientWidth+'|'+innerHeight+'|'+(h.textContent||'').length+'|'+cv.className;if(h.dataset.fk===key&&h.style.fontSize)return;
+  /* the same cover headline at the same size and look fits the same way: coming back to the Daily reuses the answer instead of measuring again */
+  const ck=key+'|'+(h.textContent||'')+'|'+cv.querySelectorAll('.cvlines .cvl,.dcv-lines .dcv-l').length+'|'+S.theme+'|'+S.font+'|'+S.hfont+'|'+document.body.className+'|'+document.documentElement.className,hit=COVFC.get(ck);
+  if(hit){h.classList.add('cfit');h.style.setProperty('font-size',hit.size+'px','important');const ls=[...cv.querySelectorAll('.cvlines .cvl,.dcv-lines .dcv-l')];ls.forEach((l,i)=>{if(hit.hide.includes(i))l.style.setProperty('display','none','important');else l.style.removeProperty('display')});h.dataset.fk=key;return}
   h.classList.add('cfit');h.style.removeProperty('font-size');
   const max=parseFloat(getComputedStyle(h).fontSize)||40,min=Math.max(13,Math.round(max*.2));
   const lim=Math.max(parseFloat(getComputedStyle(cv).minHeight)||0,0)+2;
@@ -5282,6 +5286,7 @@ function covFit(){
   let size=search();
   /* too much text over the photo: drop the last story line, one at a time, while the headline would stay big */
   if(overlay&&!cv.classList.contains('dcov')){let k=lines.length;while(k>0&&(size<max*.6||used()>cv.offsetHeight*.62)){k--;lines[k].style.setProperty('display','none','important');size=search()}}
+  COVFC.size>60&&COVFC.clear();COVFC.set(ck,{size,hide:lines.map((l,i)=>l.style.display==='none'?i:-1).filter(i=>i>=0)});
   h.style.setProperty('font-size',size+'px','important');h.dataset.fk=cv.clientWidth+'|'+innerHeight+'|'+(h.textContent||'').length+'|'+cv.className;
  })
 }
@@ -5320,7 +5325,7 @@ function coverCrop(){
   else{im.style.objectFit='contain'}
  })
 }
-{let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{try{document.querySelectorAll('#grid .cfit').forEach(h=>delete h.dataset.fk);covFit();coverCrop()}catch(e){}},160)});try{document.fonts&&document.fonts.ready.then(()=>{document.querySelectorAll('#grid .cfit').forEach(h=>delete h.dataset.fk);covFit()})}catch(e){}}
+{let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{try{COVFC.clear();document.querySelectorAll('#grid .cfit').forEach(h=>delete h.dataset.fk);covFit();coverCrop()}catch(e){}},160)});try{document.fonts&&document.fonts.ready.then(()=>{COVFC.clear();document.querySelectorAll('#grid .cfit').forEach(h=>delete h.dataset.fk);covFit()})}catch(e){}}
 const WIRE={order:null,known:null,settled:false,pend:[],newN:0,seed:Math.random().toString(36).slice(2),restored:false,hid:0};
 let _lastSel=null;const SELPOS={};/* where each feed was left, so coming back to it resumes there instead of the top */
 let LASTSET=null;
