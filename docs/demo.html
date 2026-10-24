@@ -4691,6 +4691,8 @@ function quietRender(){
  if(!document.hidden&&INFL.size>0&&BGR&&Date.now()-BGR<6000){clearTimeout(QRT);QRT=setTimeout(quietRender,6000-(Date.now()-BGR)+50);return}
  if(!document.hidden&&userBusy()&&(!QRS||Date.now()-QRS<15000)){QRS=QRS||Date.now();clearTimeout(QRT);QRT=setTimeout(quietRender,500);return}
  const mn=$('main'),rd=$('#rd');
+ /* a story is open: the list behind it waits until it is closed. Rebuilding a big list while reading froze page turns for seconds (3.2 s on a Fold with 2,300 stories) */
+ if(!document.hidden&&rd&&rd.classList.contains('on')){clearTimeout(QRT);QRT=setTimeout(quietRender,2000);return}
  /* scrolled well down a feed: do not redraw it under the reader's finger. The waterline marks the new stories when you are back at the top */
  if(!document.hidden&&mn&&mn.scrollTop>500&&!(rd&&rd.classList.contains('on'))&&/^(all|today|f:|s:|k:)/.test(S.sel||'')){QRS=0;saveCache();return}
  QRS=0;{const sg=itemsSig();if(sg===LASTSIG&&!document.hidden&&mn&&mn.children.length){saveCache();return}}BGR=Date.now();render();saveCache();
