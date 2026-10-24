@@ -68,7 +68,7 @@ Opus is the main model. The largest saving is not delegation, it is **not spendi
 - If something is unclear: make the reasonable fix, note the assumption, don't stop to ask.
 
 ## 6. Versioning
-Every `APP_VERSION`/`APP_LABEL` bump needs a matching `whats-new.txt` section (plain-language bullets, newest first, headed by the Android label, e.g. `1.107`) in the same commit, then `node scripts/sync-whats-new.js`; `tests/syntax.js` fails if out of step. Web stamp is date-based (`2026.10.17a`); Android label is separate (`1.107`). No third scheme.
+Every `APP_VERSION`/`APP_LABEL` bump needs a matching `whats-new.txt` section (plain-language bullets, headed by the bare Android label on its own line, e.g. `1.137`). **New sections go at the END of the file** — the old `CyPress v1.x` blocks at the top are newest-first, but the bare-label sections since 1.4 run oldest to newest, and both the workflow and `sync-whats-new.js` find a section by its label, not its position in the same commit, then `node scripts/sync-whats-new.js`; `tests/syntax.js` fails if out of step. Web stamp is date-based (`2026.10.17a`); Android label is separate (`1.107`). No third scheme.
 
 ## 7. Hard rules (do not regress)
 - **Accessibility:** no nested interactive elements; every icon-only button has a unique accessible name; dialogs have `role="dialog"`, focus trap, focus-in on open, focus return on close; selection state exposed (`aria-pressed`/radiogroup); tabs have arrow-key navigation; every control keyboard-operable.
