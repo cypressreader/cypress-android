@@ -598,3 +598,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - [ ] "Teach CyPress" (2026-10-24, branch magazine-sections): Add > paste wondermind.com > Teach. Expect a list of real story headlines (not menu items), a feed named "Wondermind" with pictures, and no story marked new again on later refreshes. Needs the real phone/APK for fetch reliability; try one more site with no feed.
 
 - [ ] Teach preview (2026-10-24): after Teach, a dialog shows the found stories with pictures and a "Put it in this folder" menu (with New folder). The feed must land in the folder you pick.
+
+- [ ] Teach + sitemap (2026-10-24): teach emergencemagazine.org; the dialog shows "Also check the site's sitemap". After adding, the feed should list stories with real dates (not only the homepage ones), titles and pictures filling in over the first refreshes. Check the feed still loads when a site has no sitemap.
