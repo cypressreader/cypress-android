@@ -1,0 +1,68 @@
+# CyPress: runs the quick checks and a set of stable browser tests on every push (any branch).
+# It never builds or publishes anything. The full suite (tests/run.sh) is still run by hand.
+name: Tests
+
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      # the tests write screenshots and scratch files here
+      OUT: ${{ runner.temp }}/t
+    steps:
+      - name: Get the files
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install Playwright and Chromium
+        run: |
+          # the tests load Playwright from the global npm folder (tests/mock.js) and open www/index.html as a file
+          npm install -g --no-audit --no-fund playwright@1.63.0
+          npx -y playwright@1.63.0 install --with-deps chromium
+
+      - name: Quick tests (no browser)
+        run: |
+          set -e
+          for t in syntax pdf_layout pdf_overhaul privacy_hosts; do
+            echo "::group::tests/$t.js"; node "tests/$t.js"; echo "::endgroup::"
+          done
+
+      - name: Browser tests
+        run: |
+          # stable tests only; known failures (reader_asides, st26, deep2, deep3, feed_search, boot) are left out
+          fail=0
+          for t in st5 st18 st27 st29 control add_feed blocked_fetch feed_discovery side_labels; do
+            echo "::group::tests/$t.js"
+            # a test fails on a non-zero exit, or (st5 only reports a count) on any FAIL line or "fail N" with N above 0
+            rc=0; out=$(node "tests/$t.js" 2>&1) || rc=$?
+            echo "$out"; echo "::endgroup::"
+            if [ "$rc" -ne 0 ] || echo "$out" | grep -qE '^FAIL|[^0-9]fail [1-9]|FAILED'; then echo "::error title=Test failed::tests/$t.js"; fail=1; fi
+          done
+          exit $fail
+
+      - name: Keep the screenshots of a failed run
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output
+          path: ${{ runner.temp }}/t
+          retention-days: 7
+          if-no-files-found: ignore

@@ -141,10 +141,16 @@ public final class CyExtras {
             }
 
             String url = intent.getStringExtra(EXTRA_OPEN_URL);
+            if (url != null && url.length() > 0) intent.removeExtra(EXTRA_OPEN_URL);
+            // D6: a CyPress share link (https://cypressreader.com/s/...) tapped in another app opens here.
+            if ((url == null || url.length() == 0) && Intent.ACTION_VIEW.equals(intent.getAction())) {
+                String link = shareLinkOf(intent.getData());
+                intent.setData(null);
+                if (link != null) url = link;
+            }
             if (url != null && url.length() > 0) {
-                intent.removeExtra(EXTRA_OPEN_URL);
-                // The internal pack/digest markers and web addresses are fine; anything else (file:, intent:, javascript:) is dropped.
-                boolean ok = PACK_URL.equals(url) || DIGEST_URL.equals(url) || isHttpUrl(url);
+                // The internal pack/digest/shortcut markers and web addresses are fine; anything else (file:, intent:, javascript:) is dropped.
+                boolean ok = PACK_URL.equals(url) || DIGEST_URL.equals(url) || SHORTCUT_URLS.contains(url) || isHttpUrl(url);
                 boolean dup = false;
                 if (ok) {
                     long now = System.currentTimeMillis();
@@ -165,6 +171,27 @@ public final class CyExtras {
             }
         } catch (Throwable t) {
             Log.w(TAG, "handleIntent failed: " + t);
+        }
+    }
+
+    /** Launcher shortcut markers (native/extras/res/xml/cy_shortcuts.xml); the web app routes them in handleOpen. */
+    static final java.util.Set<String> SHORTCUT_URLS = new java.util.HashSet<>(java.util.Arrays.asList(
+        "cypress:view:listen", "cypress:view:saved", "cypress:view:search"));
+
+    private static final Pattern SHARE_PATH = Pattern.compile("^/s/[A-Za-z0-9_-]{6,4000}/?$");
+
+    /** Only https://cypressreader.com/s/<code or payload> is accepted; anything else is ignored. */
+    static String shareLinkOf(android.net.Uri u) {
+        try {
+            if (u == null) return null;
+            if (!"https".equalsIgnoreCase(u.getScheme())) return null;
+            String host = u.getHost() == null ? "" : u.getHost().toLowerCase(Locale.ROOT);
+            if (!host.equals("cypressreader.com") && !host.equals("www.cypressreader.com")) return null;
+            String path = u.getPath();
+            if (path == null || !SHARE_PATH.matcher(path).matches()) return null;
+            return "https://cypressreader.com" + path;
+        } catch (Throwable t) {
+            return null;
         }
     }
 

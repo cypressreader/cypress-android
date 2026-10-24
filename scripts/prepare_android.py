@@ -103,6 +103,27 @@ SHARE_FILTER = """            <intent-filter>
             </intent-filter>
 """
 
+# D6: CyPress share links (https://cypressreader.com/s/...) open in the app. autoVerify makes Android check
+# https://cypressreader.com/.well-known/assetlinks.json (docs/.well-known/assetlinks.json) against the signing key;
+# until that file has the real fingerprint, Android asks which app to use (or opens the browser).
+# Only the bare domain: share links never use www, and on Android 11 and older one unverifiable host fails them all.
+LINK_FILTER = """            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="cypressreader.com" />
+                <data android:pathPrefix="/s/" />
+            </intent-filter>
+"""
+
+# D6: long-press launcher shortcuts (Play the Daily, Saved, Search), from native/extras/res/xml/cy_shortcuts.xml
+SHORTCUTS_META = """            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/cy_shortcuts" />
+"""
+
+
 def patch_config_changes():
     """Adds |density to MainActivity's android:configChanges so a display-size change does not recreate the page.
     Works on whatever value the template has, does nothing if density is already there, and never stops the build."""
@@ -158,6 +179,10 @@ def edit_manifest():
 
     if 'android.intent.action.SEND' not in body:
         body = body.rstrip() + '\n\n' + SHARE_FILTER + '        '
+    if 'cypressreader.com' not in body:
+        body = body.rstrip() + '\n\n' + LINK_FILTER + '        '
+    if 'android.app.shortcuts' not in body:
+        body = body.rstrip() + '\n\n' + SHORTCUTS_META + '        '
     close = end + len('</activity>')
     s = s[:st.end()] + body + '</activity>' + s[close:]
     # the launcher shows the tree crest in its deep-green frame (and the wallpaper-tinted version on Android 13+)
@@ -200,6 +225,13 @@ def check_manifest():
         xdie('The manifest still has launcher icon aliases; the app has one icon only.')
     if not has(mains[0], 'action', 'android.intent.action.SEND'):
         xdie('MainActivity has no share (SEND) filter.')
+    links = [f for f in mains[0].findall('intent-filter')
+             if any(d.get(ANDROID_NS + 'host') == 'cypressreader.com' for d in f.findall('data'))]
+    if len(links) != 1 or links[0].get(ANDROID_NS + 'autoVerify') != 'true':
+        xdie('MainActivity has no verified cypressreader.com/s/ link filter.')
+    if not any(m.get(ANDROID_NS + 'name') == 'android.app.shortcuts' and m.get(ANDROID_NS + 'resource') == '@xml/cy_shortcuts'
+               for m in mains[0].findall('meta-data')):
+        xdie('MainActivity has no launcher shortcuts entry.')
 
 
 def adaptive_xml(logo, suffix):
