@@ -11256,12 +11256,16 @@ function mzDone(k,a,r){try{if(!MZ.t0||MZ.a)return;MZ.a=a;let h='';try{h=new URL(
 const NAVL=[],LT={n:0,ms:0,max:0};let NAVB=0;
 function navLog(t0,sel){requestAnimationFrame(()=>setTimeout(()=>{NAVL.push({k:sel==='today'?'Daily':sel[0]==='s'?'feed':sel[0]==='f'?'folder':sel,ms:Math.round(performance.now()-t0),b:Math.round(NAVB)});if(NAVL.length>40)NAVL.shift()},0))}
 try{new PerformanceObserver(l=>{for(const e of l.getEntries()){LT.n++;LT.ms+=e.duration;if(e.duration>LT.max)LT.max=e.duration}}).observe({entryTypes:['longtask']})}catch(e){}
+/* slowest screen updates since launch, with the script that held them up (Chrome's long-animation-frame report): names the cause of lag in Copy support info */
+const LOAF=[];
+try{new PerformanceObserver(l=>{for(const e of l.getEntries()){if(e.duration<120)continue;const sc=(e.scripts||[]).slice().sort((x,y)=>y.duration-x.duration)[0];LOAF.push({d:Math.round(e.duration),t:Math.round(e.startTime/1000),b:Math.round(e.blockingDuration||0),r:Math.round((e.renderStart&&e.startTime?e.renderStart-e.startTime:0)),s:sc?Math.round(sc.duration)+'ms '+(sc.invoker||'')+' '+(sc.sourceFunctionName||'')+'@'+(sc.sourceCharPosition||0):'no script'});LOAF.sort((x,y)=>y.d-x.d);if(LOAF.length>5)LOAF.length=5}}).observe({type:'long-animation-frame',buffered:true})}catch(e){}
 function mzSum(){const o=['','Story opening (last '+MZ.L.length+' taps)'];
  try{const by={};NAVL.forEach(x=>(by[x.k]=by[x.k]||[]).push(x));const q=(v)=>{v=v.slice().sort((a,b)=>a-b);return v[v.length>>1]};
   o.push('Menu taps (this session, tap to page shown): '+(Object.keys(by).map(k=>k+' x'+by[k].length+' median '+q(by[k].map(x=>x.ms))+' ms (build '+q(by[k].map(x=>x.b))+') slowest '+Math.max(...by[k].map(x=>x.ms))).join(' · ')||'none yet'));
   const lf=localStorage.getItem('folio')||'';let all=0;for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);all+=k.length+(localStorage.getItem(k)||'').length}
   o.push('Library size '+Math.round(lf.length/1024)+' KB of '+Math.round(all/1024)+' KB stored · stories in memory '+Object.values(items).reduce((n,l)=>n+l.length,0)+' · feeds '+S.feeds.length+' · read marks '+Object.keys(S.read).length+' · history '+(S.hist||[]).length+' · saved '+S.saved.length);
   o.push('Busy spells over 50 ms since launch: '+LT.n+' · total '+Math.round(LT.ms)+' ms · longest '+Math.round(LT.max)+' ms · uptime '+Math.round(performance.now()/1000)+' s')}catch(e){}
+ try{o.push('Slowest frames: '+(LOAF.map(x=>x.d+'ms at '+x.t+'s ('+x.s+(x.r>x.d*.5?', mostly drawing':'')+')').join(' | ')||'none over 120 ms (or not supported)'))}catch(e){}
  try{const by={};MZ.L.forEach(x=>(by[x.k]=by[x.k]||[]).push(x.ms));
   for(const k of Object.keys(by)){const v=by[k].sort((a,b)=>a-b);o.push(' '+k+': '+v.length+' · median '+v[v.length>>1]+' ms · slowest '+v[v.length-1]+' ms')}
   const dp=MZ.L.filter(x=>x.r==='deep'||x.r==='slow routes failed');if(dp.length)o.push(' stubborn stories (slow routes ran alongside the search): '+dp.length+' · rescued '+dp.filter(x=>x.r==='deep').length+' · median '+dp.map(x=>x.ms).sort((m,n)=>m-n)[dp.length>>1]+' ms');
@@ -12203,8 +12207,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.24m';const APP_LABEL='1.140';
-const CHANGES=["Copy support info (under Developer and diagnostics) now has a \"Jumps\" line that records when the page shifts or redraws while you scroll, to help track down pictures that jump in and move things around"];
+const APP_VERSION='2026.10.24n';const APP_LABEL='1.141';
+const CHANGES=["Copy support info (under Developer and diagnostics) now lists the slowest freezes since launch and what held them up, to help track down lag"];
 const DEF_ON=new Set(['mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
 /* a touch screen. The Android WebView does not always answer 'coarse' to the plain pointer question the way a browser does, so a finger is also looked for the two other ways */

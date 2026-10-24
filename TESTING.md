@@ -642,3 +642,6 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 
 ## Jumping pictures while scrolling All Stories (2026-10-24, screen recording)
 - Seen: a row of four small cards collapses into one full-width card mid-scroll and the rest reflow below (looks like a full redraw, or late picture sizes). Not reproducible in the browser demo. Added a "Jumps:" line to Copy support info (shifts over 0.02 with the card class, plus the last redraw times and whether a finger was down). After a scroll that jumps, send the line.
+
+## Startup lag on All Stories + "Slowest frames" line (2026-10-24, 1.139)
+- Reopening on All Stories: 39 s of 72 s blocked (56 busy spells, longest 3.1 s), no feeds failing. Added a "Slowest frames:" line to Copy support info (Chrome long-animation-frame: duration, uptime second, the script position that held it up, "mostly drawing" if rendering). After a laggy start, copy support info and send it; map the `@position` to a symbol with `node scripts/export-context.js`.
