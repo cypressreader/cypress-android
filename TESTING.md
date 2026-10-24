@@ -645,3 +645,6 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 
 ## Startup lag on All Stories + "Slowest frames" line (2026-10-24, 1.139)
 - Reopening on All Stories: 39 s of 72 s blocked (56 busy spells, longest 3.1 s), no feeds failing. Added a "Slowest frames:" line to Copy support info (Chrome long-animation-frame: duration, uptime second, the script position that held it up, "mostly drawing" if rendering). After a laggy start, copy support info and send it; map the `@position` to a symbol with `node scripts/export-context.js`.
+
+## Jumps line now names who redrew (2026-10-24, after 1.141)
+- 1.141 report: 5 redraws in 16 s, one "while touching" at 16 s, only 1 layout shift. `quietRender` already refuses to redraw when scrolled past 500 px, so another caller redraws. The Jumps line now shows `by <callers> top <scroll px>` per redraw. Send it after a jumpy scroll.
