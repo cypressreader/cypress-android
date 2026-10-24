@@ -584,3 +584,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - [ ] List view pairs, day headings and picture fade-in (2026-10-24, side preview): two small pictures side by side every 5 rows, day headings in date-ordered lists, pictures easing in; check no empty gaps while pictures load and nothing looks stuck faded.
 
 - [ ] (branch magazine) Cards with no picture: no faint letter, no empty top; ordinary ones have a bigger headline; the opener card shows the strongest sentence as a brass-edged pull-quote. Also summaries from feeds that run two paragraphs together now keep a space ("fraud. Federal"). Check Guardian/AP stories in All Stories, Cards and Columns views, light and dark.
+
+- [ ] (branch magazine) Tidy-index list view: every list row is the same plain row (no big first row, no picture pairs, no quote rows), small spaced-caps day headings, the same day layout for All Stories/folders as other lists. Tile view unchanged. Check list view in All Stories, a folder, Daily tabs; light and dark.

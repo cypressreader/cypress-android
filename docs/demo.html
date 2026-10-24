@@ -4310,7 +4310,7 @@ html.magx #grid.fed .wmom.fd-spl img{filter:none}
 #grid .lr-pair>.card.list-row h3{font-size:15px;line-height:1.22;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 #grid .lr-pair>.card.list-row .ld{display:none}
 #grid .lr-pair>.card.list-row>.star{position:absolute;top:6px;right:6px;background:rgba(10,20,15,.55);color:#fff;border-radius:99px}
-#grid h4.lr-h{margin:26px 0 6px;color:var(--ink)}
+#grid h4.lr-h{margin:20px 0 4px;color:var(--a2,var(--mut));font:700 11px/1.2 var(--sans)!important;letter-spacing:.14em;text-transform:uppercase;border-bottom:1px solid var(--ink);padding-bottom:4px}
 #grid .card.list-row>.cimg{opacity:0;transition:opacity .35s ease;animation:lrShow 0s 4s forwards}#grid .card.list-row>.cimg.ok{opacity:1}@keyframes lrShow{to{opacity:1}}
 @media(prefers-reduced-motion:reduce){#grid .card.list-row>.cimg{transition:none}}
 /* list view variety: a big picture row and a quote row every few rows (see lrKind) */
@@ -5734,7 +5734,7 @@ function render0(){
  if(q&&S.sel!=='saved'&&wireOn()&&cur.length>=4&&nrMode()&&S.view!=='list'){wireRender(pre,cur,true);return}
  if(nrOn()&&cur.length>=(isOn('mag3')&&(inSaved||q)?3:6)&&(isOn('mag3')||(!q&&!inSaved))){const ms=cur.reduce((m,a)=>Math.max(m,a.date),0),un=cur.filter(a=>!S.read[a.link]).length;$('#grid').classList.add('nr');setBlocks(pre+((!q&&S.sel.startsWith('s:'))?mastHtml(S.feeds.find(x=>'s:'+x.id===S.sel),cur):`<div class="nr-meta">${cur.length} stories${S.hideCount?'':' · '+un+' unread'} · newest ${ago(ms)} ago</div>`),nrBlocks(cur,0).concat(savedView?[shelfEnd(cur)]:[]),3,2);return}
  if(nrPhoneOn()&&cur.length>=(isOn('mag3')&&(inSaved||q)?3:6)&&(isOn('mag3')||(!q&&!inSaved))){const ms=cur.reduce((m,a)=>Math.max(m,a.date),0),un=cur.filter(a=>!S.read[a.link]).length;$('#grid').classList.add('nr','nrp');setBlocks(pre+((!q&&S.sel.startsWith('s:'))?mastHtml(S.feeds.find(x=>'s:'+x.id===S.sel),cur):`<div class="nr-meta">${cur.length} stories${S.hideCount?'':' · '+un+' unread'} · newest ${ago(ms)} ago</div>`),nrBlocksPhone(cur,0).concat(savedView?[shelfEnd(cur)]:[]),3,2);return}
- setBlocks(pre+(cov||''),(S.view==='list'&&!(cov||savedView)&&!q?listFlow(cur,0,S.sort!=='source',true,wireOn()&&wireSel()&&cur.length>=6&&S.sort!=='source'):(cov?cur.slice(covN):cur).map((a,i)=>card(a,i+(cov?covN:0),'mid'))).concat(savedView&&cur.length?[shelfEnd(cur)]:[]),24,12);
+ setBlocks(pre+(cov||''),(S.view==='list'&&!(cov||savedView)&&!q?listFlow(cur,0,S.sort!=='source',true,false):(cov?cur.slice(covN):cur).map((a,i)=>card(a,i+(cov?covN:0),'mid'))).concat(savedView&&cur.length?[shelfEnd(cur)]:[]),24,12);
 }
 
 
@@ -6700,7 +6700,8 @@ const chref=c=>(c&&((c.dataset&&c.dataset.href)||c.getAttribute('href')))||'';
 /* The list view is still one column of stories, but it is not one repeated row: every few rows a story steps forward as a big picture, and now and then a story with a quote in it shows the quote. Compact card size keeps plain rows. */
 const lrWeak=u=>{const d=IMGDIM.get(u);return !!d&&(Math.min(d[0],d[1])<240||d[0]/d[1]>3.2||d[1]/d[0]>2.4)};
 function lrKind(a,i){
- if(nrDense()||S.view!=='list')return '';
+ /* tidy index (2026-10-24): every list row is the same plain row; the magazine variety belongs to the tile view */
+ return '';
  const r=i%5;
  if(r===0){if(a.img&&!lrWeak(a.img))return 'feat';return a.img?'':'type'}
  if(r===2){if(nrQuoteText(a))return 'quote';return a.img?'':'type'}
@@ -6726,7 +6727,7 @@ function listFlow(list,base,dated,latest,wire,ixOf0){
   /* the same headings the tile view has: the first story stands alone, then "Latest", then a heading each time the day changes */
   if(dated){const g=nrAge(a);if(i===0)prev=g;else if(latest&&i===1&&list.length>3){out.push('<h4 class="lr-h">Latest</h4>')}else if(g!==prev){out.push(`<h4 class="lr-h">${g}</h4>`);prev=g}}
   const nb=list[i+1],ib=nb?(ixOf0?ixOf0(nb):base+i+1):0;
-  if(!nrDense()&&i%5===3&&!lrKind(a,ia)&&pics(a)&&pics(nb)&&!lrKind(nb,ib)&&(!dated||nrAge(nb)===prev)){
+  if(false&&!nrDense()&&i%5===3&&!lrKind(a,ia)&&pics(a)&&pics(nb)&&!lrKind(nb,ib)&&(!dated||nrAge(nb)===prev)){
    out.push(`<div class="lr-pair">${card(a,ia,'lr-half')}${card(nb,ib,'lr-half')}</div>`);i++;continue;
   }
   out.push(card(a,ia,''));
