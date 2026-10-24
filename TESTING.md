@@ -600,3 +600,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - [ ] Teach preview (2026-10-24): after Teach, a dialog shows the found stories with pictures and a "Put it in this folder" menu (with New folder). The feed must land in the folder you pick.
 
 - [ ] Teach + sitemap (2026-10-24): teach emergencemagazine.org; the dialog shows "Also check the site's sitemap". After adding, the feed should list stories with real dates (not only the homepage ones), titles and pictures filling in over the first refreshes. Check the feed still loads when a site has no sitemap.
+
+- [ ] Find feeds on the web (2026-10-24, branch): Add a feed > tap a feeling (e.g. Calm), or type a topic and tap "Search the web". Expect "From the web" results with "about N stories a day · newest Xh ago" (filling in within a few seconds), quiet feeds marked "Quiet: no new stories since …". Needs the APK (Feedly has no browser access, the browser relays often fail). Check Add works from these rows and the privacy page line is present.
