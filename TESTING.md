@@ -590,3 +590,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - [ ] (branch magazine) List view: brass dot on stories you have not opened (read ones keep the existing dim); day headings show "4 of 12 read" once you have read some (counts update when the list redraws). Check dot alignment with the source line and the heading count on a phone, light and dark.
 
 - [ ] (branch magazine) List view page: greeting line, "In this list" contents with numbered chapters (All = by folder; folder/smart folder = by feed; one feed = by section or day), "In brief" paragraph after the 4th story, Quick vs Long reads after the 10th. Only with 8+ stories; Saved/Search stay plain. Verified in a desktop browser with demo data (jump scroll, brief). Not verified: Quick/Long block (needs stories with reading times), real folders, phone feel, dark themes, screen reader on the contents buttons.
+
+- [ ] (branch magazine) List page: tap a chapter heading to fold/unfold it (caret turns, In brief inside it folds too; fold state lasts until the app is closed). Check on phone: tap target size, screen reader says expanded/collapsed.
