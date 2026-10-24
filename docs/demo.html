@@ -14172,8 +14172,8 @@ function learnPattern(urls){
 /* the story cards on a page: one entry per address that fits the pattern, with its headline (a heading inside the card
    when there is one) and its picture. A card is the biggest block around the link that holds no other story. */
 function learnCards(doc,page,rx){
- const re=new RegExp(rx),host0=(()=>{try{return new URL(page).hostname}catch(e){return''}})();
- const ok=a=>{let u='';try{u=new URL(a.getAttribute('href'),page).href}catch(e){return''}try{const x=new URL(u);if(x.hostname!==host0||!re.test(x.pathname))return''}catch(e){return''}return u};
+ const re=new RegExp(rx),host0=(()=>{try{return new URL(page).hostname.replace(/^www\./,'')}catch(e){return''}})();
+ const ok=a=>{let u='';try{u=new URL(a.getAttribute('href'),page).href}catch(e){return''}try{const x=new URL(u);if(x.hostname.replace(/^www\./,'')!==host0||!re.test(x.pathname))return''}catch(e){return''}return u};
  const all=[...doc.querySelectorAll('a[href]')].map(a=>({a,u:ok(a)})).filter(x=>x.u);
  const out=new Map();
  for(const {a,u} of all){
@@ -14196,7 +14196,7 @@ async function learnCandidates(pageUrl){
   const t=(a.textContent||'').replace(/\s+/g,' ').trim();
   let u='';try{u=new URL(a.getAttribute('href'),pageUrl).href}catch(e){continue}
   if(!/^https?:/.test(u))continue;
-  try{if(new URL(u).hostname!==new URL(pageUrl).hostname)continue}catch(e){continue}
+  try{if(new URL(u).hostname.replace(/^www\./,'')!==new URL(pageUrl).hostname.replace(/^www\./,''))continue}catch(e){continue}
   if(/\.(png|jpe?g|gif|webp|svg|css|js|pdf|mp4)([?#]|$)/i.test(u))continue;
   if(!seen.has(u)||(t.length>seen.get(u).length))seen.set(u,t);
  }
