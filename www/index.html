@@ -9862,13 +9862,15 @@ $('#watchadd').onclick=async()=>{
  S.watch=S.watch||[];S.watch.push({id:'w'+Date.now(),url:q,label:label||host(q),sel:'',fp:'',lastCheck:0});
  save();toast('Watching “'+(label||host(q))+'” — you’ll get a feed entry when it changes');watchCheck(S.watch[S.watch.length-1]);
 };
+const host0=u=>{try{return new URL(u).hostname.replace(/^www\./,'')}catch(e){return u}};
 $('#teach').onclick=async()=>{
  let q=$('#u').value.trim();if(!q)q=await askBox({title:'Teach CyPress',text:'Paste the site’s address:',input:true,ok:'Next',cancel:'Cancel'});
  if(!q)return;q=/^[a-z][a-z0-9+.-]*:/i.test(q)?q:'https://'+q;
  toast('Reading the site…');
+ const lg=[];let got=null;
  try{
-  const {cands,rx,page,site}=await learnCandidates(q);
-  if(!cands.length||!rx){toast('Couldn’t find headlines on that page');return}
+  got=await learnCandidates(q,lg);const {cands,rx,page,site}=got;
+  if(!cands.length||!rx){await askBox({title:'Found the page, but no stories',text:'CyPress reached '+host0(q)+' ('+Math.round(got.size/1000)+' KB, '+got.links+' links) but couldn’t tell which links are stories. This can happen when a site builds its list with scripts after the page loads.',ok:'OK',cancel:''});return}
   const pick=await askBox({title:'Tap one headline',text:'CyPress found these stories on the page and will build a feed from them. Pages have no dates, so a story counts as new the first time it shows up. Pick the one that looks most like a real story.\n\n'+cands.slice(0,5).map((c,i)=>(i+1)+'. '+c.t.slice(0,70)).join('\n'),input:true,placeholder:'1-'+Math.min(5,cands.length),ok:'Build feed',cancel:'Cancel'});
   const ix=Math.max(0,Math.min(cands.length-1,(parseInt(pick,10)||1)-1));
   const host=new URL(page).hostname.replace(/^www\./,'');
@@ -9877,7 +9879,7 @@ $('#teach').onclick=async()=>{
   const f={id:'x'+Date.now(),url:page,title:site||host+' (learned)',folder:fid,learn:{page,rx}};
   S.feeds.push(f);save();dlg.close();load(f);fillFolders();
   {const fo=S.folders.find(o=>o.id===fid);feedAddedPop(f.title,fo?fo.name:'Unfiled',f.id)}
- }catch(e){toast('Couldn’t read that site')}
+ }catch(e){if(got){toast('Couldn’t build that feed');return}await askBox({title:'Couldn’t reach the page',text:'CyPress couldn’t get '+host0(q)+(NATIVE?'':' through the browser’s relays. The app on a phone can often reach sites that the browser can’t')+'.\n\n'+([...new Set(lg)].slice(0,8).join('\n')||String(e&&e.message||e)),ok:'OK',cancel:''})}
 };
 /* B45: a clear confirmation popup naming the feed and its folder, shown when the
    add dialog closes (in-dialog quick adds keep the toast + Done-button flow) */
@@ -14063,8 +14065,8 @@ function learnCards(doc,page,rx){
  }
  return [...out.values()].filter(c=>c.t.length>=15&&c.t.length<=160);
 }
-async function learnCandidates(pageUrl){
- const html=await fetchText(pageUrl,t=>/<a[\s>]/i.test(t));
+async function learnCandidates(pageUrl,lg){
+ const html=await fetchText(pageUrl,t=>/<a[\s>]/i.test(t),lg);
  const doc=new DOMParser().parseFromString(html,'text/html');
  const seen=new Map();
  for(const a of doc.querySelectorAll('a[href]')){
@@ -14080,7 +14082,7 @@ async function learnCandidates(pageUrl){
  const rx=learnPattern(urls.slice(0,120));
  const cards=rx?learnCards(doc,pageUrl,rx):[];
  const site=((doc.querySelector('meta[property="og:site_name"]')||{}).content||'').trim();
- return {cands:cards.slice(0,8).map(c=>({u:c.u,t:c.t})),rx,page:pageUrl,site};
+ return {cands:cards.slice(0,8).map(c=>({u:c.u,t:c.t})),rx,page:pageUrl,site,links:urls.length,size:html.length};
 }
 async function scrapeLearned(f){
  const L=f.learn;if(!L||!L.rx)throw new Error('no pattern');
