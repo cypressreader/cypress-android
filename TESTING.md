@@ -651,3 +651,6 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 
 ## Hold back redraws while scrolling deep (2026-10-24, after 1.142)
 - 1.142 report: redraws "while touching" at 57,000-64,000 px down, one after a feed fetch (2.25 s freeze at readText). `render()` now skips itself when main scrolled within 600 ms, is past 500 px, S.sel unchanged and no story open; counted as "redraws held back while scrolling" in the Jumps line. Check: scroll All Stories far down while a refresh runs: cards should not jump; new stories show on the next visit to the top. If something looks stale after scrolling (a read mark, a setting), tell me.
+
+## Saves and read marks no longer redraw the list (2026-10-24, after 1.143)
+- 1.143 report: longest freeze 0.8 s (was 2.7 s); 8 redraws in 9 s at the top, unnamed caller = `setTimeout(render,280)` after a swipe, and the star tap also called `render()`. Now `cardMarks(a)` updates just that card (read look, star). Still redraws in the Saved list or when read stories are hidden. Check: swipe a card to save / mark read, tap a star, in All Stories, the Daily and Saved: the card changes, nothing else moves; unsaving in Saved removes the card; with "hide read" on, a read card goes away.

@@ -9754,7 +9754,7 @@ $('#gear').onclick=()=>{drawer(false);setBuild();setAdopt();setCounts();syncSet(
 $('#rate').oninput=e=>{S.rate=+e.target.value;$('#ratev').value=S.rate.toFixed(1)+'×';save()};
 $('#vol').oninput=e=>{S.vol=+e.target.value;$('#volv').value=Math.round(S.vol*100)+'%';save()};
 $('#voice').onchange=e=>{S.voice=e.target.value;save()};
-$('#grid').onclick=e=>{if(hlClick(e))return;{const bp=e.target.closest('[data-bpause]'),bk=e.target.closest('[data-bkeep]');if(bp||bk){const f=S.feeds.find(x=>x.id===(bp||bk).dataset[bp?'bpause':'bkeep']);if(f){S.nudged=S.nudged||{};S.nudged[f.id]=Date.now();if(bp){const old=f.snz||0;f.snz=9e15;save();render();toast('Paused '+(f.title||'feed'),()=>{f.snz=old;delete S.nudged[f.id];save();render()})}else{save();render()}}return}}{const mb=e.target.closest('[data-msnz]');if(mb){const f=S.feeds.find(x=>x.id===mb.dataset.msnz);if(f){const old=f.snz||0;f.snz=Date.now()+7*864e5;save();render();toast('Paused '+f.title+' for a week',()=>{f.snz=old;save();render()})}return}}if(e.target.closest('[data-five]')){fiveMin();return}if(e.target.closest('[data-endall]')){S.sel='all';save();render();return}const sb=e.target.closest('.sech button');if(sb){S.sel=sb.dataset.sel;save();return render()}const st=e.target.closest('.star');if(st){e.preventDefault();toggleSave(cur[+st.dataset.star]);render();return}const wy=e.target.closest('[data-why]');if(wy){e.preventDefault();e.stopPropagation();showWhy(cur[+wy.dataset.why],wy);return}
+$('#grid').onclick=e=>{if(hlClick(e))return;{const bp=e.target.closest('[data-bpause]'),bk=e.target.closest('[data-bkeep]');if(bp||bk){const f=S.feeds.find(x=>x.id===(bp||bk).dataset[bp?'bpause':'bkeep']);if(f){S.nudged=S.nudged||{};S.nudged[f.id]=Date.now();if(bp){const old=f.snz||0;f.snz=9e15;save();render();toast('Paused '+(f.title||'feed'),()=>{f.snz=old;delete S.nudged[f.id];save();render()})}else{save();render()}}return}}{const mb=e.target.closest('[data-msnz]');if(mb){const f=S.feeds.find(x=>x.id===mb.dataset.msnz);if(f){const old=f.snz||0;f.snz=Date.now()+7*864e5;save();render();toast('Paused '+f.title+' for a week',()=>{f.snz=old;save();render()})}return}}if(e.target.closest('[data-five]')){fiveMin();return}if(e.target.closest('[data-endall]')){S.sel='all';save();render();return}const sb=e.target.closest('.sech button');if(sb){S.sel=sb.dataset.sel;save();return render()}const st=e.target.closest('.star');if(st){e.preventDefault();{const sa=cur[+st.dataset.star];toggleSave(sa);if(!cardMarks(sa))render()}return}const wy=e.target.closest('[data-why]');if(wy){e.preventDefault();e.stopPropagation();showWhy(cur[+wy.dataset.why],wy);return}
  const stg=e.target.closest('[data-stag]');if(stg){S.stag=stg.dataset.stag;save();render();return}
  if(e.target.closest('[data-sshare]')){shareSavedList();return}
  if(e.target.closest('[data-hexport]')){exportHighlights();return}
@@ -11697,6 +11697,8 @@ try{matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{if(
 
 /* ===================== reading progress ===================== */
 S.prog=S.prog||{};
+/* a save or read mark changes one card: update it in place instead of redrawing the whole list (0.7-2.7 s on a big list, and the cards jumped). False means the card must go (Saved list, read stories hidden), so the caller redraws */
+function cardMarks(a){if(!a)return false;if(S.sel==='saved'||(S.hideRead&&S.read[a.link]))return false;const sv=isSaved(a),rd=!!S.read[a.link];document.querySelectorAll('#grid .card').forEach(c=>{if(chref(c)!==a.link)return;c.classList.toggle('read',rd);const b=c.querySelector('[data-star]');if(b){b.setAttribute('aria-pressed',sv?'true':'false');b.innerHTML=starSvg(sv)}});try{dgProgUpdate()}catch(e){}return true}
 function markReadA(a){if(!a||S.read[a.link])return;S.read[a.link]=1;(a.more||[]).forEach(m=>S.read[m.l]=1);trimRead();save();try{dgProgUpdate()}catch(e){}document.querySelectorAll('#grid .card[data-i]').forEach(c=>{if(chref(c)===a.link)c.classList.add('read')})}
 function wpmTick(f){const now=Date.now();if(R.lf!=null&&R.words>150){const dt=(now-R.lt)/60000,df=f-R.lf;if(df>0&&df<.25&&dt>.02&&dt<1.5){const w=df*R.words/dt;if(w>=90&&w<=550)S.wpm=Math.round((S.wpm||230)*.85+w*.15)}}R.lf=f;R.lt=now}
 function bodyEnd(){const b=$('.cols .body');if(!b)return null;const k=[...b.children].filter(e=>!e.matches('.bfold,.endmark,script,style'));return k.pop()||null}
@@ -11888,7 +11890,7 @@ function swEnd(){const c=SW.c,act=SW.act;SW.act=false;if(!c)return;SW.c=null;con
  const a=SW.a||cardStory(c);if(!a)return;
  if(dx<0){toggleSave(a);toast(isSaved(a)?'Saved':'Removed from saved')}
  else{if(S.read[a.link]){delete S.read[a.link];toast('Marked as unread')}else{S.read[a.link]=1;(a.more||[]).forEach(m=>S.read[m.l]=1);toast('Marked as read')}save()}
- setTimeout(render,280);
+ if(!cardMarks(a))setTimeout(render,280);
 }
 $('#grid').addEventListener('pointerdown',e=>{
  if(e.pointerType==='mouse'||!e.isPrimary)return;const c=e.target.closest('.card,.cr,.cvlead,.cvl,.wline,a[data-i]');if(!c||e.target.closest('.star,.nr-ph-strip,.dq'))return;
