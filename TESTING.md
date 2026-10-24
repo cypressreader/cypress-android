@@ -624,3 +624,6 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - [ ] Teaser strips and topic codes (2026-10-24, branch): a story page with "FOR SUBSCRIBERS" headline links and pictures mid-article shows none of them; a MarketWatch story shows the feed summary, not "fcode|i/bks" lines.
 - [ ] Fold sideways scrolls (2026-10-24, branch): open Fold held sideways, Reading style Automatic: a story opened beside the list scrolls; rotate upright and it turns pages again; choosing Pages keeps pages.
 - [ ] Side by side in the APK (2026-10-24, branch; David: works in the browser, nothing happened in the app): open Fold, install the new APK, hold it sideways in the app: stories open beside the list, same as the browser. Rotate back upright and it returns to one column; rotate a few times in a row and it keeps up. If it still does nothing, open Settings > Developer and diagnostics > Copy support info and send the "Side by side:" line (it says the window size, whether it is allowed, and what the app thinks of the touch screen).
+
+## Side by side diagnostics: "your setting" (2026-10-24)
+- Copy support info "Side by side:" line now says `your setting automatic / switched on / switched off`. On the Fold (859x847) every condition passed but "allowed false": the stored setting was switched off. Check Settings > Look > Side-by-side reading is on.
