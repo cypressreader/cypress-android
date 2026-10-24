@@ -592,3 +592,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - [ ] (branch magazine) List view page: greeting line, "In this list" contents with numbered chapters (All = by folder; folder/smart folder = by feed; one feed = by section or day), "In brief" paragraph after the 4th story, Quick vs Long reads after the 10th. Only with 8+ stories; Saved/Search stay plain. Verified in a desktop browser with demo data (jump scroll, brief). Not verified: Quick/Long block (needs stories with reading times), real folders, phone feel, dark themes, screen reader on the contents buttons.
 
 - [ ] (branch magazine) List page: tap a chapter heading to fold/unfold it (caret turns, In brief inside it folds too; fold state lasts until the app is closed). Check on phone: tap target size, screen reader says expanded/collapsed.
+
+- [ ] Story banner (2026-10-24, branch magazine-sections): open the same long story (e.g. a Cloudflare blog post) 5 times; the "Couldn't get the full story / Trying another way" banner must NOT appear when the full text is shown. Daily "Also in this issue" must not repeat cover/front-page stories.
