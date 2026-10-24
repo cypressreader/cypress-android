@@ -6259,7 +6259,15 @@ const JK={
   /^\W*(was this (article|story|post) helpful|did you (enjoy|like) this (article|story)|what do you think\?|tell us what you think|have a (tip|story)\?|send us a tip)\b.{0,60}$/i,
   /^\W*(more|top|latest|trending|popular|related|recommended|editor'?s picks?) (stories|news|articles|reads|from [^.]{2,40}|videos?)( for you| right now| today)?\W*$/i,
   /^\W*(most (read|popular|shared|viewed|emailed|commented)|top stories|more to explore|keep reading|continue reading|you might also like|you may also like|around the web|from our partners|sponsored links|promoted links)\W*$/i,
-  /^\W*(advertis(e|ing|ement) (with us|here)|ad choices|adchoices|do not sell( or share)? my (personal )?(info|information)|your privacy choices|manage (your )?privacy)\W*$/i
+  /^\W*(advertis(e|ing|ement) (with us|here)|ad choices|adchoices|do not sell( or share)? my (personal )?(info|information)|your privacy choices|manage (your )?privacy)\W*$/i,
+  /* found on real pages (2026-10 corpus review): listen-to-this banners, newsletter skip links, orphan section titles, donation lines, tag labels, teaser boxes */
+  /^\W*(new[:!]?\s*)?you can now listen to\b.{0,80}$/i,
+  /\bskip past newsletter promotion\b|^\W*after newsletter promotion\W*$/i,
+  /^\W*(•\s*)?(more to read|more advice from .{2,40}|educate your inbox|video from [^.]{2,30}|more (videos|podcasts) from [^.]{2,30}|explore more|read this next|most popular|latest videos?)\W*$/i,
+  /^\W*a free press is (a|the) cornerstone\b.{0,80}$/i,
+  /^\W*(in|tags?|topics?|filed under|categories|related topics|more on|see more on)\s*:\s*$/i,
+  /^\W*(fun fact|did you know\??)\s*[:?]?\s.{1,70}$/i,
+  /^.{10,200}\bread more\W*$/i
  ],
  /* (c) rules for the top feeds, where promos sit inside the body. h: the site, sel: extra selectors, txt: extra phrases for short blocks */
  PUB:[
@@ -6309,6 +6317,33 @@ function junkDom(d,base){
  })}catch(e){}
  return n;
 }
+/* strong signals checked before the keep policy (a long video blurb or a doubled caption can read like story): each one was seen on real pages */
+function jkPre(e,t,i,url){
+ const tg=e.tagName,inFig=!!e.closest('figure');
+ /* website build names left in the text ("website-containers-global-navigation-index-js") */
+ if(!/\s/.test(t)&&/^[a-z0-9]+(?:-[a-z0-9]+){3,}$/.test(t))return 'build-name';
+ /* a video blurb whose video was removed ("WATCH | A debate at...") */
+ if(t.length<500&&/^\W*(watch|listen|video|audio)\s*\|\s*\S/i.test(t)&&!e.querySelector('video,iframe,audio'))return 'video-blurb';
+ /* a photo credit on its own line outside a caption: "(CNN)", "(Matt Rourke/AP)", "(Sketch by Bill Hennessy)" */
+ if(!inFig&&tg!=='FIGCAPTION'&&/^\([^()]{1,60}\)$/.test(t)&&(/\//.test(t)||/\b(cnn|ap|reuters|afp|getty|images?|photo|sketch|courtesy|file|pool|epa|bbc)\b/i.test(t)))return 'credit';
+ /* prices with nothing else ("$1000$140029% off"): a shop widget's leftovers */
+ if(t.length<60&&/^(?:[$€£¥]\s?\d[\d.,]*|\d{1,3}\s?%\s*off|\s)+$/i.test(t))return 'prices';
+ /* a caption printed twice: once under the photo, once again as a paragraph (sometimes with the credit added) */
+ if(!inFig&&tg!=='FIGCAPTION'&&t.length<400){const nb=[e.previousElementSibling,e.nextElementSibling,e.parentElement&&e.parentElement.previousElementSibling,e.parentElement&&e.parentElement.nextElementSibling].filter(Boolean);
+  for(const x of nb){const c=x.matches('figure,figcaption')?x:x.querySelector&&x.querySelector('figcaption');if(!c)continue;const ct=(c.querySelector('figcaption')||c).textContent.replace(/\s+/g,' ').trim();if(ct.length>=12&&(t===ct||(t.startsWith(ct)&&t.length-ct.length<80)||(ct.startsWith(t)&&t.length>=20)))return 'caption-twice'}}
+ const as=[...e.querySelectorAll('a')],lk=as.reduce((q,a)=>q+(a.textContent||'').length,0);
+ let H='',P='';try{const u=new URL(url);H=u.hostname.replace(/^www\./,'');P=u.pathname}catch(_){}
+ const same=a=>{try{const u=new URL(a.getAttribute('href')||'',url);return u.hostname.replace(/^www\./,'')===H&&u.pathname!==P&&u.pathname.length>8}catch(_){return false}};
+ /* a headline that is one link to another story on the same site (a teaser dropped between paragraphs) */
+ if(/^H[2-5]$/.test(tg)&&as.length===1&&t.length>=30&&t.length<200&&lk>=t.length*.9&&same(as[0]))return 'teaser-head';
+ if(/^(UL|OL)$/.test(tg)){const lis=[...e.children].filter(x=>x.tagName==='LI');
+  const allLink=lis.length&&lis.every(li=>{const a=li.querySelector('a'),lt=(li.textContent||'').replace(/\s+/g,' ').trim();return a&&(a.textContent||'').replace(/\s+/g,' ').trim().length>=lt.length*.9});
+  /* one or two related-story links set as a list mid-article */
+  if(allLink&&lis.length<=2&&lis.every(li=>{const a=li.querySelector('a'),lt=(li.textContent||'').replace(/\s+/g,' ').trim();return same(a)&&lt.length>=25&&!/[.!?]["”’)]*$/.test(lt)}))return 'related-list';
+  /* breadcrumbs near the top: a few very short links ("News", "Tech") */
+  if(allLink&&lis.length<=4&&i<8&&lis.every(li=>(li.textContent||'').trim().length<25))return 'breadcrumbs'}
+ return '';
+}
 /* the fragment (or live body) after cleaning: text-density scoring + phrases + learned rules, under the keep policy */
 function junkClean(root,url){
  if(!root)return;
@@ -6322,6 +6357,7 @@ function junkClean(root,url){
   if(e.closest('.pullq,.rfoot,.endmark,.tbl,table,pre,code'))return;
   const t=(e.textContent||'').replace(/\s+/g,' ').trim();
   if(!t){return}
+  {const pre=jkPre(e,t,i,url);if(pre){kill.push(e);why.set(e,{r:pre,t:t.slice(0,140)});return}}
   if(e.querySelector('img,video,iframe')&&t.length>140)return;
   if(jkNarrative(e)&&!learned.has(jkNorm(t)))return;
   const lk=[...e.querySelectorAll('a')].reduce((q,a)=>q+(a.textContent||'').length,0),ld=lk/Math.max(1,t.length),tail=i>=N*.7;
@@ -6340,8 +6376,8 @@ function junkClean(root,url){
  });
  /* teaser strips: a run of one-link headlines (often tagged "For subscribers") with their linked pictures between them, mid-article.
     Three in a row, or two when one is tagged; a linked picture next to a teaser goes with it */
- {const TAG=/^\W*(for subscribers|subscribers? only|subscriber exclusive|exclusive for subscribers|members? only|premium)\b/i;
-  const tz=e=>{if(kill.includes(e)||e.closest('.pullq,.rfoot,.endmark,.tbl,table,pre,code'))return 0;const t=(e.textContent||'').replace(/\s+/g,' ').trim(),as=e.querySelectorAll('a');if(as.length!==1||t.length<15||t.length>240)return 0;if((as[0].textContent||'').replace(/\s+/g,' ').trim().length<t.length*.8)return 0;return TAG.test(t)?2:1};
+ {const TAG=/^\W*(for subscribers|subscribers? only|subscriber exclusive|exclusive for subscribers|members? only\b|premium\b)/i;
+  const tz=e=>{if(kill.includes(e)||e.closest('.pullq,.rfoot,.endmark,.tbl,table,pre,code'))return 0;const t=(e.textContent||'').replace(/\s+/g,' ').trim(),as=e.querySelectorAll('a');if(as.length!==1||t.length<15||t.length>240)return 0;const tg=TAG.test(t),body=tg?t.replace(TAG,'').trim():t;if((as[0].textContent||'').replace(/\s+/g,' ').trim().length<body.length*.8)return 0;return tg?2:1};
   const picOnly=e=>!(e.textContent||'').trim()&&e.querySelector('a img,a picture')&&!e.querySelector('video,iframe');
   let run=[];
   const flush=()=>{const tm=run.filter(x=>x.k);if(tm.length>=3||(tm.length>=2&&tm.some(x=>x.k===2))){run.forEach(x=>{if(!kill.includes(x.e)){kill.push(x.e);why.set(x.e,{r:'teasers',t:(x.e.textContent||'').trim().slice(0,140)})}});
@@ -6351,11 +6387,18 @@ function junkClean(root,url){
   blocks.forEach(e=>{const k=tz(e);if(k)run.push({e,k});else if(picOnly(e)&&run.length)run.push({e,k:0});else flush()});flush();
   /* a run can end on pictures that belong to it: they were counted in, nothing to undo */}
  /* (d) a pass that would take more than a quarter of the text is undone */
- /* teaser strips are matched tightly, so they get their own, looser limit (half the text) instead of counting toward the quarter */
- let gt=0;kill.forEach(e=>{const L=(e.textContent||'').replace(/\s+/g,' ').trim().length;if((why.get(e)||{}).r==='teasers')gt+=L;else gone+=L});
- if(gt>total*.5){for(let j=kill.length-1;j>=0;j--)if((why.get(kill[j])||{}).r==='teasers')kill.splice(j,1)}
- if(total&&gone>total*.25&&total>600){JK.last=[{r:'undone',t:'would remove '+gone+' of '+total+' characters'}]}
+ /* teaser strips, topic codes, build names, stray credits, price leftovers and video blurbs are matched tightly, so they get their own, looser limit (half the text) instead of counting toward the quarter */
+ const SURE=new Set(['teasers','codes','build-name','credit','prices','video-blurb']);
+ /* build names and topic codes are never story text: no limit at all (an empty result falls back to the feed's own summary) */
+ const NOCAP=new Set(['codes','build-name']);
+ let gt=0;kill.forEach(e=>{const r=(why.get(e)||{}).r,L=(e.textContent||'').replace(/\s+/g,' ').trim().length;if(NOCAP.has(r))return;if(SURE.has(r))gt+=L;else gone+=L});
+ if(gt>total*.5){for(let j=kill.length-1;j>=0;j--){const r=(why.get(kill[j])||{}).r;if(SURE.has(r)&&!NOCAP.has(r))kill.splice(j,1)}}
+ if(total&&gone>total*.25&&total>600){JK.last=[{r:'undone',t:'would remove '+gone+' of '+total+' characters'}];/* the tightly matched kinds still go */kill.forEach(e=>{const r=(why.get(e)||{}).r;if((SURE.has(r)||NOCAP.has(r))&&e.parentNode)e.remove()})}
  else{kill.forEach(e=>{if(e.parentNode)e.remove()});JK.last=kill.map(e=>why.get(e))}
+ /* pictures that link to a story whose teaser was just removed go too (the picture half of a teaser card) */
+ try{const TZ=new Set(['teasers','teaser-head','related-list','link-line','links','inline-promo']),gone=new Set();
+  kill.forEach(e=>{if(!e.isConnected&&TZ.has((why.get(e)||{}).r))e.querySelectorAll('a[href]').forEach(a=>{try{gone.add(new URL(a.getAttribute('href'),url).href.split('#')[0])}catch(_){}})});
+  if(gone.size)w.querySelectorAll('a[href]').forEach(a=>{if((a.textContent||'').trim()||!a.querySelector('img,picture'))return;let h='';try{h=new URL(a.getAttribute('href'),url).href.split('#')[0]}catch(_){}if(gone.has(h)){const f=a.closest('figure');(f&&!(f.textContent||'').trim()?f:a).remove()}})}catch(e){}
  /* leave nothing hollow behind */
  for(let k=0;k<2;k++)w.querySelectorAll('ul,ol,div,section,aside,p').forEach(e=>{if(!e.textContent.trim()&&!e.querySelector('img,video,iframe,br'))e.remove()});
  if(isFrag){while(w.firstChild)root.append(w.firstChild)}
