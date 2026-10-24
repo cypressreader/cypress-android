@@ -648,3 +648,6 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 
 ## Jumps line now names who redrew (2026-10-24, after 1.141)
 - 1.141 report: 5 redraws in 16 s, one "while touching" at 16 s, only 1 layout shift. `quietRender` already refuses to redraw when scrolled past 500 px, so another caller redraws. The Jumps line now shows `by <callers> top <scroll px>` per redraw. Send it after a jumpy scroll.
+
+## Hold back redraws while scrolling deep (2026-10-24, after 1.142)
+- 1.142 report: redraws "while touching" at 57,000-64,000 px down, one after a feed fetch (2.25 s freeze at readText). `render()` now skips itself when main scrolled within 600 ms, is past 500 px, S.sel unchanged and no story open; counted as "redraws held back while scrolling" in the Jumps line. Check: scroll All Stories far down while a refresh runs: cards should not jump; new stories show on the next visit to the top. If something looks stale after scrolling (a read mark, a setting), tell me.
