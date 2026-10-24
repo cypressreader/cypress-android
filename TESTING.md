@@ -639,3 +639,6 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 
 ## David's phone report (2026-10-24, 1.139)
 - Web feed search "happy": works. Page-turn overlap on the Fold: not seen again. Photo-less monogram/blank tiles: not seen yet (nothing to judge).
+
+## Jumping pictures while scrolling All Stories (2026-10-24, screen recording)
+- Seen: a row of four small cards collapses into one full-width card mid-scroll and the rest reflow below (looks like a full redraw, or late picture sizes). Not reproducible in the browser demo. Added a "Jumps:" line to Copy support info (shifts over 0.02 with the card class, plus the last redraw times and whether a finger was down). After a scroll that jumps, send the line.
