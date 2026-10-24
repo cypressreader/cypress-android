@@ -636,3 +636,6 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 
 ## Sideways test uses the whole display (2026-10-24)
 - 1.138: "Only when held sideways" was on upright too: window 859x847 is wider than tall in both holds (status bar). Now uses screen.width vs screen.height. Check upright = single column, sideways = split. If still wrong, send the Side by side line (shows `display WxH sideways true/false orientation`) from BOTH holds.
+
+## David's phone report (2026-10-24, 1.139)
+- Web feed search "happy": works. Page-turn overlap on the Fold: not seen again. Photo-less monogram/blank tiles: not seen yet (nothing to judge).
