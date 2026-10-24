@@ -4187,13 +4187,6 @@ html.magx #grid.fed .wmom.fd-spl img{filter:none}
 #grid .lr-pair>.card.list-row>.star{position:absolute;top:6px;right:6px;background:rgba(10,20,15,.55);color:#fff;border-radius:99px}
 /* list page: contents, chapters and interludes (text-led and small, so the list never turns into tiles) */
 #grid .lr-dv{display:flex;align-items:center;gap:10px;margin:14px 0 6px;font:12px var(--sans);color:var(--mut)}#grid .lr-dv:before,#grid .lr-dv:after{content:'';flex:1;height:1px;background:#c9a24a}
-#grid .lr-toc{margin:6px 0 4px}#grid .lr-tch{display:flex;justify-content:space-between;font:700 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--a2,var(--mut));border-bottom:1px solid var(--ink);padding-bottom:4px;margin-bottom:4px}
-#grid .lr-tl{display:flex;align-items:baseline;gap:6px;width:100%;background:none;border:0;padding:7px 0;margin:0;color:var(--ink);font:400 clamp(16px,4.4vw,19px)/1.2 var(--disp,Georgia);text-align:left;cursor:pointer}
-#grid .lr-tl b{font:400 .8em var(--disp,Georgia);color:#b08d3e;min-width:1.7em}#grid .lr-tl u{flex:1;border-bottom:1.5px dotted var(--ln,#9a8f6a);text-decoration:none;transform:translateY(-.25em);min-width:12px}#grid .lr-tl s{font:12px var(--sans);color:var(--mut);text-decoration:none}
-#grid h3.lr-ch{margin:26px 0 4px;padding:0;border-top:2px solid var(--ink);font-weight:400}#grid h3.lr-ch button{display:flex;width:100%;align-items:baseline;gap:10px;padding:8px 0 2px;margin:0;background:none;border:0;color:inherit;text-align:left;cursor:pointer;font:inherit}#grid h3.lr-ch small i{font-style:normal;margin-left:8px;display:inline-block;transition:transform .2s}#grid h3.lr-ch button[aria-expanded=false] small i{transform:rotate(-90deg)}#grid h3.lr-ch b{font:400 clamp(30px,8vw,40px)/.9 var(--disp,Georgia);color:#b08d3e}#grid h3.lr-ch span{font:400 clamp(22px,6vw,28px)/1.05 var(--disp,Georgia);color:var(--ink)}#grid h3.lr-ch small{margin-left:auto;font:12px var(--sans);color:var(--mut)}
-#grid .lr-br{margin:12px 0;padding:12px 14px;border:1px solid var(--ln);border-radius:12px;background:color-mix(in srgb,var(--a1,#c9a24a) 7%,var(--bg))}#grid .lr-br h5,#grid .lr-two h5{margin:0 0 6px;font:700 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--a2,var(--mut))}
-#grid .lr-br ul{list-style:none;margin:0;padding:0}#grid .lr-br li{padding:7px 0 7px 16px;position:relative;border-top:1px solid var(--ln)}#grid .lr-br li:first-child{border-top:0}#grid .lr-br li:before{content:'';position:absolute;left:2px;top:15px;width:6px;height:6px;border-radius:50%;background:#c9a24a}#grid .lr-br li button{display:block;width:100%;text-decoration:none;font:400 clamp(16px,4.4vw,18px)/1.25 var(--disp,Georgia)}#grid .lr-br button,#grid .lr-bl{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer;text-decoration:underline;text-decoration-color:#c9a24a;text-underline-offset:3px}
-#grid .lr-two{display:flex;gap:16px;margin:14px 0}#grid .lr-two>div{flex:1;min-width:0;border-top:2px solid var(--ink);padding-top:6px}#grid .lr-two p{margin:0 0 8px;font:400 15px/1.25 var(--disp,Georgia)}
 /* list view: a brass dot marks stories you have not opened; the heading counts what you have read */
 #grid .card.list-row:not(.read) .src::before{content:'';display:inline-block;flex:none;width:7px;height:7px;border-radius:50%;background:#c9a24a;margin-right:6px;vertical-align:middle}
 #grid h4.lr-h .lr-n{float:right;font-weight:400;letter-spacing:.04em;text-transform:none;color:var(--mut)}
@@ -6624,42 +6617,12 @@ function listFlow(list,base,dated,latest,wire,ixOf0){
  return out;
 }
 /* list page (2026-10-24): contents, numbered chapters and a few small interludes between the rows. Chapters: folders (All), feeds (a folder or smart folder), sections or days (one feed). */
-function listChapters(list){
- const sel=S.sel,m=new Map(),add=(k,a)=>{if(!m.has(k))m.set(k,[]);m.get(k).push(a)};
- const byDay=()=>{m.clear();list.forEach(a=>add(nrAge(a),a))};
- if(sel==='all')list.forEach(a=>{const fo=S.folders.find(x=>x.id===fof(a).folder);add(fo?fo.name:'More',a)});
- else if(sel.startsWith('s:')){const ss=new Set(list.map(a=>a.sec).filter(Boolean));if(ss.size>=2&&ss.size<=8)list.forEach(a=>add(a.sec||'More',a));else byDay()}
- else list.forEach(a=>add(fof(a).title||'More',a));
- if(m.size<2)byDay();
- if(m.size>8){const small=[...m].filter(([k,v])=>v.length<2&&k!=='More');if(small.length){small.forEach(([k,v])=>{m.delete(k);v.forEach(a=>add('More',a))});const mo=m.get('More');m.delete('More');if(mo){mo.sort((a,b)=>b.date-a.date);m.set('More',mo)}}}
- return m.size>=2?[...m]:null;
-}
-let LRK=[];const LRF=new Set();
-function lrfCss(keys){let st=document.getElementById('lrfs');if(!st){st=document.createElement('style');st.id='lrfs';document.head.appendChild(st)}st.textContent=keys.map((k,i)=>LRF.has(k)?`#grid [data-lrc="${i+1}"]{display:none!important}`:'').join('')}
 function listPage(list,base){
- const ix=new Map(list.map((a,i)=>[a,base+i])),ch=listChapters(list),B=[],now=Date.now();
- if(!ch)return listFlow(list,base,S.sort!=='source',true,false);
- const h=new Date().getHours(),un=list.filter(a=>!S.read[a.link]).length,rc=list.filter(a=>now-a.date<108e5).length;
+ const B=[],now=Date.now(),h=new Date().getHours(),un=list.filter(a=>!S.read[a.link]).length,rc=list.filter(a=>now-a.date<108e5).length;
  const gr=h<12?'Good morning':h<18?'Good afternoon':'Good evening';
  if(un)B.push(`<div class="lr-dv"><span>${gr} · ${rc>1?rc+' stories in the last 3 hours':un+' unread'}</span></div>`);
- B.push(`<nav class="lr-toc" aria-label="Jump to a part of this list"><div class="lr-tch"><span>In this list</span><span>${list.length} stories</span></div>${ch.map(([k,v],i)=>`<button type="button" class="lr-tl" data-lch="lrc${i+1}"><b>${String(i+1).padStart(2,'0')}</b><span>${esc(k)}</span><u></u><s>${v.length}</s></button>`).join('')}</nav>`);
- const used=new Set(list.slice(0,4)),brief=list.filter(a=>!used.has(a)&&!S.read[a.link]).slice(0,4);
- const frag=a=>{const w=String(a.title||'').split(/\s+/);return w.length>8?w.slice(0,8).join(' ')+'…':w.join(' ')};
- const qk=list.filter(a=>{const r=readMin(a);return r>0&&r<=2}).slice(0,2),lg=list.filter(a=>readMin(a)>=7).slice(0,2);
- const bt=a=>`<button type="button" data-wi="${ix.get(a)}">${esc(frag(a))}</button>`;
- let n=0;const keys=ch.map(([k])=>S.sel+'|'+k);LRK=keys;lrfCss(keys);
- ch.forEach(([k,v],ci)=>{
-  B.push(`<h3 class="lr-ch" id="lrc${ci+1}"><button type="button" class="lr-cb" data-lrf="${ci}" aria-expanded="${!LRF.has(keys[ci])}"><b>${String(ci+1).padStart(2,'0')}</b><span>${esc(k)}</span><small>${v.length} ${v.length===1?'story':'stories'}<i aria-hidden="true">▾</i></small></button></h3>`);
-  v.forEach(a=>{
-   B.push(card(a,ix.get(a),'').replace('<div ',`<div data-lrc="${ci+1}" `));n++;
-   if(n===4&&brief.length>=3)B.push(`<aside data-lrc="${ci+1}" class="lr-br" aria-label="In brief"><h5>In brief</h5><ul>${brief.map(a=>`<li><button type="button" data-wi="${ix.get(a)}">${esc(a.title)}</button></li>`).join('')}</ul></aside>`);
-   if(n===10&&qk.length>=2&&lg.length>=2)B.push(`<div data-lrc="${ci+1}" class="lr-two"><div><h5>Quick · under 3 min</h5>${qk.map(a=>`<p>${bt(a).replace('<button','<button class="lr-bl"')}</p>`).join('')}</div><div><h5>Long reads</h5>${lg.map(a=>`<p>${bt(a).replace('<button','<button class="lr-bl"')}</p>`).join('')}</div></div>`);
-  });
- });
- return B;
+ return B.concat(listFlow(list,base,S.sort!=='source',true,false));
 }
-document.addEventListener('click',e=>{const f=e.target.closest&&e.target.closest('[data-lrf]');if(!f)return;e.preventDefault();e.stopPropagation();const k=LRK[+f.dataset.lrf];if(k==null)return;if(LRF.has(k))LRF.delete(k);else LRF.add(k);f.setAttribute('aria-expanded',String(!LRF.has(k)));lrfCss(LRK)},true);
-document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-lch]');if(!t)return;e.preventDefault();e.stopPropagation();let el=document.getElementById(t.dataset.lch);while(!el&&NRMORE){const more=NRMORE();el=document.getElementById(t.dataset.lch);if(!more)break}if(el){const mn=$('main'),tp=document.querySelector('.top'),off=(tp?tp.offsetHeight:0)+(($('#mtabs')||{}).offsetHeight||0)+8;if(mn)mn.scrollTo({top:mn.scrollTop+el.getBoundingClientRect().top-mn.getBoundingClientRect().top-off,behavior:reduced()?'auto':'smooth'});else el.scrollIntoView()}},true);
 function listRow(a,i,k,f){
   const dk=(typeof dekOf==='function'?dekOf(a,170):'')||'',mn=readMin(a),lk=lrKind(a,i),qt=lk==='quote'?nrQuoteText(a):null;
   if(lk==='quote'&&qt)return `<div class="card list-row lr-quote ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}"><div class="tx"><span class="lr-qm" aria-hidden="true">“</span><p class="lr-q">${esc(qt.q)}</p><div class="src"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><time>${mn?mn+' min read · ':''}${ago(a.date)}</time></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
