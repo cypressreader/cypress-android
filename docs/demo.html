@@ -9857,7 +9857,7 @@ function didYouMean(q){
    activity. Each result is then checked on the feed itself for stories per day and the newest story. */
 const WS={q:'',busy:0,res:null,err:'',tok:0};
 /* feelings and themes the catalog has no feed list for, turned into topics a search can use */
-const FEELMAP={happy:'positive news good news uplifting',happiness:'happiness positive psychology',sad:'comfort kindness hope',calm:'mindfulness calm slow living',relaxed:'relaxing slow living nature',anxious:'anxiety mental health calm',stressed:'stress relief mindfulness',curious:'curiosity science ideas',inspired:'inspiring stories people',inspiring:'inspiring stories people',cozy:'cozy home cooking',funny:'humor comedy',silly:'humor comedy',focused:'productivity deep work',motivated:'motivation productivity',adventurous:'travel adventure outdoors',informed:'world news analysis',bored:'interesting stories curiosity',nostalgic:'nostalgia history retro',creative:'creativity art design',peaceful:'peace nature mindfulness',hopeful:'hope good news solutions'};
+const FEELMAP={happy:'good news|positive news|happiness',happiness:'happiness|positive psychology',sad:'comfort|kindness|hope',calm:'mindfulness|calm|slow living',relaxed:'relaxation|slow living|nature',anxious:'anxiety|mental health|calm',stressed:'stress relief|mindfulness',curious:'curiosity|science|ideas',inspired:'inspiring stories|inspiration',inspiring:'inspiring stories|inspiration',cozy:'cozy|home cooking|hygge',funny:'humor|comedy',silly:'humor|comedy',focused:'productivity|deep work',motivated:'motivation|productivity',adventurous:'travel|adventure|outdoors',informed:'world news|analysis',bored:'interesting stories|curiosity',nostalgic:'nostalgia|retro|history',creative:'creativity|art|design',peaceful:'peace|nature|mindfulness',hopeful:'hope|good news|solutions'};
 const statsText=r=>{
  const st=r.st,last=st?st.newest:r.last,day=st?st.perDay:(r.vel||0)/7,bits=[];
  if(!last&&!st)return'Activity unknown';
@@ -9879,10 +9879,16 @@ async function webSearch(q){
  const tok=++WS.tok;Object.assign(WS,{q,busy:1,res:null,err:''});pop();
  try{
   const lg=[];
-  const t=await fetchText('https://cloud.feedly.com/v3/search/feeds?count=14&query='+encodeURIComponent(FEELMAP[q.toLowerCase()]||q),x=>/^\s*\{/.test(x),lg);
+  /* Feedly matches the whole phrase, so a feeling becomes a few short topics, and a long search that finds nothing is tried word by word */
+  const one=async w=>JSON.parse(await fetchText('https://cloud.feedly.com/v3/search/feeds?count=14&query='+encodeURIComponent(w),x=>/^\s*\{/.test(x),lg)).results||[];
+  const qs=FEELMAP[q.toLowerCase()]?FEELMAP[q.toLowerCase()].split('|'):[q];
+  let calls=0,fails=0;const safe=w=>{calls++;return one(w).catch(()=>{fails++;return[]})};
+  let all=[].concat(...await Promise.all(qs.map(safe)));
+  if(!all.length&&qs.length===1&&/\s/.test(q)){const ws=q.split(/\s+/).filter(w=>w.length>3).slice(0,3);all=[].concat(...await Promise.all(ws.map(safe)))}
+  if(!all.length&&calls&&fails===calls)throw new Error('no answer');
   if(tok!==WS.tok)return;
   const seen=new Set();
-  const res=(JSON.parse(t).results||[]).map(r=>({n:String(r.title||'').replace(/\s+/g,' ').trim(),u:String(r.feedId||'').replace(/^feed\//,''),vel:+r.velocity||0,last:+r.lastUpdated||0}))
+  const res=all.map(r=>({n:String(r.title||'').replace(/\s+/g,' ').trim(),u:String(r.feedId||'').replace(/^feed\//,''),vel:+r.velocity||0,last:+r.lastUpdated||0}))
    .filter(r=>/^https?:\/\//.test(r.u)&&r.n&&!/news\.google\.|bing\.com\/news/.test(r.u)&&!seen.has(r.u)&&seen.add(r.u));
   const live=r=>Date.now()-r.last<7776e6?1:0;res.sort((a,b)=>live(b)-live(a)||b.vel-a.vel);
   WS.res=res.slice(0,10);WS.busy=0;pop();
