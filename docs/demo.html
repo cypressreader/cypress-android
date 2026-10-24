@@ -4296,6 +4296,17 @@ html.magx #grid.fed .wmom.fd-spl img{filter:none}
 #grid .card.list-row.lr-type h3{font-size:clamp(1.2rem,4.8vw,1.5rem);line-height:1.2}
 #grid .card.list-row.lr-type .ld{-webkit-line-clamp:3;font-size:14.5px}
 #grid .card.list-row.lr-type{padding-top:14px;padding-bottom:14px}
+/* list view: two small pictures side by side, and a heading where the day changes; pictures ease in instead of popping */
+#grid .lr-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:10px 0}
+#grid .lr-pair>.card.list-row{display:flex;flex-direction:column;align-items:stretch;padding:0;border:0;border-left:0;min-width:0;position:relative;background:none!important}
+#grid .lr-pair>.card.list-row>.cimg{width:100%!important;height:auto!important;max-width:none;aspect-ratio:4/3;border-radius:12px;margin:0 0 8px}
+#grid .lr-pair>.card.list-row>.tx{display:block}
+#grid .lr-pair>.card.list-row h3{font-size:15px;line-height:1.22;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+#grid .lr-pair>.card.list-row .ld{display:none}
+#grid .lr-pair>.card.list-row>.star{position:absolute;top:6px;right:6px;background:rgba(10,20,15,.55);color:#fff;border-radius:99px}
+#grid .lr-h{margin:18px 0 2px;font:600 .8rem/1.2 var(--ui,system-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+#grid .card.list-row>.cimg{opacity:0;transition:opacity .35s ease;animation:lrShow 0s 4s forwards}#grid .card.list-row>.cimg.ok{opacity:1}@keyframes lrShow{to{opacity:1}}
+@media(prefers-reduced-motion:reduce){#grid .card.list-row>.cimg{transition:none}}
 /* list view variety: a big picture row and a quote row every few rows (see lrKind) */
 #grid .card.list-row.lr-feat{display:block;position:relative;padding:12px 4px 16px}
 #grid .card.list-row.lr-feat>.cimg{width:100%!important;height:auto!important;max-width:none;aspect-ratio:16/9;border-radius:14px;margin:0 0 10px}
@@ -5717,7 +5728,7 @@ function render0(){
  if(q&&S.sel!=='saved'&&wireOn()&&cur.length>=4&&nrMode()&&S.view!=='list'){wireRender(pre,cur,true);return}
  if(nrOn()&&cur.length>=(isOn('mag3')&&(inSaved||q)?3:6)&&(isOn('mag3')||(!q&&!inSaved))){const ms=cur.reduce((m,a)=>Math.max(m,a.date),0),un=cur.filter(a=>!S.read[a.link]).length;$('#grid').classList.add('nr');setBlocks(pre+((!q&&S.sel.startsWith('s:'))?mastHtml(S.feeds.find(x=>'s:'+x.id===S.sel),cur):`<div class="nr-meta">${cur.length} stories${S.hideCount?'':' · '+un+' unread'} · newest ${ago(ms)} ago</div>`),nrBlocks(cur,0).concat(savedView?[shelfEnd(cur)]:[]),3,2);return}
  if(nrPhoneOn()&&cur.length>=(isOn('mag3')&&(inSaved||q)?3:6)&&(isOn('mag3')||(!q&&!inSaved))){const ms=cur.reduce((m,a)=>Math.max(m,a.date),0),un=cur.filter(a=>!S.read[a.link]).length;$('#grid').classList.add('nr','nrp');setBlocks(pre+((!q&&S.sel.startsWith('s:'))?mastHtml(S.feeds.find(x=>'s:'+x.id===S.sel),cur):`<div class="nr-meta">${cur.length} stories${S.hideCount?'':' · '+un+' unread'} · newest ${ago(ms)} ago</div>`),nrBlocksPhone(cur,0).concat(savedView?[shelfEnd(cur)]:[]),3,2);return}
- setBlocks(pre+(cov||''),(cov?cur.slice(covN):cur).map((a,i)=>card(a,i+(cov?covN:0),'mid')).concat(savedView&&cur.length?[shelfEnd(cur)]:[]),24,12);
+ setBlocks(pre+(cov||''),(S.view==='list'&&!(cov||savedView)&&!q?listFlow(cur,0,S.sort!=='source'):(cov?cur.slice(covN):cur).map((a,i)=>card(a,i+(cov?covN:0),'mid'))).concat(savedView&&cur.length?[shelfEnd(cur)]:[]),24,12);
 }
 
 
@@ -6689,10 +6700,23 @@ function lrKind(a,i){
  if(r===2){if(nrQuoteText(a))return 'quote';return a.img?'':'type'}
  return '';
 }
+/* The list as a flow: the rows from lrKind, now and then two small pictures side by side, and (for lists in date order) a small heading where the day changes */
+function listFlow(list,base,dated){
+ const out=[],pics=a=>a&&a.img&&!lrWeak(a.img);let prev='';
+ for(let i=0;i<list.length;i++){
+  const a=list[i];
+  if(dated){const g=nrAge(a);if(g!==prev){out.push(`<h4 class="lr-h">${g}</h4>`);prev=g}}
+  if(!nrDense()&&i%5===3&&!lrKind(a,base+i)&&pics(a)&&pics(list[i+1])&&!lrKind(list[i+1],base+i+1)&&(!dated||nrAge(list[i+1])===prev)){
+   out.push(`<div class="lr-pair">${card(a,base+i,'lr-half')}${card(list[i+1],base+i+1,'lr-half')}</div>`);i++;continue;
+  }
+  out.push(card(a,base+i,''));
+ }
+ return out;
+}
 function listRow(a,i,k,f){
   const dk=(typeof dekOf==='function'?dekOf(a,170):'')||'',mn=readMin(a),lk=lrKind(a,i),qt=lk==='quote'?nrQuoteText(a):null;
   if(lk==='quote'&&qt)return `<div class="card list-row lr-quote ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}"><div class="tx"><span class="lr-qm" aria-hidden="true">“</span><p class="lr-q">${esc(qt.q)}</p><div class="src"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3><time>${mn?mn+' min read · ':''}${ago(a.date)}</time></div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
-  return `<div class="card list-row${lk==='feat'?' lr-feat':lk==='type'?' lr-type':''} ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}">${a.img?`<img class="cimg" width="96" height="96" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="tx"><div class="src"><img alt="" width="16" height="16" loading="lazy" decoding="async" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3>${dk?`<p class="ld">${esc(dk)}</p>`:''}<time>${mn?mn+' min read · ':''}${ago(a.date)}</time>${pwBadge(a)}</div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
+  return `<div class="card list-row${lk==='feat'?' lr-feat':lk==='type'?' lr-type':''} ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}">${a.img?`<img class="cimg" width="96" height="96" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="this.classList.add('ok')" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="tx"><div class="src"><img alt="" width="16" height="16" loading="lazy" decoding="async" src="https://www.google.com/s2/favicons?domain=${favHost(f)}&sz=32" onerror="this.remove()"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3>${dk?`<p class="ld">${esc(dk)}</p>`:''}<time>${mn?mn+' min read · ':''}${ago(a.date)}</time>${pwBadge(a)}</div><button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
 }
 function card(a,i,k){
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
@@ -7421,7 +7445,7 @@ function renderToday(tab0,pool0,seg0,ttl0){
   let bl;if(tab==='latest'){try{bl=daySections(list,mode)}catch(e){elog('daySections',e);g.innerHTML=h+dayErrorHtml();return}}
   else bl=tab==='deep'?deepBlocks(list,base,mode):mode==='w'?nrBlocks(list,base):nrBlocksPhone(list,base);
   setBlocks(h,bl,9,3);return}
- g.dataset.cards='narrow';g.innerHTML=h+list.map((a,i)=>card(a,base+i,'')).join('')+(tab==='latest'?dayEndCard():'');
+ g.dataset.cards='narrow';g.innerHTML=h+(S.view==='list'&&tab!=='latest'?listFlow(list,base,tab!=='top'):list.map((a,i)=>card(a,base+i,''))).join('')+(tab==='latest'?dayEndCard():'');
  g.querySelectorAll('.card').forEach(c=>{const w=c.querySelector(':scope>.why'),sr=c.querySelector('.src');if(w&&sr)sr.append(w)});
 }
 function renderToday0(){
