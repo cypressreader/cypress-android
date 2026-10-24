@@ -12208,7 +12208,7 @@ const splitAuto=()=>{try{const w=innerWidth,h=innerHeight;return w>=800&&h>=600&
 const isOn=k=>(k==='caps'||k==='typo')?true:(k==='split'&&S.split===undefined)?splitAuto():DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
 /* the story beside the list gets only part of the screen (about 500 wide on an open Fold): short, narrow pages, so Automatic scrolls there; choosing Pages still wins */
-const splitNow=()=>isOn('split')&&innerWidth>=800&&!((S.narrow||'auto')==='auto'&&innerWidth<=500)&&innerWidth-Math.max(300,innerWidth*.4)<700;/* the story pane (what the list leaves) is narrow */
+const splitNow=()=>isOn('split')&&innerWidth>=800&&innerWidth>innerHeight&&!((S.narrow||'auto')==='auto'&&innerWidth<=500)&&innerWidth-Math.max(300,innerWidth*.4)<700;/* the story pane (what the list leaves) is narrow */
 const isVert=()=>{const m=S.scroll||'auto';return m==='vertical'||(m==='auto'&&(!isWide()||splitNow()))};
 let _vm=null;
 const WHY={};
@@ -14338,7 +14338,7 @@ function screenMode(){
  if(narrow&&!t){t=document.createElement('nav');t.id='tabs';t.innerHTML=[['today','The Daily','<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/>'],['all','All','<path d="M4 7h16M4 12h16M4 17h16"/>'],['saved','Saved','<path d="M12 4.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 9.8l5-.7z"/>'],['search','Search','<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>']].map(([k,n,ic])=>`<button data-tab="${k}">${svg(ic)}<span>${n}</span></button>`).join('');document.body.append(t);
   t.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;const k=b.dataset.tab;drawer(false);if(k==='search'){openSearch(!srch.classList.contains('open'));return}if(srch.classList.contains('open')){srch.classList.remove('open');TOPIC=null;$('#q').value='';$('#q').blur()}if($('#rd').classList.contains('on'))closeRd();S.sel=k;save();render();$('main').scrollTop=0})}
  if(t){t.hidden=!narrow;t.querySelectorAll('[data-tab]').forEach(b=>{const on=b.dataset.tab===((S.sel==='digest'||S.sel==='brief')?'today':S.sel);b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')})}
- const split=isOn('split')&&VW>=800&&!narrow;
+ const split=isOn('split')&&VW>=800&&innerWidth>innerHeight&&!narrow;
  const was=document.body.classList.contains('split');document.body.classList.toggle('split',split);
  {const sm=sideMode(),hide=(sm==='always'||(sm==='portrait'&&innerWidth<innerHeight*1.25))&&VW>=700&&!narrow&&!split;document.body.classList.toggle('sidehide',hide);if(!hide&&!document.body.classList.contains('reading'))document.body.classList.remove('sideshow')}
  if(split&&!$('#rd').classList.contains('on'))splitEmpty();

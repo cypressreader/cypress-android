@@ -627,3 +627,6 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 
 ## Side by side diagnostics: "your setting" (2026-10-24)
 - Copy support info "Side by side:" line now says `your setting automatic / switched on / switched off`. On the Fold (859x847) every condition passed but "allowed false": the stored setting was switched off. Check Settings > Look > Side-by-side reading is on.
+
+## Side by side only when wider than tall (2026-10-24)
+- Fold unfolded is ~859x847 either way. Side-by-side now needs width > height even when the setting is switched on. Check: held sideways = list + story; held upright = single column; rotate back and forth, open a story in each.
