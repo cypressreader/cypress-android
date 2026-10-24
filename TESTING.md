@@ -661,3 +661,7 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 ## 1.146 — calmer first minute (implemented, unverified on device)
 - Open the app on the Fold, scroll and open stories in the first minute: no 1 s freezes. Copy support info: "Busy spells" total should be well under 1.145's 20 s in 55 s; Slowest frames now say "mostly script" or "mostly drawing" correctly.
 - Jumps line: each shift should end with "after …" naming what happened just before it.
+
+## 1.147 — fast redraws far down a list (implemented, unverified on device)
+- Scroll far down All Stories on the Fold, then tap All in the menu: should take well under 1 s (1.146: 5.2 s). The list should come back at the same spot.
+- Tablet layout: the last row of a grid still has no empty columns (fixOrph now applies its widening in one go).
