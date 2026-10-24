@@ -3035,7 +3035,6 @@ html.rdx .cols.tplb img.hero{aspect-ratio:16/9;max-height:calc(var(--ih)*.42)}
 #rd #dial i{background:var(--ra)}
 #rd .cols p.dropcap .dcap{color:var(--ink)}
 .deep-m{margin-top:6px}.deep-end{margin-bottom:96px}
-.dp-min{position:absolute;top:10px;left:10px;z-index:3;padding:3px 9px;border-radius:99px;background:rgba(10,20,15,.72);color:#fff;font:700 11px/1.3 var(--ui,system-ui);letter-spacing:.04em;text-transform:uppercase;pointer-events:none}.nr-row .dp-min,.nr-late .dp-min,.nr-s .dp-min{display:none}.dp-stat b{font-variant-numeric:tabular-nums}
 /* correction round, cluster 9: neutral sidebar, tablet auto-hide while reading */
 :root[data-theme=dynamic] body>aside{--pn:#f4f5f7;--ln:#e1e3e8;--bg:#f4f5f7;--ink:#16181d;--mut:#6b7078;background:#f4f5f7}
 :root[data-theme=dynamic][data-dm=dark] body>aside{--pn:#15181e;--ln:#272b33;--bg:#15181e;--ink:#eceef2;--mut:#9aa1ab;background:#15181e}
@@ -5603,7 +5602,7 @@ function render0(){
  if(q&&S.sel!=='saved'&&wireOn()&&cur.length>=4&&nrMode()&&S.view!=='list'){wireRender(pre,cur,true);return}
  if(nrOn()&&cur.length>=(isOn('mag3')&&(inSaved||q)?3:6)&&(isOn('mag3')||(!q&&!inSaved))){const ms=cur.reduce((m,a)=>Math.max(m,a.date),0),un=cur.filter(a=>!S.read[a.link]).length;$('#grid').classList.add('nr');setBlocks(pre+((!q&&S.sel.startsWith('s:'))?mastHtml(S.feeds.find(x=>'s:'+x.id===S.sel),cur):`<div class="nr-meta">${cur.length} stories${S.hideCount?'':' · '+un+' unread'} · newest ${ago(ms)} ago</div>`),nrBlocks(cur,0).concat(savedView?[shelfEnd(cur)]:[]),3,2);return}
  if(nrPhoneOn()&&cur.length>=(isOn('mag3')&&(inSaved||q)?3:6)&&(isOn('mag3')||(!q&&!inSaved))){const ms=cur.reduce((m,a)=>Math.max(m,a.date),0),un=cur.filter(a=>!S.read[a.link]).length;$('#grid').classList.add('nr','nrp');setBlocks(pre+((!q&&S.sel.startsWith('s:'))?mastHtml(S.feeds.find(x=>'s:'+x.id===S.sel),cur):`<div class="nr-meta">${cur.length} stories${S.hideCount?'':' · '+un+' unread'} · newest ${ago(ms)} ago</div>`),nrBlocksPhone(cur,0).concat(savedView?[shelfEnd(cur)]:[]),3,2);return}
- setBlocks(pre+(cov||''),(S.view==='list'&&!(cov||savedView)&&!q?listFlow(cur,0,S.sort!=='source'):(cov?cur.slice(covN):cur).map((a,i)=>card(a,i+(cov?covN:0),'mid'))).concat(savedView&&cur.length?[shelfEnd(cur)]:[]),24,12);
+ setBlocks(pre+(cov||''),(S.view==='list'&&!(cov||savedView)&&!q?listFlow(cur,0,S.sort!=='source',true,wireOn()&&wireSel()&&cur.length>=6&&S.sort!=='source'):(cov?cur.slice(covN):cur).map((a,i)=>card(a,i+(cov?covN:0),'mid'))).concat(savedView&&cur.length?[shelfEnd(cur)]:[]),24,12);
 }
 
 
@@ -6576,15 +6575,29 @@ function lrKind(a,i){
  return '';
 }
 /* The list as a flow: the rows from lrKind, now and then two small pictures side by side, and (for lists in date order) a small heading where the day changes */
-function listFlow(list,base,dated){
- const out=[],pics=a=>a&&a.img&&!lrWeak(a.img);let prev='';
- for(let i=0;i<list.length;i++){
-  const a=list[i];
-  if(dated){const g=nrAge(a);if(g!==prev){out.push(`<h4 class="lr-h">${g}</h4>`);prev=g}}
-  if(!nrDense()&&i%5===3&&!lrKind(a,base+i)&&pics(a)&&pics(list[i+1])&&!lrKind(list[i+1],base+i+1)&&(!dated||nrAge(list[i+1])===prev)){
-   out.push(`<div class="lr-pair">${card(a,base+i,'lr-half')}${card(list[i+1],base+i+1,'lr-half')}</div>`);i++;continue;
+function listFlow(list,base,dated,latest,wire,ixOf0){
+ /* All stories, folders and feeds: the same day sections the tile view has (Last hour, This morning, Earlier today, Earlier, with the story count and Mark read) */
+ if(wire){
+  const an=wireAnchor(),G={new:[],hour:[],morning:[],today:[],earlier:[]},at=new Map(list.map((a,i)=>[a,base+i])),out=[];
+  list.forEach(a=>G[wireGroup(a,an)].push(a));
+  for(const key of ['new','hour','morning','today','earlier']){
+   const us=G[key];if(!us.length)continue;
+   const un=SECR[key]=us.map(a=>a.link).filter(l=>!S.read[l]);
+   out.push(`<h3 class="dsh wsec"><span>${esc(wireLabel(key,an))}</span><small>${us.length} ${us.length===1?'story':'stories'}</small>${un.length?`<button type="button" class="dsr" data-secread="${key}" aria-label="Mark ${esc(wireLabel(key,an))} as read">Mark read</button>`:''}</h3>`);
+   out.push(...listFlow(us,0,false,false,false,a=>at.get(a)));
   }
-  out.push(card(a,base+i,''));
+  return out;
+ }
+ const out=[],pics=a=>a&&a.img&&!lrWeak(a.img),ixOf=ixOf0||((a)=>base+list.indexOf(a));let prev='';
+ for(let i=0;i<list.length;i++){
+  const a=list[i],ia=ixOf0?ixOf0(a):base+i;
+  /* the same headings the tile view has: the first story stands alone, then "Latest", then a heading each time the day changes */
+  if(dated){const g=nrAge(a);if(i===0)prev=g;else if(latest&&i===1&&list.length>3){out.push('<h4 class="lr-h">Latest</h4>')}else if(g!==prev){out.push(`<h4 class="lr-h">${g}</h4>`);prev=g}}
+  const nb=list[i+1],ib=nb?(ixOf0?ixOf0(nb):base+i+1):0;
+  if(!nrDense()&&i%5===3&&!lrKind(a,ia)&&pics(a)&&pics(nb)&&!lrKind(nb,ib)&&(!dated||nrAge(nb)===prev)){
+   out.push(`<div class="lr-pair">${card(a,ia,'lr-half')}${card(nb,ib,'lr-half')}</div>`);i++;continue;
+  }
+  out.push(card(a,ia,''));
  }
  return out;
 }
@@ -6667,7 +6680,7 @@ function nrBlocks(l,base,o){
   else if(t==='color'&&(ix=P.pick(a=>nrHas(a)&&(a.summary||'').length>60,1,true))){B.push(`<section class="nr-color">${C(ix[0],'nr-colr')}</section>`);done=true}
   else if(t==='quote'){const lk=((qn++ +seed)%2)*2,need=lk>0;ix=P.pick(a=>(!need||nrHas(a))&&nrQuoteText(a),1,true);if(ix){B.push(`<section class="nr-quote">${nrQuoteHtml(l[ix[0]],base+ix[0],lk,nrQuoteText(l[ix[0]]))}</section>`);done=true}else continue}
   else if(t==='sect'&&(ix=P.pick(nrHas,4,true))){const src=fof(l[ix[0]]).title;B.push(`<section class="nr-sect"><h4><span style="background:${brand(fof(l[ix[0]]))}"></span>More from ${esc(src)}</h4><div class="nr-sc"><div class="nr-scl">${C(ix[0],'nr-sp')}</div><div class="nr-scr">${ix.slice(1).map(i=>C(i,'nr-row nr-tl')).join('')}</div></div></section>`);done=true}
-  else if(t==='quick'&&(ix=P.pick(null,9,true))){B.push(`<section class="nr-quick"><h4>Quick hits</h4><div class="nr-qk">${ix.map(i=>C(i,'nr-late')).join('')}</div></section>`);done=true}
+  else if(t==='quick'&&(ix=P.pick(null,9,true))){B.push(`<section class="nr-quick"><div class="nr-qk">${ix.map(i=>C(i,'nr-late')).join('')}</div></section>`);done=true}
   else if(t==='stat'){const h=statDone?'':nrStatHtml(l);statDone=true;if(h){B.push(h);done=true}else continue}
   else if(t==='seg'){const main=P.pick(null,6),side=P.pick(null,5);if(main.length){B.push(`<section class="nr-seg"><div class="nr-sm">${main.map(i=>C(i,'nr-row')).join('')}</div>${side.length?`<div class="nr-side"><h4>Also new</h4>${side.map(i=>C(i,'nr-late nr-n')).join('')}</div>`:''}</section>`);done=true}}
   if(!done&&!river(8))break;
@@ -6707,7 +6720,7 @@ function nrBlocksPhone(l,base,o){
   else if(t==='quote'){const lk=((qn++ +seed)%2)*2,need=lk>0;ix=P.pick(a=>(!need||nrHas(a))&&nrQuoteText(a),1,true);if(ix){B.push(`<section class="nr-quote">${nrQuoteHtml(l[ix[0]],base+ix[0],lk,nrQuoteText(l[ix[0]]))}</section>`);done=true}else continue}
   else if(t==='stat'){const h=statDone?'':nrStatHtml(l);statDone=true;if(h){B.push(h);done=true}else continue}
   else if(t==='feat'&&(ix=P.pick(nrHas,1,true))){const tx=P.pick(null,3);B.push(`<section class="nr-ph-feat">${C(ix[0],'nr-tri')}<div class="nr-ph-fl">${tx.map(i=>C(i,'nr-late')).join('')}</div></section>`);done=true}
-  else if(t==='quick'&&(ix=P.pick(null,6,true))){B.push(`<section class="nr-quick"><h4>Quick hits</h4><div class="nr-qk">${ix.map(i=>C(i,'nr-late')).join('')}</div></section>`);done=true}
+  else if(t==='quick'&&(ix=P.pick(null,6,true))){B.push(`<section class="nr-quick"><div class="nr-qk">${ix.map(i=>C(i,'nr-late')).join('')}</div></section>`);done=true}
   if(!done&&!rows(6))break;
  }
  return B;
@@ -7318,9 +7331,9 @@ function renderToday(tab0,pool0,seg0,ttl0){
  else if(label&&!(mode&&(label==='Latest'||tab==='latest')))h+=`<div class="dlh">${esc(label)}</div>`; /* the varied layouts already carry their own Latest heading */
  if(mode){g.classList.add('nr');if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
   let bl;if(tab==='latest'){try{bl=daySections(list,mode)}catch(e){elog('daySections',e);g.innerHTML=h+dayErrorHtml();return}}
-  else bl=tab==='deep'?deepBlocks(list,base,mode):mode==='w'?nrBlocks(list,base):nrBlocksPhone(list,base);
+  else bl=tab==='deep'?deepBlocks(list):mode==='w'?nrBlocks(list,base):nrBlocksPhone(list,base);
   setBlocks(h,bl,9,3);return}
- g.dataset.cards='narrow';g.innerHTML=h+(S.view==='list'&&tab!=='latest'?listFlow(list,base,tab!=='top'):list.map((a,i)=>card(a,base+i,''))).join('')+(tab==='latest'?dayEndCard():'');
+ g.dataset.cards='narrow';g.innerHTML=h+(S.view==='list'&&tab!=='latest'?listFlow(list,base,true,tab!=='deep'):list.map((a,i)=>card(a,base+i,''))).join('')+(tab==='latest'?dayEndCard():'');
  g.querySelectorAll('.card').forEach(c=>{const w=c.querySelector(':scope>.why'),sr=c.querySelector('.src');if(w&&sr)sr.append(w)});
 }
 function renderToday0(){
@@ -12804,17 +12817,10 @@ function tabMast(tab,list){
   deep:['Deep reads',n===1?'One long read':n+' long reads','About '+hrs+' of reading, from '+src+(src===1?' source':' sources')+'.']}[tab]||['','',''];
  return `<header class="sun-m ${tab}-m"><small>${T[0]}</small><h2>${T[1]}</h2><p class="sun-s">${esc(T[2])}</p></header>`;
 }
-function deepBlocks(list,base,mode){
+function deepBlocks(list){
  const B=[],mins=list.reduce((n,a)=>n+(minsOf(a)||0),0),hrs=mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes';
  B.push(`<header class="sun-m deep-m"><small>Deep reads</small><h2>${list.length===1?'One long read':list.length+' long reads'}</h2><p class="sun-s">${esc(list.length>=2?'About '+hrs+' of reading, from '+new Set(list.map(a=>a.feedId)).size+(new Set(list.map(a=>a.feedId)).size===1?' source':' sources')+'. Take your time.':'For when you have time to settle in.')}</p></header>`);
- /* in the tile view the long reads get the same mix as the other tabs (a big opener, pairs, strips, pull-quotes, a big number), each card carrying its reading time as a badge; with the Compact card size (or very few reads) it stays one big card after another */
- if(mode&&base!=null&&list.length>=4){
-  const lab0=NRLAB;NRLAB='More to settle into';let bl;try{bl=(mode==='w'?nrBlocks:nrBlocksPhone)(list,base,{seed:7})}finally{NRLAB=lab0}
-  const chip=h=>h.replace(/(<(?:div|a)\b[^>]*class="card[^"]*"[^>]*data-i="(\d+)"[^>]*>)/g,(m,tag,i)=>{const a=cur[+i],mn=a&&minsOf(a);return mn?tag+`<span class="dp-min" aria-hidden="true">${mn} min</span>`:tag});
-  bl.forEach(x=>B.push(chip(x)));
-  const top=list.reduce((m,a)=>minsOf(a)>minsOf(m)?a:m,list[0]);
-  if(list.length>=6&&B.length>4)B.splice(3,0,`<section class="nr-stat dp-stat"><b>${minsOf(top)}</b><span>minutes: the longest read here, from ${esc(fof(top).title||'')}</span></section>`);
- }else list.forEach((a,i)=>B.push(longformItem(a,i,cur.indexOf(a),i===0,i===0?'The strongest long read among your unread stories.':'A long read of about '+minsOf(a)+' minutes.')));
+ list.forEach((a,i)=>B.push(longformItem(a,i,cur.indexOf(a),i===0,i===0?'The strongest long read among your unread stories.':'A long read of about '+minsOf(a)+' minutes.')));
  B.push(`<p class="sun-end deep-end">That is every long read for now: ${list.length} ${list.length===1?'story':'stories'}, about ${esc(hrs)}.</p>`);
  return B;
 }
