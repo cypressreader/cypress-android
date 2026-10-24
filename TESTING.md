@@ -586,3 +586,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - [ ] (branch magazine) Cards with no picture: no faint letter, no empty top; ordinary ones have a bigger headline; the opener card shows the strongest sentence as a brass-edged pull-quote. Also summaries from feeds that run two paragraphs together now keep a space ("fraud. Federal"). Check Guardian/AP stories in All Stories, Cards and Columns views, light and dark.
 
 - [ ] (branch magazine) Tidy-index list view: every list row is the same plain row (no big first row, no picture pairs, no quote rows), small spaced-caps day headings, the same day layout for All Stories/folders as other lists. Tile view unchanged. Check list view in All Stories, a folder, Daily tabs; light and dark.
+
+- [ ] (branch magazine) List view: brass dot on stories you have not opened (read ones keep the existing dim); day headings show "4 of 12 read" once you have read some (counts update when the list redraws). Check dot alignment with the source line and the heading count on a phone, light and dark.
