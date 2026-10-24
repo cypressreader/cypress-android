@@ -9992,14 +9992,14 @@ $('#teach').onclick=async()=>{
  if(!q)return;q=/^[a-z][a-z0-9+.-]*:/i.test(q)?q:'https://'+q;
  toast('Reading the site…');
  try{
-  const {cands,rx,page}=await learnCandidates(q);
+  const {cands,rx,page,site}=await learnCandidates(q);
   if(!cands.length||!rx){toast('Couldn’t find headlines on that page');return}
-  const pick=await askBox({title:'Tap one headline',text:'CyPress will learn the pattern and build a feed from it.\n\n'+cands.slice(0,5).map((c,i)=>(i+1)+'. '+c.t.slice(0,70)).join('\n'),input:true,placeholder:'1-'+Math.min(5,cands.length),ok:'Build feed',cancel:'Cancel'});
+  const pick=await askBox({title:'Tap one headline',text:'CyPress found these stories on the page and will build a feed from them. Pages have no dates, so a story counts as new the first time it shows up. Pick the one that looks most like a real story.\n\n'+cands.slice(0,5).map((c,i)=>(i+1)+'. '+c.t.slice(0,70)).join('\n'),input:true,placeholder:'1-'+Math.min(5,cands.length),ok:'Build feed',cancel:'Cancel'});
   const ix=Math.max(0,Math.min(cands.length-1,(parseInt(pick,10)||1)-1));
   const host=new URL(page).hostname.replace(/^www\./,'');
   /* B91: the folder chosen in the dialog, including a brand-new one, is used (it used to fall back to Unfiled) */
   let fid=$('#fo').value;if(fid==='__new'){const nm=$('#nf').value.trim()||'New folder';const nf={id:'g'+Date.now(),name:nm};S.folders.push(nf);fid=nf.id}
-  const f={id:'x'+Date.now(),url:page,title:cands[ix].t?host+' (learned)':host+' (learned)',folder:fid,learn:{page,rx}};
+  const f={id:'x'+Date.now(),url:page,title:site||host+' (learned)',folder:fid,learn:{page,rx}};
   S.feeds.push(f);save();dlg.close();load(f);fillFolders();
   {const fo=S.folders.find(o=>o.id===fid);feedAddedPop(f.title,fo?fo.name:'Unfiled',f.id)}
  }catch(e){toast('Couldn’t read that site')}
@@ -14150,20 +14150,43 @@ async function watchCheck(one){
    headline and the app derives the URL pattern, building a feed from it. The pattern
    lives on the feed (f.learn), so it rides along with sync/backup to other devices. */
 function learnPattern(urls){
- /* generalize a list of article URLs into one regex source */
+ /* generalize the article URLs into one regex source. A page links to articles AND to menus, sections and tags,
+    so only the biggest family of look-alike addresses (same first folder, same depth) is used */
  const paths=urls.map(u=>{try{return new URL(u).pathname}catch(e){return''}}).filter(Boolean);
  if(!paths.length)return null;
- const segs=paths.map(p=>p.split('/').filter(Boolean));
- const n=Math.min(...segs.map(x=>x.length));
+ const fam=new Map();
+ paths.forEach(pt=>{const sg=pt.split('/').filter(Boolean);const k=sg.length+'|'+(sg.length>1?sg[0]:'');if(!fam.has(k))fam.set(k,[]);fam.get(k).push(sg)});
+ const segs=[...fam.values()].sort((x,y)=>y.length-x.length)[0];
+ const n=segs[0].length;
+ if(!n)return null;
  let rx='';
  for(let i=0;i<n;i++){
   const col=segs.map(x=>x[i]);
   if(col.every(x=>x===col[0]))rx+='/'+col[0].replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
   else if(col.every(x=>/^\d+$/.test(x)))rx+='/\\d+';
-  else if(col.every(x=>/^[\w-]+$/.test(x)))rx+='/[\\w-]+';
+  else if(col.every(x=>/^[\w%.-]+$/.test(x)))rx+='/[\\w%.-]+';
   else return null;
  }
  return '^'+rx+'/?$';
+}
+/* the story cards on a page: one entry per address that fits the pattern, with its headline (a heading inside the card
+   when there is one) and its picture. A card is the biggest block around the link that holds no other story. */
+function learnCards(doc,page,rx){
+ const re=new RegExp(rx),host0=(()=>{try{return new URL(page).hostname}catch(e){return''}})();
+ const ok=a=>{let u='';try{u=new URL(a.getAttribute('href'),page).href}catch(e){return''}try{const x=new URL(u);if(x.hostname!==host0||!re.test(x.pathname))return''}catch(e){return''}return u};
+ const all=[...doc.querySelectorAll('a[href]')].map(a=>({a,u:ok(a)})).filter(x=>x.u);
+ const out=new Map();
+ for(const {a,u} of all){
+  let card=a;
+  for(let i=0;i<4&&card.parentElement&&card.parentElement!==doc.body;i++){const par=card.parentElement;if(all.some(o=>o.u!==u&&par.contains(o.a)))break;card=par}
+  const hd=card.querySelector('h1,h2,h3,h4'),t=((hd?hd.textContent:'')||a.textContent||'').replace(/\s+/g,' ').trim();
+  const im=card.querySelector('img'),src=im?(im.getAttribute('src')||im.getAttribute('data-src')||(im.getAttribute('srcset')||'').split(/\s+/)[0]||''):'';
+  let img='';if(src&&!/^data:/.test(src)){try{img=new URL(src,page).href}catch(e){}}
+  const prev=out.get(u);
+  if(!prev||(t.length>=15&&t.length<=160&&(prev.t.length<15||prev.t.length>160)))out.set(u,{u,t,img:img||(prev&&prev.img)||''});
+  else if(img&&!prev.img)prev.img=img;
+ }
+ return [...out.values()].filter(c=>c.t.length>=15&&c.t.length<=160);
 }
 async function learnCandidates(pageUrl){
  const html=await fetchText(pageUrl,t=>/<a[\s>]/i.test(t));
@@ -14171,34 +14194,28 @@ async function learnCandidates(pageUrl){
  const seen=new Map();
  for(const a of doc.querySelectorAll('a[href]')){
   const t=(a.textContent||'').replace(/\s+/g,' ').trim();
-  if(t.length<20||t.length>140)continue;
   let u='';try{u=new URL(a.getAttribute('href'),pageUrl).href}catch(e){continue}
   if(!/^https?:/.test(u))continue;
   try{if(new URL(u).hostname!==new URL(pageUrl).hostname)continue}catch(e){continue}
   if(/\.(png|jpe?g|gif|webp|svg|css|js|pdf|mp4)([?#]|$)/i.test(u))continue;
-  if(!seen.has(u))seen.set(u,t);
+  if(!seen.has(u)||(t.length>seen.get(u).length))seen.set(u,t);
  }
- const urls=[...seen.keys()];
- const rx=learnPattern(urls.slice(0,40));
- const rxs=rx?new RegExp(rx):null;
- const cands=urls.filter(u=>!rxs||rxs.test(new URL(u).pathname)).slice(0,8)
-   .map(u=>({u,t:seen.get(u)}));
- return {cands,rx,page:pageUrl};
+ /* only addresses with a real headline around them count towards the pattern */
+ const urls=[...seen.keys()].filter(u=>{const pt=new URL(u).pathname;return pt.replace(/\//g,'').length>8&&pt!==new URL(pageUrl).pathname});
+ const rx=learnPattern(urls.slice(0,120));
+ const cards=rx?learnCards(doc,pageUrl,rx):[];
+ const site=((doc.querySelector('meta[property="og:site_name"]')||{}).content||'').trim();
+ return {cands:cards.slice(0,8).map(c=>({u:c.u,t:c.t})),rx,page:pageUrl,site};
 }
 async function scrapeLearned(f){
  const L=f.learn;if(!L||!L.rx)throw new Error('no pattern');
  const html=await fetchText(L.page,t=>/<a[\s>]/i.test(t));
  const doc=new DOMParser().parseFromString(html,'text/html');
- const rx=new RegExp(L.rx),seen=new Set(),out=[];
- for(const a of doc.querySelectorAll('a[href]')){
-  let u='';try{u=new URL(a.getAttribute('href'),L.page).href}catch(e){continue}
-  let p='';try{p=new URL(u).pathname}catch(e){continue}
-  if(!rx.test(p)||seen.has(u))continue;seen.add(u);
-  const t=(a.textContent||'').replace(/\s+/g,' ').trim();
-  if(t.length<15)continue;
-  out.push({title:t.slice(0,160),link:u,date:Date.now(),feedId:f.id});
-  if(out.length>=30)break;
- }
+ const cards=learnCards(doc,L.page,L.rx).slice(0,30);
+ /* a page has no dates: a story counts as new the first time it appears on the page, and keeps that time after */
+ const sn=f.seen=f.seen||{},now=Date.now(),keep={};
+ const out=cards.map((c,i)=>{const d=sn[c.u]||(now-i*1000);keep[c.u]=d;return{title:c.t,link:c.u,date:d,img:c.img,feedId:f.id}});
+ f.seen=Object.assign(keep,Object.fromEntries(Object.entries(sn).filter(([k])=>!keep[k]).slice(0,150)));
  return out;
 }
 /* plain-language reasons for a feed that isn't loading, from what the fetcher logged */
