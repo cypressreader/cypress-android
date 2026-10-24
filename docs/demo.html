@@ -7444,7 +7444,7 @@ function renderToday(tab0,pool0,seg0,ttl0){
  if(tab==='latest'){
   const ed0=dayEdition(pool),ranked=ed0.length?ed0:byDate.slice(0,ED_N);
   let lead=ranked.find(a=>a.img&&!noCover(a))||ranked.find(a=>!noCover(a))||ranked.find(a=>a.img)||ranked[0]||pool.find(a=>a.img)||pool[0];
-  {const busy=Object.values(state).some(v=>v==='load'),pv=LEADK&&pool.find(a=>a.link===LEADK&&a.img&&!S.read[a.link]);if(busy&&pv)lead=pv;LEADK=lead&&lead.link}
+  {const busy=Object.values(state).some(v=>v==='load'),pv=LEADK&&pool.find(a=>a.link===LEADK&&a.img&&!S.read[a.link]);if(pv&&(busy||ranked.includes(pv)))lead=pv;LEADK=lead&&lead.link}
   const unread=uc(S.feeds),newCover=isOn('cover')&&!document.body.classList.contains('split')&&(!S.cvs||S.cvs==='auto'||S.cvs==='type'),useCover=(COVSHOWN=!!newCover)||(isOn('cover')&&lead.img&&!document.body.classList.contains('split'));
   cur=[lead];
   h+=useCover?(newCover?dayCoverHtml(lead,pool):coverHtml(lead,pool))+`<div class="dateline"><span>Inside&nbsp;·&nbsp;${esc(shortDate())}</span><small>${S.hideCount?'':unread?unread+' unread in all your feeds':'All caught up'}</small></div>`:`<div class="dateline"><span>${esc(edition())} · ${esc(shortDate())}</span><small>${S.hideCount?'':unread?unread+' unread in all your feeds':'All caught up'}</small></div>`+(WHY[lead.link]=whyLead(lead),card(lead,0,'lead'));
