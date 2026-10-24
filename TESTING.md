@@ -596,3 +596,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 - [ ] Story banner (2026-10-24, branch magazine-sections): open the same long story (e.g. a Cloudflare blog post) 5 times; the "Couldn't get the full story / Trying another way" banner must NOT appear when the full text is shown. Daily "Also in this issue" must not repeat cover/front-page stories.
 
 - [ ] "Teach CyPress" (2026-10-24, branch magazine-sections): Add > paste wondermind.com > Teach. Expect a list of real story headlines (not menu items), a feed named "Wondermind" with pictures, and no story marked new again on later refreshes. Needs the real phone/APK for fetch reliability; try one more site with no feed.
+
+- [ ] Teach preview (2026-10-24): after Teach, a dialog shows the found stories with pictures and a "Put it in this folder" menu (with New folder). The feed must land in the folder you pick.

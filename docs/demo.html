@@ -2290,7 +2290,7 @@ body:not(.narrow){--hdr:84px}body:not(.narrow) .top{height:var(--hdr);box-sizing
 .ib{position:relative}.ib::after{content:'';position:absolute;inset:-4px}
 @media(max-width:520px){.segs{flex-wrap:wrap}#tabs span{font-size:11px;line-height:1.1;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 #pk{width:min(420px,92vw);padding:18px 0 10px;overflow:hidden;display:none;flex-direction:column}#pk[open]{display:flex}#pk h3{font:600 20px/1.25 var(--serif);padding:0 22px 10px}#pk .pl{overflow-y:auto;max-height:min(62vh,520px);overscroll-behavior:contain;-webkit-overflow-scrolling:touch}#pk .pg{font:600 11.5px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--mut);padding:16px 22px 6px}#pk .po{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:50px;padding:10px 22px;text-align:left;font:500 16.5px/1.25 var(--sans);color:var(--ink);background:none;border:0;border-radius:0}#pk .po.on{background:color-mix(in srgb,var(--ink) 8%,transparent);font-weight:600}#pk .po:active{background:color-mix(in srgb,var(--ink) 14%,transparent)}#pk .po svg{flex:none;width:18px;height:18px;opacity:0}#pk .po.on svg{opacity:1}#pk .po.fnt{font-size:19px}#pk .po:focus-visible{outline:2px solid color-mix(in srgb,var(--ink) 40%,transparent);outline-offset:-3px;border-radius:10px}
-#ask{width:min(440px,92vw)}#ask h3{font:600 20px/1.25 var(--serif);margin-bottom:6px}#ask input,#ask textarea{width:100%;margin-top:12px;padding:11px 12px;border:1px solid var(--ln);border-radius:12px;background:var(--bg);color:var(--ink);font:15px var(--sans)}#ask .row{margin-top:18px;justify-content:flex-end;gap:8px}#ask .go.dgr{background:#b3261e;color:#fff}
+#tpk{width:min(480px,94vw)}#tpk h3{font:600 20px/1.25 var(--serif);margin-bottom:6px}#tpk .tpl{list-style:none;margin:10px 0 14px;padding:0;max-height:44vh;overflow:auto}#tpk .tpl li{display:flex;gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--ln);font:600 15px/1.25 var(--serif)}#tpk .tpl li:first-child{border-top:0}#tpk .tpl img,#tpk .tpn{flex:none;width:76px;height:56px;border-radius:8px;object-fit:cover;background:var(--ln)}#tpk label{display:block;font:600 13px var(--sans);margin:6px 0 4px}#tpk select,#tpk input{width:100%;padding:10px 12px;border:1px solid var(--ln);border-radius:12px;background:var(--bg);color:var(--ink);font:15px var(--sans);margin-top:4px}#tpk .row{margin-top:18px;display:flex;justify-content:flex-end;gap:10px}#ask{width:min(440px,92vw)}#ask h3{font:600 20px/1.25 var(--serif);margin-bottom:6px}#ask input,#ask textarea{width:100%;margin-top:12px;padding:11px 12px;border:1px solid var(--ln);border-radius:12px;background:var(--bg);color:var(--ink);font:15px var(--sans)}#ask .row{margin-top:18px;justify-content:flex-end;gap:8px}#ask .go.dgr{background:#b3261e;color:#fff}
 /*NEWSROOM*/
 #grid.nr{display:block;max-width:1560px}
 .dgp{grid-column:1/-1;display:flex;flex-direction:column;align-items:stretch;gap:12px;background:var(--pn);border:1px solid var(--ln);border-radius:18px;padding:12px 16px;margin:0 0 16px}.dgp .dgt{display:flex;align-items:center;gap:14px}.dgp .dgb{display:flex;flex-wrap:wrap;gap:10px;padding-top:12px;border-top:1px solid var(--ln)}.dgp .dgb button{flex:1 1 124px;min-width:0;padding:10px 8px;border-radius:999px;border:1px solid var(--ln);background:transparent;color:var(--ink);font:700 13.5px var(--sans);white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent}.dgp .dgb .playd{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:800}
@@ -9988,6 +9988,20 @@ $('#watchadd').onclick=async()=>{
  save();toast('Watching “'+(label||host(q))+'” — you’ll get a feed entry when it changes');watchCheck(S.watch[S.watch.length-1]);
 };
 const host0=u=>{try{return new URL(u).hostname.replace(/^www\./,'')}catch(e){return u}};
+/* the preview a taught feed is confirmed on: the stories found (with pictures) and the folder they go to */
+function teachPick(o){return new Promise(res=>{
+ let d=document.getElementById('tpk');if(d)d.remove();
+ d=document.createElement('dialog');d.id='tpk';d.setAttribute('aria-labelledby','tpk-t');
+ const opts=S.folders.map(f=>`<option value="${esc(f.id)}"${f.id===o.fo?' selected':''}>${esc(f.name)}</option>`).join('')+`<option value="__new"${o.fo==='__new'?' selected':''}>New folder…</option>`;
+ d.innerHTML=`<h3 id="tpk-t">Add “${esc(o.site)}”?</h3><p class="hint">CyPress found these stories on the page. Pages have no dates, so a story counts as new the first time it shows up.</p><ul class="tpl" aria-label="Stories found">${o.cands.map(c=>`<li>${c.img?`<img src="${esc(c.img)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:'<span class="tpn" aria-hidden="true"></span>'}<span>${esc(c.t)}</span></li>`).join('')}</ul><label for="tpk-f">Put it in this folder</label><select id="tpk-f">${opts}</select><input id="tpk-n" type="text" autocomplete="off" placeholder="Name for the new folder" aria-label="Name for the new folder" value="${esc(o.nf||'')}"${o.fo==='__new'?'':' hidden'}><div class="row"><button type="button" class="tx2" data-a="0">Cancel</button><button type="button" class="go" data-a="1">Add feed</button></div>`;
+ document.body.append(d);let done=false;
+ const fin=v=>{if(done)return;done=true;try{d.close()}catch(e){}d.remove();res(v)};
+ const f=d.querySelector('#tpk-f'),n=d.querySelector('#tpk-n');
+ f.onchange=()=>{n.hidden=f.value!=='__new';if(!n.hidden)n.focus()};
+ d.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-a]');if(b)fin(b.dataset.a==='1'?{fo:f.value,nf:n.value}:null)});
+ d.addEventListener('cancel',e=>{e.preventDefault();fin(null)});
+ d.showModal();d.querySelector('[data-a="1"]').focus();
+})}
 $('#teach').onclick=async()=>{
  let q=$('#u').value.trim();if(!q)q=await askBox({title:'Teach CyPress',text:'Paste the site’s address:',input:true,ok:'Next',cancel:'Cancel'});
  if(!q)return;q=/^[a-z][a-z0-9+.-]*:/i.test(q)?q:'https://'+q;
@@ -9996,11 +10010,10 @@ $('#teach').onclick=async()=>{
  try{
   got=await learnCandidates(q,lg);const {cands,rx,page,site}=got;
   if(!cands.length||!rx){await askBox({title:'Found the page, but no stories',text:'CyPress reached '+host0(q)+' ('+Math.round(got.size/1000)+' KB, '+got.links+' links) but couldn’t tell which links are stories. This can happen when a site builds its list with scripts after the page loads.',ok:'OK',cancel:''});return}
-  const pick=await askBox({title:'Tap one headline',text:'CyPress found these stories on the page and will build a feed from them. Pages have no dates, so a story counts as new the first time it shows up. Pick the one that looks most like a real story.\n\n'+cands.slice(0,5).map((c,i)=>(i+1)+'. '+c.t.slice(0,70)).join('\n'),input:true,placeholder:'1-'+Math.min(5,cands.length),ok:'Build feed',cancel:'Cancel'});
-  const ix=Math.max(0,Math.min(cands.length-1,(parseInt(pick,10)||1)-1));
   const host=new URL(page).hostname.replace(/^www\./,'');
-  /* B91: the folder chosen in the dialog, including a brand-new one, is used (it used to fall back to Unfiled) */
-  let fid=$('#fo').value;if(fid==='__new'){const nm=$('#nf').value.trim()||'New folder';const nf={id:'g'+Date.now(),name:nm};S.folders.push(nf);fid=nf.id}
+  const pk=await teachPick({site:site||host,cands,fo:$('#fo').value,nf:$('#nf').value});if(!pk)return;
+  /* B91: the folder chosen, including a brand-new one, is used (it used to fall back to Unfiled) */
+  let fid=pk.fo;if(fid==='__new'){const nm=(pk.nf||'').trim()||'New folder';const nf={id:'g'+Date.now(),name:nm};S.folders.push(nf);fid=nf.id}
   const f={id:'x'+Date.now(),url:page,title:site||host+' (learned)',folder:fid,learn:{page,rx}};
   S.feeds.push(f);save();dlg.close();load(f);fillFolders();
   {const fo=S.folders.find(o=>o.id===fid);feedAddedPop(f.title,fo?fo.name:'Unfiled',f.id)}
@@ -14207,7 +14220,7 @@ async function learnCandidates(pageUrl,lg){
  const rx=learnPattern(urls.slice(0,120));
  const cards=rx?learnCards(doc,pageUrl,rx):[];
  const site=((doc.querySelector('meta[property="og:site_name"]')||{}).content||'').trim();
- return {cands:cards.slice(0,8).map(c=>({u:c.u,t:c.t})),rx,page:pageUrl,site,links:urls.length,size:html.length};
+ return {cands:cards.slice(0,8).map(c=>({u:c.u,t:c.t,img:c.img})),rx,page:pageUrl,site,links:urls.length,size:html.length};
 }
 async function scrapeLearned(f){
  const L=f.learn;if(!L||!L.rx)throw new Error('no pattern');
