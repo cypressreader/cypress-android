@@ -4559,11 +4559,13 @@ let SCRT=0;
 const userBusy=()=>Date.now()-SCRT<900;
 ['touchstart','touchmove','pointermove','wheel'].forEach(t=>addEventListener(t,()=>{SCRT=Date.now()},{passive:true,capture:true}));
 async function quietGap(max){const t0=Date.now();while(userBusy()&&!document.hidden&&Date.now()-t0<(max||8000))await new Promise(r=>setTimeout(r,300))}
+/* read-ahead pages are parsed when the finger is still, each step in a task of its own, so a page turn or a tap never waits behind a second of parsing (1.4 s on a Fold in 1.145) */
+async function bgGate(){await quietGap(6000);await new Promise(r=>setTimeout(r,0))}
 /* a short fingerprint of everything the lists are drawn from; when a background refresh brings nothing new the page is left alone instead of being redrawn (which made pictures blink) */
 let LASTSIG='';
 /* jump log for Copy support info: every full redraw and every layout shift over 0.02 (the last few), so a "pictures jump while scrolling" report names its cause */
-const JMP={r:[],s:[],n:0,k:0,t0:Date.now()};let SCRL=0;document.addEventListener('scroll',e=>{if(e.target&&e.target.tagName==='MAIN')SCRL=Date.now()},true);
-try{new PerformanceObserver(l=>{for(const e of l.getEntries()){if(e.hadRecentInput||e.value<.02)continue;JMP.n++;const sn=((e.sources||[])[0]||{}).node,c=sn&&sn.closest?sn.closest('.card,section,div'):null;JMP.s.push(Math.round((e.startTime)/1000)+'s '+e.value.toFixed(2)+' '+(c?((c.className||c.nodeName)+'').split(' ').slice(0,3).join('.'):'?'));if(JMP.s.length>6)JMP.s.shift()}}).observe({type:'layout-shift',buffered:true})}catch(e){}
+const JMP={r:[],s:[],n:0,k:0,t0:Date.now(),e:null};const jmpMark=n=>{JMP.e=[n,performance.now()]};let SCRL=0;document.addEventListener('scroll',e=>{if(e.target&&e.target.tagName==='MAIN')SCRL=Date.now()},true);
+try{new PerformanceObserver(l=>{for(const e of l.getEntries()){if(e.hadRecentInput||e.value<.02)continue;JMP.n++;const sn=((e.sources||[])[0]||{}).node,c=sn&&sn.closest?sn.closest('.card,section,div'):null;JMP.s.push(Math.round((e.startTime)/1000)+'s '+e.value.toFixed(2)+' '+(c?((c.className||c.nodeName)+'').split(' ').slice(0,3).join('.'):'?')+(JMP.e&&e.startTime-JMP.e[1]<2000&&e.startTime>=JMP.e[1]?' after '+JMP.e[0]+' '+Math.round(e.startTime-JMP.e[1])+'ms':''));if(JMP.s.length>6)JMP.s.shift()}}).observe({type:'layout-shift',buffered:true})}catch(e){}
 const itemsSig=()=>{let n=0,im=0,d=0,t=0;for(const f of S.feeds){const l=items[f.id]||[];n+=l.length;if(l.length){d+=l[0].date||0;for(let i=0;i<l.length&&i<60;i++){if(l[i].img)im++;t+=(l[i].more||[]).length}}}return n+'|'+im+'|'+d+'|'+t+'|'+S.feeds.length+'|'+Object.keys(S.read).length+'|'+S.saved.length};
 let QRT=0,QRS=0,BGR=0;
 /* while feeds are still arriving the page is redrawn at most once every six seconds: a redraw rebuilds every picture, and a redraw every second made the top of the page blink */
@@ -4650,6 +4652,7 @@ async function fetchText1(url,ok,lg){
     if(r.status===202)throw 'the site answered with a bot check instead of the story (HTTP 202)';
     if(!r.ok){if((p.h||p.w)&&(r.status===404||r.status===410)){const er=new Error('HTTP '+r.status);er.hard=1;throw er}throw 'HTTP '+r.status}
     let t=await readText(r);
+    if(lg&&lg.bg&&lg.bg()&&!dead){clearTimeout(to);await bgGate();if(over)throw 'stopped'}
     if(p.j){try{t=JSON.parse(t).contents}catch(e){t=''}}
     if(!t)throw 'empty reply';
     if(ok&&!ok(t))throw 'no readable article in reply ('+t.length+' chars)';
@@ -5529,7 +5532,7 @@ function dailyRestore(){
   DREST=c.t;DRES=true;return true;
  }catch(e){return false}
 }
-function render(){/* never rebuild the list under a scrolling finger far down the page: cards would jump. User actions (tabs, settings) change S.sel or come when scrolling has stopped, so they still draw */try{if(Date.now()-SCRL<600){const m0=document.querySelector('main');if(m0&&m0.scrollTop>500&&S.sel===_lastSel&&!document.querySelector('#rd.on')){JMP.k++;return}}}catch(e){}try{JMP.r.push(Math.round(performance.now()/1000)+'s'+(userBusy()?' while touching':'')+' by '+((new Error().stack||'').split('\n').slice(1,12).map(x=>{const f=(x.match(/at (?:async )?([\w$.<>]+) \(/)||[])[1],l=(x.match(/:(\d+):(\d+)\)?$/)||[]);return f||(l[1]?'L'+l[1]+':'+l[2]:'')}).filter((n,i,A)=>n&&n!==A[i-1]).slice(0,5).join('<')||'?')+' top '+Math.round(((document.querySelector('main')||{}).scrollTop)||0));if(JMP.r.length>8)JMP.r.shift()}catch(e){}couponSweep();SMARTV=false;LASTSIG=itemsSig();LASTSET=new Set();for(const f of S.feeds)for(const a of (items[f.id]||[]))LASTSET.add(a.link);setTimeout(endObs,60);setTimeout(fixOrph,140);LK=layoutKey();DNAV=S.sel!==_lastSel;DRES=false;if(DNAV&&_lastSel==='today')dailyStash();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){markSeen(_lastSel);VIS=visFor(S.sel);if(mn0&&_lastSel!==null)SELPOS[_lastSel]={y:mn0.scrollTop,t:Date.now(),k:LK};wireSwitch(_lastSel,S.sel);_lastSel=S.sel;pfKick();const sm=SELPOS[S.sel];if(sm&&Date.now()-sm.t<18e5&&sm.k===LK&&sm.y>40)keep=sm.y;else if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();DNAV=false;if(S.sel==='today'&&cur.length&&!Object.values(state).some(v=>v==='load')&&!$('#q').value.trim()){DSTAMP=DRES?DSTAMP0:dailySig();DSTAMPT=DREST||Date.now();DREST=0}else{DSTAMP='';DREST=0}waterline();secOpener();covTitle();covFit();try{coverCrop()}catch(e){}dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=(S.sel==='today'&&!$('#q').value.trim()&&!nrMode())?'narrow':(S.cards||'medium');clearTimeout(PF.t);PF.t=setTimeout(()=>{prefetch(pfList());oiSync()},2500);imgFx();setTimeout(imgFx,80);if(!DRES)setTimeout(()=>(window.requestIdleCallback||setTimeout)(starGuard,{timeout:1500}),400);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
+function render(){/* never rebuild the list under a scrolling finger far down the page: cards would jump. User actions (tabs, settings) change S.sel or come when scrolling has stopped, so they still draw */try{if(Date.now()-SCRL<600){const m0=document.querySelector('main');if(m0&&m0.scrollTop>500&&S.sel===_lastSel&&!document.querySelector('#rd.on')){JMP.k++;return}}}catch(e){}try{JMP.r.push(Math.round(performance.now()/1000)+'s'+(userBusy()?' while touching':'')+' by '+((new Error().stack||'').split('\n').slice(1,12).map(x=>{const f=(x.match(/at (?:async )?([\w$.<>]+) \(/)||[])[1],l=(x.match(/:(\d+):(\d+)\)?$/)||[]);return f||(l[1]?'L'+l[1]+':'+l[2]:'')}).filter((n,i,A)=>n&&n!==A[i-1]).slice(0,5).join('<')||'?')+' top '+Math.round(((document.querySelector('main')||{}).scrollTop)||0));if(JMP.r.length>8)JMP.r.shift();jmpMark('redraw')}catch(e){}couponSweep();SMARTV=false;LASTSIG=itemsSig();LASTSET=new Set();for(const f of S.feeds)for(const a of (items[f.id]||[]))LASTSET.add(a.link);setTimeout(endObs,60);setTimeout(fixOrph,140);LK=layoutKey();DNAV=S.sel!==_lastSel;DRES=false;if(DNAV&&_lastSel==='today')dailyStash();const mn0=$('main');let keep=0;if(S.sel!==_lastSel){markSeen(_lastSel);VIS=visFor(S.sel);if(mn0&&_lastSel!==null)SELPOS[_lastSel]={y:mn0.scrollTop,t:Date.now(),k:LK};wireSwitch(_lastSel,S.sel);_lastSel=S.sel;pfKick();const sm=SELPOS[S.sel];if(sm&&Date.now()-sm.t<18e5&&sm.k===LK&&sm.y>40)keep=sm.y;else if(mn0)mn0.scrollTop=0}else if(mn0)keep=mn0.scrollTop;if(S.sel!=='digest'&&S.dgk)S.dgk='';render0();DNAV=false;if(S.sel==='today'&&cur.length&&!Object.values(state).some(v=>v==='load')&&!$('#q').value.trim()){DSTAMP=DRES?DSTAMP0:dailySig();DSTAMPT=DREST||Date.now();DREST=0}else{DSTAMP='';DREST=0}waterline();secOpener();covTitle();covFit();try{coverCrop()}catch(e){}dynLive();applyFolderTheme();screenMode();$('#grid').dataset.cards=(S.sel==='today'&&!$('#q').value.trim()&&!nrMode())?'narrow':(S.cards||'medium');clearTimeout(PF.t);PF.t=setTimeout(()=>{prefetch(pfList());oiSync()},2500);imgFx();setTimeout(imgFx,80);if(!DRES)setTimeout(()=>(window.requestIdleCallback||setTimeout)(starGuard,{timeout:1500}),400);if(keep>40&&mn0){let n=0;while(mn0.scrollHeight-mn0.clientHeight<keep&&NRMORE&&n++<80&&NRMORE());mn0.scrollTop=keep}}
 function starGuard(){
  /* reads first, writes after, so the page is laid out once instead of once per card */
  try{
@@ -8224,7 +8227,7 @@ function liteUrl(url){
  }catch(e){}
  return'';
 }
-const fromPage=async(url,lg,tag,sig)=>{let fr=null;const w=lg&&{retry:2,push:m=>lg.push((tag||'')+m),sig,prog:(i,n,nm)=>rdProg(url,i,n,nm)};await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);try{if(lg)lg.push((tag||'')+'page read: '+Math.round(t.length/1000)+' KB, '+(t.match(/<img\b/gi)||[]).length+' img tags ('+(t.match(/\sdata-(src|lazy-src|original|srcset)=/gi)||[]).length+' lazy), '+(t.match(/<picture\b/gi)||[]).length+' picture, '+(t.match(/<figure\b/gi)||[]).length+' figure, '+(t.match(/<noscript\b/gi)||[]).length+' noscript, '+(/application\/ld\+json/.test(t)?'has':'no')+' structured data; kept '+(x?x.querySelectorAll('img').length:0)+' pictures and '+(x?x.textContent.length:0)+' characters of text'+(x&&x.generic?' (found by the general-purpose finder)':''))}catch(e){}if(x&&(footerish(x.textContent)||errorPage(t,x.textContent))){try{if(lg)lg.push((tag||'')+'page was an error or notice page, not the story')}catch(e){}return false}if(x&&x.textContent.length>600){fr=x;return true}return false},w);if(fr&&w&&w.won)fr.tier=w.won==='direct'?'direct':'proxy';return fr};
+const fromPage=async(url,lg,tag,sig,bg)=>{let fr=null;const w=lg&&{retry:2,push:m=>lg.push((tag||'')+m),sig,bg,prog:(i,n,nm)=>rdProg(url,i,n,nm)};await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);try{if(lg)lg.push((tag||'')+'page read: '+Math.round(t.length/1000)+' KB, '+(t.match(/<img\b/gi)||[]).length+' img tags ('+(t.match(/\sdata-(src|lazy-src|original|srcset)=/gi)||[]).length+' lazy), '+(t.match(/<picture\b/gi)||[]).length+' picture, '+(t.match(/<figure\b/gi)||[]).length+' figure, '+(t.match(/<noscript\b/gi)||[]).length+' noscript, '+(/application\/ld\+json/.test(t)?'has':'no')+' structured data; kept '+(x?x.querySelectorAll('img').length:0)+' pictures and '+(x?x.textContent.length:0)+' characters of text'+(x&&x.generic?' (found by the general-purpose finder)':''))}catch(e){}if(x&&(footerish(x.textContent)||errorPage(t,x.textContent))){try{if(lg)lg.push((tag||'')+'page was an error or notice page, not the story')}catch(e){}return false}if(x&&x.textContent.length>600){fr=x;return true}return false},w);if(fr&&w&&w.won)fr.tier=w.won==='direct'?'direct':'proxy';return fr};
 
 /* ---------- is this text really the story? ---------- */
 const SHORTOK=new Set('a i of to in is it on at be by an as do go he if me my no or so up us we am oh ok'.split(' '));
@@ -8338,7 +8341,7 @@ async function getFull00(url,ctx){
  if(S.offline)return null;
  const orig=url;url=await gnResolve(url);
  const lg=[];LG[orig]=lg;const ks=Object.keys(LG);if(ks.length>25)delete LG[ks[0]];
- const stop=new AbortController(),direct=fromPage(url,lg,'page via ',stop.signal);ctx.stop=()=>stop.abort();
+ const stop=new AbortController(),direct=fromPage(url,lg,'page via ',stop.signal,()=>ctx.light);ctx.stop=()=>stop.abort();
  const wpRun=async()=>{
   const u=new URL(url),slug=u.pathname.split('/').filter(Boolean).pop();
   let t;try{t=await fetchText(u.origin+'/wp-json/wp/v2/posts?slug='+encodeURIComponent(slug)+'&_fields=content',t=>t.trim().startsWith('['),{push(){},sig:stop.signal})}catch(e){lg.push('WordPress feed: not available');throw e}
@@ -8347,7 +8350,7 @@ async function getFull00(url,ctx){
  };
  /* the WordPress check only runs if the page itself hasn't answered quickly */
  const wp=(async()=>{const r=await Promise.race([direct.then(v=>({v}),()=>({v:null})),new Promise(r=>setTimeout(()=>r({v:null}),2500))]);if(r.v||stop.signal.aborted)throw new Error('not needed');return wpRun()})();
- const lu=liteUrl(url),lite=lu?fromPage(lu,lg,'lite site via ',stop.signal).then(f=>{if(f)f.tier='lite';return f}):null;
+ const lu=liteUrl(url),lite=lu?fromPage(lu,lg,'lite site via ',stop.signal,()=>ctx.light).then(f=>{if(f)f.tier='lite';return f}):null;
  const good=Promise.any([direct,wp,lite].filter(Boolean));
  good.then(()=>stop.abort(),()=>{});
  let jn=null;
@@ -8380,8 +8383,9 @@ function getFull(url,light){
  let e=INF[url];
  if(e){if(!light&&e.ctx.light){e.ctx.light=false;if(e.ctx.up)e.ctx.up()}}
  else{const ctx={light:!!light};e=INF[url]={ctx,p:getFull0(url,ctx).finally(()=>{if(INF[url]===e)delete INF[url]})}}
- return e.p.then(n=>{
+ return e.p.then(async n=>{
   if(!n)return null;
+  if(light)await bgGate();
   const f=tidy(n.cloneNode(true));try{junkClean(f,url)}catch(e){}const tx=f.textContent||'',q=textQuality(tx);f.tier=n.tier||'direct';f.meta=n.meta;if(n.incomplete)f.incomplete=true;if(n.gate)f.gate=true;if(n.nofree)f.nofree=true;if(gatedPreview(tx,n.gate,url))f.gated_preview=true;TIER[url]={tier:f.tier,meta:f.meta||null};
   if(!q.ok){const lg=LG[url]||(LG[url]=[]);lg.push('The text looked garbled, so it was not used ('+q.why+')');return null}
   if(paywalled(tx)||paywalled(n.textContent))f.pw=true;
@@ -8742,7 +8746,7 @@ function raWhenReady(a,n){
 function pump(){
  /* reading stories ahead of time waits until you stop scrolling: parsing a page is heavy work for the main thread */
  if(PF.q.length&&userBusy()&&!document.hidden){clearTimeout(pump.t);pump.t=setTimeout(pump,800);return}
- while(PF.run<2&&PF.q.length){
+ while(PF.run<(INFL.size?1:2)&&PF.q.length){
   const a=PF.q.shift();PF.run++;
   getFull(a.link,true).then(async n0=>{
    const n=await pfDeep(a,n0);
@@ -9270,7 +9274,7 @@ const closeRd=fromPop=>closeRd0(fromPop);
 const closeRd0=fromPop=>{try{raCancel()}catch(e){}const was=curA,feedSel=/^(all|f:|s:|k:)/.test(S.sel||''),same=!!was&&RDSIG===rdSig(was)&&feedSel,soft=!same&&!!was&&feedSel&&rdBase(RDSIG)===rdBase(rdSig(was));$('#rd').classList.remove('focus');if(fromPop!==true){dropLayer('rdnav');dropLayer('reader')}else dropLayer('rdnav');const nv=$('#rdnav');if(nv){nv.classList.remove('on');nv.hidden=true}tok++;R.busy=false;/* read-aloud keeps going when you back out to the feed: the floating pill (#tmini) carries the controls */if(!(TTS.on&&('speechSynthesis' in window)))ttsStop();hlClear();$('#selbar').hidden=true;$('#rd').classList.remove('on','flex','vert');rdInert(false);try{if(RDTRIG&&RDTRIG.isConnected&&RDTRIG!==document.body)RDTRIG.focus({preventScroll:true})}catch(e){};curA=null;try{tminiSync()}catch(e){}applyFolderTheme();if(document.body.classList.contains('split'))splitEmpty();if(same||soft){try{side();dgProgUpdate();if(soft)patchProg(was)}catch(e){}}else render();if(feedSel)rdAnchorRestore()};
 /* going back to the feed: put the story that was at the top of the screen back at the same spot, even if the list moved while the story was open (pictures loading, a refresh) */
 /* while a story is open the feed is hidden behind it, but the sidebar column comes back and squeezes the feed to a sliver on mid-width windows; the whole list then re-wraps twice (open and close) and the scroll position jumps. Keep the feed at the width it had. */
-function rdFreeze(on){const b=document.body;if(!on){b.style.removeProperty('grid-template-columns');return}if(b.classList.contains('narrow')||b.classList.contains('split')||b.style.gridTemplateColumns)return;const g=getComputedStyle(b).gridTemplateColumns;if(g&&g!=='none')b.style.setProperty('grid-template-columns',g)}
+function rdFreeze(on){const b=document.body;if(!on){if(b.style.gridTemplateColumns)try{jmpMark('feed width released')}catch(e){}b.style.removeProperty('grid-template-columns');return}if(b.classList.contains('narrow')||b.classList.contains('split')||b.style.gridTemplateColumns)return;const g=getComputedStyle(b).gridTemplateColumns;if(g&&g!=='none')b.style.setProperty('grid-template-columns',g)}
 let RDANC=null;
 function rdAnchorSave(){try{const m=$('main'),mt=m.getBoundingClientRect().top;RDANC=null;for(const c of m.querySelectorAll('#grid .card[data-href]')){const r=c.getBoundingClientRect();if(r.width&&r.bottom>mt+40){RDANC={h:c.dataset.href,o:r.top-mt,sel:S.sel};return}}}catch(e){RDANC=null}}
 function rdAnchorRestore(){const A=RDANC;if(!A||A.sel!==S.sel)return;const m=$('main');let moved=false;const stop=()=>{moved=true};m.addEventListener('wheel',stop,{once:true,passive:true});m.addEventListener('touchstart',stop,{once:true,passive:true});m.addEventListener('keydown',stop,{once:true});let c0=null;const fix=()=>{if(moved)return;if(!c0||!c0.isConnected)c0=[...m.querySelectorAll('#grid .card[data-href]')].find(x=>x.dataset.href===A.h);if(!c0)return;const d=(c0.getBoundingClientRect().top-m.getBoundingClientRect().top)-A.o;if(Math.abs(d)>2)m.scrollTop+=d};fix();/* every frame for the first second, before it is painted, so a wrong spot never shows even for a moment */let n=0;const tick=()=>{fix();if(!moved&&++n<60)requestAnimationFrame(tick)};requestAnimationFrame(tick);setTimeout(fix,1200)}
@@ -11260,14 +11264,14 @@ function navLog(t0,sel){requestAnimationFrame(()=>setTimeout(()=>{NAVL.push({k:s
 try{new PerformanceObserver(l=>{for(const e of l.getEntries()){LT.n++;LT.ms+=e.duration;if(e.duration>LT.max)LT.max=e.duration}}).observe({entryTypes:['longtask']})}catch(e){}
 /* slowest screen updates since launch, with the script that held them up (Chrome's long-animation-frame report): names the cause of lag in Copy support info */
 const LOAF=[];
-try{new PerformanceObserver(l=>{for(const e of l.getEntries()){if(e.duration<120)continue;const sc=(e.scripts||[]).slice().sort((x,y)=>y.duration-x.duration)[0];LOAF.push({d:Math.round(e.duration),t:Math.round(e.startTime/1000),b:Math.round(e.blockingDuration||0),r:Math.round((e.renderStart&&e.startTime?e.renderStart-e.startTime:0)),s:sc?Math.round(sc.duration)+'ms '+(sc.invoker||'')+' '+(sc.sourceFunctionName||'')+'@'+(sc.sourceCharPosition||0):'no script'});LOAF.sort((x,y)=>y.d-x.d);if(LOAF.length>5)LOAF.length=5}}).observe({type:'long-animation-frame',buffered:true})}catch(e){}
+try{new PerformanceObserver(l=>{for(const e of l.getEntries()){if(e.duration<120)continue;const sc=(e.scripts||[]).slice().sort((x,y)=>y.duration-x.duration)[0];LOAF.push({d:Math.round(e.duration),t:Math.round(e.startTime/1000),b:Math.round(e.blockingDuration||0),r:Math.round(e.renderStart?e.startTime+e.duration-e.renderStart:0),s:sc?Math.round(sc.duration)+'ms '+(sc.invoker||'')+' '+(sc.sourceFunctionName||'')+'@'+(sc.sourceCharPosition||0):'no script'});LOAF.sort((x,y)=>y.d-x.d);if(LOAF.length>5)LOAF.length=5}}).observe({type:'long-animation-frame',buffered:true})}catch(e){}
 function mzSum(){const o=['','Story opening (last '+MZ.L.length+' taps)'];
  try{const by={};NAVL.forEach(x=>(by[x.k]=by[x.k]||[]).push(x));const q=(v)=>{v=v.slice().sort((a,b)=>a-b);return v[v.length>>1]};
   o.push('Menu taps (this session, tap to page shown): '+(Object.keys(by).map(k=>k+' x'+by[k].length+' median '+q(by[k].map(x=>x.ms))+' ms (build '+q(by[k].map(x=>x.b))+') slowest '+Math.max(...by[k].map(x=>x.ms))).join(' · ')||'none yet'));
   const lf=localStorage.getItem('folio')||'';let all=0;for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);all+=k.length+(localStorage.getItem(k)||'').length}
   o.push('Library size '+Math.round(lf.length/1024)+' KB of '+Math.round(all/1024)+' KB stored · stories in memory '+Object.values(items).reduce((n,l)=>n+l.length,0)+' · feeds '+S.feeds.length+' · read marks '+Object.keys(S.read).length+' · history '+(S.hist||[]).length+' · saved '+S.saved.length);
   o.push('Busy spells over 50 ms since launch: '+LT.n+' · total '+Math.round(LT.ms)+' ms · longest '+Math.round(LT.max)+' ms · uptime '+Math.round(performance.now()/1000)+' s')}catch(e){}
- try{o.push('Slowest frames: '+(LOAF.map(x=>x.d+'ms at '+x.t+'s ('+x.s+(x.r>x.d*.5?', mostly drawing':'')+')').join(' | ')||'none over 120 ms (or not supported)'))}catch(e){}
+ try{o.push('Slowest frames: '+(LOAF.map(x=>x.d+'ms at '+x.t+'s ('+x.s+(x.r>x.d*.5?', mostly drawing':', mostly script')+')').join(' | ')||'none over 120 ms (or not supported)'))}catch(e){}
  try{const by={};MZ.L.forEach(x=>(by[x.k]=by[x.k]||[]).push(x.ms));
   for(const k of Object.keys(by)){const v=by[k].sort((a,b)=>a-b);o.push(' '+k+': '+v.length+' · median '+v[v.length>>1]+' ms · slowest '+v[v.length-1]+' ms')}
   const dp=MZ.L.filter(x=>x.r==='deep'||x.r==='slow routes failed');if(dp.length)o.push(' stubborn stories (slow routes ran alongside the search): '+dp.length+' · rescued '+dp.filter(x=>x.r==='deep').length+' · median '+dp.map(x=>x.ms).sort((m,n)=>m-n)[dp.length>>1]+' ms');
@@ -12211,8 +12215,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.24r';const APP_LABEL='1.145';
-const CHANGES=["Fixed: stories could open blank or turn pages slowly while new stories were arriving; the list behind an open story now waits until you close it"];
+const APP_VERSION='2026.10.24s';const APP_LABEL='1.146';
+const CHANGES=["Smoother in the first minute after opening: stories read ahead in the background now wait until your finger is still, and only one is prepared at a time while feeds are still arriving"];
 const DEF_ON=new Set(['mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
 /* a touch screen. The Android WebView does not always answer 'coarse' to the plain pointer question the way a browser does, so a finger is also looked for the two other ways */
@@ -15543,7 +15547,7 @@ try{const bd=$('#bid');if(bd)bd.value=String(biDays())}catch(e){}
  const rd=$('#rd');
  const h=document.createElement('button');h.id='sideh';h.type='button';h.setAttribute('aria-label','Show feeds');h.title='Show your feeds';h.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg><span aria-hidden="true">Feeds</span>';document.body.append(h);
  {const as=document.querySelector('aside');if(as&&!$('#sidehdr')){const d=document.createElement('div');d.id='sidehdr';d.innerHTML='<h2>Your feeds</h2><button type="button" class="ib" id="sidehx" aria-label="Close feeds">'+svg('<path d="M6 6l12 12M18 6 6 18"/>')+'</button>';as.prepend(d);d.querySelector('#sidehx').onclick=()=>document.body.classList.remove('sideshow')}}
- const set=on=>{on=on&&!rd.classList.contains('ghost');if(on)rdFreeze(true);document.body.classList.toggle('reading',on);if(!on){document.body.classList.remove('sideshow');/* the sidebar column slides for about .28 s; hold the feed's width until it has finished */clearTimeout(set.t);set.t=setTimeout(()=>{if(!document.body.classList.contains('reading'))rdFreeze(false)},480)}};
+ const set=on=>{on=on&&!rd.classList.contains('ghost');try{jmpMark(on?'story open':'story close')}catch(e){}if(on)rdFreeze(true);document.body.classList.toggle('reading',on);if(!on){document.body.classList.remove('sideshow');/* the sidebar column slides for about .28 s; hold the feed's width until it has finished */clearTimeout(set.t);set.t=setTimeout(()=>{if(!document.body.classList.contains('reading'))rdFreeze(false)},480)}};
  if(rd){new MutationObserver(()=>set(rd.classList.contains('on'))).observe(rd,{attributes:true,attributeFilter:['class']});set(rd.classList.contains('on'))}
  h.onclick=()=>document.body.classList.add('sideshow');
  document.addEventListener('click',e=>{if(document.body.classList.contains('sideshow')&&!e.target.closest('aside')&&!e.target.closest('#sideh,#menu')){document.body.classList.remove('sideshow')}else if(document.body.classList.contains('sideshow')&&e.target.closest('aside [data-sel],aside .fr,aside .nav')&&!e.target.closest('[data-tgl],.frc,.frx,.mfh,[data-col],[data-delf],[data-delx]')){setTimeout(()=>{document.body.classList.remove('sideshow');if(rd&&rd.classList.contains('on')&&typeof closeRd==='function')try{closeRd()}catch(er){}},50)}},true);
