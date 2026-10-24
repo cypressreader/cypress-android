@@ -15,7 +15,6 @@ Last updated: 2026-10-24 · Branch: `claude/magazine-sections` · Code: web `202
 - **Reader**: do NOT re-add a spanning title block in the paged reader. Justified text uses hyphens. "Aa" = bottom sheet (Theme/Font/Focus/Large print), opened from the ... menu (`data-act="aa"`); no `#raa/#raaf` buttons. "Why it matters" stays as is (`whyBox`, `COOKIEJ` filter).
 - **Side bar** hide setting (Never / portrait+square / Always), hamburger `#menu`, tab `#sideh`; click-to-close skips folder arrows/dots/× buttons.
 - **Return to the feed (1.111, calm)**: `rdFreeze` pins body `grid-template-columns` while a story is open (released 480 ms after `reading` ends / on resize); `rdAnchorSave/Restore` per frame; progress-only change patches the bar (`patchProg`) instead of `render()`; no close cross-fade (`closeRd` = `closeRd0`); `#grid.wire` cards have `content-visibility:visible`. If jitter returns, re-add a `?dbg=1` note (see git commits d4c09e6/207523e).
-- Tablet: list view two columns, 2-line summaries; picture cards capped 170 px; `fixOrph()` widens short last rows; trio/strip count classes (`nr-t1/t2`, `nr-s1..s3`); Cards-view rows use `auto-fit`. **Removed on purpose** (suspected stutter): `:has()` rules, muted card tint, favicon letter tile.
 - Site, privacy, demo (generated), tablet page: US spelling, no publisher names. Near you sends typed place to Google News and Bing News (disclosed on privacy page).
 - Tests passing: `tests/syntax.js`, `st5`, `st18`, `st27`, `st29`, `control`. Pre-existing failures (also on main): `st26`, `deep2`, `deep3`.
 
@@ -30,8 +29,6 @@ Last updated: 2026-10-24 · Branch: `claude/magazine-sections` · Code: web `202
 ## 3. Dead ends (don't repeat)
 - **'Flip through pages' magazine view (`mgp`)**: built as an experiment 2026-10-21, David judged it "doesn't look good" and it was removed 2026-10-22 (commit reverts 5256ada). Don't rebuild it without a new design brief.
 - Forced hero card in list view (solved: normal row). Cards/Columns "gone" = Compact size or list view, not a bug. Nested `<form>` in Add dialog (use div + Enter). Heavy-sans reader title not reproducible (ask `S.font`, `S.hfont`). ABC News feed removed.
-- Return-feed stutter/flash causes (all fixed in 1.111): `startViewTransition` on close, `render()` on progress change, `content-visibility:auto` layout shift, body column re-flow while reading. The `:has()`/tint/favicon changes were NOT the cause.
-- Visual-Test (AI Studio) repo: **user said do NOT port its visual enhancements yet**; review together first. Items to fix if ported: panel drag-to-close, OLED in `THEME_NAMES`/`twinApply`, no fake storage breakdown. Details in the archive §3c.
 
 ## 4. Active state & next 3 tasks
 Locked: page turn (Play Books style, tap turns 1280 ms, do not retune). Released: 1.127 (merged to `main` 2026-10-23: faster Daily, story grouping, saved Daily page, menu-tap diagnostics). Full detail of everything since 1.124 is in `HANDOFF-ARCHIVE.md` ('Moved from HANDOFF 2026-10-24').
