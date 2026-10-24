@@ -18,10 +18,11 @@ jobs:
   test:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
-    env:
-      # the tests write screenshots and scratch files here
-      OUT: ${{ runner.temp }}/t
     steps:
+      # the tests write screenshots and scratch files here (runner.temp can't be used in job-level env)
+      - name: Set the output folder
+        run: echo "OUT=$RUNNER_TEMP/t" >> "$GITHUB_ENV"
+
       - name: Get the files
         uses: actions/checkout@v4
         with:
