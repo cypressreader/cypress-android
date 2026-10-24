@@ -654,3 +654,6 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 
 ## Saves and read marks no longer redraw the list (2026-10-24, after 1.143)
 - 1.143 report: longest freeze 0.8 s (was 2.7 s); 8 redraws in 9 s at the top, unnamed caller = `setTimeout(render,280)` after a swipe, and the star tap also called `render()`. Now `cardMarks(a)` updates just that card (read look, star). Still redraws in the Saved list or when read stories are hidden. Check: swipe a card to save / mark read, tap a star, in All Stories, the Daily and Saved: the card changes, nothing else moves; unsaving in Saved removes the card; with "hide read" on, a read card goes away.
+
+## Background refresh waits while a story is open (2026-10-24, after 1.144)
+- 1.144 report: opening a story at 11 s (843 ms), then at 12 s `quietRender` rebuilt the whole list behind it (3.2 s, scrolled 83,159 px): "stories load slow, pages flip slow". quietRender's deep-scroll guard excluded an open reader. Now it re-checks every 2 s until the story is closed, then applies the usual rules. Check: open stories right after launch / during a refresh: they open and turn pages without stalls; after closing, the list is where you left it; new stories appear when you are back near the top.
