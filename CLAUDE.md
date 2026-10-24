@@ -30,10 +30,23 @@ Key symbols in `www/index.html` (grep the name, then read ±30 lines): `render0`
 ## 3. Token discipline (non-negotiable)
 - **Surgical reads:** never read `www/index.html` whole. `grep -n` the symbol, then Read with `offset`/`limit`, and cut long lines (`cut -c1-300`). Don't re-read a file already read this session.
 - **Quiet commands:** tests, builds and linters with quiet output: `node tests/syntax.js | tail -n 25`, `… 2>&1 | tail -n 25`, `--silent`/`-q` where a tool has them. Run only the tests the change needs. Never write new test suites unprompted. Never run audits without approval.
-- **No agents or workflows** for routine edits.
+- **Workers (cheap model) — only when the job reads a lot and answers little.** Opus is the main model; hand work to a **Sonnet** worker (`Agent` with `model: sonnet`) when it would otherwise dump large output into this chat but come back as a short answer: sweeping greps across many files or naming conventions, pulling a fact out of `TESTING.md` / `HANDOFF-ARCHIVE.md` / `FIXES.md` (28k / 18k / 8k tokens if read whole), running a test suite and reporting only what failed, auditing a branch diff. Ask for the conclusion, not the excerpts.
+  - **Never** for edits, commits, pushes, releases, or anything needing the locked rules in `HANDOFF.md`.
+  - **Never** when the file and line are already known, or the answer is one `grep`: a worker starts cold and must re-read `CLAUDE.md` + `HANDOFF.md` (~4.5k tokens), and its brief plus its report are Opus tokens here. Below roughly a screenful of output, doing it directly is cheaper.
+  - A `fork` worker inherits Opus and saves nothing — only a named Sonnet worker is cheaper.
+  - No workflows or multi-agent fan-out for routine edits.
+- **Failures only, never full logs:** run tests as `node tests/x.js >/dev/null 2>&1 && echo "x ok" || echo "x FAIL"` (loop over several in one command) and only open the output of one that failed.
+- **Diffs:** `git diff --stat` / `git log --oneline` first, and `git diff` only on the one file that matters. Never a bare `git diff` on a branch.
+- **Big text files are grep-or-append only:** `TESTING.md` (106 KB), `FIXES.md` (32 KB), `HANDOFF-ARCHIVE.md` (70 KB), `whats-new.txt`. Add entries blind with `cat >> file <<'EOF'`, read them with `grep -n` or `tail`, never whole. `www/index.html` is 2 MB (~550k tokens) — reading it whole would spend a third of a weekly budget in one call.
 - **Targeted output:** explain what you did and why in plain language, but show only the changed lines, never whole unchanged files.
 - Don't read ignored files (see `.claudeignore` / `deny` list in `.claude/settings.json`): lockfiles, `node_modules/`, build output, minified files, sourcemaps, `docs/app/index.html`, `docs/demo.html`, `context/`, `backup/`.
 - Replies and debriefs: brief. Use Implemented / Upgraded / Skipped for batches.
+
+## 3b. Which model to run (biggest saver of all)
+Opus is the main model. The largest saving is not delegation, it is **not spending Opus on procedure** — so when a session is only the mechanical list below, say so in the first reply, in one line: "This is all procedure — `/model claude-sonnet-5-5` would do it for the same result." Then do as asked either way; never switch models unprompted.
+- **Sonnet is enough:** version bump (`APP_VERSION`/`APP_LABEL` + `whats-new.txt` + `node scripts/sync-whats-new.js`), merge to `main` on `build`, `scripts/publish-preview.sh`, handoff trims and archive moves, US-spelling and copy sweeps, adding `TESTING.md` entries, re-running tests, mechanical find-and-replace.
+- **Worth Opus:** diagnosing a device-only bug (today's WebView rotation), judging or designing layout, anything touching `fitPage1`/`fitHero`/`layout`/`relayout`, deciding whether a change breaks a locked rule in §7, weighing a dead end.
+- **Context re-sends are the quiet cost:** every turn re-sends the whole conversation, so turn 10 costs far more than turn 2 for the same work. Obey the §4 handoff alarm early rather than late — a fresh session at ~4.5k tokens of boot files is cheaper than three more turns on a long one.
 
 ## 4. Memory protocol
 - **Keep HANDOFF.md lean (token saver):** it is read on every boot. Keep it under ~8 KB: when it grows, move finished/dated items to `HANDOFF-ARCHIVE.md` (never read on boot) and keep only locked rules, open items and the next 3 tasks. Trim whenever it makes sense, as part of the silent save.
@@ -49,7 +62,7 @@ Key symbols in `www/index.html` (grep the name, then read ±30 lines): `render0`
 
 ## 5. Workflow rules
 - Work on feature branches (this session's branch is named in HANDOFF). **Nothing ships until the user says `build` / `merge`.** Preview first (`scripts/publish-preview.sh`), then wait.
-- Commit trailers: `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>` and `Claude-Session: <session url given in the session>`. Do not commit the untracked `cypress-gemini-audit/` folder. Never use `pkill -f` (it kills your own shell).
+- Commit trailers: `Co-Authored-By: <the model named in this session's attribution reminder> <noreply@anthropic.com>` and `Claude-Session: <session url given in the session>`. Use the model the session actually ran on (it changes when the model is switched mid-session), never a name copied from an older commit. Do not commit the untracked `cypress-gemini-audit/` folder. Never use `pkill -f` (it kills your own shell).
 - Local test server: start it in the same command that uses it (`(setsid nohup python3 -m http.server 8766 &)` in `docs/`); servers die between commands.
 - Verification honesty: a change you cannot verify here (real phone, TTS, install/update, background work) is "implemented, unverified" and gets a `TESTING.md` entry. Bring measurements, not opinions, when disagreeing.
 - If something is unclear: make the reasonable fix, note the assumption, don't stop to ask.
