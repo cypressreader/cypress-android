@@ -11263,7 +11263,7 @@ function mzSum(){const o=['','Story opening (last '+MZ.L.length+' taps)'];
   for(const k of Object.keys(by)){const v=by[k].sort((a,b)=>a-b);o.push(' '+k+': '+v.length+' · median '+v[v.length>>1]+' ms · slowest '+v[v.length-1]+' ms')}
   const dp=MZ.L.filter(x=>x.r==='deep'||x.r==='slow routes failed');if(dp.length)o.push(' stubborn stories (slow routes ran alongside the search): '+dp.length+' · rescued '+dp.filter(x=>x.r==='deep').length+' · median '+dp.map(x=>x.ms).sort((m,n)=>m-n)[dp.length>>1]+' ms');
   const sl=MZ.L.filter(x=>x.ms>3000).slice(-8);if(sl.length)o.push(' slow (over 3 s): '+sl.map(x=>x.k+' '+x.h+(x.r?' via '+x.r:'')+' '+Math.round(x.ms/100)/10+'s').join(' | '))}catch(e){}
- try{o.push('Side by side: on now '+document.body.classList.contains('split')+' · allowed '+isOn('split')+' · your setting '+splitMode()+' · window '+innerWidth+'x'+innerHeight+' (needs 800 wide, 600 tall, wider than tall) · touch screen '+touchy()+' · pointer coarse '+(matchMedia('(pointer:coarse)').matches)+' · touch points '+(navigator.maxTouchPoints|0))}catch(e){}
+ try{o.push('Side by side: on now '+document.body.classList.contains('split')+' · allowed '+isOn('split')+' · your setting '+splitMode()+' · display '+screen.width+'x'+screen.height+' sideways '+sideways()+(screen.orientation?' '+screen.orientation.type:'')+' · window '+innerWidth+'x'+innerHeight+' (needs 800 wide, 600 tall, wider than tall) · touch screen '+touchy()+' · pointer coarse '+(matchMedia('(pointer:coarse)').matches)+' · touch points '+(navigator.maxTouchPoints|0))}catch(e){}
  try{o.push('Page turns: strips '+(curlN>0?curlN:'default')+' · flat here '+(curlFlat?'yes':'no')+' · last '+curlLog.length+': '+(curlLog.join(', ')||'none yet'))}catch(e){}
  try{const P=acPools();o.push('Stored stories: saved '+P.saved+' · today '+P.today+' · rolling '+P.rolling+' of '+P.cap)}catch(e){}
  try{const c=navigator.connection||{};o.push('Preload: mode '+pfMode()+' · keep '+pfN()+' · charging only '+isOn('pfpow')+' · allowed now '+dpOk()+' · cap '+dpCap()+' of '+ED_N+' · netKind '+netKind()+' · connection.type '+c.type+' · effectiveType '+c.effectiveType+' · saveData '+c.saveData+' · charging '+(BATST?BATST.charging+' '+Math.round(BATST.level*100)+'%':'unknown'))}catch(e){o.push('Preload: could not read')}
@@ -12207,7 +12207,8 @@ const DEF_ON=new Set(['mag3','pfshort','shortlinks','cine','sysfs','cont','dgloc
 const touchy=()=>{try{if(matchMedia('(any-pointer:coarse)').matches)return true}catch(e){}try{if((navigator.maxTouchPoints|0)>0)return true}catch(e){}return 'ontouchstart' in window};
 const splitAuto=()=>{try{const w=innerWidth,h=innerHeight;return w>=800&&h>=600&&w>h&&touchy()}catch(e){return false}};
 const splitMode=()=>S.splitm||(S.split===false?'off':S.split===true?'always':splitAuto()?'land':'off');
-const splitShape=()=>splitMode()==='always'||innerWidth>innerHeight;
+const sideways=()=>{try{const a=screen.width,b=screen.height;if(a>0&&b>0&&a!==b)return a>b}catch(e){}return innerWidth>innerHeight};/* the whole display, not the window: on the near-square Fold the status bar alone makes the window look wider than tall upright */
+const splitShape=()=>splitMode()==='always'||sideways();
 const isOn=k=>(k==='caps'||k==='typo')?true:k==='split'?splitMode()!=='off':DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
 /* the story beside the list gets only part of the screen (about 500 wide on an open Fold): short, narrow pages, so Automatic scrolls there; choosing Pages still wins */
