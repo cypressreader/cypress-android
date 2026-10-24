@@ -38,7 +38,7 @@ env:
   ALLOW_DEGRADED: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_degraded && '1' || '0' }}
   BUILD_NUMBER: ${{ github.run_number }}
   # The version name people see. Change it when you want a new release label (1.3, 1.4, ...). The build number behind it always counts up by itself.
-  APP_LABEL: "1.134"
+  APP_LABEL: "1.135"
 
 jobs:
   build:
@@ -88,6 +88,17 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
+
+      - name: Run the quick tests (no browser needed)
+        run: |
+          # E1: fast checks that need only Node. The browser tests run in tests.yml on every push.
+          # syntax: the app's scripts parse, docs/app/index.html is an identical copy, whats-new.txt is in step.
+          set -e
+          for t in syntax pdf_layout pdf_overhaul privacy_hosts; do
+            echo "::group::tests/$t.js"
+            if ! node "tests/$t.js"; then echo "::endgroup::"; echo "::error title=Test failed::tests/$t.js failed. Nothing was built."; exit 1; fi
+            echo "::endgroup::"
+          done
 
       - name: Check the web app
         run: |
@@ -217,7 +228,22 @@ jobs:
           if [ -z "$UNSIGNED" ]; then echo "::error::The build finished but no app file was produced."; exit 1; fi
           "$BT/zipalign" -f -p 4 "$UNSIGNED" "$RUNNER_TEMP/aligned.apk"
           "$BT/apksigner" sign --ks "$RUNNER_TEMP/cypress.keystore" --ks-pass env:KS_PASS --ks-key-alias cypress --out cypress.apk "$RUNNER_TEMP/aligned.apk"
-          "$BT/apksigner" verify --print-certs cypress.apk
+          "$BT/apksigner" verify --print-certs cypress.apk | tee "$RUNNER_TEMP/certs.txt"
+          # E5: the signing certificate's SHA-256, so anyone can check a download (and for docs/.well-known/assetlinks.json)
+          SHA=$(grep -m1 -i 'certificate SHA-256 digest' "$RUNNER_TEMP/certs.txt" | sed 's/.*: *//' | tr -d ' ' | tr 'a-f' 'A-F' | sed 's/../&:/g; s/:$//')
+          if [ -n "$SHA" ]; then
+            echo "SIGN_SHA256=${SHA}" >> "$GITHUB_ENV"
+            {
+              echo "### Signing certificate"
+              echo ""
+              echo "SHA-256: \`${SHA}\`"
+              echo ""
+              echo "Paste this value into docs/.well-known/assetlinks.json (sha256_cert_fingerprints) once, so share links open in the app."
+              echo ""
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning title=Signing fingerprint not found::apksigner did not print a SHA-256 digest. Check the lines above."
+          fi
           BADGE=$("$BT/aapt2" dump badging cypress.apk | head -3 || true)
           echo "$BADGE"
           if ! echo "$BADGE" | grep -q "versionCode='${BUILD_NUMBER}'"; then
@@ -251,6 +277,14 @@ jobs:
             awk -v L="$APP_LABEL" '$0""==L""{p=1;next} p&&/^[0-9]+\.[0-9]+[a-z]?$/{exit} p&&/^CyPress v/{exit} p' whats-new.txt >> notes.txt
             if [ ! -s notes.txt ] || ! grep -q '^- ' notes.txt; then cat whats-new.txt >> notes.txt; fi
           else echo "CyPress build ${BUILD_NUMBER}" >> notes.txt; fi
+          if [ -n "${SIGN_SHA256:-}" ]; then
+            # plain text: the app shows these notes as they are in its What's New box
+            {
+              echo ""
+              echo "Check your download: this app's signing fingerprint (SHA-256) is"
+              echo "${SIGN_SHA256}"
+            } >> notes.txt
+          fi
           gh release delete "$TAG" --yes --cleanup-tag --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
           if [ "$DEGRADED" = "1" ]; then
             gh release create "$TAG" cypress.apk --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "CyPress v${APP_LABEL} (build ${BUILD_NUMBER}, core only, pre-release)" --notes-file notes.txt --prerelease

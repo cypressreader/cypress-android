@@ -4,7 +4,16 @@
 //   POST /api/short  turns a long link's payload into a short code (stores it in SHORT; answers 501 if SHORT is not set up)
 //   /get           the latest Android download
 //   /feed?u=<url>  fetches a feed or article for the web app (same-site requests only, plain text out)
+//   GET /api/short/<code>  the story payload behind a short code, for the Android app when a share link opens in it
 //   everything else is the CyPress site and web app, served from GitHub Pages under this address
+//
+// Abuse limits (E3). /feed follows at most 5 redirects itself and re-checks every hop (no private, loopback or
+// link-local addresses, no localhost or *.internal names, ports 80/443 only), and stops reading a body past 8 MB.
+// /feed and POST /api/short also have a per-IP limit kept in this worker's memory. That limit is best-effort:
+// Cloudflare runs many copies of a worker and each keeps its own count. For a real limit, also add a rate-limiting
+// rule in the Cloudflare dashboard (Security, then WAF, then Rate limiting rules), for example:
+//   URI Path equals "/feed" OR starts with "/api/short", counted per IP, 120 requests per 1 minute, action Block for 1 minute.
+// After changing this file, paste it into the Cloudflare worker again (Workers & Pages, the worker, Edit code, Deploy).
 const PAGES = 'https://cypressreader.github.io/cypress-android/';
 const APK = 'https://github.com/cypressreader/cypress-android/releases/latest/download/cypress.apk';
 const MAXB = 8 * 1024 * 1024;
@@ -43,6 +52,47 @@ function publicHost(h) {
   return true;
 }
 
+// Best-effort per-IP limit (see the note at the top). Counts live only in this worker copy's memory.
+const RL = new Map();
+function limited(req, bucket, max) {
+  const ip = req.headers.get('cf-connecting-ip') || 'unknown';
+  const now = Date.now(), win = 60000, k = bucket + '|' + ip;
+  let e = RL.get(k);
+  if (!e || now - e.t > win) { e = { t: now, n: 0 }; RL.set(k, e); }
+  e.n++;
+  if (RL.size > 5000) { for (const [key, v] of RL) if (now - v.t > win) RL.delete(key); if (RL.size > 5000) RL.clear(); }
+  return e.n > max;
+}
+const tooMany = () => new Response('Too many requests. Try again in a minute.', { status: 429, headers: { 'content-type': 'text/plain; charset=utf-8', 'retry-after': '60', 'x-content-type-options': 'nosniff' } });
+
+// An address the fetcher may go to: http(s), a public host name or IPv4 address, the normal ports, no user name, not this site.
+function fetchable(t, self) {
+  const x = okUrl(t, false);
+  if (!x) return '';
+  const tu = new URL(x);
+  if (!publicHost(tu.hostname) || (tu.port && tu.port !== '80' && tu.port !== '443') || tu.username || tu.password) return '';
+  if (tu.hostname === self || /(^|\.)cypressreader\.com$/.test(tu.hostname)) return '';
+  return x;
+}
+
+// Reads at most `max` bytes; returns null when the body is larger.
+async function readCapped(r, max) {
+  if (!r.body) return new ArrayBuffer(0);
+  const rd = r.body.getReader(), parts = [];
+  let n = 0;
+  for (;;) {
+    const { done, value } = await rd.read();
+    if (done) break;
+    n += value.byteLength;
+    if (n > max) { try { await rd.cancel(); } catch (e) { /* ignore */ } return null; }
+    parts.push(value);
+  }
+  const out = new Uint8Array(n);
+  let o = 0;
+  for (const p of parts) { out.set(p, o); o += p.byteLength; }
+  return out.buffer;
+}
+
 async function feed(req, u) {
   const bad = (s, m) => new Response(m, { status: s, headers: { 'content-type': 'text/plain; charset=utf-8', 'x-content-type-options': 'nosniff' } });
   if (req.method !== 'GET') return bad(405, 'GET only');
@@ -50,23 +100,36 @@ async function feed(req, u) {
   const ref = (req.headers.get('origin') || req.headers.get('referer') || '');
   const fromHere = ref.indexOf(u.origin + '/') === 0 || ref === u.origin;
   if (mode === 'navigate' || mode === 'nested-navigate' || !(site === 'same-origin' || fromHere)) return bad(403, 'This is the CyPress web app’s feed fetcher.');
-  const t = okUrl(u.searchParams.get('u'), false);
-  if (!t) return bad(400, 'Bad address');
-  const tu = new URL(t);
-  if (!publicHost(tu.hostname) || (tu.port && tu.port !== '80' && tu.port !== '443') || tu.username || tu.password) return bad(400, 'That address can’t be fetched');
-  if (tu.hostname === u.hostname || /(^|\.)cypressreader\.com$/.test(tu.hostname)) return bad(400, 'That address can’t be fetched');
-  let r;
-  try {
-    r = await fetch(t, {
-      headers: { 'user-agent': 'Mozilla/5.0 (compatible; CyPressReader/1.0; +https://cypressreader.com)', 'accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, text/html;q=0.9, */*;q=0.5', 'accept-language': 'en' },
-      redirect: 'follow', signal: AbortSignal.timeout(10000), cf: { cacheTtl: 120, cacheEverything: true }
-    });
-  } catch (e) { return bad(502, 'Couldn’t reach that site'); }
+  if (limited(req, 'feed', 120)) return tooMany();
+  if (!okUrl(u.searchParams.get('u'), false)) return bad(400, 'Bad address');
+  let t = fetchable(u.searchParams.get('u'), u.hostname);
+  if (!t) return bad(400, 'That address can’t be fetched');
+  // redirects are followed here, one hop at a time, so every new address is checked like the first one
+  let r, hops = 0;
+  const signal = AbortSignal.timeout(10000);
+  for (;;) {
+    try {
+      r = await fetch(t, {
+        headers: { 'user-agent': 'Mozilla/5.0 (compatible; CyPressReader/1.0; +https://cypressreader.com)', 'accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, text/html;q=0.9, */*;q=0.5', 'accept-language': 'en' },
+        redirect: 'manual', signal, cf: { cacheTtl: 120, cacheEverything: true }
+      });
+    } catch (e) { return bad(502, 'Couldn’t reach that site'); }
+    if (![301, 302, 303, 307, 308].includes(r.status)) break;
+    const loc = r.headers.get('location');
+    if (!loc) break;
+    if (++hops > 5) return bad(508, 'Too many redirects');
+    let next = '';
+    try { next = fetchable(new URL(loc, t).href, u.hostname); } catch (e) { next = ''; }
+    if (!next) return bad(400, 'That address redirects somewhere that can’t be fetched');
+    try { if (r.body) await r.body.cancel(); } catch (e) { /* ignore */ }
+    t = next;
+  }
   if (!r.ok) return bad(r.status === 404 || r.status === 410 ? r.status : 502, 'The site answered with ' + r.status);
   const len = +r.headers.get('content-length') || 0;
   if (len > MAXB) return bad(413, 'Too large');
-  const buf = await r.arrayBuffer();
-  if (buf.byteLength > MAXB) return bad(413, 'Too large');
+  let buf;
+  try { buf = await readCapped(r, MAXB); } catch (e) { return bad(502, 'Couldn’t read that site'); }
+  if (!buf) return bad(413, 'Too large');
   const cs = ((r.headers.get('content-type') || '').match(/charset=["']?([\w-]+)/i) || [])[1];
   return new Response(buf, {
     status: 200,
@@ -114,6 +177,21 @@ async function shorten(req, env) {
 async function lookup(env, code) {
   if (!env || !env.SHORT) return null;
   try { return await env.SHORT.get(code); } catch (e) { return null; }
+}
+
+// GET /api/short/<code>: the payload behind a short link, so the Android app can open a shared story itself.
+// Same allowed origins as shorten(); the payload is what the public /s/<code> page shows anyway.
+async function shortPayload(req, env, code) {
+  const origin = req.headers.get('origin') || '';
+  const okOrigin = ALLOWED_ORIGINS.indexOf(origin) >= 0;
+  const h = Object.assign({ 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=300', 'x-content-type-options': 'nosniff' },
+    okOrigin ? { 'access-control-allow-origin': origin, 'vary': 'origin' } : {});
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: okOrigin ? cors(origin) : {} });
+  if (req.method !== 'GET') return new Response(JSON.stringify({ error: 'GET only' }), { status: 405, headers: h });
+  if (origin && !okOrigin) return new Response(JSON.stringify({ error: 'Not allowed' }), { status: 403, headers: h });
+  const p = await lookup(env, code);
+  if (!p || !/^[zp][A-Za-z0-9_-]{1,4000}$/.test(p)) return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: h });
+  return new Response(JSON.stringify({ p }), { status: 200, headers: h });
 }
 
 async function story(u, payload) {
@@ -180,7 +258,12 @@ export default {
     const u = new URL(req.url);
     if (u.pathname === '/feed') return feed(req, u);
     if (u.pathname === '/get') return Response.redirect(APK, 302);
-    if (u.pathname === '/api/short') return shorten(req, env);
+    if (u.pathname === '/api/short') {
+      if (req.method === 'POST' && limited(req, 'short', 30)) return tooMany();
+      return shorten(req, env);
+    }
+    const sp = u.pathname.match(/^\/api\/short\/([A-Za-z0-9_-]{6,12})$/);
+    if (sp) return shortPayload(req, env, sp[1]);
     // a short link: /s/<6 to 12 letters or digits>, looked up in storage
     const sc = u.pathname.match(/^\/s\/([A-Za-z0-9_-]{6,12})$/);
     if (sc) {

@@ -39,7 +39,8 @@ const inject =
   '<script>' + shim + '</script>';
 const m = app.match(/<head[^>]*>/);
 if (!m) { console.error('build-demo: no <head> found'); process.exit(1); }
-let out = app.replace(/<title>[^<]*<\/title>/, '<title>CyPress Reader demo (made-up sample stories)</title>').replace(m[0], m[0] + inject);
+/* the demo keeps only its own, stricter policy (above), not the app's */
+let out = app.replace(/<!-- E2 Content Security Policy[\s\S]*?-->\s*/, '').replace(/<meta http-equiv="Content-Security-Policy"[^>]*>\s*/, '').replace(/<title>[^<]*<\/title>/, '<title>CyPress Reader demo (made-up sample stories)</title>').replace(m[0], m[0] + inject);
 /* the app's own manifest, icons and service worker are not wanted in the demo */
 out = out.replace(/<link rel="manifest"[^>]*>/g, '');
 fs.writeFileSync(path.join(root, 'docs/demo.html'), out);

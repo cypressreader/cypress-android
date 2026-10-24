@@ -1,0 +1,36 @@
+/* Episode player + Translate story fallback: player renders, plays, seeks, changes speed, saves a resume spot; badge has a label; the fallback dialog appears without the Translator API. */
+const {APP}=require('./env');const {mock,PW}=require('./mock');const {chromium}=require(PW);
+let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else console.log('ok',n)};
+(async()=>{
+ const b=await chromium.launch({args:['--autoplay-policy=no-user-gesture-required']});const p=await (await b.newContext({viewport:{width:412,height:860}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+ await mock(p,{n:10});await p.goto('file://'+APP);await p.waitForTimeout(1200);await p.click('text=Get started').catch(()=>{});
+ const r=await p.evaluate(async()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());const w=ms=>new Promise(r=>setTimeout(r,ms));
+  const sr=8000,n=sr*3,ab=new ArrayBuffer(44+n),v=new DataView(ab),ws=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};ws(0,'RIFF');v.setUint32(4,36+n,true);ws(8,'WAVE');ws(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,sr,true);v.setUint32(28,sr,true);v.setUint16(32,1,true);v.setUint16(34,8,true);ws(36,'data');v.setUint32(40,n,true);for(let i=0;i<n;i++)v.setUint8(44+i,128);
+  let bin='';new Uint8Array(ab).forEach(c=>bin+=String.fromCharCode(c));const uri='data:audio/wav;base64,'+btoa(bin);
+  const f=S.feeds[0];items[f.id]=[{feedId:f.id,title:'Episode one',link:'https://w.test/ep/1',date:Date.now(),summary:'An episode.',img:'',audio:uri,dur:'41 min',html:'<p>'+'Show notes text here. '.repeat(40)+'</p>'}];state[f.id]='ok';
+  S.sel='all';render();await w(500);
+  const out={badge:[...document.querySelectorAll('.mb')].map(m=>m.getAttribute('aria-label')+'|'+m.textContent.trim())};
+  openReader(cur[0]);await w(1500);
+  const q=s=>document.querySelector('.cols .aud '+s);
+  out.player=!!q('[data-ap="play"]');out.names=['[data-ap="play"]','[data-ap="back"]','[data-ap="fwd"]','[data-ap-seek]'].map(s=>q(s)&&q(s).getAttribute('aria-label'));
+  out.speeds=[...document.querySelectorAll('.cols .aud [data-aspd]')].map(x=>x.dataset.aspd).join(',');
+  q('[data-ap="play"]').click();await w(800);
+  out.playing=!EPA.paused;out.label=q('[data-ap="play"]').getAttribute('aria-label');
+  const sk=q('[data-ap-seek]');sk.value=500;sk.dispatchEvent(new Event('input',{bubbles:true}));await w(500);
+  out.t=EPA.currentTime;out.vt=sk.getAttribute('aria-valuetext');
+  document.querySelector('.cols .aud [data-aspd="1.5"]').click();await w(100);out.rate=EPA.playbackRate;out.pressed=document.querySelector('.cols .aud [data-aspd="1.5"]').getAttribute('aria-pressed');
+  EPA.pause();await w(200);out.apos=JSON.stringify(S.apos);
+  document.querySelector('#mo').click();await w(200);document.querySelector('#mn [data-act="tr"]').click();await w(500);
+  const d=document.querySelector('dialog#ask[open]');out.dlg=d?d.textContent.replace(/\s+/g,' '):'';
+  return out});
+ console.log(JSON.stringify(r).slice(0,900));
+ ck('badge labelled',r.badge.some(x=>/Podcast episode, 41 min\|▶ 41 min/.test(x)),r.badge);
+ ck('player renders',r.player&&r.names.every(Boolean),r.names);
+ ck('speeds',r.speeds==='0.8,1,1.25,1.5,2',r.speeds);
+ ck('plays',r.playing);ck('seeks to about the middle',r.t>1&&r.t<2,r.t);ck('seek valuetext',/ of /.test(r.vt),r.vt);
+ ck('speed changes',r.rate===1.5&&r.pressed==='true');
+ ck('resume saved',/"https:\/\/w.test\/ep\/1":\{"s":/.test(r.apos),r.apos);
+ ck('translate fallback dialog',/Google will see the story/.test(r.dlg)&&/Open/.test(r.dlg),r.dlg);
+ ck('no page errors',!errs.length,errs.join(';'));
+ await b.close();console.log(bad?'ep_player FAILED '+bad:'ep_player all passed');process.exit(bad?1:0);
+})();
