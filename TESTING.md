@@ -657,3 +657,7 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 
 ## Background refresh waits while a story is open (2026-10-24, after 1.144)
 - 1.144 report: opening a story at 11 s (843 ms), then at 12 s `quietRender` rebuilt the whole list behind it (3.2 s, scrolled 83,159 px): "stories load slow, pages flip slow". quietRender's deep-scroll guard excluded an open reader. Now it re-checks every 2 s until the story is closed, then applies the usual rules. Check: open stories right after launch / during a refresh: they open and turn pages without stalls; after closing, the list is where you left it; new stories appear when you are back near the top.
+
+## 1.146 — calmer first minute (implemented, unverified on device)
+- Open the app on the Fold, scroll and open stories in the first minute: no 1 s freezes. Copy support info: "Busy spells" total should be well under 1.145's 20 s in 55 s; Slowest frames now say "mostly script" or "mostly drawing" correctly.
+- Jumps line: each shift should end with "after …" naming what happened just before it.
