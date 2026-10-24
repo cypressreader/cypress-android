@@ -4401,7 +4401,8 @@ html.rmo :is(.skr i,.skr b,.skc),html.lowp :is(.skr i,.skr b,.skc){animation:non
  .dcov:is(.dct-type,.dct-min,.dct-fb):has(.dcv-band) .dcv-num{display:none}
  .dcov:is(.dct-type,.dct-min,.dct-fb):has(.dcv-band) .dcv-main{margin-top:0;margin-bottom:auto}
 }
-@media(min-width:900px){
+/* also the Fold's inner screen (about 700-880 wide, and tall enough): phones held sideways are too short to match */
+@media(min-width:900px),(min-width:600px) and (min-height:500px){
  /* tile view: the opening story stays a 16:9 band no taller than 420px, and a magazine grid follows */
  #grid .card:is(.nr-lead,.nr-hero,.spread){max-height:420px}
  #grid .card.spread{min-height:min(420px,clamp(380px,64vh,620px))}
@@ -4415,6 +4416,10 @@ html.rmo :is(.skr i,.skr b,.skc),html.lowp :is(.skr i,.skr b,.skc){animation:non
  #grid:not(.nrp) .nr-top:not(.nr-one):not(.nr-tb2):not(.zz):not(:has(>.nr-rail))>.nr-mid>.card.orph{grid-column:auto!important}
  #grid:not(.nrp) .nr-top:not(.nr-one):not(.nr-tb2):not(.zz):not(:has(>.nr-rail)) .nr-mid .card.nr-row:not(.noimg){display:block;padding:0;border-top:0}
  @media(min-width:1200px){#grid:not(.nrp) .nr-top:not(.nr-one):not(.nr-tb2):not(.zz):not(:has(>.nr-rail))>.nr-mid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+ /* side by side, the list is a narrow column: one story per row there, whatever the screen width */
+ /* in that narrow column five buttons leave no room for the title: it stays for screen readers, the tabs below say where you are */
+ @media(max-width:1099px){body.split .top h1{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important;margin:0!important;padding:0!important}}
+ body.split #grid:not(.nrp) .nr-top:not(.nr-one):not(.nr-tb2):not(.zz):not(:has(>.nr-rail))>.nr-mid{grid-template-columns:minmax(0,1fr)!important}
  #grid:not(.nrp) .nr-top:not(.nr-one):not(.nr-tb2):not(.zz):not(:has(>.nr-rail)) .nr-mid .card.nr-row:not(.noimg)>img{float:none;display:block;position:static;width:100%;height:auto;aspect-ratio:16/9;margin:0 0 12px;border-radius:12px}
 }
 </style></head>
@@ -12256,8 +12261,8 @@ async function startFresh(){
 const APP_VERSION='2026.10.24h';const APP_LABEL='1.135';
 const CHANGES=["Save any link to read later: share a page to CyPress and pick \"Save to read later\", or use \"Save a link\" in Add a feed. It is kept for reading offline","Priority sites: star a site in its settings and its stories lead The Daily and the front page","Followed phrases (next to Muted words): stories that mention them are marked, and you get one quiet notice when new ones arrive","\"About this source\" shows who owns a news site and how it is paid for (for well-known outlets)","Podcast episodes have a proper player: skip back and ahead, speed, and it remembers where you stopped","Translate story, in the ... menu: on the phone when it can, otherwise it asks before opening Google Translate","Long-press the app icon for Play the Daily, Saved and Search; CyPress share links open in the app","Calmer look: one set of headline sizes and spacing, cards react when pressed, stories grow open from their picture, and gray placeholders show while stories load"];
 const DEF_ON=new Set(['mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
-/* side-by-side reading starts on by itself on a big touch tablet held landscape (1100px or wider), until the person sets it in Settings */
-const splitAuto=()=>{try{return VW>=1100&&innerWidth>innerHeight&&matchMedia('(pointer:coarse)').matches}catch(e){return false}};
+/* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
+const splitAuto=()=>{try{return VW>=800&&innerHeight>=600&&innerWidth>innerHeight&&matchMedia('(pointer:coarse)').matches}catch(e){return false}};
 const isOn=k=>(k==='caps'||k==='typo')?true:(k==='split'&&S.split===undefined)?splitAuto():DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
 const isVert=()=>{const m=S.scroll||'auto';return m==='vertical'||(m==='auto'&&!isWide())};
@@ -14389,7 +14394,7 @@ function screenMode(){
  if(narrow&&!t){t=document.createElement('nav');t.id='tabs';t.innerHTML=[['today','The Daily','<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/>'],['all','All','<path d="M4 7h16M4 12h16M4 17h16"/>'],['saved','Saved','<path d="M12 4.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 9.8l5-.7z"/>'],['search','Search','<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>']].map(([k,n,ic])=>`<button data-tab="${k}">${svg(ic)}<span>${n}</span></button>`).join('');document.body.append(t);
   t.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;const k=b.dataset.tab;drawer(false);if(k==='search'){openSearch(!srch.classList.contains('open'));return}if(srch.classList.contains('open')){srch.classList.remove('open');TOPIC=null;$('#q').value='';$('#q').blur()}if($('#rd').classList.contains('on'))closeRd();S.sel=k;save();render();$('main').scrollTop=0})}
  if(t){t.hidden=!narrow;t.querySelectorAll('[data-tab]').forEach(b=>{const on=b.dataset.tab===((S.sel==='digest'||S.sel==='brief')?'today':S.sel);b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')})}
- const split=isOn('split')&&VW>=840&&!narrow;
+ const split=isOn('split')&&VW>=800&&!narrow;
  const was=document.body.classList.contains('split');document.body.classList.toggle('split',split);
  {const sm=sideMode(),hide=(sm==='always'||(sm==='portrait'&&innerWidth<innerHeight*1.25))&&VW>=700&&!narrow&&!split;document.body.classList.toggle('sidehide',hide);if(!hide&&!document.body.classList.contains('reading'))document.body.classList.remove('sideshow')}
  if(split&&!$('#rd').classList.contains('on'))splitEmpty();
