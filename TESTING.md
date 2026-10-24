@@ -630,3 +630,6 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 
 ## Side by side only when wider than tall (2026-10-24)
 - Fold unfolded is ~859x847 either way. Side-by-side now needs width > height even when the setting is switched on. Check: held sideways = list + story; held upright = single column; rotate back and forth, open a story in each.
+
+## Side-by-side reading is now a 3-way choice (2026-10-24)
+- Settings > Look > Side-by-side reading: Only when held sideways (default) / Always on big screens / Off. Old on/off values carry over (on = Always, off = Off). Check each on the Fold, upright and sideways; "Side by side:" line names `your setting`.
