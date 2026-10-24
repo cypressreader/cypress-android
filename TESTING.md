@@ -665,3 +665,5 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 ## 1.147 — fast redraws far down a list (implemented, unverified on device)
 - Scroll far down All Stories on the Fold, then tap All in the menu: should take well under 1 s (1.146: 5.2 s). The list should come back at the same spot.
 - Tablet layout: the last row of a grid still has no empty columns (fixOrph now applies its widening in one go).
+
+- **Reader loading lines (preview, 2026-10-24):** open a story from a slow site. Under "Loading the full article…" six shimmering lines now show until the text arrives, then vanish. Check that they don't upset the page count in the paged reader and that they stop with Reduce motion / Battery saver. Desktop browser only so far.
