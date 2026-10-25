@@ -4,6 +4,8 @@ let pass=0,fail=0;const log=[];const ck=(n,c,x='')=>{if(c)pass++;else{fail++;log
 (async()=>{const b=await chromium.launch();
 const ctx=await b.newContext({viewport:{width:390,height:800}});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
 await mock(p,{n:6});await p.goto('file://'+APP);await p.waitForTimeout(1500);
+/* polish-2026-10: these themes are retired (hidden + migrated via POLISH_RETIRED); the checks come back by themselves if they are restored */
+if(await p.evaluate(ids=>typeof POLISH_RETIRED!=='undefined'&&ids.every(t=>t in POLISH_RETIRED),['thegoat'])){console.log('st29 skipped: themes retired');await b.close();process.exit(0)}
 const st=(sch,night)=>p.evaluate(async([sch,night])=>{const s=document.createElement('style');s.textContent='*{transition:none!important}';document.head.append(s);
  const on=window.isNight;window.isNight=()=>!!night;S.theme='thegoat';S.sch=sch;S.night=night||'off';applyTheme(false);await new Promise(r=>setTimeout(r,200));
  const r=document.documentElement,cs=getComputedStyle(r),bg=(cs.getPropertyValue('--bg').trim()?(()=>{const pr=document.createElement('i');pr.style.cssText='position:absolute;transition:none;background-color:var(--bg)';r.append(pr);const c=getComputedStyle(pr).backgroundColor;pr.remove();return c})():getComputedStyle(document.body).backgroundColor),ink=getComputedStyle(document.body).color,L=c=>lumOf(anyRgb(c));

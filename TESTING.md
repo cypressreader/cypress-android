@@ -665,3 +665,16 @@ Part 2 (same entry): on a tablet, a story card with its picture above the headli
 ## 1.147 — fast redraws far down a list (implemented, unverified on device)
 - Scroll far down All Stories on the Fold, then tap All in the menu: should take well under 1 s (1.146: 5.2 s). The list should come back at the same spot.
 - Tablet layout: the last row of a grid still has no empty columns (fixOrph now applies its widening in one go).
+
+- **Reader loading lines (preview, 2026-10-24):** open a story from a slow site. Under "Loading the full article…" six shimmering lines now show until the text arrives, then vanish. Check that they don't upset the page count in the paged reader and that they stop with Reduce motion / Battery saver. Desktop browser only so far.
+
+## Polish pass build (2026-10-25, preview; rollback branch backup/pre-polish-2026-10-25)
+Implemented, checked in a desktop browser only. On a real phone check:
+- **Widgets (A1-A5):** picker previews on Android 12+ (old PNG previews on 11-); Top Story is 3x2, resizes, photo cropped not stretched, scrim keeps the headline readable, chevrons flip stories and the "1 / 5" counter; no-photo card light + dark; corners follow the phone's radius; Headlines row counts at 2/3/4/5 cells tall, read rows dimmed, "Updating…" state; Ticker brass bar and "12 MIN" ages; dark mode turns the mark brass; serif fonts on Samsung and Pixel.
+- **Themed icon (K4/M4):** Android 13+ with Themed icons on: tinted, centered, not clipped.
+- **Exports (H):** grouped contents, story openers and pull quotes in the Kindle app and on an e-ink Kindle; drop cap falls back cleanly on an older Kindle; Letter paper on a US phone, A4 elsewhere; "Your notes" page.
+- **Themes/covers (B, N, M):** vector mark crisp and brass in the drawer; theme rail swipe; Aurora's slow light line on a low-end phone; cold start without Orbitron/Cormorant in the startup font link.
+- **Settings/menus (D, J, I, E3):** brass tab bar slide; 48 px hit areas by thumb (drawer, toast Undo, switches); whole-row tap on About rows; Add a site against real sites; Android back closes the "On this phone" sheet and the Add dialog.
+- **Reader (F, G, J5):** page-turn tick vibration; Slide drag feel; hold on the page edge shows pages left; Android back closes the story sheet; drop cap + small caps in the Cypress font; "Follow <site>" from a full-coverage story.
+
+- **Polish build, round 2 (K1-K7, E1/E2/E5):** edition seal on every edition ending (5 AM / 5 PM copy); ribbon drop and reduce motion; "I have 10 minutes" order with page turns; seasonal touches; Almanac "Share as image" via the Android share sheet; tidy-up card with real quiet/failing sites (failing = 4 failed loads in a row); Android back with these sheets open; light top bar with the system status bar; card shadows while scrolling on a low-end phone; The Daily redraw on the Fold (desktop 46 ms vs 27 ms before the build).

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Bundle;
 import android.util.Log;
 import android.widget.RemoteViews;
 import java.io.ByteArrayOutputStream;
@@ -31,11 +32,22 @@ public class CyWidgetProvider extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager manager, int[] appWidgetIds) {
         try {
-            RemoteViews rv = CyWidgets.buildTop(context);
-            for (int id : appWidgetIds) manager.updateAppWidget(id, rv);
+            for (int id : appWidgetIds) {
+                manager.updateAppWidget(id, CyWidgets.buildTop(context, CyWidgets.widthDp(manager, id), CyWidgets.heightDp(manager, id)));
+            }
             CyWidgets.arm(context, false);
         } catch (Throwable t) {
             // a broken widget must never crash the app
+        }
+    }
+
+    /** The widget was resized: crop its photo to the new shape. */
+    @Override
+    public void onAppWidgetOptionsChanged(Context context, AppWidgetManager manager, int appWidgetId, Bundle newOptions) {
+        try {
+            manager.updateAppWidget(appWidgetId, CyWidgets.buildTop(context, CyWidgets.widthDp(manager, appWidgetId), CyWidgets.heightDp(manager, appWidgetId)));
+        } catch (Throwable t) {
+            // never crash
         }
     }
 

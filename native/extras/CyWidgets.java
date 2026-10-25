@@ -9,10 +9,17 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapShader;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.RectF;
+import android.graphics.Shader;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.RemoteViews;
 import java.io.File;
@@ -112,6 +119,8 @@ final class CyWidgets {
                     o.put("title", t);
                     o.put("link", link);
                     o.put("src", h.optString("src", ""));
+                    long dt = h.optLong("date", 0L);
+                    if (dt > 0) o.put("date", dt);
                     if (h.optBoolean("brk", false)) o.put("brk", true);
                     if (h.optBoolean("read", false)) o.put("read", true);
                     out.put(o);
@@ -207,8 +216,8 @@ final class CyWidgets {
 
     static void refreshTop(Context c) {
         try {
-            int[] a = ids(c, CyWidgetProvider.class);
-            if (a.length > 0) AppWidgetManager.getInstance(c).updateAppWidget(a, buildTop(c));
+            AppWidgetManager m = AppWidgetManager.getInstance(c);
+            for (int id : ids(c, CyWidgetProvider.class)) m.updateAppWidget(id, buildTop(c, widthDp(m, id), heightDp(m, id)));
         } catch (Throwable t) {
             Log.w(TAG, "top refresh: " + t);
         }
@@ -317,9 +326,99 @@ final class CyWidgets {
         }
     }
 
-    // ---------------------------------------------------------------- Top Story 2x2
+    // ---------------------------------------------------------------- shared look (A1)
+
+    private static int col(Context c, int id) {
+        return c.getResources().getColor(id, null); // API 23+; follows the phone's day / night setting
+    }
+
+    /** "12 MIN", "2H", "3D", or "" when the story has no date. */
+    static String ageLabel(long ms) {
+        if (ms <= 0) return "";
+        long m = (System.currentTimeMillis() - ms) / 60000L;
+        if (m < 1) return "JUST NOW";
+        if (m < 60) return m + " MIN";
+        long h = m / 60;
+        if (h < 24) return h + "H";
+        return (h / 24) + "D";
+    }
+
+    /** Fills w x h from the middle of src (like centerCrop), with rounded corners of radius r pixels (0 = square). */
+    private static Bitmap cropFill(Bitmap src, int w, int h, float r) {
+        Bitmap out = Bitmap.createBitmap(Math.max(1, w), Math.max(1, h), Bitmap.Config.ARGB_8888);
+        Canvas cv = new Canvas(out);
+        float sc = Math.max((float) w / src.getWidth(), (float) h / src.getHeight());
+        Matrix m = new Matrix();
+        m.setScale(sc, sc);
+        m.postTranslate((w - src.getWidth() * sc) / 2f, (h - src.getHeight() * sc) / 2f);
+        BitmapShader sh = new BitmapShader(src, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+        sh.setLocalMatrix(m);
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+        p.setShader(sh);
+        cv.drawRoundRect(new RectF(0, 0, w, h), r, r, p);
+        return out;
+    }
+
+    /** Decodes the downloaded picture file at about the size wanted; null if there is none or it cannot be read. */
+    private static Bitmap decodeFor(Context c, String url, int wantW, int wantH, Bitmap.Config cfg) {
+        try {
+            File f = CyWidgetProvider.imageFile(c, url);
+            if (f == null || !f.isFile()) return null;
+            BitmapFactory.Options o = new BitmapFactory.Options();
+            o.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(f.getAbsolutePath(), o);
+            if (o.outWidth <= 0 || o.outHeight <= 0) return null;
+            int s = 1;
+            while (o.outWidth / (s * 2) >= wantW && o.outHeight / (s * 2) >= wantH) s *= 2;
+            BitmapFactory.Options d = new BitmapFactory.Options();
+            d.inSampleSize = s;
+            d.inPreferredConfig = cfg;
+            return BitmapFactory.decodeFile(f.getAbsolutePath(), d);
+        } catch (Throwable t) {
+            Log.w(TAG, "picture decode failed: " + t);
+            return null;
+        }
+    }
+
+    /** The Top Story photo, cropped to the widget's shape. Below Android 12 the corners are rounded here (12+ rounds the widget itself). */
+    private static Bitmap hero(Context c, String url, int wDp, int hDp) {
+        try {
+            float dens = c.getResources().getDisplayMetrics().density;
+            int tw = Math.round((wDp > 0 ? wDp : 250) * dens);
+            int th = Math.round((hDp > 0 ? hDp : 160) * dens);
+            float k = Math.min(1f, 720f / Math.max(tw, th)); // keep the bitmap well inside the RemoteViews size budget
+            tw = Math.max(1, Math.round(tw * k));
+            th = Math.max(1, Math.round(th * k));
+            Bitmap src = decodeFor(c, url, tw, th, Bitmap.Config.ARGB_8888);
+            if (src == null) return null;
+            float r = Build.VERSION.SDK_INT < 31 ? 20f * dens * k : 0f;
+            return cropFill(src, tw, th, r);
+        } catch (Throwable t) {
+            Log.w(TAG, "hero failed: " + t);
+            return null;
+        }
+    }
+
+    /** The widget's width in dp (the smaller of portrait and landscape, so it always fits); 0 if unknown. */
+    static int widthDp(AppWidgetManager m, int id) {
+        try {
+            Bundle o = m.getAppWidgetOptions(id);
+            int a = o == null ? 0 : o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0);
+            int b = o == null ? 0 : o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, 0);
+            if (a > 0 && b > 0) return Math.min(a, b);
+            return Math.max(a, b);
+        } catch (Throwable t) {
+            return 0;
+        }
+    }
+
+    // ---------------------------------------------------------------- Top Story (resizable, 3x2 by default)
 
     static RemoteViews buildTop(Context c) {
+        return buildTop(c, 0, 0);
+    }
+
+    static RemoteViews buildTop(Context c, int wDp, int hDp) {
         RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_top);
         JSONArray h = CyExtras.readHeadlines(c);
         int n = Math.min(h.length(), TOP_N);
@@ -327,33 +426,42 @@ final class CyWidgets {
         JSONObject o = n > 0 ? h.optJSONObject(i) : null;
         boolean upd = isUpdating(c);
         if (o == null || o.optString("title", "").length() == 0) {
-            rv.setTextViewText(R.id.cy_wt_head, "Open CyPress to load your top stories");
-            rv.setTextViewText(R.id.cy_wt_src, "");
-            rv.setTextViewText(R.id.cy_wt_num, "");
-            rv.setTextViewText(R.id.cy_wt_pos, "CyPress");
-            rv.setViewVisibility(R.id.cy_wt_prev, View.GONE);
-            rv.setViewVisibility(R.id.cy_wt_next, View.GONE);
-            rv.setViewVisibility(R.id.cy_wt_upd, upd ? View.VISIBLE : View.GONE);
+            // designed empty state: the mark and "Updating…" (or what to do), no arrows
+            rv.setViewVisibility(R.id.cy_wt_body, View.GONE);
+            rv.setViewVisibility(R.id.cy_wt_empty, View.VISIBLE);
+            rv.setTextViewText(R.id.cy_wt_empty_t, upd ? "Updating…" : "Open CyPress to load your top stories");
             PendingIntent open = CyExtras.openIntent(c, null, 300);
-            rv.setOnClickPendingIntent(R.id.cy_wt_root, open);
-            rv.setOnClickPendingIntent(R.id.cy_wt_head, open);
+            rv.setOnClickPendingIntent(android.R.id.background, open);
+            rv.setOnClickPendingIntent(R.id.cy_wt_empty, open);
             return rv;
         }
         String link = o.optString("link", "");
         String src = o.optString("src", "").trim();
-        rv.setTextViewText(R.id.cy_wt_num, String.valueOf(i + 1));
-        rv.setTextViewText(R.id.cy_wt_src, src.toUpperCase(Locale.getDefault()));
-        rv.setViewVisibility(R.id.cy_wt_src, src.length() == 0 ? View.GONE : View.VISIBLE);
+        String age = ageLabel(o.optLong("date", 0L));
+        String kick = src.toUpperCase(Locale.getDefault());
+        if (age.length() > 0) kick = kick.length() > 0 ? kick + "  ·  " + age : age;
+        Bitmap pic = hero(c, o.optString("img", ""), wDp, hDp);
+        if (pic != null) {
+            rv.setImageViewBitmap(R.id.cy_wt_img, pic);
+            rv.setViewVisibility(R.id.cy_wt_img, View.VISIBLE);
+            rv.setViewVisibility(R.id.cy_wt_scrim, View.VISIBLE);
+            rv.setViewVisibility(R.id.cy_wt_frame, View.GONE);
+            rv.setInt(R.id.cy_wt_src, "setTextColor", col(c, R.color.cy_w_brass));
+            rv.setInt(R.id.cy_wt_head, "setTextColor", col(c, R.color.cy_w_photo_text));
+            rv.setInt(R.id.cy_wt_pos, "setTextColor", col(c, R.color.cy_w_photo_sub));
+        }
+        rv.setTextViewText(R.id.cy_wt_src, kick);
+        rv.setViewVisibility(R.id.cy_wt_src, kick.length() == 0 ? View.GONE : View.VISIBLE);
         rv.setTextViewText(R.id.cy_wt_head, o.optString("title", ""));
         boolean many = n > 1;
         rv.setViewVisibility(R.id.cy_wt_prev, many ? View.VISIBLE : View.GONE);
         rv.setViewVisibility(R.id.cy_wt_next, many ? View.VISIBLE : View.GONE);
-        rv.setTextViewText(R.id.cy_wt_pos, isStale(c) ? "Tap to refresh" : (many ? (i + 1) + " of " + n : "CyPress"));
+        rv.setTextViewText(R.id.cy_wt_pos, isStale(c) ? "TAP TO REFRESH" : (many ? (i + 1) + " / " + n : "CYPRESS"));
         rv.setViewVisibility(R.id.cy_wt_upd, upd ? View.VISIBLE : View.GONE);
         float alpha = upd ? 0.5f : (o.optBoolean("read", false) ? 0.6f : 1f);
         rv.setFloat(R.id.cy_wt_head, "setAlpha", alpha);
         PendingIntent story = isStale(c) ? refreshIntent(c, 311) : CyExtras.openIntent(c, link, 310 + i);
-        rv.setOnClickPendingIntent(R.id.cy_wt_root, story);
+        rv.setOnClickPendingIntent(android.R.id.background, story);
         rv.setOnClickPendingIntent(R.id.cy_wt_head, story);
         rv.setOnClickPendingIntent(R.id.cy_wt_src, story);
         rv.setOnClickPendingIntent(R.id.cy_wt_prev, step(c, ACT_PREV, 301));
@@ -369,65 +477,68 @@ final class CyWidgets {
 
     // ---------------------------------------------------------------- Headlines 4x2
 
-    /** Three one-line-kicker rows when short, three with pictures when medium, four with pictures when tall. */
+    /**
+     * A3: two rows with pictures from 140dp tall, three from 190dp, four from 250dp, five from 330dp;
+     * under 140dp three one-line rows without pictures. The first row's headline is a little larger.
+     */
     static RemoteViews buildList(Context c, int heightDp) {
         RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_list);
         JSONArray h = CyExtras.readHeadlines(c);
-        boolean pics = heightDp >= 170; // B83: a 4x2 widget is usually 110-180dp tall, so 190 hid every picture
-        int want = heightDp >= 250 ? 4 : 3;
-        rv.removeAllViews(R.id.cy_wl_list);
-        int shown = 0;
-        for (int i = 0; i < h.length() && shown < want; i++) {
+        boolean pics = heightDp >= 140; // was 170: pictures from two cells tall
+        int want = heightDp >= 330 ? 5 : (heightDp >= 250 ? 4 : (heightDp >= 190 ? 3 : (pics ? 2 : 3)));
+        float dens = c.getResources().getDisplayMetrics().density;
+        java.util.ArrayList<JSONObject> rows = new java.util.ArrayList<>();
+        java.util.ArrayList<Integer> at = new java.util.ArrayList<>();
+        for (int i = 0; i < h.length() && rows.size() < want; i++) {
             JSONObject o = h.optJSONObject(i);
             if (o == null || o.optString("title", "").length() == 0) continue;
+            rows.add(o);
+            at.add(i);
+        }
+        rv.removeAllViews(R.id.cy_wl_list);
+        for (int k = 0; k < rows.size(); k++) {
+            JSONObject o = rows.get(k);
             RemoteViews row = new RemoteViews(c.getPackageName(), R.layout.cy_widget_row);
             String src = o.optString("src", "").trim();
             row.setTextViewText(R.id.cy_wr_src, src.toUpperCase(Locale.getDefault()));
             row.setViewVisibility(R.id.cy_wr_src, src.length() == 0 ? View.GONE : View.VISIBLE);
             row.setTextViewText(R.id.cy_wr_head, o.optString("title", ""));
             row.setInt(R.id.cy_wr_head, "setMaxLines", pics ? 2 : 1);
-            Bitmap b = pics ? thumb(c, o.optString("img", "")) : null;
+            if (k == 0) row.setTextViewTextSize(R.id.cy_wr_head, TypedValue.COMPLEX_UNIT_SP, 16f);
+            Bitmap b = null;
+            if (pics) {
+                int px = Math.round(48f * dens);
+                Bitmap raw = decodeFor(c, o.optString("img", ""), px, px, Bitmap.Config.ARGB_8888);
+                if (raw != null) b = cropFill(raw, px, px, 10f * dens);
+            }
             if (b != null) {
                 row.setImageViewBitmap(R.id.cy_wr_img, b);
                 row.setViewVisibility(R.id.cy_wr_img, View.VISIBLE);
             } else {
                 row.setViewVisibility(R.id.cy_wr_img, View.GONE);
             }
-            if (o.optBoolean("read", false)) row.setFloat(R.id.cy_wr_head, "setAlpha", 0.55f);
-            row.setOnClickPendingIntent(R.id.cy_wr_root, CyExtras.openIntent(c, o.optString("link", ""), 400 + i));
+            row.setViewVisibility(R.id.cy_wr_rule, k == rows.size() - 1 ? View.GONE : View.VISIBLE);
+            if (o.optBoolean("read", false)) {
+                row.setFloat(R.id.cy_wr_head, "setAlpha", 0.55f);
+                row.setFloat(R.id.cy_wr_src, "setAlpha", 0.55f);
+                row.setFloat(R.id.cy_wr_img, "setAlpha", 0.6f);
+            }
+            row.setOnClickPendingIntent(R.id.cy_wr_root, CyExtras.openIntent(c, o.optString("link", ""), 400 + at.get(k)));
             rv.addView(R.id.cy_wl_list, row);
-            shown++;
         }
+        int shown = rows.size();
         rv.setViewVisibility(R.id.cy_wl_list, shown == 0 ? View.GONE : View.VISIBLE);
         rv.setViewVisibility(R.id.cy_wl_empty, shown == 0 ? View.VISIBLE : View.GONE);
-        String ed = sp(c).getString("widget_ed", "");
         boolean upd = isUpdating(c);
+        rv.setTextViewText(R.id.cy_wl_empty_t, upd ? "Updating…" : "Open CyPress to load your headlines");
+        String ed = sp(c).getString("widget_ed", "");
         rv.setTextViewText(R.id.cy_wl_ed, upd ? "UPDATING…" : (isStale(c) ? "TAP TO REFRESH" : (ed.length() > 0 ? ed : "The art of staying informed.").toUpperCase(Locale.getDefault())));
         if (pics) ensurePics(c);
         PendingIntent open = isStale(c) ? refreshIntent(c, 391) : CyExtras.openIntent(c, null, 390);
-        rv.setOnClickPendingIntent(R.id.cy_wl_root, open);
+        rv.setOnClickPendingIntent(android.R.id.background, open);
         rv.setOnClickPendingIntent(R.id.cy_wl_head, open);
         rv.setOnClickPendingIntent(R.id.cy_wl_empty, open);
         return rv;
-    }
-
-    private static Bitmap thumb(Context c, String url) {
-        try {
-            File f = CyWidgetProvider.imageFile(c, url);
-            if (f == null || !f.isFile()) return null;
-            BitmapFactory.Options o = new BitmapFactory.Options();
-            o.inJustDecodeBounds = true;
-            BitmapFactory.decodeFile(f.getAbsolutePath(), o);
-            int s = 1;
-            while (o.outWidth / (s * 2) >= 200 && o.outHeight / (s * 2) >= 200) s *= 2;
-            BitmapFactory.Options d = new BitmapFactory.Options();
-            d.inSampleSize = s;
-            d.inPreferredConfig = Bitmap.Config.RGB_565;
-            return BitmapFactory.decodeFile(f.getAbsolutePath(), d);
-        } catch (Throwable t) {
-            Log.w(TAG, "thumb failed: " + t);
-            return null;
-        }
     }
 
     // ---------------------------------------------------------------- Ticker 4x1
@@ -441,18 +552,21 @@ final class CyWidgets {
         boolean upd = isUpdating(c);
         if (o == null || o.optString("title", "").length() == 0) {
             rv.setTextViewText(R.id.cy_wk_src, "CYPRESS");
-            rv.setTextViewText(R.id.cy_wk_head, "Open CyPress to load headlines");
-            rv.setOnClickPendingIntent(R.id.cy_wk_root, CyExtras.openIntent(c, null, 500));
+            rv.setTextViewText(R.id.cy_wk_time, "");
+            rv.setTextViewText(R.id.cy_wk_head, upd ? "Updating…" : "Open CyPress to load headlines");
+            rv.setInt(R.id.cy_wk_head, "setTextColor", col(c, R.color.cy_w_muted));
+            rv.setOnClickPendingIntent(android.R.id.background, CyExtras.openIntent(c, null, 500));
             return rv;
         }
-        String src = o.optString("src", "").trim();
-        String kick = isStale(c) ? "TAP TO REFRESH" : (upd ? "UPDATING…" : (o.optBoolean("brk", false) ? "BREAKING" : "LATEST"));
-        if (!upd && src.length() > 0 && !isStale(c)) kick += "  ·  " + src;
-        rv.setTextViewText(R.id.cy_wk_src, kick.toUpperCase(Locale.getDefault()));
+        boolean stale = isStale(c);
+        String kick = stale ? "TAP TO REFRESH" : (upd ? "UPDATING…" : (o.optBoolean("brk", false) ? "BREAKING" : "LATEST"));
+        String age = (upd || stale) ? "" : ageLabel(o.optLong("date", 0L));
+        rv.setTextViewText(R.id.cy_wk_src, kick);
+        rv.setTextViewText(R.id.cy_wk_time, age.length() > 0 ? "  ·  " + age : "");
         rv.setTextViewText(R.id.cy_wk_head, o.optString("title", ""));
         rv.setFloat(R.id.cy_wk_head, "setAlpha", upd ? 0.5f : (o.optBoolean("read", false) ? 0.6f : 1f));
-        PendingIntent story = isStale(c) ? refreshIntent(c, 511) : CyExtras.openIntent(c, o.optString("link", ""), 510 + i);
-        rv.setOnClickPendingIntent(R.id.cy_wk_root, story);
+        PendingIntent story = stale ? refreshIntent(c, 511) : CyExtras.openIntent(c, o.optString("link", ""), 510 + i);
+        rv.setOnClickPendingIntent(android.R.id.background, story);
         rv.setOnClickPendingIntent(R.id.cy_wk_head, story);
         return rv;
     }

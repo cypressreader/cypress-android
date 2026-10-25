@@ -238,6 +238,10 @@ def adaptive_xml(logo, suffix):
     # Android 13+ can tint the icon to match the wallpaper ("themed icons"). Only the two emblem designs
     # are transparent line art, so only they get a one-colour layer; the others would tint as a solid blob.
     mono = ('    <monochrome android:drawable="@mipmap/ic_launcher_%s_foreground"/>\n' % logo) if logo in ('tree', 'circuit') else ''
+    if logo == 'tree':
+        # K4/M4: the tree uses a crisp vector cut of the mark (native/extras/res/drawable/ic_launcher_monochrome.xml, shipped by
+        # apply_extras) instead of the full-colour PNG. To go back to the PNG layer, delete this if-block.
+        mono = '    <monochrome android:drawable="@drawable/ic_launcher_monochrome"/>\n'
     # the default (tree) icon sits in a deep-green frame, like the frame on the Daily cover
     bg = ('@drawable/ic_launcher_frame_tree' if logo == 'tree' else '@color/ic_launcher_bg_%s' % logo)
     return ('<?xml version="1.0" encoding="utf-8"?>\n'

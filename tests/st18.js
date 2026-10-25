@@ -14,7 +14,8 @@ r=await st('midnight','light');ck('dark theme to light twin',!r.dark&&!r.pd&&r.i
 r=await st('midnight','dark');ck('already dark untouched',r.dark&&!r.inline);
 r=await st('auto','dark');ck('auto maps to dark',r.dark&&r.eff==='dark');
 r=await st('auto','light');ck('auto maps to light',!r.dark&&(r.eff==='light'||r.eff==='auto'),JSON.stringify(r));
-r=await st('terminal','light');ck('terminal gets a hand-made light version',!r.dark&&r.eff==='terminal');
+const RET=await p.evaluate(()=>typeof POLISH_RETIRED!=='undefined'?Object.keys(POLISH_RETIRED):[]);/* polish-2026-10: skip retired themes */
+if(!RET.includes('terminal')){r=await st('terminal','light');ck('terminal gets a hand-made light version',!r.dark&&r.eff==='terminal');}
 r=await st('broadsheet','theme');ck('back to theme clears twin',!r.dark&&!r.inline);
 r=await st('dynamic','dark');ck('dynamic ignores switch',!r.inline);
 // sys follows phone
@@ -41,10 +42,10 @@ ck('synced key',await p.evaluate(()=>SET_KEYS.includes('sch')));
  ck('dark theme lifts dark brand color',o.dark!==o.light&&o.dark!=='#1a2b6b',JSON.stringify(o));ck('rgbOf still parses hex',Array.isArray(o.rgb)&&o.rgb[0]===16)}
 // the twin's darker accent colors must survive (Dynamic cleanup must not wipe them)
 {const o=await p.evaluate(async()=>{const s=document.createElement('style');s.textContent='*{transition:none!important}';document.head.append(s);const out={};
- for(const th of ['forest','alpenglow','aurora','deepsea','midnight','nebula','golden']){S.theme=th;S.sch='light';S.night='off';applyTheme(false);await new Promise(r=>setTimeout(r,150));const r=document.documentElement;const lg=r.style.getPropertyValue('--logo');out[th]=lg?rgb2hsl(anyRgb(lg))[2]:null}
+ for(const th of ['forest','alpenglow','aurora','deepsea','midnight','nebula','golden'].filter(t=>!(window.POLISH_RETIRED||{})[t])){S.theme=th;S.sch='light';S.night='off';applyTheme(false);await new Promise(r=>setTimeout(r,150));const r=document.documentElement;const lg=r.style.getPropertyValue('--logo');out[th]=lg?rgb2hsl(anyRgb(lg))[2]:null}
  S.theme='dynamic';S.sch='theme';applyTheme(false);await new Promise(r=>setTimeout(r,200));S.theme='forest';S.sch='theme';applyTheme(false);await new Promise(r=>setTimeout(r,150));out.cleared=!document.documentElement.style.getPropertyValue('--logo');
  return out});
- for(const th of ['forest','alpenglow','aurora','deepsea','midnight','nebula','golden'])ck('light twin of '+th+' darkens its logo color',o[th]!==null&&o[th]<=.45,String(o[th]));
+ for(const th of ['forest','alpenglow','aurora','deepsea','midnight','nebula','golden'].filter(t=>!RET.includes(t)))ck('light twin of '+th+' darkens its logo color',o[th]!==null&&o[th]<=.45,String(o[th]));
  ck('leaving the twin clears the accent again',o.cleared)}
 ck('no page errors',!errs.length,errs.join('|'));
 console.log('st18',pass,'pass',fail,'fail');log.forEach(l=>console.log(l));await b.close();process.exit(fail?1:0)})();

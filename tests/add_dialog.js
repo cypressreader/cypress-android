@@ -27,11 +27,11 @@ const cr=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,
   /* a pasted address: where will it go? */
   const d1=await p.evaluate(async()=>{const u=document.getElementById('u');u.value='https://newsite.test/';u.dispatchEvent(new Event('input',{bubbles:true}));await new Promise(r=>setTimeout(r,2500));return {hint:document.getElementById('fodest').textContent,pop:document.getElementById('pop').textContent,fo:document.getElementById('fo').value}});
   ck(t+'the folder line says where a pasted address will go',/added to “Tech”/.test(d1.hint),d1.hint);
-  ck(t+'the feed found on the site is offered, and says it will be added to that folder',/Found a feed/.test(d1.pop)&&/will be added to “Tech”/.test(d1.pop),d1.pop.slice(0,200));
+  ck(t+'the feed found on the site is offered, and says it will be added to that folder',/Latest:|A feed was found/.test(d1.pop)&&/will be added to “Tech”/.test(d1.pop),d1.pop.slice(0,200));
   await p.evaluate(()=>{const f=document.getElementById('fo');f.value=S.folders.find(x=>x.name==='World').id;f.dispatchEvent(new Event('change',{bubbles:true}))});await p.waitForTimeout(500);
   const d2=await p.evaluate(()=>({hint:document.getElementById('fodest').textContent,pop:document.getElementById('pop').textContent}));
   ck(t+'changing the folder updates both the line and the found feed',/added to “World”/.test(d2.hint)&&/will be added to “World”/.test(d2.pop),JSON.stringify(d2).slice(0,300));
-  await p.evaluate(()=>document.querySelector('#pop [data-add]').click());await p.waitForTimeout(1200);
+  await p.evaluate(()=>document.querySelector('#pop [data-addurl],#pop [data-add]').click());await p.waitForTimeout(1200);
   const d3=await p.evaluate(()=>{const f=S.feeds.find(x=>/newsite\.test/.test(x.url)),fo=f&&S.folders.find(o=>o.id===f.folder);return {folder:fo&&fo.name,other:S.folders.some(o=>o.name==='Other'),ok:document.getElementById('ok').textContent,toast:(document.querySelector('#toast')||{}).textContent||''}});
   ck(t+'it lands in the folder that was chosen, and no stray "Other" folder is made',d3.folder==='World'&&!d3.other,JSON.stringify(d3));
   ck(t+'the note names the folder and the main button now says Done',/World/.test(d3.toast)&&d3.ok==='Done',JSON.stringify(d3));
