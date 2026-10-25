@@ -1,4 +1,4 @@
-/* Drop cap: a paragraph opening in capitals shows a drop cap with normal-case text (names keep their capitals), the first line is not small caps, and the cap spans no more than the first two lines so no gap opens beside line three */
+/* Drop cap: a paragraph opening in capitals shows a drop cap with normal-case text (names keep their capitals), the first line is in small caps and the cap is a plain three-line cap (polish-2026-10 F3): taller than two lines, never taller than three, so no gap opens beside line four */
 const {APP}=require('./env');const {mock,PW}=require('./mock');const {chromium}=require(PW);
 let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'':x)}else console.log('ok',n)};
 (async()=>{const b=await chromium.launch();
@@ -15,8 +15,8 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
   ck(tag+'the first paragraph has a drop cap',r.n>=1,JSON.stringify(r));
   ck(tag+'its capitals became normal sentence case',/^A man has died after entering a tiger enclosure/.test(r.t[0]||''),r.t[0]);
   ck(tag+'a name keeps its capital',/^Trump says he will sign the order/.test(r.t[1]||'')||r.n<2,r.t[1]);
-  ck(tag+'the first line is not small caps',r.fl==='normal',r.fl);
-  ck(tag+'the cap is no taller than two lines of text (no gap beside line three)',r.lh>0&&r.ch<=r.lh*2+2,r.ch+' vs line '+r.lh);
+  ck(tag+'the first line is in small caps',r.fl==='small-caps',r.fl);
+  ck(tag+'the cap spans three lines of text (taller than two, no taller than three)',r.lh>0&&r.ch>r.lh*2&&r.ch<=r.lh*3+2,r.ch+' vs line '+r.lh);
   ck(tag+'no page errors',!errs.length,errs[0]);await p.context().close();
  }
  await b.close();console.log('drop_cap',bad?bad+' FAILED':'all passed');process.exit(bad?1:0)})();
