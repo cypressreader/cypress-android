@@ -42,6 +42,8 @@ MANIFEST = os.path.join(MAIN, 'AndroidManifest.xml')
 BACKUP = MANIFEST + '.cy-orig'
 GRADLE = os.path.join(APP, 'build.gradle')
 WORK_LINE = '\n    implementation "androidx.work:work-runtime:2.9.1"'
+# on-device story translation (ML Kit): added and removed together with the other extras
+TR_LINE = '\n    implementation "com.google.mlkit:translate:17.0.3"\n    implementation "com.google.mlkit:language-id:17.0.6"'
 ANDROID_NS = '{http://schemas.android.com/apk/res/android}'
 
 
@@ -334,7 +336,11 @@ def apply_extras():
     if 'androidx.work:work-runtime' not in g:
         g = g.replace(anchor, anchor + WORK_LINE, 1)
         open(GRADLE, 'w', encoding='utf-8').write(g)
-    say('added the WorkManager library')
+    if 'com.google.mlkit:translate' not in g:
+        g = open(GRADLE, encoding='utf-8').read()
+        g = g.replace(WORK_LINE, WORK_LINE + TR_LINE, 1)
+        open(GRADLE, 'w', encoding='utf-8').write(g)
+    say('added the WorkManager and on-device translation libraries')
 
     edit_manifest()
     say('share target and tree launcher icon added to the manifest')
@@ -383,8 +389,11 @@ def strip_extras():
 
     if os.path.isfile(GRADLE):
         g = open(GRADLE, encoding='utf-8').read()
+        if TR_LINE in g:
+            g = g.replace(TR_LINE, '', 1)
         if WORK_LINE in g:
-            open(GRADLE, 'w', encoding='utf-8').write(g.replace(WORK_LINE, '', 1))
+            g = g.replace(WORK_LINE, '', 1)
+        open(GRADLE, 'w', encoding='utf-8').write(g)
 
     if os.path.isfile(BACKUP):
         shutil.copyfile(BACKUP, MANIFEST)
