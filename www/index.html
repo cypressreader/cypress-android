@@ -37,7 +37,7 @@ body.sbdrag{user-select:none;-webkit-user-select:none;cursor:col-resize}
 body.sbdrag>aside,body.sbdrag main{transition:none!important}
 #toast.act{pointer-events:auto;display:flex;align-items:center;gap:12px;padding:7px 7px 7px 18px;max-width:calc(100vw - 24px)}
 #toast .tundo{font-weight:700;padding:7px 14px;border-radius:999px;background:color-mix(in srgb,var(--pn) 20%,transparent);color:inherit;min-height:34px;position:relative;white-space:nowrap}#toast .tundo::after{content:'';position:absolute;inset:-8px -6px}
-.skc{min-height:190px;border-radius:14px;border:1px solid var(--ln);background:linear-gradient(100deg,var(--pn) 30%,color-mix(in srgb,var(--ink) 7%,var(--pn)) 50%,var(--pn) 70%) 0 0/300% 100%;animation:skm 1.5s linear infinite}
+.skc{min-height:clamp(180px,20vw,240px);border-radius:var(--r-m);box-shadow:var(--sh-2);border:1px solid var(--ln);background:linear-gradient(100deg,var(--pn) 30%,color-mix(in srgb,var(--ink) 7%,var(--pn)) 50%,var(--pn) 70%) 0 0/300% 100%;animation:skm 1.5s linear infinite}
 .skc.ld{grid-column:1/-1;min-height:260px}
 @keyframes skm{to{background-position:-300% 0}}
 @media(prefers-reduced-motion:reduce){.skc{animation:none}}
@@ -430,7 +430,7 @@ html.smooth .cover.cm-frost .cvlead{-webkit-backdrop-filter:none;backdrop-filter
 .cover.cv-split.flip .cvtop{padding:22px 24px 0}.cover.cv-split.flip .cvbot{padding:0 24px 24px}
 /* skeleton + empty actions */
 .skg{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:12px;font-style:normal;text-align:left}
-.sks{border-radius:16px;background:var(--pn);border:1px solid var(--ln);padding:0 0 14px;overflow:hidden;display:grid;gap:10px}
+.sks{border-radius:var(--r-m);background:var(--pn);border:1px solid var(--ln);padding:0 0 14px;overflow:hidden;display:grid;gap:10px}
 .sks i{display:block;height:130px;background:var(--ln)}.sks b{display:block;height:12px;margin:0 14px;border-radius:6px;background:var(--ln)}.sks b.s{width:55%}
 .sks i,.sks b{background-image:linear-gradient(90deg,transparent,color-mix(in srgb,var(--a1,var(--logo,var(--ink))) 16%,color-mix(in srgb,var(--ink) 5%,transparent)),transparent);background-size:200% 100%;animation:skm 1.4s ease-in-out infinite}
 @keyframes skm{from{background-position:200% 0}to{background-position:-200% 0}}
@@ -793,8 +793,11 @@ main{overflow:auto;min-width:0;background:var(--tint,transparent);container-type
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}/* a phone's own font setting or text auto-sizing must not widen the title into the menu button */
 .top h1{margin-left:4px}.top #menu{position:relative;z-index:1}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;padding:12px clamp(14px,3vw,32px) 48px;max-width:1700px}
-.card{position:relative;border-radius:20px;overflow:hidden;color:#fff;text-decoration:none;display:flex;align-items:flex-end;background:var(--b);min-height:clamp(180px,20vw,240px);isolation:isolate;transition:transform .25s}
+.card{position:relative;border-radius:var(--r-m);overflow:hidden;color:#fff;text-decoration:none;display:flex;align-items:flex-end;background:var(--b);min-height:clamp(180px,20vw,240px);isolation:isolate;transition:transform .25s}
 .card:hover{transform:translateY(-3px)}
+/* polish-2026-10 E5: tile cards float on a soft shadow in light themes and carry a hairline in dark ones (restore flat: delete these two rules and set .card radius back to 20px) */
+.grid:not(.list):not([data-cards=compact]):not([data-cards=narrow]) .card:not(.list-row){box-shadow:var(--sh-2)}
+html.pdark .grid:not(.list):not([data-cards=compact]):not([data-cards=narrow]) .card:not(.list-row){box-shadow:none;outline:1px solid color-mix(in srgb,#fff 12%,transparent);outline-offset:-1px}
 .card>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;transition:transform .6s}
 .card:hover>img{transform:scale(1.04)}
 .ov{position:absolute;inset:0;z-index:-1;background:linear-gradient(to top,rgba(0,0,0,.56) 0,rgba(0,0,0,.32) 46%,transparent 82%),linear-gradient(to top,color-mix(in srgb,var(--b) 92%,#000) 0,color-mix(in srgb,var(--b) 55%,transparent) 42%,transparent 78%)}
@@ -4069,6 +4072,9 @@ body.narrow #toast{bottom:auto}html.micro #toast{animation:none}
 /* header buttons sit on a dark bar with light icons: hover tints them instead of filling with the page color (which hid the icon) */
 @media(hover:hover){.top .ib:hover,.top .ib:focus-visible{background:color-mix(in srgb,currentColor 16%,transparent)}}
 .top .ib{width:44px;min-width:44px;height:44px;min-height:44px}
+/* polish-2026-10 E2: header buttons are borderless; a soft tint shows only while pressed or focused. 44px + the 2px ::after = 48px hit area. Restore the rings: delete this block */
+.top .ib{border:0}.top .ib::after{inset:-2px}
+.top .ib:active,.top .ib:focus-visible{background:color-mix(in srgb,var(--ink) 12%,transparent)}
 @media(max-width:480px){.top{column-gap:6px}}
 .nav,.fh,.fr{min-height:48px}.gear,#side-list .mfh{min-height:48px}.line{min-height:44px}.nav.dlt{min-height:64px}.addbtn{min-height:48px}
 /* notes sit at the bottom so they never cover the page title or the Daily tabs at the top */
