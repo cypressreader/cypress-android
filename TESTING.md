@@ -688,3 +688,7 @@ Implemented, checked in a desktop browser only. On a real phone check:
 - Reader text: `_italic_`, `__bold__` and bold-with-link render as styling, not as literal characters (reader-service text).
 - "Mark all as read" hidden on Saved, History, Stats. Saved footer says "All caught up" when every story is read.
 - Settings search finds theme names (Cypress, Sepia, Midnight, Aurora...).
+
+## Dynamic theme fixes (2026-10-25, unverified on device)
+- Dynamic + "Match my phone": switch the phone between dark and light while the app is open (and after leaving it in the background). Page tint, tab bar and accent should change to day or night colors at once, not stay dark.
+- Tapping Dynamic from another theme should respond immediately (no long freeze); light/dark switches still show the sunrise/sunset animation.

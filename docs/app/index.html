@@ -917,6 +917,7 @@ html.rmo .book>.rdedge>i,html.lowp .book>.rdedge>i{transition:none}
 .rng output{font:600 12px var(--sans);color:var(--mut);min-width:38px;text-align:right}
 .ver{text-align:center;color:var(--mut);font:12px var(--sans);margin-top:26px;letter-spacing:.5px}
 @media(max-width:560px){.fgrid{grid-template-columns:repeat(2,1fr)}.tgrid{gap:4px}.rng{width:58%}}
+:root.thfade2,:root.thfade2 body,:root.thfade2 main,:root.thfade2 #tabs,:root.thfade2 .top,:root.thfade2 body>aside,:root.thfade2 #mtabs{transition:background-color .6s ease,color .6s ease,border-color .6s ease!important}/* a quick fade of the big surfaces only: fading every card at once made the switch to Dynamic stutter */
 :root.thfade,:root.thfade *{transition:background-color 1.2s ease,color 1.2s ease,border-color 1.2s ease,fill 1.2s ease!important}
 .sky{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom));left:14px;z-index:99998;width:150px;height:58px;border-radius:18px;overflow:hidden;pointer-events:none;opacity:0;transform:translateY(-8px) scale(.96);transition:opacity .6s ease,transform .6s ease;box-shadow:0 8px 24px rgba(0,0,0,.18)}
 .sky.go{opacity:1;transform:none}.sky.out{opacity:0;transform:translateY(6px)}
@@ -9860,9 +9861,10 @@ set.addEventListener('change',e=>{if(!e.target||e.target.id!=='pics')return;cons
 function schCur(){return (S.theme||'auto')==='dynamic'?'dynamic':(S.sch||'theme')}
 function schSync(){const v=$('#schv');if(!v)return;const cur=schCur();let any=false;v.querySelectorAll('[data-sch]').forEach(b=>{const on=b.dataset.sch===cur;if(on)any=true;b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on))});v.querySelectorAll('[data-sch]').forEach((b,i)=>{b.tabIndex=(b.classList.contains('on')||(!any&&!i))?0:-1});const h=$('#schh');if(h)h.textContent=SCH_HINT[cur]||'';const d=$('#schd');if(d){d.hidden=cur!=='dynamic';const dm=S.dynm||'sys';d.querySelectorAll('[data-dm]').forEach(b=>{b.classList.toggle('on',b.dataset.dm===dm);b.setAttribute('aria-checked',String(b.dataset.dm===dm))})}}
 function schSet(k){
+ const dyn0=(S.theme||'auto')==='dynamic';
  if(k==='dynamic'){if((S.theme||'auto')!=='dynamic'){S.lastTheme=S.theme||'auto';S.theme='dynamic'}}
  else{S.sch=k;if((S.theme||'auto')==='dynamic'){S.theme=(S.lastTheme&&S.lastTheme!=='dynamic')?S.lastTheme:'halcyon'}}
- save();applyTheme(true);render();syncSet()}
+ save();applyTheme.did=0;applyTheme((k==='dynamic')!==dyn0?'quick':true);if(!applyTheme.did)render();/* applyTheme already redrew the page when the background went light or dark: a second full redraw made the switch stutter */syncSet()}
 set.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-sch]');if(b)schSet(b.dataset.sch)});
 set.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-dm]');if(b){S.dynm=b.dataset.dm;save();applyTheme(true);syncSet()}});
 set.addEventListener('keydown',e=>{const b=e.target.closest&&e.target.closest('[data-sch]');if(!b||!/^Arrow(Left|Right|Up|Down)$/.test(e.key))return;e.preventDefault();const bs=[...b.parentNode.querySelectorAll('[data-sch]')],i=bs.indexOf(b),n=bs[(i+(/Right|Down/.test(e.key)?1:bs.length-1))%bs.length];n.focus();schSet(n.dataset.sch)});
@@ -12028,13 +12030,15 @@ function applyTheme(anim){
  let dm='';if(th==='dynamic'){const m=S.dynm||'sys';dm=(m==='dark'||(m==='sys'&&matchMedia('(prefers-color-scheme:dark)').matches))?'dark':'light'}
  const goat=th==='thegoat'||th==='halcyon',schk=th==='dynamic'?'':(schWant()||(goat?(phoneDark()?'dark':'light'):'')),changed=(applyTheme.sk||'')!==schk||applyTheme.th!==th||(root.dataset.dm||'')!==dm;
  if(anim&&changed&&!reduced()){
-  root.classList.add('thfade');clearTimeout(applyTheme.t);applyTheme.t=setTimeout(()=>root.classList.remove('thfade'),1800);
-  if(anim!=='fade')sky((schk==='dark'||dm==='dark')?'set':'rise');
+  const fc=anim==='quick'?'thfade2':'thfade';root.classList.add(fc);clearTimeout(applyTheme.t);applyTheme.t=setTimeout(()=>root.classList.remove('thfade','thfade2'),1800);
+  if(anim!=='fade'&&anim!=='quick')sky((schk==='dark'||dm==='dark')?'set':'rise');
  }
  root.dataset.theme=th;if(dm)root.dataset.dm=dm;else delete root.dataset.dm;applyTheme.sk=schk;applyTheme.th=th;
+ /* the Dynamic tint layers were mixed for the old light or dark: build them again so day colors really replace night ones */
+ if(th==='dynamic'&&applyTheme.dm!==undefined&&applyTheme.dm!==dm){try{const c0=dynSet.c;if(c0){dynSet.c=null;dynSet.tb=null;dynApply(c0)}}catch(e){}}applyTheme.dm=dm;
  {let w=schk;const t2=w?twinApply(root,th,w):(twinClear(root),th);if(t2!==th)root.dataset.theme=t2}
 try{root.classList.toggle('pdark',/dark/.test(getComputedStyle(root).colorScheme));root.classList.toggle('hasym',!!getComputedStyle(root).getPropertyValue('--sym').trim())}catch(e){}
- {const pd=bgDark();DARKBG=pd;if(applyTheme.pd!==undefined&&applyTheme.pd!==pd){try{side._h=null;render()}catch(e){}}applyTheme.pd=pd}
+ {const pd=bgDark();DARKBG=pd;if(applyTheme.pd!==undefined&&applyTheme.pd!==pd){try{side._h=null;applyTheme.did=1;render()}catch(e){}}applyTheme.pd=pd}
  themeFonts(th);applyFx();try{const bb=($('#rd').style.getPropertyValue('--b')||'').trim();if(bb)rdTone(bb)}catch(e){}if((S.font||'theme')==='theme'&&$('#rd').classList.contains('on'))refreshReader();
  try{barSync()}catch(e){}
 }
