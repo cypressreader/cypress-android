@@ -696,3 +696,7 @@ Implemented, checked in a desktop browser only. On a real phone check:
 ## Dynamic switch speed and stronger tint (2026-10-25, unverified on device)
 - Settings > Light, dark or Dynamic: with Dynamic on, tap Light/Dark (and Match my phone): colors should change at once with no sunrise/sunset animation; the list redraws after Settings closes (diagnostics should no longer show a 1-2 s `set.onclick` frame).
 - Dynamic page and tab tint is richer (dark and light): check text stays readable on Daily and All Stories.
+
+## On-device Translate story (ML Kit) (2026-10-25, NOT built or run: native code unverified)
+- New `native/extras/CyTranslatePlugin.java` (+ ML Kit `translate` and `language-id` gradle lines added/removed with the extras in `scripts/prepare_android.py`). Only compiled against stand-in stubs here; the first real compile is the APK workflow. If the extras fail to compile, look here first.
+- On the phone: open a story in another language > "..." > Translate. Expect: no Google Translate dialog; text translates in place; "Show original" restores. First time per language downloads a pack (~30 MB): test once on Wi-Fi, once offline (expect the "Couldn't download the language pack" toast). Check APK size grew only a few MB.

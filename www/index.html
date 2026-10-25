@@ -11313,6 +11313,29 @@ const TR={on:false,busy:false,orig:null};
 const trEls=()=>[...document.querySelectorAll('.cols .body p,.cols .body h2,.cols .body h3,.cols .body h4,.cols .body li,.cols .body blockquote')].filter(e=>!e.querySelector('p,li,blockquote')&&(e.textContent||'').trim().length>1);
 function trLabel(){const b=document.querySelector('[data-act="tr"]');if(!b)return;const t=TR.on?'Show original':'Translate story',l=b.querySelector('.mnl');if(l){l.textContent=TR.on?'Original':'Translate';b.setAttribute('aria-label',t)}else b.textContent=t}
 function trReset(){TR.on=false;TR.busy=false;TR.orig=null;trLabel()}
+let _cytr;const CyTR=()=>{try{if(!NATIVE)return null;if(_cytr!==undefined)return _cytr;const C=window.Capacitor;return _cytr=(C.Plugins&&C.Plugins.CyTranslate)||(C.registerPlugin?C.registerPlugin('CyTranslate'):null)}catch(e){return null}};
+/* the phone's own translator (Google ML Kit, built into the app): the story text never leaves the phone; only the first use of a language downloads its language pack */
+async function translateNative(nt,lang,body,fallback){
+ TR.busy=true;
+ try{
+  const els=trEls();if(!els.length){toast('Nothing to translate yet');TR.busy=false;return}
+  const sample=els.map(e=>e.textContent).join(' ').slice(0,800);
+  const det=await nt.detect({text:sample});
+  const src=String((det&&det.lang)||'').split('-')[0].toLowerCase();
+  if(!src||src==='und'){TR.busy=false;toast('Couldn’t tell which language this is');return}
+  if(src===lang){TR.busy=false;toast('This story is already in your language');return}
+  const items=els.map(el=>({el,html:el.innerHTML,tr:''}));
+  toast('Translating… the first time for a language it gets a small language pack');
+  for(let i=0;i<items.length;i+=6){
+   const part=items.slice(i,i+6),r=await nt.translate({src,tgt:lang,texts:part.map(o=>o.el.textContent.trim())});
+   const out=(r&&r.texts)||[];part.forEach((o,k)=>{o.tr=out[k]?esc(out[k]):o.html});
+   if(!document.body.contains(body)){TR.busy=false;return}
+   if(i>0&&i%24===0)toast('Translating… '+Math.min(100,Math.round((i+6)/items.length*100))+'%');
+  }
+  items.forEach(o=>{o.el.innerHTML=o.tr;o.el.lang=lang});
+  TR.orig={body,items,lang};TR.on=true;TR.busy=false;trLabel();toast('Translated. Choose Show original to switch back.');
+ }catch(e){TR.busy=false;const m=String((e&&e.message)||e||'');if(/language pack/i.test(m))toast('Couldn’t download the language pack. Check your connection and try again.');else if(/unsupported language/i.test(m))toast('This language pair isn’t available on the phone');else fallback()}
+}
 async function translateStory(a){
  if(TR.busy)return;
  const body=$('.cols .body');if(!body)return;
@@ -11320,9 +11343,9 @@ async function translateStory(a){
   TR.on=!TR.on;TR.orig.items.forEach(o=>{o.el.innerHTML=TR.on?o.tr:o.html;if(TR.on)o.el.lang=TR.orig.lang;else o.el.removeAttribute('lang')});trLabel();return}
  const lang=(navigator.language||'en').split('-')[0].toLowerCase();
  const fallback=async()=>{
-  if(await askBox({title:'Translate this story?',text:'Your phone can’t translate on the device. Open this story in Google Translate? Google will see the story’s address.',ok:'Open',cancel:'Cancel'})){
+  if(await askBox({title:'Translate this story?',text:'This story can’t be translated on the phone. Open it in Google Translate? Google will see the story’s address.',ok:'Open',cancel:'Cancel'})){
    window.open('https://translate.google.com/translate?sl=auto&tl='+encodeURIComponent(lang)+'&u='+encodeURIComponent(a.link),'_blank','noopener')}};
- if(!('Translator' in self)||!('LanguageDetector' in self))return fallback();
+ if(!('Translator' in self)||!('LanguageDetector' in self)){const nt=CyTR();if(nt)return translateNative(nt,lang,body,fallback);return fallback()}
  TR.busy=true;
  try{
   const els=trEls();if(!els.length){toast('Nothing to translate yet');TR.busy=false;return}

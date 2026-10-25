@@ -37,6 +37,11 @@ public class MainActivity extends BridgeActivity {
         } catch (Throwable t) {
             Log.w(TAG, "extras plugin not registered: " + t);
         }
+        try {
+            registerPlugin(CyTranslatePlugin.class);
+        } catch (Throwable t) {
+            Log.w(TAG, "translate plugin not registered: " + t);
+        }
         super.onCreate(savedInstanceState);
 
         // Keep the app out from under the status bar, camera cut-out, navigation bar and keyboard.
