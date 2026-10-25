@@ -9864,8 +9864,9 @@ function schSet(k){
  const dyn0=(S.theme||'auto')==='dynamic';
  if(k==='dynamic'){if((S.theme||'auto')!=='dynamic'){S.lastTheme=S.theme||'auto';S.theme='dynamic'}}
  else{S.sch=k;if((S.theme||'auto')==='dynamic'){S.theme=(S.lastTheme&&S.lastTheme!=='dynamic')?S.lastTheme:'halcyon'}}
- save();applyTheme.did=0;applyTheme((k==='dynamic')!==dyn0?'quick':true);if(!applyTheme.did)render();/* applyTheme already redrew the page when the background went light or dark: a second full redraw made the switch stutter */syncSet()}
+ save();applyTheme.did=0;applyTheme((k==='dynamic')!==dyn0?'quick':true);if(!applyTheme.did)renderSoon();/* applyTheme already redrew the page when the background went light or dark: a second full redraw made the switch stutter */syncSet()}
 set.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-sch]');if(b)schSet(b.dataset.sch)});
+set.addEventListener('close',()=>{if(applyTheme.pend){applyTheme.pend=0;setTimeout(()=>{try{render()}catch(e){}},80)}});
 set.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-dm]');if(b){S.dynm=b.dataset.dm;save();applyTheme(true);syncSet()}});
 set.addEventListener('keydown',e=>{const b=e.target.closest&&e.target.closest('[data-sch]');if(!b||!/^Arrow(Left|Right|Up|Down)$/.test(e.key))return;e.preventDefault();const bs=[...b.parentNode.querySelectorAll('[data-sch]')],i=bs.indexOf(b),n=bs[(i+(/Right|Down/.test(e.key)?1:bs.length-1))%bs.length];n.focus();schSet(n.dataset.sch)});
 const MO_KEYS=['curl','sitecol','tod','czoom','clive','micro'];
@@ -11110,8 +11111,9 @@ function dynTone(c,dark){
  const TD=dynTod();
  if(dark&&h>35&&h<100)s=Math.min(s,.45);/* dark yellows and greens turn to mud, so they are held back */
  const H=Math.round(h),P=Math.round(s*100);
- return dark?{bg:hsl2css(h,s*.65,TD.d),pn:hsl2css(h,s*.55,TD.d+.035),ln:hsl2css(h,s*.45,.24),glow:'hsl('+H+' '+P+'% 38% / .38)',a:hsl2css(h,s,.7)}
-  :{bg:hsl2css(h,s*.9,TD.l),pn:hsl2css(h,s*.8,Math.min(.985,TD.l+.05)),ln:hsl2css(h,s*.55,.82),glow:'hsl('+H+' '+P+'% 78% / .55)',a:hsl2css(h,s,.36)};
+ /* richer than before: the page color is clearly the story's color (the earlier near-black and near-white tints hid the range of colors) */
+ return dark?{bg:hsl2css(h,s*.85,TD.d+.035),pn:hsl2css(h,s*.7,TD.d+.075),ln:hsl2css(h,s*.5,.27),glow:'hsl('+H+' '+P+'% 42% / .5)',a:hsl2css(h,s,.7)}
+  :{bg:hsl2css(h,s,TD.l-.03),pn:hsl2css(h,s*.85,Math.min(.985,TD.l+.03)),ln:hsl2css(h,s*.6,.8),glow:'hsl('+H+' '+P+'% 74% / .65)',a:hsl2css(h,s,.34)};
 }
 const dynIsDark=()=>document.documentElement.dataset.dm==='dark';
 function rdTone(c){
@@ -12033,12 +12035,13 @@ function twinApply(root,th,want){
  root.style.setProperty('color-scheme',toD?'dark':'light');applyTheme.tv.push('color-scheme');root.classList.add('twinned');
  return th;
 }
+function renderSoon(){if(document.querySelector('dialog[open]'))applyTheme.pend=1;else(window.requestIdleCallback?requestIdleCallback(()=>render(),{timeout:900}):setTimeout(render,400))}
 function applyTheme(anim){
  const th=effTheme(),root=document.documentElement;
  let dm='';if(th==='dynamic'){const m=S.dynm||'sys';dm=(m==='dark'||(m==='sys'&&matchMedia('(prefers-color-scheme:dark)').matches))?'dark':'light'}
  const goat=th==='thegoat'||th==='halcyon',schk=th==='dynamic'?'':(schWant()||(goat?(phoneDark()?'dark':'light'):'')),changed=(applyTheme.sk||'')!==schk||applyTheme.th!==th||(root.dataset.dm||'')!==dm;
  if(anim&&changed&&!reduced()){
-  const fc=anim==='quick'?'thfade2':'thfade';root.classList.add(fc);clearTimeout(applyTheme.t);applyTheme.t=setTimeout(()=>root.classList.remove('thfade','thfade2'),1800);
+  if(th==='dynamic')anim='quick';/* Dynamic has its own color fade: no sunrise/sunset animation and no fade of every card on top of it */const fc=anim==='quick'?'thfade2':'thfade';root.classList.add(fc);clearTimeout(applyTheme.t);applyTheme.t=setTimeout(()=>root.classList.remove('thfade','thfade2'),1800);
   if(anim!=='fade'&&anim!=='quick')sky((schk==='dark'||dm==='dark')?'set':'rise');
  }
  root.dataset.theme=th;if(dm)root.dataset.dm=dm;else delete root.dataset.dm;applyTheme.sk=schk;applyTheme.th=th;
@@ -12046,7 +12049,7 @@ function applyTheme(anim){
  if(th==='dynamic'&&applyTheme.dm!==undefined&&applyTheme.dm!==dm){try{const c0=dynSet.c;if(c0){dynSet.c=null;dynSet.tb=null;dynApply(c0)}}catch(e){}}applyTheme.dm=dm;
  {let w=schk;const t2=w?twinApply(root,th,w):(twinClear(root),th);if(t2!==th)root.dataset.theme=t2}
 try{root.classList.toggle('pdark',/dark/.test(getComputedStyle(root).colorScheme));root.classList.toggle('hasym',!!getComputedStyle(root).getPropertyValue('--sym').trim())}catch(e){}
- {const pd=bgDark();DARKBG=pd;if(applyTheme.pd!==undefined&&applyTheme.pd!==pd){try{side._h=null;applyTheme.did=1;render()}catch(e){}}applyTheme.pd=pd}
+ {const pd=bgDark();DARKBG=pd;if(applyTheme.pd!==undefined&&applyTheme.pd!==pd){try{side._h=null;applyTheme.did=1;/* the full redraw (brand colors lifted for dark) costs over a second on a big library: with Settings open it waits until Settings closes, otherwise until the screen is idle, so the color change itself never stutters */renderSoon()}catch(e){}}applyTheme.pd=pd}
  themeFonts(th);applyFx();try{const bb=($('#rd').style.getPropertyValue('--b')||'').trim();if(bb)rdTone(bb)}catch(e){}if((S.font||'theme')==='theme'&&$('#rd').classList.contains('on'))refreshReader();
  try{barSync()}catch(e){}
 }
@@ -12835,8 +12838,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.25c';const APP_LABEL='1.150';
-const CHANGES=["Dynamic: the page colors now follow each story's own photo, so you see a much wider range of colors instead of one per site","Dynamic with \"Match my phone\" now really switches to day colors when your phone goes light (it used to keep the night tint)","Switching to Dynamic is quick and smooth instead of freezing for a moment","Fixed: the same story could show different reading times in different places","Fixed: the \"loading the full article\" line no longer jumps backwards, and italics in some stories no longer show stray underscores","Mark all as read is hidden on Saved, History and Stats, and the Saved page says \"All caught up\" when everything is read","Settings search now finds theme names such as Cypress, Sepia and Midnight"];
+const APP_VERSION='2026.10.25d';const APP_LABEL='1.151';
+const CHANGES=["Switching between Light and Dark while Dynamic is on is now instant: no more multi-second freeze or sunrise animation, and the list refreshes just after you close Settings","Dynamic colors are richer: the page and tab bar clearly take on each story's color, in both dark and light"];
 const DEF_ON=new Set(['mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */

@@ -692,3 +692,7 @@ Implemented, checked in a desktop browser only. On a real phone check:
 ## Dynamic theme fixes (2026-10-25, unverified on device)
 - Dynamic + "Match my phone": switch the phone between dark and light while the app is open (and after leaving it in the background). Page tint, tab bar and accent should change to day or night colors at once, not stay dark.
 - Tapping Dynamic from another theme should respond immediately (no long freeze); light/dark switches still show the sunrise/sunset animation.
+
+## Dynamic switch speed and stronger tint (2026-10-25, unverified on device)
+- Settings > Light, dark or Dynamic: with Dynamic on, tap Light/Dark (and Match my phone): colors should change at once with no sunrise/sunset animation; the list redraws after Settings closes (diagnostics should no longer show a 1-2 s `set.onclick` frame).
+- Dynamic page and tab tint is richer (dark and light): check text stays readable on Daily and All Stories.
