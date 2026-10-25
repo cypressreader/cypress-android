@@ -805,6 +805,14 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}/* a phone's own font s
 .ib:disabled{opacity:.3;cursor:default}
 #pc{color:var(--mut);font-size:14px;min-width:56px;text-align:center}
 .book{position:relative;flex:1;min-height:0;margin:0 clamp(12px,3vw,24px) clamp(14px,2.5vw,22px);perspective:1700px;touch-action:pan-y}
+/* polish-2026-10 G2: page-edge stack on the right of a paged story; restore by deleting these lines */
+.book>.rdedge{position:absolute;top:14px;bottom:14px;right:0;width:18px;z-index:4;display:flex;justify-content:flex-end}
+.book>.rdedge[hidden],#rd.vert .book>.rdedge{display:none}
+.book>.rdedge>i{display:block;height:100%;width:calc(1px + var(--rem,0)*8px);background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--ink) 34%,transparent) 0 1px,transparent 1px 2px);border-radius:0 2px 2px 0;transition:width .35s ease}
+.book.turning>.rdedge{opacity:0}
+.book>.rdedge .rdtip{position:absolute;right:22px;top:50%;transform:translateY(-50%);background:var(--ink);color:var(--bg);font:600 12.5px/1.2 var(--sans);padding:8px 12px;border-radius:10px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s}
+.book>.rdedge .rdtip.on{opacity:1}
+html.rmo .book>.rdedge>i,html.lowp .book>.rdedge>i{transition:none}
 .view{position:absolute;inset:0;overflow:hidden;background:var(--pn);border:1px solid var(--ln);border-radius:14px}
 .book.one.turning{clip-path:inset(-80px 0 -80px 0)}
 .tl{position:absolute;top:0;height:100%;overflow:hidden;pointer-events:none}
@@ -7840,10 +7848,26 @@ function layout(){noteFix();
  show();
  if(R.rf!=null){const f=R.rf;R.rf=null;R.sf=null;R.af={f,t:Date.now()};rdSetFrac(f);rdFollow()}else rdReapply()
 }
+/* G2 (polish-2026-10): a thin stack of page edges on the right of the page that thins as the story goes on. Hold it (or hover) to hear and see how many pages are left. The top bar keeps its "1/4" text. Restore by deleting rdxEdge and its call in show(). */
+function rdxEdgeTxt(){const n=Math.max(0,R.np-1-R.pg);return n===0?'Last page of this story':n===1?'1 page left in this story':n+' pages left in this story'}
+function rdxEdge(){
+ const bk=$('.book');if(!bk)return;let e=bk.querySelector(':scope>.rdedge');
+ const on=!isVert()&&!R.web&&R.np>1;
+ if(!e){if(!on)return;e=document.createElement('div');e.className='rdedge';e.innerHTML='<i aria-hidden="true"></i><span class="rdtip" role="status" aria-live="polite"></span>';bk.append(e);
+  const tip=e.querySelector('.rdtip');let t=0,h=0;
+  const showTip=()=>{clearTimeout(h);tip.textContent=rdxEdgeTxt();tip.classList.add('on')},hide=ms=>{clearTimeout(h);h=setTimeout(()=>tip.classList.remove('on'),ms||0)};
+  e.addEventListener('mouseenter',showTip);e.addEventListener('mouseleave',()=>hide(300));
+  e.addEventListener('pointerdown',ev=>{if(ev.pointerType==='mouse')return;clearTimeout(t);t=setTimeout(()=>{showTip();R.noClick=true;setTimeout(()=>{R.noClick=false},700)},450)});
+  const up=()=>{clearTimeout(t);if(tip.classList.contains('on'))hide(1600)};e.addEventListener('pointerup',up);e.addEventListener('pointercancel',up);e.addEventListener('pointerleave',()=>clearTimeout(t));
+ }
+ e.hidden=!on;if(!on)return;
+ const left=Math.max(0,R.np-1-R.pg);e.style.setProperty('--rem',(Math.min(8,left)/8).toFixed(3));
+ const tip=e.querySelector('.rdtip');if(tip&&tip.classList.contains('on'))tip.textContent=rdxEdgeTxt();
+}
 function show(){
  const c=$('.cols');if(!c)return;setProg();
  if(!isVert())c.style.transform=`translateX(${-R.pg*R.step}px)`;
- $('#pc').textContent=pcText();{const bk=$('.book');if(bk){if(isOn('folio')&&curA&&!R.web&&!isVert()&&R.np>0){const t=(curA.title||'').length>46?curA.title.slice(0,44)+'…':(curA.title||'');bk.dataset.folio=(fof(curA).title||'')+' · '+t+'   ·   '+(R.pg+1)}else delete bk.dataset.folio}}$('#pv').disabled=!isVert()&&R.pg===0;$('#nx').disabled=!isVert()&&R.pg>=R.np-1;fpSync();dialSync();
+ $('#pc').textContent=pcText();{const bk=$('.book');if(bk){if(isOn('folio')&&curA&&!R.web&&!isVert()&&R.np>0){const t=(curA.title||'').length>46?curA.title.slice(0,44)+'…':(curA.title||'');bk.dataset.folio=(fof(curA).title||'')+' · '+t+'   ·   '+(R.pg+1)}else delete bk.dataset.folio}}$('#pv').disabled=!isVert()&&R.pg===0;$('#nx').disabled=!isVert()&&R.pg>=R.np-1;fpSync();dialSync();rdxEdge();
  if(R.ready&&curA){if(R.pg>0&&R.pg<R.np-1)S.pos[curA.link]=R.pg;else delete S.pos[curA.link];const pk=Object.keys(S.pos);if(pk.length>300)delete S.pos[pk[0]];clearTimeout(pt);pt=setTimeout(save,700)}
 }
 const eOut2=p=>1-Math.pow(1-p,2.2),ePage=p=>(1-Math.pow(1-p,3))*(.55+.45*Math.min(1,p/.3));
@@ -7968,7 +7992,7 @@ function setAng(a){
 /* warm-up: the first page turn of a story used to hitch while the browser built the turn's layers for the first time. Once the story has settled, build one turn invisibly for two frames, then throw it away, so the first real turn starts warm. */
 function rdWarm(){
  curlGet();
- if(!isOn('curl')||!curlPlan().N||reduced()||R.busy||R.T||R.web||isVert()||!R.ready||R.np<2||D)return;
+ if(!isOn('curl')||rdxPturn()!=='paper'||!curlPlan().N||reduced()||R.busy||R.T||R.web||isVert()||!R.ready||R.np<2||D)return;
  const go1=()=>{
   if(R.busy||R.T||D||R.web||isVert()||!$('.book'))return;
   const d=R.pg+1<R.np?1:-1;let T;
@@ -8004,13 +8028,36 @@ function paperSound(){if(!isOn('tsound'))return;try{ACX=ACX||new (window.AudioCo
  const dur=.34,n=Math.floor(c.sampleRate*dur),buf=c.createBuffer(1,n,c.sampleRate),d=buf.getChannelData(0);let lp=0;
  for(let i=0;i<n;i++){const t=i/n,env=Math.pow(Math.sin(Math.PI*Math.min(1,t*1.15)),1.6)*(1-t*.55),w=Math.random()*2-1;lp+=(w-lp)*.28;const fl=(t>.55&&t<.62)?(Math.random()*2-1)*.5*(1-(t-.55)/.07):0;d[i]=(lp*env+fl*.35)}
  const src=c.createBufferSource();src.buffer=buf;const bp=c.createBiquadFilter();bp.type='bandpass';bp.Q.value=.55;bp.frequency.setValueAtTime(900,c.currentTime);bp.frequency.exponentialRampToValueAtTime(2300,c.currentTime+dur*.7);const hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=380;const g=c.createGain();g.gain.value=.075;src.connect(bp);bp.connect(hp);hp.connect(g);g.connect(c.destination);src.start()}catch(e){}}
-function turnTick(){}
+/* G3 (polish-2026-10): a tiny tick when a page lands, only with Settings > Page-turn tick on (off by default) and the app's vibration allowed; needs a real phone to feel */
+function turnTick(){if(!isOn('thaptic')||!isOn('haptic'))return;try{if(navigator.vibrate)navigator.vibrate(8)}catch(e){}}
+/* G1 (polish-2026-10): page-turn styles beside Paper. Paper keeps its own untouched path (startTurn/anim/turnRelease); Slide, Fade and None are separate branches. Reduced motion always means None. Restore by deleting rdxPturn and its uses. */
+function rdxPturn(){const m=S.pturn||'paper';return reduced()&&m!=='paper'?'none':(['paper','slide','fade','none'].includes(m)?m:'paper')}
+function rdxTurn(to){
+ const m=rdxPturn(),c=$('.cols'),v=$('.view');
+ if(m==='none'||!c||!v){R.pg=to;show();turnTick();return}
+ R.busy=true;const my=tok,done=()=>{if(my===tok){c.style.transition='';v.style.transition='';v.style.opacity=''}R.busy=false;if(my===tok)turnTick()};
+ if(m==='slide'){c.style.transition='transform 280ms cubic-bezier(.22,.7,.24,1)';R.pg=to;show();setTimeout(done,300);return}
+ v.style.transition='opacity 90ms ease-out';v.style.opacity='0';
+ setTimeout(()=>{if(my!==tok){done();return}c.style.transition='none';R.pg=to;show();void c.offsetWidth;v.style.transition='opacity 90ms ease-in';v.style.opacity='1';setTimeout(done,100)},95);
+}
+/* Slide follows the finger: the page strip moves with it, and on letting go it settles on the next page or back */
+function rdxSlideMove(d,x){const c=$('.cols');if(!c)return;let dx=x-d.x0;if((R.pg===0&&dx>0)||(R.pg>=R.np-1&&dx<0))dx*=.3;c.style.transition='none';c.style.transform=`translateX(${-R.pg*R.step+dx}px)`;d.lx=x}
+function rdxSlideEnd(d,ts){
+ const c=$('.cols'),bk=$('.book');if(!c||!bk){R.busy=false;return}
+ const dx=(d.lx==null?d.x0:d.lx)-d.x0,sm=d.s;let vx=0;if(sm.length>1){const a=sm[0],b=sm[sm.length-1];if(b.t>a.t&&!(ts&&ts-b.t>120))vx=(b.x-a.x)/(b.t-a.t)}
+ const dir=dx<0?1:-1,to=R.pg+dir,ok=to>=0&&to<R.np&&(Math.abs(dx)>bk.clientWidth*.22||Math.abs(vx)>.4&&Math.sign(vx)===Math.sign(dx));
+ R.noClick=true;setTimeout(()=>{R.noClick=false},350);
+ c.style.transition='transform 240ms cubic-bezier(.22,.7,.24,1)';const my=tok;
+ if(ok)R.pg=to;show();
+ setTimeout(()=>{if(my===tok)c.style.transition='';R.busy=false;if(ok&&my===tok)turnTick()},260);
+}
 function go(d){
  R.navAt=Date.now();
  if(isVert()&&!R.web){vScrollBy(d);return}
  const to=R.pg+d;if(d>0&&to>=R.np&&!R.web&&!R.busy&&R.np>0&&isOn('cont')&&readerNext()){if(R.endArmed){advanceNext();return}R.endArmed=true;rnHint('Turn the page again for the next story');clearTimeout(R.endT);R.endT=setTimeout(()=>{R.endArmed=false},2600);return}
  if(R.web||R.busy||to<0||to>=R.np)return;
  if(reduced()){R.pg=to;show();return}
+ if(rdxPturn()!=='paper'){rdxTurn(to);return}
  const T=startTurn(d);paperSound();
  anim(T.ang,d>0?180:0,1280,eBack,()=>endTurn(true));
 }
@@ -9790,6 +9837,7 @@ rdEl.addEventListener('pointerdown',e=>{
 rdEl.addEventListener('pointermove',e=>{
  if(!D||e.pointerId!==D.id)return;
  const dx=e.clientX-D.x,dy=e.clientY-D.y;
+ if(D.slide){D.s.push({t:e.timeStamp,x:e.clientX});while(D.s.length>2&&D.s[0].t<e.timeStamp-110)D.s.shift();rdxSlideMove(D,e.clientX);return}
  if(!D.act){
   if(getSelection()+''){D=null;return}
   if(Math.abs(dx)<12&&Math.abs(dy)<12)return;
@@ -9800,6 +9848,7 @@ rdEl.addEventListener('pointermove',e=>{
   /* a swipe past the last (or before the first) page goes to the next (or previous) story, like pulling past the end in scroll mode */
   if(R.pg+dir<0||R.pg+dir>=R.np){D.edge=dir;return}
   if(reduced())return;
+  {const ps=rdxPturn();if(ps==='slide'){R.busy=true;D.slide=true;D.x0=e.clientX;try{$('.book').setPointerCapture(e.pointerId)}catch(_){}}if(ps!=='paper'){if(D.slide){D.s.push({t:e.timeStamp,x:e.clientX});rdxSlideMove(D,e.clientX)}return}}
   startTurn(dir);paperSound();D.act=true;D.dir=dir;D.x0=e.clientX;
   try{$('.book').setPointerCapture(e.pointerId)}catch(_){}
  }
@@ -9813,12 +9862,13 @@ rdEl.addEventListener('pointermove',e=>{
 const pend=e=>{
  if(!D||e.pointerId!==D.id)return;
  if(D.act){turnRelease(e.type==='pointercancel',e.timeStamp);return}
+ if(D.slide){const d=D;D=null;if(e.type==='pointercancel')d.lx=d.x0;rdxSlideEnd(d,e.timeStamp);return}
  const dx=e.clientX-D.x,dy=e.clientY-D.y;
  if(D.edge&&e.type==='pointerup'&&Math.abs(dx)>=60&&Math.abs(dx)>Math.abs(dy)*1.3&&!(getSelection()+'')){const eg=D.edge;D=null;edgeSwipe(eg);return}
- if(e.type==='pointerup'&&reduced()&&Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.3&&!(getSelection()+''))go(dx<0?1:-1);
+ if(e.type==='pointerup'&&(reduced()||rdxPturn()!=='paper')&&Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.3&&!(getSelection()+''))go(dx<0?1:-1);
  D=null;
 };
-rdEl.addEventListener('touchmove',e=>{if(D&&D.act&&e.cancelable)e.preventDefault()},{passive:false});
+rdEl.addEventListener('touchmove',e=>{if(D&&(D.act||D.slide)&&e.cancelable)e.preventDefault()},{passive:false});
 rdEl.addEventListener('pointerup',pend);
 rdEl.addEventListener('click',e=>{if(R.noClick&&e.target.closest('.book')){e.preventDefault();e.stopPropagation()}},true);rdEl.addEventListener('pointercancel',pend);
 addEventListener('resize',()=>{if($('#rd').classList.contains('on')){if(R.rf==null){/* _vm is the mode the story was laid out in, which the resize has not yet changed */R.rf=_vm?(R.sf!=null?R.sf:vEndFrac()):pgFrac()}if(R.T){D=null;endTurn(false)}const v=isVert();if(_vm!==null&&v!==_vm&&(S.scroll||'auto')==='auto'){_vm=v;refreshReader();return}_vm=v;relayout()}});
@@ -12319,6 +12369,7 @@ async function startFresh(){
 const APP_VERSION='2026.10.24t';const APP_LABEL='1.147';
 const CHANGES=["Much faster when you are far down a long list: redrawing All Stories no longer slows down the further you have scrolled (in a test with 600 stories on screen it went from about 7 seconds to a quarter of a second)"];
 const DEF_ON=new Set(['mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
+DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
 /* a touch screen. The Android WebView does not always answer 'coarse' to the plain pointer question the way a browser does, so a finger is also looked for the two other ways */
 const touchy=()=>{try{if(matchMedia('(any-pointer:coarse)').matches)return true}catch(e){}try{if((navigator.maxTouchPoints|0)>0)return true}catch(e){}return 'ontouchstart' in window};
