@@ -11182,7 +11182,15 @@ function dynLive(){
  const c0=cs[0]?(cs[0].style.getPropertyValue('--b')||getComputedStyle(cs[0]).getPropertyValue('--b')).trim():'';
  const keep=dynSet.c&&dynLive.sel===S.sel;dynLive.sel=S.sel;if(!keep){clearTimeout(dynSet.w);dynApply(c0||getComputedStyle(r).getPropertyValue('--a1').trim()||'#0a8f4a')}
  if(!('IntersectionObserver' in window))return;
- const io=new IntersectionObserver(es=>{const e=es.filter(x=>x.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top)[0];if(!e)return;const c=(e.target.style.getPropertyValue('--b')||'').trim();if(c)dynSet(c)},{rootMargin:'-28% 0px -56% 0px'});
+ const io=new IntersectionObserver(es=>{const e=es.filter(x=>x.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top)[0];if(!e)return;
+  /* the tint follows the story's own photo (a far wider range than one color per site); a story without a usable photo falls back to its site color */
+  const el=e.target,c=(el.style.getPropertyValue('--b')||'').trim();dynLive.cur=el;
+  const im=el.matches('img')?el:el.querySelector('img'),u=im&&im.getAttribute('src');
+  const pc=o=>{if(!o||!o.t)return '';const r=anyRgb(o.t);if(!r)return '';const hs=rgb2hsl(r);return hs[1]>=.14?o.t:''};
+  const q=u&&IIS[u]&&IIS[u].v>=4?pc(IIS[u]):'';
+  if(q){dynSet(q);return}
+  if(u&&/^https?:/.test(u))imgInfo(u).then(o=>{const t=pc(o)||c;if(t&&dynLive.cur===el&&el.isConnected)dynSet(t)}).catch(()=>{if(c&&dynLive.cur===el)dynSet(c)});
+  else if(c)dynSet(c)},{rootMargin:'-28% 0px -56% 0px'});
  cs.slice(0,120).forEach(x=>io.observe(x));dynLive.io=io;
 }
 function dynReader(){
@@ -12827,8 +12835,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.25b';const APP_LABEL='1.149';
-const CHANGES=["The \"Text and appearance\" sheet in the reader now matches the rest of the app: themes sit in a tidy grid instead of scrolling sideways, and choices are easier to see and tap"];
+const APP_VERSION='2026.10.25c';const APP_LABEL='1.150';
+const CHANGES=["Dynamic: the page colors now follow each story's own photo, so you see a much wider range of colors instead of one per site","Dynamic with \"Match my phone\" now really switches to day colors when your phone goes light (it used to keep the night tint)","Switching to Dynamic is quick and smooth instead of freezing for a moment","Fixed: the same story could show different reading times in different places","Fixed: the \"loading the full article\" line no longer jumps backwards, and italics in some stories no longer show stray underscores","Mark all as read is hidden on Saved, History and Stats, and the Saved page says \"All caught up\" when everything is read","Settings search now finds theme names such as Cypress, Sepia and Midnight"];
 const DEF_ON=new Set(['mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
