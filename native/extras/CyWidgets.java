@@ -181,8 +181,8 @@ final class CyWidgets {
             AppWidgetManager m = AppWidgetManager.getInstance(c);
             for (int id : ids(c, CyWidgetProvider.class)) {
                 RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_top);
-                if (dir < 0) rv.showPrevious(R.id.cy_stack_view);
-                else rv.showNext(R.id.cy_stack_view);
+                if (dir < 0) rv.showPrevious(R.id.cy_flipper);
+                else rv.showNext(R.id.cy_flipper);
                 m.partiallyUpdateAppWidget(id, rv);
             }
         } catch (Throwable t) {
@@ -203,7 +203,7 @@ final class CyWidgets {
             AppWidgetManager m = AppWidgetManager.getInstance(c);
             for (int id : ids(c, CyWidgetProvider.class)) {
                 m.updateAppWidget(id, buildTop(c, id, widthDp(m, id), heightDp(m, id)));
-                m.notifyAppWidgetViewDataChanged(id, R.id.cy_stack_view);
+                m.notifyAppWidgetViewDataChanged(id, R.id.cy_flipper);
             }
         } catch (Throwable t) {
             Log.w(TAG, "top refresh: " + t);
@@ -419,7 +419,13 @@ final class CyWidgets {
         }
     }
 
-    // ---------------------------------------------------------------- Card Stack (Top Story, StackView)
+    private static PendingIntent flipIntent(Context c, int dir) {
+        Intent i = new Intent(c, CyWidgetProvider.class);
+        i.setAction(dir < 0 ? ACT_PREV : ACT_NEXT);
+        return PendingIntent.getBroadcast(c, dir < 0 ? 101 : 102, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    // ---------------------------------------------------------------- Top Story (AdapterViewFlipper Deck)
 
     static RemoteViews buildTop(Context c) {
         return buildTop(c, 0, 0, 0);
@@ -441,7 +447,7 @@ final class CyWidgets {
         }
         int pages = valid.size();
         if (pages == 0) {
-            rv.setViewVisibility(R.id.cy_stack_view, View.GONE);
+            rv.setViewVisibility(R.id.cy_flipper, View.GONE);
             rv.setViewVisibility(R.id.cy_wt_empty, View.VISIBLE);
             rv.setTextViewText(R.id.cy_wt_empty_t, upd ? "Updating…" : "Open CyPress to load your stories");
             PendingIntent open = CyExtras.openIntent(c, null, 300);
@@ -450,9 +456,13 @@ final class CyWidgets {
             return rv;
         }
 
-        rv.setViewVisibility(R.id.cy_stack_view, View.VISIBLE);
+        rv.setViewVisibility(R.id.cy_flipper, View.VISIBLE);
         rv.setViewVisibility(R.id.cy_wt_empty, View.GONE);
         rv.setViewVisibility(R.id.cy_wt_upd, upd ? View.VISIBLE : View.GONE);
+
+        // Previous and Next immediate flip controls
+        rv.setOnClickPendingIntent(R.id.cy_wt_prev, flipIntent(c, -1));
+        rv.setOnClickPendingIntent(R.id.cy_wt_next, flipIntent(c, 1));
 
         if (Build.VERSION.SDK_INT >= 31) {
             RemoteViews.RemoteCollectionItems.Builder cb = new RemoteViews.RemoteCollectionItems.Builder()
@@ -460,17 +470,17 @@ final class CyWidgets {
             for (int k = 0; k < pages; k++) {
                 cb.addItem(k, buildStackCard(c, valid.get(k), k, pages, wDp, hDp, true));
             }
-            rv.setRemoteAdapter(R.id.cy_stack_view, cb.build());
+            rv.setRemoteAdapter(R.id.cy_flipper, cb.build());
         } else {
             Intent intent = new Intent(c, CyWidgetService.class);
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
             intent.setData(android.net.Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
-            rv.setRemoteAdapter(R.id.cy_stack_view, intent);
+            rv.setRemoteAdapter(R.id.cy_flipper, intent);
         }
 
-        rv.setEmptyView(R.id.cy_stack_view, R.id.cy_wt_empty);
+        rv.setEmptyView(R.id.cy_flipper, R.id.cy_wt_empty);
         PendingIntent tpl = stale ? refreshIntent(c, 305) : CyExtras.openTemplateIntent(c, 306);
-        rv.setPendingIntentTemplate(R.id.cy_stack_view, tpl);
+        rv.setPendingIntentTemplate(R.id.cy_flipper, tpl);
 
         PendingIntent open = stale ? refreshIntent(c, 305) : CyExtras.openIntent(c, null, 300);
         rv.setOnClickPendingIntent(android.R.id.background, open);
@@ -478,7 +488,7 @@ final class CyWidgets {
         return rv;
     }
 
-    /** One card in the swipeable StackView deck. */
+    /** One full-bleed card item in the AdapterViewFlipper deck. */
     static RemoteViews buildStackCard(Context c, JSONObject o, int position, int total, int wDp, int hDp, boolean inCollection) {
         RemoteViews card = new RemoteViews(c.getPackageName(), R.layout.cy_widget_card);
         String src = o.optString("src", "").trim();
@@ -493,16 +503,14 @@ final class CyWidgets {
             card.setViewVisibility(R.id.cy_card_img, View.VISIBLE);
             card.setViewVisibility(R.id.cy_card_scrim, View.VISIBLE);
             card.setViewVisibility(R.id.cy_card_fallback, View.GONE);
-            card.setInt(R.id.cy_card_frame, "setBackgroundResource", R.drawable.cy_w_photo_frame);
             card.setInt(R.id.cy_card_src, "setTextColor", col(c, R.color.cy_w_brass));
             card.setInt(R.id.cy_card_head, "setTextColor", col(c, R.color.cy_w_photo_text));
         } else {
             card.setViewVisibility(R.id.cy_card_img, View.GONE);
             card.setViewVisibility(R.id.cy_card_scrim, View.GONE);
             card.setViewVisibility(R.id.cy_card_fallback, View.VISIBLE);
-            card.setInt(R.id.cy_card_frame, "setBackgroundResource", R.drawable.cy_w_frame);
-            card.setInt(R.id.cy_card_src, "setTextColor", col(c, R.color.cy_w_kicker));
-            card.setInt(R.id.cy_card_head, "setTextColor", col(c, R.color.cy_w_ink));
+            card.setInt(R.id.cy_card_src, "setTextColor", col(c, R.color.cy_w_brass));
+            card.setInt(R.id.cy_card_head, "setTextColor", col(c, R.color.cy_w_paper));
         }
 
         boolean compact = hDp > 0 && hDp < 140;
@@ -512,7 +520,7 @@ final class CyWidgets {
         card.setTextViewText(R.id.cy_card_src, kick);
         card.setViewVisibility(R.id.cy_card_src, kick.length() == 0 ? View.GONE : View.VISIBLE);
         card.setTextViewText(R.id.cy_card_head, o.optString("title", ""));
-        card.setTextViewTextSize(R.id.cy_card_head, TypedValue.COMPLEX_UNIT_SP, compact ? 16f : (expanded ? 20f : 18f));
+        card.setTextViewTextSize(R.id.cy_card_head, TypedValue.COMPLEX_UNIT_SP, compact ? 16f : (expanded ? 20f : 19f));
         card.setInt(R.id.cy_card_head, "setMaxLines", compact ? 2 : (expanded ? 4 : 3));
 
         String link = o.optString("link", "");
@@ -524,12 +532,8 @@ final class CyWidgets {
         return card;
     }
 
-    // ---------------------------------------------------------------- Headlines 4x2
+    // ---------------------------------------------------------------- 4x3 / 4x4 Magazine Spread (cy_widget_list)
 
-    /**
-     * A3: On Android 12+ (API 31+) populates a scrollable ListView via RemoteCollectionItems (hero feature card + all headline rows).
-     * On older Android versions falls back to the static LinearLayout sized to the widget's heightDp.
-     */
     static RemoteViews buildList(Context c, int heightDp) {
         return buildList(c, 0, heightDp);
     }
@@ -537,81 +541,98 @@ final class CyWidgets {
     static RemoteViews buildList(Context c, int widthDp, int heightDp) {
         RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_list);
         JSONArray h = CyExtras.readHeadlines(c);
-        boolean scrollable = Build.VERSION.SDK_INT >= 31;
-        boolean pics = scrollable || heightDp == 0 || heightDp >= 140;
-        int want = scrollable ? 10 : (heightDp >= 330 ? 5 : (heightDp >= 250 ? 4 : (heightDp >= 190 ? 3 : (pics ? 2 : 3))));
-        java.util.ArrayList<JSONObject> rows = new java.util.ArrayList<>();
-        java.util.ArrayList<Integer> at = new java.util.ArrayList<>();
-        java.util.HashSet<String> seenLinks = new java.util.HashSet<>();
-        for (int i = 0; i < h.length() && rows.size() < want; i++) {
+        boolean upd = isUpdating(c), stale = isStale(c);
+        java.util.ArrayList<JSONObject> stories = new java.util.ArrayList<>();
+        for (int i = 0; i < h.length() && stories.size() < 3; i++) {
             JSONObject o = h.optJSONObject(i);
-            if (o == null || o.optString("title", "").length() == 0) continue;
-            rows.add(o);
-            at.add(i);
-            String lk = o.optString("link", "");
-            if (lk.length() > 0) seenLinks.add(lk);
+            if (o != null && o.optString("title", "").trim().length() > 0) stories.add(o);
         }
-        if (scrollable && rows.size() < want) {
-            JSONArray extra = tickerStories(c);
-            for (int i = 0; i < extra.length() && rows.size() < want; i++) {
-                JSONObject o = extra.optJSONObject(i);
-                if (o == null || o.optString("title", "").length() == 0) continue;
-                String lk = o.optString("link", "");
-                if (lk.length() > 0 && seenLinks.contains(lk)) continue;
-                if (lk.length() > 0) seenLinks.add(lk);
-                rows.add(o);
-                at.add(h.length() + i);
-            }
-        }
-        int shown = rows.size();
-        boolean stale = isStale(c);
-        boolean feature = heightDp == 0 || heightDp >= 170;
-        int cardW = widthDp > 0 ? Math.max(180, widthDp - 32) : 250;
-        int cardH = heightDp > 0 ? Math.max(120, Math.round(heightDp * 0.42f)) : 136;
-
-        if (scrollable && shown > 0) {
-            rv.setViewVisibility(R.id.cy_wl_list, View.GONE);
-            rv.setViewVisibility(R.id.cy_wl_listview, View.VISIBLE);
-            rv.setViewVisibility(R.id.cy_wl_empty, View.GONE);
-            RemoteViews.RemoteCollectionItems.Builder b = new RemoteViews.RemoteCollectionItems.Builder()
-                .setHasStableIds(true)
-                .setViewTypeCount(feature ? 2 : 1);
-            for (int k = 0; k < shown; k++) {
-                JSONObject o = rows.get(k);
-                RemoteViews item = (k == 0 && feature)
-                    ? featureCard(c, o, at.get(k), cardW, cardH, true, stale)
-                    : rowCard(c, o, at.get(k), k, shown, pics, feature, true, stale);
-                b.addItem(k, item);
-            }
-            rv.setRemoteAdapter(R.id.cy_wl_listview, b.build());
-            rv.setPendingIntentTemplate(
-                R.id.cy_wl_listview,
-                stale ? refreshIntent(c, 391) : CyExtras.openTemplateIntent(c, 395)
-            );
-        } else {
-            rv.setViewVisibility(R.id.cy_wl_listview, View.GONE);
-            rv.removeAllViews(R.id.cy_wl_list);
-            for (int k = 0; k < shown; k++) {
-                JSONObject o = rows.get(k);
-                if (k == 0 && feature) {
-                    rv.addView(R.id.cy_wl_list, featureCard(c, o, at.get(0), cardW, cardH, false, stale));
-                } else {
-                    rv.addView(R.id.cy_wl_list, rowCard(c, o, at.get(k), k, shown, pics, feature, false, stale));
-                }
-            }
-            rv.setViewVisibility(R.id.cy_wl_list, shown == 0 ? View.GONE : View.VISIBLE);
-            rv.setViewVisibility(R.id.cy_wl_empty, shown == 0 ? View.VISIBLE : View.GONE);
+        if (stories.isEmpty()) {
+            rv.setViewVisibility(R.id.cy_wsp_hero, View.GONE);
+            rv.setViewVisibility(R.id.cy_wsp_hrule, View.GONE);
+            rv.setViewVisibility(R.id.cy_wsp_bottom, View.GONE);
+            rv.setViewVisibility(R.id.cy_wl_empty, View.VISIBLE);
+            rv.setTextViewText(R.id.cy_wl_empty_t, upd ? "Updating…" : "Open CyPress to load headlines");
+            PendingIntent open = stale ? refreshIntent(c, 391) : CyExtras.openIntent(c, null, 390);
+            rv.setOnClickPendingIntent(android.R.id.background, open);
+            rv.setOnClickPendingIntent(R.id.cy_wl_empty, open);
+            return rv;
         }
 
-        boolean upd = isUpdating(c);
-        rv.setTextViewText(R.id.cy_wl_empty_t, upd ? "Updating…" : "Open CyPress to load your headlines");
+        rv.setViewVisibility(R.id.cy_wsp_hero, View.VISIBLE);
+        rv.setViewVisibility(R.id.cy_wsp_hrule, View.VISIBLE);
+        rv.setViewVisibility(R.id.cy_wsp_bottom, View.VISIBLE);
+        rv.setViewVisibility(R.id.cy_wl_empty, View.GONE);
+
+        // 1. Lead Hero Story (Top 60%)
+        JSONObject lead = stories.get(0);
+        String leadSrc = lead.optString("src", "").trim();
+        String leadAge = (upd || stale) ? "" : ageLabel(lead.optLong("date", 0L));
+        String leadKick = leadSrc.toUpperCase(Locale.getDefault());
+        if (leadAge.length() > 0) leadKick = leadKick.length() > 0 ? leadKick + "  ·  " + leadAge : leadAge;
+        if (stale) leadKick = "TAP TO REFRESH";
+        rv.setTextViewText(R.id.cy_wsp_hero_src, leadKick);
+        rv.setTextViewText(R.id.cy_wsp_hero_head, lead.optString("title", ""));
+
         String ed = sp(c).getString("widget_ed", "");
-        rv.setTextViewText(R.id.cy_wl_ed, upd ? "UPDATING…" : (stale ? "TAP TO REFRESH" : (ed.length() > 0 ? ed : "The art of staying informed.").toUpperCase(Locale.getDefault())));
-        if (pics) ensurePics(c);
-        PendingIntent open = stale ? refreshIntent(c, 391) : CyExtras.openIntent(c, null, 390);
-        rv.setOnClickPendingIntent(android.R.id.background, open);
-        rv.setOnClickPendingIntent(R.id.cy_wl_head, open);
-        rv.setOnClickPendingIntent(R.id.cy_wl_empty, open);
+        rv.setTextViewText(R.id.cy_wsp_hero_pill, ("CYPRESS  ·  " + (ed.length() > 0 ? ed : "THE FRONT PAGE")).toUpperCase(Locale.getDefault()));
+
+        int heroW = widthDp > 0 ? widthDp : 360;
+        int heroH = heightDp > 0 ? Math.round(heightDp * 0.6f) : 150;
+        Bitmap leadPic = hero(c, lead.optString("img", ""), heroW, heroH, false);
+        if (leadPic != null) {
+            rv.setImageViewBitmap(R.id.cy_wsp_hero_img, leadPic);
+            rv.setViewVisibility(R.id.cy_wsp_hero_img, View.VISIBLE);
+            rv.setViewVisibility(R.id.cy_wsp_hero_scrim, View.VISIBLE);
+            rv.setViewVisibility(R.id.cy_wsp_hero_fallback, View.GONE);
+            rv.setInt(R.id.cy_wsp_hero_src, "setTextColor", col(c, R.color.cy_w_brass));
+            rv.setInt(R.id.cy_wsp_hero_head, "setTextColor", col(c, R.color.cy_w_photo_text));
+        } else {
+            rv.setViewVisibility(R.id.cy_wsp_hero_img, View.GONE);
+            rv.setViewVisibility(R.id.cy_wsp_hero_scrim, View.GONE);
+            rv.setViewVisibility(R.id.cy_wsp_hero_fallback, View.VISIBLE);
+            rv.setInt(R.id.cy_wsp_hero_src, "setTextColor", col(c, R.color.cy_w_brass));
+            rv.setInt(R.id.cy_wsp_hero_head, "setTextColor", col(c, R.color.cy_w_paper));
+        }
+        rv.setOnClickPendingIntent(R.id.cy_wsp_hero, stale ? refreshIntent(c, 391) : CyExtras.openIntent(c, lead.optString("link", ""), 401));
+
+        // 2. Secondary Brief 1 (Bottom Left)
+        if (stories.size() > 1) {
+            JSONObject b1 = stories.get(1);
+            String b1Src = b1.optString("src", "").trim().toUpperCase(Locale.getDefault());
+            String b1Age = (upd || stale) ? "" : ageLabel(b1.optLong("date", 0L));
+            String b1Kick = b1Age.length() > 0 ? (b1Src.length() > 0 ? b1Src + "  ·  " + b1Age : b1Age) : b1Src;
+            rv.setTextViewText(R.id.cy_wsp_b1_src, b1Kick);
+            rv.setTextViewText(R.id.cy_wsp_b1_head, b1.optString("title", ""));
+            rv.setInt(R.id.cy_wsp_b1_src, "setTextColor", col(c, R.color.cy_w_kicker));
+            rv.setInt(R.id.cy_wsp_b1_head, "setTextColor", col(c, R.color.cy_w_ink));
+            rv.setViewVisibility(R.id.cy_wsp_b1, View.VISIBLE);
+            rv.setOnClickPendingIntent(R.id.cy_wsp_b1, stale ? refreshIntent(c, 391) : CyExtras.openIntent(c, b1.optString("link", ""), 402));
+        } else {
+            rv.setViewVisibility(R.id.cy_wsp_b1, View.GONE);
+        }
+
+        // 3. Secondary Brief 2 (Bottom Right)
+        if (stories.size() > 2) {
+            JSONObject b2 = stories.get(2);
+            String b2Src = b2.optString("src", "").trim().toUpperCase(Locale.getDefault());
+            String b2Age = (upd || stale) ? "" : ageLabel(b2.optLong("date", 0L));
+            String b2Kick = b2Age.length() > 0 ? (b2Src.length() > 0 ? b2Src + "  ·  " + b2Age : b2Age) : b2Src;
+            rv.setTextViewText(R.id.cy_wsp_b2_src, b2Kick);
+            rv.setTextViewText(R.id.cy_wsp_b2_head, b2.optString("title", ""));
+            rv.setInt(R.id.cy_wsp_b2_src, "setTextColor", col(c, R.color.cy_w_kicker));
+            rv.setInt(R.id.cy_wsp_b2_head, "setTextColor", col(c, R.color.cy_w_ink));
+            rv.setViewVisibility(R.id.cy_wsp_b2, View.VISIBLE);
+            rv.setViewVisibility(R.id.cy_wsp_vrule, View.VISIBLE);
+            rv.setOnClickPendingIntent(R.id.cy_wsp_b2, stale ? refreshIntent(c, 391) : CyExtras.openIntent(c, b2.optString("link", ""), 403));
+        } else {
+            rv.setViewVisibility(R.id.cy_wsp_b2, View.GONE);
+            rv.setViewVisibility(R.id.cy_wsp_vrule, View.GONE);
+        }
+
+        ensurePics(c);
+        PendingIntent bgOpen = stale ? refreshIntent(c, 391) : CyExtras.openIntent(c, null, 390);
+        rv.setOnClickPendingIntent(android.R.id.background, bgOpen);
         return rv;
     }
 
@@ -713,7 +734,9 @@ final class CyWidgets {
             if (!stale && !upd && src.length() > 0) kick = kick + "  ·  " + src;
             if (age.length() > 0) kick = kick + "  ·  " + age;
             pg.setTextViewText(R.id.cy_wq_src, kick);
+            pg.setInt(R.id.cy_wq_src, "setTextColor", col(c, R.color.cy_w_kicker));
             pg.setTextViewText(R.id.cy_wq_head, o.optString("title", ""));
+            pg.setInt(R.id.cy_wq_head, "setTextColor", col(c, R.color.cy_w_ink));
             pg.setFloat(R.id.cy_wq_head, "setAlpha", upd ? 0.5f : (o.optBoolean("read", false) ? 0.6f : 1f));
             String link = o.optString("link", "");
             String img = o.optString("img", "");

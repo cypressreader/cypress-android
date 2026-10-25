@@ -34,7 +34,7 @@ public class CyWidgetProvider extends AppWidgetProvider {
         try {
             for (int id : appWidgetIds) {
                 manager.updateAppWidget(id, CyWidgets.buildTop(context, id, CyWidgets.widthDp(manager, id), CyWidgets.heightDp(manager, id)));
-                manager.notifyAppWidgetViewDataChanged(id, R.id.cy_stack_view);
+                manager.notifyAppWidgetViewDataChanged(id, R.id.cy_flipper);
             }
             CyWidgets.arm(context, false);
         } catch (Throwable t) {
@@ -47,7 +47,7 @@ public class CyWidgetProvider extends AppWidgetProvider {
     public void onAppWidgetOptionsChanged(Context context, AppWidgetManager manager, int appWidgetId, Bundle newOptions) {
         try {
             manager.updateAppWidget(appWidgetId, CyWidgets.buildTop(context, appWidgetId, CyWidgets.widthDp(manager, appWidgetId), CyWidgets.heightDp(manager, appWidgetId)));
-            manager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.cy_stack_view);
+            manager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.cy_flipper);
         } catch (Throwable t) {
             // never crash
         }

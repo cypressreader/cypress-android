@@ -8,22 +8,22 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * RemoteViewsService providing swipeable card items for the StackView widget.
+ * RemoteViewsService providing swipeable full-bleed card items for the AdapterViewFlipper Top Story widget.
  */
 public class CyWidgetService extends RemoteViewsService {
 
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
-        return new CyStackRemoteViewsFactory(this.getApplicationContext(), intent);
+        return new CyFlipperRemoteViewsFactory(this.getApplicationContext(), intent);
     }
 }
 
-class CyStackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
+class CyFlipperRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
 
     private final Context mContext;
     private JSONArray mHeadlines;
 
-    public CyStackRemoteViewsFactory(Context context, Intent intent) {
+    public CyFlipperRemoteViewsFactory(Context context, Intent intent) {
         mContext = context;
     }
 

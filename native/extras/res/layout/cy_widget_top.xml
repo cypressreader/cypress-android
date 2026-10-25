@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Top Story: a flipper that turns to the next story by itself every few seconds (each story is one page, see cy_widget_top_page).
-     Two big round arrows sit top right. The root is android:id/background so Android 12+ rounds it. -->
+<!-- Top Story: Full-bleed card deck with AdapterViewFlipper (replaces StackView).
+     Smooth flat card transitions with zero 3D perspective distortion or card clipping. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@android:id/background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/cy_w_bg">
 
-    <StackView
-        android:id="@+id/cy_stack_view"
+    <AdapterViewFlipper
+        android:id="@+id/cy_flipper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:autoStart="true"
+        android:flipInterval="7000"
+        android:inAnimation="@android:anim/fade_in"
+        android:outAnimation="@android:anim/fade_out"
         android:loopViews="true" />
 
     <LinearLayout
@@ -19,12 +23,12 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="14dp"
+        android:padding="20dp"
         android:visibility="gone">
 
         <ImageView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:importantForAccessibility="no"
             android:src="@drawable/cy_w_sun" />
 
@@ -32,7 +36,7 @@
             android:id="@+id/cy_wt_empty_t"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:fontFamily="serif"
             android:gravity="center"
             android:textColor="@color/cy_w_muted"
@@ -40,22 +44,56 @@
             android:textStyle="italic" />
     </LinearLayout>
 
+    <!-- Top Left: Live Folio or Update pill -->
     <TextView
         android:id="@+id/cy_wt_upd"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|start"
-        android:layout_marginStart="12dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginStart="14dp"
+        android:layout_marginTop="14dp"
         android:background="@drawable/cy_w_pill_bg"
         android:fontFamily="sans-serif-medium"
-        android:letterSpacing="0.12"
-        android:paddingStart="8dp"
-        android:paddingTop="3dp"
-        android:paddingEnd="8dp"
-        android:paddingBottom="3dp"
+        android:letterSpacing="0.14"
+        android:paddingStart="10dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="4dp"
         android:text="UPDATING…"
         android:textColor="@color/cy_w_brass"
         android:textSize="9sp"
         android:visibility="gone" />
+
+    <!-- Top Right: Previous & Next flip controls floating over the full-bleed card -->
+    <LinearLayout
+        android:id="@+id/cy_wt_controls"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/cy_wt_prev"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/cy_w_pill_bg"
+            android:contentDescription="Previous story"
+            android:padding="7dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/cy_w_chev_prev" />
+
+        <ImageView
+            android:id="@+id/cy_wt_next"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/cy_w_pill_bg"
+            android:contentDescription="Next story"
+            android:padding="7dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/cy_w_chev_next" />
+    </LinearLayout>
 </FrameLayout>

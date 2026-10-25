@@ -734,3 +734,10 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 - [ ] **Full-Bleed Imagery & Scrim**: For stories with photos, verify the dark gradient scrim (`#0c2619`) keeps the white kicker and headline readable.
 - [ ] **Memory & Performance**: Verify widgets never crash or drop out due to `TransactionTooLargeException` (downsampled to 480px max bound in `RGB_565`).
 - [ ] **Headlines Broadsheet**: On Android 12+ (API 31+), verify Headlines scrolls smoothly via `ListView` and tapping any row opens that specific story.
+
+## 1.157 Widgets Overhaul (4x3 Magazine Spread, AdapterViewFlipper, Zero Borders) — implemented, unverified (real phone)
+- [ ] **4x3 Magazine Spread (`cy_widget_list`)**: Drop onto home screen. Verify top 60% is full-bleed hero with scrim and 2–3 line serif title. Verify bottom 40% cream card renders two secondary story briefs side-by-side with high-contrast timestamps.
+- [ ] **Top Story Deck (`cy_widget_top`)**: Verify cards fill 100% edge-to-edge with flat transitions (AdapterViewFlipper). Tap arrows top-right to flip immediately. Tap card to deep-link directly into article reader.
+- [ ] **No Double Borders**: Verify widgets have zero nested inner card frames; content touches the launcher's widget corner radius directly.
+- [ ] **Typographic Fallbacks**: For articles lacking photos, verify the rich dark-forest card (`#0c2619`) with antique brass sun ornament and cream serif type renders centered and clean.
+- [ ] **Compact Ticker (`cy_widget_ticker`)**: Verify 4x1 tile has high-contrast brass kickers (`#8c6b2d`) on cream and flips smoothly between headlines.
