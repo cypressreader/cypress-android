@@ -4,6 +4,8 @@ let pass=0,fail=0;const log=[];const ck=(n,c,x='')=>{if(c)pass++;else{fail++;log
 (async()=>{const b=await chromium.launch();
 const p=await (await b.newContext({viewport:{width:390,height:800}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
 await mock(p,{n:6});await p.goto('file://'+APP);await p.waitForTimeout(1500);
+/* polish-2026-10: these themes are retired (hidden + migrated via POLISH_RETIRED); the checks come back by themselves if they are restored */
+if(await p.evaluate(ids=>typeof POLISH_RETIRED!=='undefined'&&ids.every(t=>t in POLISH_RETIRED),['highstorm','crimsondawn','thevoid'])){console.log('st27 skipped: themes retired');await b.close();process.exit(0)}
 const R=await p.evaluate(async()=>{
  const o={};const st=document.createElement('style');st.textContent='*{transition:none!important}';document.head.append(st);
  document.querySelectorAll('dialog[open]').forEach(d=>d.close());
