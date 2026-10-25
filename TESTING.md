@@ -700,3 +700,9 @@ Implemented, checked in a desktop browser only. On a real phone check:
 ## On-device Translate story (ML Kit) (2026-10-25, NOT built or run: native code unverified)
 - New `native/extras/CyTranslatePlugin.java` (+ ML Kit `translate` and `language-id` gradle lines added/removed with the extras in `scripts/prepare_android.py`). Only compiled against stand-in stubs here; the first real compile is the APK workflow. If the extras fail to compile, look here first.
 - On the phone: open a story in another language > "..." > Translate. Expect: no Google Translate dialog; text translates in place; "Show original" restores. First time per language downloads a pack (~30 MB): test once on Wi-Fi, once offline (expect the "Couldn't download the language pack" toast). Check APK size grew only a few MB.
+
+## Translated headlines (2026-10-25, unverified on device; Android app only)
+- Feed settings (open a feed's settings) > "Translate headlines": Follow my setting / Translate / Don't translate. Settings > Feeds and Stories > "Translate headlines": Only feeds I choose / Every feed in another language. Neither row shows in a browser.
+- Turn it on for a German feed: on-screen headlines and short descriptions should switch to English a moment after they appear (a few at a time while scrolling), with a small "TRANSLATED" tag; tapping a story opens it with the original headline and the story already translated (no Google pop-up). Remembered after a restart (`folio-trc`).
+- Each translated card gets a small globe badge with the language (e.g. DE) next to the site name; tapping it flips that card between translation and original without opening the story.
+- Check scrolling stays smooth with a translated feed on screen, and that English stories in the same feed are left alone.
