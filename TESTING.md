@@ -722,3 +722,8 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 - [ ] Light and dark phone, Z Fold folded and unfolded. Widget picker previews are still the old stills (not redrawn yet).
 
 - [ ] Settings > Feeds and Stories > Translate headlines, and a site's own settings: the small print says it uses Google's translator built into the app and may be wrong.
+
+## "New stories" pill: calmer — implemented, unverified
+- [ ] Leave the app open on All Stories during an automatic refresh: no pill while sites are still loading; one pill with the full count when it is done.
+- [ ] Tap the pill: no new pill for 30 minutes, however many stories arrive. After 30 minutes the next screen redraw shows one again.
+- [ ] Pull to refresh: no pill afterwards (the new stories are simply in the list); the 30-minute clock restarts.

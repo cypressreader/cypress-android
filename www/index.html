@@ -5544,7 +5544,9 @@ let ONT=0;addEventListener('online',()=>{clearTimeout(ONT);ONT=setTimeout(()=>{i
 /* B95: a feed that keeps failing is tried less and less often (15 min after the third failure in a row, then 30, 60 … up to a day) instead of on every refresh; pulling to refresh or the refresh button still tries everything */
 const deadWait=f=>{const h=S.health[f.id]||{},n=h.fn||0;/* a site that said "too many requests, come back in N" (HTTP 429 Retry-After) is left alone that long */if(h.fail&&h.ra>h.fail)return Math.min(864e5,h.ra-h.fail);if(n<3||!h.fail)return 0;return Math.min(864e5,9e5*Math.pow(2,n-3))};
 const rfDead=(f,fresh)=>{if(fresh===true)return false;const w=deadWait(f);return w>0&&Date.now()-(S.health[f.id].fail||0)<w};
-const loadAll=(fresh,again)=>{S.lastLoad=Date.now();const bf=!again&&S.follow&&S.follow.length?new Set(S.feeds.flatMap(f=>(items[f.id]||[]).map(a=>a.link))):null;return Promise.all(S.feeds.filter(f=>!rfSkip(f,fresh)&&!rfDead(f,fresh)).map(f=>load(f,fresh===true).catch(()=>{}))).then(r=>{if(LRT||LRW)loadFlush();pfKick();wireSettle();if(!again)loadRetry();if(bf)setTimeout(()=>followAlerts(bf),2600);return r})};
+const loadAll0=(fresh,again)=>{S.lastLoad=Date.now();const bf=!again&&S.follow&&S.follow.length?new Set(S.feeds.flatMap(f=>(items[f.id]||[]).map(a=>a.link))):null;return Promise.all(S.feeds.filter(f=>!rfSkip(f,fresh)&&!rfDead(f,fresh)).map(f=>load(f,fresh===true).catch(()=>{}))).then(r=>{if(LRT||LRW)loadFlush();pfKick();wireSettle();if(!again)loadRetry();if(bf)setTimeout(()=>followAlerts(bf),2600);return r})};
+/* how many refreshes are running: the 'new stories' pill waits until they have all finished */
+let LAN=0;const loadAll=(fresh,again)=>{LAN++;const done=()=>{LAN=Math.max(0,LAN-1);if(!LAN&&WIRE.held){WIRE.held=false;try{renderSoon()}catch(e){}}};return loadAll0(fresh,again).then(r=>{done();return r},e=>{done();throw e})};
 /* when a dozen feeds fail in the same refresh it is nearly always the phone's connection dropping for a moment (a Wi-Fi switch, waking up), not the sites: try those feeds once more after a short wait */
 let RETRYT=0;
 function loadRetry(){
@@ -6181,7 +6183,9 @@ function wireReset(){WIREX={};WIRE.order=null;WIRE.known=null;WIRE.anchor=null;W
 function wireSettle(){WIRE.settled=true;clearTimeout(wireReset.t);if(wireSel()&&!WIRE.order&&!(($('#q')||{}).value||'').trim()){try{render()}catch(e){}}}
 /* after tapping the pill, the stories that were waiting wear a small 'New' tag so you can see where the ranking put them */
 function markFresh(){const F=WIRE.fresh,g=$('#grid');if(!F||!g)return;g.querySelectorAll('.card:not(.fresh)').forEach(c=>{if(F.has(chref(c))){c.classList.add('fresh');const t=document.createElement('span');t.className='newtag';t.textContent='New';c.append(t)}})}
-function wireLoad(){WIRE.fresh=new Set(WIRE.pend.map(a=>a.link));WIRE.order=null;WIRE.known=null;WIRE.anchor=null;WIRE.settled=true;render();markFresh();const m=$('main');if(m)m.scrollTop=0}
+/* the pill: never while a refresh is running, and after you tap it (or pull to refresh) not again for 30 minutes. Stories that wait meanwhile load the next time you pull to refresh. */
+function pillCount(){const n=WIRE.pend.length;if(!n){WIRE.held=false;return 0}const hold=LAN>0||(WIRE.pillT&&Date.now()-WIRE.pillT<30*6e4);WIRE.held=!!hold;return hold?0:n}
+function wireLoad(){WIRE.pillT=Date.now();WIRE.fresh=new Set(WIRE.pend.map(a=>a.link));WIRE.order=null;WIRE.known=null;WIRE.anchor=null;WIRE.settled=true;render();markFresh();const m=$('main');if(m)m.scrollTop=0}
 /* the ranking is made once; later renders only re-use it. Returns the list to show; WIRE.pend holds stories that arrived since */
 function wireList(cur0){
  const rank=l=>S.sel!=='all'?l:smartOn()?smartAll(l):capList(l);
@@ -6366,7 +6370,7 @@ if(FD){
    if(run.length>2){const rest=run.slice(1),id='t'+peHash(rest[0].head.link);rest.forEach(u=>{WHY[u.head.link]='A busy stretch from '+fof(u.head).title+', folded to keep the list mixed.'});flush();B.push(rowsWrap(h2));h2='';B.push(`<div class="wthr"><button type="button" class="wthr-t" data-thr="${id}" aria-expanded="false">${rest.length} more from ${esc(fof(rest[0].head).title)}</button><div class="wthr-b" id="${id}" hidden>${rest.map(u=>rowHtml(u.head)).join('')}</div></div>`)}}
   if(h2)B.push(rowsWrap(h2))}}
   const selFeeds=T?null:S.sel==='all'?S.feeds:S.sel.startsWith('s:')?S.feeds.filter(f=>'s:'+f.id===S.sel):S.sel.startsWith('f:')?S.feeds.filter(f=>f.folder===S.sel.slice(2)):null,
-  unread=selFeeds?uc(selFeeds):cn.filter(a=>!S.read[a.link]).length,pend=T?0:WIRE.pend.length,f1=!T&&S.sel.startsWith('s:')?S.feeds.find(x=>'s:'+x.id===S.sel):null,here=S.sel==='all'?'your sites':'here';
+  unread=selFeeds?uc(selFeeds):cn.filter(a=>!S.read[a.link]).length,pend=T?0:pillCount(),f1=!T&&S.sel.startsWith('s:')?S.feeds.find(x=>'s:'+x.id===S.sel):null,here=S.sel==='all'?'your sites':'here';
  if(!unread&&!pend)B.push(wireCaught(cn,T,FD));
  else B.push(`<section class="wend"><p>That is the end of ${T?'this topic':f1?esc(f1.title):S.sel==='all'?'the wire':'this list'} for now. ${unread} unread${S.sel==='all'?' across your sites':''}${pend?`, ${pend} new ${pend===1?'story':'stories'} waiting`:''}.</p>${pend?`<button type="button" class="tx2" data-wire="load">Load the new ${pend===1?'story':'stories'}</button>`:''}</section>`);
  cur=cn;
@@ -10842,10 +10846,10 @@ $('#ref').onclick=async()=>{
  const b=$('#ref');if(b.classList.contains('spin'))return;
  if(!online()){toast(S.offline?'Offline mode is on. Turn it off in Settings to refresh':'You’re offline');return}
  const before=new Set(S.feeds.flatMap(f=>(items[f.id]||[]).map(a=>a.link)));
- b.classList.add('spin');toast('Refreshing '+S.feeds.length+' feeds…');wireReset();
+ b.classList.add('spin');toast('Refreshing '+S.feeds.length+' feeds…');WIRE.pillT=Date.now();wireReset();
  /* one dead or hanging site can take a minute to give up: stop waiting after 20s (it keeps loading quietly) */
  await Promise.race([loadAll(true),new Promise(r=>setTimeout(r,20000))]);
- b.classList.remove('spin');sfxTone('refresh');
+ b.classList.remove('spin');sfxTone('refresh');WIRE.pillT=Date.now();wireReset();wireSettle();
  const n=S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>!before.has(a.link)).length,badL=S.feeds.filter(f=>state[f.id]==='err'),bad=badL.length;
  toast((n?n+' new '+(n===1?'story':'stories'):'No new stories')+(bad===1?' · '+badL[0].title+' didn’t respond':bad?' · '+bad+' feeds didn’t respond':''));
 };
