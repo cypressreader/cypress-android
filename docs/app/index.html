@@ -827,6 +827,14 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}/* a phone's own font s
 .ib:disabled{opacity:.3;cursor:default}
 #pc{color:var(--mut);font-size:14px;min-width:56px;text-align:center}
 .book{position:relative;flex:1;min-height:0;margin:0 clamp(12px,3vw,24px) clamp(14px,2.5vw,22px);perspective:1700px;touch-action:pan-y}
+/* polish-2026-10 G2: page-edge stack on the right of a paged story; restore by deleting these lines */
+.book>.rdedge{position:absolute;top:14px;bottom:14px;right:0;width:18px;z-index:4;display:flex;justify-content:flex-end}
+.book>.rdedge[hidden],#rd.vert .book>.rdedge{display:none}
+.book>.rdedge>i{display:block;height:100%;width:calc(1px + var(--rem,0)*8px);background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--ink) 34%,transparent) 0 1px,transparent 1px 2px);border-radius:0 2px 2px 0;transition:width .35s ease}
+.book.turning>.rdedge{opacity:0}
+.book>.rdedge .rdtip{position:absolute;right:22px;top:50%;transform:translateY(-50%);background:var(--ink);color:var(--bg);font:600 12.5px/1.2 var(--sans);padding:8px 12px;border-radius:10px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s}
+.book>.rdedge .rdtip.on{opacity:1}
+html.rmo .book>.rdedge>i,html.lowp .book>.rdedge>i{transition:none}
 .view{position:absolute;inset:0;overflow:hidden;background:var(--pn);border:1px solid var(--ln);border-radius:14px}
 .book.one.turning{clip-path:inset(-80px 0 -80px 0)}
 .tl{position:absolute;top:0;height:100%;overflow:hidden;pointer-events:none}
@@ -2489,7 +2497,7 @@ html:is([data-theme=halcyon],[data-theme=halcyond]) body>aside{background-image:
 html[data-theme=halcyon] body>aside{--pn:#123524;--bg:#123524;--ink:#f3ecdc;--mut:#c9bd9f;--ln:#2a4a38;--logo:#c9a24a;--a1:#c9a24a;background:#123524;color:#f3ecdc}
 html[data-theme=halcyond] body>aside{--pn:#123524;--bg:#0c2619;--ln:#2a4a38;--logo:#c9a24a;background:#0c2619;color:var(--ink)}
 html[data-theme=halcyond] .top{background:#0c2619!important;box-shadow:0 1px 0 #2a4a38}
-html:is([data-theme=halcyon],[data-theme=halcyond]) #rd .cols .body p.dropcap .dcap,html:is([data-theme=halcyon],[data-theme=halcyond]) .body p.dropcap .dcap{color:var(--a2);border:1px solid var(--a2);padding:.08em .14em 0;margin-right:.1em;font-family:var(--fd)}
+html:is([data-theme=halcyon],[data-theme=halcyond]) #rd .cols .body p.dropcap .dcap,html:is([data-theme=halcyon],[data-theme=halcyond]) .body p.dropcap .dcap{color:var(--a2);font-family:var(--fd)}/* polish-2026-10 F3: the boxed cap is now a plain cap; restore by adding back border:1px solid var(--a2);padding:.08em .14em 0;margin-right:.1em */
 html:is([data-theme=halcyon],[data-theme=halcyond]) .pullq{border-left-color:var(--a2);font-family:var(--fd)}
 html[data-theme=thegoat] .cols .body .endmark,html[data-theme=thegoatd] .cols .body .endmark{width:58px;height:58px;margin:1.2em auto .4em;background:var(--sym) center/contain no-repeat;-webkit-mask:none;mask:none}
 html[data-theme=covenant] .cols .body .endmark,html[data-theme=protoss] .cols .body .endmark{width:48px;height:48px;margin:1.3em auto .5em}
@@ -3200,6 +3208,9 @@ body:not(.narrow):not(.split).reading:not(.sideshow) #sideh{display:flex}
 .rnext>small{display:block;font:700 10.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut);margin-bottom:8px}
 .rnext>button{all:unset;cursor:pointer;display:flex;gap:14px;align-items:center;width:100%;box-sizing:border-box}
 .rnext>button:focus-visible{outline:2px solid var(--ra,var(--logo));outline-offset:3px;border-radius:6px}
+/* polish-2026-10 F7: the scroll-mode "Up next" is a card under the end mark, in brass and ink */
+#rd .rnext{border:1px solid var(--ln);border-top:2px solid var(--rbr,var(--ink));border-radius:14px;padding:14px 16px 10px;background:var(--pn)}
+#rd .rnext>small{color:var(--rbr,var(--mut))}
 .rn-i{flex:none;width:84px;height:84px;border-radius:6px;overflow:hidden;background:var(--pn)}.rn-i img{width:100%;height:100%;object-fit:cover;display:block}
 .rn-t{min-width:0}.rn-t i{display:block;font:600 11px var(--sans);font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:var(--ra,var(--logo))}
 .rn-t b{display:block;margin-top:3px;font:400 clamp(21px,5vw,28px)/1.15 var(--disp,var(--serif))}
@@ -3570,6 +3581,27 @@ html.txo #grid img,html.txo #rd img,html.txo #hub img,html.txo .dcv-art>img{disp
 .mn .mg button{padding:8px 8px;font-size:13.5px;line-height:1.2;border-radius:8px;min-height:36px;display:flex;align-items:center}
 .mn .gr.g3 button{justify-content:center;text-align:center;padding:8px 4px}
 .mn .mg button[hidden]{display:none}
+/* polish-2026-10 J5: reader "…" bottom sheet (no theme red: ink and brass only) */
+#rd .rshbd{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.34)}
+#rd .rsh{position:fixed;left:0;right:0;bottom:0;z-index:61;margin:0 auto;width:min(560px,100%);max-height:min(88svh,760px);overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box;background:var(--pn);color:var(--ink);border:1px solid var(--ln);border-bottom:0;border-radius:20px 20px 0 0;padding:4px 12px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -14px 40px rgba(0,0,0,.25);text-align:left}
+#rd .rsh[hidden],#rd .rshbd[hidden],#rd .rsh [hidden]{display:none!important}
+#rd .rshg{display:block;width:40px;height:4px;border-radius:2px;background:var(--rbr,#b08d3e);margin:8px auto 6px}
+#rd .rshh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;margin:0}
+#rd .rsh button{all:unset;box-sizing:border-box;cursor:pointer;color:var(--ink);-webkit-tap-highlight-color:transparent}
+#rd .rsh button:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+#rd .rsh button:focus-visible{outline:2px solid var(--rbr,#b08d3e);outline-offset:-2px}
+#rd .rshq{display:grid;grid-template-columns:repeat(auto-fit,minmax(54px,1fr));gap:2px;padding:4px 0 10px;border-bottom:1px solid var(--ln);margin-bottom:6px}
+#rd .rshq button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:66px;padding:8px 2px;border-radius:12px;font:500 11.5px/1.15 var(--sans);text-align:center}
+#rd .rshq button svg{width:24px;height:24px;stroke-width:1.5}
+#rd .rshq button[aria-pressed=true] svg{color:var(--rbr,#b08d3e)}
+#rd .rshl>button,#rd .rshl>div>button{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:0 12px;border-radius:10px;font:500 15px/1.2 var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rd .rshr{display:flex;gap:6px;margin:4px 0}
+#rd .rshr button{flex:1;justify-content:center;border:1px solid var(--ln);font-size:14px}
+#rd .rshr button svg{width:19px;height:19px;stroke-width:1.5;flex:none}
+#rd .rshr button[aria-pressed=true]{border-color:var(--rbr,#b08d3e);background:color-mix(in srgb,var(--rbr,#b08d3e) 14%,transparent)}
+#rd .rshl>.rshm{justify-content:space-between;color:var(--mut);border-top:1px solid var(--ln);border-radius:0;margin-top:6px}#rd .rshm svg{flex:none;width:18px;height:18px}
+#rd .rshm svg{transition:transform .2s}#rd .rshm[aria-expanded=true] svg{transform:rotate(180deg)}
+html.rmo #rd .rshm svg{transition:none}
 
 /* a picture that cannot load shows the feed's designed pattern art, never a bare grey box */
 .imgfb{display:flex;align-items:flex-end;justify-content:flex-start;width:100%;max-height:var(--ih);box-sizing:border-box;margin:1em 0;padding:12px 14px;border:0;border-radius:12px;break-inside:avoid;cursor:pointer;color:rgba(255,255,255,.86);text-align:left;font:600 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;background-image:var(--pat),linear-gradient(150deg,color-mix(in srgb,var(--b,#1f6a48) 100%,#fff 10%),color-mix(in srgb,var(--b,#1f6a48) 100%,#0b2119 40%));background-size:96px 96px,auto}
@@ -3839,7 +3871,7 @@ body.exbusy [data-exact]{cursor:progress}
 #rd .cols .tt{font-family:var(--disp,var(--serif));font-weight:600;font-size:clamp(32px,5.2vw,56px);line-height:1.04;letter-spacing:-.015em;text-wrap:balance}
 #rd .cols .dt{font:500 13.5px/1.5 var(--sans);color:var(--mut)}
 #rd .cols .dt .by{font-family:var(--serif);font-style:italic;font-size:14.5px;color:var(--ink)}
-#rd.vert .cols>:is(.kick,.tt,.dt,.note,.body,.orig){max-width:700px;margin-left:auto;margin-right:auto}
+#rd.vert .cols>:is(.kick,.tt,.dt,.note,.body,.orig){max-width:var(--rdmw,700px);margin-left:auto;margin-right:auto}
 #rd .cols .body p.dropcap .dcap{float:left;font-family:var(--disp,var(--serif));font-weight:600;font-size:3.2em;line-height:.75;margin-right:8px;padding:.05em 0 0;color:var(--b,var(--ink))}
 /* 3. Related reading as a quiet callout card */
 .body .rcall{margin:1.3em 0;padding:11px 16px 12px;border-left:3px solid var(--b,var(--ink));border-radius:0 10px 10px 0;background:color-mix(in srgb,var(--b,var(--ink)) 5%,transparent);break-inside:avoid;text-align:left}
@@ -3973,6 +4005,28 @@ body:not(.narrow):not(.split).reading:not(.sideshow)>aside{transform:none;transi
 .pullq,.cine .body .pullq,.cine-t .body .pullq,html.rdx .pullq,#rd .cols .pullq,html.dkart .pullq{border:0!important;border-left:0!important;padding:1.1em .6em;margin:1.4em auto;text-align:center;position:relative;max-width:34em}
 .pullq::before,.pullq::after{content:"";display:block;width:36px;height:2px;margin:0 auto;background:var(--ra,var(--b,var(--ink)));opacity:.7}
 .pullq::before{margin-bottom:.8em}.pullq::after{margin-top:.8em}
+/* polish-2026-10 F1-F5: the story page reads like a magazine. --rbr is the reader's brass (ink-mixed so it keeps contrast on any theme). Restore the old look by deleting this block. */
+#rd{--rbr:color-mix(in srgb,#b08d3e 66%,var(--ink))}
+html[data-theme=halcyon] #rd{--rbr:#7d5f14}html[data-theme=halcyond] #rd{--rbr:#c9a24a}
+#rd .cols .kick{color:var(--rbr);border-bottom:0;padding-bottom:0;margin:0 0 8px}
+#rd .cols .kick::after{content:none}
+#rd .cols .kick .rkk{margin:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit}
+#rd .cols .rdk{margin:.4em 0 .55em;font:italic 400 1.05em/1.4 var(--serif);color:var(--mut);text-align:left;hyphens:manual;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;break-after:avoid}
+#rd .cols .dt{display:block;font:400 13px/1.6 var(--sans);color:var(--mut)}
+#rd .cols .dt>*{display:inline}
+#rd .cols .dt .by{font-style:normal;color:var(--ink)}
+#rd .cols .dt .flw{margin-left:6px;vertical-align:1px}
+#rd .cols .dt .rdsep{margin:0 .45em;opacity:.7}
+#rd .cols .body blockquote:not(.emb blockquote):not([class*=twitter]):not([class*=instagram]):not([class*=tiktok]){border:0;border-top:1px solid var(--rbr);border-bottom:1px solid var(--rbr);padding:.8em .3em;margin:1.4em auto;max-width:30em;text-align:center;font-family:var(--disp,var(--fd,var(--serif)));font-style:italic;font-weight:400;font-size:1.25em;line-height:1.32;hyphens:manual;text-indent:0;break-inside:avoid}
+#rd .cols .body blockquote:not(.emb blockquote) p{margin:0 0 .45em;font:inherit;text-align:center;text-indent:0;hyphens:manual}
+#rd .cols .body blockquote:not(.emb blockquote) p:last-child{margin-bottom:0}
+#rd .pullq::before,#rd .pullq::after{background:var(--rbr);opacity:1;height:1px}
+#rd .cols .body p.dropcap .dcap{float:left;font-size:calc((2*var(--lh,1.68) + .72)/.72*1em);line-height:.78;margin:.07em .1em 0 0;padding:0;border:0;color:var(--rbr)}
+.cols .body p.dropcap::first-line{font-variant-caps:small-caps;letter-spacing:.03em}
+#rd:not(.cine) .cols .body h2{font:600 1.35em/1.16 var(--disp,var(--serif));letter-spacing:-.005em;text-decoration:none;text-align:left;margin:1.35em 0 .45em}
+#rd:not(.cine) .cols .body h2::before{width:20px;height:2px;margin:0 0 .55em;background:var(--rbr);border-radius:1px}
+#rd .cols .body h3{text-decoration:none}
+#rd:not(.vert):not(.cpv2) .cols>img.hero{max-height:140px}
 /* 18. End of a story: related links and any publisher appeal stay in one tidy block, inside the column, never split */
 .rfoot,.rfoot *{max-width:100%}.rfoot{break-inside:avoid;column-span:none;overflow:hidden;margin:1.6em 0 .4em}
 .body .rfoot a,.body .rfoot li{overflow-wrap:anywhere}
@@ -6669,9 +6723,9 @@ function decorateTpl(){
  c.classList.remove('tplb','tplf');if(tpl==='b')c.classList.add('tplb');if(tpl==='f')c.classList.add('tplf');
  ['.rbrk','.rtags','.rby','.rkk'].forEach(q=>c.querySelectorAll(q).forEach(x=>x.remove()));
  /* kicker: what kind of read this is, from its measured length */
- const k=c.querySelector('.kick');if(k&&tpl!=='s'){const s=document.createElement('span');s.className='rkk';s.textContent=(tpl==='b'?'In brief':'Long read')+' · '+mins+' min';k.append(s)}
+ const k=c.querySelector('.kick');if(k){const s=document.createElement('span');s.className='rkk';s.textContent=' · '+(tpl==='b'?'In brief · ':tpl==='f'?'Long read · ':'')+mins+' min';k.append(s)}/* polish-2026-10 F1: every story's kicker ends with its reading time (it used to be added for briefs and long reads only, with the time repeated in the date row) */
  /* byline, for a brief */
- if(tpl==='b'){const t=c.querySelector('.tt');if(t){const by=document.createElement('p');by.className='rby';by.textContent=a.author?'By '+String(a.author).slice(0,60):fof(a).title;t.after(by)}}
+ if(tpl==='b'&&RDX_OLDHDR){const t=c.querySelector('.tt');if(t){const by=document.createElement('p');by.className='rby';by.textContent=a.author?'By '+String(a.author).slice(0,60):fof(a).title;t.after(by)}}
  /* dateline: "WASHINGTON (Reuters) —" opens the first paragraph as a small-caps lead-in */
  {const p0=[...b.querySelectorAll(':scope > p')].find(p=>p.textContent.trim().length>40);if(p0&&!p0.querySelector('.rdl')){const m=p0.textContent.trim().match(/^([A-Z][A-Z .,'’\/-]{2,38}?)\s*(?:\(([^)]{1,30})\)\s*)?[—–-]\s+/);if(m&&p0.firstChild&&p0.firstChild.nodeType===3){const tn=p0.firstChild,rest=tn.textContent.replace(/^\s*[^—–-]*[—–-]\s+/,'');const sp=document.createElement('span');sp.className='rdl';sp.textContent=m[1].trim()+(m[2]?' ('+m[2]+')':'')+' —';tn.textContent=rest;p0.insertBefore(sp,tn);p0.classList.remove('dropcap');unDropcap(p0)}}}
  /* end mark */
@@ -6758,6 +6812,9 @@ function aaBuild(){
   +'<div class="aarow"><span>Text size</span><span class="aaq"><button type="button" class="ib" data-fs="-1" aria-label="Smaller text">A−</button><output id="aafsv" aria-live="polite"></output><button type="button" class="ib" data-fs="1" aria-label="Larger text">A+</button></span></div>'
   +'<div class="aarow"><span>Large print</span><button type="button" class="aap" data-tg="lp" aria-label="Large print"></button></div>'
   +'<div class="aarow"><span>Reading style</span><span class="aaq" role="group" aria-label="Reading style"><button type="button" class="aap" data-sc="auto">Auto</button><button type="button" class="aap" data-sc="pages">Pages</button><button type="button" class="aap" data-sc="vertical">Scroll</button></span></div>'
+  /* polish-2026-10 F6 + G1: reading width and page-turn style */
+  +'<div class="aarow"><span id="aarwl">Reading width</span><span class="aaq" role="radiogroup" aria-labelledby="aarwl">'+[['n','Narrow'],['c','Comfortable'],['w','Wide']].map(([id,n])=>'<button type="button" class="aap" role="radio" data-aarw="'+id+'" aria-checked="false">'+n+'</button>').join('')+'</span></div>'
+  +'<div class="aarow"><span id="aaptl">Page turn</span><span class="aaq" role="radiogroup" aria-labelledby="aaptl">'+[['paper','Paper'],['slide','Slide'],['fade','Fade'],['none','None']].map(([id,n])=>'<button type="button" class="aap" role="radio" data-aapt="'+id+'" aria-checked="false">'+n+'</button>').join('')+'</span></div>'
   +'<div class="aarow"><span>Line spacing</span><span class="aaq" role="group" aria-label="Line spacing">'+AA_LH.map(([n,v])=>'<button type="button" class="aap" data-lh="'+v+'">'+n+'</button>').join('')+'</span></div>'
   +'<div class="aarow"><span>Sepia reading page</span><button type="button" class="aap" data-tg="sep" aria-label="Sepia reading page"></button></div>'
   +'<div class="aarow"><button type="button" class="aamore" id="aamore">More reading settings…</button></div>';
@@ -6770,6 +6827,8 @@ function aaSync(){
  pop.querySelectorAll('[data-lh]').forEach(b=>{const on=Math.abs((+S.lh||1.68)-+b.dataset.lh)<.02;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))});
  const th=S.theme||'auto';pop.querySelectorAll('[data-aath]').forEach(b=>{const on=b.dataset.aath===th;b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on))});
  pop.querySelectorAll('[data-aafn]').forEach(b=>{const on=b.dataset.aafn===(S.font||'theme');b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on))});
+ pop.querySelectorAll('[data-aarw]').forEach(b=>{const on=b.dataset.aarw===(S.rw||'c');b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on));b.tabIndex=on?0:-1});
+ pop.querySelectorAll('[data-aapt]').forEach(b=>{const on=b.dataset.aapt===(S.pturn||'paper');b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on));b.tabIndex=on?0:-1});
  {const fb=pop.querySelector('[data-tg="focusr"]'),fo=isOn('focusr');fb.classList.toggle('on',fo);fb.setAttribute('aria-pressed',String(fo));fb.textContent=fo?'On':'Off'}
  {const lb=pop.querySelector('[data-tg="lp"]'),lo=!!S.lp;lb.classList.toggle('on',lo);lb.setAttribute('aria-pressed',String(lo));lb.textContent=lo?'On':'Off'}
  const sp=pop.querySelector('[data-tg="sep"]'),so=!!S.sep;sp.classList.toggle('on',so);sp.setAttribute('aria-pressed',String(so));sp.textContent=so?'On':'Off';
@@ -6789,8 +6848,10 @@ document.addEventListener('click',e=>{
  const b=t.closest('button');if(!b)return;
  if(b.id==='aax'){aaClose(true);return}
  if(b.id==='aamore'||b.id==='aaall'){aaClose(false);try{$('#gear').onclick()}catch(x){}try{setShow('read')}catch(x){}return}
- const fz=b.dataset.fs,sc=b.dataset.sc,lh=b.dataset.lh,tg=b.dataset.tg,ath=b.dataset.aath,afn=b.dataset.aafn;
- if(fz){S.fs=Math.max(14,Math.min(26,(+S.fs||18)+ +fz));save();applyFs(true)}
+ const fz=b.dataset.fs,sc=b.dataset.sc,lh=b.dataset.lh,tg=b.dataset.tg,ath=b.dataset.aath,afn=b.dataset.aafn,arw=b.dataset.aarw,apt=b.dataset.aapt;
+ if(arw){S.rw=arw==='c'?undefined:arw;if(!S.rw)delete S.rw;save();relayout()}
+ else if(apt){S.pturn=apt;if(apt==='paper')delete S.pturn;save()}
+ else if(fz){S.fs=Math.max(14,Math.min(26,(+S.fs||18)+ +fz));save();applyFs(true)}
  else if(sc){S.scroll=sc;save();refreshReader()}
  else if(lh){S.lh=+lh;save();applyFs(true)}
  else if(tg==='sep'){S.sep=!S.sep;save();applyFs(true)}
@@ -6804,6 +6865,9 @@ document.addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{
  const pop=$('#aapop');if(!pop||pop.hidden)return;
  if(e.key==='Escape'){e.preventDefault();e.stopPropagation();aaClose(true);return}
+ /* arrow keys move through a choice group (and never turn the page behind the sheet) */
+ if(/^Arrow(Left|Right|Up|Down)$/.test(e.key)&&pop.contains(e.target)){e.stopPropagation();const g=e.target.closest('[role=radiogroup]');if(g){const rs=[...g.querySelectorAll('[role=radio]')],i=rs.indexOf(e.target);if(i>=0){e.preventDefault();const n=rs[(i+(/Right|Down/.test(e.key)?1:-1)+rs.length)%rs.length];n.focus();n.click()}}return}
+ if(e.key===' '&&pop.contains(e.target)){e.stopPropagation();return}
  if(e.key==='Tab'){const bs=[...pop.querySelectorAll('button')];if(!bs.length)return;const f=bs[0],l=bs[bs.length-1];if(e.shiftKey&&document.activeElement===f){e.preventDefault();l.focus()}else if(!e.shiftKey&&document.activeElement===l){e.preventDefault();f.focus()}}
 },true);
 try{new MutationObserver(()=>{const r=$('#rd');if(r&&!r.classList.contains('on'))aaClose(false)}).observe($('#rd'),{attributes:true,attributeFilter:['class']})}catch(e){}
@@ -7856,6 +7920,9 @@ function dailyDropcaps(){
 const R={web:false,pg:0,np:1,cpv:1,step:0,busy:false};
 let lq;const relayout=()=>{cancelAnimationFrame(lq);lq=requestAnimationFrame(layout)};
 function narrowC(){return isOn('pcomp')&&document.body.classList.contains('narrow')}
+/* polish-2026-10 F6: Reading width. Comfortable (the default) is exactly the width the reader always had; Narrow and Wide only change the side margins and the scroll column's cap, never the text size. Restore by deleting rdxRw and its two uses in layout(). */
+const RDX_RW={n:{p:1.8,mw:600},c:{p:1,mw:0},w:{p:.45,mw:900}};
+function rdxRw(){const r=RDX_RW[S.rw]||RDX_RW.c;try{$('#rd').style.setProperty('--rdmw',r.mw?(r.mw-40)+'px':'700px')}catch(e){}return r}
 function rdVars(){const r=$('#rd');if(!r)return;const nc=narrowC();r.style.setProperty('--lh',nc?Math.min(+S.lh||1.68,1.5):(S.lh||1.68));{/* B61: a phone always left-aligns, so the page is not measured (that read forced a full layout in the middle of opening a story) */if(S.just===false||nc||innerWidth<640){r.style.setProperty('--ta','left');return}const bk=$('.book'),W=bk?bk.clientWidth:innerWidth,cw=isVert()?Math.min(W-60,740):(W>=700?(W-60-56)/2:W-40),chars=cw/((+S.fs||18)*.5);/* justify only when a line holds enough words; narrow columns left-align so gaps do not open up */r.style.setProperty('--ta',(S.just===false||nc||innerWidth<640||chars<60)?'left':'justify')}}
 function imgKey(u){try{let x=String(u||'').split(/[?#]/)[0].toLowerCase();x=x.split('/').filter(Boolean).pop()||'';return x.replace(/\.(jpe?g|png|webp|avif|gif)(\.(jpe?g|png|webp|avif|gif))?$/,'').replace(/[-_@]?\d{2,4}x\d{2,4}/g,'').replace(/[-_](scaled|large|medium|small|thumb(nail)?|full|orig(inal)?|hires|hi-res)$/,'').replace(/@\dx$/,'')}catch(e){return ''}}
 function sameImg(a,b){if(!a||!b)return false;if(String(a).split('?')[0]===String(b).split('?')[0])return true;const x=imgKey(a),y=imgKey(b);if(x.length>=8&&x===y)return true;if(x.length>=5&&x===y&&!/^(image|img|photo|picture|pic|hero|cover|main|lead|thumb|thumbnail|banner|article|featured|default|placeholder|logo|share|og|story|news)\d*$/.test(x))return true;if(x.length<10||y.length<10)return false;let i=0;while(i<x.length&&i<y.length&&x[i]===y[i])i++;return i>=10&&i/Math.min(x.length,y.length)>=.75}
@@ -7884,15 +7951,15 @@ function layout(){noteFix();
  const vert=isVert();$('#rd').classList.toggle('vert',vert);$('#rd').classList.toggle('tpg',!vert&&isWide());
  R.words=((c.querySelector('.body')||c).textContent.match(/\S+/g)||[]).length+((c.querySelector('.tt')||{}).textContent||'').split(' ').length;
  if(vert)pagesUndo(c);
- if(vert){const W=bk.clientWidth,H=bk.clientHeight,P=Math.round((W>700?34:(narrowC()?12:18))*(narrowC()?Math.min(+S.mg||1,1):(+S.mg||1)));
-  c.style.cssText=`position:relative;left:auto;top:auto;width:auto;max-width:${narrowC()?W:Math.min(W-2*P,740)}px;margin:0 auto;padding:${P}px ${W>=700?0:P}px ${Math.round(H*.35)}px;column-count:1;height:auto;transform:none;--ih:${Math.round(H*.55)}px;--bleed:${P}px`;
+ if(vert){const rw=rdxRw(),W=bk.clientWidth,H=bk.clientHeight,P=Math.round((W>700?34:(narrowC()?12:18))*(narrowC()?Math.min(+S.mg||1,1):(+S.mg||1))*(W>700?1:rw.p));
+  c.style.cssText=`position:relative;left:auto;top:auto;width:auto;max-width:${narrowC()?W:Math.min(W-2*P,rw.mw||740)}px;margin:0 auto;padding:${P}px ${W>=700?0:P}px ${Math.round(H*.35)}px;column-count:1;height:auto;transform:none;--ih:${Math.round(H*.55)}px;--bleed:${P}px`;
   R.cpv=1;R.np=1;R.pg=0;R.step=0;vWire();show();if(R.rf!=null){const f=R.rf;R.rf=null;R.sf=null;R.af={f,t:Date.now()};rdSetFrac(f);rdFollow()}else rdReapply();return}
  const hg=hinge();let gap=56;
  if(hg){const r=bk.getBoundingClientRect(),cs=getComputedStyle(bk),d=(hg.l+hg.r)/2-(r.left+r.width/2),ml=parseFloat(cs.marginLeft)||0,mr=parseFloat(cs.marginRight)||0;
   if(Math.abs(d)>1){if(d>0)bk.style.marginLeft=(ml+2*d)+'px';else bk.style.marginRight=(mr-2*d)+'px'}
   gap=Math.max(56,(hg.r-hg.l)+40)}
  R.hinge=!!hg;
- const W=bk.clientWidth,H=bk.clientHeight,P=Math.round((W>700?30:(narrowC()?12:18))*(narrowC()?Math.min(+S.mg||1,1):(+S.mg||1)));
+ const W=bk.clientWidth,H=bk.clientHeight,P=Math.round((W>700?30:(narrowC()?12:18))*(narrowC()?Math.min(+S.mg||1,1):(+S.mg||1))*rdxRw().p);
  /* Two-column spread only on genuinely tablet-wide viewports. The book width,
     the viewport width, and the smaller viewport dimension must ALL agree — a
     single misread measurement (or a stale hinge report on a foldable) can never
@@ -7930,10 +7997,26 @@ function layout(){noteFix();
  show();
  if(R.rf!=null){const f=R.rf;R.rf=null;R.sf=null;R.af={f,t:Date.now()};rdSetFrac(f);rdFollow()}else rdReapply()
 }
+/* G2 (polish-2026-10): a thin stack of page edges on the right of the page that thins as the story goes on. Hold it (or hover) to hear and see how many pages are left. The top bar keeps its "1/4" text. Restore by deleting rdxEdge and its call in show(). */
+function rdxEdgeTxt(){const n=Math.max(0,R.np-1-R.pg);return n===0?'Last page of this story':n===1?'1 page left in this story':n+' pages left in this story'}
+function rdxEdge(){
+ const bk=$('.book');if(!bk)return;let e=bk.querySelector(':scope>.rdedge');
+ const on=!isVert()&&!R.web&&R.np>1;
+ if(!e){if(!on)return;e=document.createElement('div');e.className='rdedge';e.innerHTML='<i aria-hidden="true"></i><span class="rdtip" role="status" aria-live="polite"></span>';bk.append(e);
+  const tip=e.querySelector('.rdtip');let t=0,h=0;
+  const showTip=()=>{clearTimeout(h);tip.textContent=rdxEdgeTxt();tip.classList.add('on')},hide=ms=>{clearTimeout(h);h=setTimeout(()=>tip.classList.remove('on'),ms||0)};
+  e.addEventListener('mouseenter',showTip);e.addEventListener('mouseleave',()=>hide(300));
+  e.addEventListener('pointerdown',ev=>{if(ev.pointerType==='mouse')return;clearTimeout(t);t=setTimeout(()=>{showTip();R.noClick=true;setTimeout(()=>{R.noClick=false},700)},450)});
+  const up=()=>{clearTimeout(t);if(tip.classList.contains('on'))hide(1600)};e.addEventListener('pointerup',up);e.addEventListener('pointercancel',up);e.addEventListener('pointerleave',()=>clearTimeout(t));
+ }
+ e.hidden=!on;if(!on)return;
+ const left=Math.max(0,R.np-1-R.pg);e.style.setProperty('--rem',(Math.min(8,left)/8).toFixed(3));
+ const tip=e.querySelector('.rdtip');if(tip&&tip.classList.contains('on'))tip.textContent=rdxEdgeTxt();
+}
 function show(){
  const c=$('.cols');if(!c)return;setProg();
  if(!isVert())c.style.transform=`translateX(${-R.pg*R.step}px)`;
- $('#pc').textContent=pcText();{const bk=$('.book');if(bk){if(isOn('folio')&&curA&&!R.web&&!isVert()&&R.np>0){const t=(curA.title||'').length>46?curA.title.slice(0,44)+'…':(curA.title||'');bk.dataset.folio=(fof(curA).title||'')+' · '+t+'   ·   '+(R.pg+1)}else delete bk.dataset.folio}}$('#pv').disabled=!isVert()&&R.pg===0;$('#nx').disabled=!isVert()&&R.pg>=R.np-1;fpSync();dialSync();
+ $('#pc').textContent=pcText();{const bk=$('.book');if(bk){if(isOn('folio')&&curA&&!R.web&&!isVert()&&R.np>0){const t=(curA.title||'').length>46?curA.title.slice(0,44)+'…':(curA.title||'');bk.dataset.folio=(fof(curA).title||'')+' · '+t+'   ·   '+(R.pg+1)}else delete bk.dataset.folio}}$('#pv').disabled=!isVert()&&R.pg===0;$('#nx').disabled=!isVert()&&R.pg>=R.np-1;fpSync();dialSync();rdxEdge();
  if(R.ready&&curA){if(R.pg>0&&R.pg<R.np-1)S.pos[curA.link]=R.pg;else delete S.pos[curA.link];const pk=Object.keys(S.pos);if(pk.length>300)delete S.pos[pk[0]];clearTimeout(pt);pt=setTimeout(save,700)}
 }
 const eOut2=p=>1-Math.pow(1-p,2.2),ePage=p=>(1-Math.pow(1-p,3))*(.55+.45*Math.min(1,p/.3));
@@ -8058,7 +8141,7 @@ function setAng(a){
 /* warm-up: the first page turn of a story used to hitch while the browser built the turn's layers for the first time. Once the story has settled, build one turn invisibly for two frames, then throw it away, so the first real turn starts warm. */
 function rdWarm(){
  curlGet();
- if(!isOn('curl')||!curlPlan().N||reduced()||R.busy||R.T||R.web||isVert()||!R.ready||R.np<2||D)return;
+ if(!isOn('curl')||rdxPturn()!=='paper'||!curlPlan().N||reduced()||R.busy||R.T||R.web||isVert()||!R.ready||R.np<2||D)return;
  const go1=()=>{
   if(R.busy||R.T||D||R.web||isVert()||!$('.book'))return;
   const d=R.pg+1<R.np?1:-1;let T;
@@ -8094,13 +8177,36 @@ function paperSound(){if(!isOn('tsound'))return;try{ACX=ACX||new (window.AudioCo
  const dur=.34,n=Math.floor(c.sampleRate*dur),buf=c.createBuffer(1,n,c.sampleRate),d=buf.getChannelData(0);let lp=0;
  for(let i=0;i<n;i++){const t=i/n,env=Math.pow(Math.sin(Math.PI*Math.min(1,t*1.15)),1.6)*(1-t*.55),w=Math.random()*2-1;lp+=(w-lp)*.28;const fl=(t>.55&&t<.62)?(Math.random()*2-1)*.5*(1-(t-.55)/.07):0;d[i]=(lp*env+fl*.35)}
  const src=c.createBufferSource();src.buffer=buf;const bp=c.createBiquadFilter();bp.type='bandpass';bp.Q.value=.55;bp.frequency.setValueAtTime(900,c.currentTime);bp.frequency.exponentialRampToValueAtTime(2300,c.currentTime+dur*.7);const hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=380;const g=c.createGain();g.gain.value=.075;src.connect(bp);bp.connect(hp);hp.connect(g);g.connect(c.destination);src.start()}catch(e){}}
-function turnTick(){}
+/* G3 (polish-2026-10): a tiny tick when a page lands, only with Settings > Page-turn tick on (off by default) and the app's vibration allowed; needs a real phone to feel */
+function turnTick(){if(!isOn('thaptic')||!isOn('haptic'))return;try{if(navigator.vibrate)navigator.vibrate(8)}catch(e){}}
+/* G1 (polish-2026-10): page-turn styles beside Paper. Paper keeps its own untouched path (startTurn/anim/turnRelease); Slide, Fade and None are separate branches. Reduced motion always means None. Restore by deleting rdxPturn and its uses. */
+function rdxPturn(){const m=S.pturn||'paper';return reduced()&&m!=='paper'?'none':(['paper','slide','fade','none'].includes(m)?m:'paper')}
+function rdxTurn(to){
+ const m=rdxPturn(),c=$('.cols'),v=$('.view');
+ if(m==='none'||!c||!v){R.pg=to;show();turnTick();return}
+ R.busy=true;const my=tok,done=()=>{if(my===tok){c.style.transition='';v.style.transition='';v.style.opacity=''}R.busy=false;if(my===tok)turnTick()};
+ if(m==='slide'){c.style.transition='transform 280ms cubic-bezier(.22,.7,.24,1)';R.pg=to;show();setTimeout(done,300);return}
+ v.style.transition='opacity 90ms ease-out';v.style.opacity='0';
+ setTimeout(()=>{if(my!==tok){done();return}c.style.transition='none';R.pg=to;show();void c.offsetWidth;v.style.transition='opacity 90ms ease-in';v.style.opacity='1';setTimeout(done,100)},95);
+}
+/* Slide follows the finger: the page strip moves with it, and on letting go it settles on the next page or back */
+function rdxSlideMove(d,x){const c=$('.cols');if(!c)return;let dx=x-d.x0;if((R.pg===0&&dx>0)||(R.pg>=R.np-1&&dx<0))dx*=.3;c.style.transition='none';c.style.transform=`translateX(${-R.pg*R.step+dx}px)`;d.lx=x}
+function rdxSlideEnd(d,ts){
+ const c=$('.cols'),bk=$('.book');if(!c||!bk){R.busy=false;return}
+ const dx=(d.lx==null?d.x0:d.lx)-d.x0,sm=d.s;let vx=0;if(sm.length>1){const a=sm[0],b=sm[sm.length-1];if(b.t>a.t&&!(ts&&ts-b.t>120))vx=(b.x-a.x)/(b.t-a.t)}
+ const dir=dx<0?1:-1,to=R.pg+dir,ok=to>=0&&to<R.np&&(Math.abs(dx)>bk.clientWidth*.22||Math.abs(vx)>.4&&Math.sign(vx)===Math.sign(dx));
+ R.noClick=true;setTimeout(()=>{R.noClick=false},350);
+ c.style.transition='transform 240ms cubic-bezier(.22,.7,.24,1)';const my=tok;
+ if(ok)R.pg=to;show();
+ setTimeout(()=>{if(my===tok)c.style.transition='';R.busy=false;if(ok&&my===tok)turnTick()},260);
+}
 function go(d){
  R.navAt=Date.now();
  if(isVert()&&!R.web){vScrollBy(d);return}
  const to=R.pg+d;if(d>0&&to>=R.np&&!R.web&&!R.busy&&R.np>0&&isOn('cont')&&readerNext()){if(R.endArmed){advanceNext();return}R.endArmed=true;rnHint('Turn the page again for the next story');clearTimeout(R.endT);R.endT=setTimeout(()=>{R.endArmed=false},2600);return}
  if(R.web||R.busy||to<0||to>=R.np)return;
  if(reduced()){R.pg=to;show();return}
+ if(rdxPturn()!=='paper'){rdxTurn(to);return}
  const T=startTurn(d);paperSound();
  anim(T.ang,d>0?180:0,1280,eBack,()=>endTurn(true));
 }
@@ -9840,7 +9946,9 @@ $('#rd').onclick=e=>{
  const t=e.target;
  if(t.id==='rd'||t.closest('#cl'))return closeRd();
  const sbb=t.closest('#selbar button');if(sbb)return selAct(sbb.dataset.s,sbb.dataset.c);
- document.querySelectorAll('#pb,#mn').forEach(p=>{if(!p.hidden&&!p.contains(t)&&!t.closest('#rp')&&!t.closest('#mo'))p.hidden=true});
+ document.querySelectorAll('#pb,#mn').forEach(p=>{if(!p.hidden&&!p.contains(t)&&!t.closest('#rp')&&!t.closest('#mo')){if(p.id==='mn'&&p.classList.contains('rsh'))rdxMnClose(true);else p.hidden=true}});
+ if(t.closest('#mnbd'))return;
+ if(t.closest('#mnmb')){const b=t.closest('#mnmb'),x=$('#mnmx'),o=b.getAttribute('aria-expanded')!=='true';b.setAttribute('aria-expanded',String(o));if(x)x.hidden=!o;return}
  if(t.closest('#fdn')){rdNav();return}
  if(t.closest('#fcs')){focusTog();return}
  if(t.closest('#wtry')){const w=$('.web');if(w)w.dataset.u='';loadWeb();return}
@@ -9860,8 +9968,8 @@ $('#rd').onclick=e=>{
  const sp=t.closest('[data-aspd]');if(sp){S.prate=+sp.dataset.aspd;S.setT=Date.now();save();if(EPA)EPA.playbackRate=S.prate;document.querySelectorAll('[data-aspd]').forEach(b=>{b.classList.toggle('on',b===sp);b.setAttribute('aria-pressed',b===sp)});return}
  const apb=t.closest('[data-ap]');if(apb){epAct(apb);return}
  if(t.closest('#pbq')){S.queue=!S.queue;save();return syncPb()}
- if(t.closest('#mo')){const m=$('#mn'),o=m.hidden;if($('#pb'))$('#pb').hidden=true;if(o){try{mnJump()}catch(e){}}m.hidden=!o;return}
- const act=t.closest('[data-act]');if(act){$('#mn').hidden=true;return doAct(act.dataset.act)}
+ if(t.closest('#mo')){const m=$('#mn');if(m.classList.contains('rsh')){if(m.hidden)rdxMnOpen();else rdxMnClose(true);return}const o=m.hidden;if($('#pb'))$('#pb').hidden=true;if(o){try{mnJump()}catch(e){}}m.hidden=!o;return}
+ const act=t.closest('[data-act]');if(act){if(act.dataset.act==='save')return doAct('save');if($('#mn').classList.contains('rsh'))rdxMnClose(true);else $('#mn').hidden=true;return doAct(act.dataset.act)}
  if(t.closest('#wsw'))return switchReader();
  if(t.closest('#wb')||t.closest('[data-web]'))return toggleWeb();
  if(t.closest('[data-diag]')){if(curA)navigator.clipboard.writeText(diagText(curA)).then(()=>toast('Details copied. Paste them wherever you report the problem'),()=>toast('Couldn’t copy the problem details'));return}
@@ -9871,7 +9979,7 @@ $('#rd').onclick=e=>{
  if(t.closest('#fp')){S.fs=Math.min(26,S.fs+1);return applyFs(true)}
  if(t.closest('#sp')){S.sep=!S.sep;return applyFs(true)}
  if(t.closest('#ra')||t.closest('#pbp'))return ttsToggle();
- if(t.closest('#rp')){const p=$('#pb');$('#mn').hidden=true;p.hidden=!p.hidden;if(!p.hidden)syncPb();return}
+ if(t.closest('#rp')){const p=$('#pb');rdxMnClose(false);$('#mn').hidden=true;p.hidden=!p.hidden;if(!p.hidden)syncPb();return}
  if(t.closest('#pbk2'))return ttsSkipPara(-1);
  if(t.closest('#pbn2'))return ttsSkipPara(1);
  if(t.closest('#pbk'))return ttsSkip(-1);
@@ -9907,6 +10015,7 @@ rdEl.addEventListener('pointerdown',e=>{
 rdEl.addEventListener('pointermove',e=>{
  if(!D||e.pointerId!==D.id)return;
  const dx=e.clientX-D.x,dy=e.clientY-D.y;
+ if(D.slide){D.s.push({t:e.timeStamp,x:e.clientX});while(D.s.length>2&&D.s[0].t<e.timeStamp-110)D.s.shift();rdxSlideMove(D,e.clientX);return}
  if(!D.act){
   if(getSelection()+''){D=null;return}
   if(Math.abs(dx)<12&&Math.abs(dy)<12)return;
@@ -9917,6 +10026,7 @@ rdEl.addEventListener('pointermove',e=>{
   /* a swipe past the last (or before the first) page goes to the next (or previous) story, like pulling past the end in scroll mode */
   if(R.pg+dir<0||R.pg+dir>=R.np){D.edge=dir;return}
   if(reduced())return;
+  {const ps=rdxPturn();if(ps==='slide'){R.busy=true;D.slide=true;D.x0=e.clientX;try{$('.book').setPointerCapture(e.pointerId)}catch(_){}}if(ps!=='paper'){if(D.slide){D.s.push({t:e.timeStamp,x:e.clientX});rdxSlideMove(D,e.clientX)}return}}
   startTurn(dir);paperSound();D.act=true;D.dir=dir;D.x0=e.clientX;
   try{$('.book').setPointerCapture(e.pointerId)}catch(_){}
  }
@@ -9930,12 +10040,13 @@ rdEl.addEventListener('pointermove',e=>{
 const pend=e=>{
  if(!D||e.pointerId!==D.id)return;
  if(D.act){turnRelease(e.type==='pointercancel',e.timeStamp);return}
+ if(D.slide){const d=D;D=null;if(e.type==='pointercancel')d.lx=d.x0;rdxSlideEnd(d,e.timeStamp);return}
  const dx=e.clientX-D.x,dy=e.clientY-D.y;
  if(D.edge&&e.type==='pointerup'&&Math.abs(dx)>=60&&Math.abs(dx)>Math.abs(dy)*1.3&&!(getSelection()+'')){const eg=D.edge;D=null;edgeSwipe(eg);return}
- if(e.type==='pointerup'&&reduced()&&Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.3&&!(getSelection()+''))go(dx<0?1:-1);
+ if(e.type==='pointerup'&&(reduced()||rdxPturn()!=='paper')&&Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.3&&!(getSelection()+''))go(dx<0?1:-1);
  D=null;
 };
-rdEl.addEventListener('touchmove',e=>{if(D&&D.act&&e.cancelable)e.preventDefault()},{passive:false});
+rdEl.addEventListener('touchmove',e=>{if(D&&(D.act||D.slide)&&e.cancelable)e.preventDefault()},{passive:false});
 rdEl.addEventListener('pointerup',pend);
 rdEl.addEventListener('click',e=>{if(R.noClick&&e.target.closest('.book')){e.preventDefault();e.stopPropagation()}},true);rdEl.addEventListener('pointercancel',pend);
 addEventListener('resize',()=>{if($('#rd').classList.contains('on')){if(R.rf==null){/* _vm is the mode the story was laid out in, which the resize has not yet changed */R.rf=_vm?(R.sf!=null?R.sf:vEndFrac()):pgFrac()}if(R.T){D=null;endTurn(false)}const v=isVert();if(_vm!==null&&v!==_vm&&(S.scroll||'auto')==='auto'){_vm=v;refreshReader();return}_vm=v;relayout()}});
@@ -11034,11 +11145,47 @@ async function alsoLike(){
 document.addEventListener('click',e=>{const b=e.target.closest('[data-dfol]');if(!b)return;e.preventDefault();quickAdd(b.dataset.dfol,b.dataset.dn,b.dataset.dc);b.textContent='Following';b.disabled=true;toast('Following '+b.dataset.dn+'. Its stories will show up in your '+b.dataset.dc+' folder')});
 /* reader overflow menu */
 /* the menu entry says what a tap will do: switch this source to site view, or back to reader view */
-function mnMarkup(){return `<div class="pb mn" id="mn" hidden><section class="mg" role="group" aria-labelledby="mgh1"><h4 id="mgh1">Settings</h4><div class="gr g2"><button data-act="aa" aria-haspopup="dialog">Text and appearance</button><button data-act="settings">Reading settings</button><button data-act="rp">Playback settings</button></div></section><section class="mg" role="group" aria-labelledby="mgh2"><h4 id="mgh2">Share</h4><div class="gr g2"><button data-act="share">Share</button><button data-act="pdf" data-exact>Save as PDF</button><button data-act="kindle" data-exact>Send to Kindle</button></div></section><section class="mg" role="group" aria-labelledby="mgh3"><h4 id="mgh3">View</h4><div class="gr g2"><button data-act="browser">Open in browser</button><button data-act="tr">Translate story</button><button data-act="web">View the site in the app</button></div></section><section class="mg" role="group" aria-labelledby="mgh4"><h4 id="mgh4">Story</h4><div class="gr"><button data-act="hub">Full coverage</button><button data-act="jump" hidden>Jump to section</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><button data-act="junk">Report junk text</button></div></section></div>`}
+/* polish-2026-10 J5: the "…" menu is a bottom sheet: a quick row of six line icons, then one column of 48 px rows, the rarely used ones under "More". Thumbs and the saved state live here now. Ink and brass only. Restore the old popover by making mnMarkup return mnMarkupOld() (the handlers work with both). */
+const RDX_SHR='<path d="M12 3.5v11.5M7.8 7.7 12 3.5l4.2 4.2"/><path d="M5.5 12.5v6a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-6"/>',RDX_AA='<path d="M3.5 19 8.5 5l5 14M5.4 14h6.2"/><path d="M15.5 12.4c.5-.9 1.4-1.4 2.5-1.4 1.6 0 2.5 1 2.5 2.6V19M20.5 15.2c-3.4-.2-5 .7-5 2.1 0 1 .8 1.7 1.9 1.7 1.7 0 3.1-1.3 3.1-3.1"/>',RDX_TR='<path d="M3.5 5.5h8.5M7.7 3.5v2M10.2 5.5c-.8 3.6-2.9 6.4-6 8.3M5.8 9.2c1.2 2 3 3.6 5.2 4.4"/><path d="m12.5 20.5 4-9.5 4 9.5M13.9 17.3h5.2"/>';
+function mnMarkup(){
+ const a=curA,sv=!!(a&&isSaved(a)),v=a?((S.thm||{})[a.link]||0):0,tts='speechSynthesis' in window;
+ const q=(act,ic,l,x)=>`<button type="button" data-act="${act}"${x||''}>${svg(ic,act==='save'&&sv)}<span class="mnl">${l}</span></button>`,row=(act,l,x)=>`<button type="button" data-act="${act}"${x||''}>${l}</button>`;
+ return `<div class="rshbd" id="mnbd" hidden></div><div class="rsh" id="mn" role="dialog" aria-modal="true" aria-labelledby="mnh" hidden><span class="rshg" aria-hidden="true"></span><h2 class="rshh" id="mnh">Story options</h2>`
+  +`<div class="rshq">${q('save',STAR,sv?'Saved':'Save',` aria-pressed="${sv}"`)}${q('share',RDX_SHR,'Share')}${tts?q('listen',SPK,'Listen'):''}${q('aa',RDX_AA,'Text',' aria-haspopup="dialog" aria-label="Text and appearance"')}${q('web',GLOBE,'Site',' aria-label="View the site in the app"')}${q('tr',RDX_TR,'Translate',' aria-label="Translate story"')}</div>`
+  +`<div class="rshl">${(()=>{try{const h=a&&a.link?host(a.link):'';return h&&!S.feeds.some(f=>host(f.url)===h)?row('follow','Follow '+esc(h.replace(/^www\./,''))):''}catch(e){return ''}})()}${row('pdf','Save as PDF',' data-exact')}${row('kindle','Send to Kindle',' data-exact')}${row('hub','Full coverage')}${row('jump','Jump to section',' hidden')}${row('upnext','Add to Up Next')}`
+  +`<div class="rshr" role="group" aria-label="Rate this story"><button type="button" class="thb${v>0?' on':''}" data-rate="1" aria-pressed="${v>0}">${svg(TH_UP)}<span>More like this</span></button><button type="button" class="thb${v<0?' on':''}" data-rate="-1" aria-pressed="${v<0}">${svg(TH_DN)}<span>Less like this</span></button></div>`
+  +`<button type="button" class="rshm" id="mnmb" aria-expanded="false" aria-controls="mnmx">More<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>`
+  +`<div id="mnmx" hidden>${row('unread','Mark as unread')}${row('junk','Report junk text')}${row('browser','Open in browser')}${row('settings','Reading settings')}${tts?row('rp','Playback settings'):''}</div></div></div>`;
+}
+/* polish-2026-10 I6: a story from a site you don't follow (full coverage, search, Near you) can be followed from the sheet */
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#mn [data-act="follow"]');if(!b||!curA)return;e.preventDefault();e.stopPropagation();b.disabled=true;b.textContent='Following…';followSite('https://'+host(curA.link)).then(r=>{b.textContent=r?'Following':'Follow site';b.disabled=!!r}).catch(()=>{b.textContent='Follow site';b.disabled=false})},true);
+/* keeps the sheet's Save button in step with the story's saved state */
+function rdxMnSync(){const b=document.querySelector('#mn [data-act="save"]');if(!b||!curA)return;const sv=isSaved(curA);b.setAttribute('aria-pressed',String(sv));const o=b.querySelector('svg');if(o)o.outerHTML=starSvg(sv);const l=b.querySelector('.mnl');if(l)l.textContent=sv?'Saved':'Save'}
+let RDX_MNO=null;
+function rdxMnOpen(){
+ const m=$('#mn');if(!m||!m.hidden)return;if($('#pb'))$('#pb').hidden=true;try{mnJump()}catch(e){}rdxMnSync();
+ RDX_MNO=$('#mo');m.hidden=false;const bd=$('#mnbd');if(bd)bd.hidden=false;const mb=$('#mnmb'),mx=$('#mnmx');if(mb&&mx){mb.setAttribute('aria-expanded','false');mx.hidden=true}
+ const mo=$('#mo');if(mo)mo.setAttribute('aria-expanded','true');pushLayer('mn');
+ const f=m.querySelector('.rshq button');if(f)f.focus();
+}
+function rdxMnClose(back,fromPop){
+ const m=$('#mn');if(!m||m.hidden)return;m.hidden=true;const bd=$('#mnbd');if(bd)bd.hidden=true;
+ const mo=$('#mo');if(mo)mo.setAttribute('aria-expanded','false');if(!fromPop)dropLayer('mn');
+ const o=RDX_MNO&&document.contains(RDX_MNO)?RDX_MNO:mo;RDX_MNO=null;if(back&&o)o.focus();
+}
+document.addEventListener('keydown',e=>{
+ const m=$('#mn');if(!m||m.hidden||!m.classList.contains('rsh'))return;
+ if(e.key==='Escape'){e.preventDefault();e.stopPropagation();rdxMnClose(true);return}
+ if(e.key==='Tab'){const bs=[...m.querySelectorAll('button')].filter(b=>!b.hidden&&b.getClientRects().length);if(!bs.length)return;const f=bs[0],l=bs[bs.length-1],ae=document.activeElement;
+  if(!m.contains(ae)){e.preventDefault();f.focus();return}
+  if(e.shiftKey&&ae===f){e.preventDefault();l.focus()}else if(!e.shiftKey&&ae===l){e.preventDefault();f.focus()}return}
+ if(m.contains(e.target))e.stopPropagation();/* keys inside the sheet never turn the page behind it */
+},true);
+function mnMarkupOld(){return `<div class="pb mn" id="mn" hidden><section class="mg" role="group" aria-labelledby="mgh1"><h4 id="mgh1">Settings</h4><div class="gr g2"><button data-act="aa" aria-haspopup="dialog">Text and appearance</button><button data-act="settings">Reading settings</button><button data-act="rp">Playback settings</button></div></section><section class="mg" role="group" aria-labelledby="mgh2"><h4 id="mgh2">Share</h4><div class="gr g2"><button data-act="share">Share</button><button data-act="pdf" data-exact>Save as PDF</button><button data-act="kindle" data-exact>Send to Kindle</button></div></section><section class="mg" role="group" aria-labelledby="mgh3"><h4 id="mgh3">View</h4><div class="gr g2"><button data-act="browser">Open in browser</button><button data-act="tr">Translate story</button><button data-act="web">View the site in the app</button></div></section><section class="mg" role="group" aria-labelledby="mgh4"><h4 id="mgh4">Story</h4><div class="gr"><button data-act="hub">Full coverage</button><button data-act="jump" hidden>Jump to section</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><button data-act="junk">Report junk text</button></div></section></div>`}
 /* Translate story: only when asked. On-device when the browser has the Translator API (the text never leaves the phone); otherwise offer Google Translate, which sees the story's address */
 const TR={on:false,busy:false,orig:null};
 const trEls=()=>[...document.querySelectorAll('.cols .body p,.cols .body h2,.cols .body h3,.cols .body h4,.cols .body li,.cols .body blockquote')].filter(e=>!e.querySelector('p,li,blockquote')&&(e.textContent||'').trim().length>1);
-function trLabel(){const b=document.querySelector('[data-act="tr"]');if(b)b.textContent=TR.on?'Show original':'Translate story'}
+function trLabel(){const b=document.querySelector('[data-act="tr"]');if(!b)return;const t=TR.on?'Show original':'Translate story',l=b.querySelector('.mnl');if(l){l.textContent=TR.on?'Original':'Translate';b.setAttribute('aria-label',t)}else b.textContent=t}
 function trReset(){TR.on=false;TR.busy=false;TR.orig=null;trLabel()}
 async function translateStory(a){
  if(TR.busy)return;
@@ -11085,6 +11232,8 @@ async function doAct(k){
  if(k==='browser'){window.open(cleanOut(a.link),'_blank','noopener');return}
  if(k==='junk'){const q=String(getSelection()||'').trim();if(q.length>=8){const sl=getSelection();junkReport(q,sl&&sl.rangeCount?sl.getRangeAt(0).cloneRange():null)}else toast('Select the text first, then choose Report junk text');return}
  if(k==='share'){return doAct('card')}
+ if(k==='save'){toggleSave(a);const st=$('#st'),o=st&&st.querySelector('svg');if(o)o.outerHTML=starSvg(isSaved(a));rdxMnSync();return}
+ if(k==='listen'){ttsToggle();return}
  if(k==='card'){shareStory(a);return}
  if(k==='more'){likeA(a,1);return}
  if(k==='less'){likeA(a,-1);return}
@@ -12435,6 +12584,7 @@ async function startFresh(){
 const APP_VERSION='2026.10.24t';const APP_LABEL='1.147';
 const CHANGES=["Much faster when you are far down a long list: redrawing All Stories no longer slows down the further you have scrolled (in a test with 600 stories on screen it went from about 7 seconds to a quarter of a second)"];
 const DEF_ON=new Set(['mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
+DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
 /* a touch screen. The Android WebView does not always answer 'coarse' to the plain pointer question the way a browser does, so a finger is also looked for the two other ways */
 const touchy=()=>{try{if(matchMedia('(any-pointer:coarse)').matches)return true}catch(e){}try{if((navigator.maxTouchPoints|0)>0)return true}catch(e){}return 'ontouchstart' in window};
@@ -12541,7 +12691,16 @@ function whyBox(){
  const el=document.createElement('aside');el.className='whyit';el.setAttribute('aria-label','Why it matters');el.innerHTML='<b aria-hidden="true">Why it matters</b><p></p>';el.querySelector('p').textContent=raw;
  c.insertBefore(el,c.querySelector(':scope>.note')||bd);
 }
-function mnotes(){mnotes0();try{whyBox()}catch(e){}}
+function mnotes(){mnotes0();try{whyBox()}catch(e){}try{rdxDeck()}catch(e){}}
+/* polish-2026-10 F1: a one-line italic deck under the headline from the feed's summary, only when it adds something: never when "Why it matters" already shows that summary, and never when it repeats how the story starts */
+function rdxDeck(){
+ const c=$('.cols');if(!c)return;c.querySelectorAll('.rdk').forEach(x=>x.remove());
+ const a=curA,bd=c.querySelector(':scope>.body'),t=c.querySelector('.tt');if(RDX_OLDHDR||!a||!bd||!t||R.web||c.querySelector(':scope>.whyit'))return;
+ const raw=String(a.summary||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();if(raw.length<30||isJunkText(raw))return;
+ const nz=x=>String(x||'').toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,'').replace(/\s+/g,' ').trim(),d=nz(raw).slice(0,60),first=nz([...bd.querySelectorAll(':scope>p')].slice(0,2).map(p=>p.textContent).join(' '));
+ if(d.length<20||first.includes(d)||first.length>=20&&nz(raw).includes(first.slice(0,60))||nz(a.title).includes(d.slice(0,40)))return;
+ const el=document.createElement('p');el.className='rdk';el.textContent=trimWords(raw,140);t.after(el);
+}
 function mnotes0(){
  const c=$('.cols');if(!c)return;
  c.querySelectorAll(':scope>.mnotes').forEach(x=>x.remove());
@@ -12795,9 +12954,12 @@ const cmLabel=u=>/reddit\.com/.test(u)?'Discuss on Reddit':/ycombinator/.test(u)
 /* thumbs up / down in the story header: the same "more like this / less like this" signal, shown as a toggle */
 const TH_UP='<path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>',TH_DN='<path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>';
 function rateHtml(a){const v=(S.thm||{})[a.link]||0;return `<span class="rate"><button type="button" class="thb${v>0?' on':''}" data-rate="1" aria-label="More like this" aria-pressed="${v>0}" title="More like this">${svg(TH_UP)}</button><button type="button" class="thb${v<0?' on':''}" data-rate="-1" aria-label="Less like this" aria-pressed="${v<0}" title="Less like this">${svg(TH_DN)}</button></span>`}
-function rateSync(){const a=curA;if(!a)return;const v=(S.thm||{})[a.link]||0;document.querySelectorAll('.cols .thb').forEach(b=>{const on=(+b.dataset.rate)===v;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)})}
+function rateSync(){const a=curA;if(!a)return;const v=(S.thm||{})[a.link]||0;document.querySelectorAll('#rd .thb').forEach(b=>{const on=(+b.dataset.rate)===v;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)})}
 function rateA(a,v){const m=S.thm=S.thm||{},old=m[a.link]||0,nv=old===v?0:v,delta=nv-old;if(nv)m[a.link]=nv;else delete m[a.link];const ks=Object.keys(m);if(ks.length>300)delete m[ks[0]];likeA(a,delta,nv===0?'Rating removed':nv>0?'You’ll see more like this':'You’ll see less like this');rateSync()}
-function dtHtml(a,dt,live){const m=readMin(a)||live||0;return [a.by?'<span class="by">By '+esc(a.by)+(hasBy(a.by)?'<button class="flw" disabled>Following</button>':'<button class="flw" data-fby>Follow</button>')+'</span>':'',dt?'<span>'+esc(dt)+'</span>':'',m?'<span>'+m+' min read</span>':'',rateHtml(a),a.cm?`<a class="cmt" href="${esc(a.cm)}" target="_blank" rel="noopener">💬 ${cmLabel(a.cm)}</a>`:''].filter(Boolean).join('')}
+/* polish-2026-10 F1: the header is kicker, headline, deck, then one quiet "By … · date" line; the reading time lives in the kicker and the thumbs in the … sheet. Restore the old header by setting RDX_OLDHDR to true. */
+const RDX_OLDHDR=false;
+function dtHtml(a,dt,live){if(!RDX_OLDHDR){const sep='<span class="rdsep" aria-hidden="true">·</span>';return [a.by?'<span class="by">By '+esc(a.by)+(hasBy(a.by)?'<button class="flw" disabled>Following</button>':'<button class="flw" data-fby>Follow</button>')+'</span>':'',dt?'<span>'+esc(dt)+'</span>':'',a.cm?`<a class="cmt" href="${esc(a.cm)}" target="_blank" rel="noopener">💬 ${cmLabel(a.cm)}</a>`:''].filter(Boolean).join(sep)}
+ const m=readMin(a)||live||0;return [a.by?'<span class="by">By '+esc(a.by)+(hasBy(a.by)?'<button class="flw" disabled>Following</button>':'<button class="flw" data-fby>Follow</button>')+'</span>':'',dt?'<span>'+esc(dt)+'</span>':'',m?'<span>'+m+' min read</span>':'',rateHtml(a),a.cm?`<a class="cmt" href="${esc(a.cm)}" target="_blank" rel="noopener">💬 ${cmLabel(a.cm)}</a>`:''].filter(Boolean).join('')}
 function hdrFill(){const d=$('.cols .dt');if(d&&curA){const dt=curA.date?new Date(curA.date).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'';/* the reading time follows the text that is really on the page */const bd=$('.cols .body'),wn=bd?(bd.textContent.match(/\S+/g)||[]).length:0;d.innerHTML=dtHtml(curA,dt,wn>=120?Math.max(1,Math.round(wn/230)):0)}}
 const volNo=()=>{const y=new Date().getFullYear();if(!S.born)S.born=y;return Math.max(1,y-S.born+1)};
 function edition(d){d=d||new Date();const h=d.getHours(),n=(h>=5&&h<17)?'Morning':'Evening';return d.toLocaleDateString([],{weekday:'long'})+' '+n+' Edition'}
@@ -15062,9 +15224,9 @@ addEventListener('popstate',()=>{
  if(POPSKIP){POPSKIP=false;const q=POPQ;POPQ=[];q.forEach(n=>{try{history.pushState({cp:n,n:LAYER.length},'')}catch(e){}});return}
  const top=LAYER.pop();if(!top)return;
  if(top.startsWith('dlg:')){const d=DLG[top];if(d&&d.open&&((d.id==='set'&&window.setBackHook&&window.setBackHook())||(d.id==='dlg'&&window.addBackHook&&window.addBackHook()))){LAYER.push(top);try{history.pushState({cp:top,n:LAYER.length},'')}catch(e){}return}delete DLG[top];if(d&&d.open){d._ly=null;d.close()}return}
- const active={gal:()=>$('#gal')&&!$('#gal').hidden,rdnav:()=>$('#rdnav')&&!$('#rdnav').hidden,reader:()=>$('#rd').classList.contains('on'),drawer:()=>document.body.classList.contains('open'),yir:()=>!!$('#yir')}[top];
+ const active={mn:()=>$('#mn')&&!$('#mn').hidden,gal:()=>$('#gal')&&!$('#gal').hidden,rdnav:()=>$('#rdnav')&&!$('#rdnav').hidden,reader:()=>$('#rd').classList.contains('on'),drawer:()=>document.body.classList.contains('open'),yir:()=>!!$('#yir')}[top];
  if(active&&!active()){if(LAYER.length)history.back();return}
- if(top==='gal')galClose(true);else if(top==='rdnav')rdNav(false,true);else if(top==='reader')closeRd(true);else if(top==='drawer')document.body.classList.remove('open');else if(top==='yir'){const y=$('#yir');if(y)y.querySelector('.yx').click()}
+ if(top==='mn')rdxMnClose(true,true);else if(top==='gal')galClose(true);else if(top==='rdnav')rdNav(false,true);else if(top==='reader')closeRd(true);else if(top==='drawer')document.body.classList.remove('open');else if(top==='yir'){const y=$('#yir');if(y)y.querySelector('.yx').click()}
 });
 
 /* ---------- in-reader navigation panel ---------- */
@@ -16001,12 +16163,14 @@ function rdNext(){
  const c=$('.cols'),a=curA;if(!c||!a||R.web)return;
  const old=c.querySelector('.rnext');
  /* in page mode the end card already carries the Up next card and turning the last page flows on, so no extra page is made for it */
- if(!isVert()){if(old)old.remove();return}
+ if(!isVert()){if(old)old.remove();c.querySelectorAll('.rf-next').forEach(x=>x.style.display='');return}
  if(old&&old.dataset.for===a.link)return;if(old)old.remove();
  if(!isOn('cont'))return;const n=readerNext();if(!n||R.inBrief)return;
  const f=fof(n),m=minsOf(n),el=document.createElement('div');el.className='rnext';el.dataset.for=a.link;
  el.innerHTML=`<small>Up next</small><button type="button" data-rnext>${n.img?`<span class="rn-i"><img alt="" loading="lazy" referrerpolicy="no-referrer" src="${esc(n.img)}" onerror="this.parentNode.remove()"></span>`:''}<span class="rn-t"><i>${esc(f.title||'')}${m?' · '+m+' min':''}</i><b>${esc(n.title)}</b></span></button><p class="rn-h">${isVert()?'Keep pulling past the end to go on to the next story':'Turn the last page again to go on to the next story'}</p>`;
  c.append(el);
+ /* polish-2026-10 F7: in scroll mode the end shows one "Up next" card; the end card's "Next up" is hidden when it names the same story */
+ c.querySelectorAll('.rf-next').forEach(x=>x.style.display=x.dataset.rnext===n.link?'none':'');
  clearTimeout(R.preT);R.preT=setTimeout(preloadNext,1200);
 }
 /* only the bare "Up next" card (no story named on it) flows on to the next story; a card that names its own story (Next up, Related reads) is opened by the handler that reads that name */
