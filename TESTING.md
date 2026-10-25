@@ -720,3 +720,5 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 - [ ] Ticker (4x1): a picture tile on the left (brass bar when no picture), turns every 6 seconds; tap opens the story.
 - [ ] Headlines at 4x2: two rows, small pictures; make it taller (4x3 or more): a big photo story on top plus rows with larger pictures.
 - [ ] Light and dark phone, Z Fold folded and unfolded. Widget picker previews are still the old stills (not redrawn yet).
+
+- [ ] Settings > Feeds and Stories > Translate headlines, and a site's own settings: the small print says it uses Google's translator built into the app and may be wrong.
