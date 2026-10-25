@@ -714,3 +714,9 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 
 ## Translate story: headline, "Why it matters" and picture captions — implemented, unverified (phone only)
 - [ ] Open a foreign-language story, tap Translate: the big headline, the "Why it matters" box and the picture caption ("Foto: …") now translate along with the text; "Original" brings all of them back. Check a long translated headline still fits the page.
+
+## 1.155 Widgets redesign — implemented, unverified; real phone only (could not be compiled here: if the build fails, read the compile error in native/extras/CyWidgets.java first)
+- [ ] Top Story turns to the next story by itself about every 7 seconds; the two round arrows (top right) turn it at once; tapping the photo opens that story.
+- [ ] Ticker (4x1): a picture tile on the left (brass bar when no picture), turns every 6 seconds; tap opens the story.
+- [ ] Headlines at 4x2: two rows, small pictures; make it taller (4x3 or more): a big photo story on top plus rows with larger pictures.
+- [ ] Light and dark phone, Z Fold folded and unfolded. Widget picker previews are still the old stills (not redrawn yet).

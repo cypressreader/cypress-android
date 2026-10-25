@@ -10,7 +10,7 @@ public class CyWidgetListProvider extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager manager, int[] appWidgetIds) {
         try {
-            for (int id : appWidgetIds) manager.updateAppWidget(id, CyWidgets.buildList(context, CyWidgets.heightDp(manager, id)));
+            for (int id : appWidgetIds) manager.updateAppWidget(id, CyWidgets.buildList(context, CyWidgets.widthDp(manager, id), CyWidgets.heightDp(manager, id)));
         } catch (Throwable t) {
             // never crash
         }
@@ -19,7 +19,7 @@ public class CyWidgetListProvider extends AppWidgetProvider {
     @Override
     public void onAppWidgetOptionsChanged(Context context, AppWidgetManager manager, int appWidgetId, Bundle newOptions) {
         try {
-            manager.updateAppWidget(appWidgetId, CyWidgets.buildList(context, CyWidgets.heightDp(manager, appWidgetId)));
+            manager.updateAppWidget(appWidgetId, CyWidgets.buildList(context, CyWidgets.widthDp(manager, appWidgetId), CyWidgets.heightDp(manager, appWidgetId)));
         } catch (Throwable t) {
             // never crash
         }

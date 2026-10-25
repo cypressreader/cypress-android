@@ -195,12 +195,16 @@ final class CyWidgets {
         arm(c, true);
     }
 
-    /** The Top Story's arrows. */
+    /** The Top Story's arrows: turn the flipper on the home screen right away (it keeps turning by itself afterwards). */
     static void flip(Context c, int dir) {
         try {
-            SharedPreferences p = sp(c);
-            p.edit().putInt("widget_top_i", p.getInt("widget_top_i", 0) + dir).apply();
-            refreshTop(c);
+            AppWidgetManager m = AppWidgetManager.getInstance(c);
+            for (int id : ids(c, CyWidgetProvider.class)) {
+                RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_top);
+                if (dir < 0) rv.showPrevious(R.id.cy_wt_flip);
+                else rv.showNext(R.id.cy_wt_flip);
+                m.partiallyUpdateAppWidget(id, rv);
+            }
         } catch (Throwable t) {
             Log.w(TAG, "flip failed: " + t);
         }
@@ -386,7 +390,7 @@ final class CyWidgets {
             float dens = c.getResources().getDisplayMetrics().density;
             int tw = Math.round((wDp > 0 ? wDp : 250) * dens);
             int th = Math.round((hDp > 0 ? hDp : 160) * dens);
-            float k = Math.min(1f, 720f / Math.max(tw, th)); // keep the bitmap well inside the RemoteViews size budget
+            float k = Math.min(1f, 560f / Math.max(tw, th)); // keep the bitmap well inside the RemoteViews size budget
             tw = Math.max(1, Math.round(tw * k));
             th = Math.max(1, Math.round(th * k));
             Bitmap src = decodeFor(c, url, tw, th, Bitmap.Config.ARGB_8888);
@@ -421,13 +425,19 @@ final class CyWidgets {
     static RemoteViews buildTop(Context c, int wDp, int hDp) {
         RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_top);
         JSONArray h = CyExtras.readHeadlines(c);
-        int n = Math.min(h.length(), TOP_N);
-        int i = wrap(sp(c).getInt("widget_top_i", 0), n);
-        JSONObject o = n > 0 ? h.optJSONObject(i) : null;
-        boolean upd = isUpdating(c);
-        if (o == null || o.optString("title", "").length() == 0) {
+        boolean upd = isUpdating(c), stale = isStale(c);
+        rv.removeAllViews(R.id.cy_wt_flip);
+        int pages = 0;
+        for (int i = 0; i < h.length() && pages < TOP_N; i++) {
+            JSONObject o = h.optJSONObject(i);
+            if (o == null || o.optString("title", "").length() == 0) continue;
+            rv.addView(R.id.cy_wt_flip, topPage(c, o, i, wDp, hDp, upd, stale));
+            pages++;
+        }
+        if (pages == 0) {
             // designed empty state: the mark and "Updating…" (or what to do), no arrows
-            rv.setViewVisibility(R.id.cy_wt_body, View.GONE);
+            rv.setViewVisibility(R.id.cy_wt_flip, View.GONE);
+            rv.setViewVisibility(R.id.cy_wt_arrows, View.GONE);
             rv.setViewVisibility(R.id.cy_wt_empty, View.VISIBLE);
             rv.setTextViewText(R.id.cy_wt_empty_t, upd ? "Updating…" : "Open CyPress to load your top stories");
             PendingIntent open = CyExtras.openIntent(c, null, 300);
@@ -435,38 +445,38 @@ final class CyWidgets {
             rv.setOnClickPendingIntent(R.id.cy_wt_empty, open);
             return rv;
         }
-        String link = o.optString("link", "");
+        rv.setViewVisibility(R.id.cy_wt_flip, View.VISIBLE);
+        rv.setViewVisibility(R.id.cy_wt_empty, View.GONE);
+        rv.setViewVisibility(R.id.cy_wt_arrows, pages > 1 ? View.VISIBLE : View.GONE);
+        rv.setViewVisibility(R.id.cy_wt_upd, upd ? View.VISIBLE : View.GONE);
+        rv.setOnClickPendingIntent(R.id.cy_wt_prev, step(c, ACT_PREV, 301));
+        rv.setOnClickPendingIntent(R.id.cy_wt_next, step(c, ACT_NEXT, 302));
+        return rv;
+    }
+
+    /** One story of the Top Story flipper. */
+    private static RemoteViews topPage(Context c, JSONObject o, int i, int wDp, int hDp, boolean upd, boolean stale) {
+        RemoteViews pg = new RemoteViews(c.getPackageName(), R.layout.cy_widget_top_page);
         String src = o.optString("src", "").trim();
         String age = ageLabel(o.optLong("date", 0L));
         String kick = src.toUpperCase(Locale.getDefault());
         if (age.length() > 0) kick = kick.length() > 0 ? kick + "  ·  " + age : age;
+        if (stale) kick = "TAP TO REFRESH";
         Bitmap pic = hero(c, o.optString("img", ""), wDp, hDp);
         if (pic != null) {
-            rv.setImageViewBitmap(R.id.cy_wt_img, pic);
-            rv.setViewVisibility(R.id.cy_wt_img, View.VISIBLE);
-            rv.setViewVisibility(R.id.cy_wt_scrim, View.VISIBLE);
-            rv.setViewVisibility(R.id.cy_wt_frame, View.GONE);
-            rv.setInt(R.id.cy_wt_src, "setTextColor", col(c, R.color.cy_w_brass));
-            rv.setInt(R.id.cy_wt_head, "setTextColor", col(c, R.color.cy_w_photo_text));
-            rv.setInt(R.id.cy_wt_pos, "setTextColor", col(c, R.color.cy_w_photo_sub));
+            pg.setImageViewBitmap(R.id.cy_wp_img, pic);
+            pg.setViewVisibility(R.id.cy_wp_img, View.VISIBLE);
+            pg.setViewVisibility(R.id.cy_wp_scrim, View.VISIBLE);
+            pg.setViewVisibility(R.id.cy_wp_frame, View.GONE);
+            pg.setInt(R.id.cy_wp_src, "setTextColor", col(c, R.color.cy_w_brass));
+            pg.setInt(R.id.cy_wp_head, "setTextColor", col(c, R.color.cy_w_photo_text));
         }
-        rv.setTextViewText(R.id.cy_wt_src, kick);
-        rv.setViewVisibility(R.id.cy_wt_src, kick.length() == 0 ? View.GONE : View.VISIBLE);
-        rv.setTextViewText(R.id.cy_wt_head, o.optString("title", ""));
-        boolean many = n > 1;
-        rv.setViewVisibility(R.id.cy_wt_prev, many ? View.VISIBLE : View.GONE);
-        rv.setViewVisibility(R.id.cy_wt_next, many ? View.VISIBLE : View.GONE);
-        rv.setTextViewText(R.id.cy_wt_pos, isStale(c) ? "TAP TO REFRESH" : (many ? (i + 1) + " / " + n : "CYPRESS"));
-        rv.setViewVisibility(R.id.cy_wt_upd, upd ? View.VISIBLE : View.GONE);
-        float alpha = upd ? 0.5f : (o.optBoolean("read", false) ? 0.6f : 1f);
-        rv.setFloat(R.id.cy_wt_head, "setAlpha", alpha);
-        PendingIntent story = isStale(c) ? refreshIntent(c, 311) : CyExtras.openIntent(c, link, 310 + i);
-        rv.setOnClickPendingIntent(android.R.id.background, story);
-        rv.setOnClickPendingIntent(R.id.cy_wt_head, story);
-        rv.setOnClickPendingIntent(R.id.cy_wt_src, story);
-        rv.setOnClickPendingIntent(R.id.cy_wt_prev, step(c, ACT_PREV, 301));
-        rv.setOnClickPendingIntent(R.id.cy_wt_next, step(c, ACT_NEXT, 302));
-        return rv;
+        pg.setTextViewText(R.id.cy_wp_src, kick);
+        pg.setViewVisibility(R.id.cy_wp_src, kick.length() == 0 ? View.GONE : View.VISIBLE);
+        pg.setTextViewText(R.id.cy_wp_head, o.optString("title", ""));
+        pg.setFloat(R.id.cy_wp_head, "setAlpha", upd ? 0.5f : (o.optBoolean("read", false) ? 0.6f : 1f));
+        pg.setOnClickPendingIntent(R.id.cy_wp_root, stale ? refreshIntent(c, 311) : CyExtras.openIntent(c, o.optString("link", ""), 310 + i));
+        return pg;
     }
 
     private static PendingIntent step(Context c, String action, int code) {
@@ -482,6 +492,10 @@ final class CyWidgets {
      * under 140dp three one-line rows without pictures. The first row's headline is a little larger.
      */
     static RemoteViews buildList(Context c, int heightDp) {
+        return buildList(c, 0, heightDp);
+    }
+
+    static RemoteViews buildList(Context c, int widthDp, int heightDp) {
         RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_list);
         JSONArray h = CyExtras.readHeadlines(c);
         boolean pics = heightDp >= 140; // was 170: pictures from two cells tall
@@ -496,18 +510,23 @@ final class CyWidgets {
             at.add(i);
         }
         rv.removeAllViews(R.id.cy_wl_list);
+        boolean feature = heightDp >= 190; // the first story becomes a big photo card
         for (int k = 0; k < rows.size(); k++) {
             JSONObject o = rows.get(k);
+            if (k == 0 && feature) {
+                rv.addView(R.id.cy_wl_list, featureCard(c, o, at.get(0), widthDp > 0 ? widthDp - 32 : 0, Math.round(heightDp * 0.4f)));
+                continue;
+            }
             RemoteViews row = new RemoteViews(c.getPackageName(), R.layout.cy_widget_row);
             String src = o.optString("src", "").trim();
             row.setTextViewText(R.id.cy_wr_src, src.toUpperCase(Locale.getDefault()));
             row.setViewVisibility(R.id.cy_wr_src, src.length() == 0 ? View.GONE : View.VISIBLE);
             row.setTextViewText(R.id.cy_wr_head, o.optString("title", ""));
             row.setInt(R.id.cy_wr_head, "setMaxLines", pics ? 2 : 1);
-            if (k == 0) row.setTextViewTextSize(R.id.cy_wr_head, TypedValue.COMPLEX_UNIT_SP, 16f);
+            if (k == 0 && !feature) row.setTextViewTextSize(R.id.cy_wr_head, TypedValue.COMPLEX_UNIT_SP, 16f);
             Bitmap b = null;
             if (pics) {
-                int px = Math.round(48f * dens);
+                int px = Math.round(64f * dens);
                 Bitmap raw = decodeFor(c, o.optString("img", ""), px, px, Bitmap.Config.ARGB_8888);
                 if (raw != null) b = cropFill(raw, px, px, 10f * dens);
             }
@@ -541,33 +560,82 @@ final class CyWidgets {
         return rv;
     }
 
+    /** The Headlines widget's first story: big photo, brass kicker, serif headline over the fade. */
+    private static RemoteViews featureCard(Context c, JSONObject o, int idx, int wDp, int hDp) {
+        RemoteViews f = new RemoteViews(c.getPackageName(), R.layout.cy_widget_feature);
+        String src = o.optString("src", "").trim();
+        String age = ageLabel(o.optLong("date", 0L));
+        String kick = src.toUpperCase(Locale.getDefault());
+        if (age.length() > 0) kick = kick.length() > 0 ? kick + "  ·  " + age : age;
+        f.setTextViewText(R.id.cy_wf_src, kick);
+        f.setViewVisibility(R.id.cy_wf_src, kick.length() == 0 ? View.GONE : View.VISIBLE);
+        f.setTextViewText(R.id.cy_wf_head, o.optString("title", ""));
+        Bitmap pic = hero(c, o.optString("img", ""), wDp, hDp);
+        if (pic != null) {
+            f.setImageViewBitmap(R.id.cy_wf_img, pic);
+        } else {
+            f.setViewVisibility(R.id.cy_wf_img, View.GONE);
+            f.setViewVisibility(R.id.cy_wf_scrim, View.GONE);
+            f.setInt(R.id.cy_wf_src, "setTextColor", col(c, R.color.cy_w_kicker));
+            f.setInt(R.id.cy_wf_head, "setTextColor", col(c, R.color.cy_w_ink));
+        }
+        if (o.optBoolean("read", false)) f.setFloat(R.id.cy_wf_head, "setAlpha", 0.7f);
+        f.setOnClickPendingIntent(R.id.cy_wf_root, CyExtras.openIntent(c, o.optString("link", ""), 400 + idx));
+        return f;
+    }
+
     // ---------------------------------------------------------------- Ticker 4x1
 
     static RemoteViews buildTicker(Context c) {
         RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_ticker);
-        JSONArray h = tickerStories(c);
-        int n = Math.min(h.length(), TICK_N);
-        int i = wrap(sp(c).getInt("widget_tick_i", 0), n);
-        JSONObject o = n > 0 ? h.optJSONObject(i) : null;
-        boolean upd = isUpdating(c);
-        if (o == null || o.optString("title", "").length() == 0) {
-            rv.setTextViewText(R.id.cy_wk_src, "CYPRESS");
-            rv.setTextViewText(R.id.cy_wk_time, "");
-            rv.setTextViewText(R.id.cy_wk_head, upd ? "Updating…" : "Open CyPress to load headlines");
-            rv.setInt(R.id.cy_wk_head, "setTextColor", col(c, R.color.cy_w_muted));
-            rv.setOnClickPendingIntent(android.R.id.background, CyExtras.openIntent(c, null, 500));
-            return rv;
+        JSONArray h = tickerStories(c), pics = CyExtras.readHeadlines(c);
+        boolean upd = isUpdating(c), stale = isStale(c);
+        float dens = c.getResources().getDisplayMetrics().density;
+        rv.removeAllViews(R.id.cy_wk_flip);
+        int pages = 0;
+        for (int i = 0; i < h.length() && pages < TICK_N; i++) {
+            JSONObject o = h.optJSONObject(i);
+            if (o == null || o.optString("title", "").length() == 0) continue;
+            RemoteViews pg = new RemoteViews(c.getPackageName(), R.layout.cy_widget_ticker_page);
+            String kick = stale ? "TAP TO REFRESH" : (upd ? "UPDATING…" : (o.optBoolean("brk", false) ? "BREAKING" : "LATEST"));
+            String age = (upd || stale) ? "" : ageLabel(o.optLong("date", 0L));
+            String src = o.optString("src", "").trim().toUpperCase(Locale.getDefault());
+            if (!stale && !upd && src.length() > 0) kick = kick + "  ·  " + src;
+            if (age.length() > 0) kick = kick + "  ·  " + age;
+            pg.setTextViewText(R.id.cy_wq_src, kick);
+            pg.setTextViewText(R.id.cy_wq_head, o.optString("title", ""));
+            pg.setFloat(R.id.cy_wq_head, "setAlpha", upd ? 0.5f : (o.optBoolean("read", false) ? 0.6f : 1f));
+            String link = o.optString("link", "");
+            String img = o.optString("img", "");
+            for (int k = 0; img.length() == 0 && k < pics.length(); k++) {
+                JSONObject q = pics.optJSONObject(k);
+                if (q != null && link.equals(q.optString("link", ""))) img = q.optString("img", "");
+            }
+            Bitmap b = null;
+            if (img.length() > 0) {
+                int px = Math.round(72f * dens);
+                Bitmap raw = decodeFor(c, img, px, px, Bitmap.Config.ARGB_8888);
+                if (raw != null) b = cropFill(raw, px, px, 10f * dens);
+            }
+            if (b != null) {
+                pg.setImageViewBitmap(R.id.cy_wq_img, b);
+            } else {
+                pg.setViewVisibility(R.id.cy_wq_img, View.GONE);
+                pg.setViewVisibility(R.id.cy_wq_bar, View.VISIBLE);
+            }
+            pg.setOnClickPendingIntent(R.id.cy_wq_root, stale ? refreshIntent(c, 511) : CyExtras.openIntent(c, link, 510 + i));
+            rv.addView(R.id.cy_wk_flip, pg);
+            pages++;
         }
-        boolean stale = isStale(c);
-        String kick = stale ? "TAP TO REFRESH" : (upd ? "UPDATING…" : (o.optBoolean("brk", false) ? "BREAKING" : "LATEST"));
-        String age = (upd || stale) ? "" : ageLabel(o.optLong("date", 0L));
-        rv.setTextViewText(R.id.cy_wk_src, kick);
-        rv.setTextViewText(R.id.cy_wk_time, age.length() > 0 ? "  ·  " + age : "");
-        rv.setTextViewText(R.id.cy_wk_head, o.optString("title", ""));
-        rv.setFloat(R.id.cy_wk_head, "setAlpha", upd ? 0.5f : (o.optBoolean("read", false) ? 0.6f : 1f));
-        PendingIntent story = stale ? refreshIntent(c, 511) : CyExtras.openIntent(c, o.optString("link", ""), 510 + i);
-        rv.setOnClickPendingIntent(android.R.id.background, story);
-        rv.setOnClickPendingIntent(R.id.cy_wk_head, story);
+        if (pages == 0) {
+            rv.setViewVisibility(R.id.cy_wk_flip, View.GONE);
+            rv.setViewVisibility(R.id.cy_wk_empty, View.VISIBLE);
+            rv.setTextViewText(R.id.cy_wk_empty, upd ? "Updating…" : "Open CyPress to load headlines");
+            rv.setOnClickPendingIntent(android.R.id.background, CyExtras.openIntent(c, null, 500));
+        } else {
+            rv.setViewVisibility(R.id.cy_wk_flip, View.VISIBLE);
+            rv.setViewVisibility(R.id.cy_wk_empty, View.GONE);
+        }
         return rv;
     }
 }
