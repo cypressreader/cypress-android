@@ -15478,9 +15478,11 @@ async function exCover(stories,label,gray){
  const lead=stories.find(s=>s.imgUrl),bm=lead?await edBitmap(lead.imgUrl):null;let ph=0;
  if(bm){ph=760;const top=430,sc=Math.max(W/bm.width,ph/bm.height),dw=bm.width*sc,dh=bm.height*sc;x.save();x.beginPath();x.rect(60,top,W-120,ph);x.clip();if(gray&&'filter' in x)x.filter='grayscale(1) contrast(1.2)';x.drawImage(bm,(W-dw)/2,top+(ph-dh)/2,dw,dh);x.restore();x.filter='none';try{bm.close&&bm.close()}catch(e){}}
  x.strokeStyle=gray?'#000':gold;x.lineWidth=gray?10:5;x.strokeRect(36,36,W-72,H-72);
- x.fillStyle=ink;x.font=`400 120px ${DF}`;x.textAlign='left';{const m='CYPRESS',LS=24,ws=[...m].map(ch=>x.measureText(ch).width),tw=ws.reduce((a,b)=>a+b,0)+LS*(m.length-1);let ex=W/2-tw/2;[...m].forEach((ch,i)=>{x.fillText(ch,ex,230);ex+=ws[i]+LS})}
- x.fillStyle=gold;x.font=`700 34px ${SF}`;{const ed=label.toUpperCase().slice(0,44),LS=8,ws=[...ed].map(ch=>x.measureText(ch).width),tw=ws.reduce((a,b)=>a+b,0)+LS*(ed.length-1);let ex=W/2-tw/2;[...ed].forEach((ch,i)=>{x.fillText(ch,ex,300);ex+=ws[i]+LS})}
- x.textAlign='center';x.fillStyle=sub;x.font=`italic 400 44px ${DF}`;x.fillText(new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),W/2,370);
+ /* M1/M3: the vector cypress mark above the masthead: brass on the green cover, black on the black and white one (the light layer at 55%) */
+ try{const mh=92,ms=mh/1920,P=exMarkPaths();x.save();x.translate(W/2-1344*ms/2,62);x.scale(ms,ms);x.fillStyle=gray?'#000':gold;x.globalAlpha=.55;x.fill(P[0],'evenodd');x.globalAlpha=1;x.fill(P[1],'evenodd');x.restore()}catch(e){}
+ x.fillStyle=ink;x.font=`400 104px ${DF}`;x.textAlign='left';{const m='CYPRESS',LS=24,ws=[...m].map(ch=>x.measureText(ch).width),tw=ws.reduce((a,b)=>a+b,0)+LS*(m.length-1);let ex=W/2-tw/2;[...m].forEach((ch,i)=>{x.fillText(ch,ex,262);ex+=ws[i]+LS})}
+ x.fillStyle=gold;x.font=`700 34px ${SF}`;{const ed=label.toUpperCase().slice(0,44),LS=8,ws=[...ed].map(ch=>x.measureText(ch).width),tw=ws.reduce((a,b)=>a+b,0)+LS*(ed.length-1);let ex=W/2-tw/2;[...ed].forEach((ch,i)=>{x.fillText(ch,ex,320);ex+=ws[i]+LS})}
+ x.textAlign='center';x.fillStyle=sub;x.font=`italic 400 44px ${DF}`;x.fillText(new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),W/2,375);
  /* headlines under the picture */
  let y=ph?430+ph+90:600;x.textAlign='left';
  const wrap=(t,f,maxW,n)=>{x.font=f;const ws=t.split(' ');const ls=[];let l='';for(const w of ws){const tt=l?l+' '+w:w;if(x.measureText(tt).width>maxW&&l){ls.push(l);l=w}else l=tt}if(l)ls.push(l);if(ls.length>n){ls.length=n;ls[n-1]=ls[n-1].replace(/\s*\S*$/,'')+'…'}return ls};
@@ -15493,7 +15495,14 @@ body{font-family:serif;font-size:1em;line-height:1.5;text-align:left;color:#000;
 h1{font-size:1.7em;line-height:1.2;margin:0 0 .35em;page-break-after:avoid}
 h2,h3,h4{font-size:1.2em;line-height:1.3;margin:1.3em 0 .4em;page-break-after:avoid}
 p{margin:0 0 .9em;text-indent:0}
-p.first::first-letter{float:left;font-size:3.2em;line-height:.82;padding:.05em .09em 0 0;font-weight:bold}
+/* H5: the drop cap is a plain span with a float (not ::first-letter, which older Kindles ignore); where the float is ignored it simply reads as the first letter */
+.dc{float:left;font-size:3.2em;line-height:.85;padding:0 .08em 0 0;font-weight:bold}
+hr.rl{width:3em;height:0;margin:.5em 0 1.3em;border:0;border-top:2px solid ${bw?'#000':'#1f6a48'}}
+p.nt{font-style:italic;font-size:.9em;margin:0 0 1.1em}
+nav span{display:block;margin:1.1em 0 .4em;font-weight:bold;font-size:.8em;letter-spacing:.1em;text-transform:uppercase${bw?'':';color:#1f6a48'}}
+nav li ol{margin:0 0 .4em 1em;padding:0}
+blockquote.pull{margin:1.6em 4%;padding:.7em 3%;border-top:3px solid ${bw?'#000':'#1f6a48'};border-bottom:1px solid #000;text-align:center;font-style:italic;font-size:1.3em;line-height:1.35}
+blockquote.hq{margin:.9em 0 .4em 1em;padding:.1em 0 .1em .6em;border-top:0;border-bottom:0;border-left:3px solid ${bw?'#000':'#a8842c'};font-size:1.05em}
 p.by{font-size:.9em;margin:0 0 1.1em${bw?'':';color:#4a5058'}}
 p.src{font-size:.8em;letter-spacing:.08em;text-transform:uppercase;margin:0 0 .5em${bw?'':';color:#1f6a48'}}
 p.dek{font-style:italic;font-size:1.08em;margin:0 0 1.1em}
@@ -15508,16 +15517,36 @@ a{color:inherit;text-decoration:${bw?'underline':'none'}}
 .cover{margin:0;padding:0;text-align:center}.cover img{max-width:100%;max-height:100%}
 nav ol{list-style:none;padding:0;margin:0}nav li{margin:0 0 .6em}
 .colo{text-align:center;margin:18% 8% 0;page-break-before:always}.colo p{margin:0}.clg img{width:4em;height:auto}.cnm{margin:1.4em 0 0;font-size:1.35em;letter-spacing:.4em;font-weight:bold;${bw?'':'color:#8a6a14'}}.crl{width:3em;margin:.8em auto;border:0;border-top:1px solid ${bw?'#000':'#8a6a14'}}.ctg{font-style:italic;margin:0 0 2.4em}.cq{font-style:italic;font-size:1.1em;line-height:1.5;margin:0 auto .7em;max-width:22em}.cby{font-size:.8em;letter-spacing:.08em;margin:0 0 3.2em}.cft{font-size:.75em;margin-top:2.5em}`;
+/* H5: one pull quote per story for the Kindle book (the same rule as the PDF): a quote block of a fitting length, or a quoted sentence from a later paragraph. It leaves the body text and is set large after the third paragraph */
+function exPull(bl){
+ const qi=bl.findIndex(b=>b.t==='q'&&b.s.length>=40&&b.s.length<=230);
+ if(qi>=0)return {text:bl[qi].s,bl:bl.filter((_,i)=>i!==qi)};
+ let n=0;
+ for(let i=0;i<bl.length;i++){const b=bl[i];if(b.t!=='p')continue;n++;if(n<3)continue;
+  const se=b.s.match(/[^.!?]+[.!?]+["\u201d\u2019]?\s*/g)||[],k=se.findIndex(x=>/[\u201c"]/.test(x)&&x.trim().length>=50&&x.trim().length<=190);
+  if(k>=0){const rest=se.slice(0,k).concat(se.slice(k+1)).join('').trim(),nb=bl.slice();if(rest.length>=40)nb[i]=Object.assign({},b,{s:rest});else nb.splice(i,1);return {text:se[k].trim(),bl:nb}}}
+ return null;
+}
 async function epubMake(stories,mode,title){
  const bw=mode!=='color',uid='urn:uuid:'+(crypto.randomUUID?crypto.randomUUID():'cypress-'+Date.now().toString(16)),files=[],imgs=[];
  const addImg=async u=>{const j=await exJpeg(u,bw,bw?900:1100);if(!j)return null;const n=imgs.length+1,href='images/i'+n+'.jpg';imgs.push({href,bytes:j.bytes});return href};
+ /* H5: with more than one story the book reads in three groups: the cover story, the features (long reads, 6 minutes and more) and the short ones ("In brief"), each story with its minutes */
+ const grouped=stories.length>1,gOf=new Map();
+ if(grouped){const rest=stories.slice(1);rest.forEach(s=>gOf.set(s,(s.min||0)>=6?1:2));gOf.set(stories[0],0);stories=[stories[0],...rest.filter(s=>gOf.get(s)===1),...rest.filter(s=>gOf.get(s)===2)]}
+ const GN=['Cover story','Features','In brief'],GK=['Cover story','Feature','In brief'];
  const cov=await exCover(stories,stories.length===1?'A story from CyPress':'Your Selection  ·  '+exDate(),bw);
  const chapters=[];let idx=0;
  for(const st of stories){
   idx++;const id='s'+idx;let body='';
-  body+=`<p class="src">${xe(st.source)}${st.min?' · '+st.min+' min read':''}</p><h1>${xe(st.title)}</h1>`;
-  if(st.author||st.date)body+=`<p class="by">${xe([st.author?'By '+st.author:'',st.date?new Date(st.date).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):''].filter(Boolean).join(' · '))}</p>`;
-  const bl=st.eblocks||st.blocks||[];
+  const gi=gOf.get(st);
+  /* the story opener: section kicker, headline, summary in italics, byline and minutes, a rule */
+  body+=`<p class="src">${xe(st.source)}${grouped?' · '+GK[gi]:''}</p><h1>${xe(st.title)}</h1>`;
+  {const dk=st.pageDek!==undefined?st.pageDek:st.dek;if(dk)body+=`<p class="dek">${xe(dk)}</p>`}
+  {const by=[st.author?'By '+st.author:'',st.date?new Date(st.date).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'',st.min?st.min+' min read':''].filter(Boolean).join(' · ');if(by)body+=`<p class="by">${xe(by)}</p>`}
+  body+='<hr class="rl"/>';
+  let bl=st.eblocks||st.blocks||[];
+  const pq=exPull(bl);if(pq)bl=pq.bl;let pulled=false,npar=0;const tpar=bl.filter(b=>b.t==='p').length;
+  const pullHtml=()=>{pulled=true;return `<blockquote class="pull"><p>&#8220;${xe(pq.text.replace(/^[\u201c"]+|[\u201d"]+$/g,'').trim())}&#8221;</p></blockquote>`};
   /* the lead picture first, unless the text already carries it */
   const hasLead=st.imgUrl&&bl.some(b=>b.t==='img'&&sameImg(b.u,st.imgUrl));
   if(st.imgUrl&&!hasLead){const h=await addImg(st.imgUrl);if(h)body+=`<figure><img src="${h}" alt=""/></figure>`}
@@ -15528,21 +15557,37 @@ async function epubMake(stories,mode,title){
    else if(b.t==='h')body+=`<h2>${xe(b.s)}</h2>`;
    else if(b.t==='q')body+=`<blockquote><p>${xe(b.s)}</p></blockquote>`;
    else if(b.t==='li'){if(!inList){body+='<ul>';inList=true}body+=`<li>${xe(b.s)}</li>`}
-   else{const fc=!fp&&0;if(fp&&b.s.length>=140&&/^[A-Za-z]/.test(b.s)){fp=false;body+=`<p class="first">${xe(b.s)}</p>`}else body+=`<p>${xe(b.s)}</p>`}
+   else{if(fp&&b.s.length>=140&&/^[A-Za-z]/.test(b.s)){fp=false;body+=`<p class="first"><span class="dc">${xe(b.s[0])}</span>${xe(b.s.slice(1))}</p>`}else body+=`<p>${xe(b.s)}</p>`;npar++;if(pq&&!pulled&&npar===Math.min(3,tpar))body+=pullHtml()}
   }
   if(inList)body+='</ul>';
-  if(st.note)body+=`<p class="dek">${xe(st.note)}</p>`;
+  if(pq&&!pulled)body+=pullHtml();
+  if(st.note)body+=`<p class="nt">${xe(st.note)}</p>`;
   if(/^https?:/.test(st.l||''))body+=`<p class="end"><a href="${xe(st.l)}">Read the original at ${xe(host(st.l))}</a></p>`;
-  chapters.push({id,href:id+'.xhtml',title:st.title,xhtml:`<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en"><head><meta charset="utf-8"/><title>${xe(st.title)}</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body><section epub:type="chapter" id="${id}">${body}</section></body></html>`});
+  chapters.push({id,href:id+'.xhtml',title:st.title,min:st.min||0,g:grouped?gi:-1,xhtml:`<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en"><head><meta charset="utf-8"/><title>${xe(st.title)}</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body><section epub:type="chapter" id="${id}">${body}</section></body></html>`});
  }
+ /* H6: "Your notes": the highlights and notes on these stories; no chapter when there are none */
+ {const NT=exNotes(stories);if(NT.length){
+  const tot=NT.reduce((n,g)=>n+g.items.length,0);
+  const nb=`<p class="src">From your highlights</p><h1>Your notes</h1><p class="by">${tot} ${tot===1?'highlight':'highlights'} from ${NT.length} ${NT.length===1?'story':'stories'}</p><hr class="rl"/>`+NT.map(g=>`<h2>${xe(g.title)}</h2><p class="src">${xe(g.source)}</p>`+g.items.map(it=>`<blockquote class="hq"><p>&#8220;${xe(it.q)}&#8221;</p></blockquote>${it.note?`<p class="nt">Note: ${xe(it.note)}</p>`:''}`).join('')).join('');
+  chapters.push({id:'notes',href:'notes.xhtml',title:'Your notes',min:0,g:-1,xhtml:`<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en"><head><meta charset="utf-8"/><title>Your notes</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body><section epub:type="chapter" id="notes">${nb}</section></body></html>`})}}
  /* B82: the colophon is the last page of the book */
  {const CK=exColophon(),lk=LOGOS[S.logo]?S.logo:'tree';let lh=null;try{const bd=await pdfBadgeImg(bw?'#000000':'#8a6a14');if(bd){const n=imgs.length+1;lh='images/i'+n+'.jpg';imgs.push({href:lh,bytes:bd.bytes})}}catch(e){}
   const q=xe(CK.quote).replace(/ ([^ ]+)$/,'&#160;$1');
   const body=`<div class="colo">${lh?`<p class="clg"><img src="${lh}" alt="CyPress"/></p>`:''}<p class="cnm">CYPRESS</p><hr class="crl"/><p class="ctg">${xe(CK.tagline)}</p><p class="cq">&#8220;${q}&#8221;</p><p class="cby">&#8212; ${xe(CK.by)}</p><p class="cft">${xe(CK.foot)}</p></div>`;
   chapters.push({id:'colophon',href:'colophon.xhtml',title:'Colophon',xhtml:`<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en"><head><meta charset="utf-8"/><title>Colophon</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body>${body}</body></html>`})}
  const now=new Date().toISOString().replace(/\.\d+Z$/,'Z');
- const nav=`<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en"><head><meta charset="utf-8"/><title>Contents</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body><nav epub:type="toc" id="toc"><h1>Contents</h1><ol>${chapters.map(c=>`<li><a href="${c.href}">${xe(c.title)}</a></li>`).join('')}</ol></nav></body></html>`;
- const ncx=`<?xml version="1.0" encoding="utf-8"?>\n<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><head><meta name="dtb:uid" content="${xe(uid)}"/><meta name="dtb:depth" content="1"/><meta name="dtb:totalPageCount" content="0"/><meta name="dtb:maxPageNumber" content="0"/></head><docTitle><text>${xe(title)}</text></docTitle><navMap>${chapters.map((c,i)=>`<navPoint id="n${i+1}" playOrder="${i+1}"><navLabel><text>${xe(c.title)}</text></navLabel><content src="${c.href}"/></navPoint>`).join('')}</navMap></ncx>`;
+ /* H5: the contents, grouped (a nested list; the same tree goes into the older NCX contents with a depth of 2) */
+ const lbl=c=>xe(c.title)+(c.min?' \u00b7 '+c.min+' min':'');
+ let tocHtml='',ncxPts='',po=0;
+ {const pt=(c,inner)=>{po++;const id='n'+po;return `<navPoint id="${id}" playOrder="${po}"><navLabel><text>${lbl(c)}</text></navLabel><content src="${c.href}"/>${inner||''}</navPoint>`};
+  if(grouped){
+   for(let g=0;g<3;g++){const cs=chapters.filter(c=>c.g===g);if(!cs.length)continue;
+    tocHtml+=`<li><span>${GN[g]}</span><ol>${cs.map(c=>`<li><a href="${c.href}">${lbl(c)}</a></li>`).join('')}</ol></li>`;
+    po++;const gid=po;let kids='';cs.forEach(c=>{kids+=pt(c)});ncxPts+=`<navPoint id="g${g}" playOrder="${gid}"><navLabel><text>${GN[g]}</text></navLabel><content src="${cs[0].href}"/>${kids}</navPoint>`}
+   chapters.filter(c=>!(c.g>=0)).forEach(c=>{tocHtml+=`<li><a href="${c.href}">${lbl(c)}</a></li>`;ncxPts+=pt(c)});
+  }else chapters.forEach(c=>{tocHtml+=`<li><a href="${c.href}">${lbl(c)}</a></li>`;ncxPts+=pt(c)});}
+ const nav=`<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en"><head><meta charset="utf-8"/><title>Contents</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body><nav epub:type="toc" id="toc"><h1>Contents</h1><ol>${tocHtml}</ol></nav><nav epub:type="landmarks" id="landmarks" hidden=""><ol><li><a epub:type="cover" href="cover.xhtml">Cover</a></li><li><a epub:type="toc" href="nav.xhtml">Contents</a></li><li><a epub:type="bodymatter" href="${chapters[0].href}">Start reading</a></li></ol></nav></body></html>`;
+ const ncx=`<?xml version="1.0" encoding="utf-8"?>\n<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1"><head><meta name="dtb:uid" content="${xe(uid)}"/><meta name="dtb:depth" content="${grouped?2:1}"/><meta name="dtb:totalPageCount" content="0"/><meta name="dtb:maxPageNumber" content="0"/></head><docTitle><text>${xe(title)}</text></docTitle><navMap>${ncxPts}</navMap></ncx>`;
  const coverX=`<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en"><head><meta charset="utf-8"/><title>Cover</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body class="cover"><section epub:type="cover"><img src="images/cover.jpg" alt="${xe(title)}"/></section></body></html>`;
  const opf=`<?xml version="1.0" encoding="utf-8"?>\n<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid" xml:lang="en"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="uid">${xe(uid)}</dc:identifier><dc:title>${xe(title)}</dc:title><dc:language>en</dc:language><dc:creator>CyPress</dc:creator><dc:publisher>CyPress</dc:publisher><dc:date>${now.slice(0,10)}</dc:date><meta property="dcterms:modified">${now}</meta><meta name="cover" content="cover-img"/></metadata><manifest><item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/><item id="css" href="style.css" media-type="text/css"/><item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/><item id="cover-img" href="images/cover.jpg" media-type="image/jpeg" properties="cover-image"/>${chapters.map(c=>`<item id="${c.id}" href="${c.href}" media-type="application/xhtml+xml"/>`).join('')}${imgs.map((m,i)=>`<item id="img${i+1}" href="${m.href}" media-type="image/jpeg"/>`).join('')}</manifest><spine toc="ncx"><itemref idref="cover" linear="yes"/><itemref idref="nav" linear="yes"/>${chapters.map(c=>`<itemref idref="${c.id}"/>`).join('')}</spine><guide><reference type="cover" title="Cover" href="cover.xhtml"/><reference type="toc" title="Contents" href="nav.xhtml"/></guide></package>`;
  files.push({name:'mimetype',data:'application/epub+zip'},
