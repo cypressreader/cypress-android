@@ -13365,7 +13365,7 @@ function miniTabs(){
  MTIO=new IntersectionObserver(es=>{const e=es[es.length-1];bar.classList.toggle('on',!e.isIntersecting&&e.boundingClientRect.top<0);if(bar.classList.contains('on'))tabInd(bar,'mini')},{root:main,threshold:0});
  MTIO.observe(strip);
 }
-{const _r10=render;render=function(){_r10.apply(this,arguments);try{miniTabs()}catch(e){}try{tabIndAll()}catch(e){}}}
+{const _r10=render;render=function(){_r10.apply(this,arguments);try{miniTabs()}catch(e){}tabIndSoon()}}
 /* polish-2026-10 (E3): the brass bar under the active Daily tab. It remembers where it was, so after the page redraws it slides from the old tab to the new one. */
 const TBI={};
 function tabInd(bar,key){
@@ -13374,6 +13374,8 @@ function tabInd(bar,key){
  const w=Math.max(12,on.offsetWidth-24),x=on.offsetLeft+12,p=TBI[key];
  if(p&&!ind.dataset.s&&!reduced()){ind.style.transition='none';ind.style.setProperty('--tw',p.w+'px');ind.style.setProperty('--tx',p.x+'px');void ind.offsetWidth;ind.style.transition=''}
  ind.dataset.s='1';ind.style.setProperty('--tw',w+'px');ind.style.setProperty('--tx',x+'px');TBI[key]={x,w}}
+/* measured on the next frame, never right after render(): reading offsetWidth there forced an extra full layout of the new list (doubled render time) */
+function tabIndSoon(){if(tabIndSoon.r)return;tabIndSoon.r=requestAnimationFrame(()=>{tabIndSoon.r=0;try{tabIndAll()}catch(e){}})}
 function tabIndAll(){const g=$('#grid');if(g)tabInd(g.querySelector('.bmseg.dtabs'),'main');tabInd($('#mtabs'),'mini')}
 addEventListener('resize',()=>{clearTimeout(tabIndAll.t);tabIndAll.t=setTimeout(()=>{try{tabIndAll()}catch(e){}},120)});
 
