@@ -727,3 +727,10 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 - [ ] Leave the app open on All Stories during an automatic refresh: no pill while sites are still loading; one pill with the full count when it is done.
 - [ ] Tap the pill: no new pill for 30 minutes, however many stories arrive. After 30 minutes the next screen redraw shows one again.
 - [ ] Pull to refresh: no pill afterwards (the new stories are simply in the list); the 30-minute clock restarts.
+
+## 1.156 Widgets: StackView Card Deck & Editorial Fallbacks — implemented, unverified (real phone)
+- [ ] **Top Story Card Stack (StackView)**: Swipe up/down on the cards to flick through stories. Check that tapping any card deep-links directly into the reader for that article.
+- [ ] **Editorial Typography Fallbacks**: For stories without images in Top Story, Headlines, and Ticker, verify the celestial brass sun ornament (`cy_w_sun.xml`) renders crisp and centered alongside the serif display headline and kicker.
+- [ ] **Full-Bleed Imagery & Scrim**: For stories with photos, verify the dark gradient scrim (`#0c2619`) keeps the white kicker and headline readable.
+- [ ] **Memory & Performance**: Verify widgets never crash or drop out due to `TransactionTooLargeException` (downsampled to 480px max bound in `RGB_565`).
+- [ ] **Headlines Broadsheet**: On Android 12+ (API 31+), verify Headlines scrolls smoothly via `ListView` and tapping any row opens that specific story.

@@ -181,8 +181,8 @@ final class CyWidgets {
             AppWidgetManager m = AppWidgetManager.getInstance(c);
             for (int id : ids(c, CyWidgetProvider.class)) {
                 RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_top);
-                if (dir < 0) rv.showPrevious(R.id.cy_wt_flip);
-                else rv.showNext(R.id.cy_wt_flip);
+                if (dir < 0) rv.showPrevious(R.id.cy_stack_view);
+                else rv.showNext(R.id.cy_stack_view);
                 m.partiallyUpdateAppWidget(id, rv);
             }
         } catch (Throwable t) {
@@ -201,7 +201,10 @@ final class CyWidgets {
     static void refreshTop(Context c) {
         try {
             AppWidgetManager m = AppWidgetManager.getInstance(c);
-            for (int id : ids(c, CyWidgetProvider.class)) m.updateAppWidget(id, buildTop(c, widthDp(m, id), heightDp(m, id)));
+            for (int id : ids(c, CyWidgetProvider.class)) {
+                m.updateAppWidget(id, buildTop(c, id, widthDp(m, id), heightDp(m, id)));
+                m.notifyAppWidgetViewDataChanged(id, R.id.cy_stack_view);
+            }
         } catch (Throwable t) {
             Log.w(TAG, "top refresh: " + t);
         }
@@ -375,18 +378,18 @@ final class CyWidgets {
 
     /**
      * Hero photo cropped to the card's shape.
-     * For full-bleed Top Story cards on Android 12+ the launcher rounds @android:id/background;
-     * for inset cards (Headlines feature card) or Android < 12 we bake rounded corners into the bitmap.
+     * Memory-safe downsampling and dimension bounds eliminate TransactionTooLargeException.
      */
     private static Bitmap hero(Context c, String url, int wDp, int hDp, boolean fullBleed) {
         try {
             float dens = c.getResources().getDisplayMetrics().density;
-            int tw = Math.round((wDp > 0 ? wDp : 250) * dens);
-            int th = Math.round((hDp > 0 ? hDp : 160) * dens);
-            float k = Math.min(1f, 560f / Math.max(tw, th)); // keep the bitmap well inside the RemoteViews size budget
+            int tw = Math.round((wDp > 0 ? wDp : 260) * dens);
+            int th = Math.round((hDp > 0 ? hDp : 170) * dens);
+            float k = Math.min(1f, 480f / Math.max(tw, th)); // strictly cap bitmap size for Binder safety
             tw = Math.max(1, Math.round(tw * k));
             th = Math.max(1, Math.round(th * k));
-            Bitmap src = decodeFor(c, url, tw, th, Bitmap.Config.ARGB_8888);
+            Bitmap src = decodeFor(c, url, tw, th, Bitmap.Config.RGB_565);
+            if (src == null) src = decodeFor(c, url, tw, th, Bitmap.Config.ARGB_8888);
             if (src == null) return null;
             float r = fullBleed ? (Build.VERSION.SDK_INT < 31 ? 20f * dens * k : 0f) : (10f * dens * k);
             return cropFill(src, tw, th, r);
@@ -416,88 +419,109 @@ final class CyWidgets {
         }
     }
 
-    // ---------------------------------------------------------------- Top Story (resizable, 3x2 by default)
+    // ---------------------------------------------------------------- Card Stack (Top Story, StackView)
 
     static RemoteViews buildTop(Context c) {
-        return buildTop(c, 0, 0);
+        return buildTop(c, 0, 0, 0);
     }
 
     static RemoteViews buildTop(Context c, int wDp, int hDp) {
+        return buildTop(c, 0, wDp, hDp);
+    }
+
+    static RemoteViews buildTop(Context c, int appWidgetId, int wDp, int hDp) {
         RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_top);
         JSONArray h = CyExtras.readHeadlines(c);
         boolean upd = isUpdating(c), stale = isStale(c);
-        rv.removeAllViews(R.id.cy_wt_flip);
         java.util.ArrayList<JSONObject> valid = new java.util.ArrayList<>();
-        java.util.ArrayList<Integer> origIdx = new java.util.ArrayList<>();
         for (int i = 0; i < h.length() && valid.size() < TOP_N; i++) {
             JSONObject o = h.optJSONObject(i);
             if (o == null || o.optString("title", "").length() == 0) continue;
             valid.add(o);
-            origIdx.add(i);
         }
         int pages = valid.size();
-        for (int k = 0; k < pages; k++) {
-            rv.addView(R.id.cy_wt_flip, topPage(c, valid.get(k), origIdx.get(k), k, pages, wDp, hDp, upd, stale));
-        }
         if (pages == 0) {
-            // designed empty state: the mark and "Updating…" (or what to do), no arrows
-            rv.setViewVisibility(R.id.cy_wt_flip, View.GONE);
-            rv.setViewVisibility(R.id.cy_wt_arrows, View.GONE);
+            rv.setViewVisibility(R.id.cy_stack_view, View.GONE);
             rv.setViewVisibility(R.id.cy_wt_empty, View.VISIBLE);
-            rv.setTextViewText(R.id.cy_wt_empty_t, upd ? "Updating…" : "Open CyPress to load your top stories");
+            rv.setTextViewText(R.id.cy_wt_empty_t, upd ? "Updating…" : "Open CyPress to load your stories");
             PendingIntent open = CyExtras.openIntent(c, null, 300);
             rv.setOnClickPendingIntent(android.R.id.background, open);
             rv.setOnClickPendingIntent(R.id.cy_wt_empty, open);
             return rv;
         }
-        rv.setViewVisibility(R.id.cy_wt_flip, View.VISIBLE);
+
+        rv.setViewVisibility(R.id.cy_stack_view, View.VISIBLE);
         rv.setViewVisibility(R.id.cy_wt_empty, View.GONE);
-        rv.setViewVisibility(R.id.cy_wt_arrows, pages > 1 ? View.VISIBLE : View.GONE);
         rv.setViewVisibility(R.id.cy_wt_upd, upd ? View.VISIBLE : View.GONE);
-        rv.setOnClickPendingIntent(R.id.cy_wt_prev, step(c, ACT_PREV, 301));
-        rv.setOnClickPendingIntent(R.id.cy_wt_next, step(c, ACT_NEXT, 302));
+
+        if (Build.VERSION.SDK_INT >= 31) {
+            RemoteViews.RemoteCollectionItems.Builder cb = new RemoteViews.RemoteCollectionItems.Builder()
+                .setHasStableIds(true);
+            for (int k = 0; k < pages; k++) {
+                cb.addItem(k, buildStackCard(c, valid.get(k), k, pages, wDp, hDp, true));
+            }
+            rv.setRemoteAdapter(R.id.cy_stack_view, cb.build());
+        } else {
+            Intent intent = new Intent(c, CyWidgetService.class);
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+            intent.setData(android.net.Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
+            rv.setRemoteAdapter(R.id.cy_stack_view, intent);
+        }
+
+        rv.setEmptyView(R.id.cy_stack_view, R.id.cy_wt_empty);
+        PendingIntent tpl = stale ? refreshIntent(c, 305) : CyExtras.openTemplateIntent(c, 306);
+        rv.setPendingIntentTemplate(R.id.cy_stack_view, tpl);
+
+        PendingIntent open = stale ? refreshIntent(c, 305) : CyExtras.openIntent(c, null, 300);
+        rv.setOnClickPendingIntent(android.R.id.background, open);
+        rv.setOnClickPendingIntent(R.id.cy_wt_empty, open);
         return rv;
     }
 
-    /** One story of the Top Story flipper. */
-    private static RemoteViews topPage(Context c, JSONObject o, int i, int pageIdx, int totalPages, int wDp, int hDp, boolean upd, boolean stale) {
-        RemoteViews pg = new RemoteViews(c.getPackageName(), R.layout.cy_widget_top_page);
+    /** One card in the swipeable StackView deck. */
+    static RemoteViews buildStackCard(Context c, JSONObject o, int position, int total, int wDp, int hDp, boolean inCollection) {
+        RemoteViews card = new RemoteViews(c.getPackageName(), R.layout.cy_widget_card);
         String src = o.optString("src", "").trim();
         String age = ageLabel(o.optLong("date", 0L));
         String kick = src.toUpperCase(Locale.getDefault());
         if (age.length() > 0) kick = kick.length() > 0 ? kick + "  ·  " + age : age;
-        if (stale) kick = "TAP TO REFRESH";
+        if (isStale(c)) kick = "TAP TO REFRESH";
+
         Bitmap pic = hero(c, o.optString("img", ""), wDp, hDp, true);
         if (pic != null) {
-            pg.setImageViewBitmap(R.id.cy_wp_img, pic);
-            pg.setViewVisibility(R.id.cy_wp_img, View.VISIBLE);
-            pg.setViewVisibility(R.id.cy_wp_scrim, View.VISIBLE);
-            pg.setViewVisibility(R.id.cy_wp_frame, View.VISIBLE);
-            pg.setInt(R.id.cy_wp_frame, "setBackgroundResource", R.drawable.cy_w_photo_frame);
-            pg.setInt(R.id.cy_wp_src, "setTextColor", col(c, R.color.cy_w_brass));
-            pg.setInt(R.id.cy_wp_head, "setTextColor", col(c, R.color.cy_w_photo_text));
+            card.setImageViewBitmap(R.id.cy_card_img, pic);
+            card.setViewVisibility(R.id.cy_card_img, View.VISIBLE);
+            card.setViewVisibility(R.id.cy_card_scrim, View.VISIBLE);
+            card.setViewVisibility(R.id.cy_card_fallback, View.GONE);
+            card.setInt(R.id.cy_card_frame, "setBackgroundResource", R.drawable.cy_w_photo_frame);
+            card.setInt(R.id.cy_card_src, "setTextColor", col(c, R.color.cy_w_brass));
+            card.setInt(R.id.cy_card_head, "setTextColor", col(c, R.color.cy_w_photo_text));
         } else {
-            pg.setViewVisibility(R.id.cy_wp_frame, View.VISIBLE);
-            pg.setInt(R.id.cy_wp_frame, "setBackgroundResource", R.drawable.cy_w_frame);
+            card.setViewVisibility(R.id.cy_card_img, View.GONE);
+            card.setViewVisibility(R.id.cy_card_scrim, View.GONE);
+            card.setViewVisibility(R.id.cy_card_fallback, View.VISIBLE);
+            card.setInt(R.id.cy_card_frame, "setBackgroundResource", R.drawable.cy_w_frame);
+            card.setInt(R.id.cy_card_src, "setTextColor", col(c, R.color.cy_w_kicker));
+            card.setInt(R.id.cy_card_head, "setTextColor", col(c, R.color.cy_w_ink));
         }
-        boolean compact = hDp > 0 && hDp < 135;
-        boolean expanded = hDp >= 220;
-        pg.setTextViewText(R.id.cy_wp_folio, "CYPRESS  ·  " + (pageIdx + 1) + " / " + Math.max(1, totalPages));
-        pg.setViewVisibility(R.id.cy_wp_folio, (upd || (hDp > 0 && hDp < 115)) ? View.GONE : View.VISIBLE);
-        pg.setTextViewText(R.id.cy_wp_src, kick);
-        pg.setViewVisibility(R.id.cy_wp_src, kick.length() == 0 ? View.GONE : View.VISIBLE);
-        pg.setTextViewText(R.id.cy_wp_head, o.optString("title", ""));
-        pg.setTextViewTextSize(R.id.cy_wp_head, TypedValue.COMPLEX_UNIT_SP, compact ? 16f : (expanded ? 20f : 18f));
-        pg.setInt(R.id.cy_wp_head, "setMaxLines", compact ? 2 : (expanded ? 4 : 3));
-        pg.setFloat(R.id.cy_wp_head, "setAlpha", upd ? 0.5f : (o.optBoolean("read", false) ? 0.6f : 1f));
-        pg.setOnClickPendingIntent(R.id.cy_wp_root, stale ? refreshIntent(c, 311) : CyExtras.openIntent(c, o.optString("link", ""), 310 + i));
-        return pg;
-    }
 
-    private static PendingIntent step(Context c, String action, int code) {
-        Intent i = new Intent(c, CyWidgetProvider.class);
-        i.setAction(action);
-        return PendingIntent.getBroadcast(c, code, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+        boolean compact = hDp > 0 && hDp < 140;
+        boolean expanded = hDp >= 220;
+        card.setTextViewText(R.id.cy_card_folio, "CYPRESS  ·  " + (position + 1) + " / " + Math.max(1, total));
+        card.setViewVisibility(R.id.cy_card_folio, compact ? View.GONE : View.VISIBLE);
+        card.setTextViewText(R.id.cy_card_src, kick);
+        card.setViewVisibility(R.id.cy_card_src, kick.length() == 0 ? View.GONE : View.VISIBLE);
+        card.setTextViewText(R.id.cy_card_head, o.optString("title", ""));
+        card.setTextViewTextSize(R.id.cy_card_head, TypedValue.COMPLEX_UNIT_SP, compact ? 16f : (expanded ? 20f : 18f));
+        card.setInt(R.id.cy_card_head, "setMaxLines", compact ? 2 : (expanded ? 4 : 3));
+
+        String link = o.optString("link", "");
+        if (inCollection) {
+            card.setOnClickFillInIntent(R.id.cy_card_root, CyExtras.fillInOpenIntent(link));
+        } else {
+            card.setOnClickPendingIntent(R.id.cy_card_root, CyExtras.openIntent(c, link, 310 + position));
+        }
+        return card;
     }
 
     // ---------------------------------------------------------------- Headlines 4x2
@@ -606,10 +630,14 @@ final class CyWidgets {
             f.setImageViewBitmap(R.id.cy_wf_img, pic);
             f.setViewVisibility(R.id.cy_wf_img, View.VISIBLE);
             f.setViewVisibility(R.id.cy_wf_scrim, View.VISIBLE);
+            f.setViewVisibility(R.id.cy_wf_sun_box, View.GONE);
             f.setInt(R.id.cy_wf_frame, "setBackgroundResource", R.drawable.cy_w_photo_frame);
+            f.setInt(R.id.cy_wf_src, "setTextColor", col(c, R.color.cy_w_brass));
+            f.setInt(R.id.cy_wf_head, "setTextColor", col(c, R.color.cy_w_photo_text));
         } else {
             f.setViewVisibility(R.id.cy_wf_img, View.GONE);
             f.setViewVisibility(R.id.cy_wf_scrim, View.GONE);
+            f.setViewVisibility(R.id.cy_wf_sun_box, View.VISIBLE);
             f.setInt(R.id.cy_wf_frame, "setBackgroundResource", R.drawable.cy_w_frame);
             f.setInt(R.id.cy_wf_src, "setTextColor", col(c, R.color.cy_w_kicker));
             f.setInt(R.id.cy_wf_head, "setTextColor", col(c, R.color.cy_w_ink));
@@ -624,7 +652,7 @@ final class CyWidgets {
         return f;
     }
 
-    /** A standard story row in the Headlines widget. */
+    /** A standard story row in the Headlines widget: photo or sun ornament fallback. */
     private static RemoteViews rowCard(Context c, JSONObject o, int idx, int k, int total, boolean pics, boolean feature, boolean inCollection, boolean stale) {
         RemoteViews row = new RemoteViews(c.getPackageName(), R.layout.cy_widget_row);
         float dens = c.getResources().getDisplayMetrics().density;
@@ -639,14 +667,17 @@ final class CyWidgets {
         Bitmap b = null;
         if (pics) {
             int px = Math.round(52f * dens);
-            Bitmap raw = decodeFor(c, o.optString("img", ""), px, px, Bitmap.Config.ARGB_8888);
+            Bitmap raw = decodeFor(c, o.optString("img", ""), px, px, Bitmap.Config.RGB_565);
+            if (raw == null) raw = decodeFor(c, o.optString("img", ""), px, px, Bitmap.Config.ARGB_8888);
             if (raw != null) b = cropFill(raw, px, px, 10f * dens);
         }
         if (b != null) {
             row.setImageViewBitmap(R.id.cy_wr_img, b);
             row.setViewVisibility(R.id.cy_wr_img, View.VISIBLE);
+            row.setViewVisibility(R.id.cy_wr_sun_box, View.GONE);
         } else {
             row.setViewVisibility(R.id.cy_wr_img, View.GONE);
+            row.setViewVisibility(R.id.cy_wr_sun_box, pics ? View.VISIBLE : View.GONE);
         }
         row.setViewVisibility(R.id.cy_wr_rule, k == total - 1 ? View.GONE : View.VISIBLE);
         if (o.optBoolean("read", false)) {
@@ -693,16 +724,19 @@ final class CyWidgets {
             Bitmap b = null;
             if (img.length() > 0) {
                 int px = Math.round(52f * dens);
-                Bitmap raw = decodeFor(c, img, px, px, Bitmap.Config.ARGB_8888);
+                Bitmap raw = decodeFor(c, img, px, px, Bitmap.Config.RGB_565);
+                if (raw == null) raw = decodeFor(c, img, px, px, Bitmap.Config.ARGB_8888);
                 if (raw != null) b = cropFill(raw, px, px, 10f * dens);
             }
             if (b != null) {
                 pg.setImageViewBitmap(R.id.cy_wq_img, b);
                 pg.setViewVisibility(R.id.cy_wq_img, View.VISIBLE);
+                pg.setViewVisibility(R.id.cy_wq_sun_box, View.GONE);
                 pg.setViewVisibility(R.id.cy_wq_bar, View.GONE);
             } else {
                 pg.setViewVisibility(R.id.cy_wq_img, View.GONE);
-                pg.setViewVisibility(R.id.cy_wq_bar, View.VISIBLE);
+                pg.setViewVisibility(R.id.cy_wq_sun_box, View.VISIBLE);
+                pg.setViewVisibility(R.id.cy_wq_bar, View.GONE);
             }
             pg.setOnClickPendingIntent(R.id.cy_wq_root, stale ? refreshIntent(c, 511) : CyExtras.openIntent(c, link, 510 + i));
             rv.addView(R.id.cy_wk_flip, pg);
