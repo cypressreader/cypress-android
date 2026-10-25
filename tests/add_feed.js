@@ -7,9 +7,9 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
   const p=await (await b.newContext({viewport:{width:W,height:860}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
   await mock(p,{n:10});await p.goto('file://'+APP);await p.waitForTimeout(1200);await p.click('text=Get started').catch(()=>{});await p.waitForTimeout(400);
   const t=W+' ';
-  /* the folder picker is open the moment the dialog opens */
-  const open=await p.evaluate(async()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());S.fcheck=false;S.sel='all';render();$('#add').click();await new Promise(r=>setTimeout(r,300));const d=$('#adv'),fo=$('#fo');const r=fo.getBoundingClientRect();return {open:d.open,vis:r.width>20&&r.height>10,label:(document.querySelector('label[for=fo]')||{}).textContent}});
-  ck(t+'"Name and folder" is open and the folder picker is visible',open.open&&open.vis,JSON.stringify(open));
+  /* since 1.148 the folder form stays out of the way until there is something to add, then "Name and folder" is one tap away */
+  const open=await p.evaluate(async()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());S.fcheck=false;S.sel='all';render();$('#add').click();await new Promise(r=>setTimeout(r,300));const d=$('#adv'),fo=$('#fo');const h0=d.hidden;const u=$('#u');u.value='dezeen';u.dispatchEvent(new Event('input',{bubbles:true}));await new Promise(r=>setTimeout(r,300));d.open=true;const r=fo.getBoundingClientRect();return {open:d.open,shown:!d.hidden&&h0,vis:r.width>20&&r.height>10,label:(document.querySelector('label[for=fo]')||{}).textContent}});
+  ck(t+'"Name and folder" appears once something is typed and shows the folder picker',open.open&&open.shown&&open.vis,JSON.stringify(open));
   /* adding from the list names the folder and offers Open */
   await p.evaluate(async()=>{const u=$('#u');u.value='dezeen';u.dispatchEvent(new Event('input',{bubbles:true}));try{pop()}catch(e){}await new Promise(r=>setTimeout(r,600))});
   const has=await p.evaluate(()=>!!document.querySelector('#pop [data-add]'));ck(t+'the list offers a site to add',has);
@@ -29,7 +29,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
   await p.evaluate(()=>document.querySelector('#frm').requestSubmit());await p.waitForTimeout(3500);
   const q=await p.evaluate(()=>{const tt=document.querySelector('#toast'),f=S.feeds.find(f=>f.title==='Pasted Site'),fo=f&&S.folders.find(o=>o.id===f.folder);return {added:!!f,folder:fo&&fo.name,text:tt?tt.textContent:''}});
   const fp=await p.evaluate(()=>{const d=document.getElementById('ask');return d?d.textContent:''});
-  ck(t+'a pasted address is added and a "Feed added" box names its folder',q.added&&q.folder&&fp.includes('Feed added')&&fp.includes('“'+q.folder+'”'),JSON.stringify({q,fp}));
+  ck(t+'a pasted address is added and a "Site added" box names its folder',q.added&&q.folder&&(fp.includes('Site added')||fp.includes('Feed added'))&&fp.includes('“'+q.folder+'”'),JSON.stringify({q,fp}));
   ck(t+'no page errors',!errs.length,errs[0]);
   await p.context().close();
  }
