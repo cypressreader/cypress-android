@@ -58,7 +58,7 @@ Check which model this session is running (`get_session` / attribution reminder)
   - **If the user sends a `[Turn 9/8]` message anyway:** Refuse to start new feature work until they start a new chat, unless they explicitly say "override quota".
 
 ## 5. Workflow rules
-- Work on feature branches (named in HANDOFF). **Nothing ships to `main` until the user says `build` or `merge`.** Publish preview first (`scripts/publish-preview.sh <branch>`), then wait.
+- Work on feature branches (named in HANDOFF). **Nothing ships to `main` until the user says `build` or `merge`.** Publish a preview (`scripts/publish-preview.sh <branch>`) when asked or when a change needs a look first. If the user explicitly says `build` or `merge`, ship straight to `main` without waiting for a preview.
 - Commit trailers: `Co-Authored-By: <actual session model> <noreply@anthropic.com>` and `Claude-Session: <session url>`. Never commit `cypress-gemini-audit/`. Never run `pkill -f`.
 - Local test server: start in the same command that uses it (`(setsid nohup python3 -m http.server 8766 &)` in `docs/`).
 - Verification honesty: Anything requiring a real phone (TTS, widgets, APK install, rotation, background refresh) is "implemented, unverified" and gets appended to `TESTING.md`.
