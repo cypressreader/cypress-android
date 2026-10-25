@@ -3953,6 +3953,7 @@ body.exbusy [data-exact]{cursor:progress}
 .rprev-box{margin:12px 14px 4px;padding:16px 18px;border-radius:14px;background:var(--bg);border:1px solid var(--ln);color:var(--ink);transition:all .18s ease}
 .rprev-p{margin:0;font-family:var(--serif);line-height:1.68}
 .rprev-p .dcap{float:left;font:600 3.1em/.85 var(--serif);padding:.06em .1em 0 0}
+#mr[hidden]{display:none!important}
 #aapop{position:fixed;top:56px;right:14px;z-index:999;width:min(300px,calc(100vw - 28px));background:var(--pn);color:var(--ink);border:1px solid var(--ln);border-radius:18px;padding:14px;box-shadow:0 16px 40px rgba(0,0,0,.32)}
 #aapop[hidden]{display:none}
 #aapop .aarow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--ln);font:500 13px var(--sans)}
@@ -5489,11 +5490,11 @@ function extract0(html,base,MT){
  return node;
 }
 function inline(t,base){
- const f=document.createDocumentFragment(),re=/(!?)\[([^\]]*)\]\(((?:[^()\s]|\([^()\s]*\))+)[^)]*\)|\*\*([^*]+)\*\*|\*([^*\s](?:[^*]*[^*\s])?)\*/g;let i=0,m;
+ const f=document.createDocumentFragment(),re=/(!?)\[([^\]]*)\]\(((?:[^()\s]|\([^()\s]*\))+)[^)]*\)|\*\*([^*]+)\*\*|__([^_]+)__|\*([^*\s](?:[^*]*[^*\s])?)\*|(?<![\w_])_([^_\s](?:[^_]*[^_\s])?)_(?![\w_])/g;let i=0,m;
  while(m=re.exec(t)){
   f.append(t.slice(i,m.index));
-  if(m[4]){const b=document.createElement('strong');b.textContent=m[4];f.append(b)}
-  else if(m[5]){const b=document.createElement('em');b.textContent=m[5];f.append(b)}
+  if(m[4]||m[5]){const b=document.createElement('strong');b.append(inline(m[4]||m[5],base));f.append(b)}
+  else if(m[6]||m[7]){const b=document.createElement('em');b.textContent=m[6]||m[7];f.append(b)}
   else if(m[1]){const su=abs(m[3],base);if(!/^https?:/i.test(su)){}else{const im=document.createElement('img');im.src=su;im.loading='lazy';im.referrerPolicy='no-referrer';f.append(im)}}
   else{const h=abs(m[3],base);if(/^https?:/.test(h)){const a=document.createElement('a');a.href=h;a.target='_blank';a.rel='noopener';a.textContent=m[2];f.append(a)}else f.append(m[2])}
   i=re.lastIndex;
@@ -6108,6 +6109,7 @@ function render0(){
  else if(S.sel.startsWith('k:')){const k=S.sk.find(x=>'k:'+x.id===S.sel);if(k)t=k.name}
  $('#ttl').textContent=t;
  document.body.style.setProperty('--tint',(S.theme==='dynamic'&&S.sel.startsWith('s:')&&fs[0])?`color-mix(in srgb,${brand(fs[0])} 8%,var(--bg))`:'');
+ {const mr=$('#mr');if(mr)mr.hidden=/^(saved|hist|stats|hl)$/.test(S.sel)}/* Mark all as read has no clear meaning on these pages */
  const q=$('#q').value.trim().toLowerCase();
  if(S.sel==='today'&&!q){if(DNAV&&dailyRestore())return;return renderToday()}
  if(S.sel==='all'&&!q&&atab()!=='latest'){let p=S.feeds.filter(f=>!paused(f)).flatMap(f=>items[f.id]||[]).filter(a=>!muted(a));p.sort((a,b)=>b.date-a.date);p=p.slice(0,300);if(S.hideRead)p=p.filter(a=>!S.read[a.link]);if(S.group!==false)p=group(p);return renderToday(atab(),p,allSeg(atab()),'All Stories')}
@@ -8816,7 +8818,7 @@ async function getFull0(url,ctx){
 }
 /* real progress while a story loads: how long, and which route is being tried, instead of a static line */
 function rdProg(url,i,n,nm){
- try{if(!curA||(curA.link!==url&&!R.lpUrls.has(url)))return;R.lp=i?('Loading the full article… trying source '+i+' of '+n+(nm?' ('+nm+')':'')):('Loading the full article… trying '+(nm||'another route'));rdTick()}catch(e){}
+ try{if(!curA||(curA.link!==url&&!R.lpUrls.has(url)))return;if(R.lpK!==R.t0){R.lpK=R.t0;R.lpI=0}if(i&&i<R.lpI)return;/* two routes report at once: the line only ever moves forward */if(i)R.lpI=i;R.lp=i?('Loading the full article… trying source '+i+' of '+n+(nm?' ('+nm+')':'')):('Loading the full article… trying '+(nm||'another route'));rdTick()}catch(e){}
 }
 function rdTick(){
  const n=document.querySelector('.cols .note');if(!n||!/^Loading the full article/.test(n.textContent))return;
@@ -10117,7 +10119,7 @@ function popTop(){for(let e=$('#pop');e&&e!==document.documentElement;e=e.parent
 window.addBackHook=()=>{if(!dlg.open||$('#u').value.trim()||cat===-9)return false;cat=cat>=0?-8:-9;pop();popTop();return true};
 window.setBackHook=()=>{if(set.open&&!setWide()&&set.classList.contains('inpage')){setShow(null);return true}return false};
 /* Plain words people might type, matched to the setting they mean (checked against each setting's name) */
-const SET_SYN=[['light, dark','dark mode night mode light mode theme color black white bright dim eyes'],['text size','bigger larger smaller font zoom readable big words tiny'],['type preset','font style typeface'],['headline font','title heading'],['line spacing','space between lines gap cramped'],['page margins','edges border width'],['reading style','pages scroll swipe turn flip'],['voice','read aloud listen speak talk audio narrator'],['speaking speed','faster slower talk rate'],['volume','loud quiet sound'],['keep playing','background screen off lock'],['story card size','bigger smaller cards pictures compact'],['feed text size','text bigger smaller words'],['cover style','front page magazine'],['app icon','logo home screen'],['get stories ready','download offline ahead save data prepare'],['only on wi-fi','wifi mobile data cellular'],['refresh automatically','update new stories auto fetch'],['offline mode','airplane plane no internet'],['data saver','mobile data cellular photos'],['space for stored','storage memory room full'],['clear downloaded','delete free space remove'],['keep back issues','old editions archive history'],['manage your sites','feeds add remove site sites website websites source sources subscribe unsubscribe follow fix broken'],['import or export','opml move transfer file list another app'],['muted words','block hide filter keywords ban'],['topics you follow','interests subjects'],['hide stories','already read'],['story alerts','notifications notification push notify ping'],['alert keywords','words'],['quiet hours','do not disturb sleep night silence'],['morning pack','download morning'],['daily digest','summary briefing'],['back up','save restore copy'],['shorten shared','links share short url'],['pictures','photos images pics data text only no pictures mobile data'],['motion','animation moving less battery'],['hide unread','quiet mode dots numbers counts badges'],['animated themes','animation glow rain effects'],['pause effects','battery low'],['smoother scrolling','animation smooth mode blur lag'],['theme by folder','folder color different'],['privacy','data tracking'],['keyboard shortcuts','keys'],['redo setup','start over welcome tour'],['erase everything','reset delete all wipe clear']];
+const SET_SYN=[['light, dark','dark mode night mode light mode theme color black white bright dim eyes cypress sepia midnight aurora pure black amoled oled'],['text size','bigger larger smaller font zoom readable big words tiny'],['type preset','font style typeface'],['headline font','title heading'],['line spacing','space between lines gap cramped'],['page margins','edges border width'],['reading style','pages scroll swipe turn flip'],['voice','read aloud listen speak talk audio narrator'],['speaking speed','faster slower talk rate'],['volume','loud quiet sound'],['keep playing','background screen off lock'],['story card size','bigger smaller cards pictures compact'],['feed text size','text bigger smaller words'],['cover style','front page magazine'],['app icon','logo home screen'],['get stories ready','download offline ahead save data prepare'],['only on wi-fi','wifi mobile data cellular'],['refresh automatically','update new stories auto fetch'],['offline mode','airplane plane no internet'],['data saver','mobile data cellular photos'],['space for stored','storage memory room full'],['clear downloaded','delete free space remove'],['keep back issues','old editions archive history'],['manage your sites','feeds add remove site sites website websites source sources subscribe unsubscribe follow fix broken'],['import or export','opml move transfer file list another app'],['muted words','block hide filter keywords ban'],['topics you follow','interests subjects'],['hide stories','already read'],['story alerts','notifications notification push notify ping'],['alert keywords','words'],['quiet hours','do not disturb sleep night silence'],['morning pack','download morning'],['daily digest','summary briefing'],['back up','save restore copy'],['shorten shared','links share short url'],['pictures','photos images pics data text only no pictures mobile data'],['motion','animation moving less battery'],['hide unread','quiet mode dots numbers counts badges'],['animated themes','animation glow rain effects'],['pause effects','battery low'],['smoother scrolling','animation smooth mode blur lag'],['theme by folder','folder color different'],['privacy','data tracking'],['keyboard shortcuts','keys'],['redo setup','start over welcome tour'],['erase everything','reset delete all wipe clear']];
 const SET_STOP=new Set('the a an my me i to of for on off in is it and or how do can want make change turn set use get with when so that this you your be too much very really some just stop please need there are'.split(' '));
 function setSearch(q){
  q=q.trim().toLowerCase();const gl=$('#setgl'),sr=$('#setsr');
@@ -11054,7 +11056,7 @@ const kdesc=k=>k.by?'stories by '+k.by:k.sec?'the '+k.sec+' section':k.words.joi
 const hasBy=n=>S.sk.some(k=>k.by===n);
 const hasSec=(n,fid)=>S.sk.some(k=>k.sec===n&&k.fid===fid);
 const kcount=k=>S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>!S.read[a.link]&&kmatch(k,a)).length;
-const readMin=a=>S.rt[a.link]||(a.wc>250?Math.round(a.wc/230):0);
+const readMin=a=>minsOf(a); /* one reading-time rule for the whole app (was a second, slightly different estimate) */
 let pt;
 function toast(m,undo,label){try{if(/^(Saved|Removed from saved|Marked as)/.test(m))buzz(10)}catch(e){}let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';t.setAttribute('role','status');t.setAttribute('aria-live','polite');document.body.append(t)}
  t.textContent='';const sp=document.createElement('span');sp.textContent=m;t.append(sp);
@@ -14366,7 +14368,7 @@ function shelfMast(){
 }
 function shelfEnd(list){
  const un=list.filter(a=>!S.read[a.link]).length,mins=list.reduce((n,a)=>n+(readMin(a)||0),0);
- return `<section class="shelfend" role="status"><b>${un?'End of the shelf':'Shelf cleared'}</b><p>${list.length} ${list.length===1?'story':'stories'}${mins?', about '+fmtMin(mins)+' in all':''}${un?` · ${un} still to read`:' · every one read'}.</p></section>`;
+ return `<section class="shelfend" role="status"><b>${un?'End of the shelf':'All caught up'}</b><p>${list.length} ${list.length===1?'story':'stories'}${mins?', about '+fmtMin(mins)+' in all':''}${un?` · ${un} still to read`:' · every one read'}.</p></section>`;
 }
 
 /* ---- experiment, cluster I: topic view, "Previously" timelines ----
@@ -14897,7 +14899,7 @@ function renderDigest(){
  const hls=S.hl.filter(x=>x.q&&x.q.length<=200),dd=d.getFullYear()*372+d.getMonth()*31+d.getDate();
  const bq=hls.length?{q:hls[dd%hls.length].q.replace(/^["“]|["”]$/g,''),by:'From your highlights · '+((hls[dd%hls.length].art||{}).title||'')}:{q:DGQ[dd%DGQ.length][0],by:DGQ[dd%DGQ.length][1]};
  h+=`<div class="back"><blockquote>“${esc(bq.q)}”</blockquote><cite>${esc(bq.by)}</cite><small>${hls.length?'Your highlight of the day':'Quote of the day'} · End of this issue</small></div>`;
- {const sites=new Set(cur.map(a=>a.feedId)).size,mins=cur.reduce((n,a)=>n+(S.rt[a.link]||3),0),tf=fontKey?FONTS[fontKey()]:'';
+ {const sites=new Set(cur.map(a=>a.feedId)).size,mins=cur.reduce((n,a)=>n+(minsOf(a)||3),0),tf=fontKey?FONTS[fontKey()]:'';
   const fn=x=>(String(x||'').split(',')[0]||'').replace(/['"]/g,'').trim()||'Newsreader';
   h+=`<div class="colo"><b>About this issue</b><p>${esc(title)}, No. ${issue}. ${edN||cur.length} stories from your ${sites===S.feeds.length?S.feeds.length:sites} ${sites===1?'source':'sources'}, about ${edM||mins} minutes of reading. Set in ${esc(fn(tf))} and ${esc(fn(getComputedStyle(document.documentElement).getPropertyValue('--serif')))}. Printed on your own device, and it goes nowhere else.</p></div>`}
  if(k!=='week'&&isOn('seal')){const nx=nextEdition();h+=sealHtml({title:`That’s the ${k==='evening'?'Evening':'Morning'} Edition.`,sub:'Those are the headlines. Everything else is in All stories.',note:`${nx.name} arrives at ${nx.at}.`,btn:['data-endall','See all stories']})}

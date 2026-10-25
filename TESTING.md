@@ -681,3 +681,10 @@ Implemented, checked in a desktop browser only. On a real phone check:
 
 ## Text and appearance sheet restyle (2026-10-25, unverified on device)
 - Open a story, "..." > Text. Sheet should match the "..." sheet: brass grip, theme tiles wrap (no sideways scroll), segmented choices with brass-tinted selection. Check phone portrait, Fold, light and dark themes.
+
+## Review-fix batch after Muse's 1.148 review (2026-10-25, unverified on device)
+- One reading-time rule (`readMin` now = `minsOf`): the same story should show the same minutes in Daily, Brief, Sunday, lists and Saved; totals still change when full text replaces an excerpt.
+- Loader line only moves forward (source 1, 2, 3...) while two routes run at once.
+- Reader text: `_italic_`, `__bold__` and bold-with-link render as styling, not as literal characters (reader-service text).
+- "Mark all as read" hidden on Saved, History, Stats. Saved footer says "All caught up" when every story is read.
+- Settings search finds theme names (Cypress, Sepia, Midnight, Aurora...).
