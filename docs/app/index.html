@@ -3645,6 +3645,8 @@ html.txo #grid img,html.txo #rd img,html.txo #hub img,html.txo .dcv-art>img{disp
 #rd .rshr button svg{width:19px;height:19px;stroke-width:1.5;flex:none}
 #rd .rshr button[aria-pressed=true]{border-color:var(--rbr,#b08d3e);background:color-mix(in srgb,var(--rbr,#b08d3e) 14%,transparent)}
 #rd .rshl>.rshm{justify-content:space-between;color:var(--mut);border-top:1px solid var(--ln);border-radius:0;margin-top:6px}#rd .rshm svg{flex:none;width:18px;height:18px}
+/* polish-2026-10 I6: the Follow row sits in the main list, or under More on short screens so the sheet never scrolls */
+#rd .rshl .rfol2{display:none!important}@media(max-height:640px){#rd .rshl .rfol1{display:none!important}#rd .rshl .rfol2{display:flex!important}}
 #rd .rshm svg{transition:transform .2s}#rd .rshm[aria-expanded=true] svg{transform:rotate(180deg)}
 html.rmo #rd .rshm svg{transition:none}
 
@@ -11220,10 +11222,10 @@ function mnMarkup(){
  const q=(act,ic,l,x)=>`<button type="button" data-act="${act}"${x||''}>${svg(ic,act==='save'&&sv)}<span class="mnl">${l}</span></button>`,row=(act,l,x)=>`<button type="button" data-act="${act}"${x||''}>${l}</button>`;
  return `<div class="rshbd" id="mnbd" hidden></div><div class="rsh" id="mn" role="dialog" aria-modal="true" aria-labelledby="mnh" hidden><span class="rshg" aria-hidden="true"></span><h2 class="rshh" id="mnh">Story options</h2>`
   +`<div class="rshq">${q('save',STAR,sv?'Saved':'Save',` aria-pressed="${sv}"`)}${q('share',RDX_SHR,'Share')}${tts?q('listen',SPK,'Listen'):''}${q('aa',RDX_AA,'Text',' aria-haspopup="dialog" aria-label="Text and appearance"')}${q('web',GLOBE,'Site',' aria-label="View the site in the app"')}${q('tr',RDX_TR,'Translate',' aria-label="Translate story"')}</div>`
-  +`<div class="rshl">${(()=>{try{const h=a&&a.link?host(a.link):'';return h&&!S.feeds.some(f=>host(f.url)===h)?row('follow','Follow '+esc(h.replace(/^www\./,''))):''}catch(e){return ''}})()}${row('pdf','Save as PDF',' data-exact')}${row('kindle','Send to Kindle',' data-exact')}${row('hub','Full coverage')}${row('jump','Jump to section',' hidden')}${row('upnext','Add to Up Next')}`
+  +`<div class="rshl">${(()=>{try{const h=a&&a.link?host(a.link):'';return h&&!S.feeds.some(f=>host(f.url)===h)?row('follow','Follow '+esc(h.replace(/^www\./,'')),' class="rfol rfol1"'):''}catch(e){return ''}})()}${row('pdf','Save as PDF',' data-exact')}${row('kindle','Send to Kindle',' data-exact')}${row('hub','Full coverage')}${row('jump','Jump to section',' hidden')}${row('upnext','Add to Up Next')}`
   +`<div class="rshr" role="group" aria-label="Rate this story"><button type="button" class="thb${v>0?' on':''}" data-rate="1" aria-pressed="${v>0}">${svg(TH_UP)}<span>More like this</span></button><button type="button" class="thb${v<0?' on':''}" data-rate="-1" aria-pressed="${v<0}">${svg(TH_DN)}<span>Less like this</span></button></div>`
   +`<button type="button" class="rshm" id="mnmb" aria-expanded="false" aria-controls="mnmx">More<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>`
-  +`<div id="mnmx" hidden>${row('unread','Mark as unread')}${row('junk','Report junk text')}${row('browser','Open in browser')}${row('settings','Reading settings')}${tts?row('rp','Playback settings'):''}</div></div></div>`;
+  +`<div id="mnmx" hidden>${(()=>{try{const h=a&&a.link?host(a.link):'';return h&&!S.feeds.some(f=>host(f.url)===h)?row('follow','Follow '+esc(h.replace(/^www\./,'')),' class="rfol rfol2"'):''}catch(e){return ''}})()}${row('unread','Mark as unread')}${row('junk','Report junk text')}${row('browser','Open in browser')}${row('settings','Reading settings')}${tts?row('rp','Playback settings'):''}</div></div></div>`;
 }
 /* polish-2026-10 I6: a story from a site you don't follow (full coverage, search, Near you) can be followed from the sheet */
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#mn [data-act="follow"]');if(!b||!curA)return;e.preventDefault();e.stopPropagation();b.disabled=true;b.textContent='Following…';followSite('https://'+host(curA.link)).then(r=>{b.textContent=r?'Following':'Follow site';b.disabled=!!r}).catch(()=>{b.textContent='Follow site';b.disabled=false})},true);
