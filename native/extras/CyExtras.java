@@ -245,6 +245,22 @@ public final class CyExtras {
         return PendingIntent.getActivity(c, requestCode, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
+    /** Mutable template PendingIntent for scrollable RemoteViews collections (ListView) so child fill-in intents can attach EXTRA_OPEN_URL. */
+    static PendingIntent openTemplateIntent(Context c, int requestCode) {
+        Intent i = new Intent(c, MainActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= 31) flags |= PendingIntent.FLAG_MUTABLE;
+        return PendingIntent.getActivity(c, requestCode, i, flags);
+    }
+
+    /** Per-row fill-in Intent paired with openTemplateIntent() inside a scrollable widget ListView. */
+    static Intent fillInOpenIntent(String url) {
+        Intent fill = new Intent();
+        if (url != null && url.length() > 0) fill.putExtra(EXTRA_OPEN_URL, url);
+        return fill;
+    }
+
     /** Posts a notification. Returns false if notifications are off or posting failed. */
     static boolean post(Context c, String channel, int id, String title, String text, String openUrl, String group, boolean summary) {
         try {
