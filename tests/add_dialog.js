@@ -27,7 +27,7 @@ const cr=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,
   /* a pasted address: where will it go? */
   const d1=await p.evaluate(async()=>{const u=document.getElementById('u');u.value='https://newsite.test/';u.dispatchEvent(new Event('input',{bubbles:true}));await new Promise(r=>setTimeout(r,2500));return {hint:document.getElementById('fodest').textContent,pop:document.getElementById('pop').textContent,fo:document.getElementById('fo').value}});
   ck(t+'the folder line says where a pasted address will go',/added to “Tech”/.test(d1.hint),d1.hint);
-  ck(t+'the feed found on the site is offered, and says it will be added to that folder',/Found a feed/.test(d1.pop)&&/will be added to “Tech”/.test(d1.pop),d1.pop.slice(0,200));
+  ck(t+'the feed found on the site is offered, and says it will be added to that folder',/Latest:|A feed was found/.test(d1.pop)&&/will be added to “Tech”/.test(d1.pop),d1.pop.slice(0,200));
   await p.evaluate(()=>{const f=document.getElementById('fo');f.value=S.folders.find(x=>x.name==='World').id;f.dispatchEvent(new Event('change',{bubbles:true}))});await p.waitForTimeout(500);
   const d2=await p.evaluate(()=>({hint:document.getElementById('fodest').textContent,pop:document.getElementById('pop').textContent}));
   ck(t+'changing the folder updates both the line and the found feed',/added to “World”/.test(d2.hint)&&/will be added to “World”/.test(d2.pop),JSON.stringify(d2).slice(0,300));

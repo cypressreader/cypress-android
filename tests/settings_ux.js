@@ -45,7 +45,7 @@ const P=k=>'<p>'+('Paragraph '+k+' of the story with enough ordinary words to ma
   /* diagnostics folded away */
   await p.evaluate(()=>{setShow('about')});await p.waitForTimeout(300);
   const dv=await p.evaluate(()=>{const d=document.querySelector('#sp-about details.sdev');const ids=['diagb','schkb','perfb','catchk'].map(i=>{const e=document.getElementById(i);return !!e&&!!e.closest('details.sdev')});return {has:!!d,open:d&&d.open,sum:d&&d.querySelector('summary').textContent.trim(),ids,sup:(()=>{const e=document.getElementById('diagb');return e&&e.getBoundingClientRect().width>0})()}});
-  ck(t+'the four developer rows live in their own "Developer and diagnostics" group',dv.has&&/Developer/.test(dv.sum)&&dv.ids.every(Boolean),JSON.stringify(dv));
+  ck(t+'the four developer rows live in their own "Developer and diagnostics" group',dv.has&&/Diagnostics/.test(dv.sum)&&dv.ids.every(Boolean),JSON.stringify(dv));
   /* reset appearance keeps the library */
   await p.evaluate(()=>{S.theme='forest';S.cvs='gallery';S.font='garamond';S.fs=24;S.hl=S.hl||[];S.saved=['https://w.test/keep'];save()});
   const before=await p.evaluate(()=>({feeds:S.feeds.length,saved:S.saved.length}));
