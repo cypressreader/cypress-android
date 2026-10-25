@@ -4072,7 +4072,7 @@ html[data-theme=halcyon] #rd{--rbr:#7d5f14}html[data-theme=halcyond] #rd{--rbr:#
 #rd .cols .body blockquote:not(.emb blockquote) p:last-child{margin-bottom:0}
 #rd .pullq::before,#rd .pullq::after{background:var(--rbr);opacity:1;height:1px}
 #rd .cols .body p.dropcap .dcap{float:left;font-size:calc((2*var(--lh,1.68) + .72)/.72*1em);line-height:.78;margin:.07em .1em 0 0;padding:0;border:0;color:var(--rbr)}
-.cols .body p.dropcap::first-line{font-variant-caps:small-caps;letter-spacing:.03em}
+.cols .body p.dropcap .dcl{font-variant-caps:small-caps;letter-spacing:.03em}
 #rd:not(.cine) .cols .body h2{font:600 1.35em/1.16 var(--disp,var(--serif));letter-spacing:-.005em;text-decoration:none;text-align:left;margin:1.35em 0 .45em}
 #rd:not(.cine) .cols .body h2::before{width:20px;height:2px;margin:0 0 .55em;background:var(--rbr);border-radius:1px}
 #rd .cols .body h3{text-decoration:none}
@@ -8222,6 +8222,7 @@ function rdWarm(){
   if(R.busy||R.T||D||R.web||isVert()||!$('.book'))return;
   const d=R.pg+1<R.np?1:-1;let T;
   try{T=startTurn(d)}catch(e){return}
+  T.warm=true;/* polish-2026-10: a real swipe or tap cancels this invisible warm-up instead of being dropped */
   T.els.forEach(e=>{e.style.opacity='.01'});
   setAng(d>0?20:160);
   requestAnimationFrame(()=>requestAnimationFrame(()=>{if(R.T===T)endTurn(false)}));
@@ -8278,6 +8279,7 @@ function rdxSlideEnd(d,ts){
 }
 function go(d){
  R.navAt=Date.now();
+ if(R.busy&&R.T&&R.T.warm)endTurn(false);
  if(isVert()&&!R.web){vScrollBy(d);return}
  const to=R.pg+d;if(d>0&&to>=R.np&&!R.web&&!R.busy&&R.np>0&&isOn('cont')&&readerNext()){if(R.endArmed){advanceNext();return}R.endArmed=true;rnHint('Turn the page again for the next story');clearTimeout(R.endT);R.endT=setTimeout(()=>{R.endArmed=false},2600);return}
  if(R.web||R.busy||to<0||to>=R.np)return;
@@ -10085,6 +10087,7 @@ const rdEl=$('#rd');
 rdEl.addEventListener('pointerdown',e=>{
  if(e.pointerType==='mouse'||!e.isPrimary)return;
  const bk=e.target.closest('.book');
+ if(bk&&R.busy&&R.T&&R.T.warm)endTurn(false);
  if(!bk||R.web||R.busy||e.target.closest('button,input,select,summary,.web,.strip,.code,.tbl'))return;
  D={id:e.pointerId,x:e.clientX,y:e.clientY,act:false,s:[]};
 });
@@ -12939,7 +12942,7 @@ function captions(){
  });
 }
 /* the drop cap is a real span around the first letter (with an opening quote), so the word is never split or eaten: "AMAZON" stays A + MAZON */
-function unDropcap(p){p.querySelectorAll('.dcap').forEach(x=>{const t=document.createTextNode(x.textContent);x.replaceWith(t)});p.normalize()}
+function unDropcap(p){p.querySelectorAll('.dcap,.dcl').forEach(x=>{const t=document.createTextNode(x.textContent);x.replaceWith(t)});p.normalize()}
 /* a paragraph that opens with a run of capitals ("A MAN HAS DIED AFTER ENTERING A tiger enclosure…") reads as ordinary sentence case beside the drop cap; names that appear capitalised elsewhere in the story keep their capital */
 function calmCaps(p){
  try{
@@ -12964,6 +12967,8 @@ function makeDropcap(p){
   const lead=m[1],cap=m[2]+m[3],rest=n.nodeValue.slice(m[0].length);
   const sp=document.createElement('span');sp.className='dcap'+(/^[ATVW]$/.test(m[3])?' dc-k':'');sp.textContent=cap;
   const parent=n.parentNode;if(lead)parent.insertBefore(document.createTextNode(lead),n);parent.insertBefore(sp,n);n.nodeValue=rest;
+  /* polish-2026-10 F3: the opening words in small caps, on a span (a ::first-line rule cost a ~350 ms frame in the paged columns) */
+  {const mw=rest.match(/^(\S*(?:\s+\S+){0,3})/);if(mw&&mw[1]&&mw[1].length<=48){const sc=document.createElement('span');sc.className='dcl';sc.textContent=mw[1];parent.insertBefore(sc,n);n.nodeValue=rest.slice(mw[1].length)}}
   return true;
  }
  return false;
