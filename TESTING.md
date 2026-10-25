@@ -704,4 +704,5 @@ Implemented, checked in a desktop browser only. On a real phone check:
 ## Translated headlines (2026-10-25, unverified on device; Android app only)
 - Feed settings (open a feed's settings) > "Translate headlines": Follow my setting / Translate / Don't translate. Settings > Feeds and Stories > "Translate headlines": Only feeds I choose / Every feed in another language. Neither row shows in a browser.
 - Turn it on for a German feed: on-screen headlines and short descriptions should switch to English a moment after they appear (a few at a time while scrolling), with a small "TRANSLATED" tag; tapping a story opens it with the original headline and the story already translated (no Google pop-up). Remembered after a restart (`folio-trc`).
+- Each translated card gets a small globe badge with the language (e.g. DE) next to the site name; tapping it flips that card between translation and original without opening the story.
 - Check scrolling stays smooth with a translated feed on screen, and that English stories in the same feed are left alone.
