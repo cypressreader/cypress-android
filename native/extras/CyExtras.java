@@ -535,6 +535,8 @@ public final class CyExtras {
                 o.put("link", isHttpUrl(link) ? link : "");
                 o.put("src", h.optString("src", ""));
                 o.put("img", h.optString("img", ""));
+                long dt = h.optLong("date", 0L);
+                if (dt > 0) o.put("date", dt);
                 if (h.optBoolean("read", false)) o.put("read", true);
                 out.put(o);
             }
