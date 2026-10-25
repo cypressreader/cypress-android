@@ -15026,9 +15026,9 @@ function nativeExtrasUi(x){
 }
 function widgetList(){let l=[];try{if(typeof DGL!=='undefined'&&DGL.length){l=[LEADK&&findStory(LEADK),...DGL.map(findStory)].filter((a,i,arr)=>a&&a.title&&a.link&&arr.indexOf(a)===i)}}catch(e){}
  if(!l.length)l=(typeof cur!=='undefined'&&cur||[]).filter(a=>a&&a.title&&a.link);if(!l.length)l=Object.values(items).flat().sort((a,b)=>b.date-a.date);
- return l.slice(0,6).map(a=>{let f;try{f=fof(a)}catch(e){}return{title:String(a.title).slice(0,140),link:a.link,src:String((f&&f.title)||'').slice(0,60),img:/^https?:/.test(a.img||'')?a.img:'',read:!!(S.read&&S.read[a.link])}})}
+ return l.slice(0,6).map(a=>{let f;try{f=fof(a)}catch(e){}return{title:String(a.title).slice(0,140),link:a.link,src:String((f&&f.title)||'').slice(0,60),img:/^https?:/.test(a.img||'')?a.img:'',date:+a.date||0,read:!!(S.read&&S.read[a.link])}})}
 /* B67: the Ticker widget cycles breaking stories (last 12 hours, flagged by the same words the Daily uses); with none, the newest stories */
-function widgetBreaking(){try{const now=Date.now(),all=Object.values(items).flat().filter(a=>a&&a.title&&a.link&&a.date),mk=a=>{let f;try{f=fof(a)}catch(e){}return{title:String(a.title).slice(0,140),link:a.link,src:String((f&&f.title)||'').slice(0,60),read:!!(S.read&&S.read[a.link])}};
+function widgetBreaking(){try{const now=Date.now(),all=Object.values(items).flat().filter(a=>a&&a.title&&a.link&&a.date),mk=a=>{let f;try{f=fof(a)}catch(e){}return{title:String(a.title).slice(0,140),link:a.link,src:String((f&&f.title)||'').slice(0,60),date:+a.date||0,read:!!(S.read&&S.read[a.link])}};
  let l=all.filter(a=>now-a.date<432e5&&DAYK1.test(a.title)).sort((p,q)=>q.date-p.date).slice(0,5).map(a=>Object.assign(mk(a),{brk:true}));
  if(!l.length)l=all.sort((p,q)=>q.date-p.date).slice(0,5).map(mk);return l}catch(e){return[]}}
 function widgetPush(){const x=CyX();if(!x||!x.widgetUpdate||!nFeat('widget')||!S.widget)return;try{const top=widgetList();if(top.length)x.widgetUpdate({headlines:top,breaking:widgetBreaking(),edition:edKind()==='m'?'Morning edition':'Evening edition'}).catch(()=>{})}catch(e){}}
