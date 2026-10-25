@@ -711,3 +711,6 @@ Implemented, checked in a desktop browser only. On a real phone check:
 Cause (by reading, not by running): the widget layouts used a plain `<View>`, which Android refuses to build inside a widget, so all three previews and the widgets themselves failed. Now every one is an `<ImageView>`.
 - [ ] Remove old CyPress widgets, open the widget list: Top Story, Headlines and Ticker show their previews (no "Couldn't add widget").
 - [ ] Add each one: it fills in with stories, the arrows and taps work.
+
+## Translate story: headline, "Why it matters" and picture captions — implemented, unverified (phone only)
+- [ ] Open a foreign-language story, tap Translate: the big headline, the "Why it matters" box and the picture caption ("Foto: …") now translate along with the text; "Original" brings all of them back. Check a long translated headline still fits the page.

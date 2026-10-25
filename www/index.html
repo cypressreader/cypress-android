@@ -11322,7 +11322,7 @@ document.addEventListener('keydown',e=>{
 function mnMarkupOld(){return `<div class="pb mn" id="mn" hidden><section class="mg" role="group" aria-labelledby="mgh1"><h4 id="mgh1">Settings</h4><div class="gr g2"><button data-act="aa" aria-haspopup="dialog">Text and appearance</button><button data-act="settings">Reading settings</button><button data-act="rp">Playback settings</button></div></section><section class="mg" role="group" aria-labelledby="mgh2"><h4 id="mgh2">Share</h4><div class="gr g2"><button data-act="share">Share</button><button data-act="pdf" data-exact>Save as PDF</button><button data-act="kindle" data-exact>Send to Kindle</button></div></section><section class="mg" role="group" aria-labelledby="mgh3"><h4 id="mgh3">View</h4><div class="gr g2"><button data-act="browser">Open in browser</button><button data-act="tr">Translate story</button><button data-act="web">View the site in the app</button></div></section><section class="mg" role="group" aria-labelledby="mgh4"><h4 id="mgh4">Story</h4><div class="gr"><button data-act="hub">Full coverage</button><button data-act="jump" hidden>Jump to section</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><button data-act="junk">Report junk text</button></div></section></div>`}
 /* Translate story: only when asked. On-device when the browser has the Translator API (the text never leaves the phone); otherwise offer Google Translate, which sees the story's address */
 const TR={on:false,busy:false,orig:null};
-const trEls=()=>[...document.querySelectorAll('.cols .body p,.cols .body h2,.cols .body h3,.cols .body h4,.cols .body li,.cols .body blockquote,.cols .body .pullq')].filter(e=>!e.querySelector('p,li,blockquote')&&(e.textContent||'').trim().length>1);
+const trEls=()=>[...document.querySelectorAll('.cols .body p,.cols .body h2,.cols .body h3,.cols .body h4,.cols .body li,.cols .body blockquote,.cols .body .pullq,.cols>.tt,.cols>.whyit p,.cols .body figcaption')].filter(e=>!e.querySelector('p,li,blockquote')&&(e.textContent||'').trim().length>1);
 function trLabel(){const b=document.querySelector('[data-act="tr"]');if(!b)return;const t=TR.on?'Show original':'Translate story',l=b.querySelector('.mnl');if(l){l.textContent=TR.on?'Original':'Translate';b.setAttribute('aria-label',t)}else b.textContent=t}
 function trReset(){TR.on=false;TR.busy=false;TR.orig=null;trLabel()}
 let _cytr;const CyTR=()=>{try{if(!NATIVE)return null;if(_cytr!==undefined)return _cytr;const C=window.Capacitor;return _cytr=(C.Plugins&&C.Plugins.CyTranslate)||(C.registerPlugin?C.registerPlugin('CyTranslate'):null)}catch(e){return null}};
@@ -11345,14 +11345,14 @@ async function translateNative(nt,lang,body,fallback){
    if(i>0&&i%24===0)toast('Translating… '+Math.min(100,Math.round((i+6)/items.length*100))+'%');
   }
   items.forEach(o=>{o.el.innerHTML=o.tr;o.el.lang=lang});
-  TR.orig={body,items,lang};TR.on=true;TR.busy=false;trLabel();toast('Translated. Choose Show original to switch back.');
+  TR.orig={body,items,lang};TR.on=true;TR.busy=false;trLabel();try{relayout()}catch(e){}toast('Translated. Choose Show original to switch back.');
  }catch(e){TR.busy=false;const m=String((e&&e.message)||e||'');if(/language pack/i.test(m))toast('Couldn’t download the language pack. Check your connection and try again.');else if(/unsupported language/i.test(m))toast('This language pair isn’t available on the phone');else fallback()}
 }
 async function translateStory(a,quiet){
  if(TR.busy)return;TR.quiet=!!quiet;
  const body=$('.cols .body');if(!body)return;
  if(TR.orig&&TR.orig.body===body){/* flip between the translation and the original */
-  TR.on=!TR.on;TR.orig.items.forEach(o=>{o.el.innerHTML=TR.on?o.tr:o.html;if(TR.on)o.el.lang=TR.orig.lang;else o.el.removeAttribute('lang')});trLabel();return}
+  TR.on=!TR.on;TR.orig.items.forEach(o=>{o.el.innerHTML=TR.on?o.tr:o.html;if(TR.on)o.el.lang=TR.orig.lang;else o.el.removeAttribute('lang')});trLabel();try{relayout()}catch(e){}return}
  const lang=(navigator.language||'en').split('-')[0].toLowerCase();
  const fallback=async()=>{
   if(TR.quiet)return;
@@ -11379,7 +11379,7 @@ async function translateStory(a,quiet){
    if(i%20===0)toast('Translating… '+Math.min(100,Math.round((i+4)/items.length*100))+'%');
   }
   items.forEach(o=>{o.el.innerHTML=o.tr;o.el.lang=lang});
-  TR.orig={body,items,lang};TR.on=true;TR.busy=false;trLabel();toast('Translated. Choose Show original to switch back.');
+  TR.orig={body,items,lang};TR.on=true;TR.busy=false;trLabel();try{relayout()}catch(e){}toast('Translated. Choose Show original to switch back.');
  }catch(e){TR.busy=false;fallback()}
 }
 /* ===== Translated headlines: feeds set to "Translate" (or every feed, if you choose that) show their headlines and short descriptions in your language on the phone itself (Google ML Kit). Only what is on screen is translated, a few at a time; results are remembered. The story still opens with its original headline. ===== */
