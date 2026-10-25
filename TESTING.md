@@ -678,3 +678,6 @@ Implemented, checked in a desktop browser only. On a real phone check:
 - **Reader (F, G, J5):** page-turn tick vibration; Slide drag feel; hold on the page edge shows pages left; Android back closes the story sheet; drop cap + small caps in the Cypress font; "Follow <site>" from a full-coverage story.
 
 - **Polish build, round 2 (K1-K7, E1/E2/E5):** edition seal on every edition ending (5 AM / 5 PM copy); ribbon drop and reduce motion; "I have 10 minutes" order with page turns; seasonal touches; Almanac "Share as image" via the Android share sheet; tidy-up card with real quiet/failing sites (failing = 4 failed loads in a row); Android back with these sheets open; light top bar with the system status bar; card shadows while scrolling on a low-end phone; The Daily redraw on the Fold (desktop 46 ms vs 27 ms before the build).
+
+## Text and appearance sheet restyle (2026-10-25, unverified on device)
+- Open a story, "..." > Text. Sheet should match the "..." sheet: brass grip, theme tiles wrap (no sideways scroll), segmented choices with brass-tinted selection. Check phone portrait, Fold, light and dark themes.
