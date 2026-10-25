@@ -3447,6 +3447,27 @@ html.txo #grid img,html.txo #rd img,html.txo #hub img,html.txo .dcv-art>img{disp
 .mn .mg button{padding:8px 8px;font-size:13.5px;line-height:1.2;border-radius:8px;min-height:36px;display:flex;align-items:center}
 .mn .gr.g3 button{justify-content:center;text-align:center;padding:8px 4px}
 .mn .mg button[hidden]{display:none}
+/* polish-2026-10 J5: reader "…" bottom sheet (no theme red: ink and brass only) */
+#rd .rshbd{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.34)}
+#rd .rsh{position:fixed;left:0;right:0;bottom:0;z-index:61;margin:0 auto;width:min(560px,100%);max-height:min(88svh,760px);overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box;background:var(--pn);color:var(--ink);border:1px solid var(--ln);border-bottom:0;border-radius:20px 20px 0 0;padding:4px 12px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -14px 40px rgba(0,0,0,.25);text-align:left}
+#rd .rsh[hidden],#rd .rshbd[hidden],#rd .rsh [hidden]{display:none!important}
+#rd .rshg{display:block;width:40px;height:4px;border-radius:2px;background:var(--rbr,#b08d3e);margin:8px auto 6px}
+#rd .rshh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;margin:0}
+#rd .rsh button{all:unset;box-sizing:border-box;cursor:pointer;color:var(--ink);-webkit-tap-highlight-color:transparent}
+#rd .rsh button:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+#rd .rsh button:focus-visible{outline:2px solid var(--rbr,#b08d3e);outline-offset:-2px}
+#rd .rshq{display:grid;grid-template-columns:repeat(auto-fit,minmax(54px,1fr));gap:2px;padding:4px 0 10px;border-bottom:1px solid var(--ln);margin-bottom:6px}
+#rd .rshq button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:66px;padding:8px 2px;border-radius:12px;font:500 11.5px/1.15 var(--sans);text-align:center}
+#rd .rshq button svg{width:24px;height:24px;stroke-width:1.5}
+#rd .rshq button[aria-pressed=true] svg{color:var(--rbr,#b08d3e)}
+#rd .rshl>button,#rd .rshl>div>button{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:0 12px;border-radius:10px;font:500 15px/1.2 var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rd .rshr{display:flex;gap:6px;margin:4px 0}
+#rd .rshr button{flex:1;justify-content:center;border:1px solid var(--ln);font-size:14px}
+#rd .rshr button svg{width:19px;height:19px;stroke-width:1.5;flex:none}
+#rd .rshr button[aria-pressed=true]{border-color:var(--rbr,#b08d3e);background:color-mix(in srgb,var(--rbr,#b08d3e) 14%,transparent)}
+#rd .rshl>.rshm{justify-content:space-between;color:var(--mut);border-top:1px solid var(--ln);border-radius:0;margin-top:6px}#rd .rshm svg{flex:none;width:18px;height:18px}
+#rd .rshm svg{transition:transform .2s}#rd .rshm[aria-expanded=true] svg{transform:rotate(180deg)}
+html.rmo #rd .rshm svg{transition:none}
 
 /* a picture that cannot load shows the feed's designed pattern art, never a bare grey box */
 .imgfb{display:flex;align-items:flex-end;justify-content:flex-start;width:100%;max-height:var(--ih);box-sizing:border-box;margin:1em 0;padding:12px 14px;border:0;border-radius:12px;break-inside:avoid;cursor:pointer;color:rgba(255,255,255,.86);text-align:left;font:600 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;background-image:var(--pat),linear-gradient(150deg,color-mix(in srgb,var(--b,#1f6a48) 100%,#fff 10%),color-mix(in srgb,var(--b,#1f6a48) 100%,#0b2119 40%));background-size:96px 96px,auto}
@@ -9662,7 +9683,9 @@ $('#rd').onclick=e=>{
  const t=e.target;
  if(t.id==='rd'||t.closest('#cl'))return closeRd();
  const sbb=t.closest('#selbar button');if(sbb)return selAct(sbb.dataset.s,sbb.dataset.c);
- document.querySelectorAll('#pb,#mn').forEach(p=>{if(!p.hidden&&!p.contains(t)&&!t.closest('#rp')&&!t.closest('#mo'))p.hidden=true});
+ document.querySelectorAll('#pb,#mn').forEach(p=>{if(!p.hidden&&!p.contains(t)&&!t.closest('#rp')&&!t.closest('#mo')){if(p.id==='mn'&&p.classList.contains('rsh'))rdxMnClose(true);else p.hidden=true}});
+ if(t.closest('#mnbd'))return;
+ if(t.closest('#mnmb')){const b=t.closest('#mnmb'),x=$('#mnmx'),o=b.getAttribute('aria-expanded')!=='true';b.setAttribute('aria-expanded',String(o));if(x)x.hidden=!o;return}
  if(t.closest('#fdn')){rdNav();return}
  if(t.closest('#fcs')){focusTog();return}
  if(t.closest('#wtry')){const w=$('.web');if(w)w.dataset.u='';loadWeb();return}
@@ -9682,8 +9705,8 @@ $('#rd').onclick=e=>{
  const sp=t.closest('[data-aspd]');if(sp){S.prate=+sp.dataset.aspd;S.setT=Date.now();save();if(EPA)EPA.playbackRate=S.prate;document.querySelectorAll('[data-aspd]').forEach(b=>{b.classList.toggle('on',b===sp);b.setAttribute('aria-pressed',b===sp)});return}
  const apb=t.closest('[data-ap]');if(apb){epAct(apb);return}
  if(t.closest('#pbq')){S.queue=!S.queue;save();return syncPb()}
- if(t.closest('#mo')){const m=$('#mn'),o=m.hidden;if($('#pb'))$('#pb').hidden=true;if(o){try{mnJump()}catch(e){}}m.hidden=!o;return}
- const act=t.closest('[data-act]');if(act){$('#mn').hidden=true;return doAct(act.dataset.act)}
+ if(t.closest('#mo')){const m=$('#mn');if(m.classList.contains('rsh')){if(m.hidden)rdxMnOpen();else rdxMnClose(true);return}const o=m.hidden;if($('#pb'))$('#pb').hidden=true;if(o){try{mnJump()}catch(e){}}m.hidden=!o;return}
+ const act=t.closest('[data-act]');if(act){if(act.dataset.act==='save')return doAct('save');if($('#mn').classList.contains('rsh'))rdxMnClose(true);else $('#mn').hidden=true;return doAct(act.dataset.act)}
  if(t.closest('#wsw'))return switchReader();
  if(t.closest('#wb')||t.closest('[data-web]'))return toggleWeb();
  if(t.closest('[data-diag]')){if(curA)navigator.clipboard.writeText(diagText(curA)).then(()=>toast('Details copied. Paste them wherever you report the problem'),()=>toast('Couldn’t copy the problem details'));return}
@@ -9693,7 +9716,7 @@ $('#rd').onclick=e=>{
  if(t.closest('#fp')){S.fs=Math.min(26,S.fs+1);return applyFs(true)}
  if(t.closest('#sp')){S.sep=!S.sep;return applyFs(true)}
  if(t.closest('#ra')||t.closest('#pbp'))return ttsToggle();
- if(t.closest('#rp')){const p=$('#pb');$('#mn').hidden=true;p.hidden=!p.hidden;if(!p.hidden)syncPb();return}
+ if(t.closest('#rp')){const p=$('#pb');rdxMnClose(false);$('#mn').hidden=true;p.hidden=!p.hidden;if(!p.hidden)syncPb();return}
  if(t.closest('#pbk2'))return ttsSkipPara(-1);
  if(t.closest('#pbn2'))return ttsSkipPara(1);
  if(t.closest('#pbk'))return ttsSkip(-1);
@@ -10833,11 +10856,45 @@ async function alsoLike(){
 document.addEventListener('click',e=>{const b=e.target.closest('[data-dfol]');if(!b)return;e.preventDefault();quickAdd(b.dataset.dfol,b.dataset.dn,b.dataset.dc);b.textContent='Following';b.disabled=true;toast('Following '+b.dataset.dn+'. Its stories will show up in your '+b.dataset.dc+' folder')});
 /* reader overflow menu */
 /* the menu entry says what a tap will do: switch this source to site view, or back to reader view */
-function mnMarkup(){return `<div class="pb mn" id="mn" hidden><section class="mg" role="group" aria-labelledby="mgh1"><h4 id="mgh1">Settings</h4><div class="gr g2"><button data-act="aa" aria-haspopup="dialog">Text and appearance</button><button data-act="settings">Reading settings</button><button data-act="rp">Playback settings</button></div></section><section class="mg" role="group" aria-labelledby="mgh2"><h4 id="mgh2">Share</h4><div class="gr g2"><button data-act="share">Share</button><button data-act="pdf" data-exact>Save as PDF</button><button data-act="kindle" data-exact>Send to Kindle</button></div></section><section class="mg" role="group" aria-labelledby="mgh3"><h4 id="mgh3">View</h4><div class="gr g2"><button data-act="browser">Open in browser</button><button data-act="tr">Translate story</button><button data-act="web">View the site in the app</button></div></section><section class="mg" role="group" aria-labelledby="mgh4"><h4 id="mgh4">Story</h4><div class="gr"><button data-act="hub">Full coverage</button><button data-act="jump" hidden>Jump to section</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><button data-act="junk">Report junk text</button></div></section></div>`}
+/* polish-2026-10 J5: the "…" menu is a bottom sheet: a quick row of six line icons, then one column of 48 px rows, the rarely used ones under "More". Thumbs and the saved state live here now. Ink and brass only. Restore the old popover by making mnMarkup return mnMarkupOld() (the handlers work with both). */
+const RDX_SHR='<path d="M12 3.5v11.5M7.8 7.7 12 3.5l4.2 4.2"/><path d="M5.5 12.5v6a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-6"/>',RDX_AA='<path d="M3.5 19 8.5 5l5 14M5.4 14h6.2"/><path d="M15.5 12.4c.5-.9 1.4-1.4 2.5-1.4 1.6 0 2.5 1 2.5 2.6V19M20.5 15.2c-3.4-.2-5 .7-5 2.1 0 1 .8 1.7 1.9 1.7 1.7 0 3.1-1.3 3.1-3.1"/>',RDX_TR='<path d="M3.5 5.5h8.5M7.7 3.5v2M10.2 5.5c-.8 3.6-2.9 6.4-6 8.3M5.8 9.2c1.2 2 3 3.6 5.2 4.4"/><path d="m12.5 20.5 4-9.5 4 9.5M13.9 17.3h5.2"/>';
+function mnMarkup(){
+ const a=curA,sv=!!(a&&isSaved(a)),v=a?((S.thm||{})[a.link]||0):0,tts='speechSynthesis' in window;
+ const q=(act,ic,l,x)=>`<button type="button" data-act="${act}"${x||''}>${svg(ic,act==='save'&&sv)}<span class="mnl">${l}</span></button>`,row=(act,l,x)=>`<button type="button" data-act="${act}"${x||''}>${l}</button>`;
+ return `<div class="rshbd" id="mnbd" hidden></div><div class="rsh" id="mn" role="dialog" aria-modal="true" aria-labelledby="mnh" hidden><span class="rshg" aria-hidden="true"></span><h2 class="rshh" id="mnh">Story options</h2>`
+  +`<div class="rshq">${q('save',STAR,sv?'Saved':'Save',` aria-pressed="${sv}"`)}${q('share',RDX_SHR,'Share')}${tts?q('listen',SPK,'Listen'):''}${q('aa',RDX_AA,'Text',' aria-haspopup="dialog" aria-label="Text and appearance"')}${q('web',GLOBE,'Site',' aria-label="View the site in the app"')}${q('tr',RDX_TR,'Translate',' aria-label="Translate story"')}</div>`
+  +`<div class="rshl">${row('pdf','Save as PDF',' data-exact')}${row('kindle','Send to Kindle',' data-exact')}${row('hub','Full coverage')}${row('jump','Jump to section',' hidden')}${row('upnext','Add to Up Next')}`
+  +`<div class="rshr" role="group" aria-label="Rate this story"><button type="button" class="thb${v>0?' on':''}" data-rate="1" aria-pressed="${v>0}">${svg(TH_UP)}<span>More like this</span></button><button type="button" class="thb${v<0?' on':''}" data-rate="-1" aria-pressed="${v<0}">${svg(TH_DN)}<span>Less like this</span></button></div>`
+  +`<button type="button" class="rshm" id="mnmb" aria-expanded="false" aria-controls="mnmx">More<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>`
+  +`<div id="mnmx" hidden>${row('unread','Mark as unread')}${row('junk','Report junk text')}${row('browser','Open in browser')}${row('settings','Reading settings')}${tts?row('rp','Playback settings'):''}</div></div></div>`;
+}
+/* keeps the sheet's Save button in step with the story's saved state */
+function rdxMnSync(){const b=document.querySelector('#mn [data-act="save"]');if(!b||!curA)return;const sv=isSaved(curA);b.setAttribute('aria-pressed',String(sv));const o=b.querySelector('svg');if(o)o.outerHTML=starSvg(sv);const l=b.querySelector('.mnl');if(l)l.textContent=sv?'Saved':'Save'}
+let RDX_MNO=null;
+function rdxMnOpen(){
+ const m=$('#mn');if(!m||!m.hidden)return;if($('#pb'))$('#pb').hidden=true;try{mnJump()}catch(e){}rdxMnSync();
+ RDX_MNO=$('#mo');m.hidden=false;const bd=$('#mnbd');if(bd)bd.hidden=false;const mb=$('#mnmb'),mx=$('#mnmx');if(mb&&mx){mb.setAttribute('aria-expanded','false');mx.hidden=true}
+ const mo=$('#mo');if(mo)mo.setAttribute('aria-expanded','true');pushLayer('mn');
+ const f=m.querySelector('.rshq button');if(f)f.focus();
+}
+function rdxMnClose(back,fromPop){
+ const m=$('#mn');if(!m||m.hidden)return;m.hidden=true;const bd=$('#mnbd');if(bd)bd.hidden=true;
+ const mo=$('#mo');if(mo)mo.setAttribute('aria-expanded','false');if(!fromPop)dropLayer('mn');
+ const o=RDX_MNO&&document.contains(RDX_MNO)?RDX_MNO:mo;RDX_MNO=null;if(back&&o)o.focus();
+}
+document.addEventListener('keydown',e=>{
+ const m=$('#mn');if(!m||m.hidden||!m.classList.contains('rsh'))return;
+ if(e.key==='Escape'){e.preventDefault();e.stopPropagation();rdxMnClose(true);return}
+ if(e.key==='Tab'){const bs=[...m.querySelectorAll('button')].filter(b=>!b.hidden&&b.getClientRects().length);if(!bs.length)return;const f=bs[0],l=bs[bs.length-1],ae=document.activeElement;
+  if(!m.contains(ae)){e.preventDefault();f.focus();return}
+  if(e.shiftKey&&ae===f){e.preventDefault();l.focus()}else if(!e.shiftKey&&ae===l){e.preventDefault();f.focus()}return}
+ if(m.contains(e.target))e.stopPropagation();/* keys inside the sheet never turn the page behind it */
+},true);
+function mnMarkupOld(){return `<div class="pb mn" id="mn" hidden><section class="mg" role="group" aria-labelledby="mgh1"><h4 id="mgh1">Settings</h4><div class="gr g2"><button data-act="aa" aria-haspopup="dialog">Text and appearance</button><button data-act="settings">Reading settings</button><button data-act="rp">Playback settings</button></div></section><section class="mg" role="group" aria-labelledby="mgh2"><h4 id="mgh2">Share</h4><div class="gr g2"><button data-act="share">Share</button><button data-act="pdf" data-exact>Save as PDF</button><button data-act="kindle" data-exact>Send to Kindle</button></div></section><section class="mg" role="group" aria-labelledby="mgh3"><h4 id="mgh3">View</h4><div class="gr g2"><button data-act="browser">Open in browser</button><button data-act="tr">Translate story</button><button data-act="web">View the site in the app</button></div></section><section class="mg" role="group" aria-labelledby="mgh4"><h4 id="mgh4">Story</h4><div class="gr"><button data-act="hub">Full coverage</button><button data-act="jump" hidden>Jump to section</button><button data-act="upnext">Add to Up Next</button><button data-act="unread">Mark as unread</button><button data-act="junk">Report junk text</button></div></section></div>`}
 /* Translate story: only when asked. On-device when the browser has the Translator API (the text never leaves the phone); otherwise offer Google Translate, which sees the story's address */
 const TR={on:false,busy:false,orig:null};
 const trEls=()=>[...document.querySelectorAll('.cols .body p,.cols .body h2,.cols .body h3,.cols .body h4,.cols .body li,.cols .body blockquote')].filter(e=>!e.querySelector('p,li,blockquote')&&(e.textContent||'').trim().length>1);
-function trLabel(){const b=document.querySelector('[data-act="tr"]');if(b)b.textContent=TR.on?'Show original':'Translate story'}
+function trLabel(){const b=document.querySelector('[data-act="tr"]');if(!b)return;const t=TR.on?'Show original':'Translate story',l=b.querySelector('.mnl');if(l){l.textContent=TR.on?'Original':'Translate';b.setAttribute('aria-label',t)}else b.textContent=t}
 function trReset(){TR.on=false;TR.busy=false;TR.orig=null;trLabel()}
 async function translateStory(a){
  if(TR.busy)return;
@@ -10884,6 +10941,8 @@ async function doAct(k){
  if(k==='browser'){window.open(cleanOut(a.link),'_blank','noopener');return}
  if(k==='junk'){const q=String(getSelection()||'').trim();if(q.length>=8){const sl=getSelection();junkReport(q,sl&&sl.rangeCount?sl.getRangeAt(0).cloneRange():null)}else toast('Select the text first, then choose Report junk text');return}
  if(k==='share'){return doAct('card')}
+ if(k==='save'){toggleSave(a);const st=$('#st'),o=st&&st.querySelector('svg');if(o)o.outerHTML=starSvg(isSaved(a));rdxMnSync();return}
+ if(k==='listen'){ttsToggle();return}
  if(k==='card'){shareStory(a);return}
  if(k==='more'){likeA(a,1);return}
  if(k==='less'){likeA(a,-1);return}
@@ -14748,9 +14807,9 @@ addEventListener('popstate',()=>{
  if(POPSKIP){POPSKIP=false;const q=POPQ;POPQ=[];q.forEach(n=>{try{history.pushState({cp:n,n:LAYER.length},'')}catch(e){}});return}
  const top=LAYER.pop();if(!top)return;
  if(top.startsWith('dlg:')){const d=DLG[top];if(d&&d.open&&((d.id==='set'&&window.setBackHook&&window.setBackHook())||(d.id==='dlg'&&window.addBackHook&&window.addBackHook()))){LAYER.push(top);try{history.pushState({cp:top,n:LAYER.length},'')}catch(e){}return}delete DLG[top];if(d&&d.open){d._ly=null;d.close()}return}
- const active={gal:()=>$('#gal')&&!$('#gal').hidden,rdnav:()=>$('#rdnav')&&!$('#rdnav').hidden,reader:()=>$('#rd').classList.contains('on'),drawer:()=>document.body.classList.contains('open'),yir:()=>!!$('#yir')}[top];
+ const active={mn:()=>$('#mn')&&!$('#mn').hidden,gal:()=>$('#gal')&&!$('#gal').hidden,rdnav:()=>$('#rdnav')&&!$('#rdnav').hidden,reader:()=>$('#rd').classList.contains('on'),drawer:()=>document.body.classList.contains('open'),yir:()=>!!$('#yir')}[top];
  if(active&&!active()){if(LAYER.length)history.back();return}
- if(top==='gal')galClose(true);else if(top==='rdnav')rdNav(false,true);else if(top==='reader')closeRd(true);else if(top==='drawer')document.body.classList.remove('open');else if(top==='yir'){const y=$('#yir');if(y)y.querySelector('.yx').click()}
+ if(top==='mn')rdxMnClose(true,true);else if(top==='gal')galClose(true);else if(top==='rdnav')rdNav(false,true);else if(top==='reader')closeRd(true);else if(top==='drawer')document.body.classList.remove('open');else if(top==='yir'){const y=$('#yir');if(y)y.querySelector('.yx').click()}
 });
 
 /* ---------- in-reader navigation panel ---------- */
