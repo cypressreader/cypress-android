@@ -341,7 +341,8 @@ final class CyWidgets {
 
     /** Fills w x h from the middle of src (like centerCrop), with rounded corners of radius r pixels (0 = square). */
     private static Bitmap cropFill(Bitmap src, int w, int h, float r) {
-        Bitmap out = Bitmap.createBitmap(Math.max(1, w), Math.max(1, h), Bitmap.Config.ARGB_8888);
+        Bitmap.Config cfg = (r > 0f) ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565;
+        Bitmap out = Bitmap.createBitmap(Math.max(1, w), Math.max(1, h), cfg);
         Canvas cv = new Canvas(out);
         float sc = Math.max((float) w / src.getWidth(), (float) h / src.getHeight());
         Matrix m = new Matrix();
@@ -436,100 +437,141 @@ final class CyWidgets {
     }
 
     static RemoteViews buildTop(Context c, int appWidgetId, int wDp, int hDp) {
-        RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_top);
-        JSONArray h = CyExtras.readHeadlines(c);
-        boolean upd = isUpdating(c), stale = isStale(c);
-        java.util.ArrayList<JSONObject> valid = new java.util.ArrayList<>();
-        for (int i = 0; i < h.length() && valid.size() < TOP_N; i++) {
-            JSONObject o = h.optJSONObject(i);
-            if (o == null || o.optString("title", "").length() == 0) continue;
-            valid.add(o);
-        }
-        int pages = valid.size();
-        if (pages == 0) {
-            rv.setViewVisibility(R.id.cy_flipper, View.GONE);
-            rv.setViewVisibility(R.id.cy_wt_empty, View.VISIBLE);
-            rv.setTextViewText(R.id.cy_wt_empty_t, upd ? "Updating…" : "Open CyPress to load your stories");
-            PendingIntent open = CyExtras.openIntent(c, null, 300);
-            rv.setOnClickPendingIntent(android.R.id.background, open);
-            rv.setOnClickPendingIntent(R.id.cy_wt_empty, open);
-            return rv;
-        }
-
-        rv.setViewVisibility(R.id.cy_flipper, View.VISIBLE);
-        rv.setViewVisibility(R.id.cy_wt_empty, View.GONE);
-        rv.setViewVisibility(R.id.cy_wt_upd, upd ? View.VISIBLE : View.GONE);
-
-        // Previous and Next immediate flip controls
-        rv.setOnClickPendingIntent(R.id.cy_wt_prev, flipIntent(c, -1));
-        rv.setOnClickPendingIntent(R.id.cy_wt_next, flipIntent(c, 1));
-
-        if (Build.VERSION.SDK_INT >= 31) {
-            RemoteViews.RemoteCollectionItems.Builder cb = new RemoteViews.RemoteCollectionItems.Builder()
-                .setHasStableIds(true);
-            for (int k = 0; k < pages; k++) {
-                cb.addItem(k, buildStackCard(c, valid.get(k), k, pages, wDp, hDp, true));
+        try {
+            RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_top);
+            JSONArray h = CyExtras.readHeadlines(c);
+            boolean upd = isUpdating(c), stale = isStale(c);
+            java.util.ArrayList<JSONObject> valid = new java.util.ArrayList<>();
+            for (int i = 0; i < h.length() && valid.size() < TOP_N; i++) {
+                JSONObject o = h.optJSONObject(i);
+                if (o == null || o.optString("title", "").length() == 0) continue;
+                valid.add(o);
             }
-            rv.setRemoteAdapter(R.id.cy_flipper, cb.build());
-        } else {
+            int pages = valid.size();
+            if (pages == 0) {
+                rv.setViewVisibility(R.id.cy_flipper, View.GONE);
+                rv.setViewVisibility(R.id.cy_wt_empty, View.VISIBLE);
+                rv.setTextViewText(R.id.cy_wt_empty_t, upd ? "Updating…" : "Open CyPress to load your stories");
+                PendingIntent open = CyExtras.openIntent(c, null, 300);
+                rv.setOnClickPendingIntent(android.R.id.background, open);
+                rv.setOnClickPendingIntent(R.id.cy_wt_empty, open);
+                return rv;
+            }
+
+            rv.setViewVisibility(R.id.cy_flipper, View.VISIBLE);
+            rv.setViewVisibility(R.id.cy_wt_empty, View.GONE);
+            rv.setViewVisibility(R.id.cy_wt_upd, upd ? View.VISIBLE : View.GONE);
+
+            // Previous and Next immediate flip controls
+            rv.setOnClickPendingIntent(R.id.cy_wt_prev, flipIntent(c, -1));
+            rv.setOnClickPendingIntent(R.id.cy_wt_next, flipIntent(c, 1));
+
+            // Stream cards through RemoteViewsService (CyWidgetService) to strictly stay within Binder limits
             Intent intent = new Intent(c, CyWidgetService.class);
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
             intent.setData(android.net.Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
             rv.setRemoteAdapter(R.id.cy_flipper, intent);
+
+            rv.setEmptyView(R.id.cy_flipper, R.id.cy_wt_empty);
+            PendingIntent tpl = stale ? refreshIntent(c, 305) : CyExtras.openTemplateIntent(c, 306);
+            rv.setPendingIntentTemplate(R.id.cy_flipper, tpl);
+
+            PendingIntent open = stale ? refreshIntent(c, 305) : CyExtras.openIntent(c, null, 300);
+            rv.setOnClickPendingIntent(android.R.id.background, open);
+            rv.setOnClickPendingIntent(R.id.cy_wt_empty, open);
+            return rv;
+        } catch (Throwable t) {
+            Log.e(TAG, "buildTop failed: " + t, t);
+            return buildFallbackTop(c);
         }
+    }
 
-        rv.setEmptyView(R.id.cy_flipper, R.id.cy_wt_empty);
-        PendingIntent tpl = stale ? refreshIntent(c, 305) : CyExtras.openTemplateIntent(c, 306);
-        rv.setPendingIntentTemplate(R.id.cy_flipper, tpl);
+    /** Safe fallback layout for Top Story if inflation or data loading encounters any error. */
+    static RemoteViews buildFallbackTop(Context c) {
+        try {
+            RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_top);
+            rv.setViewVisibility(R.id.cy_flipper, View.GONE);
+            rv.setViewVisibility(R.id.cy_wt_empty, View.VISIBLE);
+            rv.setTextViewText(R.id.cy_wt_empty_t, "Open CyPress to load your stories");
+            PendingIntent open = CyExtras.openIntent(c, null, 300);
+            rv.setOnClickPendingIntent(android.R.id.background, open);
+            rv.setOnClickPendingIntent(R.id.cy_wt_empty, open);
+            return rv;
+        } catch (Throwable t) {
+            Log.e(TAG, "buildFallbackTop failed", t);
+            return new RemoteViews(c.getPackageName(), R.layout.cy_widget_top);
+        }
+    }
 
-        PendingIntent open = stale ? refreshIntent(c, 305) : CyExtras.openIntent(c, null, 300);
-        rv.setOnClickPendingIntent(android.R.id.background, open);
-        rv.setOnClickPendingIntent(R.id.cy_wt_empty, open);
-        return rv;
+    /** Static fallback editorial card for CyFlipperRemoteViewsFactory. */
+    static RemoteViews buildStaticCard(Context c) {
+        try {
+            RemoteViews card = new RemoteViews(c.getPackageName(), R.layout.cy_widget_card);
+            card.setViewVisibility(R.id.cy_card_img, View.GONE);
+            card.setViewVisibility(R.id.cy_card_scrim, View.GONE);
+            card.setViewVisibility(R.id.cy_card_fallback, View.VISIBLE);
+            card.setTextViewText(R.id.cy_card_folio, "CYPRESS");
+            card.setViewVisibility(R.id.cy_card_folio, View.VISIBLE);
+            card.setTextViewText(R.id.cy_card_src, "DAILY EDITION");
+            card.setViewVisibility(R.id.cy_card_src, View.VISIBLE);
+            card.setInt(R.id.cy_card_src, "setTextColor", col(c, R.color.cy_w_brass));
+            card.setTextViewText(R.id.cy_card_head, "Open CyPress to read stories");
+            card.setInt(R.id.cy_card_head, "setTextColor", col(c, R.color.cy_w_paper));
+            card.setOnClickFillInIntent(R.id.cy_card_root, CyExtras.fillInOpenIntent(null));
+            return card;
+        } catch (Throwable t) {
+            Log.e(TAG, "buildStaticCard failed", t);
+            return new RemoteViews(c.getPackageName(), R.layout.cy_widget_card);
+        }
     }
 
     /** One full-bleed card item in the AdapterViewFlipper deck. */
     static RemoteViews buildStackCard(Context c, JSONObject o, int position, int total, int wDp, int hDp, boolean inCollection) {
-        RemoteViews card = new RemoteViews(c.getPackageName(), R.layout.cy_widget_card);
-        String src = o.optString("src", "").trim();
-        String age = ageLabel(o.optLong("date", 0L));
-        String kick = src.toUpperCase(Locale.getDefault());
-        if (age.length() > 0) kick = kick.length() > 0 ? kick + "  ·  " + age : age;
-        if (isStale(c)) kick = "TAP TO REFRESH";
+        try {
+            RemoteViews card = new RemoteViews(c.getPackageName(), R.layout.cy_widget_card);
+            String src = o.optString("src", "").trim();
+            String age = ageLabel(o.optLong("date", 0L));
+            String kick = src.toUpperCase(Locale.getDefault());
+            if (age.length() > 0) kick = kick.length() > 0 ? kick + "  ·  " + age : age;
+            if (isStale(c)) kick = "TAP TO REFRESH";
 
-        Bitmap pic = hero(c, o.optString("img", ""), wDp, hDp, true);
-        if (pic != null) {
-            card.setImageViewBitmap(R.id.cy_card_img, pic);
-            card.setViewVisibility(R.id.cy_card_img, View.VISIBLE);
-            card.setViewVisibility(R.id.cy_card_scrim, View.VISIBLE);
-            card.setViewVisibility(R.id.cy_card_fallback, View.GONE);
-            card.setInt(R.id.cy_card_src, "setTextColor", col(c, R.color.cy_w_brass));
-            card.setInt(R.id.cy_card_head, "setTextColor", col(c, R.color.cy_w_photo_text));
-        } else {
-            card.setViewVisibility(R.id.cy_card_img, View.GONE);
-            card.setViewVisibility(R.id.cy_card_scrim, View.GONE);
-            card.setViewVisibility(R.id.cy_card_fallback, View.VISIBLE);
-            card.setInt(R.id.cy_card_src, "setTextColor", col(c, R.color.cy_w_brass));
-            card.setInt(R.id.cy_card_head, "setTextColor", col(c, R.color.cy_w_paper));
+            Bitmap pic = hero(c, o.optString("img", ""), wDp, hDp, true);
+            if (pic != null) {
+                card.setImageViewBitmap(R.id.cy_card_img, pic);
+                card.setViewVisibility(R.id.cy_card_img, View.VISIBLE);
+                card.setViewVisibility(R.id.cy_card_scrim, View.VISIBLE);
+                card.setViewVisibility(R.id.cy_card_fallback, View.GONE);
+                card.setInt(R.id.cy_card_src, "setTextColor", col(c, R.color.cy_w_brass));
+                card.setInt(R.id.cy_card_head, "setTextColor", col(c, R.color.cy_w_photo_text));
+            } else {
+                card.setViewVisibility(R.id.cy_card_img, View.GONE);
+                card.setViewVisibility(R.id.cy_card_scrim, View.GONE);
+                card.setViewVisibility(R.id.cy_card_fallback, View.VISIBLE);
+                card.setInt(R.id.cy_card_src, "setTextColor", col(c, R.color.cy_w_brass));
+                card.setInt(R.id.cy_card_head, "setTextColor", col(c, R.color.cy_w_paper));
+            }
+
+            boolean compact = hDp > 0 && hDp < 140;
+            boolean expanded = hDp >= 220;
+            card.setTextViewText(R.id.cy_card_folio, "CYPRESS  ·  " + (position + 1) + " / " + Math.max(1, total));
+            card.setViewVisibility(R.id.cy_card_folio, compact ? View.GONE : View.VISIBLE);
+            card.setTextViewText(R.id.cy_card_src, kick);
+            card.setViewVisibility(R.id.cy_card_src, kick.length() == 0 ? View.GONE : View.VISIBLE);
+            card.setTextViewText(R.id.cy_card_head, o.optString("title", ""));
+            card.setTextViewTextSize(R.id.cy_card_head, TypedValue.COMPLEX_UNIT_SP, compact ? 16f : (expanded ? 20f : 19f));
+            card.setInt(R.id.cy_card_head, "setMaxLines", compact ? 2 : (expanded ? 4 : 3));
+
+            String link = o.optString("link", "");
+            if (inCollection) {
+                card.setOnClickFillInIntent(R.id.cy_card_root, CyExtras.fillInOpenIntent(link));
+            } else {
+                card.setOnClickPendingIntent(R.id.cy_card_root, CyExtras.openIntent(c, link, 310 + position));
+            }
+            return card;
+        } catch (Throwable t) {
+            Log.e(TAG, "buildStackCard failed: " + t, t);
+            return buildStaticCard(c);
         }
-
-        boolean compact = hDp > 0 && hDp < 140;
-        boolean expanded = hDp >= 220;
-        card.setTextViewText(R.id.cy_card_folio, "CYPRESS  ·  " + (position + 1) + " / " + Math.max(1, total));
-        card.setViewVisibility(R.id.cy_card_folio, compact ? View.GONE : View.VISIBLE);
-        card.setTextViewText(R.id.cy_card_src, kick);
-        card.setViewVisibility(R.id.cy_card_src, kick.length() == 0 ? View.GONE : View.VISIBLE);
-        card.setTextViewText(R.id.cy_card_head, o.optString("title", ""));
-        card.setTextViewTextSize(R.id.cy_card_head, TypedValue.COMPLEX_UNIT_SP, compact ? 16f : (expanded ? 20f : 19f));
-        card.setInt(R.id.cy_card_head, "setMaxLines", compact ? 2 : (expanded ? 4 : 3));
-
-        String link = o.optString("link", "");
-        if (inCollection) {
-            card.setOnClickFillInIntent(R.id.cy_card_root, CyExtras.fillInOpenIntent(link));
-        } else {
-            card.setOnClickPendingIntent(R.id.cy_card_root, CyExtras.openIntent(c, link, 310 + position));
-        }
-        return card;
     }
 
     // ---------------------------------------------------------------- 4x3 / 4x4 Magazine Spread (cy_widget_list)

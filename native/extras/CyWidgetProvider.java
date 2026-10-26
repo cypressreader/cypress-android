@@ -31,14 +31,26 @@ public class CyWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager manager, int[] appWidgetIds) {
-        try {
-            for (int id : appWidgetIds) {
-                manager.updateAppWidget(id, CyWidgets.buildTop(context, id, CyWidgets.widthDp(manager, id), CyWidgets.heightDp(manager, id)));
+        for (int id : appWidgetIds) {
+            try {
+                int w = CyWidgets.widthDp(manager, id);
+                int h = CyWidgets.heightDp(manager, id);
+                RemoteViews rv = CyWidgets.buildTop(context, id, w, h);
+                manager.updateAppWidget(id, rv);
                 manager.notifyAppWidgetViewDataChanged(id, R.id.cy_flipper);
+            } catch (Throwable t) {
+                Log.e(TAG, "onUpdate failed for widget " + id, t);
+                try {
+                    manager.updateAppWidget(id, CyWidgets.buildFallbackTop(context));
+                } catch (Throwable t2) {
+                    Log.e(TAG, "fallback update failed for widget " + id, t2);
+                }
             }
+        }
+        try {
             CyWidgets.arm(context, false);
         } catch (Throwable t) {
-            // a broken widget must never crash the app
+            Log.e(TAG, "arm failed", t);
         }
     }
 
@@ -46,10 +58,17 @@ public class CyWidgetProvider extends AppWidgetProvider {
     @Override
     public void onAppWidgetOptionsChanged(Context context, AppWidgetManager manager, int appWidgetId, Bundle newOptions) {
         try {
-            manager.updateAppWidget(appWidgetId, CyWidgets.buildTop(context, appWidgetId, CyWidgets.widthDp(manager, appWidgetId), CyWidgets.heightDp(manager, appWidgetId)));
+            int w = CyWidgets.widthDp(manager, appWidgetId);
+            int h = CyWidgets.heightDp(manager, appWidgetId);
+            manager.updateAppWidget(appWidgetId, CyWidgets.buildTop(context, appWidgetId, w, h));
             manager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.cy_flipper);
         } catch (Throwable t) {
-            // never crash
+            Log.e(TAG, "onAppWidgetOptionsChanged failed for widget " + appWidgetId, t);
+            try {
+                manager.updateAppWidget(appWidgetId, CyWidgets.buildFallbackTop(context));
+            } catch (Throwable t2) {
+                Log.e(TAG, "fallback update failed for widget " + appWidgetId, t2);
+            }
         }
     }
 
