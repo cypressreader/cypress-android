@@ -753,3 +753,9 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 - [x] **Placement** (verified by David, flips on its own): Drag "CyPress Top Story" onto the home screen. Confirm no "Couldn't add widget" error (1.158 still failed).
 - [ ] **Flipping**: Pages cycle; only page 1 has a photo (Binder size limit). Tap opens the story in CyPress Reader.
 - [ ] **If it STILL fails**: set `android:previewLayout` aside; if still failing, ship Top Story as the empty-state layout only.
+
+## 1.160 Richer haptics (native VibrationEffect.Composition) — implemented, unverified (real phone, API 30+)
+- [ ] **Save pluck**: save a story; feel a soft two-step tick. Unsave: no buzz. Settings > Haptics off: silence.
+- [ ] **Edition finished**: reach the end of an edition; feel a deeper double thump.
+- [ ] **Pull-to-refresh tick** and swipe-hit tick still fire (lighter than before).
+- [ ] **Fallback**: on an older/cheap-motor phone the old single buzz still plays; no error in logcat.

@@ -2,6 +2,8 @@ package com.cypress.reader;
 
 import android.content.Context;
 import android.os.Build;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -38,10 +40,43 @@ public class CyExtrasPlugin extends Plugin {
         return t.getClass().getSimpleName() + (m == null ? "" : ": " + m);
     }
 
+    /** Richer touch feedback. Resolves {ok:true} only when this phone's motor supports every effect used; otherwise {ok:false} and the web app buzzes as before. */
+    @PluginMethod
+    public void haptic(PluginCall call) {
+        JSObject r = new JSObject();
+        r.put("ok", false);
+        try {
+            String k = call.getString("k", "soft");
+            Vibrator v = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
+            if (Build.VERSION.SDK_INT >= 30 && v != null && v.hasVibrator()) {
+                int[] ids;
+                switch (k) {
+                    case "tick": ids = new int[] { VibrationEffect.Composition.PRIMITIVE_TICK }; break;
+                    case "deep": ids = new int[] { VibrationEffect.Composition.PRIMITIVE_THUD, VibrationEffect.Composition.PRIMITIVE_THUD }; break;
+                    case "mile": ids = new int[] { VibrationEffect.Composition.PRIMITIVE_CLICK, VibrationEffect.Composition.PRIMITIVE_CLICK, VibrationEffect.Composition.PRIMITIVE_THUD }; break;
+                    default: ids = new int[] { VibrationEffect.Composition.PRIMITIVE_TICK, VibrationEffect.Composition.PRIMITIVE_LOW_TICK }; break;
+                }
+                boolean[] ok = v.arePrimitivesSupported(ids);
+                boolean all = true;
+                for (boolean b : ok) all &= b;
+                if (all) {
+                    float[] sc = k.equals("deep") ? new float[] { 1f, .6f } : k.equals("mile") ? new float[] { .6f, .6f, 1f } : k.equals("tick") ? new float[] { .4f } : new float[] { .5f, .8f };
+                    VibrationEffect.Composition c = VibrationEffect.startComposition();
+                    for (int i = 0; i < ids.length; i++) c.addPrimitive(ids[i], sc[i], i == 0 ? 0 : 45);
+                    v.vibrate(c.compose());
+                    r.put("ok", true);
+                }
+            }
+        } catch (Throwable t) {
+            // fall through: the web app buzzes instead
+        }
+        call.resolve(r);
+    }
+
     @PluginMethod
     public void features(PluginCall call) {
         try {
-            call.resolve(CyExtras.obj("{\"features\":[\"share\",\"media\",\"alerts\",\"pack\",\"widget\",\"back\",\"tts\",\"ttsSleep\",\"dsave\",\"dataSaver\"]}"));
+            call.resolve(CyExtras.obj("{\"features\":[\"share\",\"media\",\"alerts\",\"pack\",\"widget\",\"back\",\"tts\",\"ttsSleep\",\"dsave\",\"dataSaver\",\"haptic\"]}"));
         } catch (Throwable t) {
             call.reject("features failed: " + msg(t));
         }
