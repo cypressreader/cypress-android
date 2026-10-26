@@ -785,3 +785,6 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 
 ## Lock-screen / shade player: time + jump buttons (branch claude/theme-six-handoff-96ztep, unverified, needs APK)
 - Read a story or play the Daily aloud, pull down the shade: elapsed/total bar shows; buttons for Back 15 s and Forward 30 s appear (Android 13+ shows them beside prev/next) and move the reading. Bar stays in step after pause/resume and speed changes.
+
+## Notification time left (post-1.165, branch only)
+- Read something aloud with the screen locked / shade down: the notification header should show a live countdown (time left) while playing, and "N min left" while paused. Updates when you skip, seek, pause or change speed. Java not compiled here: check the APK build.

@@ -247,6 +247,7 @@ public class CyMediaService extends Service {
         try {
             enterPlayState();
             refreshSession();
+            if (foregrounded || detached) notifyNow(); // new time left
         } catch (Throwable e) {
             Log.w(TAG, "update failed: " + e);
         }
@@ -653,6 +654,17 @@ public class CyMediaService extends Service {
             .setCategory(Notification.CATEGORY_TRANSPORT)
             .setColor(0xFF133A28);
         if (art != null) b.setLargeIcon(art);
+        if (durMs > 0 && posMs >= 0) {
+            // time left shown by the notification itself (phones that hide the seek bar still get it)
+            long rem = Math.max(0L, durMs - posMs);
+            if (playing && Build.VERSION.SDK_INT >= 24) {
+                b.setShowWhen(true).setWhen(System.currentTimeMillis() + (long) (rem / Math.max(0.25f, rate)))
+                    .setUsesChronometer(true).setChronometerCountDown(true);
+            } else {
+                long m = rem / 60000;
+                b.setSubText(m < 1 ? "Under 1 min left" : m + " min left");
+            }
+        }
         if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_LOW);
         b.addAction(action(R.drawable.cy_ic_prev, "Previous", ACT_PREV, 81));
         b.addAction(action(playing ? R.drawable.cy_ic_pause : R.drawable.cy_ic_play, playing ? "Pause" : "Play", ACT_TOGGLE, 82));
