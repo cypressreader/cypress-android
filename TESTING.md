@@ -779,3 +779,6 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 
 ## Late-story redraw jumps (branch claude/theme-six-handoff-96ztep, unverified)
 - Scroll down a feed while it is refreshing; new stories arriving should not move the card you are looking at.
+
+## Tap to go to top (branch claude/theme-six-handoff-96ztep, unverified)
+- Scroll down in All Stories, tap the title bar (not a button): list glides to the top. Open the side menu and tap All Stories again: also top.

@@ -7866,6 +7866,9 @@ function daySections(list,mode){
  return B;
 }
 /* jump to the top of a section, just below the docked tabs */
+/* tapping the title bar, or the section you are already in, goes back to the top */
+function toTop(){const mn=$('main');if(mn)mn.scrollTo({top:0,behavior:reduced()?'auto':'smooth'})}
+document.addEventListener('click',e=>{const t=e.target.closest('.top');if(t&&!e.target.closest('button,a,input,select,textarea,[role=button]'))toTop()});
 function jumpTop(el,top){const mn=$('main'),mt=$('#mtabs'),off=(mt?mt.offsetHeight||38:0)+6,t=top||el,beh=reduced()?'auto':'smooth';if(mn)mn.scrollTo({top:mn.scrollTop+t.getBoundingClientRect().top-mn.getBoundingClientRect().top-off,behavior:beh});else el.scrollIntoView({behavior:beh,block:'start'})}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-dsec]');if(!t)return;const el=document.getElementById(t.dataset.dsec);if(el){e.preventDefault();e.stopPropagation();const pv=el.previousElementSibling;jumpTop(el,pv&&pv.classList.contains('dfolio')?pv:el)}},true);
 /* ---- The Daily's edition is downloaded ahead of time, gently, so Quick Briefs and Deep Dives know the real reading times ----
@@ -10256,7 +10259,7 @@ $('#side-list').onclick=e=>{
  if(d.delx){return askRemove(d.delx)}
  if(d.delf){return askDelFolder(d.delf)}
  if(d.col){const cp=$('#cp');cp.dataset.id=d.col;try{cp.value=brand(feedOf(d.col))}catch(_){}cp.click();return}
- const s=t.closest('[data-sel]');if(s){const nt0=performance.now(),ns=s.dataset.sel,go=()=>{const b=performance.now();render();NAVB=performance.now()-b};S.sel=ns;saveSoon();drawer(false);if(S.sel==='today')requestAnimationFrame(()=>setTimeout(go,0));else go();navLog(nt0,ns)}/* the Daily is the heaviest page: let the menu close and paint first */
+ const s=t.closest('[data-sel]');if(s){const nt0=performance.now(),ns=s.dataset.sel,again=ns===S.sel,go=()=>{const b=performance.now();render();NAVB=performance.now()-b};S.sel=ns;saveSoon();drawer(false);if(again){const mn=$('main');if(mn)mn.scrollTop=0}if(S.sel==='today')requestAnimationFrame(()=>setTimeout(go,0));else go();navLog(nt0,ns)}/* the Daily is the heaviest page: let the menu close and paint first */
 };
 $('#cp').oninput=e=>{const f=feedOf(e.target.dataset.id);f.color=e.target.value;save();render()};
 async function askDelFolder(id){const fo=S.folders.find(f=>f.id===id);if(!fo)return;const n=S.feeds.filter(f=>f.folder===id).length;
