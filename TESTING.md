@@ -748,3 +748,8 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 - [ ] **Empty & Error Graceful Fallback**: With no cached headlines or flight mode, confirm widget displays clean fallback "Open CyPress to load your stories" with brass sun ornament instead of failing.
 - [ ] **Deep-Linking**: Tap card in `AdapterViewFlipper` to confirm fill-in intent properly navigates into the story in CyPress Reader.
 - [ ] **Logcat Diagnostics**: Filter logcat by `CyWidget` tag; verify zero unhandled exceptions or inflation failures.
+
+## 1.159 Top Story widget simplified (plain ViewFlipper) — implemented, unverified (real phone)
+- [ ] **Placement**: Drag "CyPress Top Story" onto the home screen. Confirm no "Couldn't add widget" error (1.158 still failed).
+- [ ] **Flipping**: Pages cycle; only page 1 has a photo (Binder size limit). Tap opens the story in CyPress Reader.
+- [ ] **If it STILL fails**: set `android:previewLayout` aside; if still failing, ship Top Story as the empty-state layout only.
