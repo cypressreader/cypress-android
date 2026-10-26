@@ -773,3 +773,6 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 ## After 1.162 fixes (preview, unverified on phone)
 - Page turns: the learned strip count (`cy_curl`) used to reset on every version bump, so the first turns after an update ran 16 strips; now kept across updates. Fold: after updating, page flips should feel as smooth as before; check the "Page turns" line in diagnostics.
 - Newsprint: Daily cover quote and intro lines were bold because only Playfair 700/900 was loaded; 400 and italic 400 now added. Check the cover quote reads light and italic.
+
+## Return-to-feed scroll snap (branch claude/theme-six-handoff-96ztep, unverified)
+- All Stories, tiles, scroll far, open a story, go back, start scrolling: your place should stay put (no jump). Check on the Fold too.
