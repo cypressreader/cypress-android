@@ -788,3 +788,6 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 
 ## Notification time left (post-1.165, branch only)
 - Read something aloud with the screen locked / shade down: the notification header should show a live countdown (time left) while playing, and "N min left" while paused. Updates when you skip, seek, pause or change speed. Java not compiled here: check the APK build.
+
+## Read aloud skips extras (post-1.165, branch only)
+- Open a story that has "The story so far" timeline, "Why it matters" and the related deck: read aloud should speak only the headline and article text, never those blocks.
