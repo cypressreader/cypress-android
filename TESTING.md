@@ -765,3 +765,7 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 
 ## Green top bar blank-page fix (after 1.160)
 - [ ] Settings → Green top bar ON: page keeps stories and top bar (was blank: html class `gtop` clashed with the photo viewer's `.gtop` style; now `gbar`). Toggle off and on again; force close and reopen.
+
+## Theme switch lag + Coast/Newsprint (preview, unversioned)
+- Settings > Theme: tapping a theme (and light/dark) should feel instant; the list redraws after Settings closes. Before: 1.6-2 s freezes on the Fold.
+- Coast light looks bluer; Dim, Midnight, Light & Dark, Pure Black are gone and anyone who had one now sees Cypress.

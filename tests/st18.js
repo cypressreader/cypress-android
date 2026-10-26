@@ -10,10 +10,10 @@ const st=async(th,sch)=>p.evaluate(async([th,sch])=>{const s=document.createElem
 let r;
 r=await st('broadsheet','theme');ck('as-theme keeps light',!r.dark&&!r.inline);
 r=await st('broadsheet','dark');ck('light theme to dark twin',r.dark&&r.pd&&r.inline&&r.eff==='broadsheet');
-r=await st('midnight','light');ck('dark theme to light twin',!r.dark&&!r.pd&&r.inline);
+r=await st('aurora','light');ck('dark theme to light twin',!r.dark&&!r.pd&&r.inline);
 r=await st('midnight','dark');ck('already dark untouched',r.dark&&!r.inline);
-r=await st('auto','dark');ck('auto maps to dark',r.dark&&r.eff==='dark');
-r=await st('auto','light');ck('auto maps to light',!r.dark&&(r.eff==='light'||r.eff==='auto'),JSON.stringify(r));
+r=await st('auto','dark');ck('removed Light & Dark maps to Cypress dark',r.dark&&r.eff==='halcyon');
+r=await st('auto','light');ck('removed Light & Dark maps to Cypress light',!r.dark&&r.eff==='halcyon',JSON.stringify(r));
 const RET=await p.evaluate(()=>typeof POLISH_RETIRED!=='undefined'?Object.keys(POLISH_RETIRED):[]);/* polish-2026-10: skip retired themes */
 if(!RET.includes('terminal')){r=await st('terminal','light');ck('terminal gets a hand-made light version',!r.dark&&r.eff==='terminal');}
 r=await st('broadsheet','theme');ck('back to theme clears twin',!r.dark&&!r.inline);
