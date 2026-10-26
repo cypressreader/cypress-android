@@ -37,7 +37,6 @@ public class CyWidgetProvider extends AppWidgetProvider {
                 int h = CyWidgets.heightDp(manager, id);
                 RemoteViews rv = CyWidgets.buildTop(context, id, w, h);
                 manager.updateAppWidget(id, rv);
-                manager.notifyAppWidgetViewDataChanged(id, R.id.cy_flipper);
             } catch (Throwable t) {
                 Log.e(TAG, "onUpdate failed for widget " + id, t);
                 try {
@@ -61,7 +60,6 @@ public class CyWidgetProvider extends AppWidgetProvider {
             int w = CyWidgets.widthDp(manager, appWidgetId);
             int h = CyWidgets.heightDp(manager, appWidgetId);
             manager.updateAppWidget(appWidgetId, CyWidgets.buildTop(context, appWidgetId, w, h));
-            manager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.cy_flipper);
         } catch (Throwable t) {
             Log.e(TAG, "onAppWidgetOptionsChanged failed for widget " + appWidgetId, t);
             try {

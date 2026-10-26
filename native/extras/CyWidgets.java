@@ -203,7 +203,6 @@ final class CyWidgets {
             AppWidgetManager m = AppWidgetManager.getInstance(c);
             for (int id : ids(c, CyWidgetProvider.class)) {
                 m.updateAppWidget(id, buildTop(c, id, widthDp(m, id), heightDp(m, id)));
-                m.notifyAppWidgetViewDataChanged(id, R.id.cy_flipper);
             }
         } catch (Throwable t) {
             Log.w(TAG, "top refresh: " + t);
@@ -466,15 +465,16 @@ final class CyWidgets {
             rv.setOnClickPendingIntent(R.id.cy_wt_prev, flipIntent(c, -1));
             rv.setOnClickPendingIntent(R.id.cy_wt_next, flipIntent(c, 1));
 
-            // Stream cards through RemoteViewsService (CyWidgetService) to strictly stay within Binder limits
-            Intent intent = new Intent(c, CyWidgetService.class);
-            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-            intent.setData(android.net.Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
-            rv.setRemoteAdapter(R.id.cy_flipper, intent);
-
-            rv.setEmptyView(R.id.cy_flipper, R.id.cy_wt_empty);
-            PendingIntent tpl = stale ? refreshIntent(c, 305) : CyExtras.openTemplateIntent(c, 306);
-            rv.setPendingIntentTemplate(R.id.cy_flipper, tpl);
+            // Simple ViewFlipper: pages are added directly. Only the first page carries a photo to stay under the Binder size limit.
+            rv.removeAllViews(R.id.cy_flipper);
+            for (int i = 0; i < pages; i++) {
+                JSONObject o = valid.get(i);
+                if (i > 0 && o.has("img")) {
+                    o = new JSONObject(o.toString());
+                    o.remove("img");
+                }
+                rv.addView(R.id.cy_flipper, buildStackCard(c, o, i, pages, wDp, hDp, false));
+            }
 
             PendingIntent open = stale ? refreshIntent(c, 305) : CyExtras.openIntent(c, null, 300);
             rv.setOnClickPendingIntent(android.R.id.background, open);
