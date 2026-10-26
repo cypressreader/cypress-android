@@ -760,3 +760,5 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 - [ ] **Pull-to-refresh tick** and swipe-hit tick still fire (lighter than before).
 - [ ] **Fallback**: on an older/cheap-motor phone the old single buzz still plays; no error in logcat.
 - [ ] **1.160 Long-read drop cap**: open a long story (feature length) in Classic and a dark theme; the big first letter is an accent color, readable, and the page count/turn is unchanged. Briefs and regular stories unchanged.
+- [ ] **1.160 Predictive back (Android 14+)**: open a story, start a slow back swipe from the edge: the story shrinks/rounds under your finger; release early and it springs back; complete the swipe and it closes. Check a dialog (Settings) and the Daily root still behave. Page turns in the reader must be unaffected. Android 13 and older: normal back, no animation.
+- [ ] **1.160 Back issues**: use the Daily on two different editions/days; at the end of The Daily a "Back issues" list shows earlier editions (collapsible); tapping a headline opens that story. Storage stays small (titles/links only). Keyboard: summary toggles with Enter/Space.

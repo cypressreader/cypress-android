@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.webkit.ValueCallback;
 import android.webkit.WebView;
+import androidx.activity.BackEventCompat;
 import androidx.activity.OnBackPressedCallback;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -113,8 +114,32 @@ public class MainActivity extends BridgeActivity {
             public void handleOnBackPressed() {
                 askPageThenGoBack();
             }
+
+            /* predictive back: stream the swipe to the page so it can shrink the open story under the finger (Android 14+; older phones never call these) */
+            @Override
+            public void handleOnBackStarted(BackEventCompat e) {
+                backProgress(0f, e.getSwipeEdge());
+            }
+
+            @Override
+            public void handleOnBackProgressed(BackEventCompat e) {
+                backProgress(e.getProgress(), e.getSwipeEdge());
+            }
+
+            @Override
+            public void handleOnBackCancelled() {
+                backProgress(-1f, 0);
+            }
         };
         getOnBackPressedDispatcher().addCallback(this, backCallback);
+    }
+
+    private void backProgress(float p, int edge) {
+        try {
+            getBridge().getWebView().evaluateJavascript("window.cyBackP&&window.cyBackP(" + p + "," + edge + ")", null);
+        } catch (Throwable t) {
+            // the page just doesn't animate
+        }
     }
 
     private void askPageThenGoBack() {

@@ -3039,6 +3039,7 @@ html.rmo .tbi,html.lowp .tbi{transition:none}
 .dcv-main{margin-top:auto;padding:36px 22px 12px}
 .dcov .dcv-lead{display:block;color:#fff;text-decoration:none;text-shadow:none}
 .dcov .dcv-lead small{display:block;margin-bottom:8px;font:600 11px/1.2 var(--sans);letter-spacing:.16em;text-transform:uppercase;opacity:.9;text-shadow:none}
+.bkiss{margin:22px 0;padding:14px 0;border-top:1px solid var(--ln);border-bottom:1px solid var(--ln)}.bkiss h3{margin:0 0 2px;font:400 22px var(--disp,var(--serif));color:var(--ink)}.bkiss>p{margin:0 0 10px;font:400 13px var(--sans);color:var(--mut)}.bkiss details{border-top:1px solid var(--ln)}.bkiss summary{padding:11px 2px;font:600 14px var(--sans);color:var(--ink);cursor:pointer;min-height:24px}.bkiss summary:focus-visible,.bkiss button:focus-visible{outline:2px solid var(--a1);outline-offset:2px}.bkiss ul{list-style:none;margin:0 0 8px;padding:0}.bkiss li button{display:block;width:100%;padding:9px 2px;border:0;background:none;text-align:left;font:400 15px/1.3 var(--serif);color:var(--ink);cursor:pointer}
 .dcov .dcv-lead h2{margin:0;font:700 clamp(28px,8.2vw,52px)/1.05 var(--serif,Georgia,serif);letter-spacing:-.005em;text-shadow:0 2px 14px rgba(0,0,0,.5);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:5;overflow:hidden;overflow-wrap:anywhere}
 .dcv-note{margin:12px 0 0;font:italic 400 15px/1.4 var(--serif,Georgia,serif);opacity:.94}
 .dcv-lines{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:14px;margin-top:18px;padding-top:11px;border-top:1px solid rgba(255,255,255,.38)}
@@ -8070,10 +8071,24 @@ async function dpRun(){
  };
  const mn=$('main');if(mn)mn.addEventListener('scroll',()=>{clearTimeout(vpT);vpT=setTimeout(vpPreload,380)},{passive:true});
 }
+/* Back issues: each day's morning and evening editions are kept as a short list (titles, links and picture addresses only, no photos) for 30 days, on this device */
+function issueSnap(items){
+ if(!items.length)return;
+ const k=dayKey()+edKind(),it=items.map(a=>{const o={};for(const x in a){const v=a[x];if(x==='more'||v==null||typeof v==='object'&&x!=='date')continue;o[x]=typeof v==='string'&&v.length>300?v.slice(0,300):v}return o});
+ const L=S.issues=S.issues||[],i=L.findIndex(x=>x.k===k),cut=Date.now()-31*864e5;
+ if(i>=0&&JSON.stringify(L[i].items)===JSON.stringify(it))return;
+ const e={k,d:dayKey(),ed:edKind(),items:it};if(i>=0)L[i]=e;else L.unshift(e);
+ S.issues=L.filter(x=>new Date(x.d+'T12:00').getTime()>cut).slice(0,62);save();
+}
+function backIssuesHtml(){
+ const k=dayKey()+edKind(),L=(S.issues||[]).filter(x=>x.k!==k);if(!L.length)return'';
+ return `<section class="bkiss" aria-label="Back issues"><h3>Back issues</h3><p>The last 30 days of editions, kept on this device.</p>`+L.map(x=>`<details><summary>${esc(new Date(x.d+'T12:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}))} · ${x.ed==='m'?'Morning':'Evening'} Edition · ${x.items.length} ${x.items.length===1?'story':'stories'}</summary><ul>`+x.items.map((a,j)=>`<li><button type="button" data-bi="${esc(x.k)}|${j}">${esc(a.title||a.link)}</button></li>`).join('')+`</ul></details>`).join('')+`</section>`;
+}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-bi]');if(!b)return;e.preventDefault();const [k,j]=b.dataset.bi.split('|'),x=(S.issues||[]).find(y=>y.k===k),a=x&&x.items[+j];if(a){cur=[a];openReader(a)}},true);
 function dayEndCard(){
  const k=LOGOS[S.logo]?S.logo:'tree',am=edKind()==='m';
- if(isOn('seal')){const nx=nextEdition();return thisDayHtml()+sealHtml({title:`That’s the ${am?'Morning':'Evening'} Edition.`,sub:pe('finish',{},'end'),note:`${nx.name} arrives at ${nx.at}.`,btn:['data-endall','Explore Full Feed']})}
- return thisDayHtml()+`<section class="endc"><span class="lgm endl" data-fill style="--p:0%;--lm:${mkLm(k)}"></span><h3>You’re all caught up for the ${am?'morning':'evening'}</h3><p>${esc(pe('finish',{},'end'))} ${am?'The Evening Edition comes out at 5 PM.':'The Morning Edition comes out at 5 AM.'}</p><button type="button" class="tx2" data-endall>Explore Full Feed</button></section>`;
+ if(isOn('seal')){const nx=nextEdition();return thisDayHtml()+backIssuesHtml()+sealHtml({title:`That’s the ${am?'Morning':'Evening'} Edition.`,sub:pe('finish',{},'end'),note:`${nx.name} arrives at ${nx.at}.`,btn:['data-endall','Explore Full Feed']})}
+ return thisDayHtml()+backIssuesHtml()+`<section class="endc"><span class="lgm endl" data-fill style="--p:0%;--lm:${mkLm(k)}"></span><h3>You’re all caught up for the ${am?'morning':'evening'}</h3><p>${esc(pe('finish',{},'end'))} ${am?'The Evening Edition comes out at 5 PM.':'The Morning Edition comes out at 5 AM.'}</p><button type="button" class="tx2" data-endall>Explore Full Feed</button></section>`;
 }
 const dtab=()=>DTABS.some(x=>x[0]===S.dtab)?S.dtab:'latest';
 /* minutes to read: the measured time if the story has been opened, else from the feed's own text when that is long enough to mean something (a short teaser says nothing about the real length) */
@@ -8100,7 +8115,7 @@ function renderToday(tab0,pool0,seg0,ttl0){
   h+=useCover?(newCover?dayCoverHtml(lead,pool):coverHtml(lead,pool))+`<div class="dateline"><span>Inside&nbsp;·&nbsp;${esc(shortDate())}</span><small>${S.hideCount?'':unread?unread+' unread in all your feeds':'All caught up'}</small></div>`:`<div class="dateline"><span>${esc(edition())} · ${esc(shortDate())}</span><small>${S.hideCount?'':unread?unread+' unread in all your feeds':'All caught up'}</small></div>`+(WHY[lead.link]=whyLead(lead),card(lead,0,'lead'));
   const shown=new Set(cur.map(a=>a.link));(lead.more||[]).forEach(m=>shown.add(m.l));
   list=ranked.filter(a=>!shown.has(a.link)).slice(0,ED_N);label='Top stories';
-  DGL=cur.concat(list).slice(0,ED_N).map(a=>a.link);clearTimeout(DPRE.t);DPRE.t=setTimeout(dayPreload,2500);
+  DGL=cur.concat(list).slice(0,ED_N).map(a=>a.link);try{issueSnap(cur.concat(list).slice(0,ED_N))}catch(e){}clearTimeout(DPRE.t);DPRE.t=setTimeout(dayPreload,2500);
   h+=(quietDay()||`<p class="dwhy dtd">Your ${DGL.length} best stories for this ${edKind()==='m'?'morning':'evening'}, picked from what you read, what’s new and what’s breaking. Finish them and you’re done.</p>`)+(newCover?'':dgProgHtml())+fiveChip()+continueRow()+pickupHtml()+(ttl0?'':tidyCard()+almCard());if(newCover)h=h.replace('<!--DGP-->',dgProgHtml());
  }else{
   cur=[];
@@ -15743,6 +15758,11 @@ async function relayCheck(force){
 const LAYER=[];
 function drawer(o){const b=document.body;if(o===b.classList.contains('open'))return;b.classList.toggle('open',o);if(o)pushLayer('drawer');else dropLayer('drawer')}
 window.cyBack=()=>{if(!LAYER.length)return false;history.back();return true};
+/* predictive back (Android 14+): while the back swipe is in progress the open story shrinks and rounds off; letting go early springs it back. p is 0..1, -1 = cancelled; edge 0 = left, 1 = right */
+window.cyBackP=(p,edge)=>{try{const r=$('#rd.on');if(!r||matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+ if(p<0){r.style.transition='transform .22s ease,border-radius .22s ease';r.style.transform='';r.style.borderRadius='';setTimeout(()=>{r.style.transition=''},260);return}
+ r.style.transition='none';r.style.transform='translateX('+(edge?-1:1)*p*18+'px) scale('+(1-p*.1).toFixed(3)+')';r.style.borderRadius=Math.round(p*28)+'px';
+ clearTimeout(window._cbpT);window._cbpT=setTimeout(()=>{r.style.transition='';r.style.transform='';r.style.borderRadius=''},900)}catch(e){}};
 let POPQ=[];
 function pushLayer(name){if(LAYER[LAYER.length-1]===name)return;LAYER.push(name);if(POPSKIP){POPQ.push(name);return}try{history.pushState({cp:name,n:LAYER.length},'')}catch(e){}}
 function dropLayer(name){const i=LAYER.lastIndexOf(name);if(i<0)return false;if(i===LAYER.length-1&&history.state&&history.state.cp===name){POPSKIP=true;history.back();}LAYER.splice(i,1);return true}
