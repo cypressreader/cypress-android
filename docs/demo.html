@@ -6352,7 +6352,7 @@ function folderPseudo(fo){
  return {id:'f:'+fo.id,title:fo.name,url:'',color:hex(h,.42,.3),isFolder:true,_feeds:fs.map(x=>x.id),desc:fs.length+(fs.length===1?' source':' sources')+(fs.length?': '+fs.slice(0,3).map(x=>x.title||host(x.url)).join(', ')+(fs.length>3?' and '+(fs.length-3)+' more':''):'')};
 }
 function wireReset(){WIREX={};WIRE.order=null;WIRE.known=null;WIRE.anchor=null;WIRE.settled=false;clearTimeout(wireReset.t);wireReset.t=setTimeout(wireSettle,8000)}
-function wireSettle(){WIRE.settled=true;clearTimeout(wireReset.t);if(wireSel()&&!WIRE.order&&!(($('#q')||{}).value||'').trim()){try{render()}catch(e){}}}
+function wireSettle(){WIRE.settled=true;clearTimeout(wireReset.t);if(wireSel()&&!WIRE.order&&!(($('#q')||{}).value||'').trim()){/* far down the page the late re-rank would reshuffle what you are reading: leave it for the next natural redraw */const m=$('main');if(m&&m.scrollTop>500)return;try{render()}catch(e){}}}
 /* after tapping the pill, the stories that were waiting wear a small 'New' tag so you can see where the ranking put them */
 function markFresh(){const F=WIRE.fresh,g=$('#grid');if(!F||!g)return;g.querySelectorAll('.card:not(.fresh)').forEach(c=>{if(F.has(chref(c))){c.classList.add('fresh');const t=document.createElement('span');t.className='newtag';t.textContent='New';c.append(t)}})}
 /* the pill: never while a refresh is running, and after you tap it (or pull to refresh) not again for 30 minutes. Stories that wait meanwhile load the next time you pull to refresh. */
