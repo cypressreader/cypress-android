@@ -13021,8 +13021,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.26f';const APP_LABEL='1.164';
-const CHANGES=["New themes: Coast (cool sea blues) and Newsprint (black-and-white newspaper look), each with a light and dark version","Removed the Dim, Midnight, Light & Dark and Pure Black themes; if you used one, you are moved to Halcyon automatically","Your place in the feed now stays put after you read a story and go back","Stories arriving in the background no longer shove the page around while you are reading far down the list"];
+const APP_VERSION='2026.10.26g';const APP_LABEL='1.165';
+const CHANGES=["Tap the title bar to jump back to the top of the list, and tap the section you are already in (like All Stories) in the side menu to do the same","The player on your lock screen and notification shade now shows how far along you are and the time left, and you can drag it to jump ahead or back","New Back 15 seconds and Forward 30 seconds buttons on the lock screen and notification player"];
 const DEF_ON=new Set(['mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -15959,7 +15959,7 @@ function nativeExtrasUi(x){
   ttsFrom=function(w){const r=pf.apply(this,arguments);mediaNative();return r};
   ttsPause=function(){const r=pp.apply(this,arguments);try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:false}).catch(()=>{})}catch(e){}return r};
   ttsStop=function(){const r=ps.apply(this,arguments);try{if(Date.now()-MADV<8000){x.mediaUpdate&&x.mediaUpdate({...MT(),playing:false}).catch(()=>{})}else{x.mediaStop&&x.mediaStop().catch(()=>{})}}catch(e){}return r};
-  x.addListener&&x.addListener('mediaAction',r=>{const a=r&&r.action;if(a==='toggle')ttsToggle();else if(a==='next')ttsEnd(true);else if(a==='prev'){if(TTS.on)ttsFrom(ttsStartWord())}else if(a==='rew'||a==='fwd'){digSeekBy(a==='rew'?-15:30);setTimeout(()=>{try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}},400)}else if(a==='stop')ttsStop()});
+  x.addListener&&x.addListener('mediaAction',r=>{const a=r&&r.action;if(a==='seek'&&r.pos>=0){digSeekTo(r.pos/1000);setTimeout(()=>{try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}},400);return}if(a==='toggle')ttsToggle();else if(a==='next')ttsEnd(true);else if(a==='prev'){if(TTS.on)ttsFrom(ttsStartWord())}else if(a==='rew'||a==='fwd'){digSeekBy(a==='rew'?-15:30);setTimeout(()=>{try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}},400)}else if(a==='stop')ttsStop()});
  }
 }
 function widgetList(){let l=[];try{if(typeof DGL!=='undefined'&&DGL.length){l=[LEADK&&findStory(LEADK),...DGL.map(findStory)].filter((a,i,arr)=>a&&a.title&&a.link&&arr.indexOf(a)===i)}}catch(e){}

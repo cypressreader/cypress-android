@@ -565,6 +565,13 @@ public class CyMediaService extends Service {
             }
 
             @Override
+            public void onSeekTo(long pos) {
+                posMs = pos; // the bar stays where it was dropped until the page confirms
+                refreshSession();
+                CyExtras.emitMediaAction("seek", pos);
+            }
+
+            @Override
             public void onCustomAction(String act, android.os.Bundle extras) {
                 if (CA_REW.equals(act)) CyExtras.emitMediaAction("rew");
                 else if (CA_FWD.equals(act)) CyExtras.emitMediaAction("fwd");
@@ -595,7 +602,8 @@ public class CyMediaService extends Service {
         if (session == null) return;
         try {
             long actions = PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY_PAUSE
-                | PlaybackState.ACTION_SKIP_TO_NEXT | PlaybackState.ACTION_SKIP_TO_PREVIOUS | PlaybackState.ACTION_STOP;
+                | PlaybackState.ACTION_SKIP_TO_NEXT | PlaybackState.ACTION_SKIP_TO_PREVIOUS | PlaybackState.ACTION_STOP
+                | PlaybackState.ACTION_SEEK_TO;
             long pos = posMs >= 0 ? posMs : PlaybackState.PLAYBACK_POSITION_UNKNOWN;
             PlaybackState ps = new PlaybackState.Builder()
                 .setActions(actions)

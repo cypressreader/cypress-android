@@ -94,9 +94,14 @@ public final class CyExtras {
     }
 
     static void emitMediaAction(String action) {
+        emitMediaAction(action, -1L);
+    }
+
+    static void emitMediaAction(String action, long posMs) {
         try {
             JSObject o = new JSObject();
             o.put("action", action);
+            if (posMs >= 0) o.put("pos", posMs);
             emit("mediaAction", o, false);
         } catch (Throwable t) {
             Log.w(TAG, "media action failed: " + t);
