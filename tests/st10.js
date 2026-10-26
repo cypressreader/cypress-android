@@ -13,7 +13,7 @@ for(const [n,w,h] of [['fold',884,1000],['phone',380,820]]){
  ck(n+' search clear restores',await E(()=>{const i=document.querySelector('#setq,#sset,#setsrch');i.value='';i.dispatchEvent(new Event('input',{bubbles:true}));return document.querySelector('#setsr').hidden&&!document.querySelector('#setgl').hidden}));
  await E(()=>{document.querySelector('#sheet .x,#sclose,[data-close]')&&document.querySelector('#sheet .x,#sclose,[data-close]').click()});
  ck(n+' tlay default on',await E(()=>document.documentElement.classList.contains('tlay')));
- ck(n+' tlay renders broadsheet rule',await E(()=>{S.theme='broadsheet';applyTheme(false);render();return getComputedStyle(document.querySelector('#grid .card')).borderTopStyle==='double'}));
+ ck(n+' tlay renders rosewood rule',await E(()=>{S.theme='rosewood';applyTheme(false);render();return getComputedStyle(document.querySelector('#grid .card')).borderTopStyle==='double'}));
  ck(n+' tlay off restores plain',await E(()=>{S.tlay=false;applyFx();return getComputedStyle(document.querySelector('#grid .card')).borderTopStyle!=='double'}));
  ck(n+' dynx sets --dyn',await E(async()=>{delete S.tlay;S.theme='dynamic';applyTheme(false);render();await new Promise(r=>setTimeout(r,200));return !!document.getElementById('dynbg')}));
  ck(n+' dynx off clears',await E(async()=>{S.dynx=false;applyFx();await new Promise(r=>setTimeout(r,100));return !document.getElementById('dynbg')&&!document.documentElement.classList.contains('dynx')}));

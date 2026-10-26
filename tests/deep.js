@@ -114,7 +114,7 @@ ck(vp,'read-state sane after open',await E(()=>typeof S.read==='object'));
  const setInfo=await E(()=>{const d=$('#set').getBoundingClientRect();return{w:d.width,h:d.height,iw:innerWidth,ih:innerHeight,ov:$('.sbody').scrollWidth>$('.sbody').clientWidth+1}});
  ck(vp,'settings fits screen',setInfo.w<=setInfo.iw&&setInfo.h<=setInfo.ih&&!setInfo.ov,JSON.stringify(setInfo));
  await p.screenshot({path:`/tmp/t/deep-${vp}-settings.png`});
- await E(()=>document.querySelectorAll('#thm details').forEach(d=>d.open=true));for(const th of ['broadsheet','auto']){await tap(`[data-th="${th}"]`);await p.waitForTimeout(80);ck(vp,'theme '+th,await E(t=>S.theme===t&&document.documentElement.dataset.theme===t,th))}
+ await E(()=>document.querySelectorAll('#thm details').forEach(d=>d.open=true));for(const th of ['rosewood','auto']){await tap(`[data-th="${th}"]`);await p.waitForTimeout(80);ck(vp,'theme '+th,await E(t=>S.theme===t&&document.documentElement.dataset.theme===t,th))}
  /* Dynamic, Light and Dark are the tiles at the top of Look (the Light and Dark themes were retired: Light & Dark plus a tile covers them) */
  await tap('[data-sch="dynamic"]');await p.waitForTimeout(150);ck(vp,'theme dynamic',await E(()=>S.theme==='dynamic'&&document.documentElement.dataset.theme==='dynamic'));
  for(const m of ['light','dark']){await tap(`[data-sch="${m}"]`);await p.waitForTimeout(150);ck(vp,'theme '+m,await E(m=>S.sch===m&&S.theme==='auto'&&(m==='dark'?document.documentElement.dataset.theme==='dark':/^(auto|light)$/.test(document.documentElement.dataset.theme)),m))}
