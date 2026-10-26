@@ -5610,7 +5610,7 @@ async function viaJson(f){
  const r=await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(f.url),{signal:AbortSignal.timeout(12000)}),j=await r.json();
  if(j.status!=='ok')throw 0;
  return finishList(j.items.map(i=>{const h=i.content||i.description||'';const isA=/audio/.test(i.enclosure?.type||'');let img=i.thumbnail||(!isA&&i.enclosure?.link)||firstImg(h,i.link);
-  return{feedId:f.id,audio:isA?i.enclosure.link:'',title:i.title,link:webUrl(i.link),date:pdate((i.pubDate||'').replace(' ','T')+'Z'),img:img?hi(abs(img,i.link)):'',html:h,summary:new DOMParser().parseFromString(String(i.description||h).replace(/<\/(p|div|li|h[1-6])>|<br\s*\/?>/gi,' $&'),'text/html').body.textContent.replace(/\s+/g,' ').trim().slice(0,170)}}));
+  return{feedId:f.id,audio:isA?i.enclosure.link:'',title:i.title,link:webUrl(i.link),date:pdate((i.pubDate||'').replace(' ','T')+'Z'),img:img?hi(abs(img,i.link)):'',html:h,summary:new DOMParser().parseFromString(String(i.description||h).replace(/<\/(p|div|li|ul|ol|h[1-6]|aside|section|article|blockquote|figure|figcaption|header|footer|tr|td|th|dd|dt|pre)>|<br\s*\/?>/gi,' $&'),'text/html').body.textContent.replace(/\s+/g,' ').trim().slice(0,170)}}));
 }
 const GENS=(()=>{try{return new Set(JSON.parse(localStorage.getItem('folio-gen')||'[]'))}catch(e){return new Set()}})();
 const gk=u=>String(u||'').split(/[?#]/)[0];
@@ -13016,8 +13016,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.26d';const APP_LABEL='1.162';
-const CHANGES=["New theme: Sepia Rosewood, a warm rose-and-brass look with its own dark version. It replaces Sepia, and anyone who used Sepia is moved to it automatically","Coast, Newsprint and Sepia Rosewood now color The Daily cover to match, including cover photos (Newsprint shows them in black and white)","Fixed headline fonts in Coast and Newsprint, which were showing the default headline font","The theme picker is simpler, and switching themes no longer freezes the app"];
+const APP_VERSION='2026.10.26e';const APP_LABEL='1.163';
+const CHANGES=["Page turns stay as smooth after an update: the app now remembers how it turns pages instead of starting over with every new version","Fixed story previews that ran words together, like \"closedGet our daily\"","Newspaper-style Daily: the quote and intro lines now use a lighter, easier-to-read weight"];
 const DEF_ON=new Set(['mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -13574,7 +13574,7 @@ function dekOf(a,n){
  const c=[];
  try{const L=ledeOf(a);if(L)c.push(L)}catch(e){}
  c.push(strip(a.summary));
- try{const h=AC[a.link]&&AC[a.link].h;if(h){const d=new DOMParser().parseFromString('<body>'+h,'text/html');for(const p of d.body.querySelectorAll('p')){const t=strip(p.textContent);if(t.length>=60){c.push(t);if(c.length>5)break}}}}catch(e){}
+ try{const h=AC[a.link]&&AC[a.link].h;if(h){const d=new DOMParser().parseFromString('<body>'+h,'text/html');for(const p of d.body.querySelectorAll('p')){const t=strip(plainText(p));if(t.length>=60){c.push(t);if(c.length>5)break}}}}catch(e){}
  for(const x of c){if(x&&x.length>=30&&!isJunkText(x))return trimWords(x,n)}
  return '';
 }
