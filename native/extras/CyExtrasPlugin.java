@@ -152,9 +152,9 @@ public class CyExtrasPlugin extends Plugin {
     @PluginMethod
     public void mediaStart(PluginCall call) {
         try {
-            CyMediaService.posMs = call.getLong("pos", -1L);
-            CyMediaService.durMs = call.getLong("dur", 0L);
-            CyMediaService.rate = call.getFloat("rate", 1f);
+            CyMediaService.posMs = call.getData().optLong("pos", -1L);
+            CyMediaService.durMs = call.getData().optLong("dur", 0L);
+            CyMediaService.rate = (float) call.getData().optDouble("rate", 1.0);
             String title = call.getString("title", "CyPress");
             String sub = call.getString("subtitle", "");
             CyMediaService.start(getContext(), title, sub, true, call.getString("image", ""));
@@ -167,9 +167,9 @@ public class CyExtrasPlugin extends Plugin {
     @PluginMethod
     public void mediaUpdate(PluginCall call) {
         try {
-            CyMediaService.posMs = call.getLong("pos", -1L);
-            CyMediaService.durMs = call.getLong("dur", 0L);
-            CyMediaService.rate = call.getFloat("rate", 1f);
+            CyMediaService.posMs = call.getData().optLong("pos", -1L);
+            CyMediaService.durMs = call.getData().optLong("dur", 0L);
+            CyMediaService.rate = (float) call.getData().optDouble("rate", 1.0);
             String title = call.getString("title", "CyPress");
             String sub = call.getString("subtitle", "");
             boolean playing = call.getBoolean("playing", true);
@@ -314,7 +314,7 @@ public class CyExtrasPlugin extends Plugin {
         try {
             String id = call.getString("id", "");
             String text = call.getString("text", "");
-            float rate = call.getFloat("rate", 1f);
+            float rate = (float) call.getData().optDouble("rate", 1.0);
             float pitch = call.getFloat("pitch", 1f);
             float volume = call.getFloat("volume", 1f);
             String voice = call.getString("voice", "");
