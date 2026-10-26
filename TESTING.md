@@ -759,3 +759,4 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 - [ ] **Edition finished**: reach the end of an edition; feel a deeper double thump.
 - [ ] **Pull-to-refresh tick** and swipe-hit tick still fire (lighter than before).
 - [ ] **Fallback**: on an older/cheap-motor phone the old single buzz still plays; no error in logcat.
+- [ ] **1.160 Long-read drop cap**: open a long story (feature length) in Classic and a dark theme; the big first letter is an accent color, readable, and the page count/turn is unchanged. Briefs and regular stories unchanged.
