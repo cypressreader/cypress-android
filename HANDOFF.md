@@ -43,6 +43,6 @@ Locked: page turn (Play Books style, tap turns 1280 ms, do not retune). Shipped 
     - `native/extras/CyWidgetProvider.java`: Wrapped `onUpdate` and `onAppWidgetOptionsChanged` in try/catch with `Log.e(TAG, ...)`, updating with `buildFallbackTop(context)` on failure.
     - Version sync: Bumped to 1.158 (`www/index.html`, `.github/workflows/build-apk.yml`, `whats-new.txt`, `docs/app/index.html`, `docs/demo.html`).
   - **What could NOT be verified here:** Headless desktop environment lacks Android display/launcher and physical device hardware; actual home screen widget drag-and-drop, flipper animation, and Binder IPC execution must be verified on a real Android phone.
-  - **Commit hash:** `af54685` (`main`).
+  - **Commit hash:** `b18c733` (`main`).
 
 **Next 3 tasks:** 0. Phone-check 1.158 Top Story widget placement, flipper auto-rotation, and deep-link tap. 1. Read David's 1.148 phone feedback + support report (TESTING.md polish entries; Daily redraw on the Fold; widgets; Kindle). 2. Read the 1.147 report after his `build`: 'All' tap and deep redraws should be well under 1 s; `redraws` callers; 'longest at'. 3. Remaining phone checks: 1.135/1.136 Fold layout, junk filter, Teach + sitemap, feed search "calm"/"birdwatching", reader shimmer lines.
