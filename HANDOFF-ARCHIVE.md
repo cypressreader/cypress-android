@@ -227,3 +227,16 @@ Headings fix (2026-10-24, branch only): 'Quick hits' header is back (I had misre
 - **Polish pass RELEASED as 1.148 (2026-10-25):** every code built by worktree agents and merged on this branch (widgets 8dc07f7, exports 24009fd, themes/fonts/covers/logo 9fa0551, settings/menus/discovery 5112e64, reader/turns 4e95ca9, signature K f000f0c, look system E 7704e68). Rollback: branch `backup/pre-polish-2026-10-25` (= 2a1738a). Post-merge fixes: swipe cancels rdWarm (`T.warm`), F3 small caps on `.dcl`, `tabIndSoon`.
 - **1.154 & 1.155:** 1.154 swapped plain `<View>` for `<ImageView>` in RemoteViews; 1.155 auto-turning Top Story 7s / Ticker 6s via ViewFlipper, large arrows, photo feature in Headlines. Editorial polish: `.dcov` container queries, colophon bar, front-page showcase, 65ch measure, paged spread balance.
 
+
+## Archived 2026-10-26 (1.158 Top Story inflation fix)
+- **Top Story Widget Inflation Fix (1.158):**
+  - **Exact root cause:** The launcher error "Couldn't add widget" on Top Story was caused by two compounding issues: (1) `cy_widget_top.xml` had `android:loopViews="true"` on `<AdapterViewFlipper>` (attribute belongs to `StackView`, not `AdapterViewFlipper`), triggering an `InflateException`; (2) on API 31+, `CyWidgets.buildTop` packed all 5 full-bleed cards with large bitmaps into a single `RemoteCollectionItems` parcel, exceeding the 1 MB Binder transaction ceiling (`TransactionTooLargeException`) and passing `RemoteCollectionItems` to `AdapterViewFlipper` (unsupported by `AdapterViewAnimator`); (3) `CyFlipperRemoteViewsFactory` in `CyWidgetService.java` returned `null` instead of a fallback view when data was empty or loading.
+  - **Files and layouts changed:**
+    - `native/extras/res/layout/cy_widget_top.xml`: Removed invalid `android:loopViews="true"` from `AdapterViewFlipper`.
+    - `native/extras/CyWidgets.java`: Always bind `CyWidgetService` via Intent (`rv.setRemoteAdapter(R.id.cy_flipper, intent)`) streaming items individually across Binder; added `buildFallbackTop()` and `buildStaticCard()`; in `cropFill()`, use `Bitmap.Config.RGB_565` for full-bleed cards; wrapped `buildTop` and `buildStackCard` in try/catch with `Log.e(TAG, ...)`.
+    - `native/extras/CyWidgetService.java`: Guarded `onCreate`, `onDataSetChanged`, `getCount`, `getViewAt`, and `getLoadingView` with try/catch and `Log.e("CyWidget", ...)`, returning `buildStaticCard(mContext)` on error instead of `null`.
+    - `native/extras/CyWidgetProvider.java`: Wrapped `onUpdate` and `onAppWidgetOptionsChanged` in try/catch with `Log.e(TAG, ...)`, updating with `buildFallbackTop(context)` on failure.
+    - Version sync: Bumped to 1.158 (`www/index.html`, `.github/workflows/build-apk.yml`, `whats-new.txt`, `docs/app/index.html`, `docs/demo.html`).
+  - **What could NOT be verified here:** Headless desktop environment lacks Android display/launcher and physical device hardware; actual home screen widget drag-and-drop, flipper animation, and Binder IPC execution must be verified on a real Android phone.
+  - **Commit hash:** `b18c733` (`main`).
+
