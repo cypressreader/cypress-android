@@ -776,3 +776,6 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 
 ## Return-to-feed scroll snap (branch claude/theme-six-handoff-96ztep, unverified)
 - All Stories, tiles, scroll far, open a story, go back, start scrolling: your place should stay put (no jump). Check on the Fold too.
+
+## Late-story redraw jumps (branch claude/theme-six-handoff-96ztep, unverified)
+- Scroll down a feed while it is refreshing; new stories arriving should not move the card you are looking at.
