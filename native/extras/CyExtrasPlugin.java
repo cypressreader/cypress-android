@@ -152,6 +152,9 @@ public class CyExtrasPlugin extends Plugin {
     @PluginMethod
     public void mediaStart(PluginCall call) {
         try {
+            CyMediaService.posMs = call.getLong("pos", -1L);
+            CyMediaService.durMs = call.getLong("dur", 0L);
+            CyMediaService.rate = call.getFloat("rate", 1f);
             String title = call.getString("title", "CyPress");
             String sub = call.getString("subtitle", "");
             CyMediaService.start(getContext(), title, sub, true, call.getString("image", ""));
@@ -164,6 +167,9 @@ public class CyExtrasPlugin extends Plugin {
     @PluginMethod
     public void mediaUpdate(PluginCall call) {
         try {
+            CyMediaService.posMs = call.getLong("pos", -1L);
+            CyMediaService.durMs = call.getLong("dur", 0L);
+            CyMediaService.rate = call.getFloat("rate", 1f);
             String title = call.getString("title", "CyPress");
             String sub = call.getString("subtitle", "");
             boolean playing = call.getBoolean("playing", true);

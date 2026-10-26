@@ -782,3 +782,6 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 
 ## Tap to go to top (branch claude/theme-six-handoff-96ztep, unverified)
 - Scroll down in All Stories, tap the title bar (not a button): list glides to the top. Open the side menu and tap All Stories again: also top.
+
+## Lock-screen / shade player: time + jump buttons (branch claude/theme-six-handoff-96ztep, unverified, needs APK)
+- Read a story or play the Daily aloud, pull down the shade: elapsed/total bar shows; buttons for Back 15 s and Forward 30 s appear (Android 13+ shows them beside prev/next) and move the reading. Bar stays in step after pause/resume and speed changes.

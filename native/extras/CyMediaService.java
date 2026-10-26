@@ -47,6 +47,12 @@ public class CyMediaService extends Service {
     static final String ACT_PREV = "com.cypress.reader.media.PREV";
     static final String ACT_STOP = "com.cypress.reader.media.STOP";
 
+    static final String CA_REW = "rew";
+    static final String CA_FWD = "fwd";
+    /** Where the reading is, for the lock screen and the notification shade (-1 = unknown). Set by the plugin before start/update. */
+    static volatile long posMs = -1, durMs = 0;
+    static volatile float rate = 1f;
+
     /** The running service, so updates do not need to start anything. */
     static volatile CyMediaService instance;
 
@@ -559,6 +565,12 @@ public class CyMediaService extends Service {
             }
 
             @Override
+            public void onCustomAction(String act, android.os.Bundle extras) {
+                if (CA_REW.equals(act)) CyExtras.emitMediaAction("rew");
+                else if (CA_FWD.equals(act)) CyExtras.emitMediaAction("fwd");
+            }
+
+            @Override
             public void onSkipToNext() {
                 CyExtras.emitMediaAction("next");
             }
@@ -584,15 +596,19 @@ public class CyMediaService extends Service {
         try {
             long actions = PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY_PAUSE
                 | PlaybackState.ACTION_SKIP_TO_NEXT | PlaybackState.ACTION_SKIP_TO_PREVIOUS | PlaybackState.ACTION_STOP;
+            long pos = posMs >= 0 ? posMs : PlaybackState.PLAYBACK_POSITION_UNKNOWN;
             PlaybackState ps = new PlaybackState.Builder()
                 .setActions(actions)
+                .addCustomAction(CA_REW, "Back 15 seconds", R.drawable.cy_ic_rew)
+                .addCustomAction(CA_FWD, "Forward 30 seconds", R.drawable.cy_ic_fwd)
                 .setState(playing ? PlaybackState.STATE_PLAYING : PlaybackState.STATE_PAUSED,
-                    PlaybackState.PLAYBACK_POSITION_UNKNOWN, playing ? 1f : 0f)
+                    pos, playing ? rate : 0f)
                 .build();
             session.setPlaybackState(ps);
             MediaMetadata.Builder mb = new MediaMetadata.Builder()
                 .putString(MediaMetadata.METADATA_KEY_TITLE, title)
                 .putString(MediaMetadata.METADATA_KEY_ARTIST, subtitle);
+            if (durMs > 0) mb.putLong(MediaMetadata.METADATA_KEY_DURATION, durMs);
             if (art != null) {
                 mb.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, art);
                 mb.putBitmap(MediaMetadata.METADATA_KEY_ART, art);
