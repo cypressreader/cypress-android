@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CyPress Editorial Labs — Candidate Features Preview</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;0,7..72,700;1,7..72,400&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --forest: #0c2619;
+    --forest-deep: #081a10;
+    --paper: #f3ecdc;
+    --brass: #c9a24a;
+    --brass-dark: #8c6b2d;
+    --ink: #1b2a20;
+    --rule: #d9cfb4;
+    --muted: #6f675a;
+    --font-serif: 'Literata', Georgia, serif;
+    --font-disp: 'Cormorant Garamond', Georgia, serif;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0e1411 url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2317221b' fill-opacity='0.45' fill-rule='evenodd'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
+    font-family: var(--font-sans);
+    color: #e5ede8;
+    padding: 40px 24px 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .header {
+    text-align: center;
+    max-width: 860px;
+    margin-bottom: 48px;
+  }
+
+  .header .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(201, 162, 74, 0.15);
+    border: 1px solid rgba(201, 162, 74, 0.4);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    color: var(--brass);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .header h1 {
+    font-family: var(--font-disp);
+    font-size: 46px;
+    font-weight: 600;
+    color: #f7f3e8;
+    letter-spacing: 0.02em;
+    margin-bottom: 12px;
+  }
+
+  .header p {
+    font-size: 16px;
+    color: #a3b8ad;
+    line-height: 1.6;
+  }
+
+  .nav-pills {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .nav-pills a {
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 18px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #cfdbd5;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+  }
+
+  .nav-pills a:hover {
+    background: rgba(201, 162, 74, 0.2);
+    border-color: var(--brass);
+    color: #fff;
+  }
+
+  /* Section Wrappers */
+  .section {
+    width: 100%;
+    max-width: 1180px;
+    margin-bottom: 64px;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+
+  .section-head h2 {
+    font-family: var(--font-disp);
+    font-size: 32px;
+    font-weight: 600;
+    color: #f7f3e8;
+    letter-spacing: 0.02em;
+  }
+
+  .section-head .tag {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brass);
+  }
+
+  .section-desc {
+    font-size: 14.5px;
+    color: #9cb3a7;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .card-container {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  /* ==========================================================================
+     1. PREDICTIVE BACK GESTURE
+     ========================================================================== */
+  .predictive-back-stage {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+  }
+
+  .device-mockup {
+    width: 360px;
+    height: 720px;
+    background: #000;
+    border-radius: 46px;
+    border: 9px solid #232b27;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 30px 70px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+
+  .camera-island {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90px;
+    height: 24px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 100;
+  }
+
+  /* Grid under the reader */
+  .device-grid-bg {
+    position: absolute;
+    inset: 0;
+    background: var(--paper);
+    padding: 48px 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    opacity: 0.9;
+    filter: brightness(0.92);
+  }
+
+  .mock-masthead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 8px;
+    border-bottom: 1.5px solid var(--brass);
+  }
+
+  .mock-masthead span {
+    font-family: var(--font-disp);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--forest);
+  }
+
+  .mock-grid-card {
+    background: #fffdf8;
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    gap: 12px;
+  }
+
+  .mock-grid-thumb {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    background: var(--forest);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .mock-grid-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .mock-grid-info h4 {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+
+  .mock-grid-info span {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--brass-dark);
+    text-transform: uppercase;
+  }
+
+  /* Scaling reader sheet */
+  .device-reader-sheet {
+    position: absolute;
+    inset: 0;
+    background: var(--paper);
+    border-radius: 28px;
+    transform: scale(0.88) translateX(28px) translateY(8px) rotate(1.2deg);
+    box-shadow: -14px 20px 48px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .reader-sheet-hero {
+    height: 220px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .reader-sheet-hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .reader-sheet-body {
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--paper);
+    flex: 1;
+  }
+
+  .reader-sheet-body .kicker {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--brass-dark);
+    text-transform: uppercase;
+  }
+
+  .reader-sheet-body h3 {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    line-height: 1.25;
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .reader-sheet-body p {
+    font-family: var(--font-serif);
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--ink);
+    opacity: 0.85;
+  }
+
+  /* Android 14 gesture handle / arrow */
+  .gesture-arrow-pill {
+    position: absolute;
+    top: 50%;
+    left: 8px;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--forest);
+    border: 1px solid var(--brass);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brass);
+    z-index: 50;
+  }
+
+  .feature-annotation {
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .annotation-item {
+    background: rgba(255, 255, 255, 0.04);
+    border-left: 3px solid var(--brass);
+    padding: 14px 18px;
+    border-radius: 0 12px 12px 0;
+  }
+
+  .annotation-item h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #f7f3e8;
+    margin-bottom: 4px;
+  }
+
+  .annotation-item p {
+    font-size: 13px;
+    color: #9cb3a7;
+    line-height: 1.45;
+  }
+
+  /* ==========================================================================
+     2. ULTRA HDR PHOTO DISPLAY
+     ========================================================================== */
+  .hdr-comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+
+  .hdr-view {
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    background: #050a07;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .hdr-view .label {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: rgba(12, 38, 25, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(201, 162, 74, 0.4);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--brass);
+    text-transform: uppercase;
+    z-index: 5;
+  }
+
+  .hdr-canvas {
+    height: 380px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hdr-canvas img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* SDR Simulation: compressed dynamic range, clipped peak white */
+  .sdr-sim {
+    filter: brightness(0.85) contrast(0.9) saturate(0.88);
+  }
+
+  /* Ultra HDR Simulation: 2.5x luminance headroom, blooming highlights, P3 gamut */
+  .hdr-sim {
+    filter: brightness(1.12) contrast(1.18) saturate(1.15);
+  }
+
+  .hdr-glow-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 75% 25%, rgba(255, 255, 255, 0.35) 0%, rgba(255, 235, 180, 0.18) 30%, transparent 60%);
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+
+  .hdr-caption {
+    padding: 18px 20px;
+    background: rgba(12, 38, 25, 0.95);
+    border-top: 1px solid rgba(201, 162, 74, 0.2);
+  }
+
+  .hdr-caption h4 {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    color: #f7f3e8;
+    margin-bottom: 4px;
+  }
+
+  .hdr-caption span {
+    font-size: 11.5px;
+    color: #9cb3a7;
+    line-height: 1.4;
+    display: block;
+  }
+
+  .hdr-stats {
+    display: flex;
+    gap: 16px;
+    margin-top: 10px;
+  }
+
+  .stat-chip {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--brass);
+    border: 1px solid rgba(201, 162, 74, 0.25);
+  }
+
+  /* ==========================================================================
+     3. AMBIENT AUDIO PLAYER
+     ========================================================================== */
+  .audio-stage-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+  }
+
+  /* Lock Screen / Notification Media Widget */
+  .lockscreen-media-widget {
+    background: linear-gradient(135deg, rgba(20, 48, 34, 0.95), rgba(10, 26, 18, 0.98));
+    border: 1px solid rgba(201, 162, 74, 0.35);
+    border-radius: 26px;
+    padding: 20px 22px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lockscreen-media-widget::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(201, 162, 74, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .media-top-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .media-artwork {
+    width: 68px;
+    height: 68px;
+    border-radius: 14px;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(201, 162, 74, 0.3);
+  }
+
+  .media-artwork img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .media-meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .media-app-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--brass);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .media-title {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    font-weight: 700;
+    color: #f7f3e8;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 3px;
+  }
+
+  .media-author {
+    font-size: 12px;
+    color: #a3b8ad;
+  }
+
+  .media-progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .media-progress-fill {
+    width: 42%;
+    height: 100%;
+    background: var(--brass);
+    border-radius: 2px;
+  }
+
+  .media-time-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 500;
+    color: #8da498;
+    margin-top: -8px;
+  }
+
+  .media-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 4px;
+  }
+
+  .ctrl-icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f7f3e8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .ctrl-icon-btn:hover {
+    background: rgba(201, 162, 74, 0.2);
+    border-color: var(--brass);
+    color: var(--brass);
+  }
+
+  .ctrl-play-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--brass);
+    color: var(--forest);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(201, 162, 74, 0.4);
+    cursor: pointer;
+  }
+
+  /* Expanded In-App Audio Reader Sheet */
+  .expanded-audio-sheet {
+    background: #0f2b1d;
+    border: 1px solid rgba(201, 162, 74, 0.3);
+    border-radius: 26px;
+    padding: 24px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .expanded-sheet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .expanded-sheet-header h4 {
+    font-family: var(--font-disp);
+    font-size: 19px;
+    color: var(--brass);
+    letter-spacing: 0.04em;
+  }
+
+  .speed-pill {
+    background: rgba(201, 162, 74, 0.15);
+    border: 1px solid var(--brass);
+    color: var(--brass);
+    padding: 3px 10px;
+    border-radius: 14px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .transcript-box {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-family: var(--font-serif);
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #e5ede8;
+    max-height: 100px;
+    overflow-y: hidden;
+    position: relative;
+  }
+
+  .transcript-box::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 40%, #0f2b1d 100%);
+  }
+
+  .transcript-highlight {
+    color: var(--brass);
+    font-weight: 600;
+  }
+
+  /* ==========================================================================
+     4. EDITORIAL HARMONIZATION: MARITIME VS. AUTUMN
+     ========================================================================== */
+  .harmonization-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+  }
+
+  .palette-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .swatch-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .swatch-header h3 {
+    font-family: var(--font-disp);
+    font-size: 24px;
+    font-weight: 600;
+    color: #f7f3e8;
+  }
+
+  .swatch-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    height: 54px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .swatch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 6px;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+
+  /* Palette A: Maritime */
+  .sw-maritime-ink { background: #132338; color: #fff; }
+  .sw-maritime-accent { background: #2b6070; color: #fff; }
+  .sw-maritime-brass { background: #c8a655; color: #132338; }
+  .sw-maritime-cream { background: #f3ecdc; color: #132338; }
+
+  /* Palette B: Autumn */
+  .sw-autumn-ink { background: #3a1c12; color: #fff; }
+  .sw-autumn-accent { background: #b86822; color: #fff; }
+  .sw-autumn-brass { background: #a88232; color: #fff; }
+  .sw-autumn-cream { background: #f3ecdc; color: #3a1c12; }
+
+  /* Applied Editorial Cards on Cream */
+  .editorial-card-sample {
+    background: var(--paper);
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    border: 1px solid var(--rule);
+  }
+
+  /* Maritime applied styles */
+  .sample-maritime {
+    border-top: 4px solid #132338;
+  }
+
+  .sample-maritime .kicker {
+    color: #2b6070;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .sample-maritime h4 {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    line-height: 1.25;
+    color: #132338;
+    font-weight: 700;
+  }
+
+  .sample-maritime p {
+    font-family: var(--font-serif);
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #283747;
+  }
+
+  .sample-maritime .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #d2dedc;
+    padding-top: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #2b6070;
+  }
+
+  /* Autumn applied styles */
+  .sample-autumn {
+    border-top: 4px solid #3a1c12;
+  }
+
+  .sample-autumn .kicker {
+    color: #b86822;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .sample-autumn h4 {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    line-height: 1.25;
+    color: #3a1c12;
+    font-weight: 700;
+  }
+
+  .sample-autumn p {
+    font-family: var(--font-serif);
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #4a3328;
+  }
+
+  .sample-autumn .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #e2d2c1;
+    padding-top: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #b86822;
+  }
+
+  .metrics-badge {
+    background: rgba(0, 0, 0, 0.05);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="badge">CyPress Editorial Labs</div>
+    <h1>Candidate Editorial Features</h1>
+    <p>High-fidelity visual prototypes demonstrating candidate system integrations: Predictive Back gestures, Ultra HDR photographic luminance, Lock Screen ambient audio media player, and seasonal editorial harmonization.</p>
+    <div class="nav-pills">
+      <a href="#predictive-back">1. Predictive Back</a>
+      <a href="#ultra-hdr">2. Ultra HDR Photo Display</a>
+      <a href="#ambient-audio">3. Ambient Audio Player</a>
+      <a href="#editorial-harmonization">4. Editorial Harmonization</a>
+    </div>
+  </div>
+
+  <!-- SECTION 1: PREDICTIVE BACK -->
+  <div id="predictive-back" class="section">
+    <div class="section-head">
+      <h2>1. Predictive Back Gesture</h2>
+      <span class="tag">Android 14+ Integration</span>
+    </div>
+    <p class="section-desc">Smooth scale-down with depth and drop shadow. When initiating the edge-swipe back gesture, the article card scales down with 28px rounded corners and casts a realistic layered shadow, revealing the underlying front-page grid before commit.</p>
+
+    <div class="card-container">
+      <div class="predictive-back-stage">
+        <!-- Phone Device Frame -->
+        <div class="device-mockup">
+          <div class="camera-island"></div>
+
+          <!-- Underlying Grid -->
+          <div class="device-grid-bg">
+            <div class="mock-masthead">
+              <span>CyPress</span>
+              <div style="font-size:10px; font-weight:700; color:#8c6b2d; letter-spacing:0.12em;">MORNING EDITION</div>
+            </div>
+            <div class="mock-grid-card">
+              <div class="mock-grid-thumb">
+                <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=150&q=80" alt="Space">
+              </div>
+              <div class="mock-grid-info">
+                <span>SCIENTIFIC AMERICAN · 2H</span>
+                <h4>Webb Telescope Detects Atmospheric Signs on Distant Exoplanet</h4>
+              </div>
+            </div>
+            <div class="mock-grid-card">
+              <div class="mock-grid-thumb">
+                <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=150&q=80" alt="Tech">
+              </div>
+              <div class="mock-grid-info">
+                <span>THE VERGE · 4H</span>
+                <h4>Next Generation High-Density Silicon Batteries Enter Production</h4>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gesture Arrow Indicator -->
+          <div class="gesture-arrow-pill">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </div>
+
+          <!-- Active Scaling Reader Sheet -->
+          <div class="device-reader-sheet">
+            <div class="reader-sheet-hero">
+              <img src="https://images.unsplash.com/photo-1507842229451-7f01be44c067?auto=format&fit=crop&w=600&q=80" alt="Library">
+            </div>
+            <div class="reader-sheet-body">
+              <span class="kicker">THE ATLANTIC · 12 MIN READ</span>
+              <h3>The Art of Slow Looking in an Accelerated World</h3>
+              <p>In a world characterized by cognitive acceleration and ambient distraction, intentional visual contemplation has emerged as a radical counter-cultural practice...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Annotation Callouts -->
+        <div class="feature-annotation">
+          <div class="annotation-item">
+            <h4>Proportional Scale-Down (88%)</h4>
+            <p>The reading canvas compresses proportionally along the gesture axis, retaining complete typographic measure without jarring reflows.</p>
+          </div>
+          <div class="annotation-item">
+            <h4>Elevation & Dynamic Drop Shadow</h4>
+            <p>A multi-layered <code>box-shadow</code> (48px blur) visually separates the active article card from the underlying front-page broadsheet grid.</p>
+          </div>
+          <div class="annotation-item">
+            <h4>Haptic Cancel / Commit Boundaries</h4>
+            <p>Dragging past the 35% viewport threshold prepares smooth dismissal; releasing returns instantly to the exact scroll position in the feed.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: ULTRA HDR PHOTO DISPLAY -->
+  <div id="ultra-hdr" class="section">
+    <div class="section-head">
+      <h2>2. Ultra HDR Photo Display</h2>
+      <span class="tag">Android 14+ Gainmap HDR Architecture</span>
+    </div>
+    <p class="section-desc">Demonstrating luminance headroom and wide-gamut dynamic range. High-contrast photography harnesses display-p3 color gamut and HDR peak white for radiant specular highlights without washing out shadow textures.</p>
+
+    <div class="card-container">
+      <div class="hdr-comparison-grid">
+        <!-- SDR Simulation -->
+        <div class="hdr-view">
+          <div class="label">Standard SDR (Compressed)</div>
+          <div class="hdr-canvas">
+            <img class="sdr-sim" src="https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=900&q=80" alt="Sunlight Forest SDR">
+          </div>
+          <div class="hdr-caption">
+            <h4>Morning Sunburst in Redwood Canopy</h4>
+            <span>Highlights clipped at standard 100% white. Deep shadow foliage compressed; subtle atmospheric golden mist loses tonal gradation.</span>
+            <div class="hdr-stats">
+              <span class="stat-chip">Peak: 100% SDR</span>
+              <span class="stat-chip">sRGB Gamut</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ultra HDR Simulation -->
+        <div class="hdr-view" style="border-color: rgba(201, 162, 74, 0.45); box-shadow: 0 0 30px rgba(201, 162, 74, 0.15);">
+          <div class="label" style="background: rgba(201, 162, 74, 0.95); color: #0c2619;">Ultra HDR (Gainmap Boost)</div>
+          <div class="hdr-canvas">
+            <img class="hdr-sim" src="https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=900&q=80" alt="Sunlight Forest HDR">
+            <div class="hdr-glow-overlay"></div>
+          </div>
+          <div class="hdr-caption">
+            <h4>Morning Sunburst in Redwood Canopy</h4>
+            <span>2.5× luminance boost on solar rays cutting through mist. Deep cedar bark textures preserved with rich display-p3 color fidelity.</span>
+            <div class="hdr-stats">
+              <span class="stat-chip" style="background: rgba(201,162,74,0.25); color: #f7f3e8;">Peak: 250% HDR</span>
+              <span class="stat-chip">Display-P3 Wide Gamut</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: AMBIENT AUDIO PLAYER -->
+  <div id="ambient-audio" class="section">
+    <div class="section-head">
+      <h2>3. Ambient Audio Player</h2>
+      <span class="tag">Lock Screen & System Notification MediaSession</span>
+    </div>
+    <p class="section-desc">Media controls for audio narrations and morning packs. Formatted for Android lock screens and notification shade with velvet gradient backdrop, brass play controls, and synchronized text peek.</p>
+
+    <div class="card-container">
+      <div class="audio-stage-grid">
+        <!-- Lock Screen Card -->
+        <div>
+          <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: #8fa69a; text-transform: uppercase; margin-bottom: 12px;">
+            Lock Screen & Notification Shade Card
+          </div>
+          <div class="lockscreen-media-widget">
+            <div class="media-top-row">
+              <div class="media-artwork">
+                <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=200&q=80" alt="Article Art">
+              </div>
+              <div class="media-meta">
+                <div class="media-app-tag">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+                  CyPress Audio Edition
+                </div>
+                <div class="media-title">The Ecology of Ancient Cascadia</div>
+                <div class="media-author">Narrated by Helena Thorne · 14 min</div>
+              </div>
+            </div>
+
+            <div class="media-progress-bar">
+              <div class="media-progress-fill"></div>
+            </div>
+            <div class="media-time-row">
+              <span>05:52</span>
+              <span>-08:08</span>
+            </div>
+
+            <div class="media-controls">
+              <div class="ctrl-icon-btn">1.2×</div>
+              <div class="ctrl-icon-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+              </div>
+              <div class="ctrl-play-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              </div>
+              <div class="ctrl-icon-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div class="ctrl-icon-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Expanded In-App Player -->
+        <div>
+          <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: #8fa69a; text-transform: uppercase; margin-bottom: 12px;">
+            In-App Read Aloud Modal & Transcript
+          </div>
+          <div class="expanded-audio-sheet">
+            <div class="expanded-sheet-header">
+              <h4>Audio Player · Chapter 2 of 4</h4>
+              <span class="speed-pill">Natural TTS Voice</span>
+            </div>
+
+            <div class="transcript-box">
+              "...Across the western slope of the Olympic Range, temperate coniferous forests receive more than one hundred and forty inches of annual rainfall. <span class="transcript-highlight">Here, western hemlock, Sitka spruce, and Douglas fir form a colossal multi-tiered canopy</span> that filters sunlight into cathedral-like shafts of emerald..."
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-top:6px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:12px; font-weight:600; color:var(--brass);">Sleep Timer:</span>
+                <span style="font-size:12px; color:#cfdbd5;">End of Story (8 min)</span>
+              </div>
+              <span style="font-size:11px; font-weight:700; color:#8fa69a; text-transform:uppercase;">Auto-Scroll On</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: EDITORIAL HARMONIZATION -->
+  <div id="editorial-harmonization" class="section">
+    <div class="section-head">
+      <h2>4. Editorial Harmonization</h2>
+      <span class="tag">Color Swatches & Palette Comparisons</span>
+    </div>
+    <p class="section-desc">Comparing candidate seasonal color palettes against CyPress's signature <code>#f3ecdc</code> cream paper surface. Maritime delivers cool naval authority; Autumn introduces warm russet and spiced amber.</p>
+
+    <div class="card-container">
+      <div class="harmonization-grid">
+        <!-- Palette A: Maritime -->
+        <div class="palette-column">
+          <div class="swatch-header">
+            <h3>Maritime Palette</h3>
+            <span style="font-size:11px; font-weight:700; color:#2b6070; letter-spacing:0.1em;">COOL NAVAL & BRASS</span>
+          </div>
+          <div class="swatch-strip">
+            <div class="swatch sw-maritime-ink">#132338</div>
+            <div class="swatch sw-maritime-accent">#2B6070</div>
+            <div class="swatch sw-maritime-brass">#C8A655</div>
+            <div class="swatch sw-maritime-cream">#F3ECDC</div>
+          </div>
+
+          <div class="editorial-card-sample sample-maritime">
+            <span class="kicker">FOREIGN AFFAIRS · 15 MIN READ</span>
+            <h4>The Geopolitics of Northern Trade Routes in a Warming Arctic</h4>
+            <p>New oceanic corridors are reconfiguring global merchant navigation, reviving historical maritime treaties and reshaping deep-water ports from Reykjavik to Murmansk.</p>
+            <div class="card-footer">
+              <span>CONTRAST: 12.8:1 (AAA)</span>
+              <span class="metrics-badge">INSPECT ON CREAM</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Palette B: Autumn -->
+        <div class="palette-column">
+          <div class="swatch-header">
+            <h3>Autumn Palette</h3>
+            <span style="font-size:11px; font-weight:700; color:#b86822; letter-spacing:0.1em;">WARM RUSSET & OCHRE</span>
+          </div>
+          <div class="swatch-strip">
+            <div class="swatch sw-autumn-ink">#3A1C12</div>
+            <div class="swatch sw-autumn-accent">#B86822</div>
+            <div class="swatch sw-autumn-brass">#A88232</div>
+            <div class="swatch sw-autumn-cream">#F3ECDC</div>
+          </div>
+
+          <div class="editorial-card-sample sample-autumn">
+            <span class="kicker">LITERARY REVIEW · 18 MIN READ</span>
+            <h4>The Return of Hand-Bound Editions in the Digital Hearth</h4>
+            <p>Independent bindery studios report record interest in letterpress print runs and linen-bound anthologies as readers seek tangible anchors in an ephemeral media landscape.</p>
+            <div class="card-footer">
+              <span>CONTRAST: 11.4:1 (AAA)</span>
+              <span class="metrics-badge">INSPECT ON CREAM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

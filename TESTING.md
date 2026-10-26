@@ -741,3 +741,10 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 - [ ] **No Double Borders**: Verify widgets have zero nested inner card frames; content touches the launcher's widget corner radius directly.
 - [ ] **Typographic Fallbacks**: For articles lacking photos, verify the rich dark-forest card (`#0c2619`) with antique brass sun ornament and cream serif type renders centered and clean.
 - [ ] **Compact Ticker (`cy_widget_ticker`)**: Verify 4x1 tile has high-contrast brass kickers (`#8c6b2d`) on cream and flips smoothly between headlines.
+
+## 1.158 Top Story Widget Inflation Fix (AdapterViewFlipper & CyWidgetService) — implemented, unverified (real phone)
+- [ ] **Top Story Launcher Placement (`cy_widget_top`)**: Drag "CyPress Top Story" onto the home screen from the widget picker. Confirm it places immediately without "Couldn't add widget" error.
+- [ ] **Item Streaming via RemoteViewsService**: Confirm cards cycle smoothly in `AdapterViewFlipper` without IPC `TransactionTooLargeException` crashes.
+- [ ] **Empty & Error Graceful Fallback**: With no cached headlines or flight mode, confirm widget displays clean fallback "Open CyPress to load your stories" with brass sun ornament instead of failing.
+- [ ] **Deep-Linking**: Tap card in `AdapterViewFlipper` to confirm fill-in intent properly navigates into the story in CyPress Reader.
+- [ ] **Logcat Diagnostics**: Filter logcat by `CyWidget` tag; verify zero unhandled exceptions or inflation failures.
