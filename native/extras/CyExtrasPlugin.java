@@ -155,6 +155,8 @@ public class CyExtrasPlugin extends Plugin {
             CyMediaService.posMs = call.getData().optLong("pos", -1L);
             CyMediaService.durMs = call.getData().optLong("dur", 0L);
             CyMediaService.rate = (float) call.getData().optDouble("rate", 1.0);
+            CyMediaService.canNext = call.getData().optBoolean("next", true);
+            CyMediaService.canPrev = call.getData().optBoolean("prev", true);
             String title = call.getString("title", "CyPress");
             String sub = call.getString("subtitle", "");
             CyMediaService.start(getContext(), title, sub, true, call.getString("image", ""));
@@ -170,6 +172,8 @@ public class CyExtrasPlugin extends Plugin {
             CyMediaService.posMs = call.getData().optLong("pos", -1L);
             CyMediaService.durMs = call.getData().optLong("dur", 0L);
             CyMediaService.rate = (float) call.getData().optDouble("rate", 1.0);
+            CyMediaService.canNext = call.getData().optBoolean("next", true);
+            CyMediaService.canPrev = call.getData().optBoolean("prev", true);
             String title = call.getString("title", "CyPress");
             String sub = call.getString("subtitle", "");
             boolean playing = call.getBoolean("playing", true);

@@ -51,6 +51,7 @@ public class CyMediaService extends Service {
     static final String CA_FWD = "fwd";
     /** Where the reading is, for the lock screen and the notification shade (-1 = unknown). Set by the plugin before start/update. */
     static volatile long posMs = -1, durMs = 0;
+    static volatile boolean canNext = true, canPrev = true;
     static volatile float rate = 1f;
 
     /** The running service, so updates do not need to start anything. */
@@ -557,12 +558,12 @@ public class CyMediaService extends Service {
         session.setCallback(new MediaSession.Callback() {
             @Override
             public void onPlay() {
-                if (!playing) CyExtras.emitMediaAction("toggle");
+                CyExtras.emitMediaAction("play");
             }
 
             @Override
             public void onPause() {
-                if (playing) CyExtras.emitMediaAction("toggle");
+                CyExtras.emitMediaAction("pause");
             }
 
             @Override
@@ -603,8 +604,9 @@ public class CyMediaService extends Service {
         if (session == null) return;
         try {
             long actions = PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY_PAUSE
-                | PlaybackState.ACTION_SKIP_TO_NEXT | PlaybackState.ACTION_SKIP_TO_PREVIOUS | PlaybackState.ACTION_STOP
-                | PlaybackState.ACTION_SEEK_TO;
+                | PlaybackState.ACTION_STOP | PlaybackState.ACTION_SEEK_TO;
+            if (canNext) actions |= PlaybackState.ACTION_SKIP_TO_NEXT;
+            if (canPrev) actions |= PlaybackState.ACTION_SKIP_TO_PREVIOUS;
             long pos = posMs >= 0 ? posMs : PlaybackState.PLAYBACK_POSITION_UNKNOWN;
             PlaybackState ps = new PlaybackState.Builder()
                 .setActions(actions)
@@ -666,11 +668,15 @@ public class CyMediaService extends Service {
             }
         }
         if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_LOW);
-        b.addAction(action(R.drawable.cy_ic_prev, "Previous", ACT_PREV, 81));
+        int n = 0;
+        int[] compact = new int[3];
+        int ci = 0;
+        if (canPrev) { b.addAction(action(R.drawable.cy_ic_prev, "Previous", ACT_PREV, 81)); compact[ci++] = n++; }
         b.addAction(action(playing ? R.drawable.cy_ic_pause : R.drawable.cy_ic_play, playing ? "Pause" : "Play", ACT_TOGGLE, 82));
-        b.addAction(action(R.drawable.cy_ic_next, "Next", ACT_NEXT, 83));
+        compact[ci++] = n++;
+        if (canNext) { b.addAction(action(R.drawable.cy_ic_next, "Next", ACT_NEXT, 83)); compact[ci++] = n++; }
         b.addAction(action(R.drawable.cy_ic_stop, "Stop", ACT_STOP, 84));
-        Notification.MediaStyle style = new Notification.MediaStyle().setShowActionsInCompactView(0, 1, 2);
+        Notification.MediaStyle style = new Notification.MediaStyle().setShowActionsInCompactView(java.util.Arrays.copyOf(compact, ci));
         if (session != null) style.setMediaSession(session.getSessionToken());
         b.setStyle(style);
         return b.build();

@@ -791,3 +791,7 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 
 ## Read aloud skips extras (post-1.165, branch only)
 - Open a story that has "The story so far" timeline, "Why it matters" and the related deck: read aloud should speak only the headline and article text, never those blocks.
+
+## Player pause + skip buttons (post-1.167, branch only)
+- Read one story aloud: notification/lock-screen player shows NO skip back/forward when nothing is queued; Pause then Play work from the shade and lock screen; time still shows.
+- Read a Daily/Digest queue: skip buttons appear (next from the first story, previous from the second on).

@@ -16070,7 +16070,7 @@ function nativeExtrasUi(x){
   x.addListener&&x.addListener('notificationOpen',r=>r&&r.url&&handleOpen(r.url));
  }
  if(nFeat('media')&&x.mediaStart){
-  const MT=()=>{let pos=-1,dur=0;try{const m=digModel();if(m&&m.tot){pos=Math.round(m.pos*1000);dur=Math.round(m.tot*1000)}}catch(e){}return{title:(curA&&curA.title)||(TTS.art&&TTS.art.title)||'CyPress',subtitle:(curA&&fof(curA).title)||(TTS.art&&fof(TTS.art).title)||'',image:(curA&&/^https?:/.test(curA.img||'')&&curA.img)||'',pos,dur,rate:+S.rate||1}};
+  const MT=()=>{let pos=-1,dur=0;try{const m=digModel();if(m&&m.tot){pos=Math.round(m.pos*1000);dur=Math.round(m.tot*1000)}}catch(e){}return{title:(curA&&curA.title)||(TTS.art&&TTS.art.title)||'CyPress',subtitle:(curA&&fof(curA).title)||(TTS.art&&fof(TTS.art).title)||'',image:(curA&&/^https?:/.test(curA.img||'')&&curA.img)||'',pos,dur,rate:+S.rate||1,next:!!(R.queueRun||(DIG.on&&DIG.i<DIG.links.length-1)),prev:!!(DIG.on&&DIG.i>0)}};
   const pf=ttsFrom,pp=ttsPause,ps=ttsStop;
   /* Android 13 and later hide the notification until the person allows notifications, so ask once, the first time something is read aloud */
   let MPERM=0;const mediaPerm=async()=>{if(MPERM||S.mperm)return;MPERM=1;S.mperm=1;save();const ok=await notifOk();if(ok){try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}}else toast('Allow notifications for CyPress in Android settings to get play, pause and skip in the notification bar')};
@@ -16079,7 +16079,7 @@ function nativeExtrasUi(x){
   ttsFrom=function(w){const r=pf.apply(this,arguments);mediaNative();return r};
   ttsPause=function(){const r=pp.apply(this,arguments);try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:false}).catch(()=>{})}catch(e){}return r};
   ttsStop=function(){const r=ps.apply(this,arguments);try{if(Date.now()-MADV<8000){x.mediaUpdate&&x.mediaUpdate({...MT(),playing:false}).catch(()=>{})}else{x.mediaStop&&x.mediaStop().catch(()=>{})}}catch(e){}return r};
-  x.addListener&&x.addListener('mediaAction',r=>{const a=r&&r.action;if(a==='seek'&&r.pos>=0){digSeekTo(r.pos/1000);setTimeout(()=>{try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}},400);return}if(a==='toggle')ttsToggle();else if(a==='next')ttsEnd(true);else if(a==='prev'){if(TTS.on)ttsFrom(ttsStartWord())}else if(a==='rew'||a==='fwd'){digSeekBy(a==='rew'?-15:30);setTimeout(()=>{try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}},400)}else if(a==='stop')ttsStop()});
+  x.addListener&&x.addListener('mediaAction',r=>{const a=r&&r.action;if(a==='seek'&&r.pos>=0){digSeekTo(r.pos/1000);setTimeout(()=>{try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}},400);return}if(a==='toggle')ttsToggle();else if(a==='pause'){if(TTS.on&&!TTS.paused)ttsToggle()}else if(a==='play'){if(!TTS.on||TTS.paused)ttsToggle()}else if(a==='next')ttsEnd(true);else if(a==='prev'){if(TTS.on)ttsFrom(ttsStartWord())}else if(a==='rew'||a==='fwd'){digSeekBy(a==='rew'?-15:30);setTimeout(()=>{try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}},400)}else if(a==='stop')ttsStop()});
  }
 }
 function widgetList(){let l=[];try{if(typeof DGL!=='undefined'&&DGL.length){l=[LEADK&&findStory(LEADK),...DGL.map(findStory)].filter((a,i,arr)=>a&&a.title&&a.link&&arr.indexOf(a)===i)}}catch(e){}
