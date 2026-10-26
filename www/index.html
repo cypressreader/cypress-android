@@ -14320,6 +14320,8 @@ PEB.skel=[
  {id:'k5',t:'Locking up the forme, {tot} sites to go…',ok:x=>x.tot>=6&&x.got<x.tot/2}
 ];
 PE_NEUTRAL.skel='Setting the type…';
+/* web preview only: browsers block most sites, so a fresh profile can wait forever; say so after 8 s */
+if(!NATIVE)setTimeout(()=>{if(S.feeds.some(f=>state[f.id]==='ok'||(items[f.id]||[]).length))return;document.querySelectorAll('.skcap').forEach(e=>e.textContent='Stories can’t load in this web preview. The CyPress Reader app loads them.')},8000);
 function skelCap(){
  const fs=S.feeds.filter(f=>!paused(f)),tot=fs.length,got=fs.filter(f=>state[f.id]==='ok'||(items[f.id]||[]).length).length;
  return `<p class="skcap" role="status">${esc(pe('skel',{tot,got},'sk'+tot+'.'+got))}</p>`;
