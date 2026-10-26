@@ -918,7 +918,6 @@ html.rmo .book>.rdedge>i,html.lowp .book>.rdedge>i{transition:none}
 .ver{text-align:center;color:var(--mut);font:12px var(--sans);margin-top:26px;letter-spacing:.5px}
 @media(max-width:560px){.fgrid{grid-template-columns:repeat(2,1fr)}.tgrid{gap:4px}.rng{width:58%}}
 :root.thfade2,:root.thfade2 body,:root.thfade2 main,:root.thfade2 #tabs,:root.thfade2 .top,:root.thfade2 body>aside,:root.thfade2 #mtabs{transition:background-color .6s ease,color .6s ease,border-color .6s ease!important}/* a quick fade of the big surfaces only: fading every card at once made the switch to Dynamic stutter */
-:root.thfade,:root.thfade *{transition:background-color 1.2s ease,color 1.2s ease,border-color 1.2s ease,fill 1.2s ease!important}
 .sky{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom));left:14px;z-index:99998;width:150px;height:58px;border-radius:18px;overflow:hidden;pointer-events:none;opacity:0;transform:translateY(-8px) scale(.96);transition:opacity .6s ease,transform .6s ease;box-shadow:0 8px 24px rgba(0,0,0,.18)}
 .sky.go{opacity:1;transform:none}.sky.out{opacity:0;transform:translateY(6px)}
 .sk-bg{position:absolute;inset:0;background:linear-gradient(#7fb6ec,#f7c98b);transition:background 3.6s ease}
@@ -12215,7 +12214,7 @@ function applyTheme(anim){
  let dm='';if(th==='dynamic'){const m=S.dynm||'sys';dm=(m==='dark'||(m==='sys'&&matchMedia('(prefers-color-scheme:dark)').matches))?'dark':'light'}
  const goat=th==='thegoat'||th==='halcyon'||!!TWB[th],schk=th==='dynamic'?'':(schWant()||(goat?(phoneDark()?'dark':'light'):'')),changed=(applyTheme.sk||'')!==schk||applyTheme.th!==th||(root.dataset.dm||'')!==dm;
  if(anim&&changed&&!reduced()){
-  if(th==='dynamic')anim='quick';/* Dynamic has its own color fade: no sunrise/sunset animation and no fade of every card on top of it */const fc=anim==='quick'?'thfade2':'thfade';root.classList.add(fc);clearTimeout(applyTheme.t);applyTheme.t=setTimeout(()=>root.classList.remove('thfade','thfade2'),1800);
+  if(th==='dynamic')anim='quick';/* Dynamic has its own color fade: no sunrise/sunset animation and no fade of every card on top of it */const fc='thfade2';/* fading every card and word at once cost 2 to 4 seconds on a big library (every element restyled); the big surfaces fade, the cards switch at once */root.classList.add(fc);clearTimeout(applyTheme.t);applyTheme.t=setTimeout(()=>root.classList.remove('thfade','thfade2'),1800);
   if(anim!=='fade'&&anim!=='quick')sky((schk==='dark'||dm==='dark')?'set':'rise');
  }
  root.dataset.theme=th;if(dm)root.dataset.dm=dm;else delete root.dataset.dm;applyTheme.sk=schk;applyTheme.th=th;
