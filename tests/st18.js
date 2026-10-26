@@ -12,7 +12,7 @@ r=await st('broadsheet','theme');ck('as-theme keeps light',!r.dark&&!r.inline);
 r=await st('broadsheet','dark');ck('light theme to dark twin',r.dark&&r.pd&&r.inline&&r.eff==='broadsheet');
 r=await st('aurora','light');ck('dark theme to light twin',!r.dark&&!r.pd&&r.inline);
 r=await st('midnight','dark');ck('already dark untouched',r.dark&&!r.inline);
-r=await st('auto','dark');ck('removed Light & Dark maps to Cypress dark',r.dark&&r.eff==='halcyon');
+r=await st('auto','dark');ck('removed Light & Dark maps to Cypress dark',r.dark&&r.eff==='halcyond');
 r=await st('auto','light');ck('removed Light & Dark maps to Cypress light',!r.dark&&r.eff==='halcyon',JSON.stringify(r));
 const RET=await p.evaluate(()=>typeof POLISH_RETIRED!=='undefined'?Object.keys(POLISH_RETIRED):[]);/* polish-2026-10: skip retired themes */
 if(!RET.includes('terminal')){r=await st('terminal','light');ck('terminal gets a hand-made light version',!r.dark&&r.eff==='terminal');}
