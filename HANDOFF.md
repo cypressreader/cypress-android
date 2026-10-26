@@ -2,7 +2,7 @@
 Old detail (dated session logs, FIXES 16-26 notes, debugging traces) lives in `HANDOFF-ARCHIVE.md`: don't read it on boot, `grep` it only if needed.
 Keep THIS file under ~8 KB: when it grows past that, move finished/dated items to the archive and keep only rules, open items and the next tasks.
 
-Last updated: 2026-10-26 · Branch `claude/theme-six-handoff-96ztep` MERGED to main on `build` · Code: web `2026.10.26e`, Android 1.163.
+Last updated: 2026-10-26 · Branch `claude/theme-six-handoff-96ztep` MERGED to main on `build` (1.164) · Code: web `2026.10.26f`, Android 1.164.
 
 ## 1. Working & locked (verified; don't change core logic without asking)
 - **Halcyon theme** (`halcyon`/`halcyond`): website palette (cream `#f3ecdc`, green `#123524`/`#0c2619`, brass `#c9a24a`/`#b08d3e`), follows phone via `twinApply`. Headlines use `--disp` (narrow display serif) with `!important` (user's choice). Dark-brass labels on cream `#7d5f14`; light-brass `#e2c27a` on dark `.noimg` lead/hero cards (`.noimg` ≠ cream card).
@@ -52,3 +52,4 @@ Locked: page turn (Play Books style, tap turns 1280 ms, do not retune). Shipped 
 **Turn-1 (new session, branch `claude/theme-six-handoff-96ztep`):** Return-to-feed snap: likely cause = `content-visibility:auto` cards (estimated 260px) above the view re-measuring when scrolled into view. `rdAnchorRestore` now adds `#grid.cvall` (cards `content-visibility:visible`) for 2.5 s so the saved spot is exact and `auto` remembers true heights. Not verified on phone; if still snapping, ask for a "Jumps:" diag line. No version bump.
 **Turn-2:** Redraws (late stories arriving) now re-anchor: `render()` saves the top visible card (`keepA`, via `rdAnchorSave`, RDANC preserved) and after restoring `scrollTop=keep` lines that card up again. Unverified on phone; if jumps remain, next = anchor-restore in `quietRender`/`loadFlush` paths or defer redraws while scrolled.
 **Turn-3:** David's diag: jumps came from `wireSettle` (8 s after load, re-ranks and renders while scrolled ~15000 px). `wireSettle` now skips its render when `main.scrollTop>500`. Other redraw logged at 0 s (L16028, top 0) harmless. Unverified on phone.
+**1.164 SHIPPED (David said `build`):** Coast + Newsprint themes, retired Dim/Midnight/Light&Dark/Pure Black, return-to-feed + late-redraw scroll fixes (`cvall`, `keepA` anchor, `wireSettle` skip). Next: read APK run result; phone-check TESTING.md entries (scroll jumps, Rosewood/Coast/Newsprint look, 1.163 items).
