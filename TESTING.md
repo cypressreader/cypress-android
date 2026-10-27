@@ -832,3 +832,8 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] 1.174 look batch (phone): brass marker on the active bottom tab; round letter chip for the source on cards and rows (no more site icons on cards); a site's feed: photo cards show the headline under the photo with a progress ring; "In brief" as a timeline (3+ stories) or one quiet line (1-2); top-bar title appears as the big masthead scrolls away; thin brass line under the top bar grows as you read; loading blocks tinted brass; "New since ..." header after 1 h away is a brass hairline marker.
 
 - [ ] 1.174 part 2 (phone): All Stories heading + section headers look the same everywhere; source names readable on photos; faint big letter on cards without a photo; side menu "Your sites"; Settings page chips, full descriptions, switches; two-line drop cap and highlights at story end; tip toast disappears when you scroll.
+
+## Post-1.174 fixes from David's 2026-10-27 recording (implemented, unverified on phone)
+- Excerpts keep spaces between paragraphs ("El-Sayed. Sign up", not "El-SayedSign up"); only newly fetched stories show it.
+- A lead card whose photo fails to load no longer shows "Photo: …" over its label; Guardian credits read "Photo: Kent Nishimura/…" (not "Photo: graph:").
+- Plain (no-photo) cream cards keep a readable source label (cream label only on photo cards).

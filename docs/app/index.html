@@ -4499,7 +4499,7 @@ html[data-theme^=halcyon] #grid .card.list-row .src .sn{font:800 11px var(--sans
 #grid.wire .dpq p{text-wrap:balance;font-size:clamp(22px,6vw,30px);font-style:italic;font-weight:500}
 /* magazine pass 3 (2026-10-23): photo credits, big-number break, shelf and topic covers made from a story photo, section bar colour */
 #grid .pcr{display:none}
-#grid .card:is(.lead,.nr-lead,.nr-hero,.nr-wide,.nr-colr) .pcr{display:block;position:absolute;left:12px;top:12px;z-index:2;max-width:55%;font:italic 500 11px/1.3 var(--sans);color:rgba(255,255,255,.88);text-shadow:0 1px 3px rgba(0,0,0,.7);pointer-events:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#grid .card:is(.lead,.nr-lead,.nr-hero,.nr-wide,.nr-colr):not(.noimg) .pcr{display:block;position:absolute;left:12px;top:12px;z-index:2;max-width:55%;font:italic 500 11px/1.3 var(--sans);color:rgba(255,255,255,.88);text-shadow:0 1px 3px rgba(0,0,0,.7);pointer-events:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nr-stat{grid-column:1/-1;display:flex;align-items:baseline;justify-content:center;gap:16px;flex-wrap:wrap;text-align:center;margin:18px 0;padding:22px 14px;border-top:1px solid var(--ink);border-bottom:1px solid var(--ln)}
 .nr-stat b{font:700 clamp(92px,28vw,150px)/.85 var(--disp,var(--serif));color:var(--a1,var(--ink));letter-spacing:-.02em}
 .nr-stat span{font:italic 500 clamp(16px,3.4vw,22px)/1.25 var(--disp,var(--serif));max-width:16em;text-wrap:balance}
@@ -4687,7 +4687,7 @@ html #grid.wire h3.dsh.wsec small,html.magx #grid.fed.wire h3.dsh.wsec small{ord
 html #grid.wire h3.dsh.wsec small::after,html.magx #grid.fed.wire h3.dsh.wsec small::after{content:"";height:1px;flex:1;background:var(--ln)}
 html #grid.wire h3.dsh.wsec>span,html.magx #grid.fed.wire h3.dsh.wsec>span{font:500 clamp(24px,6vw,30px)/1.1 var(--disp,var(--serif));color:var(--ink)}
 #grid .wsec .dsr,html.magx #grid.fed.wire h3.dsh.wsec .dsr{margin-left:auto;border:0;background:none;color:var(--logo);font:600 12.5px var(--sans);letter-spacing:.02em;text-transform:none;min-height:44px;padding:0 2px}
-html #grid:not(.list):not([data-cards=compact]):not([data-cards=narrow]) .card:not(.cu):not(.list-row):not(.nr-row):not(.nr-late):not(.nr-tri):not(.tpl>.card) :is(.src,.sn,.ssec){color:#f6efe0!important;text-shadow:none}
+html #grid:not(.list):not([data-cards=compact]):not([data-cards=narrow]) .card:not(.cu):not(.noimg):not(.list-row):not(.nr-row):not(.nr-late):not(.nr-tri):not(.tpl>.card) :is(.src,.sn,.ssec){color:#f6efe0!important;text-shadow:none}
 html #grid:not(.list):not([data-cards=compact]):not([data-cards=narrow]) .card:not(.cu):not(.list-row):not(.noimg):not(.nr-row):not(.nr-late) .ov{background:linear-gradient(to top,rgba(0,0,0,.72) 0,rgba(0,0,0,.42) 44%,transparent 80%),linear-gradient(to top,color-mix(in srgb,var(--b) 80%,#000) 0,color-mix(in srgb,var(--b) 40%,transparent) 40%,transparent 76%)}
 html #grid .card.noimg:not(.list-row):not(.nr-row):not(.nr-late):not(.nr-quote){--pat:none}
 html #grid .card.noimg:not(.list-row):not(.nr-row):not(.nr-late):not(.nr-quote)::after{content:attr(data-ini);position:absolute;right:10px;top:-22px;font:500 clamp(110px,34vw,150px)/1 var(--disp,var(--serif));color:#fff;opacity:.16;z-index:-1;pointer-events:none;text-transform:uppercase}
@@ -5594,7 +5594,7 @@ function firstImg(html,base){
 }
 const tx=(el,n)=>el.getElementsByTagName(n)[0]?.textContent?.trim()||'';
 /* a photo credit as printed under a magazine picture: a name or an agency, never a web address or a sentence */
-const cleanCr=t=>{t=String(t||'').replace(/<[^>]*>/g,' ').replace(/^\s*(photo|image|credit|photograph)s?\s*(by|:)?\s*/i,'').replace(/\s+/g,' ').trim();return t&&t.length<=48&&!/https?:|www\./i.test(t)?t:''};
+const cleanCr=t=>{t=String(t||'').replace(/<[^>]*>/g,' ').replace(/^\s*(photograph|photo|image|credit)s?\s*(by|:)?\s*/i,'').replace(/\s+/g,' ').trim();return t&&t.length<=48&&!/https?:|www\./i.test(t)?t:''};
 /* JSON Feed (jsonfeed.org): same story shape as RSS items */
 function parseJsonFeed(txt,f){
  let j;try{j=JSON.parse(txt)}catch(e){return{title:'',list:[]}}
@@ -5602,7 +5602,7 @@ function parseJsonFeed(txt,f){
  const list=(Array.isArray(j.items)?j.items:[]).filter(it=>it&&typeof it==='object').map(it=>{
   let link=String(it.url||it.external_url||'').trim();if(link)link=abs(link,base)||link;
   const html=String(it.content_html||(it.content_text?'<p>'+esc(it.content_text).replace(/\n+/g,'</p><p>')+'</p>':'')||it.summary||'');
-  const text=new DOMParser().parseFromString(html,'text/html').body.textContent.replace(/\s+/g,' ').trim();
+  const text=new DOMParser().parseFromString(html.replace(/<\/(p|div|li|h[1-6])>|<br\s*\/?>/gi,'$& '),'text/html').body.textContent.replace(/\s+/g,' ').trim();
   let img=String(it.image||it.banner_image||'');if(!img)img=firstImg(html,link);img=img?hi(abs(img,link)):'';
   const au=(Array.isArray(it.attachments)?it.attachments:[]).find(a=>a&&(/audio/i.test(a.mime_type||'')||/\.(mp3|m4a|aac|ogg)(\?|$)/i.test(a.url||'')));
   let dur='';const ds=au&&+au.duration_in_seconds;if(ds)dur=ds>=3600?Math.floor(ds/3600)+' h '+Math.round(ds%3600/60)+' min':Math.round(ds/60)+' min';
@@ -5638,7 +5638,7 @@ function parse(xml,f){
   img=img?hi(abs(img,link)):'';
   const thu=tnE?abs(tnE.getAttribute('url'),link):'';
   const pcr=cleanCr(tx(el,'media:credit')||tx(el,'media:copyright'));
-  const text=new DOMParser().parseFromString(html,'text/html').body.textContent.replace(/\s+/g,' ').trim();
+  const text=new DOMParser().parseFromString(html.replace(/<\/(p|div|li|h[1-6])>|<br\s*\/?>/gi,'$& '),'text/html').body.textContent.replace(/\s+/g,' ').trim();
   const au=[...el.getElementsByTagName('enclosure'),...el.getElementsByTagName('media:content')].find(e=>/audio/.test(e.getAttribute('type')||'')||/\.(mp3|m4a|aac|ogg)(\?|$)/i.test(e.getAttribute('url')||''));
   const yv=tx(el,'yt:videoId');
   const by=(tx(el,'dc:creator')||(el.getElementsByTagName('author')[0]?tx(el.getElementsByTagName('author')[0],'name'):'')||tx(el,'author')).replace(/^\S+@\S+\s*\((.*)\)$/,'$1').replace(/<[^>]*>/g,' ').replace(/https?:\/\/\S+/g,' ').replace(/\s+/g,' ').trim().slice(0,60);/* an Atom author holds a name and a web address: only the name is the byline */
