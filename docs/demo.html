@@ -7719,7 +7719,7 @@ function endCard(){
 let ENDIO=null;
 /* the last row of a multi-column grid (tablets) never leaves empty columns: its stories widen to fill the row.
    Everything is measured first and the widening is applied in one go at the end: writing between reads made the phone redo the layout once per section (5 s with 600 cards drawn) */
-function fixOrph(){try{const g=document.getElementById('grid');if(!g)return;const W=[];g.querySelectorAll('.orph').forEach(c=>{c.classList.remove('orph');c.style.gridColumn=''});if(innerWidth<700)return;const ps=new Set([g]);g.querySelectorAll(':scope>div,.nr-rv,.nr-sm,.nr-mid,.nr-trl').forEach(d=>ps.add(d));ps.forEach(P=>{const cs=getComputedStyle(P);if(cs.display!=='grid')return;const n=cs.gridTemplateColumns.split(' ').length;if(n<2)return;const kids=[...P.children].filter(c=>c.offsetWidth);if(kids.some(c=>/span\s*[2-9]/.test(getComputedStyle(c).gridRowEnd)))return;const rows=[];kids.forEach(c=>{const t=c.getBoundingClientRect().top,r=rows[rows.length-1];if(r&&Math.abs(r.t-t)<10)r.k.push(c);else rows.push({t,k:[c]})});rows.forEach(({k:row})=>{if(row.length>=n||!row.every(c=>c.classList.contains('card')))return;let used=0;for(const c of row){const q=getComputedStyle(c),m=/span\s*(\d+)/.exec(q.gridColumnEnd);if(q.gridColumnStart!=='auto'&&!/span/.test(q.gridColumnStart)||q.gridColumnEnd!=='auto'&&!m)return;used+=m?+m[1]:1}if(used>=n)return;const base=Math.floor(n/row.length),ex=n%row.length;row.forEach((c,i)=>W.push([c,base+(i<ex?1:0)]))})});W.forEach(([c,s])=>{c.classList.add('orph');c.style.gridColumn='span '+s})}catch(e){}}
+function fixOrph(){try{const g=document.getElementById('grid');if(!g)return;const fk=innerWidth+'|'+g.className+'|'+g.childElementCount;if(g._fk===fk&&g._f0===g.firstElementChild&&g._f1===g.lastElementChild)return;g._fk=fk;g._f0=g.firstElementChild;g._f1=g.lastElementChild;const W=[];g.querySelectorAll('.orph').forEach(c=>{c.classList.remove('orph');c.style.gridColumn=''});if(innerWidth<700)return;const ps=new Set([g]);g.querySelectorAll(':scope>div,.nr-rv,.nr-sm,.nr-mid,.nr-trl').forEach(d=>ps.add(d));ps.forEach(P=>{const cs=getComputedStyle(P);if(cs.display!=='grid')return;const n=cs.gridTemplateColumns.split(' ').length;if(n<2)return;const kids=[...P.children].filter(c=>c.offsetWidth);if(kids.some(c=>/span\s*[2-9]/.test(getComputedStyle(c).gridRowEnd)))return;const rows=[];kids.forEach(c=>{const t=c.getBoundingClientRect().top,r=rows[rows.length-1];if(r&&Math.abs(r.t-t)<10)r.k.push(c);else rows.push({t,k:[c]})});rows.forEach(({k:row})=>{if(row.length>=n||!row.every(c=>c.classList.contains('card')))return;let used=0;for(const c of row){const q=getComputedStyle(c),m=/span\s*(\d+)/.exec(q.gridColumnEnd);if(q.gridColumnStart!=='auto'&&!/span/.test(q.gridColumnStart)||q.gridColumnEnd!=='auto'&&!m)return;used+=m?+m[1]:1}if(used>=n)return;const base=Math.floor(n/row.length),ex=n%row.length;row.forEach((c,i)=>W.push([c,base+(i<ex?1:0)]))})});W.forEach(([c,s])=>{c.classList.add('orph');c.style.gridColumn='span '+s})}catch(e){}}
 {let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(fixOrph,200)},{passive:true})}
 function endObs(){
  document.querySelectorAll('.endc:not([data-o]),.edseal:not([data-o])').forEach(el=>{el.dataset.o='1';const l=el.querySelector('[data-fill]');if(!l)return;
@@ -8329,7 +8329,7 @@ function show(){
  const c=$('.cols');if(!c)return;setProg();
  if(!isVert())c.style.transform=`translateX(${-R.pg*R.step}px)`;
  $('#pc').textContent=pcText();{const bk=$('.book');if(bk){if(isOn('folio')&&curA&&!R.web&&!isVert()&&R.np>0){const t=(curA.title||'').length>46?curA.title.slice(0,44)+'…':(curA.title||'');bk.dataset.folio=(fof(curA).title||'')+' · '+t+'   ·   '+(R.pg+1)}else delete bk.dataset.folio}}$('#pv').disabled=!isVert()&&R.pg===0;$('#nx').disabled=!isVert()&&R.pg>=R.np-1;fpSync();dialSync();rdxEdge();
- if(R.ready&&curA){if(R.pg>0&&R.pg<R.np-1)S.pos[curA.link]=R.pg;else delete S.pos[curA.link];const pk=Object.keys(S.pos);if(pk.length>300)delete S.pos[pk[0]];clearTimeout(pt);pt=setTimeout(save,700)}
+ if(R.ready&&curA){delete S.pos[curA.link];if(R.pg>0&&R.pg<R.np-1)S.pos[curA.link]=R.pg;const pk=Object.keys(S.pos);if(pk.length>300)delete S.pos[pk[0]];clearTimeout(pt);pt=setTimeout(save,700)}
 }
 const eOut2=p=>1-Math.pow(1-p,2.2),ePage=p=>(1-Math.pow(1-p,3))*(.55+.45*Math.min(1,p/.3));
 /* turning back starts with the curl already tight, so it needs a gentle start (the forward turn's fast start would look abrupt) */
@@ -11165,7 +11165,7 @@ function idbTx(mode,fn){return new Promise(res=>{if(!IDB.ok)return res(null);try
 const acReady=(async()=>{
  let old={};try{old=JSON.parse(localStorage.getItem(AK)||'{}')}catch(e){}
  if(await idbOpen()){
-  await new Promise(res=>{try{const t=IDB.db.transaction('art','readonly'),c=t.objectStore('art').openCursor();c.onsuccess=()=>{const k=c.result;if(k){if(k.value&&k.value.h)AC[k.key]=k.value;k.continue()}else res()};c.onerror=()=>res()}catch(e){res()}});
+  await new Promise(res=>{try{const t=IDB.db.transaction('art','readonly'),c=t.objectStore('art').openCursor();c.onsuccess=()=>{const k=c.result;if(k){if(k.value&&k.value.h)AC[k.key]=k.value;k.continue()}else res()};c.onerror=t.onabort=()=>res()}catch(e){res()}});
   const ks=Object.keys(old);
   if(ks.length){await idbTx('readwrite',st=>{for(const k of ks){if(!AC[k]){AC[k]=old[k];st.put(old[k],k)}}});try{localStorage.removeItem(AK)}catch(e){}}
   acTrim();
@@ -11174,7 +11174,7 @@ const acReady=(async()=>{
 const acGet=l=>AC[l]?AC[l].h:null;
 const acHas=l=>!!AC[l];
 /* only the newest articles stay in memory; the rest are read from storage when opened */
-async function acLoad(l){const e=AC[l];if(!e)return null;if(e.h)return e.h;if(!IDB.ok)return null;const v=await new Promise(res=>{try{const r=IDB.db.transaction('art','readonly').objectStore('art').get(l);r.onsuccess=()=>res(r.result);r.onerror=()=>res(null)}catch(x){res(null)}});if(v&&v.h&&AC[l]){AC[l]=v;return v.h}return null}
+async function acLoad(l){const e=AC[l];if(!e)return null;if(e.h)return e.h;if(!IDB.ok)return null;const v=await new Promise(res=>{try{const t=IDB.db.transaction('art','readonly'),r=t.objectStore('art').get(l);r.onsuccess=()=>res(r.result);r.onerror=t.onabort=()=>res(null)}catch(x){res(null)}});if(v&&v.h&&AC[l]){AC[l]=v;return v.h}return null}
 function acTrim(){const ks=Object.keys(AC).filter(k=>AC[k].h).sort((a,b)=>AC[b].t-AC[a].t);for(let i=120;i<ks.length;i++){AC[ks[i]]={t:AC[ks[i]].t,h:'',c:AC[ks[i]].c}}}
 const ACTX=new Map();
 function acText(l){const e=AC[l];if(!e||!e.h)return '';let c=ACTX.get(l);if(!c||c.n!==e.h.length){c={n:e.h.length,t:e.h.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ').replace(/\s+/g,' ').toLowerCase()};ACTX.set(l,c);if(ACTX.size>500)ACTX.delete(ACTX.keys().next().value)}return c.t}
@@ -14919,7 +14919,7 @@ setInterval(()=>{
 function streaks(){
  const ks=Object.keys(S.st.d).filter(k=>S.st.d[k].m>=1||S.st.d[k].n>0).sort();const set=new Set(ks);
  let best=0,run=0,prev=null;for(const k of ks){const t=new Date(k+'T12:00').getTime();run=prev&&Math.round((t-prev)/864e5)===1?run+1:1;best=Math.max(best,run);prev=t}
- let cur2=0,d=new Date();if(!set.has(dayKey(d)))d=new Date(Date.now()-864e5);while(set.has(dayKey(d))){cur2++;d=new Date(d.getTime()-864e5)}
+ let cur2=0,d=new Date();if(!set.has(dayKey(d)))d.setDate(d.getDate()-1);while(set.has(dayKey(d))){cur2++;d.setDate(d.getDate()-1)}
  return{cur:cur2,best};
 }
 function persona(hr){const s=(a,b)=>{let n=0;for(let h=a;h!==b;h=(h+1)%24)n+=hr[h]||0;return n};const t=hr.reduce((a,b)=>a+b,0)||1;

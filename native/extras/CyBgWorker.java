@@ -71,10 +71,21 @@ public class CyBgWorker extends Worker {
 
     @Override
     public Result doWork() {
+        Context ctx = getApplicationContext();
         try {
-            run(getApplicationContext(), this);
+            run(ctx, this);
         } catch (Throwable t) {
             Log.w(TAG, "sync failed: " + t);
+        } finally {
+            // every early exit (no feeds, stopped, error) must also end a "Updating…" the tap-to-refresh started
+            try {
+                if (CyWidgets.isUpdating(ctx)) {
+                    CyWidgets.setUpdating(ctx, false);
+                    CyExtras.updateWidgets(ctx);
+                }
+            } catch (Throwable t) {
+                Log.w(TAG, "updating reset failed: " + t);
+            }
         }
         return Result.success();
     }

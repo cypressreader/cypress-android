@@ -202,7 +202,11 @@ final class CyWidgets {
         try {
             AppWidgetManager m = AppWidgetManager.getInstance(c);
             for (int id : ids(c, CyWidgetProvider.class)) {
-                m.updateAppWidget(id, buildTop(c, id, widthDp(m, id), heightDp(m, id)));
+                try {
+                    m.updateAppWidget(id, buildTop(c, id, widthDp(m, id), heightDp(m, id)));
+                } catch (Throwable t) {
+                    Log.w(TAG, "top refresh " + id + ": " + t); // one bad widget must not stop the others
+                }
             }
         } catch (Throwable t) {
             Log.w(TAG, "top refresh: " + t);
@@ -222,7 +226,11 @@ final class CyWidgets {
         try {
             AppWidgetManager m = AppWidgetManager.getInstance(c);
             for (int id : ids(c, CyWidgetListProvider.class)) {
-                m.updateAppWidget(id, buildList(c, widthDp(m, id), heightDp(m, id)));
+                try {
+                    m.updateAppWidget(id, buildList(c, widthDp(m, id), heightDp(m, id)));
+                } catch (Throwable t) {
+                    Log.w(TAG, "list refresh " + id + ": " + t);
+                }
             }
         } catch (Throwable t) {
             Log.w(TAG, "list refresh: " + t);

@@ -9,7 +9,13 @@ public class CyWidgetTickerProvider extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager manager, int[] appWidgetIds) {
         try {
-            for (int id : appWidgetIds) manager.updateAppWidget(id, CyWidgets.buildTicker(context));
+            for (int id : appWidgetIds) {
+                try {
+                    manager.updateAppWidget(id, CyWidgets.buildTicker(context));
+                } catch (Throwable t) {
+                    // one bad widget must not stop the others
+                }
+            }
             CyWidgets.arm(context, false);
         } catch (Throwable t) {
             // never crash

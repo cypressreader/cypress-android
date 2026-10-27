@@ -10,7 +10,13 @@ public class CyWidgetListProvider extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager manager, int[] appWidgetIds) {
         try {
-            for (int id : appWidgetIds) manager.updateAppWidget(id, CyWidgets.buildList(context, CyWidgets.widthDp(manager, id), CyWidgets.heightDp(manager, id)));
+            for (int id : appWidgetIds) {
+                try {
+                    manager.updateAppWidget(id, CyWidgets.buildList(context, CyWidgets.widthDp(manager, id), CyWidgets.heightDp(manager, id)));
+                } catch (Throwable t) {
+                    // one bad widget must not stop the others
+                }
+            }
         } catch (Throwable t) {
             // never crash
         }

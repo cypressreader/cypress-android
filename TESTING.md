@@ -801,3 +801,11 @@ Implemented, unverified: Back 15 and Forward 30 are now real notification button
 
 ## Deep-check fixes (branch only)
 Implemented, unverified: Back issues around midnight (no duplicate evening issue), no list redraw while a story is open, offline start smoother, 1.169 widget/notification crash guards. Check: read at 11 PM then open Back issues after midnight.
+
+## Post-1.169 fixes (unbumped, branch claude/theme-six-handoff-96ztep)
+- Widgets: tap "Tap to refresh" with no network or no feeds: "Updating…" must clear on its own. A broken widget must not blank the others.
+- Restart the phone / update the app: widgets come back (boot receiver now runs async).
+- Translate privacy line: check the merged APK manifest / a network capture for ML Kit usage pings (disclosed on privacy.html now).
+- Back issues storage is slimmer (160-char text cap): old stories still open from Back issues.
+- Reading position is dropped least-recently-read first; streak counts across a daylight-saving change.
+- Tiles grid: no layout hitch on redraw (`fixOrph` now skipped when the grid is unchanged); last odd card still widens to fill the row.
