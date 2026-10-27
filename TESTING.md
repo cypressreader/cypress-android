@@ -814,3 +814,6 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - All Stories/Daily tiles: scroll far down, stop on a headline for 10+ s while feeds refresh: the page must not move. Then scroll to top: new stories appear.
 - Change a setting (card size, theme) while scrolled down: it still applies right away.
 - If a jump still happens, send the "Jumps:" line from Copy support info right after.
+
+## Post-1.171 (branch, unbumped)
+- Scroll far down the Daily/All Stories, tap the already-highlighted docked tab: no redraw, no jump. Tap a different docked tab: switches and starts at the top. Unverified on phone.
