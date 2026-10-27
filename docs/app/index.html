@@ -13212,20 +13212,21 @@ function autoRd(on){
  clearTimeout(AUTO.t);cancelAnimationFrame(AUTO.raf);const was=AUTO.on;AUTO.on=!!on&&!!curA;
  const fx=$('#afx');fx.hidden=!AUTO.on;AUTO.re=null;
  if(!AUTO.on){if(was)toast('Hands-free reading off');return}
- fx.querySelector('span').textContent=(S.afx||1)+'\u00d7';
- const wpm=S.wpm||230,rd=$('#rd'),live=()=>AUTO.on&&rd&&rd.classList.contains('on');
+ const k=AUTO.k=isVert()?'afxs':'afxp';fx.querySelector('span').textContent=(S[k]||1)+'\u00d7';
+ const wpm=S.wpm||230,wd=Math.max(50,R.words||0),rd=$('#rd'),live=()=>AUTO.on&&rd&&rd.classList.contains('on');
  toast('Hands-free reading on. Tap the story to stop');
  if(isVert()){const v=vView();if(!v)return autoRd(false);
-  const lh=parseFloat(getComputedStyle(v.querySelector('.body')||v).lineHeight)||28,pxs=lh*wpm/60/11;let last=performance.now(),acc=0;
-  const step=t=>{if(!live())return;acc+=(t-last)*pxs*(S.afx||1)/1000;last=t;if(acc>=1){const n=acc|0;v.scrollTop+=n;acc-=n}if(v.scrollTop+v.clientHeight>=v.scrollHeight-2)return autoRd(false);AUTO.raf=requestAnimationFrame(step)};
+  /* pixels per word from the story's real height, so 1x is your reading speed; a fractional position keeps the glide smooth */
+  const pxs=v.scrollHeight/wd*wpm/60;let last=performance.now(),pos=v.scrollTop;
+  const step=t=>{if(!live())return;pos+=Math.min(100,t-last)*pxs*(S[k]||1)/1000;last=t;v.scrollTop=pos;if(v.scrollTop+v.clientHeight>=v.scrollHeight-2)return autoRd(false);AUTO.raf=requestAnimationFrame(step)};
   AUTO.raf=requestAnimationFrame(step);
- }else{const per=Math.max(40,((curA&&curA.wc)||1200)/Math.max(1,R.np));
-  const turn=()=>{AUTO.t=setTimeout(()=>{if(!live())return;if(R.pg>=R.np-1)return autoRd(false);go(1);turn()},per/wpm/(S.afx||1)*60000)};AUTO.re=turn;turn()}
+ }else{const per=Math.max(20,wd/Math.max(1,R.np));
+  const turn=()=>{AUTO.t=setTimeout(()=>{if(!live())return;if(R.pg>=R.np-1)return autoRd(false);go(1);turn()},per/wpm/(S[k]||1)*60000)};AUTO.re=turn;turn()}
 }
 ['pointerdown','keydown','wheel'].forEach(ev=>document.addEventListener(ev,e=>{if(AUTO.on&&e.target.closest&&e.target.closest('#rd')&&!e.target.closest('#afx'))autoRd(false)},{capture:true,passive:true}));
-/* Slower / Faster while hands-free reading runs: 0.5x to 3x of your reading speed, remembered */
+/* Slower / Faster while hands-free reading runs: 0.5x to 3x of your reading speed, remembered separately for scrolling (S.afxs) and page turns (S.afxp) */
 $('#afx').addEventListener('click',e=>{const b=e.target.closest('[data-afx]');if(!b)return;const d=+b.dataset.afx;if(!d)return autoRd(false);
- S.afx=Math.min(3,Math.max(.5,Math.round(((S.afx||1)+d*.25)*4)/4));save();$('#afx span').textContent=S.afx+'\u00d7';if(AUTO.re){clearTimeout(AUTO.t);AUTO.re()}});
+ const k=AUTO.k;S[k]=Math.min(3,Math.max(.5,Math.round(((S[k]||1)+d*.25)*4)/4));save();$('#afx span').textContent=S[k]+'\u00d7';if(AUTO.re){clearTimeout(AUTO.t);AUTO.re()}});
 /* keep the reader's place when the window changes shape (fold, rotate, split screen) */
 document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.matches&&t.matches('#rd .view')){clearTimeout(rdFrac.t);rdFrac.t=setTimeout(()=>{if(R.ready&&isVert())R.sf=vEndFrac()},160)}},true);
 /* after a resize, late images change the page height: keep re-applying the place for a few seconds unless the reader moves it, and keep read-aloud's spoken word in view */

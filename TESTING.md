@@ -848,3 +848,4 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Developing dot is round and its ping is no longer cut off. Headlines ticker restyled like the showroom (green line, brass "Latest" label, sans type, brass times). Folder/site story columns: brass time, short accent rule, lighter 3-line summary.
 
 - [ ] (2026-10-27, unbumped 1.175) Hands-free speed pill: start Hands-free reading from the ... menu; − / + changes speed (0.5× to 3×, remembered) without stopping; × stops; tapping the story still stops. Check both scrolling and page-turn reading, and that the pill clears the bottom gesture bar.
+- [ ] (2026-10-27) Hands-free speeds are separate for scrolling and page turns; 1× in both should match your own reading pace (long stories no longer flip too fast); scrolling should glide smoothly.
