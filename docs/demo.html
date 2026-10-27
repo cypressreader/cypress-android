@@ -1888,8 +1888,8 @@ html.tlay[data-theme=eink] #rd .dt::after{content:'';display:block;height:3px;ba
 .xfold .bfb p{margin:.5em 0;text-indent:0!important}
 .xfold .bfb p::first-letter{all:unset}
 /* stage O: calmer active sidebar item */
-#side-list .nav.on,#side-list .fh.on,#side-list .fr.on{background-image:none;background-color:color-mix(in srgb,var(--a1) 12%,transparent);border-radius:12px;position:relative;box-shadow:none}
-#side-list .nav.on::before,#side-list .fh.on::before,#side-list .fr.on::before{content:'';position:absolute;left:0;top:26%;bottom:26%;width:3px;border-radius:3px;background:var(--a1)}
+#side-list .nav.on,#side-list .fh.on,#side-list .fr.on{background-image:none;background-color:color-mix(in srgb,var(--a1) 18%,transparent);border-radius:12px;position:relative;box-shadow:none;color:var(--ink)}
+#side-list .nav.on::before,#side-list .fh.on::before,#side-list .fr.on::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:4px;border-radius:4px;background:var(--a1)}
 /* stage P: cover title styles */
 html.mast-tint .cvm{background:linear-gradient(180deg,#fff 0%,color-mix(in srgb,#fff 52%,var(--b)) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;text-shadow:none;filter:drop-shadow(0 4px 14px rgba(0,0,0,.4))}
 html.mast-glow .cvm{color:#fff;-webkit-text-fill-color:#fff;text-shadow:0 0 6px color-mix(in srgb,var(--b) 70%,#fff),0 0 22px var(--b),0 0 46px var(--b)}
@@ -2679,6 +2679,8 @@ html[data-theme=pressd] :is(#grid .card:is(.nr-row,.nr-late,.nr-tri,.list-row,.n
 html:is([data-theme=coast],[data-theme=press],[data-theme=coastd],[data-theme=pressd],[data-theme=rosewood],[data-theme=rosewoodd]) :is(.logo .lgm,#tlp,#set .spmk,.mk){background:var(--plate);-webkit-mask:none;mask:none;border-radius:999px;position:relative;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--a2) 55%,transparent)}
 html:is([data-theme=coast],[data-theme=press],[data-theme=coastd],[data-theme=pressd],[data-theme=rosewood],[data-theme=rosewoodd]) :is(.logo .lgm,#tlp,#set .spmk,.mk)::after{content:'';position:absolute;inset:14% 24%;background:#F3ECD8;-webkit-mask:var(--lm,var(--mkvs)) center/contain no-repeat;mask:var(--lm,var(--mkvs)) center/contain no-repeat}
 html:is([data-theme=coast],[data-theme=press],[data-theme=coastd],[data-theme=pressd],[data-theme=rosewood],[data-theme=rosewoodd]) .logo .lgm{width:42px}
+/* in dark mode the plate badge was nearly the color of the side bar: lift its fill toward the accent and give it a solid ring */
+html:is([data-theme=coastd],[data-theme=pressd],[data-theme=rosewoodd]) :is(.logo .lgm,#tlp,#set .spmk,.mk){background:color-mix(in srgb,var(--a2) 22%,var(--plate));box-shadow:inset 0 0 0 2px var(--a2)}
 
 
 
@@ -12365,7 +12367,9 @@ function twinApply(root,th,want){
  const toD=want==='dark',set=(v,c)=>{root.style.setProperty(v,c);applyTheme.tv.push(v)};
  const T=toD?{bg:.085,pn:.125,ln:.2,ink:.93,mut:.66}:{bg:.955,pn:.995,ln:.86,ink:.11,mut:.42};
  for(const k of['bg','pn','ln','ink','mut']){const c=varRgb('--'+k);if(!c)continue;const[h,sa]=rgb2hsl(c);set('--'+k,hsl2css(h,Math.min(sa,k==='ink'||k==='mut'?.25:.4),T[k]))}
- for(const v of['--a1','--a2','--a3','--logo']){const c=varRgb(v);if(!c)continue;const[h,sa,l]=rgb2hsl(c);set(v,hsl2css(h,sa,toD?Math.max(l,.62):Math.min(l,.42)))}
+ /* accents and the logo must stand out on the new background: a fixed 42% made bright hues (Aurora's green) wash out on white, so step the lightness until it reaches about 4.5:1 */
+ const h2r=(h,s2,l)=>{const k=n=>(n+h/30)%12,a=s2*Math.min(l,1-l),f=n=>255*(l-a*Math.max(-1,Math.min(k(n)-3,9-k(n),1)));return[f(0),f(8),f(4)]};
+ for(const v of['--a1','--a2','--a3','--logo']){const c=varRgb(v);if(!c)continue;const[h,sa,l]=rgb2hsl(c);let L=toD?Math.max(l,.62):Math.min(l,.42);if(toD)while(L<.94&&lumOf(h2r(h,sa,L))<.22)L+=.02;else while(L>.12&&lumOf(h2r(h,sa,L))>.18)L-=.02;set(v,hsl2css(h,sa,L))}
  root.style.setProperty('color-scheme',toD?'dark':'light');applyTheme.tv.push('color-scheme');root.classList.add('twinned');
  return th;
 }

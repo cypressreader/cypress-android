@@ -822,3 +822,4 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Long hard fling (coasting several seconds) on a feed: you stay where the fling stops (place keeper no longer pulls you back).
 - Headlines tab: "HEADLINES" masthead in the theme's serif (capitals); "In this issue" shows count and minutes only when there is a single section. Black & White: Daily cover white in light, pure black (no green) in dark.
 - 1.172: app opens with correct fonts in airplane mode (fresh install); scrolling and tab switching feel faster on the Fold; pull-to-refresh still hides the title while the tree shows; Columns view headline sizes unchanged; Daily cover number sits inside the frame; plate-theme covers use theme accent for quote bar/underline.
+- Post-1.172 (branch): side bar in every theme, light and dark: logo stands out (Aurora light = deep green, not mint; Coast/Newsprint/Rosewood dark = badge with accent ring); active row clearly tinted with 4 px bar.
