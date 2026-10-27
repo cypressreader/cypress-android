@@ -4078,13 +4078,22 @@ body.exbusy [data-exact]{cursor:progress}
 .wtrend .wtr-k{display:inline-flex;align-items:center;gap:6px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:11px}
 .wtrend .wtr-dot{width:7px;height:7px;border-radius:50%;background:#e53935;box-shadow:0 0 8px #e53935;display:inline-block;animation:wtrPulse 2s ease-in-out infinite}
 @keyframes wtrPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.85)}}
+/* the Headlines ticker as in the showroom: a green line, brass label, plain type, brass times */
+#grid .wtick{border:0;border-radius:6px;padding:0;background:var(--a1,#123524);color:#f3ecdc;font:600 13px var(--sans);height:36px;overflow:hidden}
+#grid .wtick b{align-self:stretch;display:flex;align-items:center;padding:0 12px;background:#c9a24a;color:#1d1a12;font:700 10.5px var(--sans);letter-spacing:.16em}
+#grid .wtick-in button::before{content:none}#grid .wtick-in button i{font-style:normal;color:#e2c27a;margin-right:6px}
+#grid .wtick-in{gap:30px}
+/* folder and site story columns: a brass time line, a short accent rule and a lighter summary, so headlines lead */
+.fd-deck{position:relative}.fd-deck::before{content:"";position:absolute;left:0;top:-1px;width:36px;height:2px;background:var(--fa,var(--a2,var(--ink)))}
+.fd-deck small{color:color-mix(in srgb,var(--a2,var(--mut)) 72%,var(--ink));font-weight:700;letter-spacing:.14em}
+.fd-deck span{font-size:.88em;line-height:1.5;opacity:.85;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 /* the Developing row matches the 1.174 look: brass label and counts, hairline chips in the headline face, a soft live ping instead of a glow */
 .wtrend .wtr-k{color:color-mix(in srgb,var(--a2,var(--mut)) 72%,var(--ink));letter-spacing:.18em;font-weight:700}
 .wtrend button{font-family:var(--disp,var(--serif));font-size:14px;border-color:color-mix(in srgb,var(--a2,var(--ln)) 45%,var(--ln));background:var(--pn)}
 .wtrend button i{color:color-mix(in srgb,var(--a2,var(--mut)) 72%,var(--ink));font-weight:700}
-.wtrend .wtr-dot{background:#c62828;box-shadow:none;position:relative;animation:none}
+.wtrend{padding:8px 2px 8px 6px}.wtrend .wtr-dot{flex:none;width:8px;height:8px;min-width:0;padding:0;margin:0;border-radius:50%;background:#c62828;box-shadow:none;position:relative;animation:none;text-decoration:none}
 html.micro .wtrend .wtr-dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:#c62828;animation:wping 1.8s ease-out infinite}
-@keyframes wping{to{transform:scale(2.6);opacity:0}}
+@keyframes wping{to{transform:scale(2.2);opacity:0}}
 /* ===== flagship pass: four feed rhythms, editorial reader, quiet callouts ===== */
 /* 1a. List: one continuous index between 1px ink hairlines, small-caps tracked source, muted time */
 #grid.list{gap:0;row-gap:0;border-top:1px solid var(--ink);--hl:color-mix(in srgb,var(--ink) 32%,transparent)}
@@ -7306,7 +7315,7 @@ function genreApply(){
   g.classList.add('gen-wire');
   const hs=cur.slice().sort((a,b)=>b.date-a.date).slice(0,4);/* short, and few: the moving strip is drawn as one layer, and a very wide one (all headlines twice over) can exceed a phone GPU's texture size and come out as scrambled glyphs */
   const sg1=g.querySelector('.bmseg'),put1=h=>sg1?sg1.insertAdjacentHTML('afterend',h):g.insertAdjacentHTML('afterbegin',h);
-  if(hs.length>=3){const tk=t=>{t=String(t||'').replace(/\s+/g,' ').trim();return t.length>46?t.slice(0,45).replace(/\s+\S*$/,'')+'…':t};const sp=(h)=>hs.map(a=>`<button type="button" data-wi="${cur.indexOf(a)}"${h?' tabindex="-1" aria-hidden="true"':''}>${esc(wireClock(a.date))}  ${esc(tk(a.title))}</button>`).join('');put1(`<div class="wtick"><b>Wire</b><div class="wtick-vp"><div class="wtick-in">${sp(0)}${sp(1)}</div></div></div>`)}  g.querySelectorAll('.card[data-i] time').forEach(t=>{const a=cur[+t.closest('.card').dataset.i];if(a&&a.date)t.dataset.hm=wireClock(a.date)});
+  if(hs.length>=3){const tk=t=>{t=String(t||'').replace(/\s+/g,' ').trim();return t.length>46?t.slice(0,45).replace(/\s+\S*$/,'')+'…':t};const sp=(h)=>hs.map(a=>`<button type="button" data-wi="${cur.indexOf(a)}"${h?' tabindex="-1" aria-hidden="true"':''}>${'<i>'+esc(wireClock(a.date))+'</i>'} ${esc(tk(a.title))}</button>`).join('');put1(`<div class="wtick"><b>Latest</b><div class="wtick-vp"><div class="wtick-in">${sp(0)}${sp(1)}</div></div></div>`)}  g.querySelectorAll('.card[data-i] time').forEach(t=>{const a=cur[+t.closest('.card').dataset.i];if(a&&a.date)t.dataset.hm=wireClock(a.date)});
  }else if(k==='week'&&g.querySelector('.dg.wk'))g.classList.add('gen-sun');
 }
 {const _r5=render;render=function(){_r5.apply(this,arguments);try{genreApply()}catch(e){}}}
@@ -11632,7 +11641,7 @@ function mnMarkup(){
  const q=(act,ic,l,x)=>`<button type="button" data-act="${act}"${x||''}>${svg(ic,act==='save'&&sv)}<span class="mnl">${l}</span></button>`,row=(act,l,x)=>`<button type="button" data-act="${act}"${x||''}>${l}</button>`;
  return `<div class="rshbd" id="mnbd" hidden></div><div class="rsh" id="mn" role="dialog" aria-modal="true" aria-labelledby="mnh" hidden><span class="rshg" aria-hidden="true"></span><h2 class="rshh" id="mnh">Story options</h2>`
   +`<div class="rshq">${q('save',STAR,sv?'Saved':'Save',` aria-pressed="${sv}"`)}${q('share',RDX_SHR,'Share')}${tts?q('listen',SPK,'Listen'):''}${q('aa',RDX_AA,'Text',' aria-haspopup="dialog" aria-label="Text and appearance"')}${q('web',GLOBE,'Site',' aria-label="View the site in the app"')}${q('tr',RDX_TR,'Translate',' aria-label="Translate story"')}</div>`
-  +`<div class="rshl">${(()=>{try{const h=a&&a.link?host(a.link):'';return h&&!S.feeds.some(f=>host(f.url)===h)?row('follow','Follow '+esc(h.replace(/^www\./,'')),' class="rfol rfol1"'):''}catch(e){return ''}})()}${row('pdf','Save as PDF',' data-exact')}${row('kindle','Send to Kindle',' data-exact')}${row('hub','Full coverage')}${row('jump','Jump to section',' hidden')}${row('upnext','Add to Up Next')}`
+  +`<div class="rshl">${(()=>{try{const h=a&&a.link?host(a.link):'';return h&&!S.feeds.some(f=>host(f.url)===h)?row('follow','Follow '+esc(h.replace(/^www\./,'')),' class="rfol rfol1"'):''}catch(e){return ''}})()}${row('pdf','Save as PDF',' data-exact')}${row('kindle','Send to Kindle',' data-exact')}${row('hub','Full coverage')}${row('jump','Jump to section',' hidden')}${row('auto','Hands-free reading')}${row('upnext','Add to Up Next')}`
   +`<div class="rshr" role="group" aria-label="Rate this story"><button type="button" class="thb${v>0?' on':''}" data-rate="1" aria-pressed="${v>0}">${svg(TH_UP)}<span>More like this</span></button><button type="button" class="thb${v<0?' on':''}" data-rate="-1" aria-pressed="${v<0}">${svg(TH_DN)}<span>Less like this</span></button></div>`
   +`<button type="button" class="rshm" id="mnmb" aria-expanded="false" aria-controls="mnmx">More<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>`
   +`<div id="mnmx" hidden>${(()=>{try{const h=a&&a.link?host(a.link):'';return h&&!S.feeds.some(f=>host(f.url)===h)?row('follow','Follow '+esc(h.replace(/^www\./,'')),' class="rfol rfol2"'):''}catch(e){return ''}})()}${row('unread','Mark as unread')}${row('junk','Report junk text')}${row('browser','Open in browser')}${row('settings','Reading settings')}${tts?row('rp','Playback settings'):''}</div></div></div>`;
@@ -11812,6 +11821,7 @@ async function doAct(k){
  if(k==='more'){likeA(a,1);return}
  if(k==='less'){likeA(a,-1);return}
  if(k==='focus'){focusTog();return}
+ if(k==='auto'){setTimeout(()=>autoRd(true),350);return}
  if(k==='aa'){setTimeout(()=>{const pop=aaBuild();if(pop.hidden){aaToggle();aaOpener=$('#mo')}},0);return}
  else if(k==='unread'){delete S.read[a.link];save();toast('Marked as unread')}
  else if(k==='settings'){SETP='read';$('#gear').click()}
@@ -13315,6 +13325,21 @@ const WHY={};
 
 /* ---------- reading: vertical mode helpers ---------- */
 function vView(){return $('#rd .view')}
+/* hands-free reading: the story scrolls (or turns its pages) at your reading speed; any tap, key or swipe in the story stops it */
+const AUTO={on:false,raf:0,t:0};
+function autoRd(on){
+ clearTimeout(AUTO.t);cancelAnimationFrame(AUTO.raf);const was=AUTO.on;AUTO.on=!!on&&!!curA;
+ if(!AUTO.on){if(was)toast('Hands-free reading off');return}
+ const wpm=S.wpm||230,rd=$('#rd'),live=()=>AUTO.on&&rd&&rd.classList.contains('on');
+ toast('Hands-free reading on. Tap the story to stop');
+ if(isVert()){const v=vView();if(!v)return autoRd(false);
+  const lh=parseFloat(getComputedStyle(v.querySelector('.body')||v).lineHeight)||28,pxs=lh*wpm/60/11;let last=performance.now(),acc=0;
+  const step=t=>{if(!live())return;acc+=(t-last)*pxs/1000;last=t;if(acc>=1){const n=acc|0;v.scrollTop+=n;acc-=n}if(v.scrollTop+v.clientHeight>=v.scrollHeight-2)return autoRd(false);AUTO.raf=requestAnimationFrame(step)};
+  AUTO.raf=requestAnimationFrame(step);
+ }else{const per=Math.max(40,((curA&&curA.wc)||1200)/Math.max(1,R.np));
+  const turn=()=>{AUTO.t=setTimeout(()=>{if(!live())return;if(R.pg>=R.np-1)return autoRd(false);go(1);turn()},per/wpm*60000)};turn()}
+}
+['pointerdown','keydown','wheel'].forEach(ev=>document.addEventListener(ev,e=>{if(AUTO.on&&e.target.closest&&e.target.closest('#rd'))autoRd(false)},{capture:true,passive:true}));
 /* keep the reader's place when the window changes shape (fold, rotate, split screen) */
 document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.matches&&t.matches('#rd .view')){clearTimeout(rdFrac.t);rdFrac.t=setTimeout(()=>{if(R.ready&&isVert())R.sf=vEndFrac()},160)}},true);
 /* after a resize, late images change the page height: keep re-applying the place for a few seconds unless the reader moves it, and keep read-aloud's spoken word in view */
