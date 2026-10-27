@@ -820,3 +820,4 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Light mode in Coast, Newsprint and Sepia Rosewood: the Daily cover is the dark plate with light, readable text (headline, wordmark, edition line). Cypress light: "From the margin · …" labels readable (dark brass).
 - After any scroll jump, Copy support info: the Jumps line now ends with "moved by code …" naming what moved the page.
 - Long hard fling (coasting several seconds) on a feed: you stay where the fling stops (place keeper no longer pulls you back).
+- Headlines tab: "HEADLINES" masthead in the theme's serif (capitals); "In this issue" shows count and minutes only when there is a single section. Black & White: Daily cover white in light, pure black (no green) in dark.
