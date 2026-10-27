@@ -849,3 +849,7 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 
 - [ ] (2026-10-27, unbumped 1.175) Hands-free speed pill: start Hands-free reading from the ... menu; − / + changes speed (0.5× to 3×, remembered) without stopping; × stops; tapping the story still stops. Check both scrolling and page-turn reading, and that the pill clears the bottom gesture bar.
 - [ ] (2026-10-27) Hands-free speeds are separate for scrolling and page turns; 1× in both should match your own reading pace (long stories no longer flip too fast); scrolling should glide smoothly.
+- [ ] (2026-10-27) Feed page: as the big title shrinks on scroll, the top bar title grows in at the same pace (they swap places).
+- [ ] (2026-10-27) Save a story, go offline, open it from Saved: text and photos come from the device (including stories that opened in Site view).
+- [ ] (2026-10-27) Story bar: tapping the site name opens that site's page. Hands-free hint shows only the first 3 times and sits above the speed pill.
+- [ ] (2026-10-27) Feed lead with no photo: plain band gone on single sites; folders show the source site's name on its pattern.
