@@ -46,6 +46,8 @@ public class CyMediaService extends Service {
     static final String ACT_NEXT = "com.cypress.reader.media.NEXT";
     static final String ACT_PREV = "com.cypress.reader.media.PREV";
     static final String ACT_STOP = "com.cypress.reader.media.STOP";
+    static final String ACT_REW = "com.cypress.reader.media.REW";
+    static final String ACT_FWD = "com.cypress.reader.media.FWD";
 
     static final String CA_REW = "rew";
     static final String CA_FWD = "fwd";
@@ -178,6 +180,10 @@ public class CyMediaService extends Service {
                 CyExtras.emitMediaAction("next");
             } else if (ACT_PREV.equals(a)) {
                 CyExtras.emitMediaAction("prev");
+            } else if (ACT_REW.equals(a)) {
+                CyExtras.emitMediaAction("rew");
+            } else if (ACT_FWD.equals(a)) {
+                CyExtras.emitMediaAction("fwd");
             } else if (ACT_STOP.equals(a)) {
                 CyExtras.emitMediaAction("stop");
                 stopSpeech();
@@ -671,10 +677,12 @@ public class CyMediaService extends Service {
         int n = 0;
         int[] compact = new int[3];
         int ci = 0;
-        if (canPrev) { b.addAction(action(R.drawable.cy_ic_prev, "Previous", ACT_PREV, 81)); compact[ci++] = n++; }
+        if (canPrev) { b.addAction(action(R.drawable.cy_ic_prev, "Previous", ACT_PREV, 81)); n++; }
+        b.addAction(action(R.drawable.cy_ic_rew, "Back 15 seconds", ACT_REW, 85)); compact[ci++] = n++;
         b.addAction(action(playing ? R.drawable.cy_ic_pause : R.drawable.cy_ic_play, playing ? "Pause" : "Play", ACT_TOGGLE, 82));
         compact[ci++] = n++;
-        if (canNext) { b.addAction(action(R.drawable.cy_ic_next, "Next", ACT_NEXT, 83)); compact[ci++] = n++; }
+        b.addAction(action(R.drawable.cy_ic_fwd, "Forward 30 seconds", ACT_FWD, 86)); compact[ci++] = n++;
+        if (canNext) { b.addAction(action(R.drawable.cy_ic_next, "Next", ACT_NEXT, 83)); n++; }
         b.addAction(action(R.drawable.cy_ic_stop, "Stop", ACT_STOP, 84));
         Notification.MediaStyle style = new Notification.MediaStyle().setShowActionsInCompactView(java.util.Arrays.copyOf(compact, ci));
         if (session != null) style.setMediaSession(session.getSessionToken());

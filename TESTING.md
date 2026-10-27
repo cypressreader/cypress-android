@@ -795,3 +795,6 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 ## Player pause + skip buttons (post-1.167, branch only)
 - Read one story aloud: notification/lock-screen player shows NO skip back/forward when nothing is queued; Pause then Play work from the shade and lock screen; time still shows.
 - Read a Daily/Digest queue: skip buttons appear (next from the first story, previous from the second on).
+
+## Post-1.168 (branch only): notification Back 15 / Forward 30 buttons
+Implemented, unverified: Back 15 and Forward 30 are now real notification buttons (were session-only custom actions, vanished once skip buttons were hidden). Order: [Prev] Back15 Play/Pause Fwd30 [Next] Stop. Check they show with and without a queue, and that each seeks.
