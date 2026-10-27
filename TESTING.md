@@ -809,3 +809,8 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Back issues storage is slimmer (160-char text cap): old stories still open from Back issues.
 - Reading position is dropped least-recently-read first; streak counts across a daylight-saving change.
 - Tiles grid: no layout hitch on redraw (`fixOrph` now skipped when the grid is unchanged); last odd card still widens to fill the row.
+
+## 1.171 scroll-jump gate + place keeper
+- All Stories/Daily tiles: scroll far down, stop on a headline for 10+ s while feeds refresh: the page must not move. Then scroll to top: new stories appear.
+- Change a setting (card size, theme) while scrolled down: it still applies right away.
+- If a jump still happens, send the "Jumps:" line from Copy support info right after.
