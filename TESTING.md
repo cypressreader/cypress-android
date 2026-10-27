@@ -853,3 +853,4 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] (2026-10-27) Save a story, go offline, open it from Saved: text and photos come from the device (including stories that opened in Site view).
 - [ ] (2026-10-27) Story bar: tapping the site name opens that site's page. Hands-free hint shows only the first 3 times and sits above the speed pill.
 - [ ] (2026-10-27) Feed lead with no photo: plain band gone on single sites; folders show the source site's name on its pattern.
+- [ ] (2026-10-27) All Stories new arrivals: no floating pill. Top bar shows a small second line "N new stories" (tap loads), and a quiet note "N new stories since you opened this · Show" sits at the top of the list. Check it fits beside the top bar icons on the phone.

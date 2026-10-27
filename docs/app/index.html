@@ -2997,7 +2997,8 @@ html.rmo .tbi,html.lowp .tbi{transition:none}
 .colo p{margin:0 auto;max-width:34em;font:italic 400 13px/1.55 var(--serif,Georgia,serif)}
 /* experiment, cluster 5: the All stories wire */
 .card .newtag{position:absolute;top:10px;left:10px;z-index:3;padding:3px 9px;border-radius:999px;background:var(--ink);color:var(--pn);font:700 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.25)}
-.wpill{grid-column:1/-1;position:sticky;top:8px;z-index:8;justify-self:center;margin:2px 0 12px;padding:9px 18px;border:0;border-radius:999px;background:var(--ink);color:var(--pn);font:700 13px var(--sans);box-shadow:0 6px 20px rgba(0,0,0,.28);cursor:pointer}
+/* new stories wait quietly: a note at the top of the list, and 'All Stories · 4 new' in the top bar (tap either to load) */.wpill{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:8px;margin:2px 0 12px;padding:6px 6px 6px 14px;border:1px solid var(--ln);border-radius:10px;background:var(--pn);color:var(--ink);font:14px var(--sans)}.wpill button{min-height:44px;padding:0 14px;border:0;background:none;color:var(--logo);font:700 14px var(--sans);cursor:pointer}
+.top #ttl:has(.tnew){line-height:1.05}.tnew{display:block;margin:2px 0 0;padding:0;white-space:nowrap;text-align:left;border:0;background:none;color:inherit;opacity:.72;font:italic 400 12.5px/1.2 var(--serif);cursor:pointer}.tnew::before{content:'';position:absolute;inset:-12px 0}.tnew{position:relative}
 .wsec{grid-column:1/-1}
 .wtrend{grid-column:1/-1;display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 0 16px;padding:2px 0}
 .wtrend::-webkit-scrollbar{display:none}
@@ -6191,9 +6192,11 @@ function feedHead(){
  if(feedHead.io){feedHead.io.disconnect();feedHead.io=null}
  t.classList.remove('fbig');fpBar();document.documentElement.style.setProperty('--toph',(t.getBoundingClientRect().bottom|0)+'px');
  if(feedHead.sel!==S.sel){feedHead.sel=S.sel;g.classList.add('rise');clearTimeout(feedHead.rt);feedHead.rt=setTimeout(()=>g.classList.remove('rise'),1200)}
+ {const tt=$('#ttl'),wp=g.querySelector('.wpill');const o=t.querySelector('.tnew');if(o)o.remove();if(tt&&wp){const n=+wp.dataset.n;tt.insertAdjacentHTML('beforeend',`<button type="button" class="tnew" aria-label="Show ${n} new ${n===1?'story':'stories'}">${n} new ${n===1?'story':'stories'}</button>`)}}
  const m=g.querySelector('.fmast,.tm-day');
  if(m&&'IntersectionObserver' in window){t.classList.add('fbig');const th=t.getBoundingClientRect().bottom|0;feedHead.io=new IntersectionObserver(es=>{t.classList.toggle('fbig',es[0].isIntersecting)},{rootMargin:-th+'px 0px 0px'});feedHead.io.observe(m)}
 }
+$('.top').addEventListener('click',e=>{if(e.target.closest('.tnew'))wireLoad()});
 {let ft=0;document.addEventListener('scroll',e=>{if(e.target&&e.target.tagName==='MAIN'&&!ft)ft=setTimeout(()=>{ft=0;fpBar()},400)},true)}
 {const r0=render0;render0=function(){const x=r0.apply(this,arguments);try{feedHead()}catch(e){}return x}}
 function render0(){
@@ -6584,7 +6587,7 @@ if(FD){
  cur=cn;
  newN=vis?cn.filter(a=>a.date>vis).length:0;WIRE.newN=newN;
  const tr=T?[]:wireStrip(cn),clock=vis?wireClock(vis):'';
- const head=pre+(f1?feedMast(f1,unread,cn):FO&&FD?feedMast(FD,unread,cn):'')+(pend?`<button type="button" class="wpill" data-wire="load" aria-live="polite">${pend} new ${pend===1?'story':'stories'} — tap to load</button>`:'')
+ const head=pre+(f1?feedMast(f1,unread,cn):FO&&FD?feedMast(FD,unread,cn):'')+(pend?`<div class="wpill" data-n="${pend}"><span>${pend} new ${pend===1?'story':'stories'} since you opened this</span><button type="button" data-wire="load">Show</button></div>`:'')
   +`<div class="wmeta"><div class="nr-meta">${stN(cn.length)}${S.hideCount?'':' · '+unread+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>${densHtml()}</div>`
   +trendStripHtml(tr);
  g.classList.add('nr','wire');g.dataset.w=g.dataset.wdens=S.wdens==='col'?'col':'mag';if(T)g.classList.add('wtopic');if(FD){g.classList.add('fed');g.style.setProperty('--fb',brand(FD))}if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
