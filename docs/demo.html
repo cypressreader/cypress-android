@@ -4763,6 +4763,8 @@ html.rmo :is(.skr i,.skr b,.skc),html.lowp :is(.skr i,.skr b,.skc){animation:non
 /* 1.174 look: brass tab marker, round source monograms, progress ring and caption-under photos in a site's feed, timeline In brief, large shrinking title, read hairline, brass loading blocks, since-you-left marker */
 #tabs button{position:relative}
 #tabs button.on::before{content:"";position:absolute;top:-6px;left:50%;width:26px;margin-left:-13px;height:3px;border-radius:0 0 3px 3px;background:var(--logo)}
+:root[data-theme^=halcyon] #tabs button.on{color:#7d5f14}:root[data-theme=halcyond] #tabs button.on{color:#e2c27a}
+:root[data-theme^=halcyon] #tabs button.on::before{background:#c9a24a}:root[data-theme^=halcyon] #tabs button.on svg{background:color-mix(in srgb,#c9a24a 22%,transparent);border-radius:12px;padding:2px 12px;margin:-2px 0}
 .src .sn::before{content:attr(data-ini);display:inline-grid;place-items:center;width:17px;height:17px;margin-right:6px;border-radius:50%;background:color-mix(in srgb,var(--b,var(--logo)) 82%,#000);color:#fff;box-shadow:0 0 0 1.5px rgba(255,255,255,.85);font:700 9.5px/1 var(--sans);letter-spacing:0;text-shadow:none;vertical-align:middle;text-transform:uppercase}
 #grid .card.cu:not(.noimg):not(.list-row){display:grid;align-content:start;background:none;color:var(--ink);min-height:0;overflow:visible;border-radius:0;box-shadow:none!important;outline:0!important}
 #grid .card.cu:not(.noimg):not(.list-row)>img{position:static;display:block;width:100%;height:auto;aspect-ratio:3/2;border-radius:14px;z-index:auto}
@@ -4816,7 +4818,6 @@ html #grid .card.noimg:not(.list-row):not(.nr-row):not(.nr-late):not(.nr-quote):
 .rhl{margin:18px 0 6px;padding:2px 0 2px 14px;border-left:3px solid var(--a2,var(--logo))}
 .rhl small{display:block;margin-bottom:6px;font:700 10.5px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
 .rhl blockquote{margin:0 0 8px;font:italic 500 1.05em/1.35 var(--serif)}
-.ysites .fh{padding:10px 12px 2px;font:700 10.5px var(--sans);letter-spacing:.18em;text-transform:uppercase;opacity:.8}
 #set .sjump{display:none;gap:8px;overflow-x:auto;margin:0 0 12px;padding:2px 0 6px;scrollbar-width:none}
 #set.inpage .sjump{display:flex}
 #set .sjump button{flex:none;min-height:40px;padding:0 14px;border:1px solid var(--ln);border-radius:99px;background:var(--pn);color:var(--ink);font:600 13px var(--sans);cursor:pointer}
@@ -5959,7 +5960,6 @@ function side(){
  const un=S.feeds.filter(x=>!S.folders.some(f=>f.id===x.folder));
  if(un.length)mf+=`<div class="fold" data-drop=""><div class="fh">${chev('_un')}<button type="button" class="fht" data-tgl="_un">Unfiled</button></div>${fold('_un')?'':un.map(feedRow).join('')}</div>`;
  S.fcol=S.fcol||{};if(!('_mf' in S.fcol))S.fcol._mf=1;
- {/* the sites you actually read: most opened in the last 30 days first, then the most unread */const rd={},t30=Date.now()-30*864e5;(S.hist||[]).forEach(h=>{if(h.t>t30)rd[h.fid]=(rd[h.fid]||0)+1});const ys=S.feeds.map(f=>[f,uc([f]),rd[f.id]||0]).filter(x=>x[1]>0&&x[2]>0).sort((a,b)=>b[2]-a[2]||b[1]-a[1]).slice(0,6).map(x=>x[0]);if(S.feeds.length>3&&ys.length)h+=`<div class="fold ysites"><div class="fh"><span>Your sites</span></div>${ys.map(feedRow).join('')}</div>`}
  if(mf||S.folders.length)h+=`<div class="mfeeds"><button type="button" class="nav mfh${fold('_mf')?'':' open'}" data-tgl="_mf" aria-expanded="${fold('_mf')?'false':'true'}">${nIc('feeds')}<span>My Feeds</span></button>${fold('_mf')?'':`<div class="mfb">${mf}</div>`}</div>`;
  if(S.sk.length)h+=`<div class="fold"><div class="fh"><span>Topics you follow</span></div>${S.sk.map(k=>`<div class="fr ${S.sel==='k:'+k.id?'on':''}" data-sel="k:${k.id}"><b style="background:var(--mut)"></b><span>${esc(k.name)}</span>${navDot(()=>kcount(k),()=>S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>a.date>seenOf('k:'+k.id)&&!S.read[a.link]&&kmatch(k,a)).length)}</div>`).join('')}</div>`;
  h+=bot;/* the Library block sits at the bottom of the list (J6) */
@@ -6257,8 +6257,8 @@ const skRow='<div class="skr" aria-hidden="true"><i></i><span><b></b><b></b><b c
 const skel=n=>skelCap()+(S.view==='list'?skRow.repeat(n+1):'<div class="skc ld" aria-hidden="true"><i></i><i></i><i class="s"></i></div>'+'<div class="skc" aria-hidden="true"></div>'.repeat(n));
 /* a few stories are in but sites are still loading: placeholders under them say more is on the way */
 const skelMore=n=>skelCap()+(S.view==='list'?skRow:'<div class="skc" aria-hidden="true"></div>').repeat(n);
-/* a site's feed opens with its large masthead; the title in the top bar appears as the masthead scrolls away, and the bar's hairline fills as you read */
-function fpSync(){
+/* a site's feed (and All Stories) opens with its large masthead; the title in the top bar appears as the masthead scrolls away, and the bar's hairline fills as you read */
+function fpBar(){
  const t=$('.top'),g=$('#grid');if(!t||!g)return;
  const cs=g.querySelectorAll('.card[data-href]'),n=cs.length;let r=0;cs.forEach(c=>{if(c.classList.contains('read'))r++});
  if(!/^(s|f|k):/.test(S.sel||'')||n<6)t.style.removeProperty('--fp');else t.style.setProperty('--fp',(r/n).toFixed(3));
@@ -6266,11 +6266,11 @@ function fpSync(){
 function feedHead(){
  const t=$('.top'),g=$('#grid');if(!t||!g)return;
  if(feedHead.io){feedHead.io.disconnect();feedHead.io=null}
- t.classList.remove('fbig');fpSync();
- const m=g.querySelector('.fmast');
+ t.classList.remove('fbig');fpBar();
+ const m=g.querySelector('.fmast,.tm-day');
  if(m&&'IntersectionObserver' in window){t.classList.add('fbig');feedHead.io=new IntersectionObserver(es=>{t.classList.toggle('fbig',es[0].isIntersecting)});feedHead.io.observe(m)}
 }
-{let ft=0;document.addEventListener('scroll',e=>{if(e.target&&e.target.tagName==='MAIN'&&!ft)ft=setTimeout(()=>{ft=0;fpSync()},400)},true)}
+{let ft=0;document.addEventListener('scroll',e=>{if(e.target&&e.target.tagName==='MAIN'&&!ft)ft=setTimeout(()=>{ft=0;fpBar()},400)},true)}
 {const r0=render0;render0=function(){const x=r0.apply(this,arguments);try{feedHead()}catch(e){}return x}}
 function render0(){
  NRS=nrMode();$('#grid').classList.remove('nr','nrp','wire','wtopic','fed','paper','wc');$('#grid').style.removeProperty('--fb');

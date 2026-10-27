@@ -837,3 +837,6 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Excerpts keep spaces between paragraphs ("El-Sayed. Sign up", not "El-SayedSign up"); only newly fetched stories show it.
 - A lead card whose photo fails to load no longer shows "Photo: …" over its label; Guardian credits read "Photo: Kent Nishimura/…" (not "Photo: graph:").
 - Plain (no-photo) cream cards keep a readable source label (cream label only on photo cards).
+- All Stories: the top bar title stays hidden while the big "All Stories" heading is on screen and fades in once it scrolls away. The site-feed reading hairline (`fpBar`, was shadowed by the reader's `fpSync`) now works too.
+- Side menu "Your sites" list removed (make a folder instead).
+- Cypress theme: the active bottom tab (The Daily/All/Saved/Search) is brass (label, marker and a soft brass pill behind the icon), not deeper green.
