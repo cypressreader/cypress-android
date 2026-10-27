@@ -481,7 +481,7 @@ try:
         sx = open(sty, encoding='utf-8').read()
         if 'Theme.SplashScreen' in sx and 'windowSplashScreenBackground' not in sx:
             sx2 = re.sub(r'(<style\s+name="AppTheme\.NoActionBarLaunch"[^>]*>)',
-                         r'\1\n        <item name="windowSplashScreenBackground">#0E1220</item>', sx, count=1)
+                         r'\1\n        <item name="windowSplashScreenBackground">#123524</item>', sx, count=1)
             if sx2 != sx:
                 open(sty, 'w', encoding='utf-8').write(sx2)
                 say('Android 12 launch screen set to dark navy')
