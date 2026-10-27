@@ -12390,6 +12390,8 @@ try{root.classList.toggle('pdark',/dark/.test(getComputedStyle(root).colorScheme
  {const pd=bgDark();DARKBG=pd;if(applyTheme.pd!==undefined&&applyTheme.pd!==pd){try{side._h=null;applyTheme.did=1;/* the full redraw (brand colors lifted for dark) costs over a second on a big library: with Settings open it waits until Settings closes, otherwise until the screen is idle, so the color change itself never stutters */renderSoon()}catch(e){}}applyTheme.pd=pd}
  themeFonts(th);applyFx();try{const bb=($('#rd').style.getPropertyValue('--b')||'').trim();if(bb)rdTone(bb)}catch(e){}if((S.font||'theme')==='theme'&&$('#rd').classList.contains('on'))refreshReader();
  try{barSync()}catch(e){}
+ /* a phone WebView can keep the old theme's big glow gradient painted (Aurora, then another theme) until something repaints it: the page color follows the theme and the body is nudged once on a theme change */
+ try{root.style.backgroundColor='var(--bg)';if(changed&&root.dataset.theme!=='dynamic'){const b=document.body;b.style.backgroundImage='none';requestAnimationFrame(()=>requestAnimationFrame(()=>b.style.removeProperty('background-image')))}}catch(e){}
 }
 /* the color of the phone's status bar: the page color the theme is settling on (read from a probe that never fades), not whatever shade the page is part-way through fading to */
 function barRGB(){

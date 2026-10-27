@@ -824,3 +824,5 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - 1.172: app opens with correct fonts in airplane mode (fresh install); scrolling and tab switching feel faster on the Fold; pull-to-refresh still hides the title while the tree shows; Columns view headline sizes unchanged; Daily cover number sits inside the frame; plate-theme covers use theme accent for quote bar/underline.
 - Post-1.172 (branch): side bar in every theme, light and dark: logo stands out (Aurora light = deep green, not mint; Coast/Newsprint/Rosewood dark = badge with accent ring); active row clearly tinted with 4 px bar.
 - Post-1.172 (branch): side-bar logo is the same size in every theme (badge themes: tree fills the badge); "CyPress" not clipped. App icon: brass-gold tree on Cypress green (launcher square/round, themed icon, Android 12 splash green), web install icon too.
+
+- [ ] Aurora then any other theme (Settings > themes): page background must change right away, no restart needed (repaint nudge + html color follows --bg).
