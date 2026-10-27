@@ -191,6 +191,18 @@ public class CyMediaService extends Service {
             }
         } catch (Throwable t) {
             Log.w(TAG, "start command failed: " + t);
+            if (!foregrounded) {
+                // startForegroundService() promised a notification; stopping without one crashes the app
+                try {
+                    Notification.Builder nb = Build.VERSION.SDK_INT >= 26
+                            ? new Notification.Builder(this, CyExtras.CH_MEDIA)
+                            : new Notification.Builder(this);
+                    ServiceCompat.startForeground(this, NOTIF_ID, nb.setSmallIcon(getApplicationInfo().icon).build(),
+                            Build.VERSION.SDK_INT >= 29 ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK : 0);
+                } catch (Throwable t2) {
+                    Log.w(TAG, "fallback foreground failed: " + t2);
+                }
+            }
             shutdown();
         }
         return START_NOT_STICKY;
