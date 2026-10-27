@@ -1,4 +1,4 @@
-/* Drop cap: a paragraph opening in capitals shows a drop cap with normal-case text (names keep their capitals), the first line is in small caps and the cap is a plain three-line cap (polish-2026-10 F3): taller than two lines, never taller than three, so no gap opens beside line four */
+/* Drop cap: a paragraph opening in capitals shows a drop cap with normal-case text (names keep their capitals), the opening words are normal letters and the cap is a clean two-line cap (1.174: initial-letter 2) */
 const {APP}=require('./env');const {mock,PW}=require('./mock');const {chromium}=require(PW);
 let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'':x)}else console.log('ok',n)};
 (async()=>{const b=await chromium.launch();
@@ -10,13 +10,13 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
    items[f]=[a];state[f]='ok';acPut(a.link,a.html,1);S.sel='all';S.scroll='page';render();openReader(a);await new Promise(r=>setTimeout(r,1800));
    const ps=[...document.querySelectorAll('.cols .body p.dropcap')],t=ps.map(x=>x.textContent.slice(0,60)),fl=(()=>{const s=ps[0]&&ps[0].querySelector('.dcl');return s?getComputedStyle(s).fontVariantCaps:'none'})();
    const cap=document.querySelector('.cols .body p.dropcap .dcap'),pp=cap&&cap.parentElement,lh=pp?parseFloat(getComputedStyle(pp).lineHeight):0;
-   return{t,fl,ch:cap?cap.getBoundingClientRect().height:0,lh,n:ps.length}});
+   return{t,fl,ch:cap?cap.getBoundingClientRect().height:0,lh,n:ps.length,il:cap?parseFloat(getComputedStyle(cap).initialLetter):0}});
   const tag=W+': ';
   ck(tag+'the first paragraph has a drop cap',r.n>=1,JSON.stringify(r));
   ck(tag+'its capitals became normal sentence case',/^A man has died after entering a tiger enclosure/.test(r.t[0]||''),r.t[0]);
   ck(tag+'a name keeps its capital',/^Trump says he will sign the order/.test(r.t[1]||'')||r.n<2,r.t[1]);
-  ck(tag+'the opening words are in small caps',r.fl==='small-caps',r.fl);
-  ck(tag+'the cap spans three lines of text (taller than two, no taller than three)',r.lh>0&&r.ch>r.lh*2&&r.ch<=r.lh*3+2,r.ch+' vs line '+r.lh);
+  ck(tag+'the opening words are in normal letters',r.fl==='normal'||r.fl==='none',r.fl);
+  ck(tag+'the cap spans two lines (initial-letter 2)',r.il===2||(r.lh>0&&r.ch>r.lh*1.4&&r.ch<=r.lh*2+2),r.ch+' vs line '+r.lh+' il '+r.il);
   ck(tag+'no page errors',!errs.length,errs[0]);await p.context().close();
  }
  await b.close();console.log('drop_cap',bad?bad+' FAILED':'all passed');process.exit(bad?1:0)})();
