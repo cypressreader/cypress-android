@@ -826,3 +826,5 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Post-1.172 (branch): side-bar logo is the same size in every theme (badge themes: tree fills the badge); "CyPress" not clipped. App icon: brass-gold tree on Cypress green (launcher square/round, themed icon, Android 12 splash green), web install icon too.
 
 - [ ] Aurora then any other theme (Settings > themes): page background must change right away, no restart needed (repaint nudge + html color follows --bg).
+
+- [ ] 1.174 jump check: if the feed jumps, Copy support info right after; the "unexplained" entry now says how far apart scroll events were and whether the page height changed (long gap = a fling during a freeze; height change = layout shift above you).
