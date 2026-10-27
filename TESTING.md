@@ -840,3 +840,4 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - All Stories: the top bar title stays hidden while the big "All Stories" heading is on screen and fades in once it scrolls away. The site-feed reading hairline (`fpBar`, was shadowed by the reader's `fpSync`) now works too.
 - Side menu "Your sites" list removed (make a folder instead).
 - Cypress theme: the active bottom tab (The Daily/All/Saved/Search) is brass (label, marker and a soft brass pill behind the icon), not deeper green.
+- Shrinking title: on All Stories and a site's feed, the big heading shrinks and fades as it scrolls under the top bar, and the bar's title rises in as it disappears (scroll-linked CSS, off with reduced motion; older WebViews just swap the titles).

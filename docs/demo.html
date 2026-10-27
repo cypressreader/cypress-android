@@ -4792,7 +4792,10 @@ a.fd-bl.cvlead{overflow:visible;contain:layout}
 .top{transition:none}.top h1{transition:opacity .2s}
 .top.fbig h1{opacity:0}
 .top::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:calc(var(--fp,0)*100%);background:var(--logo);opacity:.9;pointer-events:none}
-@media(prefers-reduced-motion:reduce){.top h1{transition:none}}
+.top h1{transition:opacity .25s,transform .25s}.top.fbig h1{transform:translateY(10px)}
+/* the big heading shrinks and fades as it scrolls under the top bar, while the bar's title rises in */
+@supports (animation-timeline:view()){#grid :is(.tm-day,.fmast){view-timeline:--mast block;view-timeline-inset:var(--toph,0px) 0px}#grid .tm-day h2,#grid .fmast h2{transform-origin:left bottom;animation:mshrink linear both;animation-timeline:--mast;animation-range:exit 0% exit 100%}@keyframes mshrink{to{transform:scale(.6) translateY(-18px);opacity:0}}}
+@media(prefers-reduced-motion:reduce){.top h1{transition:none}#grid :is(.tm-day,.fmast) h2{animation:none}}
 .skc:not(.ld){background-image:linear-gradient(100deg,color-mix(in srgb,var(--logo) 9%,var(--pn)) 30%,color-mix(in srgb,var(--logo) 22%,var(--pn)) 50%,color-mix(in srgb,var(--logo) 9%,var(--pn)) 70%)}
 .skc.ld i{background:color-mix(in srgb,var(--logo) 18%,transparent)}
 .sks i,.sks b{background-color:color-mix(in srgb,var(--logo) 10%,var(--pn))}
@@ -6268,7 +6271,7 @@ function feedHead(){
  if(feedHead.io){feedHead.io.disconnect();feedHead.io=null}
  t.classList.remove('fbig');fpBar();
  const m=g.querySelector('.fmast,.tm-day');
- if(m&&'IntersectionObserver' in window){t.classList.add('fbig');feedHead.io=new IntersectionObserver(es=>{t.classList.toggle('fbig',es[0].isIntersecting)});feedHead.io.observe(m)}
+ if(m&&'IntersectionObserver' in window){t.classList.add('fbig');const th=t.getBoundingClientRect().bottom|0;document.documentElement.style.setProperty('--toph',th+'px');feedHead.io=new IntersectionObserver(es=>{t.classList.toggle('fbig',es[0].isIntersecting)},{rootMargin:-th+'px 0px 0px'});feedHead.io.observe(m)}
 }
 {let ft=0;document.addEventListener('scroll',e=>{if(e.target&&e.target.tagName==='MAIN'&&!ft)ft=setTimeout(()=>{ft=0;fpBar()},400)},true)}
 {const r0=render0;render0=function(){const x=r0.apply(this,arguments);try{feedHead()}catch(e){}return x}}
