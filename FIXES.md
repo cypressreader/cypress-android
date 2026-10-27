@@ -92,6 +92,6 @@
 
 ## Picks queue from 2026-10-27 (after audit; built items are in HANDOFF)
 Already in the app (skipped): duplicate grouping, Catch me up (button), Limit per site, resume position, quote image share, smart folders ("Topics you follow"), follow topics + Developing chips, highlights export, sleep timer, app shortcuts (Listen/Saved/Search), photo-grows view transition, ambient photo tint, haptics.
-Still to build: Site checkup screen, Saved auto-archive, Surprise me, Car mode, TTS skip captions, per-site voice/speed, Save from any app (check native share intent), Fold open beside list, bigger tap targets, word-by-word Daily headline, count-up on Daily cover, live dot on developing story cards, tinted photos switch, tilt card (needs a touch design that doesn't fight scrolling).
+Still to build: Site checkup screen, Saved auto-archive, Surprise me, Car mode, TTS skip captions, per-site voice/speed, Save from any app (check native share intent), Fold open beside list, bigger tap targets, word-by-word Daily headline, live dot on developing story cards, tinted photos switch, tilt card (needs a touch design that doesn't fight scrolling).
 Upgrade existing: Weekend long reads (Daily already has "Long reads"/"Settle in"; add weekend weighting), "More on this" (Related reads exists; label by shared names), Other angles ("Also covered by" exists in export; show in reader), seasonal covers (season ring exists), Catch me up auto-offer after 3+ days away.
 Ticker: done as a restyle of the Developing row (.wtrend); card tilt dropped by user.

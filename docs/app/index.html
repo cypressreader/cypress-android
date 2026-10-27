@@ -2998,7 +2998,7 @@ html.rmo .tbi,html.lowp .tbi{transition:none}
 /* experiment, cluster 5: the All stories wire */
 .card .newtag{position:absolute;top:10px;left:10px;z-index:3;padding:3px 9px;border-radius:999px;background:var(--ink);color:var(--pn);font:700 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 /* new stories wait quietly: a note at the top of the list, and 'All Stories · 4 new' in the top bar (tap either to load) */.wpill{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:8px;margin:2px 0 12px;padding:6px 6px 6px 14px;border:1px solid var(--ln);border-radius:10px;background:var(--pn);color:var(--ink);font:14px var(--sans)}.wpill button{min-height:44px;padding:0 14px;border:0;background:none;color:var(--logo);font:700 14px var(--sans);cursor:pointer}
-.top #ttl:has(.tnew){line-height:1.05}.tnew{display:block;margin:2px 0 0;padding:0;white-space:nowrap;text-align:left;border:0;background:none;color:inherit;opacity:.72;font:italic 400 12.5px/1.2 var(--serif);cursor:pointer}.tnew::before{content:'';position:absolute;inset:-12px 0}.tnew{position:relative}
+.top #ttl:has(.tnew){line-height:1.05}.tnew{display:block;margin:2px 0 0;padding:0;white-space:nowrap;text-align:left;border:0;background:none;color:inherit;opacity:.72;font:italic 400 12.5px/1.2 var(--serif);cursor:pointer}.tnew::before{content:'';position:absolute;inset:-12px 0}.tnew{position:relative;max-width:100%;overflow:hidden;text-overflow:ellipsis}@media(max-width:379px){.tnew span{display:none}}
 .wsec{grid-column:1/-1}
 .wtrend{grid-column:1/-1;display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 0 16px;padding:2px 0}
 .wtrend::-webkit-scrollbar{display:none}
@@ -3722,7 +3722,7 @@ html.rmo #rd .rshm svg{transition:none}
 .wtick-in{width:max-content}
 
 /* Today cover follow-up: the photo is shown whenever there is one; covers without a photo are composed to use the whole height */
-.dcv-num{display:none}.dcv-q{display:none}
+@property --cn{syntax:'<integer>';initial-value:0;inherits:false}.dcv-num{display:none;counter-reset:cn var(--n)}.dcv-num::after{content:counter(cn)}.dcv-num.cnt{animation:cnum 1.4s cubic-bezier(.2,.7,.2,1) .2s both;counter-reset:cn var(--cn)}@keyframes cnum{from{--cn:0}to{--cn:var(--n)}}@media(prefers-reduced-motion:reduce){.dcv-num.cnt{animation:none;counter-reset:cn var(--n)}}html:is(.rmo,.lowp) .dcv-num.cnt{animation:none;counter-reset:cn var(--n)}/* count-up on the Daily cover number, first draw only */.dcv-q{display:none}
 .dcov.dct-type .dcv-q,.dcov.dct-min .dcv-q,.dcov.dct-fb .dcv-q{display:block}
 .dcv-q{margin:20px 0 0;padding:0 0 0 16px;border-left:3px solid #d1ad55;max-width:32em;font:italic 400 clamp(18px,4.6vw,28px)/1.28 var(--disp,Georgia,serif);font-synthesis:none;opacity:.96}
 .dcv-q span{font-style:normal;margin-right:.12em;color:#d1ad55}
@@ -6192,7 +6192,7 @@ function feedHead(){
  if(feedHead.io){feedHead.io.disconnect();feedHead.io=null}
  t.classList.remove('fbig');fpBar();document.documentElement.style.setProperty('--toph',(t.getBoundingClientRect().bottom|0)+'px');
  if(feedHead.sel!==S.sel){feedHead.sel=S.sel;g.classList.add('rise');clearTimeout(feedHead.rt);feedHead.rt=setTimeout(()=>g.classList.remove('rise'),1200)}
- {const tt=$('#ttl'),wp=g.querySelector('.wpill');const o=t.querySelector('.tnew');if(o)o.remove();if(tt&&wp){const n=+wp.dataset.n;tt.insertAdjacentHTML('beforeend',`<button type="button" class="tnew" aria-label="Show ${n} new ${n===1?'story':'stories'}">${n} new ${n===1?'story':'stories'}</button>`)}}
+ {const tt=$('#ttl'),wp=g.querySelector('.wpill');const o=t.querySelector('.tnew');if(o)o.remove();if(tt&&wp){const n=+wp.dataset.n;tt.insertAdjacentHTML('beforeend',`<button type="button" class="tnew" aria-label="Show ${n} new ${n===1?'story':'stories'}">${n} new<span> ${n===1?'story':'stories'}</span></button>`)}}
  const m=g.querySelector('.fmast,.tm-day');
  if(m&&'IntersectionObserver' in window){t.classList.add('fbig');const th=t.getBoundingClientRect().bottom|0;feedHead.io=new IntersectionObserver(es=>{t.classList.toggle('fbig',es[0].isIntersecting)},{rootMargin:-th+'px 0px 0px'});feedHead.io.observe(m)}
 }
@@ -14796,14 +14796,14 @@ function edArtSvg(am){
  const tree=(x,h,c)=>`<path d="M${x} 560C${x-15} 560 ${x-17} ${560-h*.6} ${x} ${560-h}C${x+17} ${560-h*.6} ${x+15} 560 ${x} 560z" fill="${c}"/>`;
  return `<svg class="dcv-svg" viewBox="0 0 400 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false"><defs><linearGradient id="dcg${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset=".55" stop-color="${sky[1]}"/><stop offset="1" stop-color="${sky[2]}"/></linearGradient></defs><rect width="400" height="600" fill="url(#dcg${g})"/>${orb}<path d="M0 410C70 380 130 392 200 372s150-6 200 20V600H0z" fill="${hill[0]}"/><path d="M0 470C80 440 150 462 230 440s120 0 170 18V600H0z" fill="${hill[1]}"/>${tree(46,210,hill[2])}${tree(344,260,hill[2])}${tree(380,170,hill[2])}<path d="M0 530C90 506 170 528 260 512s100 4 140 12V600H0z" fill="${hill[2]}"/></svg>`;
 }
-function dayCoverHtml(lead,pool){covSeen();
+dayCoverHtml.ran=0;function dayCoverHtml(lead,pool){covSeen();
  const d=new Date(),start=new Date(d.getFullYear(),0,0),issue=Math.floor((d-start)/864e5),am=edKind()==='m',tr=coverTreat(lead);
  const lines=[],seen=new Set([lead.feedId]),usedCL=new Set();
  for(const a of pool){if(lines.length>=3)break;if(a===lead||seen.has(a.feedId)||S.read[a.link])continue;seen.add(a.feedId);lines.push(a)}
  cur=[lead];WHY[lead.link]=whyLead(lead);
  const li=lines.map(a=>{cur.push(a);WHY[a.link]='Cover line: a top unread story from '+fof(a).title+', one per site';return `<a class="cvl dcv-l" href="${esc(a.link)}" data-i="${cur.length-1}"><small style="--b:${brand(fof(a))}">${esc(pe('coverline',{},'cl'+cur.length,usedCL))} · ${esc(fof(a).title)}</small><span>${esc(a.title)}</span></a>`}).join('');
  const note=pe('note',{},'cover');
- return `<div class="dcov ${am?'dcm':'dce'} dct-${tr}" style="--b:${brand(fof(lead))}"><div class="dcv-art">${tr==='min'?'':edArtSvg(am)}${lead.img&&tr==='photo'?`<img src="${esc(lead.img)}" alt="" referrerpolicy="no-referrer" onload="cvJudge(this)" onerror="cvArtFail(this,'did not load')">`:''}</div><div class="dcv-sh"></div><span class="dcv-num" aria-hidden="true">${issue}</span>`
+ return `<div class="dcov ${am?'dcm':'dce'} dct-${tr}" style="--b:${brand(fof(lead))}"><div class="dcv-art">${tr==='min'?'':edArtSvg(am)}${lead.img&&tr==='photo'?`<img src="${esc(lead.img)}" alt="" referrerpolicy="no-referrer" onload="cvJudge(this)" onerror="cvArtFail(this,'did not load')">`:''}</div><div class="dcv-sh"></div><span class="dcv-num${dayCoverHtml.ran++?'':' cnt'}" aria-hidden="true" style="--n:${issue}"></span>`
   +`<header class="dcv-top">${sznHtml(1)}<span class="dcv-mast">CYPRESS</span><span class="dcv-motto">${esc(DAY_MOTTO)}</span><span class="dcv-ed">${esc(edition(d))} · <span style="white-space:nowrap">Vol. ${String(d.getFullYear()).slice(-2)} · No. ${issue}</span></span></header>`
   +(lead.img&&tr!=='photo'?`<div class="dcv-band" aria-hidden="true"><img src="${esc(lead.img)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></div>`:'')
   +`<div class="dcv-main"><a class="cvlead dcv-lead${lead.title.length>72?' long':''}" href="${esc(lead.link)}" data-i="0"><small>${esc(fof(lead).title)}</small><h2>${esc(lead.title)}</h2></a>${(()=>{let q=null;try{q=nrQuoteText(lead)}catch(e){}const t=q&&q.q&&q.q.length>=40?q.q.replace(/[\s,;:–—-]+$/,'')+(/[.!?…]$/.test(q.q)?'':'…'):'';const dk=t?'':(()=>{try{return ledeOf(lead)||dekOf(lead,190)}catch(e){return ''}})();return t?`<blockquote class="dcv-q"><span aria-hidden="true">“</span>${esc(t)}<cite>${esc(fof(lead).title)}</cite></blockquote>`:dk?`<p class="dcv-q dcv-qd">${esc(dk)}</p>`:''})()}${note?`<p class="dcv-note">${esc(note)}</p>`:''}${li?`<div class="dcv-lines">${li}</div>`:''}</div>`
