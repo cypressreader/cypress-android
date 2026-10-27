@@ -817,3 +817,6 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 
 ## Post-1.171 (branch, unbumped)
 - Scroll far down the Daily/All Stories, tap the already-highlighted docked tab: no redraw, no jump. Tap a different docked tab: switches and starts at the top. Unverified on phone.
+- Light mode in Coast, Newsprint and Sepia Rosewood: the Daily cover is the dark plate with light, readable text (headline, wordmark, edition line). Cypress light: "From the margin · …" labels readable (dark brass).
+- After any scroll jump, Copy support info: the Jumps line now ends with "moved by code …" naming what moved the page.
+- Long hard fling (coasting several seconds) on a feed: you stay where the fling stops (place keeper no longer pulls you back).
