@@ -87,7 +87,7 @@ public class CyWidgetProvider extends AppWidgetProvider {
             String a = intent == null ? null : intent.getAction();
             if (ACT_SAVE.equals(a)) {
                 String link = intent.getStringExtra("link");
-                if (link != null && link.length() > 0) {
+                if (link != null && CyExtras.isHttpUrl(link)) {
                     context.getSharedPreferences("cypress", Context.MODE_PRIVATE)
                         .edit().putString("widget_save", link).apply();
                 }

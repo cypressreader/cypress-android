@@ -30,6 +30,12 @@ public class CyExtrasPlugin extends Plugin {
         CyExtras.plugin = this;
     }
 
+    @Override
+    protected void handleOnDestroy() {
+        if (CyExtras.plugin == this) CyExtras.plugin = null;
+        super.handleOnDestroy();
+    }
+
     /** Called by CyExtras.emit(). */
     void emitEvent(String event, JSObject data, boolean retain) {
         notifyListeners(event, data, retain);

@@ -119,7 +119,7 @@ public class CyMediaService extends Service {
         i.putExtra("subtitle", subtitle);
         i.putExtra("playing", playing);
         i.putExtra("image", image == null ? "" : image);
-        ContextCompat.startForegroundService(c, i);
+        try { ContextCompat.startForegroundService(c, i); } catch (Throwable t) { Log.w(TAG, "start not allowed: " + t); }
     }
 
     static void update(Context c, String title, String subtitle, boolean playing, String image) {

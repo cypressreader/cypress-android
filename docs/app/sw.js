@@ -10,7 +10,7 @@ self.addEventListener('fetch', e => {
   /* every shortcut (?view=today, ?view=brief…) is the same page, and query strings never change a file: one cached copy per path */
   const k0 = (r.mode === 'navigate' && (u.pathname === base || u.pathname === base + 'index.html')) ? new Request(u.origin + base) : new Request(u.origin + u.pathname);
   const cached = () => caches.match(k0).then(m => m || caches.match('./')).then(m => m || caches.match('index.html'));
-  const net = fetch(r).then(res => { if (res.ok) { const k = res.clone(); caches.open(V).then(c => c.put(k0, k)); } return res; });
+  const net = fetch(r).then(res => { if (!res.ok) throw 0; const k = res.clone(); caches.open(V).then(c => c.put(k0, k)).catch(() => {}); return res; });
   /* a slow, half-working connection falls back to the saved copy after 4 s; the network answer still refreshes the cache */
   const slow = new Promise(ok => setTimeout(() => cached().then(m => m && ok(m)), 4000));
   e.respondWith(Promise.race([net, slow]).catch(() => cached()));

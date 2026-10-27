@@ -4807,8 +4807,8 @@ html.rmo :is(.skr i,.skr b,.skc),html.lowp :is(.skr i,.skr b,.skc){animation:non
 <dialog id="shr" aria-labelledby="shrh" aria-describedby="shq"><div class="sh"><h2 id="shrh">Shared with CyPress</h2></div><div class="shu" id="shu"></div><p class="hint" id="shq">Follow this site, or save this page to read later? A saved page is kept on this device, so it opens offline too.</p><div class="shb"><button type="button" class="tx2" id="shs">Save to read later</button><button type="button" class="tx2" id="shf">Follow this site</button><button type="button" class="tx2" id="shn">Read it now</button><button type="button" class="tx2" id="shc">Cancel</button></div></dialog>
 <dialog id="sf"><div class="sh"><h2>Topics you follow</h2><button class="ib" id="sfx" aria-label="Close"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><p class="hint">A smart folder gathers stories from every feed that mention any of its keywords.</p><div id="sflist"></div><label for="sfn">Name</label><input id="sfn" placeholder="Space"><label for="sfk">Keywords, separated by commas</label><input id="sfk" placeholder="nasa, spacex, rocket"><div class="row"><button type="button" class="go" id="sfa">Add smart folder</button></div></dialog>
 <dialog id="rl"><div class="sh"><h2>Relay setup</h2><button class="ib" id="rlx" aria-label="Close"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
-<p class="hint" style="font-size:14px">CyPress has no account and no server of ours, so your reading stays under your control. A relay is a tiny free service that only you own. It lets your devices sync, and it fetches feeds and articles for sites that block feed readers, including TechCrunch. It takes about five minutes to set up, and you can skip it unless you want sync.</p>
-<ol class="steps"><li>Create a free account at cloudflare.com, open Workers &amp; Pages, and choose Create, then Worker.</li><li>Replace the sample code with the code below, then deploy.</li><li>Paste your worker address (it ends in workers.dev) below, then press Test.</li></ol>
+<p class="hint" style="font-size:14px">CyPress has no account and no server of ours, so your reading stays under your control. A relay is a tiny service that only you own. It lets your devices sync, and it fetches feeds and articles for sites that block feed readers, including TechCrunch. It takes about five minutes to set up, and you can skip it unless you want sync.</p>
+<ol class="steps"><li>Create an account at cloudflare.com, open Workers &amp; Pages, and choose Create, then Worker.</li><li>Replace the sample code with the code below, then deploy.</li><li>Paste your worker address (it ends in workers.dev) below, then press Test.</li></ol>
 <p class="hint sybad" id="rlupd" hidden>Your relay is running older code. Copy the code below, paste it over the old code in Cloudflare (Edit code), and press Deploy. It fixes more sites that block feed readers.</p><textarea id="rlcode" readonly rows="7"></textarea><div class="row" style="justify-content:flex-start;margin-top:8px"><button type="button" class="tx2" id="rlcopy">Copy code</button></div>
 <label for="rladdr">Your worker address</label><input id="rladdr" placeholder="https://name.account.workers.dev">
 <div id="rlmsg" class="hint"></div><p class="hint">Anyone who has your address can use it, so keep it private.</p>
@@ -4826,6 +4826,7 @@ window.addEventListener('error',function(e){
 </script>
 <script>
 const $=s=>document.querySelector(s);
+const plu=(n,s,p)=>n+' '+(n===1?s:p||s+'s')
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 /* only real web addresses may become links; everything else is dropped */
 const webUrl=u=>{try{const x=new URL(String(u||'').trim());return /^https?:$/.test(x.protocol)?x.href:''}catch(e){return''}};
@@ -5684,7 +5685,7 @@ const INFL=new Map();
 const LDQ=[];let LDN=0;const ldSlot=()=>LDN<6?(LDN++,Promise.resolve()):new Promise(r=>LDQ.push(r));const ldFree=()=>{const r=LDQ.shift();if(r)r();else LDN--};
 function load(f,fresh){if(INFL.has(f.id))return INFL.get(f.id);const p=(async()=>{await ldSlot();try{if(!S.feeds.includes(f))return;return await load0(f,fresh)}finally{ldFree()}})().finally(()=>INFL.delete(f.id));INFL.set(f.id,p);return p}
 async function load0(f,fresh){
- if(S.offline){state[f.id]=(items[f.id]||[]).length?'ok':'err';render();return}
+ if(S.offline){state[f.id]=(items[f.id]||[]).length?'ok':'err';loadRender();return}
  state[f.id]='load';LP.t++;pfBar();
  const cb=u=>u+(u.includes('?')?'&':'?')+'_cp='+Date.now();
  let got=null;try{got=(await loadFeed(f,fresh)).map(fixA);state[f.id]='ok'}catch(e){state[f.id]='err';tip('health');if(!(e&&e.message==='no site'))elog('feed '+(f.title||'').slice(0,20),e)}
@@ -5694,7 +5695,7 @@ async function load0(f,fresh){
   items[f.id]=got;dropGeneric(got);shortNote(f,got)}
  {const pv=S.health[f.id]||{},now=Date.now();const lv=FLG[f.id]||{},vl=lv.val||{};S.health[f.id]=state[f.id]==='ok'?(vl.etag||vl.lm?{ok:now,etag:vl.etag,lm:vl.lm}:{ok:now}):(navigator.onLine?{...pv,fail:now,fn:(pv.fn||0)+1,ff:pv.ff||now,ra:lv.ra||0}:pv)}saveSoon();
  LP.f++;pfBar();
- if(state[f.id]==='ok')applyRules(f);loadRender();gnPrefetch(items[f.id]).then(()=>enrich(f.id));if($('#mng').open)renderMng();
+ if(state[f.id]==='ok')applyRules(f);loadRender();gnPrefetch(items[f.id]).then(()=>enrich(f.id)).catch(()=>{});if($('#mng').open)renderMng();
 }
 let LEADK='';
 
@@ -6352,7 +6353,7 @@ function folderPseudo(fo){
  return {id:'f:'+fo.id,title:fo.name,url:'',color:hex(h,.42,.3),isFolder:true,_feeds:fs.map(x=>x.id),desc:fs.length+(fs.length===1?' source':' sources')+(fs.length?': '+fs.slice(0,3).map(x=>x.title||host(x.url)).join(', ')+(fs.length>3?' and '+(fs.length-3)+' more':''):'')};
 }
 function wireReset(){WIREX={};WIRE.order=null;WIRE.known=null;WIRE.anchor=null;WIRE.settled=false;clearTimeout(wireReset.t);wireReset.t=setTimeout(wireSettle,8000)}
-function wireSettle(){WIRE.settled=true;clearTimeout(wireReset.t);if(wireSel()&&!WIRE.order&&!(($('#q')||{}).value||'').trim()){/* far down the page the late re-rank would reshuffle what you are reading: leave it for the next natural redraw */const m=$('main');if(m&&m.scrollTop>500)return;try{render()}catch(e){}}}
+function wireSettle(){WIRE.settled=true;clearTimeout(wireReset.t);if(wireSel()&&!WIRE.order&&!(($('#q')||{}).value||'').trim()){/* far down the page the late re-rank would reshuffle what you are reading: leave it for the next natural redraw */const m=$('main');if(m&&m.scrollTop>500)return;try{quietRender()}catch(e){}}}
 /* after tapping the pill, the stories that were waiting wear a small 'New' tag so you can see where the ranking put them */
 function markFresh(){const F=WIRE.fresh,g=$('#grid');if(!F||!g)return;g.querySelectorAll('.card:not(.fresh)').forEach(c=>{if(F.has(chref(c))){c.classList.add('fresh');const t=document.createElement('span');t.className='newtag';t.textContent='New';c.append(t)}})}
 /* the pill: never while a refresh is running, and after you tap it (or pull to refresh) not again for 30 minutes. Stories that wait meanwhile load the next time you pull to refresh. */
@@ -8096,16 +8097,17 @@ async function dpRun(){
  const mn=$('main');if(mn)mn.addEventListener('scroll',()=>{clearTimeout(vpT);vpT=setTimeout(vpPreload,380)},{passive:true});
 }
 /* Back issues: each day's morning and evening editions are kept as a short list (titles, links and picture addresses only, no photos) for 30 days, on this device */
+const edDay=()=>{const d=new Date();if(d.getHours()<5)d.setDate(d.getDate()-1);return dayKey(d)};
 function issueSnap(items){
  if(!items.length)return;
- const k=dayKey()+edKind(),it=items.map(a=>{const o={};for(const x in a){const v=a[x];if(x==='more'||v==null||typeof v==='object'&&x!=='date')continue;o[x]=typeof v==='string'&&v.length>300?v.slice(0,300):v}return o});
+ const k=edDay()+edKind(),it=items.map(a=>{const o={};for(const x in a){const v=a[x];if(x==='more'||v==null||typeof v==='object'&&x!=='date')continue;o[x]=typeof v==='string'&&v.length>300?v.slice(0,300):v}return o});
  const L=S.issues=S.issues||[],i=L.findIndex(x=>x.k===k),cut=Date.now()-31*864e5;
  if(i>=0&&JSON.stringify(L[i].items)===JSON.stringify(it))return;
- const e={k,d:dayKey(),ed:edKind(),items:it};if(i>=0)L[i]=e;else L.unshift(e);
+ const e={k,d:edDay(),ed:edKind(),items:it};if(i>=0)L[i]=e;else L.unshift(e);
  S.issues=L.filter(x=>new Date(x.d+'T12:00').getTime()>cut).slice(0,62);save();
 }
 function backIssuesHtml(){
- const k=dayKey()+edKind(),L=(S.issues||[]).filter(x=>x.k!==k);if(!L.length)return'';
+ const k=edDay()+edKind(),L=(S.issues||[]).filter(x=>x.k!==k);if(!L.length)return'';
  return `<section class="bkiss" aria-label="Back issues"><h3>Back issues</h3><p>The last 30 days of editions, kept on this device.</p>`+L.map(x=>`<details><summary>${esc(new Date(x.d+'T12:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}))} · ${x.ed==='m'?'Morning':'Evening'} Edition · ${x.items.length} ${x.items.length===1?'story':'stories'}</summary><ul>`+x.items.map((a,j)=>`<li><button type="button" data-bi="${esc(x.k)}|${j}">${esc(a.title||a.link)}</button></li>`).join('')+`</ul></details>`).join('')+`</section>`;
 }
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-bi]');if(!b)return;e.preventDefault();const [k,j]=b.dataset.bi.split('|'),x=(S.issues||[]).find(y=>y.k===k),a=x&&x.items[+j];if(a){cur=[a];openReader(a)}},true);
@@ -12132,7 +12134,7 @@ const quietFeeds=()=>S.feeds.filter(f=>{const ds=(items[f.id]||[]).map(a=>a.date
 function renderMng(){const ae=document.activeElement;if(ae&&ae.closest&&ae.closest('#mnglist')&&/INPUT|SELECT|TEXTAREA/.test(ae.tagName||'')){clearTimeout(renderMng.t);renderMng.t=setTimeout(renderMng,1200);return}renderMng0()}
 function renderMng0(){
  const nb=S.feeds.filter(f=>state[f.id]==='err').length,nq=quietFeeds().length;
- $('#mnglist').innerHTML=(S.feeds.length?`<div class="mhead"><b>${S.feeds.length} feeds</b><span>${nb?nb+' need attention':'all loading'}${nq?' · '+nq+' quiet for 60+ days':''}</span>${nq?'<button class="tx2" data-mquiet>Pause the quiet ones</button>':''}</div>`:'')+S.feeds.map(f=>{
+ $('#mnglist').innerHTML=(S.feeds.length?`<div class="mhead"><b>${plu(S.feeds.length,'feed')}</b><span>${nb?nb+' need attention':'all loading'}${nq?' · '+nq+' quiet for 60+ days':''}</span>${nq?'<button class="tx2" data-mquiet>Pause the quiet ones</button>':''}</div>`:'')+S.feeds.map(f=>{
   const h=S.health[f.id]||{},st=state[f.id];
   const status=st==='load'?'Loading…':st==='err'?'Not loading: '+esc(feedReason(f)):st==='ok'?(f.via==='gnews'?`Working through Google News headlines (${whyTxt(f)}), ${(items[f.id]||[]).length} stories`:f.via==='bing'?`Working through Bing headlines (${whyTxt(f)}), ${(items[f.id]||[]).length} stories`:`Working${f.quiet?' (quiet lately: the site hasn’t posted anything new in a while)':''}, ${(items[f.id]||[]).length} ${(items[f.id]||[]).length===1?'story':'stories'}${feedStat(f)}`):'Waiting';const wy=feedWhy(f);
   return `<div class="mrow" data-f="${f.id}"><b class="dot" style="background:${brand(f)}" data-mcol title="Change color"></b><input class="mname" value="${esc(f.title)}" aria-label="Feed name"><select class="mfold" aria-label="Folder">${S.folders.map(x=>`<option value="${x.id}" ${x.id===f.folder?'selected':''}>${esc(x.name)}</option>`).join('')}<option value="" ${S.folders.some(x=>x.id===f.folder)?'':'selected'}>Unfiled</option></select><div class="mst ${st==='err'?'bad':''}">${esc(status+(h.ok?', updated '+ago(h.ok)+' ago':''))}${(st==='err'||f.via)&&wy.length?`<details class="why"><summary>Why?</summary>${wy.map(esc).join('<br>')}</details>`:''}</div><span class="ctl"><button class="tx2" data-mset>Settings</button><button class="tx2" data-mretry>Retry</button>${st==='err'?'<button class="tx2" data-mrep>Repair</button>':''}<button class="tx2" data-mdel>Remove</button></span><label class="mweb"><input type="checkbox" class="mw" ${f.web?'checked':''}> Always open this source in site view</label></div>`;
@@ -14912,7 +14914,7 @@ setInterval(()=>{
  const reading=$('#rd').classList.contains('on')&&curA&&!document.hidden&&(Date.now()-STAT.last<90000||TTS.on&&!TTS.paused);
  const au=EPA,listening=au&&!au.paused;
  if(!reading&&!listening)return;
- const k=dayKey(),d=S.st.d[k]=S.st.d[k]||{m:0,n:0,f:0};d.m+=.25;S.st.hr[new Date().getHours()]+=.25;clearTimeout(pt);pt=setTimeout(SAVE0,2000);
+ const k=dayKey(),d=S.st.d[k]=S.st.d[k]||{m:0,n:0,f:0};d.m+=.25;(S.st.hr=S.st.hr||Array(24).fill(0))[new Date().getHours()]+=.25;clearTimeout(pt);pt=setTimeout(SAVE0,2000);
 },15000);
 function streaks(){
  const ks=Object.keys(S.st.d).filter(k=>S.st.d[k].m>=1||S.st.d[k].n>0).sort();const set=new Set(ks);
@@ -14999,7 +15001,7 @@ function dgLetter(k,pool,unread,fresh){
   if(fav)r+=`${fav[0]} is the site you open most.`;
   paras.push(r.trim());
   let n=`Your feeds published ${stN(fresh.length)} in all${src?`, from ${src} ${src===1?'source':'sources'}`:''}.`;
-  if(nm>=2&&multi!==top)n+=` The story that travelled furthest was ${q(multi.title)}, picked up by ${nm} sources.`;
+  if(nm>=2&&multi!==top)n+=` The story that traveled furthest was ${q(multi.title)}, picked up by ${nm} sources.`;
   paras.push(n);
   let x='';
   if(tps.length)x+=`In the topics you follow, ${tps.map(t=>`${t[0]} has ${t[1]} new`).join(' and ')}. `;
@@ -15088,7 +15090,7 @@ function renderDigest(){
  /* B20: labels say what they mean and jump to their section */
  const nm=(t,c,id)=>`<button type="button" data-edin="${id}">${esc(t)}${c?` <i>${c}</i>`:''}</button>`;
  const names=[...(useNews?[nm('Front page',fp.length,'edin-front')]:[]),...all.map((x,i)=>nm(x[0],x[1].length,'edin-s'+i)),...tsecs.map((x,i)=>nm(x[0],x[1].length,'edin-t'+i)),...(sv.length?[nm(sv.length===1?'1 saved by you':sv.length+' saved by you','','edin-sv')]:[]),...(miss.length?[nm(miss.length===1?"1 you haven't opened":miss.length+" you haven't opened",'','edin-miss')]:[])];
- h+=`<div class="edin"><b>In this issue</b><span>${edN=n+sv.length+miss.length} stories · about ${edM=mn+sv.length*3+miss.length*3} minutes</span><small>${names.join(' · ')}</small></div>`}
+ h+=`<div class="edin"><b>In this issue</b><span>${plu(edN=n+sv.length+miss.length,'story','stories')} · about ${edM=mn+sv.length*3+miss.length*3} minutes</span><small>${names.join(' · ')}</small></div>`}
  const regL=(l,why)=>{const b=cur.length;l.forEach(a=>{cur.push(a);WHY[a.link]=why});return b};
  if(useNews){const b=regL(fp,'On the front page: ranked by how many sources cover it, and how new it is.');h+=`<div class="dsec nws" id="edin-front"><h3>The front page</h3></div>`+(NM==='w'?nrBlocks(fp,b,{seed:3,tv:0,seq:NEWS_W}):nrBlocksPhone(fp,b,{seed:3,seq:NEWS_P})).join('');dgNr=true}
  for(const [ni,[n,l,why,kind]] of all.entries()){h+=`<div class="dsec" id="edin-s${ni}"><h3>${esc(n)}</h3></div>`+(kind==='front'?`<div class="dfront">${mk(l[0],'lead',why)}</div>`+(l.length>1?`<div class="dgrid">${l.slice(1).map(a=>mk(a,'mid',why)).join('')}</div>`:''):kind==='lead'?l.map(a=>mk(a,'lead',why)).join(''):`<div class="dgrid">${l.map(a=>mk(a,'mid',why)).join('')}</div>`)}
@@ -15101,7 +15103,7 @@ function renderDigest(){
  h+=`<div class="back"><blockquote>“${esc(bq.q)}”</blockquote><cite>${esc(bq.by)}</cite><small>${hls.length?'Your highlight of the day':'Quote of the day'} · End of this issue</small></div>`;
  {const sites=new Set(cur.map(a=>a.feedId)).size,mins=cur.reduce((n,a)=>n+(minsOf(a)||3),0),tf=fontKey?FONTS[fontKey()]:'';
   const fn=x=>(String(x||'').split(',')[0]||'').replace(/['"]/g,'').trim()||'Newsreader';
-  h+=`<div class="colo"><b>About this issue</b><p>${esc(title)}, No. ${issue}. ${edN||cur.length} stories from your ${sites===S.feeds.length?S.feeds.length:sites} ${sites===1?'source':'sources'}, about ${edM||mins} minutes of reading. Set in ${esc(fn(tf))} and ${esc(fn(getComputedStyle(document.documentElement).getPropertyValue('--serif')))}. Printed on your own device, and it goes nowhere else.</p></div>`}
+  h+=`<div class="colo"><b>About this issue</b><p>${esc(title)}, No. ${issue}. ${plu(edN||cur.length,'story','stories')} from your ${sites===S.feeds.length?S.feeds.length:sites} ${sites===1?'source':'sources'}, about ${edM||mins} minutes of reading. Set in ${esc(fn(tf))} and ${esc(fn(getComputedStyle(document.documentElement).getPropertyValue('--serif')))}. Printed on your own device, and it goes nowhere else.</p></div>`}
  if(k!=='week'&&isOn('seal')){const nx=nextEdition();h+=sealHtml({title:`That’s the ${k==='evening'?'Evening':'Morning'} Edition.`,sub:'Those are the headlines. Everything else is in All stories.',note:`${nx.name} arrives at ${nx.at}.`,btn:['data-endall','See all stories']})}
  h+='</div>';
  $('#grid').innerHTML=h;$('#grid').classList.toggle('nr',dgNr);$('#grid').classList.toggle('nrp',dgNr&&nrMode()==='p');{const dg=$('#grid').firstElementChild;if(dg)dg.insertAdjacentHTML('afterbegin',bmSeg(k==='week'?'week':'edition'))}
@@ -15162,7 +15164,7 @@ function openYir(){
  requestAnimationFrame(()=>{o.classList.add('in');go(0)});
 }
 async function yirImage(D){
- const c=await quoteImage(`${stN(D.n)}, ${fmtMin(D.m)} of reading. Top source: ${D.src[0]?D.src[0][0]:'—'}. ${D.pe[0]}. Longest streak: ${D.sk.best} days.`,{title:'My '+D.y+' in CyPress',ft:'Year in review',fc:getComputedStyle(document.documentElement).getPropertyValue('--logo').trim()||'#1f4a33'});
+ const c=await quoteImage(`${stN(D.n)}, ${fmtMin(D.m)} of reading. Top source: ${D.src[0]?D.src[0][0]:'—'}. ${D.pe[0]}. Longest streak: ${plu(D.sk.best,'day')}.`,{title:'My '+D.y+' in CyPress',ft:'Year in review',fc:getComputedStyle(document.documentElement).getPropertyValue('--logo').trim()||'#1f4a33'});
  return c;
 }
 
@@ -15599,7 +15601,7 @@ async function loadFeed(f,fresh){
   f.via='';delete f.viaWhy;return list;
  }
  if(f.noRepair)throw new Error('no items');
- const r=await repairFeed(f,false,true);if(r)return items[f.id];
+ const r=await repairFeed(f,false,true);if(r)return items[f.id]||[];
  return await bingFeed(f,'blocked');
 }
 /* B46(9): change monitoring — tap to watch a page (price, stock status…); on-device
@@ -16607,7 +16609,7 @@ async function biSave(){
  try{
   if(!isOn('bi')||!IDB.ok||S.sel!=='today'&&!$('#fin'))return;
   const links=(typeof DGL!=='undefined'?DGL:[]).slice();if(links.length<3)return;
-  const km=edKind(),id=dayKey()+km,stories=[];let img='';
+  const km=edKind(),id=edDay()+km,stories=[];let img='';
   for(const l of links){const a=findStory(l);if(!a)continue;const s=await pdfStory(a,true);if(s&&s.blocks.length){delete s.note;stories.push(s);if(!img&&a.img)img=a.img}}
   if(stories.length<3)return;
   const sig=id+'|'+stories.length;if(S.bisig===sig)return;

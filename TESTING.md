@@ -798,3 +798,6 @@ Cause (by reading, not by running): the widget layouts used a plain `<View>`, wh
 
 ## Post-1.168 (branch only): notification Back 15 / Forward 30 buttons
 Implemented, unverified: Back 15 and Forward 30 are now real notification buttons (were session-only custom actions, vanished once skip buttons were hidden). Order: [Prev] Back15 Play/Pause Fwd30 [Next] Stop. Check they show with and without a queue, and that each seeks.
+
+## Deep-check fixes (branch only)
+Implemented, unverified: Back issues around midnight (no duplicate evening issue), no list redraw while a story is open, offline start smoother, 1.169 widget/notification crash guards. Check: read at 11 PM then open Back issues after midnight.
