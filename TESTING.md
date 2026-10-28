@@ -943,3 +943,4 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 
 ## Lighter feed photos + decode ahead (branch -9l5kv7, preview, unverified)
 - [ ] All Stories: fast first fling on the Fold has fewer hiccups than 1.194; photos still look sharp (not blurry) in tiles, lead cards and list rows; opening a story still shows the full photo.
+- 1.195 result: lighter photos looked less detailed on the Fold -> reverted on branch (1600 cap again); jump-catcher fix confirmed (onscroll 0 ms).

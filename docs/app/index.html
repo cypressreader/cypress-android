@@ -6080,19 +6080,19 @@ function shrinkOff(b,w,h){
  if(!SHW){SHW=new Worker(URL.createObjectURL(new Blob(["onmessage=async e=>{const{i,b,w,h}=e.data;try{const bm=await createImageBitmap(b,{resizeWidth:w,resizeHeight:h,resizeQuality:'high'}),c=new OffscreenCanvas(bm.width,bm.height);c.getContext('2d').drawImage(bm,0,0);bm.close();postMessage({i,o:await c.convertToBlob({type:'image/jpeg',quality:.85})})}catch(x){postMessage({i})}}"],{type:'text/javascript'})));SHW.onmessage=e=>{const f=SHP.get(e.data.i);SHP.delete(e.data.i);if(f)f(e.data.o)}}
  return new Promise(f=>{const i=++SHN;SHP.set(i,f);SHW.postMessage({i,b,w,h})});
 }
-async function shrinkImg(im,t){
+async function shrinkImg(im){
  const u=im.src;im._sm=1;im.style.visibility='hidden';
  try{
-  const w=Math.min(t||1600,im.naturalWidth),bk=u+'|'+w;let s=BIGM.get(bk);
+  let s=BIGM.get(u);
   if(!s){const r=await fetch(u,NATIVE?{headers:NHDR}:{referrerPolicy:'no-referrer',credentials:'omit'});if(!r.ok)throw 0;
-   const o=await shrinkOff(await r.blob(),w,Math.max(1,Math.round(im.naturalHeight*w/im.naturalWidth)));if(!o)throw 0;
-   s=URL.createObjectURL(o);BIGM.set(bk,s);if(BIGM.size>80){const k=BIGM.keys().next().value;URL.revokeObjectURL(BIGM.get(k));BIGM.delete(k)}}
+   const w=Math.min(1600,im.naturalWidth),o=await shrinkOff(await r.blob(),w,Math.max(1,Math.round(im.naturalHeight*w/im.naturalWidth)));if(!o)throw 0;
+   s=URL.createObjectURL(o);BIGM.set(u,s);if(BIGM.size>80){const k=BIGM.keys().next().value;URL.revokeObjectURL(BIGM.get(k));BIGM.delete(k)}}
   if(im.src===u){im.dataset.big=u;im.src=s}
  }catch(e){}
  im.style.visibility='';
 }
-/* lighter photos: a feed photo is also shrunk to the size its card shows it at (card size from cvAhead, scaled for a cropped fill), so a fast first fling decodes far fewer pixels; the full photo still opens in the story */
-document.addEventListener('load',e=>{const im=e.target;if(!im||im.tagName!=='IMG'||!im.closest('#grid'))return;const nw=im.naturalWidth,t=im._w?Math.min(1600,Math.ceil(Math.max(im._w,im._h*nw/Math.max(1,im.naturalHeight))*devicePixelRatio)):1600;if(!im._sm&&/^https?:/.test(im.src)&&(nw>1600||nw>t*1.25)&&typeof OffscreenCanvas==='function'&&window.createImageBitmap){shrinkImg(im,t);return}/* decoded now, before it scrolls in, so the first pass doesn't wait on it */if(im.decode)im.decode().catch(()=>{})},true);
+/* 1.196: shrinking photos to the card's size (1.195) made them look less detailed on the Fold, so only photos over 1600 pixels are shrunk again */
+document.addEventListener('load',e=>{const im=e.target;if(!im||im.tagName!=='IMG'||!im.closest('#grid'))return;if(!im._sm&&/^https?:/.test(im.src)&&im.naturalWidth>1600&&typeof OffscreenCanvas==='function'&&window.createImageBitmap){shrinkImg(im);return}/* decoded now, before it scrolls in, so the first pass doesn't wait on it */if(im.decode)im.decode().catch(()=>{})},true);
 function imgPixels(url){return new Promise(async res=>{
  let done=false;const fin=v=>{if(!done){done=true;res(v)}};setTimeout(()=>fin(null),9000);
  /* decode the photo off the main thread, straight to a tiny bitmap, so scrolling never stalls on a full-size decode */
@@ -17091,7 +17091,7 @@ function catchUp(){
 }
 /* draw cards up to ~3 screens ahead and behind; farther ones go back to being skipped, so long lists stay light (also run when setBlocks adds more cards) */
 function cvAhead(more){
- const io=cvAhead.io=cvAhead.io||new IntersectionObserver(es=>es.forEach(e=>{e.target.classList.toggle('nv',e.isIntersecting);/* fetch the photo now, not ~1250px out, so fast flings don't reach empty cards */if(e.isIntersecting){const b=e.boundingClientRect;e.target.querySelectorAll('img').forEach(i=>{i._w=b.width;i._h=b.height;if(i.loading==='lazy')i.loading='eager'})}}),{root:$('main'),rootMargin:'2500px 0px'});
+ const io=cvAhead.io=cvAhead.io||new IntersectionObserver(es=>es.forEach(e=>{e.target.classList.toggle('nv',e.isIntersecting);/* fetch the photo now, not ~1250px out, so fast flings don't reach empty cards */if(e.isIntersecting)e.target.querySelectorAll('img[loading=lazy]').forEach(i=>{i.loading='eager'})}),{root:$('main'),rootMargin:'2500px 0px'});
  /* a full redraw starts afresh; cards added while scrolling are only added, so the hundreds already watched aren't all re-measured at once */if(!more)io.disconnect();$('#grid').querySelectorAll('.card,.wcol').forEach(c=>{if(more&&c._cv===io)return;c._cv=io;io.observe(c)});
 }
 /* live dot: a card from the last 6 hours whose headline names a topic in the Developing row gets the row's red dot before its headline */
