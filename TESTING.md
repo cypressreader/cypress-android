@@ -867,3 +867,7 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Daily cover headline rises in word by word the first time each day (not with Reduce motion or battery saver); no clipped letters (g, y, p).
 - Appearance > Tinted photos: photos in feed, cover and story turn two-tone in the theme colors; switching theme recolors them.
 - Review fixes: a site with its own reading speed keeps the word highlight in step; side menu Saved count leaves out archived stories; tinted photos in Dynamic/Light/Sepia Rosewood use the ink and page colors (not one flat color); headline rise carries on smoothly if stories finish loading mid-animation.
+
+## After 1.176 (recording 2026-10-28, preview, unverified on phone)
+- Fling to the end of a folder (Science): the top bar stays put, no gap above the "Earlier" label, no stretch bounce. Pull-to-refresh at the top still works.
+- Fast fling through All Stories: no blank white or flat-color cards, no jump as cards fill in; scrolling stays smooth on the Fold.

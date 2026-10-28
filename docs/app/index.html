@@ -944,7 +944,7 @@ html.rmo .book>.rdedge>i,html.lowp .book>.rdedge>i{transition:none}
 #swl.sv{background:#c99a12;justify-content:flex-end}#swl.rdm{background:#2f7d57;justify-content:flex-start}
 #swl span{display:flex;align-items:center;gap:8px;opacity:.75;transform:scale(.92);transition:transform .15s,opacity .15s}
 #swl.hit span{opacity:1;transform:scale(1.08)}#swl.out{opacity:0}
-main{overscroll-behavior-y:contain}
+main{overscroll-behavior-y:none}
 #pts{position:absolute;top:0;bottom:0;right:0;display:flex;align-items:center;gap:6px;padding:0 6px 0 8px;background:var(--tint,var(--bg));z-index:4;opacity:0;pointer-events:none;transition:opacity .15s;color:var(--logo)}
 #pts.on{opacity:1}
 #pts .ptg{position:relative;width:46px;height:46px;flex:none}#pts .ptg svg{display:block}#pts .ptg path{stroke-dasharray:100;stroke-dashoffset:calc(100 - var(--p1,0)*100)}#pts .ptg path.pt2{stroke-dashoffset:calc(100 - var(--p2,0)*100)}#pts.ptready .ptg svg,#pts.busy .ptg svg{fill:color-mix(in srgb,currentColor 16%,transparent)}
@@ -4752,6 +4752,8 @@ html #grid .card.noimg:not(.list-row):not(.nr-row):not(.nr-late):not(.nr-quote):
 #set .sbox .tg.on::after{background:#e8c878}
 @media(prefers-reduced-motion:reduce){#toast,.sky *{transition:none!important;animation:none!important}}
 html.ptduo :is(#grid,.dcv-art,#rd) img{filter:url(#duo)!important}
+/* cards about to scroll into view are drawn ahead of time (cvAhead), so a quick fling doesn't land on blank cards that then grow and push the page */
+#grid :is(.card,.card.nr-row,.card.nr-late,.wcol).nv{content-visibility:visible}
 /* Bigger buttons setting: finger-size icon buttons, tabs, switches and hands-free controls */
 html.bigtap .ib{width:46px!important;height:46px!important}html.bigtap #tabs button{min-height:56px}html.bigtap .tg{min-width:64px;min-height:40px}html.bigtap #afx button{min-width:48px;min-height:48px}
 </style></head>
@@ -17015,6 +17017,12 @@ function catchUp(){
  toast('Catch-up: '+out.length+(out.length===1?' story':' stories')+', about '+Math.max(1,Math.round(mins))+' minutes');
  openReader(out[0]);
 }
+/* draw cards up to ~3 screens ahead and behind; farther ones go back to being skipped, so long lists stay light */
+function cvAhead(){
+ const io=cvAhead.io=cvAhead.io||new IntersectionObserver(es=>es.forEach(e=>e.target.classList.toggle('nv',e.isIntersecting)),{root:$('main'),rootMargin:'2500px 0px'});
+ io.disconnect();$('#grid').querySelectorAll('.card,.wcol').forEach(c=>io.observe(c));
+}
+{const _r=render;render=function(){_r.apply(this,arguments);try{cvAhead()}catch(e){}}}
 /* Surprise me: one random unread story from the last five days; a random site first, so busy sites don't crowd out quiet ones */
 function surprise(){
  const now=Date.now(),fs=S.feeds.filter(f=>!paused(f)).map(f=>(items[f.id]||[]).filter(a=>a&&a.link&&!S.read[a.link]&&!muted(a)&&a.date>now-120*36e5)).filter(l=>l.length);
