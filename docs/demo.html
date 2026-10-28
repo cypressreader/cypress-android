@@ -4831,8 +4831,7 @@ html.micro:not(.lowp):not(.smooth).gbar:is([data-theme=halcyon],[data-theme=halc
 #tabs .tpill{position:absolute;left:0;top:0;width:64px;height:30px;border-radius:15px;background:color-mix(in srgb,var(--tabc,var(--logo)) 20%,transparent);pointer-events:none;z-index:0}
 #tabs button{z-index:1}#tabs.pl button.on::before{display:none}:root[data-theme^=halcyon]{--tabc:#c9a24a}
 html.micro #tabs .tpill.mv{transition:transform .38s cubic-bezier(.3,1.35,.5,1)}
-/* All Stories: section labels stick under the top bar until the next one pushes them away; the old section bar takes the same brass hairline */
-#grid:has(>.tm-day)>h3.dsh.wsec{position:sticky;top:var(--toph,64px);padding-top:8px;box-shadow:0 0 0 clamp(14px,3vw,32px) var(--bg);clip-path:inset(0 calc(-1*clamp(14px,3vw,32px)))}/* the background reaches the screen edges, where picture breaks bleed */
+/* the old section bar takes the same brass hairline */
 .sech{border-bottom-color:color-mix(in srgb,var(--a2,var(--ln)) 55%,var(--ln))}.sech h2{font-family:var(--disp,var(--serif));font-weight:500}
 #grid.wire .card.noimg:not(.lead):not(.nr-lead):not(.nr-hero) p.lq{font-size:clamp(17px,3.6vw,20px);margin:8px 0}
 @media(prefers-reduced-motion:reduce){.top h1{transition:none}#grid :is(.tm-day,.fmast) h2{animation:none}}
@@ -6783,12 +6782,12 @@ function wireChrome(){
   const mTop=m.getBoundingClientRect().top,sTop=m.scrollTop;
   WC.secs=[...g.querySelectorAll('.wsec')].map(s=>({el:s,y:s.getBoundingClientRect().top-mTop+sTop}));
   WC.cards=[...g.querySelectorAll('.card[data-i],.wcol[data-i],.wmom[data-i]')].map(c=>{const r=c.getBoundingClientRect();return{el:c,bot:r.bottom-mTop+sTop,i:+c.dataset.i}});
-  WC.ci=0;WC.stk=!!g.querySelector(':scope>.tm-day');
+  WC.ci=0;
  }
  const sTop=m.scrollTop,hbRel=hb-mr.top+sTop;
  let cs=null,nx=null;
  for(const s of WC.secs){if(s.y<=hbRel+1)cs=s.el;else{nx=s;break}}
- const showPin=!!(cs&&sTop>40&&!WC.stk),nxTop=showPin&&nx?(nx.y-sTop+mr.top):0;
+ const showPin=!!(cs&&sTop>40),nxTop=showPin&&nx?(nx.y-sTop+mr.top):0;
  const cards=WC.cards,limRel=hb+24-mr.top+sTop;let n=0;
  if(cards.length){let i=Math.min(WC.ci||0,cards.length-1);
   while(i>0&&cards[i-1].el.isConnected&&cards[i-1].bot>limRel)i--;
@@ -6802,7 +6801,6 @@ function wireChrome(){
   const push=nx?Math.min(0,nxTop-hb-ph):0,css=`left:${mr.left}px;width:${mr.width}px;top:${hb}px;transform:translateY(${push}px)`;
   if(pin.style.cssText!==css)pin.style.cssText=css;if(pin.hidden)pin.hidden=false;
  }else if(!pin.hidden)pin.hidden=true;
- if(WC.stk&&WC.hb!==(hb|0)){WC.hb=hb|0;document.documentElement.style.setProperty('--toph',WC.hb+'px')}
  const M=cur.length;
  if(M&&n){const css=`left:${mr.left}px;width:${mr.width}px`;if(hl.hidden)hl.hidden=false;if(hl.style.cssText!==css)hl.style.cssText=css;const wd=(Math.min(1,n/M)*100).toFixed(1)+'%';if(hl.firstChild.style.width!==wd)hl.firstChild.style.width=wd;
 }
