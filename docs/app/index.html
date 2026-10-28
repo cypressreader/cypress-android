@@ -6073,7 +6073,7 @@ offApply(false);
 
 /* ---------- photo color + face-aware text placement ---------- */
 const IINFO=new Map(),IBLOB=new Map();let IIS={};try{IIS=JSON.parse(localStorage.getItem('folio-imgi')||'{}')}catch(e){}
-/* oversized photos (some sites send 8000-pixel originals, 30+ megapixels) are shrunk once to at most 1600 pixels wide, decoded off the main thread, before they are first drawn: decoding the original held the screen for 300 ms each time one scrolled into view */
+/* oversized photos (some sites send 8000-pixel originals; 1.191 Fold check: 2560-wide photos still held frames 50-90 ms) are shrunk once to at most 1600 pixels wide, decoded off the main thread, before they are first drawn: decoding the original held the screen for 300 ms each time one scrolled into view */
 const BIGM=new Map();
 async function shrinkImg(im){
  const u=im.src;im._sm=1;im.style.visibility='hidden';
@@ -6087,7 +6087,7 @@ async function shrinkImg(im){
  }catch(e){}
  im.style.visibility='';
 }
-document.addEventListener('load',e=>{const im=e.target;if(!im||im.tagName!=='IMG'||im._sm||!/^https?:/.test(im.src)||im.naturalWidth*im.naturalHeight<6e6||typeof OffscreenCanvas!=='function'||!window.createImageBitmap||!im.closest('#grid'))return;shrinkImg(im)},true);
+document.addEventListener('load',e=>{const im=e.target;if(!im||im.tagName!=='IMG'||im._sm||!/^https?:/.test(im.src)||im.naturalWidth<=1600||typeof OffscreenCanvas!=='function'||!window.createImageBitmap||!im.closest('#grid'))return;shrinkImg(im)},true);
 function imgPixels(url){return new Promise(async res=>{
  let done=false;const fin=v=>{if(!done){done=true;res(v)}};setTimeout(()=>fin(null),9000);
  /* decode the photo off the main thread, straight to a tiny bitmap, so scrolling never stalls on a full-size decode */

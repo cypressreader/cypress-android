@@ -934,3 +934,6 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 ## Scroll round 9 (1.191, 2026-10-28) — implemented, unverified
 - Feed with a huge publisher photo (the 8087px one in f:g17907000001694): the photo appears a moment after its card, then scrolling past it repeatedly never stalls. Scroll check "photos loaded" largest should read 1600px or less.
 - Photos still look sharp on the open Fold (shrunk copies are 1600px wide).
+
+## Photo shrink round 2 (after 1.191, unverified)
+- Every feed photo wider than 1600px is now shrunk (was only >6 MP). Fold scroll check: "photos loaded" largest should read ≤1600px; slow frames (1.191: 1%, worst 92 ms) should drop. Watch for a brief blank on big photos as they load.
