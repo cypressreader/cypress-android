@@ -886,3 +886,10 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] Scroll partway down a folder, swipe the app away to the background, reopen: you're back at the same story.
 - [ ] Fast flings down a long folder in Cards view: cards further down arrive drawn with photos (no white boxes, page doesn't lurch as it grows).
 - [ ] Tapping folders in the side bar feels quicker (was ~320 ms on the Fold).
+
+## 1.180 picks
+- [ ] Open Fold held upright, Side-by-side = "When held sideways or on a square screen": stories open beside the list.
+- [ ] Finish a story with related reads: heading reads "More on <names>" when they share names, else "Related reads".
+- [ ] A story other sites also covered: the "other sources cover this" box shows up to two of their headlines.
+- [ ] The Daily cover: soft seasonal color at the top, "· Fall" in the edition line (Seasonal touches on).
+- [ ] Saturday/Sunday: The Daily's long-read section is called "Weekend Reads" with up to 9 stories.
