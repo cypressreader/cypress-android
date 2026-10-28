@@ -861,3 +861,8 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Read aloud: with "Read photo captions" Off (default), the voice skips the text under pictures; On reads them.
 - Daily: "Surprise me" button beside Catch me up opens a random unread story (last 5 days).
 - Settings > Bigger buttons: round buttons, bottom tabs, switches and hands-free controls grow; nothing overlaps on the phone or Fold.
+- Manage feeds: header counts "N you never open"; such a site's row adds "You haven't opened any of its latest stories".
+- Feed settings: "Reading voice" and "Reading speed" for one site; read one of its stories aloud and hear the change; other sites keep the main setting.
+- Saved: a story read and saved over 30 days ago moves to the "Archive" chip; All count drops; a fully archived list shows "All caught up".
+- Daily cover headline rises in word by word the first time each day (not with Reduce motion or battery saver); no clipped letters (g, y, p).
+- Appearance > Tinted photos: photos in feed, cover and story turn two-tone in the theme colors; switching theme recolors them.
