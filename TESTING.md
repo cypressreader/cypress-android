@@ -871,3 +871,7 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 ## After 1.176 (recording 2026-10-28, preview, unverified on phone)
 - Fling to the end of a folder (Science): the top bar stays put, no gap above the "Earlier" label, no stretch bounce. Pull-to-refresh at the top still works.
 - Fast fling through All Stories: no blank white or flat-color cards, no jump as cards fill in; scrolling stays smooth on the Fold.
+
+## Picks after 1.177 (preview, unverified on phone)
+- All Stories: a card from the last 6 hours whose headline names a Developing topic shows a small red dot before its headline (pulses only with micro motion on).
+- Open the app after 3+ days away: about 10 s later a "Welcome back" note offers Catch me up; tapping it opens the catch-up.

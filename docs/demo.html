@@ -4874,6 +4874,7 @@ html #grid .card.noimg:not(.list-row):not(.nr-row):not(.nr-late):not(.nr-quote):
 html.ptduo :is(#grid,.dcv-art,#rd) img{filter:url(#duo)!important}
 /* cards about to scroll into view are drawn ahead of time (cvAhead), so a quick fling doesn't land on blank cards that then grow and push the page */
 #grid :is(.card,.card.nr-row,.card.nr-late,.wcol).nv{content-visibility:visible}
+#grid .cdot{display:inline-block;flex:none;box-sizing:border-box;padding:0;width:7px;height:7px;border-radius:50%;background:#c62828;margin:0 .4em .12em 0;vertical-align:middle;position:relative;text-decoration:none}html.micro:not(.rmo):not(.lowp) #grid .cdot::after{content:"";position:absolute;inset:0;border-radius:50%;background:#c62828;animation:wping 1.8s ease-out infinite}@media(prefers-reduced-motion:reduce){#grid .cdot::after{animation:none}}
 /* Bigger buttons setting: finger-size icon buttons, tabs, switches and hands-free controls */
 html.bigtap .ib{width:46px!important;height:46px!important}html.bigtap #tabs button{min-height:56px}html.bigtap .tg{min-width:64px;min-height:40px}html.bigtap #afx button{min-width:48px;min-height:48px}
 </style></head>
@@ -17142,7 +17143,13 @@ function cvAhead(){
  const io=cvAhead.io=cvAhead.io||new IntersectionObserver(es=>es.forEach(e=>e.target.classList.toggle('nv',e.isIntersecting)),{root:$('main'),rootMargin:'2500px 0px'});
  io.disconnect();$('#grid').querySelectorAll('.card,.wcol').forEach(c=>io.observe(c));
 }
-{const _r=render;render=function(){_r.apply(this,arguments);try{cvAhead()}catch(e){}}}
+/* live dot: a card from the last 6 hours whose headline names a topic in the Developing row gets the row's red dot before its headline */
+function liveDots(){
+ const g=$('#grid'),ws=[...g.querySelectorAll('.wtrend [data-trend]')].map(b=>b.dataset.trend.toLowerCase());if(!ws.length)return;
+ const lim=Date.now()-6*36e5,re=new RegExp('\\b('+ws.map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\\b','i');
+ g.querySelectorAll('.card[data-i]').forEach(c=>{const a=cur[+c.dataset.i],h=c.querySelector('h3,h2');if(!a||!h||h.querySelector('.cdot')||!(a.date>lim)||!re.test(a.title||''))return;h.insertAdjacentHTML('afterbegin','<i class="cdot" aria-hidden="true"></i>')});
+}
+{const _r=render;render=function(){_r.apply(this,arguments);try{cvAhead()}catch(e){}try{liveDots()}catch(e){}}}
 /* Surprise me: one random unread story from the last five days; a random site first, so busy sites don't crowd out quiet ones */
 function surprise(){
  const now=Date.now(),fs=S.feeds.filter(f=>!paused(f)).map(f=>(items[f.id]||[]).filter(a=>a&&a.link&&!S.read[a.link]&&!muted(a)&&a.date>now-120*36e5)).filter(l=>l.length);
@@ -17150,6 +17157,9 @@ function surprise(){
  const l=fs[Math.random()*fs.length|0],a=l[Math.random()*l.length|0];
  cur=[a];WHY[a.link]=WHY[a.link]||'Picked at random for you.';openReader(a);
 }
+/* back after 3+ days away: offer Catch me up once the stories have loaded */
+{const now=Date.now(),away=S.lastOpen&&now-S.lastOpen>3*864e5;S.lastOpen=now;saveSoon();document.addEventListener('visibilitychange',()=>{S.lastOpen=Date.now();saveSoon()});
+ if(away)setTimeout(()=>{try{if(!$('#rd').classList.contains('on'))toast('Welcome back. Want the best of what you missed?',catchUp,'Catch me up')}catch(e){}},10000)}
 async function kindleAddr(force){
  if(S.kindle&&!force)return S.kindle;
  const v=await askBox({title:"Your Kindle's @kindle.com address",text:'This field wants your Kindle\u2019s own address, ending in @kindle.com \u2014 find it in your Amazon account under Devices, then Preferences.\n\nSeparately, in the same Amazon settings, add the email address you send from to the approved-sender list, or Amazon will drop the file.\n\nCyPress keeps this on your device only.',input:true,value:S.kindle||'',placeholder:'you@kindle.com',ok:'Save',cancel:'Cancel'});
