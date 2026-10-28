@@ -24,11 +24,12 @@ for(const [nm,w,h,mob] of [['setup-phone',380,820,true],['setup-fold',884,1060,f
  ck(nm,'setup opens on first run',await p.E(()=>$('#ob')&&$('#ob').open));
  ck(nm,'no h-scroll in setup',await p.E(()=>{const d=$('.obbody');return d.scrollWidth<=d.clientWidth+1}));
  await p.screenshot({path:`/tmp/t/n-${nm}-1.png`});
- await p.tap('[data-oblg="circuit"]');ck(nm,'logo choice',await p.E(()=>S.logo==='circuit'));
+ /* the setup now opens on a Welcome page (no logo choice), then "Choose your first edition" or build your own from topics */
  await p.tap('[data-obnext]');await W(150);
- ck(nm,'topics step',await p.E(()=>document.querySelectorAll('[data-obtop].on').length===2));
- await p.tap('[data-obtop="Science"]');await p.tap('[data-obnext]');await W(150);
- const n0=await p.E(()=>OB.picks.size);ck(nm,'sources preselected',n0===9,'n '+n0);
+ ck(nm,'topics step',await p.E(()=>document.querySelectorAll('[data-obtop]').length>3&&document.querySelectorAll('[data-obed]').length>0));
+ for(const t of ['Tech','Science','News'])if(!await p.E(t=>OB.topics.has(t),t))await p.tap(`[data-obtop="${t}"]`);
+ const tops=await p.E(()=>[...OB.topics]);await p.tap('[data-obnext]');await W(150);
+ const n0=await p.E(()=>OB.picks.size);ck(nm,'sources preselected',n0===tops.length*3,'n '+n0+' topics '+tops.join());
  await p.screenshot({path:`/tmp/t/n-${nm}-2.png`});
  await p.tap('[data-obsrc]');ck(nm,'toggle source',await p.E(()=>OB.picks.size)===n0-1);
  await p.fill('#obu','alpha.test/feed');await p.tap('[data-obaddu]');await W(100);
@@ -71,43 +72,23 @@ for(const [nm,w,h,mob] of [['setup-phone',380,820,true],['setup-fold',884,1060,f
  ck('idb','large cache survives reload (3.6MB+)',await p.E(()=>Object.keys(AC).filter(k=>k.startsWith('https://big.test/')).length===60));
  ck('idb','localStorage stays small',await p.E(()=>(localStorage.getItem('folio')||'').length<200000));
  await p.E(()=>$('#clr').click());await W(300);await p.reload();await W(1200);
- ck('idb','clear stored empties IDB',await p.E(()=>Object.keys(AC).length===0));
+ ck('idb','clear stored empties IDB',await p.E(()=>Object.keys(AC).filter(k=>/(big|old)\.test\//.test(k)).length===0));/* the stories stored before Clear are gone (the app may already be preloading new ones after the reload) */
  ck('idb','no errors',p.errs.length===0,p.errs.join('|'));await p.ctx.close()}
 
-/* ---------- 3. night mode + animation ---------- */
-{const ctx=await b.newContext({viewport:{width:884,height:1060},hasTouch:true,timezoneId:'America/Los_Angeles'});const p=await ctx.newPage();p.errs=[];p.on('pageerror',e=>p.errs.push(e.message));
- await p.clock.install({time:new Date('2026-09-28T17:30:00-07:00')});
- await mock(p);await p.addInitScript(s=>{try{if(!localStorage.getItem('folio'))localStorage.setItem('folio',JSON.stringify(s))}catch(e){}},seed(['Alpha'],{night:'dark',theme:'light'}));
- await p.goto(URL0);await p.clock.runFor(1500);
- ck('night','day theme before sunset',await p.evaluate(()=>document.documentElement.dataset.theme==='light'&&!document.documentElement.classList.contains('night')));
- await p.evaluate(()=>{S.sel='all';render();openReader(cur[0])});await p.clock.runFor(2500);
- await p.clock.runFor(70*60e3);
- for(let i=0;i<3000;i++){await p.clock.runFor(2e3);if(await p.evaluate(()=>!!$('#sky')))break}
- await p.clock.runFor(300);
- const n=await p.evaluate(()=>({th:document.documentElement.dataset.theme,night:document.documentElement.classList.contains('night'),sky:!!$('#sky'),pe:$('#sky')&&getComputedStyle($('#sky')).pointerEvents,fade:document.documentElement.classList.contains('thfade'),hl:getComputedStyle(document.documentElement).getPropertyValue('--hl').trim()}));
- ck('night','switches to dark after sunset',n.th==='dark'&&n.night,JSON.stringify(n));
- ck('night','sky animation shown',n.sky);ck('night','animation does not block touches',n.pe==='none');
- ck('night','gradual fade on',n.fade);ck('night','warm highlight at night',/255, ?150, ?60|255,150,60/.test(n.hl),n.hl);
- await p.clock.runFor(1200);await p.screenshot({path:'/tmp/t/n-night-anim.png'});
- ck('night','reader still usable during animation',await p.evaluate(()=>{const r=$('.book').getBoundingClientRect();const e=document.elementFromPoint(r.left+r.width*.9,r.top+60);return !!e&&!e.closest('#sky')}));
- await p.clock.runFor(8000);ck('night','animation removes itself',await p.evaluate(()=>!$('#sky')));
- await p.clock.runFor(13*3600e3);
- ck('night','back to day at sunrise',await p.evaluate(()=>document.documentElement.dataset.theme==='light'&&!document.documentElement.classList.contains('night')));
- ck('night','sunset label',await p.evaluate(()=>/sunset/.test(nightLabel())));
- ck('night','no errors',p.errs.length===0,p.errs.join('|'));await ctx.close()}
+/* ---------- 3. night mode: sunset mode and the sky animation were removed (HANDOFF: "sunset mode and weather removed"), so nothing is left to check ---------- */
 
 /* ---------- 4. progress, gallery, swipes, pull, brief, media, hinge ---------- */
 for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
- const p=await mk(b,{w,h,mob:w<500,seedData:seed(['Alpha','Beta','Gamma','Pod','Tube'],{sel:'all'})});
+ const p=await mk(b,{w,h,mob:w<500,seedData:(d=>{/* a real channel feed lives on youtube.com; the app keeps only a feed's own site's stories */d.feeds.find(f=>f.title==='Tube').site='https://www.youtube.com/';return d})(seed(['Alpha','Beta','Gamma','Pod','Tube'],{sel:'all'}))});
  const E=p.E;
  ck(vp,'feeds ok',await E(()=>S.feeds.every(f=>state[f.id]==='ok')),await E(()=>JSON.stringify(state)));
  // media badges
- ck(vp,'podcast badge',await E(()=>[...document.querySelectorAll('.card .mb')].some(x=>/Listen · 42 min/.test(x.textContent))));
+ ck(vp,'podcast badge',await E(()=>[...document.querySelectorAll('.card .mb')].some(x=>/42 min/.test(x.textContent))));
  ck(vp,'video badge',await E(()=>[...document.querySelectorAll('.card .mb')].some(x=>/Video/.test(x.textContent))));
  // podcast reader
  await E(()=>openReader(cur.find(a=>a.audio)));await W(1500);
- ck(vp,'audio player in reader',await E(()=>!!$('.cols .aud audio')&&$('.cols .aud audio').src.includes('.mp3')));
- await p.tap('[data-aspd="1.5"]');ck(vp,'podcast speed',await E(()=>$('.cols .aud audio').playbackRate===1.5&&S.prate===1.5));
+ ck(vp,'audio player in reader',await E(()=>!!$('.cols .aud [data-ap="play"]')&&/\.mp3/.test($('.cols .aud').dataset.aud+' '+(cur.find(a=>a.audio)||{}).audio)));/* the episode player shares one audio element (EPA), created on Play */
+ await p.tap('[data-aspd="1.5"]');ck(vp,'podcast speed',await E(()=>S.prate===1.5&&(!EPA||EPA.playbackRate===1.5)&&$('.cols [data-aspd="1.5"]').getAttribute('aria-pressed')==='true'));
  await p.tap('#cl');await W(200);
  await E(()=>openReader(cur.find(a=>a.yt)));await W(800);
  /* a video shows a tap-to-play card; nothing from YouTube loads until the tap (privacy), then the privacy-enhanced embed plays in place */

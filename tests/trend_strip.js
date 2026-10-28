@@ -23,7 +23,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    for(const t of ['latest','top','quick','deep']){S.sel='all';S.atab=t;_lastSel=null;render();await w(700);r['tab_'+t]=st()}
    S.atab='latest';S.sel='all';render();await w(700);document.querySelector('.wtrend [data-trend]').click();await w(700);
    r.topicOpen=!!document.querySelector('.tmast');r.noSearchBar=!document.querySelector('#srch.open');
-   document.querySelector('[data-topicx]').click();await w(600);r.topicClosed=!document.querySelector('.tmast')&&document.querySelector('#q').value==='';
+   document.querySelector('[data-topicx]').click();await w(600);r.topicClosed=!document.querySelector('[data-topicx]')&&/* All stories has its own .tmast heading; the topic header is the one with the close button */document.querySelector('#q').value==='';
    document.querySelector('.wtrend [data-trend]').click();await w(500);S.sel='saved';render();await w(400);r.topicEndsOnLeave=!document.querySelector('.tmast')&&document.querySelector('#q').value==='';
    return r});
   for(const k in out)ck(W+' strip '+k,out[k]===true,JSON.stringify(out));

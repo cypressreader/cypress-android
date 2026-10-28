@@ -13,7 +13,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
  await p.waitForTimeout(11000);const n2=await p.evaluate(()=>({t:(document.querySelector('.cols .note')||{}).textContent||'',btn:!!document.querySelector('.cols .note [data-web]'),retry:!!document.querySelector('.cols .note [data-retry]')}));
  ck('it starts with the plain loading line',/^Loading the full article/.test(n0),n0);
  ck('after a few seconds it shows real progress (seconds and the route being tried)',/Loading the full article… .*route \d of \d.*·\s*\d+s|·\s*\d+s/.test(n1),n1);
- ck('after 16 seconds it says so honestly and offers "View the site in the app", Try again and the original',/Taking too long/.test(n2.t)&&n2.btn&&n2.retry&&/View the site in the app/.test(n2.t),JSON.stringify(n2));
+ ck('after 16 seconds it says so honestly and offers "View the site in the app" and the original (it keeps trying by itself)',/slow to answer|checking for bots/.test(n2.t)&&n2.btn&&/View the site in the app/.test(n2.t),JSON.stringify(n2));
  ck('no page errors',!errs.length,errs[0]);
  await ctx.close();await b.close();console.log(bad?'slow_load '+bad+' FAILED':'slow_load all passed');process.exit(bad?1:0);
 })();

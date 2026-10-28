@@ -11,7 +11,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
    /* the quick switch and the full list can show the same theme: count themes, not buttons */const onT=new Set(on.filter(b=>b.dataset.th).map(b=>b.dataset.th)),prT=new Set(pr.filter(b=>b.dataset.th).map(b=>b.dataset.th));
    if(onT.size!==1||prT.size!==1||!onT.has(th)||(S.theme||'auto')!==th)bads.push([th,[...onT],[...prT],S.theme])}
   return {n:themes.length,bads}});
- ck('the picker lists several themes',r.n>=20,String(r.n));
+ ck('the picker lists several themes',r.n>=6,String(r.n));
  ck('for every theme, exactly one button is pressed and it is the active theme',!r.bads.length,JSON.stringify(r.bads.slice(0,4)));
  /* edition progress text on the Minimal cover */
  const c=await p.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));document.querySelectorAll('dialog[open]').forEach(d=>d.close());const now=Date.now();

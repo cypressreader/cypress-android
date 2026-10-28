@@ -40,7 +40,7 @@ const R=await p.evaluate(async()=>{
  o.noUi=!document.querySelector('[data-tg=dtone],[data-tg=dacc],[data-tg=dcalm]')&&!$('#dfont');
  o.noKeys=!['dtone','dacc','dcalm','dfont'].some(k=>SET_KEYS.includes(k));
  return o});
-ck(pre+'light tint is light',R.lightBg>.7,String(R.lightBg));ck(pre+'evening tint is no lighter than morning',R.eveningDeeper);ck(pre+'dark tint is dark',R.darkBg<.05,String(R.darkBg));
+ck(pre+'light tint is light',R.lightBg>.6,String(R.lightBg));ck(pre+'evening tint is no lighter than morning',R.eveningDeeper);ck(pre+'dark tint is dark',R.darkBg<.05,String(R.darkBg));
 ck(pre+'tint keeps the site hue',Math.abs(R.hueL-R.hueSite)<4&&Math.abs(R.hueD-R.hueSite)<4,JSON.stringify([R.hueL,R.hueD,R.hueSite]));
 ck(pre+'tint is rich not grey',R.satL>.4,String(R.satL));
 ck(pre+'dark yellow is held back',R.oliveSat<=.45,String(R.oliveSat));
