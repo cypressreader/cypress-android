@@ -6073,6 +6073,21 @@ offApply(false);
 
 /* ---------- photo color + face-aware text placement ---------- */
 const IINFO=new Map(),IBLOB=new Map();let IIS={};try{IIS=JSON.parse(localStorage.getItem('folio-imgi')||'{}')}catch(e){}
+/* oversized photos (some sites send 8000-pixel originals, 30+ megapixels) are shrunk once to at most 1600 pixels wide, decoded off the main thread, before they are first drawn: decoding the original held the screen for 300 ms each time one scrolled into view */
+const BIGM=new Map();
+async function shrinkImg(im){
+ const u=im.src;im._sm=1;im.style.visibility='hidden';
+ try{
+  let s=BIGM.get(u);
+  if(!s){const r=await fetch(u,NATIVE?{headers:NHDR}:{referrerPolicy:'no-referrer',credentials:'omit'});if(!r.ok)throw 0;
+   const w=Math.min(1600,im.naturalWidth),bm=await createImageBitmap(await r.blob(),{resizeWidth:w,resizeHeight:Math.max(1,Math.round(im.naturalHeight*w/im.naturalWidth)),resizeQuality:'high'});
+   const c=new OffscreenCanvas(bm.width,bm.height);c.getContext('2d').drawImage(bm,0,0);bm.close();
+   s=URL.createObjectURL(await c.convertToBlob({type:'image/jpeg',quality:.85}));BIGM.set(u,s);if(BIGM.size>80){const k=BIGM.keys().next().value;URL.revokeObjectURL(BIGM.get(k));BIGM.delete(k)}}
+  if(im.src===u){im.dataset.big=u;im.src=s}
+ }catch(e){}
+ im.style.visibility='';
+}
+document.addEventListener('load',e=>{const im=e.target;if(!im||im.tagName!=='IMG'||im._sm||!/^https?:/.test(im.src)||im.naturalWidth*im.naturalHeight<6e6||typeof OffscreenCanvas!=='function'||!window.createImageBitmap||!im.closest('#grid'))return;shrinkImg(im)},true);
 function imgPixels(url){return new Promise(async res=>{
  let done=false;const fin=v=>{if(!done){done=true;res(v)}};setTimeout(()=>fin(null),9000);
  /* decode the photo off the main thread, straight to a tiny bitmap, so scrolling never stalls on a full-size decode */

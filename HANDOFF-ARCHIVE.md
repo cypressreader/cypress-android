@@ -334,3 +334,6 @@ Session `-8vkgmy` (shipped as 1.176): picks built = TTS skips `figcaption` unles
 ## Moved from HANDOFF 2026-10-28 (1.184, 1.188)
 1.184 = scroll round 3 (`fixOrph` `P._oc` skip; `PARIO` parRead in rAF). 1.185 = scroll round 4 (shipped): `trfPass` (translated headlines) now measures each nearby card once (`near()`), skips text in offscreen cards, never measures inside skipped cards; `aheadImgs` skips pictures in cards cvAhead watches (`c._cv`) except big openers. scroll_cost/perf_scroll/deep_scroll/continuous pass.
 1.188 = `trfPass` batches text swaps (`wr`) after measuring (no layout per swap). NOTE: two sessions shipped in parallel today; always `git fetch origin main` before working.
+
+## Moved from HANDOFF 2026-10-28 (1.189)
+1.189 = scroll round 7 (shipped, from David's 1.188 check: 11% frames >20 ms, worst 192): first 6 card photos (`card()`) and `.fd-fa` were `decoding="sync"` = ~100 ms no-script stalls when photos re-enter view: now async. New `userRest()` (3 s since SCRT) gates `quietGap0`, `quietRender` (15 s force-render cap REMOVED: it caused the 220 ms render mid-scroll), `saveCache`; `saveCache0` skips when `itemsSig()` unchanged (`SCSIG`, forced on leave).
