@@ -880,3 +880,7 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] Start a listen, open the player, tap the car button: player fills the screen, only headline, time and big Previous / Play / Next show.
 - [ ] Screen stays on while Car mode is up; after closing the player it can sleep again (unless a story is open).
 - [ ] Car mode is remembered next time the player opens; tapping the car button again goes back to the normal player.
+
+## Feed scroll stutter (unbumped, after 1.178)
+- [ ] All Stories / a folder in Cards view: fling, pause a second, fling again: no hitch on the second fling (it used to freeze 140-180 ms writing the whole library).
+- [ ] Scroll partway down a folder, swipe the app away to the background, reopen: you're back at the same story.

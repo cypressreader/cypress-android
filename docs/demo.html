@@ -6742,7 +6742,8 @@ function wireSavePos(){
  const c=[...g.querySelectorAll('.card[data-i]')].find(x=>x.getBoundingClientRect().bottom>top+20);
  if(!c)return;
  S.wirePos={sel:S.sel,l:chref(c),off:Math.round(c.getBoundingClientRect().top-m.getBoundingClientRect().top),t:Date.now()};
- clearTimeout(wireSavePos.t);wireSavePos.t=setTimeout(()=>{try{save()}catch(e){}},400);
+ /* kept in memory while scrolling (writing the whole library took 140-180 ms and stuttered the next swipe); written to storage when the app goes to the background, or with the next save */
+ if(document.hidden)try{save()}catch(e){}
 }
 {
  const m=$('main');let idle=0;
