@@ -5047,7 +5047,10 @@ document.addEventListener('scroll',e=>{const m=e.target;if(!m||m.tagName!=='MAIN
 setInterval(()=>{try{if(!PKA||document.hidden||Date.now()-PKU<2500||Date.now()-PKS<600)return;/* never while the page is still gliding */const m=document.querySelector('main');if(!m||m.scrollTop<200||document.querySelector('#rd.on,dialog[open]')||!PKA.a.isConnected){PKA=null;return}
  const d=PKA.a.getBoundingClientRect().top-m.getBoundingClientRect().top-PKA.y;if(Math.abs(d)>40){m.scrollTo({top:m.scrollTop+d,behavior:'instant'});JMP.k++}}catch(e){}},400);
 ['touchstart','touchmove','pointermove','wheel'].forEach(t=>addEventListener(t,()=>{SCRT=Date.now()},{passive:true,capture:true}));
-async function quietGap(max){const t0=Date.now(),lim=Math.max(max||0,60000);/* every caller is background work (feed parsing, read-ahead): it waits for the whole scroll, not just its first few seconds, so a long scroll never hitches on it */while(userBusy()&&!document.hidden&&Date.now()-t0<lim)await new Promise(r=>setTimeout(r,300))}
+/* one background job at a time: when the finger stopped, every waiting job (offline saves, feed reading) used to start at once, 4 or more back to back in one frame (90 ms on the Fold), right as the next fling began. Now each job gets its turn 16 ms (a drawn frame) after the last one and checks again that you aren't scrolling */
+let BGL=Promise.resolve();
+function quietGap(max){const p=BGL.then(()=>quietGap0(max));BGL=p.then(()=>new Promise(r=>setTimeout(r,16)));return p}
+async function quietGap0(max){const t0=Date.now(),lim=Math.max(max||0,60000);/* every caller is background work (feed parsing, read-ahead): it waits for the whole scroll, not just its first few seconds, so a long scroll never hitches on it */while(userBusy()&&!document.hidden&&Date.now()-t0<lim)await new Promise(r=>setTimeout(r,300))}
 /* read-ahead pages are parsed when the finger is still, each step in a task of its own, so a page turn or a tap never waits behind a second of parsing (1.4 s on a Fold in 1.145) */
 async function bgGate(){await quietGap(6000);await new Promise(r=>setTimeout(r,0))}
 /* a short fingerprint of everything the lists are drawn from; when a background refresh brings nothing new the page is left alone instead of being redrawn (which made pictures blink) */
@@ -5800,7 +5803,8 @@ async function og(a){
   await ogSlot();let pg;try{pg=await fetchText(L,t=>/<meta/i.test(t))}finally{ogFree()}
   await bgGate();/* parse once the finger is still */
   const d=new DOMParser().parseFromString(pg,'text/html');
-  if(!acHas(a.link)){try{const ex=extract(pg,L);if(acStoreOk(ex,a)){const dv=document.createElement('div');dv.append(dropTitle(ex.cloneNode(true),a.title));acPut(a.link,dv.innerHTML,1);markReady(a.link)}}catch(_){}}
+  /* the article text is pulled out in a turn of its own, after checking again that you aren't scrolling (reading the page and pulling out the text together took up to 50 ms) */
+  if(!acHas(a.link)){await bgGate();try{const ex=extract(pg,L);if(acStoreOk(ex,a)){const dv=document.createElement('div');dv.append(dropTitle(ex.cloneNode(true),a.title));acPut(a.link,dv.innerHTML,1);markReady(a.link)}}catch(_){}}
   const m=d.querySelector('meta[property="og:image"],meta[name="twitter:image"]');
   let u=m?abs(m.content,L):'';if(GPROMO.test(u)||/(^|\.)(gstatic|googleusercontent)\.com$/.test(host(u)))u='';IC[a.link]=u;if(LOGOISH.test(gk(u).split('/').pop()||''))u='';
   try{const k=Object.keys(IC);if(k.length>1000)delete IC[k[0]];clearTimeout(og.t);og.t=setTimeout(()=>{try{localStorage.setItem('folio-img',JSON.stringify(IC))}catch(_){}},1500)}catch(_){}
