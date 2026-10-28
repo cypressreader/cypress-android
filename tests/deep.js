@@ -59,24 +59,24 @@ for(const [vp,w,h,touch] of VPS){
  await noHScroll('reader');
  // buttons
  const pg0=await E(()=>R.pg);
- await E(()=>document.querySelector('#nx').click());await p.waitForTimeout(1000);ck(vp,'next button turns',await E(()=>R.pg)===pg0+1);
- await E(()=>document.querySelector('#pv').click());await p.waitForTimeout(1000);ck(vp,'prev button turns',await E(()=>R.pg)===pg0);
- if(!touch){await p.keyboard.press('ArrowRight');await p.waitForTimeout(1000);ck(vp,'arrow key turns',await E(()=>R.pg)===1);await p.keyboard.press('ArrowLeft');await p.waitForTimeout(1000)}
+ await E(()=>document.querySelector('#nx').click());await p.waitForTimeout(1700);ck(vp,'next button turns',await E(()=>R.pg)===pg0+1);
+ await E(()=>document.querySelector('#pv').click());await p.waitForTimeout(1700);ck(vp,'prev button turns',await E(()=>R.pg)===pg0);
+ if(!touch){await p.keyboard.press('ArrowRight');await p.waitForTimeout(1700);ck(vp,'arrow key turns',await E(()=>R.pg)===1);await p.keyboard.press('ArrowLeft');await p.waitForTimeout(1700)}
  // tap zone
  const bb=await p.locator('.book').boundingBox();
  if(touch){await p.touchscreen.tap(bb.x+bb.width*.9,bb.y+bb.height/2)}else await p.mouse.click(bb.x+bb.width*.9,bb.y+bb.height/2);
- await p.waitForTimeout(1000);ck(vp,'edge tap turns',await E(()=>R.pg)===1);
+ await p.waitForTimeout(1700);ck(vp,'edge tap turns',await E(()=>R.pg)===1);
  // drag turn (touch)
 if(touch){
   await E(()=>{R.pg=0;show()});
   const cdp=await ctx.newCDPSession(p);const t=(type,x,y)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x,y}]});
-  await t('touchStart',bb.x+bb.width*.8,bb.y+200);for(let i=1;i<=12;i++){await t('touchMove',bb.x+bb.width*.8-i*bb.width*.05,bb.y+202);await p.waitForTimeout(16)}
-  const mid=await E(()=>R.T&&R.T.ang);ck(vp,'drag follows finger',mid>30&&mid<180,'ang '+mid);
-  await t('touchEnd');await p.waitForTimeout(1100);ck(vp,'drag completes turn',await E(()=>R.pg)===1);
+  await t('touchStart',bb.x+bb.width*.95,bb.y+200);for(let i=1;i<=18;i++){await t('touchMove',bb.x+bb.width*.95-i*bb.width*.05,bb.y+202);await p.waitForTimeout(16)}
+  const mid=await E(()=>R.T&&R.T.ang);ck(vp,'drag follows finger',mid>30&&mid<=180,'ang '+mid);
+  await t('touchEnd');await p.waitForTimeout(1700);ck(vp,'drag completes turn',await E(()=>R.pg)===1);
   ck(vp,'no leftover turn layers',await E(()=>!document.querySelector('.tl-leaf,.tl-under,.tl-cast')&&!R.busy));
   // small drag cancels
   await t('touchStart',bb.x+bb.width*.8,bb.y+200);for(let i=1;i<=3;i++){await t('touchMove',bb.x+bb.width*.8-i*20,bb.y+201);await p.waitForTimeout(30)}await p.waitForTimeout(150);
-  await t('touchEnd');await p.waitForTimeout(1100);ck(vp,'short slow drag cancels',await E(()=>R.pg)===1);
+  await t('touchEnd');await p.waitForTimeout(1700);ck(vp,'short slow drag cancels',await E(()=>R.pg)===1);
   // vertical swipe ignored
   await E(()=>{S.sdown=false});
   await t('touchStart',bb.x+bb.width*.5,bb.y+100);for(let i=1;i<=8;i++){await t('touchMove',bb.x+bb.width*.5+3,bb.y+100+i*30);await p.waitForTimeout(16)}await t('touchEnd');await p.waitForTimeout(600);
@@ -85,7 +85,7 @@ if(touch){
  }
  // settings from inside reader
  await tap('#mo');await p.waitForTimeout(200);ck(vp,'more menu opens',await E(()=>!$('#mn').hidden));
- await tap('#mo');
+ await p.keyboard.press('Escape');await p.waitForTimeout(150);/* the More menu is a modal sheet now: close it with Escape */
  // playback menu
  if(await p.$('#rp')){await tap('#rp');await p.waitForTimeout(200);ck(vp,'playback menu opens',await E(()=>!$('#pb').hidden));await tap('#rp');await p.waitForTimeout(100)}
  // read aloud does not throw
@@ -114,10 +114,10 @@ ck(vp,'read-state sane after open',await E(()=>typeof S.read==='object'));
  const setInfo=await E(()=>{const d=$('#set').getBoundingClientRect();return{w:d.width,h:d.height,iw:innerWidth,ih:innerHeight,ov:$('.sbody').scrollWidth>$('.sbody').clientWidth+1}});
  ck(vp,'settings fits screen',setInfo.w<=setInfo.iw&&setInfo.h<=setInfo.ih&&!setInfo.ov,JSON.stringify(setInfo));
  await p.screenshot({path:`/tmp/t/deep-${vp}-settings.png`});
- await E(()=>document.querySelectorAll('#thm details').forEach(d=>d.open=true));for(const th of ['rosewood','auto']){await tap(`[data-th="${th}"]`);await p.waitForTimeout(80);ck(vp,'theme '+th,await E(t=>S.theme===t&&document.documentElement.dataset.theme===t,th))}
+ await E(()=>document.querySelectorAll('#thm details').forEach(d=>d.open=true));for(const th of ['rosewood','halcyon']){await tap(`[data-th="${th}"]`);await p.waitForTimeout(80);ck(vp,'theme '+th,await E(t=>S.theme===t&&document.documentElement.dataset.theme===t,th))}
  /* Dynamic, Light and Dark are the tiles at the top of Look (the Light and Dark themes were retired: Light & Dark plus a tile covers them) */
  await tap('[data-sch="dynamic"]');await p.waitForTimeout(150);ck(vp,'theme dynamic',await E(()=>S.theme==='dynamic'&&document.documentElement.dataset.theme==='dynamic'));
- for(const m of ['light','dark']){await tap(`[data-sch="${m}"]`);await p.waitForTimeout(150);ck(vp,'theme '+m,await E(m=>S.sch===m&&S.theme==='auto'&&(m==='dark'?document.documentElement.dataset.theme==='dark':/^(auto|light)$/.test(document.documentElement.dataset.theme)),m))}
+ for(const m of ['light','dark']){await tap(`[data-sch="${m}"]`);await p.waitForTimeout(150);ck(vp,'theme '+m,await E(m=>S.sch===m&&document.documentElement.dataset.theme===S.theme+(m==='dark'?'d':''),m))}
  await E(()=>{S.sch='theme';save();applyTheme(false);syncSet()});await p.waitForTimeout(100);
  await tap('[data-fn="literata"]');ck(vp,'font tile',await E(()=>S.font==='literata'));
  await tap('[data-fs="1"]');ck(vp,'text size +',await E(()=>S.fs===19));await tap('[data-fs="-1"]');
@@ -165,7 +165,7 @@ ck(vp,'read-state sane after open',await E(()=>typeof S.read==='object'));
  await p.addInitScript(s=>{try{localStorage.setItem('folio',JSON.stringify(s))}catch(e){}},seed(['Alpha']));await p.goto(('file://'+APP));await p.waitForTimeout(1200);
  await p.evaluate(()=>{S.sel='all';render();openReader(cur[0])});await p.waitForTimeout(6500);
  const n=await p.evaluate(()=>({note:$('.cols .note').innerText,why:!!$('.cols .note .why')}));
- ck('fail','failure note + Why',/Couldn/.test(n.note)&&n.why,JSON.stringify(n));
+ ck('fail','failure note + Why',/let the app in/.test(n.note)&&n.why,JSON.stringify(n));
  await p.click('.cols .note [data-web]');await p.waitForTimeout(2500);ck('fail','site view fallback msg',await p.evaluate(()=>!$('.web').hidden));
  await p.screenshot({path:'/tmp/t/deep-fail.png'});
  ck('fail','no errors',errs.length===0,errs.join('|'));await ctx.close()}

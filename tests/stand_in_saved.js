@@ -7,7 +7,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
   const mk=(t,l,x)=>({feedId:f.id,title:t,link:l,date:now-6e4,summary:'s',img:'',html:'',...x});
   items[f.id]=[mk('Own story one on the site','https://lifestyle.test/a/1',{gn:1,os:1}),mk('Pope Leo XIV to undergo lung surgery this week','https://www.vatican-news.example/pope',{gn:1}),mk('Hurricane Simon nears Mexico with 155 mph winds','https://news.google.com/rss/articles/CBMiabc',{gn:1}),mk('Own older saved story from the site','https://www.lifestyle.test/a/2',{gn:1}),mk('A story from the real feed','https://lifestyle.test/a/3',{})];
   state[f.id]='ok';save();saveCache0()});
- await p.route(/^https?:\/\/(?!localhost)/,r=>r.abort());await p.goto('file://'+APP);await p.waitForTimeout(1800);
+ await p.route(/^https?:\/\/(?!localhost)/,r=>r.abort());await p.goto('file://'+APP).catch(()=>p.goto('file://'+APP));/* a second load of the same file:// address is sometimes aborted by the browser */await p.waitForTimeout(1800);
  const t=await p.evaluate(()=>(items[S.feeds[0].id]||[]).map(a=>a.title));
  ck('own-site stories stay',t.includes('Own story one on the site')&&t.includes('Own older saved story from the site')&&t.includes('A story from the real feed'),JSON.stringify(t));
  ck('another site\'s hard news is dropped',!t.some(x=>/Pope Leo/.test(x)),JSON.stringify(t));

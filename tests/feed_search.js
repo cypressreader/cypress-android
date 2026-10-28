@@ -4,13 +4,13 @@ let bad=0;const ck=(n,ok,x)=>{console.log((ok?'ok ':'FAIL ')+n+(ok?'':' '+(x||''
 /* [query, names that must appear within the first N results, N] */
 const WANT=[
  ['ctv',['CTV News'],1],['ctv news',['CTV News'],1],['global news',['Global News'],1],['cbc',['CBC News'],1],['globe and mail',['The Globe and Mail'],1],['toronto star',['Toronto Star'],1],
- ['nyt',['The New York Times'],1],['new york times',['The New York Times'],1],['wapo',['The Washington Post'],1],['washington post',['The Washington Post'],4],['wsj',['The Wall Street Journal'],1],['ft',['Financial Times'],1],['hn',['Hacker News'],1],['la times',['Los Angeles Times'],1],
- ['gurdian',['The Guardian World'],4],['techcrnch',['TechCrunch'],1],['arstechnica',['Ars Technica'],1],['nasa',['NASA'],2],['bloomberg',['Bloomberg Markets'],3],['npr',['NPR'],1],
+ ['nyt',['The Daily (NYT)'],1],/* hard-paywalled papers left the catalog (1.65) */['hn',['Hacker News'],1],['la times',['Los Angeles Times'],1],
+ ['gurdian',['The Guardian World'],4],['techcrnch',['TechCrunch'],1],['arstechnica',['Ars Technica'],1],['nasa',['NASA'],2],['npr',['NPR'],1],
  ['home decor',['Apartment Therapy','Dezeen','Design Milk'],8],['home decorating',['Apartment Therapy'],8],['interior design',['Dezeen'],8],['gardening',['Gardeners\' World'],6],['gardning',['Gardeners\' World'],6],
  ['crypto',['CoinDesk'],4],['bitcoin',['CoinDesk'],4],['knitting',['Knitting Daily'],4],['woodworking',['Popular Woodworking'],4],['woodwork',['Popular Woodworking'],4],['sleep',['Sleep Review'],4],['personal development',['James Clear'],5],
  ['recipies',['Serious Eats'],8],['mortage',['The Mortgage Reports'],3],['coffee',['Perfect Daily Grind'],4],['sourdough',['The Perfect Loaf'],3],['dogs',['Whole Dog Journal'],3],['cats',['Cat Behavior Associates'],3],
- ['kdrama',['Soompi'],3],['kpop',['Soompi'],3],['f1',['BBC Formula 1'],3],['hockey',['The Hockey News'],4],['stock market',['MarketWatch'],4],['startups',['Crunchbase News'],5],['machine learning',['Machine Learning Mastery'],5],['3d printing',['3DPrint.com'],4],['privacy',['Electronic Frontier Foundation'],8],
- ['ukraine',['Kyiv Independent'],4],['israel',['Haaretz'],4],['climate',['Grist'],4],['space',['Space.com'],4],['chess',['Chess.com News'],3],['poetry',['The Paris Review'],3],['typography',['Typewolf'],3],['law',['SCOTUSblog'],3],['teaching',['EdSurge'],5],['birding',['Audubon'],3]
+ ['kdrama',['Soompi'],3],['kpop',['Soompi'],3],['f1',['BBC Formula 1'],3],['hockey',['The Hockey News'],4],['stock market',['Seeking Alpha'],4],['startups',['Crunchbase News'],5],['machine learning',['Machine Learning Mastery'],5],['3d printing',['3DPrint.com'],4],['privacy',['Electronic Frontier Foundation'],8],
+ ['ukraine',['Kyiv Independent'],4],['israel',['The Jerusalem Post'],4],['climate',['Grist'],4],['space',['Space.com'],4],['chess',['Chess.com News'],3],['poetry',['The Paris Review'],3],['typography',['Typewolf'],3],['law',['SCOTUSblog'],3],['teaching',['EdSurge'],5],['birding',['Audubon'],3]
 ];
 /* matches that would be junk */
 const NOT=[['camping',/gaming|game/i],['math',/matt\b/i],['rust',/just one|cookbook/i],['cats',/serious eats|\bsports\b/i],['pets',/hacker news|bbc news/i],['hockey',/hacker/i],['xbox',/fox news|\bvox\b|bon app/i],['nyt',/skinnytaste/i],['linux',/tv line/i],['hiking',/baking/i]];

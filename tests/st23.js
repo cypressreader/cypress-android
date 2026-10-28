@@ -7,7 +7,7 @@ const p=await (await b.newContext({viewport:{width:w,height:h}})).newPage();cons
 await mock(p,{n:4});await p.goto('file://'+APP);await p.waitForTimeout(1200);await p.click('text=Get started').catch(()=>{});
 const r=await p.evaluate(async()=>{
  document.getElementById('set').showModal();await new Promise(r=>setTimeout(r,400));
- const btn=document.getElementById('skyp');btn.scrollIntoView({block:'center'});btn.click();await new Promise(r=>setTimeout(r,1200));
+ sky('set');/* the sunset preview button left with the sunset setting; the sky animation itself still plays on theme switches */await new Promise(r=>setTimeout(r,1200));
  const sk=document.getElementById('sky'),rc=sk&&sk.getBoundingClientRect();
   const o={exists:!!sk,inDialog:!!(sk&&sk.closest('dialog[open]')),inView:!!(rc&&rc.width>0&&rc.x>=0&&rc.y>=0&&rc.right<=innerWidth&&rc.bottom<=innerHeight)};
  await new Promise(r=>setTimeout(r,5000));o.gone=!document.getElementById('sky');

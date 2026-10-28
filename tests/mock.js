@@ -10,7 +10,7 @@ async function mock(p,opt={}){
  await p.route(/^https?:\/\/(?!localhost)/,r=>{
   const u=decodeURIComponent(r.request().url());
   const m=u.match(/https?:\/\/(\w+)\.test\/(feed|story-\d+)/);
-  if(u.includes('corsproxy.io')&&m){
+  if(m&&(u.includes('corsproxy.io')||/^https?:\/\/\w+\.test\//.test(u))){/* the Android app asks the site directly (no relay) */
    if(m[2]==='feed')return r.fulfill({status:200,contentType:'text/xml',body:feedXml(m[1][0].toUpperCase()+m[1].slice(1),opt.n||6)});
    if(opt.noArticles)return r.fulfill({status:403,body:''});
    return r.fulfill({status:200,contentType:'text/html',body:articleHtml(m[1]+' '+m[2])});

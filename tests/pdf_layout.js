@@ -29,12 +29,12 @@ ck('every contents entry has a page number on its first line',nums.length===stor
 ck('page numbers within the document',nums.every(n=>n>=3&&n<=r.pages),JSON.stringify([nums,r.pages]));
 const imgs=cp.execSync('pdfimages -list '+f,{encoding:'utf8'}).split('\n').filter(l=>/\bimage\b/.test(l));
 ck('pictures on the cover and on story pages',imgs.length>=4,String(imgs.length));
-let heads=0,foot=0;
+let heads=0,foot=0;/* Letter (792pt) in the US and Canada, A4 elsewhere: read the real page height */const PH=Math.round(+(cp.execSync('pdfinfo '+f,{encoding:'utf8'}).match(/Page size:\s+[\d.]+ x ([\d.]+)/)||[])[1]);
 for(let p=3;p<=r.pages-1;p++){
- const top=tx('-f '+p+' -l '+p+' -x 0 -y 0 -W 596 -H 42').trim(),bottom=tx('-f '+p+' -l '+p+' -x 0 -y 800 -W 596 -H 42').trim();
+ const top=tx('-f '+p+' -l '+p+' -x 0 -y 0 -W 596 -H 42').trim(),bottom=tx('-f '+p+' -l '+p+' -x 0 -y '+(PH-42)+' -W 612 -H 42').trim();
  if(top&&!/^CYPRESS/.test(top))ck('page '+p+' top margin holds only the running head',false,top.slice(0,60));else if(top)heads++;
  /* the foot is a folio line: the publication, the page number, the kind of issue */
- const fm=bottom.replace(/\s+/g,' ').match(/^CYPRESS (\d+) [A-Z][A-Z ]*$/);
+ const fm=bottom.replace(/\s+/g,' ').match(/^CYPRESS · VOL\. \d+ · NO\. \d+ (\d+) [A-Z][A-Z ]*$/);
  if(!fm||+fm[1]!==p)ck('page '+p+' bottom margin holds only the folio (publication, page number, issue)',false,bottom.slice(0,60));else foot++;
 }
 ck('running heads appear',heads>=1);ck('folios on every inner page',foot===r.pages-3);

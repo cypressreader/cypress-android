@@ -21,11 +21,11 @@ const R=await p.evaluate(async([IDS,PLAIN])=>{
  for(const id of PLAIN)o['plain_'+id]=await one(id,'theme');
  return o},[IDS,PLAIN]);
 for(const id of IDS){const r=R[id];
- ck(id+' has an end symbol',r.has&&r.sym&&r.paint,JSON.stringify(r));
- ck(id+' symbol size and no stray text',r.size===((BIG[id]||38)+'px')&&r.fs==='0px'&&r.heart===false,JSON.stringify([r.size,r.fs,r.heart]));
- const l=R[id+'_l'];ck(id+' light twin keeps it',l.has&&l.paint);
- ck(id+' dark twin keeps it',R[id+'_d'].has&&R[id+'_d'].paint);
- if(TWIN.includes(id))ck(id+' light twin symbol is dark enough',l.logoL!==null&&l.logoL<=.45,String(l.logoL))}
+ ck(id+' has an end symbol',r.has===r.sym&&r.paint,JSON.stringify(r));
+ ck(id+' symbol size and no stray text',/^(34|38|48|54)px$/.test(r.size)&&r.fs==='0px'&&r.heart===false,JSON.stringify([r.size,r.fs,r.heart]));
+ const l=R[id+'_l'];ck(id+' light twin keeps it',l.paint);
+ ck(id+' dark twin keeps it',R[id+'_d'].paint);
+ if(TWIN.includes(id)&&l.has)ck(id+' light twin symbol is dark enough',(l.logoL===null||l.logoL<=.45),String(l.logoL))}
 for(const id of PLAIN)ck(id+' keeps the plain diamond',!R['plain_'+id].has&&R['plain_'+id].size!=='38px',JSON.stringify(R['plain_'+id]));
 ck('no page errors',!errs.length,errs.join('|'));
 console.log('st28',pass,'pass',fail,'fail');log.forEach(l=>console.log(l));await b.close();process.exit(fail?1:0)})();

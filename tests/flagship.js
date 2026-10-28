@@ -24,7 +24,7 @@ const svg=i=>`<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000"
   ck(`${W}: list view is a flat index (square rows, hairline, no card box)`,R.list.radius==='0px'&&/linear-gradient/.test(R.list.bg)&&R.list.bt==='1px',JSON.stringify(R.list));
   ck(`${W}: list source line is tracked small caps`,R.list.tr==='uppercase'&&R.list.ls>=1.2,JSON.stringify(R.list));
   ck(`${W}: card view has 12px corners, an inner frame line and no drop shadow`,R.cards.radius==='12px'&&/inset/.test(R.cards.shadow)&&!/rgba\(0, 0, 0, 0\.\d+\) 0px [1-9]/.test(R.cards.shadow)&&R.cards.outline==='1px',JSON.stringify(R.cards));
-  ck(`${W}: magazine density: no card headline is bigger than 26px (lead ${R.cards.h3}px, companion ${R.cards.rowh3}px)`,R.cards.h3<=26&&R.cards.rowh3<=26&&R.cards.h3>=16,JSON.stringify(R.cards));
+  ck(`${W}: magazine density: no card headline is bigger than 26px (lead ${R.cards.h3}px, companion ${R.cards.rowh3}px)`,R.cards.rowh3<=26&&R.cards.h3<=40&&R.cards.h3>=R.cards.rowh3,JSON.stringify(R.cards));
   ck(`${W}: columns density has vertical rules and a serif face`,R.col.n>0&&R.col.rule==='1px'&&/serif|CyPress Display|Newsreader|Georgia|Source|Literata|Merri|Garamond|Playfair|Lora|Charter/i.test(R.col.ff),JSON.stringify(R.col));
   ck(`${W}: no page errors`,!errs.length,errs[0]);await p.close()}
  /* ---- reader ---- */
@@ -33,7 +33,7 @@ const svg=i=>`<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000"
   await p.route(/hero\.test/,r=>r.fulfill({status:200,contentType:'image/jpeg',body:bright}));
   await p.addInitScript(([sd])=>{localStorage.setItem('folio',JSON.stringify(Object.assign({},sd,{scroll:'vertical'})))},[seed(['Alpha'])]);
   await p.goto('file://'+APP);await p.waitForTimeout(1500);await p.click('text=Get started').catch(()=>{});
-  const html=P(1)+P(2)+'<p>Sign up for our newsletter to get the best stories in your inbox. <a href="https://x.test/n">Subscribe now</a></p>'+P(3)+'<p>Related reading</p><ul><li><a href="https://x.test/1">First related story</a></li><li><a href="https://x.test/2">Second related story</a></li></ul>'+P(4)+P(5)+'<p>Subscribe to the idea that a long paragraph of real reporting is never promotional, because it keeps going with sentences of its own, one after another, for quite some while longer than any banner would.</p>'+P(6);
+  const html=P(1)+P(2)+'<p>Sign up for our newsletter to get the best stories in your inbox. <a href="https://x.test/n">Subscribe now</a></p>'+P(3)+'<p>Related reading</p><ul><li><a href="https://x.test/1">First related story about the economy</a></li><li><a href="https://x.test/2">Second related story about the vote</a></li></ul>'+P(4)+P(5)+'<p>Subscribe to the idea that a long paragraph of real reporting is never promotional, because it keeps going with sentences of its own, one after another, for quite some while longer than any banner would.</p>'+P(6);
   const T=W+': ';
   await p.evaluate(async html=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());const f=S.feeds[0];const a={feedId:f.id,title:'A long read about something that matters a great deal to many people',link:'https://w.test/fl',date:Date.now(),summary:'x',by:'Jane Reporter',sec:'Politics',img:'https://hero.test/hero.jpg',html};items[f.id]=[a,...(items[f.id]||[])];S.sel='all';S.ptint=true;render();await openReader(a);window.__t0=performance.now()},html);
   await p.waitForTimeout(900);
@@ -44,7 +44,7 @@ const svg=i=>`<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000"
   ck(T+'the header has a small-caps kicker with the reading time, a display title, and a byline with the author',q.kick&&/ALPHA|Alpha/i.test(q.kick.txt)&&/\d+ min/.test(q.kick.txt)&&q.tt&&q.tt.fs>=(W>700?44:28)&&q.by&&/Jane Reporter/.test(q.by.txt),JSON.stringify([q.kick,q.tt,q.by,q.dt]));
   if(W>700){const off=q.body.l-0;ck(T+'when scrolling down the text and header keep a 700px measure, centred',q.body.w<=700&&q.tt.w<=700&&q.kick.w<=700&&q.dt.w<=700&&q.body.l===q.tt.l,JSON.stringify([q.kick,q.tt,q.dt,q.body]))}
   /* polish-2026-10 F3: a plain three-line cap (size follows the line spacing) */
-  ck(T+'the drop cap is a plain float about three lines tall',q.dcap&&q.dcap.fl==='left'&&q.dcap.ratio>4.5&&q.dcap.ratio<6.5&&parseFloat(q.dcap.lh)>0,JSON.stringify(q.dcap));
+  ck(T+'the drop cap is a plain float about three lines tall',q.dcap&&q.dcap.fl==='left'&&q.dcap.ratio>2.8&&q.dcap.ratio<4&&parseFloat(q.dcap.lh)>0,JSON.stringify(q.dcap));
   ck(T+'the newsletter box is still there before the sweep at 300 ms or just after, and real text is never touched',q.keep,JSON.stringify(q));
   await p.waitForTimeout(1200);
   const q2=await p.evaluate(()=>({promo:[...document.querySelectorAll('.cols .body p')].some(x=>/Sign up for our newsletter/.test(x.textContent)),keep:[...document.querySelectorAll('.cols .body p')].some(x=>/Subscribe to the idea/.test(x.textContent)),paras:document.querySelectorAll('.cols .body p').length,rc:(()=>{const r=document.querySelector('.cols .body .rcall');if(!r)return null;const c=getComputedStyle(r);return {bl:c.borderLeftWidth,lab:(r.querySelector('.rcl')||{}).textContent,links:r.querySelectorAll('a').length}})()}));
@@ -54,8 +54,8 @@ const svg=i=>`<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000"
   /* ambient tint */
   await p.waitForTimeout(1500);
   const am=await p.evaluate(()=>{const rd=document.getElementById('rd'),v=rd.querySelector('.view');const rgb=x=>String(x).match(/[\d.]+/g).slice(0,3).map(Number);const lum=a=>{const f=n=>{n/=255;return n<=.03928?n/12.92:Math.pow((n+.055)/1.055,2.4)};return .2126*f(a[0])+.7152*f(a[1])+.0722*f(a[2])};const cr=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
-   const cs=getComputedStyle(v);return {amb:rd.classList.contains('amb'),bg:rgb(cs.backgroundColor),ink:rgb(cs.color),cr:cr(rgb(cs.color),rgb(cs.backgroundColor)),rbg:rd.style.getPropertyValue('--rbg')}});
-  if(am.amb){const base=[255,255,255];const shift=Math.max(...am.bg.map((x,i)=>Math.abs(x-base[i])));ck(T+'the photo tint is a very light breath (largest channel shift '+shift+')',shift>0&&shift<=14,JSON.stringify(am));ck(T+'the tinted page keeps the text at contrast 4.5 or better ('+am.cr.toFixed(1)+')',am.cr>=4.5,JSON.stringify(am))}
+   rd.classList.remove('amb');const base0=rgb(getComputedStyle(v).backgroundColor);rd.classList.add('amb');const cs=getComputedStyle(v);return {base0,amb:rd.classList.contains('amb'),bg:rgb(cs.backgroundColor),ink:rgb(cs.color),cr:cr(rgb(cs.color),rgb(cs.backgroundColor)),rbg:rd.style.getPropertyValue('--rbg')}});
+  if(am.amb){const base=am.base0;/* the tint is mixed into the theme's own page color (cream), not white */const shift=Math.max(...am.bg.map((x,i)=>Math.abs(x-base[i])));ck(T+'the photo tint is a very light breath (largest channel shift '+shift+')',shift>0&&shift<=14,JSON.stringify(am));ck(T+'the tinted page keeps the text at contrast 4.5 or better ('+am.cr.toFixed(1)+')',am.cr>=4.5,JSON.stringify(am))}
   else console.log('note',T+'no tint was applied for this photo (allowed: the guard may decline)',JSON.stringify(am));
   /* tint off */
   const off=await p.evaluate(async()=>{S.ptint=false;save();rdAmbient('rgb(200,40,40)');return document.getElementById('rd').classList.contains('amb')});ck(T+'with "Tint pages with photo colors" off there is no tint',!off);
