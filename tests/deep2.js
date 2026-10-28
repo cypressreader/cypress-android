@@ -123,7 +123,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
   await E(()=>{S.sel='today';render()});await W(200);
   ck(vp,'continue reading row',await E(()=>!!$('.crow .cr')));
   await p.screenshot({path:`/tmp/t/n-${vp}-today.png`});
-  await p.tap('.crow .cr');await W(800);ck(vp,'continue opens at saved page',await E(()=>$('#rd').classList.contains('on')&&R.pg>=1));await p.tap('#cl');await W(200);
+  await E(()=>{const c=[...document.querySelectorAll('.crow .cr')].find(x=>x.offsetParent)||$('.crow .cr');c.scrollIntoView({block:'center'})});await W(300);await p.locator('.crow .cr:visible').first().tap();await W(800);ck(vp,'continue opens at saved page',await E(()=>$('#rd').classList.contains('on')&&R.pg>=1));await p.tap('#cl');await W(200);
  }
  // swipes
  await E(()=>{S.sel='all';render();$('main').scrollTop=0});await W(200);
