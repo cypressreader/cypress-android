@@ -921,3 +921,8 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 ## Scroll round 6 (1.187) — implemented, unverified
 - In the Android app with all your feeds, scroll a long feed with short pauses for a minute; no hitches when you start scrolling again after a pause (scroll check: compare 1.186, 4% slow frames, worst 167 ms).
 - Stories still get saved for offline reading (the "ready" mark appears) after you stop scrolling; a pull-to-refresh still finishes promptly.
+
+## Scroll round 7 (unbumped, after 1.188, 2026-10-28) — implemented, unverified
+- Fling up and down a feed with photos many times: no catch when photos come back into view (card photos no longer decode "sync").
+- Scroll for 30+ s while feeds refresh: the list never redraws mid-scroll; new stories appear after you stop for ~3 s.
+- Short pauses (1-2 s) between flings: next fling starts smoothly (background saves/reading wait for a 3 s rest).

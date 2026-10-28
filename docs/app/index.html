@@ -5037,7 +5037,9 @@ try{const c=JSON.parse(localStorage.getItem(CK)||'{}');for(const id in c){const 
 try{(S.saved||[]).forEach(fixA);(S.hl||[]).forEach(h=>h.art&&fixA(h.art))}catch(e){}
 let SCRT=0;
 /* background work (redraws after a refresh, saving the story cache, reading feeds) waits until you have stopped scrolling */
-const userBusy=()=>Date.now()-SCRT<1500;/* a gliding page on a Fold can go 900 ms between scroll events */
+const userBusy=()=>Date.now()-SCRT<1500;
+/* the heavy background jobs (redraw after a refresh, saving the cache, offline saves, feed reading) wait for a real pause of 3 s: at 1.5 s they started in the short look between two flings and the next fling caught on them */
+const userRest=()=>Date.now()-SCRT<3000;/* a gliding page on a Fold can go 900 ms between scroll events */
 /* place keeper: automatic redraws wait while you are scrolled down a feed (render() checks UACT, your last tap or key), and if the page ever moves under a still finger the card you were reading is put back where it was */
 let UACT=0,RPEND=0,PKA=null,PKT=0,PKU=0,PKS=0;['touchstart','touchmove','wheel','keydown'].forEach(t=>addEventListener(t,()=>{PKU=Date.now();PKA=null},{capture:true,passive:true}));/* a new touch forgets the old spot: a stale one pulled a gliding page back, stopping it dead */
 ['click','keydown','change','input'].forEach(t=>addEventListener(t,()=>{UACT=Date.now();PKA=null},{capture:true,passive:true}));
@@ -5050,7 +5052,7 @@ setInterval(()=>{try{if(!PKA||document.hidden||Date.now()-PKU<2500||Date.now()-P
 /* one background job at a time: when the finger stopped, every waiting job (offline saves, feed reading) used to start at once, 4 or more back to back in one frame (90 ms on the Fold), right as the next fling began. Now each job gets its turn 16 ms (a drawn frame) after the last one and checks again that you aren't scrolling */
 let BGL=Promise.resolve();
 function quietGap(max){const p=BGL.then(()=>quietGap0(max));BGL=p.then(()=>new Promise(r=>setTimeout(r,16)));return p}
-async function quietGap0(max){const t0=Date.now(),lim=Math.max(max||0,60000);/* every caller is background work (feed parsing, read-ahead): it waits for the whole scroll, not just its first few seconds, so a long scroll never hitches on it */while(userBusy()&&!document.hidden&&Date.now()-t0<lim)await new Promise(r=>setTimeout(r,300))}
+async function quietGap0(max){const t0=Date.now(),lim=Math.max(max||0,60000);/* every caller is background work (feed parsing, read-ahead): it waits for the whole scroll, not just its first few seconds, so a long scroll never hitches on it */while(userRest()&&!document.hidden&&Date.now()-t0<lim)await new Promise(r=>setTimeout(r,300))}
 /* read-ahead pages are parsed when the finger is still, each step in a task of its own, so a page turn or a tap never waits behind a second of parsing (1.4 s on a Fold in 1.145) */
 async function bgGate(){await quietGap(6000);await new Promise(r=>setTimeout(r,0))}
 /* a short fingerprint of everything the lists are drawn from; when a background refresh brings nothing new the page is left alone instead of being redrawn (which made pictures blink) */
@@ -5070,7 +5072,7 @@ let QRT=0,QRS=0,BGR=0;
 /* while feeds are still arriving the page is redrawn at most once every six seconds: a redraw rebuilds every picture, and a redraw every second made the top of the page blink */
 function quietRender(){
  if(!document.hidden&&INFL.size>0&&BGR&&Date.now()-BGR<6000){clearTimeout(QRT);QRT=setTimeout(quietRender,6000-(Date.now()-BGR)+50);return}
- if(!document.hidden&&userBusy()&&(!QRS||Date.now()-QRS<15000)){QRS=QRS||Date.now();clearTimeout(QRT);QRT=setTimeout(quietRender,500);return}
+ /* no time limit: after 15 s of scrolling it used to redraw anyway, a 220 ms freeze mid-fling */if(!document.hidden&&userRest()){clearTimeout(QRT);QRT=setTimeout(quietRender,500);return}
  const mn=$('main'),rd=$('#rd');
  /* a story is open: the list behind it waits until it is closed. Rebuilding a big list while reading froze page turns for seconds (3.2 s on a Fold with 2,300 stories) */
  if(!document.hidden&&rd&&rd.classList.contains('on')){clearTimeout(QRT);QRT=setTimeout(quietRender,2000);return}
@@ -5080,12 +5082,13 @@ function quietRender(){
 }
 let SCT=0;
 function saveCache(now){
- if(now===true||document.hidden){clearTimeout(SCT);SCT=0;saveCache0();return}
+ if(now===true||document.hidden){clearTimeout(SCT);SCT=0;saveCache0(1);return}
  if(SCT)return;
- SCT=setTimeout(function again(){if(userBusy()){SCT=setTimeout(again,1200);return}SCT=0;if(window.requestIdleCallback)requestIdleCallback(()=>saveCache0(),{timeout:5000});else saveCache0()},2500);
+ SCT=setTimeout(function again(){if(userRest()){SCT=setTimeout(again,1200);return}SCT=0;if(window.requestIdleCallback)requestIdleCallback(()=>{if(userRest())saveCache();else saveCache0()},{timeout:5000});else saveCache0()},2500);
 }
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&SCT)saveCache(true)});addEventListener('pagehide',()=>{if(SCT)saveCache(true)});
-function saveCache0(){if(FROZEN)return;const c={};for(const id in items)if(S.feeds.some(f=>f.id===id))c[id]=items[id].slice(0,30).map(a=>({...a,html:(a.html||'').slice(0,3500)}));
+let SCSIG='';
+function saveCache0(force){if(FROZEN)return;/* nothing new since the last save: skip the 40-50 ms of packing it up again (leaving the app always saves) */const sg=itemsSig();if(sg===SCSIG&&!force)return;SCSIG=sg;const c={};for(const id in items)if(S.feeds.some(f=>f.id===id))c[id]=items[id].slice(0,30).map(a=>({...a,html:(a.html||'').slice(0,3500)}));
  try{localStorage.setItem(CK,JSON.stringify(c))}catch(e){try{for(const id in c)c[id].forEach(a=>a.html='');localStorage.setItem(CK,JSON.stringify(c))}catch(_){}}}
 const feedOf=id=>S.feeds.find(f=>f.id===id)||{title:'',url:''};
 const PAT=['mid'];
@@ -7473,7 +7476,7 @@ function card(a,i,k){
   if(a&&!WHY[a.link]){const pw=priWhy(a);if(pw)WHY[a.link]=pw}
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
   const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],op=q0&&q0.v>=4&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="object-position:${q0.px}% ${q0.py}%"`:'';
-  return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="${i<6?'eager':'lazy'}" decoding="${i<6?'sync':'async'}"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div>${a.img&&a.pcr&&isOn('mag3')?`<span class="pcr">Photo: ${esc(a.pcr)}</span>`:''}${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg" style="--pg:${Math.round(progOf(a.link)*100)}%"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><span class="sn" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}">${esc(f.title)}</span>${a.sec?`<span class=" ssec">· ${esc(a.sec)}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="${a.more.length+1} sources report this">+${a.more.length} sources</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3>${(()=>{const q=!a.img&&!/\b(nr-row|nr-late|list-row)\b/.test(k||'')?nrQuoteText(a):null;return q?`<p class="lq">${esc(q.q)}</p>`:`<p>${esc(sumOf(a.summary))}</p>`})()}<div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}${pwBadge(a)}<time>${ago(a.date)}</time></div>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
+  return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="${i<6?'eager':'lazy'}" decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div>${a.img&&a.pcr&&isOn('mag3')?`<span class="pcr">Photo: ${esc(a.pcr)}</span>`:''}${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg" style="--pg:${Math.round(progOf(a.link)*100)}%"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><span class="sn" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}">${esc(f.title)}</span>${a.sec?`<span class=" ssec">· ${esc(a.sec)}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="${a.more.length+1} sources report this">+${a.more.length} sources</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}">${esc(a.title)}</a></h3>${(()=>{const q=!a.img&&!/\b(nr-row|nr-late|list-row)\b/.test(k||'')?nrQuoteText(a):null;return q?`<p class="lq">${esc(q.q)}</p>`:`<p>${esc(sumOf(a.summary))}</p>`})()}<div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}${pwBadge(a)}<time>${ago(a.date)}</time></div>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
 }
 /*NEWSROOM*/
 const IS_SAFARI=(()=>{try{const u=navigator.userAgent;return /iP(hone|ad|od)/.test(u)||(/Safari\//.test(u)&&!/Chrome\/|Chromium\/|Android|Edg\/|OPR\/|CriOS|FxiOS/.test(u))}catch(e){return false}})();
@@ -13968,7 +13971,7 @@ function fedMods(us,FD,c){
  /* the very first story is the feature */
  if(c.first&&(c.lead||us.length)){
   const u=c.lead||us.shift(),a=u.head;why(a,FD.isFolder?'The cover story of '+FD.title+': the strongest story across its sites.':'The lead story from '+(FD.title||host(FD.url))+'.');
-  const img=a.img?`<span class="fd-fa"><img loading="eager" decoding="sync"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.remove()"></span>`:'';
+  const img=a.img?`<span class="fd-fa"><img loading="eager" decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.remove()"></span>`:'';
   B.push(link(a,'fd-feat'+(a.img?'':' fd-ft '+patCls(fof(a))),`${img}<span class="fd-fb"><small>${FD.isFolder?'Cover story · '+esc(fof(a).title)+' · ':'The lead · '}${esc(when(a))}</small><b>${esc(a.title)}</b>${dk(a)?`<em>${esc(dk(a))}</em>`:''}</span>`,a.img||!FD.isFolder?'':` data-nm="${esc(fof(a).title||host(fof(a).url))}"`)+(u.more.length?(()=>{const id='t'+peHash(a.link);return `<div class="wthr fd-thr"><button type="button" class="wthr-t" data-thr="${id}" aria-expanded="false">${u.more.length} earlier ${u.more.length===1?'update':'updates'} on this story</button><div class="wthr-b" id="${id}" hidden>${u.more.map(x=>c.card(x,ix(x),'nr nr-row nr-s')).join('')}</div></div>`})():''));
  }
  if(c.leadOnly)return;
