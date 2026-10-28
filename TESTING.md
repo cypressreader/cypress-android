@@ -940,3 +940,6 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 
 ## Scroll round 11 (after 1.192, unverified)
 - Photo shrinking (resize + re-encode) now runs in a background worker; the pre-loading pass for upcoming pictures waits for a scroll pause. All Stories fling check: 1.192 had 19% slow frames, shrink 1341 ms of main-thread script, aheadImgs 392 ms.
+
+## Lighter feed photos + decode ahead (branch -9l5kv7, preview, unverified)
+- [ ] All Stories: fast first fling on the Fold has fewer hiccups than 1.194; photos still look sharp (not blurry) in tiles, lead cards and list rows; opening a story still shows the full photo.
