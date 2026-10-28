@@ -94,7 +94,7 @@ const OUT=process.env.PDFOUT||'/tmp/pdf_magazine';fs.mkdirSync(OUT,{recursive:tr
   ck('[real] "Read at" text is on the page',/Read at (www\.)?bbc\.co\.uk|Read at techcrunch\.com|Read at theverge\.com/.test(flat0));
   /* nothing printed outside the page margins (feature openers once lost their first letters at the page edge on some viewers) */
   {const allbb=cp.execSync('pdftotext -bbox -enc UTF-8 '+OUT+'/real.pdf -',{encoding:'utf8',maxBuffer:1<<26});const ws=[...allbb.matchAll(/<word xMin="([\d.]+)" yMin="[\d.]+" xMax="([\d.]+)" yMax="[\d.]+">([^<]*)<\/word>/g)].map(m=>({x0:+m[1],x1:+m[2],t:m[3]}));
-   const out=ws.filter(w=>w.x0<44||w.x1>595.28-44);ck('[real] every word on every page sits at least 44pt inside the page edge ('+ws.length+' words)',out.length===0,JSON.stringify(out.slice(0,5)))}
+   const PWD=+(allbb.match(/<page width="([\d.]+)"/)||[0,595.28])[1];/* Letter in the US and Canada, A4 elsewhere */const out=ws.filter(w=>w.x0<44||w.x1>PWD-44);ck('[real] every word on every page sits at least 44pt inside the page edge ('+ws.length+' words)',out.length===0,JSON.stringify(out.slice(0,5)))}
   ck('[real] no page errors',!e2.length,e2[0]);
  }
  console.log(bad?'pdf_magazine '+bad+' FAILED':'pdf_magazine all passed');process.exit(bad?1:0);
