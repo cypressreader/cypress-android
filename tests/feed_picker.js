@@ -5,7 +5,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
  const b=await chromium.launch();const p=await (await b.newContext({viewport:{width:412,height:860}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
  await mock(p,{n:10});await p.goto('file://'+APP);await p.waitForTimeout(1200);await p.click('text=Get started').catch(()=>{});await p.waitForTimeout(400);
  const r=await p.evaluate(async()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());const w=ms=>new Promise(r=>setTimeout(r,ms));
-  obOpen(false);OB.step=2;obRender();await w(500);
+  obOpen(false);OB.topics=new Set([CAT[0].n]);/* no topic is preselected any more (polish-2026-10 I2) */OB.step=2;obRender();await w(500);
   const all=()=>[...document.querySelectorAll('[data-obsrc]')];
   const look=x=>{const d=x.querySelector('b'),cs=getComputedStyle(d),af=getComputedStyle(d,'::after');return {on:x.classList.contains('on'),pressed:x.getAttribute('aria-pressed'),fill:cs.backgroundColor!=='rgba(0, 0, 0, 0)',check:af.content!=='none'&&af.content!=='normal',ringShadow:cs.boxShadow!=='none'}};
   const consistent=()=>all().every(x=>{const l=look(x);return l.on===l.fill&&l.on===l.check&&(l.pressed===null||l.pressed===String(l.on))&&!l.ringShadow});
