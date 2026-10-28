@@ -5037,7 +5037,7 @@ try{const c=JSON.parse(localStorage.getItem(CK)||'{}');for(const id in c){const 
 try{(S.saved||[]).forEach(fixA);(S.hl||[]).forEach(h=>h.art&&fixA(h.art))}catch(e){}
 let SCRT=0;
 /* background work (redraws after a refresh, saving the story cache, reading feeds) waits until you have stopped scrolling */
-const userBusy=()=>Date.now()-SCRT<900;
+const userBusy=()=>Date.now()-SCRT<1500;/* a gliding page on a Fold can go 900 ms between scroll events */
 /* place keeper: automatic redraws wait while you are scrolled down a feed (render() checks UACT, your last tap or key), and if the page ever moves under a still finger the card you were reading is put back where it was */
 let UACT=0,RPEND=0,PKA=null,PKT=0,PKU=0,PKS=0;['touchstart','touchmove','wheel','keydown'].forEach(t=>addEventListener(t,()=>{PKU=Date.now();PKA=null},{capture:true,passive:true}));/* a new touch forgets the old spot: a stale one pulled a gliding page back, stopping it dead */
 ['click','keydown','change','input'].forEach(t=>addEventListener(t,()=>{UACT=Date.now();PKA=null},{capture:true,passive:true}));
@@ -5047,7 +5047,7 @@ document.addEventListener('scroll',e=>{const m=e.target;if(!m||m.tagName!=='MAIN
 setInterval(()=>{try{if(!PKA||document.hidden||Date.now()-PKU<2500||Date.now()-PKS<600)return;/* never while the page is still gliding */const m=document.querySelector('main');if(!m||m.scrollTop<200||document.querySelector('#rd.on,dialog[open]')||!PKA.a.isConnected){PKA=null;return}
  const d=PKA.a.getBoundingClientRect().top-m.getBoundingClientRect().top-PKA.y;if(Math.abs(d)>40){m.scrollTo({top:m.scrollTop+d,behavior:'instant'});JMP.k++}}catch(e){}},400);
 ['touchstart','touchmove','pointermove','wheel'].forEach(t=>addEventListener(t,()=>{SCRT=Date.now()},{passive:true,capture:true}));
-async function quietGap(max){const t0=Date.now();while(userBusy()&&!document.hidden&&Date.now()-t0<(max||8000))await new Promise(r=>setTimeout(r,300))}
+async function quietGap(max){const t0=Date.now(),lim=Math.max(max||0,60000);/* every caller is background work (feed parsing, read-ahead): it waits for the whole scroll, not just its first few seconds, so a long scroll never hitches on it */while(userBusy()&&!document.hidden&&Date.now()-t0<lim)await new Promise(r=>setTimeout(r,300))}
 /* read-ahead pages are parsed when the finger is still, each step in a task of its own, so a page turn or a tap never waits behind a second of parsing (1.4 s on a Fold in 1.145) */
 async function bgGate(){await quietGap(6000);await new Promise(r=>setTimeout(r,0))}
 /* a short fingerprint of everything the lists are drawn from; when a background refresh brings nothing new the page is left alone instead of being redrawn (which made pictures blink) */
@@ -5798,6 +5798,7 @@ async function og(a){
  try{
   const L=await gnResolve(a.link);if(/(^|\.)google\.com$/.test(new URL(L).hostname))return'';
   await ogSlot();let pg;try{pg=await fetchText(L,t=>/<meta/i.test(t))}finally{ogFree()}
+  await bgGate();/* parse once the finger is still */
   const d=new DOMParser().parseFromString(pg,'text/html');
   if(!acHas(a.link)){try{const ex=extract(pg,L);if(acStoreOk(ex,a)){const dv=document.createElement('div');dv.append(dropTitle(ex.cloneNode(true),a.title));acPut(a.link,dv.innerHTML,1);markReady(a.link)}}catch(_){}}
   const m=d.querySelector('meta[property="og:image"],meta[name="twitter:image"]');
@@ -13249,8 +13250,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.28h';const APP_LABEL='1.182';
-const CHANGES=["Scrolling the feed is much smoother: a flick keeps gliding after you lift your finger instead of stopping dead","Long feeds no longer freeze for a moment each time more stories load in","Car mode keeps the screen on after you switch away and come back","Developing stories get their red dot all the way down the feed","The story menu fits small phones again, with every button in reach","Cinematic stories open with their lead photo running edge to edge again"];
+const APP_VERSION='2026.10.28i';const APP_LABEL='1.183';
+const CHANGES=["Scrolling is steadier: a helper for screen readers no longer rechecks every switch in Settings while the feed moves","Stories saved for offline reading now wait until you stop scrolling, however long you scroll"];
 const DEF_ON=new Set(['mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -16110,11 +16111,11 @@ function handleShare(d){
 (function(){
  const pressSync=root=>{
   (root||document).querySelectorAll('#set button,#ob button').forEach(b=>{
-   if(b.classList.contains('tg')){b.setAttribute('aria-pressed',b.classList.contains('on')?'true':'false');return}
+   if(b.classList.contains('tg')){const v=b.classList.contains('on')?'true':'false';if(b.getAttribute('aria-pressed')!==v)b.setAttribute('aria-pressed',v);return}
    const par=b.parentElement;if(!par||par._pg===0)return;
    const sibs=[...par.children].filter(x=>x.tagName==='BUTTON');
    if(sibs.length<2||!sibs.some(x=>x.classList.contains('on'))){return}
-   b.setAttribute('aria-pressed',b.classList.contains('on')?'true':'false');
+   const v=b.classList.contains('on')?'true':'false';if(b.getAttribute('aria-pressed')!==v)b.setAttribute('aria-pressed',v);
   });
  };
  const names=root=>{
@@ -16131,7 +16132,7 @@ function handleShare(d){
  };
  names();pressSync();
  let tm=0;const later=()=>{clearTimeout(tm);tm=setTimeout(()=>{names();pressSync()},60)};
- new MutationObserver(later).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class'],childList:true});
+ /* the feed changes all the time while scrolling (cards drawn, rows evened out): those changes never touch Settings or set-up, and re-checking every switch on each one made scrolling stutter */new MutationObserver(rs=>{for(const r of rs){const t=r.target;if(!(t.closest&&t.closest('main')))return later()}}).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class'],childList:true});
  /* tabs (Today, Brief, Edition, Week and the others) move with the arrow keys */
  document.addEventListener('keydown',e=>{
   const t=e.target;if(!t||!t.closest||!/^(ArrowLeft|ArrowRight|Home|End)$/.test(e.key))return;

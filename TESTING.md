@@ -902,3 +902,6 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] Swipe a card left/right still saves / marks read, and a slightly diagonal swipe doesn't scroll the page.
 - [ ] Car mode: switch to another app and back: screen still stays on.
 - [ ] Developing red dot appears on matching cards far down the feed.
+
+## Scroll jitter round 2 (1.183)
+- [ ] Fold, a feed with 300+ cards: scroll steadily for 20+ seconds on Wi-Fi while charging (read-ahead on): no hitches mid-scroll. Scroll check: no `extract`/`parse` jobs while recording, no "pressSync" in scripts.
