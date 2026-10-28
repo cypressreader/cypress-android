@@ -4470,6 +4470,16 @@ html.lowp #tdr .tdaur{animation:none}
  #tdr .tdr2{overflow-y:auto;padding-top:14px}
  #tdr .tdart{width:min(30vw,250px)}
 }
+/* Car mode: full screen, just the headline, the time and big Previous / Play / Next buttons */
+#tdr.car{inset:0;transform:none;width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;border-radius:0;animation:none}
+#tdr.car .tdw{grid-template-columns:1fr;height:100%;max-height:none}
+#tdr.car .tdl{height:100%;padding:calc(14px + env(safe-area-inset-top,0px)) 20px calc(28px + env(safe-area-inset-bottom,0px))}
+#tdr.car :is(.tdcv,.tdr2,.tds,.tdks,[data-d=rw],[data-d=fw]){display:none}
+#tdr .tdcar{margin-left:auto;margin-right:8px}#tdr .tdcar[aria-pressed=true]{background:#fff;color:#0b2119}
+#tdr.car .tdn{flex:1;justify-content:center;gap:10px}#tdr.car .tdt{font-size:clamp(26px,7vw,46px);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}#tdr.car .tdp{font-size:18px}
+#tdr.car .tdtm{font-size:16px;margin-bottom:20px}
+#tdr.car .tdc{gap:min(7vw,48px)}#tdr.car .tdc>*{flex:none}#tdr.car .tdc .ib{width:84px;height:84px}#tdr.car .tdc svg{width:46px;height:46px}
+#tdr.car .tdpl{width:136px;height:136px}#tdr.car .tdpl svg{width:60px;height:60px}
 /* on a picture card the offline-ready badge sits under the star, not over the reading time in the bottom corner */
 #grid .card:not(.list-row):not(.nr-row)>img~.rdy{top:54px;bottom:auto;right:12px}
 /* a very long unbroken word in a pull quote's source line wraps instead of running off the card */
@@ -9797,9 +9807,13 @@ function tminiSync(){
 /* ---------- the chapter drawer: scrubber with a tick where each story starts, the queue, and playback speed ---------- */
 function tdr(){let d=$('#tdr');if(d)return d;
  d=document.createElement('dialog');d.id='tdr';d.setAttribute('aria-labelledby','tdr-t');
- d.innerHTML=`<div class="tdw"><section class="tdl"><div class="tdbg" aria-hidden="true"><i class="tdpic"></i><i class="tdaur"></i><i class="tdfr"></i></div><div class="tdh"><h2 id="tdr-t">Now playing</h2><button type="button" class="ib" id="tdx" aria-label="Close player">${dkI('<path d="M6 6l12 12M18 6 6 18"/>',19)}</button></div><div class="tdcv"><span class="tdart">${CYSVG}<img alt="" decoding="async" referrerpolicy="no-referrer"></span></div><div class="tdn"><b class="tdt"></b><small class="tdp"></small></div><div id="tdsc" role="slider" tabindex="0" aria-label="Position in the Daily" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0"><div class="tdbar"><i class="tdf"></i></div><span class="tdks"></span></div><div class="tdtm"><span class="tdcur">0:00</span><span class="tdtot">0:00</span></div><div class="tdc"><button type="button" class="ib" data-d="rw" aria-label="Back 15 seconds">${dkI('<path d="M12 5a7 7 0 1 1-6.3 4"/><path d="M12 2 8.5 5 12 8"/>',22)}</button><button type="button" class="ib" data-d="pv" aria-label="Previous story">${dkI('<path d="M7 5v14"/><path d="M19 5.5v13L9 12z" fill="currentColor"/>')}</button><button type="button" class="tdpl" data-d="pl" aria-label="Pause"></button><button type="button" class="ib" data-d="nx" aria-label="Next story">${dkI('<path d="M17 5v14"/><path d="M5 5.5v13L15 12z" fill="currentColor"/>')}</button><button type="button" class="ib" data-d="fw" aria-label="Forward 15 seconds">${dkI('<path d="M12 5a7 7 0 1 0 6.3 4"/><path d="M12 2l3.5 3L12 8"/>',22)}</button></div><div class="tds" role="radiogroup" aria-label="Playback speed">${[1,1.25,1.5,2].map(v=>`<button type="button" role="radio" data-sp="${v}" aria-checked="false">${v}×</button>`).join('')}</div></section><section class="tdr2"><ol class="tdq" aria-label="Stories in this listen"></ol><button type="button" class="tx2 tdo">Open this story</button></section></div>`;
+ d.innerHTML=`<div class="tdw"><section class="tdl"><div class="tdbg" aria-hidden="true"><i class="tdpic"></i><i class="tdaur"></i><i class="tdfr"></i></div><div class="tdh"><h2 id="tdr-t">Now playing</h2><button type="button" class="ib tdcar" aria-pressed="false" aria-label="Car mode" title="Car mode: big buttons, screen stays on">${dkI('<path d="M4 15l1.6-5.2a2 2 0 0 1 1.9-1.4h9a2 2 0 0 1 1.9 1.4L20 15v3H4z"/><circle cx="7.5" cy="18" r="1.5"/><circle cx="16.5" cy="18" r="1.5"/>',19)}</button><button type="button" class="ib" id="tdx" aria-label="Close player">${dkI('<path d="M6 6l12 12M18 6 6 18"/>',19)}</button></div><div class="tdcv"><span class="tdart">${CYSVG}<img alt="" decoding="async" referrerpolicy="no-referrer"></span></div><div class="tdn"><b class="tdt"></b><small class="tdp"></small></div><div id="tdsc" role="slider" tabindex="0" aria-label="Position in the Daily" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0"><div class="tdbar"><i class="tdf"></i></div><span class="tdks"></span></div><div class="tdtm"><span class="tdcur">0:00</span><span class="tdtot">0:00</span></div><div class="tdc"><button type="button" class="ib" data-d="rw" aria-label="Back 15 seconds">${dkI('<path d="M12 5a7 7 0 1 1-6.3 4"/><path d="M12 2 8.5 5 12 8"/>',22)}</button><button type="button" class="ib" data-d="pv" aria-label="Previous story">${dkI('<path d="M7 5v14"/><path d="M19 5.5v13L9 12z" fill="currentColor"/>')}</button><button type="button" class="tdpl" data-d="pl" aria-label="Pause"></button><button type="button" class="ib" data-d="nx" aria-label="Next story">${dkI('<path d="M17 5v14"/><path d="M5 5.5v13L15 12z" fill="currentColor"/>')}</button><button type="button" class="ib" data-d="fw" aria-label="Forward 15 seconds">${dkI('<path d="M12 5a7 7 0 1 0 6.3 4"/><path d="M12 2l3.5 3L12 8"/>',22)}</button></div><div class="tds" role="radiogroup" aria-label="Playback speed">${[1,1.25,1.5,2].map(v=>`<button type="button" role="radio" data-sp="${v}" aria-checked="false">${v}×</button>`).join('')}</div></section><section class="tdr2"><ol class="tdq" aria-label="Stories in this listen"></ol><button type="button" class="tx2 tdo">Open this story</button></section></div>`;
  document.body.append(d);
  d.querySelector('#tdx').onclick=()=>d.close();
+ /* Car mode: the player fills the screen with big buttons and keeps the screen on; remembered for next time */
+ const cb=d.querySelector('.tdcar');tdr.car=on=>{S.car=!!on;d.classList.toggle('car',S.car);cb.setAttribute('aria-pressed',S.car);rdWake(S.car||$('#rd').classList.contains('on'))};
+ cb.onclick=()=>{tdr.car(!S.car);save()};
+ d.addEventListener('close',()=>{if(S.car)rdWake($('#rd').classList.contains('on'))});
  d.addEventListener('click',e=>{if(e.target===d)d.close()});
  d.querySelector('.tdc').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;const k=b.dataset.d;if(k==='rw')digSeekBy(-15);else if(k==='fw')digSeekBy(15);else if(k==='pv')digPrev();else if(k==='nx')digNext();else if(k==='pl')tminiToggle();setTimeout(tminiSync,60)});
  d.querySelector('.tds').addEventListener('click',e=>{const b=e.target.closest('[data-sp]');if(!b)return;S.rate=+b.dataset.sp;save();const r=$('#rate');if(r)r.value=S.rate;const rv=$('#ratev');if(rv)rv.value=S.rate.toFixed(1)+'×';if(TTS.on&&!TTS.paused)ttsFrom(ttsPos());tminiSync()});
@@ -9817,7 +9831,7 @@ function tdr(){let d=$('#tdr');if(d)return d;
  tdr.drag=()=>!!drag;
  return d;
 }
-function tdrOpen(){const d=tdr();tdr.sig='';tdr.art='';if(!d.open)d.showModal();tdrUpdate(digModel())}
+function tdrOpen(){const d=tdr();tdr.sig='';tdr.art='';if(!d.open)d.showModal();tdr.car(S.car);tdrUpdate(digModel())}
 function tdrPreview(f){const d=$('#tdr');if(!d)return;const m=digModel();d.querySelector('.tdf').style.transform='scaleX('+f.toFixed(4)+')';d.querySelector('.tdcur').textContent=digFmt(f*m.tot)}
 function tdrUpdate(m){
  const d=$('#tdr');if(!d||!d.open)return;

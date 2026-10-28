@@ -875,3 +875,8 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 ## Picks after 1.177 (preview, unverified on phone)
 - All Stories: a card from the last 6 hours whose headline names a Developing topic shows a small red dot before its headline (pulses only with micro motion on).
 - Open the app after 3+ days away: about 10 s later a "Welcome back" note offers Catch me up; tapping it opens the catch-up.
+
+## Car mode (unbumped, after 1.178)
+- [ ] Start a listen, open the player, tap the car button: player fills the screen, only headline, time and big Previous / Play / Next show.
+- [ ] Screen stays on while Car mode is up; after closing the player it can sleep again (unless a story is open).
+- [ ] Car mode is remembered next time the player opens; tapping the car button again goes back to the normal player.
