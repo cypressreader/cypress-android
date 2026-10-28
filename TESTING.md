@@ -866,3 +866,4 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Saved: a story read and saved over 30 days ago moves to the "Archive" chip; All count drops; a fully archived list shows "All caught up".
 - Daily cover headline rises in word by word the first time each day (not with Reduce motion or battery saver); no clipped letters (g, y, p).
 - Appearance > Tinted photos: photos in feed, cover and story turn two-tone in the theme colors; switching theme recolors them.
+- Review fixes: a site with its own reading speed keeps the word highlight in step; side menu Saved count leaves out archived stories; tinted photos in Dynamic/Light/Sepia Rosewood use the ink and page colors (not one flat color); headline rise carries on smoothly if stories finish loading mid-animation.
