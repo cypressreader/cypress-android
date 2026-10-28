@@ -918,6 +918,6 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Fold, tiles, Medium cards, pictures on: scroll a long feed fast; photos scroll in without hitches (scroll check: compare 1.185, 1% slow frames, worst 183 ms).
 - Card photos don't flicker or flash when a card is tapped, zooms, or fades in.
 
-## Scroll round 6 (unbumped, after 1.186) — implemented, unverified
+## Scroll round 6 (1.187) — implemented, unverified
 - In the Android app with all your feeds, scroll a long feed with short pauses for a minute; no hitches when you start scrolling again after a pause (scroll check: compare 1.186, 4% slow frames, worst 167 ms).
 - Stories still get saved for offline reading (the "ready" mark appears) after you stop scrolling; a pull-to-refresh still finishes promptly.
