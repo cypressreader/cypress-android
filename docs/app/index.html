@@ -7593,7 +7593,7 @@ function aheadImgs(){
   if(!isOn('mag3')||document.hidden||(navigator.connection&&navigator.connection.saveData))return;
   const g=$('#grid');if(!g||!g.querySelectorAll)return;const lim=innerHeight*3.2;
   g.querySelectorAll('img[loading=lazy]').forEach(im=>{
-   /* a picture in a card that is skipped offscreen is far away anyway, and measuring it forced that card to be laid out (cvAhead switches it to eager once the card comes within reach) */const cc=im.closest('.card,.wcol');if(cc&&!cc.classList.contains('nv')&&getComputedStyle(cc).contentVisibility==='auto')return;
+   /* pictures in cards are cvAhead's job (its observer switches them to eager within 2500px, with no measuring); reading styles and sizes here forced a layout on every scroll pause */if(im.closest('.card,.wcol'))return;
    const r=im.getBoundingClientRect();if(r.top>lim||r.bottom<-innerHeight)return;
    im.loading='eager';
    if(im.decode&&im.closest('.wmom,.nr-lead,.nr-hero,.lead,.fd-fa'))im.decode().catch(()=>{});
@@ -11684,18 +11684,20 @@ function trfPass(){
   const C=trfC(),tm=new Map(),dm=new Map();
   by.forEach(a=>{if(!trfOn(a))return;const c=C[a.link];if(c&&c.n)return;tm.set(trfPlain(a.title),a);const d=trfPlain(dekOf(a,170));if(d.length>30)dm.set(d.slice(0,40),a)});
   if(!tm.size)return;
-  const H=innerHeight,want=new Set();
+  /* measure first, write after: swapping text between measurements forced a fresh layout for every headline; cards far off screen (not .nv) wait until they come near */
+  const H=innerHeight,want=new Set(),wr=[];
   g.querySelectorAll('h2,h3,h4,a,b,span,p,div,strong,em').forEach(e=>{
-   if(e.firstElementChild||e.dataset.tr)return;const t=(e.textContent||'').trim();if(t.length<8)return;
+   if(e.firstElementChild||e.dataset.tr)return;const cc=e.closest('.card,.wcol');if(cc&&!cc.classList.contains('nv'))return;const t=(e.textContent||'').trim();if(t.length<8)return;
    let a=tm.get(t),role='t';
    if(!a){const k=dm.get(t.slice(0,40));if(k&&trfPlain(dekOf(k,170)).startsWith(t.replace(/…$/,'').slice(0,60))){a=k;role='d'}}
    if(!a)return;
    const c=C[a.link];
-   if(c&&c.t){const v=role==='t'?c.t:c.d;if(v){e.dataset.tr=role;e.dataset.o=t;e.textContent=v;
+   if(c&&c.t){const v=role==='t'?c.t:c.d;if(v)wr.push(()=>{e.dataset.tr=role;e.dataset.o=t;e.textContent=v;
     if(role==='t'){const cd=e.closest('[data-href]'),sr=cd&&cd.querySelector('.src');
      if(sr){if(!sr.querySelector('.trb')){const b=document.createElement('button');b.type='button';b.className='trb';b.dataset.l=a.link;b.setAttribute('aria-pressed','true');b.setAttribute('aria-label','Translated from '+c.l.toUpperCase()+'. Show the original');b.title='Translated from '+c.l.toUpperCase()+'. Tap to show the original';b.innerHTML='<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg><span>'+c.l.toUpperCase()+'</span>';sr.append(b)}}
-     else{e.classList.add('trd');e.title='Translated from '+c.l.toUpperCase()+'. Original: '+t}}}return}
+     else{e.classList.add('trd');e.title='Translated from '+c.l.toUpperCase()+'. Original: '+t}}});return}
    const r=e.getBoundingClientRect();if(r.bottom>-H*.5&&r.top<H*1.5)want.add(a)});
+  wr.forEach(f=>f());
   want.forEach(a=>{if(!TRF.seen.has(a.link)&&!TRF.fail.has(a.link)){TRF.seen.add(a.link);TRF.q.push(a)}});
   if(TRF.q.length)trfRun();
  }catch(e){}
@@ -17058,7 +17060,7 @@ function catchUp(){
 }
 /* draw cards up to ~3 screens ahead and behind; farther ones go back to being skipped, so long lists stay light (also run when setBlocks adds more cards) */
 function cvAhead(more){
- const io=cvAhead.io=cvAhead.io||new IntersectionObserver(es=>es.forEach(e=>{e.target.classList.toggle('nv',e.isIntersecting);/* fetch the photo now, not ~1250px out, so fast flings don't reach empty cards */if(e.isIntersecting)e.target.querySelectorAll('img[loading=lazy]').forEach(i=>{i.loading='eager'})}),{root:$('main'),rootMargin:'2500px 0px'});
+ const io=cvAhead.io=cvAhead.io||new IntersectionObserver(es=>es.forEach(e=>{e.target.classList.toggle('nv',e.isIntersecting);/* fetch the photo now, not ~1250px out, so fast flings don't reach empty cards */if(e.isIntersecting)e.target.querySelectorAll('img[loading=lazy]').forEach(i=>{i.loading='eager';if(i.decode&&i.closest('.wmom,.nr-lead,.nr-hero,.lead,.fd-fa'))i.decode().catch(()=>{})})}),{root:$('main'),rootMargin:'2500px 0px'});
  /* a full redraw starts afresh; cards added while scrolling are only added, so the hundreds already watched aren't all re-measured at once */if(!more)io.disconnect();$('#grid').querySelectorAll('.card,.wcol').forEach(c=>{if(more&&c._cv===io)return;c._cv=io;io.observe(c)});
 }
 /* live dot: a card from the last 6 hours whose headline names a topic in the Developing row gets the row's red dot before its headline */

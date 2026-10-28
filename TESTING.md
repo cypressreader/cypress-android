@@ -909,3 +909,7 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 ## Scroll jitter round 3 (unreleased, after 1.183) — implemented, unverified on phone
 - David's 1.183 scroll check on the Fold: `fixOrph` 2.1 s + picture-drift observer 1.4 s of 4.5 s script. `fixOrph` now skips sections whose cards haven't changed (it re-measured every section's last row each pass: 627 → 27 ms headless, 400 stories); drift observer measures in the next frame instead of inside its callback.
 - Check on the Fold (859x847, All Stories, tiles, Medium): long flings feel smooth; run a scroll check and compare against 1.183 (17% frames over 20 ms, worst 492 ms). On a tablet-width grid, the last row of each section still fills all columns; big-card pictures still drift.
+
+## Scroll round 4 (unbumped, branch claude/theme-six-handoff-f59gxy, 2026-10-28) — implemented, unverified
+- With a feed set to Translate: scroll a long feed; headlines near the screen switch to your language, far ones switch as they come near; no stutter while translations land.
+- Fast fling down a long picture feed: photos already there when cards arrive (cvAhead now also decodes big opening photos; aheadImgs no longer measures card pictures).
