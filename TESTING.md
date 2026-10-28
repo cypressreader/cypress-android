@@ -914,6 +914,6 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - With a feed set to Translate: scroll a long feed fast on the Fold; translated headlines still appear as cards come into view, no hitches at scroll pauses.
 - Pictures in cards are already there when they scroll in; big opener pictures still show without a blank flash.
 
-## Scroll round 5 (unbumped, after 1.185) — implemented, unverified
+## Scroll round 5 (1.186) — implemented, unverified
 - Fold, tiles, Medium cards, pictures on: scroll a long feed fast; photos scroll in without hitches (scroll check: compare 1.185, 1% slow frames, worst 183 ms).
 - Card photos don't flicker or flash when a card is tapped, zooms, or fades in.
