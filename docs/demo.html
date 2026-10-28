@@ -4973,7 +4973,7 @@ const plu=(n,s,p)=>n+' '+(n===1?s:p||s+'s')
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 /* only real web addresses may become links; everything else is dropped */
 const webUrl=u=>{try{const x=new URL(String(u||'').trim());return /^https?:$/.test(x.protocol)?x.href:''}catch(e){return''}};
-const okColor=c=>/^(#[0-9a-f]{3,8}|hsl\(\s*\d{1,3}(\.\d+)?\s*,?\s*\d{1,3}%\s*,?\s*\d{1,3}%\s*\))$/i.test(String(c||''))?c:'';
+const okColor=c=>/^(#[0-9a-f]{3,8}|rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)|hsl\(\s*\d{1,3}(\.\d+)?\s*,?\s*\d{1,3}%\s*,?\s*\d{1,3}%\s*\))$/i.test(String(c||''))?c:'';
 const okId=i=>/^[\w.:-]{1,60}$/.test(String(i||''))?String(i):'';
 /* a styled replacement for the plain browser prompt()/confirm() boxes; resolves true/false, or the typed text / null when o.input is set */
 function askBox(o){return new Promise(res=>{
@@ -4993,6 +4993,7 @@ function cleanLib(d){
  d.feeds=L(d.feeds).filter(f=>f&&typeof f==='object'&&okId(f.id)&&webUrl(f.url)).map(f=>{f.url=webUrl(f.url);f.title=String(f.title||'').slice(0,120);if(f.color&&!okColor(f.color))delete f.color;if(f.folder&&!okId(f.folder))f.folder='';return f});
  d.folders=L(d.folders).filter(f=>f&&typeof f==='object'&&okId(f.id)).map(f=>{f.name=String(f.name||'').slice(0,80);return f});
  if(d.saved)d.saved=L(d.saved).filter(a=>a&&typeof a==='object'&&webUrl(a.link)).map(a=>{a.link=webUrl(a.link);if(a.fc&&!okColor(a.fc))delete a.fc;if(a.feedId&&!okId(a.feedId))a.feedId='';return a});
+ L(d.hl).forEach(h=>{if(h&&h.art&&h.art.fc&&!okColor(h.art.fc))delete h.art.fc});
  return d;
 }
 
@@ -5448,7 +5449,7 @@ function clean(n,base){
   }
   if(!OK.has(t)){const sub=clean(c,base);if(/^(SECTION|ARTICLE|HEADER|ASIDE|FIGCAPTION|DT|DD|ADDRESS|CENTER|TR|TD|TH|MAIN)$/.test(t)&&sub.textContent.trim())out.append(' ');/* a div/dd/etc. that holds only running text is a paragraph: without a break its text fuses with its neighbours ("...text.Next...") */if(/^(DIV|SECTION|DT|DD|ADDRESS|HEADER|MAIN)$/.test(t)&&sub.textContent.trim()&&!sub.querySelector('p,ul,ol,table,figure,blockquote,pre,h2,h3,h4,hr,img')){const q=document.createElement('p');q.append(sub);out.append(q)}else out.append(sub);continue}
   const e=document.createElement(t);
-  if(t==='A'){const h=abs(c.getAttribute('href')||'',base);if(!/^https?:/.test(h)){out.append(clean(c,base));continue}e.href=h;e.target='_blank';e.rel='noopener'}
+  if(t==='A'){const h=abs(c.getAttribute('href')||'',base);if(!/^https?:/.test(h)){out.append(clean(c,base));continue}e.href=h;e.target='_blank';e.rel='noopener noreferrer'}
   if(t==='TD'||t==='TH')['colspan','rowspan'].forEach(k=>{const v=c.getAttribute(k);if(v&&/^\d{1,2}$/.test(v))e.setAttribute(k,v)});
   if(t!=='BR'&&t!=='HR')e.append(clean(c,base));
   if(t==='FIGURE')tidyFigure(e);
@@ -16378,7 +16379,7 @@ function widgetPush(){const x=CyX();if(!x||!x.widgetUpdate||!nFeat('widget')||!S
 document.addEventListener('visibilitychange',()=>{if(document.hidden)widgetPush();else widgetSavePull()});
 /* B48: stories saved from the home-screen widget */
 async function widgetSavePull(){const x=CyX();if(!x||!x.widgetSaved||!nFeat('widget'))return;try{const r=await x.widgetSaved();const link=r&&r.link;if(!link)return;const a=findStory(link);if(!a){toast('Saved the link — open it once to finish saving');return}if(!isSaved(a)){toggleSave(a);toast('Saved “'+String(a.title||'').slice(0,60)+'”')}else toast('Already saved')}catch(e){}}
-setInterval(widgetSavePull,30000);
+/* a widget save while the app is away is picked up on return (visibilitychange above) */setInterval(()=>{if(!document.hidden)widgetSavePull()},30000);
 
 function nativeSetup(){
  const p=CyN();if(!p)return;
