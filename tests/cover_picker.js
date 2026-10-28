@@ -7,7 +7,7 @@ let bad=0;const ck=(n,ok,x)=>{console.log((ok?'ok ':'FAIL ')+n+(ok?'':' '+(x||''
   await p.goto('file://'+APP);await p.waitForTimeout(1200);await p.click('text=Get started').catch(()=>{});await p.waitForTimeout(400);
   await p.evaluate(()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());document.getElementById('cvbtn').click()});await p.waitForTimeout(500);
   const keys=await p.evaluate(()=>[...document.querySelectorAll('#cvg [data-cvk]')].map(x=>x.dataset.cvk));
-  ck(`[${W}] the picker lists every style`,keys.length>=25,keys.length);
+  ck(`[${W}] the picker lists every style`,keys.length===9,keys.length);
   const dd=await p.evaluate(()=>[...document.querySelectorAll('#cvs option')].map(o=>o.value));
   ck(`[${W}] the plain list in Settings has the same styles as the picker (B76)`,JSON.stringify(dd.slice().sort())===JSON.stringify(keys.slice().sort()),JSON.stringify({dd,keys}));
   const fails=[];

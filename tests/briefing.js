@@ -11,7 +11,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    /* a stale one-story brief saved from an early load */
    S.brief={day:new Date().toDateString(),links:[items[S.feeds[0].id][0].link]};S.sel='brief';render();await w(800);
    const g=document.querySelector('#grid');
-   return {n:g.querySelectorAll('.bi').length,txt:g.innerText,num:!!g.querySelector('.bnum'),dig:g.querySelectorAll('.bdig li').length,quote:!!g.querySelector('.bq blockquote'),end:!!g.querySelector('.bend'),lead:g.querySelectorAll('.brf-lead').length}});
+   return {n:g.querySelectorAll('.bi').length,txt:g.innerText,num:!!g.querySelector('.bnum'),dig:g.querySelectorAll('.bdig li').length,quote:!!g.querySelector('.bq blockquote'),end:!!g.querySelector('.bend,.edseal'),lead:g.querySelectorAll('.brf-lead').length}});
   ck(W+' not stuck at one story',r.n>=4,String(r.n));
   ck(W+' no memo furniture',!/MEMO|Memo|To: you|From:/.test(r.txt));
   ck(W+' numbers',r.num);ck(W+' three to know',r.dig===3);ck(W+' quote of the day',r.quote);ck(W+' designed end',r.end);ck(W+' one lead',r.lead===1);

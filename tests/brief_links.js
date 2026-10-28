@@ -4,7 +4,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
 (async()=>{
  const b=await chromium.launch();
  for(const W of [412,1100]){
-  const ctx=await b.newContext({viewport:{width:W,height:860}});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));let popups=0;ctx.on('page',pg=>{if(pg!==p)popups++});
+  const ctx=await b.newContext({viewport:{width:W,height:860},bypassCSP:true});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));let popups=0;ctx.on('page',pg=>{if(pg!==p)popups++});
   await mock(p,{n:10});await p.goto('file://'+APP);await p.waitForTimeout(1200);await p.click('text=Get started').catch(()=>{});await p.waitForTimeout(400);
   await p.evaluate(()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());const now=Date.now();
    const uw=n=>{let x=(n+3)*7919,o='';for(let k=0;k<6;k++){o+=String.fromCharCode(97+x%26);x=Math.floor(x/26)+k*5+1}return o};
@@ -17,7 +17,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
    const fails=[];let tested=0;
    for(let i=0;i<Math.min(n,12);i++){
     await p.evaluate(()=>{if(document.querySelector('#rd.on'))closeRd()});await p.waitForTimeout(250);
-    const el=await p.evaluate(i=>{const as=[...document.querySelectorAll('#grid a[href][data-i]')].filter(a=>a.offsetParent);const a=as[i];if(!a)return null;a.scrollIntoView({block:'center'});const r=a.getBoundingClientRect(),x=r.left+r.width*.35,y=r.top+r.height*.5,t=document.elementFromPoint(x,y);return {x,y,ok:!!t&&a.contains(t),cls:a.className.split(' ').slice(0,2).join('.'),want:cur[+a.dataset.i]&&cur[+a.dataset.i].link}},i);
+    const el=await p.evaluate(async i=>{const as=[...document.querySelectorAll('#grid a[href][data-i]')].filter(a=>a.offsetParent);const a=as[i];if(!a)return null;a.scrollIntoView({block:'center'});/* the cover drifts a little as the page scrolls (parallax): measure once it has settled */await new Promise(r=>setTimeout(r,300));const r=a.getBoundingClientRect(),x=r.left+r.width*.35,y=r.top+r.height*.5,t=document.elementFromPoint(x,y);return {x,y,ok:!!t&&a.contains(t),cls:a.className.split(' ').slice(0,2).join('.'),want:cur[+a.dataset.i]&&cur[+a.dataset.i].link}},i);
     if(!el||!el.ok)continue;
     const url0=p.url();await p.mouse.click(el.x,el.y);await p.waitForTimeout(900);
     const got=await p.evaluate(()=>({open:!!document.querySelector('#rd.on'),link:curA&&curA.link}));tested++;

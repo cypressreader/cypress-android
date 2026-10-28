@@ -27,7 +27,7 @@ const mk=(name='x')=>{
 const ls={};
 const errors=[];
 const doc=mk('document');
-const ctx={
+const ctx={Element:class{},
  console,setTimeout,clearTimeout,setInterval,clearInterval,performance,MutationObserver:class{observe(){}disconnect(){}},HTMLDialogElement:class{},IntersectionObserver:class{observe(){}unobserve(){}disconnect(){}},
  localStorage:{getItem:k=>ls[k]===undefined?null:ls[k],setItem:(k,v)=>{ls[k]=String(v)},removeItem:k=>{delete ls[k]}},
  document:new Proxy({},{get:(t,k)=>k==='hidden'?false:k==='documentElement'?mk('html'):k==='body'?mk('body'):k==='addEventListener'?(()=>{}):k==='querySelectorAll'?(()=>[]):k==='createTreeWalker'?(()=>({nextNode:()=>null})):k==='createElement'?(()=>mk('el')):mk(String(k))}),

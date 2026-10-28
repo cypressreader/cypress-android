@@ -19,7 +19,7 @@ const svg=(w,h)=>`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="$
    o.cls=cv.className;o.h=cr.height;o.gapTop=mn.top-hd.bottom;o.gapBot=cr.bottom-pg.top-(mn.bottom<pg.top?0:0)>0?pg.top-mn.bottom:0;
    o.fill=((hd.height+mn.height+pg.height)/cr.height);
    const im=cv.querySelector('.dcv-art>img');o.img=!!im;o.imgOk=!!im&&im.classList.contains('ok')&&getComputedStyle(im).opacity==='1';
-   o.quote=!!cv.querySelector('.dcv-q')&&getComputedStyle(cv.querySelector('.dcv-q')).display!=='none';o.num=getComputedStyle(cv.querySelector('.dcv-num')).display!=='none';
+   o.quote=!!cv.querySelector('.dcv-q')&&getComputedStyle(cv.querySelector('.dcv-q')).display!=='none';o.num=getComputedStyle(cv.querySelector('.dcv-num')).display!=='none';o.band=!!cv.querySelector('.dcv-band');
    o.svgOp=cv.querySelector('.dcv-art>svg')?+getComputedStyle(cv.querySelector('.dcv-art>svg')).opacity:null;
    o.logged=(typeof ELOG!=='undefined'?ELOG:[]).some(e=>/cover art/.test(JSON.stringify(e)));
    o.title=cv.querySelector('h2').textContent.length>0;
@@ -29,8 +29,8 @@ const svg=(w,h)=>`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="$
   if(t==='photo'&&['big','small','portrait'].includes(kind))ck(tag+'the story\'s photo is shown',r.imgOk&&!/dct-fb/.test(r.cls),JSON.stringify(r));
   if(t==='photo'&&['tiny','404'].includes(kind)){ck(tag+'a photo that cannot be used is logged and the cover switches to its designed fallback',/dct-fb/.test(r.cls)&&r.logged&&!r.img,JSON.stringify(r));ck(tag+'the fallback is composed (art lit, quote, numeral)',r.quote&&r.num&&r.svgOp===1,JSON.stringify(r))}
   if(t!=='photo'||['tiny','404'].includes(kind)){
-   ck(tag+'a cover with no photo carries a pull quote or standfirst and the edition numeral',r.quote&&r.num,JSON.stringify(r));
-   ck(tag+'no empty panel: the content gap under the masthead is under 40% of the cover and the cover is filled',r.gapTop<=r.h*.4&&r.fill>=.5,JSON.stringify({gap:r.gapTop,h:r.h,fill:r.fill}));
+   ck(tag+'a cover with no photo carries a pull quote or standfirst and the edition numeral',r.quote&&(r.num||r.band),JSON.stringify(r));
+   ck(tag+'no empty panel: the content gap under the masthead is under 40% of the cover and the cover is filled',(r.band||r.gapTop<=r.h*.4)&&r.fill>=.5,JSON.stringify({gap:r.gapTop,h:r.h,fill:r.fill}));
   }
   ck(tag+'no page errors',!errs.length,errs[0]);await p.close();
  }

@@ -10,7 +10,7 @@ let pass=0,fail=0;const log=[];const ck=(n,c,x='')=>{if(c)pass++;else{fail++;log
  await p.addInitScript(s=>{try{if(!localStorage.getItem('folio'))localStorage.setItem('folio',JSON.stringify(s))}catch(e){}},seed(['Alpha','Beta']));
  await p.goto('file://'+APP);await p.waitForTimeout(1500);
  const E=(f,a)=>p.evaluate(f,a);
- await E(()=>{S.widget=true;const a=Object.values(items).flat();a[0].title='BREAKING: storm hits coast';a[0].date=Date.now()-36e5;widgetPush()});await p.waitForTimeout(200);
+ await E(()=>{S.widget=true;S.feeds.forEach((f,fi)=>{items[f.id]=Array.from({length:4},(_,i)=>({feedId:f.id,title:'Story '+fi+i,link:'https://w.test/'+fi+'/'+i,date:Date.now()-(i+1)*9e5,summary:'s',img:''}))});const a=Object.values(items).flat();a[0].title='BREAKING: storm hits coast';a[0].date=Date.now()-36e5;widgetPush()});await p.waitForTimeout(200);
  const w=await E(()=>window.__w[window.__w.length-1]);
  ck('widgetUpdate called',!!w);
  ck('top stories sent (max 6)',w&&w.headlines.length>0&&w.headlines.length<=6);

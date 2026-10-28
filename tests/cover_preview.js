@@ -2,7 +2,7 @@
 const {APP}=require('./env');const {mock,PW}=require('./mock');const {chromium}=require(PW);
 let bad=0;const ck=(n,ok,x)=>{console.log((ok?'ok ':'FAIL ')+n+(ok?'':' '+(x||'')));if(!ok)bad++};
 const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a5db0"/><stop offset="1" stop-color="#d98a3a"/></linearGradient></defs><rect width="1600" height="1000" fill="url(#g)"/><circle cx="800" cy="420" r="190" fill="#f3d9bf"/></svg>';
-const STYLES=['clean','photo','poster','block','split','triptych','gazette','gallery','spotlight','magazine','broadcast','duotone','index','overlap','cinema','rail','titleseq','chapters','journal','plays','fact','collage','italic'];
+const STYLES=['clean','gazette','magazine','gallery','index','journal','cinema'];/* polish-2026-10 N1: only nine covers are offered; auto and type render as the Daily cover (.dcov), not .cover */
 (async()=>{const b=await chromium.launch();
 for(const [W,H] of [[412,860],[1100,900]]){
  const p=await (await b.newContext({viewport:{width:W,height:H}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));await mock(p,{n:10});
