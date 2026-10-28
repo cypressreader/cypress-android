@@ -937,3 +937,6 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 
 ## Photo shrink round 2 (after 1.191, unverified)
 - Every feed photo wider than 1600px is now shrunk (was only >6 MP). Fold scroll check: "photos loaded" largest should read ≤1600px; slow frames (1.191: 1%, worst 92 ms) should drop. Watch for a brief blank on big photos as they load.
+
+## Scroll round 11 (after 1.192, unverified)
+- Photo shrinking (resize + re-encode) now runs in a background worker; the pre-loading pass for upcoming pictures waits for a scroll pause. All Stories fling check: 1.192 had 19% slow frames, shrink 1341 ms of main-thread script, aheadImgs 392 ms.

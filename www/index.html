@@ -4,7 +4,7 @@
  Feeds, pictures, audio and the site view come from any publisher (http allowed by rule), so img/media/connect/style/font allow https: and http:.
  The key locks: no plugins (object-src), no <base> or form hijack, frames only for the YouTube player, and no remote scripts at all.
  The site view is a sandboxed srcdoc frame that inherits this policy, so base-uri and style-src must let its own <base> and stylesheets through. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https: http:; font-src 'self' data: https: http:; img-src 'self' data: blob: https: http:; media-src 'self' data: blob: https: http:; connect-src 'self' data: blob: https: http:; frame-src https://www.youtube-nocookie.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self' https: http:; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https: http:; font-src 'self' data: https: http:; img-src 'self' data: blob: https: http:; media-src 'self' data: blob: https: http:; connect-src 'self' data: blob: https: http:; frame-src https://www.youtube-nocookie.com; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self' https: http:; form-action 'none'">
 <script>(function(){var d=document.documentElement;try{d.style.backgroundColor=localStorage.getItem("cy-bg")||"#0e1220";d.className+=" boot";setTimeout(function(){d.className=d.className.replace(/\s?boot/,"")},3500)}catch(e){}})()</script>
 <style>html.boot body{visibility:hidden}</style>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -6074,15 +6074,19 @@ offApply(false);
 /* ---------- photo color + face-aware text placement ---------- */
 const IINFO=new Map(),IBLOB=new Map();let IIS={};try{IIS=JSON.parse(localStorage.getItem('folio-imgi')||'{}')}catch(e){}
 /* oversized photos (some sites send 8000-pixel originals; 1.191 Fold check: 2560-wide photos still held frames 50-90 ms) are shrunk once to at most 1600 pixels wide, decoded off the main thread, before they are first drawn: decoding the original held the screen for 300 ms each time one scrolled into view */
-const BIGM=new Map();
+const BIGM=new Map();let SHW=null,SHN=0;const SHP=new Map();
+/* the resize and re-encode run in a small background worker: on the main thread they cost 12-35 ms per photo while flinging (1.192 check) */
+function shrinkOff(b,w,h){
+ if(!SHW){SHW=new Worker(URL.createObjectURL(new Blob(["onmessage=async e=>{const{i,b,w,h}=e.data;try{const bm=await createImageBitmap(b,{resizeWidth:w,resizeHeight:h,resizeQuality:'high'}),c=new OffscreenCanvas(bm.width,bm.height);c.getContext('2d').drawImage(bm,0,0);bm.close();postMessage({i,o:await c.convertToBlob({type:'image/jpeg',quality:.85})})}catch(x){postMessage({i})}}"],{type:'text/javascript'})));SHW.onmessage=e=>{const f=SHP.get(e.data.i);SHP.delete(e.data.i);if(f)f(e.data.o)}}
+ return new Promise(f=>{const i=++SHN;SHP.set(i,f);SHW.postMessage({i,b,w,h})});
+}
 async function shrinkImg(im){
  const u=im.src;im._sm=1;im.style.visibility='hidden';
  try{
   let s=BIGM.get(u);
   if(!s){const r=await fetch(u,NATIVE?{headers:NHDR}:{referrerPolicy:'no-referrer',credentials:'omit'});if(!r.ok)throw 0;
-   const w=Math.min(1600,im.naturalWidth),bm=await createImageBitmap(await r.blob(),{resizeWidth:w,resizeHeight:Math.max(1,Math.round(im.naturalHeight*w/im.naturalWidth)),resizeQuality:'high'});
-   const c=new OffscreenCanvas(bm.width,bm.height);c.getContext('2d').drawImage(bm,0,0);bm.close();
-   s=URL.createObjectURL(await c.convertToBlob({type:'image/jpeg',quality:.85}));BIGM.set(u,s);if(BIGM.size>80){const k=BIGM.keys().next().value;URL.revokeObjectURL(BIGM.get(k));BIGM.delete(k)}}
+   const w=Math.min(1600,im.naturalWidth),o=await shrinkOff(await r.blob(),w,Math.max(1,Math.round(im.naturalHeight*w/im.naturalWidth)));if(!o)throw 0;
+   s=URL.createObjectURL(o);BIGM.set(u,s);if(BIGM.size>80){const k=BIGM.keys().next().value;URL.revokeObjectURL(BIGM.get(k));BIGM.delete(k)}}
   if(im.src===u){im.dataset.big=u;im.src=s}
  }catch(e){}
  im.style.visibility='';
@@ -7621,7 +7625,8 @@ function aheadImgs(){
   });
  }catch(e){}
 }
-const aheadSoon=()=>{if(!WARMT)WARMT=setTimeout(aheadImgs,160)};
+/* runs once scrolling pauses, not every 160 ms during a fling: each pass measures every lazy picture (up to 101 ms on All Stories) */
+const aheadSoon=()=>{clearTimeout(WARMT);WARMT=setTimeout(aheadImgs,160)};
 addEventListener('scroll',aheadSoon,{passive:true,capture:true});
 try{new MutationObserver(aheadSoon).observe($('#grid'),{childList:true})}catch(e){}
 let NRIO=null;
