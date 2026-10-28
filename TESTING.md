@@ -856,3 +856,8 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] (2026-10-27) All Stories new arrivals: no floating pill. Top bar shows a small second line "N new stories" (tap loads), and a quiet note "N new stories since you opened this · Show" sits at the top of the list. Check it fits beside the top bar icons on the phone.
 - [ ] 2026-10-27 (unbumped, branch -4xsmdy): "N new stories" line under the top bar title fits on a narrow phone (shows "N new" under 380px wide, never runs under the icons). Daily cover big issue number counts up from 0 on first open, not on every refresh; no animation with reduced motion.
 - [ ] 2026-10-27 (unbumped, -4xsmdy): All Stories: while scrolling, only the slim section label line pins under the top bar, same as in folders (no big duplicate). On a phone with a small display size, story rows after "New since" are full-width lines, not squeezed side-by-side pairs.
+
+## 1.176 picks (2026-10-28, implemented, unverified on phone)
+- Read aloud: with "Read photo captions" Off (default), the voice skips the text under pictures; On reads them.
+- Daily: "Surprise me" button beside Catch me up opens a random unread story (last 5 days).
+- Settings > Bigger buttons: round buttons, bottom tabs, switches and hands-free controls grow; nothing overlaps on the phone or Fold.
