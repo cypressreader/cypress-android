@@ -894,5 +894,5 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] The Daily cover: soft seasonal color at the top, "· Fall" in the edition line (Seasonal touches on).
 - [ ] Saturday/Sunday: The Daily's long-read section is called "Weekend Reads" with up to 9 stories.
 
-## Side by side "Sideways" setting (unbumped, after 1.180)
+## Side by side "Sideways" setting (1.181)
 - [ ] Open Fold, setting Sideways: held upright = one column (no side by side); turned sideways = list + story side by side. Setting Always: side by side both ways.
