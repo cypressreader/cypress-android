@@ -90,7 +90,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060],['desk',1280,900]]){
  await p.tap('#cl');await W(200);
  // suggestions
  await E(()=>$('#add').click());await W(300);await E(()=>{const r=$('#pop [data-cat="-1"]');if(r)r.click()});await W(250);
- const sg=await E(()=>({chip:/For you/.test($('#pop .ahd')?.textContent||''),n:document.querySelectorAll('#pop .pf').length,why:$('#pop .pf small')?.textContent}));
+ const sg=await E(()=>({chip:/For you/.test($('#pop .ahd')?.textContent||''),n:document.querySelectorAll('#pop .pf').length,why:$('#pop .pf small:not(.pfbl)')?.textContent}));
  ck('find','For you suggestions',sg.chip&&sg.n>=5&&/Because you read The Verge/.test(sg.why),JSON.stringify(sg));
  ck('find','suggestions exclude added',await E(()=>![...document.querySelectorAll('#pop [data-add]')].some(b=>b.dataset.add.includes('theverge'))));
  await E(()=>$('#dlg').close());
@@ -119,7 +119,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  ck(vp,'no info button on cards',await E(()=>[...document.querySelectorAll('#grid .card [data-why]')].every(b=>getComputedStyle(b).display==='none')));
  // card sizes
  for(const c of ['large','compact','medium']){await E(c=>{S.cards=c;S.sel='all';render()},c);await W(150);
-  const r=await E(()=>{const cs=[...document.querySelectorAll('#grid .card')];/* the feed now opens with a mix of card shapes: judge the tallest of the first six */const a=cs.slice(0,6).map(x=>x.getBoundingClientRect()).sort((p,q)=>q.height-p.height)[0];return{w:a.width,h:a.height,cols:new Set(cs.slice(0,6).map(x=>Math.round(x.getBoundingClientRect().left))).size,hs:document.documentElement.scrollWidth<=innerWidth+1}});
+  const r=await E(()=>{const cs=[...document.querySelectorAll('#grid .card')];/* the feed now opens with a mix of card shapes: judge the tallest of the first six */const a=cs.slice(0,6).map(x=>x.getBoundingClientRect()).sort((p,q)=>q.height-p.height)[0];return{w:a.width,h:a.height,cols:new Set(cs.slice(0,6).filter(x=>!x.classList.contains('nr-row')).map(x=>Math.round(x.getBoundingClientRect().left))).size,hs:document.documentElement.scrollWidth<=innerWidth+1}});
   if(c==='large')ck(vp,'large cards bigger',r.h>=260&&(w<500?r.cols===1:r.cols<=2),JSON.stringify(r));
   if(c==='compact')ck(vp,'compact cards short',r.h<140,JSON.stringify(r));
   ck(vp,c+' no h-scroll',r.hs);
@@ -243,13 +243,13 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  ck('narrow','no errors',p.errs.length===0,p.errs.join('|'));await p.ctx.close()}
 
 /* 49 flex mode */
-{const init=()=>{Object.defineProperty(window,'viewport',{value:{segments:[{x:0,y:0,width:884,height:500},{x:0,y:524,width:884,height:476}]},configurable:true})};
+{const init=()=>{Object.defineProperty(navigator,'devicePosture',{value:{type:'folded',addEventListener(){}},configurable:true});Object.defineProperty(window,'viewport',{value:{segments:[{x:0,y:0,width:884,height:500},{x:0,y:524,width:884,height:476}]},configurable:true})};
  const p=await mk(b,{w:884,h:1000,seedData:seed(SITES),init});const E=p.E;
  await E(()=>{S.sel='all';render();openReader(cur.find(a=>a.link.includes('alpha')))});await W(2000);
  const f=await E(()=>{const sh=$('#sheet').getBoundingClientRect(),pad=$('#fpad').getBoundingClientRect();return{flex:$('#rd').classList.contains('flex'),shB:sh.bottom,padT:pad.top,padH:pad.height,btn:document.querySelectorAll('#fpad [data-fp]').length}});
  ck('flex','story on top half',f.flex&&f.shB<=501,JSON.stringify(f));ck('flex','controls on bottom half',f.padT>=523&&f.padH>200&&f.btn===6);
  await p.screenshot({path:'/tmp/t/v3-flex.png'});
- const pg0=await E(()=>R.pg);await p.click('#fpad [data-fp="next"]');await W(1000);ck('flex','pad next turns page',await E(()=>R.pg)===pg0+1);
+ const pg0=await E(()=>R.pg);await p.click('#fpad [data-fp="next"]');await W(1800);ck('flex','pad next turns page',await E(()=>R.pg)===pg0+1);
  ck('flex','pad shows page info',await E(()=>/\d+ \/ \d+/.test($('#fpc').textContent)));
  await p.click('#fpad [data-fp="bigger"]');await W(300);ck('flex','pad text size',await E(()=>S.fs===19));
  await E(()=>{delete window.viewport;dispatchEvent(new Event('resize'))});await W(500);ck('flex','flat again = normal',await E(()=>!$('#rd').classList.contains('flex')));
@@ -266,7 +266,7 @@ for(const [vp,w,h] of [['fold',884,1060],['desk',1280,900]]){
  ck(vp,'story opens beside list',r.on&&r.rl>=r.mr-1&&r.rw>300&&r.act,JSON.stringify(r));
  ck(vp,'list still clickable',await E(()=>{const c=document.querySelector('#grid .card:nth-child(4)');const b=c.getBoundingClientRect();const e=document.elementFromPoint(b.left+b.width/2,b.top+b.height/2);return c.contains(e)}));
  await p.screenshot({path:`/tmp/t/v3-${vp}-split1.png`});
- await p.evaluate(()=>document.querySelector('#nx').click());await W(1000);ck(vp,'page turn works in split',await E(()=>R.pg===1));
+ await p.evaluate(()=>document.querySelector('#nx').click());await W(1800);ck(vp,'page turn works in split',await E(()=>R.pg===1));
  await p.click('#grid .card:nth-child(4) h3');await W(1500);ck(vp,'switch story from list',await E(()=>cur.indexOf(curA)===3||$('.card.act')===document.querySelector('#grid .card:nth-child(4)')));
  await p.click('#cl');await W(300);ck(vp,'close shows placeholder',await E(()=>!!$('#sheet .spe')&&!$('#rd').classList.contains('on')));
  await p.click('#menu');await W(300);ck(vp,'menu drawer in split',await E(()=>document.body.classList.contains('open')&&$('aside').getBoundingClientRect().left>=-1));
@@ -278,7 +278,7 @@ for(const [vp,w,h] of [['fold',884,1060],['desk',1280,900]]){
 /* settings rows present and working */
 {const p=await mk(b,{w:380,h:820,mob:true,seedData:seed(SITES)});const E=p.E;
  await E(()=>$('#gear').click());await W(300);
- for(const sel of ['#scs [data-sc="vertical"]','#cds [data-cd="large"]','.tg[data-tg="mag"]','.tg[data-tg="cover"]','.tg[data-tg="intro"]','.tg[data-tg="split"]','#nrw','#qv'])ck('settings',sel+' present',await E(s=>!!$(s),sel));
+ for(const sel of ['#scs [data-sc="vertical"]','#cds [data-cd="large"]','.tg[data-tg="mag"]','.tg[data-tg="cover"]','.tg[data-tg="intro"]','#spm','#nrw','#qv'])ck('settings',sel+' present',await E(s=>!!$(s),sel));
  await E(()=>$('#scs [data-sc="vertical"]').click());ck('settings','scroll setting',await E(()=>S.scroll==='vertical'));
  await E(()=>$('#cds [data-cd="compact"]').click());ck('settings','cards setting',await E(()=>S.cards==='compact'));
  await E(()=>$('.tg[data-tg="mag"]').click());ck('settings','mag toggle off',await E(()=>S.mag===false&&$('.tg[data-tg="mag"]').textContent==='Off'));

@@ -12,7 +12,7 @@ const W1=['Why the new chip changes everything','Senate passes sweeping budget d
    const g=document.querySelector('#grid'),mods=[...g.children].map(e=>e.className.split(' ').find(c=>/^(fd-feat|fd-pair|fd-decks|fd-brief|fd-voice|wthr|card|wsec|wsec-v)$/.test(c))||'').filter(x=>x&&x!=='wsec-v'&&x!=='wsec');
    let same=0;for(let i=1;i<mods.length;i++)if(mods[i]===mods[i-1]&&mods[i]!=='card')same++;
    const out={fed:g.classList.contains('fed'),feat:g.querySelectorAll('.fd-feat').length,kinds:[...new Set(mods)],same,accent:getComputedStyle(g).getPropertyValue('--fa').trim()!=='',voice:g.querySelectorAll('.wsec-v').length};
-   items[f.id].forEach(a=>S.read[a.link]=1);_lastSel=null;render();await w(700);for(let i=0;i<60;i++)NRMORE&&NRMORE();await w(200);out.caught=(g.querySelector('.wcaught h3')||{}).textContent||'';
+   items[f.id].forEach(a=>S.read[a.link]=1);_lastSel=null;render();await w(700);for(let i=0;i<60;i++)NRMORE&&NRMORE();await w(200);out.caught=(g.querySelector('.caught1')||{}).textContent||'';
    /* a folder gets the same masthead and a section front, and the Columns view has a lead picture per group and decks */
    S.feeds.forEach((x,k)=>{if(k<3){x.folder=S.folders[0].id;items[x.id]=Array.from({length:14},(_,i)=>({feedId:x.id,title:W1[(i*4+k*5)%15]+' '+['alpha','bravo','charlie','delta','echo','foxtrot','golf','hotel','india','juliet'][i%10]+k+i,link:'https://w.test/f'+k+'/'+i,date:now-(i*2.5+k)*36e5,summary:'A standfirst long enough to serve as a deck for the piece in question, in a couple of lines.',img:i%2?'':'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800"><rect width="1200" height="800" fill="#369"/></svg>')}))}});
    S.sel='f:'+S.folders[0].id;S.wdens='mag';_lastSel=null;WIRE.order=null;WIRE.settled=true;render();await w(900);for(let i=0;i<60;i++)NRMORE&&NRMORE();await w(300);
@@ -26,7 +26,7 @@ const W1=['Why the new chip changes everything','Senate passes sweeping budget d
   ck(W+' at least 3 module kinds',r.kinds.filter(k=>/^fd-/.test(k)).length>=3,JSON.stringify(r.kinds));
   ck(W+' no module twice in a row',r.same===0,JSON.stringify(r));
   ck(W+' accent set',r.accent);ck(W+' time headers have voice',r.voice>=1);
-  ck(W+' caught-up names the feed',/Caught up with/.test(r.caught),r.caught);
+  ck(W+' caught-up names the feed',/caught up on/i.test(r.caught),r.caught);
   ck(W+' no page errors',!errs.length,errs[0]);await b.close();
  }
  console.log('feed_rhythm',bad?bad+' FAILED':'all passed');process.exit(bad?1:0);

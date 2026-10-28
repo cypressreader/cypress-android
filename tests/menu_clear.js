@@ -17,7 +17,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   const t='['+W+'] ';const real=r.filter(x=>!x.skip);
   ck(t+'the menu button is shown on the phone layout ('+real.length+' checks)',real.length>=80,real.length);
   ck(t+'the menu button never overlaps the title (at least 6px clear) in every theme',real.every(x=>x.gap>=6),JSON.stringify(real.filter(x=>x.gap<6).slice(0,4)));
-  ck(t+'the menu button keeps its 38px box even if the icon is measured oddly',real.every(x=>x.mw===38&&x.mh===38),JSON.stringify(real.filter(x=>x.mw!==38||x.mh!==38).slice(0,3)));
+  ck(t+'the menu button keeps its 44px box even if the icon is measured oddly',real.every(x=>x.mw===44&&x.mh===44),JSON.stringify(real.filter(x=>x.mw!==44||x.mh!==44).slice(0,3)));
   ck(t+'no page errors',!errs.length,errs[0]);await p.close();
  }
  await b.close();console.log(bad?'menu_clear '+bad+' FAILED':'menu_clear all passed');process.exit(bad?1:0);

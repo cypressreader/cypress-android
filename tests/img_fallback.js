@@ -21,7 +21,7 @@ const png=(w,h,v)=>{const raw=Buffer.alloc((w*3+1)*h,v);for(let y=0;y<h;y++)raw[
    const para=n=>`<p>${'Words for the story here, ordinary reporting text. '.repeat(n)}</p>`;
    const im=(n,w,h)=>`<figure><img src="https://img.test/${n}.png" loading="lazy" width="${w}" height="${h}" alt="${n} photo"><figcaption>${n} caption</figcaption></figure>`;
    const a={feedId:f.id,title:'Image test',link:'https://w.test/imgs',date:Date.now(),summary:'x',img:'',html:para(30)+im('good1',600,400)+para(30)+im('missing',800,450)+para(30)+im('good2',600,400)+para(20)+im('blank',800,450)+para(30)+im('flaky',800,450)+para(20)};
-   items[f.id]=[a];S.sel='all';S.scroll=sc;render();await w(300);openReader(a);await w(3500);
+   items[f.id]=[a];S.sel='all';S.scroll=sc;render();await w(300);openReader(a);await w(1500);for(const i of document.querySelectorAll('.cols .body img'))i.scrollIntoView({block:'center'}),await w(400);await w(1500);
    const body=document.querySelector('.cols .body'),o={};
    o.imgs=[...body.querySelectorAll('img')].map(i=>({s:i.getAttribute('src').split('/').pop(),ok:i.complete&&i.naturalWidth>8,lazy:i.loading}));
    o.fbs=[...body.querySelectorAll('.imgfb')].map(b=>({src:b._src.split('/').pop(),role:b.getAttribute('aria-label'),pat:/^pf\d+/.test(b.className.split(' ')[1]||''),bg:getComputedStyle(b).backgroundImage.slice(0,40),h:b.getBoundingClientRect().height,w:b.getBoundingClientRect().width}));
