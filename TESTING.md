@@ -931,6 +931,6 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Fast fling down All (tiles, medium) on the open Fold: fewer stalls as photos come in; only the big lead/hero/tall cards' photos drift, all others hold still.
 - Scroll check report now has a "photos loaded" line (publisher photo sizes vs the size shown); send it so we know if big photos are the remaining cost.
 
-## Scroll round 9 (unbumped, after 1.190, 2026-10-28) — implemented, unverified
+## Scroll round 9 (1.191, 2026-10-28) — implemented, unverified
 - Feed with a huge publisher photo (the 8087px one in f:g17907000001694): the photo appears a moment after its card, then scrolling past it repeatedly never stalls. Scroll check "photos loaded" largest should read 1600px or less.
 - Photos still look sharp on the open Fold (shrunk copies are 1600px wide).
