@@ -926,3 +926,7 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Fling up and down a feed with photos many times: no catch when photos come back into view (card photos no longer decode "sync").
 - Scroll for 30+ s while feeds refresh: the list never redraws mid-scroll; new stories appear after you stop for ~3 s.
 - Short pauses (1-2 s) between flings: next fling starts smoothly (background saves/reading wait for a 3 s rest).
+
+## Scroll round 8 (unbumped, after 1.189, 2026-10-28) — implemented, unverified
+- Fast fling down All (tiles, medium) on the open Fold: fewer stalls as photos come in; only the big lead/hero/tall cards' photos drift, all others hold still.
+- Scroll check report now has a "photos loaded" line (publisher photo sizes vs the size shown); send it so we know if big photos are the remaining cost.
