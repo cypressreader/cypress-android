@@ -905,3 +905,7 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 
 ## Scroll jitter round 2 (1.183)
 - [ ] Fold, a feed with 300+ cards: scroll steadily for 20+ seconds on Wi-Fi while charging (read-ahead on): no hitches mid-scroll. Scroll check: no `extract`/`parse` jobs while recording, no "pressSync" in scripts.
+
+## Scroll jitter round 3 (unreleased, after 1.183) — implemented, unverified on phone
+- David's 1.183 scroll check on the Fold: `fixOrph` 2.1 s + picture-drift observer 1.4 s of 4.5 s script. `fixOrph` now skips sections whose cards haven't changed (it re-measured every section's last row each pass: 627 → 27 ms headless, 400 stories); drift observer measures in the next frame instead of inside its callback.
+- Check on the Fold (859x847, All Stories, tiles, Medium): long flings feel smooth; run a scroll check and compare against 1.183 (17% frames over 20 ms, worst 492 ms). On a tablet-width grid, the last row of each section still fills all columns; big-card pictures still drift.
