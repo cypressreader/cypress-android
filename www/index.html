@@ -4529,7 +4529,7 @@ html[data-theme^=halcyon] #grid .card.list-row .src .sn{font:800 11px var(--sans
 .tmast.tm-day h2{font-size:clamp(28px,6vw,44px)}
 #grid.wire .dpq{grid-column:1/-1;text-align:center;border-left:0;border-top:1px solid var(--ink);border-bottom:1px solid var(--ln);padding:26px 14px 20px;margin:10px 0 18px}
 #grid.wire .dpq p{text-wrap:balance;font-size:clamp(22px,6vw,30px);font-style:italic;font-weight:500}
-/* magazine pass 3 (2026-10-23): photo credits, big-number break, shelf and topic covers made from a story photo, section bar colour */
+/* magazine pass 3 (2026-10-23): photo credits, big-number break, shelf and topic covers made from a story photo, section bar color */
 #grid .pcr{display:none}
 #grid .card:is(.lead,.nr-lead,.nr-hero,.nr-wide,.nr-colr):not(.noimg) .pcr{display:block;position:absolute;left:12px;top:12px;z-index:2;max-width:55%;font:italic 500 11px/1.3 var(--sans);color:rgba(255,255,255,.88);text-shadow:0 1px 3px rgba(0,0,0,.7);pointer-events:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nr-stat{grid-column:1/-1;display:flex;align-items:baseline;justify-content:center;gap:16px;flex-wrap:wrap;text-align:center;margin:18px 0;padding:22px 14px;border-top:1px solid var(--ink);border-bottom:1px solid var(--ln)}
@@ -5037,12 +5037,12 @@ let SCRT=0;
 /* background work (redraws after a refresh, saving the story cache, reading feeds) waits until you have stopped scrolling */
 const userBusy=()=>Date.now()-SCRT<900;
 /* place keeper: automatic redraws wait while you are scrolled down a feed (render() checks UACT, your last tap or key), and if the page ever moves under a still finger the card you were reading is put back where it was */
-let UACT=0,RPEND=0,PKA=null,PKT=0,PKU=0;['touchstart','touchmove','wheel','keydown'].forEach(t=>addEventListener(t,()=>{PKU=Date.now()},{capture:true,passive:true}));
+let UACT=0,RPEND=0,PKA=null,PKT=0,PKU=0,PKS=0;['touchstart','touchmove','wheel','keydown'].forEach(t=>addEventListener(t,()=>{PKU=Date.now();PKA=null},{capture:true,passive:true}));/* a new touch forgets the old spot: a stale one pulled a gliding page back, stopping it dead */
 ['click','keydown','change','input'].forEach(t=>addEventListener(t,()=>{UACT=Date.now();PKA=null},{capture:true,passive:true}));
-document.addEventListener('scroll',e=>{const m=e.target;if(!m||m.tagName!=='MAIN')return;if(RPEND&&m.scrollTop<=500){RPEND=0;setTimeout(quietRender,300)}
+document.addEventListener('scroll',e=>{const m=e.target;if(!m||m.tagName!=='MAIN')return;PKS=Date.now();if(RPEND&&m.scrollTop<=500){RPEND=0;setTimeout(quietRender,300)}
  clearTimeout(PKT);if(Date.now()-PKU>2500){PKA=null;return}/* only your own scrolling sets the spot; a long fling that coasts on forgets it, or the keeper would pull you back up to where the fling began */
  PKT=setTimeout(()=>{try{const r=m.getBoundingClientRect(),c=document.elementFromPoint(r.left+r.width/2,r.top+60),a=c&&c.closest&&c.closest('.card');PKA=a?{a,y:a.getBoundingClientRect().top-r.top}:null}catch(x){PKA=null}},160)},true);
-setInterval(()=>{try{if(!PKA||document.hidden||Date.now()-PKU<2500)return;const m=document.querySelector('main');if(!m||m.scrollTop<200||document.querySelector('#rd.on,dialog[open]')||!PKA.a.isConnected){PKA=null;return}
+setInterval(()=>{try{if(!PKA||document.hidden||Date.now()-PKU<2500||Date.now()-PKS<600)return;/* never while the page is still gliding */const m=document.querySelector('main');if(!m||m.scrollTop<200||document.querySelector('#rd.on,dialog[open]')||!PKA.a.isConnected){PKA=null;return}
  const d=PKA.a.getBoundingClientRect().top-m.getBoundingClientRect().top-PKA.y;if(Math.abs(d)>40){m.scrollTo({top:m.scrollTop+d,behavior:'instant'});JMP.k++}}catch(e){}},400);
 ['touchstart','touchmove','pointermove','wheel'].forEach(t=>addEventListener(t,()=>{SCRT=Date.now()},{passive:true,capture:true}));
 async function quietGap(max){const t0=Date.now();while(userBusy()&&!document.hidden&&Date.now()-t0<(max||8000))await new Promise(r=>setTimeout(r,300))}
@@ -5053,12 +5053,12 @@ let LASTSIG='';
 /* jump log for Copy support info: every full redraw and every layout shift over 0.02 (the last few), so a "pictures jump while scrolling" report names its cause */
 const JMP={r:[],s:[],n:0,k:0,t0:Date.now(),e:null};const jmpWho=sk=>{const L0=Error.stackTraceLimit;Error.stackTraceLimit=60;const s=new Error().stack||'';Error.stackTraceLimit=L0;return s.split('\n').slice(1,60).map(x=>{const f=(x.match(/at (?:async )?([\w$.<>]+) \(/)||[])[1],l=(x.match(/:(\d+):(\d+)\)?$/)||[]);return f||(l[1]?'L'+l[1]+':'+l[2]:'')}).filter((n,i,A)=>n&&n!==A[i-1]&&n!=='jmpWho'&&!sk.includes(n)).slice(0,5).join('<')};
 /* jump catcher: when code (not your finger) moves the feed more than half a screen, the "Jumps:" line names the code that did it; a big move nobody asked for is logged as "unexplained" */
-JMP.j=[];{let ly=0,lw=0,lt=0,lh=0;const jl=(t,w)=>{JMP.j.push(Math.round(performance.now()/1000)+'s '+t+' by '+w);if(JMP.j.length>6)JMP.j.shift()};
+JMP.j=[];{let ly=0,lw=0,lt=0;const jl=(t,w)=>{JMP.j.push(Math.round(performance.now()/1000)+'s '+t+' by '+w);if(JMP.j.length>6)JMP.j.shift()};
 const mv=(m,to,k)=>{lw=Date.now();const y=m.scrollTop;if(to==null||Math.abs(to-y)>m.clientHeight/2)jl(k+' '+Math.round(y)+'>'+(to==null?'?':Math.round(to)),jmpWho(['mv','set','scrollTo','scrollBy','scrollIntoView','m.scrollTo','m.scrollBy','Element.scrollIntoView'])||'?')};
 const tp=Object.getOwnPropertyDescriptor(Element.prototype,'scrollTop'),hk=m=>{if(m._jc)return;m._jc=1;Object.defineProperty(m,'scrollTop',{configurable:true,get(){return tp.get.call(this)},set(v){mv(this,+v,'set');tp.set.call(this,v)}});
  const st=m.scrollTo,sb=m.scrollBy;m.scrollTo=function(a,b){mv(this,a&&typeof a==='object'?a.top:b,'to');return st.apply(this,arguments)};m.scrollBy=function(a,b){const d=a&&typeof a==='object'?a.top:b;mv(this,d==null?null:this.scrollTop+d,'by');return sb.apply(this,arguments)}};
 const iv=Element.prototype.scrollIntoView;Element.prototype.scrollIntoView=function(){const m=this.closest&&this.closest('main');if(m&&m.scrollTop>300)mv(m,null,'intoView');return iv.apply(this,arguments)};
-document.addEventListener('scroll',e=>{const m=e.target;if(!m||m.tagName!=='MAIN')return;hk(m);const y=m.scrollTop,d=y-ly,n=Date.now(),h=m.scrollHeight;ly=y;if(Math.abs(d)>m.clientHeight*.6&&n-lw>1000)jl('unexplained '+Math.round(y-d)+'>'+Math.round(y),(n-SCRT<300?'finger':'browser')+' (events '+(n-lt)+' ms apart, page height '+lh+'>'+h+')');lt=n;lh=h},true)}const jmpMark=n=>{JMP.e=[n,performance.now()]};let SCRL=0;document.addEventListener('scroll',e=>{if(e.target&&e.target.tagName==='MAIN')SCRL=Date.now()},true);
+document.addEventListener('scroll',e=>{const m=e.target;if(!m||m.tagName!=='MAIN')return;hk(m);const y=m.scrollTop,d=y-ly,n=Date.now();ly=y;/* the page height is read only when something is logged: reading it on every scroll event forced a full layout each time */if(Math.abs(d)>m.clientHeight*.6&&n-lw>1000)jl('unexplained '+Math.round(y-d)+'>'+Math.round(y),(n-SCRT<300?'finger':'browser')+' (events '+(n-lt)+' ms apart, page height '+m.scrollHeight+')');lt=n},true)}const jmpMark=n=>{JMP.e=[n,performance.now()]};let SCRL=0;document.addEventListener('scroll',e=>{if(e.target&&e.target.tagName==='MAIN')SCRL=Date.now()},true);
 try{new PerformanceObserver(l=>{for(const e of l.getEntries()){if(e.hadRecentInput||e.value<.02)continue;JMP.n++;const sn=((e.sources||[])[0]||{}).node,c=sn&&sn.closest?sn.closest('.card,section,div'):null;JMP.s.push(Math.round((e.startTime)/1000)+'s '+e.value.toFixed(2)+' '+(c?((c.className||c.nodeName)+'').split(' ').slice(0,3).join('.'):'?')+(JMP.e&&e.startTime-JMP.e[1]<2000&&e.startTime>=JMP.e[1]?' after '+JMP.e[0]+' '+Math.round(e.startTime-JMP.e[1])+'ms':''));if(JMP.s.length>6)JMP.s.shift()}}).observe({type:'layout-shift',buffered:true})}catch(e){}
 const itemsSig=()=>{let n=0,im=0,d=0,t=0;for(const f of S.feeds){const l=items[f.id]||[];n+=l.length;if(l.length){d+=l[0].date||0;for(let i=0;i<l.length&&i<60;i++){if(l[i].img)im++;t+=(l[i].more||[]).length}}}return n+'|'+im+'|'+d+'|'+t+'|'+S.feeds.length+'|'+Object.keys(S.read).length+'|'+S.saved.length};
 let QRT=0,QRS=0,BGR=0;
@@ -7591,6 +7591,7 @@ function aheadImgs(){
   if(!isOn('mag3')||document.hidden||(navigator.connection&&navigator.connection.saveData))return;
   const g=$('#grid');if(!g||!g.querySelectorAll)return;const lim=innerHeight*3.2;
   g.querySelectorAll('img[loading=lazy]').forEach(im=>{
+   /* a picture in a card that is skipped offscreen is far away anyway, and measuring it forced that card to be laid out (cvAhead switches it to eager once the card comes within reach) */const cc=im.closest('.card,.wcol');if(cc&&!cc.classList.contains('nv')&&getComputedStyle(cc).contentVisibility==='auto')return;
    const r=im.getBoundingClientRect();if(r.top>lim||r.bottom<-innerHeight)return;
    im.loading='eager';
    if(im.decode&&im.closest('.wmom,.nr-lead,.nr-hero,.lead,.fd-fa'))im.decode().catch(()=>{});
@@ -7609,7 +7610,7 @@ function setBlocks(head,B,first,step){
  let k=first;NRK=k;g.innerHTML=head+B.slice(0,k).join('')+'<div class="nr-more" aria-hidden="true"></div>';
  markFresh();
  const s=g.querySelector('.nr-more');
- const next=want=>{if(k>=B.length)return false;const n=B.slice(k,k+(want||step));k+=n.length;NRK=k;s.insertAdjacentHTML('beforebegin',n.join(''));markFresh();try{cvAhead()}catch(e){}setTimeout(endObs,60);setTimeout(fixOrph,140);waterline();if(k>=B.length){if(NRIO){NRIO.disconnect();NRIO=null}s.remove();NRMORE=null;return false}return true};
+ const next=want=>{if(k>=B.length)return false;const n=B.slice(k,k+(want||step));k+=n.length;NRK=k;s.insertAdjacentHTML('beforebegin',n.join(''));markFresh();try{cvAhead(1)}catch(e){}try{liveDots()}catch(e){}setTimeout(endObs,60);setTimeout(fixOrph,140);waterline();if(k>=B.length){if(NRIO){NRIO.disconnect();NRIO=null}s.remove();NRMORE=null;return false}return true};
  next.k=()=>k;NRMORE=next;
  NRIO=new IntersectionObserver(es=>{if(!es.some(e=>e.isIntersecting))return;if(next()&&NRIO){NRIO.unobserve(s);NRIO.observe(s)}},{root:$('main'),rootMargin:'1600px 0px'});
  NRIO.observe(s);
@@ -7789,7 +7790,11 @@ function endCard(){
 let ENDIO=null;
 /* the last row of a multi-column grid (tablets) never leaves empty columns: its stories widen to fill the row.
    Everything is measured first and the widening is applied in one go at the end: writing between reads made the phone redo the layout once per section (5 s with 600 cards drawn) */
-function fixOrph(){try{const g=document.getElementById('grid');if(!g)return;const fk=innerWidth+'|'+g.className+'|'+g.childElementCount;if(g._fk===fk&&g._f0===g.firstElementChild&&g._f1===g.lastElementChild)return;g._fk=fk;g._f0=g.firstElementChild;g._f1=g.lastElementChild;const W=[];g.querySelectorAll('.orph').forEach(c=>{c.classList.remove('orph');c.style.gridColumn=''});if(innerWidth<700)return;const ps=new Set([g]);g.querySelectorAll(':scope>div,.nr-rv,.nr-sm,.nr-mid,.nr-trl').forEach(d=>ps.add(d));ps.forEach(P=>{const cs=getComputedStyle(P);if(cs.display!=='grid')return;const n=cs.gridTemplateColumns.split(' ').length;if(n<2)return;const kids=[...P.children].filter(c=>c.offsetWidth);if(kids.some(c=>/span\s*[2-9]/.test(getComputedStyle(c).gridRowEnd)))return;const rows=[];kids.forEach(c=>{const t=c.getBoundingClientRect().top,r=rows[rows.length-1];if(r&&Math.abs(r.t-t)<10)r.k.push(c);else rows.push({t,k:[c]})});rows.forEach(({k:row})=>{if(row.length>=n||!row.every(c=>c.classList.contains('card')))return;let used=0;for(const c of row){const q=getComputedStyle(c),m=/span\s*(\d+)/.exec(q.gridColumnEnd);if(q.gridColumnStart!=='auto'&&!/span/.test(q.gridColumnStart)||q.gridColumnEnd!=='auto'&&!m)return;used+=m?+m[1]:1}if(used>=n)return;const base=Math.floor(n/row.length),ex=n%row.length;row.forEach((c,i)=>W.push([c,base+(i<ex?1:0)]))})});W.forEach(([c,s])=>{c.classList.add('orph');c.style.gridColumn='span '+s})}catch(e){}}
+function fixOrph(){try{const g=document.getElementById('grid');if(!g)return;const fk=innerWidth+'|'+g.className+'|'+g.childElementCount;if(g._fk===fk&&g._f0===g.firstElementChild&&g._f1===g.lastElementChild)return;g._fk=fk;g._f0=g.firstElementChild;g._f1=g.lastElementChild;if(innerWidth<700){g.querySelectorAll('.orph').forEach(c=>{c.classList.remove('orph');c.style.gridColumn=''});return}const W=[];
+ /* each grid remembers where its last (still fillable) row began, so cards added while scrolling are measured on their own, not every card on the page again (187 ms per pass on a Fold with 386 cards) */
+ const ps=new Set([g]);g.querySelectorAll(':scope>div,.nr-rv,.nr-sm,.nr-mid,.nr-trl').forEach(d=>ps.add(d));ps.forEach(P=>{if(!P.querySelector(':scope>.card'))return;/* only rows of whole cards are evened out: measuring inside a card that is skipped offscreen forced it to be laid out there and then, card by card (the 100-190 ms passes) */const pk=innerWidth+'|'+P.className,all=P.children;let from=P._ok===pk?P._on||0:0;if(!from)P._sp=0;if(from&&from===all.length&&P._ol===P.lastElementChild)return;P._ok=pk;P._ol=P.lastElementChild;if(from>all.length)from=0;for(let i=from;i<all.length;i++)if(all[i].classList.contains('orph')){all[i].classList.remove('orph');all[i].style.gridColumn=''}P._on=all.length;const cs=getComputedStyle(P);if(cs.display!=='grid')return;const n=cs.gridTemplateColumns.split(' ').length;if(n<2)return;const kids=[...all].slice(from).filter(c=>c.offsetWidth);if(P._sp||kids.some(c=>/span\s*[2-9]/.test(getComputedStyle(c).gridRowEnd))){P._sp=1;return}const rows=[];kids.forEach(
+c=>{const t=c.getBoundingClientRect().top,r=rows[rows.length-1];if(r&&Math.abs(r.t-t)<10)r.k.push(c);else rows.push({t,k:[c]})});if(rows.length)P._on=[...all].indexOf(rows[rows.length-1].k[0]);rows.forEach(({k:row})=>{if(row.length>=n||!row.every(c=>c.classList.contains('card')))return;let used=0;for(const c of row){const q=getComputedStyle(c),m=/span\s*(\d+)/.exec(q.gridColumnEnd);if(q.gridColumnStart!=='auto'&&!/span/.test(q.gridColumnStart)||q.gridColumnEnd
+!=='auto'&&!m)return;used+=m?+m[1]:1}if(used>=n)return;const base=Math.floor(n/row.length),ex=n%row.length;row.forEach((c,i)=>W.push([c,base+(i<ex?1:0)]))})});W.forEach(([c,s])=>{c.classList.add('orph');c.style.gridColumn='span '+s})}catch(e){}}
 {let t=0;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(fixOrph,200)},{passive:true})}
 function endObs(){
  document.querySelectorAll('.endc:not([data-o]),.edseal:not([data-o])').forEach(el=>{el.dataset.o='1';const l=el.querySelector('[data-fill]');if(!l)return;
@@ -9704,9 +9709,9 @@ function tdr(){let d=$('#tdr');if(d)return d;
  document.body.append(d);
  d.querySelector('#tdx').onclick=()=>d.close();
  /* Car mode: the player fills the screen with big buttons and keeps the screen on; remembered for next time */
- const cb=d.querySelector('.tdcar');tdr.car=on=>{S.car=!!on;d.classList.toggle('car',S.car);cb.setAttribute('aria-pressed',S.car);rdWake(S.car||$('#rd').classList.contains('on'))};
+ const cb=d.querySelector('.tdcar');tdr.car=on=>{S.car=!!on;d.classList.toggle('car',S.car);cb.setAttribute('aria-pressed',S.car);rdWake(keepOn())};
  cb.onclick=()=>{tdr.car(!S.car);save()};
- d.addEventListener('close',()=>{if(S.car)rdWake($('#rd').classList.contains('on'))});
+ d.addEventListener('close',()=>{if(S.car)rdWake(keepOn())});
  d.addEventListener('click',e=>{if(e.target===d)d.close()});
  d.querySelector('.tdc').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;const k=b.dataset.d;if(k==='rw')digSeekBy(-15);else if(k==='fw')digSeekBy(15);else if(k==='pv')digPrev();else if(k==='nx')digNext();else if(k==='pl')tminiToggle();setTimeout(tminiSync,60)});
  d.querySelector('.tds').addEventListener('click',e=>{const b=e.target.closest('[data-sp]');if(!b)return;S.rate=+b.dataset.sp;save();const r=$('#rate');if(r)r.value=S.rate;const rv=$('#ratev');if(rv)rv.value=S.rate.toFixed(1)+'×';if(TTS.on&&!TTS.paused)ttsFrom(ttsPos());tminiSync()});
@@ -12144,7 +12149,7 @@ function mzSum(){const o=['','Story opening (last '+MZ.L.length+' taps)'];
   const dp=MZ.L.filter(x=>x.r==='deep'||x.r==='slow routes failed');if(dp.length)o.push(' stubborn stories (slow routes ran alongside the search): '+dp.length+' · rescued '+dp.filter(x=>x.r==='deep').length+' · median '+dp.map(x=>x.ms).sort((m,n)=>m-n)[dp.length>>1]+' ms');
   const sl=MZ.L.filter(x=>x.ms>3000).slice(-8);if(sl.length)o.push(' slow (over 3 s): '+sl.map(x=>x.k+' '+x.h+(x.r?' via '+x.r:'')+' '+Math.round(x.ms/100)/10+'s').join(' | '))}catch(e){}
  try{o.push('Jumps: '+JMP.n+' shifts over 0.02 · redraws held back while scrolling '+JMP.k+' · last '+(JMP.s.join(' | ')||'none')+' · redraws '+(JMP.r.join(' | ')||'none')+' · moved by code '+(JMP.j.join(' | ')||'none'))}catch(e){}
- try{o.push('Side by side: on now '+document.body.classList.contains('split')+' · allowed '+isOn('split')+' · your setting '+splitMode()+' · display '+screen.width+'x'+screen.height+' sideways '+sideways()+(screen.orientation?' '+screen.orientation.type:'')+' · window '+innerWidth+'x'+innerHeight+' (needs 800 wide, 600 tall, wider than tall or near-square) · touch screen '+touchy()+' · pointer coarse '+(matchMedia('(pointer:coarse)').matches)+' · touch points '+(navigator.maxTouchPoints|0))}catch(e){}
+ try{o.push('Side by side: on now '+document.body.classList.contains('split')+' · allowed '+isOn('split')+' · your setting '+splitMode()+' · display '+screen.width+'x'+screen.height+' sideways '+sideways()+(screen.orientation?' '+screen.orientation.type:'')+' · window '+innerWidth+'x'+innerHeight+' (needs 800 wide, 600 tall, and the display turned sideways) · touch screen '+touchy()+' · pointer coarse '+(matchMedia('(pointer:coarse)').matches)+' · touch points '+(navigator.maxTouchPoints|0))}catch(e){}
  try{o.push('Page turns: strips '+(curlN>0?curlN:'default')+' · flat here '+(curlFlat?'yes':'no')+' · last '+curlLog.length+': '+(curlLog.join(', ')||'none yet'))}catch(e){}
  try{const P=acPools();o.push('Stored stories: saved '+P.saved+' · today '+P.today+' · rolling '+P.rolling+' of '+P.cap)}catch(e){}
  try{const c=navigator.connection||{};o.push('Preload: mode '+pfMode()+' · keep '+pfN()+' · charging only '+isOn('pfpow')+' · allowed now '+dpOk()+' · cap '+dpCap()+' of '+ED_N+' · netKind '+netKind()+' · connection.type '+c.type+' · effectiveType '+c.effectiveType+' · saveData '+c.saveData+' · charging '+(BATST?BATST.charging+' '+Math.round(BATST.level*100)+'%':'unknown'))}catch(e){o.push('Preload: could not read')}
@@ -12698,7 +12703,7 @@ $('#grid').addEventListener('pointermove',e=>{
  if(hit!==!!SW.hit){SW.hit=hit;if(hit)buzz('tick')}
  if(l&&a){const save=dx<0;l.className=(save?'sv':'rdm')+(hit?' hit':'');l.innerHTML=save?`<span>${svg('<path d="M12 4.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 9.8l5-.7z"/>')}${isSaved(a)?'Unsave':'Save'}</span>`:`<span>${svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>')}${S.read[a.link]?'Unread':'Read'}</span>`}
 });
-$('#grid').addEventListener('touchmove',e=>{if(SW.c&&SW.act&&e.cancelable)e.preventDefault()},{passive:false});
+/* no blocking touchmove here: cards are touch-action:pan-y, so a sideways swipe never scrolls the page anyway, and a blocking listener on the grid made every scroll wait for busy app code (stutter, and a fling that stopped dead on lift) */
 $('#grid').addEventListener('pointerdown',()=>{if(!SW.c)SW.act=false},true);
 window.addEventListener('resize',()=>{if(SW.c&&SW.act)swEnd();SW.c=null;SW.act=false});
 document.addEventListener('touchend',()=>{if(!SW.c)SW.act=false},{passive:true});
@@ -13242,8 +13247,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.28g';const APP_LABEL='1.181';
-const CHANGES=["Side-by-side reading set to Sideways now stays off when you hold the screen upright, and comes on only when you turn it sideways"];
+const APP_VERSION='2026.10.28h';const APP_LABEL='1.182';
+const CHANGES=["Scrolling the feed is much smoother: a flick keeps gliding after you lift your finger instead of stopping dead","Long feeds no longer freeze for a moment each time more stories load in","Car mode keeps the screen on after you switch away and come back","Developing stories get their red dot all the way down the feed"];
 const DEF_ON=new Set(['mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -13251,7 +13256,7 @@ DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vib
 const touchy=()=>{try{if(matchMedia('(any-pointer:coarse)').matches)return true}catch(e){}try{if((navigator.maxTouchPoints|0)>0)return true}catch(e){}return 'ontouchstart' in window};
 const splitAuto=()=>{try{const w=innerWidth,h=innerHeight;return w>=800&&h>=600&&w>h&&touchy()}catch(e){return false}};
 const splitMode=()=>S.splitm||(S.split===false?'off':S.split===true?'always':splitAuto()?'land':'off');
-const sideways=()=>{try{const a=screen.width,b=screen.height;if(a>0&&b>0&&a!==b)return a>b}catch(e){}return innerWidth>innerHeight};/* the whole display, not the window: on the near-square Fold the status bar alone makes the window look wider than tall upright */
+const sideways=()=>{try{const a=screen.width,b=screen.height;if(a>0&&b>0&&a!==b)return a>b&&innerWidth>=innerHeight*.9}catch(e){}return innerWidth>innerHeight};/* the whole display, not the window: on the near-square Fold the status bar alone makes the window look wider than tall upright */
 const splitShape=()=>splitMode()==='always'||sideways();/* 'Sideways' means the display really is wider than tall: near-square upright windows (open Fold 859x847) stay single, per David; choose Always for those */
 const isOn=k=>(k==='caps'||k==='typo')?true:k==='split'?splitMode()!=='off':DEF_ON.has(k)?S[k]!==false:!!S[k];
 const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
@@ -13504,6 +13509,7 @@ function readerSweep(b){
 }
 /* reader: keep the screen awake while a story is open, and a thin progress line for scrolling (not paged) stories */
 let rdWl=null;
+function keepOn(){const t=$('#tdr');return $('#rd').classList.contains('on')||!!(S.car&&t&&t.open)}/* the screen stays on while reading or while Car mode shows */
 async function rdWake(on){try{if(on){if(!rdWl&&navigator.wakeLock&&!document.hidden){rdWl=await navigator.wakeLock.request('screen');rdWl.addEventListener('release',()=>{rdWl=null})}}else if(rdWl){const w=rdWl;rdWl=null;await w.release()}}catch(e){rdWl=null}}
 function rdProgBar(){const rd=$('#rd'),v=vView();let b=$('#rdprog');
  const show=rd&&rd.classList.contains('on')&&v&&isVert()&&!rd.classList.contains('flex');
@@ -13511,9 +13517,9 @@ function rdProgBar(){const rd=$('#rd'),v=vView();let b=$('#rdprog');
  if(!b){b=document.createElement('div');b.id='rdprog';b.setAttribute('aria-hidden','true');b.innerHTML='<i></i>';document.body.append(b)}
  b.hidden=false;const m=v.scrollHeight-v.clientHeight;b.firstChild.style.transform='scaleX('+(m>0?Math.min(1,Math.max(0,v.scrollTop/m)):0).toFixed(3)+')'}
 (function(){const rd=document.getElementById('rd');if(!rd)return;let t=0;
- new MutationObserver(()=>{rdWake(rd.classList.contains('on'));rdProgBar()}).observe(rd,{attributes:true,attributeFilter:['class']});
+ new MutationObserver(()=>{rdWake(keepOn());rdProgBar()}).observe(rd,{attributes:true,attributeFilter:['class']});
  document.addEventListener('scroll',e=>{if(t||!e.target||!e.target.classList||!e.target.classList.contains('view'))return;t=requestAnimationFrame(()=>{t=0;rdProgBar()})},true);
- document.addEventListener('visibilitychange',()=>{if(document.hidden)rdWake(false);else if(rd.classList.contains('on'))rdWake(true)});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)rdWake(false);else if(keepOn())rdWake(true)});
  addEventListener('resize',()=>rdProgBar())})();
 /* Focus reading: the first letters of each word are set heavier, so the eye can skim along a line. Words are only wrapped, never changed, so listening, highlights and search see the same text. */
 function focusRead(b){
@@ -17049,15 +17055,15 @@ function catchUp(){
  openReader(out[0]);
 }
 /* draw cards up to ~3 screens ahead and behind; farther ones go back to being skipped, so long lists stay light (also run when setBlocks adds more cards) */
-function cvAhead(){
+function cvAhead(more){
  const io=cvAhead.io=cvAhead.io||new IntersectionObserver(es=>es.forEach(e=>{e.target.classList.toggle('nv',e.isIntersecting);/* fetch the photo now, not ~1250px out, so fast flings don't reach empty cards */if(e.isIntersecting)e.target.querySelectorAll('img[loading=lazy]').forEach(i=>{i.loading='eager'})}),{root:$('main'),rootMargin:'2500px 0px'});
- io.disconnect();$('#grid').querySelectorAll('.card,.wcol').forEach(c=>io.observe(c));
+ /* a full redraw starts afresh; cards added while scrolling are only added, so the hundreds already watched aren't all re-measured at once */if(!more)io.disconnect();$('#grid').querySelectorAll('.card,.wcol').forEach(c=>{if(more&&c._cv===io)return;c._cv=io;io.observe(c)});
 }
 /* live dot: a card from the last 6 hours whose headline names a topic in the Developing row gets the row's red dot before its headline */
 function liveDots(){
  const g=$('#grid'),ws=[...g.querySelectorAll('.wtrend [data-trend]')].map(b=>b.dataset.trend.toLowerCase());if(!ws.length)return;
  const lim=Date.now()-6*36e5,re=new RegExp('\\b('+ws.map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\\b','i');
- g.querySelectorAll('.card[data-i]').forEach(c=>{const a=cur[+c.dataset.i],h=c.querySelector('h3,h2');if(!a||!h||h.querySelector('.cdot')||!(a.date>lim)||!re.test(a.title||''))return;h.insertAdjacentHTML('afterbegin','<i class="cdot" aria-hidden="true"></i>')});
+ g.querySelectorAll('.card[data-i]').forEach(c=>{const a=cur[+c.dataset.i],h=c.querySelector('h3,h2');if(!a||!h||h.querySelector('.cdot')||!(a.date>lim)||!re.test(a.title||''))return;h.insertAdjacentHTML('afterbegin','<i class="cdot" role="img" aria-label="Developing"></i>')});
 }
 {const _r=render;render=function(){_r.apply(this,arguments);try{cvAhead()}catch(e){}try{liveDots()}catch(e){}}}
 /* Surprise me: one random unread story from the last five days; a random site first, so busy sites don't crowd out quiet ones */
@@ -17069,7 +17075,7 @@ function surprise(){
 }
 /* back after 3+ days away: offer Catch me up once the stories have loaded */
 {const now=Date.now(),away=S.lastOpen&&now-S.lastOpen>3*864e5;S.lastOpen=now;saveSoon();document.addEventListener('visibilitychange',()=>{S.lastOpen=Date.now();saveSoon()});
- if(away)setTimeout(()=>{try{if(!$('#rd').classList.contains('on'))toast('Welcome back. Want the best of what you missed?',catchUp,'Catch me up')}catch(e){}},10000)}
+ if(away)setTimeout(()=>{try{if(!$('#rd').classList.contains('on')&&!document.querySelector('dialog[open]')&&S.feeds.some(f=>(items[f.id]||[]).some(a=>a&&!S.read[a.link])))toast('Welcome back. Want the best of what you missed?',catchUp,'Catch me up')}catch(e){}},10000)}
 async function kindleAddr(force){
  if(S.kindle&&!force)return S.kindle;
  const v=await askBox({title:"Your Kindle's @kindle.com address",text:'This field wants your Kindle\u2019s own address, ending in @kindle.com \u2014 find it in your Amazon account under Devices, then Preferences.\n\nSeparately, in the same Amazon settings, add the email address you send from to the approved-sender list, or Amazon will drop the file.\n\nCyPress keeps this on your device only.',input:true,value:S.kindle||'',placeholder:'you@kindle.com',ok:'Save',cancel:'Cancel'});

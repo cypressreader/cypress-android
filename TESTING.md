@@ -896,3 +896,9 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 
 ## Side by side "Sideways" setting (1.181)
 - [ ] Open Fold, setting Sideways: held upright = one column (no side by side); turned sideways = list + story side by side. Setting Always: side by side both ways.
+
+## Feed scroll glide + stutter (1.182)
+- [ ] Fold, All stories, tiles, 300+ cards: flick down hard and lift: the feed keeps gliding and slows down (no dead stop). Run Settings > scroll check: fixOrph should be gone from "scripts that ran longest"; long tasks well under 65.
+- [ ] Swipe a card left/right still saves / marks read, and a slightly diagonal swipe doesn't scroll the page.
+- [ ] Car mode: switch to another app and back: screen still stays on.
+- [ ] Developing red dot appears on matching cards far down the feed.
