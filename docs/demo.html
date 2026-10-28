@@ -2634,7 +2634,7 @@ html[data-theme=halcyon] #grid .card:is(.nr-row,.nr-late,.nr-tri,.list-row,.noim
 html[data-theme=halcyond] #grid :is(.card,.wcol) .src .sn,html[data-theme=halcyond] #grid .card .src .ssec,html[data-theme=halcyond] #rd .kick{color:var(--a2)}
 /* on a photo card the labels stay light so they read over the picture */
 html[data-theme=halcyon] #grid .card:not(:is(.nr-row,.nr-late,.nr-tri,.list-row,.noimg)) .src,html[data-theme=halcyon] #grid .card:not(:is(.nr-row,.nr-late,.nr-tri,.list-row,.noimg)) .src .sn,html[data-theme=halcyon] #grid .card:not(:is(.nr-row,.nr-late,.nr-tri,.list-row,.noimg)) .src .ssec{color:#e2c27a}/* small brass labels on cream use the site's darker brass so they stay readable */
-html[data-theme=halcyon] #grid:not(.list) .card.noimg:is(.nr-lead,.nr-hero,.lead,.spread,.nr-tall,.nr-sp,.nr-sm2,.nr-hs) :is(.src,.src .sn,.src .ssec){color:#e2c27a}/* a lead card with no photo still has a dark colored fill, so its label stays light */
+html[data-theme=halcyon] #grid:not(.list) .card.noimg:not(:is(.nr-row,.nr-late,.nr-tri,.list-row)) :is(.src,.src .sn,.src .ssec){color:#fff}/* a card with no photo has the site's colored fill (lead or mid): its label is white like its headline (dark brass measured 1.2:1, light brass 1.9:1 on teal) */
 html:is([data-theme=halcyon],[data-theme=halcyond]) #grid.list .card h3{font-family:var(--fd)}
 /* main buttons: green with cream type on cream paper, brass with deep-green type on the dark green (the website's two buttons) */
 html[data-theme=halcyon] :is(button.go,.row .go,.tx2.go){background:#123524;color:#f3ecdc;border-color:transparent}
@@ -16292,7 +16292,8 @@ function handleShare(d){
   const tl=t.closest('[role=tablist]');if(!tl||t.getAttribute('role')!=='tab')return;
   const tabs=[...tl.querySelectorAll('[role=tab]')],i=tabs.indexOf(t);if(i<0)return;
   const n=e.key==='Home'?0:e.key==='End'?tabs.length-1:(i+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;
-  e.preventDefault();tabs[n].focus();tabs[n].click();
+  e.preventDefault();const k=tabs[n];k.focus();k.click();
+  /* switching redraws the tab bar: put focus back on the new copy of the chosen tab, not on the page */requestAnimationFrame(()=>{if(k.isConnected||!k.dataset.bm)return;const m=[...document.querySelectorAll('[role=tab][data-bm="'+k.dataset.bm+'"]')].find(x=>x.offsetParent);if(m)m.focus({preventScroll:true})});
  });
 })();
 $('#shc').onclick=()=>$('#shr').close();
