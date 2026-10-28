@@ -7593,10 +7593,10 @@ function aheadImgs(){
   if(!isOn('mag3')||document.hidden||(navigator.connection&&navigator.connection.saveData))return;
   const g=$('#grid');if(!g||!g.querySelectorAll)return;const lim=innerHeight*3.2;
   g.querySelectorAll('img[loading=lazy]').forEach(im=>{
-   /* a picture in a card that is skipped offscreen is far away anyway, and measuring it forced that card to be laid out (cvAhead switches it to eager once the card comes within reach) */const cc=im.closest('.card,.wcol');if(cc&&!cc.classList.contains('nv')&&getComputedStyle(cc).contentVisibility==='auto')return;
+   /* cards cvAhead watches get their pictures switched to eager by it; measuring every one of them here on each scroll pause cost up to 224 ms. Only the big openers (decoded early) and pictures outside cards are handled here */const cc=im.closest('.card,.wcol'),op=im.closest('.wmom,.nr-lead,.nr-hero,.lead,.fd-fa');if(cc&&cc._cv&&!op)return;if(cc&&!cc.classList.contains('nv')&&getComputedStyle(cc).contentVisibility==='auto')return;
    const r=im.getBoundingClientRect();if(r.top>lim||r.bottom<-innerHeight)return;
    im.loading='eager';
-   if(im.decode&&im.closest('.wmom,.nr-lead,.nr-hero,.lead,.fd-fa'))im.decode().catch(()=>{});
+   if(im.decode&&op)im.decode().catch(()=>{});
   });
  }catch(e){}
 }
@@ -11684,9 +11684,10 @@ function trfPass(){
   const C=trfC(),tm=new Map(),dm=new Map();
   by.forEach(a=>{if(!trfOn(a))return;const c=C[a.link];if(c&&c.n)return;tm.set(trfPlain(a.title),a);const d=trfPlain(dekOf(a,170));if(d.length>30)dm.set(d.slice(0,40),a)});
   if(!tm.size)return;
-  const H=innerHeight,want=new Set();
+  /* only cards near the screen are looked at, measured once per card: measuring a headline inside an offscreen (skipped) card forced that card to be laid out, up to 344 ms per scroll pause */
+  const H=innerHeight,want=new Set(),nb=new Map(),near=e=>{const cd=e.closest('[data-href]')||e;let v=nb.get(cd);if(v===undefined){const r=cd.getBoundingClientRect();v=r.bottom>-H*.5&&r.top<H*2;nb.set(cd,v)}return v};
   g.querySelectorAll('h2,h3,h4,a,b,span,p,div,strong,em').forEach(e=>{
-   if(e.firstElementChild||e.dataset.tr)return;const t=(e.textContent||'').trim();if(t.length<8)return;
+   if(e.firstElementChild||e.dataset.tr||!near(e))return;const t=(e.textContent||'').trim();if(t.length<8)return;
    let a=tm.get(t),role='t';
    if(!a){const k=dm.get(t.slice(0,40));if(k&&trfPlain(dekOf(k,170)).startsWith(t.replace(/…$/,'').slice(0,60))){a=k;role='d'}}
    if(!a)return;
@@ -11695,7 +11696,7 @@ function trfPass(){
     if(role==='t'){const cd=e.closest('[data-href]'),sr=cd&&cd.querySelector('.src');
      if(sr){if(!sr.querySelector('.trb')){const b=document.createElement('button');b.type='button';b.className='trb';b.dataset.l=a.link;b.setAttribute('aria-pressed','true');b.setAttribute('aria-label','Translated from '+c.l.toUpperCase()+'. Show the original');b.title='Translated from '+c.l.toUpperCase()+'. Tap to show the original';b.innerHTML='<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg><span>'+c.l.toUpperCase()+'</span>';sr.append(b)}}
      else{e.classList.add('trd');e.title='Translated from '+c.l.toUpperCase()+'. Original: '+t}}}return}
-   const r=e.getBoundingClientRect();if(r.bottom>-H*.5&&r.top<H*1.5)want.add(a)});
+   want.add(a)});
   want.forEach(a=>{if(!TRF.seen.has(a.link)&&!TRF.fail.has(a.link)){TRF.seen.add(a.link);TRF.q.push(a)}});
   if(TRF.q.length)trfRun();
  }catch(e){}
