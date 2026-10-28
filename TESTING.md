@@ -884,3 +884,5 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 ## Feed scroll stutter (unbumped, after 1.178)
 - [ ] All Stories / a folder in Cards view: fling, pause a second, fling again: no hitch on the second fling (it used to freeze 140-180 ms writing the whole library).
 - [ ] Scroll partway down a folder, swipe the app away to the background, reopen: you're back at the same story.
+- [ ] Fast flings down a long folder in Cards view: cards further down arrive drawn with photos (no white boxes, page doesn't lurch as it grows).
+- [ ] Tapping folders in the side bar feels quicker (was ~320 ms on the Fold).

@@ -5838,7 +5838,9 @@ function group(list){
  return out.map(o=>{const lead=o.all.find(x=>x.img)||o.all[0];return{...lead,more:o.all.filter(x=>x!==lead).map(m=>({t:m.title,l:m.link,f:m.feedId}))}});
 }
 const fof=a=>S.feeds.find(x=>x.id===a.feedId)||{title:a.ft||'Saved',url:a.fu||'',color:a.fc};
-const uc=fs=>fs.reduce((n,f)=>n+(paused(f)?0:(items[f.id]||[]).filter(a=>!S.read[a.link]&&!junkItem(a)&&!dealHide(a)).length),0);
+/* UCC: per-feed counts kept for one side bar build, which counts each feed for All Stories, its folder and its own row */
+let UCC=null;const uc1=f=>paused(f)?0:(items[f.id]||[]).filter(a=>!S.read[a.link]&&!junkItem(a)&&!dealHide(a)).length;
+const uc=fs=>fs.reduce((n,f)=>{if(!UCC)return n+uc1(f);let v=UCC.get(f.id);if(v==null)UCC.set(f.id,v=uc1(f));return n+v},0);
 const bad=n=>n&&!S.hideCount?`<u>${n>99?'99+':n}</u>`:'';
 /* ---- waterline and new-story dots: when you last looked at each place ---- */
 let VIS=null,HIDT=0;
@@ -5890,7 +5892,8 @@ const chev=(id,nm)=>{const nn=nm||'Unfiled',lb=(fold(id)?'Open folder ':'Close f
 /* polish-2026-10 (J6/E6): 1.5px line icons for the drawer; Daily, All and Saved use the same drawings as the bottom bar */
 const NI_P={daily:'<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/>',all:'<path d="M4 7h16M4 12h16M4 17h16"/>',feeds:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',saved:'<path d="M12 4.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 9.8l5-.7z"/>',notes:'<path d="M4 20l4.2-1 10-10-3.2-3.2-10 10zM13 7.8l3.2 3.2"/>',hist:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',stats:'<path d="M5 20v-8M12 20V5M19 20v-5"/>',bi:'<rect x="3.5" y="4" width="17" height="5" rx="1"/><path d="M5 9v10h14V9M10 13h4"/>'};
 const nIc=k=>`<svg class="ni" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${NI_P[k]}</svg>`;
-function side(){
+function side(){UCC=new Map();try{side0()}finally{UCC=null}}
+function side0(){
  {const gv=$('#gv');if(gv&&!gv.textContent)gv.textContent='Version '+APP_LABEL}
  let h=`<div class="nav ${S.sel==='today'||S.sel==='brief'||S.sel==='digest'?'on':''}" data-sel="today">${nIc('daily')}<span class="nt">The Daily</span>${(()=>{const b=S.brief&&S.brief.day===new Date().toDateString()?S.brief.links.filter(l=>!S.read[l]).length:0;return b?(S.hideCount?dotU:bad(b)):''})()}</div><div class="nav ${S.sel==='all'?'on':''}" data-sel="all">${nIc('all')}<span class="nt">All Stories</span>${navDot(()=>uc(S.feeds),()=>newIn(S.feeds))}</div>`;
  const bot=`<div class="dlib" role="group" aria-label="Library"><h4 class="dlh">Library</h4><div class="dlg"><div class="nav dlt ${S.sel==='saved'?'on':''}" data-sel="saved">${nIc('saved')}<span class="nt">Saved</span>${bad(S.saved.filter(a=>!a.ar).length)}</div><div class="nav dlt ${S.sel==='notes'?'on':''}" data-sel="notes">${nIc('notes')}<span class="nt">Highlights</span>${bad(S.hl.length)}</div><div class="nav dlt ${S.sel==='hist'?'on':''}" data-sel="hist">${nIc('hist')}<span class="nt">History</span></div><div class="nav dlt ${S.sel==='stats'?'on':''}" data-sel="stats">${nIc('stats')}<span class="nt">Stats</span></div></div>${isOn('bi')?`<div class="nav ${S.sel==='bi'?'on':''}" data-sel="bi">${nIc('bi')}<span class="nt">Back issues</span></div>`:''}</div>`;
@@ -7597,7 +7600,7 @@ function setBlocks(head,B,first,step){
  let k=first;NRK=k;g.innerHTML=head+B.slice(0,k).join('')+'<div class="nr-more" aria-hidden="true"></div>';
  markFresh();
  const s=g.querySelector('.nr-more');
- const next=want=>{if(k>=B.length)return false;const n=B.slice(k,k+(want||step));k+=n.length;NRK=k;s.insertAdjacentHTML('beforebegin',n.join(''));markFresh();setTimeout(endObs,60);setTimeout(fixOrph,140);waterline();if(k>=B.length){if(NRIO){NRIO.disconnect();NRIO=null}s.remove();NRMORE=null;return false}return true};
+ const next=want=>{if(k>=B.length)return false;const n=B.slice(k,k+(want||step));k+=n.length;NRK=k;s.insertAdjacentHTML('beforebegin',n.join(''));markFresh();try{cvAhead()}catch(e){}setTimeout(endObs,60);setTimeout(fixOrph,140);waterline();if(k>=B.length){if(NRIO){NRIO.disconnect();NRIO=null}s.remove();NRMORE=null;return false}return true};
  next.k=()=>k;NRMORE=next;
  NRIO=new IntersectionObserver(es=>{if(!es.some(e=>e.isIntersecting))return;if(next()&&NRIO){NRIO.unobserve(s);NRIO.observe(s)}},{root:$('main'),rootMargin:'1600px 0px'});
  NRIO.observe(s);
@@ -17033,9 +17036,9 @@ function catchUp(){
  toast('Catch-up: '+out.length+(out.length===1?' story':' stories')+', about '+Math.max(1,Math.round(mins))+' minutes');
  openReader(out[0]);
 }
-/* draw cards up to ~3 screens ahead and behind; farther ones go back to being skipped, so long lists stay light */
+/* draw cards up to ~3 screens ahead and behind; farther ones go back to being skipped, so long lists stay light (also run when setBlocks adds more cards) */
 function cvAhead(){
- const io=cvAhead.io=cvAhead.io||new IntersectionObserver(es=>es.forEach(e=>e.target.classList.toggle('nv',e.isIntersecting)),{root:$('main'),rootMargin:'2500px 0px'});
+ const io=cvAhead.io=cvAhead.io||new IntersectionObserver(es=>es.forEach(e=>{e.target.classList.toggle('nv',e.isIntersecting);/* fetch the photo now, not ~1250px out, so fast flings don't reach empty cards */if(e.isIntersecting)e.target.querySelectorAll('img[loading=lazy]').forEach(i=>{i.loading='eager'})}),{root:$('main'),rootMargin:'2500px 0px'});
  io.disconnect();$('#grid').querySelectorAll('.card,.wcol').forEach(c=>io.observe(c));
 }
 /* live dot: a card from the last 6 hours whose headline names a topic in the Developing row gets the row's red dot before its headline */
