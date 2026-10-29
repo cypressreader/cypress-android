@@ -991,3 +991,8 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] Listen to a story: a "− 1.0× + ×" pill shows at the bottom in the theme's colors; − / + change the voice speed within a moment; × stops reading; hands-free still shows its own speed pill
 - [ ] Android: Listen to a long story, switch to another app for 10+ minutes: reading carries on to the end of the story (was cutting off after a few minutes). Also note whether it moves on to the next story when "Play next story" is on
 - [ ] Play Daily: says "Welcome to Cypress Reader…", then reads; while it plays, tabs, side bar and buttons all respond; note how long it takes to start
+
+## Round 4 (2026-10-29, branch claude/theme-six-handoff-dc0p8i, unreleased) — implemented, unverified on phone
+- [ ] Play the Daily, minimize the app (screen off too) for 10+ minutes: it moves on to story 2, 3, … without reopening the app. Cause fixed: between stories the app stopped its media notification (`ttsStop` wrapper → `mediaStop`), Android then froze the minimized app and refused to restart the notification from the background. Now it stays "playing" through the handoff (`DIG.on&&R.digOpen`).
+- [ ] Same for Up Next (story ends, the next one starts while minimized).
+- [ ] The notification's Stop button still stops the Daily and removes the notification; the end of the Daily / Up Next removes it.

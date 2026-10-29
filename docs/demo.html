@@ -9791,9 +9791,9 @@ async function digGo(i,o){
  if(i<0)i=0;
  const a=findStory(DIG.links[i]);if(!a){DIG.links.splice(i,1);return digGo(i,o)}
  const my=++DIG.tok;DIG.i=i;S.lq=DIG.links.slice(i+1);
- ttsStop();tminiSync();
+ R.digOpen=true;ttsStop();tminiSync();
  const vis=$('#rd').classList.contains('on')&&!$('#rd').classList.contains('ghost');
- R.ghostNext=!vis;R.digOpen=true;
+ R.ghostNext=!vis;
  try{await openReader(a)}catch(e){}
  R.digOpen=false;
  if(my!==DIG.tok||!DIG.on||curA!==a)return;
@@ -12008,16 +12008,16 @@ $('#set').addEventListener('close',refreshReader);
 let MADV=0;
 async function ttsEnd(manual){
  const was=curA;MADV=Date.now();ttsStop();
- if(SLEEP.eos&&!manual){SLEEP.eos=false;syncUpNext();toast('Sleep timer: stopped');R.briefAudio=false;return}
- if(!was)return;
+ if(SLEEP.eos&&!manual){SLEEP.eos=false;syncUpNext();toast('Sleep timer: stopped');R.briefAudio=false;mediaNativeStop();return}
+ if(!was){mediaNativeStop();return}
  let nx=null;
  while(S.lq.length&&!nx){const l=S.lq.shift();if(l!==was.link&&!S.read[l])nx=findStory(l)}
  save();syncUpNext();
  if(!nx&&S.queue){const i=cur.findIndex(x=>x.link===was.link);if(i>=0)for(let k=i+1;k<cur.length;k++){if(!S.read[cur[k].link]){nx=cur[k];break}}}
- if(!nx){if(R.briefAudio){R.briefAudio=false;speak('That’s your Brief. You’re all caught up.',()=>{if(!TTS.on)mediaNativeStop()})}return}
+ if(!nx){if(R.briefAudio){R.briefAudio=false;speak('That’s your Brief. You’re all caught up.',()=>{if(!TTS.on)mediaNativeStop()})}else mediaNativeStop();return}
  const brief=R.briefAudio;
  await openReader(nx);
- if(curA!==nx||!$('#rd').classList.contains('on'))return;
+ if(curA!==nx||!$('#rd').classList.contains('on')){if(!TTS.on)mediaNativeStop();return}
  if(brief){R.briefAudio=true;const why=isOn('skippay')?ttsClean():'';if(why){toast('Skipped “'+nx.title.slice(0,40)+'”: '+why);S.lq=S.lq.filter(l=>l!==nx.link);ttsEnd(true);return}const B=R.audioList||(S.brief&&S.brief.links)||[],n=B.indexOf(nx.link);mediaOn();speak(`${n>=0?'Story '+(n+1)+' of '+B.length+'. ':'Next. '}From ${fof(nx).title}.`,()=>{if(curA===nx)ttsToggle()})}
  else{R.queueRun=true;const why=ttsClean();if(why){toast('Skipped “'+nx.title.slice(0,40)+'”: '+why);S.lq=S.lq.filter(l=>l!==nx.link);ttsEnd(true);return}ttsToggle()}
 }
@@ -13506,7 +13506,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.10.29i';const APP_LABEL='1.205';
-const CHANGES=["Focus mode: the highlight stays on the paragraph you're reading instead of jumping around","A Hands-free button now sits next to Focus while you're in focus mode: tap to start or pause the slow scroll","Hands-free reading speed is now based on the story's text, so photo-heavy stories no longer scroll too fast","Switching between the Daily's tabs is quicker","All Stories: Sections now lists every section on the page, and jumping to one lands right on its heading"];
+const CHANGES=["Fixed: the side \"Feeds\" tab now opens your feeds while a story is open","While a story is read aloud, a speed control shows at the bottom in your theme's colors: slower, faster or stop","Fixed: reading aloud no longer stops after a few minutes when you switch to another app","Fixed: after tapping Play Daily, the rest of the app now keeps responding while it plays","Play Daily now opens with \"Welcome to Cypress Reader\""];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -16473,8 +16473,9 @@ function nativeExtrasUi(x){
   mediaNativeStop=()=>{try{x.mediaStop&&x.mediaStop().catch(()=>{})}catch(e){}};
   ttsFrom=function(w){const r=pf.apply(this,arguments);mediaNative();return r};
   ttsPause=function(){const r=pp.apply(this,arguments);try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:false}).catch(()=>{})}catch(e){}return r};
-  ttsStop=function(){const r=ps.apply(this,arguments);try{if(Date.now()-MADV<8000){x.mediaUpdate&&x.mediaUpdate({...MT(),playing:false}).catch(()=>{})}else{x.mediaStop&&x.mediaStop().catch(()=>{})}}catch(e){}return r};
-  x.addListener&&x.addListener('mediaAction',r=>{const a=r&&r.action;if(a==='seek'&&r.pos>=0){digSeekTo(r.pos/1000);setTimeout(()=>{try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}},400);return}if(a==='toggle')ttsToggle();else if(a==='pause'){if(TTS.on&&!TTS.paused)ttsToggle()}else if(a==='play'){if(!TTS.on||TTS.paused)ttsToggle()}else if(a==='next')ttsEnd(true);else if(a==='prev'){if(TTS.on)ttsFrom(ttsStartWord())}else if(a==='rew'||a==='fwd'){digSeekBy(a==='rew'?-15:30);setTimeout(()=>{try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}},400)}else if(a==='stop')ttsStop()});
+  /* moving to the next story (Daily or Up Next) leaves the notification playing: a paused or stopped one lets Android freeze the minimized app, and it can't come back from the background, so the next story never started */
+  ttsStop=function(){const r=ps.apply(this,arguments);try{if((DIG.on&&R.digOpen)||Date.now()-MADV<8000){}else{x.mediaStop&&x.mediaStop().catch(()=>{})}}catch(e){}return r};
+  x.addListener&&x.addListener('mediaAction',r=>{const a=r&&r.action;if(a==='seek'&&r.pos>=0){digSeekTo(r.pos/1000);setTimeout(()=>{try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}},400);return}if(a==='toggle')ttsToggle();else if(a==='pause'){if(TTS.on&&!TTS.paused)ttsToggle()}else if(a==='play'){if(!TTS.on||TTS.paused)ttsToggle()}else if(a==='next')ttsEnd(true);else if(a==='prev'){if(TTS.on)ttsFrom(ttsStartWord())}else if(a==='rew'||a==='fwd'){digSeekBy(a==='rew'?-15:30);setTimeout(()=>{try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}},400)}else if(a==='stop'){if(DIG.on)digEnd(false);MADV=0;ttsStop()}});
  }
 }
 function widgetList(){let l=[];try{if(typeof DGL!=='undefined'&&DGL.length){l=[LEADK&&findStory(LEADK),...DGL.map(findStory)].filter((a,i,arr)=>a&&a.title&&a.link&&arr.indexOf(a)===i)}}catch(e){}
