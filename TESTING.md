@@ -1006,3 +1006,4 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Dark themes: feed photos slightly dimmed (setting "dim photos" on). Faint edge on photos over white.
 - Black & White: cards, photos and In brief all square.
 - Reader: caption/credit line under the top photo when the site sends one; hidden when the same photo repeats in the story.
+- P12: a story whose feed lists 2+ photos shows "+N photos" on its card; in the reader, "See all N photos" under the top photo opens the photo viewer; swipe through, Back/Escape closes and returns focus.
