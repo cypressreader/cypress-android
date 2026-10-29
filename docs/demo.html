@@ -10106,7 +10106,7 @@ const rdSig=a=>{try{return [S.saved.length,(S.hl||[]).length,JSON.stringify(S.lk
 let RDSIG='';
 let RDTRIG=null;
 /* while the story is open as a full-screen dialog, Tab must not escape to the side bar or the list behind it (side-by-side tablet view keeps both usable) */
-const rdInert=on=>{try{const rd=$('#rd');document.querySelectorAll('aside,main,#tabs,#mtabs,a.skip').forEach(e=>{if(e.contains(rd))return;e.inert=!!on&&!document.body.classList.contains('split')&&!(e.tagName==='ASIDE'&&document.body.classList.contains('sideshow'))})}catch(e){}};
+const rdInert=on=>{try{const rd=$('#rd');document.querySelectorAll('aside,main,#tabs,#mtabs,a.skip').forEach(e=>{if(e.contains(rd))return;e.inert=!!on&&!document.body.classList.contains('split')&&!rd.classList.contains('ghost')/* a Daily story read in the background is not on screen: the app stays usable */&&!(e.tagName==='ASIDE'&&document.body.classList.contains('sideshow'))})}catch(e){}};
 /* no cross-fade on close: it snapshots the whole page and stuttered while the feed was still repainting */
 const closeRd=fromPop=>closeRd0(fromPop);
 const closeRd0=fromPop=>{try{raCancel()}catch(e){}try{if($('#rfind')&&!$('#rfind').hidden)closeFind()}catch(e){}if(AUTO.on)autoRd(false);const was=curA,feedSel=/^(all|f:|s:|k:)/.test(S.sel||''),same=!!was&&RDSIG===rdSig(was)&&feedSel,soft=!same&&!!was&&feedSel&&rdBase(RDSIG)===rdBase(rdSig(was));$('#rd').classList.remove('focus');if(fromPop!==true){dropLayer('rdnav');dropLayer('reader')}else dropLayer('rdnav');const nv=$('#rdnav');if(nv){nv.classList.remove('on');nv.hidden=true}tok++;R.busy=false;/* read-aloud keeps going when you back out to the feed: the floating pill (#tmini) carries the controls */if(!(TTS.on&&('speechSynthesis' in window)))ttsStop();hlClear();$('#selbar').hidden=true;$('#rd').classList.remove('on','flex','vert');rdInert(false);try{if(RDTRIG&&RDTRIG.isConnected&&RDTRIG!==document.body)RDTRIG.focus({preventScroll:true})}catch(e){};curA=null;try{tminiSync()}catch(e){}applyFolderTheme();if(document.body.classList.contains('split'))splitEmpty();if(same||soft){try{side();dgProgUpdate();if(soft)patchProg(was)}catch(e){}}else render();if(feedSel)rdAnchorRestore()};
@@ -15604,7 +15604,7 @@ setInterval(()=>{if(SLEEP.t)syncUpNext()},30000);
 function speak(text,cb){
  if(!('speechSynthesis' in window)){cb&&cb();return}
  const u=new SpeechSynthesisUtterance(text);u.rate=+S.rate||1;u.volume=S.vol==null?1:+S.vol;const v=bestVoice();if(v){u.voice=v;u.lang=v.lang}
- let d=false;const fin=()=>{if(d)return;d=true;cb&&cb()};u.onend=fin;u.onerror=fin;setTimeout(()=>{if(!speechSynthesis.speaking)fin()},Math.max(4000,text.length*120));
+ let d=false;const fin=()=>{if(d)return;d=true;cb&&cb()};u.onend=fin;u.onerror=fin;/* never wait forever on an engine that doesn't report the end: the Daily's intro held up the whole Daily */setTimeout(()=>{if(!speechSynthesis.speaking)fin()},Math.max(4000,text.length*120));setTimeout(fin,Math.max(8000,text.length*160/Math.max(.6,+S.rate||1)));
  try{speechSynthesis.speak(u)}catch(e){fin()}
 }
 function quoteVoice(){
@@ -15627,7 +15627,7 @@ function listenBrief(){
  const mins=Math.max(1,Math.round(l.reduce((n,a)=>n+(readMin(a)||3),0)));
  /* the Daily plays from the feed: the player docks at the bottom and the stories are read in the background, one after another */
  digInit(l.map(a=>a.link));
- digGo(0,{intro:`Here’s your Daily. ${l.length} ${l.length===1?'story':'stories'}, about ${MIN(mins)}, read in full. First, from ${fof(l[0]).title}.`});
+ digGo(0,{intro:`Welcome to Cypress Reader. Here’s your Daily. ${l.length} ${l.length===1?'story':'stories'}, about ${MIN(mins)}, read in full. First, from ${fof(l[0]).title}.`});
 }
 
 /* ---------- launch animation ---------- */
@@ -17061,7 +17061,7 @@ try{const bd=$('#bid');if(bd)bd.value=String(biDays())}catch(e){}
  if(rd){new MutationObserver(()=>set(rd.classList.contains('on'))).observe(rd,{attributes:true,attributeFilter:['class']});set(rd.classList.contains('on'))}
  h.onclick=()=>document.body.classList.add('sideshow');
  /* the reader makes the page behind it inert; the feeds panel opened over a story must stay usable, and goes back to inert when it closes */
- new MutationObserver(()=>{const a=$('aside'),b=document.body,sh=b.classList.contains('sideshow');if(!a||!rd||!rd.classList.contains('on')||b.classList.contains('split'))return;if(a.inert===sh){a.inert=!sh;if(sh){const x=$('#sidehx');if(x)x.focus({preventScroll:true})}else if(h.offsetParent)h.focus({preventScroll:true})}}).observe(document.body,{attributes:true,attributeFilter:['class']});
+ new MutationObserver(()=>{const a=$('aside'),b=document.body,sh=b.classList.contains('sideshow');if(!a||!rd||!rd.classList.contains('on')||rd.classList.contains('ghost')||b.classList.contains('split'))return;if(a.inert===sh){a.inert=!sh;if(sh){const x=$('#sidehx');if(x)x.focus({preventScroll:true})}else if(h.offsetParent)h.focus({preventScroll:true})}}).observe(document.body,{attributes:true,attributeFilter:['class']});
  document.addEventListener('click',e=>{if(document.body.classList.contains('sideshow')&&!e.target.closest('aside')&&!e.target.closest('#sideh,#menu')){document.body.classList.remove('sideshow')}else if(document.body.classList.contains('sideshow')&&e.target.closest('aside [data-sel],aside .fr,aside .nav')&&!e.target.closest('[data-tgl],.frc,.frx,.mfh,[data-col],[data-delf],[data-delx]')){setTimeout(()=>{document.body.classList.remove('sideshow');if(rd&&rd.classList.contains('on')&&typeof closeRd==='function')try{closeRd()}catch(er){}},50)}},true);
  let sx=null;document.addEventListener('touchstart',e=>{const t=e.touches[0];sx=(document.body.classList.contains('reading')||document.body.classList.contains('sidehide'))&&t.clientX<18?{x:t.clientX,y:t.clientY}:null},{passive:true});
  document.addEventListener('touchmove',e=>{if(!sx)return;const t=e.touches[0];if(t.clientX-sx.x>48&&Math.abs(t.clientY-sx.y)<40){document.body.classList.add('sideshow');sx=null}},{passive:true});
