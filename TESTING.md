@@ -1009,3 +1009,8 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - P12: a story whose feed lists 2+ photos shows "+N photos" on its card; in the reader, "See all N photos" under the top photo opens the photo viewer; swipe through, Back/Escape closes and returns focus.
 - In brief photo strip: a story whose photo fails to load leaves no blank square (its line shows the site initial instead).
 - Photo crops: with no face found (Android has no face finder), wide card crops never aim below the upper third; heads should no longer be cut off (re-measured once after update).
+
+## Big photos in pages mode (branch, unreleased)
+- [ ] Fold open, pages mode: a story with a photo opens with the photo filling the whole left column, headline over its bottom; faces stay in frame; headline readable on bright photos.
+- [ ] Fold cover / phone, pages mode: top photo is the same size as in scroll mode (no longer the short strip).
+- [ ] Settings > story layout still lets you pick the other photo layouts.

@@ -3285,6 +3285,7 @@ html.pdark #grid.paper{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 html.rdx .cols .tt{font-family:var(--disp);font-weight:400;font-size:clamp(38px,9vw,64px);line-height:.98;letter-spacing:-.012em;font-synthesis:none;margin-bottom:.35em}
 html.rdx .cols .kick{font:700 10.5px var(--sans);letter-spacing:.22em;text-transform:uppercase}
 html.rdx .cols img.hero{border-radius:3px;aspect-ratio:3/2;height:auto;max-height:calc(var(--ih)*.95);object-fit:cover}
+html.rdx .cols>.hsf.hs-hero img.hero{height:100%;max-height:none;aspect-ratio:auto}/* the full-column picture really fills its column */
 html.rdserif .cols .body{font-family:var(--serif,Georgia,serif)}
 html.rdx .cols .body p{line-height:var(--lhp,1.72)}/* --lhp = the spacing you picked (Tight/Normal/Roomy, Large print); this fixed 1.72 used to override every choice */
 html.rdx .body p.dropcap .dcap{font-family:var(--disp);font-weight:400;font-synthesis:none;color:var(--b,var(--ink))}
@@ -4315,7 +4316,7 @@ html[data-theme=halcyon] #rd{--rbr:#7d5f14}html[data-theme=halcyond] #rd{--rbr:#
 #rd:not(.cine) .cols .body h2{font:600 1.35em/1.16 var(--disp,var(--serif));letter-spacing:-.005em;text-decoration:none;text-align:left;margin:1.35em 0 .45em}
 #rd:not(.cine) .cols .body h2::before{width:20px;height:2px;margin:0 0 .55em;background:var(--rbr);border-radius:1px}
 #rd .cols .body h3{text-decoration:none}
-body.narrow #rd:not(.vert):not(.cpv2) .cols>img.hero{max-height:140px}/* phones only: on wide two-column pages the taller picture keeps column 1 from looking empty */
+body.narrow #rd:not(.vert):not(.cpv2) .cols>img.hero{max-height:min(26svh,190px)}/* phones only: on wide two-column pages the taller picture keeps column 1 from looking empty */
 /* 18. End of a story: related links and any publisher appeal stay in one tidy block, inside the column, never split */
 .rfoot,.rfoot *{max-width:100%}.rfoot{break-inside:avoid;column-span:none;overflow:hidden;margin:1.6em 0 .4em}
 .body .rfoot a,.body .rfoot li{overflow-wrap:anywhere}
@@ -13641,7 +13642,7 @@ function heroSpread(){
   let m=S.rl||'auto';
   if(m==='classic'||!isOn('mag')||isVert()||bk.clientWidth<700)return '';
   const im=old?old.querySelector('img.hero'):c.querySelector(':scope>img.hero');if(!im)return '';
-  if(m==='auto'){const d=(im.complete&&im.naturalWidth)?[im.naturalWidth,im.naturalHeight]:IMGDIM.get(im.getAttribute('src'));/* a picture the lists already loaded is known before it arrives, so the opening layout is the final one */const dd=d||[1600,1000];/* size not known yet: a landscape photo is the usual case, so the room is held for it and the layout does not jump when it arrives */if(dd[0]<800)return '';m=dd[1]>dd[0]*.85?'split':'top'}
+  if(m==='auto'){const d=(im.complete&&im.naturalWidth)?[im.naturalWidth,im.naturalHeight]:IMGDIM.get(im.getAttribute('src'));/* a picture the lists already loaded is known before it arrives, so the opening layout is the final one */const dd=d||[1600,1000];/* size not known yet: a landscape photo is the usual case, so the room is held for it and the layout does not jump when it arrives */if(dd[0]<800)return '';m='hero'}
   return m;
  })();
  if(old&&old.dataset.m===want)return;
@@ -13651,7 +13652,7 @@ function heroSpread(){
  const fig=document.createElement('figure');fig.className='hsf hs-'+want;fig.dataset.m=want;
  const first=c.firstElementChild;c.insertBefore(fig,first);
  fig.append(im);
- if(want==='hero'||want==='top'){const ov=document.createElement('div');ov.className='hov';['.kick','.tt','.dt'].forEach(q=>{const e=c.querySelector(':scope>'+q);if(e)ov.append(e)});fig.append(ov);if(want==='hero')imgInfo(im.getAttribute('src')).then(o=>{if(o&&o.l>105)fig.classList.add('bright')}).catch(()=>{})}
+ if(want==='hero'||want==='top'){const ov=document.createElement('div');ov.className='hov';['.kick','.tt','.dt'].forEach(q=>{const e=c.querySelector(':scope>'+q);if(e)ov.append(e)});fig.append(ov);if(want==='hero'){cardFocus(im)}if(want==='hero')imgInfo(im.getAttribute('src')).then(o=>{if(o&&o.l>105)fig.classList.add('bright')}).catch(()=>{})}
  mnotes();
 }
 /* "Why it matters": the story's own description in an editor's-note box between the byline and the text; skipped when it only repeats how the article starts */
