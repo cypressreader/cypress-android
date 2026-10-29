@@ -1583,6 +1583,10 @@ html.quiet .cvm{letter-spacing:.06em}
 .cols>.hsf.hs-split{height:auto;break-after:auto;margin-bottom:22px}
 .cols>.hsf.hs-split img.hero{height:auto;aspect-ratio:16/9;object-fit:cover}
 .cols>.hsf.hs-top img.hero{height:auto;aspect-ratio:auto;object-fit:contain;border-radius:14px}
+html.rdx .cols>.hsf.hs-wide img.hero,.cols>.hsf.hs-wide img.hero{width:var(--sw);max-width:none;height:min(calc(var(--ch)*.45),calc(var(--sw)*.56));max-height:none;aspect-ratio:auto;object-fit:cover;border-radius:16px;display:block;margin:0}/* two-page view: the photo runs across both pages; the headline sits under it on the left page and the text starts under it on the right */
+.cols>.hsf.hs-wide{height:auto;break-after:auto;break-inside:avoid;margin:0 0 22px}
+#rd.cpv2 .cols:has(>.hs-wide) .body>:first-child{break-before:auto}
+#rd.cpv2 .cols:has(>.hs-wide) .body::before{content:'';display:block;break-before:column;height:var(--wh2,0px)}
 html.rdx .cols>.hsf.hs-top img.hero{width:100%;height:auto;aspect-ratio:auto;max-height:calc(var(--ch)*.6);object-fit:cover}/* the whole photo across the page above the headline; only a very tall one is trimmed */
 .hsf.hs-top .hov{position:static;background:none;padding:24px 2px 4px;color:var(--ink)}
 .hsf.hs-top .hov .kick,.hsf.hs-top .hov .dt,.hsf.hs-top .hov .dt span{color:var(--mut);opacity:1}
@@ -8438,12 +8442,13 @@ function layout(){noteFix();
  try{$('#rd').classList.toggle('cpv2',R.cpv===2)}catch(e){}
  try{$('#rd').classList.remove('spread')}catch(e){} /* B40 spread disabled 1.77: the facing-pages styling collided at the spine */
  const use=W-2*P,ch=H-2*P;
- c.style.cssText=`left:${P}px;top:${P}px;width:${use}px;height:${ch}px;column-count:${R.cpv};column-gap:${gap}px;--ih:${Math.round(ch*.5)}px;--ch:${ch}px;--bleed:${P}px`;
+ c.style.cssText=`left:${P}px;top:${P}px;width:${use}px;height:${ch}px;column-count:${R.cpv};column-gap:${gap}px;--ih:${Math.round(ch*.5)}px;--ch:${ch}px;--sw:${use}px;--bleed:${P}px`;
  const cw=(use-(R.cpv-1)*gap)/R.cpv;
  R.step=use+gap;
  try{fitHero(c,cw,gap)}catch(e){elog('fitHero',e)}
  try{fillVoids(c,cw,gap)}catch(e){elog('fillVoids',e)}
  try{fitPage1(c,cw,gap)}catch(e){elog('fitPage1',e)}
+ {const w=c.querySelector(':scope>.hs-wide img.hero');c.style.setProperty('--wh2',w?w.offsetHeight+22+'px':'0px')}
  try{if(fitWhy(c,cw,gap))fillVoids(c,cw,gap)}catch(e){elog('fitWhy',e)}
  R.np=Math.max(1,Math.ceil(Math.round((c.scrollWidth+gap)/(cw+gap))/R.cpv));
  try{trimBlankPages(c)}catch(e){elog('trimBlankPages',e)}
@@ -13526,7 +13531,7 @@ function heroSpread(){
   let m=S.rl||'auto';
   if(m==='classic'||!isOn('mag')||isVert()||bk.clientWidth<700)return '';
   const im=old?old.querySelector('img.hero'):c.querySelector(':scope>img.hero');if(!im)return '';
-  if(m==='auto'){const d=(im.complete&&im.naturalWidth)?[im.naturalWidth,im.naturalHeight]:IMGDIM.get(im.getAttribute('src'));/* a picture the lists already loaded is known before it arrives, so the opening layout is the final one */const dd=d||[1600,1000];/* size not known yet: a landscape photo is the usual case, so the room is held for it and the layout does not jump when it arrives */if(dd[0]<800)return '';m='top'}
+  if(m==='auto'){const d=(im.complete&&im.naturalWidth)?[im.naturalWidth,im.naturalHeight]:IMGDIM.get(im.getAttribute('src'));/* a picture the lists already loaded is known before it arrives, so the opening layout is the final one */const dd=d||[1600,1000];/* size not known yet: a landscape photo is the usual case, so the room is held for it and the layout does not jump when it arrives */if(dd[0]<800)return '';m=dd[1]>dd[0]*.85?'top':'wide'}
   return m;
  })();
  if(old&&old.dataset.m===want)return;
@@ -13536,7 +13541,7 @@ function heroSpread(){
  const fig=document.createElement('figure');fig.className='hsf hs-'+want;fig.dataset.m=want;
  const first=c.firstElementChild;c.insertBefore(fig,first);
  fig.append(im);
- if(want==='hero'||want==='top'){const ov=document.createElement('div');ov.className='hov';['.kick','.tt','.dt'].forEach(q=>{const e=c.querySelector(':scope>'+q);if(e)ov.append(e)});fig.append(ov);if(want==='hero'){cardFocus(im)}if(want==='hero')imgInfo(im.getAttribute('src')).then(o=>{if(o&&o.l>105)fig.classList.add('bright')}).catch(()=>{})}
+ if(want==='hero'||want==='top'){const ov=document.createElement('div');ov.className='hov';['.kick','.tt','.dt'].forEach(q=>{const e=c.querySelector(':scope>'+q);if(e)ov.append(e)});fig.append(ov);if(want==='hero'||want==='wide'){cardFocus(im)}if(want==='hero')imgInfo(im.getAttribute('src')).then(o=>{if(o&&o.l>105)fig.classList.add('bright')}).catch(()=>{})}
  mnotes();
 }
 /* "Why it matters": the story's own description in an editor's-note box between the byline and the text; skipped when it only repeats how the article starts */
