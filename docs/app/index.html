@@ -7179,7 +7179,8 @@ function focusLine(){
  if(!rd||!rd.classList.contains('focus')||!v||!isVert())return;
  const r=v.getBoundingClientRect(),y=r.top+r.height*.4;
  const ps=[...document.querySelectorAll('.cols .body > p')].filter(p=>!p.classList.contains('endmark'));
- let hit=null;for(const p of ps){const q=p.getBoundingClientRect();if(q.top<=y&&q.bottom>=y){hit=p;break}if(q.top>y){hit=hit||p;break}}
+ /* the on-screen paragraph nearest the reading line, so the highlight is never below the fold at the top of a story */
+ let hit=null,bd=1e9;for(const p of ps){const q=p.getBoundingClientRect();if(q.bottom<r.top)continue;if(q.top>r.bottom)break;const d=q.top>y?q.top-y:q.bottom<y?y-q.bottom:0;if(d<bd){bd=d;hit=p}if(!d)break}
  if(hit)hit.classList.add('fl');
 }
 document.addEventListener('click',e=>{
@@ -9590,7 +9591,7 @@ async function openReader(a){
  if(n&&n.textContent.length>Math.max(600,body.textContent.length+100)){
   a.tier=n.tier||(src!==a.link?'mirror':'direct');
   ttsStop();
-  body.replaceChildren(dropTitle(n,a.title));try{heroOnce()}catch(e){}
+  body.replaceChildren(dropTitle(n,a.title));try{heroOnce()}catch(e){}try{focusLine()}catch(e){}
   if(n.pw&&src===a.link){a.pw=1;note.innerHTML='This looks like a preview, and the site may want a subscription for the rest. <button type="button" class="lnk" data-web="1">View the site in the app</button>';if(my===tok&&!R.web&&(S.autoWeb||isBing(f.url)||/news\.google\./.test(f.url||'')||/news\.google\./.test(a.link||'')))toggleWeb(true)}else if(n.gated_preview&&src===a.link)note.innerHTML='<span class="sbadge">Subscriber preview</span>The site is holding back the rest of this story.';else if(n.tier==='morss')note.textContent='Full story loaded through Morss.';else if(src!==a.link)note.textContent='Full story loaded from '+host(src)+'.';else if(n.incomplete&&looksIncomplete(n.textContent,src))note.innerHTML='<span class="sbadge">Truncated source text</span>This may be only the start of the story. <a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener">Open the original story</a>';else note.remove();
   legalBody(body);try{markRestricted(a,body.textContent,true)}catch(e){}if(!((n.incomplete&&looksIncomplete(n.textContent,src))||(n.gated_preview&&src===a.link)))acPut(a.link,body.innerHTML);markReady(a.link);
   S.rt[a.link]=Math.max(1,Math.round(body.textContent.split(/\s+/).length/230));const rk=Object.keys(S.rt);if(rk.length>600)delete S.rt[rk[0]];save();

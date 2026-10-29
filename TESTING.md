@@ -975,3 +975,6 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] All Stories: Sections button and tapping the pinned name; fold a section; Offline tab; back-to-top arrow; tap current bottom tab glides up
 - [ ] Look: site names readable on Cards-view picture cards (B2); solid docked tab bar (B3); shorter top story unfolded (V2); folded Daily cover (V4); Headlines top (V6)
 - [ ] V7 uneven card pairs: send a screenshot if you still see a hole under a short card
+
+## Focus highlight on first tap (2026-10-29, branch claude/theme-six-handoff-dc0p8i) — implemented, unverified on a phone
+- [ ] Open a story, tap the eye right away: one paragraph on screen is highlighted (also after the full story finishes loading), without scrolling or hands-free reading
