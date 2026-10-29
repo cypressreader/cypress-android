@@ -8509,11 +8509,11 @@ function mkBox(pg,x0){
  return v;
 }
 function shade(dir){const e=document.createElement('i');e.className='tsh';e.style.background=`linear-gradient(${dir},rgba(0,0,0,.55),rgba(0,0,0,0) 65%)`;return e}
-function startTurn(dir){
+function startTurn(dir,lazy){
  curlGet();
  if(RP){const P=RP.T;RP=null;const bk0=$('.book');if(dir>0&&bk0&&!P.part&&P.key===prepKey()&&P.els.every(e=>e.isConnected)){R.T=P;R.busy=true;edgeHide(bk0,1);bk0.classList.toggle('one',!P.two);bk0.style.perspectiveOrigin=P.po||'';P.hid.forEach(e=>e.style.opacity='');setAng(P.ang);return P}P.els.forEach(e=>e.remove())}
  const bk=$('.book'),W=bk.clientWidth,two=R.cpv===2,hw=two?W/2:W,hx=two?W/2:0,to=R.pg+dir;
- const T=R.T={my:tok,dir,to,hw,hx,two,ang:dir>0?0:180,dead:false,els:[]};
+ const T=R.T={my:tok,dir,to,hw,hx,two,ang:dir>0?0:180,dead:false,els:[],q:lazy?[]:null};
  R.busy=true;edgeHide(bk,1);bk.classList.toggle('one',!two);
  const pgF=dir>0?R.pg:to,pgB=dir>0?to:R.pg;
  const face=(cls,pg,x0)=>{const f=mkEl('tf '+cls);f.style.width=hw+'px';if(pg!=null)f.append(mkBox(pg,x0));return f};
@@ -8527,8 +8527,9 @@ function startTurn(dir){
   const N=cp.N,sw=hw/N;T.st=[];T.N=N;T.sw=sw;T.cap=cp.cap;
   for(let i=0;i<N;i++){
    const el=mkEl('tl-s',`left:0;width:${sw+1}px`);
-   const f=mkEl('tf');f.append(mkBox(pgF,hx+i*sw));const fs=shade('to right');fs.style.background='#000';f.append(fs);el.append(f);
-   const b=mkEl('tf bk');if(two)b.append(mkBox(pgB,hw-(i+1)*sw));const bs=shade('to left');bs.style.background='#000';b.append(bs);el.append(b);
+   const f=mkEl('tf'),fs=shade('to right');fs.style.background='#000';f.append(fs);el.append(f);
+   const b=mkEl('tf bk'),bs=shade('to left');bs.style.background='#000';b.append(bs);el.append(b);
+   const fill=()=>{f.prepend(mkBox(pgF,hx+i*sw));if(two)b.prepend(mkBox(pgB,hw-(i+1)*sw))};if(T.q)T.q.push(fill);else fill();/* a turn built ahead copies the page into its strips later, a few per idle moment */
    leaf.append(el);T.st.push({el,f,b,o:-1});
   }
  }else{
@@ -8634,12 +8635,12 @@ function prepDrop(){if(RP){RP.T.els.forEach(e=>e.remove());RP=null}}
 function prepTurn(){
  if(RP&&RP.T.key===prepKey())return;prepDrop();
  if(!isOn('curl')||rdxPturn()!=='paper'||reduced()||R.busy||R.T||D||R.web||isVert()||!R.ready||R.pg+1>=R.np||!$('.book')||!$('#rd').classList.contains('on'))return;
- let T;try{T=startTurn(1)}catch(e){return}
+ let T;try{T=startTurn(1,true)}catch(e){return}
  R.T=null;R.busy=false;const bk=$('.book');edgeHide(bk,0);bk.style.perspectiveOrigin='';
  T.hid=[...T.leaf.querySelectorAll('.tf'),...T.els.filter(e=>e!==T.leaf)];T.hid.forEach(e=>{e.style.opacity='.01'});T.key=prepKey();RP={T};
- /* the strips are put in a few at a time between idle moments, so drawing the copies never holds up a tap or a scroll for long; a turn asked for before they are all in builds the usual way */
- const kids=[...T.leaf.children];kids.forEach(k=>k.remove());T.part=true;
- const step=()=>{if(!RP||RP.T!==T)return;for(let i=0;i<3&&kids.length;i++)T.leaf.append(kids.shift());if(kids.length)prepQ=window.requestIdleCallback?requestIdleCallback(step,{timeout:600}):setTimeout(step,60);else T.part=false};
+ /* the page is copied into the strips a few at a time between idle moments (copying all of them at once held the phone up for a moment after every turn), so a tap or a scroll never waits long; a turn asked for before they are all in builds the usual way */
+ const q=T.q||[];T.part=q.length>0;
+ const step=dl=>{if(!RP||RP.T!==T)return;while(q.length){q.shift()();if(!(dl&&dl.timeRemaining&&dl.timeRemaining()>8))break}if(q.length)prepQ=window.requestIdleCallback?requestIdleCallback(step,{timeout:600}):setTimeout(step,60);else T.part=false};
  step();/* each face is hidden, not the turning page as a whole: a see-through page is flattened, and making it solid again rebuilt its 3D layers on the first frame */
 }
 let prepQ=0;function prepSoon(){cancelIdle(prepQ);prepQ=window.requestIdleCallback?requestIdleCallback(prepTurn,{timeout:1500}):setTimeout(prepTurn,400)}

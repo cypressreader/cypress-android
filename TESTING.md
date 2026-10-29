@@ -1023,3 +1023,7 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] Turn quickly several pages in a row: still smooth (the next turn is prepared ~1 s after each page lands).
 - [ ] Reading a page: nothing faint/ghosted visible over the text (the prepared turn sits invisibly on top); links and text selection still work.
 - [ ] Page-edge stack on the right hides during a turn and comes back after.
+
+## Page-turn prep in small steps (branch claude/theme-six-handoff-dakini, unreleased)
+- [ ] Open a long story in pages mode, turn several pages quickly in a row: no stall after a turn lands; the next tap starts moving at once.
+- [ ] Scroll/tap the toolbar right after a turn: nothing feels stuck.
