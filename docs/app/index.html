@@ -43,11 +43,12 @@ body.sbdrag>aside,body.sbdrag main{transition:none!important}
 @media(prefers-reduced-motion:reduce){.skc{animation:none}}
 .skhid{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .pw{display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:1px 6px;border-radius:99px;font-size:11px;font-weight:700;letter-spacing:.02em;background:rgba(0,0,0,.42);color:#fff;vertical-align:1px;white-space:nowrap}
-#fcs.on{background:var(--ink);color:var(--pn);border-color:var(--ink)}
-/* focus mode hides every control except this one, so the same button turns it off again */
+#fcs.on,#fau[aria-pressed="true"]{background:var(--ink);color:var(--pn);border-color:var(--ink)}
+/* focus mode hides every control except Focus (to turn it off again) and Hands-free */
 #rd.focus .bar{position:absolute;top:calc(8px + env(safe-area-inset-top));right:10px;left:auto;width:auto;padding:0;gap:0;z-index:6}
-#rd.focus .bar>*:not(#fcs){display:none}
-#rd.focus #fcs{opacity:.6}
+#rd.focus .bar>*:not(#fcs):not(#fau){display:none}
+#rd:not(.focus) .bar #fau{display:none}
+#rd.focus #fcs,#rd.focus #fau{opacity:.6}
 
 /* --- logo progress (stage 2) --- */
 @property --p{syntax:'<percentage>';inherits:false;initial-value:0%}
@@ -7158,10 +7159,11 @@ function focusInstall(){
 }
 /* the soft highlight: the paragraph at the reading line (a little above the middle) of the scrolling reader */
 function focusLine(){
- const rd=$('#rd'),v=vView();
- document.querySelectorAll('.cols .body > p.fl').forEach(p=>p.classList.remove('fl'));
- if(!rd||!rd.classList.contains('focus')||!v||!isVert())return;
- const r=v.getBoundingClientRect(),y=r.top+r.height*.4;
+ const rd=$('#rd'),v=vView(),cur=document.querySelector('.cols .body > p.fl');
+ if(!rd||!rd.classList.contains('focus')||!v||!isVert()){if(cur)cur.classList.remove('fl');return}
+ const r=v.getBoundingClientRect(),y=r.top+r.height*.4,band=r.height*.15;
+ /* sticky: the highlight stays until its paragraph is well clear of the reading line, so a small scroll past a short paragraph doesn't flip it */
+ if(cur){const q=cur.getBoundingClientRect();if(q.bottom>y-band&&q.top<y+band)return;cur.classList.remove('fl')}
  const ps=[...document.querySelectorAll('.cols .body > p')].filter(p=>!p.classList.contains('endmark'));
  /* the on-screen paragraph nearest the reading line, so the highlight is never below the fold at the top of a story */
  let hit=null,bd=1e9;for(const p of ps){const q=p.getBoundingClientRect();if(q.bottom<r.top)continue;if(q.top>r.bottom)break;const d=q.top>y?q.top-y:q.bottom<y?y-q.bottom:0;if(d<bd){bd=d;hit=p}if(!d)break}
@@ -9529,7 +9531,7 @@ async function openReader(a){
  document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',chref(c)===a.link));
  const dt=a.date?new Date(a.date).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'';
  const cov=covOf(a).length?hubTeaser(a):'';
- sh.innerHTML=`<div class="bar"><button class="ib" id="cl" data-lbl="Back" aria-label="Back" title="Back">${svg('<path d="m14.5 5-7 7 7 7"/>')}</button><button class="ib" id="fdn" aria-label="Back to all feeds" title="Back to all feeds" tabindex="-1" aria-hidden="true" hidden>${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><button type="button" class="bs" aria-label="Go to ${esc(f.title)}" title="Go to ${esc(f.title)}"${f.id?'':' disabled'}>${esc(f.title)}</button><span id="pc"></span><button class="ib" id="st" data-lbl="Save" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" data-lbl="Listen" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings" hidden>${svg(TUNE)}</button>`:''}<button class="ib" id="fcs" data-lbl="Focus" aria-label="Focus mode" aria-pressed="false" title="Focus: hide the controls and highlight the paragraph you are reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site in the app" title="View the site in the app" hidden>${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page" hidden>${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page" hidden>${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" data-lbl="More" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec))+(hasSec(a.sec,a.feedId)?'':`<button class="flw" data-fsec aria-label="Follow ${esc(a.sec||'this section')}">Follow</button>`):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}"${heroAR(a)} onerror="this.remove()">`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener noreferrer" href="${esc(a.link)}">Read original on ${esc(host(a.link))} ↗</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p class="wmp">This site can’t be shown inside the app. It may block automated access.</p><div><button type="button" class="lnk" id="wtry">Try again</button> <a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
+ sh.innerHTML=`<div class="bar"><button class="ib" id="cl" data-lbl="Back" aria-label="Back" title="Back">${svg('<path d="m14.5 5-7 7 7 7"/>')}</button><button class="ib" id="fdn" aria-label="Back to all feeds" title="Back to all feeds" tabindex="-1" aria-hidden="true" hidden>${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><button type="button" class="bs" aria-label="Go to ${esc(f.title)}" title="Go to ${esc(f.title)}"${f.id?'':' disabled'}>${esc(f.title)}</button><span id="pc"></span><button class="ib" id="st" data-lbl="Save" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" data-lbl="Listen" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings" hidden>${svg(TUNE)}</button>`:''}<button class="ib" id="fau" data-lbl="Hands-free" aria-label="Hands-free reading" aria-pressed="false" title="Hands-free reading: the story moves on at your reading speed">${svg('<path d="M8 5v14l11-7z"/>')}</button><button class="ib" id="fcs" data-lbl="Focus" aria-label="Focus mode" aria-pressed="false" title="Focus: hide the controls and highlight the paragraph you are reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site in the app" title="View the site in the app" hidden>${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page" hidden>${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page" hidden>${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" data-lbl="More" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec))+(hasSec(a.sec,a.feedId)?'':`<button class="flw" data-fsec aria-label="Follow ${esc(a.sec||'this section')}">Follow</button>`):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}"${heroAR(a)} onerror="this.remove()">`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener noreferrer" href="${esc(a.link)}">Read original on ${esc(host(a.link))} ↗</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p class="wmp">This site can’t be shown inside the app. It may block automated access.</p><div><button type="button" class="lnk" id="wtry">Try again</button> <a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
  /* the text stays hidden for the moment the page columns are being worked out, so the open never shows half-wrapped lines */
  {const rd=$('#rd');rd.classList.add('rdb');clearTimeout(rdbDone.t);rdbDone.t=setTimeout(rdbDone,420)}
  for(const lb of sh.querySelectorAll('.bar .ib[data-lbl]')){const sp=document.createElement('span');sp.className='bl';sp.setAttribute('aria-hidden','true');sp.textContent=lb.dataset.lbl;lb.append(sp)}
@@ -10428,6 +10430,7 @@ $('#rd').onclick=e=>{
  if(t.closest('#mnmb')){const b=t.closest('#mnmb'),x=$('#mnmx'),o=b.getAttribute('aria-expanded')!=='true';b.setAttribute('aria-expanded',String(o));if(x)x.hidden=!o;return}
  if(t.closest('#fdn')){rdNav();return}
  if(t.closest('#fcs')){focusTog();return}
+ if(t.closest('#fau')){autoRd(!AUTO.on);return}
  if(t.closest('#wtry')){const w=$('.web');if(w)w.dataset.u='';loadWeb();return}
   if(t.closest('#wrl')){syncRl();$('#rl').showModal();return}
  const rt=t.closest('[data-rate]');if(rt&&curA){e.preventDefault();rateA(curA,+rt.dataset.rate);return}
@@ -13399,7 +13402,7 @@ function vView(){return $('#rd .view')}
 const AUTO={on:false,raf:0,t:0};
 function autoRd(on){
  clearTimeout(AUTO.t);cancelAnimationFrame(AUTO.raf);const was=AUTO.on;AUTO.on=!!on&&!!curA;
- const fx=$('#afx');fx.hidden=!AUTO.on;AUTO.re=null;
+ const fx=$('#afx');fx.hidden=!AUTO.on;AUTO.re=null;{const b=$('#fau');if(b)b.setAttribute('aria-pressed',String(AUTO.on))}
  if(!AUTO.on){if(was)toast('Hands-free reading off');return}
  const k=AUTO.k=isVert()?'afxs':'afxp';fx.querySelector('span').textContent=(S[k]||1)+'\u00d7';
  const wpm=S.wpm||230,wd=Math.max(50,R.words||0),rd=$('#rd'),live=()=>AUTO.on&&rd&&rd.classList.contains('on');
@@ -13412,7 +13415,7 @@ function autoRd(on){
  }else{const per=Math.max(20,wd/Math.max(1,R.np));
   const turn=()=>{AUTO.t=setTimeout(()=>{if(!live())return;if(R.pg>=R.np-1)return autoRd(false);go(1);turn()},per/wpm/(S[k]||1)*60000)};AUTO.re=turn;turn()}
 }
-['pointerdown','keydown','wheel'].forEach(ev=>document.addEventListener(ev,e=>{if(AUTO.on&&e.target.closest&&e.target.closest('#rd')&&!e.target.closest('#afx'))autoRd(false)},{capture:true,passive:true}));
+['pointerdown','keydown','wheel'].forEach(ev=>document.addEventListener(ev,e=>{if(AUTO.on&&e.target.closest&&e.target.closest('#rd')&&!e.target.closest('#afx,#fau'))autoRd(false)},{capture:true,passive:true}));
 /* Slower / Faster while hands-free reading runs: 0.5x to 3x of your reading speed, remembered separately for scrolling (S.afxs) and page turns (S.afxp) */
 $('#afx').addEventListener('click',e=>{const b=e.target.closest('[data-afx]');if(!b)return;const d=+b.dataset.afx;if(!d)return autoRd(false);
  const k=AUTO.k;S[k]=Math.min(3,Math.max(.5,Math.round(((S[k]||1)+d*.25)*4)/4));save();$('#afx span').textContent=S[k]+'\u00d7';if(AUTO.re){clearTimeout(AUTO.t);AUTO.re()}});

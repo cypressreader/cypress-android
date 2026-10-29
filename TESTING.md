@@ -979,3 +979,5 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 ## Focus highlight on first tap (2026-10-29, branch claude/theme-six-handoff-dc0p8i) — implemented, unverified on a phone
 - [ ] Open a story, tap the eye right away: one paragraph on screen is highlighted (also after the full story finishes loading), without scrolling or hands-free reading
 - [ ] One "Focus" button in the reader bar (the eye "Hide" button is gone): tap it, only the Focus button stays in the top corner; tap it again (or the middle of the page) to bring the controls back; open another story: focus is off
+- [ ] Focus highlight is calmer: a small scroll keeps the same paragraph lit; it moves on only once you're clearly past it (short paragraphs too)
+- [ ] In focus mode a "Hands-free" play button sits next to Focus: tap starts hands-free reading (highlight follows), tap again stops; a tap on the story still stops it
