@@ -2933,7 +2933,7 @@ html.rmo .tbi,html.lowp .tbi{transition:none}
 .bmseg.chips button{position:relative}.bmseg.chips button::after{content:'';position:absolute;left:0;right:0;top:-9px;bottom:-9px}
 .bmseg.chips{gap:5px;flex-wrap:nowrap;justify-content:safe center;overflow-x:auto;scrollbar-width:none;margin:2px 0 12px}
 .bmseg.chips::-webkit-scrollbar{display:none}
-/* the chips row fades at its right edge while more chips wait off-screen; a row that fits has no scroll timeline, so no fade */@supports(animation-timeline:scroll()){.bmseg.chips{animation:chipfade linear both;animation-timeline:scroll(self inline)}@keyframes chipfade{0%,98%{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent)}100%{-webkit-mask-image:none;mask-image:none}}}
+/* side by side the narrow column can't fit every chip: the row fades at its right edge so you can tell it scrolls (static, no scroll-driven animation: tests/scroll_cost.js) */body.split .bmseg.chips{padding-right:28px;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent)}
 @media(max-width:699px){.bmseg.chips{justify-content:safe center}}
 .bmseg.chips button{flex:none;min-width:0;padding:5px 10px;border-radius:999px;border:1px solid var(--ln);background:transparent;color:var(--mut);font-size:13px;font-weight:500;box-shadow:none!important;white-space:nowrap}
 .bmseg.chips button.on{background:color-mix(in srgb,var(--ink) 9%,transparent);border-color:color-mix(in srgb,var(--ink) 40%,transparent);color:var(--ink);font-weight:600}
@@ -11995,8 +11995,8 @@ const empNoStories=()=>{const st=S.feeds.map(f=>state[f.id]),bad=st.filter(x=>x=
  if(S.offline)return emp('Offline mode is on','CyPress only shows stories already stored on this phone. Turn off Offline mode in Settings to get new ones.',EA('sv','st'));
  if(navigator.onLine===false)return emp('You are offline','Stories you saved or downloaded are still here. New ones load when you are back online.',EA('sv','rf'));
  if(st.some(x=>x==='load'||!x))return emp('Stories are on the way','Your sites are still sending their latest stories. On a slow connection this can take a little while.',EA('rf'));
- if(bad&&bad===st.length)return emp('Your sites didn’t answer','None of your sites could be reached just now. They may be down for a moment, or the connection may be blocking them.',EA('rf','hl'));
- return emp('No stories yet',bad?'Some of your sites didn’t answer, and the others haven’t sent new stories.':'Your sites have not sent any stories. This is usually a slow or missing connection.',EA('rf','hl'))};
+ if(bad&&bad===st.length)return emp('Your sites didn’t answer','Not one site you follow could be reached just now. They may be down for a moment, or the connection may be blocking them.',EA('rf','hl'));
+ return emp('No stories yet',bad?'A few sites didn’t answer, and the rest haven’t sent new stories.':'Your sites have not sent any stories. This is usually a slow or missing connection.',EA('rf','hl'))};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-ea]');if(!b)return;const k=b.dataset.ea;if(k==='rf')$('#ref').click();else if(k==='hl')$('#mgb').click();else if(k==='ad')$('#add').click();else if(k==='sp')obOpen(true);else if(k==='td'){S.sel='today';save();render()}else if(k==='cl')openSearch(false);else if(k==='sv'){S.sel='saved';save();render()}else if(k==='st')$('#gear').click()});
 
 /* list keyboard shortcuts */
