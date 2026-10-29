@@ -4833,7 +4833,7 @@ html.bigtap .ib{width:46px!important;height:46px!important}html.bigtap #tabs but
  <section class="sgrp" id="s-data"><h3><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7c0-1.7 3.1-3 7-3s7 1.3 7 3-3.1 3-7 3-7-1.3-7-3z"/><path d="M5 7v10c0 1.7 3.1 3 7 3s7-1.3 7-3V7M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>Feeds and backup</h3><div class="sbox"><div class="line"><span class="lb">Back up everything<small>One file with your feeds, saved stories, highlights and settings. Keep a copy somewhere safe</small></span><span class="ctl"><button class="tx2" id="bke">Back up</button><button class="tx2" id="bki">Restore</button></span></div><div class="line"><span class="lb">Manage feeds<small>Rename, recolor or fix broken feeds</small></span><button class="tx2" id="mgb">Manage feeds</button></div><div class="line"><span class="lb">Import or export feeds<small>Move your feeds to or from another reader (OPML file)</small></span><span class="ctl"><button class="tx2" id="exp">Export</button><button class="tx2" id="imp">Import</button></span></div><div class="line"><span class="lb">See your year<small>Your Almanac: stories finished, minutes read, favorite sites and a best quote</small></span><button class="tx2" id="almb">Open</button></div><div class="line"><span class="lb">Privacy<small>What stays on this device and what doesn’t</small></span><button class="tx2" id="prvb">Read</button></div><div class="line"><span class="lb">Copy support info<small>Version, device and recent errors, for sending to the developer. Contains no feed addresses or stories</small></span><button class="tx2" id="diagb">Copy</button></div><div class="line"><span class="lb">Test sites on this phone<small>Tries each site the way CyPress does and writes a report you can send to the developer. Takes a few minutes. Contains site names and addresses, not your stories</small></span><button class="tx2" id="schkb">Start</button></div><div class="line"><span class="lb">Check scrolling<small>Records how smooth scrolling is while you scroll for about 15 seconds, then copies a report you can send to the developer. Contains no feed addresses or stories</small></span><button class="tx2" id="perfb">Start</button></div><div class="line"><span class="lb">Test suggested feeds<small>Checks every feed in Add feed and copies a list of any that no longer load. Takes a few minutes</small></span><button class="tx2" id="catchk">Run</button></div></div></section>
  <section class="sgrp" id="s-sync"><h3><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 0 1-14.2 5M4 12a8 8 0 0 1 14.2-5"/><path d="M18 3v4h-4M6 21v-4h4"/></svg>Sync between devices</h3><div class="sbox"><div class="pad" id="sybox"></div></div></section>
  <section class="sgrp" id="s-setup"><h3><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>Setup</h3><div class="sbox"><div class="line"><span class="lb">Keyboard shortcuts<small>For a keyboard on your tablet or computer. Press ? any time</small></span><button class="tx2" id="kbopen">Show</button></div><div class="line"><span class="lb">Tips and gestures<small>Everything you can do with a swipe, a press or a tap</small></span><button class="tx2" id="tipsb">Open</button></div><div class="line"><span class="lb">Redo setup<small>Pick topics and sources, keep everything else</small></span><button class="tx2" id="obagain">Open</button></div><div class="line"><span class="lb">Erase everything and start over<small>Removes your feeds, saved stories and settings from this device</small></span><button class="tx2 danger" id="fresh">Erase everything</button></div></div></section>
- <p class="ver">CyPress · Digital Magazine</p>
+ <p class="ver">CyPress Reader</p>
  </div>
  <input type="file" id="fi" accept=".opml,.xml,text/xml" hidden aria-label="Choose a feed list file"><input type="file" id="fj" accept=".json,application/json" hidden aria-label="Choose a backup file">
 </dialog>
@@ -4987,7 +4987,9 @@ let ELT=0;
 function elog(tag,e){try{const m=String((e&&(e.message||e.error||e.reason))||e||'').slice(0,200);ELOG.push({t:Date.now(),g:String(tag).slice(0,40),m});if(ELOG.length>100)ELOG.splice(0,ELOG.length-100);clearTimeout(ELT);ELT=setTimeout(()=>{try{localStorage.setItem('folio-err',JSON.stringify(ELOG))}catch(_){}},2000)}catch(_){}}
 addEventListener('error',e=>elog('error',e.message||e.error));addEventListener('unhandledrejection',e=>elog('promise',e.reason));
 let FROZEN=false,HST=0;
-const SAVE0=()=>{if(FROZEN)return;try{localStorage.setItem('folio',JSON.stringify(S))}catch(e){quotaFix()}};
+/* the library is one stored block (browsers allow about 5 million characters): its size is kept for Settings, and you're warned once a day from 80% on, before saving starts to fail */
+let LIBSZ=0,LIBW=0;
+const SAVE0=()=>{if(FROZEN)return;try{const j=JSON.stringify(S);LIBSZ=j.length;localStorage.setItem('folio',j);if(LIBSZ>4e6&&Date.now()-LIBW>864e5){LIBW=Date.now();setTimeout(()=>{try{toast('Your library is nearly full ('+Math.round(LIBSZ/5e4)+'%). Remove old saved stories or highlights, or back up and erase, so new saves keep working.')}catch(e){}},0)}}catch(e){quotaFix()}};
 /* low-priority save (feed health, reading position): batched so a refresh doesn't rewrite the library once per feed */
 function saveSoon(){if(FROZEN)return;clearTimeout(HST);HST=setTimeout(()=>{HST=0;SAVE0()},1200)}
 function flushSave(){if(HST){clearTimeout(HST);HST=0;SAVE0()}}
@@ -5005,7 +5007,7 @@ function applyFsort(){
 let LSIG=null;
 const setSig=()=>{try{return SET_KEYS.map(k=>JSON.stringify(S[k])).join('|')}catch(e){return ''}};
 /* Saved keeps up to 1000 stories; only the newest 100 keep their stored text, so older ones shrink instead of being deleted */
-function capSaved(){if(S.saved.length>1000)S.saved.length=1000;for(let i=100;i<S.saved.length;i++){if(S.saved[i].html)S.saved[i].html=''}}
+function capSaved(){if(S.saved.length>1000)S.saved.length=1000;let n=0;for(let i=100;i<S.saved.length;i++){if(S.saved[i].html){S.saved[i].html='';n++}}/* say so the first time: past the newest 100, a saved story keeps its headline but its text is read from the site again when opened */if(n&&!S.capW){S.capW=1;setTimeout(()=>{try{toast('Saved stories older than your newest 100 keep their headline, but their full text is loaded from the site again when you open them.')}catch(e){}},0)}}
 const save=()=>{if(FROZEN)return;if(S.fsort==='az'||S.ordBak)applyFsort();const g=setSig();if(LSIG!==null&&g!==LSIG)S.setT=Date.now();LSIG=g;if(HST){clearTimeout(HST);HST=0}SAVE0();syncSoon()};
 const items={},state={};let cur=[],tok=0,curA=null;
 const _dt=document.createElement('textarea');
@@ -8150,7 +8152,7 @@ const dpCap=()=>pfCap(ED_N);
 function dpOk(){
  try{
   if(edKey()!==DPRE.k||pfMode()==='off'||S.offline||isOn('dsave')||!online())return false;
-  const c=navigator.connection;if(onCell()||(c&&c.saveData))return false;
+  const c=navigator.connection;if(onCell()||(c&&c.saveData)||DEV.metered||DEV.dataSaver||DEV.powerSave)return false;
   if(document.documentElement.classList.contains('lowp'))return false;
   return true;
  }catch(e){return false}
@@ -9170,7 +9172,11 @@ const pfTop=()=>pfMode()==='top10'||pfMode()==='custom';
 function pfLabel(){}
 const online=()=>navigator.onLine&&!S.offline;
 const onCell=()=>{try{const c=navigator.connection;return !!(c&&c.type==='cellular')}catch(e){return false}};
-const pfAllowed=()=>{if(pfMode()==='off'||!online()||BATLOW)return false;const c=navigator.connection;if(c&&c.saveData)return false;if((isOn('pfwifi')||isOn('dsave'))&&onCell())return false;return true};
+/* the phone's own Battery Saver, Data Saver and metered networks (a hotspot) count too, not just our switches (Android app; read on start, on return and when the connection changes) */
+const DEV={powerSave:false,metered:false,dataSaver:false};
+async function devPoll(){try{const x=CyX();if(!x||!x.deviceState)return;const r=await x.deviceState();if(r){DEV.powerSave=!!r.powerSave;DEV.metered=!!r.metered;DEV.dataSaver=!!r.dataSaver;try{window.lowfxUp?window.lowfxUp():document.documentElement.classList.toggle('lowp',isOn('lowfx')&&DEV.powerSave)}catch(e){}}}catch(e){}}
+setTimeout(devPoll,1500);document.addEventListener('visibilitychange',()=>{if(!document.hidden)devPoll()});addEventListener('online',devPoll);try{navigator.connection&&navigator.connection.addEventListener('change',devPoll)}catch(e){}
+const pfAllowed=()=>{if(pfMode()==='off'||!online()||BATLOW||DEV.powerSave||DEV.dataSaver)return false;const c=navigator.connection;if(c&&c.saveData)return false;if((isOn('pfwifi')||isOn('dsave'))&&(onCell()||DEV.metered))return false;return true};
 const storyMap=()=>{const m=new Map();S.feeds.forEach(f=>(items[f.id]||[]).forEach(a=>m.set(a.link,a)));S.saved.forEach(a=>{if(!m.has(a.link))m.set(a.link,a)});return m};
 const WARM=[];
 function warmImgs(el,a){if(isOn('dsave'))return;const u=[...el.querySelectorAll('img[src]')].map(i=>i.getAttribute('src')).filter(x=>/^https?:/.test(x));if(a&&a.img&&!u.includes(a.img))u.unshift(a.img);
@@ -10058,6 +10064,7 @@ function syncSet(){dealSync();try{trlSync()}catch(e){}{const e=$('#sidehs');if(e
  {const sc=$('#sch');if(sc)sc.value=S.sch||'theme'}{const dm=$('#dynm');if(dm){dm.value=S.dynm||'sys';const l=$('#dynmrow');if(l)l.hidden=(S.theme||'auto')!=='dynamic'}}{const pp=$('#ppr');if(pp)pp.value=String(S.paper||0)}{const mm=$('#mast');if(mm)mm.value=S.mast||'clean'}{const c=$('#cvs');if(c)c.value=S.cvs||'clean';cvSetBtn();looksFill();const sc=$('#scrim');if(sc)sc.value=S.scrim||'';fthFill()}{const a=$('#dgwhen');if(a)a.value=S.dgwhen||'morning';const b=$('#dgwd');if(b)b.value=String(S.dgwd==null?0:S.dgwd)}['source','lora'].forEach(needFont);syncUi();
  {const el=$('#offst');if(el){const c=Object.keys(AC).length,last=S.feeds.reduce((m,f)=>Math.max(m,(S.health[f.id]||{}).ok||0),0),t=last?new Date(last).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
   el.textContent=(S.offline?'Offline mode is on. ':'')+(c?`Ready for offline reading: ${c} ${c===1?'story is':'stories are'} stored on this device (room for up to ${S.acMB||60} MB).`:'Nothing is stored for offline yet. Turn on “Get stories ready in advance” and open a list, and the top stories download in the background.')+(t?` Feeds last updated at ${t}.`:'')}}
+  /* how much space CyPress uses, and asking the browser to keep it (so a full phone can't quietly clear your library) */{const el=$('#offst');if(el){const tk=(syncSet.tk=(syncSet.tk||0)+1),lib=LIBSZ||((localStorage.getItem('folio')||'').length);const add=t=>{if(syncSet.tk===tk&&el.isConnected)el.textContent+=t};add(' Your library uses '+(lib/1048576).toFixed(1)+' MB of about 5 MB.');try{if(navigator.storage&&navigator.storage.estimate)navigator.storage.estimate().then(e=>{if(e&&e.usage!=null)add(' In all, CyPress is using '+Math.max(1,Math.round(e.usage/1048576))+' MB on this device.')}).catch(()=>{});if(navigator.storage&&navigator.storage.persisted)navigator.storage.persisted().then(p=>{if(!p&&navigator.storage.persist)return navigator.storage.persist()}).catch(()=>{})}catch(e){}}}
  {/* a few themes are listed in more than one group; only the first one listed shows as selected, so exactly one button is ever pressed */let found=false;document.querySelectorAll('#thm button[data-th]').forEach(b=>{const on=!found&&b.dataset.th===(S.theme||'auto');if(on)found=true;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))})}{const cb=document.querySelector('#thm button.on'),cd=cb&&cb.closest('details');for(let e=cd;e;e=e.parentElement&&e.parentElement.closest('details'))e.open=true;const th0=S.theme||'auto',pr=$('#ptnrow'),gr=$('#grnrow');{const dh=$('#dynh');if(dh)dh.hidden=th0==='dynamic'}if(pr)pr.hidden=true;if(gr)gr.hidden=true;const pt=$('#ptn');if(pt)pt.value=S.ptone||'warm';const bf=$('#bfs');if(bf)bf.value=S.bfold||'fold'}if(typeof syncTpre==='function')syncTpre();
  $('#fsv').textContent=S.fs+'px';document.querySelectorAll('#fgrid [data-fn]').forEach(b=>b.classList.toggle('on',b.dataset.fn===(S.font||'theme')));{const ab=document.querySelector('#fgrid [data-fn].on'),ad=ab&&ab.closest('details');if(ad&&!ad.open)ad.open=true}$('#ratev').value=(S.rate||1).toFixed(1)+'×';$('#volv').value=Math.round((S.vol==null?1:S.vol)*100)+'%';
  document.querySelectorAll('#tsz [data-ts]').forEach(b=>{const on=b.dataset.ts===(S.ts||'m');b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))});document.querySelectorAll('#scs [data-sc]').forEach(b=>b.classList.toggle('on',b.dataset.sc===(S.scroll||'auto')));document.querySelectorAll('#cds [data-cd]').forEach(b=>b.classList.toggle('on',b.dataset.cd===(S.cards||'medium')));$('#nrw').value=S.narrow||'auto';$('#spm').value=splitMode();
@@ -11270,7 +11277,7 @@ function followAlerts(before){
  }catch(e){return 0}
 }
 $('#exp').onclick=()=>{
- const o=f=>`<outline type="rss" text="${esc(f.title)}" title="${esc(f.title)}" xmlUrl="${esc(f.url)}"/>`;let b='';
+ /* the site's home address goes along too (import already reads it back) */const o=f=>`<outline type="rss" text="${esc(f.title)}" title="${esc(f.title)}" xmlUrl="${esc(f.url)}"${f.site&&/^https?:\/\//.test(f.site)?` htmlUrl="${esc(f.site)}"`:''}/>`;let b='';
  for(const fo of S.folders){const fs=S.feeds.filter(x=>x.folder===fo.id);if(fs.length)b+=`<outline text="${esc(fo.name)}">${fs.map(o).join('')}</outline>`}
  b+=S.feeds.filter(x=>!S.folders.some(f=>f.id===x.folder)).map(o).join('');
  saveFile('cypress-feeds.opml',new Blob([`<?xml version="1.0" encoding="UTF-8"?><opml version="2.0"><head><title>CyPress feeds</title></head><body>${b}</body></opml>`],{type:'text/xml'}));
@@ -12017,7 +12024,7 @@ function themeFonts(th){[THB[th],THH[th],THF[th],THX[th]].forEach(k=>k&&needFont
 function applyHf(){let k=S.hfont||'serif';if(POLISH_HF_KEEP.indexOf(k)<0)k='serif';needFont(k);if(k==='serif'){document.documentElement.style.removeProperty('--serif');document.documentElement.style.removeProperty('--fd')}else{document.documentElement.style.setProperty('--serif',FONTS[k]||FONTS.serif);document.documentElement.style.setProperty('--fd',FONTS[k]||FONTS.serif)}trkApply()}
 function applyRmo(){document.documentElement.classList.toggle('rmo',!!S.rmo);try{window.lowfxUp&&window.lowfxUp()}catch(e){}}
 /* pause heavy effects when the battery is low */
-(async()=>{try{if(!navigator.getBattery)return;const bt=await navigator.getBattery();const up=()=>{const low=isOn('lowfx')&&bt.level<=.2&&!bt.charging;document.documentElement.classList.toggle('lowp',low)};['levelchange','chargingchange'].forEach(t=>bt.addEventListener(t,up));up();window.lowfxUp=up}catch(e){}})();
+(async()=>{try{if(!navigator.getBattery)return;const bt=await navigator.getBattery();const up=()=>{const low=isOn('lowfx')&&((bt.level<=.2&&!bt.charging)||DEV.powerSave);document.documentElement.classList.toggle('lowp',low)};['levelchange','chargingchange'].forEach(t=>bt.addEventListener(t,up));up();window.lowfxUp=up}catch(e){}})();
 
 applyHf();applyRmo();
 setTimeout(()=>{try{tipsCheck()}catch(e){}},14000);
@@ -13370,13 +13377,15 @@ function obFinish(){
 }
 function freezeApp(){FROZEN=true;clearTimeout(HST);clearTimeout(syncT);clearTimeout(LRT);clearTimeout(LRW);LRT=LRW=0}
 async function startFresh(){
- if(!(await askBox({title:'Erase everything?',text:'This removes all feeds, saved stories, highlights and settings on this device.',ok:'Continue',danger:true})))return;
- const want=await askBox({title:'Save a backup first?',text:'A backup lets you bring everything back later.',ok:'Save a backup',cancel:'Skip the backup'});
- if(want){const ok=await makeBackup();if(!ok){if(!(await askBox({title:'The backup wasn’t saved',text:'Erase anyway? Your data can’t be recovered afterwards.',ok:'Erase anyway',cancel:'Keep my data',danger:true})))return}}
- if(!(await askBox({title:'Erase now?',text:'Last chance: this can’t be undone.',ok:'Erase',cancel:'Keep my data',danger:true})))return;
+ /* two questions, not three; and it now erases everything it promises: every stored value (the previous library kept for undo, caches, the sync route...), and on Android the alert words, widget headlines and pictures and the hourly job */
+ if(!(await askBox({title:'Erase everything?',text:'This removes all feeds, saved stories, highlights, notes and settings on this device. It can’t be undone.',ok:'Continue',cancel:'Keep my data',danger:true})))return;
+ const want=await askBox({title:'Save a backup first?',text:'A backup lets you bring everything back later.',ok:'Save a backup, then erase',alt:'Erase without a backup',cancel:'Keep my data'});
+ if(!want)return;
+ if(want===true){const ok=await makeBackup();if(!ok){if(!(await askBox({title:'The backup wasn’t saved',text:'Erase anyway? Your data can’t be recovered afterwards.',ok:'Erase anyway',cancel:'Keep my data',danger:true})))return}}
  freezeApp();
- try{['folio','folio-cache','folio-img','folio-err',AK].forEach(k=>localStorage.removeItem(k))}catch(e){}
- try{if(IDB.db)IDB.db.close();indexedDB.deleteDatabase('cypress')}catch(e){}try{caches.delete('cy-img')}catch(e){}
+ try{const x=CyX();if(x&&x.wipe)await x.wipe()}catch(e){}
+ try{localStorage.clear();sessionStorage.clear()}catch(e){}
+ try{if(IDB.db)IDB.db.close();indexedDB.deleteDatabase('cypress')}catch(e){}try{caches.delete('cy-img');caches.delete('cyp-icons-1')}catch(e){}
  location.reload();
 }
 
@@ -16232,7 +16241,7 @@ async function openSharedLink(p,u){
 }
 let LASTSHARE='';
 function handleShare(d){
- if(!d)return;const txt=[d.url,d.text].filter(Boolean).join(' ');const m=txt.match(/https?:\/\/[^\s]+/);const url=m?m[0]:'';
+ if(!d)return;/* a feed list opened with "Open with CyPress" goes through the normal import (preview, then Undo) */if(d.opml){try{opmlImport(String(d.opml),'feed list')}catch(e){toast('That file couldn’t be read as a feed list')}return}const txt=[d.url,d.text].filter(Boolean).join(' ');const m=txt.match(/https?:\/\/[^\s]+/);const url=m?m[0]:'';
  if(!url||url===LASTSHARE)return;LASTSHARE=url;
  $('#shu').textContent=url;$('#shr')._u=url;$('#shr')._t=d.title||'';
  /* a share that arrives while another box is open (set-up, What’s New) waits its turn instead of hiding underneath it */
@@ -16360,7 +16369,7 @@ function widgetPush(){const x=CyX();if(!x||!x.widgetUpdate||!nFeat('widget')||!S
 document.addEventListener('visibilitychange',()=>{if(document.hidden)widgetPush();else widgetSavePull()});
 /* B48: stories saved from the home-screen widget */
 async function widgetSavePull(){const x=CyX();if(!x||!x.widgetSaved||!nFeat('widget'))return;try{const r=await x.widgetSaved();const link=r&&r.link;if(!link)return;const a=findStory(link);if(!a){toast('Saved the link — open it once to finish saving');return}if(!isSaved(a)){toggleSave(a);toast('Saved “'+String(a.title||'').slice(0,60)+'”')}else toast('Already saved')}catch(e){}}
-/* a widget save while the app is away is picked up on return (visibilitychange above) */setInterval(()=>{if(!document.hidden)widgetSavePull()},30000);
+/* a widget save while the app is away is picked up on return (visibilitychange above); the extra 30-second check while the app is open is gone (it woke the phone for nothing) */
 
 function nativeSetup(){
  const p=CyN();if(!p)return;

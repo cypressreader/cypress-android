@@ -215,6 +215,44 @@ public class CyExtrasPlugin extends Plugin {
         }
     }
 
+    /** "Erase everything": stops the hourly job and removes what the phone side keeps (alert words, the
+     *  widget's headlines and pictures, page-check tags, the last fetched stories), then redraws the widgets empty. */
+    @PluginMethod
+    public void wipe(PluginCall call) {
+        try {
+            Context c = getContext();
+            CyExtras.schedule(c, new JSONObject());
+            for (String n : new String[] { "cypress", "cy_ui", "cy_feedcache" }) c.getSharedPreferences(n, Context.MODE_PRIVATE).edit().clear().commit();
+            CyExtras.prefs(c).edit().clear().commit();
+            for (String n : new String[] { CyExtras.FILE_ITEMS, CyExtras.FILE_PACK, "bg_seen.json" }) new File(c.getFilesDir(), n).delete();
+            File[] cs = c.getCacheDir().listFiles();
+            if (cs != null) for (File f : cs) if (f.isFile() && f.getName().startsWith("cyw_")) f.delete();
+            try { CyWidgets.refreshAll(c); } catch (Throwable t) { /* no widgets placed */ }
+            call.resolve();
+        } catch (Throwable t) {
+            call.reject("wipe failed: " + msg(t));
+        }
+    }
+
+    /** The phone's own savers: Battery Saver, a metered connection (a hotspot counts) and Data Saver.
+     *  The page holds background downloads and heavy effects while they are on. */
+    @PluginMethod
+    public void deviceState(PluginCall call) {
+        JSObject r = new JSObject();
+        try {
+            Context c = getContext();
+            android.os.PowerManager pm = (android.os.PowerManager) c.getSystemService(Context.POWER_SERVICE);
+            r.put("powerSave", pm != null && pm.isPowerSaveMode());
+            android.net.ConnectivityManager cm = (android.net.ConnectivityManager) c.getSystemService(Context.CONNECTIVITY_SERVICE);
+            r.put("metered", cm != null && cm.isActiveNetworkMetered());
+            r.put("dataSaver", cm != null && Build.VERSION.SDK_INT >= 24
+                && cm.getRestrictBackgroundStatus() == android.net.ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED);
+        } catch (Throwable t) {
+            // leave whatever was filled in
+        }
+        call.resolve(r);
+    }
+
     @PluginMethod
     public void bgItems(PluginCall call) {
         try {

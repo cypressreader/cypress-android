@@ -26,7 +26,6 @@ import org.json.JSONObject;
 public class CyWidgetProvider extends AppWidgetProvider {
 
     private static final String TAG = "CyWidget";
-    static final String ACT_SAVE = "com.cypress.reader.widget.SAVE";
     static final int MAX = 6;
 
     @Override
@@ -85,13 +84,11 @@ public class CyWidgetProvider extends AppWidgetProvider {
         super.onReceive(context, intent);
         try {
             String a = intent == null ? null : intent.getAction();
-            if (ACT_SAVE.equals(a)) {
-                String link = intent.getStringExtra("link");
-                if (link != null && CyExtras.isHttpUrl(link)) {
-                    context.getSharedPreferences("cypress", Context.MODE_PRIVATE)
-                        .edit().putString("widget_save", link).apply();
-                }
-            } else if (CyWidgets.ACT_TICK.equals(a)) {
+            // The widget's own buttons carry a secret only this app knows; anything else on the phone
+            // (which can reach this receiver, as every widget must be reachable by the launcher) is ignored.
+            // The old "save from widget" action was never sent by any widget button and let other apps plant a saved story: removed.
+            if (a != null && a.startsWith("com.cypress.reader.widget.") && !CyWidgets.tokOk(context, intent)) return;
+            if (CyWidgets.ACT_TICK.equals(a)) {
                 CyWidgets.tick(context);
             } else if (CyWidgets.ACT_REFRESH.equals(a)) {
                 CyWidgets.refreshNow(context);

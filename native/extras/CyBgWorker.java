@@ -115,15 +115,34 @@ public class CyBgWorker extends Worker {
         List<String> feedOrder = new ArrayList<String>();
         Set<String> urlsInUse = new HashSet<String>();
 
-        for (int i = 0; i < feeds.length() && i < MAX_FEEDS; i++) {
-            if (worker != null && worker.isStopped()) return; // the system wants us to stop: keep what is stored as it is
+        // At most MAX_FEEDS sites are read per run. Sites with alerts are always read; the others take turns
+        // (each run starts where the last one stopped), so a 61st site is no longer skipped forever.
+        int nf = feeds == null ? 0 : feeds.length();
+        Set<String> alertIds = new HashSet<String>();
+        JSONArray aIds = alerts == null ? null : alerts.optJSONArray("feedIds");
+        if (aIds != null) for (int i = 0; i < aIds.length(); i++) alertIds.add(aIds.optString(i, ""));
+        List<Integer> pick = new ArrayList<Integer>(), rest = new ArrayList<Integer>();
+        for (int i = 0; i < nf; i++) {
             JSONObject f = feeds.optJSONObject(i);
+            if (f == null) continue;
+            feedOrder.add(f.optString("id", ""));
+            urlsInUse.add(f.optString("url", ""));
+            if (alertsOn && alertIds.contains(f.optString("id", "")) && pick.size() < MAX_FEEDS) pick.add(i); else rest.add(i);
+        }
+        SharedPreferences rp = ctx.getSharedPreferences("cypress", Context.MODE_PRIVATE);
+        int rot = rest.isEmpty() ? 0 : Math.max(0, rp.getInt("bgrot", 0)) % rest.size(), took = 0;
+        for (int k = 0; k < rest.size() && pick.size() < MAX_FEEDS; k++, took++) pick.add(rest.get((rot + k) % rest.size()));
+        if (!rest.isEmpty()) rp.edit().putInt("bgrot", (rot + took) % rest.size()).apply();
+        Set<String> fetched = new HashSet<String>();
+
+        for (int pi = 0; pi < pick.size(); pi++) {
+            if (worker != null && worker.isStopped()) return; // the system wants us to stop: keep what is stored as it is
+            JSONObject f = feeds.optJSONObject(pick.get(pi));
             if (f == null) continue;
             String id = f.optString("id", "");
             String url = f.optString("url", "");
             String title = f.optString("title", "");
-            feedOrder.add(id);
-            urlsInUse.add(url);
+            fetched.add(id);
             boolean haveOld = false;
             for (Item o : old) if (id.equals(o.feedId)) {
                 haveOld = true;
@@ -137,6 +156,7 @@ public class CyBgWorker extends Worker {
                 fresh.addAll(got);
             }
         }
+        for (Item o : old) if (!fetched.contains(o.feedId) && feedOrder.contains(o.feedId)) all.add(o); // sites not read this run keep what they had
         pruneFeedCache(ctx, urlsInUse);
         sortNewestFirst(all);
         while (all.size() > MAX_TOTAL) all.remove(all.size() - 1);
@@ -267,7 +287,7 @@ public class CyBgWorker extends Worker {
         }
         int rest = hits.size() - shown;
         if (shown > 0 && rest > 0) {
-            CyExtras.post(ctx, CyExtras.CH_ALERTS, 7303, "CyPress alerts", "+" + rest + " more matching articles",
+            CyExtras.post(ctx, CyExtras.CH_ALERTS, 7303, "CyPress alerts", "And " + rest + (rest == 1 ? " more matching story" : " more matching stories") + ". Open CyPress to see them.",
                 null, "cy_alerts_group", true);
         }
 

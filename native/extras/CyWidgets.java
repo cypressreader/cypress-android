@@ -150,9 +150,23 @@ final class CyWidgets {
 
     // ---------------------------------------------------------------- the tick
 
+    /** A random secret kept in the app's private storage; the widget's own button intents carry it. */
+    static String tok(Context c) {
+        android.content.SharedPreferences p = c.getSharedPreferences("cypress", Context.MODE_PRIVATE);
+        String t = p.getString("wtok", null);
+        if (t == null) { t = java.util.UUID.randomUUID().toString(); p.edit().putString("wtok", t).apply(); }
+        return t;
+    }
+
+    static boolean tokOk(Context c, android.content.Intent i) {
+        String t = i.getStringExtra("t");
+        return t != null && t.equals(tok(c));
+    }
+
     private static PendingIntent tickIntent(Context c, int flags) {
         Intent i = new Intent(c, CyWidgetProvider.class);
         i.setAction(ACT_TICK);
+        i.putExtra("t", tok(c));
         return PendingIntent.getBroadcast(c, 60, i, PendingIntent.FLAG_IMMUTABLE | flags);
     }
 
@@ -263,6 +277,7 @@ final class CyWidgets {
     static PendingIntent refreshIntent(Context c, int code) {
         Intent i = new Intent(c, CyWidgetProvider.class);
         i.setAction(ACT_REFRESH);
+        i.putExtra("t", tok(c));
         return PendingIntent.getBroadcast(c, code, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
@@ -430,6 +445,7 @@ final class CyWidgets {
     private static PendingIntent flipIntent(Context c, int dir) {
         Intent i = new Intent(c, CyWidgetProvider.class);
         i.setAction(dir < 0 ? ACT_PREV : ACT_NEXT);
+        i.putExtra("t", tok(c));
         return PendingIntent.getBroadcast(c, dir < 0 ? 101 : 102, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
     }
 

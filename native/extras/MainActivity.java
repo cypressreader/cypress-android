@@ -81,6 +81,7 @@ public class MainActivity extends BridgeActivity {
 
         // Only on a fresh start: after a rotation/recreate the same intent would be replayed.
         if (savedInstanceState == null) {
+            CyExtras.handleFile(this, getIntent());
             CyExtras.handleIntent(getIntent());
         }
     }
@@ -90,6 +91,7 @@ public class MainActivity extends BridgeActivity {
         super.onNewIntent(intent);
         try {
             setIntent(intent);
+            CyExtras.handleFile(this, intent);
             CyExtras.handleIntent(intent);
         } catch (Throwable t) {
             Log.w(TAG, "onNewIntent failed: " + t);

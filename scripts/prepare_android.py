@@ -119,6 +119,19 @@ LINK_FILTER = """            <intent-filter android:autoVerify="true">
             </intent-filter>
 """
 
+# D3 (deep pass): "Open with CyPress" for a feed list (.opml) in Files, email or Downloads.
+OPML_FILTER = """            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" />
+                <data android:mimeType="text/x-opml" />
+                <data android:mimeType="text/x-opml+xml" />
+                <data android:mimeType="application/x-opml" />
+                <data android:mimeType="text/xml" />
+                <data android:mimeType="application/xml" />
+            </intent-filter>
+"""
+
 # D6: long-press launcher shortcuts (Play the Daily, Saved, Search), from native/extras/res/xml/cy_shortcuts.xml
 SHORTCUTS_META = """            <meta-data
                 android:name="android.app.shortcuts"
@@ -183,6 +196,8 @@ def edit_manifest():
         body = body.rstrip() + '\n\n' + SHARE_FILTER + '        '
     if 'cypressreader.com' not in body:
         body = body.rstrip() + '\n\n' + LINK_FILTER + '        '
+    if 'text/x-opml' not in body:
+        body = body.rstrip() + '\n\n' + OPML_FILTER + '        '
     if 'android.app.shortcuts' not in body:
         body = body.rstrip() + '\n\n' + SHORTCUTS_META + '        '
     close = end + len('</activity>')

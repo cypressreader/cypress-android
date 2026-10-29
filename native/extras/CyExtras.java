@@ -119,6 +119,41 @@ public final class CyExtras {
         return l.startsWith("http://") || l.startsWith("https://");
     }
 
+    /** A feed list (.opml) opened from Files, email or Downloads with "Open with CyPress": its text is handed to the
+     *  page as a share with an "opml" field, and the page runs its normal import (with a preview and Undo). */
+    static void handleFile(Context c, Intent intent) {
+        try {
+            if (intent == null || !Intent.ACTION_VIEW.equals(intent.getAction())) return;
+            android.net.Uri u = intent.getData();
+            if (u == null || !"content".equals(u.getScheme()) && !"file".equals(u.getScheme())) return;
+            if ((intent.getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0) return;
+            java.io.InputStream in = c.getContentResolver().openInputStream(u);
+            if (in == null) return;
+            java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
+            byte[] buf = new byte[8192];
+            int n;
+            try {
+                while ((n = in.read(buf)) > 0) {
+                    bo.write(buf, 0, n);
+                    if (bo.size() > 2 * 1024 * 1024) return; // a feed list is small: anything this big is not one
+                }
+            } finally {
+                in.close();
+            }
+            String text = new String(bo.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+            if (!text.contains("<opml") && !text.contains("<OPML")) return;
+            JSObject d = new JSObject();
+            d.put("opml", text);
+            synchronized (LOCK) {
+                pendingShare = d;
+            }
+            emit("sharedContent", d, true);
+            intent.setData(null);
+        } catch (Throwable t) {
+            Log.w(TAG, "handleFile failed: " + t);
+        }
+    }
+
     /** Reads a share (ACTION_SEND text) and/or a notification/widget tap (cy_open_url) from an intent. */
     static void handleIntent(Intent intent) {
         try {

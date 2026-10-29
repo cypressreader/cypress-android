@@ -1,16 +1,15 @@
 /* CyPress web app: keeps the app itself available offline. Feeds are never cached here. */
-const V = 'cyp-web-11', ICONS = 'cyp-icons-1';
+const V = 'cyp-web-12';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'icon-mono-512.png'];
 /* one missing icon must not stop the offline copy from installing */
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => Promise.all(FILES.map(f => c.add(f).catch(() => {})))).then(() => self.skipWaiting())); });
-self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V && k !== ICONS).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
+self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {
   const r = e.request, u = new URL(r.url), base = new URL(self.registration.scope).pathname;
-  /* site icons from Google's icon service and the bundled fonts never change: answer from the phone, fetch only the first time */
-  const icon = r.method === 'GET' && u.origin === 'https://www.google.com' && u.pathname === '/s2/favicons';
-  if (icon || (r.method === 'GET' && u.origin === location.origin && u.pathname.startsWith(base + 'fonts/'))) {
-    const cn = icon ? ICONS : V;
-    e.respondWith(caches.open(cn).then(c => c.match(r).then(m => m || fetch(r).then(res => { if (res.ok || res.type === 'opaque') c.put(r, res.clone()).catch(() => {}); return res; }))));
+  /* the bundled fonts never change: answer from the phone, fetch only the first time
+     (the app no longer asks Google for site icons, so that cache is gone; the old one is deleted on activate) */
+  if (r.method === 'GET' && u.origin === location.origin && u.pathname.startsWith(base + 'fonts/')) {
+    e.respondWith(caches.open(V).then(c => c.match(r).then(m => m || fetch(r).then(res => { if (res.ok) c.put(r, res.clone()).catch(() => {}); return res; }))));
     return;
   }
   if (r.method !== 'GET' || u.origin !== location.origin || !u.pathname.startsWith(base)) return;
