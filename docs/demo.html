@@ -1269,6 +1269,7 @@ body.split.open main,body.split.open #rd{transform:none}body.split.open main{opa
 body.split #menu{display:grid}
 body.split main{grid-column:1;border-right:1px solid var(--ln)}
 body.split #rd{position:relative;inset:auto;display:block;grid-column:2;grid-row:1;background:var(--pn);backdrop-filter:none;z-index:1;height:100%;min-width:0}
+body.split #rd:has(#sheet>.spe),body.split #sheet:has(>.spe){background:var(--bg)}/* no story open: the right pane matches the page instead of white paper */
 body.split .sheet{max-width:none;border-top-width:4px}
 body.split .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
 body.split .card.lead{grid-column:1/-1}
@@ -2637,6 +2638,7 @@ html[data-theme=halcyond] #grid :is(.card,.wcol) .src .sn,html[data-theme=halcyo
 /* on a photo card the labels stay light so they read over the picture */
 html[data-theme=halcyon] #grid .card:not(:is(.nr-row,.nr-late,.nr-tri,.list-row,.noimg)) .src,html[data-theme=halcyon] #grid .card:not(:is(.nr-row,.nr-late,.nr-tri,.list-row,.noimg)) .src .sn,html[data-theme=halcyon] #grid .card:not(:is(.nr-row,.nr-late,.nr-tri,.list-row,.noimg)) .src .ssec{color:#e2c27a}/* small brass labels on cream use the site's darker brass so they stay readable */
 html[data-theme=halcyon] #grid:not(.list) .card.noimg:not(:is(.nr-row,.nr-late,.nr-tri,.list-row)) :is(.src,.src .sn,.src .ssec){color:#fff}/* a card with no photo has the site's colored fill (lead or mid): its label is white like its headline (dark brass measured 1.2:1, light brass 1.9:1 on teal) */
+/* ...except where Cards view repaints the card in the page color (same conditions and selectors as that --pn card rule): dark brass again */@media(min-width:500px){@container feed (min-width:300px){html[data-theme=halcyon] :is(#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr),#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr),#grid[data-w="mag"]:not(.nr):not(.wire)>.card[data-ed]:not(.nr)).noimg :is(.src,.src .sn,.src .ssec){color:#7d5f14}}}
 html:is([data-theme=halcyon],[data-theme=halcyond]) #grid.list .card h3{font-family:var(--fd)}
 /* main buttons: green with cream type on cream paper, brass with deep-green type on the dark green (the website's two buttons) */
 html[data-theme=halcyon] :is(button.go,.row .go,.tx2.go){background:#123524;color:#f3ecdc;border-color:transparent}
@@ -3050,6 +3052,7 @@ html.rmo .tbi,html.lowp .tbi{transition:none}
 .bmseg.chips button{position:relative}.bmseg.chips button::after{content:'';position:absolute;left:0;right:0;top:-9px;bottom:-9px}
 .bmseg.chips{gap:5px;flex-wrap:nowrap;justify-content:safe center;overflow-x:auto;scrollbar-width:none;margin:2px 0 12px}
 .bmseg.chips::-webkit-scrollbar{display:none}
+/* the chips row fades at its right edge while more chips wait off-screen; a row that fits has no scroll timeline, so no fade */@supports(animation-timeline:scroll()){.bmseg.chips{animation:chipfade linear both;animation-timeline:scroll(self inline)}@keyframes chipfade{0%,98%{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent)}100%{-webkit-mask-image:none;mask-image:none}}}
 @media(max-width:699px){.bmseg.chips{justify-content:safe center}}
 .bmseg.chips button{flex:none;min-width:0;padding:5px 10px;border-radius:999px;border:1px solid var(--ln);background:transparent;color:var(--mut);font-size:13px;font-weight:500;box-shadow:none!important;white-space:nowrap}
 .bmseg.chips button.on{background:color-mix(in srgb,var(--ink) 9%,transparent);border-color:color-mix(in srgb,var(--ink) 40%,transparent);color:var(--ink);font-weight:600}
@@ -4790,8 +4793,8 @@ html.rmo :is(.skr i,.skr b,.skc),html.lowp :is(.skr i,.skr b,.skc){animation:non
  #grid:not(.nrp) .nr-top:not(.nr-one):not(.nr-tb2):not(.zz):not(:has(>.nr-rail)) .nr-mid .card.nr-row:not(.noimg){display:block;padding:0;border-top:0}
  @media(min-width:1200px){#grid:not(.nrp) .nr-top:not(.nr-one):not(.nr-tb2):not(.zz):not(:has(>.nr-rail))>.nr-mid{grid-template-columns:repeat(4,minmax(0,1fr))}}
  /* side by side, the list is a narrow column: one story per row there, whatever the screen width */
- /* in that narrow column five buttons leave no room for the title: it stays for screen readers, the tabs below say where you are */
- @media(max-width:1099px){body.split .top h1{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important;margin:0!important;padding:0!important}}
+ /* in that narrow column the logo gives way so the page title fits beside the buttons (shortened with … if it must) */
+ @media(max-width:1099px){body.split #tlp{display:none!important}body.split .top{padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:12px;column-gap:6px}body.split .top h1{font-size:20px}}
  body.split #grid:not(.nrp) .nr-top:not(.nr-one):not(.nr-tb2):not(.zz):not(:has(>.nr-rail))>.nr-mid{grid-template-columns:minmax(0,1fr)!important}
  #grid:not(.nrp) .nr-top:not(.nr-one):not(.nr-tb2):not(.zz):not(:has(>.nr-rail)) .nr-mid .card.nr-row:not(.noimg)>img{float:none;display:block;position:static;width:100%;height:auto;aspect-ratio:16/9;margin:0 0 12px;border-radius:12px}
 }
@@ -7503,7 +7506,7 @@ function ambApply(){
  const h=new Date().getHours()+new Date().getMinutes()/60;
  const T=[[0,'20,30,74',.15],[5,'255,190,100',.11],[8,'255,208,128',.075],[12,'255,236,200',.025],[16,'255,176,96',.06],[19,'44,62,118',.10],[22,'20,30,74',.15],[24,'20,30,74',.15]];
  let a=T[0],b=T[1];for(let i=0;i<T.length-1;i++){if(h>=T[i][0]&&h<T[i+1][0]){a=T[i];b=T[i+1];break}}
- const t=(h-a[0])/Math.max(.001,b[0]-a[0]),A=+a[2]+(+b[2]-+a[2])*t,pa=a[1].split(',').map(Number),pb=b[1].split(',').map(Number);
+ /* kept faint (40%): at full strength the bars read as gray slabs over the page at night */const t=(h-a[0])/Math.max(.001,b[0]-a[0]),A=(+a[2]+(+b[2]-+a[2])*t)*.4,pa=a[1].split(',').map(Number),pb=b[1].split(',').map(Number);
  const rgb=pa.map((v,i)=>Math.round(v+(pb[i]-v)*t)).join(',');
  document.documentElement.style.setProperty('--amb','rgba('+rgb+','+A.toFixed(3)+')');
 }
@@ -16424,14 +16427,14 @@ const safeRelay=v=>{try{const x=new URL(String(v||'').trim());return x.protocol=
 function tabPill(tb){if(tb._pl)return;{const pl=tb._pl=document.createElement('span');pl.className='tpill';pl.setAttribute('aria-hidden','true');tb.prepend(pl);tb.classList.add('pl');
  const mv=()=>{const b=tb.querySelector('button.on'),i=b&&b.querySelector('svg');if(!b||!i||!b.offsetWidth){pl.style.opacity=0;return}pl.style.opacity=1;const r=i.getBoundingClientRect(),q=tb.getBoundingClientRect();pl.style.transform=`translate(${r.left-q.left+r.width/2-32}px,${r.top-q.top+r.height/2-15}px)`;requestAnimationFrame(()=>pl.classList.add('mv'))};
  new MutationObserver(ms=>{if(ms.some(m=>m.target!==pl))mv()}).observe(tb,{subtree:true,attributes:true,attributeFilter:['class']});addEventListener('resize',mv);setTimeout(mv,0)}}
-async function makeBackup(){const d={...S};delete d.key;['sync','syncB','syncMsg','syncRem','syncSig','syncAt','imt'].forEach(k=>delete d[k]);const ok=await saveFile('cypress-backup.json',new Blob([JSON.stringify(d)],{type:'application/json'}));if(ok){S.bkAt=Date.now();save()}return ok}
+async function makeBackup(){const d={...S,bkAt:Date.now()};delete d.key;['sync','syncB','syncMsg','syncRem','syncSig','syncAt','imt'].forEach(k=>delete d[k]);const ok=await saveFile('cypress-backup.json',new Blob([JSON.stringify(d)],{type:'application/json'}));if(ok){S.bkAt=Date.now();save()}return ok}
 /* everything lives on this phone: once a month (counted from the last backup or reminder), a quiet nudge to save a backup */
 setTimeout(()=>{try{const now=Date.now(),last=Math.max(S.bkAt||0,S.bkSeen||0);if(!last){S.bkSeen=now;save();return}if((S.feeds||[]).length<3||now-last<30*864e5)return;S.bkSeen=now;save();toast(S.bkAt?'Your last backup is over a month old':'You haven’t saved a backup yet',()=>makeBackup(),'Back up')}catch(e){}},25000);
 $('#bke').onclick=()=>{makeBackup()};
 $('#bki').onclick=()=>$('#fj').click();
 $('#fj').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let d;try{d=JSON.parse(await f.text());if(!d||!Array.isArray(d.feeds)||!Array.isArray(d.folders))throw 0}catch(err){toast('That file isn’t a CyPress backup');return}
  const rl=safeRelay(d.relay);
- if(!(await askBox({title:'Replace everything with this backup?',text:'Your current feeds, saved stories and settings will be replaced.'+(rl?'\nThis backup also sets your relay to '+rl+'. Only continue if you trust it.':''),ok:'Replace',danger:true})))return;
+ if(!(await askBox({title:'Replace everything with this backup?',text:(()=>{/* what's inside, so you can tell which backup this is */const n=x=>Array.isArray(x)?x.length:0,w=(k,one,many)=>k+' '+(k===1?one:many),parts=[w(n(d.feeds),'site','sites'),w(n(d.folders),'folder','folders'),w(n(d.saved),'saved story','saved stories'),w(n(d.hl),'highlight','highlights')],at=+d.bkAt?new Date(+d.bkAt).toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'}):'';return 'This backup has '+parts.slice(0,-1).join(', ')+' and '+parts[parts.length-1]+(at?', made '+at:'')+'.\n'})()+'Your current sites, saved stories and settings will be replaced.'+(rl?'\nThis backup also sets your relay to '+rl+'. Only continue if you trust it.':''),ok:'Replace',danger:true})))return;
  d=cleanLib(d);['sync','syncB','syncMsg','syncRem','syncSig','syncAt','relay'].forEach(k=>delete d[k]);if(rl)d.relay=rl;/* keep the current library so the page can offer Undo after it reloads */let kept=false;try{localStorage.setItem('folio-prev',localStorage.getItem('folio')||'');localStorage.setItem('folio-undo','1');kept=true}catch(err){try{localStorage.removeItem('folio-prev');localStorage.removeItem('folio-undo')}catch(e2){}}freezeApp();try{localStorage.setItem('folio',JSON.stringify(d))}catch(err){FROZEN=false;try{localStorage.removeItem('folio-prev');localStorage.removeItem('folio-undo')}catch(e2){}toast('There isn’t enough storage space to restore that backup');return}
  location.reload()};
 /* after a restore the page reloads: offer to put the old library back */
