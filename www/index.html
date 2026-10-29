@@ -7652,7 +7652,7 @@ function setBlocks(head,B,first,step){
  markFresh();
  const s=g.querySelector('.nr-more');
  const next=want=>{if(k>=B.length)return false;const n=B.slice(k,k+(want||step));k+=n.length;NRK=k;s.insertAdjacentHTML('beforebegin',n.join(''));markFresh();try{cvAhead(1)}catch(e){}try{liveDots()}catch(e){}setTimeout(endObs,60);setTimeout(fixOrph,140);waterline();if(k>=B.length){if(NRIO){NRIO.disconnect();NRIO=null}s.remove();NRMORE=null;return false}return true};
- next.k=()=>k;NRMORE=next;
+ next.k=()=>k;next.B=B;NRMORE=next;
  NRIO=new IntersectionObserver(es=>{if(!es.some(e=>e.isIntersecting))return;if(next()&&NRIO){NRIO.unobserve(s);NRIO.observe(s)}},{root:$('main'),rootMargin:'1600px 0px'});
  NRIO.observe(s);
 }
@@ -8105,15 +8105,18 @@ function daySections(list,mode){
 /* jump to the top of a section, just below the docked tabs */
 /* tapping the title bar, or the section you are already in, goes back to the top */
 /* Sections: a list of the time blocks in All Stories (Last hour, This morning, Wild card...) to jump straight to one; opened from the Sections button or by tapping the pinned section name */
-function secMenu(){const g=$('#grid');const ss=g?[...g.querySelectorAll('.wsec')]:[];if(!ss.length)return;const d=document.createElement('dialog');d.id='secm';d.setAttribute('aria-labelledby','secm-t');
+function secMenu(){const g=$('#grid');const ss=g?[...g.querySelectorAll('.wsec')]:[];
+ /* sections further down that are not drawn yet (the page draws in batches as you scroll): listed too, drawn up to that point when picked */
+ const nx=NRMORE,k0=nx&&nx.B?nx.k():0;if(k0)nx.B.slice(k0).forEach((h,j)=>{if(!/^<h3 class="dsh wsec/.test(h))return;const t=document.createElement('template');t.innerHTML=h;const x=t.content.firstElementChild;x._j=j;ss.push(x)});
+ if(!ss.length)return;const d=document.createElement('dialog');d.id='secm';d.setAttribute('aria-labelledby','secm-t');
  d.innerHTML=`<h3 id="secm-t">Jump to a section</h3><div class="secl">${ss.map((x,i)=>{const t=((x.querySelector('span')||x).textContent||'').trim(),c=((x.querySelector('small')||{}).textContent||'').trim();return `<button type="button" data-si="${i}"><span>${esc(t)}</span>${c?`<small>${esc(c)}</small>`:''}</button>`}).join('')}</div><div class="row"><button type="button" class="tx2" data-si="x">Close</button></div>`;
- document.body.append(d);d.addEventListener('click',e=>{const b=e.target.closest('[data-si]');if(!b)return;d.close();if(b.dataset.si!=='x'){const el=ss[+b.dataset.si];if(el&&el.isConnected)jumpTop(el)}});d.addEventListener('close',()=>d.remove());d.showModal()}
+ document.body.append(d);d.addEventListener('click',e=>{const b=e.target.closest('[data-si]');if(!b)return;d.close();if(b.dataset.si!=='x'){let el=ss[+b.dataset.si];if(el&&!el.isConnected&&el._j!=null&&NRMORE===nx){nx(Math.max(1,el._j+4-(nx.k()-k0)));el=g.querySelector('.wsec[data-wk="'+CSS.escape(el.dataset.wk)+'"]')}if(el&&el.isConnected)jumpTop(el)}});d.addEventListener('close',()=>d.remove());d.showModal()}
 document.addEventListener('click',e=>{if(e.target.closest&&(e.target.closest('[data-secm]')||e.target.closest('#wpin')))secMenu()});
 function toTop(){const mn=$('main');if(mn)mn.scrollTo({top:0,behavior:reduced()?'auto':'smooth'})}
 /* a small "back to top" arrow once you are a few screens down; watched by one observer, nothing runs while scrolling */
 {const mn=$('main');if(mn&&'IntersectionObserver' in window){const se=document.createElement('i');se.id='topsent';se.setAttribute('aria-hidden','true');mn.prepend(se);const b=document.createElement('button');b.type='button';b.id='totop';b.className='ib';b.setAttribute('aria-label','Back to top');b.hidden=true;b.innerHTML=svg('<path d="m6 14 6-6 6 6"/>');b.onclick=()=>{toTop();try{const f=mn.querySelector('#grid [tabindex],#grid a,#grid button');if(f)setTimeout(()=>f.focus({preventScroll:true}),400)}catch(e){}};document.body.append(b);new IntersectionObserver(es=>{b.hidden=es[es.length-1].isIntersecting},{root:mn,rootMargin:'1600px 0px 0px 0px'}).observe(se)}}
 document.addEventListener('click',e=>{const t=e.target.closest('.top');if(t&&!e.target.closest('button,a,input,select,textarea,[role=button]'))toTop()});
-function jumpTop(el,top){const mn=$('main'),mt=$('#mtabs'),off=(mt?mt.offsetHeight||38:0)+6,t=top||el,beh=reduced()?'auto':'smooth';if(mn)mn.scrollTo({top:mn.scrollTop+t.getBoundingClientRect().top-mn.getBoundingClientRect().top-off,behavior:beh});else el.scrollIntoView({behavior:beh,block:'start'})}
+function jumpTop(el,top){const mn=$('main'),mt=$('#mtabs'),off=(mt?mt.offsetHeight||38:0)+6,t=top||el,beh=reduced()?'auto':'smooth';const d=()=>t.getBoundingClientRect().top-mn.getBoundingClientRect().top-off;/* stories above can come out shorter once drawn than their estimate: re-aim when the scroll ends */if(mn){const y=d();mn.scrollTo({top:mn.scrollTop+y,behavior:beh});if(Math.abs(y)>4){const fx=()=>{off2();if(t.isConnected&&Math.abs(d())>4)mn.scrollTo({top:mn.scrollTop+d(),behavior:beh})},off2=()=>{mn.removeEventListener('scrollend',fx);mn.removeEventListener('touchstart',off2);mn.removeEventListener('wheel',off2)};mn.addEventListener('scrollend',fx);mn.addEventListener('touchstart',off2,{passive:true});mn.addEventListener('wheel',off2,{passive:true})}}else el.scrollIntoView({behavior:beh,block:'start'})}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-dsec]');if(!t)return;const el=document.getElementById(t.dataset.dsec);if(el){e.preventDefault();e.stopPropagation();const pv=el.previousElementSibling;jumpTop(el,pv&&pv.classList.contains('dfolio')?pv:el)}},true);
 /* ---- The Daily's edition is downloaded ahead of time, gently, so Quick Briefs and Deep Dives know the real reading times ----
    Only on Wi-Fi, never when downloads are off, in Offline or Data saver mode or in low-power mode, one story at a time with a pause between,

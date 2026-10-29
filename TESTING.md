@@ -983,3 +983,7 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] In focus mode a "Hands-free" play button sits next to Focus: tap starts hands-free reading (highlight follows), tap again stops; a tap on the story still stops it
 - [ ] The Hands-free button shows play when stopped and pause while running
 - [ ] Hands-free and Focus corner buttons look equally solid; 1x hands-free speed feels the same on a photo-heavy story and a plain one; focus highlight starts near the middle of the screen (a bit above), not near the top
+
+## Round 3 (2026-10-29, unreleased, branch claude/theme-six-handoff-dc0p8i) — implemented, unverified on phone
+- [ ] Daily tabs (Today/Edition/Brief/Week): tap feels quicker; slide-in still goes the right way; docked tab bar sits right under the header after scrolling down
+- [ ] All Stories > Sections near the top of the page: every section is listed; picking a far one loads it and lands on its heading (no overshoot); scrolling during the jump is not pulled back
