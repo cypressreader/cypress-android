@@ -107,6 +107,12 @@ public class CyMediaService extends Service {
 
     // ------------------------------------------------------------ API used by the plugin
 
+    /** True while something is being read aloud (the notification shows Pause). */
+    static boolean isPlaying() {
+        CyMediaService s = instance;
+        return s != null && s.playing;
+    }
+
     static void start(Context c, String title, String subtitle, boolean playing, String image) {
         CyMediaService s = instance;
         if (s != null) {

@@ -86,6 +86,54 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
+    /**
+     * Reading aloud while minimized. When the app is hidden, the web view marks the page hidden and
+     * Android's web engine freezes a hidden page that isn't playing sound after a few minutes. The
+     * phone's speech engine kept talking, but the page that moves the Daily on to the next story was
+     * frozen, so playback stopped after one story until the app was opened again. While the
+     * notification shows something playing, the web view is told it is still visible; once playback
+     * stops it is told the truth again.
+     */
+    private boolean stopped = false, keptVisible = false;
+    private final Runnable keepAwake = new Runnable() {
+        @Override
+        public void run() {
+            if (!stopped) return;
+            try {
+                WebView web = getBridge() != null ? getBridge().getWebView() : null;
+                if (web != null) {
+                    boolean play = CyMediaService.isPlaying();
+                    if (play) {
+                        web.dispatchWindowVisibilityChanged(View.VISIBLE);
+                        keptVisible = true;
+                    } else if (keptVisible) {
+                        web.dispatchWindowVisibilityChanged(View.GONE);
+                        keptVisible = false;
+                    }
+                }
+            } catch (Throwable t) {
+                Log.w(TAG, "keep awake failed: " + t);
+            }
+            handler.postDelayed(this, 15000);
+        }
+    };
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        stopped = false;
+        keptVisible = false;
+        handler.removeCallbacks(keepAwake);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        stopped = true;
+        handler.removeCallbacks(keepAwake);
+        handler.postDelayed(keepAwake, 500);
+    }
+
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
