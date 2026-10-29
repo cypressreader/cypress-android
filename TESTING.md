@@ -981,3 +981,4 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] One "Focus" button in the reader bar (the eye "Hide" button is gone): tap it, only the Focus button stays in the top corner; tap it again (or the middle of the page) to bring the controls back; open another story: focus is off
 - [ ] Focus highlight is calmer: a small scroll keeps the same paragraph lit; it moves on only once you're clearly past it (short paragraphs too)
 - [ ] In focus mode a "Hands-free" play button sits next to Focus: tap starts hands-free reading (highlight follows), tap again stops; a tap on the story still stops it
+- [ ] The Hands-free button shows play when stopped and pause while running
