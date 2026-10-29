@@ -45,7 +45,7 @@ const SITES=['Alpha','Beta','Gamma','Delta'];
   Object.keys(AC).forEach(k=>delete AC[k]);PF.done.clear();PF.q.length=0;
   const a=cur[0],nx=cur[1];window.__calls=[];const g0=getFull;getFull=function(u){window.__calls.push(u);return g0.apply(this,arguments)};
   /* a slow queue: the next story is still waiting when the reader is left */
-  PF.run=2;readAhead(a);const queued=PF.q.some(x=>x.link===nx.link);closeRd();await w(300);const dropped=!PF.q.some(x=>x.link===nx.link)&&!PF.done.has(nx.link);PF.run=0;
+  PF.run=2;readAhead(a);const queued=PF.q.some(x=>x.link===nx.link);closeRd();/* checked at once: the list's own lookahead may queue the same story again a moment later, because it is on screen */const dropped=!PF.q.some(x=>x.link===nx.link)&&!PF.done.has(nx.link);await w(300);PF.run=0;
   return{queued,dropped,ra:PF.raLink}});
  ck('read-ahead queues exactly the next story, and leaving the reader drops it',r4.queued&&r4.dropped&&r4.ra==='',JSON.stringify(r4));
  /* (5) lookahead never shortens the endless list */
