@@ -16,7 +16,7 @@ const GONE=['copy','translate','fullscreen','fdn','webpref'];
    const mn=document.querySelector('#mn'),rc=mn.getBoundingClientRect(),o={};
    o.vis=!mn.hidden;o.top=rc.top;o.bottom=rc.bottom;o.left=rc.left;o.right=rc.right;o.vh=innerHeight;o.vw=innerWidth;o.scrolls=mn.scrollHeight>mn.clientHeight+1;
    const acts=sel=>[...mn.querySelectorAll(sel)].map(b=>b.dataset.act);
-   o.groups={quick:acts('.rshq [data-act]'),list:acts('.rshl>[data-act]'),more:acts('#mnmx [data-act]')};
+   o.groups={quick:acts('.rshq [data-act]'),list:acts('.rshl>[data-act],.rshl>.rshp>[data-act]'),more:acts('#mnmx [data-act]')};
    o.dialog=mn.getAttribute('role')==='dialog'&&mn.getAttribute('aria-modal')==='true'&&!!mn.getAttribute('aria-labelledby');o.focusIn=mn.contains(document.activeElement);
    o.cut=[...mn.querySelectorAll('button:not([hidden])')].filter(b=>{const q=b.getBoundingClientRect();return q.bottom>innerHeight||q.right>innerWidth+1||q.left<-1||q.top<0}).length;
    o.small=[...mn.querySelectorAll('button:not([hidden])')].filter(b=>b.getClientRects().length&&b.getBoundingClientRect().height<48).length;
