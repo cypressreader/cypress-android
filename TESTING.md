@@ -953,3 +953,8 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - A site's settings: the report card line reads sensibly for a busy site and a quiet one.
 - Restore a backup: the confirm shows the counts and date.
 - List rows (The Daily, Next up): green offline mark at the bottom right doesn't cover "Also from".
+
+## All Stories lazy cards (branch after 1.198, unverified on phone)
+- [ ] Fold, All Stories, tiles + Medium: long fling down; scroll check should show far fewer `FrameRequestCallback :2111xx` 100 ms frames (1.198: 1438 ms total)
+- [ ] No visible jumping of cards while scrolling down or back up
+- [ ] Open a story deep in All Stories, go back: same place in the list
