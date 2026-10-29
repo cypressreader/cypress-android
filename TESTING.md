@@ -982,3 +982,4 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] Focus highlight is calmer: a small scroll keeps the same paragraph lit; it moves on only once you're clearly past it (short paragraphs too)
 - [ ] In focus mode a "Hands-free" play button sits next to Focus: tap starts hands-free reading (highlight follows), tap again stops; a tap on the story still stops it
 - [ ] The Hands-free button shows play when stopped and pause while running
+- [ ] Hands-free and Focus corner buttons look equally solid; 1x hands-free speed feels the same on a photo-heavy story and a plain one; focus highlight starts near the middle of the screen (a bit above), not near the top

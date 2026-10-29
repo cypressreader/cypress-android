@@ -169,7 +169,8 @@ body.sbdrag>aside,body.sbdrag main{transition:none!important}
 #rd.focus .bar>*:not(#fcs):not(#fau){display:none}
 #rd:not(.focus) .bar #fau{display:none}
 #fau .pa,#fau[aria-pressed="true"] .pl{display:none}#fau[aria-pressed="true"] .pa{display:inline}
-#rd.focus #fcs,#rd.focus #fau{opacity:.6}
+#rd.focus #fcs,#rd.focus #fau{opacity:.9}
+#rd.focus #fau:not([aria-pressed="true"]){background:var(--pn)}
 
 /* --- logo progress (stage 2) --- */
 @property --p{syntax:'<percentage>';inherits:false;initial-value:0%}
@@ -7282,8 +7283,9 @@ function focusInstall(){
 function focusLine(){
  const rd=$('#rd'),v=vView(),cur=document.querySelector('.cols .body > p.fl');
  if(!rd||!rd.classList.contains('focus')||!v||!isVert()){if(cur)cur.classList.remove('fl');return}
- const r=v.getBoundingClientRect(),y=r.top+r.height*.4,band=r.height*.15;
- /* sticky: the highlight stays until its paragraph is well clear of the reading line, so a small scroll past a short paragraph doesn't flip it */
+ /* the reading line sits a little above the middle of what is actually on screen (the reader can be taller than the visible area in a browser) */
+ const r0=v.getBoundingClientRect(),r={top:Math.max(0,r0.top),bottom:Math.min(innerHeight,r0.bottom)},y=r.top+(r.bottom-r.top)*.45,band=(r.bottom-r.top)*.06;
+ /* a little sticky, so a small scroll past a short paragraph doesn't flip it */
  if(cur){const q=cur.getBoundingClientRect();if(q.bottom>y-band&&q.top<y+band)return;cur.classList.remove('fl')}
  const ps=[...document.querySelectorAll('.cols .body > p')].filter(p=>!p.classList.contains('endmark'));
  /* the on-screen paragraph nearest the reading line, so the highlight is never below the fold at the top of a story */
@@ -13530,7 +13532,9 @@ function autoRd(on){
  if((S.afxTip||0)<3){S.afxTip=(S.afxTip||0)+1;save();toast('Hands-free reading on. Tap the story to stop')}
  if(isVert()){const v=vView();if(!v)return autoRd(false);
   /* pixels per word from the story's real height, so 1x is your reading speed; a fractional position keeps the glide smooth */
-  const pxs=v.scrollHeight/wd*wpm/60;let last=performance.now(),pos=v.scrollTop;
+  /* measured on the story's own paragraphs, so photos and extras below the story don't make 1x faster on some stories */
+  let th=0,tw=0;for(const p of v.querySelectorAll('.cols .body p')){th+=p.offsetHeight;tw+=p.textContent.split(/\s+/).filter(Boolean).length}
+  const pxs=tw>50?th/tw*wpm/60:v.scrollHeight/wd*wpm/60;let last=performance.now(),pos=v.scrollTop;
   const step=t=>{if(!live())return;pos+=Math.min(100,t-last)*pxs*(S[k]||1)/1000;last=t;v.scrollTop=pos;if(v.scrollTop+v.clientHeight>=v.scrollHeight-2)return autoRd(false);AUTO.raf=requestAnimationFrame(step)};
   AUTO.raf=requestAnimationFrame(step);
  }else{const per=Math.max(20,wd/Math.max(1,R.np));
