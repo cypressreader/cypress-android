@@ -963,3 +963,15 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] Fold: fresh open, All Stories, one normal-speed pass down: first-pass stutter less than 1.199? Scroll check: fewer slow frames with script 0 / big "before drawing"
 - [ ] Memory: js heap and app stays smooth after a long scroll (decoded photos cost memory)
 - [x] 1.200 decode-ahead VERIFIED 2026-10-29 (18% vs 31%, heap flat): fresh open -> All Stories first pass, scroll check vs 1.199 (31% frames >20 ms); watch memory. Keep if better, remove `_dc` decode in cvAhead if worse.
+
+## Deep pass (2026-10-29, branch claude/theme-six-handoff-dc0p8i) — implemented, unverified on a phone
+- [ ] Widgets still appear in the widget picker; refresh / next / previous taps still work after the update (P1 secret token; old widgets redraw on their next update)
+- [ ] Erase everything: two questions; after erase, widgets are empty, no alerts fire, app starts fresh (B13)
+- [ ] Background refresh with 61+ sites: later sites show up in widget / pack over a few hours (B12)
+- [ ] Battery Saver on: no background story downloads, effects calm down (P7); phone hotspot counts as metered with "Only on Wi-Fi"
+- [ ] Open a .opml file from Files with "Open with CyPress": import preview appears (D3)
+- [ ] App updates still download from GitHub (P5 HTTPS-only rule for our own addresses)
+- [ ] Reader: Tight/Normal/Roomy and Large print visibly change line spacing on the folded phone (B1); text slider to 34 px; Letter spacing row; Find in story in the ... menu; tap a highlight to edit; "Listen from here" in the selection bar; Resume offer on a half-read story in Pages mode
+- [ ] All Stories: Sections button and tapping the pinned name; fold a section; Offline tab; back-to-top arrow; tap current bottom tab glides up
+- [ ] Look: site names readable on Cards-view picture cards (B2); solid docked tab bar (B3); shorter top story unfolded (V2); folded Daily cover (V4); Headlines top (V6)
+- [ ] V7 uneven card pairs: send a screenshot if you still see a hole under a short card
