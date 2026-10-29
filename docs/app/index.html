@@ -3102,10 +3102,10 @@ html.pdark #grid.paper{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .dcv-art{inset:-4% 0 -12%;will-change:transform;transform:translate3d(0,calc(var(--par,0)*26%),0) scale(calc(1.06 + var(--par,0)*.05))}
 .dcov .dcv-top{opacity:calc(1 - var(--par,0)*.9)}
 .dcov .dcv-main{opacity:calc(1 - var(--par,0)*1.7);transform:translate3d(0,calc(var(--par,0)*-34px),0);will-change:opacity,transform}
-@keyframes tin{from{opacity:0;transform:translate3d(var(--dx,18px),0,0)}to{opacity:1;transform:none}}
-#grid.tin>*{animation:tin .38s var(--ease-out) both}
-#grid.tin>*:nth-child(n+4){animation-duration:.46s}
-@media(prefers-reduced-motion:reduce){.dcv-art,.dcov .dcv-main{transform:none!important;opacity:1!important}#grid.tin>*{animation:none}}
+
+
+
+@media(prefers-reduced-motion:reduce){.dcv-art,.dcov .dcv-main{transform:none!important;opacity:1!important}}
 /* experiment, cluster 11: the well and the back cover */
 .dwell{grid-column:1/-1;margin:8px calc(-1 * clamp(14px,3vw,32px)) 36px;padding:26px clamp(14px,3vw,32px) 28px;background:color-mix(in srgb,var(--ink) 94%,var(--b,#1f4a33));color:var(--bg)}
 .dwell-k{margin:0 0 16px;font:400 24px/1 var(--disp);letter-spacing:.02em;color:var(--bg)}.dwell-k span{margin-left:10px;font:italic 400 15px var(--disp);opacity:.7}
@@ -5980,7 +5980,7 @@ function alsoFollow(el,f){
  el.after(d)}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-fsite]');if(!b)return;b.disabled=true;followSite(b.dataset.fsite,b.dataset.n,b.dataset.c).then(r=>{if(r){const row=b.closest('.sali');if(row)row.remove()}else b.disabled=false})});
 /* the window width is cached: reading innerWidth in the middle of a redraw forces the browser to lay the page out first */
-let VW=innerWidth;addEventListener('resize',()=>{VW=innerWidth},{passive:true});
+let VW=innerWidth,VH=innerHeight;addEventListener('resize',()=>{VW=innerWidth;VH=innerHeight},{passive:true});
 const layoutKey=()=>((S.narrow||'auto')==='auto'&&VW<=500)+'|'+(VW<700)+'|'+(VW>=840);let LK=layoutKey();
 /* Cover headlines are sized to fit THEIR cover: the largest size (up to the style's own big size) at which the whole headline shows (no hidden lines, no "..."), no word is wider than the box (so none is cut in the middle), and the cover stays within its designed height (so nothing is pushed under the masthead or over a picture panel). Re-done when the window or the fonts change. */
 const COVFC=new Map();
@@ -6061,7 +6061,7 @@ if(!S.seenBase){S.seenBase=Date.now();try{save()}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){HIDT=Date.now();markSeen(S.sel)}else if(HIDT&&Date.now()-HIDT>18e5){VIS=visFor(S.sel);setTimeout(waterline,300)}});
 /* Coming back to The Daily from another page: when nothing has changed, the finished page is put back as it was instead of being built again (the build and the browser's layout work are most of the delay). Any new story, read mark, setting, size or hour change, or more than 4 minutes, builds it fresh. */
 let DCACHE=null,DSTAMP='',DSTAMPT=0,DNAV=false,DREST=0,DRES=false,DSTAMP0='';
-const dailySig=()=>{try{return itemsSig()+'|'+setSig()+'|'+VW+'x'+innerHeight+'|'+document.body.classList.contains('split')+'|'+document.documentElement.dataset.theme+'|'+(document.documentElement.dataset.dm||'')+'|'+document.documentElement.classList.contains('pdark')+'|'+S.theme+S.font+S.hfont+'|'+edKey()+'|'+((S.edn&&S.edn.l)||[]).length+'|'+Object.keys(S.prog||{}).length+'|'+(S.hist||[]).length+'|'+new Date().toDateString()+new Date().getHours()+'|'+$('#q').value+'|'+Object.values(state).filter(v=>v==='load').length}catch(e){return ''}};
+const dailySig=()=>{try{return itemsSig()+'|'+setSig()+'|'+VW+'x'+VH+'|'+document.body.classList.contains('split')+'|'+document.documentElement.dataset.theme+'|'+(document.documentElement.dataset.dm||'')+'|'+document.documentElement.classList.contains('pdark')+'|'+S.theme+S.font+S.hfont+'|'+edKey()+'|'+((S.edn&&S.edn.l)||[]).length+'|'+Object.keys(S.prog||{}).length+'|'+(S.hist||[]).length+'|'+new Date().toDateString()+new Date().getHours()+'|'+$('#q').value+'|'+Object.values(state).filter(v=>v==='load').length}catch(e){return ''}};
 function dailyStash(){
  DCACHE=null;
  try{
@@ -6270,7 +6270,7 @@ $('.top').addEventListener('click',e=>{if(e.target.closest('.tnew'))wireLoad()})
 {let ft=0;document.addEventListener('scroll',e=>{if(e.target&&e.target.tagName==='MAIN'&&!ft)ft=setTimeout(()=>{ft=0;fpBar()},400)},true)}
 {const r0=render0;render0=function(){const x=r0.apply(this,arguments);try{feedHead()}catch(e){}return x}}
 function render0(){
- NRS=nrMode();$('#grid').classList.remove('nr','nrp','wire','wtopic','fed','paper','wc');$('#grid').style.removeProperty('--fb');
+ NRS=nrMode();$('#grid').classList.remove('nr','nrp','wire','wtopic','fed','paper','wc','gen-wire','gen-sun');$('#grid').style.removeProperty('--fb');
  side();$('#grid').classList.toggle('list',S.view==='list');{const g=$('#grid');g.dataset.w=S.view==='list'?'list':'card';g.dataset.wdens=S.wdens==='col'?'col':'mag'}
  let fs=S.feeds,t='All Stories';
  if(S.sel.startsWith('f:')){const id=S.sel.slice(2);fs=S.feeds.filter(x=>x.folder===id);t=S.folders.find(f=>f.id===id)?.name||t}
@@ -6713,9 +6713,9 @@ function tabAnim(){
  try{cvPar()}catch(e){}
  if(!k||!prev||k===prev||reduced())return;
  const g=$('#grid');if(!g)return;
- g.style.setProperty('--dx',(DTAB_ORDER.indexOf(k)>DTAB_ORDER.indexOf(prev)?1:-1)*22+'px');
- g.classList.remove('tin');void g.offsetWidth;g.classList.add('tin');
- clearTimeout(tabAnim.t);tabAnim.t=setTimeout(()=>g.classList.remove('tin'),520);
+ /* animated per section with animate(): an inline --dx on #grid plus a class restart restyled the whole page twice on every tab tap */
+ const dx=(DTAB_ORDER.indexOf(k)>DTAB_ORDER.indexOf(prev)?1:-1)*22;let i=0;
+ for(const c of g.children)if(c.animate)c.animate([{opacity:0,transform:`translate3d(${dx}px,0,0)`},{opacity:1,transform:'none'}],{duration:i++<3?380:460,easing:'cubic-bezier(.2,.7,.2,1)',fill:'backwards'});
 }
 {const _r=render;render=function(){_r.apply(this,arguments);tabAnim()}}
 /* ---- experiment, cluster 12: feed motion ----
@@ -13977,7 +13977,7 @@ function miniTabs(){
  if(!bar){bar=document.createElement('div');bar.id='mtabs';bar.className='mtb';bar.setAttribute('role','tablist');bar.setAttribute('aria-label','The Daily, compact');document.body.append(bar)}
  const cur0=strip.querySelector('[aria-selected="true"]');
  bar.innerHTML=[...strip.querySelectorAll('[data-bm]')].map(b=>`<button type="button" role="tab" data-bm="${b.dataset.bm}" aria-selected="${b.getAttribute('aria-selected')}" class="${b.classList.contains('on')?'on':''}">${b.textContent}</button>`).join('');
- const top=$('.top'),mr=main.getBoundingClientRect();bar.style.top=(top?top.getBoundingClientRect().bottom:56)+'px';if(mr.width){bar.style.left=Math.round(mr.left)+'px';bar.style.width=Math.round(mr.width)+'px';bar.style.right='auto'}
+ /* top/left/width are measured on the next frame in tabIndAll: reading them here forced a second full layout of the new page on every tab tap */
  MTIO=new IntersectionObserver(es=>{const e=es[es.length-1];bar.classList.toggle('on',!e.isIntersecting&&e.boundingClientRect.top<0);if(bar.classList.contains('on')){const r=main.getBoundingClientRect();if(r.width){bar.style.left=Math.round(r.left)+'px';bar.style.width=Math.round(r.width)+'px';bar.style.right='auto'}tabInd(bar,'mini')}},{root:main,threshold:0});
  MTIO.observe(strip);
 }
@@ -13992,7 +13992,7 @@ function tabInd(bar,key){
  ind.dataset.s='1';ind.style.setProperty('--tw',w+'px');ind.style.setProperty('--tx',x+'px');TBI[key]={x,w}}
 /* measured on the next frame, never right after render(): reading offsetWidth there forced an extra full layout of the new list (doubled render time) */
 function tabIndSoon(){if(tabIndSoon.r)return;tabIndSoon.r=requestAnimationFrame(()=>{tabIndSoon.r=0;try{tabIndAll()}catch(e){}})}
-function tabIndAll(){const g=$('#grid'),main=$('main'),mb=$('#mtabs');if(g)tabInd(g.querySelector('.bmseg.dtabs'),'main');if(mb&&main){const r=main.getBoundingClientRect();if(r.width){mb.style.left=Math.round(r.left)+'px';mb.style.width=Math.round(r.width)+'px';mb.style.right='auto'}}tabInd(mb,'mini')}
+function tabIndAll(){const g=$('#grid'),main=$('main'),mb=$('#mtabs');if(g)tabInd(g.querySelector('.bmseg.dtabs'),'main');if(mb&&main){const r=main.getBoundingClientRect(),top=$('.top');mb.style.top=(top?top.getBoundingClientRect().bottom:56)+'px';if(r.width){mb.style.left=Math.round(r.left)+'px';mb.style.width=Math.round(r.width)+'px';mb.style.right='auto'}}tabInd(mb,'mini')}
 addEventListener('resize',()=>{clearTimeout(tabIndAll.t);tabIndAll.t=setTimeout(()=>{try{tabIndAll()}catch(e){}},120)});
 
 /* ---- correction round, cluster 2: the Brief's furniture ----
@@ -15708,7 +15708,7 @@ function applySbw(){const r=document.documentElement.style;if(S.sbw)r.setPropert
  applySbw();
 })();
 /* One place for "the window changed shape". Two things the Android WebView does differently from a browser: while the resize event is still running it can still report the size the screen had before, and a rotation does not always resize at all. So the width is read again inside the delay, and rotation is listened to as well. */
-function shapeChanged(){try{rdFreeze(false)}catch(e){}applySbw();clearTimeout(screenMode.t);screenMode.t=setTimeout(()=>{VW=innerWidth;screenMode();if($('#rd').classList.contains('on'))flexUi();if(layoutKey()!==LK&&!$('#rd').classList.contains('on')&&!document.body.classList.contains('open'))render()},120)}
+function shapeChanged(){try{rdFreeze(false)}catch(e){}applySbw();clearTimeout(screenMode.t);screenMode.t=setTimeout(()=>{VW=innerWidth;VH=innerHeight;screenMode();if($('#rd').classList.contains('on'))flexUi();if(layoutKey()!==LK&&!$('#rd').classList.contains('on')&&!document.body.classList.contains('open'))render()},120)}
 addEventListener('resize',shapeChanged);
 addEventListener('orientationchange',()=>{shapeChanged();setTimeout(shapeChanged,350)});
 
