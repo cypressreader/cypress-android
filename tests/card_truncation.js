@@ -11,7 +11,7 @@ for(const [W,H] of [[320,640],[360,740],[412,860],[515,900]])for(const sel of ['
   const names=['BBC News','The Guardian World','The New York Times','Ars Technica'];S.feeds.slice(0,4).forEach((f,fi)=>{f.title=names[fi];items[f.id]=Array.from({length:30},(_,i)=>({feedId:f.id,title:'Ukraine strikes Yandex data centre as talks stall over ceasefire terms '+i,link:'https://x.test/'+fi+'/'+i,img:i%2?'https://img.test/'+i+'.jpg':'',date:now-i*3e5,summary:'A sentence that is long enough to sit under the headline of the story.',more:i%3?[]:[{feedId:S.feeds[(fi+1)%4].id,title:'x',link:'https://y.test/'+i,date:now}]}))});
   if(sel==='headlines'){S.sel='digest';S.dgk='';render();await w(600);const t=[...document.querySelectorAll('.dtabs button')].find(x=>/headlines/i.test(x.textContent));if(t)t.click()}else{S.sel=sel;render()}
   await w(1500);const bad=[];
-  for(const e of document.querySelectorAll('#grid .card *, #grid .cardh *, #grid [class*=src] *')){const cs=getComputedStyle(e);if(e.children.length||!(e.textContent||'').trim())continue;
+  for(const e of document.querySelectorAll('#grid .card *, #grid .cardh *, #grid [class*=src] *')){const cs=getComputedStyle(e);if(e.children.length||!(e.textContent||'').trim()||e.classList.contains('vh'))continue;/* .vh = screen-reader-only text ("3 hours ago"), clipped on purpose */
    const r=e.getBoundingClientRect();if(!r.width||r.bottom<0)continue;
    if(e.scrollWidth>e.clientWidth+1&&(cs.overflow!=='visible'||cs.textOverflow==='ellipsis'))bad.push((e.className||e.tagName)+':'+e.textContent.trim().slice(0,24));
    else if(cs.textOverflow==='ellipsis'&&/…$/.test(e.textContent.trim()))bad.push('ellipsis:'+e.textContent.trim())}
