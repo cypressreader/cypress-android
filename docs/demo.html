@@ -8263,7 +8263,7 @@ function dayPreload(){
  if(DPRE.q.length)dpRun();
 }
 /* the edition is made ready in the background whichever view the app opens on: shortly after start, when the phone is back online, when the app comes to the front, and every few minutes (it does nothing unless it is on Wi-Fi, idle and the edition has stories not yet stored) */
-function dpSoon(ms){clearTimeout(DPRE.t2);DPRE.t2=setTimeout(()=>{try{dayPreload()}catch(e){}},ms)}
+function dpSoon(ms){clearTimeout(DPRE.t2);DPRE.t2=setTimeout(()=>quietGap(4000).then(()=>{try{dayPreload()}catch(e){}}),ms)}/* waits for a still finger: picking the edition's stories took 95 ms mid-scroll on the Fold (1.200 scroll check) */
 setTimeout(()=>dpSoon(1),9000);
 addEventListener('online',()=>dpSoon(4000));
 /* Saves and read marks are kept on the phone the moment they happen; when the connection comes back, anything the sync relay hasn't seen yet is sent quietly */
