@@ -259,6 +259,7 @@ body:not(.narrow) .grid:not(.list) .tpl.t3>.card:nth-child(1),body:not(.narrow) 
 #qa button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 12px;border-radius:10px;font:600 15px var(--sans);min-height:44px}
 #qa button:hover,#qa button:focus-visible{background:color-mix(in srgb,var(--ink) 8%,transparent)}
 #qa hr{border:0;border-top:1px solid var(--ln);margin:4px 6px}
+.smu{margin:0 0 14px;padding:4px 14px;border:1px solid var(--ln);border-radius:14px;background:var(--pn)}.smu .smh{margin:8px 0 2px;font:600 13px var(--sans);color:var(--mut);letter-spacing:.04em;text-transform:uppercase}
 #lrn ul{list-style:none;margin:0 0 12px;padding:0}#lrn li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:4px 0;border-bottom:1px solid var(--ln)}#lrn h3{margin:14px 0 4px;font-size:15px}
 #qa .qap{margin:2px 12px 6px;font:14px/1.45 var(--serif);color:var(--ink);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;max-width:276px}
 #qa small{display:block;padding:6px 12px 2px;color:var(--mut);font:600 12px var(--sans);max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -10166,7 +10167,7 @@ set.onclick=e=>{
  const tz=t.closest('#tsz [data-ts]');if(tz){S.ts=tz.dataset.ts;save();tsApply();return syncSet()}
  const sc=t.closest('[data-sc]');if(sc){S.scroll=sc.dataset.sc;save();refreshReader();return syncSet()}
  const cd=t.closest('[data-cd]');if(cd){S.cards=cd.dataset.cd;save();render();return syncSet()}
- const tg=t.closest('.tg');if(tg){const k=tg.dataset.tg;S[k]=!isOn(k);save();syncSet();applyFx();if(k==='mag3')render();if(k==='offimg'){if(isOn(k))oiSync(true);else oiClear()}if(k==='dgnotif'||k==='dgon'||k==='dgwk')bgSync();if(k==='mag'&&$('#rd').classList.contains('on')){decorate();relayout()}if(k==='focusr'&&$('#rd').classList.contains('on')){decorate();relayout()}if(k==='caps'&&$('#rd').classList.contains('on')){captions();relayout()}if(k==='split'||k==='nroom'||k==='smooth'||k==='cover'||k==='covers'||k==='sop'||k==='trend'||k==='must'||k==='pqc'||k==='quiet'||k==='hideCount'||k==='hideDeals'){screenMode();render()}if((k==='fbleed'||k==='mnote')&&$('#rd').classList.contains('on')){heroSpread();mnotes();photoPages();relayout()}if(k==='tline'&&$('#rd').classList.contains('on')){if(S.tline===false){document.querySelectorAll('.stl').forEach(x=>x.remove())}else timeline();relayout()}if(k==='pcomp'&&$('#rd').classList.contains('on'))applyFs(true);if(k==='offline')offApply(true);if(k==='rmo')applyRmo();if(k==='cine'&&$('#rd').classList.contains('on')){decorate();relayout()}if(k==='group'||k==='hideRead')render();if(k==='just'||k==='sep')refreshReader()}
+ const tg=t.closest('.tg');if(tg){const k=tg.dataset.tg;S[k]=!isOn(k);/* counted only on this phone, for 'Your most used' */S.suse=S.suse||{};S.suse[k]=(S.suse[k]||0)+1;save();syncSet();applyFx();if(k==='mag3')render();if(k==='offimg'){if(isOn(k))oiSync(true);else oiClear()}if(k==='dgnotif'||k==='dgon'||k==='dgwk')bgSync();if(k==='mag'&&$('#rd').classList.contains('on')){decorate();relayout()}if(k==='focusr'&&$('#rd').classList.contains('on')){decorate();relayout()}if(k==='caps'&&$('#rd').classList.contains('on')){captions();relayout()}if(k==='split'||k==='nroom'||k==='smooth'||k==='cover'||k==='covers'||k==='sop'||k==='trend'||k==='must'||k==='pqc'||k==='quiet'||k==='hideCount'||k==='hideDeals'){screenMode();render()}if((k==='fbleed'||k==='mnote')&&$('#rd').classList.contains('on')){heroSpread();mnotes();photoPages();relayout()}if(k==='tline'&&$('#rd').classList.contains('on')){if(S.tline===false){document.querySelectorAll('.stl').forEach(x=>x.remove())}else timeline();relayout()}if(k==='pcomp'&&$('#rd').classList.contains('on'))applyFs(true);if(k==='offline')offApply(true);if(k==='rmo')applyRmo();if(k==='cine'&&$('#rd').classList.contains('on')){decorate();relayout()}if(k==='group'||k==='hideRead')render();if(k==='just'||k==='sep')refreshReader()}
 };
 /* ---------- Settings: full-screen pages (home list -> page; two panes on wide screens) ---------- */
 const SET_ICON={look:'<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/>',read:'<path d="M5 4h9a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4zM9 8h5M9 12h5"/>',home:'<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/>',tts:'<path d="M4 14v-2a8 8 0 0 1 16 0v2M4 14h3v5H5a1 1 0 0 1-1-1zM20 14h-3v5h2a1 1 0 0 0 1-1z"/>',dl:'<path d="M12 4v10m0 0-4-4m4 4 4-4M5 19h14"/>',feeds:'<path d="M5 5a14 14 0 0 1 14 14M5 11a8 8 0 0 1 8 8"/><circle cx="6" cy="18" r="1.4" fill="currentColor"/>',alerts:'<path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7M10 19a2 2 0 0 0 4 0"/>',motion:'<path d="M3 12h3.5l2.5-6 4 12 2.5-6H21"/>',sync:'<path d="M20 12a8 8 0 0 0-14-5L4 9M4 4v5h5M4 12a8 8 0 0 0 14 5l2-2M20 20v-5h-5"/>',about:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>'};
@@ -10184,8 +10185,8 @@ SET_HIDE.push('Photo magazine look (testing)','Single-key shortcuts');
 const SET_REN={'L:Quiet mode: dots, not numbers':['Hide unread counts','A small dot beside sites and folders with something new, instead of numbers. Also hides “unread” in The Daily'],'L:Smooth mode':['Smoother scrolling','No blurs or soft shadows, and stories load as you scroll. On by default in Safari and on touch screens'],'L:Theme effects':['Animated themes','Rain, aurora lights, fireflies and other moving extras some themes have. They pause while you read'],'L:Manage feeds':['Manage your sites','Rename, recolor or fix broken sites'],'L:Import or export feeds':['Import or export your feeds file','Move your sites to or from another app'],'L:Test suggested feeds':['Test suggested sites','Checks every suggested site and copies a list of any that no longer load. Takes a few minutes'],'L:Test sites on this phone':['Test my sites on this phone','Tries each of your sources the way CyPress does and writes a report you can send to the developer. Takes a few minutes']};
 const SET_PAGES=[
  {id:'look',t:'Appearance',d:'Theme, colors and cover style',c:'#7c5cff',lead:'Pick how CyPress looks. The preview below changes as you choose.',prev:1,
-  main:[{items:['P:lkp']},{h:'Fine-tune',items:['X:sch','P:thm','L:Cover style','L:Green top bar','L:App icon']}],
-  more:[{h:'Theme extras',items:['L:Seasonal touches','L:Theme layouts','L:Text on photos','L:Cover title style']},{h:'Per folder',items:['L:Theme by folder']}],
+  main:[{h:'Quick setup',items:['X:presets']},{items:['P:lkp']},{h:'Fine-tune',items:['X:sch','P:thm','L:Cover style','L:Green top bar']}],
+  more:[{h:'Theme extras',items:['L:App icon','L:Seasonal touches','L:Theme layouts','L:Text on photos','L:Cover title style']},{h:'Per folder',items:['L:Theme by folder']}],
   rst:['theme','dynm','cvs','mast','ptone','paper','scrim','ptint','gtop']},
  {id:'read',t:'Reading',d:'Fonts, size and story layout',c:'#0a8f4a',lead:'How a story looks while you read it.',
   main:[{items:['P:rprev','L:Reading style','L:Text size','L:Type preset','P:font']}],
@@ -10200,18 +10201,18 @@ const SET_PAGES=[
   more:[{items:['L:Keep playing','L:Skip subscriber sites','L:Second voice for quotes','L:Voice timing']}],
   rst:['rate','vol','voice','prate']},
  {id:'feeds',t:'Feeds and Stories',d:'Your feeds, story order and filters',c:'#0e9aa7',lead:'Which sites you follow, and how their stories are chosen and shown.',
-  main:[{h:'Your sites',items:['L:Manage feeds','L:Import or export feeds','L:Check sites before adding']},{h:'Your stories',items:['L:Order of feeds and folders','L:Order of stories','L:Hide stories I’ve read','L:Quiet mode: dots, not numbers','X:trl']},{h:'Filters',rs:0,items:['L:Muted words','L:Followed phrases','L:Topics you follow']},{h:'When a story is cut short',rs:1,items:['L:Open the website when a story is cut short','L:Use reader view on websites','L:Continuous reading']}],
-  more:[{h:'Your stories',items:['L:Limit per site','L:Group duplicate stories','L:Double-tap a card to save it']},{h:'Filters',items:['L:Hide deals and shopping','L:What’s hidden','L:What CyPress learned']}],
+  main:[{h:'Your sites',items:['L:Manage feeds','L:Import or export feeds']},{h:'Your stories',items:['L:Order of feeds and folders','L:Order of stories','L:Hide stories I’ve read','L:Quiet mode: dots, not numbers','X:trl']},{h:'Filters',rs:0,items:['L:Muted words','L:Followed phrases','L:Topics you follow']},{h:'When a story is cut short',rs:1,items:['L:Open the website when a story is cut short','L:Use reader view on websites','L:Continuous reading']}],
+  more:[{h:'Your sites',items:['L:Check sites before adding']},{h:'Your stories',items:['L:Limit per site','L:Group duplicate stories','L:Double-tap a card to save it']},{h:'Filters',items:['L:Hide deals and shopping','L:What’s hidden','L:What CyPress learned']}],
   rst:['sort','fsort','capn','trg']},
  {id:'dl',t:'Downloads and Storage',d:'Get ready ahead, offline, back issues',c:'#0b7285',lead:'Stories ready ahead, and how much room they use.',
-  main:[{h:'Downloads',items:['L:Get stories ready in advance','L:Only on Wi-Fi','L:Fill up only while charging','L:Short sites first','L:Refresh automatically','L:Offline mode']},{h:'Pictures',items:['X:pics','L:Keep photos for offline']},{h:'Back issues',items:['L:Keep back issues','L:Keep back issues for']}],
-  more:[{h:'Storage',items:['L:Space for stored stories','L:Clear downloaded stories']}],
+  main:[{h:'Downloads',items:['L:Get stories ready in advance','L:Only on Wi-Fi','L:Refresh automatically','L:Offline mode']},{h:'Pictures',items:['X:pics','L:Keep photos for offline']},{h:'Back issues',items:['L:Keep back issues','L:Keep back issues for']}],
+  more:[{h:'Downloads',items:['L:Fill up only while charging','L:Short sites first']},{h:'Storage',items:['L:Space for stored stories','L:Clear downloaded stories']}],
   rst:['auto','acMB','pfm']},
  {id:'alerts',t:'Digest and Alerts',d:'Daily digest and notifications',c:'#e2231a',lead:'A short digest of the day’s best stories, and notifications when you want them.',
   main:[{h:'Digest',items:['L:Daily digest','L:Digest edition','L:Weekly review','L:Weekly review day','L:Read today’s digest']}],more:[],rst:null},
  {id:'motion',t:'Battery and Motion',d:'Animation and theme effects',c:'#c27b00',lead:'Less movement saves battery and is easier on the eyes.',
-  main:[{items:['X:motion','L:Theme effects','L:Pause effects on low battery','L:Smooth mode','L:Gentle vibration']},{id:'mocus',h:'Customize motion',items:['L:Bending page turn','L:Blend colors between sites','L:Time-of-day glow','L:Slow zoom on covers','L:Living covers','L:Small animations','L:Launch animation','L:Cinematic long reads']}],
-  more:[],
+  main:[{items:['X:motion','L:Theme effects','L:Smooth mode']},{id:'mocus',h:'Customize motion',items:['L:Bending page turn','L:Blend colors between sites','L:Time-of-day glow','L:Slow zoom on covers','L:Living covers','L:Small animations','L:Launch animation','L:Cinematic long reads']}],
+  more:[{items:['L:Pause effects on low battery','L:Gentle vibration']}],
   rst:['rmo','moc']},
  {id:'sync',t:'Sync and Backup',d:'Devices and backups',c:'#3b5bdb',lead:'Keep your feeds and settings safe, and move them between devices.',
   main:[{h:'Sync Between Devices',items:['P:sync']},{h:'Backup',items:['L:Back up everything']}],more:[],rst:null},
@@ -10265,6 +10266,7 @@ function setItems(items){
  items.forEach(k=>{
   if(k.startsWith('M:')){const m=SET_MERGE[k.slice(2)];const ns=setTake('L:'+m.p);m.s.forEach(x=>SET_USED.add('L:'+x));setRelabel(ns,m.label,m.sub);out.push(...ns)}
   else if(k==='X:motion')out.push(setMotionLine());
+  else if(k==='X:presets')out.push(setPresetLine());
   else if(k==='X:sch')out.push(setSchLine());
   else if(k==='X:pics')out.push(setPicsLine());
   else if(k==='X:trl'){if(CyTR())out.push(setTrLine())}
@@ -10276,6 +10278,18 @@ function setItems(items){
 function setMotionLine(){
  const d=document.createElement('div');d.className='line';d.id='molrow';
  d.innerHTML='<span class="lb">Motion<small id="molh"></small></span><div class="segs" id="molv"><button type="button" data-mo="full">Full</button><button type="button" data-mo="calm">Calm</button><button type="button" data-mo="off">Off</button><button type="button" data-mo="custom">Custom</button></div>';return d}
+/* Quick setup: three presets, each sets a group of existing layout switches at once; Undo puts your own switches back */
+const PRESETS={simple:{t:'Simple',d:'Calm and plain: no cover, no extras and no theme effects',v:{cover:false,trend:false,must:false,toc:false,spread:false,tline:false,pqs:false,pqc:false,mag:false,cyfx:false,group:true}},
+ magazine:{t:'Magazine',d:'The full printed look: a cover, contents, pull quotes and timelines',v:{cover:true,trend:true,must:true,toc:true,spread:true,tline:true,pqs:true,pqc:true,mag:true,cyfx:true,group:true}},
+ power:{t:'Power',d:'Straight to the news: no cover, read stories hidden, timelines on',v:{cover:false,trend:true,must:true,toc:false,spread:false,tline:true,pqs:false,pqc:false,mag:true,group:true,hideRead:true}}};
+function setPresetLine(){const d=document.createElement('div');d.className='line';d.id='psrow';d.innerHTML='<span class="lb">Quick setup<small id="psh"></small></span><div class="segs" id="psv" role="group" aria-label="Quick setup">'+Object.entries(PRESETS).map(([k,p])=>`<button type="button" data-ps="${k}" aria-pressed="false">${p.t}</button>`).join('')+'</div>';return d}
+/* Your most used: the switches you flip most often (counted only on this phone), copied to the top of Settings; the copies are real switches */
+function muSync(){const m=$('#setmu');if(!m)return;const row=k=>document.querySelector('#setpane .tg[data-tg="'+k+'"]'),top=Object.entries(S.suse||{}).filter(([k,n])=>n>=2&&row(k)).sort((a,b)=>b[1]-a[1]).slice(0,4).map(x=>x[0]),sig=top.join();
+ if(m.dataset.sig===sig)return;m.dataset.sig=sig;m.hidden=top.length<2;if(m.hidden){m.textContent='';return}
+ m.innerHTML='<h3 class="smh">Your most used</h3>';top.forEach(k=>{const l=row(k).closest('.line').cloneNode(true);l.removeAttribute('id');l.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));m.append(l)})}
+const psCur=()=>Object.keys(PRESETS).find(k=>Object.entries(PRESETS[k].v).every(([o,v])=>isOn(o)===v))||'';
+function psSync(){const v=$('#psv');if(!v)return;const c=psCur();v.querySelectorAll('[data-ps]').forEach(b=>{b.classList.toggle('on',b.dataset.ps===c);b.setAttribute('aria-pressed',String(b.dataset.ps===c))});const h=$('#psh');if(h)h.textContent=c?PRESETS[c].d:'Your own mix of switches. Pick one to start from it'}
+function psSet(k){const p=PRESETS[k];if(!p)return;const snap={};for(const o in p.v)snap[o]=S[o];Object.assign(S,p.v);const again=()=>{save();applyRmo();applyFx();try{screenMode()}catch(e){}render();try{refreshReader()}catch(e){}syncSet();psSync()};again();toast(p.t+' setup is on',()=>{for(const o in snap){if(snap[o]===undefined)delete S[o];else S[o]=snap[o]}again()},'Undo')}
 /* Light or dark: one tap picks how every theme is shown. Same S.sch values as before ("theme" = leave each theme as it is). */
 const SCH_OPTS=[['sys','Phone','Follows your phone','<rect x="7" y="2.5" width="10" height="19" rx="2.4"/><path d="M11 18.5h2"/>'],['light','Light','Always light','<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/>'],['dark','Dark','Always dark','<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5z"/>'],['dynamic','Dynamic','Colors follow each story','<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/>']];
 const SCH_HINT={sys:'Switches between light and dark when your phone does.',light:'Always light, whatever your phone is set to.',dark:'Always dark, whatever your phone is set to.',dynamic:'Tints the app with the colors of each story’s photo.',theme:'Each theme looks the way it was designed. Tap a tile to change that.'};
@@ -10324,7 +10338,7 @@ function moSet(m){
  if(m==='off')S.rmo=true;
  else{S.rmo=false;if(m==='full')MO_KEYS.forEach(k=>S[k]=true);else{S.czoom=false;S.clive=false;S.micro=false;S.curl=true;S.sitecol=true;S.tod=true}}
  save();applyRmo();applyFx();syncSet()}
-function moSync(){const v=$('#molv');if(!v)return;const l=S.moc?'custom':moLevel();v.querySelectorAll('[data-mo]').forEach(b=>b.classList.toggle('on',b.dataset.mo===l));const h=$('#molh');if(h)h.textContent=MO_HINT[l]}
+function moSync(){try{psSync();muSync()}catch(e){}const v=$('#molv');if(!v)return;const l=S.moc?'custom':moLevel();v.querySelectorAll('[data-mo]').forEach(b=>b.classList.toggle('on',b.dataset.mo===l));const h=$('#molh');if(h)h.textContent=MO_HINT[l]}
 /* polish-2026-10 (J2/K8): the "Your CyPress" card at the top of Settings. Everything in it already exists on the phone (theme, sites, reading history). */
 function setYouHtml(){return '<div class="syc" id="syc"><div class="syr"><span class="syk" aria-hidden="true"><i class="mk"></i></span><span class="syt"><b id="syn"></b><small id="sys"></small></span></div><button type="button" class="seal" id="seal" aria-haspopup="dialog"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.4"/><path d="M9.8 11.6l1.7 1.7 2.9-3.2"/></svg><span>Everything stays on this phone</span><svg class="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></div>'}
 function setYou(){
@@ -10339,7 +10353,7 @@ function setBuild(){
  ['.snav','.sbody'].forEach(q=>{const n=set.querySelector(q);if(n)lg.append(n)});set.append(lg);
  setIndex();SET_HIDE.forEach(l=>SET_USED.add('L:'+l));
  const home=document.createElement('div');home.id='sethome';
- home.innerHTML=setYouHtml()+'<div class="sset"><input id="sset" type="search" placeholder="Search settings" autocomplete="off" aria-label="Search settings"></div><div id="setgl">'+SET_GROUPS.map(g=>'<div class="sgl">'+g.map(id=>{const p=SET_PAGES.find(x=>x.id===id);return `<button type="button" class="sgi" data-pg="${id}"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SET_ICON[id]}</svg></span><span class="sgx"><b>${p.t}</b><small data-sum="${id}">${p.d}</small></span><svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>`}).join('')+'</div>').join('')+'</div><div id="setsr" hidden></div>';
+ home.innerHTML=setYouHtml()+'<div class="sset"><input id="sset" type="search" placeholder="Search settings" autocomplete="off" aria-label="Search settings"></div><div id="setgl"><div class="smu" id="setmu" hidden></div>'+SET_GROUPS.map(g=>'<div class="sgl">'+g.map(id=>{const p=SET_PAGES.find(x=>x.id===id);return `<button type="button" class="sgi" data-pg="${id}"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SET_ICON[id]}</svg></span><span class="sgx"><b>${p.t}</b><small data-sum="${id}">${p.d}</small></span><svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>`}).join('')+'</div>').join('')+'</div><div id="setsr" hidden></div>';
  const pane=document.createElement('div');pane.id='setpane';
  SET_PAGES.forEach(p=>{
   const s=document.createElement('section');s.className='spage';s.id='sp-'+p.id;s.dataset.pg=p.id;s.hidden=true;
@@ -10476,7 +10490,7 @@ set.addEventListener('click',e=>{
  const gi=t.closest('.sgi[data-pg]');if(gi){setGo(gi.dataset.pg);if(!setWide()){}return}
  const sr=t.closest('[data-sr]');if(sr){const r=SETRES[+sr.dataset.sr];if(r){$('#sset').value='';setSearch('');setGo(r[1].id,r[0])}return}
  if(t.closest('#setback')){setShow(null);return}
- const mo=t.closest('[data-mo]');if(mo){moSet(mo.dataset.mo);return}
+ const mo=t.closest('[data-mo]');if(mo){moSet(mo.dataset.mo);return}const ps=t.closest('[data-ps]');if(ps){psSet(ps.dataset.ps);return}
  const rs=t.closest('[data-rst]');if(rs){if(rs.dataset.arm){rs.dataset.arm='';rs.textContent='Reset this section';setReset(rs.dataset.rst)}else{rs.dataset.arm='1';rs.textContent='Tap again to confirm';setTimeout(()=>{rs.dataset.arm='';rs.textContent='Reset this section'},4000)}return}
  const tg=t.closest('.tg');if(tg&&SET_MK[tg.dataset.tg]){const k=tg.dataset.tg;SET_MK[k].forEach(o=>S[o]=!!S[k]&&S[k]!==false?true:false);save();try{screenMode()}catch(e){}try{refreshReader()}catch(e){}render();syncSet()}
 });
