@@ -9634,6 +9634,8 @@ function raBtn(){
  const run=TTS.on&&!TTS.paused,b=$('#ra');
  if(b){b.innerHTML=svg(run?PAUSE:TTS.on?PLAY:SPK);b.classList.toggle('on',run);b.title=run?'Pause':TTS.on?'Resume':'Read aloud'}
  const p=$('#pbp');if(p)p.innerHTML=svg(run?PAUSE:PLAY);
+ /* while a story is read aloud, the hands-free speed pill shows the reading speed instead (theme colors, Slower / Faster / Stop) */
+ try{const fx=$('#afx');if(fx&&!AUTO.on){const sh=TTS.on&&$('#rd').classList.contains('on');fx.hidden=!sh;fx.dataset.m=sh?'tts':'';if(sh){fx.setAttribute('aria-label','Reading speed');fx.querySelector('span').textContent=ttsRate().toFixed(1)+'\u00d7';fx.querySelector('[data-afx="0"]').setAttribute('aria-label','Stop reading aloud')}}}catch(e){}
  try{tminiSync()}catch(e){}
 }
 
@@ -9984,7 +9986,7 @@ const rdSig=a=>{try{return [S.saved.length,(S.hl||[]).length,JSON.stringify(S.lk
 let RDSIG='';
 let RDTRIG=null;
 /* while the story is open as a full-screen dialog, Tab must not escape to the side bar or the list behind it (side-by-side tablet view keeps both usable) */
-const rdInert=on=>{try{const rd=$('#rd');document.querySelectorAll('aside,main,#tabs,#mtabs,#sideh,a.skip').forEach(e=>{if(e.contains(rd))return;e.inert=!!on&&!document.body.classList.contains('split')})}catch(e){}};
+const rdInert=on=>{try{const rd=$('#rd');document.querySelectorAll('aside,main,#tabs,#mtabs,a.skip').forEach(e=>{if(e.contains(rd))return;e.inert=!!on&&!document.body.classList.contains('split')&&!(e.tagName==='ASIDE'&&document.body.classList.contains('sideshow'))})}catch(e){}};
 /* no cross-fade on close: it snapshots the whole page and stuttered while the feed was still repainting */
 const closeRd=fromPop=>closeRd0(fromPop);
 const closeRd0=fromPop=>{try{raCancel()}catch(e){}try{if($('#rfind')&&!$('#rfind').hidden)closeFind()}catch(e){}if(AUTO.on)autoRd(false);const was=curA,feedSel=/^(all|f:|s:|k:)/.test(S.sel||''),same=!!was&&RDSIG===rdSig(was)&&feedSel,soft=!same&&!!was&&feedSel&&rdBase(RDSIG)===rdBase(rdSig(was));$('#rd').classList.remove('focus');if(fromPop!==true){dropLayer('rdnav');dropLayer('reader')}else dropLayer('rdnav');const nv=$('#rdnav');if(nv){nv.classList.remove('on');nv.hidden=true}tok++;R.busy=false;/* read-aloud keeps going when you back out to the feed: the floating pill (#tmini) carries the controls */if(!(TTS.on&&('speechSynthesis' in window)))ttsStop();hlClear();$('#selbar').hidden=true;$('#rd').classList.remove('on','flex','vert');rdInert(false);try{if(RDTRIG&&RDTRIG.isConnected&&RDTRIG!==document.body)RDTRIG.focus({preventScroll:true})}catch(e){};curA=null;try{tminiSync()}catch(e){}applyFolderTheme();if(document.body.classList.contains('split'))splitEmpty();if(same||soft){try{side();dgProgUpdate();if(soft)patchProg(was)}catch(e){}}else render();if(feedSel)rdAnchorRestore()};
@@ -13408,8 +13410,8 @@ function vView(){return $('#rd .view')}
 const AUTO={on:false,raf:0,t:0};
 function autoRd(on){
  clearTimeout(AUTO.t);cancelAnimationFrame(AUTO.raf);const was=AUTO.on;AUTO.on=!!on&&!!curA;
- const fx=$('#afx');fx.hidden=!AUTO.on;AUTO.re=null;{const b=$('#fau');if(b)b.setAttribute('aria-pressed',String(AUTO.on))}
- if(!AUTO.on){if(was)toast('Hands-free reading off');return}
+ const fx=$('#afx');fx.hidden=!AUTO.on;fx.dataset.m='';fx.setAttribute('aria-label','Hands-free speed');fx.querySelector('[data-afx="0"]').setAttribute('aria-label','Stop hands-free reading');AUTO.re=null;{const b=$('#fau');if(b)b.setAttribute('aria-pressed',String(AUTO.on))}
+ if(!AUTO.on){if(was)toast('Hands-free reading off');try{raBtn()}catch(e){}return}
  const k=AUTO.k=isVert()?'afxs':'afxp';fx.querySelector('span').textContent=(S[k]||1)+'\u00d7';
  const wpm=S.wpm||230,wd=Math.max(50,R.words||0),rd=$('#rd'),live=()=>AUTO.on&&rd&&rd.classList.contains('on');
  if((S.afxTip||0)<3){S.afxTip=(S.afxTip||0)+1;save();toast('Hands-free reading on. Tap the story to stop')}
@@ -13425,7 +13427,9 @@ function autoRd(on){
 }
 ['pointerdown','keydown','wheel'].forEach(ev=>document.addEventListener(ev,e=>{if(AUTO.on&&e.target.closest&&e.target.closest('#rd')&&!e.target.closest('#afx,#fau'))autoRd(false)},{capture:true,passive:true}));
 /* Slower / Faster while hands-free reading runs: 0.5x to 3x of your reading speed, remembered separately for scrolling (S.afxs) and page turns (S.afxp) */
-$('#afx').addEventListener('click',e=>{const b=e.target.closest('[data-afx]');if(!b)return;const d=+b.dataset.afx;if(!d)return autoRd(false);
+$('#afx').addEventListener('click',e=>{const b=e.target.closest('[data-afx]');if(!b)return;const d=+b.dataset.afx;
+ if(e.currentTarget.dataset.m==='tts'){if(!d)return ttsStop();const f=ttsFeed(),v=Math.min(2,Math.max(.6,Math.round((ttsRate()+d*.1)*10)/10));if(f.rate)f.rate=v;else S.rate=v;save();e.currentTarget.querySelector('span').textContent=v.toFixed(1)+'\u00d7';{const r=$('#rate'),rv=$('#ratev');if(r)r.value=S.rate;if(rv)rv.value=(+S.rate||1).toFixed(1)+'\u00d7'}ttsApplyLater();try{tminiSync()}catch(x){}return}
+ if(!d)return autoRd(false);
  const k=AUTO.k;S[k]=Math.min(3,Math.max(.5,Math.round(((S[k]||1)+d*.25)*4)/4));save();$('#afx span').textContent=S[k]+'\u00d7';if(AUTO.re){clearTimeout(AUTO.t);AUTO.re()}});
 /* keep the reader's place when the window changes shape (fold, rotate, split screen) */
 document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.matches&&t.matches('#rd .view')){clearTimeout(rdFrac.t);rdFrac.t=setTimeout(()=>{if(R.ready&&isVert())R.sf=vEndFrac()},160)}},true);
@@ -16936,6 +16940,8 @@ try{const bd=$('#bid');if(bd)bd.value=String(biDays())}catch(e){}
  const set=on=>{on=on&&!rd.classList.contains('ghost');try{jmpMark(on?'story open':'story close')}catch(e){}if(on)rdFreeze(true);document.body.classList.toggle('reading',on);if(!on){document.body.classList.remove('sideshow');/* the sidebar column slides for about .28 s; hold the feed's width until it has finished */clearTimeout(set.t);set.t=setTimeout(()=>{if(!document.body.classList.contains('reading'))rdFreeze(false)},480)}};
  if(rd){new MutationObserver(()=>set(rd.classList.contains('on'))).observe(rd,{attributes:true,attributeFilter:['class']});set(rd.classList.contains('on'))}
  h.onclick=()=>document.body.classList.add('sideshow');
+ /* the reader makes the page behind it inert; the feeds panel opened over a story must stay usable, and goes back to inert when it closes */
+ new MutationObserver(()=>{const a=$('aside'),b=document.body,sh=b.classList.contains('sideshow');if(!a||!rd||!rd.classList.contains('on')||b.classList.contains('split'))return;if(a.inert===sh){a.inert=!sh;if(sh){const x=$('#sidehx');if(x)x.focus({preventScroll:true})}else if(h.offsetParent)h.focus({preventScroll:true})}}).observe(document.body,{attributes:true,attributeFilter:['class']});
  document.addEventListener('click',e=>{if(document.body.classList.contains('sideshow')&&!e.target.closest('aside')&&!e.target.closest('#sideh,#menu')){document.body.classList.remove('sideshow')}else if(document.body.classList.contains('sideshow')&&e.target.closest('aside [data-sel],aside .fr,aside .nav')&&!e.target.closest('[data-tgl],.frc,.frx,.mfh,[data-col],[data-delf],[data-delx]')){setTimeout(()=>{document.body.classList.remove('sideshow');if(rd&&rd.classList.contains('on')&&typeof closeRd==='function')try{closeRd()}catch(er){}},50)}},true);
  let sx=null;document.addEventListener('touchstart',e=>{const t=e.touches[0];sx=(document.body.classList.contains('reading')||document.body.classList.contains('sidehide'))&&t.clientX<18?{x:t.clientX,y:t.clientY}:null},{passive:true});
  document.addEventListener('touchmove',e=>{if(!sx)return;const t=e.touches[0];if(t.clientX-sx.x>48&&Math.abs(t.clientY-sx.y)<40){document.body.classList.add('sideshow');sx=null}},{passive:true});

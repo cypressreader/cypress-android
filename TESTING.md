@@ -987,3 +987,5 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 ## Round 3 (2026-10-29, unreleased, branch claude/theme-six-handoff-dc0p8i) — implemented, unverified on phone
 - [ ] Daily tabs (Today/Edition/Brief/Week): tap feels quicker; slide-in still goes the right way; docked tab bar sits right under the header after scrolling down
 - [ ] All Stories > Sections near the top of the page: every section is listed; picking a far one loads it and lands on its heading (no overshoot); scrolling during the jump is not pulled back
+- [ ] Tablet/Fold, story open: the side "Feeds" tab opens the feeds panel; feeds in it can be tapped; tapping outside closes it and the story stays
+- [ ] Listen to a story: a "− 1.0× + ×" pill shows at the bottom in the theme's colors; − / + change the voice speed within a moment; × stops reading; hands-free still shows its own speed pill
