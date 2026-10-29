@@ -1015,3 +1015,5 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] Fold cover / phone, pages mode: top photo is the same size as in scroll mode (no longer the short strip).
 - [ ] Settings > story layout still lets you pick the other photo layouts.
 - [ ] Page turns (phone and Fold open): the lifting page never gets cut off at the top/bottom of the screen or along a straight line; still curls like a page.
+- [ ] Page turn on the Fold (Brave): the photo curls WITH the page (no flat photo floating over the curl), no parts of the page vanishing mid-turn.
+- [ ] Two-page view, short story (1 min): story text starts on page 1, right side, under the photo (not on page 2).

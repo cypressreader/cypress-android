@@ -873,6 +873,7 @@ html.rmo .book>.rdedge>i,html.lowp .book>.rdedge>i{transition:none}
 .tl-leaf{position:absolute;top:0;height:100%;z-index:4;transform-origin:left center;transform-style:preserve-3d;will-change:transform;pointer-events:none}
 .tf{position:absolute;inset:0;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--pn)}
 .tf.bk{transform:rotateY(180deg)}
+.tf *{will-change:auto!important;transition:none!important}/* the turning page's copies are drawn flat into the page: a picture on its own layer (img.hero) floated flat over the curl on phones */
 .tsh{position:absolute;inset:0;opacity:0;pointer-events:none}
 #ref.spin svg{animation:spn .9s linear infinite}@keyframes spn{to{transform:rotate(360deg)}}
 .rdy{position:absolute;right:10px;bottom:10px;z-index:2;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#137a3e;box-shadow:0 1px 4px rgba(0,0,0,.25)}
@@ -1586,6 +1587,7 @@ html.quiet .cvm{letter-spacing:.06em}
 html.rdx .cols>.hsf.hs-wide img.hero,.cols>.hsf.hs-wide img.hero{width:var(--sw);max-width:none;height:min(calc(var(--ch)*.45),calc(var(--sw)*.56));max-height:none;aspect-ratio:auto;object-fit:cover;border-radius:16px;display:block;margin:0}/* two-page view: the photo runs across both pages; the headline sits under it on the left page and the text starts under it on the right */
 .cols>.hsf.hs-wide{height:auto;break-after:auto;break-inside:avoid;margin:0 0 22px}
 #rd.cpv2 .cols:has(>.hs-wide) .body>:first-child{break-before:auto}
+#rd.cpv2 .cols.wfx:has(>.hs-wide) .body::before{display:none}
 #rd.cpv2 .cols:has(>.hs-wide) .body::before{content:'';display:block;break-before:column;height:var(--wh2,0px)}
 html.rdx .cols>.hsf.hs-top img.hero{width:100%;height:auto;aspect-ratio:auto;max-height:calc(var(--ch)*.6);object-fit:cover}/* the whole photo across the page above the headline; only a very tall one is trimmed */
 .hsf.hs-top .hov{position:static;background:none;padding:24px 2px 4px;color:var(--ink)}
@@ -8448,7 +8450,7 @@ function layout(){noteFix();
  try{fitHero(c,cw,gap)}catch(e){elog('fitHero',e)}
  try{fillVoids(c,cw,gap)}catch(e){elog('fillVoids',e)}
  try{fitPage1(c,cw,gap)}catch(e){elog('fitPage1',e)}
- {const w=c.querySelector(':scope>.hs-wide img.hero');c.style.setProperty('--wh2',w?w.offsetHeight+22+'px':'0px')}
+ try{fitWide(c,cw,gap)}catch(e){elog('fitWide',e)}
  try{if(fitWhy(c,cw,gap))fillVoids(c,cw,gap)}catch(e){elog('fitWhy',e)}
  R.np=Math.max(1,Math.ceil(Math.round((c.scrollWidth+gap)/(cw+gap))/R.cpv));
  try{trimBlankPages(c)}catch(e){elog('trimBlankPages',e)}
@@ -17556,6 +17558,16 @@ function fitHero(c,cw,gap){
  const r2=im.getBoundingClientRect();if(Math.floor((r2.left-cr.left+2)/pitch)!==0){im.style.removeProperty('height');im.style.removeProperty('max-height');im.style.removeProperty('aspect-ratio')}
 }
 /* page 1 of the two-column book: the picture, kicker, headline and "At a glance" box stay together in column 1, and the story text starts at the top of column 2. If the box would land in column 2, the picture is made a little shorter; if that is not enough the box is left out for this page */
+/* photo across both pages: everything before the story (headline, boxes, the loading line) must stay on the left page, or it lands on the right page under the photo and pushes the story to page 2; the photo is made shorter until it does */
+function fitWide(c,cw,gap){
+ const im=c.querySelector(':scope>.hs-wide img.hero'),set=()=>c.style.setProperty('--wh2',im?im.offsetHeight+22+'px':'0px');
+ c.classList.remove('wfx');if(im)im.style.removeProperty('width');
+ set();if(!im||R.cpv!==2)return;
+ const pitch=cw+gap,L=c.getBoundingClientRect().left,pre=[];for(const k of c.children){if(k.classList.contains('body'))break;pre.push(k)}
+ const fits=()=>pre.every(e=>[...e.getClientRects()].every(q=>!q.width||!q.height||q.left-L<pitch-4));
+ for(let k=0;k<12&&!fits();k++){const h=im.offsetHeight;if(h<=150)break;im.style.height=Math.max(150,Math.round(h*.88))+'px';set()}
+ if(!fits()){im.style.width='100%';im.style.removeProperty('height');c.style.setProperty('--wh2','0px');c.classList.add('wfx')}/* even a short photo leaves no room on a low screen: the photo stays on the left page and the story follows straight on */
+}
 function fitPage1(c,cw,gap){
  const m=c.querySelector(':scope>.mnotes'),hs=c.querySelector(':scope>.hsf'),im=hs&&hs.querySelector('img.hero');
  const undo=()=>{if(im){im.style.removeProperty('height');im.style.removeProperty('max-height');im.style.removeProperty('object-fit');im.style.removeProperty('aspect-ratio')}};
