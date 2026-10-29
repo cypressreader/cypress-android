@@ -944,3 +944,12 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 ## Lighter feed photos + decode ahead (branch -9l5kv7, preview, unverified)
 - [ ] All Stories: fast first fling on the Fold has fewer hiccups than 1.194; photos still look sharp (not blurry) in tiles, lead cards and list rows; opening a story still shows the full photo.
 - 1.195 result: lighter photos looked less detailed on the Fold -> reverted on branch (1600 cap again); jump-catcher fix confirmed (onscroll 0 ms).
+
+## 1.197 picks (implemented, unverified on a phone)
+- Long-press a card: the menu shows the story's first 3 lines above the actions, and still fits on screen (short phones, landscape).
+- Settings > Appearance > Quick setup: Simple / Magazine / Power each change the front page; Undo restores; the matching one stays highlighted.
+- Fold side by side: the top bar shows the page title once you scroll (no logo there now); the topic chips fade at the right edge; the empty right side is the page color, not white.
+- Evening (after 7 pm): top and bottom bars look close to the page color, no gray slab.
+- A site's settings: the report card line reads sensibly for a busy site and a quiet one.
+- Restore a backup: the confirm shows the counts and date.
+- List rows (The Daily, Next up): green offline mark at the bottom right doesn't cover "Also from".
