@@ -1011,6 +1011,7 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Photo crops: with no face found (Android has no face finder), wide card crops never aim below the upper third; heads should no longer be cut off (re-measured once after update).
 
 ## Big photos in pages mode (branch, unreleased)
-- [ ] Fold open, pages mode: a story with a photo opens with the photo filling the whole left column, headline over its bottom; faces stay in frame; headline readable on bright photos.
+- [ ] Fold open, pages mode: a story with a photo shows the whole photo across the full left page, headline below it (not cropped).
 - [ ] Fold cover / phone, pages mode: top photo is the same size as in scroll mode (no longer the short strip).
 - [ ] Settings > story layout still lets you pick the other photo layouts.
+- [ ] Page turns (phone and Fold open): the lifting page never gets cut off at the top/bottom of the screen or along a straight line; still curls like a page.

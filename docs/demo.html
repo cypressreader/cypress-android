@@ -985,7 +985,7 @@ html.pdark .grid:not(.list):not([data-cards=compact]):not([data-cards=narrow]) .
 .book>.rdedge .rdtip.on{opacity:1}
 html.rmo .book>.rdedge>i,html.lowp .book>.rdedge>i{transition:none}
 .view{position:absolute;inset:0;overflow:hidden;background:var(--pn);border:1px solid var(--ln);border-radius:14px}
-.book.one.turning{clip-path:inset(-80px 0 -80px 0)}
+.book.one.turning{clip-path:inset(-100vh -40px -100vh 0)}
 .tl{position:absolute;top:0;height:100%;overflow:hidden;pointer-events:none}
 .tl-under{z-index:2}
 .tl-cast{position:absolute;inset:0;z-index:3;overflow:hidden;pointer-events:none}
@@ -1703,6 +1703,7 @@ html.quiet .cvm{letter-spacing:.06em}
 .cols>.hsf.hs-split{height:auto;break-after:auto;margin-bottom:22px}
 .cols>.hsf.hs-split img.hero{height:auto;aspect-ratio:16/9;object-fit:cover}
 .cols>.hsf.hs-top img.hero{height:auto;aspect-ratio:auto;object-fit:contain;border-radius:14px}
+html.rdx .cols>.hsf.hs-top img.hero{width:100%;height:auto;aspect-ratio:auto;max-height:calc(var(--ch)*.6);object-fit:cover}/* the whole photo across the page above the headline; only a very tall one is trimmed */
 .hsf.hs-top .hov{position:static;background:none;padding:24px 2px 4px;color:var(--ink)}
 .hsf.hs-top .hov .kick,.hsf.hs-top .hov .dt,.hsf.hs-top .hov .dt span{color:var(--mut);opacity:1}
 .hsf.hs-top .hov .tt,.cine .hsf.hs-top .hov .tt{color:var(--ink);font-size:clamp(24px,3vw,38px);line-height:1.1;margin:6px 0 6px}
@@ -8648,6 +8649,9 @@ function startTurn(dir){
  else{const b=mkEl('tf bk');b.style.width=hw+'px';T.bs=shade('to left');b.append(T.bs);leaf.append(b)}
  }
  T.leaf=leaf;
+ /* the lifted page comes toward the reader and grows; the lift's depth is squeezed (the bow keeps its shape across the screen) so the page never grows past the top or bottom of the screen, and it grows into whichever side has the room */
+ {const B=bk.getBoundingClientRect(),up=Math.max(0,B.top),dn=Math.max(0,innerHeight-B.bottom),r=(up+dn)/B.height,P=parseFloat(getComputedStyle(bk).perspective)||1700;
+  T.kz=Math.max(.25,Math.min(1,P*r/((1+r)*hw*1.05)));bk.style.perspectiveOrigin=`50% ${Math.round(B.height*(up+dn?up/(up+dn):.5))}px`;if(T.st)leaf.style.transform=`scale3d(1,1,${T.kz.toFixed(3)})`}
  const ux=(dir>0)?hx:0;
  if(dir>0||two){
   const u=mkEl('tl tl-under',`left:${ux}px;width:${hw}px`);
@@ -8700,7 +8704,7 @@ function curlTune(T){
 function setAng(a){
  const T=R.T;if(!T)return;T.ang=a;
  const r=a*Math.PI/180,s=Math.sin(r),c=Math.cos(r);let tip=T.hx+T.hw*c;
- if(!T.st)T.leaf.style.transform=`rotateY(${-a}deg)`;
+ if(!T.st)T.leaf.style.transform=`scale3d(1,1,${(T.kz||1).toFixed(3)}) rotateY(${-a}deg)`;
  let tipx=null;
  if(T.st){
   /* the page is a hinged sheet that bows while it flips. Its heading along the sheet is th(u)=alpha+cos(alpha)*theta0*cos(pi*u/L): alpha is the hinge angle (0 flat on the right, pi flat on the left), theta0 the bow. The bow grows while the page is still flat (the arch), stays while it swings over, and fades as it lands flat on the other side (cos(alpha) flips sign, so the bow always lifts toward the reader). alpha is solved so the free edge follows the finger: chord = L*cos(alpha)*J0(cos(alpha)*theta0) */
@@ -8757,7 +8761,7 @@ function endTurn(ok){
  curlTune(T);
  if(ok&&!T.dead&&T.my===tok){R.pg=T.to;show();turnTick()}
  T.els.forEach(e=>e.remove());
- const bk=$('.book');if(bk)bk.classList.remove('turning');
+ const bk=$('.book');if(bk){bk.classList.remove('turning');bk.style.perspectiveOrigin=''}
  R.busy=false;
 }
 const reduced=()=>!!S.rmo||matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -13642,7 +13646,7 @@ function heroSpread(){
   let m=S.rl||'auto';
   if(m==='classic'||!isOn('mag')||isVert()||bk.clientWidth<700)return '';
   const im=old?old.querySelector('img.hero'):c.querySelector(':scope>img.hero');if(!im)return '';
-  if(m==='auto'){const d=(im.complete&&im.naturalWidth)?[im.naturalWidth,im.naturalHeight]:IMGDIM.get(im.getAttribute('src'));/* a picture the lists already loaded is known before it arrives, so the opening layout is the final one */const dd=d||[1600,1000];/* size not known yet: a landscape photo is the usual case, so the room is held for it and the layout does not jump when it arrives */if(dd[0]<800)return '';m='hero'}
+  if(m==='auto'){const d=(im.complete&&im.naturalWidth)?[im.naturalWidth,im.naturalHeight]:IMGDIM.get(im.getAttribute('src'));/* a picture the lists already loaded is known before it arrives, so the opening layout is the final one */const dd=d||[1600,1000];/* size not known yet: a landscape photo is the usual case, so the room is held for it and the layout does not jump when it arrives */if(dd[0]<800)return '';m='top'}
   return m;
  })();
  if(old&&old.dataset.m===want)return;
