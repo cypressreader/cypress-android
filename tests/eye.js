@@ -1,4 +1,4 @@
-/* Focus mode (the eye) stays in the reader toolbar in phone scroll mode, even when article decoration fails; it is hidden only in tablet page mode. */
+/* Focus mode (the one Focus button) stays in the reader toolbar in phone scroll mode, even when article decoration fails; it is hidden only in tablet page mode. */
 const {APP}=require('./env');const {mock,PW}=require('./mock');const {chromium}=require(PW);
 let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else console.log('ok',n)};
 (async()=>{
@@ -9,13 +9,13 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   const r=await p.evaluate(async([fn])=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());const w=ms=>new Promise(r=>setTimeout(r,ms));const f=S.feeds[0];
    const a={feedId:f.id,title:'Eye test',link:'https://w.test/eye',date:Date.now(),summary:'x',img:'',html:Array.from({length:12},(_,i)=>'<p>Paragraph '+i+' '+'words for the story. '.repeat(40)+'</p>').join('')};
    items[f.id]=[a];S.sel='all';render();await w(300);
-   const o={};const vis=()=>{const e=document.querySelector('#rd .bar #rfocus');if(!e)return false;const r=e.getBoundingClientRect();return getComputedStyle(e).display!=='none'&&r.width>10&&r.height>10};
+   const o={};const vis=()=>{const e=document.querySelector('#rd .bar #fcs');if(!e)return false;const r=e.getBoundingClientRect();return getComputedStyle(e).display!=='none'&&r.width>10&&r.height>10};
    if(fn==='throw'){window.furnish=function(){throw new Error('boom')};}
    if(fn==='vertical'){S.scroll='vertical'}if(fn==='paged'){S.scroll='paged'}
    try{openReader(a)}catch(e){o.threw=String(e)}await w(2200);
    o.vis=vis();o.vert=isVert();
-   const bt=document.querySelector('#rd .bar #rfocus');if(bt&&o.vis){bt.click();await w(300);o.on=document.querySelector('#rd').classList.contains('focus');o.pressed=bt.getAttribute('aria-pressed');
-    const sc=vView();if(sc){sc.scrollTop=300;await w(300)}o.fl=!!document.querySelector('.cols .body p.fl');bt.click();await w(200);o.off=!document.querySelector('#rd').classList.contains('focus')}
+   const bt=document.querySelector('#rd .bar #fcs');if(bt&&o.vis){bt.click();await w(300);o.on=document.querySelector('#rd').classList.contains('focus');o.pressed=bt.getAttribute('aria-pressed');
+    const sc=vView();if(sc){sc.scrollTop=300;await w(300)}o.fl=!!document.querySelector('.cols .body p.fl');bt.click();await w(200);o.offOk=getComputedStyle(bt).display!=='none';o.off=!document.querySelector('#rd').classList.contains('focus')}
    return o},[fn]);
   await ctx.close();return {r,errs};
  };
