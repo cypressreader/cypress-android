@@ -1389,7 +1389,9 @@ body.split .card.act{outline:3px solid var(--logo);outline-offset:2px}
 .mst{min-width:0}.mst .why summary,.note .why summary,.cols .why summary{display:list-item;text-align:left}
 .note .why,.cols .why{max-width:520px;break-inside:avoid;margin:8px 0}
 .wmsg .why{max-width:520px}
-.cols{position:absolute;column-fill:auto;letter-spacing:var(--ls,normal);word-spacing:var(--ws,normal);font:var(--fs,18px)/var(--lh,1.68) var(--rf,var(--serif));text-align:var(--ta,justify);text-justify:inter-word;hyphens:auto;hyphenate-limit-chars:6 3 3}
+.cols{position:absolute;column-fill:auto;letter-spacing:var(--ls,normal);word-spacing:var(--ws,normal);font:var(--fs,18px)/var(--lh,1.68) var(--rf,var(--serif));text-align:var(--ta,justify);text-justify:inter-word;hyphens:auto;hyphenate-limit-chars:var(--hlc,6 3 3)}
+/* Arabic, Hebrew, Persian...: each paragraph takes its own direction (with 'start' alignment it lines up on the right); they ran left-to-right */
+.cols :is(p,li,h1,h2,h3,h4,blockquote,figcaption,dt,dd),#rd .tt,#grid :is(h3,.card p,.lr-t){unicode-bidi:plaintext}
 .tt{font:600 clamp(28px,3.4vw,40px)/1.14 var(--serif);letter-spacing:var(--hk);word-spacing:var(--hw);margin:4px 0 8px;text-align:left;hyphens:manual;break-after:avoid}
 .dt{color:var(--mut);font:14px var(--sans);margin-bottom:16px;text-align:left}
 .hero{width:100%;height:calc(var(--ih,300px)*.8);aspect-ratio:16/9;object-fit:cover;border-radius:14px;margin-bottom:22px;display:block}
@@ -3476,7 +3478,7 @@ body:not(.narrow):not(.split).reading:not(.sideshow) #sideh{display:flex}
 /* correction round, cluster 3: since this morning, compact tabs */
 .ddiff{border:0;margin:0 0 24px}.ddiff .dd-i{margin:0 0 4px}
 .dd-t{color:var(--logo)}
-#mtabs{position:fixed;left:0;right:0;z-index:20;display:none;justify-content:center;gap:4px;padding:0 12px;box-sizing:border-box;background:color-mix(in srgb,var(--bg) 92%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--ln)}
+#mtabs{position:fixed;left:0;right:0;z-index:20;display:none;justify-content:center;gap:4px;padding:0 12px;box-sizing:border-box;background:var(--bg);border-bottom:1px solid var(--ln)}/* fully solid: at 92% the headings scrolling under it showed through */
 #mtabs.on{display:flex}
 #mtabs button{flex:1 1 0;max-width:136px;min-width:0;padding:6px 8px;min-height:48px;border:0;background:none;color:var(--mut);font:500 14.5px var(--disp,var(--serif,Georgia,serif));letter-spacing:.01em;cursor:pointer;border-bottom:2px solid transparent}
 #mtabs button[aria-selected=true]{color:var(--ink);font-weight:600;border-bottom-color:transparent}
@@ -4204,6 +4206,8 @@ html.micro .wtrend .wtr-dot::after{content:"";position:absolute;inset:0;border-r
 #grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr)>.tx,#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr)>.tx,#grid[data-w="mag"]:not(.nr):not(.wire)>.card[data-ed]:not(.nr)>.tx{position:static!important;color:var(--ink)!important;text-shadow:none!important;padding:10px 12px 12px;background:none!important}
 #grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr) :is(.src,.cfoot,.cby,time,.rt,.also,p),#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr) :is(.src,.cfoot,.cby,time,.rt,.also,p),#grid[data-w="mag"]:not(.nr):not(.wire)>.card[data-ed]:not(.nr) :is(.src,.cfoot,.cby,time,.rt,.also,p){color:var(--mut)!important;text-shadow:none!important}
 #grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr)>.star,#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr)>.why{top:10px}
+/* the site name sits on the page color here, not on the photo: the cream "on photo" label rule (higher up the cascade) made it invisible (1.1:1) */#grid#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr) :is(.src,.sn,.ssec),#grid#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr) :is(.src,.sn,.ssec),#grid#grid[data-w="mag"]:not(.nr):not(.wire)>.card[data-ed]:not(.nr) :is(.src,.sn,.ssec){color:var(--mut)!important}
+html[data-theme=halcyon] #grid#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr) :is(.src,.sn,.ssec),html[data-theme=halcyon] #grid#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr) :is(.src,.sn,.ssec),html[data-theme=halcyon] #grid#grid[data-w="mag"]:not(.nr):not(.wire)>.card[data-ed]:not(.nr) :is(.src,.sn,.ssec){color:#7d5f14!important}
 }}
 @media(max-width:899px){#grid .nr-top,#grid .nr-flip.nr-top{grid-template-columns:minmax(0,1fr)!important}#grid .nr-top>*{grid-column:1/-1!important;order:0!important}}
 /* 11. Intrinsic columns and fluid type: widths come from the feed pane, so any screen density or zoom lands on 1, 2 or 3 columns by itself */
@@ -4982,11 +4986,12 @@ const okColor=c=>/^(#[0-9a-f]{3,8}|rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s
 const okId=i=>/^[\w.:-]{1,60}$/.test(String(i||''))?String(i):'';
 /* a styled replacement for the plain browser prompt()/confirm() boxes; resolves true/false, or the typed text / null when o.input is set */
 function askBox(o){return new Promise(res=>{
- let d=document.getElementById('ask');if(d)d.remove();
+ let d=document.getElementById('ask');if(d){/* the box it replaces answers "cancel", so whatever waited on it carries on */if(d._fin)d._fin();else d.remove()}
  d=document.createElement('dialog');d.id='ask';d.setAttribute('aria-labelledby','ask-t');
  d.innerHTML=`<h3 id="ask-t">${esc(o.title||'')}</h3>${o.text?`<p class="hint">${esc(o.text).replace(/\n/g,'<br>')}</p>`:''}${o.input?(o.multi?`<textarea id="ask-i" rows="3" placeholder="${esc(o.placeholder||'')}" aria-label="${esc(o.title||'')}">${esc(o.value||'')}</textarea>`:`<input id="ask-i" type="text" autocomplete="off" placeholder="${esc(o.placeholder||'')}" aria-label="${esc(o.title||'')}" value="${esc(o.value||'')}">`):''}<div class="row"><button type="button" class="tx2" data-a="0">${esc(o.cancel||'Cancel')}</button>${o.alt?`<button type="button" class="tx2" data-a="2">${esc(o.alt)}</button>`:''}<button type="button" class="go${o.danger?' dgr':''}" data-a="1">${esc(o.ok||'OK')}</button></div>`;
  document.body.append(d);let done=false;
  const fin=v=>{if(done)return;done=true;try{d.close()}catch(e){}d.remove();res(v)};
+ d._fin=()=>fin(o.input?null:false);
  d.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-a]');if(b)fin(b.dataset.a==='2'?'alt':b.dataset.a==='1'?(o.input?d.querySelector('#ask-i').value:true):(o.input?null:false))});
  d.addEventListener('cancel',e=>{e.preventDefault();fin(o.input?null:false)});
  d.addEventListener('keydown',e=>{if(e.key==='Enter'&&o.input&&!o.multi){e.preventDefault();fin(d.querySelector('#ask-i').value)}});
@@ -5046,11 +5051,12 @@ function rgbOf(c){c=String(c||'').trim();let m;
  if(m=c.match(/^hsl\(\s*([\d.]+)\s*,?\s*([\d.]+)%\s*,?\s*([\d.]+)%\s*\)$/i)){const h=+m[1]/360,sa=+m[2]/100,l=+m[3]/100,q=l<.5?l*(1+sa):l+sa-l*sa,p=2*l-q,f=t=>{t=(t+1)%1;return t<1/6?p+(q-p)*6*t:t<.5?q:t<2/3?p+(q-p)*(2/3-t)*6:p};return[Math.round(f(h+1/3)*255),Math.round(f(h)*255),Math.round(f(h-1/3)*255)]}
  return null}
 function liftDark(c){
- if(!DARKBG)return c;
- if(BLITE.has(c))return BLITE.get(c);
+ const key=(DARKBG?'d':'l')+c;if(BLITE.has(key))return BLITE.get(key);
  let out=c;const r=rgbOf(c);
- if(r){const y=(.2126*r[0]+.7152*r[1]+.0722*r[2])/255;if(y<.38){const t=Math.min(.7,(.38-y)/(1-y));out='rgb('+r.map(v=>Math.round(v+(255-v)*t)).join(',')+')'}}
- BLITE.set(c,out);return out}
+ if(r&&DARKBG){const y=(.2126*r[0]+.7152*r[1]+.0722*r[2])/255;if(y<.38){const t=Math.min(.7,(.38-y)/(1-y));out='rgb('+r.map(v=>Math.round(v+(255-v)*t)).join(',')+')'}}
+ /* light pages: a bright site color (yellow, lime, sky) is darkened just enough for the white text on it to read (4.5:1); it was 1.6:1 on yellow */
+ else if(r){const lum=q=>q.reduce((n,v,i)=>{v/=255;return n+[.2126,.7152,.0722][i]*(v<=.03928?v/12.92:((v+.055)/1.055)**2.4)},0);let q=r,k=0;while(lum(q)>.183&&k++<30)q=q.map(v=>v*.94);if(k)out='rgb('+q.map(Math.round).join(',')+')'}
+ BLITE.set(key,out);return out}
 function brand(f){return liftDark(brand0(f))}
 function brand0(f){if(f.color&&okColor(f.color))return f.color;const k=known(f.url);if(k)return k[1];let h=0;for(const c of host(f.url))h=(h*31+c.charCodeAt(0))%360;return `hsl(${h} 55% 40%)`}
 let FIRST=false;try{FIRST=!localStorage.getItem('folio')}catch(e){}
@@ -6757,7 +6763,7 @@ if(FD){
  newN=vis?cn.filter(a=>a.date>vis).length:0;WIRE.newN=newN;
  const tr=T?[]:wireStrip(cn),clock=vis?wireClock(vis):'';
  const head=pre+(f1?feedMast(f1,unread,cn):FO&&FD?feedMast(FD,unread,cn):'')+(pend?`<div class="wpill" data-n="${pend}"><span>${pend} new ${pend===1?'story':'stories'} since you opened this</span><button type="button" data-wire="load">Show</button></div>`:'')
-  +`<div class="wmeta"><div class="nr-meta">${stN(cn.length)}${S.hideCount?'':' · '+unread+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>${densHtml()}</div>`
+  +`<div class="wmeta"><div class="nr-meta">${stN(cn.length)}${S.hideCount?'':' · '+cn.filter(a=>!S.read[a.link]).length+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>${densHtml()}</div>`
   +trendStripHtml(tr);
  g.classList.add('nr','wire');g.dataset.w=g.dataset.wdens=S.wdens==='col'?'col':'mag';if(T)g.classList.add('wtopic');if(FD){g.classList.add('fed');g.style.setProperty('--fb',brand(FD))}if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
  /* coming back to a place you left: render far enough to include the story that was at the top of the screen */
@@ -7433,12 +7439,12 @@ function goalHtml(){
  const g=goalOf(),m=Math.round(readToday()*10)/10;
  if(!g)return `<button type="button" class="dgoal off" data-goal><span>Set a daily reading goal</span></button>`;
  const met=m>=g,left=Math.max(0,Math.ceil(g-m));
- return `<button type="button" class="dgoal${met?' met':''}" data-goal aria-label="Daily reading goal: ${Math.floor(m)} of ${g} minutes. Tap to change"><span class="dg-r">${ringSvg(Math.min(m,g),g,40,5)}<b>${met?'✓':''}</b></span><span class="dg-t"><b>${Math.floor(m)} of ${g} min today</b><small>${met?'Goal met':left+' min to go'}</small></span></button>`;
+ return `<button type="button" class="dgoal${met?' met':''}" data-goal aria-label="Daily reading goal: ${Math.floor(m)} of ${MIN(g)}. Tap to change"><span class="dg-r">${ringSvg(Math.min(m,g),g,40,5)}<b>${met?'✓':''}</b></span><span class="dg-t"><b>${Math.floor(m)} of ${g} min today</b><small>${met?'Goal met':left+' min to go'}</small></span></button>`;
 }
 async function goalAsk(){
  const v=await askBox({title:'Daily reading goal',text:'How many minutes would you like to read each day? Use 0 to turn the goal off.',input:true,ok:'Save'});
- if(v===null)return;const n=Math.round(+String(v).replace(/[^\d.]/g,''));
- if(isNaN(n)||n<0||n>240){toast('Pick a number from 0 to 240');return}
+ if(v===null)return;const t=String(v).replace(/minutes?|mins?/i,'').trim(),n=Math.round(+t);/* letters or an empty box used to turn the goal off without a word */
+ if(!t||isNaN(n)||n<0||n>240){toast('Pick a number from 0 to 240');return}
  S.goal=n;save();render();
 }
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-goal]');if(!b)return;e.preventDefault();e.stopPropagation();goalAsk()},true);
@@ -7972,7 +7978,7 @@ function storyQuote(pool){
 function magHtml(l,base,mode,kind){
  const C=(i,k)=>card(l[i],base+i,'nr '+k),B=[],used=new Set(),ph=mode==='p',deep=kind==='deep';
  const mark=i=>{used.add(i);return i},left=f=>l.map((a,i)=>i).filter(i=>!used.has(i)&&(!f||f(l[i])));
- const mins=l.reduce((n,a)=>n+(minsOf(a)||0),0),tot=mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes';
+ const mins=l.reduce((n,a)=>n+(minsOf(a)||0),0),tot=mins>=90?(Math.round(mins/6)/10)+' hours':MIN(mins);
  B.push(`<section class="dmag-h"><small>${deep?'Settle in':'Quick break'}</small><h3>${deep?(l.length===1?'One long read for when you have time':l.length+' long reads for when you have time'):l.length+' quick reads for a spare moment'}</h3><p>${deep?'About '+tot+' of reading in all. Pick one, get comfortable, and take your time.':'About '+tot+' in all, each one short enough to finish in a few minutes.'}</p></section>`);
  const li=mark(left(nrHas)[0]??left()[0]);
  B.push(ph?`<div class="nr-psec">${C(li,'nr-lead')}</div>`:`<section class="nr-top nr-one"><div class="nr-lw">${C(li,'nr-lead')}</div></section>`);
@@ -8455,7 +8461,7 @@ function narrowC(){return isOn('pcomp')&&document.body.classList.contains('narro
 /* polish-2026-10 F6: Reading width. Comfortable (the default) is exactly the width the reader always had; Narrow and Wide only change the side margins and the scroll column's cap, never the text size. Restore by deleting rdxRw and its two uses in layout(). */
 const RDX_RW={n:{p:1.8,mw:600},c:{p:1,mw:0},w:{p:.45,mw:900}};
 function rdxRw(){const r=RDX_RW[S.rw]||RDX_RW.c;try{$('#rd').style.setProperty('--rdmw',r.mw?(r.mw-40)+'px':'700px')}catch(e){}return r}
-function rdVars(){const r=$('#rd');if(!r)return;const nc=narrowC();r.style.setProperty('--lh',nc?Math.min(+S.lh||1.68,1.5):(S.lh||1.68));{/* B61: a phone always left-aligns, so the page is not measured (that read forced a full layout in the middle of opening a story) */if(S.just===false||nc||innerWidth<640){r.style.setProperty('--ta','left');return}const bk=$('.book'),W=bk?bk.clientWidth:innerWidth,cw=isVert()?Math.min(W-60,740):(W>=700?(W-60-56)/2:W-40),chars=cw/((+S.fs||18)*.5);/* justify only when a line holds enough words; narrow columns left-align so gaps do not open up */r.style.setProperty('--ta',(S.just===false||nc||innerWidth<640||chars<60)?'left':'justify')}}
+function rdVars(){const r=$('#rd');if(!r)return;const nc=narrowC();r.style.setProperty('--lh',nc&&!S.lh?1.5:(S.lh||1.68));/* compact phones tighten only the default spacing: a spacing or Large print you picked always wins */{/* B61: a phone always left-aligns, so the page is not measured (that read forced a full layout in the middle of opening a story) *//* ragged (left-aligned) text only breaks long words: "report-ing" split three lines in a row on phones */r.style.setProperty('--hlc','6 3 3');if(S.just===false||nc||innerWidth<640){r.style.setProperty('--ta','start');r.style.setProperty('--hlc','9 4 4');return}const bk=$('.book'),W=bk?bk.clientWidth:innerWidth,cw=isVert()?Math.min(W-60,740):(W>=700?(W-60-56)/2:W-40),chars=cw/((+S.fs||18)*.5);/* justify only when a line holds enough words; narrow columns left-align so gaps do not open up */r.style.setProperty('--ta',(S.just===false||nc||innerWidth<640||chars<60)?'start':'justify');if(chars<60)r.style.setProperty('--hlc','9 4 4')}}
 function imgKey(u){try{let x=String(u||'').split(/[?#]/)[0].toLowerCase();x=x.split('/').filter(Boolean).pop()||'';return x.replace(/\.(jpe?g|png|webp|avif|gif)(\.(jpe?g|png|webp|avif|gif))?$/,'').replace(/[-_@]?\d{2,4}x\d{2,4}/g,'').replace(/[-_](scaled|large|medium|small|thumb(nail)?|full|orig(inal)?|hires|hi-res)$/,'').replace(/@\dx$/,'')}catch(e){return ''}}
 function sameImg(a,b){if(!a||!b)return false;if(String(a).split('?')[0]===String(b).split('?')[0])return true;const x=imgKey(a),y=imgKey(b);if(x.length>=8&&x===y)return true;if(x.length>=5&&x===y&&!/^(image|img|photo|picture|pic|hero|cover|main|lead|thumb|thumbnail|banner|article|featured|default|placeholder|logo|share|og|story|news)\d*$/.test(x))return true;if(x.length<10||y.length<10)return false;let i=0;while(i<x.length&&i<y.length&&x[i]===y[i])i++;return i>=10&&i/Math.min(x.length,y.length)>=.75}
 /* The picture shows once, in the body. The moment a body (the feed's copy, the stored copy or the full page) is in place, and before it can paint, the separate top-of-page copy is set aside; if a later body has no such picture, the top copy goes back. Two never show together. */
@@ -11284,10 +11290,11 @@ $('#ref').onclick=async()=>{
  const before=new Set(S.feeds.flatMap(f=>(items[f.id]||[]).map(a=>a.link)));
  b.classList.add('spin');toast('Refreshing '+S.feeds.length+(S.feeds.length===1?' site…':' sites…'));WIRE.pillT=Date.now();wireReset();
  /* one dead or hanging site can take a minute to give up: stop waiting after 20s (it keeps loading quietly) */
- await Promise.race([loadAll(true),new Promise(r=>setTimeout(r,20000))]);
- b.classList.remove('spin');sfxTone('refresh');WIRE.pillT=Date.now();wireReset();wireSettle();
- const n=S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>!before.has(a.link)).length,badL=S.feeds.filter(f=>state[f.id]==='err'),bad=badL.length;
- toast((n?n+' new '+(n===1?'story':'stories'):'No new stories')+(bad===1?' · '+badL[0].title+' didn’t respond':bad?' · '+bad+' feeds didn’t respond':''));
+ /* the spinner always clears, even if a step after loading fails (it used to stay spinning and ignore every later tap) */
+ try{await Promise.race([loadAll(true),new Promise(r=>setTimeout(r,20000))])}catch(e){}finally{b.classList.remove('spin')}
+ try{sfxTone('refresh');WIRE.pillT=Date.now();wireReset();wireSettle()}catch(e){}
+ const n=S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>!before.has(a.link)).length,badL=S.feeds.filter(f=>state[f.id]==='err'),bad=badL.length,slow=S.feeds.filter(f=>state[f.id]==='load').length;
+ toast((n?n+' new '+(n===1?'story':'stories'):slow?'No new stories yet':'No new stories')+(bad===1?' · '+badL[0].title+' didn’t respond':bad?' · '+bad+' sites didn’t respond':'')+(slow?' · '+slow+(slow===1?' site is':' sites are')+' still loading':''));
 };
 $('#mr').onclick=()=>{const add=[];cur.forEach(a=>{[a.link,...(a.more||[]).map(m=>m.l)].forEach(l=>{if(!S.read[l])add.push(l);S.read[l]=1})});trimRead();save();render();
  if(add.length)toast('Marked '+cur.length+(cur.length===1?' story':' stories')+' as read',()=>{add.forEach(l=>delete S.read[l]);save();render()})};
@@ -11540,7 +11547,10 @@ async function selAct(k,col){
  if(!curA)return;
  const f=fof(curA);
  S.hl.unshift({id:Date.now().toString(36),link:curA.link,q:SV.q,off:SV.off,note,c:/^[vygr]$/.test(col||'')?col:'v',t:Date.now(),art:{feedId:curA.feedId,title:curA.title,link:curA.link,date:curA.date,img:curA.img,ft:f.title,fu:f.url,fc:brand(f)}});
- S.hl=S.hl.slice(0,500);save();
+ /* room for 2000; when full, the oldest highlight WITHOUT a note goes first, and you're told if a note ever has to go (it used to drop the 501st silently, note and all) */
+ if(S.hl.length>2000){const i=S.hl.map(h=>!h.note).lastIndexOf(true);const x=S.hl.splice(i>=0?i:S.hl.length-1,1)[0];if(x&&x.note)toast('Highlights are full: your oldest note was removed. Export them from Highlights to keep a copy.')}
+ else if(S.hl.length===1900)toast('Highlights are nearly full (1,900 of 2,000). Export them from Highlights to keep a copy.');
+ save();
  try{getSelection().removeAllRanges()}catch(e){}
  $('#selbar').hidden=true;SELV=null;applyHl();side();toast(k==='note'?'Note saved':'Highlighted');
 }
@@ -12098,6 +12108,7 @@ $('#cvs').onchange=e=>{S.cvs=e.target.value;save();cvSetBtn();render()};
 const SKEL=()=>skelCap()+'<div class="skg" aria-hidden="true">'+'<div class="sks"><i></i><b></b><b class="s"></b></div>'.repeat(6)+'</div>';
 const EA=(...k)=>'<div class="eact">'+k.map(x=>({rf:'<button type="button" class="go" data-ea="rf">Refresh</button>',hl:'<button type="button" class="tx2" data-ea="hl">Check my sites</button>',ad:'<button type="button" class="go" data-ea="ad">Add a site</button>',sp:'<button type="button" class="tx2" data-ea="sp">Pick sites</button>',td:'<button type="button" class="go" data-ea="td">Browse today’s stories</button>',cl:'<button type="button" class="go" data-ea="cl">Clear the search</button>',sv:'<button type="button" class="go" data-ea="sv">Open saved stories</button>',st:'<button type="button" class="tx2" data-ea="st">Open Settings</button>'}[x])).join('')+'</div>';
 /* polish-2026-10 (E4): one designed empty state: mark, headline, one sentence, one button. a = EA(...) buttons. */
+const noStoriesHtml=()=>S.feeds.length?empNoStories():emp('No sites yet','Add a few sites you like and their latest stories show up here.',EA('ad','sp'));
 const emp=(h,p,a)=>`<div class="empty emp" role="status"><i class="mk emk" aria-hidden="true"></i><h3>${h}</h3><p>${p}</p>${a||''}</div>`;
 /* the empty list says why: Offline mode, no connection, still loading, or sites that didn't answer */
 const empNoStories=()=>{const st=S.feeds.map(f=>state[f.id]),bad=st.filter(x=>x==='err').length;
@@ -12283,7 +12294,7 @@ function siteCheckOpen(){
  const saved=schkLoad(),lastRep=(()=>{try{return JSON.parse(localStorage.getItem(SCR)||'null')}catch(e){return null}})();
  const ok=saved&&saved.rows&&saved.res&&Date.now()-saved.ts<864e5&&saved.res.length<saved.rows.length;
  const extra=(ok?'<button type="button" data-k="r" style="'+btn+';margin-bottom:8px;background:#5dffb0;color:#06231a;border:0">Carry on: '+esc(saved.label)+' <small>· '+saved.res.length+' of '+saved.rows.length+' done</small></button>':'')+(lastRep?'<button type="button" data-k="l" style="'+btn+';margin-bottom:8px">Show the last report <small style="opacity:.7">· '+new Date(lastRep.ts).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+'</small></button>':'');
- d.innerHTML='<h3 style="margin:0 0 6px;font:700 20px system-ui">Test sites on this phone</h3><div id="schk-b"><p class="hint" style="margin:0 0 12px">Tries each site the way CyPress does and writes a report you can paste to the developer. It contains site names and addresses, not your stories. Keep CyPress open and the screen on. If you leave the app it pauses and carries on when you come back. About 3 sites a second at best, so the long ones take a while.</p>'+extra+scopes.map((s,k)=>'<button type="button" data-k="'+k+'" style="'+btn+';margin-bottom:8px">'+esc(s[0])+' <small style="opacity:.7">· '+s[1].length+' sites · about '+Math.max(1,Math.round(s[1].length/14))+' min</small></button>').join('')+'<button type="button" id="schk-x" style="'+btn+';text-align:center;opacity:.8">Close</button></div>';
+ d.innerHTML='<h3 style="margin:0 0 6px;font:700 20px system-ui">Test sites on this phone</h3><div id="schk-b"><p class="hint" style="margin:0 0 12px">Tries each site the way CyPress does and writes a report you can paste to the developer. It contains site names and addresses, not your stories. Keep CyPress open and the screen on. If you leave the app it pauses and carries on when you come back. About 3 sites a second at best, so the long ones take a while.</p>'+extra+scopes.map((s,k)=>'<button type="button" data-k="'+k+'" style="'+btn+';margin-bottom:8px">'+esc(s[0])+' <small style="opacity:.7">· '+s[1].length+(s[1].length===1?' site':' sites')+' · about '+Math.max(1,Math.round(s[1].length/14))+' min</small></button>').join('')+'<button type="button" id="schk-x" style="'+btn+';text-align:center;opacity:.8">Close</button></div>';
  document.body.append(d);d.showModal();
  const b=d.querySelector('#schk-b');
  const showReport=rep=>{
@@ -12411,7 +12422,7 @@ function renderMng0(){
  const unop=f=>{const l=items[f.id]||[];return l.length>=10&&!l.some(a=>S.read[a.link])},nb=S.feeds.filter(f=>state[f.id]==='err').length,nq=quietFeeds().length,nu=S.feeds.filter(unop).length;
  $('#mnglist').innerHTML=(S.feeds.length?`<div class="mhead"><b>${plu(S.feeds.length,'feed')}</b><span>${nb?nb+' need attention':'all loading'}${nq?' · '+nq+' quiet for 60+ days':''}${nu?' · '+nu+' you never open':''}</span>${nq?'<button class="tx2" data-mquiet>Pause the quiet ones</button>':''}</div>`:'')+S.feeds.map(f=>{
   const h=S.health[f.id]||{},st=state[f.id];
-  const status=st==='load'?'Loading…':st==='err'?'Not loading: '+esc(feedReason(f)):st==='ok'?(f.via==='gnews'?`Working through Google News headlines (${whyTxt(f)}), ${(items[f.id]||[]).length} stories`:f.via==='bing'?`Working through Bing headlines (${whyTxt(f)}), ${(items[f.id]||[]).length} stories`:`Working${f.quiet?' (quiet lately: the site hasn’t posted anything new in a while)':''}, ${(items[f.id]||[]).length} ${(items[f.id]||[]).length===1?'story':'stories'}${feedStat(f)}`):'Waiting';const wy=feedWhy(f);
+  const status=st==='load'?'Loading…':st==='err'?'Not loading: '+esc(feedReason(f)):st==='ok'?(f.via==='gnews'?`Working through Google News headlines (${whyTxt(f)}), ${stN((items[f.id]||[]).length)}`:f.via==='bing'?`Working through Bing headlines (${whyTxt(f)}), ${stN((items[f.id]||[]).length)}`:`Working${f.quiet?' (quiet lately: the site hasn’t posted anything new in a while)':''}, ${(items[f.id]||[]).length} ${(items[f.id]||[]).length===1?'story':'stories'}${feedStat(f)}`):'Waiting';const wy=feedWhy(f);
   return `<div class="mrow" data-f="${f.id}"><b class="dot" style="background:${brand(f)}" data-mcol title="Change color"></b><input class="mname" value="${esc(f.title)}" aria-label="Feed name"><select class="mfold" aria-label="Folder">${S.folders.map(x=>`<option value="${x.id}" ${x.id===f.folder?'selected':''}>${esc(x.name)}</option>`).join('')}<option value="" ${S.folders.some(x=>x.id===f.folder)?'':'selected'}>Unfiled</option></select><div class="mst ${st==='err'?'bad':''}">${esc(status+(h.ok?', updated '+ago(h.ok)+' ago':'')+(st==='ok'&&unop(f)?'. You haven’t opened any of its latest stories':''))}${(st==='err'||f.via)&&wy.length?`<details class="why"><summary>Why?</summary>${wy.map(esc).join('<br>')}</details>`:''}</div><span class="ctl"><button class="tx2" data-mset>Settings</button><button class="tx2" data-mretry>Retry</button>${st==='err'?'<button class="tx2" data-mrep>Repair</button>':''}<button class="tx2" data-mdel>Remove</button></span><label class="mweb"><input type="checkbox" class="mw" ${f.web?'checked':''}> Always open this source in site view</label></div>`;
  }).join('')||'<div class="none">No feeds yet.</div>';
 }
@@ -12467,7 +12478,7 @@ function tipsCheck(){
  if(S.feeds.length>=8&&!(S.folders||[]).length)return tip('foldershint');
  if(days>=3&&pfMode()==='off')return tip('offlinehint');
 }
-function tip(k){S.tips=S.tips||{};if(S.tips[k]||TIPQ.shown)return;const t=TIPQ.find(x=>x[0]===k);if(!t)return;TIPQ.shown=1;S.tips[k]=1;save();/* a tip never replaces a note that has a button on it (such as "Added … Open") */const go=()=>{const T=$('#toast');if(T&&T.classList.contains('act')&&T.classList.contains('show')){setTimeout(go,3000);return}toast(t[2]);document.addEventListener('scroll',()=>{const T=$('#toast');if(T)T.classList.remove('show')},{once:true,capture:true,passive:true})};setTimeout(go,t[1])}
+function tip(k){S.tips=S.tips||{};if(S.tips[k]||TIPQ.shown)return;const t=TIPQ.find(x=>x[0]===k);if(!t)return;TIPQ.shown=1;S.tips[k]=1;save();/* a tip never replaces a note that has a button on it (such as "Added … Open") */const go=()=>{const T=$('#toast');if(T&&T.classList.contains('act')&&T.classList.contains('show')){setTimeout(go,3000);return}toast(t[2]);document.addEventListener('scroll',()=>{const T=$('#toast');if(T)T.classList.remove('show')},{once:true,capture:true,passive:true});/* the first tap or page turn also clears it: in Pages mode nothing scrolls, so the reader tip sat over the last lines */['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,()=>setTimeout(()=>{const T=$('#toast');if(T&&!T.classList.contains('act'))T.classList.remove('show')},400),{once:true,capture:true,passive:true}))};setTimeout(go,t[1])}
 $('#clnx').onclick=()=>$('#cln').close();
 $('#clngo').onclick=()=>{
  const ids=[...document.querySelectorAll('#clnlist [data-cf]:checked')].map(x=>x.dataset.cf);if(!ids.length){toast('Check a site first');return}
@@ -13065,7 +13076,7 @@ function renderBrief(){renderBrief0();const g=$('#grid');if(g){g.insertAdjacentH
 function renderBrief0(){
  $('#ttl').textContent='The Daily';tip('catch');
  const B=briefToday(),list=B.links.map(findStory).filter(Boolean);cur=list.slice();list.forEach((a,i)=>{WHY[a.link]=`Your brief takes the newest unread story from each of your sources, then goes around again. This one is from ${fof(a).title}.`});
- if(!list.length){$('#grid').innerHTML=S.feeds.some(f=>state[f.id]==='load')?`<div class="empty">${SKEL()}</div>`:emp('You are all caught up','Nothing new to catch up on. Check back later.','');return}
+ if(!list.length){$('#grid').innerHTML=S.feeds.some(f=>state[f.id]==='load')?`<div class="empty">${SKEL()}</div>`:!S.feeds.some(f=>(items[f.id]||[]).length)?noStoriesHtml():emp('You are all caught up','Nothing new to catch up on. Check back later.','');return}
  const done=list.filter(a=>S.read[a.link]).length,mins=list.reduce((n,a)=>n+(readMin(a)||3),0),left=list.filter(a=>!S.read[a.link]).reduce((n,a)=>n+(readMin(a)||3),0);
  if(done===list.length){$('#grid').innerHTML=`<div class="bdone"><div class="bck">${svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>')}</div><h2>You’re caught up</h2><p>${stN(list.length)} from ${(n=>n+(n===1?' source':' sources'))(new Set(list.map(a=>a.feedId)).size)} today.</p><button class="tx2" data-bnew>Make a fresh brief</button></div>`;return}
  const dt=new Date(),dl=dt.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
@@ -13111,7 +13122,7 @@ function tenBody(){
  const r=tenPick(TENM);TENL=r.list;
  const opts=[5,10,20].map(m=>`<button type="button" role="radio" aria-checked="${m===TENM}" tabindex="${m===TENM?0:-1}" data-tenm="${m}">${m} min</button>`).join('');
  const rows=r.list.map((a,i)=>`<li><button type="button" class="tenit" data-tenopen="${i}"><small>${i===0?'The feature':'In brief'} · ${esc(fof(a).title||'')} · ${readMin(a)||3} min</small><b>${esc(a.title)}</b></button></li>`).join('');
- return `<p class="xsl">${r.list.length?`${stN(r.list.length)}, about ${r.tot} minutes. Start at the top and keep turning pages, or pick one.`:'Nothing unread fits that time right now.'}</p><div class="tenrg" role="radiogroup" aria-label="How much time do you have?">${opts}</div>${r.list.length?`<ol class="tenol">${rows}</ol><button type="button" class="go" data-tenopen="0">Start reading</button>`:''}`;
+ return `<p class="xsl">${r.list.length?`${stN(r.list.length)}, about ${MIN(r.tot)}. Start at the top and keep turning pages, or pick one.`:'Nothing unread fits that time right now.'}</p><div class="tenrg" role="radiogroup" aria-label="How much time do you have?">${opts}</div>${r.list.length?`<ol class="tenol">${rows}</ol><button type="button" class="go" data-tenopen="0">Start reading</button>`:''}`;
 }
 function tenOpen(){
  const d=xsOpen('tenq','I have '+TENM+' minutes',tenBody());
@@ -13182,7 +13193,7 @@ function almOpen(){
  const body=(!D.f&&D.m<1)?`<p class="xsl">Read a few stories and your year will start to fill in here.</p>`:
   `<p class="xsl">${y===new Date().getFullYear()&&!almSeason()?'Your year so far. ':''}Built on this phone from your reading stats. Nothing is sent anywhere.</p><div class="alm-t"><div><b>${D.f}</b><small>${D.f===1?'story':'stories'} finished</small></div><div><b>${esc(fmtMin(D.m))}</b><small>read</small></div></div>`
   +(D.src.length?`<h3 class="alm-h">Top sites</h3><ol class="alm-o">${D.src.map(([n,v])=>`<li><b>${esc(n)}</b> · ${v} ${v===1?'story':'stories'}</li>`).join('')}</ol>`:'')
-  +(D.lg?`<h3 class="alm-h">Longest read</h3><p class="xsl">${D.lg.m} minutes: ${esc(D.lg.t)}</p>`:'')
+  +(D.lg?`<h3 class="alm-h">Longest read</h3><p class="xsl">${MIN(D.lg.m)}: ${esc(D.lg.t)}</p>`:'')
   +(D.q?`<h3 class="alm-h">Most highlighted</h3><blockquote class="alm-q">“${esc(D.q.q)}”</blockquote><p class="xsl">${esc(D.q.t)}</p>`:'')
   +`<button type="button" class="go alm-sh" data-almshare>Share as image</button>`;
  const d=xsOpen('almq','Your '+y+' Almanac',body);
@@ -13948,7 +13959,7 @@ function listenShelf(){
  const l=S.saved.filter(a=>!S.read[a.link]);if(!l.length){toast('Nothing unread on your shelf');return}
  S.lq=l.slice(1).map(a=>a.link);R.briefAudio=false;save();
  const mins=l.reduce((n,a)=>n+(readMin(a)||3),0);
- openReader(l[0]).then(()=>{if(!$('#rd').classList.contains('on'))return;const why=ttsClean();if(why){toast('Skipped “'+l[0].title.slice(0,40)+'”: '+why);S.lq=S.lq.filter(k=>k!==l[0].link);ttsEnd(true);return}mediaOn();mediaNative();speak(`Here’s your shelf. ${l.length} ${l.length===1?'story':'stories'}, about ${mins} minutes. First, from ${fof(l[0]).title}.`,()=>{if(curA===l[0]&&!TTS.on)ttsToggle()})});
+ openReader(l[0]).then(()=>{if(!$('#rd').classList.contains('on'))return;const why=ttsClean();if(why){toast('Skipped “'+l[0].title.slice(0,40)+'”: '+why);S.lq=S.lq.filter(k=>k!==l[0].link);ttsEnd(true);return}mediaOn();mediaNative();speak(`Here’s your shelf. ${l.length} ${l.length===1?'story':'stories'}, about ${MIN(mins)}. First, from ${fof(l[0]).title}.`,()=>{if(curA===l[0]&&!TTS.on)ttsToggle()})});
 }
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-shelfplay]');if(!b)return;e.preventDefault();e.stopPropagation();listenShelf()},true);
 
@@ -14746,16 +14757,16 @@ function longformItem(a,i,ix,cover,why){
 /* the Smart view opens with a small masthead too: the day in the display serif, so All stories matches the other tabs */
 function latestMast(){const d=new Date(),day=d.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});return `<header class="tmast tm-day"><small>${esc(day)}</small><h2>All Stories</h2></header>`}
 function tabMast(tab,list){
- const n=list.length,mins=list.reduce((t,a)=>t+(minsOf(a)||0),0),hrs=mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes',src=new Set(list.map(a=>a.feedId)).size;
+ const n=list.length,mins=list.reduce((t,a)=>t+(minsOf(a)||0),0),hrs=mins>=90?(Math.round(mins/6)/10)+' hours':MIN(mins),src=new Set(list.map(a=>a.feedId)).size;
  const T={top:['Top stories',n===1?'One top story':n+' top stories','The stories covered by the most of your sources over the last three days.'],
   quick:['Quick reads',n===1?'One quick read':n+' quick reads','Each takes about 1 to 3 minutes. About '+hrs+' of reading in all.'],
   deep:['Deep reads',n===1?'One long read':n+' long reads','About '+hrs+' of reading, from '+src+(src===1?' source':' sources')+'.']}[tab]||['','',''];
  return `<header class="sun-m ${tab}-m"><small>${T[0]}</small><h2>${T[1]}</h2><p class="sun-s">${esc(T[2])}</p></header>`;
 }
 function deepBlocks(list){
- const B=[],mins=list.reduce((n,a)=>n+(minsOf(a)||0),0),hrs=mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes';
+ const B=[],mins=list.reduce((n,a)=>n+(minsOf(a)||0),0),hrs=mins>=90?(Math.round(mins/6)/10)+' hours':MIN(mins);
  B.push(`<header class="sun-m deep-m"><small>Deep reads</small><h2>${list.length===1?'One long read':list.length+' long reads'}</h2><p class="sun-s">${esc(list.length>=2?'About '+hrs+' of reading, from '+new Set(list.map(a=>a.feedId)).size+(new Set(list.map(a=>a.feedId)).size===1?' source':' sources')+'. Take your time.':'For when you have time to settle in.')}</p></header>`);
- list.forEach((a,i)=>B.push(longformItem(a,i,cur.indexOf(a),i===0,i===0?'The strongest long read among your unread stories.':'A long read of about '+minsOf(a)+' minutes.')));
+ list.forEach((a,i)=>B.push(longformItem(a,i,cur.indexOf(a),i===0,i===0?'The strongest long read among your unread stories.':'A long read of about '+MIN(minsOf(a))+'.')));
  if(isOn('seal'))B.push(sealHtml({cls:'deep-end',title:'That’s every long read for now.',sub:`${list.length} ${list.length===1?'story':'stories'}, about ${hrs}.`}));
  else B.push(`<p class="sun-end deep-end">That is every long read for now: ${list.length} ${list.length===1?'story':'stories'}, about ${esc(hrs)}.</p>`);
  return B;
@@ -14763,11 +14774,11 @@ function deepBlocks(list){
 function sundayIssue(wkS,wkR){
  const l=sundayPick(wkS);
  if(l.length<3)return `<section class="sun sun-none"><header class="sun-m"><small>The Sunday Issue</small><h2>Not enough long reads yet</h2><p class="sun-s">A story joins the issue once its length is known and it runs about ${Math.min(DEEPMIN,6)} minutes or more.</p></header></section>`;
- const mins=l.reduce((n,a)=>n+minsOf(a),0),hrs=mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes',sites=new Set(l.map(a=>a.feedId)).size,longest=Math.max(...l.map(minsOf));
+ const mins=l.reduce((n,a)=>n+minsOf(a),0),hrs=mins>=90?(Math.round(mins/6)/10)+' hours':MIN(mins),sites=new Set(l.map(a=>a.feedId)).size,longest=Math.max(...l.map(minsOf));
  const line=pe('sunday',{n:l.length,hrs,sites,longest,dow:new Date().getDay()},'sun');
  const word={3:'Three',4:'Four',5:'Five',6:'Six',7:'Seven'}[l.length];
  const one=(a,i)=>{
-  cur.push(a);return longformItem(a,i,cur.length-1,i===0,i===0?'The cover of the Sunday Issue: the best long read of the last 7 days.':'A long read of about '+minsOf(a)+' minutes, picked for the Sunday Issue.');
+  cur.push(a);return longformItem(a,i,cur.length-1,i===0,i===0?'The cover of the Sunday Issue: the best long read of the last 7 days.':'A long read of about '+MIN(minsOf(a))+', picked for the Sunday Issue.');
  };
  return `<section class="sun" aria-labelledby="sunh"><header class="sun-m"><small>The Sunday Issue</small><h2 id="sunh">${word} long reads</h2><p class="sun-r">${esc(wkR)}</p><p class="sun-s">${esc(line)}</p></header>${l.map(one).join('')}${isOn('seal')?sealHtml({cls:'mid',title:'That’s the Sunday Issue.',sub:'The week’s numbers and a day-by-day recap follow.'}):'<p class="sun-end">That is the whole edition. The week’s numbers and a day-by-day recap follow.</p>'}</section>`;
 }
@@ -14994,6 +15005,7 @@ const peHash=s=>{let h=5381;for(const c of String(s))h=((h<<5)+h+c.charCodeAt(0)
 /* slot: 'note' | 'progress' | 'finish' | 'coverline'. key keeps a pick stable (edition + state); skip lists ids already used on this page. */
 /* B96: "1 story", "2 stories" */
 function stN(n){return n+(n===1?' story':' stories')}
+function MIN(n){return n+(+n===1?' minute':' minutes')}
 function pe(slot,extra,key,skip){
  const bank=PEB[slot];if(!bank)return '';
  const st=peState(),x=peCtx(extra),k=(typeof edKey==='function'?edKey():'')+'|'+(key||''),held=st.c[slot+'|'+(key||'')];
@@ -15343,6 +15355,8 @@ function renderDigest(){
  const fresh=S.feeds.filter(inDaily).flatMap(f=>items[f.id]||[]).filter(a=>a.date>=since&&!muted(a));
  for(const q in WHY)delete WHY[q];
  cur=[];
+ /* nothing to show (no sites yet, offline on first open, every site failed): the same message as the other tabs, not "0 stories · about 0 minutes" */
+ if(!S.feeds.some(f=>(items[f.id]||[]).length)){$('#grid').innerHTML=bmSeg(k==='week'?'week':'edition')+(S.feeds.some(f=>state[f.id]==='load')?`<div class="empty">${SKEL()}</div>`:noStoriesHtml());return}
  const mk=(a,kind,why)=>{if(!a)return '';cur.push(a);WHY[a.link]=why;return card(a,cur.length-1,kind)};
  const lead=pool.find(a=>a.img&&!S.read[a.link])||pool[0];
  const d=new Date(),start=new Date(d.getFullYear(),0,0),issue=Math.floor((d-start)/864e5);
@@ -15403,7 +15417,7 @@ function renderDigest(){
  /* B20: labels say what they mean and jump to their section */
  const nm=(t,c,id)=>`<button type="button" data-edin="${id}">${esc(t)}${c?` <i>${c}</i>`:''}</button>`;
  const names=[...(useNews?[nm('Front page',fp.length,'edin-front')]:[]),...all.map((x,i)=>nm(x[0],x[1].length,'edin-s'+i)),...tsecs.map((x,i)=>nm(x[0],x[1].length,'edin-t'+i)),...(sv.length?[nm(sv.length===1?'1 saved by you':sv.length+' saved by you','','edin-sv')]:[]),...(miss.length?[nm(miss.length===1?"1 you haven't opened":miss.length+" you haven't opened",'','edin-miss')]:[])];
- h+=`<div class="edin"><b>In this issue</b><span>${plu(edN=n+sv.length+miss.length,'story','stories')} · about ${edM=mn+sv.length*3+miss.length*3} minutes</span>${names.length>1?`<small>${names.join(' · ')}</small>`:''}</div>`}
+ h+=`<div class="edin"><b>In this issue</b><span>${plu(edN=n+sv.length+miss.length,'story','stories')} · about ${MIN(edM=mn+sv.length*3+miss.length*3)}</span>${names.length>1?`<small>${names.join(' · ')}</small>`:''}</div>`}
  const regL=(l,why)=>{const b=cur.length;l.forEach(a=>{cur.push(a);WHY[a.link]=why});return b};
  if(useNews){const b=regL(fp,'On the front page: ranked by how many sources cover it, and how new it is.');h+=`<div class="dsec nws" id="edin-front"><h3>The front page</h3></div>`+(NM==='w'?nrBlocks(fp,b,{seed:3,tv:0,seq:NEWS_W}):nrBlocksPhone(fp,b,{seed:3,seq:NEWS_P})).join('');dgNr=true}
  for(const [ni,[n,l,why,kind]] of all.entries()){h+=`<div class="dsec" id="edin-s${ni}"><h3>${esc(n)}</h3></div>`+(kind==='front'?`<div class="dfront">${mk(l[0],'lead',why)}</div>`+(l.length>1?`<div class="dgrid">${l.slice(1).map(a=>mk(a,'mid',why)).join('')}</div>`:''):kind==='lead'?l.map(a=>mk(a,'lead',why)).join(''):`<div class="dgrid">${l.map(a=>mk(a,'mid',why)).join('')}</div>`)}
@@ -15416,7 +15430,7 @@ function renderDigest(){
  h+=`<div class="back"><blockquote>“${esc(bq.q)}”</blockquote><cite>${esc(bq.by)}</cite><small>${hls.length?'Your highlight of the day':'Quote of the day'} · End of this issue</small></div>`;
  {const sites=new Set(cur.map(a=>a.feedId)).size,mins=cur.reduce((n,a)=>n+(minsOf(a)||3),0),tf=fontKey?FONTS[fontKey()]:'';
   const fn=x=>(String(x||'').split(',')[0]||'').replace(/['"]/g,'').trim()||'Newsreader';
-  h+=`<div class="colo"><b>About this issue</b><p>${esc(title)}, No. ${issue}. ${plu(edN||cur.length,'story','stories')} from your ${sites===S.feeds.length?S.feeds.length:sites} ${sites===1?'source':'sources'}, about ${edM||mins} minutes of reading. Set in ${esc(fn(tf))} and ${esc(fn(getComputedStyle(document.documentElement).getPropertyValue('--serif')))}. Printed on your own device, and it goes nowhere else.</p></div>`}
+  h+=`<div class="colo"><b>About this issue</b><p>${esc(title)}, No. ${issue}. ${plu(edN||cur.length,'story','stories')} from your ${sites===S.feeds.length?S.feeds.length:sites} ${sites===1?'source':'sources'}, about ${MIN(edM||mins)} of reading. Set in ${esc(fn(tf))} and ${esc(fn(getComputedStyle(document.documentElement).getPropertyValue('--serif')))}. Printed on your own device, and it goes nowhere else.</p></div>`}
  if(k!=='week'&&isOn('seal')){const nx=nextEdition();h+=sealHtml({title:`That’s the ${k==='evening'?'Evening':'Morning'} Edition.`,sub:'Those are the headlines. Everything else is in All Stories.',note:`${nx.name} arrives at ${nx.at}.`,btn:['data-endall','See all stories']})}
  h+='</div>';
  $('#grid').innerHTML=h;$('#grid').classList.toggle('nr',dgNr);$('#grid').classList.toggle('nrp',dgNr&&nrMode()==='p');{const dg=$('#grid').firstElementChild;if(dg)dg.insertAdjacentHTML('afterbegin',bmSeg(k==='week'?'week':'edition'))}
@@ -15461,7 +15475,7 @@ function openYir(){
   `<small>You read</small><h1>${D.n.toLocaleString()}<span> stories</span></h1><p>${fmtMin(D.m)} of reading${D.m>=360?`. That’s about ${Math.max(1,Math.round(D.m/360))} novel${D.m>=720?'s':''}’ worth`:''}.${D.f?` You finished ${D.f} to the very last page.`:''}</p>`,
   top?`<small>Your number one source</small><h1 style="color:${col}">${esc(top[0])}</h1><p>${top[1]} ${top[1]===1?'story':'stories'} opened.</p>`:`<small>Your sources</small><h1>Just getting started</h1><p>Read more and your favorites will show up here.</p>`,
   D.src.length>1?`<small>Your top five</small><ol>${D.src.slice(0,5).map(([s,v])=>`<li><b>${esc(s)}</b><span>${v}</span></li>`).join('')}</ol>`:'',
-  D.tp[0]?`<small>Your favorite topic</small><h1>${esc(D.tp[0][0])}</h1><p>${D.tp[0][1]} stories.</p>`:'',
+  D.tp[0]?`<small>Your favorite topic</small><h1>${esc(D.tp[0][0])}</h1><p>${stN(D.tp[0][1])}.</p>`:'',
   `<small>Your reading style</small><h1>${esc(D.pe[0])}</h1><p>${esc(D.pe[1])}</p>`,
   `<small>Longest streak</small><h1>${D.sk.best}<span> day${D.sk.best===1?'':'s'}</span></h1><p>${D.bm?`${esc(D.bm)} was your busiest month.`:''}</p>`,
   D.hl.length?`<small>You highlighted ${D.hl.length} passage${D.hl.length===1?'':'s'}. One of them:</small><blockquote>“${esc(D.hl[0].q.slice(0,200))}”</blockquote><p>${esc(D.hl[0].art.title||'')}</p>`:'',
@@ -15547,7 +15561,7 @@ function listenBrief(){
  const mins=Math.max(1,Math.round(l.reduce((n,a)=>n+(readMin(a)||3),0)));
  /* the Daily plays from the feed: the player docks at the bottom and the stories are read in the background, one after another */
  digInit(l.map(a=>a.link));
- digGo(0,{intro:`Here’s your Daily. ${l.length} ${l.length===1?'story':'stories'}, about ${mins} minutes, read in full. First, from ${fof(l[0]).title}.`});
+ digGo(0,{intro:`Here’s your Daily. ${l.length} ${l.length===1?'story':'stories'}, about ${MIN(mins)}, read in full. First, from ${fof(l[0]).title}.`});
 }
 
 /* ---------- launch animation ---------- */
@@ -16625,7 +16639,7 @@ async function pdfFinish(meta,stories,coverImgUrl){
  await Promise.all([work(),work(),work()])}
  const cimg=(lead.imgK)||(lead.img)||await pdfCoverImg(coverImgUrl);
 const logo=await pdfLogoImg(),badge=await pdfBadgeImg('#8a6a14');
- const ed=Object.assign({},meta,{notes:exNotes(stories),logo,badge,totalMin:mins>=90?(Math.round(mins/6)/10)+' hours':mins+' minutes',cover:{title:lead.title,source:lead.source,deck:lead.dek||'',img:cimg},stories});
+ const ed=Object.assign({},meta,{notes:exNotes(stories),logo,badge,totalMin:mins>=90?(Math.round(mins/6)/10)+' hours':MIN(mins),cover:{title:lead.title,source:lead.source,deck:lead.dek||'',img:cimg},stories});
  const r=pdfIssue(ed);
  return new Blob([r.bytes],{type:'application/pdf'});
 }
