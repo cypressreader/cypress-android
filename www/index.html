@@ -860,20 +860,20 @@ html.pdark .grid:not(.list):not([data-cards=compact]):not([data-cards=narrow]) .
 .book>.rdedge{position:absolute;top:14px;bottom:14px;right:0;width:18px;z-index:4;display:flex;justify-content:flex-end}
 .book>.rdedge[hidden],#rd.vert .book>.rdedge{display:none}
 .book>.rdedge>i{display:block;height:100%;width:calc(2px + var(--rem,0)*8px);background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--ink) 10%,transparent)),repeating-linear-gradient(90deg,color-mix(in srgb,var(--ink) 30%,var(--pn,var(--bg))) 0 1px,var(--pn,var(--bg)) 1px 2.5px);border-left:1px solid color-mix(in srgb,var(--ink) 22%,transparent);border-radius:0 3px 3px 0;box-shadow:1px 0 2px color-mix(in srgb,var(--ink) 14%,transparent),2px 1px 6px -2px color-mix(in srgb,var(--ink) 18%,transparent);transition:width .35s ease}/* polish-2026-10 G2: a visible stack of page edges (up to 10px, inside the page margin), thinning as you read */
-.book.turning>.rdedge{opacity:0}
 .book>.rdedge .rdtip{position:absolute;right:22px;top:50%;transform:translateY(-50%);background:var(--ink);color:var(--bg);font:600 12.5px/1.2 var(--sans);padding:8px 12px;border-radius:10px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s}
 .book>.rdedge .rdtip.on{opacity:1}
 html.rmo .book>.rdedge>i,html.lowp .book>.rdedge>i{transition:none}
 .view{position:absolute;inset:0;overflow:hidden;background:var(--pn);border:1px solid var(--ln);border-radius:14px}
-.book.one.turning{clip-path:inset(-100vh -40px -100vh 0)}
+.book.one{clip-path:inset(-100vh -40px -100vh 0)}/* always on for one-page reading (adding a clip when a turn starts re-laid out the whole story, a visible hitch) */
 .tl{position:absolute;top:0;height:100%;overflow:hidden;pointer-events:none}
 .tl-under{z-index:2}
 .tl-cast{position:absolute;inset:0;z-index:3;overflow:hidden;pointer-events:none}
-.tl-cast i{position:absolute;top:0;bottom:0;width:170px;opacity:0}
+.tl-cast i{position:absolute;top:0;bottom:0;left:0;width:170px;opacity:0;will-change:transform,opacity}
+.tl-leaf .tf{will-change:opacity,filter}.tl-under,.tl-cast{will-change:opacity}.tl-under>.tsh{will-change:opacity}/* every moving part of a page turn changes only what the graphics chip can apply by itself (transform, opacity, filter), so nothing is redrawn while the page moves */
 .tl-leaf{position:absolute;top:0;height:100%;z-index:4;transform-origin:left center;transform-style:preserve-3d;will-change:transform;pointer-events:none}
 .tf{position:absolute;inset:0;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--pn)}
 .tf.bk{transform:rotateY(180deg)}
-.tf *{will-change:auto!important;transition:none!important}/* the turning page's copies are drawn flat into the page: a picture on its own layer (img.hero) floated flat over the curl on phones */
+:is(.tf,.tl) *{will-change:auto!important;transition:none!important;animation:none!important}/* the turning page's copies are drawn flat into the page: a picture on its own layer (img.hero) floated flat over the curl on phones */
 .tsh{position:absolute;inset:0;opacity:0;pointer-events:none}
 #ref.spin svg{animation:spn .9s linear infinite}@keyframes spn{to{transform:rotate(360deg)}}
 .rdy{position:absolute;right:10px;bottom:10px;z-index:2;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#137a3e;box-shadow:0 1px 4px rgba(0,0,0,.25)}
@@ -8417,7 +8417,7 @@ function pagesUndo(c){
  c.querySelectorAll('.body [data-fit]').forEach(f=>{f.style.removeProperty('--ih');delete f.dataset.fit});
  if(!document.body.classList.contains('flexp')){rd.style.removeProperty('--segtop');rd.style.removeProperty('--segbot')}
 }
-function layout(){noteFix();
+function layout(){prepDrop();noteFix();
  rdVars();
  const bk=$('.book'),c=$('.cols');if(!bk||!c)return;
  heroSpread();
@@ -8440,7 +8440,7 @@ function layout(){noteFix();
     single misread measurement (or a stale hinge report on a foldable) can never
     open the book layout on a phone. */
  var vwOK=innerWidth>=700&&Math.min(innerWidth,innerHeight)>=600;
- R.cpv=(!vert&&vwOK&&W>=700)?2:1;
+ R.cpv=(!vert&&vwOK&&W>=700)?2:1;bk.classList.toggle('one',R.cpv!==2);
  try{$('#rd').classList.toggle('cpv2',R.cpv===2)}catch(e){}
  try{$('#rd').classList.remove('spread')}catch(e){} /* B40 spread disabled 1.77: the facing-pages styling collided at the spine */
  const use=W-2*P,ch=H-2*P;
@@ -8469,7 +8469,7 @@ function layout(){noteFix();
   R.pg=0;
  }
  R.pg=Math.min(R.pg,R.np-1);
- pgEnd();
+ pgEnd();prepSoon();
  show();
  if(R.rf!=null){const f=R.rf;R.rf=null;R.sf=null;R.af={f,t:Date.now()};rdSetFrac(f);rdFollow()}else rdReapply()
 }
@@ -8492,6 +8492,7 @@ function rdxEdge(){
 function show(){
  const c=$('.cols');if(!c)return;setProg();
  if(!isVert())c.style.transform=`translateX(${-R.pg*R.step}px)`;
+ if(RP&&!R.T&&RP.T.key!==prepKey())prepSoon();
  $('#pc').textContent=pcText();{const bk=$('.book');if(bk){if(isOn('folio')&&curA&&!R.web&&!isVert()&&R.np>0){const t=(curA.title||'').length>46?curA.title.slice(0,44)+'…':(curA.title||'');bk.dataset.folio=(fof(curA).title||'')+' · '+t+'   ·   '+(R.pg+1)}else delete bk.dataset.folio}}$('#pv').disabled=!isVert()&&R.pg===0;$('#nx').disabled=!isVert()&&R.pg>=R.np-1;fpSync();dialSync();rdxEdge();
  if(R.ready&&curA){delete S.pos[curA.link];if(R.pg>0&&R.pg<R.np-1)S.pos[curA.link]=R.pg;const pk=Object.keys(S.pos);if(pk.length>300)delete S.pos[pk[0]];clearTimeout(pt);pt=setTimeout(save,700)}
 }
@@ -8510,9 +8511,10 @@ function mkBox(pg,x0){
 function shade(dir){const e=document.createElement('i');e.className='tsh';e.style.background=`linear-gradient(${dir},rgba(0,0,0,.55),rgba(0,0,0,0) 65%)`;return e}
 function startTurn(dir){
  curlGet();
+ if(RP){const P=RP.T;RP=null;const bk0=$('.book');if(dir>0&&bk0&&!P.part&&P.key===prepKey()&&P.els.every(e=>e.isConnected)){R.T=P;R.busy=true;edgeHide(bk0,1);bk0.classList.toggle('one',!P.two);bk0.style.perspectiveOrigin=P.po||'';P.hid.forEach(e=>e.style.opacity='');setAng(P.ang);return P}P.els.forEach(e=>e.remove())}
  const bk=$('.book'),W=bk.clientWidth,two=R.cpv===2,hw=two?W/2:W,hx=two?W/2:0,to=R.pg+dir;
  const T=R.T={my:tok,dir,to,hw,hx,two,ang:dir>0?0:180,dead:false,els:[]};
- R.busy=true;bk.classList.add('turning');bk.classList.toggle('one',!two);
+ R.busy=true;edgeHide(bk,1);bk.classList.toggle('one',!two);
  const pgF=dir>0?R.pg:to,pgB=dir>0?to:R.pg;
  const face=(cls,pg,x0)=>{const f=mkEl('tf '+cls);f.style.width=hw+'px';if(pg!=null)f.append(mkBox(pg,x0));return f};
  const cast=mkEl('tl-cast');
@@ -8527,7 +8529,7 @@ function startTurn(dir){
    const el=mkEl('tl-s',`left:0;width:${sw+1}px`);
    const f=mkEl('tf');f.append(mkBox(pgF,hx+i*sw));const fs=shade('to right');fs.style.background='#000';f.append(fs);el.append(f);
    const b=mkEl('tf bk');if(two)b.append(mkBox(pgB,hw-(i+1)*sw));const bs=shade('to left');bs.style.background='#000';b.append(bs);el.append(b);
-   leaf.append(el);T.st.push({el,fs,bs,o:-1});
+   leaf.append(el);T.st.push({el,f,b,o:-1});
   }
  }else{
  const f=face('',pgF,hx);T.fs=shade('to right');f.append(T.fs);T.sn=mkEl('tsheen');f.append(T.sn);
@@ -8538,7 +8540,7 @@ function startTurn(dir){
  T.leaf=leaf;
  /* the lifted page comes toward the reader and grows; the lift's depth is squeezed (the bow keeps its shape across the screen) so the page never grows past the top or bottom of the screen, and it grows into whichever side has the room */
  {const B=bk.getBoundingClientRect(),up=Math.max(0,B.top),dn=Math.max(0,innerHeight-B.bottom),r=(up+dn)/B.height,P=parseFloat(getComputedStyle(bk).perspective)||1700;
-  T.kz=Math.max(.25,Math.min(1,P*r/((1+r)*hw*1.05)));bk.style.perspectiveOrigin=`50% ${Math.round(B.height*(up+dn?up/(up+dn):.5))}px`;if(T.st)leaf.style.transform=`scale3d(1,1,${T.kz.toFixed(3)})`}
+  T.kz=Math.max(.25,Math.min(1,P*r/((1+r)*hw*1.05)));T.po=`50% ${Math.round(B.height*(up+dn?up/(up+dn):.5))}px`;bk.style.perspectiveOrigin=T.po;if(T.st)leaf.style.transform=`scale3d(1,1,${T.kz.toFixed(3)})`}
  const ux=(dir>0)?hx:0;
  if(dir>0||two){
   const u=mkEl('tl tl-under',`left:${ux}px;width:${hw}px`);
@@ -8608,30 +8610,40 @@ function setAng(a){
   T.st.forEach((q,i)=>{
    const t0=al+cs*Math.cos(PI*(i+.5)/N),th=T.dir>0?t0:PI-t0/* turning back is the mirror image of turning forward */,dg=th*180/PI;
    q.el.style.transform=`translate3d(${(dr*P[i][0]).toFixed(1)}px,0,${P[i][1].toFixed(1)}px) rotateY(${(-dg).toFixed(2)}deg)`;
-   const o=Math.round(16*Math.abs(Math.sin(th)));if(o!==q.o){q.o=o;const v=(o/100).toFixed(2);q.fs.style.opacity=v;q.bs.style.opacity=v}
+   const o=Math.round(16*Math.abs(Math.sin(th)));if(o!==q.o){q.o=o;q.f.style.filter=q.b.style.filter=o?`brightness(${(1-o/100).toFixed(2)})`:''}/* the strip darkens as it tilts away; a filter on its own layer is applied by the graphics chip, while the old black overlay repainted the strip every frame */
   });
   x=T.hx+dr*P[N][0];
   tipx=x;
  }else{T.fs.style.opacity=.2*s;T.bs.style.opacity=.2*s;if(T.sn){T.sn.style.opacity=(.9*s*s).toFixed(3);T.sn.style.backgroundPosition=(100-a/180*100)+'% 0'}}
  if(T.us)T.us.style.opacity=.14*s;
- if(tipx!=null)tip=tipx;T.cr.style.left=tip+'px';T.cr.style.opacity=c>0?s:0;
- T.cl.style.left=(tip-170)+'px';T.cl.style.opacity=c<0?s:0;
+ if(tipx!=null)tip=tipx;T.cr.style.transform=`translate3d(${tip.toFixed(1)}px,0,0)`;T.cr.style.opacity=c>0?s:0;
+ T.cl.style.transform=`translate3d(${(tip-170).toFixed(1)}px,0,0)`;T.cl.style.opacity=c<0?s:0;
 }
 /* warm-up: the first page turn of a story used to hitch while the browser built the turn's layers for the first time. Once the story has settled, build one turn invisibly for two frames, then throw it away, so the first real turn starts warm. */
 function rdWarm(){
  curlGet();
  if(!isOn('curl')||rdxPturn()!=='paper'||!curlPlan().N||reduced()||R.busy||R.T||R.web||isVert()||!R.ready||R.np<2||D)return;
- const go1=()=>{
-  if(R.busy||R.T||D||R.web||isVert()||!$('.book'))return;
-  const d=R.pg+1<R.np?1:-1;let T;
-  try{T=startTurn(d)}catch(e){return}
-  T.warm=true;/* polish-2026-10: a real swipe or tap cancels this invisible warm-up instead of being dropped */
-  T.els.forEach(e=>{e.style.opacity='.01'});
-  setAng(d>0?20:160);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(R.T===T)endTurn(false)}));
- };
- if(window.requestIdleCallback)requestIdleCallback(go1,{timeout:1500});else setTimeout(go1,300);
+ prepSoon();
 }
+/* the next page turn is built ahead, while the reader reads: copying the story into the strips of the turning page and drawing them is the slow part, so a tap or swipe starts the motion on the very next frame. The ready turn sits invisibly (1% see-through) over the page so its layers are already drawn. Any change to the page (layout, page, story) makes it stale and it is thrown away. */
+let RP=null;
+const prepKey=()=>{const bk=$('.book');return bk?[tok,R.pg,R.step,R.np,R.cpv,bk.clientWidth,bk.clientHeight,curlN].join():''};
+/* the page-edge stack hides while a page turns; set on the stack itself, since changing the book's class made the browser recheck the whole story and its copies (a 40 ms hitch on the first frame) */
+function edgeHide(bk,on){const e=bk&&bk.querySelector(':scope>.rdedge');if(e)e.style.opacity=on?'0':''}
+function prepDrop(){if(RP){RP.T.els.forEach(e=>e.remove());RP=null}}
+function prepTurn(){
+ if(RP&&RP.T.key===prepKey())return;prepDrop();
+ if(!isOn('curl')||rdxPturn()!=='paper'||reduced()||R.busy||R.T||D||R.web||isVert()||!R.ready||R.pg+1>=R.np||!$('.book')||!$('#rd').classList.contains('on'))return;
+ let T;try{T=startTurn(1)}catch(e){return}
+ R.T=null;R.busy=false;const bk=$('.book');edgeHide(bk,0);bk.style.perspectiveOrigin='';
+ T.hid=[...T.leaf.querySelectorAll('.tf'),...T.els.filter(e=>e!==T.leaf)];T.hid.forEach(e=>{e.style.opacity='.01'});T.key=prepKey();RP={T};
+ /* the strips are put in a few at a time between idle moments, so drawing the copies never holds up a tap or a scroll for long; a turn asked for before they are all in builds the usual way */
+ const kids=[...T.leaf.children];kids.forEach(k=>k.remove());T.part=true;
+ const step=()=>{if(!RP||RP.T!==T)return;for(let i=0;i<3&&kids.length;i++)T.leaf.append(kids.shift());if(kids.length)prepQ=window.requestIdleCallback?requestIdleCallback(step,{timeout:600}):setTimeout(step,60);else T.part=false};
+ step();/* each face is hidden, not the turning page as a whole: a see-through page is flattened, and making it solid again rebuilt its 3D layers on the first frame */
+}
+let prepQ=0;function prepSoon(){cancelIdle(prepQ);prepQ=window.requestIdleCallback?requestIdleCallback(prepTurn,{timeout:1500}):setTimeout(prepTurn,400)}
+function cancelIdle(h){if(!h)return;if(window.cancelIdleCallback)cancelIdleCallback(h);else clearTimeout(h)}
 function anim(from,to,dur,ease,done){
  const T=R.T,t0=performance.now();
  const f=now=>{
@@ -8648,8 +8660,8 @@ function endTurn(ok){
  curlTune(T);
  if(ok&&!T.dead&&T.my===tok){R.pg=T.to;show();turnTick()}
  T.els.forEach(e=>e.remove());
- const bk=$('.book');if(bk){bk.classList.remove('turning');bk.style.perspectiveOrigin=''}
- R.busy=false;
+ const bk=$('.book');if(bk){edgeHide(bk,0);bk.style.perspectiveOrigin=''}
+ R.busy=false;prepSoon();
 }
 const reduced=()=>!!S.rmo||matchMedia('(prefers-reduced-motion:reduce)').matches;
 let ACX=null;
@@ -10025,7 +10037,7 @@ let RDTRIG=null;
 const rdInert=on=>{try{const rd=$('#rd');document.querySelectorAll('aside,main,#tabs,#mtabs,a.skip').forEach(e=>{if(e.contains(rd))return;e.inert=!!on&&!document.body.classList.contains('split')&&!rd.classList.contains('ghost')/* a Daily story read in the background is not on screen: the app stays usable */&&!(e.tagName==='ASIDE'&&document.body.classList.contains('sideshow'))})}catch(e){}};
 /* no cross-fade on close: it snapshots the whole page and stuttered while the feed was still repainting */
 const closeRd=fromPop=>closeRd0(fromPop);
-const closeRd0=fromPop=>{try{raCancel()}catch(e){}try{if($('#rfind')&&!$('#rfind').hidden)closeFind()}catch(e){}if(AUTO.on)autoRd(false);const was=curA,feedSel=/^(all|f:|s:|k:)/.test(S.sel||''),same=!!was&&RDSIG===rdSig(was)&&feedSel,soft=!same&&!!was&&feedSel&&rdBase(RDSIG)===rdBase(rdSig(was));$('#rd').classList.remove('focus');if(fromPop!==true){dropLayer('rdnav');dropLayer('reader')}else dropLayer('rdnav');const nv=$('#rdnav');if(nv){nv.classList.remove('on');nv.hidden=true}tok++;R.busy=false;/* read-aloud keeps going when you back out to the feed: the floating pill (#tmini) carries the controls */if(!(TTS.on&&('speechSynthesis' in window)))ttsStop();hlClear();$('#selbar').hidden=true;$('#rd').classList.remove('on','flex','vert');rdInert(false);try{if(RDTRIG&&RDTRIG.isConnected&&RDTRIG!==document.body)RDTRIG.focus({preventScroll:true})}catch(e){};curA=null;try{tminiSync()}catch(e){}applyFolderTheme();if(document.body.classList.contains('split'))splitEmpty();if(same||soft){try{side();dgProgUpdate();if(soft)patchProg(was)}catch(e){}}else render();if(feedSel)rdAnchorRestore()};
+const closeRd0=fromPop=>{prepDrop();try{raCancel()}catch(e){}try{if($('#rfind')&&!$('#rfind').hidden)closeFind()}catch(e){}if(AUTO.on)autoRd(false);const was=curA,feedSel=/^(all|f:|s:|k:)/.test(S.sel||''),same=!!was&&RDSIG===rdSig(was)&&feedSel,soft=!same&&!!was&&feedSel&&rdBase(RDSIG)===rdBase(rdSig(was));$('#rd').classList.remove('focus');if(fromPop!==true){dropLayer('rdnav');dropLayer('reader')}else dropLayer('rdnav');const nv=$('#rdnav');if(nv){nv.classList.remove('on');nv.hidden=true}tok++;R.busy=false;/* read-aloud keeps going when you back out to the feed: the floating pill (#tmini) carries the controls */if(!(TTS.on&&('speechSynthesis' in window)))ttsStop();hlClear();$('#selbar').hidden=true;$('#rd').classList.remove('on','flex','vert');rdInert(false);try{if(RDTRIG&&RDTRIG.isConnected&&RDTRIG!==document.body)RDTRIG.focus({preventScroll:true})}catch(e){};curA=null;try{tminiSync()}catch(e){}applyFolderTheme();if(document.body.classList.contains('split'))splitEmpty();if(same||soft){try{side();dgProgUpdate();if(soft)patchProg(was)}catch(e){}}else render();if(feedSel)rdAnchorRestore()};
 /* going back to the feed: put the story that was at the top of the screen back at the same spot, even if the list moved while the story was open (pictures loading, a refresh) */
 /* while a story is open the feed is hidden behind it, but the sidebar column comes back and squeezes the feed to a sliver on mid-width windows; the whole list then re-wraps twice (open and close) and the scroll position jumps. Keep the feed at the width it had. */
 function rdFreeze(on){const b=document.body;if(!on){if(b.style.gridTemplateColumns)try{jmpMark('feed width released')}catch(e){}b.style.removeProperty('grid-template-columns');return}if(b.classList.contains('narrow')||b.classList.contains('split')||b.style.gridTemplateColumns)return;const g=getComputedStyle(b).gridTemplateColumns;if(g&&g!=='none')b.style.setProperty('grid-template-columns',g)}

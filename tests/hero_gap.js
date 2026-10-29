@@ -11,7 +11,7 @@ const r=await p.evaluate(async()=>{document.querySelectorAll('dialog[open]').for
   const im=document.querySelector('#rd img.hero');if(!im){out.push({sc,rl,none:true});document.querySelector('#cl')&&document.querySelector('#cl').click();await w(200);continue}
   const R=im.getBoundingClientRect();let nx=null,gap=null;
   /* the first visible element drawn below the picture's bottom edge (overlapping horizontally) */
-  const cands=[...document.querySelectorAll('#rd .cols *')].filter(e=>e!==im&&!e.contains(im)&&!im.contains(e)&&e.children.length===0&&(e.textContent||'').trim()&&e.getClientRects().length);
+  const cands=[...document.querySelectorAll('#rd .cols *')].filter(e=>!e.closest('.tl,.tl-leaf')&&e!==im&&!e.contains(im)&&!im.contains(e)&&e.children.length===0&&(e.textContent||'').trim()&&e.getClientRects().length);
   let best=1e9;for(const e of cands){for(const q of e.getClientRects()){if(q.top>=R.bottom-1&&q.left<R.right&&q.right>R.left){const d=q.top-R.bottom;if(d<best){best=d;nx=e.className||e.tagName}}}}
   out.push({sc,rl,gap:best===1e9?null:Math.round(best),nx,mb:getComputedStyle(im).marginBottom,ov:R.height>0});
   document.querySelector('#cl')&&document.querySelector('#cl').click();await w(250)}

@@ -1017,3 +1017,9 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] Page turns (phone and Fold open): the lifting page never gets cut off at the top/bottom of the screen or along a straight line; still curls like a page.
 - [ ] Page turn on the Fold (Brave): the photo curls WITH the page (no flat photo floating over the curl), no parts of the page vanishing mid-turn.
 - [ ] Two-page view, short story (1 min): story text starts on page 1, right side, under the photo (not on page 2).
+
+## Smooth page turn pass (branch, unreleased)
+- [ ] Fold open + closed, app and Brave: tap-turn starts moving instantly (no pause), runs smooth to the end; swipe-drag turn follows the finger smoothly.
+- [ ] Turn quickly several pages in a row: still smooth (the next turn is prepared ~1 s after each page lands).
+- [ ] Reading a page: nothing faint/ghosted visible over the text (the prepared turn sits invisibly on top); links and text selection still work.
+- [ ] Page-edge stack on the right hides during a turn and comes back after.
