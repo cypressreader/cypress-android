@@ -11225,8 +11225,9 @@ $('#q').oninput=()=>render();
 const srch=$('#srch');
 /* search remembers your last 8 searches (offered as you type) and can be narrowed to Unread or Saved */
 var QSC='all';
-function qrecSync(){const d=$('#qrecent');if(d)d.innerHTML=(S.qh||[]).map(x=>`<option value="${esc(x)}"></option>`).join('')}
-$('#q').addEventListener('change',()=>{const v=$('#q').value.trim();if(v.length<2)return;S.qh=[v,...(S.qh||[]).filter(x=>x.toLowerCase()!==v.toLowerCase())].slice(0,8);save();qrecSync()});qrecSync();
+if(Array.isArray(S.qh))delete S.qh;
+function qrecSync(){const d=$('#qrecent');if(d)d.innerHTML=(S.qr||[]).map(x=>`<option value="${esc(x)}"></option>`).join('')}
+$('#q').addEventListener('change',()=>{const v=$('#q').value.trim();if(v.length<2)return;S.qr=[v,...(S.qr||[]).filter(x=>x.toLowerCase()!==v.toLowerCase())].slice(0,8);save();qrecSync()});qrecSync();
 {const _rq=render;render=function(){const r=_rq.apply(this,arguments);try{const q=$('#q').value.trim();const g=$('#grid');if(q&&g&&!g.querySelector('#qsc'))g.insertAdjacentHTML('afterbegin',`<div id="qsc" class="segs chips" role="radiogroup" aria-label="Search in">${[['all','All'],['unread','Unread'],['saved','Saved']].map(([k,t])=>`<button type="button" role="radio" data-qsc="${k}" aria-checked="${QSC===k}" class="${QSC===k?'on':''}">${t}</button>`).join('')}</div>`)}catch(e){}return r}}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-qsc]');if(!b)return;QSC=b.dataset.qsc;render()});
 function openSearch(o){srch.classList.toggle('open',o);TOPIC=null;if(o)$('#q').focus();else{$('#q').value='';QSC='all';render()}}
@@ -13392,8 +13393,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.29e';const APP_LABEL='1.201';
-const CHANGES=["Reader: line spacing choices (Tight, Normal, Roomy, Large print) now work on phones, text goes up to 34 px with a slider, and there's a new Letter spacing setting","Reader: Find in story, tap a highlight to edit it, \"Listen from here\", an offer to pick up where you left off, and softer photos in dark themes","New Offline tab for stories saved on this phone","All Stories: a Sections list, fold away a section you don't want, a back-to-top arrow, and tapping the bottom tab you're on glides to the top","Search remembers your recent searches and can look in one place at a time","Easier to read: site names on picture cards, a solid bottom tab bar, a shorter top story, and a tidier top of Headlines and the Daily cover","Better with screen readers and keyboards: clearer names, one stop per tab bar, card times read in full, and a bigger Cards|Columns switch","Widgets only respond to CyPress itself, and Erase everything now clears all of it after asking twice"];
+const APP_VERSION='2026.10.29f';const APP_LABEL='1.202';
+const CHANGES=["Fixed: CyPress couldn't start after updating to 1.201 if you had set quiet hours for alerts"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
