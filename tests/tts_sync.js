@@ -32,6 +32,9 @@ let pass=0,fail=0;const log=[];const ck=(n,c,x='')=>{if(c)pass++;else{fail++;log
  const rs=await E(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));ttsStop();ttsCollect();ttsFrom(0);await w(1500);const sp=TTS.sp,wi=TTS.wi;ttsPause();const n0=window.__calls.length;ttsToggle();await w(300);const c=window.__calls[n0];return {sp,wi,first:c&&c.text.split(' ')[0],want:TTS.words[sp]&&TTS.words[sp].t}});
  ck('the highlight is ahead of the voice (word '+rs.wi+' vs '+rs.sp+')',rs.wi>rs.sp,JSON.stringify(rs));
  ck('resume starts at the word the voice was on, skipping nothing',rs.first===rs.want,JSON.stringify(rs));
+ /* the whole rest of the story goes to the phone at once: a page asleep in the background can't send more later (a 60-piece batch stopped after a few minutes) */
+ const all=await E(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));ttsStop();ttsCollect();const base=TTS.words.slice();TTS.words=Array.from({length:12},()=>base).flat().map((x,i)=>({...x,b:Math.floor(i/12)}));TTS.sent=[];const n0=window.__calls.length;ttsFrom(0);await w(400);const c=window.__calls.slice(n0),last=c[c.length-1];const r={n:c.length,end:!!last&&last.text.trim().endsWith(TTS.words[TTS.words.length-1].t)};ttsStop();return r});
+ ck('a long story is handed to the phone in full ('+all.n+' pieces)',all.n>60&&all.end,JSON.stringify(all));
  /* B86: the sleep time goes to the phone, both with new speech and on its own */
  const sl=await E(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));ttsStop();setSleep('15');await w(100);const own=window.__sleepAt;ttsCollect();ttsFrom(0);await w(400);const c=window.__calls[window.__calls.length-1];const r={own:own&&own.stopAt,sent:c&&c.stopAt,at:SLEEP.at};setSleep('0');await w(100);r.cleared=window.__sleepAt&&window.__sleepAt.stopAt;ttsStop();return r});
  ck('setting the timer tells the phone the stop time',sl.own&&Math.abs(sl.own-sl.at)<2000,JSON.stringify(sl));

@@ -989,3 +989,4 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] All Stories > Sections near the top of the page: every section is listed; picking a far one loads it and lands on its heading (no overshoot); scrolling during the jump is not pulled back
 - [ ] Tablet/Fold, story open: the side "Feeds" tab opens the feeds panel; feeds in it can be tapped; tapping outside closes it and the story stays
 - [ ] Listen to a story: a "− 1.0× + ×" pill shows at the bottom in the theme's colors; − / + change the voice speed within a moment; × stops reading; hands-free still shows its own speed pill
+- [ ] Android: Listen to a long story, switch to another app for 10+ minutes: reading carries on to the end of the story (was cutting off after a few minutes). Also note whether it moves on to the next story when "Play next story" is on
