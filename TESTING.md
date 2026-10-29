@@ -1007,3 +1007,4 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Black & White: cards, photos and In brief all square.
 - Reader: caption/credit line under the top photo when the site sends one; hidden when the same photo repeats in the story.
 - P12: a story whose feed lists 2+ photos shows "+N photos" on its card; in the reader, "See all N photos" under the top photo opens the photo viewer; swipe through, Back/Escape closes and returns focus.
+- In brief photo strip: a story whose photo fails to load leaves no blank square (its line shows the site initial instead).
