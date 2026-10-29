@@ -958,3 +958,7 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [x] Fold 1.199 (David): scrolling feels better; small stutter only on the FIRST pass through All Stories, gone after
 - [x] Open a story deep in All Stories, go back: same place in the list
 - [x] Blank patches only at the fastest possible fling (accepted)
+
+## Photo unpacking ahead (branch after 1.199, unverified on phone)
+- [ ] Fold: fresh open, All Stories, one normal-speed pass down: first-pass stutter less than 1.199? Scroll check: fewer slow frames with script 0 / big "before drawing"
+- [ ] Memory: js heap and app stays smooth after a long scroll (decoded photos cost memory)

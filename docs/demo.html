@@ -17254,7 +17254,7 @@ function catchUp(){
 }
 /* draw cards up to ~3 screens ahead and behind; farther ones go back to being skipped, so long lists stay light (also run when setBlocks adds more cards) */
 function cvAhead(more){
- const io=cvAhead.io=cvAhead.io||new IntersectionObserver(es=>es.forEach(e=>{e.target.classList.toggle('nv',e.isIntersecting);/* fetch the photo now, not ~1250px out, so fast flings don't reach empty cards */if(e.isIntersecting)e.target.querySelectorAll('img[loading=lazy]').forEach(i=>{i.loading='eager'})}),{root:$('main'),rootMargin:'2500px 0px'});
+ const io=cvAhead.io=cvAhead.io||new IntersectionObserver(es=>es.forEach(e=>{e.target.classList.toggle('nv',e.isIntersecting);/* fetch the photo now, not ~1250px out, so fast flings don't reach empty cards */if(e.isIntersecting)e.target.querySelectorAll('img').forEach(i=>{if(i.loading==='lazy')i.loading='eager';/* and unpack it ahead, once, off the main thread: a photo's first unpacking was the first-pass stutter on the Fold (1.199) */if(!i._dc&&i.decode&&!document.documentElement.classList.contains('lowp')){i._dc=1;i.decode().catch(()=>{})}})}),{root:$('main'),rootMargin:'2500px 0px'});
  /* a full redraw starts afresh; cards added while scrolling are only added, so the hundreds already watched aren't all re-measured at once */if(!more)io.disconnect();$('#grid').querySelectorAll('.card,.wcol').forEach(c=>{if(more&&c._cv===io)return;c._cv=io;io.observe(c)});
 }
 /* live dot: a card from the last 6 hours whose headline names a topic in the Developing row gets the row's red dot before its headline */
