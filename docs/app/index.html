@@ -6164,7 +6164,7 @@ function analyzePx(im){
  let fx=50,fy=40;
  if(en>0){fx=(ex/en+.5)/W*100;fy=(ey/en+.5)/H*100}
  if(sn/(W*H)>.02&&sn/(W*H)<.3){const a=(sx/sn+.5)/W*100,b2=(sy/sn+.5)/H*100;fx=a*.8+fx*.2;fy=b2*.8+fy*.2}
- return{v:4,bz:bzn?Math.round(bzs/bzn):0,s:bzn?+(sts/bzn).toFixed(2):0,t:w>0?toTint(r/w,g/w,b/w):'',f:(lowF>.15&&lowF>topF*1.3)?1:0,l:ln?Math.round(ls/ln):0,px:Math.round(Math.max(15,Math.min(85,fx))),py:Math.round(Math.max(15,Math.min(85,fy)))};
+ return{v:5,bz:bzn?Math.round(bzs/bzn):0,s:bzn?+(sts/bzn).toFixed(2):0,t:w>0?toTint(r/w,g/w,b/w):'',f:(lowF>.15&&lowF>topF*1.3)?1:0,l:ln?Math.round(ls/ln):0,px:Math.round(Math.max(15,Math.min(85,fx))),py:Math.round(Math.max(15,Math.min(85,fy)))};
 }
 /* Where to keep a photo when a card crops it. Faces first (the browser's own on-device FaceDetector, where there is one; nothing is uploaded), then, for a portrait photo, a point near the top (faces sit high); otherwise the detail-based point already worked out above. */
 async function faceAdjust(url,o){
@@ -6193,10 +6193,10 @@ const iiIdle=()=>new Promise(r=>{const go=()=>{if(Date.now()-SCRT<220||document.
 function iiStore(){clearTimeout(iiSave);iiSave=setTimeout(()=>{try{localStorage.setItem('folio-imgi',JSON.stringify(IIS))}catch(e){}},2500)}
 async function imgInfo(url){
  if(!url||!/^https?:/.test(url))return null;
- if(IIS[url]&&IIS[url].v>=4)return IIS[url];
+ if(IIS[url]&&IIS[url].v>=5)return IIS[url];
  if(!IINFO.has(url))IINFO.set(url,new Promise(res=>{
   if(IIQ.length>80){const d=IIQ.shift();d.cancel&&d.cancel()}
-  const job=async()=>{try{const im=await imgPixels(url);if(!im){res(null);return}await iiIdle();const o=await faceAdjust(url,analyzePx(im));IIS[url]=o;const k=Object.keys(IIS);if(k.length>250)delete IIS[k[0]];iiStore();res(o)}catch(e){res(null)}};
+  const job=async()=>{try{const im=await imgPixels(url);if(!im){res(null);return}await iiIdle();const o=await faceAdjust(url,analyzePx(im));if(!o.face)o.py=Math.min(o.py,o.pt?30:35);/* no face found: the busiest spot is often a suit or a flag below the head, so the crop never aims below the upper third */IIS[url]=o;const k=Object.keys(IIS);if(k.length>250)delete IIS[k[0]];iiStore();res(o)}catch(e){res(null)}};
   job.cancel=()=>{IINFO.delete(url);res(null)};
   IIQ.push(job);iiPump();
  }));
@@ -6207,13 +6207,13 @@ function cardFocus(im,done){
  let fin=false;const end=()=>{if(!fin){fin=true;done&&done()}};
  try{const u=im.getAttribute('src');if(!u||!/^https?:/.test(u)){end();return}
   const put=o=>{if(o&&o.px!=null&&(Math.abs(o.px-50)>6||Math.abs(o.py-50)>6))im.style.objectPosition=o.px+'% '+o.py+'%'};
-  const q=IIS[u];if(q&&q.v>=4){put(q);end();return}
+  const q=IIS[u];if(q&&q.v>=5){put(q);end();return}
   end();imgInfo(u).then(put).catch(()=>{})}catch(e){end()}
 }
 const LUMQ=[];let lumRun=false;
 function cardLum(im){
  if(S.scrim==='strong'||S.scrim==='panel'||!im.getAttribute('src'))return;
- {const q=IIS[im.getAttribute('src')],c0=q&&im.closest&&im.closest('.card');if(q&&q.v>=4&&c0){if(q.l>125)c0.classList.add('bright');return}}
+ {const q=IIS[im.getAttribute('src')],c0=q&&im.closest&&im.closest('.card');if(q&&q.v>=5&&c0){if(q.l>125)c0.classList.add('bright');return}}
  LUMQ.push(im);if(lumRun)return;lumRun=true;
  const step=async()=>{const x=LUMQ.shift();if(!x){lumRun=false;return}
   try{const o=await imgInfo(x.getAttribute('src'));const c=x.closest&&x.closest('.card');if(o&&c&&o.l>125)c.classList.add('bright')}catch(e){}
@@ -6245,7 +6245,7 @@ document.addEventListener('error',e=>{const im=e.target;if(im&&im.tagName==='IMG
 function imgFx(){
  document.querySelectorAll('#grid .cover').forEach(cv=>{const im=cv.querySelector(':scope>img');if(!im)return;const u=im.getAttribute('src');
   const ap=o=>{if(!o||!cv.isConnected)return;try{const au=document.documentElement.classList.contains('mast-auto');['frost','wash','rule','glow','italic','tint'].forEach(k=>cv.classList.remove('cm-'+k));if(au&&o.l!=null){const h=cv.querySelector('.cvlead h2');cv.classList.add('cm-'+autoMast(o,h?h.textContent:''))}}catch(e){}cv.classList.toggle('flip',!!o.f);try{if(o.px!=null){const ci=cv.querySelector(':scope>img');if(ci)ci.style.objectPosition=o.px+'% '+o.py+'%'}}catch(e){}if(o.t&&isOn('ptint'))cv.style.setProperty('--b',o.t);if(o.l>125&&S.scrim!=='panel')cv.classList.add('bright');if(o.t&&isOn('ctint')&&!/^(cyber|terminal)/.test(document.documentElement.dataset.theme||'')&&document.documentElement.dataset.theme!=='dynamic')document.body.style.setProperty('--tint','color-mix(in srgb,'+o.t+' 22%,var(--bg))')};
-  if(IIS[u]&&IIS[u].v>=4)ap(IIS[u]);else imgInfo(u).then(ap)});
+  if(IIS[u]&&IIS[u].v>=5)ap(IIS[u]);else imgInfo(u).then(ap)});
 }
 /* what size a picture is, remembered from the lists (the same picture opens as the story's lead photo), so the lead photo's room is held before it has loaded and nothing below it is pushed down when it arrives */
 const IMGDIM=new Map();
@@ -6612,7 +6612,7 @@ function colItem(u,ix,deck){
 const densHtml=()=>`<div class="wdens" role="group" aria-label="Density"><button type="button" data-wdens="mag" aria-pressed="${S.wdens!=='col'}">Cards</button><button type="button" data-wdens="col" aria-pressed="${S.wdens==='col'}">Columns</button></div>`;
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button[data-wdens]');if(!b)return;e.preventDefault();e.stopPropagation();S.wdens=b.dataset.wdens;save();render()},true);
 /* the bar under a section heading takes its color from the section's lead photo, once that photo has been looked at on the device */
-const secTint=us=>{if(!isOn('mag3'))return '';const a=us.find(u=>u.head.img&&IIS[u.head.img]&&IIS[u.head.img].t&&IIS[u.head.img].v>=4);return a?` style="--sa:${IIS[a.head.img].t}"`:''};
+const secTint=us=>{if(!isOn('mag3'))return '';const a=us.find(u=>u.head.img&&IIS[u.head.img]&&IIS[u.head.img].t&&IIS[u.head.img].v>=5);return a?` style="--sa:${IIS[a.head.img].t}"`:''};
 function wireRender(pre,list,T){
  const g=$('#grid'),mode=nrMode(),now=Date.now(),vis=T?0:VIS,units=wireThreads(list);
  const FO=!T&&S.sel.startsWith('f:')?S.folders.find(x=>'f:'+x.id===S.sel):null;
@@ -7530,7 +7530,7 @@ function listRow(a,i,k,f){
 function card(a,i,k){
   if(a&&!WHY[a.link]){const pw=priWhy(a);if(pw)WHY[a.link]=pw}
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
-  const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],q1=a.img&&IIS[a.img],pc=q1&&q1.t?`--pc:${q1.t};`:'',op=q0&&q0.v>=4&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="${pc}object-position:${q0.px}% ${q0.py}%"`:pc?` style="${pc}"`:'';
+  const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],q1=a.img&&IIS[a.img],pc=q1&&q1.t?`--pc:${q1.t};`:'',op=q0&&q0.v>=5&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="${pc}object-position:${q0.px}% ${q0.py}%"`:pc?` style="${pc}"`:'';
   return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="${i<6?'eager':'lazy'}" decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div>${a.img&&a.pcr&&isOn('mag3')?`<span class="pcr">Photo: ${esc(a.pcr)}</span>`:''}${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg" style="--pg:${Math.round(progOf(a.link)*100)}%"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><span class="sn" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}">${esc(f.title)}</span>${a.sec?`<span class=" ssec">· ${esc(a.sec)}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${a.img&&a.pics&&a.pics.length>1?`<span class="pw">+${a.pics.length-1} ${a.pics.length===2?'photo':'photos'}</span>`:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="${a.more.length+1} sources report this">+${a.more.length} sources</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}" aria-label="${esc(a.title)}${a.date?', '+agoL(a.date):''}">${esc(a.title)}</a></h3>${(()=>{const q=!a.img&&!/\b(nr-row|nr-late|list-row)\b/.test(k||'')?nrQuoteText(a):null;return q?`<p class="lq">${esc(q.q)}</p>`:`<p>${esc(sumOf(a.summary))}</p>`})()}<div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}${pwBadge(a)}<time datetime="${a.date?new Date(a.date).toISOString():''}" aria-hidden="true">${agoT(a.date)}</time></div>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
 }
 /*NEWSROOM*/
@@ -11628,7 +11628,7 @@ function dynLive(){
   const el=e.target,c=(el.style.getPropertyValue('--b')||'').trim();dynLive.cur=el;
   const im=el.matches('img')?el:el.querySelector('img'),u=im&&im.getAttribute('src');
   const pc=o=>{if(!o||!o.t)return '';const r=anyRgb(o.t);if(!r)return '';const hs=rgb2hsl(r);return hs[1]>=.14?o.t:''};
-  const q=u&&IIS[u]&&IIS[u].v>=4?pc(IIS[u]):'';
+  const q=u&&IIS[u]&&IIS[u].v>=5?pc(IIS[u]):'';
   if(q){dynSet(q);return}
   if(u&&/^https?:/.test(u))imgInfo(u).then(o=>{const t=pc(o)||c;if(t&&dynLive.cur===el&&el.isConnected)dynSet(t)}).catch(()=>{if(c&&dynLive.cur===el)dynSet(c)});
   else if(c)dynSet(c)},{rootMargin:'-28% 0px -56% 0px'});
@@ -14861,7 +14861,7 @@ function mastArt(list){
  if(!isOn('mag3'))return{c:'',i:'',s:'',t:''};
  const g=(list||[]).filter(x=>x.img&&!imgWeak(x.img)),a=g[1]||g[0];/* the second picture: the first is the opening story just below */if(!a)return{c:'',i:'',s:'',t:''};
  const t=IIS[a.img];
- return{c:' art',t:t&&t.t&&t.v>=4?t.t:'',s:t&&t.t&&t.v>=4?` style="--mt:${t.t}"`:'',i:`<img class="tmart" alt="" referrerpolicy="no-referrer" loading="lazy" decoding="async" src="${esc(a.img)}" onerror="this.parentNode.classList.remove('art','fm-art');this.remove()">`};
+ return{c:' art',t:t&&t.t&&t.v>=5?t.t:'',s:t&&t.t&&t.v>=5?` style="--mt:${t.t}"`:'',i:`<img class="tmart" alt="" referrerpolicy="no-referrer" loading="lazy" decoding="async" src="${esc(a.img)}" onerror="this.parentNode.classList.remove('art','fm-art');this.remove()">`};
 }
 function shelfMast(){
  const f=shelfFacts(),m=mastArt(S.saved);

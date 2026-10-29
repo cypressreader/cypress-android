@@ -21,7 +21,7 @@ const png=(w,h)=>{const raw=Buffer.alloc((w*3+1)*h);for(let y=0;y<h;y++){raw[y*(
  let {p,errs,ctx}=await mkPage({x:.1,y:.12});
  let r=await p.evaluate(async()=>{const o=await imgInfo('https://img.test/face-400x600.png');const stored=JSON.parse(localStorage.getItem('folio-imgi')||'{}');return {o,v:o&&o.v,stored:!!stored['https://img.test/face-400x600.png']||true}});
  ck('a detected face sets the focal point on the face (left and high), not the centre',r.o&&r.o.face===1&&r.o.px<30&&r.o.py<30,JSON.stringify(r.o));
- ck('the point is kept with the cached image info',r.o&&r.o.v===4);
+ ck('the point is kept with the cached image info',r.o&&r.o.v===5);
  /* card renders with object-position */
  r=await p.evaluate(async()=>{const f=S.feeds[0];const a={feedId:f.id,title:'Face card',link:'https://w.test/face',date:Date.now(),summary:'x',img:'https://img.test/face-400x600.png'};items[f.id]=[a];S.feeds.slice(1).forEach(x=>items[x.id]=[]);IMGOK.add(a.img);S.sel='all';S.atab='latest';S.view='tiles';render();await new Promise(r=>setTimeout(r,1200));
   const im=document.querySelector('#grid .card img');return {pos:im?(im.style.objectPosition||getComputedStyle(im).objectPosition):null,has:!!im}});
@@ -31,7 +31,7 @@ const png=(w,h)=>{const raw=Buffer.alloc((w*3+1)*h);for(let y=0;y<h;y++){raw[y*(
  ({p,errs,ctx}=await mkPage(null));
  r=await p.evaluate(async()=>({port:await imgInfo('https://img.test/port-400x640.png'),land:await imgInfo('https://img.test/land-800x450.png'),hasFD:typeof FaceDetector}));
  ck('a portrait photo with no face is biased to the top',r.port&&r.port.pt===1&&r.port.face===0&&r.port.px===50&&r.port.py<=30,JSON.stringify(r.port));
- ck('a landscape photo with no face keeps the detail-based point (not forced to the top)',r.land&&r.land.pt===0&&r.land.face===0&&r.land.v===4,JSON.stringify(r.land));
+ ck('a landscape photo with no face never aims below the upper third',r.land&&r.land.pt===0&&r.land.face===0&&r.land.v===5&&r.land.py<=35,JSON.stringify(r.land));
  ck('no page errors (portrait)',!errs.length,errs[0]);await ctx.close();
  /* 3. detector present but sees nothing: same as no detector */
  ({p,errs,ctx}=await mkPage({none:1}));
