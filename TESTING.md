@@ -962,3 +962,4 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 ## Photo unpacking ahead (branch after 1.199, unverified on phone)
 - [ ] Fold: fresh open, All Stories, one normal-speed pass down: first-pass stutter less than 1.199? Scroll check: fewer slow frames with script 0 / big "before drawing"
 - [ ] Memory: js heap and app stays smooth after a long scroll (decoded photos cost memory)
+- [ ] 1.200 decode-ahead (implemented, unverified): fresh open -> All Stories first pass, scroll check vs 1.199 (31% frames >20 ms); watch memory. Keep if better, remove `_dc` decode in cvAhead if worse.
