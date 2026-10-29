@@ -80,8 +80,13 @@ body:not(.narrow) .grid:not(.list) .tpl.t2>.card .ov{display:none}
 body:not(.narrow) .grid:not(.list) .tpl.t2>.card .tx{grid-column:1;grid-row:1;padding:14px 18px}
 body:not(.narrow) .grid:not(.list) .tpl.t2>.card .src{color:var(--mut)}
 body:not(.narrow) .grid:not(.list) .tpl.t3>.card:nth-child(1),body:not(.narrow) .grid:not(.list) .tpl.t3>.card:nth-child(4){grid-column:span 2}
-.card>img{opacity:0;transition:opacity .5s,transform .6s}
+.card>img{opacity:0;transition:opacity .5s,transform .6s,filter .6s}
 .card>img.ld{opacity:1}.card>img.nofade{transition:none}
+/* 1.206: a photo still loading is a soft blur in its main color (once known), then sharpens */
+.card>img:not(.ld){opacity:1;background:var(--pc,color-mix(in srgb,var(--b) 45%,var(--pn,var(--bg))));filter:blur(14px) brightness(var(--dim,1))}
+/* a faint edge so a photo on white keeps its shape; a tiny or blurry one turns two-tone in the card's color */
+#grid .card>img{outline:1px solid rgba(0,0,0,.08);outline-offset:-1px}html.dkbg #grid .card>img{outline-color:rgba(255,255,255,.08)}
+#grid .card>img.duo.ld{filter:grayscale(1) contrast(1.15);mix-blend-mode:luminosity}
 [data-cards="compact"] .card>img,.grid.list .card>img{opacity:1}
 .card[data-th]::before{content:'';position:absolute;inset:-12px;background:var(--th) center/cover;filter:blur(12px);z-index:-3}
 .cover.flip{flex-direction:column-reverse}
@@ -105,7 +110,8 @@ body:not(.narrow) .grid:not(.list) .tpl.t3>.card:nth-child(1),body:not(.narrow) 
 .body hr{border:0;display:block;width:26px;height:26px;margin:1.1em auto;overflow:visible;background:var(--logo,currentColor);-webkit-mask:var(--lmk) center/contain no-repeat;mask:var(--lmk) center/contain no-repeat;opacity:.6}/* B103: the small divider in a story is the CyPress tree-C mark, not a generic flourish */
 .body figure{break-inside:avoid;margin:1em 0}
 .cols .body figcaption{font:italic 13px/1.4 var(--serif);color:var(--mut);margin-top:6px;text-align:left}
-.cols .body figcaption .crd{font:600 10.5px var(--sans);font-style:normal;letter-spacing:.06em;text-transform:uppercase;opacity:.8;margin-left:6px}
+.cols>.hcap{margin:-4px 0 14px;font:italic 13px/1.4 var(--serif);color:var(--mut)}.cols>.hcap .crd:first-child{margin-left:0}
+.cols .body figcaption .crd,.cols>.hcap .crd{font:600 10.5px var(--sans);font-style:normal;letter-spacing:.06em;text-transform:uppercase;opacity:.8;margin-left:6px}
 .strip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;break-inside:avoid;margin:1em 0;padding-bottom:6px;-webkit-overflow-scrolling:touch}
 .strip>*{flex:0 0 80%;scroll-snap-align:center;margin:0!important}
 .strip img{width:100%;height:min(44vh,320px);object-fit:cover;border-radius:12px;display:block}
@@ -812,7 +818,7 @@ main{overflow:auto;min-width:0;background:var(--tint,transparent);container-type
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}/* a phone's own font setting or text auto-sizing must not widen the title into the menu button */
 .top h1{margin-left:4px}.top #menu{position:relative;z-index:1}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;padding:12px clamp(14px,3vw,32px) 48px;max-width:1700px}
-.card{position:relative;border-radius:var(--r-m);overflow:hidden;color:#fff;text-decoration:none;display:flex;align-items:flex-end;background:var(--b);min-height:clamp(180px,20vw,240px);isolation:isolate;transition:transform .25s}
+.card{position:relative;border-radius:var(--rad);overflow:hidden;color:#fff;text-decoration:none;display:flex;align-items:flex-end;background:var(--b);min-height:clamp(180px,20vw,240px);isolation:isolate;transition:transform .25s}
 .card:hover{transform:translateY(-3px)}
 /* polish-2026-10 E5: tile cards float on a soft shadow in light themes and carry a hairline in dark ones (restore flat: delete these two rules and set .card radius back to 20px) */
 .grid:not(.list):not([data-cards=compact]):not([data-cards=narrow]) .card:not(.list-row){box-shadow:var(--sh-2)}
@@ -993,7 +999,7 @@ main{overscroll-behavior-y:none}
 #gimg{max-width:96vw;max-height:88vh;object-fit:contain;user-select:none;-webkit-user-drag:none;will-change:transform;border-radius:4px}
 .gtop{position:absolute;top:0;left:0;right:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;color:#eee;font:600 13px var(--sans)}
 #gal .ib{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)}
-html.pdim.dkbg #rd .cols img{filter:brightness(.85)}
+html.pdim.dkbg #rd .cols img{filter:brightness(.85)}html.pdim.dkbg{--dim:.82}html.pdim.dkbg #grid .card>img.ld:not(.duo){filter:blur(0) brightness(.82)}html.pdim.dkbg .fd-brief img{filter:brightness(.82)}
 /* phones: a pull quote stays a quote, not half the page */body.narrow #rd :is(.pullq,figure.pqs blockquote){font-size:min(1.15em,21px)!important;line-height:1.3!important}body.narrow #rd figure.pqs blockquote::before{font-size:56px}/* bright photos glared on dark pages */
 .gcap{position:absolute;left:0;right:0;bottom:0;z-index:2;margin:0;padding:28px 16px calc(14px + env(safe-area-inset-bottom));color:#eee;font:14px/1.45 var(--sans);background:linear-gradient(transparent,rgba(0,0,0,.75) 40%);max-height:32vh;overflow:auto;pointer-events:auto}
 .gnav{position:absolute;top:50%;z-index:2;margin-top:-19px}#gprev{left:14px}#gnext{right:14px}
@@ -1722,6 +1728,8 @@ html.dynx[data-theme=dynamic] #rd{transition:background-color .6s ease}
 
 
 :root[data-theme=eink] .card,:root[data-theme=eink] .cover{border-radius:0}
+/* 1.206: one corner size per theme drives cards and their photos; Black & White is square throughout */
+:root{--rad:var(--r-m)}:root[data-theme=eink]{--rad:0px}:root[data-theme=eink] #grid :is(.card img,.card::before,.fd-brief){border-radius:0!important}
 :root[data-theme=eink] .card{box-shadow:none;border:2px solid #000}
 :root[data-theme=eink] .sech{border-bottom:3px solid #000}
 :root[data-theme=eink] #rd a{text-decoration:underline}
@@ -4025,7 +4033,7 @@ html.micro .wtrend .wtr-dot::after{content:"";position:absolute;inset:0;border-r
 #rd .cols .dt{font:500 13.5px/1.5 var(--sans);color:var(--mut)}
 #rd .cols .dt .by{font-family:var(--serif);font-style:italic;font-size:14.5px;color:var(--ink)}
 #rd.vert .cols{position:relative!important;left:auto!important;top:auto!important;width:100%!important;max-width:min(65ch,var(--rdmw,680px))!important;height:auto!important;column-count:1!important;transform:none!important;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box}
-#rd.vert .cols>:is(.kick,.tt,.dt,.note,.body,.orig,.whyit,.hsf,img.hero){max-width:100%;width:100%;margin-left:0;margin-right:0;box-sizing:border-box}
+#rd.vert .cols>:is(.kick,.tt,.dt,.hcap,.note,.body,.orig,.whyit,.hsf,img.hero){max-width:100%;width:100%;margin-left:0;margin-right:0;box-sizing:border-box}
 /* cinematic stories: the lead photo still bleeds past the column edges in the vertical reader (the rule above otherwise held it to the text width on phones) */
 #rd.vert.cine .cols>img.hero{width:calc(100% + 2*var(--bleed,20px))!important;max-width:none!important;margin-left:calc(-1*var(--bleed,20px))!important;margin-right:calc(-1*var(--bleed,20px))!important}
 #rd .cols .body p.dropcap .dcap{float:left;font-family:var(--disp,var(--serif));font-weight:600;font-size:3.2em;line-height:.75;margin-right:8px;padding:.05em 0 0;color:var(--b,var(--ink))}
@@ -4700,8 +4708,8 @@ html.rmo :is(.skr i,.skr b,.skc),html.lowp :is(.skr i,.skr b,.skc){animation:non
 :root[data-theme^=halcyon] #tabs button.on{color:#7d5f14}:root[data-theme=halcyond] #tabs button.on{color:#e2c27a}
 :root[data-theme^=halcyon] #tabs button.on::before{background:#c9a24a}:root[data-theme^=halcyon] #tabs:not(.pl) button.on svg{background:color-mix(in srgb,#c9a24a 22%,transparent);border-radius:12px;padding:2px 12px;margin:-2px 0}
 .src .sn::before{content:attr(data-ini);display:inline-grid;place-items:center;width:17px;height:17px;margin-right:6px;border-radius:50%;background:color-mix(in srgb,var(--b,var(--logo)) 82%,#000);color:#fff;box-shadow:0 0 0 1.5px rgba(255,255,255,.85);font:700 9.5px/1 var(--sans);letter-spacing:0;text-shadow:none;vertical-align:middle;text-transform:uppercase}
-#grid .card.cu:not(.noimg):not(.list-row){display:grid;align-content:start;background:none;color:var(--ink);min-height:0;overflow:visible;border-radius:15px;/* 1px past the photo's 14px, so a card with a border or panel color (Halcyon) wraps the photo's rounded corners instead of showing square corners */box-shadow:none!important;outline:0!important}
-#grid .card.cu:not(.noimg):not(.list-row)>img{position:static;display:block;width:100%;height:auto;aspect-ratio:3/2;border-radius:14px;z-index:auto}
+#grid .card.cu:not(.noimg):not(.list-row){display:grid;align-content:start;background:none;color:var(--ink);min-height:0;overflow:visible;border-radius:calc(var(--rad) + 1px);/* 1px past the photo's corner, so a card with a border or panel color (Halcyon) wraps the photo's rounded corners instead of showing square corners */box-shadow:none!important;outline:0!important}
+#grid .card.cu:not(.noimg):not(.list-row)>img{position:static;display:block;width:100%;height:auto;aspect-ratio:3/2;border-radius:var(--rad);z-index:auto}
 #grid .card.cu:not(.noimg):not(.list-row) .ov{display:none}
 #grid .card.cu:not(.noimg):not(.list-row) .tx{padding:10px 2px 2px;text-shadow:none}
 #grid .card.cu:not(.noimg):not(.list-row) h3,#grid .card.cu:not(.noimg):not(.list-row) h3 a{color:var(--ink);text-shadow:none}
@@ -4718,10 +4726,21 @@ a.fd-bl.cvlead{overflow:visible;contain:layout}
 .fd-bl::before{content:"";position:absolute;left:-18px;top:11px;width:10px;height:10px;box-sizing:border-box;border-radius:50%;background:var(--bg);border:2px solid var(--fa,var(--logo))}
 .fd-bl.read::before{border-color:var(--ln)}
 .fd-bl time{font:600 11.5px var(--sans);letter-spacing:.02em}
-.fd-brief.fd-bq{padding:0;border-top:1px solid var(--ln);border-bottom:1px solid var(--ln)}
-.fd-brief.fd-bq::before,.fd-brief.fd-bq .fd-bl::before{display:none}
-.fd-brief.fd-bq h4{margin:10px 0 0;font:700 10.5px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--fa,var(--logo))}
-.fd-brief.fd-bq .fd-bl{padding:4px 0 10px}
+.fd-brief.fd-bq h4{font:700 10.5px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--fa,var(--logo))}
+/* 1.206 In brief: tinted panel, photo strip, a round photo (or the site's initial) on each line of the timeline, site name in its color */
+.fd-brief{padding:14px 14px 4px 58px;border-radius:var(--rad);background:color-mix(in srgb,var(--fa,var(--logo)) 7%,var(--bg))}
+.fd-brief::before{display:none}
+.fd-brief h4{margin:0 0 10px -44px}
+.fd-bs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:0 0 12px -44px}
+.fd-bsq{display:block;margin:0;aspect-ratio:1;border-radius:calc(var(--rad)*.6);overflow:hidden;background:color-mix(in srgb,var(--fa,var(--logo)) 18%,var(--bg))}
+.fd-bsq img,.fd-dot img{width:100%;height:100%;object-fit:cover;display:block}
+.fd-bl::before{left:-28px;top:0;bottom:0;width:1.5px;height:auto;border:0;border-radius:0;background:var(--ln)}
+.fd-bl:first-of-type::before{top:20px}.fd-bl:last-child::before{bottom:auto;height:20px}.fd-bl:only-of-type::before{display:none}
+.fd-dot{position:absolute;left:-44px;top:4px;z-index:1;width:32px;height:32px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:var(--sc);color:#fff;font:700 13px var(--sans);box-shadow:0 0 0 2px var(--bg),0 0 0 3px var(--ln)}
+.fd-dot img{position:absolute;inset:0}
+.fd-bl.read .fd-dot{opacity:.55}
+.fd-bl time i{font:700 10px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--sc)}
+html.dkbg .fd-bl time i{filter:brightness(1.5)}
 .fd-pair .card.cu:not(.noimg){aspect-ratio:auto}
 .top{transition:none}.top h1{transition:opacity .2s}
 .top.fbig h1{opacity:0}
@@ -5736,6 +5755,7 @@ function parse(xml,f){
   img=img?hi(abs(img,link)):'';
   const thu=tnE?abs(tnE.getAttribute('url'),link):'';
   const pcr=cleanCr(tx(el,'media:credit')||tx(el,'media:copyright'));
+  const pcp=img?String(tx(el,'media:description')||tx(el,'media:title')).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,220):'';
   const text=new DOMParser().parseFromString(html.replace(/<\/(p|div|li|h[1-6])>|<br\s*\/?>/gi,'$& '),'text/html').body.textContent.replace(/\s+/g,' ').trim();
   const au=[...el.getElementsByTagName('enclosure'),...el.getElementsByTagName('media:content')].find(e=>/audio/.test(e.getAttribute('type')||'')||/\.(mp3|m4a|aac|ogg)(\?|$)/i.test(e.getAttribute('url')||''));
   const yv=tx(el,'yt:videoId');
@@ -5744,7 +5764,7 @@ function parse(xml,f){
   let cm=tx(el,'comments');if(!/^https?:/.test(cm)){cm='';const m=(html||'').match(/href="(https?:\/\/(?:www\.|old\.)?(?:reddit\.com\/r\/[^"]+\/comments\/[^"]+|news\.ycombinator\.com\/item\?id=\d+|lobste\.rs\/s\/[^"]+))"/);if(m)cm=m[1]}
   let dur=tx(el,'itunes:duration');if(/^\d+$/.test(dur)){const n=+dur;dur=n>=3600?Math.floor(n/3600)+' h '+Math.round(n%3600/60)+' min':Math.round(n/60)+' min'}else if(/^\d+:\d+(:\d+)?$/.test(dur)){const q=dur.split(':').map(Number);dur=q.length===3?(q[0]?q[0]+' h ':'')+q[1]+' min':q[0]+' min'}else dur='';
   if(!img&&yv)img='https://i.ytimg.com/vi/'+yv+'/hqdefault.jpg';
-  return{feedId:f.id,by,sec,cats,ce,cm,audio:au?abs(au.getAttribute('url'),link):'',yt:yv||'',dur,th:(thu&&thu!==img&&img)?thu:'',pcr,title:cleanT(tx(el,'title')),link,date:pdate(tx(el,'pubDate')||tx(el,'published')||tx(el,'updated')||tx(el,'dc:date')),img,html,summary:trimWords(text,170),wc:text?text.split(' ').length:0};
+  return{feedId:f.id,by,sec,cats,ce,cm,audio:au?abs(au.getAttribute('url'),link):'',yt:yv||'',dur,th:(thu&&thu!==img&&img)?thu:'',pcr,pcp,title:cleanT(tx(el,'title')),link,date:pdate(tx(el,'pubDate')||tx(el,'published')||tx(el,'updated')||tx(el,'dc:date')),img,html,summary:trimWords(text,170),wc:text?text.split(' ').length:0};
  });
  return{title,list:finishList(list)};
 }
@@ -5852,9 +5872,10 @@ async function enrich(id){
  dropGeneric(items[id]||[]);schedule();
 }
 function lowres(im){
+ if(im.naturalWidth&&im.naturalWidth<320)im.classList.add('duo');/* tiny or blurry: shown two-tone (CSS) */
  if(!im.naturalWidth||im.naturalWidth>=600||im.dataset.t)return;im.dataset.t=1;
  const a=cardStory(im.closest('.card'));if(!a||a.lrT)return;a.lrT=1;
- og(a).then(u=>{if(!u||u===im.src)return;const t=new Image();t.onload=()=>{if(t.naturalWidth>im.naturalWidth){a.img=u;im.src=u}};t.src=u});
+ og(a).then(u=>{if(!u||u===im.src)return;const t=new Image();t.onload=()=>{if(t.naturalWidth>im.naturalWidth){a.img=u;im.classList.toggle('duo',t.naturalWidth<320);im.src=u}};t.src=u});
 }
 const svg=(d,on)=>`<svg viewBox="0 0 24 24" width="19" height="19" fill="${on?'currentColor':'none'}" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const STAR='<path d="m12 3.8 2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.7 6.9 19.5l1-5.7-4.1-4 5.7-.8z"/>';
@@ -6180,6 +6201,7 @@ async function imgInfo(url){
  return IINFO.get(url);
 }
 function cardFocus(im,done){
+ if(!im.style.objectPosition&&im.naturalHeight>im.naturalWidth*1.15)im.style.objectPosition='50% 25%';/* a tall photo is usually a person: aim above center until the face check answers */
  let fin=false;const end=()=>{if(!fin){fin=true;done&&done()}};
  try{const u=im.getAttribute('src');if(!u||!/^https?:/.test(u)){end();return}
   const put=o=>{if(o&&o.px!=null&&(Math.abs(o.px-50)>6||Math.abs(o.py-50)>6))im.style.objectPosition=o.px+'% '+o.py+'%'};
@@ -7506,7 +7528,7 @@ function listRow(a,i,k,f){
 function card(a,i,k){
   if(a&&!WHY[a.link]){const pw=priWhy(a);if(pw)WHY[a.link]=pw}
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
-  const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],op=q0&&q0.v>=4&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="object-position:${q0.px}% ${q0.py}%"`:'';
+  const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],q1=a.img&&IIS[a.img],pc=q1&&q1.t?`--pc:${q1.t};`:'',op=q0&&q0.v>=4&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="${pc}object-position:${q0.px}% ${q0.py}%"`:pc?` style="${pc}"`:'';
   return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="${i<6?'eager':'lazy'}" decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div>${a.img&&a.pcr&&isOn('mag3')?`<span class="pcr">Photo: ${esc(a.pcr)}</span>`:''}${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg" style="--pg:${Math.round(progOf(a.link)*100)}%"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><span class="sn" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}">${esc(f.title)}</span>${a.sec?`<span class=" ssec">· ${esc(a.sec)}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="${a.more.length+1} sources report this">+${a.more.length} sources</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}" aria-label="${esc(a.title)}${a.date?', '+agoL(a.date):''}">${esc(a.title)}</a></h3>${(()=>{const q=!a.img&&!/\b(nr-row|nr-late|list-row)\b/.test(k||'')?nrQuoteText(a):null;return q?`<p class="lq">${esc(q.q)}</p>`:`<p>${esc(sumOf(a.summary))}</p>`})()}<div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}${pwBadge(a)}<time datetime="${a.date?new Date(a.date).toISOString():''}" aria-hidden="true">${agoT(a.date)}</time></div>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
 }
 /*NEWSROOM*/
@@ -8371,8 +8393,8 @@ function imgKey(u){try{let x=String(u||'').split(/[?#]/)[0].toLowerCase();x=x.sp
 function sameImg(a,b){if(!a||!b)return false;if(String(a).split('?')[0]===String(b).split('?')[0])return true;const x=imgKey(a),y=imgKey(b);if(x.length>=8&&x===y)return true;if(x.length>=5&&x===y&&!/^(image|img|photo|picture|pic|hero|cover|main|lead|thumb|thumbnail|banner|article|featured|default|placeholder|logo|share|og|story|news)\d*$/.test(x))return true;if(x.length<10||y.length<10)return false;let i=0;while(i<x.length&&i<y.length&&x[i]===y[i])i++;return i>=10&&i/Math.min(x.length,y.length)>=.75}
 /* The picture shows once, in the body. The moment a body (the feed's copy, the stored copy or the full page) is in place, and before it can paint, the separate top-of-page copy is set aside; if a later body has no such picture, the top copy goes back. Two never show together. */
 function heroOnce(){const c=document.querySelector('.cols'),b=c&&c.querySelector('.body');if(!b||!curA)return;const ref=curA.img||'';let h=c.querySelector(':scope>img.hero');if(!ref&&!h)return;let hit=false;let n=0,seenText=0;for(const k of [...b.children]){if(n++>8||seenText>420)break;seenText+=(k.textContent||'').trim().length;const im=k.tagName==='IMG'?k:k.querySelector&&k.querySelector('img');if(im&&sameImg(im.src,ref)){hit=true;break}}
- if(hit&&h){const m=document.createComment('hero');h.replaceWith(m);R.heroEl=h;R.heroMark=m;R.heroFor=curA.link}
- else if(!hit&&R.heroMark&&R.heroMark.isConnected&&R.heroFor===curA.link&&R.heroEl){R.heroMark.replaceWith(R.heroEl);R.heroEl=R.heroMark=null}}
+ if(hit&&h){const m=document.createComment('hero');h.replaceWith(m);R.heroEl=h;{const hc=c.querySelector(':scope>.hcap');if(hc)hc.hidden=true}R.heroMark=m;R.heroFor=curA.link}
+ else if(!hit&&R.heroMark&&R.heroMark.isConnected&&R.heroFor===curA.link&&R.heroEl){R.heroMark.replaceWith(R.heroEl);R.heroEl=R.heroMark=null;{const hc=c.querySelector(':scope>.hcap');if(hc)hc.hidden=false}}}
 function noteFix(){const n=document.querySelector('.cols .note'),b=document.querySelector('.cols .body');if(!n||!b||DEEPBUSY)return;if(n.querySelector("[data-retry]")&&(b.textContent||'').length>2200){n.textContent='Full story loaded.';setTimeout(()=>{if(n.isConnected&&n.textContent==='Full story loaded.')n.remove()},4000)}}
 function rdbDone(){const rd=document.getElementById('rd');if(rd)requestAnimationFrame(()=>requestAnimationFrame(()=>rd.classList.remove('rdb')))}
 /* leaving Pages (or the half-folded layout) for Scroll: take back everything the paged layout put on the story, so nothing of it squashes the picture or the text */
@@ -9537,7 +9559,7 @@ async function openReader(a){
  document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',chref(c)===a.link));
  const dt=a.date?new Date(a.date).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'';
  const cov=covOf(a).length?hubTeaser(a):'';
- sh.innerHTML=`<div class="bar"><button class="ib" id="cl" data-lbl="Back" aria-label="Back" title="Back">${svg('<path d="m14.5 5-7 7 7 7"/>')}</button><button class="ib" id="fdn" aria-label="Back to all feeds" title="Back to all feeds" tabindex="-1" aria-hidden="true" hidden>${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><button type="button" class="bs" aria-label="Go to ${esc(f.title)}" title="Go to ${esc(f.title)}"${f.id?'':' disabled'}>${esc(f.title)}</button><span id="pc"></span><button class="ib" id="st" data-lbl="Save" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" data-lbl="Listen" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings" hidden>${svg(TUNE)}</button>`:''}<button class="ib" id="fau" data-lbl="Hands-free" aria-label="Hands-free reading" aria-pressed="false" title="Hands-free reading: the story moves on at your reading speed">${svg('<path class="pl" d="M8 5v14l11-7z"/><path class="pa" d="M8 5v14M16 5v14"/>')}</button><button class="ib" id="fcs" data-lbl="Focus" aria-label="Focus mode" aria-pressed="false" title="Focus: hide the controls and highlight the paragraph you are reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site in the app" title="View the site in the app" hidden>${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page" hidden>${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page" hidden>${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" data-lbl="More" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec))+(hasSec(a.sec,a.feedId)?'':`<button class="flw" data-fsec aria-label="Follow ${esc(a.sec||'this section')}">Follow</button>`):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}"${heroAR(a)} onerror="this.remove()">`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener noreferrer" href="${esc(a.link)}">Read original on ${esc(host(a.link))} ↗</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p class="wmp">This site can’t be shown inside the app. It may block automated access.</p><div><button type="button" class="lnk" id="wtry">Try again</button> <a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
+ sh.innerHTML=`<div class="bar"><button class="ib" id="cl" data-lbl="Back" aria-label="Back" title="Back">${svg('<path d="m14.5 5-7 7 7 7"/>')}</button><button class="ib" id="fdn" aria-label="Back to all feeds" title="Back to all feeds" tabindex="-1" aria-hidden="true" hidden>${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><button type="button" class="bs" aria-label="Go to ${esc(f.title)}" title="Go to ${esc(f.title)}"${f.id?'':' disabled'}>${esc(f.title)}</button><span id="pc"></span><button class="ib" id="st" data-lbl="Save" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" data-lbl="Listen" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings" hidden>${svg(TUNE)}</button>`:''}<button class="ib" id="fau" data-lbl="Hands-free" aria-label="Hands-free reading" aria-pressed="false" title="Hands-free reading: the story moves on at your reading speed">${svg('<path class="pl" d="M8 5v14l11-7z"/><path class="pa" d="M8 5v14M16 5v14"/>')}</button><button class="ib" id="fcs" data-lbl="Focus" aria-label="Focus mode" aria-pressed="false" title="Focus: hide the controls and highlight the paragraph you are reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site in the app" title="View the site in the app" hidden>${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page" hidden>${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page" hidden>${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" data-lbl="More" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec))+(hasSec(a.sec,a.feedId)?'':`<button class="flw" data-fsec aria-label="Follow ${esc(a.sec||'this section')}">Follow</button>`):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}"${heroAR(a)} onerror="const c=this.parentNode.querySelector('.hcap');c&&c.remove();this.remove()">${(a.pcp&&a.pcp!==a.title)||a.pcr?`<p class="hcap">${a.pcp&&a.pcp!==a.title?esc(a.pcp):''}${a.pcr?`<span class="crd">${esc(a.pcr)}</span>`:''}</p>`:''}`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener noreferrer" href="${esc(a.link)}">Read original on ${esc(host(a.link))} ↗</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p class="wmp">This site can’t be shown inside the app. It may block automated access.</p><div><button type="button" class="lnk" id="wtry">Try again</button> <a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
  /* the text stays hidden for the moment the page columns are being worked out, so the open never shows half-wrapped lines */
  {const rd=$('#rd');rd.classList.add('rdb');clearTimeout(rdbDone.t);rdbDone.t=setTimeout(rdbDone,420)}
  for(const lb of sh.querySelectorAll('.bar .ib[data-lbl]')){const sp=document.createElement('span');sp.className='bl';sp.setAttribute('aria-hidden','true');sp.textContent=lb.dataset.lbl;lb.append(sp)}
@@ -14125,9 +14147,13 @@ function fedMods(us,FD,c){
    t.forEach(u=>why(u.head));
    B.push(`<div class="fd-decks">${t.map(u=>link(u.head,'fd-deck',`<small>${esc(when(u.head))}${minsOf(u.head)?' · '+minsOf(u.head)+' min':''}</small><b>${esc(u.head.title)}</b>${dk(u.head)?`<span>${esc(dk(u.head))}</span>`:''}`)).join('')}</div>`);
   }else{
-   const t=[];while(us.length&&t.length<4&&!us[0].more.length)t.push(us.shift());
-   t.forEach(u=>why(u.head));
-   B.push(`<div class="fd-brief${t.length<3?' fd-bq':''}"><h4>${t.length<3?'In brief':'<small>In brief</small>The short ones'}</h4>${t.map(u=>link(u.head,'fd-bl',`<time>${esc(when(u.head))}${minsOf(u.head)?' · '+minsOf(u.head)+' min':''}</time><b>${esc(u.head.title)}</b>`)).join('')}</div>`);
+   /* only stories known to take 3 minutes or less go in brief; none at all and a normal card takes the slot */
+   const t=us.filter(u=>!u.more.length&&minsOf(u.head)&&minsOf(u.head)<=3).slice(0,4);
+   if(!t.length){const u=us.shift();why(u.head);B.push(c.card(u.head,ix(u.head),'mid cu'));last='mid';continue}
+   t.forEach(u=>{us.splice(us.indexOf(u),1);why(u.head)});
+   const nm=a=>fof(a).title||host(fof(a).url),ph=a=>a.img?`<img loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:'';
+   const sq=t.filter(u=>u.head.img);
+   B.push(`<div class="fd-brief${t.length<3?' fd-bq':''}"><h4>${t.length<3?'In brief':'<small>In brief</small>The short ones'}</h4>${sq.length>=2?`<div class="fd-bs" aria-hidden="true">${sq.map(u=>link(u.head,'fd-bsq',ph(u.head),' tabindex="-1"')).join('')}</div>`:''}${t.map(u=>{const a=u.head;return link(a,'fd-bl',`<span class="fd-dot" aria-hidden="true">${esc([...nm(a).trim()][0]||'?')}${ph(a)}</span><time><i>${esc(nm(a))}</i> · ${esc(when(a))} · ${minsOf(a)} min</time><b>${esc(a.title)}</b>`,` style="--sc:${brand(fof(a))}"`)}).join('')}</div>`);
   }
   last=m;
  }

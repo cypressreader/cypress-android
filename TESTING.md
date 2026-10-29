@@ -998,3 +998,11 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] The notification's Stop button still stops the Daily and removes the notification; the end of the Daily / Up Next removes it.
 - [ ] (round 4b) David 2026-10-29 on 1.205: after story 1 the notification timer kept running with no sound; opening the app restarted the next story from its start = the page was frozen (native speech kept going, the page that hands over to the next story did not run). Cause: a minimized web view's page is marked hidden and frozen when it isn't audible (our keep-alive track is pure silence). Fix: `MainActivity.onStop` re-tells the web view it is visible while `CyMediaService.isPlaying()` (re-checked every 15 s; told GONE again once playback stops). Check: Daily runs through 3+ stories minimized and with the screen off; after it ends, battery use while minimized looks normal.
 - [ ] (round 4c) Halcyon, a single site's page, Cards view: story photos' rounded corners sit inside rounded card corners (no square white corners). Fix: `#grid .card.cu` radius 0 → 15px.
+
+## 1.206 picks (implemented, unverified on phone)
+- In brief (a site's page): only stories of 3 min or less; tinted panel; photo strip on top (2+ photos); round photo or site initial on each line; site name in its color. Tap a strip square or a line: opens the story.
+- Photos load as a soft blur in their main color, then sharpen (no flicker on scroll-back).
+- Tall portrait photos crop toward the top; tiny/blurry photos show two-tone in the card's color.
+- Dark themes: feed photos slightly dimmed (setting "dim photos" on). Faint edge on photos over white.
+- Black & White: cards, photos and In brief all square.
+- Reader: caption/credit line under the top photo when the site sends one; hidden when the same photo repeats in the story.
