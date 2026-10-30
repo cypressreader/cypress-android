@@ -1037,12 +1037,12 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] (same branch, after 1.213) Switch between the Daily, All Stories and a site's feed: the cards still rise in gently on each switch; the top bar title and masthead look the same; switching feels a touch quicker.
 
 ## List view redesign + blur fix (branch claude/theme-six-handoff-h8bzos, preview 421dd63, unreleased)
-- [ ] List view (All Stories, a site's feed): photos are sharp, not blurred.
+- [x] (VERIFIED phone video 1.216) List view (All Stories, a site's feed): photos are sharp, not blurred.
 - [ ] Rows: time on a thin line at the left with the star under it; headline first; square photo on the right; a faint tint of the photo's color behind the row (Halcyon and Halcyon Dark).
-- [ ] Every fifth story is a big-photo feature with a small time label on the photo; Compact size keeps plain rows.
+- [x] (VERIFIED phone video 1.216) Every fifth story is a big-photo feature with a small time label on the photo; Compact size keeps plain rows.
 - [ ] Tap the star in a row still saves; tapping the row opens the story; TalkBack reads each row once (time label is hidden from it).
 
-## Column view picks C2+C4+C6 (2026-10-30, unreleased, preview)
+## Column view picks C2+C4+C6 (2026-10-30, shipped 1.215; layout VERIFIED in phone video 1.216; Halcyon Dark not seen)
 - All Stories > Columns: each time group's columns open with a short photo + 2-line summary (one per column); other stories with a photo show a small square on the right; group names sit in a filled band with the count and Mark read. Check Halcyon light/dark, phone portrait + Fold open, Large print (1 column: the second photo just follows in order).
 
 ## In brief photo row stretches (2026-10-30, branch -2djkfy, unverified on phone)
