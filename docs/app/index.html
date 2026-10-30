@@ -3922,7 +3922,7 @@ body.exbusy [data-exact]{cursor:progress}
 .rprev-box{margin:12px 14px 4px;padding:16px 18px;border-radius:14px;background:var(--bg);border:1px solid var(--ln);color:var(--ink);transition:all .18s ease}
 .rprev-p{margin:0;font-family:var(--serif);line-height:1.68}
 .rprev-p .dcap{float:left;font:600 3.1em/.85 var(--serif);padding:.06em .1em 0 0}
-#mr[hidden]{display:none!important}
+#mr[hidden],#vw[hidden]{display:none!important}
 .cfit.trd::after{content:none}
 .trb{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:3px;margin-left:8px;padding:2px 7px;border:1px solid var(--ln);border-radius:999px;font:600 10px var(--sans);letter-spacing:.06em;color:var(--mut);cursor:pointer;vertical-align:middle;min-height:20px}
 .trb.off{background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}
@@ -6336,7 +6336,7 @@ function render0(){
  else if(S.sel.startsWith('k:')){const k=S.sk.find(x=>'k:'+x.id===S.sel);if(k)t=k.name}
  $('#ttl').textContent=t;
  document.body.style.setProperty('--tint',(S.theme==='dynamic'&&S.sel.startsWith('s:')&&fs[0])?`color-mix(in srgb,${brand(fs[0])} 8%,var(--bg))`:'');
- {const mr=$('#mr');if(mr)mr.hidden=/^(saved|hist|stats|hl)$/.test(S.sel)}/* Mark all as read has no clear meaning on these pages */
+ {const mr=$('#mr');if(mr)mr.hidden=/^(saved|hist|stats|hl)$/.test(S.sel);const vw=$('#vw');if(vw)vw.hidden=S.sel==='today'}/* Mark all as read has no clear meaning on these pages */
  const q=$('#q').value.trim().toLowerCase();
  if(S.sel==='today'&&!q){if(DNAV&&dailyRestore())return;return renderToday()}
  if(S.sel==='all'&&!q&&atab()!=='latest'){let p=S.feeds.filter(f=>!paused(f)).flatMap(f=>items[f.id]||[]).filter(a=>!muted(a));p.sort((a,b)=>b.date-a.date);p=p.slice(0,300);if(S.hideRead)p=p.filter(a=>!S.read[a.link]);if(S.group!==false)p=group(p);return renderToday(atab(),p,allSeg(atab()),'All Stories')}
@@ -6376,7 +6376,7 @@ function render0(){
  let pre='';
  if(S.sel==='all'&&!q)pre=allSeg('latest')+latestMast()+burnCard();
  if(S.sel==='saved'&&!q&&S.saved.length)pre=shelfMast()+savedChips();
- if(q&&!S.sk.some(k=>k.words.length===1&&k.words[0]===q))pre=topicMast(q,cur);
+ if(q&&q.length>=3&&!S.sk.some(k=>k.words.length===1&&k.words[0]===q))pre=topicMast(q,cur);
  if(!q&&S.sel.startsWith('s:')){const f=S.feeds.find(x=>'s:'+x.id===S.sel);if(f&&paused(f))pre=`<div class="fbar"><span>${esc(f.title)} is paused${f.snz>8e15?'':' until '+esc(new Date(f.snz).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}))}. Its stories are hidden from Today and All Stories.</span><button class="tx2" data-resume="${f.id}">Resume</button></div>`;else if(f&&f.via==='bing')pre=`<div class="fbar"><span>Showing ${esc(f.title)} headlines from Bing News, because ${f.viaWhy==='stale'?'the site’s own feed is out of date':'the site blocks feed readers'}. Stories still open from ${esc(siteOf(f))}.</span></div>`;else if(f&&state[f.id]==='err')pre=`<div class="fbar"><span><b>We couldn’t refresh ${esc(f.title)}.</b> ${esc(feedReason(f))}. ${esc(lastOkTxt(f))}.</span><button class="tx2" data-frep="${f.id}">Try again</button></div>`}
  if(!q&&S.sel.startsWith('k:')){const k=S.sk.find(x=>'k:'+x.id===S.sel);if(k)pre=`<div class="fbar"><span>Following ${k.by||k.sec?'':'“'}${esc(kdesc(k))}${k.by||k.sec?'':'”'} across all your sites</span><button class="tx2" data-unfollow="${k.id}">Unfollow</button></div>`}
  let cov=null,covN=0;
@@ -6719,7 +6719,7 @@ if(FD){
  cur=cn;
  newN=vis?cn.filter(a=>a.date>vis).length:0;WIRE.newN=newN;
  const tr=T?[]:wireStrip(cn),clock=vis?wireClock(vis):'';
- const head=pre+(f1?feedMast(f1,unread,cn):FO&&FD?feedMast(FD,unread,cn):'')+(pend?`<div class="wpill" data-n="${pend}"><span>${pend} new ${pend===1?'story':'stories'} since you opened this</span><button type="button" data-wire="load">Show</button></div>`:'')
+ const head=pre+(f1?feedMast(f1,unread,cn):FO&&FD?feedMast(FD,unread,cn):'').replace(/<p class="fm-s">\d+ unread\.<\/p>/,'')+(pend?`<div class="wpill" data-n="${pend}"><span>${pend} new ${pend===1?'story':'stories'} since you opened this</span><button type="button" data-wire="load">Show</button></div>`:'')
   +`<div class="wmeta"><div class="nr-meta">${stN(cn.length)}${S.hideCount?'':' · '+cn.filter(a=>!S.read[a.link]).length+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>${B.some(x=>/class="[^"]*\bwsec\b/.test(x))?'<button type="button" class="wsecb" data-secm aria-haspopup="dialog">Sections</button>':''}${densHtml()}</div>`
   +trendStripHtml(tr);
  g.classList.add('nr','wire');g.dataset.w=g.dataset.wdens=S.wdens==='col'?'col':'mag';if(T)g.classList.add('wtopic');if(FD){g.classList.add('fed');g.style.setProperty('--fb',brand(FD))}if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
@@ -7943,7 +7943,7 @@ function magHtml(l,base,mode,kind){
  return B;
 }
 /* The Daily: the cover, today's progress and quick links, then every unread story ranked by freshness, your habits, breaking news and how many sites cover it (see dayRank). The tabs below belong to All stories: Latest (the plain newest-first list), Top (stories several of your sources are covering), Quick (about 1 to 3 minutes) and Deep (about 8 minutes or more) */
-const DTABS=[['latest','Smart'],['top','Top stories'],['quick','Quick reads'],['deep','Deep reads'],['off','Offline']];
+const DTABS=[['latest','For you'],['top','Top stories'],['quick','Quick reads'],['deep','Deep reads'],['off','Offline']];
 /* ---- The Daily's ranking: a score for every unread story, worked out on the phone ----
    score = freshness x source boost x keyword boost x coverage boost
    freshness: 100 when new, halving every 8 hours (never below 3)
@@ -10473,9 +10473,11 @@ let SETRES=[];
 function setReset(id){
  const p=SET_PAGES.find(x=>x.id===id);if(!p||!p.rst)return;
  const pg=$('#sp-'+id);const keys=new Set(p.rst);pg.querySelectorAll('[data-tg]').forEach(b=>keys.add(b.dataset.tg));
+ const snap={};keys.forEach(k=>{if(k in S)snap[k]=S[k]});
+ const again=()=>{save();applyTheme(true);applyRmo();applyFx();try{tsApply()}catch(e){}try{screenMode()}catch(e){}render();try{refreshReader()}catch(e){}syncSet()};
  keys.forEach(k=>{if(k==='fs')S.fs=18;else delete S[k]});
  Object.values(SET_MK).forEach(()=>{});
- save();applyTheme(true);applyRmo();applyFx();try{tsApply()}catch(e){}try{screenMode()}catch(e){}render();try{refreshReader()}catch(e){}syncSet();toast('This section is back to its defaults')}
+ again();toast('This section is back to its defaults',()=>{keys.forEach(k=>{delete S[k]});Object.assign(S,snap);if(!('fs' in snap))S.fs=18;again()})}
 set.addEventListener('click',e=>{
  const t=e.target;
  const gi=t.closest('.sgi[data-pg]');if(gi){setGo(gi.dataset.pg);if(!setWide()){}return}
@@ -12135,7 +12137,7 @@ const emp=(h,p,a)=>`<div class="empty emp" role="status"><i class="mk emk" aria-
 /* the empty list says why: Offline mode, no connection, still loading, or sites that didn't answer */
 const empNoStories=()=>{const st=S.feeds.map(f=>state[f.id]),bad=st.filter(x=>x==='err').length;
  if(S.offline)return emp('Offline mode is on','CyPress only shows stories already stored on this phone. Turn off Offline mode in Settings to get new ones.',EA('sv','st'));
- if(navigator.onLine===false)return emp('You are offline','Stories you saved or downloaded are still here. New ones load when you are back online.',EA('sv','rf'));
+ if(navigator.onLine===false)return emp('You’re offline','Stories you saved or downloaded are still here. New ones load when you are back online.',EA('sv','rf'));
  if(st.some(x=>x==='load'||!x))return emp('Stories are on the way','Your sites are still sending their latest stories. On a slow connection this can take a little while.',EA('rf'));
  if(bad&&bad===st.length)return emp('Your sites didn’t answer','Not one site you follow could be reached just now. They may be down for a moment, or the connection may be blocking them.',EA('rf','hl'));
  return emp('No stories yet',bad?'A few sites didn’t answer, and the rest haven’t sent new stories.':'Your sites have not sent any stories. This is usually a slow or missing connection.',EA('rf','hl'))};
@@ -15097,7 +15099,7 @@ dayCoverHtml.ran=0;function dayCoverHtml(lead,pool){covSeen();
  const note=pe('note',{},'cover');
  const sz=isOn('szn')?[['w','Winter'],['sp','Spring'],['su','Summer'],['f','Fall']][Math.floor((d.getMonth()+1)%12/3)]:null;/* seasonal cover: a soft wash in the season's color and its name in the edition line */
  return `<div class="dcov ${am?'dcm':'dce'} dct-${tr}"${sz?` data-sz="${sz[0]}"`:''} style="--b:${brand(fof(lead))}"><div class="dcv-art">${tr==='min'?'':edArtSvg(am)}${lead.img&&tr==='photo'?`<img src="${esc(lead.img)}" alt="" referrerpolicy="no-referrer" onload="cvJudge(this)" onerror="cvArtFail(this,'did not load')">`:''}</div><div class="dcv-sh"></div><span class="dcv-num${dayCoverHtml.ran++?'':' cnt'}" aria-hidden="true" style="--n:${issue}"></span>`
-  +`<header class="dcv-top">${sznHtml(1)}<span class="dcv-mast">CYPRESS</span><span class="dcv-motto">${esc(DAY_MOTTO)}</span><span class="dcv-ed">${esc(edition(d))}${sz?' · '+sz[1]:''} · <span style="white-space:nowrap">Vol. ${String(d.getFullYear()).slice(-2)} · No. ${issue}</span></span></header>`
+  +`<header class="dcv-top">${sznHtml(1)}<span class="dcv-mast">CYPRESS</span><span class="dcv-motto">${esc(DAY_MOTTO)}</span><span class="dcv-ed">${esc(edition(d))}${sz?' · '+sz[1]:''} · <span style="white-space:nowrap">${esc(d.toLocaleDateString([],{month:'long',day:'numeric'}))}</span></span></header>`
   +(lead.img&&tr!=='photo'?`<div class="dcv-band" aria-hidden="true"><img src="${esc(lead.img)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></div>`:'')
   +`<div class="dcv-main"><a class="cvlead dcv-lead${lead.title.length>72?' long':''}" href="${esc(lead.link)}" data-i="0"><small>${esc(fof(lead).title)}</small>${(()=>{/* the headline rises in word by word, the first time the Daily is opened each day */const d=new Date().toDateString(),now=Date.now();if(S.wrd!==d){S.wrd=d;saveSoon();dayCoverHtml.wt=now}const el=(now-(dayCoverHtml.wt||0))/1e3;if(el>2.5)return `<h2>${esc(lead.title)}</h2>`;return `<h2 class="wrv">${lead.title.split(/\s+/).map((w,i)=>`<span><b style="--d:${(i*.09-el).toFixed(2)}s">${esc(w)}</b></span>`).join(' ')}</h2>`})()}</a>${(()=>{let q=null;try{q=nrQuoteText(lead)}catch(e){}const t=q&&q.q&&q.q.length>=40?q.q.replace(/[\s,;:–—-]+$/,'')+(/[.!?…]$/.test(q.q)?'':'…'):'';const dk=t?'':(()=>{try{return ledeOf(lead)||dekOf(lead,190)}catch(e){return ''}})();return t?`<blockquote class="dcv-q"><span aria-hidden="true">“</span>${esc(t)}<cite>${esc(fof(lead).title)}</cite></blockquote>`:dk?`<p class="dcv-q dcv-qd">${esc(dk)}</p>`:''})()}${note?`<p class="dcv-note">${esc(note)}</p>`:''}${li?`<div class="dcv-lines">${li}</div>`:''}</div>`
   +`<div class="dcv-prog"><!--DGP--></div>${WHY[lead.link]?'<button type="button" class="why cvwhy dcv-why" data-why="0" title="Why am I seeing this?" aria-label="Why am I seeing this?">i</button>':''}</div>`;
