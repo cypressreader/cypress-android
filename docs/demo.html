@@ -6412,8 +6412,9 @@ function fpBar(){
 function feedHead(){
  const t=$('.top'),g=$('#grid');if(!t||!g)return;
  if(feedHead.io){feedHead.io.disconnect();feedHead.io=null}
- t.classList.remove('fbig');fpBar();document.documentElement.style.setProperty('--toph',(t.getBoundingClientRect().bottom|0)+'px');
+ /* 'rise' goes on before the header is measured: added after, it restyled the whole new list a second time (70-110 ms at 4x on each tab switch) */
  if(feedHead.sel!==S.sel){feedHead.sel=S.sel;g.classList.add('rise');clearTimeout(feedHead.rt);feedHead.rt=setTimeout(()=>g.classList.remove('rise'),1200)}
+ t.classList.remove('fbig');fpBar();document.documentElement.style.setProperty('--toph',(t.getBoundingClientRect().bottom|0)+'px');
  {const tt=$('#ttl'),wp=g.querySelector('.wpill');const o=t.querySelector('.tnew');if(o)o.remove();if(tt&&wp){const n=+wp.dataset.n;tt.insertAdjacentHTML('beforeend',`<button type="button" class="tnew" aria-label="Show ${n} new ${n===1?'story':'stories'}">${n} new<span> ${n===1?'story':'stories'}</span></button>`)}}
  const m=g.querySelector('.fmast,.tm-day');
  if(m&&'IntersectionObserver' in window){t.classList.add('fbig');const th=t.getBoundingClientRect().bottom|0;feedHead.io=new IntersectionObserver(es=>{t.classList.toggle('fbig',es[0].isIntersecting)},{rootMargin:-th+'px 0px 0px'});feedHead.io.observe(m)}
