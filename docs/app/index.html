@@ -3302,7 +3302,7 @@ html.rdx .cols.tplb img.hero{aspect-ratio:16/9;max-height:calc(var(--ih)*.42)}
 .fd-bl b{font:500 16px/1.3 var(--serif,Georgia,serif)}.fd-bl time{flex:none;font:12px var(--sans);color:var(--mut)}
 .fd-voice{margin:6px 0 22px;padding:2px 0;text-align:center;font:italic 400 18px/1.3 var(--disp,var(--serif));color:var(--fa,var(--logo))}
 .fd-feat.read b,.fd-deck.read b,.fd-bl.read b{color:var(--mut)}
-@media(min-width:760px){.fd-feat{display:grid;grid-template-columns:1.25fr 1fr;gap:30px;align-items:center}.fd-feat .fd-fa{margin:0;aspect-ratio:3/2}.fd-feat.fd-ft{display:block}.fd-pair .card{aspect-ratio:4/3}.fd-decks{display:grid;grid-template-columns:repeat(3,1fr);gap:0 24px}.fd-deck{border-bottom:1px solid var(--ln)}}
+@media(min-width:760px){.fd-feat{display:grid;grid-template-columns:1.25fr 1fr;gap:30px;align-items:center}.fd-feat .fd-fa{margin:0;aspect-ratio:3/2}.fd-feat.fd-ft{display:block}.fd-pair .card{aspect-ratio:4/3}.fd-decks{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));gap:0 24px}@media(max-width:699px){.fd-decks>:last-child:nth-child(odd){grid-column:1/-1}}@container feed (max-width:479px){.fd-decks>:last-child:nth-child(odd){grid-column:1/-1}}/* a deck holds 1-3 stories: as many columns as it has, so two never leave an empty third */.fd-deck{border-bottom:1px solid var(--ln)}}
 /* correction round, cluster 7: reader toolbar and accent */
 .mn .mphone{display:block}
 #rd .bar #fdn,#rd .bar #rp,#rd .bar #wb,#rd .bar #pv,#rd .bar #nx{display:none}
@@ -13471,8 +13471,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.30k';const APP_LABEL='1.220';
-const CHANGES=["Cards view on wide screens: after new stories load, every row fills the full width again (two small cards could be left with a blank half beside them)"];
+const APP_VERSION='2026.10.30l';const APP_LABEL='1.221';
+const CHANGES=["A single site or folder, on wide screens: a block of short headlines with only two stories now shares the width between them, instead of leaving an empty third column"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -14211,7 +14211,7 @@ function fedMods(us,FD,c){
   }else if(m==='deck'){
    const t=[];while(us.length&&t.length<3&&!us[0].more.length)t.push(us.shift());
    t.forEach(u=>why(u.head));
-   B.push(`<div class="fd-decks">${t.map(u=>link(u.head,'fd-deck',`<small>${esc(when(u.head))}${minsOf(u.head)?' · '+minsOf(u.head)+' min':''}</small><b>${esc(u.head.title)}</b>${dk(u.head)?`<span>${esc(dk(u.head))}</span>`:''}`)).join('')}</div>`);
+   B.push(`<div class="fd-decks" style="--n:${t.length}">${t.map(u=>link(u.head,'fd-deck',`<small>${esc(when(u.head))}${minsOf(u.head)?' · '+minsOf(u.head)+' min':''}</small><b>${esc(u.head.title)}</b>${dk(u.head)?`<span>${esc(dk(u.head))}</span>`:''}`)).join('')}</div>`);
   }else{
    /* only stories known to take 3 minutes or less go in brief; none at all and a normal card takes the slot */
    const t=us.filter(u=>!u.more.length&&minsOf(u.head)&&minsOf(u.head)<=3).slice(0,4);

@@ -1065,3 +1065,6 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 
 ## 1.220 no half-empty rows after new stories load (2026-10-30, branch -2djkfy, unverified on phone)
 - Fold unfolded, All Stories in Cards view: load new stories (tap the new-stories button or refresh). The rows in "Last hour" fill the full width, with no blank half next to two small cards
+
+## 1.221 no empty third column on a site or folder page (2026-10-30, branch -mmwk66, unverified on phone)
+- Fold unfolded, open a single site or a folder in Cards view and scroll: every row of short text headlines (time and minutes on top, no photo) fills the full width; two stories split it in half, one story spans it
