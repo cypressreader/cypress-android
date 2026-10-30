@@ -1062,3 +1062,6 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Fold, All Stories in Cards view: stories without a photo sit two or three to a line, with no tall, half-empty full-width card
 - Open the app on the inner screen (List, Columns and Cards in turn), close the Fold: within about a second the feed on the cover screen looks like the normal phone layout (no wide-screen spacing, no squeezed columns, no oversized headlines). Then unfold again and check the reverse
 - Same with a story open when you close the Fold, then go back to the feed
+
+## 1.220 no half-empty rows after new stories load (2026-10-30, branch -2djkfy, unverified on phone)
+- Fold unfolded, All Stories in Cards view: load new stories (tap the new-stories button or refresh). The rows in "Last hour" fill the full width, with no blank half next to two small cards
