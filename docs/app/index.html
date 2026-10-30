@@ -126,6 +126,7 @@ body:not(.narrow) .grid:not(.list) .tpl.t3>.card:nth-child(1),body:not(.narrow) 
 .emb.yt img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;cursor:pointer}
 .emb.yt .pl{position:absolute;left:50%;top:calc(14px + 28%);transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;background:rgba(0,0,0,.6);display:grid;place-items:center;color:#fff;font-size:22px;padding-left:4px}
 .cols .body pre{white-space:pre;overflow:auto;overflow-wrap:normal;word-break:normal;max-width:100%;max-height:min(60vh,520px);tab-size:2}
+#rd .cols .body pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
 .code{position:relative;break-inside:avoid}
 .codex{margin:0 0 1em;break-inside:avoid;font-family:var(--sans);font-size:.8em;color:var(--mut)}.codex>summary{cursor:pointer;padding:.5em .8em;border:1px solid var(--ln);border-radius:10px;list-style:none}.codex>summary::-webkit-details-marker{display:none}.codex[open]>summary{margin-bottom:.5em}.code pre{padding-right:4.6em!important}
 .cpy{position:absolute;top:8px;right:8px;z-index:2;padding:3px 10px;border-radius:99px;background:var(--pn);border:1px solid var(--ln);font:700 11px var(--sans);color:var(--ink);cursor:pointer}
@@ -809,7 +810,7 @@ html.rmo .card>.rib.ribnew,html.lowp .card>.rib.ribnew{animation:none}
 .addbtn{margin:10px;padding:11px;border-radius:12px;background:var(--ink);color:var(--pn);font-weight:600}
 main{overflow:auto;min-width:0;background:var(--tint,transparent);container-type:inline-size;container-name:feed}
 .top{display:flex;align-items:center;gap:10px;padding:clamp(16px,3vw,28px) clamp(14px,3vw,32px) 12px;position:sticky;top:0;background:linear-gradient(var(--tint,var(--bg)) 70%,transparent);z-index:5}
-.top h1{font:600 clamp(24px,3.4vw,40px)/1.1 var(--serif);letter-spacing:var(--hk);word-spacing:var(--hw);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top h1{font:600 clamp(24px,3.4vw,40px)/1.1 var(--serif);letter-spacing:var(--hk);word-spacing:var(--hw);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-bottom:4px;margin-bottom:-4px}
 #menu{display:none}
 /* the header icons have a fixed box of their own, so a phone web view that measures an inline icon differently can never pull the menu button over the title */
 .top .ib{box-sizing:border-box;width:38px;min-width:38px;height:38px;min-height:38px;padding:0;margin:0;flex:none;overflow:visible}
@@ -1161,6 +1162,7 @@ body.narrow>aside{z-index:27}
 #tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;font:600 11px var(--sans);color:var(--mut);min-height:52px}
 #tabs button svg{width:22px;height:22px}#tabs button.on{color:var(--logo)}
 body.narrow #toast{bottom:calc(84px + env(safe-area-inset-bottom))}body.narrow .sky{bottom:calc(80px + env(safe-area-inset-bottom))}
+body:has(#toast.show) .sky{bottom:calc(140px + env(safe-area-inset-bottom))}/* a hint toast keeps the corner; the sunrise card steps up */
 body.narrow #rd.on~#tabs{display:none}
 body.split{grid-template-columns:minmax(300px,40%) 1fr}
 body.split>aside{position:fixed;inset:0 auto 0 0;width:var(--dw);z-index:40;transform:translateX(-101%);transition:transform .28s var(--ease-out)}
@@ -1578,7 +1580,7 @@ html.quiet .cvm{letter-spacing:.06em}
 .body{--x:0}
 .cols>.hsf{break-after:column;break-inside:avoid;margin:0;height:var(--ch);position:relative;width:100%}
 .cols>.hsf:not(:has(img)){display:none}
-.cols>.hsf img.hero{width:100%;height:100%;max-height:none;object-fit:cover;border-radius:16px;margin:0;display:block}
+.cols>.hsf img.hero{width:100%;height:100%;max-height:none;object-fit:cover;object-position:50% 25%;border-radius:16px;margin:0;display:block}
 /* photo on top: a wide photo keeps its own shape across the column, the title sits under it and the story flows on below */
 .cols>.hsf.hs-top{height:auto;break-after:auto;break-inside:auto;margin-bottom:22px}
 .cols>.hsf.hs-top img.hero{object-fit:cover;max-height:300px}/* the title block sits above the text across the full width instead of filling its own column *//* a tall header may run into the next column instead of pushing the text away and leaving a blank column */
@@ -13677,7 +13679,7 @@ function makeDropcap(p){
  const w=document.createTreeWalker(p,NodeFilter.SHOW_TEXT);let n;
  while((n=w.nextNode())){
   if(!/\S/.test(n.nodeValue))continue;
-  const m=n.nodeValue.match(/^(\s*)([“"‘']?)([A-Za-z0-9\u00C0-\u024F])/);if(!m)return false;
+  const m=n.nodeValue.match(/^(\s*)([“"‘']?)([A-Za-z\u00C0-\u024F])/);if(!m)return false;
   const lead=m[1],cap=m[2]+m[3],rest=n.nodeValue.slice(m[0].length);
   const sp=document.createElement('span');sp.className='dcap'+(/^[ATVW]$/.test(m[3])?' dc-k':'');sp.textContent=cap;
   const parent=n.parentNode;if(lead)parent.insertBefore(document.createTextNode(lead),n);parent.insertBefore(sp,n);n.nodeValue=rest;
