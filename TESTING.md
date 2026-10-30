@@ -1030,3 +1030,7 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] (same branch) Open several stories in pages mode on the phone and the Fold: opens feel quicker; the first page, the photo and the "Why it matters" box look the same as before; turning pages still looks the same mid-story and near the end.
 - [ ] With Hands-free on in a story, a toast still sits above the Hands-free bar; on a narrow phone the bottom tabs hide while a story is open.
 - [ ] TalkBack in a story in pages mode: the page is read once (the hidden copies of the next page turn are skipped), and swiping through links never lands on invisible ones.
+
+## Story open restyle (branch claude/theme-six-handoff-h8bzos, 2026-10-30, unreleased)
+- [ ] Open stories from the Daily and All Stories on the phone and the Fold: opens feel a touch quicker; on the Fold the sidebar still slides away while reading and the "Feeds" tab still brings it back; closing returns to the same spot.
+- [ ] Open a story from the Daily's "listen" / background read-aloud (the hidden reader): the sidebar and feed stay as they were.
