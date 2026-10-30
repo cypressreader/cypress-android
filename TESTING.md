@@ -1052,3 +1052,8 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] List view: each row with a photo has a visible wash of the photo's color fading in from the right (it never showed in 1.215: the row divider rule hid it); the thin divider under each row is still there. No star in any list row; Save still works from the story's menu.
 - [ ] Columns view on the Fold (3 columns): every column opens with a photo + 2-line summary, including the middle one; 2 columns: both do. Columns stay roughly even in height; rotating re-deals cleanly.
 - [ ] Open a story from the Daily and come back: the cover headline does not jump or re-size.
+
+## 1.218 tablet cover headline + full-width list features (2026-10-30, branch -2djkfy, unverified on phone)
+- Fold unfolded, Halcyon, the Daily: the cover headline is large (not tiny print); the photo band above it is a bit shorter but still a real picture
+- Fold unfolded, All Stories in List view: big-photo feature stories run across both columns, with no empty gap beside them
+- A story that only partly loads says "Partial story"
