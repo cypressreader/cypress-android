@@ -1029,3 +1029,4 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] Scroll/tap the toolbar right after a turn: nothing feels stuck.
 - [ ] (same branch) Open several stories in pages mode on the phone and the Fold: opens feel quicker; the first page, the photo and the "Why it matters" box look the same as before; turning pages still looks the same mid-story and near the end.
 - [ ] With Hands-free on in a story, a toast still sits above the Hands-free bar; on a narrow phone the bottom tabs hide while a story is open.
+- [ ] TalkBack in a story in pages mode: the page is read once (the hidden copies of the next page turn are skipped), and swiping through links never lands on invisible ones.

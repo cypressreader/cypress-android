@@ -18,7 +18,7 @@ const SIZES=(process.env.SIZES||'412x860,820x900').split(',').map(x=>x.split('x'
     const c=document.createElement('canvas').getContext('2d');c.font=cs.fontStyle+' '+cs.fontWeight+' '+cs.fontSize+' '+cs.fontFamily;const t=c.measureText(m.textContent.trim());
     const r=m.getBoundingClientRect(),fs=parseFloat(cs.fontSize),lh=parseFloat(cs.lineHeight)||fs*1.2,A=t.fontBoundingBoxAscent,D=t.fontBoundingBoxDescent;
     const inkBottom=r.top+(lh-(A+D))/2+A+t.actualBoundingBoxDescent;
-    let nxt=null,best=1e9;for(const e of cv.querySelectorAll('.cvd,.cvlead small,.cvlead h2,.dcv-ed,.dcv-lead small,.dcv-lead h2')){const q=e.getBoundingClientRect();if(!q.height||m.contains(e))continue;if(q.top>r.top+r.height*.4&&q.top<best&&q.left<r.right&&q.right>r.left){best=q.top;nxt=e}}
+    /* only a line under the letters themselves counts: the name's box can be wider than its text, and the Index cover sets the edition line beside the name */const ink=(()=>{const g=document.createRange();g.selectNodeContents(m);return g.getBoundingClientRect()})();let nxt=null,best=1e9;for(const e of cv.querySelectorAll('.cvd,.cvlead small,.cvlead h2,.dcv-ed,.dcv-lead small,.dcv-lead h2')){const q=e.getBoundingClientRect();if(!q.height||m.contains(e))continue;if(q.top>r.top+r.height*.4&&q.top<best&&q.left<ink.right-(parseFloat(cs.letterSpacing)||0)/* the text box carries the spacing after the last letter */&&q.right>ink.left){best=q.top;nxt=e}}
     return{gap:nxt?Math.round((best-inkBottom)*10)/10:99,fs:Math.round(fs),el:nxt&&nxt.className}},[st,'Markets rally on rate hopes']);
    process.stdout.write(st+' ');if(r.none||r.nomast)continue;
    if(r.gap<2)fails.push(`${W}x${H} ${st}: the paper name's tail touches the line under it (gap ${r.gap}px at ${r.fs}px)`);

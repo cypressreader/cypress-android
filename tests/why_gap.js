@@ -19,7 +19,7 @@ const IMG='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.
     const c=document.querySelector('.cols'),cr=c.getBoundingClientRect(),pitch=(R.step)/R.cpv;
     const col=e=>e?Math.floor((e.getBoundingClientRect().left-cr.left+2)/pitch):null;
     const why=c.querySelector(':scope>.whyit'),fp=c.querySelector(':scope>.body>p');
-    out.push({cpv:R.cpv,why:why?col(why):null,firstP:col(fp),forced:getComputedStyle(c.querySelector(':scope>.body').firstElementChild).breakBefore});
+    out.push({cpv:R.cpv,why:why?col(why):null,firstP:col(fp),forced:(()=>{const bd=c.querySelector(':scope>.body');/* since 1.208 a photo across both pages puts the break on the text's lead-in (.body::before) instead of its first paragraph */return getComputedStyle(bd,'::before').breakBefore==='column'?'column':getComputedStyle(bd.firstElementChild).breakBefore})()});
    }
    return out},{IMG});
   const t='['+W+'x'+H+'] ';

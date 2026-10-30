@@ -12,9 +12,9 @@ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAZAAAADICAIAAABJdyC1AAAAMElEQVR4n
    const a={feedId:f,title:'Picture retry story',link:'https://s.test/story-9',date:Date.now(),summary:'s',img:lead?'https://img.test/a.jpg':'',html:'<figure><img src="https://img.test/a.jpg?w=1200" width="640" height="360" alt="A tiger"><figcaption>A tiger</figcaption></figure>'+para+para+para};
    items[f]=[a];state[f]='ok';acPut(a.link,a.html,1);S.sel='all';S.scroll='page';render();openReader(a)},lead);
   await p.waitForTimeout(2500);const tag=W+(lead?' lead':' plain')+': ';
-  const pre=await p.evaluate(()=>document.querySelectorAll('[data-imgretry]').length);console.log('   lead imgs before retry:',await p.evaluate(()=>[...document.querySelectorAll('#rd img')].map(i=>i.className+':'+Math.round(i.getBoundingClientRect().width)).join(',')));ck(tag+'the failed picture shows the retry button',pre===1,String(pre));
+  const pre=await p.evaluate(()=>[...document.querySelectorAll('[data-imgretry]')].filter(x=>!x.closest('.tl,.tl-leaf')).length);console.log('   lead imgs before retry:',await p.evaluate(()=>[...document.querySelectorAll('#rd img')].map(i=>i.className+':'+Math.round(i.getBoundingClientRect().width)).join(',')));ck(tag+'the failed picture shows the retry button',pre===1,String(pre));
   ok=true;await p.evaluate(()=>document.querySelector('[data-imgretry]').click());await p.waitForTimeout(2000);
-  const vis=await p.evaluate(()=>[...document.querySelectorAll('#rd img')].filter(i=>i.getBoundingClientRect().width>40&&i.naturalWidth>0).map(i=>i.src.split('?')[0]));
+  const vis=await p.evaluate(()=>[...document.querySelectorAll('#rd img')].filter(i=>i.getBoundingClientRect().width>40&&i.naturalWidth>0&&!i.closest('.tl,.tl-leaf')/* not the page-turn copies */).map(i=>i.src.split('?')[0]));
   ck(tag+'exactly one picture after the retry',vis.length===1,JSON.stringify(vis));
   ck(tag+'no retry button left',await p.evaluate(()=>!document.querySelector('[data-imgretry]')));
   ck(tag+'no page errors',!errs.length,errs[0]);await p.context().close();

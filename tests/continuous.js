@@ -11,7 +11,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    const first=cur[0];openReader(first);await w(1800);
    const out={first:first.link};const card=document.querySelector('.rnext')||document.querySelector('.rfoot .rf-next');out.card=!!card;out.cardTitle=card?((card.querySelector('b')||card).textContent):'';out.nextIs=readerNext()&&readerNext().title;
    if(mode==='vertical'){const v=vView();v.scrollTop=v.scrollHeight;await w(900);for(let i=0;i<4;i++){document.dispatchEvent(new WheelEvent('wheel',{deltaY:140,bubbles:true}));await w(60)}}
-   else{R.pg=R.np-1;show&&show();await w(300);go(1);out.armed=R.endArmed;await w(200);go(1)}
+   else{/* wait past the story's last settling relayout (2.6 s) and any turn in progress: on a busy machine the page count can still change, so the jump to the last page landed short */await w(1000);for(let k=0;k<80&&(!R.ready||R.busy);k++)await w(50);R.pg=R.np-1;show&&show();await w(300);go(1);out.armed=R.endArmed;await w(200);go(1)}
    await w(1800);out.after=curA&&curA.link;out.advanced=curA&&curA.link!==first.link&&curA.title===out.nextIs;
    /* off switch */
    S.cont=false;const c2=document.querySelector('.rnext');out.offHasCard=!!document.querySelector('.rnext');rdNext&&(document.querySelector('.rnext')&&document.querySelector('.rnext').remove(),rdNext());out.offNoCard=!document.querySelector('.rnext');

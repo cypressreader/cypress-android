@@ -8,7 +8,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
   const r=await p.evaluate(async()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());const f=S.feeds[0].id,more='<p>'+'Further reporting on the story from Trump and the officials involved, with plenty of words to fill the page. '.repeat(14)+'</p>';
    const a={feedId:f,title:'Tiger story',link:'https://s.test/story-7',date:Date.now(),summary:'s',img:'',html:'<p>A MAN HAS DIED AFTER ENTERING A tiger enclosure at a wildlife park in Yorkshire, police said on Sunday, and investigators were at the scene for most of the day and into the night.</p><p>TRUMP SAYS HE WILL SIGN THE ORDER later this week according to the White House and officials briefed on it, which would end the dispute.</p>'+more+more};
    items[f]=[a];state[f]='ok';acPut(a.link,a.html,1);S.sel='all';S.scroll='page';render();openReader(a);await new Promise(r=>setTimeout(r,1800));
-   const ps=[...document.querySelectorAll('.cols .body p.dropcap')],t=ps.map(x=>x.textContent.slice(0,60)),fl=(()=>{const s=ps[0]&&ps[0].querySelector('.dcl');return s?getComputedStyle(s).fontVariantCaps:'none'})();
+   const ps=[...document.querySelectorAll('.cols .body p.dropcap')].filter(x=>!x.closest('.tl,.tl-leaf')),t=ps.map(x=>x.textContent.slice(0,60)),fl=(()=>{const s=ps[0]&&ps[0].querySelector('.dcl');return s?getComputedStyle(s).fontVariantCaps:'none'})();
    const cap=document.querySelector('.cols .body p.dropcap .dcap'),pp=cap&&cap.parentElement,lh=pp?parseFloat(getComputedStyle(pp).lineHeight):0;
    return{t,fl,ch:cap?cap.getBoundingClientRect().height:0,lh,n:ps.length,il:cap?parseFloat(getComputedStyle(cap).initialLetter):0}});
   const tag=W+': ';

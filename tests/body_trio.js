@@ -26,7 +26,7 @@ for(const [n,x,y,want] of pairs)ck('sameImg: '+n,sameImg(x,y)===want);
    const tail='<h3>Sign up for the Installer newsletter</h3><p>newsletter and get the latest gadget news straight to your inbox every Friday</p><p>Email (required)</p><p>Sign up</p><p>By submitting your email, you agree to our Terms and Privacy Notice. This site is protected by reCAPTCHA.</p>';
    const a={feedId:f.id,title:'Body trio',link:'https://w.test/trio',date:Date.now(),summary:'x',img:heroU,html:`<figure><img src="${bodyU}"><figcaption>A caption</figcaption></figure>${para(40)}${para(40)}<p>The plan is simple: you can subscribe for $5 a month, the company said.</p><p><a href="https://x.test/l">A link in a real paragraph</a> with more words after it, enough to count.</p>${tail}`};
    items[f.id]=[a];S.sel='all';S.scroll='paged';render();await w(300);openReader(a);await w(2600);
-   const imgs=[...document.querySelectorAll('#rd img')].filter(i=>i.getBoundingClientRect().width>20&&!i.closest('.rprev')).length;
+   const imgs=[...document.querySelectorAll('#rd img')].filter(i=>i.getBoundingClientRect().width>20&&!i.closest('.rprev')&&!i.closest('.tl,.tl-leaf')/* not the page-turn copies */).length;
    const body=document.querySelector('.cols .body'),lk=body.querySelector('a[href^="https://x.test/l"]'),cs=lk?getComputedStyle(lk):null;
    return {imgs,text:body.textContent,style:cs&&cs.textDecorationStyle,thick:cs&&cs.textDecorationThickness,color:cs&&cs.textDecorationColor,line:cs&&cs.textDecorationLine}});
   const t='['+W+'] ';
