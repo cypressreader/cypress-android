@@ -965,7 +965,7 @@ html.pdark .grid:not(.list):not([data-cards=compact]):not([data-cards=narrow]) .
 .empty.emp .eact{margin-top:20px}.empty.emp .eact button{min-height:48px;padding:0 24px}
 #rd{position:fixed;inset:0;display:none;background:rgba(8,10,14,.55);backdrop-filter:blur(8px);z-index:30}
 #rd.on{display:block}
-#afx{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:4px;padding:4px;border-radius:99px;background:var(--pn);color:var(--ink);border:1px solid var(--ln);box-shadow:0 6px 20px rgba(0,0,0,.25)}#afx[hidden]{display:none}body:has(#afx:not([hidden])) #toast{bottom:calc(88px + env(safe-area-inset-bottom,0px))}#afx button{min-width:44px;height:44px;border:0;border-radius:99px;background:none;color:inherit;font-size:1.3rem}#afx span{min-width:3.2em;text-align:center;font-variant-numeric:tabular-nums}
+#afx{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:4px;padding:4px;border-radius:99px;background:var(--pn);color:var(--ink);border:1px solid var(--ln);box-shadow:0 6px 20px rgba(0,0,0,.25)}#afx[hidden]{display:none}#rd:has(>#afx:not([hidden]))~#toast{bottom:calc(88px + env(safe-area-inset-bottom,0px))}#afx button{min-width:44px;height:44px;border:0;border-radius:99px;background:none;color:inherit;font-size:1.3rem}#afx span{min-width:3.2em;text-align:center;font-variant-numeric:tabular-nums}
 #rd .cols{transition:opacity .12s ease}#rd.rdb .cols{opacity:0}@media(prefers-reduced-motion:reduce){#rd .cols{transition:none}}
 .sheet{max-width:1120px;margin:0 auto;height:100%;background:var(--pn);border-top:6px solid var(--b);display:flex;flex-direction:column}
 .bar{display:flex;align-items:center;gap:8px;padding:12px clamp(12px,3vw,24px)}
@@ -1280,7 +1280,7 @@ body.narrow>aside{z-index:27}
 #tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;font:600 11px var(--sans);color:var(--mut);min-height:52px}
 #tabs button svg{width:22px;height:22px}#tabs button.on{color:var(--logo)}
 body.narrow #toast{bottom:calc(84px + env(safe-area-inset-bottom))}body.narrow .sky{bottom:calc(80px + env(safe-area-inset-bottom))}
-body.narrow:has(#rd.on) #tabs{display:none}
+body.narrow #rd.on~#tabs{display:none}
 body.split{grid-template-columns:minmax(300px,40%) 1fr}
 body.split>aside{position:fixed;inset:0 auto 0 0;width:var(--dw);z-index:40;transform:translateX(-101%);transition:transform .28s var(--ease-out)}
 body.split.open>aside{transform:none}
@@ -8540,6 +8540,7 @@ function pagesUndo(c){
 function layout(){prepDrop();noteFix();
  rdVars();
  const bk=$('.book'),c=$('.cols');if(!bk||!c)return;
+ c.style.display='none';/* the story is hidden while the book is measured (both branches below set its whole style again), so the measuring never lays out the long story in its old shape */
  heroSpread();
  bk.style.marginLeft='';bk.style.marginRight='';
  flexUi();
@@ -9768,7 +9769,7 @@ async function openReader(a){
   if(S.autoReader&&R.web&&R.auto)toggleWeb();
  }else if(bodyFull(body)&&!gated){a.tier='feed';note.textContent='';note.hidden=true;markReady(a.link)
  }else{a.tier='feed';note.innerHTML=/* a site that only ever sends previews gets the plain reason */!gated&&(a.rkind==='teaser'||isShortFeed(f))?'<span class="sbadge">Short preview</span>This site only shares a short preview of each story, so the rest is on its website. <a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener noreferrer">Open the website</a>':'<span class="sbadge">Truncated source text</span>'+(gated?'The site wouldn’t let the app in, and no saved or syndicated copy turned up, so this is what its feed gave us. ':'Couldn’t get the full story cleanly here, and no saved or syndicated copy turned up, so this is what the site’s feed gave us. ')+'<a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener">Open the original story</a> <button type="button" class="lnk" data-web="1">View the site in the app</button> <button type="button" class="lnk" data-retry="1">'+(deepRan?'Try again':'Try another way')+'</button> <button type="button" class="lnk" data-diag="1">Copy details</button>'+whyHtml(a.link);if(my===tok&&!R.web&&online()&&(S.autoWeb||isBing(f.url)||/news\.google\./.test(f.url||'')||/news\.google\./.test(a.link||'')||isPay(a)))toggleWeb(true);if(my===tok&&online()&&!deepRan)setTimeout(()=>{if(my===tok&&curA===a)deepTry(a,false)},300)}
- layout();afterLoad();
+ afterLoad();/* afterLoad lays the page out itself (laying it out first as well cost a whole extra layout of the story) */
 }
 const FONTS={serif:"'Newsreader',Georgia,serif",literata:"'Literata',Georgia,serif",merri:"'Merriweather',Georgia,serif",garamond:"'EB Garamond',Georgia,serif",sans:"'Instrument Sans',system-ui,sans-serif",lexend:"'Lexend',system-ui,sans-serif",hyper:"'Atkinson Hyperlegible','Instrument Sans',sans-serif",dys:"'OpenDyslexic','Lexend',sans-serif"};
 const FONTLINK={literata:'Literata:opsz,wght@7..72,400..700',merri:'Merriweather:wght@400;700',garamond:'EB+Garamond:wght@400;600',lexend:'Lexend:wght@400;600'};
@@ -13576,7 +13577,9 @@ const splitMode=()=>S.splitm||(S.split===false?'off':S.split===true?'always':spl
 const sideways=()=>{try{const a=screen.width,b=screen.height;if(a>0&&b>0&&a!==b)return a>b&&innerWidth>=innerHeight*.9}catch(e){}return innerWidth>innerHeight};/* the whole display, not the window: on the near-square Fold the status bar alone makes the window look wider than tall upright */
 const splitShape=()=>splitMode()==='always'||sideways();/* 'Sideways' means the display really is wider than tall: near-square upright windows (open Fold 859x847) stay single, per David; choose Always for those */
 const isOn=k=>(k==='caps'||k==='typo')?true:k==='split'?splitMode()!=='off':DEF_ON.has(k)?S[k]!==false:!!S[k];
-const isWide=()=>Math.min(innerWidth,innerHeight)>=600||innerWidth>=760;
+/* the window size is read once per resize: reading innerWidth right after a story is put in made the browser lay out the whole story there and then (and again once its columns were set) */
+let VWH=null;addEventListener('resize',()=>{VWH=null},true);
+const isWide=()=>{const v=VWH||(VWH=[innerWidth,innerHeight]);return Math.min(v[0],v[1])>=600||v[0]>=760};
 /* the story beside the list gets only part of the screen (about 500 wide on an open Fold): short, narrow pages, so Automatic scrolls there; choosing Pages still wins */
 const splitNow=()=>isOn('split')&&innerWidth>=800&&splitShape()&&!((S.narrow||'auto')==='auto'&&innerWidth<=500)&&innerWidth-Math.max(300,innerWidth*.4)<700;/* the story pane (what the list leaves) is narrow */
 const isVert=()=>{const m=S.scroll||'auto';return m==='vertical'||(m==='auto'&&(!isWide()||splitNow()))};

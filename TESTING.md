@@ -1027,3 +1027,5 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 ## Page-turn prep in small steps (branch claude/theme-six-handoff-dakini, unreleased)
 - [ ] Open a long story in pages mode, turn several pages quickly in a row: no stall after a turn lands; the next tap starts moving at once.
 - [ ] Scroll/tap the toolbar right after a turn: nothing feels stuck.
+- [ ] (same branch) Open several stories in pages mode on the phone and the Fold: opens feel quicker; the first page, the photo and the "Why it matters" box look the same as before; turning pages still looks the same mid-story and near the end.
+- [ ] With Hands-free on in a story, a toast still sits above the Hands-free bar; on a narrow phone the bottom tabs hide while a story is open.
