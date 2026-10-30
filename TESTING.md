@@ -1048,7 +1048,7 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 ## In brief photo row stretches (2026-10-30, branch -2djkfy, unverified on phone)
 - [x] (VERIFIED on phone 2026-10-30, 1.216) Daily "In brief · The short ones": with 3 or 2 photos the row is filled edge to edge (same height as with 4); if photos fail to load the rest widen; if all fail the row disappears, leaving no empty band.
 
-## List tint, no star, a photo atop every column, cover re-fit (2026-10-30, branch -2djkfy, unverified on phone)
+## List tint, no star, a photo atop every column, cover re-fit (2026-10-30, branch -2djkfy, phone video 2026-10-30: list tint + no star + photo atop every column VERIFIED; TalkBack, Halcyon Dark, cover re-fit still open)
 - [ ] List view: each row with a photo has a visible wash of the photo's color fading in from the right (it never showed in 1.215: the row divider rule hid it); the thin divider under each row is still there. No star in any list row; Save still works from the story's menu.
 - [ ] Columns view on the Fold (3 columns): every column opens with a photo + 2-line summary, including the middle one; 2 columns: both do. Columns stay roughly even in height; rotating re-deals cleanly.
 - [ ] Open a story from the Daily and come back: the cover headline does not jump or re-size.
