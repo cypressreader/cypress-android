@@ -8622,8 +8622,16 @@ const eBack=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
 /* after letting go: a soft start (paper has weight) and a long, gentle settle */
 const eRel=p=>1-Math.pow(1-p,1.7);
 const mkEl=(c,st)=>{const e=document.createElement('div');e.className=c;if(st)e.style.cssText=st;return e};
+/* a copy only needs the story up to the end of its own page: the columns fill in order at a fixed height, so what comes after cannot move what is shown; dropping it makes each copy far cheaper to draw. The cut is measured once per page on the real page. */
+let CUT={k:'',m:{}};
+function cutOf(pg){
+ const k=prepKey();if(CUT.k!==k)CUT={k,m:{}};if(CUT.m[pg])return CUT.m[pg];
+ const c=$('.cols'),e=c.getBoundingClientRect().left+(pg+1)*R.step-1;
+ return CUT.m[pg]=[c,c.querySelector(':scope>.body')].map(p=>{const d=[];if(p)[...p.children].forEach((x,i)=>{const r=x.getClientRects();if(r.length&&[...r].every(q=>q.left>=e))d.push(i)});return d.reverse()});
+}
 function mkBox(pg,x0){
  const bk=$('.book'),v=$('.view').cloneNode(true),c=v.querySelector('.cols');
+ {const ps=[c,c.querySelector(':scope>.body')];cutOf(pg).forEach((d,j)=>{const p=ps[j];if(p)d.forEach(i=>{const x=p.children[i];if(x)x.remove()})})}
  v.removeAttribute('id');v.style.cssText=`position:absolute;inset:auto;top:0;left:${-x0}px;width:${bk.clientWidth}px;height:${bk.clientHeight}px`;
  c.style.transform=`translateX(${-pg*R.step}px)`;
  return v;
