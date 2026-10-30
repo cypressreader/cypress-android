@@ -62,7 +62,7 @@ const TITLES={
      const A=all.find(a=>a.link==='https://q.test/A');
      const open=async()=>{if(document.querySelector('#rd.on'))closeRd();await w(250);openReader(A);await w(1800)};
      await open();
-     const btns=()=>[...document.querySelectorAll('.rfoot [data-rnext]')];
+     const btns=()=>[...document.querySelectorAll('.rfoot [data-rnext]')].filter(x=>!x.closest('.tl,.tl-leaf'))/* not the page-turn copies */;
      const targets=btns().map(x=>({link:x.dataset.rnext,kind:x.classList.contains('rf-next')?'next':'related'}));
      const out={targets,cachedA:!!(AC[A.link]&&AC[A.link].c),taps:[]};
      for(let i=0;i<targets.length;i++){
