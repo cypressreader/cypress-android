@@ -1035,3 +1035,9 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] Open stories from the Daily and All Stories on the phone and the Fold: opens feel a touch quicker; on the Fold the sidebar still slides away while reading and the "Feeds" tab still brings it back; closing returns to the same spot.
 - [ ] Open a story from the Daily's "listen" / background read-aloud (the hidden reader): the sidebar and feed stay as they were.
 - [ ] (same branch, after 1.213) Switch between the Daily, All Stories and a site's feed: the cards still rise in gently on each switch; the top bar title and masthead look the same; switching feels a touch quicker.
+
+## List view redesign + blur fix (branch claude/theme-six-handoff-h8bzos, preview 421dd63, unreleased)
+- [ ] List view (All Stories, a site's feed): photos are sharp, not blurred.
+- [ ] Rows: time on a thin line at the left with the star under it; headline first; square photo on the right; a faint tint of the photo's color behind the row (Halcyon and Halcyon Dark).
+- [ ] Every fifth story is a big-photo feature with a small time label on the photo; Compact size keeps plain rows.
+- [ ] Tap the star in a row still saves; tapping the row opens the story; TalkBack reads each row once (time label is hidden from it).
