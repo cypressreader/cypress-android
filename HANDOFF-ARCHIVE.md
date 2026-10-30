@@ -412,3 +412,5 @@ David's 26 picks (2026-10-29, from the Deep Dive artifact). DONE on branch (test
 Shipped 1.206/1.207 detail (Round 4 background audio, 1.206 picks P1-P15/S0-S5) is in `HANDOFF-ARCHIVE.md` (2026-10-29 entry).
 **Smooth turn pass (SHIPPED 1.209):** detail (repaint 930→39, prepTurn/RP/prepKey, edgeHide) in archive, 2026-10-30 entry.
 **Smoothness pass 2 (SHIPPED 1.210-1.211):** prep in idle slices (`T.q`), trimmed copies (`cutOf`/`CUT`), `isWide` cache (`VWH`), pages-mode `.cols` hide in `layout()`, copies aria-hidden+inert. Detail + harness notes in archive (2026-10-30).
+**Relayout gating (SHIPPED 1.212):** afterLoad's 800 ms / fonts.ready / 2600 ms relayouts now run only if `RLD.dirty` (MutationObserver on `.cols` + img `load` capture + `document.fonts` loadingdone); layout wrapper (~L17564) drains `RLD.mo.takeRecords()` and clears dirty; observer off ~5.6 s after open. Layout runs per open 7 → 4; busy 3.2 → 2.3 s @4x.
+Shipped and closed: 1.128-1.155 (list-view tidy, Teach CyPress, Add a feed search, review batches, Fold-as-small-tablet, junk filter v2, polish pass 1.148, editorial polish) — detail in `HANDOFF-ARCHIVE.md`.
