@@ -1057,3 +1057,8 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Fold unfolded, Halcyon, the Daily: the cover headline is large (not tiny print); the photo band above it is a bit shorter but still a real picture
 - Fold unfolded, All Stories in List view: big-photo feature stories run across both columns, with no empty gap beside them
 - A story that only partly loads says "Partial story"
+
+## 1.219 text-only stories share a row; Fold close re-fit (2026-10-30, branch -2djkfy, unverified on phone)
+- Fold, All Stories in Cards view: stories without a photo sit two or three to a line, with no tall, half-empty full-width card
+- Open the app on the inner screen (List, Columns and Cards in turn), close the Fold: within about a second the feed on the cover screen looks like the normal phone layout (no wide-screen spacing, no squeezed columns, no oversized headlines). Then unfold again and check the reverse
+- Same with a story open when you close the Fold, then go back to the feed

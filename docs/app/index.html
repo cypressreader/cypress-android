@@ -6700,8 +6700,8 @@ if(FD){
     flush();WHY[u.head.link]=u.burst?'A busy stretch: '+(u.more.length+1)+' stories from '+u.feed+' arrived together, so they are folded to keep the list mixed.':'A developing story: '+(u.more.length+1)+' updates, newest first.';
     const id='t'+peHash(u.head.link);
     B.push(`<div class="wthr">${card(u.head,ix(u.head),'mid')}<button type="button" class="wthr-t" data-thr="${id}" aria-expanded="false">${u.burst?(u.more.length+1)+' more from '+esc(u.feed)+' in this stretch':u.more.length+' earlier '+(u.more.length===1?'update':'updates')+' on this story'}</button><div class="wthr-b" id="${id}" hidden>${u.more.map(rowHtml).join('')}</div></div>`);
-   }else if(kind==='row')rowBuf+=rowHtml(u.head);
-   else{flush();B.push(card(u.head,ix(u.head),kind==='lead'&&u.head.img&&!imgWeak(u.head.img)?'lead':'mid'))}
+   }else if(kind==='row'||!u.head.img||imgWeak(u.head.img))rowBuf+=rowHtml(u.head);/* a story without a photo shares a line with its neighbors: alone at full width it left a tall, half-empty card */
+   else{flush();B.push(card(u.head,ix(u.head),kind==='lead'?'lead':'mid'))}
    qgap++;if(mode!=='w'&&qgap>=5&&!u.more.length&&!S.read[u.head.link]){const q0=nrQuoteText(u.head);if(q0&&q0.real&&q0.q.length<=180){const pq=pullQuoteHtml(u.head);if(pq){flush();B.push(pq);qgap=0}}}
    if(k%7===6)addWild(us[j]?us[j].head.feedId:undefined);
   }
@@ -15810,6 +15810,8 @@ function applySbw(){const r=document.documentElement.style;if(S.sbw)r.setPropert
 function shapeChanged(){try{rdFreeze(false)}catch(e){}applySbw();clearTimeout(screenMode.t);screenMode.t=setTimeout(()=>{VW=innerWidth;VH=innerHeight;screenMode();if($('#rd').classList.contains('on'))flexUi();if(layoutKey()!==LK&&!$('#rd').classList.contains('on')&&!document.body.classList.contains('open'))render()},120)}
 addEventListener('resize',shapeChanged);
 addEventListener('orientationchange',()=>{shapeChanged();setTimeout(shapeChanged,350)});
+/* folding or unfolding a phone: the WebView can fire its resize while still reporting the old size, so the layout is worked out for the other screen. So the size is looked at again a little later, and if it moved since the last resize, the resize is replayed for every listener */
+{let lw=innerWidth,lh=innerHeight,t1=0,t2=0;const chk=()=>{if(innerWidth!==lw||innerHeight!==lh)dispatchEvent(new Event('resize'))};addEventListener('resize',()=>{lw=innerWidth;lh=innerHeight;clearTimeout(t1);clearTimeout(t2);t1=setTimeout(chk,450);t2=setTimeout(chk,1200)})}
 
 /* A one-time heads-up for people who had the old newest-first All list: it is now sorted best first, and Settings says where to switch back */
 function smartNotice(){
