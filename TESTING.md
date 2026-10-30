@@ -1034,3 +1034,4 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 ## Story open restyle (branch claude/theme-six-handoff-h8bzos, 2026-10-30, unreleased)
 - [ ] Open stories from the Daily and All Stories on the phone and the Fold: opens feel a touch quicker; on the Fold the sidebar still slides away while reading and the "Feeds" tab still brings it back; closing returns to the same spot.
 - [ ] Open a story from the Daily's "listen" / background read-aloud (the hidden reader): the sidebar and feed stay as they were.
+- [ ] (same branch, after 1.213) Switch between the Daily, All Stories and a site's feed: the cards still rise in gently on each switch; the top bar title and masthead look the same; switching feels a touch quicker.
