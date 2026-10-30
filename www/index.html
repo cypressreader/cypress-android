@@ -4821,15 +4821,16 @@ html.ptduo :is(#grid,.dcv-art,#rd) img{filter:url(#duo)!important}
 #grid .cdot{display:inline-block;flex:none;box-sizing:border-box;padding:0;width:7px;height:7px;border-radius:50%;background:#c62828;margin:0 .4em .12em 0;vertical-align:middle;position:relative;text-decoration:none}html.micro:not(.rmo):not(.lowp) #grid .cdot::after{content:"";position:absolute;inset:0;border-radius:50%;background:#c62828;animation:wping 1.8s ease-out infinite}@media(prefers-reduced-motion:reduce){#grid .cdot::after{animation:none}}
 /* Bigger buttons setting: finger-size icon buttons, tabs, switches and hands-free controls */
 html.bigtap .ib{width:46px!important;height:46px!important}html.bigtap #tabs button{min-height:56px}html.bigtap .tg{min-width:64px;min-height:40px}html.bigtap #afx button{min-width:48px;min-height:48px}
-/* ---- list rows, 2026-10-30 (David's picks L1 + L4; L6 timeline dropped: its line and time column looked busy): headline first, a crisp square photo on the right with the save star under it, a soft wash of the photo's own color; every fifth row stays a big-photo feature (L2, .lr-feat) ---- */
-html #grid.list .card.list-row:not(.lr-feat):not(.lr-quote){display:grid;grid-template-columns:minmax(0,1fr) 76px;grid-template-rows:auto 1fr;gap:0 14px;align-items:start;padding:12px 4px;background:linear-gradient(270deg,color-mix(in srgb,var(--pc,var(--b)) 20%,transparent),transparent 72%)}
+/* ---- list rows, 2026-10-30 (David's picks L1 + L4; L6 timeline dropped: its line and time column looked busy): headline first, a crisp square photo on the right (no save star: Save is in the story menu), a wash of the photo's own color; every fifth row stays a big-photo feature (L2, .lr-feat) ---- */
+html #grid.list .card.list-row:not(.lr-feat):not(.lr-quote){display:grid;grid-template-columns:minmax(0,1fr) 76px;grid-template-rows:auto 1fr;gap:0 14px;align-items:start;padding:12px 4px}
+/* the row divider is a background drawn with !important (#grid.list .card), so the photo-color wash has to sit in the same declaration, under the divider */
+html #grid.list .card.list-row:not(.lr-feat):not(.lr-quote):not(.noimg){background-image:linear-gradient(var(--hl),var(--hl)),linear-gradient(270deg,color-mix(in srgb,var(--pc,var(--b)) 38%,transparent),transparent 90%)!important;background-size:100% 1px,100% 100%!important;background-position:0 100%,0 0!important}
 html #grid.list .card.list-row:not(.lr-feat):not(.lr-quote)>.tx{grid-column:1;grid-row:1/3;min-width:0;display:flex;flex-direction:column;gap:3px}
 html #grid.list .card.list-row:not(.lr-feat):not(.lr-quote)>.tx>h3{order:-1;margin:0}
 html #grid.list .card.list-row:not(.lr-feat):not(.lr-quote)>.tx>.ld{-webkit-line-clamp:2}
 html #grid.list .card.list-row:not(.lr-feat):not(.lr-quote)>.cimg{grid-column:2;grid-row:1;width:76px!important;height:76px!important;aspect-ratio:1/1;object-fit:cover;border-radius:10px;margin:0;-webkit-mask:none;mask:none}
-html #grid.list .card.list-row:not(.lr-feat):not(.lr-quote)>.star{grid-column:2;grid-row:2;justify-self:end;align-self:start;position:static;width:30px;height:30px;margin-top:6px}
-html #grid.list .card.list-row.noimg:not(.lr-feat):not(.lr-quote){grid-template-columns:minmax(0,1fr) 30px;background:none}
-html #grid.list .card.list-row.noimg:not(.lr-feat):not(.lr-quote)>.star{grid-row:1;margin-top:0}
+html #grid.list .card.list-row>.star{display:none!important}
+html #grid.list .card.list-row.noimg:not(.lr-feat):not(.lr-quote){grid-template-columns:minmax(0,1fr)}
 /* ---- column view, 2026-10-30 (David's picks C2 + C4 + C6): a short photo with a line of summary at the top of each column, a small square photo beside other headlines, each time group in a filled band ---- */
 #grid.wire .wcol{display:flow-root}
 #grid.wire .wcol>.wci{float:right;width:44px;height:44px;margin:2px 0 4px 10px;object-fit:cover;border-radius:7px;background:var(--ln)}
@@ -6044,7 +6045,7 @@ function covFit(){
   const h=cv.querySelector('.cvlead h2,.dcv-lead h2');if(!h)return;
   const key=cv.clientWidth+'|'+innerHeight+'|'+(h.textContent||'').length+'|'+cv.className;if(h.dataset.fk===key&&h.style.fontSize)return;
   /* the same cover headline at the same size and look fits the same way: coming back to the Daily reuses the answer instead of measuring again */
-  const ck=key+'|'+(h.textContent||'')+'|'+cv.querySelectorAll('.cvlines .cvl,.dcv-lines .dcv-l').length+'|'+S.theme+'|'+S.font+'|'+S.hfont+'|'+document.body.className+'|'+document.documentElement.className,hit=COVFC.get(ck);
+  const ck=key+'|'+(h.textContent||'')+'|'+cv.querySelectorAll('.cvlines .cvl,.dcv-lines .dcv-l').length+'|'+S.theme+'|'+S.font+'|'+S.hfont+'|'+(document.body.className+' '+document.documentElement.className).replace(/\b(cvstill|rdserif|rdx|reading|open|sbdrag|exbusy|ttssm|nospeech|boot|svpick)\b/g,''),hit=COVFC.get(ck);
   if(hit){h.classList.add('cfit');h.style.setProperty('font-size',hit.size+'px','important');const ls=[...cv.querySelectorAll('.cvlines .cvl,.dcv-lines .dcv-l')];ls.forEach((l,i)=>{if(hit.hide.includes(i))l.style.setProperty('display','none','important');else l.style.removeProperty('display')});h.dataset.fk=key;return}
   h.classList.add('cfit');h.style.removeProperty('font-size');
   const max=parseFloat(getComputedStyle(h).fontSize)||40,min=Math.max(13,Math.round(max*.2));
@@ -6669,7 +6670,7 @@ function wireRender(pre,list,T){
  const cn=[],ix=a=>{cn.push(a);return cn.length-1},B=[];let k=0,wi=0,newN=0,qgap=0;
  const rowsWrap=h=>mode==='w'?`<div class="nr-river"><div class="nr-rv">${h}</div></div>`:`<div class="nr-ph-rows nr-ph-in">${h}</div>`;
  const rowHtml=a=>card(a,ix(a),'nr nr-row nr-s');
- let rowBuf='',colBuf=[];const flush=()=>{if(rowBuf){B.push(rowsWrap(rowBuf));rowBuf=''}if(colBuf.length){const t=colBuf.filter(c=>c.t),r=colBuf.filter(c=>!c.t).map(c=>c.h);if(t[0])r.unshift(t[0].h);if(t[1])r.splice(Math.ceil(colBuf.length/2),0,t[1].h.replace(' wtop',' wtop wtop2'));B.push(`<div class="wcols">${r.join('')}</div>`);colBuf=[]}};
+ let rowBuf='',colBuf=[];const flush=()=>{if(rowBuf){B.push(rowsWrap(rowBuf));rowBuf=''}if(colBuf.length){B.push(`<div class="wcols">${colBuf.map(c=>c.h).join('')}</div>`);colBuf=[]}};
  const vf=[];const addWild=(nextF)=>{const lastF=vf.length?vf[vf.length-1]:'';if(wi<wild.length){const t=wild.findIndex((u,i)=>i>=wi&&u.head.feedId!==lastF&&!(vf.length>=2&&vf[vf.length-2]===u.head.feedId&&lastF===u.head.feedId)&&u.head.feedId!==nextF);if(t<0)return;if(t>wi){const x=wild[t];wild[t]=wild[wi];wild[wi]=x}}const u=wild[wi++];if(!u)return;vf.push(u.head.feedId);flush();WHY[u.head.link]='Wild card: from '+fof(u.head).title+', a site you open less often. One turns up on every screen.';B.push(`<div class="wwild"><p class="wwild-k">Wild card</p>${card(u.head,ix(u.head),'mid')}</div>`)};
 if(FD){
   let k0=null,u0=null;
@@ -6687,7 +6688,7 @@ if(FD){
    vf.push(u.head.feedId);
    const kind=WIRE_PAT[j%WIRE_PAT.length];j++;k++;
    if(dens==='col'){
-    const top=!!u.head.img&&!imgWeak(u.head.img)&&colBuf.filter(c=>c.t).length<2;
+    const top=!!u.head.img&&!imgWeak(u.head.img)&&colBuf.filter(c=>c.t).length<3;
     colBuf.push({t:top,h:colItem(u,ix,j%3===0,top)});
     if(j%9===0&&!u.more.length){const pq=pullQuoteHtml(u.head);if(pq){flush();B.push(pq)}}
     continue}
@@ -17526,11 +17527,16 @@ function metaApply(){
 function wcolsFix(){
  const g=$('#grid');if(!g)return;
  g.querySelectorAll('.wcols').forEach(el=>{
-  const kids=[...el.children],W=el.clientWidth;if(!kids.length||!W)return;
+  const W=el.clientWidth;if(!el.children.length||!W)return;
+  /* photo openers (.wtop): one at the top of each column, the other stories shared out evenly; spare openers become plain rows. Starts from the drawn order every time so a resize can re-deal */
+  const kids=el._o||(el._o=[...el.children].map(k=>(k._t=k.classList.contains('wtop'),k)));
+  kids.forEach(k=>{k.classList.toggle('wtop',k._t);k.classList.remove('wtop2')});el.append(...kids);
   const avail=W<270?1:Math.max(2,Math.floor((W+28)/278));let c=Math.min(avail,kids.length);
   el.style.columnWidth='auto';
   for(;c>1;c--){el.style.columnCount=String(c);const lefts=new Set(kids.map(k=>Math.round(k.getBoundingClientRect().left)));if(lefts.size>=c)break}
   el.style.columnCount=String(c);el.style.columnRuleWidth=c<2?'0':'';
+  const T=kids.filter(k=>k._t).slice(0,c);kids.forEach(k=>{if(k._t&&!T.includes(k))k.classList.remove('wtop')});
+  if(T.length){const R=kids.filter(k=>!T.includes(k)),per=Math.ceil(R.length/c),o=[];for(let i=0;i<c;i++){if(T[i]){T[i].classList.toggle('wtop2',i>0);o.push(T[i])}o.push(...R.slice(i*per,(i+1)*per))}el.append(...o)}
  });
 }
 {const _rw=render;render=function(){_rw.apply(this,arguments);try{wcolsFix()}catch(e){}}}
