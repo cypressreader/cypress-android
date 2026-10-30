@@ -4829,6 +4829,16 @@ html #grid.list .card.list-row:not(.lr-feat):not(.lr-quote)>.cimg{grid-column:2;
 html #grid.list .card.list-row:not(.lr-feat):not(.lr-quote)>.star{grid-column:2;grid-row:2;justify-self:end;align-self:start;position:static;width:30px;height:30px;margin-top:6px}
 html #grid.list .card.list-row.noimg:not(.lr-feat):not(.lr-quote){grid-template-columns:minmax(0,1fr) 30px;background:none}
 html #grid.list .card.list-row.noimg:not(.lr-feat):not(.lr-quote)>.star{grid-row:1;margin-top:0}
+/* ---- column view, 2026-10-30 (David's picks C2 + C4 + C6): a short photo with a line of summary at the top of each column, a small square photo beside other headlines, each time group in a filled band ---- */
+#grid.wire .wcol{display:flow-root}
+#grid.wire .wcol>.wci{float:right;width:44px;height:44px;margin:2px 0 4px 10px;object-fit:cover;border-radius:7px;background:var(--ln)}
+#grid.wire .wcol.wtop>.wci{float:none;display:block;width:100%;height:auto;aspect-ratio:16/9;max-height:150px;margin:0 0 8px;border-radius:8px}
+#grid.wire .wcol.wtop .wcol-d{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+@container feed (min-width:270px){html:not([data-ts="l"]) #grid.wire .wcols>.wtop2{break-before:column}}
+html #grid.wire[data-w="col"] h3.dsh.wsec{background:var(--pn)!important;border-radius:8px!important;padding:6px 8px 6px 12px!important;flex-wrap:nowrap;align-items:center;gap:8px}
+html #grid.wire[data-w="col"] h3.dsh.wsec small{order:0;flex:none;margin-left:auto;display:block}
+html #grid.wire[data-w="col"] h3.dsh.wsec small::after{display:none}
+html #grid.wire[data-w="col"] h3.dsh.wsec .dsr{margin-left:0;min-height:44px}
 </style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -6624,9 +6634,9 @@ function momentHtml(a,ix){
  const f=fof(a);WHY[a.link]='A picture break: a story with a strong photo from '+f.title+'.';
  return `<a class="cvlead wmom" href="${esc(a.link)}" data-i="${ix}" style="--b:${brand(f)}"><img ${IMGOK.has(a.img)?'class="ok" ':''}loading="lazy" decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="this.classList.add('ok');IMGOK.add(this.getAttribute('src'))" onerror="this.parentNode.classList.add('noimg');this.remove()"><span class="wmom-t"><small>${esc(f.title)} · ${esc(ago(a.date))} ago</small><b>${esc(a.title)}</b></span></a>`;
 }
-function colItem(u,ix,deck){
- const a=u.head,f=fof(a);WHY[a.link]=u.more.length?'A developing story: '+(u.more.length+1)+' updates, newest first.':'A story from '+f.title+'.';
- return `<a class="cvlead wcol${S.read[a.link]?' read':''}" href="${esc(a.link)}" data-i="${ix(a)}"><small style="--b:${brand(f)}">${esc(f.title)} · ${esc(ago(a.date))}</small><b>${esc(a.title)}</b>${pwBadge(a)}${u.more.length?`<em>+${u.more.length} ${u.more.length===1?'update':'updates'}</em>`:''}${deck?(()=>{const d=dekOf(a,140);return d?`<span class="wcol-d">${esc(d)}</span>`:''})():''}</a>`;
+function colItem(u,ix,deck,top){
+ const a=u.head,f=fof(a),pic=a.img&&!imgWeak(a.img)?`<img class="wci" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:'';if(top)deck=1;WHY[a.link]=u.more.length?'A developing story: '+(u.more.length+1)+' updates, newest first.':'A story from '+f.title+'.';
+ return `<a class="cvlead wcol${top?' wtop':''}${S.read[a.link]?' read':''}" href="${esc(a.link)}" data-i="${ix(a)}">${pic}<small style="--b:${brand(f)}">${esc(f.title)} · ${esc(ago(a.date))}</small><b>${esc(a.title)}</b>${pwBadge(a)}${u.more.length?`<em>+${u.more.length} ${u.more.length===1?'update':'updates'}</em>`:''}${deck?(()=>{const d=dekOf(a,140);return d?`<span class="wcol-d">${esc(d)}</span>`:''})():''}</a>`;
 }
 const densHtml=()=>`<div class="wdens" role="group" aria-label="Density"><button type="button" data-wdens="mag" aria-pressed="${S.wdens!=='col'}">Cards</button><button type="button" data-wdens="col" aria-pressed="${S.wdens==='col'}">Columns</button></div>`;
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button[data-wdens]');if(!b)return;e.preventDefault();e.stopPropagation();S.wdens=b.dataset.wdens;save();render()},true);
@@ -6658,7 +6668,7 @@ function wireRender(pre,list,T){
  const cn=[],ix=a=>{cn.push(a);return cn.length-1},B=[];let k=0,wi=0,newN=0,qgap=0;
  const rowsWrap=h=>mode==='w'?`<div class="nr-river"><div class="nr-rv">${h}</div></div>`:`<div class="nr-ph-rows nr-ph-in">${h}</div>`;
  const rowHtml=a=>card(a,ix(a),'nr nr-row nr-s');
- let rowBuf='',colBuf='';const flush=()=>{if(rowBuf){B.push(rowsWrap(rowBuf));rowBuf=''}if(colBuf){B.push(`<div class="wcols">${colBuf}</div>`);colBuf=''}};
+ let rowBuf='',colBuf=[];const flush=()=>{if(rowBuf){B.push(rowsWrap(rowBuf));rowBuf=''}if(colBuf.length){const t=colBuf.filter(c=>c.t),r=colBuf.filter(c=>!c.t).map(c=>c.h);if(t[0])r.unshift(t[0].h);if(t[1])r.splice(Math.ceil(colBuf.length/2),0,t[1].h.replace(' wtop',' wtop wtop2'));B.push(`<div class="wcols">${r.join('')}</div>`);colBuf=[]}};
  const vf=[];const addWild=(nextF)=>{const lastF=vf.length?vf[vf.length-1]:'';if(wi<wild.length){const t=wild.findIndex((u,i)=>i>=wi&&u.head.feedId!==lastF&&!(vf.length>=2&&vf[vf.length-2]===u.head.feedId&&lastF===u.head.feedId)&&u.head.feedId!==nextF);if(t<0)return;if(t>wi){const x=wild[t];wild[t]=wild[wi];wild[wi]=x}}const u=wild[wi++];if(!u)return;vf.push(u.head.feedId);flush();WHY[u.head.link]='Wild card: from '+fof(u.head).title+', a site you open less often. One turns up on every screen.';B.push(`<div class="wwild"><p class="wwild-k">Wild card</p>${card(u.head,ix(u.head),'mid')}</div>`)};
 if(FD){
   let k0=null,u0=null;
@@ -6676,8 +6686,8 @@ if(FD){
    vf.push(u.head.feedId);
    const kind=WIRE_PAT[j%WIRE_PAT.length];j++;k++;
    if(dens==='col'){
-    if(j===1&&u.head.img&&!u.more.length){flush();B.push(card(u.head,ix(u.head),'mid'));continue}
-    colBuf+=colItem(u,ix,j%3===0);
+    const top=!!u.head.img&&!imgWeak(u.head.img)&&colBuf.filter(c=>c.t).length<2;
+    colBuf.push({t:top,h:colItem(u,ix,j%3===0,top)});
     if(j%9===0&&!u.more.length){const pq=pullQuoteHtml(u.head);if(pq){flush();B.push(pq)}}
     continue}
    if(k%12===9&&u.head.img&&!imgWeak(u.head.img)&&!u.more.length){flush();B.push(momentHtml(u.head,ix(u.head)));continue}

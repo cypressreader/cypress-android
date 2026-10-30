@@ -1041,3 +1041,6 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] Rows: time on a thin line at the left with the star under it; headline first; square photo on the right; a faint tint of the photo's color behind the row (Halcyon and Halcyon Dark).
 - [ ] Every fifth story is a big-photo feature with a small time label on the photo; Compact size keeps plain rows.
 - [ ] Tap the star in a row still saves; tapping the row opens the story; TalkBack reads each row once (time label is hidden from it).
+
+## Column view picks C2+C4+C6 (2026-10-30, unreleased, preview)
+- All Stories > Columns: each time group's columns open with a short photo + 2-line summary (one per column); other stories with a photo show a small square on the right; group names sit in a filled band with the count and Mark read. Check Halcyon light/dark, phone portrait + Fold open, Large print (1 column: the second photo just follows in order).

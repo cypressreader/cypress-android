@@ -18,7 +18,7 @@ const W1=['Why the new chip changes everything','Senate passes sweeping budget d
    S.sel='f:'+S.folders[0].id;S.wdens='mag';_lastSel=null;WIRE.order=null;WIRE.settled=true;render();await w(900);for(let i=0;i<60;i++)NRMORE&&NRMORE();await w(300);
    out.folderMast=!!g.querySelector('.fmast');out.folderFront=!!g.querySelector('.fd-feat');
    S.wdens='col';render();await w(900);for(let i=0;i<60;i++)NRMORE&&NRMORE();await w(300);
-   out.colLead=g.querySelectorAll('.wsec + .wsec-v, .wsec').length>=1&&g.querySelectorAll('#grid>.card').length>=1;out.colDeck=g.querySelectorAll('.wcol-d').length>=1;S.wdens='mag';
+   out.colLead=g.querySelectorAll('.wsec + .wsec-v, .wsec').length>=1&&g.querySelectorAll('.wcol.wtop>.wci').length>=1;out.colDeck=g.querySelectorAll('.wcol-d').length>=1;S.wdens='mag';
    return out},W1);
   ck(W+' folder has a masthead and a section front',r.folderMast&&r.folderFront,JSON.stringify(r));
   ck(W+' columns view has a picture lead and decks',r.colLead&&r.colDeck,JSON.stringify(r));
