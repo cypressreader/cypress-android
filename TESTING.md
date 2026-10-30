@@ -1044,3 +1044,6 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 
 ## Column view picks C2+C4+C6 (2026-10-30, unreleased, preview)
 - All Stories > Columns: each time group's columns open with a short photo + 2-line summary (one per column); other stories with a photo show a small square on the right; group names sit in a filled band with the count and Mark read. Check Halcyon light/dark, phone portrait + Fold open, Large print (1 column: the second photo just follows in order).
+
+## In brief photo row stretches (2026-10-30, branch -2djkfy, unverified on phone)
+- [ ] Daily "In brief · The short ones": with 3 or 2 photos the row is filled edge to edge (same height as with 4); if photos fail to load the rest widen; if all fail the row disappears, leaving no empty band.
