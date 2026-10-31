@@ -4052,7 +4052,7 @@ html.micro .wtrend .wtr-dot::after{content:"";position:absolute;inset:0;border-r
 #rd.vert .cols>:is(.kick,.tt,.dt,.hcap,.note,.body,.orig,.whyit,.hsf,img.hero){max-width:100%;width:100%;margin-left:0;margin-right:0;box-sizing:border-box}
 /* cinematic stories: the lead photo still bleeds past the column edges in the vertical reader (the rule above otherwise held it to the text width on phones) */
 #rd.vert.cine .cols>img.hero{width:calc(100% + 2*var(--bleed,20px))!important;max-width:none!important;margin-left:calc(-1*var(--bleed,20px))!important;margin-right:calc(-1*var(--bleed,20px))!important}
-#rd .cols .body p.dropcap .dcap{float:left;font-family:var(--disp,var(--serif));font-weight:600;font-size:3.2em;line-height:.75;margin-right:8px;padding:.05em 0 0;color:var(--b,var(--ink))}
+#rd .cols .body p.dropcap .dcap{float:left;font-family:var(--disp,var(--serif));font-weight:600;font-size:3.2em;line-height:.75;margin-right:8px;padding:.05em .08em 0 0;color:var(--b,var(--ink))}
 /* 3. Related reading as a quiet callout card */
 .body .rcall{margin:1.3em 0;padding:11px 16px 12px;border-left:3px solid var(--b,var(--ink));border-radius:0 10px 10px 0;background:color-mix(in srgb,var(--b,var(--ink)) 5%,transparent);break-inside:avoid;text-align:left}
 .body .rcall .rcl{display:block;margin:0 0 4px;font:700 10.5px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
@@ -4211,7 +4211,7 @@ html[data-theme=rosewood] #rd .cols .kick{color:#7f5d1c}
 #rd .cols .body blockquote:not(.emb blockquote) p{margin:0 0 .45em;font:inherit;text-align:center;text-indent:0;hyphens:manual}
 #rd .cols .body blockquote:not(.emb blockquote) p:last-child{margin-bottom:0}
 #rd .pullq::before,#rd .pullq::after{background:var(--rbr);opacity:1;height:1px}
-#rd .cols .body p.dropcap .dcap{float:left;font-size:calc((2*var(--lh,1.68) + .72)/.72*1em);line-height:.78;margin:.07em .1em 0 0;padding:0;border:0;color:var(--rbr)}
+#rd .cols .body p.dropcap .dcap{float:left;font-size:calc((2*var(--lh,1.68) + .72)/.72*1em);line-height:.78;margin:.07em .1em 0 0;padding:0 .08em 0 0;border:0;color:var(--rbr)}/* polish-2026-10 T-06: room so round letters (O, C, Q) do not touch the text */
 .cols .body p.dropcap .dcl{font-variant-caps:small-caps;letter-spacing:.03em}
 /* long reads: the drop cap takes the theme's accent, darkened toward the ink so it stays readable on any paper (color only: no change to the page layout) */
 #rd .cols.tplf .body p.dropcap .dcap{color:color-mix(in srgb,var(--a2,var(--ink)) 72%,var(--ink))}
@@ -13705,7 +13705,7 @@ function calmCaps(p){
  }catch(e){}
 }
 function makeDropcap(p){
- unDropcap(p);if(p.querySelector('.rdl'))return false;calmCaps(p);
+ unDropcap(p);if(p.querySelector('.rdl'))return false;{const t=p.textContent.trim();/* polish-2026-10 T-06: no cap on a short opening, or one that starts with a quotation mark, a digit or a bracket */if(t.split(/\s+/).length<25||/^[“"‘'\d\[(]/.test(t))return false}calmCaps(p);
  const w=document.createTreeWalker(p,NodeFilter.SHOW_TEXT);let n;
  while((n=w.nextNode())){
   if(!/\S/.test(n.nodeValue))continue;
@@ -13729,7 +13729,7 @@ function decorate0(){
  if(!isOn('mag'))return;
  {const lp=[...b.querySelectorAll(':scope > p')].filter(p=>p.textContent.trim().length>60).pop();if(lp&&isOn('endm')){const e=document.createElement('p');e.className='endmark';e.setAttribute('aria-hidden','true');e.textContent='◆';b.append(e);try{const hs=(S.hl||[]).filter(h=>h.art&&curA&&h.art.link===curA.link&&h.q).slice(0,2);if(hs.length){const a=document.createElement('aside');a.className='rhl';a.setAttribute('aria-label','Your highlights from this story');a.innerHTML='<small>Your highlights</small>'+hs.map(h=>'<blockquote>'+esc(String(h.q).slice(0,220))+'</blockquote>').join('');b.append(a)}}catch(x){}}}
  const ps=[...b.querySelectorAll(':scope > p')].filter(p=>!p.classList.contains('endmark'));
- const first=ps.find(p=>p.textContent.trim().split(/\s+/).length>25&&/^[A-Za-z0-9“"‘']/.test(p.textContent.trim()));
+ const first=ps.find(p=>p.textContent.trim().split(/\s+/).length>=25&&/^[A-Za-z\u00C0-\u024F]/.test(p.textContent.trim()));
  if(first&&ps.indexOf(first)<3){if(makeDropcap(first))first.classList.add('dropcap')}
  const total=b.textContent.length;if(ps.length<8||total<1800)return;
  let best=null,bs=-1;
