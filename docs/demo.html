@@ -4925,6 +4925,7 @@ a.fd-bl.cvlead{overflow:visible;contain:layout}
 .fd-bs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;aspect-ratio:4;gap:6px;margin:0 0 12px -44px}
 .fd-bs:empty{display:none}
 .fd-bsq{display:block;margin:0;border-radius:calc(var(--rad)*.6);overflow:hidden;background:color-mix(in srgb,var(--fa,var(--logo)) 18%,var(--bg))}
+.fd-bsc,.fd-bsq:not(:has(img)){display:grid;place-items:center;background:linear-gradient(150deg,color-mix(in srgb,var(--b,var(--logo)) 100%,#fff 12%),color-mix(in srgb,var(--b,var(--logo)) 100%,#000 35%))}.fd-bsq>b{font:500 clamp(28px,6vw,46px)/1 var(--disp,var(--serif));color:#fff;opacity:.85;text-transform:uppercase}
 .fd-bsq img,.fd-dot img{width:100%;height:100%;object-fit:cover;display:block}
 .fd-bl::before{left:-28px;top:0;bottom:0;width:1.5px;height:auto;border:0;border-radius:0;background:var(--ln)}
 .fd-bl:first-of-type::before{top:20px}.fd-bl:last-child::before{bottom:auto;height:20px}.fd-bl:only-of-type::before{display:none}
@@ -14565,8 +14566,8 @@ function fedMods(us,FD,c){
    if(!t.length){const u=us.shift();why(u.head);B.push(c.card(u.head,ix(u.head),'mid cu'));last='mid';continue}
    t.forEach(u=>{us.splice(us.indexOf(u),1);why(u.head)});
    const nm=a=>fof(a).title||host(fof(a).url),ph=a=>a.img?`<img loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:'';
-   const sq=t.every(u=>u.head.img)?t:[];/* the photo strip shows only when every short story has a photo, so it is always one even row of four (or three, two) */
-   B.push(`<div class="fd-brief${t.length<3?' fd-bq':''}"><h4>${t.length<3?'In brief':'<small>In brief</small>The short ones'}</h4>${sq.length?`<div class="fd-bs" aria-hidden="true">${sq.map(u=>link(u.head,'fd-bsq',ph(u.head).replace('this.remove()','this.parentNode.remove()'),' tabindex="-1"')).join('')}</div>`:''}${t.map(u=>{const a=u.head;return link(a,'fd-bl',`<span class="fd-dot" aria-hidden="true">${esc([...nm(a).trim()][0]||'?')}${ph(a)}</span><time><i>${esc(nm(a))}</i> · ${esc(when(a))} · ${minsOf(a)} min</time><b>${esc(a.title)}</b>`,` style="--sc:${brand(fof(a))}"`)}).join('')}</div>`);
+   const sq=t.some(u=>u.head.img)?t:[];/* David 2026-10-31: the photo row always has one slot per story: a story without a photo gets a tile in its site's color with the site's initial */
+   B.push(`<div class="fd-brief${t.length<3?' fd-bq':''}"><h4>${t.length<3?'In brief':'<small>In brief</small>The short ones'}</h4>${sq.length?`<div class="fd-bs" aria-hidden="true">${sq.map(u=>u.head.img?link(u.head,'fd-bsq',ph(u.head).replace('this.remove()','this.remove()'),' tabindex="-1"'):link(u.head,'fd-bsq fd-bsc',`<b>${esc([...nm(u.head).trim()][0]||'?')}</b>`,` tabindex="-1" style="--b:${brand(fof(u.head))}"`)).join('')}</div>`:''}${t.map(u=>{const a=u.head;return link(a,'fd-bl',`<span class="fd-dot" aria-hidden="true">${esc([...nm(a).trim()][0]||'?')}${ph(a)}</span><time><i>${esc(nm(a))}</i> · ${esc(when(a))} · ${minsOf(a)} min</time><b>${esc(a.title)}</b>`,` style="--sc:${brand(fof(a))}"`)}).join('')}</div>`);
   }
   last=m;
  }
