@@ -5324,8 +5324,11 @@ function bestFromSrcset(ss){
  }).filter(x=>x.u&&!/^data:/i.test(x.u));
  if(!items.length)return '';
  items.sort((a,b)=>a.w-b.w);
- const ideal=items.find(x=>x.w>=1000&&x.w<=2048);
- return (ideal||items[items.length-1]).u;
+ const ideal=items.find(x=>x.w>=1000&&x.w<=2048),best=(ideal||items[items.length-1]).u;
+ /* a second, small candidate (about 400 px, at least 320) for list rows and compact cards; read it from bestFromSrcset.s right after the call */
+ let sm=null,bd=1e9;for(const x of items)if(x.w>=320&&Math.abs(x.w-400)<bd){bd=Math.abs(x.w-400);sm=x}
+ bestFromSrcset.s=sm&&sm.u!==best?sm.u:'';
+ return best;
 }
 const abs=(u,b)=>{try{return new URL(u,b).href}catch(e){return''}};
 const SKIP=new Set(['SCRIPT','STYLE','NAV','FOOTER','ASIDE','FORM','IFRAME','NOSCRIPT','SVG','BUTTON','HEAD']);
@@ -5757,14 +5760,14 @@ function firstImg(html,base){
  for(const i of d.querySelectorAll('img')){
   let u=i.getAttribute('src')||'';
   if(!u||/^data:/.test(u))u=i.getAttribute('data-src')||i.getAttribute('data-original')||i.getAttribute('data-lazy-src')||'';
-  if(!u)u=bestFromSrcset(i.getAttribute('srcset')||i.getAttribute('data-srcset')||'');
+  const ss=i.getAttribute('srcset')||i.getAttribute('data-srcset')||'';if(!u)u=bestFromSrcset(ss);else if(ss)bestFromSrcset(ss);firstImg.s=ss?bestFromSrcset.s:'';
   if(!u||/^data:/.test(u))continue;
   const w=+i.getAttribute('width'),h=+i.getAttribute('height');
   if((w&&w<40)||(h&&h<40))continue;
   if(/(^|\/\/)(lh\d\.googleusercontent\.com|[\w.-]*gstatic\.com|www\.google\.com\/s2\/favicons)|favicon|\/pixel\b|1x1/i.test(u))continue;
-  return abs(u,base);
+  firstImg.s=firstImg.s?abs(firstImg.s,base):'';return abs(u,base);
  }
- return '';
+ firstImg.s='';return '';
 }
 const tx=(el,n)=>el.getElementsByTagName(n)[0]?.textContent?.trim()||'';
 /* a photo credit as printed under a magazine picture: a name or an agency, never a web address or a sentence */
@@ -5777,12 +5780,12 @@ function parseJsonFeed(txt,f){
   let link=String(it.url||it.external_url||'').trim();if(link)link=abs(link,base)||link;
   const html=String(it.content_html||(it.content_text?'<p>'+esc(it.content_text).replace(/\n+/g,'</p><p>')+'</p>':'')||it.summary||'');
   const text=new DOMParser().parseFromString(html.replace(/<\/(p|div|li|h[1-6])>|<br\s*\/?>/gi,'$& '),'text/html').body.textContent.replace(/\s+/g,' ').trim();
-  let img=String(it.image||it.banner_image||'');if(!img)img=firstImg(html,link);img=img?hi(abs(img,link)):'';
+  let img=String(it.image||it.banner_image||''),imgs='';if(!img){img=firstImg(html,link);imgs=firstImg.s||''}img=img?hi(abs(img,link)):'';
   const au=(Array.isArray(it.attachments)?it.attachments:[]).find(a=>a&&(/audio/i.test(a.mime_type||'')||/\.(mp3|m4a|aac|ogg)(\?|$)/i.test(a.url||'')));
   let dur='';const ds=au&&+au.duration_in_seconds;if(ds)dur=ds>=3600?Math.floor(ds/3600)+' h '+Math.round(ds%3600/60)+' min':Math.round(ds/60)+' min';
   const au1=(it.authors&&it.authors[0])||it.author||j.author||{};
   const title=cleanT(String(it.title||'')||text.slice(0,90));
-  return{feedId:f.id,by:String(au1.name||'').slice(0,60),sec:String((it.tags||[])[0]||'').slice(0,30),cats:(Array.isArray(it.tags)?it.tags:[]).map(t=>String(t&&t.name||t||'').trim().toLowerCase().slice(0,40)).filter(Boolean).slice(0,8),ce:!!(it.content_html||it.content_text),cm:'',audio:au?abs(au.url,link):'',yt:'',dur,th:'',title,link,date:pdate(it.date_published||it.date_modified||''),img,html,summary:(it.summary?String(it.summary).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim():text).slice(0,170),wc:text?text.split(' ').length:0};
+  return{feedId:f.id,by:String(au1.name||'').slice(0,60),sec:String((it.tags||[])[0]||'').slice(0,30),cats:(Array.isArray(it.tags)?it.tags:[]).map(t=>String(t&&t.name||t||'').trim().toLowerCase().slice(0,40)).filter(Boolean).slice(0,8),ce:!!(it.content_html||it.content_text),cm:'',audio:au?abs(au.url,link):'',yt:'',dur,th:'',title,link,date:pdate(it.date_published||it.date_modified||''),img,imgs,html,summary:(it.summary?String(it.summary).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim():text).slice(0,170),wc:text?text.split(' ').length:0};
  });
  return{title:String(j.title||'').trim(),list:finishList(list)};
 }
@@ -5808,7 +5811,7 @@ function parse(xml,f){
   const tnE=[...el.getElementsByTagName('media:thumbnail')].find(m=>m.getAttribute('url'));
   let img=mc?.getAttribute('url')||'';
   if(!img){const en=[...el.getElementsByTagName('enclosure')].find(e=>/image/.test(e.getAttribute('type')||''));img=en?.getAttribute('url')||''}
-  if(!img)img=firstImg(html,link);
+  let imgs='';if(!img){img=firstImg(html,link);imgs=firstImg.s||''}
   img=img?hi(abs(img,link)):'';
   const thu=tnE?abs(tnE.getAttribute('url'),link):'';
   const pcr=cleanCr(tx(el,'media:credit')||tx(el,'media:copyright'));
@@ -5823,7 +5826,7 @@ function parse(xml,f){
   let cm=tx(el,'comments');if(!/^https?:/.test(cm)){cm='';const m=(html||'').match(/href="(https?:\/\/(?:www\.|old\.)?(?:reddit\.com\/r\/[^"]+\/comments\/[^"]+|news\.ycombinator\.com\/item\?id=\d+|lobste\.rs\/s\/[^"]+))"/);if(m)cm=m[1]}
   let dur=tx(el,'itunes:duration');if(/^\d+$/.test(dur)){const n=+dur;dur=n>=3600?Math.floor(n/3600)+' h '+Math.round(n%3600/60)+' min':Math.round(n/60)+' min'}else if(/^\d+:\d+(:\d+)?$/.test(dur)){const q=dur.split(':').map(Number);dur=q.length===3?(q[0]?q[0]+' h ':'')+q[1]+' min':q[0]+' min'}else dur='';
   if(!img&&yv)img='https://i.ytimg.com/vi/'+yv+'/hqdefault.jpg';
-  return{feedId:f.id,by,sec,cats,ce,cm,audio:au?abs(au.getAttribute('url'),link):'',yt:yv||'',dur,th:(thu&&thu!==img&&img)?thu:'',pcr,pcp,pics,title:cleanT(tx(el,'title')),link,date:pdate(tx(el,'pubDate')||tx(el,'published')||tx(el,'updated')||tx(el,'dc:date')),img,html,summary:trimWords(text,170),wc:text?text.split(' ').length:0};
+  return{feedId:f.id,by,sec,cats,ce,cm,audio:au?abs(au.getAttribute('url'),link):'',yt:yv||'',dur,th:(thu&&thu!==img&&img)?thu:'',pcr,pcp,pics,title:cleanT(tx(el,'title')),link,date:pdate(tx(el,'pubDate')||tx(el,'published')||tx(el,'updated')||tx(el,'dc:date')),img,imgs,html,summary:trimWords(text,170),wc:text?text.split(' ').length:0};
  });
  return{title,list:finishList(list)};
 }
@@ -5928,14 +5931,14 @@ const ogNet=()=>{try{return netKind()!=='cell'||pfAllowed()}catch(e){return true
 async function enrich(id){
  if(!ogNet()){dropGeneric(items[id]||[]);return}
  const q=(items[id]||[]).filter(a=>!a.img).slice(0,20);let n=0;
- await Promise.all([0,1,2,3].map(async()=>{while(n<q.length&&online()){const a=q[n++],u=await og(a);if(u){a.img=u;schedule()}}}));
+ await Promise.all([0,1,2,3].map(async()=>{while(n<q.length&&online()){const a=q[n++],u=await og(a);if(u){a.img=u;a.imgs='';schedule()}}}));
  dropGeneric(items[id]||[]);schedule();
 }
 function lowres(im){
  if(im.naturalWidth&&im.naturalWidth<320)im.classList.add('duo');/* tiny or blurry: shown two-tone (CSS) */
  if(!im.naturalWidth||im.naturalWidth>=600||im.dataset.t)return;im.dataset.t=1;
  const a=cardStory(im.closest('.card'));if(!a||a.lrT)return;a.lrT=1;
- og(a).then(u=>{if(!u||u===im.src)return;const t=new Image();t.onload=()=>{if(t.naturalWidth>im.naturalWidth){a.img=u;im.classList.toggle('duo',t.naturalWidth<320);im.src=u}};t.src=u});
+ og(a).then(u=>{if(!u||u===im.src)return;const t=new Image();t.onload=()=>{if(t.naturalWidth>im.naturalWidth){a.img=u;a.imgs='';im.classList.toggle('duo',t.naturalWidth<320);im.src=u}};t.src=u});
 }
 const svg=(d,on)=>`<svg viewBox="0 0 24 24" width="19" height="19" fill="${on?'currentColor':'none'}" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const STAR='<path d="m12 3.8 2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.7 6.9 19.5l1-5.7-4.1-4 5.7-.8z"/>';
@@ -6310,6 +6313,9 @@ function imgFx(){
 }
 /* what size a picture is, remembered from the lists (the same picture opens as the story's lead photo), so the lead photo's room is held before it has loaded and nothing below it is pushed down when it arrives */
 const IMGDIM=new Map();
+/* the card pictures that are really on screen (plus 200 px) load first, whatever the screen size; without the observer the first six cards stay eager */
+const EIO='IntersectionObserver' in window?new IntersectionObserver(es=>{for(const x of es)if(x.isIntersecting){const im=x.target;im.loading='eager';im.fetchPriority='high';EIO.unobserve(im)}},{rootMargin:'200px'}):null;
+if(EIO){const g=document.getElementById('grid');if(g)new MutationObserver(()=>{g.querySelectorAll('.card>img[loading="lazy"]:not([data-eio])').forEach(im=>{im.dataset.eio='1';EIO.observe(im)})}).observe(g,{childList:true,subtree:true})}
 /* every feed picture states its shape: the real size once known, otherwise a 16:10 guess (the card's own CSS sets the displayed size), so the browser reserves the box before the picture arrives */
 const imgWH=u=>{const d=IMGDIM.get(u);return d&&d[0]>0&&d[1]>0?` width="${Math.round(d[0])}" height="${Math.round(d[1])}"`:' width="640" height="400"'};
 document.addEventListener('load',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.naturalWidth>40&&im.naturalHeight>40&&/^https?:/.test(im.currentSrc||im.src||'')){const u=im.currentSrc||im.src;IMGDIM.set(u,[im.naturalWidth,im.naturalHeight]);if(IMGDIM.size>400)IMGDIM.delete(IMGDIM.keys().next().value)}},true);
@@ -7589,13 +7595,13 @@ function listPage(list,base){
 function listRow(a,i,k,f){
   const dk=(typeof dekOf==='function'?dekOf(a,170):'')||'',mn=readMin(a),lk=lrKind(a,i),qt=lk==='quote'?nrQuoteText(a):null;
   if(lk==='quote'&&qt)return `<div class="card list-row lr-quote ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}"><div class="tx"><span class="lr-qm" aria-hidden="true">“</span><p class="lr-q">${esc(qt.q)}</p><div class="src"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}" aria-label="${esc(a.title)}${a.date?', '+agoL(a.date):''}">${esc(a.title)}</a></h3><time datetime="${a.date?new Date(a.date).toISOString():''}" aria-hidden="true">${mn?mn+' min read · ':''}${agoT(a.date)}</time></div>${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
-  return `<div class="card list-row${lk==='feat'?' lr-feat':lk==='type'?' lr-type':''} ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}${IIS[a.img]&&IIS[a.img].t?';--pc:'+IIS[a.img].t:''}">${a.img?`<img class="cimg" width="96" height="96" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="this.classList.add('ok')" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="tx"><div class="src"><span class="sn" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}">${esc(f.title)}</span><time datetime="${a.date?new Date(a.date).toISOString():''}" aria-hidden="true">${mn?mn+' min read · ':''}${agoT(a.date)}</time></div><h3><a class="cl" href="${esc(a.link)}" aria-label="${esc(a.title)}${a.date?', '+agoL(a.date):''}">${esc(a.title)}</a></h3>${dk?`<p class="ld">${esc(dk)}</p>`:''}${pwBadge(a)}</div>${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
+  return `<div class="card list-row${lk==='feat'?' lr-feat':lk==='type'?' lr-type':''} ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}${IIS[a.img]&&IIS[a.img].t?';--pc:'+IIS[a.img].t:''}">${a.img?`<img class="cimg" width="96" height="96" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.imgs||a.img)}" onload="this.classList.add('ok')" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="tx"><div class="src"><span class="sn" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}">${esc(f.title)}</span><time datetime="${a.date?new Date(a.date).toISOString():''}" aria-hidden="true">${mn?mn+' min read · ':''}${agoT(a.date)}</time></div><h3><a class="cl" href="${esc(a.link)}" aria-label="${esc(a.title)}${a.date?', '+agoL(a.date):''}">${esc(a.title)}</a></h3>${dk?`<p class="ld">${esc(dk)}</p>`:''}${pwBadge(a)}</div>${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
 }
 function card(a,i,k){
   if(a&&!WHY[a.link]){const pw=priWhy(a);if(pw)WHY[a.link]=pw}
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
   const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],q1=a.img&&IIS[a.img],pc=q1&&q1.t?`--pc:${q1.t};`:'',op=q0&&q0.v>=5&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="${pc}object-position:${q0.px}% ${q0.py}%"`:pc?` style="${pc}"`:'';
-  return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="${i<6?'eager':'lazy'}" decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div>${a.img&&a.pcr&&isOn('mag3')?`<span class="pcr">Photo: ${esc(a.pcr)}</span>`:''}${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg" style="--pg:${Math.round(progOf(a.link)*100)}%"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><span class="sn" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}">${esc(f.title)}</span>${a.sec?`<span class=" ssec">· ${esc(a.sec)}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${a.img&&a.pics&&a.pics.length>1?`<span class="pw">+${a.pics.length-1} ${a.pics.length===2?'photo':'photos'}</span>`:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="${a.more.length+1} sources report this">+${a.more.length} sources</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}" aria-label="${esc(a.title)}${a.date?', '+agoL(a.date):''}">${esc(a.title)}</a></h3>${(()=>{const q=!a.img&&!/\b(nr-row|nr-late|list-row)\b/.test(k||'')?nrQuoteText(a):null;return q?`<p class="lq">${esc(q.q)}</p>`:`<p>${esc(sumOf(a.summary))}</p>`})()}<div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}${pwBadge(a)}<time datetime="${a.date?new Date(a.date).toISOString():''}" aria-hidden="true">${agoT(a.date)}</time></div>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
+  return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="${!EIO&&i<6?'eager':'lazy'}" decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(nrDense()&&a.imgs?a.imgs:a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="ov"></div>${a.img&&a.pcr&&isOn('mag3')?`<span class="pcr">Photo: ${esc(a.pcr)}</span>`:''}${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg" style="--pg:${Math.round(progOf(a.link)*100)}%"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><span class="sn" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}">${esc(f.title)}</span>${a.sec?`<span class=" ssec">· ${esc(a.sec)}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${a.img&&a.pics&&a.pics.length>1?`<span class="pw">+${a.pics.length-1} ${a.pics.length===2?'photo':'photos'}</span>`:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="${a.more.length+1} sources report this">+${a.more.length} sources</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}" aria-label="${esc(a.title)}${a.date?', '+agoL(a.date):''}">${esc(a.title)}</a></h3>${(()=>{const q=!a.img&&!/\b(nr-row|nr-late|list-row)\b/.test(k||'')?nrQuoteText(a):null;return q?`<p class="lq">${esc(q.q)}</p>`:`<p>${esc(sumOf(a.summary))}</p>`})()}<div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}${pwBadge(a)}<time datetime="${a.date?new Date(a.date).toISOString():''}" aria-hidden="true">${agoT(a.date)}</time></div>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
 }
 /*NEWSROOM*/
 const IS_SAFARI=(()=>{try{const u=navigator.userAgent;return /iP(hone|ad|od)/.test(u)||(/Safari\//.test(u)&&!/Chrome\/|Chromium\/|Android|Edg\/|OPR\/|CriOS|FxiOS/.test(u))}catch(e){return false}})();
@@ -15952,7 +15958,7 @@ async function gnewsFeed(f,s,why){
   const nt=t=>String(t||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
   const cut=t=>String(t||'').replace(/\s+-\s+[^-]{2,40}$/,'');
   const bl=parseBing(bx,f).list,bm=new Map(bl.filter(a=>a.img).map(a=>[nt(cut(a.title)),a.img])),bk=new Map(bl.map(a=>[nt(cut(a.title)),a]));
-  l.forEach(a=>{const k=nt(a.title),i=bm.get(k);if(i)a.img=i;
+  l.forEach(a=>{const k=nt(a.title),i=bm.get(k);if(i){a.img=i;a.imgs=''}
    /* Google hides the real address behind a code that is not always readable; Bing lists the same headline with the real address */
    const m=bk.get(k);if(m&&/news\.google\./.test(a.link||'')&&m.link&&!/(news\.google\.|bing\.com)/.test(m.link))a.link=m.link})
  }catch(e){}
