@@ -1075,3 +1075,8 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] The Daily's photo cover shows the photo full-bleed behind the headline, in Halcyon and Newsprint, day and night (T-01); photo not drawn twice on the phone (T-02)
 - [ ] Reader header: is there faint ghost text behind it? (T-08, left unfixed until confirmed on a phone)
 - [ ] Add a site: pasted address defaults to Unfiled, or to the folder currently open (F-11)
+
+## 1.223 ghost text + stray line (implemented, unverified on phone)
+- [ ] Open any long story in pages mode, wait 3 seconds: no faint words from the next page behind the text or the "Why it matters" box (T-08)
+- [ ] Turn pages right after opening: the first turn is still smooth (the pre-built turn is now fully hidden instead of 1% visible)
+- [ ] Ars Technica story: no "Size Small Standard Large Width" line at the end

@@ -5701,7 +5701,7 @@ function inline(t,base){
 const GPROMO=/(google[-_ ]?(g|logo|news|discover|preferred|source|icon)\b|preferred[-_ ]?source|add[-_ ]?us[-_ ]?on[-_ ]?google|google-news|googlediscover|gstatic\.com\/images\/branding|\/branding\/googlelogo)/i,GALT=/preferred source|add .{1,50} on google|google (news|discover) (logo|icon|badge)|follow us on google|google logo|google g\b/i,GTXT=/(preferred source|add .{1,50} on google|follow (us )?on google news|add us as a preferred source)/i;
 const ALTICON=/\b(icon|logo|badge|check ?mark|arrow|chevron|verified)\b/i;
 const AUTHJ=/(follow on x\b|follow @\w+|multiple authors|^\s*close\b.*\b(am|pm) et\b|\b\d{1,2}:\d\d (am|pm) et\s*close\b|\b(am|pm) et\s+close\b)/i,JUNKT=/^(close|follow on x|follow on twitter|multiple authors|follow|share|copy link)$/i,ICONRE=/(\.svg\b|check(mark)?|tick|\bicon|badge|sprite|bullet|arrow|chevron|verified)/i;
-const ADRE=/^(Ad is Hidden|Paid Promoted|Promoted Stories|Sponsored|Advertisement|Newsletter\b|Politics News Alerts|Breaking news email alerts|View \d+ more stor|Sign up for|Subscribe to|Read more:|Related:|Up Next)|utm_source=(outbrain|taboola)|Please tell us why you hid/i;
+const ADRE=/^(Ad is Hidden|Paid Promoted|Promoted Stories|Sponsored|Advertisement|Newsletter\b|Politics News Alerts|Breaking news email alerts|View \d+ more stor|Sign up for|Subscribe to|Read more:|Related:|Up Next|Size Small Standard Large\b)|utm_source=(outbrain|taboola)|Please tell us why you hid/i;
 function md(txt,base){
  txt=txt.replace(/^[\s\S]*?Markdown Content:\s*/,'').replace(/\]\s*\n?\s*\(https?:/g,'](https:').replace(/!\[[^\]]*(Ad is Hidden|hid this ad|Paid Promoted|Sponsored)[^\]]*\]\([^)]*\)/gi,'').replace(/\[(!\[[^\]]*\]\([^)]*\))\]\([^)]*\)/g,'$1').replace(/!\[[^\]]*\]\([^)]*(author|avatar|headshot|profile|logo)[^)]*\)/gi,'');
  txt=txt.replace(/\[\s*(?:image|photo|picture)\s*\d*\s*:?\s*(https?:\/\/[^\]\s]+)\s*\]/gi,'![]($1)').replace(/!\[[^\]]*\]\((https?:[^)\s]+)[^)]*\)/g,(m,u)=>adImgUrl(u)?'':m);
@@ -8693,7 +8693,7 @@ function prepTurn(){
  if(!isOn('curl')||rdxPturn()!=='paper'||reduced()||R.busy||R.T||D||R.web||isVert()||!R.ready||R.pg+1>=R.np||!$('.book')||!$('#rd').classList.contains('on'))return;
  let T;try{T=startTurn(1,true)}catch(e){return}
  R.T=null;R.busy=false;const bk=$('.book');edgeHide(bk,0);bk.style.perspectiveOrigin='';
- T.hid=[...T.leaf.querySelectorAll('.tf'),...T.els.filter(e=>e!==T.leaf)];T.hid.forEach(e=>{e.style.opacity='.01'});T.key=prepKey();RP={T};
+ T.hid=[...T.leaf.querySelectorAll('.tf'),...T.els.filter(e=>e!==T.leaf)];T.hid.forEach(e=>{e.style.opacity='0'});T.key=prepKey();RP={T};
  /* the page is copied into the strips a few at a time between idle moments (copying all of them at once held the phone up for a moment after every turn), so a tap or a scroll never waits long; a turn asked for before they are all in builds the usual way */
  const q=T.q||[];T.part=q.length>0;
  const step=dl=>{if(!RP||RP.T!==T)return;while(q.length){q.shift()();if(!(dl&&dl.timeRemaining&&dl.timeRemaining()>8))break}if(q.length)prepQ=window.requestIdleCallback?requestIdleCallback(step,{timeout:600}):setTimeout(step,60);else T.part=false};
@@ -13512,8 +13512,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.10.31a';const APP_LABEL='1.222';
-const CHANGES=["A final review pass before release: 42 small fixes across the Daily, the reader, themes, settings and first launch","\"Mark all as read\" and \"Clear downloaded stories\" now offer Undo, and the Undo message shows above the Fin page","The phone's Back button on the Fin page goes back to the Daily instead of leaving the app","First launch: the swipe directions are described the right way around, and the Next button says why it is waiting","A \"Read more\" line in the middle of a story no longer cuts off the rest of it","Short stories that are complete are no longer labeled \"Partial story\"; share rows and stray formatting marks are kept out of the text","The Daily's photo cover shows its photo again, and the Newsprint theme dims it so the headline stays readable","Photo covers no longer draw the photo twice on phones; paper-cover labels, site names and gray text in Coast, Sepia Rosewood and Cypress day are easier to read"];
+const APP_VERSION='2026.10.31b';const APP_LABEL='1.223';
+const CHANGES=["No more faint words from the next page showing behind the story you are reading","A stray \"Size Small Standard Large Width\" line from one site's text controls no longer appears at the end of stories"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
