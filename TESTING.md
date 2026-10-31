@@ -1091,3 +1091,11 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] Settings: six tiles home; Aa sheet "Reading" with presets; theme picker in families; Add a site preview with last 3 headlines and "Follow <site>"
 - [ ] Speed: story opens with feed text + pale bars + hairline; slow-site note at 8 s with "Read the preview"; text-only prefetch on mobile data; fonts load as files (headline face preload)
 - [ ] Look: brass only for kicker/drop cap/links in Cypress dark; labels ≥ 11px; toasts above the bottom bar, 3 s / 6 s
+
+## Polish review: finishing pass (branch claude/polish-review, side preview /polish/app/) — implemented, checked in a desktop browser, unverified on phone
+- [ ] R-11 Story so far timeline: framed like other boxes; after paragraph 2 on a phone, never at the top of column 2 on a tablet; same-day rows show only the time after the first
+- [ ] R-12 Long code block in Pages: shows 12 lines with "Show all · N lines"; tapping it shows the whole block and the pages reflow; Copy sits top-right clear of the first line
+- [ ] F-01 The Daily cover on a phone: one band (CYPRESS left, date · edition · number right), headline over the lead photo, first story visible without scrolling; big issue number on the back cover; tablet keeps the tall masthead
+- [ ] T-08 Photo-less big cards show a hills-and-trees picture in the site's color instead of a letter
+- [ ] F-08 Headlines on a wide tablet (landscape, side bar open): lead photo left, two stories stacked right, then six headlines in three ruled newspaper columns; narrow tablets keep the old layout
+- [ ] R-05 Tablet page one: photo and headline on the left, story starts at the top of the right column with its drop cap
