@@ -17,10 +17,12 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    const heroU='https://img.test/a/Foo_Bar_0004.jpg?crop=1',bodyU='https://img.test/b/Foo_Bar_0004-1024x683.jpg';
    await run('feedcopy',{feedId:f.id,title:'Hero A',link:'https://w.test/ha',date:Date.now(),summary:'x',img:heroU,html:`<figure><img src="${bodyU}"></figure>${para(40)}${para(40)}`});
    const L='https://w.test/hb';await run('cached',{feedId:f.id,title:'Hero B',link:L,date:Date.now(),summary:'x',img:heroU,html:`<figure><img src="${bodyU}"></figure>${para(40)}`},()=>{acPut(L,`<figure><img src="${bodyU}"></figure>${para(60)}${para(60)}`)});
+   await run('shape',{feedId:f.id,title:'Hero D',link:'https://w.test/hd',date:Date.now(),summary:'x',img:'https://img.test/a/Screenshot-2026-10-30.png',html:`<figure><img src="https://img.test/b/patrick5-1024x696.jpg"></figure>${para(40)}${para(40)}`});
    await run('nopic',{feedId:f.id,title:'Hero C',link:'https://w.test/hc',date:Date.now(),summary:'x',img:heroU,html:`${para(40)}${para(40)}`});
    return out});
   const t='['+W+'] ';
   for(const k of ['feedcopy','cached']){const o=r[k];ck(t+k+': never two copies on screen (any frame)',o.max<=1,JSON.stringify(o));ck(t+k+': body copy is kept, top copy dropped',o.inBody&&!o.heroAny&&o.total===1,JSON.stringify(o))}
+  ck(t+'same shape under another file name: top copy dropped (R-04)',r.shape.total===1&&!r.shape.heroAny,JSON.stringify(r.shape));
   ck(t+'story without the picture in its text keeps the top picture',r.nopic.total===1&&r.nopic.heroAny,JSON.stringify(r.nopic));
   ck(t+'no page errors',!errs.length,errs[0]);await p.close();
  }
