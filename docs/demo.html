@@ -5028,6 +5028,14 @@ html body :is(#grid[data-w="mag"] .card:is(.nr-row,.nr-late),#grid.wire[data-w="
 /* the stuck Daily tab strip paints the page color out to the column edges, so stories never show at its sides */
 .bmseg.dtabs{box-shadow:0 0 0 100vmax var(--bg);clip-path:inset(0 -100vmax)}
 html body #grid .card.noimg:is(.nr-lead,.nr-hero,.lead):not(.list-row) .src :is(.sn,.ssec){color:#fff!important}/* a photo-less lead is a filled panel: its site name reads in white, not the theme's red */
+/* David 2026-10-31: symmetry: tiles that share a row are the same height, and each tile's time line sits on the bottom edge */
+html body #grid :is(.nr-rv,.nr-rv3,.nr-sm,.nr-mid,.nr-trl,.nr-ph-rows,.nr-side,.dq,.orow),html body #grid.wire[data-w="mag"]{align-items:stretch!important}
+html body :is(#grid[data-w="mag"] .card:is(.nr-row,.nr-late),#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr),#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr),#grid:not(.list):not([data-cards=narrow]):not([data-cards=compact]) .card[data-ed]:not(.lead):not(.nr):not(.list-row):not(.noimg)){height:auto!important;align-self:stretch!important}
+html body :is(#grid[data-w="mag"] .card:is(.nr-row,.nr-late),#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr),#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr),#grid:not(.list):not([data-cards=narrow]):not([data-cards=compact]) .card[data-ed]:not(.lead):not(.nr):not(.list-row):not(.noimg))>.tx{flex:1 1 auto;display:flex!important;flex-direction:column}
+html body :is(#grid[data-w="mag"] .card:is(.nr-row,.nr-late),#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr),#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr),#grid:not(.list):not([data-cards=narrow]):not([data-cards=compact]) .card[data-ed]:not(.lead):not(.nr):not(.list-row):not(.noimg))>.tx>:last-child{margin-top:auto}
+html body :is(#grid[data-w="mag"] .card:is(.nr-row,.nr-late),#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr),#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr),#grid:not(.list):not([data-cards=narrow]):not([data-cards=compact]) .card[data-ed]:not(.lead):not(.nr):not(.list-row):not(.noimg))>img{max-height:300px}/* a tile that spans a wide row keeps a modest photo, never a wall */
+/* the two-column middle of a Headlines section reads in rows (was newspaper columns, whose side-by-side stories never lined up) */
+html body #grid :is(.nr-top>.nr-mid,.nr-sec .nr-mid):not([style*="column"]){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-count:auto;column-gap:26px;align-items:stretch}
 #grid .orow{grid-column:1/-1;display:grid;column-gap:inherit;row-gap:inherit;align-items:start}
 #grid.wire .wcols>.wspan{column-span:all;border-top:1px solid var(--ln);padding-top:14px;margin-top:4px}
 /* ---- column view, 2026-10-30 (David's picks C2 + C4 + C6): a short photo with a line of summary at the top of each column, a small square photo beside other headlines, each time group in a filled band ---- */
@@ -6113,6 +6121,7 @@ async function enrich(id){
  dropGeneric(items[id]||[]);schedule();
 }
 function lowres(im){
+ if(im.naturalWidth&&im.naturalWidth<80&&im.naturalHeight<80&&im.closest('#grid .card')&&im.onerror){im.onerror();return}/* David 2026-10-31: a spacer or tracking pixel is not a photo: the card drops to its no-photo look instead of a big blank box */
  if(im.naturalWidth&&im.naturalWidth<320)im.classList.add('duo');/* tiny or blurry: shown two-tone (CSS) */
  if(!im.naturalWidth||im.naturalWidth>=600||im.dataset.t)return;im.dataset.t=1;
  const a=cardStory(im.closest('.card'));if(!a||a.lrT)return;a.lrT=1;
