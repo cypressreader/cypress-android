@@ -765,6 +765,8 @@ html.rmo .card>.rib.ribnew,html.lowp .card>.rib.ribnew{animation:none}
 .dlinks{grid-column:1/-1;display:flex;gap:8px;margin:2px 0 14px}
 .dlinks button{flex:1;padding:9px 8px;border-radius:12px;border:1px solid var(--ln);background:var(--pn);color:var(--ink);font:600 13px var(--sans);cursor:pointer}
 .dsec2{margin:0 0 40px}
+/* the Daily's sections below the first are laid out only as they come near the screen; the guess at their height comes from their story count (set on the section) */
+#grid section.dsec2{content-visibility:auto;contain-intrinsic-size:auto var(--cis,600px)}
 .dsh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 18px;padding:0 0 10px;border-bottom:3px solid var(--ink);font:800 13px var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--ink)}
 .dsh small{font:italic 400 14px var(--serif);letter-spacing:0;text-transform:none;color:var(--mut)}
 .dq{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 16px;margin:0 -2px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
@@ -8188,12 +8190,12 @@ function daySections(list,mode){
  NRLAB='Latest';SMARTV=false;
  if(diff)B.push(diffHtml(diff,C));
  if(good)B.push(ritualHtml('good',good));
- if(brief)B.push(`<section class="dsec2">${sh('brief','Quick Reads','Short reads, a few minutes each',quick.length,'short reads')}<div class="dq">${quick.map(a=>C(a,'nr dq-c')).join('')}</div></section>`);
+ if(brief)B.push(`<section class="dsec2" style="--cis:${200+(innerWidth>=700?Math.ceil(quick.length/3)*170:150)}px">${sh('brief','Quick Reads','Short reads, a few minutes each',quick.length,'short reads')}<div class="dq">${quick.map(a=>C(a,'nr dq-c')).join('')}</div></section>`);
  if(num)B.push(ritualHtml('num',num.a,num.n));
  if(well.length)B.push(wellHtml(well));
- if(deep.length)B.push(`<section class="dsec2 ddv">${sh('deep',wkd?'Weekend Reads':'Deep Dives','Settle in',deep.length,'long reads')}${deep.map(a=>`<div class="nr-color">${C(a,'nr nr-colr')}</div>`).join('')}</section>`);
+ if(deep.length)B.push(`<section class="dsec2 ddv" style="--cis:${200+deep.length*300}px">${sh('deep',wkd?'Weekend Reads':'Deep Dives','Settle in',deep.length,'long reads')}${deep.map(a=>`<div class="nr-color">${C(a,'nr nr-colr')}</div>`).join('')}</section>`);
  if(more.length){
-  B.push(`<section class="dsec2">${sh('more',deep.length||brief?'Also in this issue':'More from your sites','',more.length,'stories')}${rowsQ(more)}</section>`);
+  B.push(`<section class="dsec2" style="--cis:${200+more.length*110}px">${sh('more',deep.length||brief?'Also in this issue':'More from your sites','',more.length,'stories')}${rowsQ(more)}</section>`);
  }
  B.push(backCoverHtml(DGL.length,wireTrending(pool)));
  const rit=[diff?'What changed since this morning':'',good?'One Good Thing':'',num?'The Number':'',well.length?'The Well':''].filter(Boolean);
