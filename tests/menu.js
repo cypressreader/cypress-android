@@ -2,7 +2,8 @@
 const {APP}=require('./env');const {mock,PW}=require('./mock');const {chromium}=require(PW);
 let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else console.log('ok',n)};
 /* the trimmed menu (B32): 11 actions, plus Save as PDF and Send to Kindle (B66) = 13. Copy link, Translate, Full screen, Show my feeds and the second site-view item are gone on purpose */
-const WANT={quick:['save','share','aa','web','tr'],list:['pdf','kindle','hub','jump','upnext'],more:['unread','junk','browser','settings','rp']};
+/* polish S-03: three labeled groups (This story / Send to / site), no More expander; the sheet scrolls on a short phone */
+const WANT={quick:['save','share','aa'],list:['pdf','kindle','hub','jump','upnext','tr','web','browser','unread','junk','rp']};
 const GONE=['copy','translate','fullscreen','fdn','webpref'];
 (async()=>{
  const b=await chromium.launch();
@@ -16,7 +17,7 @@ const GONE=['copy','translate','fullscreen','fdn','webpref'];
    const mn=document.querySelector('#mn'),rc=mn.getBoundingClientRect(),o={};
    o.vis=!mn.hidden;o.top=rc.top;o.bottom=rc.bottom;o.left=rc.left;o.right=rc.right;o.vh=innerHeight;o.vw=innerWidth;o.scrolls=mn.scrollHeight>mn.clientHeight+1;
    const acts=sel=>[...mn.querySelectorAll(sel)].map(b=>b.dataset.act);
-   o.groups={quick:acts('.rshq [data-act]'),list:acts('.rshl>[data-act],.rshl>.rshp>[data-act]'),more:acts('#mnmx [data-act]')};
+   o.groups={quick:acts('.rshq [data-act]'),list:acts('.rshl>[data-act],.rshl>.rshp>[data-act]')};o.heads=[...mn.querySelectorAll('.rshl h3')].map(h=>h.textContent);
    o.dialog=mn.getAttribute('role')==='dialog'&&mn.getAttribute('aria-modal')==='true'&&!!mn.getAttribute('aria-labelledby');o.focusIn=mn.contains(document.activeElement);
    o.cut=[...mn.querySelectorAll('button:not([hidden])')].filter(b=>{const q=b.getBoundingClientRect();return q.bottom>innerHeight||q.right>innerWidth+1||q.left<-1||q.top<0}).length;
    o.small=[...mn.querySelectorAll('button:not([hidden])')].filter(b=>b.getClientRects().length&&b.getBoundingClientRect().height<48).length;
@@ -29,7 +30,8 @@ const GONE=['copy','translate','fullscreen','fdn','webpref'];
   ck(t+'a modal sheet with focus inside',r.dialog&&r.focusIn,JSON.stringify(r));
   ck(t+'the removed actions are really gone',GONE.every(k=>!Object.values(r.groups).some(l=>l.includes(k))),JSON.stringify(r.groups));
   ck(t+'every action is still in the menu',Object.entries(WANT).every(([g,l])=>l.every(k=>(r.groups[g]||[]).includes(k))),JSON.stringify(r.groups));
-  ck(t+'it fits the screen: nothing cut off, no inner scrolling',r.top>=0&&r.bottom<=r.vh&&r.left>=0&&r.right<=r.vw+1&&r.cut===0&&!r.scrolls,JSON.stringify({top:r.top,bottom:r.bottom,vh:r.vh,cut:r.cut,scrolls:r.scrolls}));
+  ck(t+'three labeled groups',r.heads.length===3&&r.heads[0]==='This story'&&r.heads[1]==='Send to',JSON.stringify(r.heads));
+  ck(t+'it fits the screen: the sheet is inside the viewport and scrolls when it has to',r.top>=0&&r.bottom<=r.vh&&r.left>=0&&r.right<=r.vw+1&&(r.scrolls||r.cut===0),JSON.stringify({top:r.top,bottom:r.bottom,vh:r.vh,cut:r.cut,scrolls:r.scrolls}));
   ck(t+'targets stay tappable (48px or taller)',r.small===0,String(r.small));
   ck(t+'choosing an action closes the menu',r.menuClosed);
   ck(t+'no page errors',!errs.length,errs[0]);await p.close();
