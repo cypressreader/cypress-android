@@ -7759,7 +7759,9 @@ function nrBlocks(l,base,o){
   B.push(`<section class="nr-top nr-tb2"><div class="nr-lw">${C(lead[0],'nr-lead nr-wide')}</div>${rail.length?`<div class="nr-rail">${nrLH(rail.length)}<div class="nr-rl">${rail.map(i=>C(i,nrLC())).join('')}</div></div>`:''}<div class="nr-t3">${tri.map(i=>C(i,'nr-tri')).join('')}</div></section>`);
  }else{
   const mid=P.pick(nrHas,4),sub=P.pick(null,4),rail=P.pick(null,6);
-  B.push(`<section class="nr-top${tv===2?' nr-flip':''}"><div class="nr-lw">${C(lead[0],'nr-lead')}${sub.length?`<div class="nr-lsub">${sub.map(i=>C(i,'nr-late')).join('')}</div>`:''}</div><div class="nr-mid">${mid.map(i=>C(i,'nr-row nr-m')).join('')}</div>${rail.length?`<div class="nr-rail">${nrLH(rail.length)}<div class="nr-rl">${rail.map(i=>C(i,nrLC())).join('')}</div></div>`:''}</section>`);
+  /* a lone leftover story joins the lead's list instead of getting its own "Next up" header, and an empty middle column draws no rule */
+  if(rail.length===1)sub.push(rail.pop());
+  B.push(`<section class="nr-top${tv===2?' nr-flip':''}"><div class="nr-lw">${C(lead[0],'nr-lead')}${sub.length?`<div class="nr-lsub">${sub.map(i=>C(i,'nr-late')).join('')}</div>`:''}</div>${mid.length?`<div class="nr-mid">${mid.map(i=>C(i,'nr-row nr-m')).join('')}</div>`:''}${rail.length?`<div class="nr-rail">${nrLH(rail.length)}<div class="nr-rl">${rail.map(i=>C(i,nrLC())).join('')}</div></div>`:''}</section>`);
  }
  const seq=(o&&o.seq)||NRPAT[(seed>>3)%3];let n=0,guard=0,fl=0,qn=0,statDone=false;
  const river=max=>{const ix=P.pick(null,max);if(!ix.length)return false;B.push(`<section class="nr-river">${SMARTV?'':`<h4>${nrAge(l[ix[0]])}</h4>`}<div class="nr-rv">${ix.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`);return true};
