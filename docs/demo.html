@@ -10132,7 +10132,7 @@ function ttsFrom(wi){
   {const p0=a>0?TTS.words[a-1]:null;let ms=0;if(p0&&p0.b!==w0.b)ms=p0.hd?700:(p0.sh||w0.sh)?480:(!!w0.q!==!!p0.q)?260:340;if(w0.sh&&ms)ms=Math.max(ms,520);u.pauseMs=Math.round(ms/Math.max(.7,Math.min(2,ttsRate())))}
   u.stopAt=(typeof SLEEP!=='undefined'&&SLEEP.t&&SLEEP.at)||0;
   u.rate=prate;u.volume=S.vol==null?1:+S.vol;u.pitch=ppitch;
-  const v=bestVoice();if(v){u.voice=v;u.lang=v.lang}
+  const v=bestVoice();if(v){u.voice=v;u.lang=v.lang}else if(!NATIVE)u.lang=navigator.language
   if(w0.q&&S.qvoice){const qv=quoteVoice();if(qv){u.voice=qv;u.lang=qv.lang}else u.pitch=1.18}
   let real=false,t0=0,early=0,tm1=null;const cps=()=>Math.max(5,Math.min(60,(TTS.cps||14)*ttsRate()));
   /* B24: the highlight is shown a few words early to cancel the delay between the phone's engine and the page. The delay is measured from the timestamp on each report (native) instead of guessed */
@@ -10230,7 +10230,7 @@ function patchProg(a){const p=progOf(a.link);document.querySelectorAll('#grid .c
 const set=$('#set');
 /* a site can have its own voice and speed (feed settings) for its stories */
 const ttsFeed=()=>(typeof curA!=='undefined'&&curA&&curA.feedId&&S.feeds.find(f=>f.id===curA.feedId))||{},ttsRate=()=>+(ttsFeed().rate||S.rate)||1;
-function bestVoice(){const vs=speechSynthesis.getVoices();{const fv=ttsFeed().voice,m=fv&&vs.find(v=>v.voiceURI===fv);if(m)return m}if(S.voice){const m=vs.find(v=>v.voiceURI===S.voice);if(m)return m}const L=(navigator.language||'en').slice(0,2).toLowerCase(),c=vs.filter(v=>(v.lang||'').toLowerCase().startsWith(L));if(!c.length||!c.some(v=>v.q))return null;return c.slice().sort((a,b)=>(b.q||0)-(a.q||0)||(a.localService?0:1)-(b.localService?0:1))[0]}
+function bestVoice(){const vs=speechSynthesis.getVoices();{const fv=ttsFeed().voice,m=fv&&vs.find(v=>v.voiceURI===fv);if(m)return m}if(S.voice){const m=vs.find(v=>v.voiceURI===S.voice);if(m)return m}const L=(navigator.language||'en').slice(0,2).toLowerCase(),c=vs.filter(v=>(v.lang||'').toLowerCase().startsWith(L));if(!c.length)return null;/* the Android plugin scores voices (q); a browser does not, so there its default voice, then a local one, then the exact language wins */const hq=c.some(v=>v.q),nl=(navigator.language||'').toLowerCase(),ex=v=>(v.lang||'').toLowerCase().replace('_','-')===nl?0:1;return c.slice().sort((a,b)=>(b.q||0)-(a.q||0)||(hq?0:(b.default?1:0)-(a.default?1:0))||(a.localService?0:1)-(b.localService?0:1)||(hq?0:ex(a)-ex(b)))[0]}
 function voiceOpts(){const L=(navigator.language||'en').slice(0,2),vs=speechSynthesis.getVoices().slice().sort((a,b)=>(a.lang.startsWith(L)?0:1)-(b.lang.startsWith(L)?0:1)||(b.q||0)-(a.q||0)||a.name.localeCompare(b.name));return (vs.length?'<option value="">Best available</option>':'<option value="">No voices found</option>')+vs.map(v=>`<option value="${esc(v.voiceURI)}">${esc(v.name)} (${esc(v.lang)})</option>`).join('')}
 /* B31: where to get a voice depends on the device */
 const voiceWhere=()=>NATIVE?'Android Settings > Text-to-speech output':/Mac|iPhone|iPad/.test(navigator.platform||navigator.userAgent||'')?'System Settings > Accessibility > Spoken Content':'your system settings (search for "text to speech")';
@@ -15723,7 +15723,7 @@ function setSleep(v){
 setInterval(()=>{if(SLEEP.t)syncUpNext()},30000);
 function speak(text,cb){
  if(!('speechSynthesis' in window)){cb&&cb();return}
- const u=new SpeechSynthesisUtterance(text);u.rate=+S.rate||1;u.volume=S.vol==null?1:+S.vol;const v=bestVoice();if(v){u.voice=v;u.lang=v.lang}
+ const u=new SpeechSynthesisUtterance(text);u.rate=+S.rate||1;u.volume=S.vol==null?1:+S.vol;const v=bestVoice();if(v){u.voice=v;u.lang=v.lang}else if(!NATIVE)u.lang=navigator.language
  let d=false;const fin=()=>{if(d)return;d=true;cb&&cb()};u.onend=fin;u.onerror=fin;/* never wait forever on an engine that doesn't report the end: the Daily's intro held up the whole Daily */setTimeout(()=>{if(!speechSynthesis.speaking)fin()},Math.max(4000,text.length*120));setTimeout(fin,Math.max(8000,text.length*160/Math.max(.6,+S.rate||1)));
  try{speechSynthesis.speak(u)}catch(e){fin()}
 }
