@@ -12568,7 +12568,7 @@ $('#fresh').onclick=()=>startFresh();
 $('#pfm').onchange=e=>{const v=e.target.value;if(v==='off')S.pfm='off';else{S.pfm='custom';S.pfn=+v}save();PF.done.clear();PF.n=0;PF.q=[];PF.tot=0;PF.fin=0;pfBar();if(S.pfm!=='off')prefetch(pfList());try{acEvict()}catch(x){}syncSet()};
 let arT;function setAuto(){clearInterval(arT);const m=+S.auto||0;if(m)arT=setInterval(()=>{if(!document.hidden&&!$('#rd').classList.contains('on'))loadAll()},m*6e4)}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-(S.lastLoad||0)>10*6e4&&!$('#rd').classList.contains('on'))loadAll()});
-$('#clr').onclick=()=>{try{localStorage.removeItem(CK);localStorage.removeItem('folio-img')}catch(e){}acClear();toast('Stored stories cleared. Feeds, saved stories and highlights are kept.')};
+$('#clr').onclick=async()=>{const n=Object.keys(AC).length;if(!await askBox({title:'Clear downloaded stories?',text:(n===1?'1 downloaded story':n+' downloaded stories')+' will be removed from this device. You can download them again when you’re online.',ok:'Clear',cancel:'Keep them',danger:true}))return;try{localStorage.removeItem(CK);localStorage.removeItem('folio-img')}catch(e){}acClear();toast('Stored stories cleared. Feeds, saved stories and highlights are kept.')};
 
 /* feed health */
 const feedStat=f=>{const l=items[f.id]||[];if(!l.length)return'';const ds=l.map(a=>a.date).filter(Boolean);if(!ds.length)return'';const wk=ds.filter(d=>Date.now()-d<7*864e5).length,per=wk/7;return ' · '+(per>=1?'about '+Math.round(per)+' a day':wk?wk+' this week':'quiet this week')+', newest '+ago(Math.max(...ds))+' ago'};
