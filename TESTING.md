@@ -1080,3 +1080,14 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] Open any long story in pages mode, wait 3 seconds: no faint words from the next page behind the text or the "Why it matters" box (T-08)
 - [ ] Turn pages right after opening: the first turn is still smooth (the pre-built turn is now fully hidden instead of 1% visible)
 - [ ] Ars Technica story: no "Size Small Standard Large Width" line at the end
+
+## Polish review preview (branch claude/polish-review, side preview https://cypressreader.github.io/cypress-preview/polish/app/) — implemented, unverified on phone
+- [ ] Reader: bar shows Back · site · "N min" (total on page 1, then "N min left") · More; 2px progress rule under the bar; Save/Listen hidden under 760px (they are in More)
+- [ ] Reader: kicker is site · section; byline is name · "Today, 3:21 PM" or "Oct 30" · N min; credit under the photo; dek instead of the "Why it matters" box; At a glance only when it adds rows
+- [ ] Reader: doubled lead photo hidden when the body repeats it (Ars Technica story); left-aligned text on narrow columns; ending page with Next up photo, Save/Share/Open site, related; controls hide after the first page turn, middle tap shows them 3 s
+- [ ] Story options sheet: Save/Share/Listen/Text, then "This story", "Send to", "<site>" groups; long-press a card for the compact menu
+- [ ] The Daily: section heads without ornament/Vol. line and with "N stories · M min"; photo cards photo-above/text-below except the lead; list rows with age right and brass unread dot; sticky tab strip (no docked clone); tips as inline cards; skeleton shaped like the page; phone cover masthead band (F-01, from an unverified partial commit: check the cover closely)
+- [ ] Side bar = folders with "N unread"; Saved tab has Saved · Highlights · History header; "Your reading stats" on the Daily back cover
+- [ ] Settings: six tiles home; Aa sheet "Reading" with presets; theme picker in families; Add a site preview with last 3 headlines and "Follow <site>"
+- [ ] Speed: story opens with feed text + pale bars + hairline; slow-site note at 8 s with "Read the preview"; text-only prefetch on mobile data; fonts load as files (headline face preload)
+- [ ] Look: brass only for kicker/drop cap/links in Cypress dark; labels ≥ 11px; toasts above the bottom bar, 3 s / 6 s
