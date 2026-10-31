@@ -10688,6 +10688,7 @@ function setCard(c){
  const w=document.createElement('div');w.className='sgw';if(c.id)w.dataset.cg=c.id;if(c.rs)w.dataset.rs='1';if(c.h){const h=document.createElement('h4');h.className='sct';h.textContent=c.h;w.append(h)}
  const b=document.createElement('div');b.className='sbox';setItems(c.items).forEach(n=>b.append(n));w.append(b);return w}
 function setAdopt(){
+ webUpd();
  [['s-notif','daily','Alerts'],['s-app','about','The app']].forEach(([id,pg,h])=>{
   const sec=$('#'+id);if(!sec||sec.dataset.ad)return;sec.dataset.ad='1';if(!sec.querySelector(':scope>.sbox'))return;
   const page=$('#sp-'+pg);const h3=sec.querySelector(':scope>h3');const h4=document.createElement('h4');h4.className='sct';h4.textContent=h;if(h3)h3.replaceWith(h4);else sec.prepend(h4);sec.className='sgw';
@@ -10723,7 +10724,7 @@ function setSum(){
  const ar=q('#arf');{const nf=(S.feeds||[]).length,nd=(S.folders||[]).length,nm=(S.mute||[]).length;t.feeds=nf+(nf===1?' site':' sites')+(nd?' · '+nd+(nd===1?' folder':' folders'):'')+(nm?' · '+nm+' muted '+(nm===1?'word':'words'):'');t.home=t.feeds+(isOn('cover')?' · cover on':' · cover off')}{const pf=q('#pfm'),ahead=pf&&pf.value!=='off';t.dl=S.offline?'Offline mode on':((ahead?'Ready ahead'+(isOn('pfwifi')?' on Wi-Fi':''):'Not downloading ahead')+' · '+(ar&&ar.value!=='0'&&ar.selectedOptions[0]?'refresh '+ar.selectedOptions[0].textContent.toLowerCase():'refresh by hand'))}
  t.alerts=(isOn('dgon')?'Digest on':'Digest off')+(isOn('alerts')?' · story alerts on':'')+' · voice '+(S.rate||1).toFixed(1)+'×';
  const ml=moLevel();t.motion='Motion '+(ml==='custom'?'custom':ml)+' · effects '+(isOn('cyfx')?'on':'off');
- t.sync=S.sync?'Sync is on':'Sync is off';t.about=t.sync+' · version '+APP_LABEL;
+ t.sync=S.sync?'Sync is on':'Sync is off';t.about='Updates · version '+APP_LABEL+' · '+t.sync.toLowerCase();
  t.daily=t.home0+(isOn('dgon')?' · digest on':'');t.listen=t.tts;t.stories=({smart:'Smart order',new:'Newest first'}[S.sort||'smart']||'Your order')+' · '+t.dl.charAt(0).toLowerCase()+t.dl.slice(1);t.sites=t.feeds+' · '+t.sync.toLowerCase();
  document.querySelectorAll('[data-sum]').forEach(e=>{if(t[e.dataset.sum])e.textContent=t[e.dataset.sum]});
 }
@@ -16172,6 +16173,13 @@ async function checkUpdate(){
  try{const t=await (await fetch(location.pathname,{cache:'no-store'})).text();const m=t.match(/const APP_VERSION='([^']+)'/);
   if(m&&m[1]!==APP_VERSION){const b=document.createElement('div');b.id='upd';b.innerHTML=`<span>A new version of CyPress is ready</span><button class="go" data-upd>Refresh</button><button class="ib" data-updx aria-label="Later">${svg('<path d="M6 6l12 12M18 6 6 18"/>')}</button>`;document.body.append(b);
    b.addEventListener('click',e=>{if(e.target.closest('[data-upd]'))location.reload();else if(e.target.closest('[data-updx]'))b.remove()})}}catch(e){}
+}
+/* David 2026-10-31: the web app gets the same "Check for updates" row the Android app has (Settings > About CyPress > The app) */
+function webUpd(){
+ if(NATIVE||$('#s-app'))return;const pg=$('#sp-about');if(!pg||pg.querySelector('#webupd'))return;
+ const w=document.createElement('div');w.className='sgw';w.innerHTML=`<h4 class="sct">The app</h4><div class="sbox"><div class="line"><span class="lb">CyPress updates<small id="webupv">You have version ${esc(APP_LABEL)}</small></span><button type="button" class="tx2" id="webupd">Check for updates</button></div></div>`;
+ const f=pg.querySelector('.sgw');f?f.before(w):pg.append(w);
+ w.querySelector('#webupd').onclick=async()=>{const v=$('#webupv');if(!navigator.onLine){v.textContent='You are offline. Try again when you are connected';return}v.textContent='Checking…';await checkUpdate();v.textContent=$('#upd')?'A new version is ready: tap Refresh at the bottom of the screen':'You have the latest version ('+APP_LABEL+')'};
 }
 setInterval(checkUpdate,30*6e4);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});
 

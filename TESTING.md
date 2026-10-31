@@ -1114,3 +1114,4 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] Card view section heads (Last hour, This morning, Earlier): faint band with a brass edge, less empty space
 - [ ] The Well (photo break in The Daily): tall pictures sit side by side, wide ones side by side; a lone one takes a full row; no gaps
 - [ ] Read aloud (Play Daily / Now Playing) on the Fold or a tablet from 700px wide: player left, story list right; titles in the sans face
+- [ ] Settings > About CyPress > The app: Check for updates (web and Android); the About row on the Settings home says Updates · version
