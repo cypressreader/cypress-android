@@ -10183,7 +10183,9 @@ function ttsToggle(){
  if(!TTS.on){const why=ttsClean();if(why&&!ttsToggle.force){if(R.queueRun||R.briefAudio){toast('Skipping: '+why);ttsEnd(true)}else{toast('Not reading this aloud because '+why+'. Tap Read aloud again to read what’s here');ttsToggle.force=true;setTimeout(()=>{ttsToggle.force=false},6000)}return}}
  if(TTS.on&&!TTS.paused)return ttsPause();
  if(TTS.on&&TTS.paused)return ttsFrom(ttsPos());
- if(!TTS.on&&!speechSynthesis.getVoices().length){const f=speechSynthesis.voiceState==='failed';toast(f?'The phone’s speech engine didn’t start. Check Text-to-speech output in Android Settings.':'No voices are installed, so reading aloud isn’t available. Add one in '+voiceWhere()+'.');if(NATIVE||f)return}
+ if(!TTS.on&&!speechSynthesis.getVoices().length){const f=speechSynthesis.voiceState==='failed',msg=()=>toast(f?'The phone’s speech engine didn’t start. Check Text-to-speech output in Android Settings.':'No voices are installed, so reading aloud isn’t available. Add one in '+voiceWhere()+'.');if(NATIVE||f)return msg();
+  /* a browser can list its voices a moment late: wait up to a second for them before deciding */
+  if(!ttsToggle.wait){ttsToggle.wait=1;let t;const go=()=>{clearTimeout(t);speechSynthesis.removeEventListener('voiceschanged',go);ttsToggle.wait=0;if(speechSynthesis.getVoices().length)ttsToggle();else msg()};speechSynthesis.addEventListener('voiceschanged',go);t=setTimeout(go,1000)}return}
  ttsCollect();if(!TTS.words.length)return;
  ttsFrom(ttsStartWord());
 }
