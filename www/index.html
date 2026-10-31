@@ -10475,7 +10475,7 @@ function setSearch(q){
  q=q.replace(/\bcolo(u)?rs?\b/g,'color');/* people who spell it the other way still find it */
  let tk=q.split(/[^a-z0-9']+/).filter(t=>t&&!SET_STOP.has(t)).map(t=>t.length>3?t.replace(/(ing|es|s)$/,''):t);if(!tk.length)tk=[q];
  const res=[];document.querySelectorAll('#setpane .spage').forEach(pg=>{const p=SET_PAGES.find(x=>x.id===pg.dataset.pg);const pgt=(p.t+' '+(p.d||'')).toLowerCase();pg.querySelectorAll('.line').forEach(l=>{const lb=l.querySelector('.lb');if(!lb)return;const name=setNorm(lb.firstChild.textContent),nl=name.toLowerCase();
-  let cp=l._sx;if(!cp)cp=l._sx=(lb.textContent.toLowerCase()+' '+SET_SYN.filter(([k])=>nl.includes(k)).map(x=>x[1]).join(' '));
+  let cp=l._sx;if(!cp)cp=l._sx=(lb.textContent.toLowerCase()+' '+SET_SYN.filter(([k])=>nl.includes(k)).map(x=>x[1]).join(' ')+(nl.includes('light, dark')?' '+THEME_NAMES.flat().join(' ').toLowerCase():''));
   let sc=0,hit=0;for(const t of tk){if(nl.includes(t)){sc+=3;hit++}else if(cp.includes(t)){sc+=2;hit++}else if(pgt.includes(t)&&t.length>2){sc+=1;hit++}}
   if(hit&&hit*2>=tk.length)res.push([l,p,name,sc])})});
  res.sort((a,b)=>b[3]-a[3]);
