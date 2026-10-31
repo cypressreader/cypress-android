@@ -290,7 +290,7 @@ html.micro #toast{animation:tsl .28s ease}
 .card.spread p{font-size:clamp(15px,1.5vw,18px);-webkit-line-clamp:4;max-width:44ch;opacity:.92}
 .card.spread .ov::before{content:'Feature';display:inline-block;font:700 11px var(--sans);letter-spacing:.22em;text-transform:uppercase;margin-bottom:10px;padding:3px 9px;border:1px solid rgba(255,255,255,.55);border-radius:99px;color:#fff}
 figure.pqs{grid-column:1/-1;margin:22px auto 14px;max-width:34em;text-align:center;padding:0 10px}
-figure.pqs blockquote{font:italic 500 clamp(24px,4.4vw,38px)/1.22 var(--serif);letter-spacing:var(--hk);word-spacing:var(--hw);position:relative}
+figure.pqs blockquote{font:italic 500 clamp(24px,4.4vw,38px)/1.22 var(--fd,var(--serif));letter-spacing:var(--hk);word-spacing:var(--hw);position:relative}
 figure.pqs blockquote::before{content:'\201C';display:block;font:600 84px/0.6 var(--serif);color:var(--b,var(--mut));opacity:.7;margin-bottom:6px}
 figure.pqs figcaption{margin-top:12px;font:600 12px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
 .book[data-folio]{margin-bottom:calc(clamp(14px,2.5vw,22px) + 16px)}
@@ -1661,7 +1661,7 @@ html.rdx .cols>.hsf.hs-top img.hero{width:100%;height:auto;aspect-ratio:auto;max
 .stl button{display:block;text-align:left;font:600 15px/1.3 var(--serif);color:var(--ink);padding:2px 0}
 .body figcaption,.body p.cap{font:400 12.5px/1.45 var(--sans);color:var(--mut);margin:-.5em 0 1.2em;text-align:left;hyphens:none;font-style:normal;border-left:2px solid var(--ln);padding-left:10px}
 .body p.cap em,.body p.cap i{font-style:normal}
-.body .cred{display:block;margin-top:3px;font:700 9.5px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:color-mix(in srgb,var(--mut) 80%,transparent)}
+.body .cred{font:inherit;font-variant:small-caps;letter-spacing:.04em;opacity:.85}/* polish-2026-10 R-09: the credit runs on after a middle dot in small caps, like .crd */
 .tx2.go{background:var(--a1);color:#fff;border-color:transparent}
 /* stage L: fluidity + phone polish */
 .trs .tri b,.mb,.star{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
@@ -4210,7 +4210,7 @@ html[data-theme=rosewood] #rd .cols .kick{color:#7f5d1c}
 #rd .cols .body blockquote:not(.emb blockquote):not([class*=twitter]):not([class*=instagram]):not([class*=tiktok]){border:0;border-top:1px solid var(--rbr);border-bottom:1px solid var(--rbr);padding:.8em .3em;margin:1.4em auto;max-width:30em;text-align:center;font-family:var(--disp,var(--fd,var(--serif)));font-style:italic;font-weight:400;font-size:1.25em;line-height:1.32;hyphens:manual;text-indent:0;break-inside:avoid}
 #rd .cols .body blockquote:not(.emb blockquote) p{margin:0 0 .45em;font:inherit;text-align:center;text-indent:0;hyphens:manual}
 #rd .cols .body blockquote:not(.emb blockquote) p:last-child{margin-bottom:0}
-#rd .pullq::before,#rd .pullq::after{background:var(--rbr);opacity:1;height:1px}
+#rd .pullq::before,#rd .pullq::after{background:var(--rbr);opacity:1;height:1px}/* polish-2026-10 T-07: a lifted quote is set in the headline face with a hanging opening mark and no rules */#rd .pullq{font-family:var(--fd,var(--disp,var(--serif)));text-align:left;padding:.3em 0 .3em .6em}#rd .pullq::before{content:'\201C';position:absolute;left:0;top:.2em;width:auto;height:auto;margin:0;background:none;font:inherit;font-size:1.5em;line-height:1;opacity:1;color:var(--rbr,var(--b,var(--ink)))}#rd .pullq::after{content:none}#rd .pullq cite{display:block;margin-top:.5em;font:600 12px var(--sans);font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
 #rd .cols .body p.dropcap .dcap{float:left;font-size:calc((2*var(--lh,1.68) + .72)/.72*1em);line-height:.78;margin:.07em .1em 0 0;padding:0 .08em 0 0;border:0;color:var(--rbr)}/* polish-2026-10 T-06: room so round letters (O, C, Q) do not touch the text */
 .cols .body p.dropcap .dcl{font-variant-caps:small-caps;letter-spacing:.03em}
 /* long reads: the drop cap takes the theme's accent, darkened toward the ink so it stays readable on any paper (color only: no change to the page layout) */
@@ -7120,6 +7120,18 @@ function junkLogText(){
    A display-serif headline, a drop cap, up to three pull quotes lifted from the article's own sentences, a generous serif body, a live "N min left" pill,
    and an end-of-article footer with a cue to the next story and a few related reads. */
 document.documentElement.classList.add('rdx');
+/* polish-2026-10 T-07: pull quotes come from the middle of the text (never its first or last 150 words), one per 600 words, and name the speaker when the body quotes them */
+function pqWin(ps){const n=ps.map(rdWords),tot=n.reduce((a,b)=>a+b,0);let at=0;return ps.filter((p,i)=>{const a=at;at+=n[i];return a>=150&&at<=tot-150})}
+function pqEl(s,p){
+ const NM='((?:[A-Z][\\w\'’-]+ ){0,3}[A-Z][\\w\'’-]+)',V='(?:said|says|wrote|added|told)',re=(a,b)=>new RegExp(a+'[”"],? '+b);
+ let q=s,by='',m=s.match(re('^(.{40,}?)[,.]?',V+' '+NM))||s.match(re('^(.{40,}?)[,.]?',NM+' '+V+'\\b'));
+ if(m){q=m[1];by=m[2]}
+ else if(p){const t=p.textContent,i=t.indexOf(s);if(i>=0&&/[“"][^”"]*$/.test(t.slice(0,i))){const r=t.slice(i+s.length);m=r.match(re('^[^”"]{0,200}',V+' '+NM))||r.match(re('^[^”"]{0,200}',NM+' '+V+'\\b'));if(m)by=m[1]}}
+ if(/^(He|She|They|It|The|A|An|One|I|We|You|That|This)$/.test(by))by='';
+ const d=document.createElement('div');d.className='pullq';d.setAttribute('aria-hidden','true');d.textContent=q.replace(/^["“]|["”]$/g,'').trim();
+ if(by){const c=document.createElement('cite');c.textContent='— '+by;d.append(c)}
+ return d;
+}
 function rdQuote(ps,lo,hi,skip){
  let best=null,bs=-1;
  ps.slice(Math.floor(ps.length*lo),Math.ceil(ps.length*hi)).forEach(p=>{
@@ -7156,10 +7168,10 @@ function decorate14(){
  b.querySelectorAll('.rfoot').forEach(x=>x.remove());
  /* a second and third pull quote for a long article */
  if(isOn('mag')&&isOn('pqs')){
-  const ps=[...b.querySelectorAll(':scope > p')].filter(p=>!p.classList.contains('endmark')),total=b.textContent.length,have=new Set([...b.querySelectorAll('.pullq')].map(q=>q.textContent));
-  const add=(lo,hi,at)=>{const s=rdQuote(ps,lo,hi,have);if(!s)return;have.add(s);const q=document.createElement('div');q.className='pullq';q.setAttribute('aria-hidden','true');q.textContent=s.replace(/^["“]|["”]$/g,'');(ps[Math.floor(ps.length*at)]||ps[ps.length-1]).before(q)};
-  if(ps.length>=14&&total>=4200)add(.6,.9,.75);
-  if(ps.length>=24&&total>=8000)add(.12,.35,.2);
+  const ps=[...b.querySelectorAll(':scope > p')].filter(p=>!p.classList.contains('endmark')),wd=rdWords(b),win=pqWin(ps),have=new Set([...b.querySelectorAll('.pullq')].map(q=>(q.firstChild||q).textContent));
+  const add=(lo,hi,at)=>{const s=rdQuote(win,lo,hi,have);if(!s)return;have.add(s);(ps[Math.floor(ps.length*at)]||ps[ps.length-1]).before(pqEl(s,win.find(x=>x.textContent.includes(s))))};
+  if(ps.length>=14&&wd>=1200)add(.6,.9,.75);
+  if(ps.length>=24&&wd>=1800)add(.12,.35,.2);
  }
  if(curA&&!R.web)b.append(Object.assign(document.createElement('div'),{innerHTML:readerFootHtml(curA)}).firstChild);
  {const c=$('.cols');if(c)c.classList.toggle('rfok',!!b.querySelector('.rf-next,.rf-rel'))}
@@ -7187,6 +7199,7 @@ function rdTags(a,body){
 function decorateTpl(){
  const c=$('.cols'),b=c&&c.querySelector('.body');if(!c||!b||!curA||R.web)return;
  const wd=rdWords(b),tpl=rdTemplate(wd),a=curA;
+ if(wd>=120){a.rmin=Math.max(1,Math.round(wd/230));hdrFill()}/* polish-2026-10 R-13: the byline's reading time follows the text that is really on the page */
  c.classList.remove('tplb','tplf');if(tpl==='b')c.classList.add('tplb');if(tpl==='f')c.classList.add('tplf');
  ['.rbrk','.rtags','.rby','.rkk'].forEach(q=>c.querySelectorAll(q).forEach(x=>x.remove()));
  /* kicker: what kind of read this is, from its measured length */
@@ -13678,7 +13691,7 @@ function captions(){
  if(!isOn('caps'))return;
  const split=el=>{const t=el.textContent.trim();if(t.length>260)return;const m=t.match(CREDRE);if(!m||m.index==null||m.index<1&&t.length>90)return;const cr=m[1].trim().replace(/^[:/]\s*/,'');if(!cr)return;
   const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let last=null,n;while(n=w.nextNode())last=n;if(!last)return;
-  const i=last.data.lastIndexOf(cr.slice(0,Math.min(cr.length,12)));if(i<0)return;const rest=last.data.slice(i);last.data=last.data.slice(0,i).replace(/[\s(\[]+$/,'');const sp=document.createElement('span');sp.className='cred';sp.textContent=rest.replace(/[)\]\s]+$/,'');el.append(sp)};
+  const i=last.data.lastIndexOf(cr.slice(0,Math.min(cr.length,12)));if(i<0)return;const rest=last.data.slice(i);last.data=last.data.slice(0,i).replace(/[\s(\[·]+$/,'');if(el.textContent.trim())last.data+=' · ';const sp=document.createElement('span');sp.className='cred';sp.textContent=rest.replace(/[)\]\s]+$/,'').replace(/^(?:photos?|images?|credits?|illustrations?|photographs?|source|courtesy)\s*(?:by|:|\/)\s*/i,'');el.append(sp)};
  b.querySelectorAll('figcaption').forEach(split);
  b.querySelectorAll(':scope>p').forEach(p=>{
   const pv=p.previousElementSibling;if(!pv)return;
@@ -13731,14 +13744,13 @@ function decorate0(){
  const ps=[...b.querySelectorAll(':scope > p')].filter(p=>!p.classList.contains('endmark'));
  const first=ps.find(p=>p.textContent.trim().split(/\s+/).length>=25&&/^[A-Za-z\u00C0-\u024F]/.test(p.textContent.trim()));
  if(first&&ps.indexOf(first)<3){if(makeDropcap(first))first.classList.add('dropcap')}
- const total=b.textContent.length;if(ps.length<8||total<1800)return;
- let best=null,bs=-1;
- ps.slice(Math.floor(ps.length*.25),Math.ceil(ps.length*.7)).forEach(p=>{
-  (p.textContent.match(/[^.!?]+[.!?]/g)||[]).forEach(s=>{s=s.trim();const L=s.length;if(L<60||L>170||/https?:|@|\d{4}/.test(s)||/^["“”']/.test(s))return;const sc=100-Math.abs(L-110)+(/\b(we|our|never|always|first|most|only|why)\b/i.test(s)?15:0);if(sc>bs){bs=sc;best=s}});
+ if(ps.length<8||rdWords(b)<600)return;
+ const win=pqWin(ps);let best=null,bs=-1,bp=null;
+ win.slice(Math.floor(win.length*.25),Math.ceil(win.length*.7)).forEach(p=>{
+  (p.textContent.match(/[^.!?]+[.!?]/g)||[]).forEach(s=>{s=s.trim();const L=s.length;if(L<60||L>170||/https?:|@|\d{4}/.test(s)||/^["“”']/.test(s))return;const sc=100-Math.abs(L-110)+(/\b(we|our|never|always|first|most|only|why)\b/i.test(s)?15:0);if(sc>bs){bs=sc;best=s;bp=p}});
  });
  if(!best)return;
- const at=ps[Math.floor(ps.length*.45)],q=document.createElement('div');q.className='pullq';q.setAttribute('aria-hidden','true');q.textContent=best.replace(/^["“]|["”]$/g,'');
- at.before(q);
+ ps[Math.floor(ps.length*.45)].before(pqEl(best,bp));
 }
 /* a quiet sweep 300 ms after a story has loaded: short newsletter and promo boxes that a site injected into the text fade away, and "Related reading" lists become quiet callout cards. Only the page's own text is looked at (nothing is fetched, nothing behind a paywall is touched) and anything that reads like story text is left alone */
 const SWP_START=/^(sign up|subscribe|join (our|the|thousands)|get (our|the|the best of) (free |daily |weekly )?(newsletter|email)|receive (our|the)|enter your email|never miss|don[’']?t miss out|support (our|independent|quality)|become a (member|subscriber|supporter)|follow us on)\b/i;

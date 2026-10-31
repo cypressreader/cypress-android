@@ -23,16 +23,16 @@ const b=await chromium.launch();
 for(const [vp,w,h] of [['phone',380,820],['fold',884,1060],['desk',1280,900]]){
  const p=await mk(b,{w,h,mob:w<500,seedData:seed(SITES)});const E=p.E;
  await E(()=>{S.sel='all';render();openReader(cur.find(a=>a.link.includes('alpha')))});await W(2500);
- const pc=await E(()=>$('#pc').textContent);ck(vp,'time left shown on pages',w<520?/^\d+\/\d+( · \d+m)?$/.test(pc):/\d+ \/ \d+ · (\d+ min left|last page)/.test(pc),pc);
+ const pc=await E(()=>$('#pc').textContent);ck(vp,'time left shown on pages',/^(\d+ min( left)?|last page|done)$/.test(pc),pc);/* polish-2026-10 R-01: the total on page 1, "N min left" after, "last page" / "done" at the end */
  ck(vp,'drop cap applied',await E(()=>!!$('.cols .body p.dropcap')));
- ck(vp,'pull quote inserted',await E(()=>!!$('.cols .body .pullq')));
+ ck(vp,'pull quote inserted (one per 600 words, none under 600)',await E(()=>{const b=$('.cols .body');return rdWords(b)<600?!b.querySelector('.pullq'):!!b.querySelector('.pullq')}));/* polish-2026-10 T-07 */
  ck(vp,'pull quote not read aloud/highlight text',await E(()=>{ttsCollect();const has=TTS.words.some(w=>w.n.parentElement.closest('.pullq'));ttsStop();return !has&&!bodyText().nodes.some(x=>x.n.parentElement.closest('.pullq'))}));
  ck(vp,'pull quote not saved to cache',await E(()=>!/pullq|dropcap/.test(acGet(curA.link)||'')));
  // switch to vertical via settings click in reader
  await E(()=>{S.scroll='vertical';applyFs(true)});await W(500);
  const v=await E(()=>{const vw=$('#rd .view');return{vert:$('#rd').classList.contains('vert'),sh:vw.scrollHeight,ch:vw.clientHeight,np:R.np,pc:$('#pc').textContent,colw:$('.cols').getBoundingClientRect().width}});
  ck(vp,'vertical mode scrolls',v.vert&&v.sh>v.ch*1.5&&v.np===1,JSON.stringify(v));
- ck(vp,'vertical pc shows % and time',w<520?/^\d+%( · \d+m)?$/.test(v.pc):/^\d+% · (\d+ min left|done)/.test(v.pc),v.pc);
+ ck(vp,'vertical pc shows time',/^(\d+ min( left)?|done)$/.test(v.pc),v.pc);/* polish-2026-10 R-01 */
  ck(vp,'vertical column readable width',v.colw<=760&&v.colw>=w*0.5-40||w<500,String(v.colw));
  await p.screenshot({path:`/tmp/t/v3-${vp}-vert.png`});
  // tap bottom scrolls down
@@ -250,7 +250,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  ck('flex','story on top half',f.flex&&f.shB<=501,JSON.stringify(f));ck('flex','controls on bottom half',f.padT>=523&&f.padH>200&&f.btn===6);
  await p.screenshot({path:'/tmp/t/v3-flex.png'});
  const pg0=await E(()=>R.pg);await p.click('#fpad [data-fp="next"]');await W(1800);ck('flex','pad next turns page',await E(()=>R.pg)===pg0+1);
- ck('flex','pad shows page info',await E(()=>/\d+ \/ \d+/.test($('#fpc').textContent)));
+ ck('flex','pad shows page info',await E(()=>/\d+ min|last page|done/.test($('#fpc').textContent)));/* polish-2026-10 R-01 */
  await p.click('#fpad [data-fp="bigger"]');await W(300);ck('flex','pad text size',await E(()=>S.fs===19));
  await E(()=>{delete window.viewport;dispatchEvent(new Event('resize'))});await W(500);ck('flex','flat again = normal',await E(()=>!$('#rd').classList.contains('flex')));
  await p.click('#cl');ck('flex','no errors',p.errs.length===0,p.errs.join('|'));await p.ctx.close()}
