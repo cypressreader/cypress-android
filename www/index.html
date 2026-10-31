@@ -4041,6 +4041,7 @@ body.exbusy [data-exact]{cursor:progress}
 .fd-deck{position:relative}.fd-deck::before{content:"";position:absolute;left:0;top:-1px;width:36px;height:2px;background:var(--fa,var(--a2,var(--ink)))}
 .fd-deck small{color:color-mix(in srgb,var(--a2,var(--mut)) 72%,var(--ink));font-weight:700;letter-spacing:.14em}
 .fd-deck span{font-size:.88em;line-height:1.5;opacity:.85;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+/* David 2026-10-31: text-only stories on a site page sit in site-color boxes, like All Stories */#grid .fd-decks{gap:14px}#grid .fd-deck{padding:18px 18px 20px;border:0;border-radius:14px;overflow:hidden;isolation:isolate;color:#fff;background:linear-gradient(160deg,color-mix(in srgb,var(--b,var(--logo)) 100%,#fff 10%),color-mix(in srgb,var(--b,var(--logo)) 100%,#000 32%))}#grid .fd-deck::before{content:attr(data-ini);left:auto;right:10px;top:-22px;width:auto;height:auto;background:none;font:500 clamp(110px,34vw,150px)/1 var(--disp,var(--serif));color:#fff;opacity:.16;z-index:-1;pointer-events:none}#grid .fd-deck :is(small,b,span){color:#fff}#grid .fd-deck small{opacity:.8}#grid .fd-deck.read{opacity:.7}
 /* the Developing row matches the 1.174 look: brass label and counts, hairline chips in the headline face, a soft live ping instead of a glow */
 .wtrend .wtr-k{color:color-mix(in srgb,var(--a2,var(--mut)) 72%,var(--ink));letter-spacing:.18em;font-weight:700}
 .wtrend button{font-family:var(--disp,var(--serif));font-size:14px;border-color:color-mix(in srgb,var(--a2,var(--ln)) 45%,var(--ln));background:var(--pn)}
@@ -4805,7 +4806,7 @@ a.fd-bl.cvlead{overflow:visible;contain:layout}
 .fd-bs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;aspect-ratio:4;gap:6px;margin:0 0 12px -44px}
 .fd-bs:empty{display:none}
 .fd-bsq{display:block;margin:0;border-radius:calc(var(--rad)*.6);overflow:hidden;background:color-mix(in srgb,var(--fa,var(--logo)) 18%,var(--bg))}
-.fd-bsc,.fd-bsq:not(:has(img)){display:grid;place-items:center;background:linear-gradient(150deg,color-mix(in srgb,var(--b,var(--logo)) 100%,#fff 12%),color-mix(in srgb,var(--b,var(--logo)) 100%,#000 35%))}.fd-bsq>b{font:500 clamp(28px,6vw,46px)/1 var(--disp,var(--serif));color:#fff;opacity:.85;text-transform:uppercase}
+.fd-bsq:not(:has(img)){display:none}
 .fd-bsq img,.fd-dot img{width:100%;height:100%;object-fit:cover;display:block}
 .fd-bl::before{left:-28px;top:0;bottom:0;width:1.5px;height:auto;border:0;border-radius:0;background:var(--ln)}
 .fd-bl:first-of-type::before{top:20px}.fd-bl:last-child::before{bottom:auto;height:20px}.fd-bl:only-of-type::before{display:none}
@@ -4883,7 +4884,7 @@ html #grid .card.noimg:not(.list-row):not(.nr-row):not(.nr-late):not(.nr-quote):
 html.ptduo :is(#grid,.dcv-art,#rd) img{filter:url(#duo)!important}
 /* cards about to scroll into view are drawn ahead of time (cvAhead), so a quick fling doesn't land on blank cards that then grow and push the page */
 #grid :is(.card,.card.nr-row,.card.nr-late,.wcol).nv{content-visibility:visible}
-#grid .cdot{display:inline-block;flex:none;box-sizing:border-box;padding:0;width:7px;height:7px;border-radius:50%;background:#c62828;margin:0 .4em .12em 0;vertical-align:middle;position:relative;text-decoration:none}html.micro:not(.rmo):not(.lowp) #grid .cdot::after{content:"";position:absolute;inset:0;border-radius:50%;background:#c62828;animation:wping 1.8s ease-out infinite}@media(prefers-reduced-motion:reduce){#grid .cdot::after{animation:none}}
+#grid .cdot{display:inline-block;flex:none;box-sizing:border-box;padding:0;width:7px;height:7px;border-radius:50%;background:#c62828;margin:0 .4em .12em 0;vertical-align:middle;position:relative;text-decoration:none}#grid .src>.cdot{margin:0 0 0 .6em}html.micro:not(.rmo):not(.lowp) #grid .cdot::after{content:"";position:absolute;inset:0;border-radius:50%;background:#c62828;animation:wping 1.8s ease-out infinite}@media(prefers-reduced-motion:reduce){#grid .cdot::after{animation:none}}
 /* Bigger buttons setting: finger-size icon buttons, tabs, switches and hands-free controls */
 html.bigtap .ib{width:46px!important;height:46px!important}html.bigtap #tabs button{min-height:56px}html.bigtap .tg{min-width:64px;min-height:40px}html.bigtap #afx button{min-width:48px;min-height:48px}
 /* ---- list rows, 2026-10-30 (David's picks L1 + L4; L6 timeline dropped: its line and time column looked busy): headline first, a crisp square photo on the right (no save star: Save is in the story menu), a wash of the photo's own color; every fifth row stays a big-photo feature (L2, .lr-feat) ---- */
@@ -6802,7 +6803,7 @@ function wireRender(pre,list,T){
  const an=T?{t:now,visit:false}:wireAnchor(),groups={new:[],hour:[],morning:[],today:[],earlier:[]};
  units.filter(u=>!wset.has(u)).forEach(u=>groups[wireGroup(u.head,an)].push(u));
  if(!FD)for(const q in groups){
-  groups[q]=mixBy(groups[q],u=>u.head.feedId);
+  groups[q]=mixBy(groups[q],u=>u.head.feedId,S.view==='list'?1:2);/* David 2026-10-31: list view never puts two stories from one site next to each other (one site color would make a block) */
   /* a burst that cannot be mixed (one source publishing a stack of stories in the same stretch) folds into one expandable block instead of a wall of the same masthead */
   const g0=groups[q],keep=[];let i=0;
   while(i<g0.length){
@@ -6852,7 +6853,7 @@ if(FD){
  }
  flush();{let guard=wild.length+1;while(wi<wild.length&&guard-->0)addWild();
   /* wild cards that could not be placed without breaking the mix still belong in the list: they close it as a short block of their own */
-  const left=mixBy(wild.slice(wi),u=>u.head.feedId);if(left.length){B.push(`<h3 class="dsh wsec"><span>More from your other sources</span><small>${plu(left.length,'story','stories')}</small></h3>`);let h2='',i2=0;while(i2<left.length){let j2=i2;while(j2<left.length&&left[j2].head.feedId===left[i2].head.feedId)j2++;const run=left.slice(i2,j2);i2=j2;
+  const left=mixBy(wild.slice(wi),u=>u.head.feedId,S.view==='list'?1:2);if(left.length){B.push(`<h3 class="dsh wsec"><span>More from your other sources</span><small>${plu(left.length,'story','stories')}</small></h3>`);let h2='',i2=0;while(i2<left.length){let j2=i2;while(j2<left.length&&left[j2].head.feedId===left[i2].head.feedId)j2++;const run=left.slice(i2,j2);i2=j2;
    for(const u of run.slice(0,run.length>2?1:run.length)){WHY[u.head.link]='From '+fof(u.head).title+', a source you open less often.';h2+=rowHtml(u.head)}
    if(run.length>2){const rest=run.slice(1),id='t'+peHash(rest[0].head.link);rest.forEach(u=>{WHY[u.head.link]='A busy stretch from '+fof(u.head).title+', folded to keep the list mixed.'});flush();B.push(rowsWrap(h2));h2='';B.push(`<div class="wthr"><button type="button" class="wthr-t" data-thr="${id}" aria-expanded="false">${rest.length} more from ${esc(fof(rest[0].head).title)}</button><div class="wthr-b" id="${id}" hidden>${rest.map(u=>rowHtml(u.head)).join('')}</div></div>`)}}
   if(h2)B.push(rowsWrap(h2))}}
@@ -6993,9 +6994,9 @@ let CGQ=0;
 function cardGrow(){
  if(CGQ)return;CGQ=requestAnimationFrame(()=>{CGQ=0;try{
   const cs=[...document.querySelectorAll('#grid .card:is(.nr-hero,.nr-lead,.nr-wide,.nr-tall,.nr-sp,.nr-sm2,.nr-hs)')];if(!cs.length)return;
-  cs.forEach(c=>{c.style.minHeight=''});
+  cs.forEach(c=>c.style.removeProperty('min-height'));
   const rd=cs.map(c=>{const t=c.querySelector(':scope>.tx');return t?[c,t.offsetHeight,c.offsetHeight]:null}).filter(Boolean);
-  rd.forEach(([c,th,ch])=>{if(th>ch+1)c.style.minHeight=th+'px'});
+  rd.forEach(([c,th,ch])=>{if(th>ch+1)c.style.setProperty('min-height',th+'px','important')});/* important: a min-height:0!important tile rule was beating it, so Headlines photo tiles on a phone still cut their text */
  }catch(e){}});
 }
 {const _r5=render;render=function(){_r5.apply(this,arguments);if(!DRES)cardGrow()}}
@@ -8054,7 +8055,7 @@ function endCard(){
 let ENDIO=null;
 /* the last row of a multi-column grid (tablets) never leaves empty columns: its stories widen to fill the row.
    Everything is measured first and the widening is applied in one go at the end: writing between reads made the phone redo the layout once per section (5 s with 600 cards drawn) */
-function fixOrph(){try{const g=document.getElementById('grid');if(!g)return;const fk=innerWidth+'|'+g.className+'|'+g.childElementCount;if(g._fk===fk&&g._f0===g.firstElementChild&&g._f1===g.lastElementChild)return;g._fk=fk;g._f0=g.firstElementChild;g._f1=g.lastElementChild;if(innerWidth<700){g.querySelectorAll('.orow').forEach(w=>w.replaceWith(...w.children));g.querySelectorAll('.orph').forEach(c=>{c.classList.remove('orph');c.style.gridColumn=''});return}const W=[];
+function fixOrph(){try{const g=document.getElementById('grid');if(!g)return;const fk=innerWidth+'|'+g.className+'|'+g.childElementCount;if(g._fk===fk&&g._f0===g.firstElementChild&&g._f1===g.lastElementChild)return;g._fk=fk;g._f0=g.firstElementChild;g._f1=g.lastElementChild;if(innerWidth<700){g.querySelectorAll('.orow').forEach(w=>w.replaceWith(...w.children));g.querySelectorAll('.orph').forEach(c=>{c.classList.remove('orph');c.style.gridColumn=''});/* David 2026-10-31: on a phone a 2-column grid never pairs a photo story with a text one: a story that would sit beside the other kind, or alone, takes the whole row (no measuring, just card order) */const ps=new Set([g]);g.querySelectorAll(':scope>div,.nr-rv,.nr-sm,.nr-mid,.nr-trl,.nr-side,.dq,.nr-ph-rows').forEach(d=>ps.add(d));ps.forEach(P=>{if(!P.querySelector(':scope>.card')||getComputedStyle(P).gridTemplateColumns.split(' ').length!==2)return;let o=null;const fl=()=>{if(o){o.c.classList.add('orph');o.c.style.gridColumn='1/-1'}o=null};for(const c of P.children){if(!c.classList.contains('card')||!c.offsetWidth||/span\s*[2-9]|-1/.test(getComputedStyle(c).gridColumnEnd)){fl();continue}const p=!!c.querySelector(':scope>img');if(o&&o.p!==p){fl();o={c,p}}else o=o?null:{c,p}}fl()});return}const W=[];
  /* each grid remembers where its last (still fillable) row began, so cards added while scrolling are measured on their own, not every card on the page again (187 ms per pass on a Fold with 386 cards) */
  const ps=new Set([g]);g.querySelectorAll(':scope>div,.nr-rv,.nr-sm,.nr-mid,.nr-trl,.nr-side,.dq,.nr-ph-rows').forEach(d=>ps.add(d));ps.forEach(P=>{if(!P.querySelector(':scope>.card'))return;/* only rows of whole cards are evened out: measuring inside a card that is skipped offscreen forced it to be laid out there and then, card by card (the 100-190 ms passes) */const pk=innerWidth+'|'+P.className,all=P.children;if(P._ok===pk&&P._oc===all.length&&P._ol===P.lastElementChild)return;{const keep=P._ok===pk?':not(.omix)':'';if(P.querySelector(':scope>.orow'+keep)){P.querySelectorAll(':scope>.orow'+keep).forEach(w=>w.replaceWith(...w.children));P._oe=null}}/* unchanged since its last pass (_on points at the last row, so it never equals the count: every pass re-measured every section's last row, 2 s per scroll check on the Fold) */let from=P._ok===pk&&P._oe&&P._oe.parentNode===P?[...all].indexOf(P._oe):0;/* a redraw replaces the cards: the remembered row start is gone, so every row is measured again */if(!from)P._sp=0;P._ok=pk;P._ol=P.lastElementChild;if(from>all.length)from=0;for(let i=from;i<all.length;i++)if(all[i].classList.contains('orph')){all[i].classList.remove('orph');all[i].style.gridColumn=''}P._on=all.length;P._oc=all.length;const cs=getComputedStyle(P);if(cs.display!=='grid')return;const n=cs.gridTemplateColumns.split(' ').length;if(n<2)return;/* David 2026-10-31: in a multi-column group, photo stories come first and text-only ones after, so a row never pairs a picture with a bare headline (once per group: stories added later stay where they land) */if(!P._grp){P._grp=1;const k=[...all],pic=k.filter(c=>c.classList.contains('card')&&c.querySelector(':scope>img'));if(pic.length&&pic.length<k.length&&k.every(c=>c.classList.contains('card'))&&k.some((c,i)=>i<pic.length&&!pic.includes(c))){P.append(...pic,...k.filter(c=>!pic.includes(c)));from=0}}const kids=[...all].slice(from).filter(c=>c.offsetWidth);P._oc=kids.length?all.length:-1;if(P._sp||kids.some(c=>/span\s*[2-9]/.test(getComputedStyle(c).gridRowEnd))){P._sp=1;return}const rows=[];kids.forEach(
 c=>{const t=c.getBoundingClientRect().top,r=rows[rows.length-1];if(r&&Math.abs(r.t-t)<10)r.k.push(c);else rows.push({t,k:[c]})});if(rows.length){P._oe=rows[rows.length-1].k[0];P._on=[...all].indexOf(P._oe)};rows.forEach(({k:row})=>{/* David 2026-10-31: photo tiles pair with photo tiles and text with text: a row that mixes them gives its photos a row of their own (shared evenly) and the text stories move down to sit with the other text stories */if(row.length>1&&row.every(c=>c.classList.contains('card'))){const ph=row.filter(c=>c.querySelector(':scope>img'));if(ph.length&&ph.length<row.length){W.push([ph,0,1]);return}}if(row.length>=n||!row.every(c=>c.classList.contains('card')))return;let used=0;for(const c of row){const q=getComputedStyle(c),m=/span\s*(\d+)/.exec(q.gridColumnEnd);if(q.gridColumnStart!=='auto'&&!/span/.test(q.gridColumnStart)||q.gridColumnEnd
@@ -8526,7 +8527,7 @@ function renderToday(tab0,pool0,seg0,ttl0){
  list.forEach(a=>{cur.push(a);if(!WHY[a.link])WHY[a.link]=tab==='latest'?(WHY[a.link]||`One of your newest stories, from ${fof(a).title}.`):tab==='quick'?`A short read (about ${minsOf(a)} min) from ${fof(a).title}.`:`A long read (about ${minsOf(a)} min) from ${fof(a).title}.`});
  if(!list.length&&tab!=='latest'){g.innerHTML=h+`<div class="empty dempty">${esc(empty||'Nothing here yet.')}</div>`;return}
  /* with enough stories the list gets the same varied layout the feeds have: a lead story, pairs, photo strips, pull quotes, short headline rows */
- if(tab!=='latest'){const m0=list.map(a=>a);const mx=mixBy(m0);list.splice(0,list.length,...mx);cur.splice(base,cur.length-base,...mx)}
+ if(tab!=='latest'){const m0=list.map(a=>a);const mx=mixBy(m0,0,S.view==='list'?1:2);list.splice(0,list.length,...mx);cur.splice(base,cur.length-base,...mx)}
  const mode=tab==='latest'?(nrMode()||(VW<NRMIN?'p':'w')):(list.length>=6||tab==='deep')?nrMode():'';
  if(tab!=='latest'){if(!(tab==='deep'&&mode))h+=tabMast(tab,list)} /* every All stories view opens with the same kind of heading, in the list and the tile view alike */
  else if(label&&!(mode&&(label==='Latest'||tab==='latest')))h+=`<div class="dlh">${esc(label)}</div>`; /* the varied layouts already carry their own Latest heading */
@@ -14412,7 +14413,7 @@ function fedMods(us,FD,c){
  const dk=a=>dekOf(a,150);
  const when=a=>ago(a.date)?ago(a.date)+' ago':'';
  const why=(a,t)=>{WHY[a.link]=t||('From '+(FD.title||host(FD.url))+'.')};
- const link=(a,cl,inner,x='')=>{const n=ix(a);return `<a class="cvlead ${cl}${S.read[a.link]?' read':''}" href="${esc(a.link)}" data-i="${n}"${x}>${inner}</a>`};
+ const ini=a=>esc(([...(fof(a).title||host(fof(a).url)).trim().replace(/^the\s+(?=\S)/i,'')][0]||'?').toUpperCase()),link=(a,cl,inner,x='')=>{const n=ix(a);return `<a class="cvlead ${cl}${S.read[a.link]?' read':''}" href="${esc(a.link)}" data-i="${n}"${x}>${inner}</a>`};
  const thread=u=>{const id='t'+peHash(u.head.link);why(u.head,'A developing story: '+(u.more.length+1)+' updates, newest first.');return `<div class="wthr">${c.card(u.head,ix(u.head),'mid cu')}<button type="button" class="wthr-t" data-thr="${id}" aria-expanded="false">${u.more.length} earlier ${u.more.length===1?'update':'updates'} on this story</button><div class="wthr-b" id="${id}" hidden>${u.more.map(a=>c.card(a,ix(a),'nr nr-row nr-s')).join('')}</div></div>`};
  /* the very first story is the feature */
  if(c.first&&(c.lead||us.length)){
@@ -14439,15 +14440,15 @@ function fedMods(us,FD,c){
   }else if(m==='deck'){
    const t=[];while(us.length&&t.length<3&&!us[0].more.length)t.push(us.shift());
    t.forEach(u=>why(u.head));
-   B.push(`<div class="fd-decks" style="--n:${t.length}">${t.map(u=>link(u.head,'fd-deck',`<small>${esc(when(u.head))}${minsOf(u.head)?' · '+minsOf(u.head)+' min':''}</small><b>${esc(u.head.title)}</b>${dk(u.head)?`<span>${esc(dk(u.head))}</span>`:''}`)).join('')}</div>`);
+   B.push(`<div class="fd-decks" style="--n:${t.length}">${t.map(u=>link(u.head,'fd-deck',`<small>${esc(when(u.head))}${minsOf(u.head)?' · '+minsOf(u.head)+' min':''}</small><b>${esc(u.head.title)}</b>${dk(u.head)?`<span>${esc(dk(u.head))}</span>`:''}`,` data-ini="${ini(u.head)}" style="--b:${brand(fof(u.head))}"`)).join('')}</div>`);
   }else{
    /* only stories known to take 3 minutes or less go in brief; none at all and a normal card takes the slot */
    const sh=m=>us.filter(u=>!u.more.length&&minsOf(u.head)&&minsOf(u.head)<=m);let t=sh(3).slice(0,4);if(t.length<4)t=t.concat(sh(5).filter(u=>!t.includes(u))).slice(0,4);/* David 2026-10-31: the four-story In brief reads best: when fewer than four 3-minute stories are left, 4–5 minute ones fill it */
    if(!t.length){const u=us.shift();why(u.head);B.push(c.card(u.head,ix(u.head),'mid cu'));last='mid';continue}
    t.forEach(u=>{us.splice(us.indexOf(u),1);why(u.head)});
-   const nm=a=>fof(a).title||host(fof(a).url),ini=a=>esc(([...nm(a).trim().replace(/^the\s+(?=\S)/i,'')][0]||'?').toUpperCase()),ph=a=>a.img?`<img loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:'';
-   const sq=t.some(u=>u.head.img)?t:[];/* David 2026-10-31: the photo row always has one slot per story: a story without a photo gets a tile in its site's color with the site's initial */
-   B.push(`<div class="fd-brief${t.length<3?' fd-bq':''}"><h4>${t.length<3?'In brief':'<small>In brief</small>The short ones'}</h4>${sq.length?`<div class="fd-bs" aria-hidden="true">${sq.map(u=>u.head.img?link(u.head,'fd-bsq',ph(u.head).replace('this.remove()','this.remove()'),' tabindex="-1"'):link(u.head,'fd-bsq fd-bsc',`<b>${ini(u.head)}</b>`,` tabindex="-1" style="--b:${brand(fof(u.head))}"`)).join('')}</div>`:''}${t.map(u=>{const a=u.head;return link(a,'fd-bl',`<span class="fd-dot" aria-hidden="true">${ini(a)}${ph(a)}</span><time><i>${esc(nm(a))}</i> · ${esc(when(a))} · ${minsOf(a)} min</time><b>${esc(a.title)}</b>`,` style="--sc:${brand(fof(a))}"`)}).join('')}</div>`);
+   const nm=a=>fof(a).title||host(fof(a).url),ph=a=>a.img?`<img loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:'';
+   const sq=t.filter(u=>u.head.img);/* David 2026-10-31: the photo row shows only real photos, stretched to fill the row; a photo that fails to load takes its tile with it */
+   B.push(`<div class="fd-brief${t.length<3?' fd-bq':''}"><h4>${t.length<3?'In brief':'<small>In brief</small>The short ones'}</h4>${sq.length?`<div class="fd-bs" aria-hidden="true">${sq.map(u=>link(u.head,'fd-bsq',ph(u.head).replace('this.remove()','this.parentNode.remove()'),' tabindex="-1"')).join('')}</div>`:''}${t.map(u=>{const a=u.head;return link(a,'fd-bl',`<span class="fd-dot" aria-hidden="true">${ini(a)}${ph(a)}</span><time><i>${esc(nm(a))}</i> · ${esc(when(a))} · ${minsOf(a)} min</time><b>${esc(a.title)}</b>`,` style="--sc:${brand(fof(a))}"`)}).join('')}</div>`);
   }
   last=m;
  }
@@ -15320,7 +15321,7 @@ function edArtSvg(am,seed,wash){
  const tree=(x,h,c)=>`<path d="M${x} 560C${x-15} 560 ${x-17} ${560-h*.6} ${x} ${560-h}C${x+17} ${560-h*.6} ${x+15} 560 ${x} 560z" style="fill:${c}"/>`;
  return `<svg class="dcv-svg" viewBox="0 ${wash?230:0} 400 ${wash?370:600}" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false"><defs><linearGradient id="dcg${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:${sky[0]}"/><stop offset=".55" style="stop-color:${sky[1]}"/><stop offset="1" style="stop-color:${sky[2]}"/></linearGradient></defs><rect width="400" height="600" fill="url(#dcg${g})"/>${orb}<path d="M0 410C70 380 130 392 200 372s150-6 200 20V600H0z" style="fill:${hill[0]}"/><path d="M0 470C80 440 150 462 230 440s120 0 170 18V600H0z" style="fill:${hill[1]}"/>${tree(46+Math.round(r('a')*50),210+Math.round(r('b')*70),hill[2])}${tree(344+Math.round(r('c')*40),260+Math.round(r('d')*80),hill[2])}${tree(380+Math.round(r('e')*16),170+Math.round(r('f')*50),hill[2])}<path d="M0 530C90 506 170 528 260 512s100 4 140 12V600H0z" style="fill:${hill[2]}"/></svg>`;
 }
-dayCoverHtml.ran=0;function dayCoverHtml(lead,pool){covSeen();
+dayCoverHtml.ran=0;function dayCoverHtml(lead,pool){covSeen();/* David 2026-10-31: a cover photo that never arrives (blocked or stalled, e.g. LA Times) falls back to the drawn cover instead of a gray box */clearTimeout(dayCoverHtml.t);dayCoverHtml.t=setTimeout(()=>document.querySelectorAll('.dcv-art>img:not(.ok)').forEach(i=>cvArtFail(i,'timed out')),9000);
  const d=new Date(),start=new Date(d.getFullYear(),0,0),issue=Math.floor((d-start)/864e5),am=edKind()==='m',tr=coverTreat(lead);
  const lines=[],seen=new Set([lead.feedId]),usedCL=new Set();
  for(const a of pool){if(lines.length>=3)break;if(a===lead||seen.has(a.feedId)||S.read[a.link])continue;seen.add(a.feedId);lines.push(a)}
@@ -15330,7 +15331,7 @@ dayCoverHtml.ran=0;function dayCoverHtml(lead,pool){covSeen();
  const sz=isOn('szn')?[['w','Winter'],['sp','Spring'],['su','Summer'],['f','Fall']][Math.floor((d.getMonth()+1)%12/3)]:null;/* seasonal cover: a soft wash in the season's color and its name in the edition line */
  return `<div class="dcov ${am?'dcm':'dce'} dct-${tr}"${sz?` data-sz="${sz[0]}"`:''} style="--b:${brand(fof(lead))}"><div class="dcv-art">${tr==='min'?'':edArtSvg(am)}${lead.img&&tr==='photo'?`<img src="${esc(lead.img)}" alt="" referrerpolicy="no-referrer" onload="cvJudge(this)" onerror="cvArtFail(this,'did not load')">`:''}</div><div class="dcv-sh"></div><span class="dcv-num${dayCoverHtml.ran++?'':' cnt'}" aria-hidden="true" style="--n:${issue}"></span>`
   +`<header class="dcv-top">${sznHtml(1)}<span class="dcv-mast">CYPRESS</span><span class="dcv-motto">${esc(DAY_MOTTO)}</span><span class="dcv-ed">${esc(edition(d))}${sz?' · '+sz[1]:''} · <span style="white-space:nowrap">${esc(d.toLocaleDateString([],{month:'long',day:'numeric'}))}</span></span></header>`
-  +(lead.img&&tr!=='photo'?`<div class="dcv-band" aria-hidden="true"><img src="${esc(lead.img)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></div>`:'')
+  +(lead.img&&tr!=='photo'?`<div class="dcv-band" aria-hidden="true"><img src="${esc(lead.img)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="if(this.naturalWidth<240||this.naturalHeight<160)this.parentNode.remove()" onerror="this.parentNode.remove()"></div>`:'')
   +`<div class="dcv-main"><a class="cvlead dcv-lead${lead.title.length>72?' long':''}" href="${esc(lead.link)}" data-i="0"><small>${esc(fof(lead).title)}</small>${(()=>{/* the headline rises in word by word, the first time the Daily is opened each day */const d=new Date().toDateString(),now=Date.now();if(S.wrd!==d){S.wrd=d;saveSoon();dayCoverHtml.wt=now}const el=(now-(dayCoverHtml.wt||0))/1e3;if(el>2.5)return `<h2>${esc(lead.title)}</h2>`;return `<h2 class="wrv">${lead.title.split(/\s+/).map((w,i)=>`<span><b style="--d:${(i*.09-el).toFixed(2)}s">${esc(w)}</b></span>`).join(' ')}</h2>`})()}</a>${(()=>{let q=null;try{q=nrQuoteText(lead)}catch(e){}const t=q&&q.q&&q.q.length>=40?q.q.replace(/[\s,;:–—-]+$/,'')+(/[.!?…]$/.test(q.q)?'':'…'):'';const dk=t?'':(()=>{try{return ledeOf(lead)||dekOf(lead,190)}catch(e){return ''}})();return t?`<blockquote class="dcv-q"><span aria-hidden="true">“</span>${esc(t)}<cite>${esc(fof(lead).title)}</cite></blockquote>`:dk?`<p class="dcv-q dcv-qd">${esc(dk)}</p>`:''})()}${note?`<p class="dcv-note">${esc(note)}</p>`:''}${li?`<div class="dcv-lines">${li}</div>`:''}</div>`
   +`<div class="dcv-prog"><!--DGP--></div>${WHY[lead.link]?'<button type="button" class="why cvwhy dcv-why" data-why="0" title="Why am I seeing this?" aria-label="Why am I seeing this?">i</button>':''}</div>`;
 }
@@ -17547,7 +17548,7 @@ function cvAhead(more){
 function liveDots(){
  const g=$('#grid'),ws=[...g.querySelectorAll('.wtrend [data-trend]')].map(b=>b.dataset.trend.toLowerCase());if(!ws.length)return;
  const lim=Date.now()-6*36e5,re=new RegExp('\\b('+ws.map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\\b','i');
- g.querySelectorAll('.card[data-i]').forEach(c=>{const a=cur[+c.dataset.i],h=c.querySelector('h3,h2');if(!a||!h||h.querySelector('.cdot')||!(a.date>lim)||!re.test(a.title||''))return;h.insertAdjacentHTML('afterbegin','<i class="cdot" role="img" aria-label="Developing"></i>')});
+ g.querySelectorAll('.card[data-i]').forEach(c=>{const a=cur[+c.dataset.i],h=c.querySelector('h3,h2');if(!a||!h||c.querySelector('.cdot')||!(a.date>lim)||!re.test(a.title||''))return;/* David 2026-10-31: the dot sits at the end of the site line, not jammed against the headline */const s=c.querySelector('.src');s?s.insertAdjacentHTML('beforeend','<i class="cdot" role="img" aria-label="Developing"></i>'):h.insertAdjacentHTML('afterbegin','<i class="cdot" role="img" aria-label="Developing"></i>')});
 }
 {const _r=render;render=function(){_r.apply(this,arguments);try{cvAhead()}catch(e){}try{liveDots()}catch(e){}}}
 /* Surprise me: one random unread story from the last five days; a random site first, so busy sites don't crowd out quiet ones */
