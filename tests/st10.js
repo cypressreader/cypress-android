@@ -8,7 +8,7 @@ for(const [n,w,h] of [['fold',884,1000],['phone',380,820]]){
  // settings accordion
  await E(()=>{document.querySelector('#gear,[data-gear],#set').click()}).catch(()=>{});
  await p.waitForTimeout(400);
- ck(n+' settings has seven pages',await E(()=>document.querySelectorAll('#setgl .sgi').length===7));
+ ck(n+' settings home has six tiles and three rows',await E(()=>document.querySelectorAll('#setgl .sgi').length===9));
  ck(n+' search filters',await E(()=>{const i=document.querySelector('#setq,#sset,#setsrch');if(!i)return false;i.value='voice';i.dispatchEvent(new Event('input',{bubbles:true}));return !document.querySelector('#setsr').hidden&&document.querySelectorAll('#setsr .sgi').length>=1}));
  ck(n+' search clear restores',await E(()=>{const i=document.querySelector('#setq,#sset,#setsrch');i.value='';i.dispatchEvent(new Event('input',{bubbles:true}));return document.querySelector('#setsr').hidden&&!document.querySelector('#setgl').hidden}));
  await E(()=>{document.querySelector('#sheet .x,#sclose,[data-close]')&&document.querySelector('#sheet .x,#sclose,[data-close]').click()});

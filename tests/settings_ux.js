@@ -10,7 +10,7 @@ const P=k=>'<p>'+('Paragraph '+k+' of the story with enough ordinary words to ma
   /* reader: the Aa popover */
   await p.evaluate(async html=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());const f=S.feeds[0];const a={feedId:f.id,title:'Aa story',link:'https://w.test/aa',date:Date.now(),summary:'x',img:'',html};items[f.id]=[a,...(items[f.id]||[])];S.sel='all';S.scroll='vertical';S.fs=18;S.lh=1.68;S.sep=false;render();await openReader(a);await new Promise(r=>setTimeout(r,2200))},P(1)+P(2)+P(3)+P(4));
   const q=(sel)=>p.evaluate(s=>{const e=document.querySelector(s);if(!e)return null;const r=e.getBoundingClientRect(),cs=getComputedStyle(e);return {hidden:e.hidden,w:Math.round(r.width),h:Math.round(r.height),disp:cs.display,exp:e.getAttribute('aria-expanded'),role:e.getAttribute('role'),txt:e.textContent.trim().slice(0,40)}},sel);
-  const openAa=async()=>{await p.click('#mo');await p.waitForTimeout(150);await p.click('[data-act=aa]');};
+  const openAa=async()=>{await p.click('#mo');await p.waitForTimeout(150);await p.click('[data-act=aa]');await p.waitForTimeout(100);await p.evaluate(()=>{const d=document.getElementById('aamored');if(d)d.open=true})/* S-02: spacing and sepia sit under More */;};
   ck(t+'the reader bar has no Aa buttons (Text and appearance is in the ... menu)',!(await q('#raa'))&&!(await q('#raaf')));
   await openAa();await p.waitForTimeout(300);
   let pop=await q('#aapop');ck(t+'tapping Aa opens the popover (a dialog, on screen)',pop&&!pop.hidden&&pop.w>200&&pop.role==='dialog',JSON.stringify(pop));
