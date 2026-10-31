@@ -4944,7 +4944,7 @@ window.addEventListener('error',function(e){
 </script>
 <script>
 const $=s=>document.querySelector(s);
-const plu=(n,s,p)=>n+' '+(n===1?s:p||s+'s')
+/* polish-2026-10 W-04: "No stories", "1 story", "12 stories" */const plu=(n,s,p)=>(n?n:'No')+' '+(n===1?s:p||s+'s')
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 /* only real web addresses may become links; everything else is dropped */
 const webUrl=u=>{try{const x=new URL(String(u||'').trim());return /^https?:$/.test(x.protocol)?x.href:''}catch(e){return''}};
@@ -6547,7 +6547,7 @@ function feedMast(f,unread,list){
 function folderPseudo(fo){
  const fs=S.feeds.filter(x=>x.folder===fo.id&&!paused(x));let h=0;for(const c of fo.name)h=(h*31+c.charCodeAt(0))%360;
  const hex=(H,Sat,L)=>{const a=Sat*Math.min(L,1-L),f=n=>{const k=(n+H/30)%12,c=L-a*Math.max(-1,Math.min(k-3,9-k,1));return Math.round(255*c).toString(16).padStart(2,'0')};return '#'+f(0)+f(8)+f(4)};
- return {id:'f:'+fo.id,title:fo.name,url:'',color:hex(h,.42,.3),isFolder:true,_feeds:fs.map(x=>x.id),desc:fs.length+(fs.length===1?' source':' sources')+(fs.length?': '+fs.slice(0,3).map(x=>x.title||host(x.url)).join(', ')+(fs.length>3?' and '+(fs.length-3)+' more':''):'')};
+ return {id:'f:'+fo.id,title:fo.name,url:'',color:hex(h,.42,.3),isFolder:true,_feeds:fs.map(x=>x.id),desc:plu(fs.length,'source','sources')+(fs.length?': '+fs.slice(0,3).map(x=>x.title||host(x.url)).join(', ')+(fs.length>3?' and '+(fs.length-3)+' more':''):'')};
 }
 function wireReset(){WIREX={};WIRE.order=null;WIRE.known=null;WIRE.anchor=null;WIRE.settled=false;clearTimeout(wireReset.t);wireReset.t=setTimeout(wireSettle,8000)}
 function wireSettle(){WIRE.settled=true;clearTimeout(wireReset.t);if(wireSel()&&!WIRE.order&&!(($('#q')||{}).value||'').trim()){/* far down the page the late re-rank would reshuffle what you are reading: leave it for the next natural redraw */const m=$('main');if(m&&m.scrollTop>500)return;try{quietRender()}catch(e){}}}
@@ -6712,7 +6712,7 @@ if(FD){
  }
  for(const key of ['new','hour','morning','today','earlier']){
   const us=groups[key];if(!us.length)continue;
-  flush();if(dens==='col'&&B.length>2)B.push(dividerHtml(B.length));SH={i:B.length,n:us.length};B.push(`<h3 class="dsh wsec${key==='new'?' wnew':''}${WFOLD.has(key)?' wfold':''}" data-wk="${key}"${secTint(us)}><span>${esc(wireLabel(key,an))}</span><small>${us.length} ${us.length===1?'story':'stories'}</small>${(SECR[key]=us.flatMap(u=>[u.head.link].concat((u.more||[]).map(m=>m.link))).filter(l=>!S.read[l])).length?`<button type="button" class="dsr" data-secread="${key}" aria-label="Mark ${esc(wireLabel(key,an))} as read">Mark read</button>`:''}<button type="button" class="wfb" data-wfold="${key}" aria-expanded="${!WFOLD.has(key)}" aria-label="${WFOLD.has(key)?'Show':'Fold'} ${esc(wireLabel(key,an))}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></h3>`+(FD?`<p class="wsec-v">${esc(pe('fedgrp',{key,gn:us.length,feed:FD.title||host(FD.url),newest:ago(Math.max(...us.map(u=>u.head.date)))},'fg'+FD.id+key))}</p>`:''));
+  flush();if(dens==='col'&&B.length>2)B.push(dividerHtml(B.length));SH={i:B.length,n:us.length};B.push(`<h3 class="dsh wsec${key==='new'?' wnew':''}${WFOLD.has(key)?' wfold':''}" data-wk="${key}"${secTint(us)}><span>${esc(wireLabel(key,an))}</span><small>${plu(us.length,'story','stories')}</small>${(SECR[key]=us.flatMap(u=>[u.head.link].concat((u.more||[]).map(m=>m.link))).filter(l=>!S.read[l])).length?`<button type="button" class="dsr" data-secread="${key}" aria-label="Mark ${esc(wireLabel(key,an))} as read">Mark read</button>`:''}<button type="button" class="wfb" data-wfold="${key}" aria-expanded="${!WFOLD.has(key)}" aria-label="${WFOLD.has(key)?'Show':'Fold'} ${esc(wireLabel(key,an))}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></h3>`+(FD?`<p class="wsec-v">${esc(pe('fedgrp',{key,gn:us.length,feed:FD.title||host(FD.url),newest:ago(Math.max(...us.map(u=>u.head.date)))},'fg'+FD.id+key))}</p>`:''));
   if(FD&&dens!=='col'){fedMods(us,FD,{B,ix,card});continue}
   let j=0;
   vf.length=0;
@@ -6737,7 +6737,7 @@ if(FD){
  }
  flush();{let guard=wild.length+1;while(wi<wild.length&&guard-->0)addWild();
   /* wild cards that could not be placed without breaking the mix still belong in the list: they close it as a short block of their own */
-  const left=mixBy(wild.slice(wi),u=>u.head.feedId);if(left.length){B.push(`<h3 class="dsh wsec"><span>More from your other sources</span><small>${left.length} ${left.length===1?'story':'stories'}</small></h3>`);let h2='',i2=0;while(i2<left.length){let j2=i2;while(j2<left.length&&left[j2].head.feedId===left[i2].head.feedId)j2++;const run=left.slice(i2,j2);i2=j2;
+  const left=mixBy(wild.slice(wi),u=>u.head.feedId);if(left.length){B.push(`<h3 class="dsh wsec"><span>More from your other sources</span><small>${plu(left.length,'story','stories')}</small></h3>`);let h2='',i2=0;while(i2<left.length){let j2=i2;while(j2<left.length&&left[j2].head.feedId===left[i2].head.feedId)j2++;const run=left.slice(i2,j2);i2=j2;
    for(const u of run.slice(0,run.length>2?1:run.length)){WHY[u.head.link]='From '+fof(u.head).title+', a source you open less often.';h2+=rowHtml(u.head)}
    if(run.length>2){const rest=run.slice(1),id='t'+peHash(rest[0].head.link);rest.forEach(u=>{WHY[u.head.link]='A busy stretch from '+fof(u.head).title+', folded to keep the list mixed.'});flush();B.push(rowsWrap(h2));h2='';B.push(`<div class="wthr"><button type="button" class="wthr-t" data-thr="${id}" aria-expanded="false">${rest.length} more from ${esc(fof(rest[0].head).title)}</button><div class="wthr-b" id="${id}" hidden>${rest.map(u=>rowHtml(u.head)).join('')}</div></div>`)}}
   if(h2)B.push(rowsWrap(h2))}}
@@ -7397,7 +7397,7 @@ function editionDiff0(pool){
 }
 function diffHtml(items,C){
  const rows=items.map(({a,tag})=>{if(cur.indexOf(a)<0)cur.push(a);WHY[a.link]=tag+'. From this evening’s comparison with the morning edition.';return `<div class="dd-i"><span class="dd-t">${esc(tag)}</span>${C(a,'nr nr-row nr-s')}</div>`}).join('');
- return `<section class="dsec2 ddiff"><h3 class="dsh" id="dsec-since"><span>Since this morning</span><small>${items.length} ${items.length===1?'story':'stories'}</small></h3>${rows}</section>`;
+ return `<section class="dsec2 ddiff"><h3 class="dsh" id="dsec-since"><span>Since this morning</span><small>${plu(items.length,'story','stories')}</small></h3>${rows}</section>`;
 }
 /* 16: why it matters, from counts only */
 function whyMatters(a){
@@ -7521,7 +7521,7 @@ let DGP_OPEN=false;
 function dgProgHtml(){
  const{n,t}=dgCount();if(t<3)return'';const done=n>=t,g=goalOf(),m=Math.round(readToday()*10)/10;
  const left=t-n,mins=DGL.filter(l=>!S.read[l]).reduce((x,l)=>{const a=findStory(l);return x+(a?(readMin(a)||3):0)},0);
- const sum=done?'Edition finished':left+(left===1?' story':' stories')+' left'+(mins?' • ~'+mins+'m':'');
+ const sum=done?'Edition finished':plu(left,'story','stories')+' left'+(mins?' • ~'+mins+'m':'');
  const tail=g?` · ${Math.floor(m)} min of your ${g}-min goal`:'';
  const play=(typeof fiveBtns==='function'&&fiveBtns())?`<button type="button" class="dplay" data-play aria-label="Play the Daily"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg><span>Play Daily</span></button>`:'';
  return `<div class="dgp qp${done?' done':''}${DGP_OPEN?' open':''}" data-dgp><div class="qp-bar"><button type="button" class="qp-l" data-qpt aria-expanded="${DGP_OPEN}" aria-label="${esc(sum)}. Show more"><span class="rgw">${ringSvg(n,t,22,3)}</span><span class="qp-s" role="status">${esc(sum)}</span><i aria-hidden="true">⌄</i></button>${play}</div><div class="dgd"${DGP_OPEN?'':' hidden'}><p class="dgq">${esc(pe('progress',{},(done?'done':n?'mid':'start')))}</p><p>${done?'You have read everything in this edition.':left+' '+(left===1?'story':'stories')+' left in this edition'}${esc(tail)}</p>${(typeof fiveBtns==='function'&&fiveBtns())?'<div class="dgb"><button type="button" data-five>⏱ I have 5 minutes</button></div>':''}${goalHtml()}</div></div>`;
@@ -7558,7 +7558,7 @@ function listFlow(list,base,dated,latest,wire,ixOf0){
   for(const key of ['new','hour','morning','today','earlier']){
    const us=G[key];if(!us.length)continue;
    const un=SECR[key]=us.map(a=>a.link).filter(l=>!S.read[l]);
-   out.push(`<h3 class="dsh wsec${WFOLD.has(key)?' wfold':''}" data-wk="${key}"><span>${esc(wireLabel(key,an))}</span><small>${us.length} ${us.length===1?'story':'stories'}</small>${un.length?`<button type="button" class="dsr" data-secread="${key}" aria-label="Mark ${esc(wireLabel(key,an))} as read">Mark read</button>`:''}<button type="button" class="wfb" data-wfold="${key}" aria-expanded="${!WFOLD.has(key)}" aria-label="${WFOLD.has(key)?'Show':'Fold'} ${esc(wireLabel(key,an))}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></h3>`);
+   out.push(`<h3 class="dsh wsec${WFOLD.has(key)?' wfold':''}" data-wk="${key}"><span>${esc(wireLabel(key,an))}</span><small>${plu(us.length,'story','stories')}</small>${un.length?`<button type="button" class="dsr" data-secread="${key}" aria-label="Mark ${esc(wireLabel(key,an))} as read">Mark read</button>`:''}<button type="button" class="wfb" data-wfold="${key}" aria-expanded="${!WFOLD.has(key)}" aria-label="${WFOLD.has(key)?'Show':'Fold'} ${esc(wireLabel(key,an))}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></h3>`);
    out.push(...listFlow(us,0,false,false,false,a=>at.get(a)));
   }
   return out;
@@ -7638,7 +7638,7 @@ function nrStatHtml(l){
 }
 let NRLAB='Latest';
 /* The Daily's "Next up" borrows the look of "Since this morning" (big serif heading, count on the right, rows with a thumbnail); every other label keeps the small caps heading */
-const nrLH=n=>NRLAB==='Next up'?`<h3 class="dsh nr-nu"><span>${NRLAB}</span><small>${n} ${n===1?'story':'stories'}</small></h3>`:`<h4>${NRLAB}</h4>`;
+const nrLH=n=>NRLAB==='Next up'?`<h3 class="dsh nr-nu"><span>${NRLAB}</span><small>${plu(n,'story','stories')}</small></h3>`:`<h4>${NRLAB}</h4>`;
 const nrLC=()=>NRLAB==='Next up'?'nr nr-row nr-s':'nr-late';
 /* the first heading in the varied layouts; The Daily calls it something else */
 function nrBlocks(l,base,o){
@@ -7910,11 +7910,11 @@ const sealEd=()=>edKind()==='m'?'Morning':'Evening';
 function endCard(){
  if(isOn('seal')){const st=(S.st&&S.st.d&&S.st.d[dayKey()])||{m:0,f:0},un=uc(S.feeds),nx=nextEdition();
   const msg=un===0?'You’re all caught up.':`${un} ${un===1?'story is':'stories are'} still waiting in All stories.`;
-  const did=(st.m>=1||st.f>0)?` Today you spent ${fmtMin(st.m)} reading and finished ${st.f} ${st.f===1?'story':'stories'}.`:'';
+  const did=(st.m>=1||st.f>0)?` Today you spent ${fmtMin(st.m)} reading and finished ${plu(st.f,'story','stories')}.`:'';
   return sealHtml({title:`That’s the ${sealEd()} Edition.`,sub:msg+did,note:`${nx.name} arrives at ${nx.at}.`,btn:un?['data-endall','See all stories']:null});}
  const k=LOGOS[S.logo]?S.logo:'tree',st=(S.st&&S.st.d&&S.st.d[dayKey()])||{m:0,f:0},un=uc(S.feeds);
  const msg=un===0?'You’re all caught up.':`${un} ${un===1?'story is':'stories are'} still waiting in All stories.`;
- const did=(st.m>=1||st.f>0)?` Today you spent ${fmtMin(st.m)} reading and finished ${st.f} ${st.f===1?'story':'stories'}.`:'';
+ const did=(st.m>=1||st.f>0)?` Today you spent ${fmtMin(st.m)} reading and finished ${plu(st.f,'story','stories')}.`:'';
  return `<section class="endc"><span class="lgm endl" data-fill style="--p:0%;--lm:${mkLm(k)}"></span><h3>That’s today’s issue</h3><p>${esc(msg+did)}</p><small>A new edition is on its way tomorrow.</small>${un?'<button type="button" class="tx2" data-endall>See all stories</button>':''}</section>`;
 }
 let ENDIO=null;
@@ -8089,7 +8089,7 @@ function ritualHtml(kind,a,n){
 function fontName(v,fb){const r=getComputedStyle(document.documentElement).getPropertyValue(v)||'';const m=r.split(',')[0].replace(/["']/g,'').trim();return m&&!/^(ui-|system-|-apple)/i.test(m)?m:fb}
 function colophonHtml(count){
  const am=edKind()==='m',d=new Date(),issue=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
- return `<footer class="colo"><b>Colophon</b><p>The ${am?'Morning':'Evening'} Edition, No. ${issue}. ${count} ${count===1?'story':'stories'}, chosen on this device from the sites you follow. Set in ${esc(fontName('--serif','Georgia'))} and ${esc(fontName('--sans','the system sans'))}. Nothing here was sent anywhere.</p></footer>`;
+ return `<footer class="colo"><b>Colophon</b><p>The ${am?'Morning':'Evening'} Edition, No. ${issue}. ${plu(count,'story','stories')}, chosen on this device from the sites you follow. Set in ${esc(fontName('--serif','Georgia'))} and ${esc(fontName('--sans','the system sans'))}. Nothing here was sent anywhere.</p></footer>`;
 }
 /* print furniture: folio running heads with the edition number, illustrated section dividers, a dek with a drop cap under each section head */
 /* Section header art: four slim cypress trees with a sun (morning edition) or a crescent moon (evening edition) between them */
@@ -8143,7 +8143,7 @@ function backCoverHtml(count,trend){
  return `<section class="dback ${am?'dbm':'dbe'}"><div class="dbk-art">${edArtSvg(!am)}</div><div class="dbk-sh"></div>`
   +`<div class="dbk-in">${isOn('seal')?`<div class="dbk-seal edseal">${sealRing()}</div><h3 class="dbk-end${finDone()?'':' sl'}">${finDone()?'Fin.':`That’s the ${am?'Morning':'Evening'} Edition.`}</h3>`:`<span class="dbk-mast">CYPRESS</span><h3 class="dbk-end">${finDone()?'Fin.':'That’s the issue.'}</h3>`}<p class="dbk-fin">${esc(pe('finish',{},'end'))}</p><button type="button" class="tx2" data-endall>Explore Full Feed</button>`
   +`<div class="dbk-next"><p class="dbk-k">Next issue</p><p class="dbk-ed">${nx.name}</p><p class="dbk-at">Arrives at ${nx.at}, in ${nx.left}.</p><p class="dbk-t">${tease}</p></div>`
-  +`<p class="dbk-colo"><b>Colophon</b>The ${am?'Morning':'Evening'} Edition, No. ${issue}. ${count} ${count===1?'story':'stories'}, chosen on this device from the sites you follow. Set in Instrument Serif and ${esc(fontName('--sans','the system sans'))}. Nothing here was sent anywhere.</p></div></section>`;
+  +`<p class="dbk-colo"><b>Colophon</b>The ${am?'Morning':'Evening'} Edition, No. ${issue}. ${plu(count,'story','stories')}, chosen on this device from the sites you follow. Set in Instrument Serif and ${esc(fontName('--sans','the system sans'))}. Nothing here was sent anywhere.</p></div></section>`;
 }
 /* if an edition truly cannot be set, say so in the magazine's own voice; never fall back to the old plain list */
 function dayErrorHtml(){
@@ -8323,7 +8323,7 @@ function issueSnap(items){
 }
 function backIssuesHtml(){
  const k=edDay()+edKind(),L=(S.issues||[]).filter(x=>x.k!==k);if(!L.length)return'';
- return `<section class="bkiss" aria-label="Back issues"><h3>Back issues</h3><p>The last 30 days of editions, kept on this device.</p>`+L.map(x=>`<details><summary>${esc(new Date(x.d+'T12:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}))} · ${x.ed==='m'?'Morning':'Evening'} Edition · ${x.items.length} ${x.items.length===1?'story':'stories'}</summary><ul>`+x.items.map((a,j)=>`<li><button type="button" data-bi="${esc(x.k)}|${j}">${esc(a.title||a.link)}</button></li>`).join('')+`</ul></details>`).join('')+`</section>`;
+ return `<section class="bkiss" aria-label="Back issues"><h3>Back issues</h3><p>The last 30 days of editions, kept on this device.</p>`+L.map(x=>`<details><summary>${esc(new Date(x.d+'T12:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}))} · ${x.ed==='m'?'Morning':'Evening'} Edition · ${plu(x.items.length,'story','stories')}</summary><ul>`+x.items.map((a,j)=>`<li><button type="button" data-bi="${esc(x.k)}|${j}">${esc(a.title||a.link)}</button></li>`).join('')+`</ul></details>`).join('')+`</section>`;
 }
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-bi]');if(!b)return;e.preventDefault();const [k,j]=b.dataset.bi.split('|'),x=(S.issues||[]).find(y=>y.k===k),a=x&&x.items[+j];if(a){cur=[a];openReader(a)}},true);
 function dayEndCard(){
@@ -10385,7 +10385,7 @@ function setYou(){
  const ed=(()=>{const h=new Date().getHours();return h>=5&&h<17?'Morning':'Evening'})(),nm=Object.fromEntries(THEME_NAMES),th=(S.theme||'auto'),tn=nm[th]||'Light & Dark';
  const nf=(S.feeds||[]).length,wk=(S.hist||[]).filter(h=>h&&h.t>Date.now()-7*864e5).length;
  n.textContent=ed+' Edition · '+tn;
- $('#sys').textContent=nf+(nf===1?' site':' sites')+' · '+wk+(wk===1?' story':' stories')+' read this week'}
+ $('#sys').textContent=plu(nf,'site','sites')+' · '+plu(wk,'story','stories')+' read this week'}
 function setBuild(){
  if(SET_BUILT)return;SET_BUILT=true;
  const lg=document.createElement('div');lg.id='setlegacy';lg.hidden=true;
@@ -11239,7 +11239,7 @@ const PACKS=[
 ];
 const catSorted=()=>CAT.map((c,i)=>[c,i]).sort((a,b)=>a[0].n.localeCompare(b[0].n,undefined,{sensitivity:'base'}));
 function packEntries(pk){const all=CAT.flatMap(c=>c.f.map(x=>({c:c.n,n:x[0],u:x[1],v:x[3]?1:0})));return pk.f.map(n=>all.find(x=>x.n===n)).filter(Boolean)}
-function packsHtml(){return PACKS.map((pk,i)=>{const es=packEntries(pk),fresh=es.filter(x=>!inFeeds(x.u)&&!pkFailed(x.u));return `<div class="pf"><b style="background:var(--ink)"></b><span>${esc(pk.n)}<small>${esc(pk.d)} · ${es.length} ${es.length===1?'site':'sites'}</small></span>${fresh.length?`<button type="button" data-pack="${i}">Add ${fresh.length}</button>`:'<em>Added</em>'}</div>`}).join('')}
+function packsHtml(){return PACKS.map((pk,i)=>{const es=packEntries(pk),fresh=es.filter(x=>!inFeeds(x.u)&&!pkFailed(x.u));return `<div class="pf"><b style="background:var(--ink)"></b><span>${esc(pk.n)}<small>${esc(pk.d)} · ${plu(es.length,'site','sites')}</small></span>${fresh.length?`<button type="button" data-pack="${i}">Add ${fresh.length}</button>`:'<em>Added</em>'}</div>`}).join('')}
 const pkFailed=u=>{const t=(S.pkfail||{})[u];return !!t&&Date.now()-t<6048e5};
 async function addPack(i,btn){
  const pk=PACKS[i],es=packEntries(pk).filter(x=>!inFeeds(x.u)&&!pkFailed(x.u));if(!es.length)return;
@@ -11541,7 +11541,7 @@ function renderHist(){
 function renderNotes(){
  $('#ttl').textContent='Highlights';cur=[];
  if(!S.hl.length){$('#grid').innerHTML=emp('No highlights yet','Select text in a story and tap Highlight. Your highlights are kept here.',EA('td'));return}
- $('#grid').innerHTML=`<div class="hlh"><p class="hint">${S.hl.length} ${S.hl.length===1?'highlight':'highlights'}</p><button class="tx2" data-hexport="1">Export as Markdown</button></div>`+S.hl.map((h,i)=>`<figure class="hlc" style="--b:${esc({y:'#e6b800',g:'#2fa866',r:'#e0567a'}[h.c]||h.art.fc||'#7c5cff')}"><span class="hl-q" aria-hidden="true">“</span><blockquote>${esc(h.q)}</blockquote>${h.note?`<p class="hn">${esc(h.note)}</p>`:''}<figcaption><button data-hopen="${i}">${esc(h.art.title)}</button><span>${esc(h.art.ft||'')} · ${esc(new Date(h.t).toLocaleDateString())}</span></figcaption><div class="hm"><button data-hshare="${i}">Share as image</button><button data-hdel="${i}" aria-label="Remove highlight: ${esc(String(h.q||'').slice(0,40))}">Remove</button></div></figure>`).join('');
+ $('#grid').innerHTML=`<div class="hlh"><p class="hint">${plu(S.hl.length,'highlight','highlights')}</p><button class="tx2" data-hexport="1">Export as Markdown</button></div>`+S.hl.map((h,i)=>`<figure class="hlc" style="--b:${esc({y:'#e6b800',g:'#2fa866',r:'#e0567a'}[h.c]||h.art.fc||'#7c5cff')}"><span class="hl-q" aria-hidden="true">“</span><blockquote>${esc(h.q)}</blockquote>${h.note?`<p class="hn">${esc(h.note)}</p>`:''}<figcaption><button data-hopen="${i}">${esc(h.art.title)}</button><span>${esc(h.art.ft||'')} · ${esc(new Date(h.t).toLocaleDateString())}</span></figcaption><div class="hm"><button data-hshare="${i}">Share as image</button><button data-hdel="${i}" aria-label="Remove highlight: ${esc(String(h.q||'').slice(0,40))}">Remove</button></div></figure>`).join('');
 }
 function hlText(){
  const by={};S.hl.forEach(h=>{(by[h.art.link]=by[h.art.link]||{art:h.art,l:[]}).l.push(h)});
@@ -13159,7 +13159,7 @@ function renderBrief0(){
  const row=(a,i)=>{const f=fof(a),m=readMin(a),th=a.img?`<img class="bi-th" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('bi-pat');this.remove()">`:'';
   const lead=i===0,pc=patCls(f);
   return `<div class="bi-w"><a class="bi ${lead?'brf-lead':'brf-row'} ${S.read[a.link]?'read':''}" href="${esc(a.link)}" data-i="${i}" style="--b:${brand(f)}">${lead?`${th?`<span class="bi-art ${pc}">${th}</span>`:`<span class="bi-art bi-pat ${pc}" aria-hidden="true"></span>`}<span class="bi-t"><small class="bi-k">The lead</small><small>${esc(f.title)}${m?' · '+m+' min':''}</small><b>${esc(a.title)}</b></span>`:`<span class="bi-t"><small>${esc(f.title)}${m?' · '+m+' min':''}</small><b>${esc(a.title)}</b></span>${th?`<span class="bi-th-w ${pc}">${th}</span>`:`<span class="bi-th-w bi-pat ${pc}" aria-hidden="true"></span>`}`}${S.read[a.link]?`<i class="bok">${svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>')}</i>`:''}</a><button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button></div>`};
- $('#grid').innerHTML=`<header class="bhead brf"><small class="brf-d">${esc(dl)}</small><h2>The Briefing</h2><p>${B.five?'A 5-minute read · ':''}${list.length} ${list.length===1?'story':'stories'} · about ${mins} min${done?` · ${left} min left`:''}</p><div class="bbar"><span style="width:${Math.round(done/list.length*100)}%"></span></div><div class="bbtns"><button class="tx2" data-blisten>${svg(SPK)} Listen</button><button class="go" data-bstart>${done?'Continue':'Start reading'}</button></div></header>`+briefNumbers(list)+briefDigest(list)+list.map(row).join('')+briefQuote(list)+briefEnd(list,mins);
+ $('#grid').innerHTML=`<header class="bhead brf"><small class="brf-d">${esc(dl)}</small><h2>The Briefing</h2><p>${B.five?'A 5-minute read · ':''}${plu(list.length,'story','stories')} · about ${mins} min${done?` · ${left} min left`:''}</p><div class="bbar"><span style="width:${Math.round(done/list.length*100)}%"></span></div><div class="bbtns"><button class="tx2" data-blisten>${svg(SPK)} Listen</button><button class="go" data-bstart>${done?'Continue':'Start reading'}</button></div></header>`+briefNumbers(list)+briefDigest(list)+list.map(row).join('')+briefQuote(list)+briefEnd(list,mins);
 }
 function fiveMin(){
  const pool=topOf(S.feeds,60,new Set()).filter(a=>!S.read[a.link]);
@@ -13268,7 +13268,7 @@ function almOpen(){
  const y=almSeason()?almYear():new Date().getFullYear(),D=almData(y);
  const body=(!D.f&&D.m<1)?`<p class="xsl">Read a few stories and your year will start to fill in here.</p>`:
   `<p class="xsl">${y===new Date().getFullYear()&&!almSeason()?'Your year so far. ':''}Built on this phone from your reading stats. Nothing is sent anywhere.</p><div class="alm-t"><div><b>${D.f}</b><small>${D.f===1?'story':'stories'} finished</small></div><div><b>${esc(fmtMin(D.m))}</b><small>read</small></div></div>`
-  +(D.src.length?`<h3 class="alm-h">Top sites</h3><ol class="alm-o">${D.src.map(([n,v])=>`<li><b>${esc(n)}</b> · ${v} ${v===1?'story':'stories'}</li>`).join('')}</ol>`:'')
+  +(D.src.length?`<h3 class="alm-h">Top sites</h3><ol class="alm-o">${D.src.map(([n,v])=>`<li><b>${esc(n)}</b> · ${plu(v,'story','stories')}</li>`).join('')}</ol>`:'')
   +(D.lg?`<h3 class="alm-h">Longest read</h3><p class="xsl">${MIN(D.lg.m)}: ${esc(D.lg.t)}</p>`:'')
   +(D.q?`<h3 class="alm-h">Most highlighted</h3><blockquote class="alm-q">“${esc(D.q.q)}”</blockquote><p class="xsl">${esc(D.q.t)}</p>`:'')
   +`<button type="button" class="go alm-sh" data-almshare>Share as image</button>`;
@@ -13438,7 +13438,7 @@ function obRender(){
  else if(s===1){
   const eds=[1,0,2,3].map(i=>[i,PACKS[i]]).filter(x=>x[1]);
   const lastT=OB.topics.has(OB.last)?OB.last:[...OB.topics].pop()||'',smp=OB_SAMPLE[lastT]||(lastT?OB_SAMPLE._:null);
-  body=`<h2>Choose your first edition</h2><p class="hint">An edition is a ready-made set of sites. Tap one to start. You can change every site afterwards.</p><div class="obed">${eds.map(([i,pk])=>{const n=packEntries(pk).length;return `<button type="button" data-obed="${i}"><b>${esc(pk.n)}</b><span>${esc(pk.d)}</span><small>${n} ${n===1?'site':'sites'}</small></button>`}).join('')}</div><h3 class="obh3">Or build your own</h3><p class="hint">Pick three topics you like <b class="obcnt" aria-live="polite">${OB.topics.size>=3?'· '+OB.topics.size+' picked':'· '+OB.topics.size+' of 3'}</b>.${OB.rerun?' You’ll choose the exact sites next.':' Start reading right away, or choose the exact sites next.'}</p><div class="obt">${CAT.map(c=>`<button type="button" data-obtop="${esc(c.n)}" class="${OB.topics.has(c.n)?'on':''}" aria-pressed="${OB.topics.has(c.n)}">${esc(c.n)}</button>`).join('')}</div><div class="obfp" role="region" aria-label="Preview of your front page" aria-live="polite"><div class="obfph"><span>Your front page</span><em>Example headlines</em></div>${smp?`<small>${esc(lastT)}</small><h4>${esc(smp[0])}</h4><ul><li>${esc(smp[1])}</li><li>${esc(smp[2])}</li></ul>`:'<p class="hint">Pick a topic to see what your front page could look like.</p>'}</div>${OB.rerun?'':`<div class="obqk"><button type="button" class="tx2" data-obquick ${OB.topics.size?'':'disabled'}>Start reading</button><span class="hint">Uses 3 popular sites for each topic. Change them any time in Settings.</span></div>`}`}
+  body=`<h2>Choose your first edition</h2><p class="hint">An edition is a ready-made set of sites. Tap one to start. You can change every site afterwards.</p><div class="obed">${eds.map(([i,pk])=>{const n=packEntries(pk).length;return `<button type="button" data-obed="${i}"><b>${esc(pk.n)}</b><span>${esc(pk.d)}</span><small>${plu(n,'site','sites')}</small></button>`}).join('')}</div><h3 class="obh3">Or build your own</h3><p class="hint">Pick three topics you like <b class="obcnt" aria-live="polite">${OB.topics.size>=3?'· '+OB.topics.size+' picked':'· '+OB.topics.size+' of 3'}</b>.${OB.rerun?' You’ll choose the exact sites next.':' Start reading right away, or choose the exact sites next.'}</p><div class="obt">${CAT.map(c=>`<button type="button" data-obtop="${esc(c.n)}" class="${OB.topics.has(c.n)?'on':''}" aria-pressed="${OB.topics.has(c.n)}">${esc(c.n)}</button>`).join('')}</div><div class="obfp" role="region" aria-label="Preview of your front page" aria-live="polite"><div class="obfph"><span>Your front page</span><em>Example headlines</em></div>${smp?`<small>${esc(lastT)}</small><h4>${esc(smp[0])}</h4><ul><li>${esc(smp[1])}</li><li>${esc(smp[2])}</li></ul>`:'<p class="hint">Pick a topic to see what your front page could look like.</p>'}</div>${OB.rerun?'':`<div class="obqk"><button type="button" class="tx2" data-obquick ${OB.topics.size?'':'disabled'}>Start reading</button><span class="hint">Uses 3 popular sites for each topic. Change them any time in Settings.</span></div>`}`}
  else if(s===2){
   if(!OB.rerun&&!OB.seeded){OB.seeded=1;CAT.filter(c=>OB.topics.has(c.n)).forEach(c=>c.f.slice(0,3).forEach(x=>OB.picks.add(x[1])))}
   const cats=CAT.filter(c=>OB.topics.has(c.n));
@@ -14045,7 +14045,7 @@ function listenShelf(){
  const l=S.saved.filter(a=>!S.read[a.link]);if(!l.length){toast('Nothing unread on your shelf');return}
  S.lq=l.slice(1).map(a=>a.link);R.briefAudio=false;save();
  const mins=l.reduce((n,a)=>n+(readMin(a)||3),0);
- openReader(l[0]).then(()=>{if(!$('#rd').classList.contains('on'))return;const why=ttsClean();if(why){toast('Skipped “'+l[0].title.slice(0,40)+'”: '+why);S.lq=S.lq.filter(k=>k!==l[0].link);ttsEnd(true);return}mediaOn();mediaNative();speak(`Here’s your shelf. ${l.length} ${l.length===1?'story':'stories'}, about ${MIN(mins)}. First, from ${fof(l[0]).title}.`,()=>{if(curA===l[0]&&!TTS.on)ttsToggle()})});
+ openReader(l[0]).then(()=>{if(!$('#rd').classList.contains('on'))return;const why=ttsClean();if(why){toast('Skipped “'+l[0].title.slice(0,40)+'”: '+why);S.lq=S.lq.filter(k=>k!==l[0].link);ttsEnd(true);return}mediaOn();mediaNative();speak(`Here’s your shelf. ${plu(l.length,'story','stories')}, about ${MIN(mins)}. First, from ${fof(l[0]).title}.`,()=>{if(curA===l[0]&&!TTS.on)ttsToggle()})});
 }
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-shelfplay]');if(!b)return;e.preventDefault();e.stopPropagation();listenShelf()},true);
 
@@ -14858,8 +14858,8 @@ function deepBlocks(list){
  const B=[],mins=list.reduce((n,a)=>n+(minsOf(a)||0),0),hrs=mins>=90?(Math.round(mins/6)/10)+' hours':MIN(mins);
  B.push(`<header class="sun-m deep-m"><small>Deep reads</small><h2>${list.length===1?'One long read':list.length+' long reads'}</h2><p class="sun-s">${esc(list.length>=2?'About '+hrs+' of reading, from '+new Set(list.map(a=>a.feedId)).size+(new Set(list.map(a=>a.feedId)).size===1?' source':' sources')+'. Take your time.':'For when you have time to settle in.')}</p></header>`);
  list.forEach((a,i)=>B.push(longformItem(a,i,cur.indexOf(a),i===0,i===0?'The strongest long read among your unread stories.':'A long read of about '+MIN(minsOf(a))+'.')));
- if(isOn('seal'))B.push(sealHtml({cls:'deep-end',title:'That’s every long read for now.',sub:`${list.length} ${list.length===1?'story':'stories'}, about ${hrs}.`}));
- else B.push(`<p class="sun-end deep-end">That is every long read for now: ${list.length} ${list.length===1?'story':'stories'}, about ${esc(hrs)}.</p>`);
+ if(isOn('seal'))B.push(sealHtml({cls:'deep-end',title:'That’s every long read for now.',sub:`${plu(list.length,'story','stories')}, about ${hrs}.`}));
+ else B.push(`<p class="sun-end deep-end">That is every long read for now: ${plu(list.length,'story','stories')}, about ${esc(hrs)}.</p>`);
  return B;
 }
 function sundayIssue(wkS,wkR){
@@ -14984,7 +14984,7 @@ function shelfMast(){
 }
 function shelfEnd(list){
  const un=list.filter(a=>!S.read[a.link]).length,mins=list.reduce((n,a)=>n+(readMin(a)||0),0);
- return `<section class="shelfend" role="status"><b>${un?'End of the shelf':'All caught up'}</b><p>${list.length} ${list.length===1?'story':'stories'}${mins?', about '+fmtMin(mins)+' in all':''}${un?` · ${un} still to read`:' · every one read'}.</p></section>`;
+ return `<section class="shelfend" role="status"><b>${un?'End of the shelf':'All caught up'}</b><p>${plu(list.length,'story','stories')}${mins?', about '+fmtMin(mins)+' in all':''}${un?` · ${un} still to read`:' · every one read'}.</p></section>`;
 }
 
 /* ---- experiment, cluster I: topic view, "Previously" timelines ----
@@ -15095,7 +15095,7 @@ function peState(){if(!S.pe||typeof S.pe!=='object')S.pe={};if(!S.pe.h)S.pe.h={}
 const peHash=s=>{let h=5381;for(const c of String(s))h=((h<<5)+h+c.charCodeAt(0))|0;return Math.abs(h)};
 /* slot: 'note' | 'progress' | 'finish' | 'coverline'. key keeps a pick stable (edition + state); skip lists ids already used on this page. */
 /* B96: "1 story", "2 stories" */
-function stN(n){return n+(n===1?' story':' stories')}
+function stN(n){return plu(n,'story','stories')}
 function MIN(n){return n+(+n===1?' minute':' minutes')}
 function pe(slot,extra,key,skip){
  const bank=PEB[slot];if(!bank)return '';
@@ -15341,7 +15341,7 @@ function streaks(){
 function persona(hr){const s=(a,b)=>{let n=0;for(let h=a;h!==b;h=(h+1)%24)n+=hr[h]||0;return n};const t=hr.reduce((a,b)=>a+b,0)||1;
  const P=[['Early bird','You do most of your reading before 9 in the morning.',s(5,9)],['Lunch-break reader','Midday is your reading time.',s(11,14)],['Evening reader','You settle in with stories in the evening.',s(17,21)],['Night owl','Your best reading happens after 9 at night.',s(21,3)]].sort((a,b)=>b[2]-a[2]);
  return P[0][2]/t>.3?P[0]:['Steady through the day','You read a little all through the day.',0]}
-const fmtMin=m=>m>=90?(m/60).toFixed(m>=600?0:1)+' h':Math.round(m)+' min';
+const fmtMin=m=>m>=90?(m/60).toFixed(m>=600?0:1)+' h':Math.round(m)<1?'under a minute':Math.round(m)+' min';
 
 /* ---------- magazine pieces ---------- */
 function tocHtml(secs){
@@ -15411,12 +15411,12 @@ function dgLetter(k,pool,unread,fresh){
   const fav=Object.entries(S.st.src||{}).sort((x,y)=>y[1]-x[1])[0],sk=streaks();
   paras.push('Hello, and welcome to your week in review.');
   let r='';
-  if(m>=1){r=`You spent ${fmtMin(m)} reading and finished ${f} ${f===1?'story':'stories'}`;if(best&&best[1].m>=1)r+=`, with ${best[0].toLocaleDateString([],{weekday:'long'})} your busiest day`;r+='. '}
+  if(m>=1){r=`You spent ${fmtMin(m)} reading and finished ${plu(f,'story','stories')}`;if(best&&best[1].m>=1)r+=`, with ${best[0].toLocaleDateString([],{weekday:'long'})} your busiest day`;r+='. '}
   else r='It was a quiet week for reading, and that is fine. ';
   if(sk.cur>=2)r+=`That is ${sk.cur} days in a row. `;
   if(fav)r+=`${fav[0]} is the site you open most.`;
   paras.push(r.trim());
-  let n=`Your feeds published ${stN(fresh.length)} in all${src?`, from ${src} ${src===1?'source':'sources'}`:''}.`;
+  let n=`Your feeds published ${stN(fresh.length)} in all${src?`, from ${plu(src,'source','sources')}`:''}.`;
   if(nm>=2&&multi!==top)n+=` The story that traveled furthest was ${q(multi.title)}, picked up by ${nm} sources.`;
   paras.push(n);
   let x='';
@@ -15424,7 +15424,7 @@ function dgLetter(k,pool,unread,fresh){
   if(sv)x+=`${sv} saved ${sv===1?'story is':'stories are'} still waiting for you.`;
   if(x.trim())paras.push(x.trim());
  }else{
-  let a=`${g}. ${fresh.length?`${fresh.length} ${fresh.length===1?'story has':'stories have'} arrived ${k==='evening'?'today':'overnight and this morning'}, from ${src} ${src===1?'source':'sources'}.`:'It has been a quiet stretch, with nothing new since the last issue.'}`;
+  let a=`${g}. ${fresh.length?`${fresh.length} ${fresh.length===1?'story has':'stories have'} arrived ${k==='evening'?'today':'overnight and this morning'}, from ${plu(src,'source','sources')}.`:'It has been a quiet stretch, with nothing new since the last issue.'}`;
   paras.push(a);
   let b='';
   if(top&&multi&&top===multi&&nm>=2)b=`Leading this issue is ${q(top.title)}, which ${nm} sources are covering.`;
@@ -15536,13 +15536,13 @@ function renderStats(){
  const tp=Object.entries(S.st.tp).sort((a,b)=>b[1]-a[1]).slice(0,5),tmx=Math.max(1,...tp.map(x=>x[1]));
  const hmx=Math.max(.25,...S.st.hr),pe=persona(S.st.hr);
  const bar=(v,m,lab,tip)=>`<div class="sbar" title="${esc(tip)}"><i style="height:${Math.max(v?4:0,Math.round(v/m*100))}%"></i><small>${esc(lab)}</small></div>`;
- const hbar=(n,v,m)=>`<div class="hrow"><span>${esc(n)}</span><b><i style="width:${Math.max(3,Math.round(v/m*100))}%"></i></b><em>${v} ${v===1?'story':'stories'}</em></div>`;
+ const hbar=(n,v,m)=>`<div class="hrow"><span>${esc(n)}</span><b><i style="width:${Math.max(3,Math.round(v/m*100))}%"></i></b><em>${plu(v,'story','stories')}</em></div>`;
  const empty=!Object.keys(S.st.d).length;
  $('#grid').innerHTML=`<div class="stats">
  <div class="shead"><h2>Your reading</h2><button class="go" data-yir>Your ${new Date().getFullYear()} so far</button></div>
  ${empty?'<p class="hint">Open a few stories and your stats will start filling in.</p>':''}
  <div class="tiles"><div class="tile"><b>${fmtMin(wm)}</b><small>read this week</small></div><div class="tile"><b>${wn}</b><small>stories opened</small></div><div class="tile"><b>${wf}</b><small>read to the end</small></div><div class="tile"><b>${sk.cur}<span>${sk.cur===1?' day':' days'}</span></b><small>streak · best ${sk.best}</small></div></div>
- <div class="sgc"><h3>Minutes each day</h3><div class="sbars">${days.map(x=>bar(x.v.m,mx,x.d.toLocaleDateString([],{weekday:'short'}),`${x.d.toLocaleDateString([],{weekday:'long'})}: ${fmtMin(x.v.m)}, ${x.v.n} ${x.v.n===1?'story':'stories'}`)).join('')}</div></div>
+ <div class="sgc"><h3>Minutes each day</h3><div class="sbars">${days.map(x=>bar(x.v.m,mx,x.d.toLocaleDateString([],{weekday:'short'}),`${x.d.toLocaleDateString([],{weekday:'long'})}: ${fmtMin(x.v.m)}, ${plu(x.v.n,'story','stories')}`)).join('')}</div></div>
  <div class="scols"><div class="sgc"><h3>Top sources</h3>${src.map(([n,v])=>hbar(n,v,smx)).join('')||'<p class="hint">Nothing yet.</p>'}</div>
  <div class="sgc"><h3>Top topics</h3>${tp.map(([n,v])=>hbar(n,v,tmx)).join('')||'<p class="hint">Put feeds in folders to see topics.</p>'}</div></div>
  <div class="sgc"><h3>When you read <small>${esc(pe[0])}</small></h3><div class="sbars hrs">${S.st.hr.map((v,h)=>bar(v,hmx,h%6===0?(h===0?'12a':h===12?'12p':h<12?h+'a':(h-12)+'p'):'',`${h}:00 · ${fmtMin(v)}`)).join('')}</div></div>
@@ -15564,7 +15564,7 @@ function openYir(){
  const slides=[
   `<small>CyPress</small><h1>Your ${D.y}<br>in reading</h1><p>Tap to continue</p>`,
   `<small>You read</small><h1>${D.n.toLocaleString()}<span> stories</span></h1><p>${fmtMin(D.m)} of reading${D.m>=360?`. That’s about ${Math.max(1,Math.round(D.m/360))} novel${D.m>=720?'s':''}’ worth`:''}.${D.f?` You finished ${D.f} to the very last page.`:''}</p>`,
-  top?`<small>Your number one source</small><h1 style="color:${col}">${esc(top[0])}</h1><p>${top[1]} ${top[1]===1?'story':'stories'} opened.</p>`:`<small>Your sources</small><h1>Just getting started</h1><p>Read more and your favorites will show up here.</p>`,
+  top?`<small>Your number one source</small><h1 style="color:${col}">${esc(top[0])}</h1><p>${plu(top[1],'story','stories')} opened.</p>`:`<small>Your sources</small><h1>Just getting started</h1><p>Read more and your favorites will show up here.</p>`,
   D.src.length>1?`<small>Your top five</small><ol>${D.src.slice(0,5).map(([s,v])=>`<li><b>${esc(s)}</b><span>${v}</span></li>`).join('')}</ol>`:'',
   D.tp[0]?`<small>Your favorite topic</small><h1>${esc(D.tp[0][0])}</h1><p>${stN(D.tp[0][1])}.</p>`:'',
   `<small>Your reading style</small><h1>${esc(D.pe[0])}</h1><p>${esc(D.pe[1])}</p>`,
@@ -15652,7 +15652,7 @@ function listenBrief(){
  const mins=Math.max(1,Math.round(l.reduce((n,a)=>n+(readMin(a)||3),0)));
  /* the Daily plays from the feed: the player docks at the bottom and the stories are read in the background, one after another */
  digInit(l.map(a=>a.link));
- digGo(0,{intro:`Welcome to Cypress Reader. Here’s your Daily. ${l.length} ${l.length===1?'story':'stories'}, about ${MIN(mins)}, read in full. First, from ${fof(l[0]).title}.`});
+ digGo(0,{intro:`Welcome to Cypress Reader. Here’s your Daily. ${plu(l.length,'story','stories')}, about ${MIN(mins)}, read in full. First, from ${fof(l[0]).title}.`});
 }
 
 /* ---------- launch animation ---------- */
@@ -16965,7 +16965,7 @@ async function epubMake(stories,mode,title){
  /* H6: "Your notes": the highlights and notes on these stories; no chapter when there are none */
  {const NT=exNotes(stories);if(NT.length){
   const tot=NT.reduce((n,g)=>n+g.items.length,0);
-  const nb=`<p class="src">From your highlights</p><h1>Your notes</h1><p class="by">${tot} ${tot===1?'highlight':'highlights'} from ${NT.length} ${NT.length===1?'story':'stories'}</p><hr class="rl"/>`+NT.map(g=>`<h2>${xe(g.title)}</h2><p class="src">${xe(g.source)}</p>`+g.items.map(it=>`<blockquote class="hq"><p>&#8220;${xe(it.q)}&#8221;</p></blockquote>${it.note?`<p class="nt">Note: ${xe(it.note)}</p>`:''}`).join('')).join('');
+  const nb=`<p class="src">From your highlights</p><h1>Your notes</h1><p class="by">${plu(tot,'highlight','highlights')} from ${plu(NT.length,'story','stories')}</p><hr class="rl"/>`+NT.map(g=>`<h2>${xe(g.title)}</h2><p class="src">${xe(g.source)}</p>`+g.items.map(it=>`<blockquote class="hq"><p>&#8220;${xe(it.q)}&#8221;</p></blockquote>${it.note?`<p class="nt">Note: ${xe(it.note)}</p>`:''}`).join('')).join('');
   chapters.push({id:'notes',href:'notes.xhtml',title:'Your notes',min:0,g:-1,xhtml:`<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE html>\n<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en"><head><meta charset="utf-8"/><title>Your notes</title><link rel="stylesheet" type="text/css" href="style.css"/></head><body><section epub:type="chapter" id="notes">${nb}</section></body></html>`})}}
  /* B82: the colophon is the last page of the book */
  {const CK=exColophon(),lk=LOGOS[S.logo]?S.logo:'tree';let lh=null;try{const bd=await pdfBadgeImg(bw?'#000000':'#8a6a14');if(bd){const n=imgs.length+1;lh='images/i'+n+'.jpg';imgs.push({href:lh,bytes:bd.bytes})}}catch(e){}
@@ -17347,7 +17347,7 @@ function catchUp(){
  const out=[],per={};let mins=0;
  for(const a of ranked){const m=minsOf(a)||2;if(mins+m>6&&out.length>=2)continue;if((per[a.feedId]||0)>=2)continue;out.push(a);per[a.feedId]=(per[a.feedId]||0)+1;mins+=m;if(mins>=5||out.length>=8)break}
  cur=out.slice();WHY[out[0].link]=WHY[out[0].link]||'First in your catch-up.';
- toast('Catch-up: '+out.length+(out.length===1?' story':' stories')+', about '+Math.max(1,Math.round(mins))+' minutes');
+ toast('Catch-up: '+plu(out.length,'story','stories')+', about '+Math.max(1,Math.round(mins))+' minutes');
  openReader(out[0]);
 }
 /* draw cards up to ~3 screens ahead and behind; farther ones go back to being skipped, so long lists stay light (also run when setBlocks adds more cards) */
@@ -17523,7 +17523,7 @@ function quietDay(){
  try{
   const now=Date.now(),n=DGL.length,fresh=DGL.map(findStory).filter(a=>a&&a.date>now-24*36e5).length;
   if(!n||fresh>4)return '';
-  return `<p class="dwhy dtd">A quiet ${edKind()==='m'?'morning':'evening'} — ${n} ${n===1?'story':'stories'}, all worth your time.</p>`;
+  return `<p class="dwhy dtd">A quiet ${edKind()==='m'?'morning':'evening'} — ${plu(n,'story','stories')}, all worth your time.</p>`;
  }catch(e){return ''}
 }
 /* Time spent in each story. Together with how far you got, this tells "interrupted" (worth resurfacing) from "bounced" (never). */
