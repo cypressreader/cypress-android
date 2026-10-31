@@ -3271,6 +3271,7 @@ html.pdark #grid.paper{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 /* the Well: columns can shrink (so the grid never runs past the screen) and every picture gets the same frame; one tall portrait no longer sets the height */
 @media(min-width:760px){.dwell-g.n3,.dwell-g.n4{grid-template-columns:repeat(2,minmax(0,1fr))}.dwell-g.n3 .dwf,.dwell-g.n4 .dwf,.dwell-g.n3 .dwf:first-child,.dwell-g.n4 .dwf:first-child,.dwell-g.n3 .dwf:last-child{grid-column:auto;grid-row:auto}.dwell-g.n3 .dwf a,.dwell-g.n4 .dwf a,.dwell-g.n3 .dwf:first-child a,.dwell-g.n4 .dwf:first-child a{position:static;aspect-ratio:3/2;height:auto;min-height:0}.dwell-g.n3 .dwf:first-child{grid-column:1/-1}.dwell-g.n3 .dwf:first-child a{aspect-ratio:21/9}}
 @media(min-width:1000px){.dwell-g.n3,.dwell-g.n4{grid-template-columns:repeat(var(--wn,3),minmax(0,1fr))}.dwell-g.n3{--wn:3}.dwell-g.n4{--wn:4}.dwell-g.n3 .dwf:first-child{grid-column:auto}.dwell-g.n3 .dwf a,.dwell-g.n4 .dwf a,.dwell-g.n3 .dwf:first-child a,.dwell-g.n4 .dwf:first-child a{aspect-ratio:4/5}}
+.dwell-g.dwp{grid-template-columns:repeat(2,minmax(0,1fr))!important}.dwell-g.dwp .dwf{grid-column:auto!important;grid-row:auto!important}.dwell-g.dwp .dwf a{height:auto!important;min-height:0!important;aspect-ratio:3/2!important}.dwell-g.dwp .dwf.dwt a{aspect-ratio:4/5!important}.dwell-g.dwp .dwf.dw1{grid-column:1/-1!important}.dwell-g.dwp .dwf.dw1 a{aspect-ratio:2/1!important}.dwell-g.dwp .dwf.dwt.dw1 a{aspect-ratio:16/9!important}.dwell-g.dwp .dwf.dwt img{object-position:50% 25%}/* the Well, paired by shape (wellPair) */
 .dback{grid-column:1/-1;position:relative;isolation:isolate;overflow:hidden;margin:30px calc(-1 * clamp(14px,3vw,32px)) -48px;color:#fff;text-align:center;background:#0b2119}
 .dbk-art{position:absolute;inset:0;z-index:-2;opacity:.62}.dbk-art svg{width:100%;height:100%;display:block}
 .dbk-sh{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(4,22,15,.78),rgba(4,22,15,.46) 40%,rgba(3,18,12,.92))}
@@ -8346,7 +8347,16 @@ const DAYDEK={
    The back cover: the end of the issue as a designed moment, with the finish line, the next-issue teaser and the colophon. */
 function wellJudge(im){
  try{const f=im.closest('figure'),w=im.naturalWidth,h=im.naturalHeight;if(w<640||h<360||h/w>1.3){if(f)f.remove()}else im.classList.add('ok');
-  const well=document.querySelector('.dwell');if(well&&well.querySelectorAll('figure').length<3)well.remove()}catch(e){}
+  const well=document.querySelector('.dwell');if(well&&well.querySelectorAll('figure').length<3)well.remove();else if(well)wellPair(well.querySelector('.dwell-g'))}catch(e){}
+}
+/* David 2026-10-31: once every picture has loaded, tall ones are paired with tall ones and wide with wide, so each row is even; one left over takes a full row on its own */
+function wellPair(g){
+ const fs=g?[...g.querySelectorAll('.dwf')]:[];if(!fs.length||fs.some(f=>!f.querySelector('img.ok')))return;
+ const tall=f=>{const i=f.querySelector('img');return i.naturalHeight/i.naturalWidth>=.95},rows=[];
+ for(const l of [fs.filter(f=>!tall(f)),fs.filter(tall)]){for(let i=0;i<l.length;i+=2)rows.push(l.slice(i,i+2))}
+ rows.sort((a,b)=>b.length-a.length);
+ for(const r of rows)for(const f of r){f.classList.toggle('dwt',tall(f));f.classList.toggle('dw1',r.length===1);g.append(f)}
+ g.classList.add('dwp');
 }
 function pickWell(pool,skip){
  const lim=Date.now()-48*36e5,seen=new Set(),out=[];
