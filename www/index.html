@@ -5227,10 +5227,10 @@ async function fetchText1(url,ok,lg){
  add('allorigins-json',u=>'https://api.allorigins.win/get?url='+encodeURIComponent(u),1);
  }
  const gap=NATIVE?950:650,ms=NATIVE?7500:6000;
- let over=false;const ctls=[],timers=[];
+ let over=false,won=false;const ctls=[],timers=[];
  const one=(p,c)=>new Promise((res,rej)=>{
   let dead=false;
-  const fail=w=>{if(lg&&!over)lg.push(p.n+': '+w);rej(new Error(w))};
+  const fail=w=>{if(lg&&!over&&!won)lg.push(p.n+': '+w);rej(new Error(w))};
   const to=setTimeout(()=>{dead=true;try{c.abort()}catch(e){}fail('timed out')},ms);
   (async()=>{
    try{
@@ -5244,10 +5244,11 @@ async function fetchText1(url,ok,lg){
     if(r.status===202)throw 'the site answered with a bot check instead of the story (HTTP 202)';
     if(!r.ok){if((p.h||p.w)&&(r.status===404||r.status===410)){const er=new Error('HTTP '+r.status);er.hard=1;throw er}throw 'HTTP '+r.status}
     let t=await readText(r);
-    if(lg&&lg.bg&&lg.bg()&&!dead){clearTimeout(to);await bgGate();if(over)throw 'stopped'}
     if(p.j){try{t=JSON.parse(t).contents}catch(e){t=''}}
     if(!t)throw 'empty reply';
     if(ok&&!ok(t))throw 'no readable article in reply ('+t.length+' chars)';
+    /* a background download with a usable body has won: stop the other routes now (not after the quiet wait), so a story goes to one relay, not all of them */
+    if(lg&&lg.bg&&lg.bg()&&!dead){clearTimeout(to);if(won)throw 'stopped';won=true;timers.forEach(clearTimeout);ctls.forEach(x=>{if(x!==c)try{x.abort()}catch(e){}});await bgGate();if(over)throw 'stopped'}
     if(!dead){clearTimeout(to);if(lg){lg.won=p.n;if(p.h&&lg.cond!==undefined)try{const g=k=>(r.headers&&r.headers.get&&r.headers.get(k))||'';lg.val={etag:g('etag'),lm:g('last-modified')}}catch(e){}}res(t)}
    }catch(e){if(dead)return;clearTimeout(to);if(e&&e.nm){if(lg&&!over)lg.push(p.n+': unchanged since last time');rej(e);return}if(e&&e.hard){if(lg&&!over)lg.push(p.n+': '+e.message);rej(e);return}fail(typeof e==='string'?e:c.signal.aborted?'stopped':'blocked or offline')}
   })();
@@ -5255,7 +5256,7 @@ async function fetchText1(url,ok,lg){
  return new Promise((res,rej)=>{
   let i=0,fails=0;
   const start=()=>{
-   if(over||i>=P.length)return;
+   if(over||won||i>=P.length)return;
    const p=P[i++],c=new AbortController();ctls.push(c);if(lg&&lg.prog)try{lg.prog(i,P.length,p.n)}catch(e){}
    const t=setTimeout(start,gap);timers.push(t);
    one(p,c).then(v=>{if(over)return;over=true;timers.forEach(clearTimeout);ctls.forEach(x=>{try{x.abort()}catch(e){}});res(v)},er=>{
