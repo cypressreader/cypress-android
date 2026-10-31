@@ -9276,8 +9276,8 @@ async function deepTry(a,manual){
   foldBoiler(body,a);if(R.web)toggleWeb();decorate();layout();applyHl();toast('Loaded the full story');return;
  }
  if(bodyFull(body)){const n1=note();if(n1)n1.hidden=true;if(manual)toast('The full story is already here');return}
- put('<span class="sbadge">Partial story</span>Couldn’t get the full story, even another way. <a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener">Open the original story</a> <button type="button" class="lnk" data-web="1">View the site in the app</button> <button type="button" class="lnk" data-retry="1">Try again</button> <button type="button" class="lnk" data-diag="1">Copy details</button><details class="why"><summary>Why?</summary>'+[...new Set(lg)].map(esc).join('<br>')+'</details>');
- if(manual)toast('Still couldn’t load it. Try “View the site in the app”');
+ put('<span class="sbadge">Partial story</span><br>Couldn’t reach the site. <a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener">Open on site</a><details class="why"><summary>Why?</summary>'+[...new Set(lg)].map(esc).join('<br>')+'<br><button type="button" class="lnk" data-diag="1">Copy details</button></details>');
+ if(manual)toast('Still couldn’t load it. Try “Open on site”');
 }
 const whyHtml=u=>{const l=LG[u];return l&&l.length?`<details class="why"><summary>Why?</summary>${[...new Set(l)].map(esc).join('<br>')}</details>`:''};
 /* the details of how a story was fetched and read, as plain text to paste to whoever is fixing it */
@@ -9720,7 +9720,7 @@ async function openReader(a){
   if(/^Loading the full article/.test(note.textContent)||note.dataset.wd){note.textContent='';note.hidden=true;delete note.dataset.wd}
   if(S.autoReader&&R.web&&R.auto)toggleWeb();
  }else if(bodyFull(body)&&!gated){a.tier='feed';note.textContent='';note.hidden=true;markReady(a.link)
- }else{a.tier='feed';note.innerHTML=/* a site that only ever sends previews gets the plain reason */!gated&&(a.rkind==='teaser'||isShortFeed(f))?'<span class="sbadge">Short preview</span>This site only shares a short preview of each story, so the rest is on its website. <a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener noreferrer">Open the website</a>':'<span class="sbadge">Partial story</span>'+(gated?'The site wouldn’t let the app in, and no saved or syndicated copy turned up, so this is what its feed gave us. ':'Couldn’t get the full story cleanly here, and no saved or syndicated copy turned up, so this is what the site’s feed gave us. ')+'<a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener">Open the original story</a> <button type="button" class="lnk" data-web="1">View the site in the app</button> <button type="button" class="lnk" data-retry="1">'+(deepRan?'Try again':'Try another way')+'</button> <button type="button" class="lnk" data-diag="1">Copy details</button>'+whyHtml(a.link);if(my===tok&&!R.web&&online()&&(S.autoWeb||isBing(f.url)||/news\.google\./.test(f.url||'')||/news\.google\./.test(a.link||'')||isPay(a)))toggleWeb(true);if(my===tok&&online()&&!deepRan)setTimeout(()=>{if(my===tok&&curA===a)deepTry(a,false)},300)}
+ }else{a.tier='feed';note.innerHTML=/* polish-2026-10 W-03: the badge, one line with the reason, one action */'<span class="sbadge">Partial story</span><br>'+(!gated&&(a.rkind==='teaser'||isShortFeed(f))?'The site only shares a preview.':gated?'The site blocked the fetch.':'Couldn’t reach the site.')+' <a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener noreferrer">Open on site</a>'+whyHtml(a.link);if(my===tok&&!R.web&&online()&&(S.autoWeb||isBing(f.url)||/news\.google\./.test(f.url||'')||/news\.google\./.test(a.link||'')||isPay(a)))toggleWeb(true);if(my===tok&&online()&&!deepRan)setTimeout(()=>{if(my===tok&&curA===a)deepTry(a,false)},300)}
  afterLoad();/* afterLoad lays the page out itself (laying it out first as well cost a whole extra layout of the story) */
 }
 const FONTS={serif:"'Newsreader',Georgia,serif",literata:"'Literata',Georgia,serif",merri:"'Merriweather',Georgia,serif",garamond:"'EB Garamond',Georgia,serif",sans:"'Instrument Sans',system-ui,sans-serif",lexend:"'Lexend',system-ui,sans-serif",hyper:"'Atkinson Hyperlegible','Instrument Sans',sans-serif",dys:"'OpenDyslexic','Lexend',sans-serif"};
@@ -10074,7 +10074,7 @@ function ttsClean(){
  const t=body.textContent.replace(/\s+/g,' ').trim();
  if(t.length<200)return 'there’s hardly any text';
  if(curA&&curA.pw&&/preview/i.test(($('.cols .note')||{}).textContent||''))return 'it’s only a paywalled preview';
- if($('.cols .note [data-retry]'))return 'the full story couldn’t be loaded';
+ if(/Partial story/.test(($('.cols .note')||{}).textContent||''))return 'the full story couldn’t be loaded';
  if(paywalled(t))return 'it’s behind a paywall';
  const q=textQuality(t);if(!q.ok)return 'the text looks garbled';
  return '';
