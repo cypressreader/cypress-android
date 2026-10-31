@@ -7,8 +7,7 @@ for(const [n,w,h] of [['fold',884,1000],['phone',380,820]]){
  await p.addInitScript(s=>{localStorage.setItem('folio',JSON.stringify(s))},{...seed(['A','B','C']),scroll:undefined});await p.goto(('file://'+APP));await p.waitForTimeout(1800);
  const E=(f,a)=>p.evaluate(f,a);
  // sidebar
- /* polish F-06: the side bar is the feed list; Highlights, History and Stats left it (Saved tab header, Daily back cover) */
- ck(n+' sidebar order',await E(()=>{const t=[...document.querySelectorAll('#side-list .nav')].map(x=>x.textContent.replace(/\d+ unread$/,'').trim());return t.indexOf('The Daily')<t.indexOf('All Stories')&&t.indexOf('All Stories')<t.indexOf('Saved')&&!t.some(x=>/Highlights|History|Stats/.test(x))}));
+ ck(n+' sidebar order',await E(()=>{const t=[...document.querySelectorAll('#side-list .nav')].map(x=>x.textContent.replace(/\d+$/,'').trim());return t.indexOf('All stories')<t.indexOf('Saved')&&t.slice(-4).join()==='Saved,Highlights,History,Stats'}));
  await E(()=>{S.fcol={_mf:0};S.folders.forEach(x=>{S.fcol[x.id]=0});side();/* My Feeds and its folders start collapsed: open them, then collapse one folder */document.querySelector('#side-list [data-tgl]:not([data-tgl=daily]):not([data-tgl^=_])').click()});
  await p.waitForTimeout(400);
  ck(n+' folder collapses',await E(()=>!!S.fcol&&Object.entries(S.fcol).filter(([k,v])=>k[0]!=='_'&&v===1).length===1&&document.querySelectorAll('#side-list .fold')[0].querySelectorAll('.fr').length===0));
