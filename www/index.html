@@ -3192,6 +3192,11 @@ html.rdx .pullq{font-family:var(--disp);font-weight:400;font-style:italic;font-s
 .rf-next b,.rf-rel b{display:block;font:400 24px/1.08 var(--disp,Georgia);font-synthesis:none}.rf-rel b{font-size:19px}
 .rf-next em,.rf-rel em{display:block;margin-top:5px;font:italic 400 13px var(--disp,Georgia);color:var(--mut)}
 .rf-rel{margin-top:20px;text-align:left}.rf-rel button{padding:10px 0;border-top:1px dotted var(--ln)}
+/* R-08: Next up carries the story's photo beside its title and says how to go on; the actions sit in one row under it */
+.rf-next{display:grid;grid-template-columns:1fr auto;column-gap:14px;align-items:center}.rf-next small,.rf-next em{grid-column:1/-1}.rf-next .rn-i{grid-column:2;grid-row:2;width:72px;height:72px}
+.rf-next em:empty::before{content:"Turn the page to continue"}#rd.vert .rf-next em:empty::before{content:"Keep scrolling to continue"}
+.rf-act{display:flex;justify-content:center;gap:8px;margin:14px 0 0}.rf-act button{padding:8px 16px;border:1px solid var(--ln);border-radius:999px;background:transparent;color:var(--ink);font:600 13px var(--sans);cursor:pointer}.rf-act button[aria-pressed=true]{border-color:var(--rbr,var(--a1));color:var(--rbr,var(--a1))}
+#rd .rsh .rtags{margin:4px 0 2px}#rd .rsh .rtags button{min-height:48px;padding:0 14px}
 html.rdx .cols.rfok .kr{display:none}
 /* experiment, cluster 15: focus mode */
 #rd .bar,#rd #dial,#rd .hdr,#rd .bs,#rd #pc{transition:opacity .45s ease}
@@ -7144,9 +7149,11 @@ function nextAfter(a){
  return null;
 }
 function readerFootHtml(a){
- const f=fof(a),nx=nextAfter(a),rel=relatedFor(a).filter(r=>!nx||r.link!==nx.link),mm=n=>{const m=minsOf(n);return m?' · '+m+' min':''};
+ const f=fof(a),nx=nextAfter(a),rel=relatedFor(a).filter(r=>!nx||r.link!==nx.link).slice(0,3),mm=n=>{const m=minsOf(n);return m?' · '+m+' min':''},sv=!!isSaved(a);
+ /* R-08: the ending is one composed block: Next up with its photo and how to go on, the story's actions, then up to three related reads; tags moved to the More sheet ("Filed under") */
  return `<div class="rfoot" role="complementary" aria-label="Keep reading"><p class="rf-src">${esc(f.title)}${a.date?' · '+esc(new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'})):''}</p>`
-  +(nx?`<button type="button" class="rf-next" data-rnext="${esc(nx.link)}"><small>Next up</small><b>${esc(nx.title)}</b><em>${esc(fof(nx).title)}${mm(nx)}</em></button>`:'')
+  +(nx?`<button type="button" class="rf-next" data-rnext="${esc(nx.link)}"><small>Next up · ${esc(fof(nx).title)}${mm(nx)}</small>${nx.img?`<span class="rn-i"><img alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="${esc(nx.img)}" onerror="this.parentNode.remove()"></span>`:''}<b>${esc(nx.title)}</b><em aria-hidden="true"></em></button>`:'')
+  +`<div class="rf-act"><button type="button" data-act="save" aria-pressed="${sv}">${sv?'Saved':'Save'}</button><button type="button" data-act="share">Share</button><button type="button" data-act="browser">Open site</button></div>`
   +((S.jk&&S.jk.r&&S.jk.r.length)?`<button type="button" class="rf-junk" data-junklog>Copy the list of lines removed (${S.jk.r.length})</button>`:'')
   +(rel.length?`<div class="rf-rel"><p>${esc(relHead(a,rel))}</p>${rel.map(r=>`<button type="button" data-rnext="${esc(r.link)}"><b>${esc(r.title)}</b><em>${esc(fof(r).title)}</em></button>`).join('')}</div>`:'')+`</div>`;
 }
@@ -7203,8 +7210,7 @@ function decorateTpl(){
   const every=Math.max(7,Math.round(ps.length/5));
   ps.forEach((p,i)=>{if(i>0&&i%every===0&&p.previousElementSibling&&!/rbrk|pullq/.test(p.previousElementSibling.className||'')){const d=document.createElement('div');d.className='rbrk';d.setAttribute('aria-hidden','true');d.textContent='';p.before(d)}});
  }
- /* filed under, then the footer's cues follow */
- {const tg=rdTags(a,b);if(tg.length){const p=document.createElement('p');p.className='rtags';p.innerHTML='<small>Filed under</small> '+tg.map(t=>`<button type="button" data-ftag="${esc(t)}">${esc(t)}</button>`).join('');const em=b.querySelector('.endmark'),rf=b.querySelector('.rfoot');if(rf)rf.before(p);else if(em)em.after(p);else b.append(p)}}
+ /* R-08: "Filed under" tags live in the More sheet now (rdxMnOpen) */
  /* a brief carries no empty chrome */
  const nt=c.querySelector('.note');if(nt&&tpl==='b'&&/^\s*(full story loaded|loading)/i.test(nt.textContent))nt.hidden=true;
  try{rdPrev()}catch(e){}
@@ -7224,7 +7230,7 @@ function rdHead(){
 document.addEventListener('scroll',e=>{if(e.target&&e.target.classList&&e.target.classList.contains('view'))rdHead()},{capture:true,passive:true});
 document.addEventListener('click',e=>{
  const t=e.target.closest&&e.target.closest('[data-ftag]');if(!t)return;
- e.preventDefault();e.stopPropagation();const w=t.dataset.ftag;
+ e.preventDefault();e.stopPropagation();const w=t.dataset.ftag;try{rdxMnClose()}catch(er){}
  const cl=$('#cl');if(cl)cl.click();setTimeout(()=>{try{openSearch(true);$('#q').value=w;render()}catch(er){}},380);
 },true);
 {const _d3=decorate;decorate=function(){const r=_d3.apply(this,arguments);try{decorateTpl()}catch(e){}return r}}
@@ -11836,10 +11842,12 @@ function mnMarkup(){
 /* polish-2026-10 I6: a story from a site you don't follow (full coverage, search, Near you) can be followed from the sheet */
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#mn [data-act="follow"]');if(!b||!curA)return;e.preventDefault();e.stopPropagation();b.disabled=true;b.textContent='Following…';followSite('https://'+host(curA.link)).then(r=>{b.textContent=r?'Following':'Follow site';b.disabled=!!r}).catch(()=>{b.textContent='Follow site';b.disabled=false})},true);
 /* keeps the sheet's Save button in step with the story's saved state */
-function rdxMnSync(){const b=document.querySelector('#mn [data-act="save"]');if(!b||!curA)return;const sv=isSaved(curA);b.setAttribute('aria-pressed',String(sv));const o=b.querySelector('svg');if(o)o.outerHTML=starSvg(sv);const l=b.querySelector('.mnl');if(l)l.textContent=sv?'Saved':'Save'}
+function rdxMnSync(){if(!curA)return;const sv=isSaved(curA);document.querySelectorAll('#mn [data-act="save"],.rfoot [data-act="save"]').forEach(b=>{b.setAttribute('aria-pressed',String(sv));const o=b.querySelector('svg');if(o)o.outerHTML=starSvg(sv);const l=b.querySelector('.mnl');if(l)l.textContent=sv?'Saved':'Save';else if(!o)b.textContent=sv?'Saved':'Save'})}
 let RDX_MNO=null;
 function rdxMnOpen(){
  const m=$('#mn');if(!m||!m.hidden)return;if($('#pb'))$('#pb').hidden=true;try{mnJump()}catch(e){}rdxMnSync();
+ /* R-08: "Filed under" row group, only when the story has tags */
+ try{m.querySelectorAll('.rtags').forEach(x=>x.remove());const tg=curA?rdTags(curA,$('.cols .body')):[];const r=m.querySelector('#mnmx');if(tg.length&&r){const p=document.createElement('p');p.className='rtags';p.innerHTML='<small>Filed under</small> '+tg.map(t=>`<button type="button" data-ftag="${esc(t)}">${esc(t)}</button>`).join('');r.prepend(p)}}catch(e){}
  RDX_MNO=$('#mo');m.hidden=false;const bd=$('#mnbd');if(bd)bd.hidden=false;const mb=$('#mnmb'),mx=$('#mnmx');if(mb&&mx){mb.setAttribute('aria-expanded','false');mx.hidden=true}
  const mo=$('#mo');if(mo)mo.setAttribute('aria-expanded','true');pushLayer('mn');
  const f=m.querySelector('.rshq button');if(f)f.focus();
@@ -17631,7 +17639,7 @@ function imgFallback(im,why){
   try{relayout()}catch(e){}
  }catch(e){}
 }
-document.addEventListener('error',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.closest&&im.closest('.cols .body')&&!im.dataset.oi)imgFallback(im,'error')},true);
+document.addEventListener('error',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.closest&&im.closest('.cols .body')&&!im.closest('.rfoot')&&!im.dataset.oi)imgFallback(im,'error')},true);/* the Next up thumbnail (R-08) just goes away when it fails */
 document.addEventListener('load',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.closest&&im.closest('.cols .body')&&im.naturalWidth>0&&im.naturalWidth<=8&&im.naturalHeight<=8&&((+im.getAttribute('width')||0)>=120||!im.getAttribute('width')))imgFallback(im,'blank placeholder')},true);
 document.addEventListener('click',e=>{
  const b=e.target.closest&&e.target.closest('[data-imgretry]');if(!b)return;e.preventDefault();e.stopPropagation();
