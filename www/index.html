@@ -7542,9 +7542,11 @@ function listFlow(list,base,dated,latest,wire,ixOf0){
 }
 /* list page (2026-10-24): contents, numbered chapters and a few small interludes between the rows. Chapters: folders (All), feeds (a folder or smart folder), sections or days (one feed). */
 function listPage(list,base){
- const B=[],now=Date.now(),h=new Date().getHours(),un=list.filter(a=>!S.read[a.link]).length,rc=list.filter(a=>now-a.date<108e5).length;
+ const B=[],now=Date.now(),h=new Date().getHours(),un=list.filter(a=>!S.read[a.link]).length;
  const gr=h<12?'Good morning':h<18?'Good afternoon':'Good evening';
- if(un)B.push(`<div class="lr-dv"><span>${gr} · ${rc>1?rc+' stories in the last 3 hours':un+' unread'}</span></div>`);
+ /* polish W-02: the count says what it counts: new since you were last here (when that is known), otherwise unread */
+ const sn=seenOf(S.sel),nw=sn?list.filter(a=>a.date>sn&&!S.read[a.link]).length:0,sd=new Date(sn),since=nw?(now-sn<864e5&&sd.getDate()===new Date().getDate()?sd.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):now-sn<1728e5?'yesterday':sd.toLocaleDateString([],{weekday:'long'})):'';
+ if(un)B.push(`<div class="lr-dv"><span>${gr} · ${nw?nw+' new since '+esc(since):un+' unread'}</span></div>`);
  return B.concat(listFlow(list,base,S.sort!=='source',true,false));
 }
 function listRow(a,i,k,f){
