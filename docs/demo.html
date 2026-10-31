@@ -7565,10 +7565,10 @@ function finShow(){
  el.innerHTML=`<div class="fin-art">${edArtSvg(am)}${lead&&lead.img?`<img src="${esc(lead.img)}" alt="" referrerpolicy="no-referrer" onload="cvJudge(this)" onerror="this.remove()">`:''}</div><div class="fin-sh"></div>`
   +`<div class="fin-frame"><span class="fin-mast">CYPRESS</span><h2 class="fin-h">Fin.</h2><p class="fin-note">${esc(pe('progress',{},'done'))}</p><p class="fin-ed">${am?'The Morning':'The Evening'} Edition · No. ${issue} · ${stN(DGL.length)} read</p><p class="fin-more"><button type="button" class="tx2" data-report>See your report card</button></p><button type="button" class="tx2" id="finx">Back to the edition</button></div>`;
  document.body.append(el);requestAnimationFrame(()=>el.classList.add('on'));
- const x=$('#finx');if(x)x.focus();
+ const x=$('#finx');if(x)x.focus();pushLayer('fin');
 }
-function finClose(){
- const el=$('#fin');if(!el)return;el.classList.remove('on');FIN.open=false;
+function finClose(fromPop){
+ const el=$('#fin');if(!el)return;if(fromPop!==true)dropLayer('fin');el.classList.remove('on');FIN.open=false;
  setTimeout(()=>el.remove(),500);try{if(FIN.ret&&FIN.ret.focus)FIN.ret.focus()}catch(e){}
 }
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#finx')){e.preventDefault();e.stopPropagation();finClose()}},true);
@@ -16303,9 +16303,9 @@ addEventListener('popstate',()=>{
  if(POPSKIP){POPSKIP=false;const q=POPQ;POPQ=[];q.forEach(n=>{try{history.pushState({cp:n,n:LAYER.length},'')}catch(e){}});return}
  const top=LAYER.pop();if(!top)return;
  if(top.startsWith('dlg:')){const d=DLG[top];if(d&&d.open&&((d.id==='set'&&window.setBackHook&&window.setBackHook())||(d.id==='dlg'&&window.addBackHook&&window.addBackHook()))){LAYER.push(top);try{history.pushState({cp:top,n:LAYER.length},'')}catch(e){}return}delete DLG[top];if(d&&d.open){d._ly=null;d.close()}return}
- const active={mn:()=>$('#mn')&&!$('#mn').hidden,gal:()=>$('#gal')&&!$('#gal').hidden,rdnav:()=>$('#rdnav')&&!$('#rdnav').hidden,reader:()=>$('#rd').classList.contains('on'),drawer:()=>document.body.classList.contains('open'),yir:()=>!!$('#yir')}[top];
+ const active={mn:()=>$('#mn')&&!$('#mn').hidden,gal:()=>$('#gal')&&!$('#gal').hidden,rdnav:()=>$('#rdnav')&&!$('#rdnav').hidden,reader:()=>$('#rd').classList.contains('on'),drawer:()=>document.body.classList.contains('open'),yir:()=>!!$('#yir'),fin:()=>FIN.open}[top];
  if(active&&!active()){if(LAYER.length)history.back();return}
- if(top==='mn')rdxMnClose(true,true);else if(top==='gal')galClose(true);else if(top==='rdnav')rdNav(false,true);else if(top==='reader')closeRd(true);else if(top==='drawer')document.body.classList.remove('open');else if(top==='yir'){const y=$('#yir');if(y)y.querySelector('.yx').click()}
+ if(top==='mn')rdxMnClose(true,true);else if(top==='gal')galClose(true);else if(top==='rdnav')rdNav(false,true);else if(top==='reader')closeRd(true);else if(top==='drawer')document.body.classList.remove('open');else if(top==='fin')finClose(true);else if(top==='yir'){const y=$('#yir');if(y)y.querySelector('.yx').click()}
 });
 
 /* ---------- in-reader navigation panel ---------- */
