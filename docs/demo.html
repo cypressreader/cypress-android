@@ -5011,7 +5011,8 @@ html #grid.list .card.list-row:not(.lr-feat):not(.lr-quote)>.cimg{grid-column:2;
 html #grid.list .card.list-row>.star{display:none!important}
 html #grid.list .card.list-row.noimg:not(.lr-feat):not(.lr-quote){grid-template-columns:minmax(0,1fr)}
 /* David 2026-10-31 (preview pass): a story below its photo sits in one framed tile with it, text-only stories in the same group get the same tile; the photo-less drawing becomes the tile's picture instead of sitting behind dark text */
-html body #grid[data-w="mag"] .card:is(.nr-row,.nr-late),html body :is(#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr),#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr),#grid[data-w="mag"]:not(.nr):not(.wire)>.card[data-ed]:not(.nr)),html body #grid:not(.list):not([data-cards=narrow]):not([data-cards=compact]) .card[data-ed]:not(.lead):not(.nr):not(.list-row):not(.noimg){border:1px solid var(--ln)!important;border-radius:14px!important;overflow:hidden;background-color:var(--pn)!important}
+html body #grid[data-w="mag"] .card:is(.nr-row,.nr-late),html body :is(#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr),#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr),#grid[data-w="mag"]:not(.nr):not(.wire)>.card[data-ed]:not(.nr)),html body #grid:not(.list):not([data-cards=narrow]):not([data-cards=compact]) .card[data-ed]:not(.lead):not(.nr):not(.list-row):not(.noimg){border:1px solid var(--ln)!important;border-radius:14px!important;overflow:hidden;background-color:var(--tile,var(--pn))!important}
+html[data-theme=dynamic]{--tile:color-mix(in srgb,var(--pn) 55%,transparent)}/* Dynamic: tiles let the story color behind them show through */
 html body #grid[data-w="mag"] .card:is(.nr-row,.nr-late)>img,html body :is(#grid.wire[data-w="mag"] .card[data-ed]:not(.lead):not(.nr),#grid[data-w="card"]:not(.nr)>.card[data-ed]:not(.nr),#grid[data-w="mag"]:not(.nr):not(.wire)>.card[data-ed]:not(.nr))>img,html body #grid:not(.list):not([data-cards=narrow]):not([data-cards=compact]) .card[data-ed]:not(.lead):not(.nr):not(.list-row):not(.noimg)>img{border-radius:0!important;margin:0!important}
 html body #grid[data-w="mag"] .card:is(.nr-row,.nr-late)>.tx{padding:12px 14px 14px!important}
 html body #grid[data-w="mag"] .nr-rv{gap:14px!important}
@@ -12008,7 +12009,9 @@ function dynLive(){
   if(q){dynSet(q);return}
   if(u&&/^https?:/.test(u))imgInfo(u).then(o=>{const t=pc(o)||c;if(t&&dynLive.cur===el&&el.isConnected)dynSet(t)}).catch(()=>{if(c&&dynLive.cur===el)dynSet(c)});
   else if(c)dynSet(c)},{rootMargin:'-28% 0px -56% 0px'});
- cs.slice(0,120).forEach(x=>io.observe(x));dynLive.io=io;
+ cs.forEach(x=>io.observe(x));dynLive.io=io;
+ /* David 2026-10-31: stories drawn later (lower sections, more while scrolling) are watched too, so the color keeps moving all the way down */
+ if(!dynLive.mo){dynLive.mo=new MutationObserver(ms=>{const o=dynLive.io;if(!o)return;for(const m of ms)for(const n of m.addedNodes){if(n.nodeType!==1)continue;if(n.matches('.card'))o.observe(n);else n.querySelectorAll('.card').forEach(c=>o.observe(c))}});dynLive.mo.observe(g,{childList:true,subtree:true})}
 }
 function dynReader(){
  if(!isOn('dynx')||document.documentElement.dataset.theme!=='dynamic')return;
