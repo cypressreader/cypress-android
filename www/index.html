@@ -3773,6 +3773,13 @@ html.txo #grid img,html.txo #rd img,html.txo #hub img,html.txo .dcv-art>img{disp
 #rd .rshl{gap:6px;padding:0 12px 2px}#rd .rshl h3{margin:8px 4px 0}
 #rd .rshl>button,#rd .rshl>div>button{flex:1 1 calc(50% - 3px);justify-content:center;min-height:48px;padding:0 12px}
 #rd .rsh .rshl>.rtags{margin:4px 0 0;text-align:left}#rd .rsh .rtags small{margin:0 4px 4px;text-align:left}
+/* David 2026-10-31, menu option C: two columns of icon + label on hairline rows, no pill outlines */
+#rd .rsh .rshl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px;row-gap:0;padding:0 14px 2px;align-items:stretch}
+#rd .rsh .rshl>:is(h3,.rtags){grid-column:1/-1}#rd .rsh .rshl>.rshp{display:contents}
+#rd .rsh .rshl>button,#rd .rsh .rshl>div>button{display:flex;align-items:center;justify-content:flex-start;gap:11px;width:auto;flex:none;min-height:48px;padding:0 4px;border:0;border-bottom:1px solid var(--ln);border-radius:0;background:none;font:500 14px/1.2 var(--sans);text-align:left}
+#rd .rsh .rshl button[hidden]{display:none}#rd .rsh .rshl button svg{width:19px;height:19px;flex:none;color:var(--a1,var(--ink));stroke-width:1.5}
+#rd .rsh .rshl button:focus-visible{outline:2px solid var(--a1,var(--ink));outline-offset:-2px;border-radius:6px}
+/* the reading progress shows once, along the bottom of the page view (the bar under the header doubled it) */#rd:not(.vert) .bar::after{display:none}
 
 /* a picture that cannot load shows the feed's designed pattern art, never a bare grey box */
 .imgfb{display:flex;align-items:flex-end;justify-content:flex-start;width:100%;max-height:var(--ih);box-sizing:border-box;margin:1em 0;padding:12px 14px;border:0;border-radius:12px;break-inside:avoid;cursor:pointer;color:rgba(255,255,255,.86);text-align:left;font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;background-image:var(--pat),linear-gradient(150deg,color-mix(in srgb,var(--b,#1f6a48) 100%,#fff 10%),color-mix(in srgb,var(--b,#1f6a48) 100%,#0b2119 40%));background-size:96px 96px,auto}
@@ -6660,11 +6667,13 @@ const esig=a=>new Set((String((a&&a.title)||'').match(/\b[A-Z][a-z]{2,}\b/g)||[]
 const eshare=(a,b)=>{const ea=esig(a),eb=esig(b);for(const w of ea)if(eb.has(w))return true;return false};
 /* a developing story: three or more stories whose headlines share most of their words fold into one thread headed by the newest */
 const SECR={};
+/* David 2026-10-31: same wording is not the same story ("How to watch Chelsea … online for free" and "How to watch Miami … online for free"): a thread also needs a shared name, not counting a question or filler word that opens it */
+const thrEnt=(a,b)=>{const ent=x=>{const t=String(x.title||'').trim(),s=esig(x),f=(t.match(/^[A-Z][a-z]{2,}\b/)||[])[0];if(f&&/^(How|What|Why|When|Where|Who|Which|Here|The|This|These|That|Your|You|Our|Can|Does|Should|Will|Best|New|Watch|Is|Are)$/.test(f))s.delete(f);return s},ea=ent(a),eb=ent(b);for(const w of ea)if(eb.has(w))return true;return false};
 function wireThreads(list){
  const units=[],lim=Date.now()-36*36e5;
  for(const a of list){
   const sg=wsig(a);let hit=null;
-  if(a.date>lim&&sg.size>=3){for(const u of units){if(u.sg.size<3||u.head.date<lim)continue;let sh=0;for(const w of sg)if(u.sg.has(w))sh++;if(sh>=3&&sh/Math.min(sg.size,u.sg.size)>=.6){hit=u;break}}}
+  if(a.date>lim&&sg.size>=3){for(const u of units){if(u.sg.size<3||u.head.date<lim)continue;let sh=0;for(const w of sg)if(u.sg.has(w))sh++;if(sh>=3&&sh/Math.min(sg.size,u.sg.size)>=.6&&thrEnt(a,u.head)){hit=u;break}}}
   if(hit)hit.more.push(a);else units.push({head:a,more:[],sg});
  }
  const out=[];
@@ -11986,9 +11995,11 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-dfol]');if
 /* the menu entry says what a tap will do: switch this source to site view, or back to reader view */
 /* polish-2026-10 J5: the "…" menu is a bottom sheet: a quick row of six line icons, then one column of 48 px rows, the rarely used ones under "More". Thumbs and the saved state live here now. Ink and brass only. Restore the old popover by making mnMarkup return mnMarkupOld() (the handlers work with both). */
 const RDX_SHR='<path d="M12 3.5v11.5M7.8 7.7 12 3.5l4.2 4.2"/><path d="M5.5 12.5v6a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-6"/>',RDX_AA='<path d="M3.5 19 8.5 5l5 14M5.4 14h6.2"/><path d="M15.5 12.4c.5-.9 1.4-1.4 2.5-1.4 1.6 0 2.5 1 2.5 2.6V19M20.5 15.2c-3.4-.2-5 .7-5 2.1 0 1 .8 1.7 1.9 1.7 1.7 0 3.1-1.3 3.1-3.1"/>',RDX_TR='<path d="M3.5 5.5h8.5M7.7 3.5v2M10.2 5.5c-.8 3.6-2.9 6.4-6 8.3M5.8 9.2c1.2 2 3 3.6 5.2 4.4"/><path d="m12.5 20.5 4-9.5 4 9.5M13.9 17.3h5.2"/>';
+/* line icons for the sheet's rows (menu option C) */
+const RIC={auto:'<circle cx="12" cy="12" r="8"/><path d="m10 8.5 5 3.5-5 3.5z"/>',rp:'<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',hub:'<rect x="3.5" y="5" width="13" height="14" rx="2"/><path d="M19.5 8v11a2 2 0 0 1-2 2h-10M7 9h6M7 12.5h6M7 16h3"/>',find:'<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>',jump:'<path d="M5 6h14M5 12h10M5 18h6"/>',upnext:'<path d="M4 6h12M4 11h12M4 16h7M17 14v6M14 17h6"/>',tr:'<path d="M3.5 5.5h8.5M7.7 3.5v2M10.2 5.5c-.8 3.6-2.9 6.4-6 8.3M5.8 9.2c1.2 2 3 3.6 5 4.6"/><path d="m12.5 20.5 4-9 4 9M14 17.5h5"/>',comments:'<path d="M4.5 5.5h15v10h-8l-4 3.5v-3.5h-3z"/>',browser:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.4 3.5 5.3 3.5 8.5s-1.1 6.1-3.5 8.5c-2.4-2.4-3.5-5.3-3.5-8.5s1.1-6.1 3.5-8.5z"/>',web:'<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 8.5h17"/>',pdf:'<path d="M14 3.5H7a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-10z"/><path d="M14 3.5v5h5M9 13h6M9 16.5h4"/>',kindle:'<rect x="5.5" y="2.5" width="13" height="19" rx="2"/><path d="M8.5 6.5h7M8.5 9.5h7M8.5 12.5h4"/>',follow:'<path d="M12 5v14M5 12h14"/>',unread:'<circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r="8.5"/>',junk:'<path d="M5.5 21V4.5h11l-2 4 2 4h-11"/>'};
 function mnMarkup(){
  const a=curA,sv=!!(a&&isSaved(a)),v=a?((S.thm||{})[a.link]||0):0,tts='speechSynthesis' in window;
- const q=(act,ic,l,x)=>`<button type="button" data-act="${act}"${x||''}>${svg(ic,act==='save'&&sv)}<span class="mnl">${l}</span></button>`,row=(act,l,x)=>`<button type="button" data-act="${act}"${x||''}>${l}</button>`;
+ const q=(act,ic,l,x)=>`<button type="button" data-act="${act}"${x||''}>${svg(ic,act==='save'&&sv)}<span class="mnl">${l}</span></button>`,row=(act,l,x)=>`<button type="button" data-act="${act}"${x||''}>${RIC[act.replace(/^fby$/,'follow')]?svg(RIC[act.replace(/^fby$/,'follow')]):''}<span class="mnl">${l}</span></button>`;
  let h='',fl=false,site='';try{h=a&&a.link?host(a.link):'';fl=!!h&&!S.feeds.some(f=>host(f.url)===h);site=fl?h.replace(/^www\./,''):(a&&fof(a).title)||h}catch(e){}
  const grp=(id,l,x)=>`<div class="rshl" role="group" aria-labelledby="${id}"><h3 id="${id}">${l}</h3>${x}</div>`;
  return `<div class="rshbd" id="mnbd" hidden></div><div class="rsh" id="mn" role="dialog" aria-modal="true" aria-labelledby="mnh" hidden><span class="rshg" aria-hidden="true"></span><h2 class="rshh" id="mnh">Story options</h2>`
@@ -12000,7 +12011,7 @@ function mnMarkup(){
   +`<div class="rshr" role="group" aria-label="Rate this story"><button type="button" class="thb${v>0?' on':''}" data-rate="1" aria-pressed="${v>0}">${svg(TH_UP)}<span>More like this</span></button><button type="button" class="thb${v<0?' on':''}" data-rate="-1" aria-pressed="${v<0}">${svg(TH_DN)}<span>Less like this</span></button></div></div>`;
 }
 /* polish-2026-10 I6: a story from a site you don't follow (full coverage, search, Near you) can be followed from the sheet */
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#mn [data-act="follow"]');if(!b||!curA)return;e.preventDefault();e.stopPropagation();b.disabled=true;b.textContent='Following…';followSite('https://'+host(curA.link)).then(r=>{b.textContent=r?'Following':'Follow site';b.disabled=!!r}).catch(()=>{b.textContent='Follow site';b.disabled=false})},true);
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#mn [data-act="follow"]');if(!b||!curA)return;e.preventDefault();e.stopPropagation();b.disabled=true;(b.querySelector('.mnl')||b).textContent='Following…';followSite('https://'+host(curA.link)).then(r=>{(b.querySelector('.mnl')||b).textContent=r?'Following':'Follow site';b.disabled=!!r}).catch(()=>{(b.querySelector('.mnl')||b).textContent='Follow site';b.disabled=false})},true);
 /* keeps the sheet's Save button in step with the story's saved state */
 function rdxMnSync(){if(!curA)return;const sv=isSaved(curA);document.querySelectorAll('#mn [data-act="save"],.rfoot [data-act="save"]').forEach(b=>{b.setAttribute('aria-pressed',String(sv));const o=b.querySelector('svg');if(o)o.outerHTML=starSvg(sv);const l=b.querySelector('.mnl');if(l)l.textContent=sv?'Saved':'Save';else if(!o)b.textContent=sv?'Saved':'Save'})}
 let RDX_MNO=null;
@@ -12029,7 +12040,7 @@ function mnMarkupOld(){return `<div class="pb mn" id="mn" hidden><section class=
 /* Translate story: only when asked. On-device when the browser has the Translator API (the text never leaves the phone); otherwise offer Google Translate, which sees the story's address */
 const TR={on:false,busy:false,orig:null};
 const trEls=()=>[...document.querySelectorAll('.cols .body p,.cols .body h2,.cols .body h3,.cols .body h4,.cols .body li,.cols .body blockquote,.cols .body .pullq,.cols>.tt,.cols>.whyit p,.cols .body figcaption')].filter(e=>!e.querySelector('p,li,blockquote')&&(e.textContent||'').trim().length>1);
-function trLabel(){const b=document.querySelector('[data-act="tr"]');if(!b)return;const t=TR.on?'Show original':'Translate story',l=b.querySelector('.mnl');if(l){l.textContent=TR.on?'Original':'Translate';b.setAttribute('aria-label',t)}else b.textContent=t}
+function trLabel(){const b=document.querySelector('[data-act="tr"]');if(!b)return;const t=TR.on?'Show original':'Translate story',l=b.querySelector('.mnl');if(l){l.textContent=b.closest('.rshq')?(TR.on?'Original':'Translate'):t;b.setAttribute('aria-label',t)}else b.textContent=t}
 function trReset(){TR.on=false;TR.busy=false;TR.orig=null;trLabel()}
 let _cytr;const CyTR=()=>{try{if(!NATIVE)return null;if(_cytr!==undefined)return _cytr;const C=window.Capacitor;return _cytr=(C.Plugins&&C.Plugins.CyTranslate)||(C.registerPlugin?C.registerPlugin('CyTranslate'):null)}catch(e){return null}};
 /* the phone's own translator (Google ML Kit, built into the app): the story text never leaves the phone; only the first use of a language downloads its language pack */
