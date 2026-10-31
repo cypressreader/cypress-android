@@ -9081,7 +9081,11 @@ function tidy(fr){
  let acc=0,cut=-1;
  for(let i=0;i<kids.length;i++){
   const t=txt(kids[i]);
-  if(acc>total*.35&&t.length<240&&END.test(t)){cut=i;break}
+  if(acc>total*.35&&t.length<240&&END.test(t)){
+   const rest=kids.slice(i+1);
+   /* a short promo line mid-story ("Read more: …") is not the end when real story follows it: only that line goes */
+   if(rest.filter(k=>txt(k).length>=90).length>=2&&rest.reduce((q,k)=>q+txt(k).length,0)>total*.25){drop(kids[i]);continue}
+   cut=i;break}
   acc+=t.length;
  }
  if(cut>=0){
