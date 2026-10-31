@@ -442,9 +442,9 @@ html.smooth .cover.cm-frost .cvlead{-webkit-backdrop-filter:none;backdrop-filter
 .cover[class*=cv-].flip .cvtop{padding:18px 22px 0}.cover[class*=cv-].flip .cvbot{padding:0 22px 22px}.cover[class*=cv-].flip{flex-direction:column}.cover[class*=cv-].flip .cvsh{transform:none}
 .cover.cv-split.flip .cvtop{padding:22px 24px 0}.cover.cv-split.flip .cvbot{padding:0 24px 24px}
 /* skeleton + empty actions */
-.skg{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:12px;font-style:normal;text-align:left}
+.skg{grid-column:1/-1;display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px;font-style:normal;text-align:left}
 .sks{border-radius:var(--r-m);background:var(--pn);border:1px solid var(--ln);padding:0 0 14px;overflow:hidden;display:grid;gap:10px}
-.sks i{display:block;height:130px;background:var(--ln)}.sks b{display:block;height:12px;margin:0 14px;border-radius:6px;background:var(--ln)}.sks b.s{width:55%}
+.sks i{display:block;aspect-ratio:16/11;max-height:min(420px,46svh);background:var(--ln)}.sks b{display:block;height:12px;margin:0 14px;border-radius:6px;background:var(--ln)}.sks b.s{width:55%}
 .sks i,.sks b{background-image:linear-gradient(90deg,transparent,color-mix(in srgb,var(--a1,var(--logo,var(--ink))) 16%,color-mix(in srgb,var(--ink) 5%,transparent)),transparent);background-size:200% 100%;animation:skm 1.4s ease-in-out infinite}
 @keyframes skm{from{background-position:200% 0}to{background-position:-200% 0}}
 @media(prefers-reduced-motion:reduce){.sks i,.sks b{animation:none}}
@@ -12155,7 +12155,8 @@ $('#ppr').onchange=e=>{S.paper=+e.target.value;save();applyFx();syncSet()};
 $('#cvs').onchange=e=>{S.cvs=e.target.value;save();cvSetBtn();render()};
 
 /* loading skeletons and empty-state actions */
-const SKEL=()=>skelCap()+'<div class="skg" aria-hidden="true">'+'<div class="sks"><i></i><b></b><b class="s"></b></div>'.repeat(6)+'</div>';
+/* F-05: the skeleton is shaped like the page it stands in for: the masthead band (it needs no data) over a cover-shaped block, then three headline rows, so the real content lands in place */
+const SKEL=()=>{const d=new Date();return skelCap()+`<div class="dg"><header class="dmast" aria-hidden="true"><h2>CyPress</h2><small><span class="dm-l">${esc(edition(d))} · <span class="dm-d">${esc(d.toLocaleDateString([],{month:'long',day:'numeric'}))}</span></span></small></header><div class="skg" aria-hidden="true"><div class="sks"><i></i><b></b><b class="s"></b></div>${skRow.repeat(3)}</div></div>`};
 const EA=(...k)=>'<div class="eact">'+k.map(x=>({rf:'<button type="button" class="go" data-ea="rf">Refresh</button>',hl:'<button type="button" class="tx2" data-ea="hl">Check my sites</button>',ad:'<button type="button" class="go" data-ea="ad">Add a site</button>',sp:'<button type="button" class="tx2" data-ea="sp">Pick sites</button>',td:'<button type="button" class="go" data-ea="td">Browse today’s stories</button>',cl:'<button type="button" class="go" data-ea="cl">Clear the search</button>',sv:'<button type="button" class="go" data-ea="sv">Open saved stories</button>',st:'<button type="button" class="tx2" data-ea="st">Open Settings</button>'}[x])).join('')+'</div>';
 /* polish-2026-10 (E4): one designed empty state: mark, headline, one sentence, one button. a = EA(...) buttons. */
 const noStoriesHtml=()=>S.feeds.length?empNoStories():emp('No sites yet','Add a few sites you like and their latest stories show up here.',EA('ad','sp'));
