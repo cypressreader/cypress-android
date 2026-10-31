@@ -5233,12 +5233,18 @@ async function fetchText1(url,ok,lg){
  add('corsproxy',u=>'https://corsproxy.io/?url='+encodeURIComponent(u));
  add('allorigins-json',u=>'https://api.allorigins.win/get?url='+encodeURIComponent(u),1);
  }
- const gap=NATIVE?950:650,ms=NATIVE?7500:6000;
+ /* the route that won for this site last time goes first, the next-fastest 250 ms later (950 ms on mobile data); the first routes get 4 s each, only the last resort gets the full 7.5 s */
+ let hh='';try{hh=new URL(url).hostname.replace(/^www\./,'')}catch(e){}
+ let mem={};try{mem=(SROUTE[hh]&&SROUTE[hh].f)||{}}catch(e){}
+ const med=x=>{const a=(x||[]).slice().sort((u,v)=>u-v);return a.length?a[a.length>>1]:1e9},rank=p=>p.n===mem.w?-1:med(mem.m&&mem.m[p.n]);if(P.length>1)P.sort((a,b)=>rank(a)-rank(b));
+ P.forEach((p,k)=>p.ms=k===P.length-1?7500:4000);
+ const rec=(n,t)=>{try{const e=SROUTE[hh]||(SROUTE[hh]={}),f=e.f||(e.f={m:{}}),a=f.m[n]||(f.m[n]=[]);a.push(t);if(a.length>5)a.shift();f.w=n;const k=Object.keys(SROUTE);if(k.length>200)delete SROUTE[k[0]];clearTimeout(fetchText1.t);fetchText1.t=setTimeout(()=>{try{localStorage.setItem('folio-sroute',JSON.stringify(SROUTE))}catch(e){}},1500)}catch(e){}};
+ const cell=(()=>{try{const c=navigator.connection;return !!(c&&(c.type==='cellular'||c.saveData))}catch(e){return false}})(),gap=NATIVE||cell?950:250;
  let over=false,won=false;const ctls=[],timers=[];
  const one=(p,c)=>new Promise((res,rej)=>{
-  let dead=false;
+  let dead=false;const t0=Date.now();
   const fail=w=>{if(lg&&!over&&!won)lg.push(p.n+': '+w);rej(new Error(w))};
-  const to=setTimeout(()=>{dead=true;try{c.abort()}catch(e){}fail('timed out')},ms);
+  const to=setTimeout(()=>{dead=true;try{c.abort()}catch(e){}fail('timed out')},p.ms||4000);
   (async()=>{
    try{
     /* "only if it changed": on the direct route a feed we already hold is asked for with the validators the site gave last time (ETag / Last-Modified); an unchanged feed answers 304 with no body */
@@ -5256,7 +5262,7 @@ async function fetchText1(url,ok,lg){
     if(ok&&!ok(t))throw 'no readable article in reply ('+t.length+' chars)';
     /* a background download with a usable body has won: stop the other routes now (not after the quiet wait), so a story goes to one relay, not all of them */
     if(lg&&lg.bg&&lg.bg()&&!dead){clearTimeout(to);if(won)throw 'stopped';won=true;timers.forEach(clearTimeout);ctls.forEach(x=>{if(x!==c)try{x.abort()}catch(e){}});await bgGate();if(over)throw 'stopped'}
-    if(!dead){clearTimeout(to);if(lg){lg.won=p.n;if(p.h&&lg.cond!==undefined)try{const g=k=>(r.headers&&r.headers.get&&r.headers.get(k))||'';lg.val={etag:g('etag'),lm:g('last-modified')}}catch(e){}}res(t)}
+    if(!dead){clearTimeout(to);if(hh)rec(p.n,Date.now()-t0);if(lg){lg.won=p.n;if(p.h&&lg.cond!==undefined)try{const g=k=>(r.headers&&r.headers.get&&r.headers.get(k))||'';lg.val={etag:g('etag'),lm:g('last-modified')}}catch(e){}}res(t)}
    }catch(e){if(dead)return;clearTimeout(to);if(e&&e.nm){if(lg&&!over)lg.push(p.n+': unchanged since last time');rej(e);return}if(e&&e.hard){if(lg&&!over)lg.push(p.n+': '+e.message);rej(e);return}fail(typeof e==='string'?e:c.signal.aborted?'stopped':'blocked or offline')}
   })();
  });
@@ -9124,7 +9130,7 @@ async function jinaRead(url,ms){
 }
 /* a page that gave only a stub is never accepted as it is: try the reader, keep the longest */
 const SROUTE=(()=>{try{return JSON.parse(localStorage.getItem('folio-sroute')||'{}')}catch(e){return{}}})();
-function saveSroute(h,r){if(!h)return;SROUTE[h]={r,t:Date.now()};try{const k=Object.keys(SROUTE);if(k.length>200)delete SROUTE[k[0]];localStorage.setItem('folio-sroute',JSON.stringify(SROUTE))}catch(e){}}
+function saveSroute(h,r){if(!h)return;SROUTE[h]={...SROUTE[h],r,t:Date.now()};try{const k=Object.keys(SROUTE);if(k.length>200)delete SROUTE[k[0]];localStorage.setItem('folio-sroute',JSON.stringify(SROUTE))}catch(e){}}
 async function upgradeStub(fr,url){
  if(S.offline||(isOn('dsave')&&onCell()))return fr;
  let hh='';try{hh=new URL(url).hostname.replace(/^www\./,'')}catch(e){}
