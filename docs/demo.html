@@ -796,7 +796,7 @@ html:is(.mast-tint,.mast-gradient,.mast-glow) .cover:is(.cv-gazette,.cv-gallery,
 #dial:hover i::after,#dial.act i::after{opacity:1;transform:scale(1)}
 ::highlight(tts-s){background-color:color-mix(in srgb,var(--hl) 38%,transparent)}
 .fr small.stl{font-weight:500;color:var(--mut)}
-body.offl #ttl::after{content:'Offline';margin-left:10px;padding:2px 9px;border-radius:99px;font:700 11px var(--sans);letter-spacing:.03em;vertical-align:3px;background:var(--ln);color:var(--mut)}
+body.offl #ttl::after,body.netoff #ttl::after{content:'Offline';margin-left:10px;padding:2px 9px;border-radius:99px;font:700 11px var(--sans);letter-spacing:.03em;vertical-align:3px;background:var(--ln);color:var(--mut)}
 body.offl .card:not(:has(.rdy)) img{opacity:.55}
 .pw.tr{background:var(--logo);color:var(--pn)}
 .fivr{display:flex;justify-content:center;padding:4px 0 2px;grid-column:1/-1}
@@ -5971,6 +5971,7 @@ function applyRules(f,all){
  f.rseen=[...seen].slice(-400);if(ch||all)save();return n;
 }
 const rfSkip=(f,fresh)=>{if(fresh===true||!f.rfm)return false;if(!(items[f.id]||[]).length)return false;if(f.rfm<0)return true;const ok=(S.health[f.id]||{}).ok||0;return Date.now()-ok<f.rfm*6e4};
+{const n=()=>document.body.classList.toggle('netoff',navigator.onLine===false);n();addEventListener('offline',n);addEventListener('online',n)}
 let ONT=0;addEventListener('online',()=>{clearTimeout(ONT);ONT=setTimeout(()=>{if(!S.offline&&!FROZEN)loadAll(true)},2000)});
 /* B95: a feed that keeps failing is tried less and less often (15 min after the third failure in a row, then 30, 60 … up to a day) instead of on every refresh; pulling to refresh or the refresh button still tries everything */
 const deadWait=f=>{const h=S.health[f.id]||{},n=h.fn||0;/* a site that said "too many requests, come back in N" (HTTP 429 Retry-After) is left alone that long */if(h.fail&&h.ra>h.fail)return Math.min(864e5,h.ra-h.fail);if(n<3||!h.fail)return 0;return Math.min(864e5,9e5*Math.pow(2,n-3))};
