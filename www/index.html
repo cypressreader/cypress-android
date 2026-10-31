@@ -3943,7 +3943,7 @@ body.exbusy [data-exact]{cursor:progress}
 #aapop output{min-width:3.2em;text-align:center;font:600 13px var(--sans)}
 #aapop .aap{padding:6px 10px;border-radius:999px;border:1px solid var(--ln);background:transparent;color:var(--ink);font:600 13px var(--sans);cursor:pointer}
 #aapop .aap.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-#aapop .aamore{background:none;border:0;padding:4px 0;color:var(--a1,var(--ink));font:600 13px var(--sans);text-decoration:underline;cursor:pointer}
+#aapop .aamore{background:none;border:0;padding:4px 0;color:var(--a1,var(--ink));font:600 13px var(--sans);text-decoration:underline;cursor:pointer}#aapop #aamored>summary{list-style:none}#aapop #aamored>summary::-webkit-details-marker{display:none}#aapop #aamored>.aarow:last-child{border-bottom:none}#aapop #aasample{color:var(--ink)}
 #aapop button:focus-visible,#raa:focus-visible{outline:2px solid var(--logo,var(--ink));outline-offset:2px}
 /* --- Print Magazine & Cover Sophistication Overhaul --- */
 /* 1. Small-caps editorial kickers & quiet footers on cards */
@@ -7252,70 +7252,75 @@ function focusLine(){
 {const _d2=decorate;decorate=function(){try{return _d2.apply(this,arguments)}finally{try{focusInstall()}catch(e){}}}}
 /* the "Aa" button in the reader bar: text size, reading style, line spacing and sepia without leaving the story; the story reflows as you tap */
 const AA_LH=[['Tight',1.5],['Normal',1.68],['Roomy',1.9]];
-const AA_TH=[['rosewood','Sepia Rosewood','#ebe5d5','#17140e'],['halcyon','Cypress','#f3ecdc','#123524'],['coast','Coast','#DDEEF4','#14333B'],['press','Newsprint','#F2EFE9','#111111'],['aurora','Aurora','#070b14','#5dffb0'],['eink','Black & White','#ffffff','#000000']];
-const AA_FN=[['theme','Theme'],['literata','Serif'],['sans','Sans'],['hyper','Readable']];
+/* polish S-02: the reading presets set size, line spacing and width together; a preset lights up while the three values still match it */
+const AA_PRE=[['Default',18,1.68,'c'],['Comfortable',19,1.9,'c'],['Large print',24,1.8,'n'],['Dense',16,1.5,'w']];
+const aaPreOn=p=>(+S.fs||18)===p[1]&&Math.abs((+S.lh||1.68)-p[2])<.02&&(S.rw||'c')===p[3];
 let aaOpener=null;
 function aaBuild(){
  let pop=$('#aapop');if(pop)return pop;
- pop=document.createElement('div');pop.id='aapop';pop.hidden=true;pop.setAttribute('role','dialog');pop.setAttribute('aria-modal','true');pop.setAttribute('aria-label','Text and appearance');
- pop.innerHTML='<div class="aahd"><span class="aagrip" id="aagrip" aria-hidden="true"></span><b>Text and appearance</b><button type="button" class="ib" id="aax" aria-label="Close text and appearance">'+svg('<path d="M6 6l12 12M18 6L6 18"/>')+'</button></div>'
-  +'<div class="aarow aacol"><span id="aathl">Theme</span><span class="aascr" role="radiogroup" aria-labelledby="aathl">'+AA_TH.map(([id,n,bg,ink])=>'<button type="button" class="aap aathc" role="radio" data-aath="'+id+'" aria-checked="false"><i class="aasw" style="--sb:'+bg+';--si:'+ink+'" aria-hidden="true">A</i>'+n+'</button>').join('')+'<button type="button" class="aap aathc" id="aaall">All themes…</button></span></div>'
-  +'<div class="aarow"><span id="aafnl">Font</span><span class="aaq" role="radiogroup" aria-labelledby="aafnl">'+AA_FN.map(([id,n])=>'<button type="button" class="aap" role="radio" data-aafn="'+id+'" aria-checked="false">'+n+'</button>').join('')+'</span></div>'
-  +'<div class="aarow"><span>Bold word starts</span><button type="button" class="aap" data-tg="focusr" aria-label="Bold word starts"></button></div>'
-  +'<div class="aarow"><span>Text size</span><span class="aaq"><button type="button" class="ib" data-fs="-1" aria-label="Smaller text">A−</button><output id="aafsv" aria-live="polite"></output><button type="button" class="ib" data-fs="1" aria-label="Larger text">A+</button></span></div><div class="aarow"><input type="range" id="aafsr" min="14" max="34" step="1" aria-label="Text size" style="width:100%;accent-color:var(--a1,currentColor)"></div>'
-  +'<div class="aarow"><span>Large print</span><button type="button" class="aap" data-tg="lp" aria-label="Large print"></button></div>'
-  +'<div class="aarow"><span>Reading style</span><span class="aaq" role="group" aria-label="Reading style"><button type="button" class="aap" data-sc="auto">Auto</button><button type="button" class="aap" data-sc="pages">Pages</button><button type="button" class="aap" data-sc="vertical">Scroll</button></span></div>'
-  /* polish-2026-10 F6 + G1: reading width and page-turn style */
-  +'<div class="aarow"><span id="aarwl">Reading width</span><span class="aaq" role="radiogroup" aria-labelledby="aarwl">'+[['n','Narrow'],['c','Comfortable'],['w','Wide']].map(([id,n])=>'<button type="button" class="aap" role="radio" data-aarw="'+id+'" aria-checked="false">'+n+'</button>').join('')+'</span></div>'
-  +'<div class="aarow"><span id="aaptl">Page turn</span><span class="aaq" role="radiogroup" aria-labelledby="aaptl">'+[['paper','Paper'],['slide','Slide'],['fade','Fade'],['none','None']].map(([id,n])=>'<button type="button" class="aap" role="radio" data-aapt="'+id+'" aria-checked="false">'+n+'</button>').join('')+'</span></div>'
+ if(S.lp){/* the old Large print switch becomes the Large print preset */delete S.lp;S.fs=24;S.lh=1.8;S.rw='n';save()}
+ pop=document.createElement('div');pop.id='aapop';pop.hidden=true;pop.setAttribute('role','dialog');pop.setAttribute('aria-modal','true');pop.setAttribute('aria-label','Reading settings');
+ const fonts=[...document.querySelectorAll('#fnt option')].map(o=>[o.value,o.textContent]);
+ pop.innerHTML='<div class="aahd"><span class="aagrip" id="aagrip" aria-hidden="true"></span><b>Reading</b><button type="button" class="ib" id="aax" aria-label="Close reading settings">'+svg('<path d="M6 6l12 12M18 6L6 18"/>')+'</button></div>'
+  +'<div class="aarow aacol"><p class="rprev-p" id="aasample" aria-hidden="true"><span class="dcap">T</span>he best digital magazine feels like paper that learned how to breathe. Change the size, font or spacing and watch this passage adapt.</p></div>'
+  +'<div class="aarow aacol"><span id="aaprl">Preset</span><span class="aaq" role="group" aria-labelledby="aaprl" style="justify-content:flex-start">'+AA_PRE.map((p,i)=>'<button type="button" class="aap" data-aapre="'+i+'" aria-pressed="false">'+p[0]+'</button>').join('')+'</span></div>'
+  +'<div class="aarow"><span>Size</span><span class="aaq"><button type="button" class="ib" data-fs="-1" aria-label="Smaller text">A−</button><output id="aafsv" aria-live="polite"></output><button type="button" class="ib" data-fs="1" aria-label="Larger text">A+</button></span></div>'
+  +'<div class="aarow aacol"><span id="aafnl">Font</span><span class="aascr" role="radiogroup" aria-labelledby="aafnl">'+fonts.map(([id,n])=>'<button type="button" class="aap aathc" role="radio" data-aafn="'+id+'" aria-checked="false"'+(FONTS[id]?' style="font-family:'+FONTS[id].replace(/"/g,'&quot;')+'"':'')+'>'+n+'</button>').join('')+'</span></div>'
+  +'<div class="aarow"><span>Pages or scroll</span><span class="aaq" role="group" aria-label="Pages or scroll"><button type="button" class="aap" data-sc="auto">Auto</button><button type="button" class="aap" data-sc="pages">Pages</button><button type="button" class="aap" data-sc="vertical">Scroll</button></span></div>'
+  +'<div class="aarow"><span>Theme</span><button type="button" class="aap" id="aaall" aria-haspopup="dialog"><span id="aathn"></span> ›</button></div>'
+  +'<details class="aarow aacol" id="aamored"><summary class="aamore">More: spacing, width, page turn, letter spacing, bold word starts</summary>'
   +'<div class="aarow"><span>Line spacing</span><span class="aaq" role="group" aria-label="Line spacing">'+AA_LH.map(([n,v])=>'<button type="button" class="aap" data-lh="'+v+'">'+n+'</button>').join('')+'</span></div>'
+  +'<div class="aarow"><span id="aarwl">Width</span><span class="aaq" role="radiogroup" aria-labelledby="aarwl">'+[['n','Narrow'],['c','Comfortable'],['w','Wide']].map(([id,n])=>'<button type="button" class="aap" role="radio" data-aarw="'+id+'" aria-checked="false">'+n+'</button>').join('')+'</span></div>'
+  +'<div class="aarow"><span id="aaptl">Page turn</span><span class="aaq" role="radiogroup" aria-labelledby="aaptl">'+[['paper','Paper'],['slide','Slide'],['fade','Fade'],['none','None']].map(([id,n])=>'<button type="button" class="aap" role="radio" data-aapt="'+id+'" aria-checked="false">'+n+'</button>').join('')+'</span></div>'
   +'<div class="aarow"><span>Letter spacing</span><span class="aaq" role="group" aria-label="Letter and word spacing">'+[['Tight','t'],['Normal','n'],['Open','o']].map(([n,v])=>'<button type="button" class="aap" data-aasp="'+v+'">'+n+'</button>').join('')+'</span></div>'
+  +'<div class="aarow"><span>Bold word starts</span><button type="button" class="aap" data-tg="focusr" aria-label="Bold word starts"></button></div>'
   +'<div class="aarow"><span>Sepia reading page</span><button type="button" class="aap" data-tg="sep" aria-label="Sepia reading page"></button></div>'
-  +'<div class="aarow"><button type="button" class="aamore" id="aamore">More reading settings…</button></div>';
- $('#rd').append(pop);return pop;
+  +'<div class="aarow"><button type="button" class="aamore" id="aamore">More reading settings…</button></div></details>';
+ (set.open?set:$('#rd')).append(pop);return pop;
 }
 function aaSync(){
  const pop=$('#aapop');if(!pop)return;
- $('#aafsv').textContent=(S.fs||18)+'px';{const r=$('#aafsr');if(r)r.value=S.fs||18}
+ $('#aafsv').textContent=(S.fs||18)+'px';
+ pop.querySelectorAll('[data-aapre]').forEach(b=>{const on=aaPreOn(AA_PRE[+b.dataset.aapre]);b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))});
  pop.querySelectorAll('[data-sc]').forEach(b=>{const on=b.dataset.sc===(S.scroll||'auto');b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))});
  pop.querySelectorAll('[data-lh]').forEach(b=>{const on=Math.abs((+S.lh||1.68)-+b.dataset.lh)<.02;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))});
  pop.querySelectorAll('[data-aasp]').forEach(b=>{const on=b.dataset.aasp===(S.tsp||'n');b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))});
- const th=S.theme||'auto';pop.querySelectorAll('[data-aath]').forEach(b=>{const on=b.dataset.aath===th;b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on));b.tabIndex=on?0:-1});
- pop.querySelectorAll('[data-aafn]').forEach(b=>{const on=b.dataset.aafn===(S.font||'theme');b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on));b.tabIndex=on?0:-1});
+ pop.querySelectorAll('[data-aafn]').forEach(b=>{const on=b.dataset.aafn===(S.font||'theme');b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on));b.tabIndex=on?0:-1;if(on)b.scrollIntoView({block:'nearest',inline:'nearest'})});
  pop.querySelectorAll('[data-aarw]').forEach(b=>{const on=b.dataset.aarw===(S.rw||'c');b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on));b.tabIndex=on?0:-1});
  pop.querySelectorAll('[data-aapt]').forEach(b=>{const on=b.dataset.aapt===(S.pturn||'paper');b.classList.toggle('on',on);b.setAttribute('aria-checked',String(on));b.tabIndex=on?0:-1});
  {const fb=pop.querySelector('[data-tg="focusr"]'),fo=isOn('focusr');fb.classList.toggle('on',fo);fb.setAttribute('aria-pressed',String(fo));fb.textContent=fo?'On':'Off'}
- {const lb=pop.querySelector('[data-tg="lp"]'),lo=!!S.lp;lb.classList.toggle('on',lo);lb.setAttribute('aria-pressed',String(lo));lb.textContent=lo?'On':'Off'}
  const sp=pop.querySelector('[data-tg="sep"]'),so=!!S.sep;sp.classList.toggle('on',so);sp.setAttribute('aria-pressed',String(so));sp.textContent=so?'On':'Off';
+ {const th=S.theme||'auto',nm=Object.fromEntries(THEME_NAMES);$('#aathn').textContent=th==='dynamic'?'Dynamic':(nm[th]||'Light & Dark')}
+ /* the sample paragraph reads exactly like the story will */
+ const p=$('#aasample'),ls={t:'-0.01em',n:'',o:'0.03em'}[S.tsp||'n']||'';p.style.cssText='font-family:'+(FONTS[fontKey()]||'var(--serif)')+';font-size:'+(S.fs||18)+'px;line-height:'+(S.lh||1.68)+';letter-spacing:'+ls+';max-width:'+({n:'72%',c:'88%',w:'100%'}[S.rw||'c'])+';margin:0;text-align:'+(S.just===false?'left':'justify');
 }
 function aaClose(back){const pop=$('#aapop'),aa=$('#raa');if(pop&&!pop.hidden){pop.hidden=true;pop.style.transform='';if(aa)aa.setAttribute('aria-expanded','false');const o=(aaOpener&&document.contains(aaOpener)&&!aaOpener.hidden)?aaOpener:(aa&&!aa.hidden?aa:$('#mo'));aaOpener=null;if(back&&o)o.focus()}}
 function aaToggle(){
  const pop=aaBuild();
  if(!pop.hidden){aaClose(true);return}
- aaOpener=document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#mo,#raa,#raaf')||$('#mo')||$('#raa');aaSync();pop.hidden=false;const aa=$('#raa');if(aa)aa.setAttribute('aria-expanded','true');
+ /* opened from Settings, the sheet sits inside the Settings dialog (a modal dialog covers everything else) */
+ const host=set.open?set:$('#rd');if(pop.parentNode!==host)host.append(pop);
+ aaOpener=document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#mo,#raa,#raaf,#aaopen')||$('#mo')||$('#raa');try{fontPreviews()}catch(e){}aaSync();pop.hidden=false;const aa=$('#raa');if(aa)aa.setAttribute('aria-expanded','true');
  const f=pop.querySelector('#aax');if(f)f.focus();
 }
-/* the text size slider: the label follows the finger, the story re-flows once you pause (re-flowing pages on every step would stutter) */
-document.addEventListener('input',e=>{if(e.target.id!=='aafsr')return;S.fs=+e.target.value;$('#aafsv').textContent=S.fs+'px';clearTimeout(aaFsT);aaFsT=setTimeout(()=>{save();applyFs(true)},180)});let aaFsT=0;
 document.addEventListener('click',e=>{
  const t=e.target;if(!t.closest)return;
- if(t.closest('#raa,#raaf')){e.preventDefault();e.stopPropagation();aaToggle();return}
+ if(t.closest('#raa,#raaf,#aaopen')){e.preventDefault();e.stopPropagation();aaToggle();return}
  const pop=$('#aapop');if(!pop||pop.hidden)return;
  if(!t.closest('#aapop')){aaClose(false);return}
  const b=t.closest('button');if(!b)return;
  if(b.id==='aax'){aaClose(true);return}
- if(b.id==='aamore'||b.id==='aaall'){aaClose(false);try{$('#gear').onclick()}catch(x){}try{setShow('read')}catch(x){}return}
- const fz=b.dataset.fs,sc=b.dataset.sc,lh=b.dataset.lh,tg=b.dataset.tg,ath=b.dataset.aath,afn=b.dataset.aafn,arw=b.dataset.aarw,apt=b.dataset.aapt;
+ if(b.id==='aamore'||b.id==='aaall'){aaClose(false);try{$('#gear').onclick()}catch(x){}try{setShow(b.id==='aaall'?'look':'read')}catch(x){}return}
+ const fz=b.dataset.fs,sc=b.dataset.sc,lh=b.dataset.lh,tg=b.dataset.tg,afn=b.dataset.aafn,arw=b.dataset.aarw,apt=b.dataset.aapt,pre=b.dataset.aapre;
  if(b.dataset.aasp){S.tsp=b.dataset.aasp;if(S.tsp==='n')delete S.tsp;save();applyFs(true);aaSync();return}
- if(arw){S.rw=arw==='c'?undefined:arw;if(!S.rw)delete S.rw;save();relayout()}
+ if(pre){const p=AA_PRE[+pre];S.fs=p[1];S.lh=p[2];S.rw=p[3];if(S.rw==='c')delete S.rw;save();applyFs(true);relayout()}
+ else if(arw){S.rw=arw==='c'?undefined:arw;if(!S.rw)delete S.rw;save();relayout()}
  else if(apt){S.pturn=apt;if(apt==='paper')delete S.pturn;save()}
  else if(fz){S.fs=Math.max(14,Math.min(34,(+S.fs||18)+ +fz));save();applyFs(true)}
  else if(sc){S.scroll=sc;save();refreshReader()}
  else if(lh){S.lh=+lh;save();applyFs(true)}
  else if(tg==='sep'){S.sep=!S.sep;save();applyFs(true)}
- else if(tg==='lp'){/* Large print: bigger text and roomier lines; turning it off restores the earlier size */if(S.lp){S.fs=S.lp.fs;S.lh=S.lp.lh;S.lp=null}else{S.lp={fs:+S.fs||18,lh:+S.lh||1.68};S.fs=24;S.lh=1.8}save();applyFs(true);aaSync()}
  else if(tg==='focusr'){S.focusr=!isOn('focusr');save();syncSet();applyFx();decorate();relayout()}
- else if(ath){S.theme=ath;applyTheme(false);save();render()}
  else if(afn){S.font=afn;needFont(afn);save();refreshReader()}
  else return;
  aaSync();try{syncSet()}catch(x){}
@@ -7326,7 +7331,7 @@ document.addEventListener('keydown',e=>{
  /* arrow keys move through a choice group (and never turn the page behind the sheet) */
  if(/^Arrow(Left|Right|Up|Down)$/.test(e.key)&&pop.contains(e.target)){e.stopPropagation();const g=e.target.closest('[role=radiogroup]');if(g){const rs=[...g.querySelectorAll('[role=radio]')],i=rs.indexOf(e.target);if(i>=0){e.preventDefault();const n=rs[(i+(/Right|Down/.test(e.key)?1:-1)+rs.length)%rs.length];n.focus();n.click()}}return}
  if(e.key===' '&&pop.contains(e.target)){e.stopPropagation();return}
- if(e.key==='Tab'){const bs=[...pop.querySelectorAll('button')];if(!bs.length)return;const f=bs[0],l=bs[bs.length-1];if(e.shiftKey&&document.activeElement===f){e.preventDefault();l.focus()}else if(!e.shiftKey&&document.activeElement===l){e.preventDefault();f.focus()}}
+ if(e.key==='Tab'){const bs=[...pop.querySelectorAll('button,summary')].filter(b=>b.offsetParent!==null);if(!bs.length)return;const f=bs[0],l=bs[bs.length-1];if(e.shiftKey&&document.activeElement===f){e.preventDefault();l.focus()}else if(!e.shiftKey&&document.activeElement===l){e.preventDefault();f.focus()}}
 },true);
 try{new MutationObserver(()=>{const r=$('#rd');if(r&&!r.classList.contains('on'))aaClose(false)}).observe($('#rd'),{attributes:true,attributeFilter:['class']})}catch(e){}
 /* a thumb-height "Aa" button opens the same sheet; dragging the sheet down closes it */
@@ -10210,6 +10215,8 @@ const SET_MK={pqc:['pqs'],folio:['endm'],covers:['sop']};
 const SET_HIDE=['Light or dark','Varied story layout','Quiet layout','Sepia paper','Newsprint grain','Data saver','Text only','Living Dynamic theme','Tint the app from the cover photo','Tint pages with photo colors','Paper texture','Tidy photo captions','Polished typography','Sepia reading page','Page-turn sound','Page-turn tick','Light rays on the cover','Seasonal touches','Interface sounds','Reduce motion'];
 /* polish-2026-10 (D3): Photo magazine look (testing) is hidden (the saved value stays as it was); Single-key shortcuts moved into the Keyboard shortcuts sheet. Restore by removing the entries from this push. */
 SET_HIDE.push('Photo magazine look (testing)','Single-key shortcuts');
+/* polish S-02: font, line spacing and margins live in the Reading sheet (the Aa panel), opened by the Reading settings row */
+SET_HIDE.push('Line spacing','Page margins');
 /* polish-2026-10 (D2): plain names. Keys (left) are the old labels, so saved settings and search keep working. Restore a name by deleting its entry. */
 const SET_REN={'L:Quiet mode: dots, not numbers':['Hide unread counts','A small dot beside sites and folders with something new, instead of numbers. Also hides “unread” in The Daily'],'L:Smooth mode':['Smoother scrolling','No blurs or soft shadows, and stories load as you scroll. On by default in Safari and on touch screens'],'L:Theme effects':['Animated themes','Rain, aurora lights, fireflies and other moving extras some themes have. They pause while you read'],'L:Manage feeds':['Manage your sites','Rename, recolor or fix broken sites'],'L:Import or export feeds':['Import or export your feeds file','Move your sites to or from another app'],'L:Test suggested feeds':['Test suggested sites','Checks every suggested site and copies a list of any that no longer load. Takes a few minutes'],'L:Test sites on this phone':['Test my sites on this phone','Tries each of your sources the way CyPress does and writes a report you can send to the developer. Takes a few minutes']};
 const SET_PAGES=[
@@ -10218,7 +10225,7 @@ const SET_PAGES=[
   more:[{h:'Theme extras',items:['L:App icon','L:Seasonal touches','L:Theme layouts','L:Text on photos','L:Cover title style']},{h:'Per folder',items:['L:Theme by folder']}],
   rst:['theme','dynm','cvs','mast','ptone','paper','scrim','ptint','gtop']},
  {id:'read',t:'Reading',d:'Fonts, size and story layout',c:'#0a8f4a',lead:'How a story looks while you read it.',
-  main:[{items:['P:rprev','L:Reading style','L:Text size','L:Type preset','P:font']}],
+  main:[{items:['P:rprev','X:aa','L:Reading style','L:Text size','L:Type preset']}],
   more:[{h:'Text details',items:['L:Headline font','L:Line spacing','L:Page margins','L:Compact reading on phones','L:Follow my phone’s text size','L:Bold word starts','L:Dim photos in dark themes']},{h:'Page details',items:['L:Justify text','L:Author and site notes','L:Swipe down to close a story']},{h:'Magazine extras',items:['L:Magazine touches','L:Photo pages','L:Feature spread','M:pq','M:marks','L:Table of contents','L:Story timeline','L:At-a-glance box','L:You might also like']}],
   rst:['font','hfont','fs','lh','mg','rl','scroll','endm','pqs']},
  {id:'home',t:'Home and Covers',d:'Today page, cards and wide screens',c:'#e2742a',lead:'What you see when you open CyPress, and how stories are laid out on big screens.',
@@ -10297,6 +10304,7 @@ function setItems(items){
   else if(k==='X:motion')out.push(setMotionLine());
   else if(k==='X:presets')out.push(setPresetLine());
   else if(k==='X:sch')out.push(setSchLine());
+  else if(k==='X:aa')out.push(setAaLine());
   else if(k==='X:pics')out.push(setPicsLine());
   else if(k==='X:trl'){if(CyTR())out.push(setTrLine())}
   else if(k==='X:fpst')out.push(setFsLine());
@@ -10304,6 +10312,7 @@ function setItems(items){
   else{const ns=setTake(k),r=SET_REN[k];if(r&&ns.length)setRelabel(ns,r[0],r[1]);out.push(...ns)}
  });
  return out}
+function setAaLine(){const d=document.createElement('div');d.className='line';d.innerHTML='<span class="lb">Reading settings<small>Size, font, spacing, width and page turn, with a live sample</small></span><button type="button" class="tx2" id="aaopen" aria-haspopup="dialog">Open</button>';return d}
 function setMotionLine(){
  const d=document.createElement('div');d.className='line';d.id='molrow';
  d.innerHTML='<span class="lb">Motion<small id="molh"></small></span><div class="segs" id="molv"><button type="button" data-mo="full">Full</button><button type="button" data-mo="calm">Calm</button><button type="button" data-mo="off">Off</button><button type="button" data-mo="custom">Custom</button></div>';return d}
@@ -10380,7 +10389,7 @@ function setBuild(){
  if(SET_BUILT)return;SET_BUILT=true;
  const lg=document.createElement('div');lg.id='setlegacy';lg.hidden=true;
  ['.snav','.sbody'].forEach(q=>{const n=set.querySelector(q);if(n)lg.append(n)});set.append(lg);
- setIndex();SET_HIDE.forEach(l=>SET_USED.add('L:'+l));
+ setIndex();SET_HIDE.forEach(l=>SET_USED.add('L:'+l));SET_USED.add('P:font');
  const home=document.createElement('div');home.id='sethome';
  home.innerHTML=setYouHtml()+'<div class="sset"><input id="sset" type="search" placeholder="Search settings" autocomplete="off" aria-label="Search settings"></div><div id="setgl"><div class="smu" id="setmu" hidden></div>'+SET_GROUPS.map(g=>'<div class="sgl">'+g.map(id=>{const p=SET_PAGES.find(x=>x.id===id);return `<button type="button" class="sgi" data-pg="${id}"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SET_ICON[id]}</svg></span><span class="sgx"><b>${p.t}</b><small data-sum="${id}">${p.d}</small></span><svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>`}).join('')+'</div>').join('')+'</div><div id="setsr" hidden></div>';
  const pane=document.createElement('div');pane.id='setpane';
@@ -10432,7 +10441,7 @@ function setLeftovers(){
   e.nodes.forEach(n=>bx.append(n))});
 }
 /* polish-2026-10 (J4): rows whose only control is an Open/Show/Copy pill become a whole-row tap with a ›. The button stays (same id, same click handler); it just stretches over the row and gets a longer accessible name. */
-const SET_ROWGO=['dgopen','mut','sfb','mgb','prvb','diagb','schkb','perfb','catchk','kbopen','tipsb','obagain'];
+const SET_ROWGO=['aaopen','dgopen','mut','sfb','mgb','prvb','diagb','schkb','perfb','catchk','kbopen','tipsb','obagain'];
 function setRows(){SET_ROWGO.forEach(id=>{const b=$('#'+id);if(!b||b.dataset.rg)return;const l=b.closest('.line'),lb=l&&l.querySelector('.lb');if(!lb||!lb.firstChild)return;b.dataset.rg='1';l.classList.add('srow');const nm=lb.firstChild.textContent.trim();b.setAttribute('aria-label',nm)})}
 function setCounts(){document.querySelectorAll('.spage .smore').forEach(m=>{m.querySelector('.smn').textContent='· '+m.querySelectorAll('.line').length})}
 /* Controls that only matter when their switch is on stay out of sight until it is. */
