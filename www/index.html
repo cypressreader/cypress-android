@@ -4201,7 +4201,7 @@ html[data-theme=coast] #rd .cols .kick{color:#b8432a}
 html[data-theme=rosewood] #rd .cols .kick{color:#7f5d1c}
 #rd .cols .kick::after{content:none}
 #rd .cols .kick .rkk{margin:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit}
-#rd .cols .rdk{margin:.4em 0 .55em;font:italic 400 1.05em/1.4 var(--serif);color:var(--mut);text-align:left;hyphens:manual;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;break-after:avoid}
+#rd .cols .rdk{margin:.4em 0 .55em;font:italic 400 1.05em/1.4 var(--serif);color:var(--mut);text-align:left;hyphens:manual;break-after:avoid}
 #rd .cols .dt{display:block;font:400 13px/1.6 var(--sans);color:var(--mut)}
 #rd .cols .dt>*{display:inline}
 #rd .cols .dt .by{font-style:normal;color:var(--ink)}
@@ -13640,27 +13640,18 @@ function heroSpread(){
  if(want==='hero'||want==='top'){const ov=document.createElement('div');ov.className='hov';['.kick','.tt','.dt'].forEach(q=>{const e=c.querySelector(':scope>'+q);if(e)ov.append(e)});fig.append(ov);if(want==='hero'||want==='wide'){cardFocus(im)}if(want==='hero')imgInfo(im.getAttribute('src')).then(o=>{if(o&&o.l>105)fig.classList.add('bright')}).catch(()=>{})}
  mnotes();
 }
-/* "Why it matters": the story's own description in an editor's-note box between the byline and the text; skipped when it only repeats how the article starts */
-function whyBox(){
- const c=$('.cols');if(!c)return;c.querySelectorAll(':scope>.whyit').forEach(x=>x.remove());
- const a=curA,bd=c.querySelector(':scope>.body');if(!a||!bd)return;
- const nz=t=>String(t||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').toLowerCase().replace(/[…]|\.{3}/g,' ').replace(/[^\p{L}\p{N}\s]/gu,'').replace(/\s+/g,' ').trim();
- const raw=String(a.summary||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
- if(raw.length<30||isJunkText(raw))return;
- const d=nz(raw).slice(0,80),first=nz([...bd.querySelectorAll(':scope>p')].slice(0,2).map(p=>p.textContent).join(' '));
- if(d.length<20)return;const k=Math.min(d.length,80);if(first.includes(d.slice(0,k))||d.includes(first.slice(0,Math.min(first.length,k)))&&first.length>=20)return;
- const el=document.createElement('aside');el.className='whyit';el.setAttribute('aria-label','Why it matters');el.innerHTML='<b aria-hidden="true">Why it matters</b><p></p>';el.querySelector('p').textContent=raw;
- c.insertBefore(el,c.querySelector(':scope>.note')||bd);
-}
-function mnotes(){mnotes0();try{whyBox()}catch(e){}try{rdxDeck()}catch(e){}}
+/* polish-2026-10 R-03: the feed's summary is the publisher's own standfirst, so it is set as the deck under the headline (rdxDeck); the boxed "Why it matters" aside is gone */
+function mnotes(){mnotes0();try{rdxDeck()}catch(e){}}
 /* polish-2026-10 F1: a one-line italic deck under the headline from the feed's summary, only when it adds something: never when "Why it matters" already shows that summary, and never when it repeats how the story starts */
 function rdxDeck(){
  const c=$('.cols');if(!c)return;c.querySelectorAll('.rdk').forEach(x=>x.remove());
- const a=curA,bd=c.querySelector(':scope>.body'),t=c.querySelector('.tt');if(RDX_OLDHDR||!a||!bd||!t||R.web||c.querySelector(':scope>.whyit'))return;
+ const a=curA,bd=c.querySelector(':scope>.body'),t=c.querySelector('.tt');if(RDX_OLDHDR||!a||!bd||!t||R.web)return;
  const raw=String(a.summary||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();if(raw.length<30||isJunkText(raw))return;
  const nz=x=>String(x||'').toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,'').replace(/\s+/g,' ').trim(),d=nz(raw).slice(0,60),first=nz([...bd.querySelectorAll(':scope>p')].slice(0,2).map(p=>p.textContent).join(' '));
  if(d.length<20||first.includes(d)||first.length>=20&&nz(raw).includes(first.slice(0,60))||nz(a.title).includes(d.slice(0,40)))return;
- const el=document.createElement('p');el.className='rdk';el.textContent=trimWords(raw,140);t.after(el);
+ /* never cut with "…": a long or already-cut summary ends at its last full sentence under the limit, or is dropped */
+ let txt=raw.replace(/\s*(\[…\]|…|\.\.\.)\s*$/,'');if(txt!==raw||txt.length>220){const m=txt.slice(0,221).match(/^[\s\S]*[.!?]["”’]?(?=\s|$)/);txt=m?m[0]:''}if(txt.length<30)return;
+ const el=document.createElement('p');el.className='rdk';el.textContent=txt;t.after(el);
 }
 function mnotes0(){
  const c=$('.cols');if(!c)return;
@@ -13668,6 +13659,7 @@ function mnotes0(){
  if(!c.querySelector(':scope>.hsf')||!isOn('mnote')||!curA)return;
  const a=curA,f=fof(a),min=readMin(a)||1,n=(a.more||[]).length;
  const rows=[['Source',f.title||host(a.link)],['Published',a.date?new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'}):''],['Reading time',min+' min'],n?['Also covered by',(a.more.slice(0,3).map(m=>fof({feedId:m.f}).title).join(', '))+(n>3?' and '+(n-3)+' more':'')]:null].filter(r=>r&&r[1]);
+ if(!rows.some(r=>!/^(Source|Published|Reading time)$/.test(r[0])))return;/* polish-2026-10 R-03: the header already says these; the box stays only when it adds a row */
  const el=document.createElement('aside');el.className='mnotes';el.innerHTML='<b>At a glance</b><dl>'+rows.map(r=>`<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join('')+'</dl>';
  const nt=c.querySelector(':scope>.note'),bd=c.querySelector(':scope>.body');c.insertBefore(el,nt||bd);
 }
