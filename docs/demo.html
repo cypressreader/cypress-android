@@ -167,7 +167,7 @@ body.sbdrag>aside,body.sbdrag main{transition:none!important}
 /* focus mode hides every control except Focus (to turn it off again) and Hands-free */
 #rd.focus .bar{position:absolute;top:calc(8px + env(safe-area-inset-top));right:10px;left:auto;width:auto;padding:0;gap:0;z-index:6}
 #rd.focus .bar>*:not(#fcs):not(#fau){display:none}
-#rd:not(.focus) .bar #fau{display:none}
+#rd:not(.focus) .bar #fau{display:none}#rd.focus .bar #fau:not([aria-pressed="true"]){display:none}/* idle, it floated over the text: Hands-free starts from the ... menu; while it runs the button stays as the pause control */
 #fau .pa,#fau[aria-pressed="true"] .pl{display:none}#fau[aria-pressed="true"] .pa{display:inline}
 #rd.focus #fcs,#rd.focus #fau{opacity:.9}
 #rd.focus #fau:not([aria-pressed="true"]){background:var(--pn)}
@@ -823,6 +823,20 @@ body.offl .card:not(:has(.rdy)) img{opacity:.55}
 #side-list{display:flex;flex-direction:column}#side-list>*{flex:none}
 .nav .ni{flex:none;opacity:.72}
 .nav .nt{flex:1;min-width:0}
+/* restored from 1.223 at David's request: the Library row (Saved, Highlights, History, Stats) at the foot of the side bar */
+.dlib{margin-top:auto;padding-top:10px;position:sticky;bottom:0;z-index:2;background:var(--pn)}/* stays in view while a long list of sites scrolls under it */
+.dlh{margin:0 4px 6px;padding:0 0 6px;font:600 13px var(--serif);font-variant-caps:all-small-caps;letter-spacing:.09em;color:var(--mut);border-bottom:1px solid var(--lg,#b08d3e)}
+.dlg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px}
+.nav.dlt{flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;min-height:64px;padding:8px 12px;position:relative;border:1px solid color-mix(in srgb,currentColor 14%,transparent);font-weight:600}
+.nav.dlt .nt{flex:none}
+.nav.dlt>u{position:absolute;top:8px;right:8px;margin:0}
+/* polish-2026-10 J6 (slim): the Library is one row of four small icon buttons, not pinned, so it never covers the feed list */
+.dlib{position:static;padding-top:6px;background:none}
+.dlib .dlh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;padding:0;margin:0}
+.dlib .dlg{grid-template-columns:repeat(4,1fr);gap:2px;margin:0 0 2px;padding-top:6px;border-top:1px solid color-mix(in srgb,var(--lg,#b08d3e) 55%,transparent)}
+.dlib .nav.dlt{min-height:52px!important;padding:6px 2px;align-items:center;justify-content:center;gap:3px;border:0;border-radius:10px;font:500 11px var(--sans);text-align:center}
+.dlib .nav.dlt svg{width:20px;height:20px}
+.dlib .nav.dlt>u{top:3px;right:6px;font-size:10px}
 body.narrow #side-list .nav.dest{display:none}/* on a phone the bottom bar owns these destinations */
 u{text-decoration:none;font-size:12px;background:var(--bg);border-radius:999px;padding:1px 8px;color:var(--mut);margin-left:auto;font-variant-numeric:tabular-nums;white-space:nowrap}
 .on u{background:var(--pn)}
@@ -2164,7 +2178,6 @@ html.rmo #fxl,html.lowp #fxl{display:none!important}
 #set .sgl{background:var(--bg);border-radius:20px;overflow:hidden;margin:0 0 14px}
 #set .sgi{display:flex;align-items:center;gap:14px;width:100%;padding:13px 16px;min-height:66px;text-align:left;background:none;border:0;color:var(--ink);font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 #set .sgi+.sgi{border-top:1px solid var(--ln)}
-#set .sgl.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:none;border-radius:0;overflow:visible}#set .sgl.tiles .sgi{flex-direction:column;align-items:flex-start;gap:8px;padding:14px;background:var(--bg);border-radius:18px;border-top:0}#set .sgl.tiles .sgi .ico{width:34px;height:34px}#set .sgl.tiles .sgi .sgx{width:100%}#set .sgl.tiles .sgi .chev{display:none}
 #set .sgi .ico{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:#fff;flex:none}
 #set .sgi .sgx{min-width:0;flex:1}
 #set .sgi b{display:block;font:600 16px var(--sans)}
@@ -2682,8 +2695,8 @@ html.gbar[data-theme=halcyond] .top{background:#0c2619!important;box-shadow:0 1p
 html:is([data-theme=halcyon],[data-theme=halcyond]) #rd .cols .body p.dropcap .dcap,html:is([data-theme=halcyon],[data-theme=halcyond]) .body p.dropcap .dcap{color:var(--a2);font-family:var(--fd)}/* polish-2026-10 F3: the boxed cap is now a plain cap; restore by adding back border:1px solid var(--a2);padding:.08em .14em 0;margin-right:.1em */
 html:is([data-theme=halcyon],[data-theme=halcyond]) .pullq{border-left-color:var(--ln);font-family:var(--fd)}
 /* polish-2026-10 T-01: in Cypress, brass is for emphasis only (the kicker, the drop cap, link underlines); frames, chips, tags and dividers use the muted line color */
-html:is([data-theme=halcyon],[data-theme=halcyond]) :is(.mnotes,.whyit){border-left-color:var(--ln);background:color-mix(in srgb,var(--ln) 22%,transparent)}
-html:is([data-theme=halcyon],[data-theme=halcyond]) :is(.mnotes b,.whyit b,.rnext>small,#rd .rnext>small,.rtags small){color:var(--mut)}
+html:is([data-theme=halcyon],[data-theme=halcyond]) .mnotes{border-left-color:var(--ln);background:color-mix(in srgb,var(--ln) 22%,transparent)}/* Why it matters keeps its brass bar and label (David prefers it, 2026-10-31) */html:is([data-theme=halcyon],[data-theme=halcyond]) .whyit{border-left-color:#b08d3e}html[data-theme=halcyon] .whyit b{color:#7d5f14}html[data-theme=halcyond] .whyit b{color:#e2c27a}
+html:is([data-theme=halcyon],[data-theme=halcyond]) :is(.mnotes b,.rnext>small,#rd .rnext>small,.rtags small){color:var(--mut)}
 html:is([data-theme=halcyon],[data-theme=halcyond]) #rd .cols:not(:has(>img.hero,>.hsf img))>.whyit{border-top-color:var(--ln)}
 html:is([data-theme=halcyon],[data-theme=halcyond]) :is(.rnext,#rd .rnext){border-top-color:var(--ln)}
 html:is([data-theme=halcyon],[data-theme=halcyond]) .body blockquote{border-left-color:var(--ln)}
@@ -4120,9 +4133,9 @@ body.exbusy [data-exact]{cursor:progress}
 .wtrend .wtr-dot{width:7px;height:7px;border-radius:50%;background:#e53935;box-shadow:0 0 8px #e53935;display:inline-block;animation:wtrPulse 2s ease-in-out infinite}
 @keyframes wtrPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.85)}}
 /* the Headlines ticker as in the showroom: a green line, brass label, plain type, brass times */
-#grid .wtick{border:0;border-radius:6px;padding:0;background:var(--a1,#123524);color:#f3ecdc;font:600 13px var(--sans);height:36px;overflow:hidden}
+#grid .wtick{border:0;border-radius:6px;padding:0;background:var(--ink);color:var(--bg);font:600 13px var(--sans);height:36px;overflow:hidden}
 #grid .wtick b{align-self:stretch;display:flex;align-items:center;padding:0 12px;background:#c9a24a;color:#1d1a12;font:700 10.5px var(--sans);letter-spacing:.16em}
-#grid .wtick-in button::before{content:none}#grid .wtick-in button i{font-style:normal;color:#e2c27a;margin-right:6px}
+#grid .wtick-in button::before{content:none}#grid .wtick-in button i{font-style:normal;color:inherit;opacity:.65;margin-right:6px}
 #grid .wtick-in{gap:30px}
 /* folder and site story columns: a brass time line, a short accent rule and a lighter summary, so headlines lead */
 .fd-deck{position:relative}.fd-deck::before{content:"";position:absolute;left:0;top:-1px;width:36px;height:2px;background:var(--fa,var(--a2,var(--ink)))}
@@ -4353,7 +4366,7 @@ html[data-theme=coast] #rd .cols .kick{color:#b8432a}
 html[data-theme=rosewood] #rd .cols .kick{color:#7f5d1c}
 #rd .cols .kick::after{content:none}
 #rd .cols .kick .rkk{margin:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit}
-#rd .cols .rdk{margin:.4em 0 .55em;font:italic 400 1.05em/1.4 var(--serif);color:var(--mut);text-align:left;hyphens:manual;break-after:avoid}
+#rd .cols .rdk{margin:.4em 0 .55em;font:italic 400 1.05em/1.4 var(--serif);color:var(--mut);text-align:left;hyphens:manual;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;break-after:avoid}
 #rd .cols .dt{display:block;font:400 13px/1.6 var(--sans);color:var(--mut)}
 #rd .cols .dt>*{display:inline}
 #rd .cols .dt .by{font-style:normal;color:var(--ink)}
@@ -4980,8 +4993,9 @@ html #grid .card.noimg:not(.list-row):not(.nr-row):not(.nr-late):not(.nr-quote):
 #set .slead{white-space:normal;overflow:visible;text-overflow:clip}
 #set .sbox .line .lb small{display:block;-webkit-line-clamp:unset;overflow:visible}
 #set .sbox .tg{background:color-mix(in srgb,var(--mut) 22%,transparent);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--mut) 70%,transparent)}
+#set .sbox .tg:not(.on)::after{width:18px;height:18px;top:7px;left:7px;background:var(--mut);box-shadow:none}/* off: outlined track, small gray knob */
 #set .sbox .tg.on{background:var(--a1);box-shadow:none}
-#set .sbox .tg.on::after{background:#e8c878}
+#set .sbox .tg.on::after{background:var(--bg)}/* on: solid track, knob in the page color, so it reads as on at a glance */
 @media(prefers-reduced-motion:reduce){#toast,.sky *{transition:none!important;animation:none!important}}
 html.ptduo :is(#grid,.dcv-art,#rd) img{filter:url(#duo)!important}
 /* cards about to scroll into view are drawn ahead of time (cvAhead), so a quick fling doesn't land on blank cards that then grow and push the page */
@@ -6173,6 +6187,8 @@ function side0(){
  const un=S.feeds.filter(x=>!S.folders.some(f=>f.id===x.folder));
  if(un.length)h+=`<div class="fold" data-drop=""><div class="fh">${chev('_un')}<button type="button" class="fht" data-tgl="_un">Unfiled</button>${navDot(()=>uc(un),()=>newIn(un),UNR)}</div>${fold('_un')?'':un.map(feedRow).join('')}</div>`;
  if(S.sk.length)h+=`<div class="fold"><div class="fh"><span>Topics you follow</span></div>${S.sk.map(k=>`<div class="fr ${S.sel==='k:'+k.id?'on':''}" data-sel="k:${k.id}"><b style="background:var(--mut)"></b><span>${esc(k.name)}</span>${navDot(()=>kcount(k),()=>S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>a.date>seenOf('k:'+k.id)&&!S.read[a.link]&&kmatch(k,a)).length,UNRH)}</div>`).join('')}</div>`;
+ const bot=`<div class="dlib" role="group" aria-label="Library"><h4 class="dlh">Library</h4><div class="dlg"><div class="nav dlt ${S.sel==='saved'?'on':''}" data-sel="saved">${nIc('saved')}<span class="nt">Saved</span>${bad(S.saved.filter(a=>!a.ar).length)}</div><div class="nav dlt ${S.sel==='notes'?'on':''}" data-sel="notes">${nIc('notes')}<span class="nt">Highlights</span>${bad(S.hl.length)}</div><div class="nav dlt ${S.sel==='hist'?'on':''}" data-sel="hist">${nIc('hist')}<span class="nt">History</span></div><div class="nav dlt ${S.sel==='stats'?'on':''}" data-sel="stats">${nIc('stats')}<span class="nt">Stats</span></div></div>${isOn('bi')?`<div class="nav ${S.sel==='bi'?'on':''}" data-sel="bi">${nIc('bi')}<span class="nt">Back issues</span></div>`:''}</div>`;
+ h+=bot;
  /* redraw the side menu only when it has changed: keeps its scroll position and saves a restyle on every refresh */
  if(side._h===h&&$('#side-list').firstChild)return;side._h=h;
  $('#side-list').innerHTML=h;
@@ -6187,7 +6203,8 @@ function secOpener(){
  else if(sel.startsWith('k:')){const k=S.sk.find(x=>'k:'+x.id===sel);if(!k)return;name=k.name;kind='A topic you follow'}
  else return;
  const l=(cur||[]).filter(a=>a&&a.link);if(l.length<2)return;
- const lead=l.find(a=>a.img)||l[0],un=l.filter(a=>!S.read[a.link]).length,nw=Math.max(...l.map(a=>a.date||0));
+ /* the banner's photo comes from further down the list, never from the cards right under it (the same photo twice in a row) */
+ const top3=l.slice(0,3),lead=l.slice(3).find(a=>a.img&&!top3.some(b=>b.img&&sameImg(a.img,b.img)))||{...l[0],img:''},un=l.filter(a=>!S.read[a.link]).length,nw=Math.max(...l.map(a=>a.date||0));
  const src=[...new Set(l.map(a=>fof(a).title).filter(Boolean))].slice(0,4);
  const from=src.length>1?'From '+src.slice(0,-1).join(', ')+' and '+src[src.length-1]:'';
  const el=document.createElement('section');el.className='sop'+(lead.img?'':' noimg');el.style.setProperty('--b',brand(fof(lead)));
@@ -8647,14 +8664,7 @@ function narrowC(){return isOn('pcomp')&&document.body.classList.contains('narro
 /* polish-2026-10 F6: Reading width. Comfortable (the default) is exactly the width the reader always had; Narrow and Wide only change the side margins and the scroll column's cap, never the text size. Restore by deleting rdxRw and its two uses in layout(). */
 const RDX_RW={n:{p:1.8,mw:600},c:{p:1,mw:0},w:{p:.45,mw:900}};
 function rdxRw(){const r=RDX_RW[S.rw]||RDX_RW.c;try{$('#rd').style.setProperty('--rdmw',r.mw?(r.mw-40)+'px':'700px')}catch(e){}return r}
-function rdVars(){const r=$('#rd');if(!r)return;const nc=narrowC();
- /* R-06/R-07: one measured column width (in characters) drives alignment and line height. B61: a phone is not measured (that read forced a full layout in the middle of opening a story), the window width stands in for the page */
- const ph=nc||innerWidth<640,bk=$('.book'),W=ph||!bk?innerWidth:bk.clientWidth,cw=isVert()?Math.min(W-60,740):(W>=700?(W-60-56)/2:W-40),chars=Math.min(isVert()?65:99,cw/((+S.fs||18)*.5));
- /* line height follows the measure: 40ch reads at 1.45, 55ch at 1.53, 70ch at 1.62; Tight/Normal/Roomy (and Large print) sit on top as an offset. Written only when it moves by a hundredth */
- const off=S.lh?({1.5:-.12,1.9:.18}[S.lh]??(S.lh-1.68)):0,lh=(Math.min(1.7,Math.max(1.45,1.2+chars*.006))+off).toFixed(2),cur=parseFloat(r.style.getPropertyValue('--lh'));
- if(!(Math.abs(cur-lh)<.01)){r.style.setProperty('--lh',lh);r.style.setProperty('--lhp',lh)}
- /* ragged (left-aligned) text only breaks long words: "report-ing" split three lines in a row on phones; justify only when a line holds enough words (50 characters), narrow columns left-align so gaps do not open up */
- const left=S.just===false||ph||chars<50;r.style.setProperty('--ta',left?'start':'justify');r.style.setProperty('--hlc',left?'9 4 4':'6 3 3')}
+function rdVars(){const r=$('#rd');if(!r)return;const nc=narrowC();r.style.setProperty('--lh',nc&&!S.lh?1.5:(S.lh||1.68));r.style.setProperty('--lhp',S.lh?String(S.lh):'');/* compact phones tighten only the default spacing: a spacing or Large print you picked always wins */{/* B61: a phone always left-aligns, so the page is not measured (that read forced a full layout in the middle of opening a story) *//* ragged (left-aligned) text only breaks long words: "report-ing" split three lines in a row on phones */r.style.setProperty('--hlc','6 3 3');if(S.just===false||nc||innerWidth<640){r.style.setProperty('--ta','start');r.style.setProperty('--hlc','9 4 4');return}const bk=$('.book'),W=bk?bk.clientWidth:innerWidth,cw=isVert()?Math.min(W-60,740):(W>=700?(W-60-56)/2:W-40),chars=cw/((+S.fs||18)*.5);/* justify only when a line holds enough words; narrow columns left-align so gaps do not open up */r.style.setProperty('--ta',(S.just===false||nc||innerWidth<640||chars<60)?'start':'justify');if(chars<60)r.style.setProperty('--hlc','9 4 4')}}
 function imgKey(u){try{let x=String(u||'').split(/[?#]/)[0].toLowerCase();x=x.split('/').filter(Boolean).pop()||'';return x.replace(/\.(jpe?g|png|webp|avif|gif)(\.(jpe?g|png|webp|avif|gif))?$/,'').replace(/[-_@]?\d{2,4}x\d{2,4}/g,'').replace(/[-_](scaled|large|medium|small|thumb(nail)?|full|orig(inal)?|hires|hi-res)$/,'').replace(/@\dx$/,'')}catch(e){return ''}}
 function sameImg(a,b){if(!a||!b)return false;if(String(a).split('?')[0]===String(b).split('?')[0])return true;const x=imgKey(a),y=imgKey(b);if(x.length>=8&&x===y)return true;if(x.length>=5&&x===y&&!/^(image|img|photo|picture|pic|hero|cover|main|lead|thumb|thumbnail|banner|article|featured|default|placeholder|logo|share|og|story|news)\d*$/.test(x))return true;if(x.length<10||y.length<10)return false;let i=0;while(i<x.length&&i<y.length&&x[i]===y[i])i++;return i>=10&&i/Math.min(x.length,y.length)>=.75}
 /* The picture shows once, in the body. The moment a body (the feed's copy, the stored copy or the full page) is in place, and before it can paint, the separate top-of-page copy is set aside; if a later body has no such picture, the top copy goes back. Two never show together. */
@@ -10607,7 +10617,7 @@ function setBuild(){
  ['.snav','.sbody'].forEach(q=>{const n=set.querySelector(q);if(n)lg.append(n)});set.append(lg);
  try{thmBuild()}catch(e){}setIndex();SET_HIDE.forEach(l=>SET_USED.add('L:'+l));SET_USED.add('P:font');
  const home=document.createElement('div');home.id='sethome';
- home.innerHTML=setYouHtml()+'<div class="sset"><input id="sset" type="search" placeholder="Search settings" autocomplete="off" aria-label="Search settings"></div><div id="setgl"><div class="smu" id="setmu" hidden></div>'+SET_GROUPS.map((g,gi)=>'<div class="sgl'+(gi?'':' tiles')+'">'+g.map(id=>{const p=SET_PAGES.find(x=>x.id===id)||{t:'Keyboard shortcuts',d:'Press ? any time'};return `<button type="button" class="sgi" ${p.id?'data-pg="'+id+'"':'data-kb="1" aria-haspopup="dialog"'}><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SET_ICON[id]}</svg></span><span class="sgx"><b>${p.t}</b><small data-sum="${id}">${p.d}</small></span><svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>`}).join('')+'</div>').join('')+'</div><div id="setsr" hidden></div>';
+ home.innerHTML=setYouHtml()+'<div class="sset"><input id="sset" type="search" placeholder="Search settings" autocomplete="off" aria-label="Search settings"></div><div id="setgl"><div class="smu" id="setmu" hidden></div>'+SET_GROUPS.map((g,gi)=>'<div class="sgl">'+g.map(id=>{const p=SET_PAGES.find(x=>x.id===id)||{t:'Keyboard shortcuts',d:'Press ? any time'};return `<button type="button" class="sgi" ${p.id?'data-pg="'+id+'"':'data-kb="1" aria-haspopup="dialog"'}><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SET_ICON[id]}</svg></span><span class="sgx"><b>${p.t}</b><small data-sum="${id}">${p.d}</small></span><svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>`}).join('')+'</div>').join('')+'</div><div id="setsr" hidden></div>';
  const pane=document.createElement('div');pane.id='setpane';
  SET_PAGES.forEach(p=>{
   const s=document.createElement('section');s.className='spage';s.id='sp-'+p.id;s.dataset.pg=p.id;s.hidden=true;
@@ -13391,7 +13401,7 @@ const atab=()=>DTABS.some(x=>x[0]===S.atab)?S.atab:'latest';
 const allSeg=m=>`<div class="segs bmseg chips" role="tablist" aria-label="All Stories">${DTABS.map(([k,t],i)=>`<button type="button" role="tab" data-bm="${k}" aria-selected="${m===k}" aria-controls="grid" tabindex="${m===k||(!i&&!DTABS.some(x=>x[0]===m))?0:-1}" class="${m===k?'on':''}">${k==='latest'&&!smartOn()?'Latest':t}</button>`).join('')}</div>`;
 const libSeg=m=>`<div class="segs bmseg chips" role="tablist" aria-label="Saved">${[['saved','Saved'],['notes','Highlights'],['hist','History']].map(([k,t],i)=>`<button type="button" role="tab" data-bm="${k}" aria-selected="${m===k}" aria-controls="grid" tabindex="${m===k?0:-1}" class="${m===k?'on':''}">${t}</button>`).join('')}</div>`;
 const bmSeg=m=>{if(m==='latest')m='front';return `<div class="segs bmseg dtabs" role="tablist" aria-label="The Daily">${DLTABS.map(([k,t],i)=>`<button type="button" role="tab" data-bm="${k}" aria-selected="${m===k}" aria-controls="grid" tabindex="${m===k||(!i&&!DLTABS.some(x=>x[0]===m))?0:-1}" class="${m===k?'on':''}">${t}</button>`).join('')}</div>`};
-document.addEventListener('click',e=>{const t=e.target.closest('[data-bm]');if(!t)return;const v=t.dataset.bm;/* a stray tap on the current tab must not redraw and fling you to the top */if(t.closest('.dtabs')&&t.getAttribute('aria-selected')==='true')return;if(v==='front'){S.sel='today';S.dgk=''}else if(DTABS.some(x=>x[0]===v)){S.sel='all';S.atab=v}else if(v==='brief'){S.sel='brief';S.dgk=''}else{S.sel='digest';S.dgk=v==='week'?'week':''}save();if(document.body.classList.contains('open'))drawer(false);render();const m=$('main');if(m)m.scrollTop=0});
+document.addEventListener('click',e=>{const t=e.target.closest('[data-bm]');if(!t)return;const v=t.dataset.bm;/* a stray tap on the current tab must not redraw and fling you to the top */if(t.closest('.dtabs')&&t.getAttribute('aria-selected')==='true')return;if(v==='front'){S.sel='today';S.dgk=''}else if(DTABS.some(x=>x[0]===v)){S.sel='all';S.atab=v}else if(v==='brief'){S.sel='brief';S.dgk=''}else if(v==='saved'||v==='notes'||v==='hist'){S.sel=v}else{S.sel='digest';S.dgk=v==='week'?'week':''}save();if(document.body.classList.contains('open'))drawer(false);render();const m=$('main');if(m)m.scrollTop=0});
 function renderBrief(){renderBrief0();const g=$('#grid');if(g){g.insertAdjacentHTML('afterbegin',bmSeg('brief'));/* the lead picture is placed on its subject (faces stay in frame) like the feed cards */g.querySelectorAll('.brf-lead .bi-th').forEach(i=>{try{cardFocus(i)}catch(e){}})}}
 function renderBrief0(){
  $('#ttl').textContent='The Daily';tip('catch');
@@ -13893,18 +13903,27 @@ function heroSpread(){
  if(want==='hero'||want==='top'){const ov=document.createElement('div');ov.className='hov';['.kick','.tt','.dt'].forEach(q=>{const e=c.querySelector(':scope>'+q);if(e)ov.append(e)});fig.append(ov);if(want==='hero'||want==='wide'){cardFocus(im)}if(want==='hero')imgInfo(im.getAttribute('src')).then(o=>{if(o&&o.l>105)fig.classList.add('bright')}).catch(()=>{})}
  mnotes();
 }
-/* polish-2026-10 R-03: the feed's summary is the publisher's own standfirst, so it is set as the deck under the headline (rdxDeck); the boxed "Why it matters" aside is gone */
-function mnotes(){mnotes0();try{rdxDeck()}catch(e){}}
+/* "Why it matters": the story's own description in an editor's-note box between the byline and the text; skipped when it only repeats how the article starts */
+function whyBox(){
+ const c=$('.cols');if(!c)return;c.querySelectorAll(':scope>.whyit').forEach(x=>x.remove());
+ const a=curA,bd=c.querySelector(':scope>.body');if(!a||!bd)return;
+ const nz=t=>String(t||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').toLowerCase().replace(/[…]|\.{3}/g,' ').replace(/[^\p{L}\p{N}\s]/gu,'').replace(/\s+/g,' ').trim();
+ const raw=String(a.summary||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+ if(raw.length<30||isJunkText(raw))return;
+ const d=nz(raw).slice(0,80),first=nz([...bd.querySelectorAll(':scope>p')].slice(0,2).map(p=>p.textContent).join(' '));
+ if(d.length<20)return;const k=Math.min(d.length,80);if(first.includes(d.slice(0,k))||d.includes(first.slice(0,Math.min(first.length,k)))&&first.length>=20)return;
+ const el=document.createElement('aside');el.className='whyit';el.setAttribute('aria-label','Why it matters');el.innerHTML='<b aria-hidden="true">Why it matters</b><p></p>';el.querySelector('p').textContent=raw;
+ c.insertBefore(el,c.querySelector(':scope>.note')||bd);
+}
+function mnotes(){mnotes0();try{whyBox()}catch(e){}try{rdxDeck()}catch(e){}}
 /* polish-2026-10 F1: a one-line italic deck under the headline from the feed's summary, only when it adds something: never when "Why it matters" already shows that summary, and never when it repeats how the story starts */
 function rdxDeck(){
  const c=$('.cols');if(!c)return;c.querySelectorAll('.rdk').forEach(x=>x.remove());
- const a=curA,bd=c.querySelector(':scope>.body'),t=c.querySelector('.tt');if(RDX_OLDHDR||!a||!bd||!t||R.web)return;
+ const a=curA,bd=c.querySelector(':scope>.body'),t=c.querySelector('.tt');if(RDX_OLDHDR||!a||!bd||!t||R.web||c.querySelector(':scope>.whyit'))return;
  const raw=String(a.summary||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();if(raw.length<30||isJunkText(raw))return;
  const nz=x=>String(x||'').toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,'').replace(/\s+/g,' ').trim(),d=nz(raw).slice(0,60),first=nz([...bd.querySelectorAll(':scope>p')].slice(0,2).map(p=>p.textContent).join(' '));
  if(d.length<20||first.includes(d)||first.length>=20&&nz(raw).includes(first.slice(0,60))||nz(a.title).includes(d.slice(0,40)))return;
- /* never cut with "…": a long or already-cut summary ends at its last full sentence under the limit, or is dropped */
- let txt=raw.replace(/\s*(\[…\]|…|\.\.\.)\s*$/,'');if(txt!==raw||txt.length>220){const m=txt.slice(0,221).match(/^[\s\S]*[.!?]["”’]?(?=\s|$)/);txt=m?m[0]:''}if(txt.length<30)return;
- const el=document.createElement('p');el.className='rdk';el.textContent=txt;t.after(el);
+ const el=document.createElement('p');el.className='rdk';el.textContent=trimWords(raw,140);t.after(el);
 }
 function mnotes0(){
  const c=$('.cols');if(!c)return;
@@ -13912,7 +13931,6 @@ function mnotes0(){
  if(!c.querySelector(':scope>.hsf')||!isOn('mnote')||!curA)return;
  const a=curA,f=fof(a),min=readMin(a)||1,n=(a.more||[]).length;
  const rows=[['Source',f.title||host(a.link)],['Published',a.date?new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'}):''],['Reading time',min+' min'],n?['Also covered by',(a.more.slice(0,3).map(m=>fof({feedId:m.f}).title).join(', '))+(n>3?' and '+(n-3)+' more':'')]:null].filter(r=>r&&r[1]);
- if(!rows.some(r=>!/^(Source|Published|Reading time)$/.test(r[0])))return;/* polish-2026-10 R-03: the header already says these; the box stays only when it adds a row */
  const el=document.createElement('aside');el.className='mnotes';el.innerHTML='<b>At a glance</b><dl>'+rows.map(r=>`<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join('')+'</dl>';
  const nt=c.querySelector(':scope>.note'),bd=c.querySelector(':scope>.body');c.insertBefore(el,nt||bd);
 }

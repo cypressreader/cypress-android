@@ -16,7 +16,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    o.vis=vis();o.vert=isVert();
    const bt=document.querySelector('#rd .bar #fcs');if(bt&&o.vis){bt.click();await w(300);o.on=document.querySelector('#rd').classList.contains('focus');o.pressed=bt.getAttribute('aria-pressed');
     const sc=vView();if(sc){sc.scrollTop=300;await w(300)}o.fl=!!document.querySelector('.cols .body p.fl');if(sc){const f1=document.querySelector('.cols .body p.fl');sc.scrollTop+=24;await w(200);o.sticky=document.querySelector('.cols .body p.fl')===f1}
-    {const h=document.querySelector('#rd .bar #fau');o.hf=!!h&&getComputedStyle(h).display!=='none';if(o.hf){const t0=sc.scrollTop;h.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));h.click();await w(800);o.hfOn=h.getAttribute('aria-pressed')==='true'&&sc.scrollTop>t0;o.pause=getComputedStyle(h.querySelector('.pa')).display!=='none'&&getComputedStyle(h.querySelector('.pl')).display==='none';h.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));h.click();await w(100);o.hfOff=h.getAttribute('aria-pressed')==='false'}}bt.click();await w(200);o.offOk=getComputedStyle(bt).display!=='none';o.off=!document.querySelector('#rd').classList.contains('focus')}
+    {const h=document.querySelector('#rd .bar #fau');o.idleHidden=!!h&&getComputedStyle(h).display==='none';if(o.idleHidden){const t0=sc.scrollTop;autoRd(true);await w(800);o.hf=getComputedStyle(h).display!=='none';o.hfOn=h.getAttribute('aria-pressed')==='true'&&sc.scrollTop>t0;o.pause=getComputedStyle(h.querySelector('.pa')).display!=='none'&&getComputedStyle(h.querySelector('.pl')).display==='none';h.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));h.click();await w(100);o.hfOff=h.getAttribute('aria-pressed')==='false'}}bt.click();await w(200);o.offOk=getComputedStyle(bt).display!=='none';o.off=!document.querySelector('#rd').classList.contains('focus')}
    return o},[fn]);
   await ctx.close();return {r,errs};
  };
@@ -25,7 +25,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
  ck('phone: eye turns focus on and off',x.r.on&&x.r.pressed==='true'&&x.r.off,JSON.stringify(x.r));
  ck('phone: the current paragraph is highlighted while scrolling',x.r.fl,JSON.stringify(x.r));
  ck('phone: a small scroll keeps the same paragraph highlighted',x.r.sticky,JSON.stringify(x.r));
- ck('phone: Hands-free button shows in focus mode and starts/stops',x.r.hf&&x.r.hfOn&&x.r.pause&&x.r.hfOff,JSON.stringify(x.r));
+ ck('phone: Hands-free button is hidden in focus mode until Hands-free runs, then pauses/stops',x.r.idleHidden&&x.r.hf&&x.r.hfOn&&x.r.pause&&x.r.hfOff,JSON.stringify(x.r));
  x=await run('phone-throw',{...pw.devices['Pixel 5']},'throw');
  ck('phone: eye still there if article decoration fails',x.r.vis,JSON.stringify(x.r));
  x=await run('tablet-paged',{viewport:{width:1100,height:820}},'paged');

@@ -24,10 +24,9 @@ const IMG='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.
    return out},{IMG});
   const t='['+W+'x'+H+'] ';
   if(r[0].cpv!==2){console.log('skip',t,'not a two-page layout');await p.close();continue}
-  /* polish-2026-10 R-03: the feed summary is a deck under the headline now, never a box, so every case reads like "no box" */
-  ck(t+'summary as a deck (no box): the text starts at the top of column 2',r[0].why===null&&r[0].firstP===1&&r[0].forced==='column',JSON.stringify(r[0]));
+  ck(t+'the story text always starts on page 1 (box under the picture: top of column 2; box at the top of column 2: right after it)',r[0].firstP===1&&((r[0].why===0&&r[0].forced==='column')||(r[0].why===1&&r[0].forced==='auto')),JSON.stringify(r[0]));
   ck(t+'no box: the text starts at the top of column 2',r[1].why===null&&r[1].firstP===1&&r[1].forced==='column',JSON.stringify(r[1]));
-  ck(t+'deck, no picture: no box, the text follows the headline in column 1',r[2].why===null&&r[2].firstP===0&&r[2].forced==='auto',JSON.stringify(r[2]));
+  ck(t+'box in column 1 (no picture): the text follows the box',r[2].why===0&&r[2].firstP===0&&r[2].forced==='auto',JSON.stringify(r[2]));/* fitWhy: with no picture the text follows the box, so no column is left empty */
   ck(t+'no page errors',!errs.length,errs[0]);await p.close();
  }
  await b.close();console.log(bad?'why_gap '+bad+' FAILED':'why_gap all passed');process.exit(bad?1:0);
