@@ -1112,3 +1112,5 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] Selecting text: compact card bar in the theme colors; highlights on dark pages are a light tint with a colored underline
 - [ ] List view: rows without a photo are the same height as photo rows and carry a light wash in the site's color
 - [ ] Card view section heads (Last hour, This morning, Earlier): faint band with a brass edge, less empty space
+- [ ] The Well (photo break in The Daily): tall pictures sit side by side, wide ones side by side; a lone one takes a full row; no gaps
+- [ ] Read aloud (Play Daily / Now Playing) on the Fold or a tablet from 700px wide: player left, story list right; titles in the sans face
