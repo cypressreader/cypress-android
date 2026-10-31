@@ -1099,3 +1099,16 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] T-08 Photo-less big cards show a hills-and-trees picture in the site's color instead of a letter
 - [ ] F-08 Headlines on a wide tablet (landscape, side bar open): lead photo left, two stories stacked right, then six headlines in three ruled newspaper columns; narrow tablets keep the old layout
 - [ ] R-05 Tablet page one: photo and headline on the left, story starts at the top of the right column with its drop cap
+
+## David's phone pass 1 fixes (2026-10-31, side preview /polish/app/) — implemented, checked in a desktop browser, unverified on phone
+- [ ] Saved · Highlights · History tabs open their own page (Highlights used to jump to Headlines)
+- [ ] Side bar foot has the Library row again: Saved, Highlights, History, Stats
+- [ ] Latest ticker readable in Cypress dark (ink band, page-colored text)
+- [ ] Settings home: one list of rows with icons, nothing cut off at the right; switches clearly on (solid, dark knob) or off (outlined, small gray knob)
+- [ ] Focus mode: no Hands-free button over the text until Hands-free is running
+- [ ] Story page reads like 1.223: left-aligned, roomy lines, Why it matters box with brass bar under the photo
+- [ ] Section banner (folder in list view) never shows the same photo as the cards right under it
+- [ ] Story options (...) sheet: raised surface over a dim backdrop, rounded buttons, about half the height; Text opens Reading with a Back arrow that returns to the sheet
+- [ ] Selecting text: compact card bar in the theme colors; highlights on dark pages are a light tint with a colored underline
+- [ ] List view: rows without a photo are the same height as photo rows and carry a light wash in the site's color
+- [ ] Card view section heads (Last hour, This morning, Earlier): faint band with a brass edge, less empty space
