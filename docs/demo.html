@@ -14524,7 +14524,7 @@ function fedMods(us,FD,c){
  /* the very first story is the feature */
  if(c.first&&(c.lead||us.length)){
   const u=c.lead||us.shift(),a=u.head;why(a,FD.isFolder?'The cover story of '+FD.title+': the strongest story across its sites.':'The lead story from '+(FD.title||host(FD.url))+'.');
-  const img=a.img?`<span class="fd-fa"><img loading="eager" decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.remove()"></span>`:'';
+  const img=a.img?`<span class="fd-fa"><img loading="eager" decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.remove()" onload="if(this.naturalWidth<80)this.parentNode.remove()"></span>`:'';
   B.push(link(a,'fd-feat'+(a.img?'':' fd-ft '+patCls(fof(a))),`${img}<span class="fd-fb"><small>${FD.isFolder?'Cover story · '+esc(fof(a).title)+' · ':'The lead · '}${esc(when(a))}${a.img&&a.pics&&a.pics.length>1?` · +${a.pics.length-1} ${a.pics.length===2?'photo':'photos'}`:''}</small><b>${esc(a.title)}</b>${dk(a)?`<em>${esc(dk(a))}</em>`:''}</span>`,a.img||!FD.isFolder?'':` data-nm="${esc(fof(a).title||host(fof(a).url))}"`)+(u.more.length?(()=>{const id='t'+peHash(a.link);return `<div class="wthr fd-thr"><button type="button" class="wthr-t" data-thr="${id}" aria-expanded="false">${u.more.length} earlier ${u.more.length===1?'update':'updates'} on this story</button><div class="wthr-b" id="${id}" hidden>${u.more.map(x=>c.card(x,ix(x),'nr nr-row nr-s')).join('')}</div></div>`})():''));
  }
  if(c.leadOnly)return;
@@ -14549,7 +14549,7 @@ function fedMods(us,FD,c){
    B.push(`<div class="fd-decks" style="--n:${t.length}">${t.map(u=>link(u.head,'fd-deck',`<small>${esc(when(u.head))}${minsOf(u.head)?' · '+minsOf(u.head)+' min':''}</small><b>${esc(u.head.title)}</b>${dk(u.head)?`<span>${esc(dk(u.head))}</span>`:''}`)).join('')}</div>`);
   }else{
    /* only stories known to take 3 minutes or less go in brief; none at all and a normal card takes the slot */
-   const t=us.filter(u=>!u.more.length&&minsOf(u.head)&&minsOf(u.head)<=3).slice(0,4);
+   const sh=m=>us.filter(u=>!u.more.length&&minsOf(u.head)&&minsOf(u.head)<=m);let t=sh(3).slice(0,4);if(t.length<4)t=t.concat(sh(5).filter(u=>!t.includes(u))).slice(0,4);/* David 2026-10-31: the four-story In brief reads best: when fewer than four 3-minute stories are left, 4–5 minute ones fill it */
    if(!t.length){const u=us.shift();why(u.head);B.push(c.card(u.head,ix(u.head),'mid cu'));last='mid';continue}
    t.forEach(u=>{us.splice(us.indexOf(u),1);why(u.head)});
    const nm=a=>fof(a).title||host(fof(a).url),ph=a=>a.img?`<img loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:'';
