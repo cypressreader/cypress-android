@@ -10880,7 +10880,7 @@ async function findFeed(url,sig){
  const it=t=>/<item[\s>]/i.test(t);try{const g=gnewsFor(h);return{url:g,xml:await fetchText(g,it,q())}}catch(e){stop();const bb=bingFor(h);return{url:bb,xml:await fetchText(bb,it,q())}}
 }
 const dlg=$('#dlg');
-function fillFolders(){$('#fo').innerHTML=S.folders.map(f=>`<option value="${f.id}">${esc(f.name)}</option>`).join('')+'<option value="__new">New folder…</option>';$('#nf').style.display=$('#fo').value==='__new'?'':'none';dlgDestUpd()}
+function fillFolders(){const cur=(S.sel||'').startsWith('f:')?S.sel.slice(2):'';/* a pasted address goes to no folder unless you are looking at one */$('#fo').innerHTML='<option value="">Unfiled</option>'+S.folders.map(f=>`<option value="${f.id}"${f.id===cur?' selected':''}>${esc(f.name)}</option>`).join('')+'<option value="__new">New folder…</option>';$('#nf').style.display=$('#fo').value==='__new'?'':'none';dlgDestUpd()}
 /* where a feed goes, in words: a pasted address goes to the chosen folder; a site picked from the list goes to the folder named for its topic */
 function destName(){const v=$('#fo').value;if(v==='__new')return ($('#nf').value||'').trim()||'New folder';const f=S.folders.find(x=>x.id===v);return f?f.name:'Unfiled'}
 function dlgDestUpd(){const d=$('#fodest');if(!d)return;d.innerHTML='A pasted address will be added to <b>“'+esc(destName())+'”</b>. Change it with the folder menu above. A site you pick from the list goes into the folder named under it.';try{if(liveRes&&liveRes.hit&&$('#pop'))pop()}catch(e){}}
