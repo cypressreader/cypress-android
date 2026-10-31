@@ -4927,6 +4927,7 @@ html[data-theme] body #grid#grid :is(#grid[data-w="mag"] .card.noimg:is(.nr-row,
 html[data-theme] body #grid#grid :is(#grid[data-w="mag"] .card.noimg:is(.nr-row,.nr-late),#grid.wire[data-w="mag"] .card.noimg[data-ed]:not(.lead):not(.nr),#grid[data-w="card"]:not(.nr)>.card.noimg[data-ed]:not(.nr),#grid[data-w="mag"]:not(.nr):not(.wire)>.card.noimg[data-ed]:not(.nr)) :is(p,.lq,.cfoot,time,.also){opacity:.86}
 html[data-theme] body :is(#grid[data-w="mag"] .card.noimg:is(.nr-row,.nr-late),#grid.wire[data-w="mag"] .card.noimg[data-ed]:not(.lead):not(.nr),#grid[data-w="card"]:not(.nr)>.card.noimg[data-ed]:not(.nr),#grid[data-w="mag"]:not(.nr):not(.wire)>.card.noimg[data-ed]:not(.nr)) .cfoot{border-top-color:rgba(255,255,255,.22)!important}
 html[data-theme] body :is(#grid[data-w="mag"] .card.noimg:is(.nr-row,.nr-late),#grid.wire[data-w="mag"] .card.noimg[data-ed]:not(.lead):not(.nr),#grid[data-w="card"]:not(.nr)>.card.noimg[data-ed]:not(.nr),#grid[data-w="mag"]:not(.nr):not(.wire)>.card.noimg[data-ed]:not(.nr))::after{content:attr(data-ini)!important;display:block!important;position:absolute;right:10px;top:-22px;font:500 clamp(110px,34vw,150px)/1 var(--disp,var(--serif));color:#fff;opacity:.16;z-index:-1;pointer-events:none;text-transform:uppercase}
+#grid .fd-pair{align-items:stretch}
 #grid .orow{grid-column:1/-1;display:grid;column-gap:inherit;row-gap:inherit;align-items:stretch}
 html body #grid.wire[data-w="mag"]{row-gap:14px}html body #grid.wire[data-w="mag"]>.card[data-ed]:not(.lead):not(.nr){margin-bottom:0}html body #grid.wire[data-w="mag"] .orow>.card{margin:0}/* tiles keep one even gap on every side */
 @container feed (min-width:640px){html #grid.list .card.list-row:not(.lr-feat):not(.lr-quote):not(.lr-type) h3{font-size:clamp(26px,3.3cqi,32px);line-height:1.16}html #grid.list .card.list-row:not(.lr-feat):not(.lr-quote)>.tx>.ld{font-size:16px;-webkit-line-clamp:2}}/* tablet list rows: a larger headline (and its summary) fill the row beside the photo */
@@ -14431,7 +14432,7 @@ function fedMods(us,FD,c){
   if(m===last)m=m==='mid'?'deck':'mid';
   if(m==='mid'){const u=us.shift();why(u.head);B.push(c.card(u.head,ix(u.head),'mid cu'))}
   else if(m==='pair'){
-   const t=us.filter(u=>!u.more.length).slice(0,2);if(t.length<2){const u=us.shift();why(u.head);B.push(c.card(u.head,ix(u.head),'mid cu'));last='mid';continue}
+   /* David 2026-10-31: a pair is two of a kind (both with a photo, or both text only), taken from the next few stories so the order barely moves */const pl=us.filter(u=>!u.more.length).slice(0,5),mate=pl[0]&&pl.slice(1).find(u=>!u.head.img===!pl[0].head.img),t=mate?[pl[0],mate]:[];if(t.length<2){const u=us.shift();why(u.head);B.push(c.card(u.head,ix(u.head),'mid cu'));last='mid';continue}
    t.forEach(u=>us.splice(us.indexOf(u),1));t.forEach(u=>why(u.head));
    B.push(`<div class="fd-pair">${t.map(u=>c.card(u.head,ix(u.head),'mid cu')).join('')}</div>`);
   }else if(m==='deck'){
@@ -14444,7 +14445,7 @@ function fedMods(us,FD,c){
    if(!t.length){const u=us.shift();why(u.head);B.push(c.card(u.head,ix(u.head),'mid cu'));last='mid';continue}
    t.forEach(u=>{us.splice(us.indexOf(u),1);why(u.head)});
    const nm=a=>fof(a).title||host(fof(a).url),ph=a=>a.img?`<img loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:'';
-   const sq=t.filter(u=>u.head.img);
+   const sq=t.every(u=>u.head.img)?t:[];/* the photo strip shows only when every short story has a photo, so it is always one even row of four (or three, two) */
    B.push(`<div class="fd-brief${t.length<3?' fd-bq':''}"><h4>${t.length<3?'In brief':'<small>In brief</small>The short ones'}</h4>${sq.length?`<div class="fd-bs" aria-hidden="true">${sq.map(u=>link(u.head,'fd-bsq',ph(u.head).replace('this.remove()','this.parentNode.remove()'),' tabindex="-1"')).join('')}</div>`:''}${t.map(u=>{const a=u.head;return link(a,'fd-bl',`<span class="fd-dot" aria-hidden="true">${esc([...nm(a).trim()][0]||'?')}${ph(a)}</span><time><i>${esc(nm(a))}</i> · ${esc(when(a))} · ${minsOf(a)} min</time><b>${esc(a.title)}</b>`,` style="--sc:${brand(fof(a))}"`)}).join('')}</div>`);
   }
   last=m;
