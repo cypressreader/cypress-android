@@ -16568,7 +16568,7 @@ $('#fj').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)re
 setTimeout(()=>{try{if(localStorage.getItem('folio-undo')!=='1')return;localStorage.removeItem('folio-undo');const prev=localStorage.getItem('folio-prev');if(!prev)return;toast('Backup restored',()=>{try{freezeApp();localStorage.setItem('folio',prev);localStorage.removeItem('folio-prev')}catch(err){FROZEN=false;toast('There isn’t enough storage space to undo');return}location.reload()})}catch(e){}},900);
 
 /* installable app support (works when hosted) */
-if('serviceWorker' in navigator&&!NATIVE&&/^https?:/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{});
+if('serviceWorker' in navigator&&!NATIVE&&/^https?:/.test(location.protocol)){navigator.serviceWorker.register('sw.js').catch(()=>{});/* the worker serves the saved copy first and fetches a fresh one behind it: when that one differs, the "new version" bar is offered */navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.type==='update-ready')checkUpdate()})}
 updVw();setAuto();applyTheme(false);startView();
 function mergePackFolders(){
  let moved=0,gone=0;const fk=f=>String(f.name).trim().toLowerCase();

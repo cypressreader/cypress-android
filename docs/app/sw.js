@@ -1,5 +1,5 @@
 /* CyPress web app: keeps the app itself available offline. Feeds are never cached here. */
-const V = 'cyp-web-12';
+const V = 'cyp-web-13';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'icon-mono-512.png'];
 /* one missing icon must not stop the offline copy from installing */
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => Promise.all(FILES.map(f => c.add(f).catch(() => {})))).then(() => self.skipWaiting())); });
@@ -13,13 +13,23 @@ self.addEventListener('fetch', e => {
     return;
   }
   if (r.method !== 'GET' || u.origin !== location.origin || !u.pathname.startsWith(base)) return;
+  /* the app's own "is there a newer version?" check asks with cache:'no-store': it must see the network, not the saved copy */
+  if (r.cache === 'no-store') return;
   /* every shortcut (?view=today, ?view=brief…) is the same page, and query strings never change a file: one cached copy per path */
   const k0 = (r.mode === 'navigate' && (u.pathname === base || u.pathname === base + 'index.html')) ? new Request(u.origin + base) : new Request(u.origin + u.pathname);
   const cached = () => caches.match(k0).then(m => m || caches.match('./')).then(m => m || caches.match('index.html'));
-  const net = fetch(r).then(res => { if (!res.ok) throw 0; const k = res.clone(); caches.open(V).then(c => c.put(k0, k)).catch(() => {}); return res; });
-  /* a slow, half-working connection falls back to the saved copy after 4 s; the network answer still refreshes the cache */
-  const slow = new Promise(ok => setTimeout(() => cached().then(m => m && ok(m)), 4000));
-  e.respondWith(Promise.race([net, slow]).catch(() => cached()));
+  /* shell first: the saved copy answers at once, the network copy refreshes the cache in the background;
+     when a different index.html lands, open pages are told so the "new version" bar can show */
+  const net = fetch(r).then(async res => {
+    if (!res.ok) throw 0;
+    const c = await caches.open(V), old = await c.match(k0), fresh = res.clone();
+    let changed = false;
+    if (old && /index\.html$|\/$/.test(k0.url)) { try { const [x, y] = await Promise.all([old.clone().text(), res.clone().text()]); changed = x !== y; } catch (e) {} }
+    await c.put(k0, fresh).catch(() => {});
+    if (changed) self.clients.matchAll({ type: 'window' }).then(cs => cs.forEach(w => w.postMessage({ type: 'update-ready' })));
+    return res;
+  });
+  e.respondWith(cached().then(m => m || net).catch(() => cached()));
   e.waitUntil(net.catch(() => {}));
 });
 self.addEventListener('notificationclick', e => {
