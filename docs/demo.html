@@ -8937,6 +8937,16 @@ function isolateExtras(fr){
   sm.querySelector('.bl').textContent='Shopping links';sm.querySelector('.bp').textContent='Added by the site, not part of the story';sm.querySelector('.bn').textContent=n+(n===1?' link':' links');
   const bx=document.createElement('div');bx.className='bfb';fr.insertBefore(d,run[0]);run.forEach(k=>bx.append(k));d.append(sm,bx);
  }
+ /* 3. markdown marks at the start of a paragraph: "## Heading" becomes a heading, "* item" a bullet, "[ ] task" loses its box */
+ for(const k of els()){
+  if(k.tagName!=='P')continue;
+  [...k.childNodes].forEach((n,i)=>{if(n.nodeType===3&&(!i||n.previousSibling.nodeName==='BR'))n.data=n.data.replace(/^\s*\[[ x]\]\s*/i,'')});
+  const f=k.firstChild,m=f&&f.nodeType===3&&f.data.match(/^\s*(#{1,6}|[*-])\s+/);if(!m)continue;
+  f.data=f.data.slice(m[0].length);
+  if(m[1][0]==='#'){if((k.textContent||'').length<120){const h=document.createElement('h3');h.append(...k.childNodes);k.replaceWith(h)}continue}
+  const li=document.createElement('li');li.append(...k.childNodes);const pv=k.previousElementSibling;
+  if(pv&&pv.md)pv.append(li),k.remove();else{const ul=document.createElement('ul');ul.md=1;ul.append(li);k.replaceWith(ul)}
+ }
  return fr;
 }
 /* Markdown left in article text (links, bold, italics, strikethrough) becomes real formatting at extraction time. No raw symbols reach the reader.
@@ -9052,6 +9062,7 @@ function tidy(fr){
   if(hasImg&&t.length>140)continue;
   let bad=false;
   if(t.length<200&&(/^(posts from this author|see all by|advertisement|sign up|subscribe|share this|more in\b)/i.test(t)||/^follow\b/i.test(t)&&(t.length<40||/see all by|posts from/i.test(t))))bad=true;
+  else if(t.length<80&&/^(share (on|via|this)|tweet|email this)/i.test(t)&&k.querySelectorAll&&[...k.querySelectorAll('a')].reduce((q,a)=>q+txt(a).length,0)>t.length*.6)bad=true;
   else if(t.length<170&&CAP.test(t))bad=true;
   else if(/^!?\[.*\]\(https?:/.test(t)||/\]\(https?:\/\//.test(t)&&t.length<260)bad=true;
   else if(t.length<50&&ROLE.test(t))bad=true;
