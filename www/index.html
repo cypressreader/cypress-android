@@ -2052,6 +2052,7 @@ html.rmo #fxl,html.lowp #fxl{display:none!important}
 #set .sgl{background:var(--bg);border-radius:20px;overflow:hidden;margin:0 0 14px}
 #set .sgi{display:flex;align-items:center;gap:14px;width:100%;padding:13px 16px;min-height:66px;text-align:left;background:none;border:0;color:var(--ink);font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 #set .sgi+.sgi{border-top:1px solid var(--ln)}
+#set .sgl.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;background:none;border-radius:0;overflow:visible}#set .sgl.tiles .sgi{flex-direction:column;align-items:flex-start;gap:8px;padding:14px;background:var(--bg);border-radius:18px;border-top:0}#set .sgl.tiles .sgi .ico{width:34px;height:34px}#set .sgl.tiles .sgi .sgx{width:100%}#set .sgl.tiles .sgi .chev{display:none}
 #set .sgi .ico{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:#fff;flex:none}
 #set .sgi .sgx{min-width:0;flex:1}
 #set .sgi b{display:block;font:600 16px var(--sans)}
@@ -7321,17 +7322,17 @@ function aaSync(){
  const p=$('#aasample'),ls={t:'-0.01em',n:'',o:'0.03em'}[S.tsp||'n']||'';p.style.cssText='font-family:'+(FONTS[fontKey()]||'var(--serif)')+';font-size:'+(S.fs||18)+'px;line-height:'+(S.lh||1.68)+';letter-spacing:'+ls+';max-width:'+({n:'72%',c:'88%',w:'100%'}[S.rw||'c'])+';margin:0;text-align:'+(S.just===false?'left':'justify');
 }
 function aaClose(back){const pop=$('#aapop'),aa=$('#raa');if(pop&&!pop.hidden){pop.hidden=true;pop.style.transform='';if(aa)aa.setAttribute('aria-expanded','false');const o=(aaOpener&&document.contains(aaOpener)&&!aaOpener.hidden)?aaOpener:(aa&&!aa.hidden?aa:$('#mo'));aaOpener=null;if(back&&o)o.focus()}}
-function aaToggle(){
+function aaToggle(from){
  const pop=aaBuild();
  if(!pop.hidden){aaClose(true);return}
  /* opened from Settings, the sheet sits inside the Settings dialog (a modal dialog covers everything else) */
  const host=set.open?set:$('#rd');if(pop.parentNode!==host)host.append(pop);
- aaOpener=document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#mo,#raa,#raaf,#aaopen')||$('#mo')||$('#raa');try{fontPreviews()}catch(e){}aaSync();pop.hidden=false;const aa=$('#raa');if(aa)aa.setAttribute('aria-expanded','true');
+ aaOpener=from||document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#mo,#raa,#raaf,#aaopen')||$('#mo')||$('#raa');try{fontPreviews()}catch(e){}aaSync();pop.hidden=false;const aa=$('#raa');if(aa)aa.setAttribute('aria-expanded','true');
  const f=pop.querySelector('#aax');if(f)f.focus();
 }
 document.addEventListener('click',e=>{
  const t=e.target;if(!t.closest)return;
- if(t.closest('#raa,#raaf,#aaopen')){e.preventDefault();e.stopPropagation();aaToggle();return}
+ if(t.closest('#raa,#raaf,#aaopen')){e.preventDefault();e.stopPropagation();aaToggle(t.closest('#raa,#raaf,#aaopen'));return}
  const pop=$('#aapop');if(!pop||pop.hidden)return;
  if(!t.closest('#aapop')){aaClose(false);return}
  const b=t.closest('button');if(!b)return;
@@ -10232,6 +10233,7 @@ set.onclick=e=>{
 /* ---------- Settings: full-screen pages (home list -> page; two panes on wide screens) ---------- */
 const SET_ICON={look:'<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/>',read:'<path d="M5 4h9a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4zM9 8h5M9 12h5"/>',home:'<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/>',tts:'<path d="M4 14v-2a8 8 0 0 1 16 0v2M4 14h3v5H5a1 1 0 0 1-1-1zM20 14h-3v5h2a1 1 0 0 0 1-1z"/>',dl:'<path d="M12 4v10m0 0-4-4m4 4 4-4M5 19h14"/>',feeds:'<path d="M5 5a14 14 0 0 1 14 14M5 11a8 8 0 0 1 8 8"/><circle cx="6" cy="18" r="1.4" fill="currentColor"/>',alerts:'<path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7M10 19a2 2 0 0 0 4 0"/>',motion:'<path d="M3 12h3.5l2.5-6 4 12 2.5-6H21"/>',sync:'<path d="M20 12a8 8 0 0 0-14-5L4 9M4 4v5h5M4 12a8 8 0 0 0 14 5l2-2M20 20v-5h-5"/>',about:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>'};
 /* polish-2026-10 (J1): the hub icons are one forest disc with a cream line glyph. The rainbow colors stay in SET_PAGES[].c (unused); to bring them back, put style="background:${p.c}" on .ico in setBuild and remove the #set .sgi .ico rule. */
+Object.assign(SET_ICON,{daily:SET_ICON.home,listen:SET_ICON.tts,stories:SET_ICON.feeds,sites:SET_ICON.sync,kb:'<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M17 10h.01M8 14h8"/>'});
 const SET_MERGE={
  pq:{p:'Story pull quotes',s:['Pull quotes on The Daily'],label:'Pull quotes',sub:'A line pulled out big between sections, from stories and from your own highlights'},
  marks:{p:'Page numbers in stories',s:['End-of-story mark'],label:'Page marks',sub:'A small running line at the foot of each page, and a mark at the end of every story'},
@@ -10282,27 +10284,29 @@ const SET_PAGES=[
   main:[{items:['L:Tips and gestures','L:See your year','L:Privacy','L:Keyboard shortcuts','L:Redo setup']},{h:'Sharing and Kindle',items:['L:Shorten shared links','L:Kindle books','L:Your Kindle address']}],
   more:[{h:'Diagnostics',fold:1,items:['L:Copy support info','L:Test sites on this phone','L:Check scrolling','L:Test suggested feeds']},{h:'Reset',items:['X:resetlook','L:Erase everything and start over']}],rst:null}
 ];
-const SET_GROUPS=[['look','read','home'],['motion','dl'],['alerts','about']];
+const SET_GROUPS=[['look','read','daily','listen','stories','sites'],['motion','kb','about']];
 /* polish-2026-10 (D1): seven pages instead of ten. Appearance, Reading, Home and Stories (layout + feeds + filters), Motion and Sound, Downloads and Storage, Listening and Alerts (read aloud + digest), Backup, Sync and About. The old ids still work as aliases. Restore the old hub by putting the old merge back (feeds/tts/sync/home pages are all still defined above). */
-const SET_ALIAS={tts:'alerts',feeds:'home',sync:'about'};
+const SET_ALIAS={tts:'listen',feeds:'sites',sync:'sites',home:'daily',dl:'stories',alerts:'daily'};
 (function(){const by=id=>SET_PAGES.find(p=>p.id===id);
  const tag=(cards,h,rs)=>(cards||[]).map((c,i)=>Object.assign({},c,i===0&&!c.h?{h}:{},rs!=null&&c.rs==null?{rs}:{}));
- const H=by('home'),F=by('feeds'),A=by('alerts'),T=by('tts'),Sy=by('sync'),Ab=by('about'),R=by('read'),L=by('look'),M=by('motion');
- L.t='Appearance';L.d='Theme, colors and cover style';
- R.t='Reading';R.d='Fonts, size and story layout';R.lead='How a story looks while you read it.';
- H.t='Home and Stories';H.d='Front page, your sites and filters';H.lead='Your front page, your sites and your filters.';
- H.main=tag(H.main,'Front page',1).concat(F.main);H.more=tag(H.more,'Layout',1).concat(F.more);H.rst=(H.rst||[]).concat(F.rst||[]);
- M.t='Motion and Sound';M.d='Animation, effects and vibration';M.lead='Less movement saves battery.';
- A.t='Listening and Alerts';A.d='Read aloud, daily digest and notifications';A.lead='Read aloud, your digest and notifications.';
- A.main=A.main.concat(tag(T.main,'Read aloud',1));A.more=(A.more||[]).concat(tag(T.more,'Read aloud',1));A.rst=null;
- Ab.t='Backup, Sync and About';Ab.d='Backup, devices, help and version';Ab.lead='Backup, other devices, help and your version.';
- Ab.main=Sy.main.concat(Ab.main);Ab.rst=null;
- SET_PAGES.splice(0,SET_PAGES.length,...[L,R,H,M,by('dl'),A,Ab]);
- SET_PAGES.OLD={feeds:F,tts:T,sync:Sy};/* kept so the old split can be restored */
+ const H=by('home'),F=by('feeds'),A=by('alerts'),T=by('tts'),Sy=by('sync'),Ab=by('about'),R=by('read'),L=by('look'),M=by('motion'),D=by('dl');
+ /* polish S-01: six doors (Look, Reading, The Daily, Listen, Stories & loading, Sites & backup) plus the Motion, Keyboard shortcuts and About rows. The old pages stay in SET_PAGES.OLD and their ids still work as aliases. */
+ L.t='Look';L.d='Theme, light or dark, cover';
+ R.t='Reading';R.d='Size, font and story layout';R.lead='How a story looks while you read it.';
+ const daily={id:'daily',t:'The Daily',d:'Front page, cards and digest',c:H.c,lead:'Your front page, its cards and the daily digest.',
+  main:tag(H.main,'Front page',1).concat(H.more.filter(c=>c.h==='The Daily'),tag(A.main,'Digest',1)),more:tag(H.more.filter(c=>c.h!=='The Daily'),'Layout',1),rst:H.rst};
+ const listen={id:'listen',t:'Listen',d:T.d,c:T.c,lead:T.lead,main:T.main,more:T.more,rst:T.rst};
+ const isS=c=>c.h==='Your sites';
+ const stories={id:'stories',t:'Stories & loading',d:'Order, filters, downloads, offline',c:F.c,lead:'How stories are chosen and shown, and what is ready ahead.',main:F.main.filter(c=>!isS(c)).concat(tag(D.main,'Downloads',1)),more:F.more.filter(c=>!isS(c)).concat(D.more),rst:(F.rst||[]).concat(D.rst||[])};
+ const sites={id:'sites',t:'Sites & backup',d:'Your sites, sync and backups',c:Sy.c,lead:'The sites you follow, and keeping them safe.',main:F.main.filter(isS).concat(Sy.main),more:F.more.filter(isS),rst:null};
+ M.t='Motion and battery';M.d='Animation, effects and vibration';M.lead='Less movement saves battery.';
+ Ab.t='About CyPress';Ab.d='Tips, shortcuts, privacy and version';Ab.lead='Help, privacy and the app itself.';
+ SET_PAGES.splice(0,SET_PAGES.length,...[L,R,daily,listen,stories,sites,M,Ab]);
+ SET_PAGES.OLD={home:H,feeds:F,tts:T,sync:Sy,alerts:A,dl:D};/* kept so the old split can be restored */
 })();
 /* The "Reset appearance and reading settings" button must keep resetting exactly what it did before the pages were merged: these extra keys cover the layout and read-aloud settings that moved. */
 const SET_RESET_EXTRA=['cards','ts','narrow','sop','rate','vol','voice','prate'];
-const SET_SECPG={'s-look':'look','s-fx':'motion','s-read':'read','s-mag':'look','s-tts':'alerts','s-stories':'home','s-load':'dl','s-data':'about','s-sync':'about','s-setup':'about','s-notif':'alerts','s-app':'about'};
+const SET_SECPG={'s-look':'look','s-fx':'motion','s-read':'read','s-mag':'daily','s-tts':'listen','s-stories':'stories','s-load':'stories','s-data':'sites','s-sync':'sites','s-setup':'about','s-notif':'daily','s-app':'about'};
 let SET_BUILT=false,SETP=null;const SET_IX={},SET_USED=new Set();
 const setWide=()=>VW>=760;
 const setNorm=s=>(s||'').replace(/\s+/g,' ').trim();
@@ -10417,7 +10421,7 @@ function setBuild(){
  ['.snav','.sbody'].forEach(q=>{const n=set.querySelector(q);if(n)lg.append(n)});set.append(lg);
  try{thmBuild()}catch(e){}setIndex();SET_HIDE.forEach(l=>SET_USED.add('L:'+l));SET_USED.add('P:font');
  const home=document.createElement('div');home.id='sethome';
- home.innerHTML=setYouHtml()+'<div class="sset"><input id="sset" type="search" placeholder="Search settings" autocomplete="off" aria-label="Search settings"></div><div id="setgl"><div class="smu" id="setmu" hidden></div>'+SET_GROUPS.map(g=>'<div class="sgl">'+g.map(id=>{const p=SET_PAGES.find(x=>x.id===id);return `<button type="button" class="sgi" data-pg="${id}"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SET_ICON[id]}</svg></span><span class="sgx"><b>${p.t}</b><small data-sum="${id}">${p.d}</small></span><svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>`}).join('')+'</div>').join('')+'</div><div id="setsr" hidden></div>';
+ home.innerHTML=setYouHtml()+'<div class="sset"><input id="sset" type="search" placeholder="Search settings" autocomplete="off" aria-label="Search settings"></div><div id="setgl"><div class="smu" id="setmu" hidden></div>'+SET_GROUPS.map((g,gi)=>'<div class="sgl'+(gi?'':' tiles')+'">'+g.map(id=>{const p=SET_PAGES.find(x=>x.id===id)||{t:'Keyboard shortcuts',d:'Press ? any time'};return `<button type="button" class="sgi" ${p.id?'data-pg="'+id+'"':'data-kb="1" aria-haspopup="dialog"'}><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SET_ICON[id]}</svg></span><span class="sgx"><b>${p.t}</b><small data-sum="${id}">${p.d}</small></span><svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>`}).join('')+'</div>').join('')+'</div><div id="setsr" hidden></div>';
  const pane=document.createElement('div');pane.id='setpane';
  SET_PAGES.forEach(p=>{
   const s=document.createElement('section');s.className='spage';s.id='sp-'+p.id;s.dataset.pg=p.id;s.hidden=true;
@@ -10428,6 +10432,7 @@ function setBuild(){
   pane.append(s)});
  const sh=set.querySelector('.sh');
  const shell=document.createElement('div');shell.id='setshell';shell.append(home,pane);sh.after(shell);
+ {const gv=$('#gv'),ab=$('#sp-about');if(gv&&ab){const v=document.createElement('p');v.className='ver';v.textContent='CyPress Reader · ';v.append(gv);ab.append(v)}}
  sh.insertAdjacentHTML('afterbegin','<button class="ib" id="setback" type="button" aria-label="Back"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>');
  sh.querySelector('h2').id='settitle';
  setAdopt();setLeftovers();
@@ -10453,11 +10458,11 @@ function setCard(c){
  const w=document.createElement('div');w.className='sgw';if(c.id)w.dataset.cg=c.id;if(c.rs)w.dataset.rs='1';if(c.h){const h=document.createElement('h4');h.className='sct';h.textContent=c.h;w.append(h)}
  const b=document.createElement('div');b.className='sbox';setItems(c.items).forEach(n=>b.append(n));w.append(b);return w}
 function setAdopt(){
- [['s-notif','alerts','Alerts'],['s-app','about','The app']].forEach(([id,pg,h])=>{
+ [['s-notif','daily','Alerts'],['s-app','about','The app']].forEach(([id,pg,h])=>{
   const sec=$('#'+id);if(!sec||sec.dataset.ad)return;sec.dataset.ad='1';if(!sec.querySelector(':scope>.sbox'))return;
   const page=$('#sp-'+pg);const h3=sec.querySelector(':scope>h3');const h4=document.createElement('h4');h4.className='sct';h4.textContent=h;if(h3)h3.replaceWith(h4);else sec.prepend(h4);sec.className='sgw';
   const first=page.querySelector('.sgw');if(first)first.before(sec);else page.append(sec);
-  if(id==='s-notif'){const pk=[...sec.querySelectorAll('.line')].filter(l=>l.querySelector('[data-tg="pack"],#packh,#packo'));if(pk.length){const dl=$('#sp-dl');const w=document.createElement('div');w.className='sgw';w.innerHTML='<h4 class="sct">Morning pack</h4><div class="sbox"></div>';pk.forEach(l=>w.lastChild.append(l));const bi=[...dl.querySelectorAll('.sct')].find(h=>h.textContent==='Back issues');if(bi)bi.parentNode.before(w);else dl.append(w)}}
+  if(id==='s-notif'){const pk=[...sec.querySelectorAll('.line')].filter(l=>l.querySelector('[data-tg="pack"],#packh,#packo'));if(pk.length){const dl=$('#sp-stories');const w=document.createElement('div');w.className='sgw';w.innerHTML='<h4 class="sct">Morning pack</h4><div class="sbox"></div>';pk.forEach(l=>w.lastChild.append(l));const bi=[...dl.querySelectorAll('.sct')].find(h=>h.textContent==='Back issues');if(bi)bi.parentNode.before(w);else dl.append(w)}}
   if(setReady())setTimeout(()=>{setCounts();setSum()},0)});
 }
 const setReady=()=>SET_BUILT;
@@ -10489,6 +10494,7 @@ function setSum(){
  t.alerts=(isOn('dgon')?'Digest on':'Digest off')+(isOn('alerts')?' · story alerts on':'')+' · voice '+(S.rate||1).toFixed(1)+'×';
  const ml=moLevel();t.motion='Motion '+(ml==='custom'?'custom':ml)+' · effects '+(isOn('cyfx')?'on':'off');
  t.sync=S.sync?'Sync is on':'Sync is off';t.about=t.sync+' · version '+APP_LABEL;
+ t.daily=t.home0+(isOn('dgon')?' · digest on':'');t.listen=t.tts;t.stories=({smart:'Smart order',new:'Newest first'}[S.sort||'smart']||'Your order')+' · '+t.dl.charAt(0).toLowerCase()+t.dl.slice(1);t.sites=t.feeds+' · '+t.sync.toLowerCase();
  document.querySelectorAll('[data-sum]').forEach(e=>{if(t[e.dataset.sum])e.textContent=t[e.dataset.sum]});
 }
 let PREVK='';
@@ -10518,6 +10524,8 @@ function setShow(id,focus){
  setSum();moSync();
  if(id==='read'){try{if('speechSynthesis' in window)fillVoices()}catch(e){}}
 }
+function setHome(){const was=SETP;setShow(null);const b=was&&$('#sethome .sgi[data-pg="'+was+'"]');if(b)b.focus()}
+set.addEventListener('cancel',e=>{if(SET_BUILT&&!setWide()&&set.classList.contains('inpage')){e.preventDefault();setHome()}});
 function setGo(id,node){
  setShow(id);
  if(node){const d=node.closest('details');if(d)d.open=true;setTimeout(()=>{node.scrollIntoView({block:'center',behavior:'smooth'});node.classList.add('sflash');setTimeout(()=>node.classList.remove('sflash'),1800)},60)}
@@ -10525,9 +10533,9 @@ function setGo(id,node){
 function openSec(id){const pg=SET_SECPG[id];if(pg&&set.open&&SET_BUILT)setGo(pg)}
 function popTop(){for(let e=$('#pop');e&&e!==document.documentElement;e=e.parentElement)if(e.scrollTop)e.scrollTop=0}
 window.addBackHook=()=>{if(!dlg.open||$('#u').value.trim()||cat===-9)return false;cat=cat>=0?-8:-9;pop();popTop();return true};
-window.setBackHook=()=>{if(set.open&&!setWide()&&set.classList.contains('inpage')){setShow(null);return true}return false};
+window.setBackHook=()=>{if(set.open&&!setWide()&&set.classList.contains('inpage')){setHome();return true}return false};
 /* Plain words people might type, matched to the setting they mean (checked against each setting's name) */
-const SET_SYN=[['translate headlines','translation translator foreign language german french spanish'],['light, dark','dark mode night mode light mode theme color black white bright dim eyes cypress sepia midnight aurora pure black amoled oled'],['text size','bigger larger smaller font zoom readable big words tiny'],['type preset','font style typeface'],['headline font','title heading'],['line spacing','space between lines gap cramped'],['page margins','edges border width'],['reading style','pages scroll swipe turn flip'],['voice','read aloud listen speak talk audio narrator'],['speaking speed','faster slower talk rate'],['volume','loud quiet sound'],['keep playing','background screen off lock'],['story card size','bigger smaller cards pictures compact'],['feed text size','text bigger smaller words'],['cover style','front page magazine'],['app icon','logo home screen'],['get stories ready','download offline ahead save data prepare'],['only on wi-fi','wifi mobile data cellular'],['refresh automatically','update new stories auto fetch'],['offline mode','airplane plane no internet'],['data saver','mobile data cellular photos'],['space for stored','storage memory room full'],['clear downloaded','delete free space remove'],['keep back issues','old editions archive history'],['manage your sites','feeds add remove site sites website websites source sources subscribe unsubscribe follow fix broken'],['import or export','opml move transfer file list another app'],['muted words','block hide filter keywords ban'],['topics you follow','interests subjects'],['hide stories','already read'],['story alerts','notifications notification push notify ping'],['alert keywords','words'],['quiet hours','do not disturb sleep night silence'],['morning pack','download morning'],['daily digest','summary briefing'],['back up','save restore copy'],['shorten shared','links share short url'],['pictures','photos images pics data text only no pictures mobile data'],['motion','animation moving less battery'],['hide unread','quiet mode dots numbers counts badges'],['animated themes','animation glow rain effects'],['pause effects','battery low'],['smoother scrolling','animation smooth mode blur lag'],['theme by folder','folder color different'],['privacy','data tracking'],['keyboard shortcuts','keys'],['redo setup','start over welcome tour'],['erase everything','reset delete all wipe clear']];
+const SET_SYN=[['translate headlines','translation translator foreign language german french spanish'],['light, dark','dark mode night mode light mode theme color black white bright dim eyes cypress sepia midnight aurora pure black amoled oled'],['text size','bigger larger smaller font zoom readable big words tiny'],['type preset','font style typeface'],['headline font','title heading'],['line spacing','space between lines gap cramped'],['page margins','edges border width'],['reading settings','font typeface line spacing margins width page turn letter spacing large print preset size'],['reading style','pages scroll swipe turn flip'],['voice','read aloud listen speak talk audio narrator'],['speaking speed','faster slower talk rate'],['volume','loud quiet sound'],['keep playing','background screen off lock'],['story card size','bigger smaller cards pictures compact'],['feed text size','text bigger smaller words'],['cover style','front page magazine'],['app icon','logo home screen'],['get stories ready','download offline ahead save data prepare'],['only on wi-fi','wifi mobile data cellular'],['refresh automatically','update new stories auto fetch'],['offline mode','airplane plane no internet'],['data saver','mobile data cellular photos'],['space for stored','storage memory room full'],['clear downloaded','delete free space remove'],['keep back issues','old editions archive history'],['manage your sites','feeds add remove site sites website websites source sources subscribe unsubscribe follow fix broken'],['import or export','opml move transfer file list another app'],['muted words','block hide filter keywords ban'],['topics you follow','interests subjects'],['hide stories','already read'],['story alerts','notifications notification push notify ping'],['alert keywords','words'],['quiet hours','do not disturb sleep night silence'],['morning pack','download morning'],['daily digest','summary briefing'],['back up','save restore copy'],['shorten shared','links share short url'],['pictures','photos images pics data text only no pictures mobile data'],['motion','animation moving less battery'],['hide unread','quiet mode dots numbers counts badges'],['animated themes','animation glow rain effects'],['pause effects','battery low'],['smoother scrolling','animation smooth mode blur lag'],['theme by folder','folder color different'],['privacy','data tracking'],['keyboard shortcuts','keys'],['redo setup','start over welcome tour'],['erase everything','reset delete all wipe clear']];
 const SET_STOP=new Set('the a an my me i to of for on off in is it and or how do can want make change turn set use get with when so that this you your be too much very really some just stop please need there are'.split(' '));
 function setSearch(q){
  q=q.trim().toLowerCase();const gl=$('#setgl'),sr=$('#setsr');
@@ -10553,9 +10561,10 @@ function setReset(id){
  again();toast('This section is back to its defaults',()=>{keys.forEach(k=>{delete S[k]});Object.assign(S,snap);if(!('fs' in snap))S.fs=18;again()})}
 set.addEventListener('click',e=>{
  const t=e.target;
- const gi=t.closest('.sgi[data-pg]');if(gi){setGo(gi.dataset.pg);if(!setWide()){}return}
+ const gi=t.closest('.sgi[data-pg]');if(gi){setGo(gi.dataset.pg);if(!setWide()){const h=$('#settitle');h.tabIndex=-1;h.focus()}return}
+ if(t.closest('.sgi[data-kb]')){const k=$('#kbopen');if(k)k.click();return}
  const sr=t.closest('[data-sr]');if(sr){const r=SETRES[+sr.dataset.sr];if(r){$('#sset').value='';setSearch('');setGo(r[1].id,r[0])}return}
- if(t.closest('#setback')){setShow(null);return}
+ if(t.closest('#setback')){setHome();return}
  const mo=t.closest('[data-mo]');if(mo){moSet(mo.dataset.mo);return}const ps=t.closest('[data-ps]');if(ps){psSet(ps.dataset.ps);return}
  const rs=t.closest('[data-rst]');if(rs){if(rs.dataset.arm){rs.dataset.arm='';rs.textContent='Reset this section';setReset(rs.dataset.rst)}else{rs.dataset.arm='1';rs.textContent='Tap again to confirm';setTimeout(()=>{rs.dataset.arm='';rs.textContent='Reset this section'},4000)}return}
  const tg=t.closest('.tg');if(tg&&SET_MK[tg.dataset.tg]){const k=tg.dataset.tg;SET_MK[k].forEach(o=>S[o]=!!S[k]&&S[k]!==false?true:false);save();try{screenMode()}catch(e){}try{refreshReader()}catch(e){}render();syncSet()}
