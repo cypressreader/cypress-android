@@ -911,6 +911,7 @@ html.rmo .book>.rdedge>i,html.lowp .book>.rdedge>i{transition:none}
 .tgrid.rail .sw{width:44px;height:44px}
 .tgrid.rail button.on{border-color:#b08d3e;box-shadow:0 0 0 2px #c9a24a}
 .tgrid.rail button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+#thfam .thf h5{font:600 12px var(--sans);letter-spacing:.8px;text-transform:uppercase;color:var(--mut);margin:10px 4px 0}#thfam .thf[hidden]{display:none}#thfam .tgrid.rail{padding-top:6px}#thfam .tgrid.rail button{padding:6px 6px 9px;gap:7px;font-size:13px}#thfam .thk{display:block;width:96px;height:58px;border-radius:9px;padding:7px 8px;text-align:left;overflow:hidden;background:var(--tb);color:var(--ti);border:1px solid color-mix(in srgb,var(--ti) 22%,transparent)}#thfam .thk b{display:block;font:700 13px/1.1 var(--tf,var(--serif));letter-spacing:-.01em}#thfam .thk u{display:block;width:38%;height:3px;margin-top:6px;border-radius:2px;background:var(--ta);text-decoration:none}
 /* the preview at the top of Appearance: a real little masthead in the chosen theme */
 #set .sprev.spm0{display:block}
 #set .spmh{display:flex;align-items:center;gap:10px;padding:2px 2px 10px;border-bottom:3px double var(--ln)}
@@ -6631,6 +6632,31 @@ function themeTidy(){
  if(more){const n=more.querySelectorAll('.tgrid>button[data-th]').length;const sm=more.querySelector(':scope>summary>small');if(sm)sm.textContent=String(n)}
 }
 try{themeTidy()}catch(e){}
+/* polish S-04: the theme picker shows families (Recent, Paper, Color, Night, Games). Each card is drawn in that theme's own page, ink and accent colors with a two-word headline in its headline font, read once from the theme's stylesheet rule. A theme with a dark twin is listed once; the Light / Dark / Follow phone switch picks the twin, and the cards follow that choice. */
+const THEME_FAM={Paper:['halcyon','press','eink'],Color:['coast','rosewood'],Night:['aurora'],Games:['spartan','covenant','cortana','rivals','midgar','ragnarok','protoss','nightcity']};
+function thmRules(){if(thmRules.m)return thmRules.m;const m={};for(const sh of document.styleSheets){let rs;try{rs=sh.cssRules}catch(e){continue}for(const r of rs){const x=r.selectorText&&r.selectorText.length<40&&r.selectorText.match(/^(?::root|html)\[data-theme="?(\w+)"?\]$/);if(x&&!m[x[1]]&&r.style.getPropertyValue('--bg'))m[x[1]]=r.style}}return thmRules.m=m}
+function thmPal(th){/* the palette a card shows: the twin when the Light/Dark switch asks for it */
+ const R=thmRules(),want=schWant(),own=R[th];if(!own)return null;const g=(st,k)=>st.getPropertyValue(k).trim();
+ let st=own;if(want==='dark'&&R[th+'d'])st=R[th+'d'];
+ const h=want&&HANDTWIN[th]&&HANDTWIN[th][want];
+ const p={bg:g(st,'--bg'),ink:g(st,'--ink'),a1:g(st,'--a1')||g(st,'--logo')||g(st,'--ink'),fd:g(own,'--fd')||g(own,'--serif')||'var(--serif)'};
+ if(h&&!(want==='dark'&&R[th+'d'])){p.bg=h['--bg']||p.bg;p.ink=h['--ink']||p.ink;p.a1=h['--a1']||p.a1}
+ return p}
+function thmCard(th,nm){const p=thmPal(th);return '<button type="button" data-th="'+th+'" aria-pressed="false" style="--tb:'+p.bg+';--ti:'+p.ink+';--ta:'+p.a1+';--tf:'+p.fd.replace(/"/g,'&quot;')+'"><i class="thk" aria-hidden="true"><b>Morning Edition</b><u></u></i><span class="thn">'+nm+'</span></button>'}
+function thmBuild(){
+ const root=$('#thm'),rail=root&&root.querySelector('.tgrid.rail');if(!rail||$('#thfam'))return;
+ const all=[...rail.querySelectorAll('[data-th]')].map(b=>[b.dataset.th,b.textContent.trim()]).filter(([t])=>thmPal(t));
+ const famOf=t=>Object.keys(THEME_FAM).find(f=>THEME_FAM[f].includes(t))||(lumOf(varRgb('--bg')||[255,255,255])<.2?'Night':'Paper');
+ const fams={Recent:[]};Object.keys(THEME_FAM).forEach(f=>fams[f]=[]);all.forEach(x=>fams[famOf(x[0])].push(x));
+ const wrap=document.createElement('div');wrap.id='thfam';
+ wrap.innerHTML=Object.keys(fams).map(f=>'<div class="thf" data-fam="'+f+'"'+(fams[f].length?'':' hidden')+'><h5>'+f+'</h5><div class="tgrid rail" role="group" aria-label="'+f+' themes">'+fams[f].map(([t,n])=>thmCard(t,n)).join('')+'</div></div>').join('');
+ wrap.dataset.names=JSON.stringify(Object.fromEntries(all));rail.replaceWith(wrap);thmSync()}
+function thmSync(){
+ const w=$('#thfam');if(!w)return;const nm=JSON.parse(w.dataset.names||'{}');
+ /* the Recent row: the last three themes used, newest first */
+ const rc=w.querySelector('[data-fam="Recent"]'),ids=(S.rth||[]).filter(t=>nm[t]).slice(0,3),sig=ids.join()+'|'+schWant();
+ if(rc&&rc.dataset.sig!==sig){rc.dataset.sig=sig;rc.hidden=!ids.length;rc.querySelector('.tgrid').innerHTML=ids.map(t=>thmCard(t,nm[t])).join('')}
+ if(w.dataset.want!==schWant()){w.dataset.want=schWant();w.querySelectorAll('.thf:not([data-fam="Recent"]) [data-th]').forEach(b=>{const p=thmPal(b.dataset.th);if(!p)return;b.style.setProperty('--tb',p.bg);b.style.setProperty('--ti',p.ink);b.style.setProperty('--ta',p.a1)})}}
 function wireAnchor(){
  if(WIRE.anchor)return WIRE.anchor;
  const now=Date.now();
@@ -10185,7 +10211,7 @@ function syncSet(){dealSync();try{trlSync()}catch(e){}{const e=$('#sidehs');if(e
  {const el=$('#offst');if(el){const c=Object.keys(AC).length,last=S.feeds.reduce((m,f)=>Math.max(m,(S.health[f.id]||{}).ok||0),0),t=last?new Date(last).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
   el.textContent=(S.offline?'Offline mode is on. ':'')+(c?`Ready for offline reading: ${c} ${c===1?'story is':'stories are'} stored on this device (room for up to ${S.acMB||60} MB).`:'Nothing is stored for offline yet. Turn on “Get stories ready in advance” and open a list, and the top stories download in the background.')+(t?` Feeds last updated at ${t}.`:'')}}
   /* how much space CyPress uses, and asking the browser to keep it (so a full phone can't quietly clear your library) */{const el=$('#offst');if(el){const tk=(syncSet.tk=(syncSet.tk||0)+1),lib=LIBSZ||((localStorage.getItem('folio')||'').length);const add=t=>{if(syncSet.tk===tk&&el.isConnected)el.textContent+=t};add(' Your library uses '+(lib/1048576).toFixed(1)+' MB of about 5 MB.');try{if(navigator.storage&&navigator.storage.estimate)navigator.storage.estimate().then(e=>{if(e&&e.usage!=null)add(' In all, CyPress is using '+Math.max(1,Math.round(e.usage/1048576))+' MB on this device.')}).catch(()=>{});if(navigator.storage&&navigator.storage.persisted)navigator.storage.persisted().then(p=>{if(!p&&navigator.storage.persist)return navigator.storage.persist()}).catch(()=>{})}catch(e){}}}
- {/* a few themes are listed in more than one group; only the first one listed shows as selected, so exactly one button is ever pressed */let found=false;document.querySelectorAll('#thm button[data-th]').forEach(b=>{const on=!found&&b.dataset.th===(S.theme||'auto');if(on)found=true;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))})}{const cb=document.querySelector('#thm button.on'),cd=cb&&cb.closest('details');for(let e=cd;e;e=e.parentElement&&e.parentElement.closest('details'))e.open=true;const th0=S.theme||'auto',pr=$('#ptnrow'),gr=$('#grnrow');{const dh=$('#dynh');if(dh)dh.hidden=th0==='dynamic'}if(pr)pr.hidden=true;if(gr)gr.hidden=true;const pt=$('#ptn');if(pt)pt.value=S.ptone||'warm';const bf=$('#bfs');if(bf)bf.value=S.bfold||'fold'}if(typeof syncTpre==='function')syncTpre();
+ try{thmSync()}catch(e){}{/* a few themes are listed in more than one group; only the first one listed shows as selected, so exactly one button is ever pressed */let found=false;document.querySelectorAll('#thm button[data-th]').forEach(b=>{const on=!found&&b.dataset.th===(S.theme||'auto');if(on)found=true;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))})}{const cb=document.querySelector('#thm button.on'),cd=cb&&cb.closest('details');for(let e=cd;e;e=e.parentElement&&e.parentElement.closest('details'))e.open=true;const th0=S.theme||'auto',pr=$('#ptnrow'),gr=$('#grnrow');{const dh=$('#dynh');if(dh)dh.hidden=th0==='dynamic'}if(pr)pr.hidden=true;if(gr)gr.hidden=true;const pt=$('#ptn');if(pt)pt.value=S.ptone||'warm';const bf=$('#bfs');if(bf)bf.value=S.bfold||'fold'}if(typeof syncTpre==='function')syncTpre();
  $('#fsv').textContent=S.fs+'px';document.querySelectorAll('#fgrid [data-fn]').forEach(b=>b.classList.toggle('on',b.dataset.fn===(S.font||'theme')));{const ab=document.querySelector('#fgrid [data-fn].on'),ad=ab&&ab.closest('details');if(ad&&!ad.open)ad.open=true}$('#ratev').value=(S.rate||1).toFixed(1)+'×';$('#volv').value=Math.round((S.vol==null?1:S.vol)*100)+'%';
  document.querySelectorAll('#tsz [data-ts]').forEach(b=>{const on=b.dataset.ts===(S.ts||'m');b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))});document.querySelectorAll('#scs [data-sc]').forEach(b=>b.classList.toggle('on',b.dataset.sc===(S.scroll||'auto')));document.querySelectorAll('#cds [data-cd]').forEach(b=>b.classList.toggle('on',b.dataset.cd===(S.cards||'medium')));$('#nrw').value=S.narrow||'auto';$('#spm').value=splitMode();
  document.querySelectorAll('.tg').forEach(b=>{const k=b.dataset.tg,on=isOn(k);b.classList.toggle('on',on);b.textContent=on?'On':'Off'});fxPanel();
@@ -10196,7 +10222,7 @@ function fontPreviews(){['literata','garamond','source','lora','inter','lexend',
 set.onclick=e=>{
  const t=e.target;
  const fn=t.closest('[data-fn]');if(fn){S.font=fn.dataset.fn;needFont(S.font);save();refreshReader();return syncSet()}
- const th=t.closest('[data-th]');if(th){S.theme=th.dataset.th;applyTheme.did=0;applyTheme(false);save();if(!applyTheme.did)renderSoon();/* the redraw waits until Settings closes or the screen is idle: doing it inside the tap froze the phone for a second or two *//* a folder's own theme can be showing instead of the one just picked, so say so */{const nm=Object.fromEntries(THEME_NAMES),ft=folderTheme();if(ft&&ft!==S.theme)toast('This folder uses its own theme ('+(nm[ft]||ft)+'). Your pick shows everywhere else.')}return syncSet()}
+ const th=t.closest('[data-th]');if(th){{const was=S.theme||'auto';if(was!==th.dataset.th)S.rth=[was].concat(S.rth||[]).filter((x,i,a)=>x!==th.dataset.th&&a.indexOf(x)===i).slice(0,3)}S.theme=th.dataset.th;applyTheme.did=0;applyTheme(false);save();if(!applyTheme.did)renderSoon();/* the redraw waits until Settings closes or the screen is idle: doing it inside the tap froze the phone for a second or two *//* a folder's own theme can be showing instead of the one just picked, so say so */{const nm=Object.fromEntries(THEME_NAMES),ft=folderTheme();if(ft&&ft!==S.theme)toast('This folder uses its own theme ('+(nm[ft]||ft)+'). Your pick shows everywhere else.')}return syncSet()}
  const fz=t.closest('[data-fs]');if(fz){S.fs=Math.max(14,Math.min(34,S.fs+ +fz.dataset.fs));save();return syncSet()}
  const tz=t.closest('#tsz [data-ts]');if(tz){S.ts=tz.dataset.ts;save();tsApply();return syncSet()}
  const sc=t.closest('[data-sc]');if(sc){S.scroll=sc.dataset.sc;save();refreshReader();return syncSet()}
@@ -10389,7 +10415,7 @@ function setBuild(){
  if(SET_BUILT)return;SET_BUILT=true;
  const lg=document.createElement('div');lg.id='setlegacy';lg.hidden=true;
  ['.snav','.sbody'].forEach(q=>{const n=set.querySelector(q);if(n)lg.append(n)});set.append(lg);
- setIndex();SET_HIDE.forEach(l=>SET_USED.add('L:'+l));SET_USED.add('P:font');
+ try{thmBuild()}catch(e){}setIndex();SET_HIDE.forEach(l=>SET_USED.add('L:'+l));SET_USED.add('P:font');
  const home=document.createElement('div');home.id='sethome';
  home.innerHTML=setYouHtml()+'<div class="sset"><input id="sset" type="search" placeholder="Search settings" autocomplete="off" aria-label="Search settings"></div><div id="setgl"><div class="smu" id="setmu" hidden></div>'+SET_GROUPS.map(g=>'<div class="sgl">'+g.map(id=>{const p=SET_PAGES.find(x=>x.id===id);return `<button type="button" class="sgi" data-pg="${id}"><span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SET_ICON[id]}</svg></span><span class="sgx"><b>${p.t}</b><small data-sum="${id}">${p.d}</small></span><svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>`}).join('')+'</div>').join('')+'</div><div id="setsr" hidden></div>';
  const pane=document.createElement('div');pane.id='setpane';
@@ -10455,7 +10481,7 @@ set.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('[data-
 function setSum(){
  setDeps();schSync();picSync();fsSync();setYou();setRows();{const f=$('#fthl');if(f)f.hidden=!isOn('fthon');const h=$('#fthh');if(h&&!isOn('fthon'))h.hidden=true}
  const q=(s)=>document.querySelector(s);const t={};
- const tb=q('#thm button[data-th].on'),sc=schCur(),SCN={sys:'follows phone',light:'always light',dark:'always dark',dynamic:'colors follow stories'};t.look=((S.theme||'auto')==='dynamic'?'Dynamic':(tb?tb.textContent.replace(/\d+$/,'').trim():'Cypress'))+(SCN[sc]&&sc!=='dynamic'?' · '+SCN[sc]:'')+' · '+cvName(S.cvs||'clean')+' cover';t.motion='Motion '+moLevel()+(isOn('lowfx')?' · pauses effects on low battery':'');
+ const tb=q('#thm button[data-th].on'),sc=schCur(),SCN={sys:'follows phone',light:'always light',dark:'always dark',dynamic:'colors follow stories'};t.look=((S.theme||'auto')==='dynamic'?'Dynamic':(tb?(tb.querySelector('.thn')||tb).textContent.replace(/\d+$/,'').trim():'Cypress'))+(SCN[sc]&&sc!=='dynamic'?' · '+SCN[sc]:'')+' · '+cvName(S.cvs||'clean')+' cover';t.motion='Motion '+moLevel()+(isOn('lowfx')?' · pauses effects on low battery':'');
  const fb=q('#fgrid [data-fn].on');t.read=(fb&&fb.querySelector('span')?fb.querySelector('span').textContent:'Match theme')+' · '+S.fs+'px · speed '+(S.rate||1).toFixed(1)+'×';
  t.home0=isOn('cover')?'Magazine cover on · '+({small:'small',medium:'medium',large:'large'}[S.cards||'medium']||'medium')+' cards':'Magazine cover off';
  t.tts='Speed '+(S.rate||1).toFixed(1)+'×';

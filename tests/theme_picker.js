@@ -5,7 +5,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
  const b=await chromium.launch();const p=await (await b.newContext({viewport:{width:412,height:900}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
  await mock(p,{n:10});await p.goto('file://'+APP);await p.waitForTimeout(1200);await p.click('text=Get started').catch(()=>{});await p.waitForTimeout(400);
  const r=await p.evaluate(async()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());const w=ms=>new Promise(r=>setTimeout(r,ms));
-  $('#set').showModal();await w(300);document.querySelectorAll('#thm details').forEach(d=>{d.open=true});await w(400);const themes=[...new Set([...document.querySelectorAll('#thm button[data-th]')].map(b=>b.dataset.th))];
+  $('#gear').click();/* S-04: the family picker is built when Settings opens */await w(300);document.querySelectorAll('#thm details').forEach(d=>{d.open=true});await w(400);const themes=[...new Set([...document.querySelectorAll('#thm button[data-th]')].map(b=>b.dataset.th))];
     const bads=[];for(const th of themes){document.querySelector('#thm button[data-th="'+th+'"]').click();await w(120);
    const on=[...document.querySelectorAll('#thm button.on')],pr=[...document.querySelectorAll('#thm button[aria-pressed="true"]')];
    /* the quick switch and the full list can show the same theme: count themes, not buttons */const onT=new Set(on.filter(b=>b.dataset.th).map(b=>b.dataset.th)),prT=new Set(pr.filter(b=>b.dataset.th).map(b=>b.dataset.th));
