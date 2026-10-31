@@ -58,7 +58,7 @@ const note=p=>p.evaluate(()=>{const t=document.querySelector('#toast');return {m
   ck('the Daily has no Export PDF or Send to Kindle button',!r.some(t=>/export pdf|send to (my )?kindle|change kindle/i.test(t)),r.join(' | '));
   /* 2. the reader menu */
   const m=await p.evaluate(async()=>{S.sel='saved';render();await new Promise(r=>setTimeout(r,500));openReader(S.saved[0]);await new Promise(r=>setTimeout(r,1500));document.querySelector('#mo').click();await new Promise(r=>setTimeout(r,300));return [...document.querySelectorAll('#mn button')].filter(b=>b.offsetParent).map(b=>b.textContent.trim())});
-  ck('the reader menu has Save as PDF and Send to Kindle',m.includes('Save as PDF')&&m.includes('Send to Kindle'),m.join(' | '));
+  ck('the reader menu has PDF and Kindle under Send to',m.includes('PDF')&&m.includes('Kindle'),m.join(' | '));
   /* 3. one tap on Save as PDF starts it, says so at once, ignores a second tap, and delivers a PDF without the labels */
   await slow(p);const dl=p.waitForEvent('download',{timeout:60000}).catch(()=>null);
   await p.evaluate(()=>document.querySelector('#mn [data-act="pdf"]').click());
