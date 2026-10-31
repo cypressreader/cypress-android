@@ -15,8 +15,8 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    const g=document.querySelector('#grid'),sec=(g.querySelector('#dsec-since')||{}).parentElement,n1=sec?sec.querySelectorAll('.dd-i').length:0;
    [...sec?sec.querySelectorAll('.card[data-i]'):[]].forEach(c=>S.read[c.getAttribute('data-href')]=1);render();await w(700);
    const n2=document.querySelectorAll('.ddiff .dd-i').length;
-   const m=document.querySelector('main');m.scrollTop=1500;await w(500);const on=document.querySelector('#mtabs.on')!==null,btns=document.querySelectorAll('#mtabs [data-bm]').length;
-   m.scrollTop=0;await w(500);const off=!document.querySelector('#mtabs.on');
+   const m=document.querySelector('main');m.scrollTop=1500;await w(500);const st=document.querySelector('#grid .bmseg.dtabs'),tb=document.querySelector('.top').getBoundingClientRect().bottom,r1=st.getBoundingClientRect(),on=getComputedStyle(st).position==='sticky'&&r1.top>=tb-2&&r1.top<=tb+2,btns=st.querySelectorAll('[data-bm]').length;
+   m.scrollTop=0;await w(500);const off=st.getBoundingClientRect().top>=tb-2;
    return {kind:edKind(),n1,n2,on,btns,off,sec:!!sec,snap:DIFFSNAP&&DIFFSNAP.items.length,pool:DAYPOOL.length,diffNow:(editionDiff(DAYPOOL)||[]).length,old:old.length}});
   ck(W+' evening edition',r.kind==='e',JSON.stringify(r));ck(W+' since-this-morning section has stories',r.n1>=1,JSON.stringify(r));
   ck(W+' frozen after reading',r.n2===r.n1,JSON.stringify(r));ck(W+' mini tabs appear on scroll',r.on&&r.btns===4,JSON.stringify(r));ck(W+' mini tabs hide at top',r.off);
