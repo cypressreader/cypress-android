@@ -39,6 +39,7 @@ const OPML=(have)=>`<?xml version="1.0" encoding="UTF-8"?><opml version="2.0"><h
   /* importing the same list again, now that it is in: nothing new */
   await p.setInputFiles('#fi',{name:'feedly.opml',mimeType:'text/xml',buffer:Buffer.from(OPML(base.url))});await p.waitForTimeout(500);
   await p.evaluate(()=>document.querySelector('#ask [data-a="1"]').click());await p.waitForTimeout(800);
+  await p.waitForTimeout(6300);/* W-06: a note with Undo is never pushed aside; the next note waits until it is gone (6 s) */
   await p.setInputFiles('#fi',{name:'feedly.opml',mimeType:'text/xml',buffer:Buffer.from(OPML(base.url))});await p.waitForTimeout(500);
   const t2=await p.evaluate(()=>({ask:!!document.getElementById('ask'),toast:(document.querySelector('#toast')||{}).textContent||''}));
   ck(t+'importing the same list again says everything is already there (no empty dialog)',!t2.ask&&/already in your list/.test(t2.toast),JSON.stringify(t2));

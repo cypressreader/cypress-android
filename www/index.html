@@ -1161,7 +1161,7 @@ body.narrow>aside{z-index:27}
 #tabs[hidden]{display:none}
 #tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;font:600 11px var(--sans);color:var(--mut);min-height:52px}
 #tabs button svg{width:22px;height:22px}#tabs button.on{color:var(--logo)}
-body.narrow #toast{bottom:calc(84px + env(safe-area-inset-bottom))}body.narrow .sky{bottom:calc(80px + env(safe-area-inset-bottom))}
+body.narrow #toast{bottom:calc(76px + env(safe-area-inset-bottom))}body.narrow:has(#rd.on) #toast{bottom:calc(24px + env(safe-area-inset-bottom))}/* W-06: the bar is 64px tall; a toast sits 12px above it, or 24px up when the story page hides the bar */body.narrow .sky{bottom:calc(80px + env(safe-area-inset-bottom))}
 body:has(#toast.show) .sky{bottom:calc(140px + env(safe-area-inset-bottom))}/* a hint toast keeps the corner; the sunrise card steps up */
 body.narrow #rd.on~#tabs{display:none}
 body.split{grid-template-columns:minmax(300px,40%) 1fr}
@@ -1421,7 +1421,7 @@ html.ttssm ::highlight(tts-s){background-color:var(--hl)}
 .selbar{position:fixed;z-index:12;display:flex;background:var(--ink);color:var(--pn);border-radius:999px;padding:4px;box-shadow:0 8px 30px rgba(0,0,0,.35);user-select:none;-webkit-user-select:none}
 .selbar[hidden]{display:none}
 .selbar button{padding:8px 14px;border-radius:999px;font-weight:600;font-size:14px}
-#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ink);color:var(--pn);padding:10px 18px;border-radius:999px;font-size:14px;z-index:60;pointer-events:none;transition:.25s}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ink);color:var(--pn);padding:10px 18px;border-radius:999px;font-size:14px;z-index:60;pointer-events:none;transition:.25s}
 #toast.show{opacity:1;transform:translateX(-50%)}
 .rt{margin-left:auto;opacity:.8;font-weight:400}.rt+time{margin-left:8px}
 .hlc{grid-column:1/-1;background:var(--pn);border:1px solid var(--ln);border-left:5px solid var(--b);border-radius:14px;padding:14px 18px}
@@ -11475,9 +11475,12 @@ const kcount=k=>S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>!S.read[a.link]&&k
 const readMin=a=>minsOf(a); /* one reading-time rule for the whole app (was a second, slightly different estimate) */
 let pt;
 function toast(m,undo,label){try{if(/^(Saved|Removed from saved|Marked as)/.test(m))buzz(10)}catch(e){}let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';t.setAttribute('role','status');t.setAttribute('aria-live','polite');document.body.append(t)}
+ /* polish-2026-10 W-06: one toast at a time. A toast with a button (Undo, Open) is never pushed aside: anything that arrives while it is up waits its turn (at most 3, no repeats). A plain note is replaced by the newer one. 6 s with a button, 3 s without */
+ const q=toast.q||(toast.q=[]),next=()=>{if(q.length){const x=q.shift();setTimeout(()=>toast(...x),240)}};
+ if(t.classList.contains('show')&&t.classList.contains('act')){if(q.length<3&&!q.some(x=>x[0]===m))q.push([m,undo,label]);return}
  t.textContent='';const sp=document.createElement('span');sp.textContent=m;t.append(sp);
- if(undo){const b=document.createElement('button');b.type='button';b.className='tundo';b.textContent=label||'Undo';b.onclick=()=>{clearTimeout(t._h);t.className='';undo()};t.append(b)}
- t.className=undo?'show act':'show';clearTimeout(t._h);t._h=setTimeout(()=>{t.className=''},undo?(label?14000:6500):String(m).length>=40?5000:1800)}/* longer messages (errors, warnings) stay long enough to read */
+ if(undo){const b=document.createElement('button');b.type='button';b.className='tundo';b.textContent=label||'Undo';b.onclick=()=>{clearTimeout(t._h);t.className='';undo();next()};t.append(b)}
+ t.className=undo?'show act':'show';clearTimeout(t._h);t._h=setTimeout(()=>{t.className='';next()},undo?6000:3000)}
 async function askRemove(id){const f=S.feeds.find(x=>x.id===id);if(!f)return;if(await askBox({title:'Remove “'+(f.title||host(f.url))+'”?',text:'You can undo this right after or add it back later.',ok:'Remove',danger:true}))removeFeed(id)}
 function removeFeed(id){const i=S.feeds.findIndex(f=>f.id===id);if(i<0)return;const f=S.feeds[i],was=S.sel==='s:'+id;S.feeds.splice(i,1);if(S.health)delete S.health[id];if(was)S.sel='all';save();render();if($('#mng').open)renderMng();
  toast('Removed “'+(f.title||host(f.url))+'”',()=>{S.feeds.splice(Math.min(i,S.feeds.length),0,f);if(was)S.sel='s:'+id;save();render();if($('#mng').open)renderMng()})}
