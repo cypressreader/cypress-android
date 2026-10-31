@@ -4162,26 +4162,6 @@ html[data-theme=halcyon] body #grid:not(.list):not([data-cards=narrow]):not([dat
 #grid .card.read .src::after{content:'✓ Read';flex:none;margin-left:6px;font:600 11px var(--sans);letter-spacing:.04em;color:inherit;opacity:.85}
 #grid.list .card.read h3,#grid:not(.list):not([data-cards=narrow]):not([data-cards=compact]) .card[data-ed]:not(.lead):not(.nr):not(.list-row):not(.noimg).read h3{color:var(--mut)}
 #grid .card.read:is(.lead,.nr,.noimg):not(.list-row) .tx{opacity:.72}
-/* F-01: on phones the masthead is one band (wordmark left, date · edition · number right); the lead photo carries the kicker and headline over its lower part; the greeting and the cover lines follow. The big issue number moves to the back cover. Tablets keep the tall masthead. */
-.dcv-ed>b{display:none}
-@media(max-width:500px){
-.dcov.dcov{min-height:0}
-.dcov.dcov .dcv-top{order:-1;display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 12px;padding:14px 10px 9px;text-align:left;border-bottom:1px solid rgba(255,255,255,.28);text-shadow:none}
-.dcov.dcov .dcv-top>svg,.dcov.dcov .dcv-motto,.dcov.dcov .dcv-ed>span{display:none}
-.dcov.dcov .dcv-mast{display:inline-block;font-size:19px;letter-spacing:.22em;text-indent:0;text-shadow:none}
-.dcov.dcov .dcv-ed{margin:0;font:600 11px/1.3 var(--sans);letter-spacing:.06em;text-transform:none;font-variant-caps:all-small-caps;text-align:right;opacity:.92}
-.dcov.dcov .dcv-ed>b{display:inline;font-weight:inherit}
-.dcov.dcov .dcv-num{display:none!important}
-.dcov.dcov.dct-photo .dcv-art{position:relative;inset:auto;z-index:0;height:clamp(300px,66vw,460px);margin:12px 12px 0;overflow:hidden;border-radius:4px;transform:none!important;will-change:auto}
-.dcov.dcov.dct-photo .dcv-art::after{background:linear-gradient(180deg,rgba(3,18,12,0) 28%,rgba(3,18,12,.58) 66%,rgba(3,18,12,.96) 100%)!important;mix-blend-mode:normal!important}
-.dcov.dcov.dct-photo .dcv-sh{display:none}
-.dcov.dcov.dct-photo .dcv-main{position:relative;z-index:1;margin-top:-150px;padding-top:0}
-.dcov.dcov .dcv-main{opacity:1!important;transform:none!important;will-change:auto}
-.dcov.dcov .dcv-lead h2{font-size:clamp(34px,9cqi,44px)}
-.dcov.dcov:is(.dct-type,.dct-fb,.dct-min) .dcv-main{margin-top:0;padding-top:28px}
-}
-/* the issue number on the back cover, phones only */
-@media(max-width:500px){.dback .dcv-num{display:block;margin:28px 0 -10px;font:400 clamp(110px,32vw,160px)/.8 var(--disp,Georgia,serif);letter-spacing:-.04em;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.22);pointer-events:none;user-select:none}}
 /* 11. Intrinsic columns and fluid type: widths come from the feed pane, so any screen density or zoom lands on 1, 2 or 3 columns by itself */
 #grid .wcols{column-gap:14px;column-rule:1px solid var(--ln)}
 @container feed (min-width:270px){#grid .wcols{column-width:auto;column-count:2}}
@@ -6135,7 +6115,6 @@ function covFit(){
   const m=cv.querySelector('.cvm'),mb=m&&m.parentElement;
   if(m&&mb){const mk=mb.clientWidth+'|'+cv.className+'|'+m.textContent;if(m.dataset.mk!==mk){m.style.removeProperty('font-size');const cs=getComputedStyle(mb),av=mb.clientWidth-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0),ow=m.style.whiteSpace;m.style.whiteSpace='nowrap';const w=m.getBoundingClientRect().width;m.style.whiteSpace=ow;if(av>20&&w>av){const f=parseFloat(getComputedStyle(m).fontSize)||40;m.style.setProperty('font-size',Math.max(14,Math.floor(f*av/w*.97))+'px','important')}m.dataset.mk=mk}}
   const h=cv.querySelector('.cvlead h2,.dcv-lead h2');if(!h)return;
-  if(cv.classList.contains('dcov')&&innerWidth<=500){h.classList.add('cfit');h.style.removeProperty('font-size');return}/* F-01: the phone cover flows to its content, so the headline keeps its size */
   const key=cv.clientWidth+'|'+innerHeight+'|'+(h.textContent||'').length+'|'+cv.className;if(h.dataset.fk===key&&h.style.fontSize)return;
   /* the same cover headline at the same size and look fits the same way: coming back to the Daily reuses the answer instead of measuring again */
   const ck=key+'|'+(h.textContent||'')+'|'+cv.querySelectorAll('.cvlines .cvl,.dcv-lines .dcv-l').length+'|'+S.theme+'|'+S.font+'|'+S.hfont+'|'+(document.body.className+' '+document.documentElement.className).replace(/\b(cvstill|rdserif|rdx|reading|open|sbdrag|exbusy|ttssm|nospeech|boot|svpick)\b/g,''),hit=COVFC.get(ck);
@@ -8262,7 +8241,7 @@ function backCoverHtml(count,trend){
  return `<section class="dback ${am?'dbm':'dbe'}"><div class="dbk-art">${edArtSvg(!am)}</div><div class="dbk-sh"></div>`
   +`<div class="dbk-in">${isOn('seal')?`<div class="dbk-seal edseal">${sealRing()}</div><h3 class="dbk-end${finDone()?'':' sl'}">${finDone()?'Fin.':`That’s the ${am?'Morning':'Evening'} Edition.`}</h3>`:`<span class="dbk-mast">CYPRESS</span><h3 class="dbk-end">${finDone()?'Fin.':'That’s the issue.'}</h3>`}<p class="dbk-fin">${esc(pe('finish',{},'end'))}</p><button type="button" class="tx2" data-endall>Explore Full Feed</button>`
   +`<div class="dbk-next"><p class="dbk-k">Next issue</p><p class="dbk-ed">${nx.name}</p><p class="dbk-at">Arrives at ${nx.at}, in ${nx.left}.</p><p class="dbk-t">${tease}</p></div><button type="button" class="tx2" data-gosel="stats">Your reading stats</button>`
-  +`<span class="dcv-num" aria-hidden="true" style="--n:${issue}"></span><p class="dbk-colo"><b>Colophon</b>The ${am?'Morning':'Evening'} Edition, No. ${issue}. ${plu(count,'story','stories')}, chosen on this device from the sites you follow. Set in Instrument Serif and ${esc(fontName('--sans','the system sans'))}. Nothing here was sent anywhere.</p></div></section>`;
+  +`<p class="dbk-colo"><b>Colophon</b>The ${am?'Morning':'Evening'} Edition, No. ${issue}. ${plu(count,'story','stories')}, chosen on this device from the sites you follow. Set in Instrument Serif and ${esc(fontName('--sans','the system sans'))}. Nothing here was sent anywhere.</p></div></section>`;
 }
 /* if an edition truly cannot be set, say so in the magazine's own voice; never fall back to the old plain list */
 function dayErrorHtml(){
@@ -15307,7 +15286,7 @@ dayCoverHtml.ran=0;function dayCoverHtml(lead,pool){covSeen();
  const note=pe('note',{},'cover');
  const sz=isOn('szn')?[['w','Winter'],['sp','Spring'],['su','Summer'],['f','Fall']][Math.floor((d.getMonth()+1)%12/3)]:null;/* seasonal cover: a soft wash in the season's color and its name in the edition line */
  return `<div class="dcov ${am?'dcm':'dce'} dct-${tr}"${sz?` data-sz="${sz[0]}"`:''} style="--b:${brand(fof(lead))}"><div class="dcv-art">${tr==='min'?'':edArtSvg(am)}${lead.img&&tr==='photo'?`<img src="${esc(lead.img)}" alt="" referrerpolicy="no-referrer" onload="cvJudge(this)" onerror="cvArtFail(this,'did not load')">`:''}</div><div class="dcv-sh"></div><span class="dcv-num${dayCoverHtml.ran++?'':' cnt'}" aria-hidden="true" style="--n:${issue}"></span>`
-  +`<header class="dcv-top">${sznHtml(1)}<span class="dcv-mast">CYPRESS</span><span class="dcv-motto">${esc(DAY_MOTTO)}</span><span class="dcv-ed"><span>${esc(edition(d))}${sz?' · '+sz[1]:''} · <span style="white-space:nowrap">${esc(d.toLocaleDateString([],{month:'long',day:'numeric'}))}</span></span><b>${esc(d.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}))} · ${am?'Morning':'Evening'} · No. ${issue}</b></span></header>`
+  +`<header class="dcv-top">${sznHtml(1)}<span class="dcv-mast">CYPRESS</span><span class="dcv-motto">${esc(DAY_MOTTO)}</span><span class="dcv-ed">${esc(edition(d))}${sz?' · '+sz[1]:''} · <span style="white-space:nowrap">${esc(d.toLocaleDateString([],{month:'long',day:'numeric'}))}</span></span></header>`
   +(lead.img&&tr!=='photo'?`<div class="dcv-band" aria-hidden="true"><img src="${esc(lead.img)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></div>`:'')
   +`<div class="dcv-main"><a class="cvlead dcv-lead${lead.title.length>72?' long':''}" href="${esc(lead.link)}" data-i="0"><small>${esc(fof(lead).title)}</small>${(()=>{/* the headline rises in word by word, the first time the Daily is opened each day */const d=new Date().toDateString(),now=Date.now();if(S.wrd!==d){S.wrd=d;saveSoon();dayCoverHtml.wt=now}const el=(now-(dayCoverHtml.wt||0))/1e3;if(el>2.5)return `<h2>${esc(lead.title)}</h2>`;return `<h2 class="wrv">${lead.title.split(/\s+/).map((w,i)=>`<span><b style="--d:${(i*.09-el).toFixed(2)}s">${esc(w)}</b></span>`).join(' ')}</h2>`})()}</a>${(()=>{let q=null;try{q=nrQuoteText(lead)}catch(e){}const t=q&&q.q&&q.q.length>=40?q.q.replace(/[\s,;:–—-]+$/,'')+(/[.!?…]$/.test(q.q)?'':'…'):'';const dk=t?'':(()=>{try{return ledeOf(lead)||dekOf(lead,190)}catch(e){return ''}})();return t?`<blockquote class="dcv-q"><span aria-hidden="true">“</span>${esc(t)}<cite>${esc(fof(lead).title)}</cite></blockquote>`:dk?`<p class="dcv-q dcv-qd">${esc(dk)}</p>`:''})()}${note?`<p class="dcv-note">${esc(note)}</p>`:''}${li?`<div class="dcv-lines">${li}</div>`:''}</div>`
   +`<div class="dcv-prog"><!--DGP--></div>${WHY[lead.link]?'<button type="button" class="why cvwhy dcv-why" data-why="0" title="Why am I seeing this?" aria-label="Why am I seeing this?">i</button>':''}</div>`;
