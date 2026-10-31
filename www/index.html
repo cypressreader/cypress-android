@@ -856,7 +856,7 @@ html.pdark .grid:not(.list):not([data-cards=compact]):not([data-cards=narrow]) .
 .ib{width:38px;height:38px;flex:none;border-radius:50%;display:grid;place-items:center;background:transparent;color:var(--ink);border:1px solid var(--ln);font:600 14px var(--sans);transition:background .2s}
 @media(hover:hover){.ib:hover{background:var(--bg)}}/* phones keep :hover after a tap, which left a pale circle on the dark Halcyon header */
 .ib:disabled{opacity:.3;cursor:default}
-#pc{color:var(--mut);font-size:14px;min-width:56px;text-align:center}
+#pc{color:var(--mut);font-size:14px;min-width:56px;text-align:center}#rd .bar{position:relative}#rd .bar::after{content:'';position:absolute;left:0;bottom:0;height:2px;width:var(--rp,0%);background:var(--b,var(--ink));transition:width .3s ease;pointer-events:none}@media(max-width:759px){#rd .bar #st,#rd .bar #ra{display:none}}
 .book{position:relative;flex:1;min-height:0;margin:0 clamp(12px,3vw,24px) clamp(14px,2.5vw,22px);perspective:1700px;touch-action:pan-y}
 /* polish-2026-10 G2: page-edge stack on the right of a paged story; restore by deleting these lines */
 .book>.rdedge{position:absolute;top:14px;bottom:14px;right:0;width:18px;z-index:4;display:flex;justify-content:flex-end}
@@ -13573,11 +13573,13 @@ function vScrollBy(d){const v=vView();if(!v)return;v.scrollBy({top:d*v.clientHei
 function vFrac(){const v=vView();if(!v)return 0;const m=v.scrollHeight-v.clientHeight;return m>0?Math.min(1,Math.max(0,v.scrollTop/m)):1}
 function minsLeft(frac){const m=curA?readMin(curA):0;return Math.max(0,Math.round(m*(1-frac)))}
 function pcText(){
- const NP=R.ep!=null?Math.min(R.np,R.ep+1):R.np,PG=Math.min(R.pg,NP-1);
- if(innerWidth<520&&!(document.body.classList.contains('flexp'))){const f=isVert()?vEndFrac():(NP>1?(PG+1)/NP:1),m=minsLeft(f);return (isVert()?Math.round(f*100)+'%':`${PG+1}/${NP}`)+(m?` · ${m}m`:'')}
- if(isVert()){const f=vEndFrac(),m=minsLeft(f);return Math.round(f*100)+'%'+(m?` · ${m} min left`:(f>=.97?' · done':''))}
- const f=NP>1?(PG+1)/NP:1,m=minsLeft(f);
- return `${PG+1} / ${NP}`+(NP>1?(m?` · ${m} min left`:(PG+1>=NP?' · last page':'')):'');
+ /* polish-2026-10 R-01: one quiet caption ("10 min left"), the total on page 1, "last page" / "done" at the end; the 2px rule under the bar follows the same value */
+ const NP=R.ep!=null?Math.min(R.np,R.ep+1):R.np,PG=Math.min(R.pg,NP-1),v=isVert();
+ const f=v?vEndFrac():(NP>1?(PG+1)/NP:1),m=minsLeft(f),tot=curA?readMin(curA):0;
+ {const bar=$('#rd .bar');if(bar)bar.style.setProperty('--rp',Math.round(Math.max(0,Math.min(1,f))*1000)/10+'%')}
+ if(v?f<=.02:PG===0)return tot?`${tot} min`:'';
+ if(v?f>=.97:PG+1>=NP)return v?'done':'last page';
+ return m?`${m} min left`:(v?'done':'last page');
 }
 
 function dialSync(){const d=$('#dial');if(!d)return;const on=$('#rd').classList.contains('on')&&R.ready&&!R.web&&(isVert()||R.np>1);d.hidden=!on;if(!on)return;const f=isVert()?vEndFrac():Math.min(1,R.pg/Math.max(1,R.ep!=null?R.ep:R.np-1));d.style.setProperty('--f',Math.round(f*1000)/10+'%');{/* the value a screen reader announces: without these a slider reads 50 everywhere */const pc=Math.round(Math.max(0,Math.min(1,f))*100);d.setAttribute('aria-valuemin','0');d.setAttribute('aria-valuemax','100');d.setAttribute('aria-valuenow',String(pc));d.setAttribute('aria-valuetext',pc>=100?'End of the story':pc<=0?'Start of the story':pc+'% through the story')}}
