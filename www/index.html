@@ -3953,9 +3953,6 @@ body.exbusy [data-exact]{cursor:progress}
 .trd::after{content:' \00b7  translated';font:600 10px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--mut);white-space:nowrap}
 #aapop{position:fixed;top:56px;right:14px;z-index:999;width:min(300px,calc(100vw - 28px));background:var(--pn);color:var(--ink);border:1px solid var(--ln);border-radius:18px;padding:14px;box-shadow:0 16px 40px rgba(0,0,0,.32)}
 #aapop[hidden]{display:none}
-/* David 2026-10-31: a raised surface so the sheet stands off the page; Back returns to Story options when it was opened from there */
-#aapop{background:color-mix(in srgb,var(--ink) 7%,var(--pn));border-color:color-mix(in srgb,var(--ink) 18%,transparent);box-shadow:0 -14px 44px rgba(0,0,0,.38),0 16px 40px rgba(0,0,0,.32)}
-#aapop:not([data-from=mn]) #aabk{display:none}
 #aapop .aarow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--ln);font:500 13px var(--sans)}
 #aapop .aarow:last-child{border-bottom:none}
 #aapop .aaq{display:inline-flex;align-items:center;gap:6px}
@@ -4581,7 +4578,7 @@ body:has(#tmini:not([hidden])) #raaf{bottom:calc(76px + env(safe-area-inset-bott
 #aapop .aascr{flex:none;align-content:start;grid-auto-rows:min-content}
 #aapop .aascr{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;overflow:visible;padding:0 0 6px;border:0;border-radius:0}
 #aapop .aascr>*+*{border-left:0}
-#aapop .aascr .aathc{flex-direction:column;justify-content:center;gap:6px;min-height:48px;padding:10px 4px;border:1px solid var(--ln)!important;border-radius:12px!important;font:500 12.5px/1.15 var(--sans);text-align:center;white-space:normal}
+#aapop .aascr .aathc{flex-direction:column;gap:6px;min-height:72px;padding:10px 4px;border:1px solid var(--ln)!important;border-radius:12px!important;font:500 12.5px/1.15 var(--sans);text-align:center;white-space:normal}
 #aapop .aascr .aathc.on{box-shadow:none;border-color:var(--rbr,#b08d3e)!important;background:color-mix(in srgb,var(--rbr,#b08d3e) 16%,transparent)}
 #aapop .aasw{width:30px;height:30px;font-size:14px}
 #aapop .aascr #aaall{grid-column:1/-1;min-height:44px;padding:0 12px;flex-direction:row;justify-content:center;color:var(--mut)}
@@ -7337,7 +7334,7 @@ function aaBuild(){
  if(S.lp){/* the old Large print switch becomes the Large print preset */delete S.lp;S.fs=24;S.lh=1.8;S.rw='n';save()}
  pop=document.createElement('div');pop.id='aapop';pop.hidden=true;pop.setAttribute('role','dialog');pop.setAttribute('aria-modal','true');pop.setAttribute('aria-label','Reading settings');
  const fonts=[...document.querySelectorAll('#fnt option')].map(o=>[o.value,o.textContent]);
- pop.innerHTML='<div class="aahd"><span class="aagrip" id="aagrip" aria-hidden="true"></span><button type="button" class="ib" id="aabk" aria-label="Back to story options">'+svg('<path d="m14.5 5-7 7 7 7"/>')+'</button><b>Reading</b><button type="button" class="ib" id="aax" aria-label="Close reading settings">'+svg('<path d="M6 6l12 12M18 6L6 18"/>')+'</button></div>'
+ pop.innerHTML='<div class="aahd"><span class="aagrip" id="aagrip" aria-hidden="true"></span><b>Reading</b><button type="button" class="ib" id="aax" aria-label="Close reading settings">'+svg('<path d="M6 6l12 12M18 6L6 18"/>')+'</button></div>'
   +'<div class="aarow aacol"><p class="rprev-p" id="aasample" aria-hidden="true"><span class="dcap">T</span>he best digital magazine feels like paper that learned how to breathe. Change the size, font or spacing and watch this passage adapt.</p></div>'
   +'<div class="aarow aacol"><span id="aaprl">Preset</span><span class="aaq" role="group" aria-labelledby="aaprl" style="justify-content:flex-start">'+AA_PRE.map((p,i)=>'<button type="button" class="aap" data-aapre="'+i+'" aria-pressed="false">'+p[0]+'</button>').join('')+'</span></div>'
   +'<div class="aarow"><span>Size</span><span class="aaq"><button type="button" class="ib" data-fs="-1" aria-label="Smaller text">A−</button><output id="aafsv" aria-live="polite"></output><button type="button" class="ib" data-fs="1" aria-label="Larger text">A+</button></span></div>'
@@ -7374,13 +7371,11 @@ function aaClose(back){const pop=$('#aapop'),aa=$('#raa');if(pop&&!pop.hidden){p
 function aaToggle(from){
  const pop=aaBuild();
  if(!pop.hidden){aaClose(true);return}
- delete pop.dataset.from;
  /* opened from Settings, the sheet sits inside the Settings dialog (a modal dialog covers everything else) */
  const host=set.open?set:$('#rd');if(pop.parentNode!==host)host.append(pop);
  aaOpener=from||document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#mo,#raa,#raaf,#aaopen')||$('#mo')||$('#raa');try{fontPreviews()}catch(e){}aaSync();pop.hidden=false;const aa=$('#raa');if(aa)aa.setAttribute('aria-expanded','true');
  const f=pop.querySelector('#aax');if(f)f.focus();
 }
-document.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('#aabk'))return;aaClose();rdxMnOpen()});
 document.addEventListener('click',e=>{
  const t=e.target;if(!t.closest)return;
  if(t.closest('#raa,#raaf,#aaopen')){e.preventDefault();e.stopPropagation();aaToggle(t.closest('#raa,#raaf,#aaopen'));return}
@@ -12131,7 +12126,7 @@ async function doAct(k){
  if(k==='less'){likeA(a,-1);return}
  if(k==='focus'){focusTog();return}
  if(k==='auto'){setTimeout(()=>autoRd(true),350);return}
- if(k==='aa'){setTimeout(()=>{const pop=aaBuild();if(pop.hidden){aaToggle();aaOpener=$('#mo');pop.dataset.from='mn'}},0);return}
+ if(k==='aa'){setTimeout(()=>{const pop=aaBuild();if(pop.hidden){aaToggle();aaOpener=$('#mo')}},0);return}
  else if(k==='unread'){delete S.read[a.link];save();toast('Marked as unread')}
  else if(k==='settings'){SETP='read';$('#gear').click()}
  else if(k==='hl'){closeRd();S.sel='notes';save();render()}
