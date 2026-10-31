@@ -2583,6 +2583,8 @@ html:is([data-theme=coast],[data-theme=coastd],[data-theme=press],[data-theme=pr
 html:is([data-theme=coast],[data-theme=coastd],[data-theme=press],[data-theme=pressd],[data-theme=rosewood],[data-theme=rosewoodd]) .dcov .dcv-art>img.lo{filter:grayscale(1) contrast(1.04) blur(.4px)}
 html:is([data-theme=coast],[data-theme=coastd],[data-theme=press],[data-theme=pressd],[data-theme=rosewood],[data-theme=rosewoodd]) .dcov:not(.dct-fb) .dcv-art::after{background:color-mix(in srgb,var(--plate) 72%,transparent);mix-blend-mode:multiply}
 html:is([data-theme=press],[data-theme=pressd]) .dcov:not(.dct-fb) .dcv-art::after{background:none}
+/* the Daily's photo cover in Newsprint: a plain gray dimming (no tint) so the type over a bright photo stays readable */
+html:is([data-theme=press],[data-theme=pressd]) .dcov.dct-photo .dcv-art::after{background:rgba(0,0,0,.55)}
 html:is([data-theme=coast],[data-theme=coastd],[data-theme=press],[data-theme=pressd],[data-theme=rosewood],[data-theme=rosewoodd]) .dcov .dcv-svg rect{fill:var(--plate)}
 html[data-theme=press] .dcov :is(.dcv-ed,.dcv-lead small,.dcv-lead .sn,.dcv-lead .ssec,.kick){color:#FF7A6B!important}
 html:is([data-theme=coast],[data-theme=coastd],[data-theme=press],[data-theme=pressd],[data-theme=rosewood],[data-theme=rosewoodd]) .dcov .dcv-svg path{fill:var(--cvd)}
@@ -3838,11 +3840,11 @@ html[data-ts="l"] #grid .wcols,html[data-ts="l"] #grid .nr-lsub,html[data-ts="l"
 
 :is(#grid,#cvg,#lkr) .cover.cv-overlap .cvtop{height:auto!important;max-height:34%;align-items:flex-start}
 /* a wide photo shown whole: a blurred copy of it fills the cover behind it */
-:is(#grid,#cvg,#lkr) .cover.ctn,#grid .dcov.ctn{background:var(--ph) center/cover no-repeat}
-:is(#grid,#cvg,#lkr) .cover.ctn .cvsh,#grid .dcov.ctn .dcv-sh{display:block!important;position:absolute;inset:0;z-index:-2;-webkit-backdrop-filter:blur(26px);backdrop-filter:blur(26px);background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.55))!important}
-:is(#grid,#cvg,#lkr) .cover.ctn>img,#grid .dcov.ctn .dcv-art>img{border-radius:0;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+:is(#grid,#cvg,#lkr) .cover.ctn{background:var(--ph) center/cover no-repeat}
+:is(#grid,#cvg,#lkr) .cover.ctn .cvsh{display:block!important;position:absolute;inset:0;z-index:-2;-webkit-backdrop-filter:blur(26px);backdrop-filter:blur(26px);background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.55))!important}
+:is(#grid,#cvg,#lkr) .cover.ctn>img{border-radius:0;box-shadow:0 10px 30px rgba(0,0,0,.35)}
 /* Smooth mode has no backdrop blur: paint a site-tinted panel instead of a second sharp copy of the photo */
-html.smooth :is(#grid,#cvg,#lkr) .cover.ctn,html.smooth #grid .dcov.ctn{background:color-mix(in srgb,var(--b) 60%,#000)}
+html.smooth :is(#grid,#cvg,#lkr) .cover.ctn{background:color-mix(in srgb,var(--b) 60%,#000)}
 /* Index keeps its picture above its list at any width */
 :is(#grid,#cvg,#lkr) .cover.cv-index{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto auto!important}
 :is(#grid,#cvg,#lkr) .cover.cv-index .cvtop{grid-column:1!important;grid-row:1!important}
@@ -6091,10 +6093,10 @@ function covFit(){
 }
 /* A cover photo is never sliced to a thin strip (faces cut in half, only a flag showing). When filling the space would cut away more than about a quarter of the picture, the whole picture is shown instead: full width in the clear space between the masthead and the text, over a blurred copy of itself. A narrow cell too small to show a picture is left to the type. */
 function coverCrop(){
- document.querySelectorAll('#grid .cover,#grid .dcov,#cvg .cover').forEach(cv=>{
+ document.querySelectorAll('#grid .cover,#cvg .cover').forEach(cv=>{
   /* sizes in the cover's own pixels (a picker preview is drawn full size and then shrunk) */
   const K=(cv.offsetWidth?cv.getBoundingClientRect().width/cv.offsetWidth:1)||1,rc=e=>{const q=e.getBoundingClientRect();return{left:q.left/K,right:q.right/K,top:q.top/K,bottom:q.bottom/K,width:q.width/K,height:q.height/K}};
-  const dc=cv.classList.contains('dcov'),im=cv.querySelector(dc?'.dcv-art>img':':scope>img');if(!im)return;
+  const im=cv.querySelector(':scope>img');if(!im)return;
   if(!(im.complete&&im.naturalWidth)){if(!im.dataset.cc){im.dataset.cc='1';im.addEventListener('load',()=>{delete im.dataset.cc;coverCrop()},{once:true})}return}
   cv.classList.remove('ctn','stk');cv.querySelectorAll('.cvtop,.cvbot').forEach(t=>{t.style.marginBottom=''});['position','left','top','width','height','inset','objectFit','display','zIndex'].forEach(k=>{if(im.dataset.cs)im.style[k]=''});delete im.dataset.cs;
   const ia=im.naturalWidth/im.naturalHeight,r=rc(im),cr=rc(cv);if(r.width<2||r.height<2)return;
@@ -6102,11 +6104,11 @@ function coverCrop(){
   const full=r.width>=cr.width*.8&&r.height>=cr.height*.5&&getComputedStyle(im).position==='absolute';/* only a background picture can become the band: one that sits in the layout keeps its place */
   im.dataset.cs='1';
   if(full){
-   const blocks=[...cv.querySelectorAll(dc?'.dcv-top,.dcv-main,.dcv-prog':'.cvtop,.cvbot')].filter(b=>getComputedStyle(b).position!=='absolute'&&b.offsetHeight>0).map(b=>({t:rc(b).top-cr.top,b:rc(b).bottom-cr.top}));
+   const blocks=[...cv.querySelectorAll('.cvtop,.cvbot')].filter(b=>getComputedStyle(b).position!=='absolute'&&b.offsetHeight>0).map(b=>({t:rc(b).top-cr.top,b:rc(b).bottom-cr.top}));
    /* the biggest stretch of the cover with nothing in it */
    let y=0,best={s:0,e:0};blocks.sort((a,b)=>a.t-b.t).forEach(b=>{if(b.t-y>best.e-best.s)best={s:y,e:b.t};y=Math.max(y,b.b)});if(cr.height-y>best.e-best.s)best={s:y,e:cr.height};
    /* B102: on a tablet or wide screen the picture is never shrunk into a small card between the masthead and the text: it runs the full width of the cover, big, with the text underneath (the way the phone cover reads, only larger) */
-   {const top=dc?null:cv.querySelector('.cvtop'),bot=dc?null:cv.querySelector('.cvbot');
+   {const top=cv.querySelector('.cvtop'),bot=cv.querySelector('.cvbot');
     if(top&&bot&&cr.width>=520&&!cv.classList.contains('cv-collage')){/* (the Collage cover frames its own picture) */
      const bw=Math.round(cr.width),maxH=Math.max(300,Math.round(innerHeight*.6));
      let ih=Math.min(maxH,Math.max(Math.round(bw*.5),Math.round(bw/ia)));ih=Math.max(ih,Math.round(bw/(ia*1.45)));
