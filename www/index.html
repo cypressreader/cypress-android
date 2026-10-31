@@ -131,6 +131,10 @@ body:not(.narrow) .grid:not(.list) .tpl.t3>.card:nth-child(1),body:not(.narrow) 
 .codex{margin:0 0 1em;break-inside:avoid;font-family:var(--sans);font-size:.8em;color:var(--mut)}.codex>summary{cursor:pointer;padding:.5em .8em;border:1px solid var(--ln);border-radius:10px;list-style:none}.codex>summary::-webkit-details-marker{display:none}.codex[open]>summary{margin-bottom:.5em}.code pre{padding-right:4.6em!important}
 .cpy{position:absolute;top:8px;right:8px;z-index:2;padding:3px 10px;border-radius:99px;background:var(--pn);border:1px solid var(--ln);font:700 11px var(--sans);color:var(--ink);cursor:pointer}
 .cpy::after{content:'Copy'}.cpy.done::after{content:'Copied'}
+/* R-12: the Copy button sits in the block's top padding, clear of the first line; a capped block shows 12 lines in Pages */
+.code>pre{padding-top:2.4em}.cpy{top:6px;right:8px}
+#rd:not(.vert) .cols .body .code>pre.capped{max-height:calc(12*1.55em + 3.2em);overflow:hidden}#rd:not(.vert) .code>pre.capped+.cpy+.capx{display:block}
+.capx{display:none;margin:-.6em 0 1em;padding:6px 12px;border:1px solid var(--ln);border-radius:99px;background:var(--pn);color:var(--ink);font:600 12px var(--sans);cursor:pointer}
 .kr{margin:1.6em 0 1em;padding-top:1em;border-top:1px solid var(--ln);text-align:left;font-family:var(--sans);hyphens:none;break-inside:avoid}
 .kr h4{font:700 12px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin:0 0 8px}
 .kr button{display:block;width:100%;text-align:left;padding:9px 0;border-bottom:1px solid var(--ln);font:600 15px/1.3 var(--serif);color:var(--ink)}
@@ -3539,7 +3543,7 @@ html.dkart #fin .fin-frame{border-color:#2d8a5e}
 .tmast h2{margin:2px 0 4px;font:400 clamp(34px,7vw,56px)/1 var(--disp,var(--serif));text-transform:capitalize;letter-spacing:-.01em}
 .tm-s{margin:0 0 10px;font:italic 400 16px/1.35 var(--serif,Georgia,serif);color:var(--mut)}
 .tm-a{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.tm-f{font:600 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
-.rprev{break-inside:avoid;margin:0 0 1.4em;padding:2px 0 2px 18px;font:400 14px/1.4 var(--sans);position:relative}
+.rprev{break-inside:avoid;margin:0 0 1.4em;padding:10px 14px 6px 32px;font:400 14px/1.4 var(--sans);position:relative;border-left:3px solid color-mix(in srgb,var(--a1) 55%,var(--ink));border-radius:0 .6em .6em 0;background:color-mix(in srgb,var(--a1) 8%,var(--pn,transparent))}/* R-11: the same frame as the Why it matters aside */
 .rprev>b{display:block;margin:0 0 8px -18px;font:700 10.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
 .rprev ol{list-style:none;margin:0;padding:0;position:relative}
 .rprev ol::before{content:"";position:absolute;left:-14px;top:12px;bottom:12px;width:2px;background:var(--ln)}
@@ -10589,6 +10593,7 @@ $('#rd').onclick=e=>{
  const fb=t.closest('[data-fby]');if(fb&&curA&&curA.by){S.sk.push({id:'k'+Date.now(),name:curA.by,words:[],by:curA.by,t:Date.now()});save();side();hdrFill();toast('Following stories by '+curA.by);return}
  const fsc=t.closest('[data-fsec]');if(fsc&&curA&&curA.sec){S.sk.push({id:'k'+Date.now(),name:curA.sec+' · '+fof(curA).title,words:[],sec:curA.sec,fid:curA.feedId,t:Date.now()});save();side();const k=$('.kick .flw');if(k)k.remove();toast('Following the '+curA.sec+' section');return}
  const kr=t.closest('[data-kr]');if(kr){const n=findStory(kr.dataset.kr);if(n)openReader(n);return}
+ const sa=t.closest('.capx');if(sa){const pr=sa.parentElement.querySelector('pre');if(pr)pr.classList.remove('capped');sa.remove();try{relayout()}catch(e){}return}
  const cp=t.closest('.cpy');if(cp){const pr=cp.parentElement.querySelector('pre');navigator.clipboard.writeText(pr?pr.textContent:'').then(()=>{cp.classList.add('done');setTimeout(()=>cp.classList.remove('done'),1400)},()=>toast('Couldn’t copy'));return}
  if(HLR.length&&t.closest('.cols .body')&&!t.closest('a,button')&&!(getSelection()+'')){const h=hlAt(e.clientX,e.clientY);if(h){e.preventDefault();hlEdit(h);return}}
  if(t.closest('[data-gal]')){e.preventDefault();openGal($('#rd .cols img.hero'));return}
@@ -13639,7 +13644,7 @@ function furnish(b){
   if(!m||!m[1].trim())return;tn[0].data=m[1].trim()+' ';const sp=document.createElement('span');sp.className='crd';sp.textContent=m[2].replace(/^(?:photo|image|credit|illustration|source|via)s?\s*[:\/]\s*/i,'').trim();fc.append(sp)});
  const kids=[...b.children];let run=[];const flush=()=>{if(run.length>=3&&!run[0].closest('.strip')){const w=document.createElement('div');w.className='strip';run[0].before(w);run.forEach(x=>w.append(x))}run=[]};
  for(const k of kids){const isImg=k.matches&&(k.matches('figure')&&k.querySelector('img')||k.matches('img')||(k.tagName==='P'&&k.children.length===1&&k.firstElementChild.tagName==='IMG'&&!k.textContent.trim()));if(isImg)run.push(k);else flush()}flush();
- b.querySelectorAll('pre').forEach(pr=>{if(pr.parentElement.classList.contains('code')||pr.closest('.codex'))return;{const L=(pr.textContent||'').split('\n').filter(x=>x.trim()),n=L.filter(x=>/^\s*<(string|item|plurals|string-array)\b[^>]*name=/.test(x)).length;if(n>=3&&n>=L.length*.6){const d=document.createElement('details');d.className='codex';const sm=document.createElement('summary');sm.textContent='Code from the app, '+n+' lines. Tap to show';pr.replaceWith(d);d.append(sm,pr);return}}const w=document.createElement('div');w.className='code';pr.replaceWith(w);const bt=document.createElement('button');bt.type='button';bt.className='cpy';bt.setAttribute('aria-label','Copy code');w.append(pr,bt)});
+ b.querySelectorAll('pre').forEach(pr=>{if(pr.parentElement.classList.contains('code')||pr.closest('.codex'))return;{const L=(pr.textContent||'').split('\n').filter(x=>x.trim()),n=L.filter(x=>/^\s*<(string|item|plurals|string-array)\b[^>]*name=/.test(x)).length;if(n>=3&&n>=L.length*.6){const d=document.createElement('details');d.className='codex';const sm=document.createElement('summary');sm.textContent='Code from the app, '+n+' lines. Tap to show';pr.replaceWith(d);d.append(sm,pr);return}}const w=document.createElement('div');w.className='code';pr.replaceWith(w);const bt=document.createElement('button');bt.type='button';bt.className='cpy';bt.setAttribute('aria-label','Copy code');w.append(pr,bt);/* R-12: in Pages a long block shows 12 lines and a Show all button, so one block cannot swallow a page */if(L.length>12){pr.classList.add('capped');const sa=document.createElement('button');sa.type='button';sa.className='capx';sa.textContent='Show all · '+L.length+' lines';w.append(sa)}});
 }
 function heroSpread(){
  const c=$('.cols'),bk=$('.book');if(!c||!bk)return;
@@ -15051,14 +15056,16 @@ function rdPrev(){
  const c=$('.cols'),b=c&&c.querySelector('.body'),a=curA;if(!c||!b||!a||R.web)return;
  const old=c.querySelector('.rprev');if(old&&old.dataset.for===a.link)return;if(old)old.remove();
  const l=storyTimeline(a);if(l.length<2)return;
- const ci=l.indexOf(a),fmt=t=>new Date(t).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'})+' · '+new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+ /* R-11: one calendar day across the rows: the date is written once, the other rows carry only the time */
+ const ci=l.indexOf(a),oneDay=l.every(x=>new Date(x.date).toDateString()===new Date(l[0].date).toDateString()),fmt=(t,i)=>(oneDay&&i?'':new Date(t).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'})+' · ')+new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
  const d=document.createElement('div');d.className='rprev';d.setAttribute('role','group');d.dataset.for=a.link;d.setAttribute('aria-label','The story so far');
  d.innerHTML='<b>The story so far</b><ol>'+l.map((x,i)=>{
   const lab=i===0?'First reported':i===l.length-1?'Latest':'Update',me=i===ci;
-  return `<li class="${me?'now':''}${i===0?' first':''}${i===l.length-1?' last':''}"${me?' aria-current="step"':''}><time>${esc(fmt(x.date))}</time><em>${lab}${me?' · you are here':''}</em>${me?`<strong>${esc(x.title)}</strong>`:`<button type="button" data-prev="${esc(x.link)}">${esc(x.title)}</button>`}<span>${esc(fof(x).title||'')}</span></li>`}).join('')+'</ol>';
- /* the timeline sits a few paragraphs into the story, so it can never push the opening of the text off page 1 */
- const ps=[...b.children].filter(x=>x.tagName==='P'&&!x.classList.contains('endmark')),ref=ps[3]||ps[ps.length-1];
- if(ref)ref.after(d);else b.before(d);
+  return `<li class="${me?'now':''}${i===0?' first':''}${i===l.length-1?' last':''}"${me?' aria-current="step"':''}><time>${esc(fmt(x.date,i))}</time><em>${lab}${me?' · you are here':''}</em>${me?`<strong>${esc(x.title)}</strong>`:`<button type="button" data-prev="${esc(x.link)}">${esc(x.title)}</button>`}<span>${esc(fof(x).title||'')}</span></li>`}).join('')+'</ol>';
+ /* R-11: the timeline sits after the second paragraph on a phone, a few paragraphs in on wide pages, so it never pushes the opening of the text off page 1. On two-column pages it is moved a paragraph later while it would open column 2 of page 1 (at most three tries) */
+ const ps=[...b.children].filter(x=>x.tagName==='P'&&!x.classList.contains('endmark')),two=R.cpv===2&&!isVert();let i=Math.min(two?3:1,ps.length-1),ref=ps[i];
+ if(!ref){b.before(d);return}ref.after(d);
+ if(two&&R.pg===0){const bk=$('.book');for(let k=0;k<3&&ps[i+1];k++){const r=d.getBoundingClientRect(),cr=c.getBoundingClientRect(),br=bk.getBoundingClientRect();if(!(Math.abs(r.top-cr.top)<3&&r.left>br.left+br.width/2&&r.left<br.right))break;ref=ps[++i];ref.after(d)}}
 }
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-prev]');if(!t)return;e.preventDefault();e.stopPropagation();const l=t.dataset.prev;const st=findStory(l)||(S.hist||[]).map(histStory).find(x=>x.link===l);if(st)openReader(st)},true);
 
