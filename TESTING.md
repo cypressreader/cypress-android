@@ -1068,3 +1068,10 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 
 ## 1.221 no empty third column on a site or folder page (2026-10-30, branch -mmwk66, unverified on phone)
 - Fold unfolded, open a single site or a folder in Cards view and scroll: every row of short text headlines (time and minutes on top, no photo) fills the full width; two stories split it in half, one story spans it
+
+## 1.222 final-pass fixes (2026-10-31, branch -mmwk66, unverified on phone)
+- [ ] Fin page: hardware Back returns to the Daily (F-02), and the Undo message after "Mark all as read" is visible above it (F-01)
+- [ ] Read aloud: "Best available" voice speaks with a real voice; no "No voices" message when voices exist (R-05, R-08)
+- [ ] The Daily's photo cover shows the photo full-bleed behind the headline, in Halcyon and Newsprint, day and night (T-01); photo not drawn twice on the phone (T-02)
+- [ ] Reader header: is there faint ghost text behind it? (T-08, left unfixed until confirmed on a phone)
+- [ ] Add a site: pasted address defaults to Unfiled, or to the folder currently open (F-11)
