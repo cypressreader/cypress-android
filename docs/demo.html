@@ -6703,7 +6703,9 @@ function wireThreads(list){
 function wireTrending(list,multi){
  const lim=Date.now()-24*36e5,c={};
  for(const a of list){
-  if(!a||!(a.date>=lim))continue;const f=a.feedId,seen=new Set();
+  if(!a||!(a.date>=lim))continue;const f=a.feedId,seen=new Set(),L=String(a.title||'').replace(/[^A-Za-z]/g,'');
+  /* a shouted ALL-CAPS headline capitalizes every word, so its words say nothing about names */
+  if(L.length&&L.replace(/[^A-Z]/g,'').length>=L.length*.8)continue;
   for(const w of (String(a.title||'').match(/\b[A-Z][a-zA-Z'’-]{3,}\b/g)||[])){const k=w.toLowerCase();if(STOP.has(k)||seen.has(k))continue;seen.add(k);const e=c[k]||(c[k]={w,n:0,f:new Set()});e.n++;e.f.add(f)}
  }
  const all=Object.values(c),need=multi===false?1:2,pick=(n)=>all.filter(e=>e.n>=n&&e.f.size>=need).sort((x,y)=>y.n-x.n||y.f.size-x.f.size).slice(0,6);
