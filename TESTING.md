@@ -1135,3 +1135,6 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Story: "From the publisher" is a thin brass rule in the reading typeface (R1); date line says Today / Yesterday / Oct 30 and "6 min read" (R2); site name in the top bar isn't cut off on a phone (M1); no paper-stack lines on the page edge on a phone (M3); page turning unchanged.
 - Empty/offline pages: display-serif headline, italic text, second button is an outline (S1). Failed pictures use the theme's own colors in every theme (S2, David's change).
 - Settings: outline icon circles (P1). Drawer: My Feeds opens by default with 10 sites or fewer, once; folding it afterward is remembered (M2).
+
+## 2026-11-01 1.225 Quick Reads cards (implemented, verify on tablet)
+- Daily > Quick Reads on a tablet-width screen: site name and author readable on the cream cards in Halcyon and other themes; no "+1 photo" tag on these cards.
