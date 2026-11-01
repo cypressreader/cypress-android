@@ -1125,3 +1125,6 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Reader: no "2 min" in the bar on page 1 (byline has it); later pages still say "N min left". Listen has its label on a tablet.
 - Phone text is at least 12px (bottom tab labels, section counts, site names, Daily cover labels): check nothing wraps badly.
 - Quick setup now reads Simple / Full / Everything.
+
+## 2026-11-01 view button icon (implemented, unverified on phone)
+- All Stories, Medium/Large cards: the view button's icon matches the view you're in (card = Cards, three bars = Columns, rows = List); tapping still cycles Cards → Columns → List.
