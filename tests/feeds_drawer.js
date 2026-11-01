@@ -9,10 +9,11 @@ for(const [W,H] of [[360,740],[412,860],[515,900],[884,1060]]){
  const m=await p.$('#menu');if(m&&await m.isVisible()){const r=await m.boundingBox();await p.touchscreen.tap(r.x+r.width/2,r.y+r.height/2);await p.waitForTimeout(700)}
  const tag=W+': ';
  const box=()=>p.evaluate(()=>{const h=document.querySelector('.mfh');const r=h.getBoundingClientRect();return{x:r.left,y:r.top+r.height/2,w:r.width,exp:h.getAttribute('aria-expanded'),n:document.querySelectorAll('.mfb .fold').length}});
- let q=await box();ck(tag+'My Feeds starts collapsed',q.exp==='false'&&q.n===0,JSON.stringify(q));
- await p.touchscreen.tap(q.x+40,q.y);await p.waitForTimeout(350);q=await box();ck(tag+'tapping the label opens it and shows the folders',q.exp==='true'&&q.n>=1,JSON.stringify(q));
- await p.touchscreen.tap(q.x+40,q.y);await p.waitForTimeout(350);q=await box();ck(tag+'tapping again closes it',q.exp==='false'&&q.n===0,JSON.stringify(q));
- await p.touchscreen.tap(q.x+q.w-14,q.y);await p.waitForTimeout(350);q=await box();ck(tag+'the arrow at the right opens it too',q.exp==='true'&&q.n>=1,JSON.stringify(q));
+ let q=await box();ck(tag+'My Feeds starts open with 10 sites or fewer (design pick M2)',q.exp==='true'&&q.n>=1,JSON.stringify(q));
+ await p.touchscreen.tap(q.x+40,q.y);await p.waitForTimeout(350);q=await box();ck(tag+'tapping the label closes it',q.exp==='false'&&q.n===0,JSON.stringify(q));
+ await p.touchscreen.tap(q.x+40,q.y);await p.waitForTimeout(350);q=await box();ck(tag+'tapping again opens it and shows the folders',q.exp==='true'&&q.n>=1,JSON.stringify(q));
+ await p.touchscreen.tap(q.x+q.w-14,q.y);await p.waitForTimeout(350);q=await box();ck(tag+'the arrow at the right closes it too',q.exp==='false'&&q.n===0,JSON.stringify(q));
+ await p.touchscreen.tap(q.x+40,q.y);await p.waitForTimeout(350);/* open again for the folder check */
  /* a folder inside still opens and closes with its own arrow */
  const f0=await p.evaluate(()=>{const u=document.querySelector('.mfb .chv');const r=u.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2,exp:u.getAttribute('aria-expanded')}});
  await p.touchscreen.tap(f0.x,f0.y);await p.waitForTimeout(350);
