@@ -8,6 +8,14 @@
 <script>(function(){var d=document.documentElement;try{d.style.backgroundColor=localStorage.getItem("cy-bg")||"#0e1220";d.className+=" boot";setTimeout(function(){d.className=d.className.replace(/\s?boot/,"")},3500)}catch(e){}/* the headline face starts downloading before the long stylesheet is parsed (not from a file: page, where a cross-origin preload fails and stalls the first paint) */if(location.protocol!=="file:"){var l=document.createElement("link");l.rel="preload";l.as="font";l.type="font/woff2";l.crossOrigin="anonymous";l.href="fonts/CyPressDisplay-normal-400.woff2";document.head.appendChild(l)}})()</script>
 <style>html.boot body{visibility:hidden}
 /* audit 2026-11-01: Coast's teal on its tinted section header measured 4.49:1 (needs 4.5) */html[data-theme=coast] #grid h3.dsh :is(small,.dsr){color:#0b5a6a!important}
+
+/* polish picks 2026-11-01 */
+@media(max-width:759px){html body :is(.dlib .dlh,.dlt .nt,.gear .gv,.tmast small,.wsecb,#grid h3.wsec>small,#grid .src .sn,.dma button,.dmeta summary,.dml b,.dtoc h4,.dhd .ddek,.dbk-next .dbk-k,.dbk-colo b,.wwild-k,#grid.list .lr-h,.dfx span,.dcv-ed,.dcv-ed span,.dcv-l small,.dcv-lead small,nav.pl button>span){font-size:12px!important}}/* pick 4: nothing under 12px (wider screens already have T-04) */
+#grid .sn::before{display:none!important}/* pick 6: one source mark: the dot and the name */
+html body #grid .card.noimg::after{opacity:.3!important}/* pick 7: the big letter steps back behind the headline */
+html body #grid.list .card.list-row.noimg:not(.lr-feat):not(.lr-quote){min-height:0!important;padding-top:14px!important;padding-bottom:14px!important}/* pick 8 */
+#aapop .aarow>label{font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit}/* pick 13 */
+#aasample{text-align:left!important;hyphens:none}/* pick 14 */
 </style>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>CyPress</title>
@@ -6790,8 +6798,7 @@ function colItem(u,ix,deck,top){
  const a=u.head,f=fof(a),pic=a.img&&!imgWeak(a.img)?`<img class="wci" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.remove()">`:'';if(top)deck=1;WHY[a.link]=u.more.length?'A developing story: '+(u.more.length+1)+' updates, newest first.':'A story from '+f.title+'.';
  return `<a class="cvlead wcol${top?' wtop':''}${S.read[a.link]?' read':''}" href="${esc(a.link)}" data-i="${ix(a)}">${pic}<small style="--b:${brand(f)}">${esc(f.title)} · ${esc(ago(a.date))}</small><b>${esc(a.title)}</b>${pwBadge(a)}${u.more.length?`<em>+${u.more.length} ${u.more.length===1?'update':'updates'}</em>`:''}${deck?(()=>{const d=dekOf(a,140);return d?`<span class="wcol-d">${esc(d)}</span>`:''})():''}</a>`;
 }
-const densHtml=()=>`<div class="wdens" role="group" aria-label="Density"><button type="button" data-wdens="mag" aria-pressed="${S.wdens!=='col'}">Cards</button><button type="button" data-wdens="col" aria-pressed="${S.wdens==='col'}">Columns</button></div>`;
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button[data-wdens]');if(!b)return;e.preventDefault();e.stopPropagation();S.wdens=b.dataset.wdens;save();render()},true);
+const densHtml=()=>'';/* polish pick 5: Cards / Columns now live in the top bar's view button (#vw) */
 /* the bar under a section heading takes its color from the section's lead photo, once that photo has been looked at on the device */
 const secTint=us=>{if(!isOn('mag3'))return '';const a=us.find(u=>u.head.img&&IIS[u.head.img]&&IIS[u.head.img].t&&IIS[u.head.img].v>=5);return a?` style="--sa:${IIS[a.head.img].t}"`:''};
 function wireRender(pre,list,T){
@@ -6869,7 +6876,7 @@ if(FD){
  const head=pre+(f1?feedMast(f1,unread,cn):FO&&FD?feedMast(FD,unread,cn):'').replace(/<p class="fm-s">\d+ unread\.<\/p>/,'')+(pend?`<div class="wpill" data-n="${pend}"><span>${pend} new ${pend===1?'story':'stories'} since you opened this</span><button type="button" data-wire="load">Show</button></div>`:'')
   +`<div class="wmeta"><div class="nr-meta">${stN(cn.length)}${S.hideCount?'':' · '+cn.filter(a=>!S.read[a.link]).length+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>${B.some(x=>/class="[^"]*\bwsec\b/.test(x))?'<button type="button" class="wsecb" data-secm aria-haspopup="dialog">Sections</button>':''}${densHtml()}</div>`
   +trendStripHtml(tr);
- g.classList.add('nr','wire');g.dataset.w=g.dataset.wdens=S.wdens==='col'?'col':'mag';if(T)g.classList.add('wtopic');if(FD){g.classList.add('fed');g.style.setProperty('--fb',brand(FD))}if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
+ g.classList.add('nr','wire');g.dataset.w=g.dataset.wdens=S.wdens==='col'?'col':'mag';try{updVw()}catch(e){}if(T)g.classList.add('wtopic');if(FD){g.classList.add('fed');g.style.setProperty('--fb',brand(FD))}if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
  /* coming back to a place you left: render far enough to include the story that was at the top of the screen */
  let first=9;const wp=S.wirePos;let anchor=-1;
  if(!T&&!WIRE.restored&&wp&&wp.l&&(wp.sel||'all')===S.sel&&Date.now()-wp.t<12*36e5){anchor=cn.findIndex(a=>a.link===wp.l);if(anchor>=0){const bi=B.findIndex(h=>h.includes(`data-i="${anchor}"`));if(bi>=0)first=Math.max(9,bi+4)}}
@@ -7472,7 +7479,7 @@ document.addEventListener('keydown',e=>{
  /* arrow keys move through a choice group (and never turn the page behind the sheet) */
  if(/^Arrow(Left|Right|Up|Down)$/.test(e.key)&&pop.contains(e.target)){e.stopPropagation();const g=e.target.closest('[role=radiogroup]');if(g){const rs=[...g.querySelectorAll('[role=radio]')],i=rs.indexOf(e.target);if(i>=0){e.preventDefault();const n=rs[(i+(/Right|Down/.test(e.key)?1:-1)+rs.length)%rs.length];n.focus();n.click()}}return}
  if(e.key===' '&&pop.contains(e.target)){e.stopPropagation();return}
- if(e.key==='Tab'){const bs=[...pop.querySelectorAll('button,summary,select')].filter(b=>b.offsetParent!==null);if(!bs.length)return;const f=bs[0],l=bs[bs.length-1];if(e.shiftKey&&document.activeElement===f){e.preventDefault();l.focus()}else if(!e.shiftKey&&document.activeElement===l){e.preventDefault();f.focus()}}
+ if(e.key==='Tab'){const bs=[...pop.querySelectorAll('button,summary,select,input,a[href]')].filter(b=>b.getClientRects().length&&!b.disabled);if(!bs.length)return;/* Tab always cycles inside the sheet, from wherever focus is */e.preventDefault();const i=bs.indexOf(document.activeElement),n=bs.length;bs[i<0?(e.shiftKey?n-1:0):(i+(e.shiftKey?-1:1)+n)%n].focus()}
 },true);
 document.addEventListener('change',e=>{if(e.target.id!=='aafns')return;S.font=e.target.value;needFont(S.font);save();refreshReader();aaSync();try{syncSet()}catch(x){}});
 try{new MutationObserver(()=>{const r=$('#rd');if(r&&!r.classList.contains('on'))aaClose(false)}).observe($('#rd'),{attributes:true,attributeFilter:['class']})}catch(e){}
@@ -7719,7 +7726,7 @@ function listFlow(list,base,dated,latest,wire,ixOf0){
 function listPage(list,base){
  const B=[],now=Date.now(),h=new Date().getHours(),un=list.filter(a=>!S.read[a.link]).length,rc=list.filter(a=>now-a.date<108e5).length;
  const gr=h<12?'Good morning':h<18?'Good afternoon':'Good evening';
- if(un)B.push(`<div class="lr-dv"><span>${gr} · ${rc>1?rc+' stories in the last 3 hours':un+' unread'}</span></div>`);
+ if(un)B.push(`<div class="lr-dv"><span>${stN(list.length)} · ${un} unread</span></div>`);/* polish pick 9: the same line as Cards view */
  return B.concat(listFlow(list,base,S.sort!=='source',true,false));
 }
 function listRow(a,i,k,f){
@@ -9817,7 +9824,7 @@ async function openReader(a){
  document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',chref(c)===a.link));
  const dt=rdWhen(a.date);
  const cov=covOf(a).length?hubTeaser(a):'';
- sh.innerHTML=`<div class="bar"><button class="ib" id="cl" data-lbl="Back" aria-label="Back" title="Back">${svg('<path d="m14.5 5-7 7 7 7"/>')}</button><button class="ib" id="fdn" aria-label="Back to all feeds" title="Back to all feeds" tabindex="-1" aria-hidden="true" hidden>${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><button type="button" class="bs" aria-label="Go to ${esc(f.title)}" title="Go to ${esc(f.title)}"${f.id?'':' disabled'}>${esc(f.title)}</button><span id="pc"></span><button class="ib" id="st" data-lbl="Save" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" data-lbl="Listen" aria-label="Read aloud" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings" hidden>${svg(TUNE)}</button>`:''}<button class="ib" id="fau" data-lbl="Hands-free" aria-label="Hands-free reading" aria-pressed="false" title="Hands-free reading: the story moves on at your reading speed">${svg('<path class="pl" d="M8 5v14l11-7z"/><path class="pa" d="M8 5v14M16 5v14"/>')}</button><button class="ib" id="fcs" data-lbl="Focus" aria-label="Focus mode" aria-pressed="false" title="Focus: hide the controls and highlight the paragraph you are reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site in the app" title="View the site in the app" hidden>${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page" hidden>${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page" hidden>${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" data-lbl="More" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec)):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}"${heroAR(a)} onerror="const c=this.parentNode.querySelector('.hcap');c&&c.remove();this.remove()">${(a.pcp&&a.pcp!==a.title)||a.pcr||(a.pics&&a.pics.length>1)?`<p class="hcap">${a.pcp&&a.pcp!==a.title?esc(a.pcp)+(a.pcr?' · ':''):''}${a.pcr?`<span class="crd">${esc(a.pcr)}</span>`:''}${a.pics&&a.pics.length>1?`<button type="button" class="lnk" data-gal>See all ${a.pics.length} photos</button>`:''}</p>`:''}`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener noreferrer" href="${esc(a.link)}">Read original on ${esc(host(a.link))} ↗</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p class="wmp">This site can’t be shown inside the app. It may block automated access.</p><div><button type="button" class="lnk" id="wtry">Try again</button> <a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
+ sh.innerHTML=`<div class="bar"><button class="ib" id="cl" data-lbl="Back" aria-label="Back" title="Back">${svg('<path d="m14.5 5-7 7 7 7"/>')}</button><button class="ib" id="fdn" aria-label="Back to all feeds" title="Back to all feeds" tabindex="-1" aria-hidden="true" hidden>${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><button type="button" class="bs" aria-label="Go to ${esc(f.title)}" title="Go to ${esc(f.title)}"${f.id?'':' disabled'}>${esc(f.title)}</button><span id="pc"></span><button class="ib" id="st" data-lbl="Save" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" data-lbl="Listen" aria-label="Read aloud" title="Read aloud">${svg(SPK)}<span class="bl" aria-hidden="true">Listen</span></button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings" hidden>${svg(TUNE)}</button>`:''}<button class="ib" id="fau" data-lbl="Hands-free" aria-label="Hands-free reading" aria-pressed="false" title="Hands-free reading: the story moves on at your reading speed">${svg('<path class="pl" d="M8 5v14l11-7z"/><path class="pa" d="M8 5v14M16 5v14"/>')}</button><button class="ib" id="fcs" data-lbl="Focus" aria-label="Focus mode" aria-pressed="false" title="Focus: hide the controls and highlight the paragraph you are reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site in the app" title="View the site in the app" hidden>${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page" hidden>${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page" hidden>${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" data-lbl="More" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec)):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}"${heroAR(a)} onerror="const c=this.parentNode.querySelector('.hcap');c&&c.remove();this.remove()">${(a.pcp&&a.pcp!==a.title)||a.pcr||(a.pics&&a.pics.length>1)?`<p class="hcap">${a.pcp&&a.pcp!==a.title?esc(a.pcp)+(a.pcr?' · ':''):''}${a.pcr?`<span class="crd">${esc(a.pcr)}</span>`:''}${a.pics&&a.pics.length>1?`<button type="button" class="lnk" data-gal>See all ${a.pics.length} photos</button>`:''}</p>`:''}`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener noreferrer" href="${esc(a.link)}">Read original on ${esc(host(a.link))} ↗</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p class="wmp">This site can’t be shown inside the app. It may block automated access.</p><div><button type="button" class="lnk" id="wtry">Try again</button> <a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up a relay</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
  /* the text stays hidden for the moment the page columns are being worked out, so the open never shows half-wrapped lines */
  {const rd=$('#rd');rd.classList.add('rdb');clearTimeout(rdbDone.t);rdbDone.t=setTimeout(rdbDone,420)}
  for(const lb of sh.querySelectorAll('.bar .ib[data-lbl]')){const sp=document.createElement('span');sp.className='bl';sp.setAttribute('aria-hidden','true');sp.textContent=lb.dataset.lbl;lb.append(sp)}
@@ -10378,7 +10385,7 @@ SET_HIDE.push('Line spacing','Page margins');
 const SET_REN={'L:Quiet mode: dots, not numbers':['Hide unread counts','A small dot beside sites and folders with something new, instead of numbers. Also hides “unread” in The Daily'],'L:Smooth mode':['Smoother scrolling','No blurs or soft shadows, and stories load as you scroll. On by default in Safari and on touch screens'],'L:Theme effects':['Animated themes','Rain, aurora lights, fireflies and other moving extras some themes have. They pause while you read'],'L:Manage feeds':['Manage your sites','Rename, recolor or fix broken sites'],'L:Import or export feeds':['Import or export your feeds file','Move your sites to or from another app'],'L:Test suggested feeds':['Test suggested sites','Checks every suggested site and copies a list of any that no longer load. Takes a few minutes'],'L:Test sites on this phone':['Test my sites on this phone','Tries each of your sources the way CyPress does and writes a report you can send to the developer. Takes a few minutes']};
 const SET_PAGES=[
  {id:'look',t:'Appearance',d:'Theme, colors and cover style',c:'#7c5cff',lead:'Pick how CyPress looks. The preview below changes as you choose.',prev:1,
-  main:[{h:'Quick setup',items:['X:presets']},{items:['P:lkp']},{h:'Fine-tune',items:['X:sch','P:thm','L:Cover style','L:Green top bar']}],
+  main:[{items:['X:presets']},{items:['P:lkp']},{h:'Fine-tune',items:['X:sch','P:thm','L:Cover style','L:Green top bar']}],
   more:[{h:'Theme extras',items:['L:App icon','L:Seasonal touches','L:Theme layouts','L:Text on photos','L:Cover title style']},{h:'Per folder',items:['L:Theme by folder']}],
   rst:['theme','dynm','cvs','mast','ptone','paper','scrim','ptint','gtop']},
  {id:'read',t:'Reading',d:'Fonts, size and story layout',c:'#0a8f4a',lead:'How a story looks while you read it.',
@@ -10477,8 +10484,8 @@ function setMotionLine(){
  d.innerHTML='<span class="lb">Motion<small id="molh"></small></span><div class="segs" id="molv"><button type="button" data-mo="full">Full</button><button type="button" data-mo="calm">Calm</button><button type="button" data-mo="off">Off</button><button type="button" data-mo="custom">Custom</button></div>';return d}
 /* Quick setup: three presets, each sets a group of existing layout switches at once; Undo puts your own switches back */
 const PRESETS={simple:{t:'Simple',d:'Calm and plain: no cover, no extras and no theme effects',v:{cover:false,trend:false,must:false,toc:false,spread:false,tline:false,pqs:false,pqc:false,mag:false,cyfx:false,group:true}},
- magazine:{t:'Magazine',d:'The full printed look: a cover, contents, pull quotes and timelines',v:{cover:true,trend:true,must:true,toc:true,spread:true,tline:true,pqs:true,pqc:true,mag:true,cyfx:true,group:true}},
- power:{t:'Power',d:'Straight to the news: no cover, read stories hidden, timelines on',v:{cover:false,trend:true,must:true,toc:false,spread:false,tline:true,pqs:false,pqc:false,mag:true,group:true,hideRead:true}}};
+ magazine:{t:'Full',d:'The full printed look: a cover, contents, pull quotes and timelines',v:{cover:true,trend:true,must:true,toc:true,spread:true,tline:true,pqs:true,pqc:true,mag:true,cyfx:true,group:true}},
+ power:{t:'Everything',d:'Straight to the news: no cover, read stories hidden, timelines on',v:{cover:false,trend:true,must:true,toc:false,spread:false,tline:true,pqs:false,pqc:false,mag:true,group:true,hideRead:true}}};
 function setPresetLine(){const d=document.createElement('div');d.className='line';d.id='psrow';d.innerHTML='<span class="lb">Quick setup<small id="psh"></small></span><div class="segs" id="psv" role="group" aria-label="Quick setup">'+Object.entries(PRESETS).map(([k,p])=>`<button type="button" data-ps="${k}" aria-pressed="false">${p.t}</button>`).join('')+'</div>';return d}
 /* Your most used: the switches you flip most often (counted only on this phone), copied to the top of Settings; the copies are real switches */
 function muSync(){const m=$('#setmu');if(!m)return;const row=k=>document.querySelector('#setpane .tg[data-tg="'+k+'"]'),top=Object.entries(S.suse||{}).filter(([k,n])=>n>=2&&row(k)).sort((a,b)=>b[1]-a[1]).slice(0,4).map(x=>x[0]),sig=top.join();
@@ -10650,12 +10657,12 @@ function setShow(id,focus){
  set.classList.toggle('inpage',!!id&&!setWide());
  const p=SET_PAGES.find(x=>x.id===id);$('#settitle').textContent=(p&&!setWide())?p.t:'Settings';
  const pane=$('#setpane');if(pane&&chg)pane.scrollTop=SETSC[id]||0;
- if(id==='look')setPrev();
+ if(id==='look'||!id)setPrev();/* the phone shows every page in one scroll (no id), Look's preview included */
  setSum();moSync();
  if(id==='read'){try{if('speechSynthesis' in window)fillVoices()}catch(e){}}
 }
 function setHome(){const was=SETP;setShow(null);const b=was&&$('#sethome .sgi[data-pg="'+was+'"]');if(b)b.focus()}
-set.addEventListener('cancel',e=>{if(SET_BUILT&&!setWide()&&set.classList.contains('inpage')){e.preventDefault();setHome()}});
+set.addEventListener('cancel',e=>{if(SET_BUILT&&!setWide()&&SETP&&set.classList.contains('inpage')){/* only a single open page steps back; the phone's all-pages scroll closes on Escape */e.preventDefault();setHome()}});
 function setGo(id,node){
  setShow(id);
  if(node){const d=node.closest('details');if(d)d.open=true;setTimeout(()=>{node.scrollIntoView({block:'center',behavior:'smooth'});node.classList.add('sflash');setTimeout(()=>node.classList.remove('sflash'),1800)},60)}
@@ -11704,8 +11711,10 @@ function acClear(){AC={};try{localStorage.removeItem(AK)}catch(e){}if(IDB.ok)idb
 
 /* layout toggle */
 const GRID='<rect x="4" y="3.5" width="16" height="10" rx="2.2"/><path d="M4 17.5h16M4 21h10"/>',LIST='<rect x="3.5" y="4.5" width="5" height="4.5" rx="1"/><path d="M12 6.7h8.5"/><rect x="3.5" y="10" width="5" height="4.5" rx="1"/><path d="M12 12.2h8.5"/><rect x="3.5" y="15.5" width="5" height="4.5" rx="1"/><path d="M12 17.7h8.5"/>';
-function updVw(){const b=$('#vw');b.innerHTML=svg(S.view==='list'?GRID:LIST);const t=S.view==='list'?'Show tiles':'Show list';b.title=t;b.setAttribute('aria-label',t)}
-$('#vw').onclick=()=>{S.view=S.view==='list'?'tiles':'list';save();updVw();render()};
+/* one view button cycles List, Cards and, where the wire layout is on, Columns (polish pick 5) */
+const vwWire=()=>{const g=$('#grid');return !!(g&&g.classList.contains('wire'))};
+function updVw(){const b=$('#vw');if(!b)return;const nx=S.view==='list'?'cards':vwWire()&&S.wdens!=='col'?'columns':'list';b.innerHTML=svg(nx==='list'?LIST:GRID);const t='Show '+nx;b.title=t;b.setAttribute('aria-label',t)}
+$('#vw').onclick=()=>{if(S.view==='list'){S.view='tiles';S.wdens='mag'}else if(vwWire()&&S.wdens!=='col')S.wdens='col';else S.view='list';save();render();updVw()};
 
 /* highlights and notes */
 function renderHist(){
@@ -13778,7 +13787,7 @@ function pcText(){
  const NP=R.ep!=null?Math.min(R.np,R.ep+1):R.np,PG=Math.min(R.pg,NP-1),v=isVert();
  const f=v?vEndFrac():(NP>1?(PG+1)/NP:1),m=minsLeft(f),tot=curA?readMin(curA):0;
  {const bar=$('#rd .bar');if(bar)bar.style.setProperty('--rp',Math.round(Math.max(0,Math.min(1,f))*1000)/10+'%')}
- if(v?f<=.02:PG===0)return tot?`${tot} min`:'';
+ if(v?f<=.02:PG===0)return '';/* polish pick 11: the byline already gives the total on page 1 */
  if(v?f>=.97:PG+1>=NP)return v?'done':'last page';
  return `${Math.max(1,m)} min left`;/* a middle page is never called the last page, even with under a minute to go */
 }
@@ -17759,14 +17768,15 @@ function metaApply(){
  const dl=nodes.find(x=>x.classList.contains('dateline')),dw=nodes.find(x=>x.classList.contains('dtd'));
  const date=dl&&dl.querySelector('span')?dl.querySelector('span').textContent.trim():'Inside',unread=dl&&dl.querySelector('small')?dl.querySelector('small').textContent.trim():'';
  const quiet=dw&&/^A quiet/.test(dw.textContent)?dw.textContent.trim():'',nn=(typeof DGL!=='undefined'?DGL.length:0);
- const line=`<b>${esc(date)}</b> · ${quiet?esc(quiet):nn+(nn===1?' story':' stories')+' in this edition'}${unread&&!quiet?' · '+esc(unread):''}`;
+ const line=`<b>${esc(date)}</b> · ${quiet?esc(quiet):nn+(nn===1?' story':' stories')+' in this edition'}`;/* polish pick 10: one count */
  const m=document.createElement('div');m.className='dmeta';
- m.innerHTML=`<p class="dml">${line}</p><div class="dma" role="group" aria-label="Edition actions"></div><details><summary>Continue and contents</summary><div class="dmb"></div></details>`;
+ m.innerHTML=`<p class="dml">${line}</p><div class="dma" role="group" aria-label="Edition actions"></div><details><summary>More</summary><div class="dmb"></div></details>`;
  const box=m.querySelector('.dmb'),acts=m.querySelector('.dma');
  /* the four edition actions stay on the line as small text links, always visible; the rest folds away */
  const keep=[];/* polish-2026-10 K3/K6/K7: the "I have 10 minutes" link joins the actions, and the tidy-up and almanac cards stay in view under the line */
  nodes.forEach(x=>{if(x===dl)return;if(x.classList.contains('dexp'))acts.appendChild(x);else if(x.matches('.tidyc,.almc'))keep.push(x);else box.appendChild(x)});
  {const tn=box.querySelector('[data-ten]');if(tn){const fv=tn.parentElement;tn.className='dexp';acts.appendChild(tn);if(fv&&fv.classList.contains('fivr')&&!fv.children.length)fv.remove()}}
+ acts.querySelectorAll('[data-edshare],[data-ten]').forEach(x=>box.prepend(x));/* polish pick 10: two actions on the line, the rest under More */
  if(!box.children.length)m.querySelector('details').remove();
  if(dl)dl.remove();
  cv.after(m);{let last=m;keep.forEach(x=>{last.after(x);last=x})}

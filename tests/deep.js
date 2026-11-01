@@ -30,8 +30,8 @@ for(const [vp,w,h,touch] of VPS){
  await tap('[data-sel="all"]').catch(async()=>{await openSide();await tap('[data-sel="all"]')});await p.waitForTimeout(200);
  await E(()=>{S.sel='all';render()});
  ck(vp,'all stories count',await E(()=>{for(let i=0;i<40;i++){NRMORE&&NRMORE()}return document.querySelectorAll('#grid .card').length===18}));
- await tap('#vw');await p.waitForTimeout(200);ck(vp,'list view',await E(()=>$('#grid').classList.contains('list')));await noHScroll('list');
- await tap('#vw');await p.waitForTimeout(150);
+ /* pick 5: #vw cycles Cards, Columns (wire only), List */for(let i=0;i<3&&!(await E(()=>$('#grid').classList.contains('list')));i++){await tap('#vw');await p.waitForTimeout(200)}ck(vp,'list view',await E(()=>$('#grid').classList.contains('list')));await noHScroll('list');
+ await tap('#vw');await p.waitForTimeout(150);ck(vp,'view button leaves list',await E(()=>!$('#grid').classList.contains('list')&&S.wdens!=='col'));
  await tap('#sb');await p.fill('#q','Gamma story 3');await p.waitForTimeout(300);
  ck(vp,'search filters',await E(()=>document.querySelectorAll('#grid .card').length===1));
  await p.fill('#q','');await p.dispatchEvent('#q','input');await p.waitForTimeout(200);

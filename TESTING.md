@@ -1115,3 +1115,13 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - [ ] The Well (photo break in The Daily): tall pictures sit side by side, wide ones side by side; a lone one takes a full row; no gaps
 - [ ] Read aloud (Play Daily / Now Playing) on the Fold or a tablet from 700px wide: player left, story list right; titles in the sans face
 - [ ] Settings > About CyPress > The app: Check for updates (web and Android); the About row on the Settings home says Updates · version
+
+## 2026-11-01 polish picks (branch claude/handoff-continuation-t92lcv) — implemented, unverified on a phone
+- Settings: Escape (keyboard on tablet/Chromebook) closes Settings; on the phone the Look preview now shows the cover.
+- Reading sheet (Aa): Tab and Shift+Tab stay inside the sheet.
+- All Stories: the top-bar view button cycles Cards → Columns → List; the Cards/Columns switch under the header is gone.
+- Cards show one source mark (dot + name); the big letter on photo-less cards is faint; photo-less list rows are short.
+- List view count line reads "18 stories · N unread"; Daily "Inside" strip shows one count, two buttons, the rest under More.
+- Reader: no "2 min" in the bar on page 1 (byline has it); later pages still say "N min left". Listen has its label on a tablet.
+- Phone text is at least 12px (bottom tab labels, section counts, site names, Daily cover labels): check nothing wraps badly.
+- Quick setup now reads Simple / Full / Everything.
