@@ -33,7 +33,7 @@ except Exception as e:o['spread']=None
 print(json.dumps(o))`;
  try{return JSON.parse(execFileSync('python3',['-W','ignore','-c',py,f],{encoding:'utf8'}))}catch(e){return {err:String(e).slice(0,300)}}};
 const hist=p=>p.evaluate(()=>window.__toasts||[]);
-const slow=p=>p.evaluate(()=>{window.__toasts=[];const t=document.querySelector('#toast');new MutationObserver(()=>{const m=(t.querySelector('span')||{}).textContent;if(m&&window.__toasts[window.__toasts.length-1]!==m)window.__toasts.push(m)}).observe(t,{childList:true,subtree:true,characterData:true});const sf=saveFile;saveFile=async(...a)=>{await new Promise(r=>setTimeout(r,1500));return sf(...a)}});
+const slow=p=>p.evaluate(()=>{window.__toasts=[];new MutationObserver(()=>{const t=document.querySelector('#toast');/* the toast is made on first use, so watch the page for it */const m=t&&(t.querySelector('span')||{}).textContent;if(m&&window.__toasts[window.__toasts.length-1]!==m)window.__toasts.push(m)}).observe(document.body,{childList:true,subtree:true,characterData:true});const sf=saveFile;saveFile=async(...a)=>{await new Promise(r=>setTimeout(r,1500));return sf(...a)}});
 const note=p=>p.evaluate(()=>{const t=document.querySelector('#toast');return {msg:t&&t.querySelector('span')?t.querySelector('span').textContent:'',show:!!(t&&/show/.test(t.className))}});
 (async()=>{
  const b=await chromium.launch();
