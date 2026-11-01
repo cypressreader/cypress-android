@@ -50,7 +50,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060],['desk',1280,900]]){
  // progress saved + resume
  await E(()=>{const v=$('#rd .view');/* progress counts to the end of the article text, so aim for the middle of that, not of the whole page (which now also holds the end-of-article footer) */let lo=0,hi=v.scrollHeight;for(let i=0;i<22;i++){const mid=(lo+hi)/2;v.scrollTop=mid;if(vEndFrac()<.55)lo=mid;else hi=mid}v.dispatchEvent(new Event('scroll'))});await W(300);
  const pr=await E(()=>S.prog[curA.link]&&S.prog[curA.link].p);ck(vp,'vertical progress stored',pr>.4&&pr<.8,String(pr));
- const link=await E(()=>curA.link);await p.tap('#cl');await W(300);await E(l=>openReader(findStory(l)),link);await W(900);
+ const link=await E(()=>curA.link);await p.evaluate(()=>{const r=document.querySelector('#rd');r&&r.classList.add('fpeek')}).then(()=>p.tap('#cl'))/* R-10 peek */;await W(300);await E(l=>openReader(findStory(l)),link);await W(900);
  ck(vp,'vertical resumes position',await E(()=>vEndFrac())>.4);
  // TTS start in vertical from visible word
  ck(vp,'read-aloud starts at visible text',await E(()=>{ttsCollect();const i=ttsStartWord();ttsStop();return i>20}));
@@ -58,13 +58,13 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060],['desk',1280,900]]){
  await E(()=>{const v=$('#rd .view');v.scrollTop=v.scrollHeight;v.dispatchEvent(new Event('scroll'))});await W(300);
  ck(vp,'finished counted',await E(()=>!!S.st.fin[curA.link]));
  await E(()=>{S.scroll='pages';applyFs(true)});await W(400);ck(vp,'back to pages',await E(()=>!$('#rd').classList.contains('vert')&&R.np>1));
- await p.tap('#cl');await W(200);
+ await p.evaluate(()=>{const r=document.querySelector('#rd');r&&r.classList.add('fpeek')}).then(()=>p.tap('#cl'))/* R-10 peek */;await W(200);
  // table story via md + feed html
  await E(()=>{const a={feedId:'f0',title:'Table test',link:'https://alpha.test/table',date:Date.now(),img:'',summary:'',html:'<p>'+'Intro words for the table story. '.repeat(20)+'</p><table><tr><th>Phone</th><th>Price</th><th>Battery</th><th>Weight</th><th>Screen</th><th>Chip</th><th>Camera</th></tr><tr><td>Fold 8 Ultra</td><td>$1,999</td><td>5,000 mAh</td><td>239 g</td><td>8.2 in</td><td>Snapdragon</td><td>200 MP</td></tr><tr><td colspan="2">Merged</td><td>x</td><td>y</td><td>z</td><td>w</td><td>v</td></tr></table><p>'+'After the table. '.repeat(40)+'</p>'};openReader(a)});await W(1200);
  const tb=await E(()=>{const t=$('.cols .body table');if(!t)return null;const wr=t.parentElement,c=$('.cols'),cw=(c.clientWidth-(R.cpv-1)*56)/R.cpv;return{wrap:wr.classList.contains('tbl'),fits:wr.getBoundingClientRect().width<=cw+2,cells:t.querySelectorAll('td,th').length,cs:t.querySelector('[colspan]')?.getAttribute('colspan')}});
  ck(vp,'table kept and wrapped',tb&&tb.wrap&&tb.cells===20&&tb.cs==='2',JSON.stringify(tb));ck(vp,'table fits column (scrolls inside)',tb&&tb.fits);
  await p.screenshot({path:`/tmp/t/v3-${vp}-table.png`});
- await p.tap('#cl');await W(200);
+ await p.evaluate(()=>{const r=document.querySelector('#rd');r&&r.classList.add('fpeek')}).then(()=>p.tap('#cl'))/* R-10 peek */;await W(200);
  ck(vp,'no errors',p.errs.length===0,p.errs.join('|'));await p.ctx.close();
 }
 /* md table conversion */
@@ -87,7 +87,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060],['desk',1280,900]]){
  await E(()=>{const t=$('.cols .body p:not(.dropcap)').firstChild;const r=document.createRange();r.setStart(t,0);r.setEnd(t,9);getSelection().removeAllRanges();getSelection().addRange(r);document.dispatchEvent(new Event('selectionchange'))});await W(400);
  ck('find','selection bar has Follow and Share',await E(()=>!!$('#selbar [data-s="follow"]')&&!!$('#selbar [data-s="img"]')));
  await p.tap('#selbar [data-s="follow"]');await W(200);ck('find','follow from selection',await E(()=>S.sk.some(k=>k.words[0]==='paragraph')));
- await p.tap('#cl');await W(200);
+ await p.evaluate(()=>{const r=document.querySelector('#rd');r&&r.classList.add('fpeek')}).then(()=>p.tap('#cl'))/* R-10 peek */;await W(200);
  // suggestions
  await E(()=>$('#add').click());await W(300);await E(()=>{const r=$('#pop [data-cat="-1"]');if(r)r.click()});await W(250);
  const sg=await E(()=>({chip:/For you/.test($('#pop .ahd')?.textContent||''),n:document.querySelectorAll('#pop .pf').length,why:$('#pop .pf small:not(.pfbl)')?.textContent}));
@@ -112,7 +112,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  ck(vp,'cover on Today',await E(()=>(!!$('.dcov')&&!!$('.dcov .cvlead h2')&&document.querySelectorAll('.dcov .cvl').length>=1)||(!!$('.cover')&&!!$('.cover .cvlead h2')&&document.querySelectorAll('.cover .cvl').length>=2)));
  ck(vp,'cover no dup in sections',await E(()=>{const ls=[...document.querySelectorAll('#grid .card')].map(c=>chref(c));const cv=[...document.querySelectorAll('.cvl,.cvlead')].map(c=>c.getAttribute('href'));return !ls.some(l=>cv.includes(l))}));
  await p.screenshot({path:`/tmp/t/v3-${vp}-cover.png`});
- await p.tap('.cvl');await W(800);ck(vp,'cover line opens story',await E(()=>$('#rd').classList.contains('on')));await p.tap('#cl');await W(300);
+ await p.tap('.cvl');await W(800);ck(vp,'cover line opens story',await E(()=>$('#rd').classList.contains('on')));await p.evaluate(()=>{const r=document.querySelector('#rd');r&&r.classList.add('fpeek')}).then(()=>p.tap('#cl'))/* R-10 peek */;await W(300);
  await E(()=>{$('main').scrollTop=0});
  if(await E(()=>!!document.querySelector('.cover [data-why]'))){await p.tap('.cover [data-why]');await W(200);ck(vp,'why popover on cover',await E(()=>!$('#whyp').hidden&&/Top story/.test($('#whyp').textContent)))}else ck(vp,'no empty info button on cover',true);
  await E(()=>{{const w=$('#whyp');if(w)w.hidden=true}});
@@ -150,7 +150,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
 {const init=()=>{window.SPOKEN=[];const fake={speaking:false,pending:false,paused:false,getVoices:()=>[{voiceURI:'v1',name:'Alice Female',lang:'en-US',default:true},{voiceURI:'v2',name:'Bob Male',lang:'en-US'}],cancel(){this.q=[];this.speaking=false},speak(u){SPOKEN.push({t:u.text,v:u.voice&&u.voice.voiceURI,p:u.pitch});this.speaking=true;setTimeout(()=>{u.onstart&&u.onstart();setTimeout(()=>{this.speaking=false;u.onend&&u.onend()},Math.min(40,u.text.length))},5)},pause(){},resume(){},addEventListener(){},onvoiceschanged:null};Object.defineProperty(window,'speechSynthesis',{value:fake,configurable:true});window.SpeechSynthesisUtterance=class{constructor(t){this.text=t}};window.MS={};try{const ms=navigator.mediaSession;ms.setActionHandler=(a,f)=>{MS[a]=f}}catch(e){}};
  const p=await mk(b,{seedData:seed(SITES,{voice:'v1'}),init});const E=p.E;
  await E(()=>{S.sel='all';render();openReader(cur.find(a=>a.link.includes('alpha')))});await W(2000);
- await p.tap('#mo');await p.tap('[data-act="upnext"]');await W(100);
+ await p.evaluate(()=>{const r=document.querySelector('#rd');r&&r.classList.add('fpeek')}).then(()=>p.tap('#mo'))/* R-10 peek */;await p.tap('[data-act="upnext"]');await W(100);
  ck('listen','add to up next',await E(()=>S.lq.length===1));
  const nextLink=await E(()=>{const b=cur.find(a=>a.link.includes('beta'));S.lq=[b.link];save();return b.link});
  await p.evaluate(()=>document.querySelector('#rp').click());await W(200);ck('listen','up next listed in playback menu',await E(()=>document.querySelectorAll('#upn .upi').length===1));
@@ -190,7 +190,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  ck('stats','streak math',clk.cur===3&&clk.best===3,JSON.stringify(clk));
  // real tracking
  await E(()=>{S.sel='all';render();openReader(cur[0])});await W(1500);ck('stats','open counted',await E(()=>S.st.d[dayKey()].n===6&&S.st.src[fof(curA).title]>=1));
- await p.tap('#cl');
+ await p.evaluate(()=>{const r=document.querySelector('#rd');r&&r.classList.add('fpeek')}).then(()=>p.tap('#cl'))/* R-10 peek */;
  await E(()=>{S.sel='stats';render()});await W(200);
  const st=await E(()=>({tiles:document.querySelectorAll('.tile').length,bars:document.querySelectorAll('.sbars:not(.hrs) .sbar').length,src:document.querySelectorAll('.hrow').length,pers:$('.sgc h3 small').textContent}));
  ck('stats','stats page renders',st.tiles===4&&st.bars===7&&st.src>=3&&st.pers==='Night owl',JSON.stringify(st));
@@ -236,7 +236,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  await p.tap('#tabs [data-tab="saved"]');await W(200);ck('narrow','saved tab',await E(()=>S.sel==='saved'));
  await p.tap('#tabs [data-tab="search"]');await W(300);ck('narrow','search tab',await E(()=>$('#srch').classList.contains('open')));await E(()=>openSearch(false));
  await p.tap('#menu');await W(300);ck('narrow','menu button opens menu',await E(()=>document.body.classList.contains('open')));ck('narrow','no More tab',await E(()=>!document.querySelector('#tabs [data-tab="menu"]')&&document.querySelectorAll('#tabs [data-tab]').length===4));await E(()=>document.body.classList.remove('open'));
- await E(()=>{S.sel='all';render();openReader(cur[0])});await W(900);ck('narrow','tabs hidden in reader',await E(()=>getComputedStyle($('#tabs')).display==='none'));await p.tap('#cl');await W(200);
+ await E(()=>{S.sel='all';render();openReader(cur[0])});await W(900);ck('narrow','tabs hidden in reader',await E(()=>getComputedStyle($('#tabs')).display==='none'));await p.evaluate(()=>{const r=document.querySelector('#rd');r&&r.classList.add('fpeek')}).then(()=>p.tap('#cl'))/* R-10 peek */;await W(200);
  ck('narrow','last card reachable above tab bar',await E(()=>{$('main').scrollTop=1e6;const c=[...document.querySelectorAll('#grid .card')].pop().getBoundingClientRect(),t=$('#tabs').getBoundingClientRect();return c.bottom<=t.top+2}));
  await E(()=>{S.narrow='off';render()});ck('narrow','can turn off',await E(()=>!document.body.classList.contains('narrow')&&$('#tabs').hidden));
  ck('narrow','no h-scroll',await E(()=>document.documentElement.scrollWidth<=innerWidth+1));

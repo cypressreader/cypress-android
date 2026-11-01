@@ -13898,7 +13898,7 @@ function pcText(){
  {const bar=$('#rd .bar');if(bar)bar.style.setProperty('--rp',Math.round(Math.max(0,Math.min(1,f))*1000)/10+'%')}
  if(v?f<=.02:PG===0)return tot?`${tot} min`:'';
  if(v?f>=.97:PG+1>=NP)return v?'done':'last page';
- return m?`${m} min left`:(v?'done':'last page');
+ return `${Math.max(1,m)} min left`;/* a middle page is never called the last page, even with under a minute to go */
 }
 
 function dialSync(){const d=$('#dial');if(!d)return;const on=$('#rd').classList.contains('on')&&R.ready&&!R.web&&(isVert()||R.np>1);d.hidden=!on;if(!on)return;const f=isVert()?vEndFrac():Math.min(1,R.pg/Math.max(1,R.ep!=null?R.ep:R.np-1));d.style.setProperty('--f',Math.round(f*1000)/10+'%');{/* the value a screen reader announces: without these a slider reads 50 everywhere */const pc=Math.round(Math.max(0,Math.min(1,f))*100);d.setAttribute('aria-valuemin','0');d.setAttribute('aria-valuemax','100');d.setAttribute('aria-valuenow',String(pc));d.setAttribute('aria-valuetext',pc>=100?'End of the story':pc<=0?'Start of the story':pc+'% through the story')}}
@@ -15762,7 +15762,7 @@ function renderDigest(){
   const wd=[...Array(7)].map((_,i)=>{const dt=new Date(Date.now()-(6-i)*864e5);return{dt,v:S.st.d[dayKey(dt)]||{m:0,n:0,f:0}}});
   const wm=wd.reduce((n,x)=>n+x.v.m,0),wn=wd.reduce((n,x)=>n+x.v.n,0),wf=wd.reduce((n,x)=>n+x.v.f,0),sk=streaks(),mxm=Math.max(.25,...wd.map(x=>x.v.m));
   const bars=wd.map(x=>`<div class="wkb${x.dt.toDateString()===d.toDateString()?' now':''}" title="${esc(x.dt.toLocaleDateString([],{weekday:'long'}))}: ${esc(fmtMin(x.v.m))}"><i style="height:${Math.max(x.v.m?8:3,Math.round(x.v.m/mxm*100))}%"></i><small>${esc(x.dt.toLocaleDateString([],{weekday:'short'}).slice(0,3))}</small></div>`).join('');
-  h+=`<div class="wkhero"><small class="wkk">Your week · ${esc(wkR)}</small><div class="wkbig"><b>${esc(fmtMin(wm))}</b><span>spent reading</span></div><div class="wkbars">${bars}</div><div class="wkchips"><span><b>${wn}</b> opened</span><span><b>${wf}</b> finished</span><span><b>${sk.cur}</b> day streak</span></div><p class="dwhy">A look back: what mattered, what you read, and what you missed.</p></div>`;
+  h+=`<div class="wkhero"><small class="wkk">Your week · ${esc(wkR)}</small><div class="wkbig"><b>${esc(wm<.5?'<1 min':fmtMin(wm))/* the big figure stays on one line */}</b><span>spent reading</span></div><div class="wkbars">${bars}</div><div class="wkchips"><span><b>${wn}</b> opened</span><span><b>${wf}</b> finished</span><span><b>${sk.cur}</b> day streak</span></div><p class="dwhy">A look back: what mattered, what you read, and what you missed.</p></div>`;
   const allW=S.feeds.filter(inDaily).flatMap(f=>items[f.id]||[]).filter(a=>a.date>=wkS&&!muted(a));
   const seenW=new Set(),dupW=new Set();
   const big=allW.slice().sort((a,b)=>((b.more||[]).length-(a.more||[]).length)||b.date-a.date).filter(a=>{if(dupW.has(a.link))return false;dupW.add(a.link);return true}).slice(0,16);

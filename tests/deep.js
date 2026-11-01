@@ -13,7 +13,7 @@ for(const [vp,w,h,touch] of VPS){
  await p.goto(('file://'+APP));await p.waitForTimeout(1500);
  const E=(f,a)=>p.evaluate(f,a);
  const noHScroll=async tag=>ck(vp,'no horizontal page scroll '+tag,await E(()=>document.documentElement.scrollWidth<=innerWidth+1),await E(()=>document.documentElement.scrollWidth+'>'+innerWidth));
- const tap=async sel=>{if(!(await p.isVisible(sel))){await p.evaluate(s=>{const e=document.querySelector(s);e&&e.click()},sel);return}if(touch)await p.tap(sel);else await p.click(sel)};
+ const tap=async sel=>{/* R-10: the reader bar hides after the first page turn; a middle tap (fpeek) shows it, as a reader would do first */await p.evaluate(()=>{const r=document.querySelector('#rd');r&&r.classList.add('fpeek')});if(!(await p.isVisible(sel))){await p.evaluate(s=>{const e=document.querySelector(s);e&&e.click()},sel);return}if(touch)await p.tap(sel);else await p.click(sel)};
  const openSide=async()=>{if(w<=720&&!(await E(()=>document.body.classList.contains('open')))){await tap('#menu');await p.waitForTimeout(350)}};
  // 1 feeds loaded
  ck(vp,'feeds loaded',await E(()=>S.feeds.every(f=>state[f.id]==='ok')));
