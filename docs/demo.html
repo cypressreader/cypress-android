@@ -6583,10 +6583,12 @@ function feedHead(){
  if(feedHead.io){feedHead.io.disconnect();feedHead.io=null}
  /* 'rise' goes on before the header is measured: added after, it restyled the whole new list a second time (70-110 ms at 4x on each tab switch) */
  if(feedHead.sel!==S.sel){feedHead.sel=S.sel;g.classList.add('rise');clearTimeout(feedHead.rt);feedHead.rt=setTimeout(()=>g.classList.remove('rise'),1200)}
- t.classList.remove('fbig');fpBar();document.documentElement.style.setProperty('--toph',(t.getBoundingClientRect().bottom|0)+'px');
+ t.classList.remove('fbig');fpBar();
+ /* one measure per render: 'fbig' only fades the title, so the bar height is the same with it; --toph is rewritten only when it changes (a root variable restyles the whole page) */
+ const th=t.getBoundingClientRect().bottom|0;if(th!==feedHead.th){feedHead.th=th;document.documentElement.style.setProperty('--toph',th+'px')}
  {const tt=$('#ttl'),wp=g.querySelector('.wpill');const o=t.querySelector('.tnew');if(o)o.remove();if(tt&&wp){const n=+wp.dataset.n;tt.insertAdjacentHTML('beforeend',`<button type="button" class="tnew" aria-label="Show ${n} new ${n===1?'story':'stories'}">${n} new<span> ${n===1?'story':'stories'}</span></button>`)}}
  const m=g.querySelector('.fmast,.tm-day');
- if(m&&'IntersectionObserver' in window){t.classList.add('fbig');const th=t.getBoundingClientRect().bottom|0;feedHead.io=new IntersectionObserver(es=>{t.classList.toggle('fbig',es[0].isIntersecting)},{rootMargin:-th+'px 0px 0px'});feedHead.io.observe(m)}
+ if(m&&'IntersectionObserver' in window){t.classList.add('fbig');feedHead.io=new IntersectionObserver(es=>{t.classList.toggle('fbig',es[0].isIntersecting)},{rootMargin:-th+'px 0px 0px'});feedHead.io.observe(m)}
 }
 $('.top').addEventListener('click',e=>{if(e.target.closest('.tnew'))wireLoad()});
 {let ft=0;document.addEventListener('scroll',e=>{if(e.target&&e.target.tagName==='MAIN'&&!ft)ft=setTimeout(()=>{ft=0;fpBar()},400)},true)}
@@ -13865,9 +13867,9 @@ DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vib
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
 /* a touch screen. The Android WebView does not always answer 'coarse' to the plain pointer question the way a browser does, so a finger is also looked for the two other ways */
 const touchy=()=>{try{if(matchMedia('(any-pointer:coarse)').matches)return true}catch(e){}try{if((navigator.maxTouchPoints|0)>0)return true}catch(e){}return 'ontouchstart' in window};
-const splitAuto=()=>{try{const w=innerWidth,h=innerHeight;return w>=800&&h>=600&&w>h&&touchy()}catch(e){return false}};
+const splitAuto=()=>{try{const w=VW,h=VH;return w>=800&&h>=600&&w>h&&touchy()}catch(e){return false}};
 const splitMode=()=>S.splitm||(S.split===false?'off':S.split===true?'always':splitAuto()?'land':'off');
-const sideways=()=>{try{const a=screen.width,b=screen.height;if(a>0&&b>0&&a!==b)return a>b&&innerWidth>=innerHeight*.9}catch(e){}return innerWidth>innerHeight};/* the whole display, not the window: on the near-square Fold the status bar alone makes the window look wider than tall upright */
+const sideways=()=>{try{const a=screen.width,b=screen.height;if(a>0&&b>0&&a!==b)return a>b&&VW>=VH*.9}catch(e){}return VW>VH};/* the whole display, not the window: on the near-square Fold the status bar alone makes the window look wider than tall upright */
 const splitShape=()=>splitMode()==='always'||sideways();/* 'Sideways' means the display really is wider than tall: near-square upright windows (open Fold 859x847) stay single, per David; choose Always for those */
 const isOn=k=>(k==='caps'||k==='typo')?true:k==='split'?splitMode()!=='off':DEF_ON.has(k)?S[k]!==false:!!S[k];
 /* the window size is read once per resize: reading innerWidth right after a story is put in made the browser lay out the whole story there and then (and again once its columns were set) */
@@ -16161,7 +16163,7 @@ function screenMode(){
  if(t){tabPill(t);t.hidden=!narrow;t.querySelectorAll('[data-tab]').forEach(b=>{const on=b.dataset.tab===((S.sel==='digest'||S.sel==='brief')?'today':S.sel);b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')})}
  const split=isOn('split')&&VW>=800&&splitShape()&&!narrow;
  const was=document.body.classList.contains('split');document.body.classList.toggle('split',split);
- {const sm=sideMode(),hide=(sm==='always'||(sm==='portrait'&&innerWidth<innerHeight*1.25))&&VW>=700&&!narrow&&!split;document.body.classList.toggle('sidehide',hide);if(!hide&&!document.body.classList.contains('reading'))document.body.classList.remove('sideshow')}
+ {const sm=sideMode(),hide=(sm==='always'||(sm==='portrait'&&VW<VH*1.25))&&VW>=700&&!narrow&&!split;document.body.classList.toggle('sidehide',hide);if(!hide&&!document.body.classList.contains('reading'))document.body.classList.remove('sideshow')}
  if(split&&!$('#rd').classList.contains('on'))splitEmpty();
  if(was&&!split&&!$('#rd').classList.contains('on'))$('#sheet').innerHTML='';
 }
@@ -17949,10 +17951,11 @@ try{document.fonts&&document.fonts.ready.then(()=>{try{wcolsFix()}catch(e){}})}c
 /* ---------- sidebar rows: when the name and "N · M min" cannot share a line, the figures drop to a quieter second line; the name is never cut while a label shows ---------- */
 function fitSide(){
  document.querySelectorAll('#side-list .fr').forEach(r=>{
-  r.classList.remove('fr2','fr3');
-  const t=r.querySelector('.frt'),m=r.querySelector('.frm');if(!t||!m||!r.clientWidth)return;
-  if(t.scrollWidth>t.clientWidth+1){r.classList.add('fr2');if(t.scrollWidth>t.clientWidth+1){r.classList.remove('fr2');r.classList.add('fr3')}}
- });
+  r.classList.remove('fr2','fr3')});
+ /* every row is reset first, then measured, then the second check runs on the rows that changed: one layout per pass, not one per row */
+ const ov=r=>{const t=r.querySelector('.frt');return t&&r.querySelector('.frm')&&r.clientWidth&&t.scrollWidth>t.clientWidth+1};
+ const a=[...document.querySelectorAll('#side-list .fr')].filter(ov);a.forEach(r=>r.classList.add('fr2'));
+ a.filter(ov).forEach(r=>r.classList.replace('fr2','fr3'));
 }
 {const _sd=side;side=function(){_sd.apply(this,arguments);try{fitSide()}catch(e){}}}
 try{const a=document.querySelector('aside');if(a&&window.ResizeObserver){let t=0;new ResizeObserver(()=>{clearTimeout(t);t=setTimeout(()=>{try{fitSide()}catch(e){}},60)}).observe(a)}if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{try{fitSide()}catch(e){}})}catch(e){}
