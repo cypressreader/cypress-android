@@ -5738,7 +5738,7 @@ function legalBody(b){try{return b?consentPurge(b):0}catch(e){return 0}}
 const RD_RF=new Set();
 function acDrop(l){delete AC[l];try{if(IDB.ok)idbTx('readwrite',st=>st.delete(l))}catch(e){}}
 function extract0(html,base,MT){
- const d=new DOMParser().parseFromString(html,'text/html');try{consentPurge(d)}catch(e){}try{junkDom(d,base)}catch(e){}
+ const d=typeof html==='string'?new DOMParser().parseFromString(html,'text/html'):html;/* og() hands over the page it already parsed */try{consentPurge(d)}catch(e){}try{junkDom(d,base)}catch(e){}
  try{if(isOn('txo'))d.querySelectorAll('img,picture,video,iframe,source,amp-img,svg').forEach(e=>e.remove())}catch(e){}
  let ld='';let PL=null;try{PL=payloadOf(d)}catch(e){}
  /* a gate element only counts when it carries a gate message of its own: many pages ship "paywall" styling or markup without holding anything back */
@@ -6026,8 +6026,8 @@ async function og(a){
   await bgGate();/* parse once the finger is still */
   const d=new DOMParser().parseFromString(pg,'text/html');
   /* the article text is pulled out in a turn of its own, after checking again that you aren't scrolling (reading the page and pulling out the text together took up to 50 ms) */
-  if(!acHas(a.link)){await bgGate();try{const ex=extract(pg,L);if(acStoreOk(ex,a)){const dv=document.createElement('div');dv.append(dropTitle(ex.cloneNode(true),a.title));acPut(a.link,dv.innerHTML,1);markReady(a.link)}}catch(_){}}
   const m=d.querySelector('meta[property="og:image"],meta[name="twitter:image"]');
+  if(!acHas(a.link)){await bgGate();try{const ex=extract(d,L);if(acStoreOk(ex,a)){const dv=document.createElement('div');dv.append(dropTitle(ex.cloneNode(true),a.title));acPut(a.link,dv.innerHTML,1);markReady(a.link)}}catch(_){}}
   let u=m?abs(m.content,L):'';if(GPROMO.test(u)||/(^|\.)(gstatic|googleusercontent)\.com$/.test(host(u)))u='';IC[a.link]=u;if(LOGOISH.test(gk(u).split('/').pop()||''))u='';
   try{const k=Object.keys(IC);if(k.length>1000)delete IC[k[0]];clearTimeout(og.t);og.t=setTimeout(()=>{try{localStorage.setItem('folio-img',JSON.stringify(IC))}catch(_){}},1500)}catch(_){}
   return u;
