@@ -5958,7 +5958,7 @@ async function load0(f,fresh){
   items[f.id]=got;dropGeneric(got);shortNote(f,got)}
  {const pv=S.health[f.id]||{},now=Date.now();const lv=FLG[f.id]||{},vl=lv.val||{};S.health[f.id]=state[f.id]==='ok'?(vl.etag||vl.lm?{ok:now,etag:vl.etag,lm:vl.lm}:{ok:now}):(navigator.onLine?{...pv,fail:now,fn:(pv.fn||0)+1,ff:pv.ff||now,ra:lv.ra||0}:pv)}saveSoon();
  LP.f++;pfBar();
- if(state[f.id]==='ok')applyRules(f);loadRender();gnPrefetch(items[f.id]).then(()=>enrich(f.id)).catch(()=>{});if($('#mng').open)renderMng();
+ if(state[f.id]==='ok')applyRules(f);loadRender();gnPrefetch(items[f.id]).then(()=>enrichLater(f.id)).catch(()=>{});if($('#mng').open)renderMng();
 }
 let LEADK='';
 
@@ -6033,7 +6033,10 @@ async function og(a){
   return u;
  }catch(e){if(navigator.onLine)ogFail(a.link);return''}
 }
-let rt;const schedule=()=>{clearTimeout(rt);rt=setTimeout(quietRender,500)};
+/* while sites or article pages are still downloading, photos that arrive redraw the list at most every 2.5 s (each redraw is 0.4-0.7 s on a budget phone) */
+let rt=0;const schedule=()=>{const busy=OGN||INFL.size;if(rt&&busy)return;clearTimeout(rt);rt=setTimeout(()=>{rt=0;quietRender()},busy?2500:500)};
+/* story photos are looked up (whole article pages fetched and read) only once the other sites have arrived: doing it during a refresh slowed the remaining sites (~2.5 s of phone work at 6x) */
+const enrichLater=id=>[...INFL.keys()].some(k=>k!==id)?setTimeout(()=>enrichLater(id),300):enrich(id);
 /* B4: on mobile data, whole article pages are fetched for pictures only when the download setting allows downloads on mobile data (as background preload does); Wi-Fi is unchanged */
 const ogNet=()=>{try{return netKind()!=='cell'||pfAllowed()}catch(e){return true}};
 async function enrich(id){
