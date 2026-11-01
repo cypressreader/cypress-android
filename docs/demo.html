@@ -5435,13 +5435,13 @@ async function fetchText1(url,ok,lg){
  add('corsproxy',u=>'https://corsproxy.io/?url='+encodeURIComponent(u));
  add('allorigins-json',u=>'https://api.allorigins.win/get?url='+encodeURIComponent(u),1);
  }
- /* the route that won for this site last time goes first, the next-fastest 250 ms later (950 ms on mobile data); the first routes get 4 s each, only the last resort gets the full 7.5 s */
+ /* the site itself, your relay and the CyPress fetcher go first; among public relays the one that won for this site last time leads, the next starts 650 ms later (950 ms on mobile data); the first routes get 4 s each, only the last resort gets the full 7.5 s */
  let hh='';try{hh=new URL(url).hostname.replace(/^www\./,'')}catch(e){}
  let mem={};try{mem=(SROUTE[hh]&&SROUTE[hh].f)||{}}catch(e){}
- const med=x=>{const a=(x||[]).slice().sort((u,v)=>u-v);return a.length?a[a.length>>1]:1e9},rank=p=>p.n===mem.w?-1:med(mem.m&&mem.m[p.n]);if(P.length>1)P.sort((a,b)=>rank(a)-rank(b));
+ const med=x=>{const a=(x||[]).slice().sort((u,v)=>u-v);return a.length?a[a.length>>1]:1e9},rank=p=>p.n==='direct'||p.n==='your relay'||p.w?-2:p.n===mem.w?-1:med(mem.m&&mem.m[p.n]);/* the site itself, your relay and the CyPress fetcher always go before a public relay */if(P.length>1)P.sort((a,b)=>rank(a)-rank(b));
  P.forEach((p,k)=>p.ms=k===P.length-1?7500:4000);
  const rec=(n,t)=>{try{const e=SROUTE[hh]||(SROUTE[hh]={}),f=e.f||(e.f={m:{}}),a=f.m[n]||(f.m[n]=[]);a.push(t);if(a.length>5)a.shift();f.w=n;const k=Object.keys(SROUTE);if(k.length>200)delete SROUTE[k[0]];clearTimeout(fetchText1.t);fetchText1.t=setTimeout(()=>{try{localStorage.setItem('folio-sroute',JSON.stringify(SROUTE))}catch(e){}},1500)}catch(e){}};
- const cell=(()=>{try{const c=navigator.connection;return !!(c&&(c.type==='cellular'||c.saveData))}catch(e){return false}})(),gap=NATIVE||cell?950:250;
+ const cell=(()=>{try{const c=navigator.connection;return !!(c&&(c.type==='cellular'||c.saveData))}catch(e){return false}})(),gap=NATIVE||cell?950:650;
  let over=false,won=false;const ctls=[],timers=[];
  const one=(p,c)=>new Promise((res,rej)=>{
   let dead=false;const t0=Date.now();
@@ -6519,7 +6519,7 @@ function imgFx(){
 const IMGDIM=new Map();
 /* the card pictures that are really on screen (plus 200 px) load first, whatever the screen size; without the observer the first six cards stay eager */
 const EIO='IntersectionObserver' in window?new IntersectionObserver(es=>{for(const x of es)if(x.isIntersecting){const im=x.target;im.loading='eager';im.fetchPriority='high';EIO.unobserve(im)}},{rootMargin:'200px'}):null;
-if(EIO){const g=document.getElementById('grid');if(g)new MutationObserver(()=>{g.querySelectorAll('.card>img[loading="lazy"]:not([data-eio])').forEach(im=>{im.dataset.eio='1';EIO.observe(im)})}).observe(g,{childList:true,subtree:true})}
+if(EIO){const g=document.getElementById('grid');if(g)new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(n.nodeType===1)(n.matches('.card>img[loading="lazy"]')?[n]:n.querySelectorAll('.card>img[loading="lazy"]')).forEach(im=>EIO.observe(im))})/* only what was just added is looked at */.observe(g,{childList:true,subtree:true})}
 /* every feed picture states its shape: the real size once known, otherwise a 16:10 guess (the card's own CSS sets the displayed size), so the browser reserves the box before the picture arrives */
 const imgWH=u=>{const d=IMGDIM.get(u);return d&&d[0]>0&&d[1]>0?` width="${Math.round(d[0])}" height="${Math.round(d[1])}"`:' width="640" height="400"'};
 document.addEventListener('load',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.naturalWidth>40&&im.naturalHeight>40&&/^https?:/.test(im.currentSrc||im.src||'')){const u=im.currentSrc||im.src;IMGDIM.set(u,[im.naturalWidth,im.naturalHeight]);if(IMGDIM.size>400)IMGDIM.delete(IMGDIM.keys().next().value)}},true);
@@ -6865,7 +6865,7 @@ function thmPal(th){/* the palette a card shows: the twin when the Light/Dark sw
  if(h&&!(want==='dark'&&R[th+'d'])){p.bg=h['--bg']||p.bg;p.ink=h['--ink']||p.ink;p.a1=h['--a1']||p.a1}
  else if(want&&st===own){/* no drawn twin (Aurora by day): the same recipe twinApply uses, the theme's hue at day or night lightness */const hx=c=>{const m=/^#([0-9a-f]{6})$/i.exec(c);return m?[0,2,4].map(i=>parseInt(m[1].substr(i,2),16)):null},b=hx(p.bg);if(b&&(lumOf(b)<.2?'dark':'light')!==want){const D=want==='dark',L=(c,l,mx)=>{const v=hx(c);if(!v)return c;const[hu,sa]=rgb2hsl(v);return hsl2css(hu,Math.min(sa,mx),l)};p.bg=L(p.bg,D?.085:.955,.4);p.ink=L(p.ink,D?.93:.11,.25);p.a1=L(p.a1,D?.62:.32,1)}}
  return p}
-function thmCard(th,nm){const p=thmPal(th);return '<button type="button" data-th="'+th+'" aria-pressed="false" style="--tb:'+p.bg+';--ti:'+p.ink+';--ta:'+p.a1+';--tf:'+p.fd.replace(/"/g,'&quot;')+'"><i class="thk" aria-hidden="true"><b>Morning Edition</b><u></u></i><span class="thn">'+nm+'</span></button>'}
+function thmCard(th,nm){const p=thmPal(th);return '<button type="button" data-th="'+th+'" aria-pressed="false" style="--tb:'+p.bg+';--ti:'+p.ink+';--ta:'+p.a1+';--tf:'+p.fd.replace(/"/g,'&quot;')+'"><i class="thk" aria-hidden="true"><b>Morning Edition</b><u></u></i><span class="thn">'+esc(nm)+'</span></button>'}
 function thmBuild(){
  const root=$('#thm'),rail=root&&root.querySelector('.tgrid.rail');if(!rail||$('#thfam'))return;
  const all=[...rail.querySelectorAll('[data-th]')].map(b=>[b.dataset.th,b.textContent.trim()]).filter(([t])=>thmPal(t));
@@ -6875,7 +6875,7 @@ function thmBuild(){
  wrap.innerHTML=Object.keys(fams).map(f=>'<div class="thf" data-fam="'+f+'"'+(fams[f].length?'':' hidden')+'><h5>'+f+'</h5><div class="tgrid rail" role="group" aria-label="'+f+' themes">'+fams[f].map(([t,n])=>thmCard(t,n)).join('')+'</div></div>').join('');
  wrap.dataset.names=JSON.stringify(Object.fromEntries(all));rail.replaceWith(wrap);thmSync()}
 function thmSync(){
- const w=$('#thfam');if(!w)return;const nm=JSON.parse(w.dataset.names||'{}');
+ const w=$('#thfam');if(!w)return;
  if(w.dataset.want!==schWant()){w.dataset.want=schWant();w.querySelectorAll('.thf [data-th]').forEach(b=>{const p=thmPal(b.dataset.th);if(!p)return;b.style.setProperty('--tb',p.bg);b.style.setProperty('--ti',p.ink);b.style.setProperty('--ta',p.a1)})}}
 function wireAnchor(){
  if(WIRE.anchor)return WIRE.anchor;
@@ -8723,11 +8723,9 @@ function rdVars(){const r=$('#rd');if(!r)return;const nc=narrowC();r.style.setPr
 function imgKey(u){try{let x=String(u||'').split(/[?#]/)[0].toLowerCase();x=x.split('/').filter(Boolean).pop()||'';return x.replace(/\.(jpe?g|png|webp|avif|gif)(\.(jpe?g|png|webp|avif|gif))?$/,'').replace(/[-_@]?\d{2,4}x\d{2,4}/g,'').replace(/[-_](scaled|large|medium|small|thumb(nail)?|full|orig(inal)?|hires|hi-res)$/,'').replace(/@\dx$/,'')}catch(e){return ''}}
 function sameImg(a,b){if(!a||!b)return false;if(String(a).split('?')[0]===String(b).split('?')[0])return true;const x=imgKey(a),y=imgKey(b);if(x.length>=8&&x===y)return true;if(x.length>=5&&x===y&&!/^(image|img|photo|picture|pic|hero|cover|main|lead|thumb|thumbnail|banner|article|featured|default|placeholder|logo|share|og|story|news)\d*$/.test(x))return true;if(x.length<10||y.length<10)return false;let i=0;while(i<x.length&&i<y.length&&x[i]===y[i])i++;return i>=10&&i/Math.min(x.length,y.length)>=.75}
 /* The picture shows once, in the body. The moment a body (the feed's copy, the stored copy or the full page) is in place, and before it can paint, the separate top-of-page copy is set aside; if a later body has no such picture, the top copy goes back. Two never show together. */
-/* R-04: the same photo under two file names. Both pictures drawn at 8x8, mean gray per cell; a tainted canvas throws and counts as "cannot tell". */
-function pixSame(a,b){try{const g=i=>{const c=document.createElement('canvas');c.width=c.height=8;const x=c.getContext('2d');x.drawImage(i,0,0,8,8);return x.getImageData(0,0,8,8).data};const p=g(a),q=g(b);let d=0;for(let i=0;i<256;i+=4)d+=Math.abs(p[i]+p[i+1]+p[i+2]-q[i]-q[i+1]-q[i+2])/3;return d/64<18}catch(e){return false}}
 function heroOnce(){const c=document.querySelector('.cols'),b=c&&c.querySelector('.body');if(!b||!curA)return;const ref=curA.img||'';let h=c.querySelector(':scope>img.hero,:scope>.hsf img.hero');if(!ref&&!h)return;let hit=false;let n=0,seenText=0;const he=h||(R.heroFor===curA.link&&R.heroEl)||null;for(const k of [...b.children]){if(n++>8||seenText>420)break;const pre=seenText;seenText+=(k.textContent||'').trim().length;const im=k.tagName==='IMG'?k:k.querySelector&&k.querySelector('img');if(!im)continue;if(sameImg(im.src,ref)){hit=true;break}
-  /* R-04: the first picture, before any text, is the same photo when its shape (within 3%) or its pixels match the top copy; checked once the pictures have loaded, no polling */
-  if(!pre&&he&&im!==he){if(im.naturalWidth&&im.naturalHeight&&he.naturalWidth&&he.naturalHeight){if(im._hq==null)im._hq=(Math.abs(im.naturalWidth/im.naturalHeight/(he.naturalWidth/he.naturalHeight)-1)<.03||pixSame(im,he))?1:0;if(im._hq){hit=true;break}}else[im,he].forEach(x=>{if(!x.naturalWidth&&!x._hl){x._hl=1;x.addEventListener('load',()=>{try{const was=R.heroEl;heroOnce();if(R.heroEl!==was){mnotes();relayout()}}catch(e){}},{once:true})}})}}
+  /* R-04: the first picture, before any text, is the same photo when its shape matches the top copy within 3% (a pixel check can't read publisher photos: the browser blocks it); checked once the pictures have loaded, no polling */
+  if(!pre&&he&&im!==he){if(im.naturalWidth&&im.naturalHeight&&he.naturalWidth&&he.naturalHeight){if(im._hq==null)im._hq=(Math.abs(im.naturalWidth/im.naturalHeight/(he.naturalWidth/he.naturalHeight)-1)<.03)?1:0;if(im._hq){hit=true;break}}else[im,he].forEach(x=>{if(!x.naturalWidth&&!x._hl){x._hl=1;x.addEventListener('load',()=>{try{const was=R.heroEl;heroOnce();if(R.heroEl!==was){mnotes();relayout()}}catch(e){}},{once:true})}})}}
  if(hit&&h){const m=document.createComment('hero'),old=h.closest('.hsf');if(old){[...old.querySelectorAll('.kick,.tt,.dt')].forEach(x=>c.insertBefore(x,old));old.replaceWith(m)}else h.replaceWith(m);R.heroEl=h;{const hc=c.querySelector(':scope>.hcap');if(hc)hc.hidden=true}R.heroMark=m;R.heroFor=curA.link}
  else if(!hit&&R.heroMark&&R.heroMark.isConnected&&R.heroFor===curA.link&&R.heroEl){R.heroMark.replaceWith(R.heroEl);R.heroEl=R.heroMark=null;{const hc=c.querySelector(':scope>.hcap');if(hc)hc.hidden=false}}}
 function noteFix(){const n=document.querySelector('.cols .note'),b=document.querySelector('.cols .body');if(!n||!b||DEEPBUSY)return;if(n.querySelector("[data-retry]")&&(b.textContent||'').length>2200){n.textContent='Full story loaded.';setTimeout(()=>{if(n.isConnected&&n.textContent==='Full story loaded.')n.remove()},4000)}}
