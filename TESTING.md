@@ -1130,7 +1130,7 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - All Stories, Medium/Large cards: the view button's icon matches the view you're in (card = Cards, three bars = Columns, rows = List); tapping still cycles Cards → Columns → List.
 
 ## 2026-11-01 design picks (all 16 kept; implemented, unverified on phone)
-- All Stories: lead card headline is larger, two lines (H1); "saved for offline" mark is a small smoked dot with a brass arrow (H2); dots between section and time spaced evenly (P2); "Last hour" header is a ruled line, no gray box (C2); date over "All Stories" is brass in Halcyon (C1).
+- All Stories (phone): lead card headline is larger, two lines (H1; phones only, tablets keep their size for photo contrast); "saved for offline" mark is a small smoked dot with a brass arrow (H2); dots between section and time spaced evenly (P2); "Last hour" header is a ruled line, no gray box (C2); date over "All Stories" is brass in Halcyon (C1).
 - The Daily on a phone: edition line is two clean lines, no season, no stray dot (D1); cover quote has no second credit (D2); "Over breakfast" lines show the site in italics under the headline (D3). On a tablet the edition line stays on one line.
 - Story: "From the publisher" is a thin brass rule in the reading typeface (R1); date line says Today / Yesterday / Oct 30 and "6 min read" (R2); site name in the top bar isn't cut off on a phone (M1); no paper-stack lines on the page edge on a phone (M3); page turning unchanged.
 - Empty/offline pages: display-serif headline, italic text, second button is an outline (S1). Failed pictures use the theme's own colors in every theme (S2, David's change).
