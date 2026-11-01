@@ -73,7 +73,7 @@ if(touch){
   await t('touchStart',bb.x+bb.width*.95,bb.y+200);for(let i=1;i<=18;i++){await t('touchMove',bb.x+bb.width*.95-i*bb.width*.05,bb.y+202);await p.waitForTimeout(16)}
   const mid=await E(()=>R.T&&R.T.ang);ck(vp,'drag follows finger',mid>30&&mid<=180,'ang '+mid);
   await t('touchEnd');await p.waitForTimeout(1700);ck(vp,'drag completes turn',await E(()=>R.pg)===1);
-  ck(vp,'no leftover turn layers',await E(()=>!document.querySelector('.tl-leaf,.tl-under,.tl-cast')&&!R.busy));
+  ck(vp,'no leftover turn layers',await E(()=>[...document.querySelectorAll('.tl-leaf,.tl-under,.tl-cast')].every(e=>RP&&RP.T.els.some(x=>x===e||x.contains(e)))/* the pre-built next turn (prepTurn) is allowed */&&!R.busy));
   // small drag cancels
   await t('touchStart',bb.x+bb.width*.8,bb.y+200);for(let i=1;i<=3;i++){await t('touchMove',bb.x+bb.width*.8-i*20,bb.y+201);await p.waitForTimeout(30)}await p.waitForTimeout(150);
   await t('touchEnd');await p.waitForTimeout(1700);ck(vp,'short slow drag cancels',await E(()=>R.pg)===1);
@@ -95,7 +95,7 @@ if(touch){
  ck(vp,'site view shows page',await E(()=>{const f=$('.web iframe');return !$('.web').hidden&&f&&!f.hidden&&(f.srcdoc||'').length>500}));
  await tap('#wb');await p.waitForTimeout(300);ck(vp,'back to reader',await E(()=>$('.web').hidden&&!R.web));
  // font change inside reader keeps working
- for(const fnt of ['dys','lexend','serif']){await E(f=>{S.font=f;applyFs(true)},fnt);await p.waitForTimeout(250);ck(vp,'font '+fnt+' relayout',await E(()=>R.np>=1&&$('#pc').textContent.includes('/')))}
+ for(const fnt of ['dys','lexend','serif']){await E(f=>{S.font=f;applyFs(true)},fnt);await p.waitForTimeout(250);ck(vp,'font '+fnt+' relayout',await E(()=>R.np>=1&&R.ready/* R-01: the page caption no longer shows n/N */))}
  // highlight
  const hl=await E(()=>{const t=$('.cols .body p:not(.dropcap)').firstChild;const r=document.createRange();r.setStart(t,0);r.setEnd(t,20);const s=getSelection();s.removeAllRanges();s.addRange(r);document.dispatchEvent(new Event('selectionchange'));return true});
  await p.waitForTimeout(400);
@@ -122,7 +122,7 @@ ck(vp,'read-state sane after open',await E(()=>typeof S.read==='object'));
  await tap('[data-fn="literata"]');ck(vp,'font tile',await E(()=>S.font==='literata'));
  await tap('[data-fs="1"]');ck(vp,'text size +',await E(()=>S.fs===19));await tap('[data-fs="-1"]');
  for(const k of ['just','group','hideRead','autoWeb','autoReader','queue']){const before=await E(k=>$(`.tg[data-tg="${k}"]`).classList.contains('on'),k);await tap(`.tg[data-tg="${k}"]`);await p.waitForTimeout(60);const after=await E(k=>$(`.tg[data-tg="${k}"]`).classList.contains('on'),k);ck(vp,'toggle '+k,before!==after);await tap(`.tg[data-tg="${k}"]`);await p.waitForTimeout(60)}
- for(const [id,v] of [['#lhs','1.9'],['#mgn','0.6'],['#srt','source'],['#arf','15'],['#pfm','50']]){await p.selectOption(id,v);ck(vp,'select '+id,true)}
+ for(const [id,v] of [['#lhs','1.9'],['#mgn','0.6'],['#srt','source'],['#arf','15'],['#pfm','50']]){/* Settings pages: these selects can sit on a page not shown, so set them as the page's own change would */if(await p.isVisible(id))await p.selectOption(id,v);else await E(([id,v])=>{const e=document.querySelector(id);e.value=v;e.dispatchEvent(new Event('change',{bubbles:true}))},[id,v]);ck(vp,'select '+id,true)}
  ck(vp,'select values stored',await E(()=>S.lh===1.9&&S.mg===0.6&&S.sort==='source'&&S.auto===15&&S.pfm==='custom'&&S.pfn===50));
  const [dl]=await Promise.all([p.waitForEvent('download',{timeout:3000}).catch(()=>null),tap('#exp')]);ck(vp,'OPML export downloads',!!dl);
  const [dl2]=await Promise.all([p.waitForEvent('download',{timeout:3000}).catch(()=>null),tap('#bke')]);ck(vp,'backup export downloads',!!dl2);
@@ -165,8 +165,8 @@ ck(vp,'read-state sane after open',await E(()=>typeof S.read==='object'));
  await p.addInitScript(s=>{try{localStorage.setItem('folio',JSON.stringify(s))}catch(e){}},seed(['Alpha']));await p.goto(('file://'+APP));await p.waitForTimeout(1200);
  await p.evaluate(()=>{S.sel='all';render();openReader(cur[0])});await p.waitForTimeout(6500);
  const n=await p.evaluate(()=>({note:$('.cols .note').innerText,why:!!$('.cols .note .why')}));
- ck('fail','failure note + Why',/let the app in/.test(n.note)&&n.why,JSON.stringify(n));
- await p.click('.cols .note [data-web]');await p.waitForTimeout(2500);ck('fail','site view fallback msg',await p.evaluate(()=>!$('.web').hidden));
+ ck('fail','failure note + Why',/Partial story/i.test(n.note)&&/Open on site/.test(n.note)&&n.why/* W-03: badge + one reason line + Open on site */,JSON.stringify(n));
+ await p.evaluate(()=>toggleWeb(true))/* W-03 dropped the in-note site button; the site view itself is what's checked */;await p.waitForTimeout(2500);ck('fail','site view fallback msg',await p.evaluate(()=>!$('.web').hidden));
  await p.screenshot({path:'/tmp/t/deep-fail.png'});
  ck('fail','no errors',errs.length===0,errs.join('|'));await ctx.close()}
 // offline

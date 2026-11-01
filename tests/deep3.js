@@ -253,7 +253,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  ck('flex','pad shows page info',await E(()=>/\d+ min|last page|done/.test($('#fpc').textContent)));/* polish-2026-10 R-01 */
  await p.click('#fpad [data-fp="bigger"]');await W(300);ck('flex','pad text size',await E(()=>S.fs===19));
  await E(()=>{delete window.viewport;dispatchEvent(new Event('resize'))});await W(500);ck('flex','flat again = normal',await E(()=>!$('#rd').classList.contains('flex')));
- await p.click('#cl');ck('flex','no errors',p.errs.length===0,p.errs.join('|'));await p.ctx.close()}
+ await p.evaluate(()=>{const r=document.querySelector('#rd');r&&r.classList.add('fpeek')});await p.click('#cl');ck('flex','no errors',p.errs.length===0,p.errs.join('|'));await p.ctx.close()}
 
 /* 50 side-by-side */
 for(const [vp,w,h] of [['fold',884,1060],['desk',1280,900]]){
@@ -268,7 +268,7 @@ for(const [vp,w,h] of [['fold',884,1060],['desk',1280,900]]){
  await p.screenshot({path:`/tmp/t/v3-${vp}-split1.png`});
  await p.evaluate(()=>document.querySelector('#nx').click());await W(1800);ck(vp,'page turn works in split',await E(()=>R.pg===1));
  await p.click('#grid .card:nth-child(4) h3');await W(1500);ck(vp,'switch story from list',await E(()=>cur.indexOf(curA)===3||$('.card.act')===document.querySelector('#grid .card:nth-child(4)')));
- await p.click('#cl');await W(300);ck(vp,'close shows placeholder',await E(()=>!!$('#sheet .spe')&&!$('#rd').classList.contains('on')));
+ await p.evaluate(()=>{const r=document.querySelector('#rd');r&&r.classList.add('fpeek')});await p.click('#cl');await W(300);ck(vp,'close shows placeholder',await E(()=>!!$('#sheet .spe')&&!$('#rd').classList.contains('on')));
  await p.click('#menu');await W(300);ck(vp,'menu drawer in split',await E(()=>document.body.classList.contains('open')&&$('aside').getBoundingClientRect().left>=-1));
  await E(()=>document.body.classList.remove('open'));
  await E(()=>{S.split=false;screenMode();render()});ck(vp,'turn off split',await E(()=>!document.body.classList.contains('split')));

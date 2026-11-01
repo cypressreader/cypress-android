@@ -8658,6 +8658,7 @@ function layout(){prepDrop();noteFix();
  try{fitPage1(c,cw,gap)}catch(e){elog('fitPage1',e)}
  try{fitWide(c,cw,gap)}catch(e){elog('fitWide',e)}
  try{if(fitWhy(c,cw,gap))fillVoids(c,cw,gap)}catch(e){elog('fitWhy',e)}
+ try{origAlone(c)}catch(e){elog('origAlone',e)}
  R.np=Math.max(1,Math.ceil(Math.round((c.scrollWidth+gap)/(cw+gap))/R.cpv));
  try{trimBlankPages(c)}catch(e){elog('trimBlankPages',e)}
  /* Never-blank guard: if the column measurements collapsed (non-sane column
@@ -17901,6 +17902,8 @@ function fitWhy(c,cw,gap){
  if(ci<1)return false;
  f.style.setProperty('break-before','auto');return true;
 }
+/* T-07: an end card that fills the last column of a page pushed the Read original link onto a page of its own; start the card on that next page so the two share it */
+function origAlone(c){const rf=c.querySelector('.body .rfoot'),o=c.querySelector(':scope>.orig');if(!rf||!o)return;rf.style.breakBefore='';if(isVert()||!(R.step>0))return;const cl=c.getBoundingClientRect().left,pg=e=>{const q=[...e.getClientRects()].pop();return q?Math.floor((q.left-cl+2)/R.step):-1};if(pg(o)>pg(rf))rf.style.breakBefore='column'}
 /* the page count comes from the width of the column strip, which can run a column or two past the last text (a margin, a hidden box); a page with nothing on it is never offered */
 function trimBlankPages(c){
  if(R.np<2||!(R.step>0)||R.web||isVert())return;
