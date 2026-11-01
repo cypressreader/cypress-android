@@ -15,7 +15,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   const t='['+W+'] ';const shown=r.filter(x=>x.shown);
   if(W<700){ck(t+'phone: the bar is icons only (labels not shown)',r.length>0&&shown.length===0,shown.length);}
   else{
-   ck(t+'every labelled button has its label as text inside it ('+shown.length+' checks)',shown.length>=4*40,shown.length);
+   ck(t+'every labelled button has its label as text inside it ('+shown.length+' checks)',shown.length>=(W<760?2:4)*40,shown.length);/* R-01: below 760px Save and Listen live in the More menu, so only Back and More are on the bar */
    ck(t+'labels sit inside their buttons, below the icon, in every theme',shown.every(x=>x.inside&&x.under),JSON.stringify(shown.filter(x=>!(x.inside&&x.under)).slice(0,4)));
   }
   ck(t+'no page errors',!errs.length,errs[0]);await p.close();
