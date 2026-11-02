@@ -271,6 +271,8 @@ jobs:
           KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           set -e
+          # the Play Store copy: no self-updater, no install permission (Play updates the app itself)
+          python3 scripts/prepare_android.py --play
           (cd android && ./gradlew bundleRelease --no-daemon)
           AAB=$(find android/app/build/outputs/bundle/release -name '*.aab' | head -1)
           echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/cypress.keystore"

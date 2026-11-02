@@ -16797,16 +16797,19 @@ async function widgetSavePull(){const x=CyX();if(!x||!x.widgetSaved||!nFeat('wid
 function nativeSetup(){
  const p=CyN();if(!p)return;
  nativeExtras();
+ let run=()=>{};
+ if(CP_REPO){/* the Play Store version has no update source: Play updates it */
  const sec=document.createElement('section');sec.className='sgrp';sec.id='s-app';
  sec.innerHTML=`<h3><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10m0 0-4-4m4 4 4-4M5 19h14"/></svg>App updates</h3><div class="sbox"><div class="line"><span class="lb">CyPress updates<small id="appv">Checking…</small></span><button class="tx2" id="appchk">Check for updates</button></div><p class="hint" id="appnotes" hidden style="padding:0 16px 14px;white-space:pre-line"></p></div>`;
  const st=$('#s-setup');if(st)st.before(sec);
  const sn=document.querySelector('#snav [data-go="s-setup"]');if(sn){const nb=document.createElement('button');nb.dataset.go='s-app';nb.textContent='App';sn.before(nb)}
  $('#appchk').onclick=async()=>{if(NU&&NU.code>NU.cur){nativeUpdateNow();nativeAppLine();return}$('#appv').textContent='Checking…';await nativeUpdateCheck(true);nativeAppLine();if(!NU){const i=await p.info().catch(()=>null);$('#appv').textContent=i?'You have version '+i.versionCode+'. Couldn’t check just now':'Couldn’t check. Are you online?'}};
  p.info().then(i=>{if(!NU){const t=$('#appv');if(t)t.textContent='You have version '+i.versionCode}}).catch(()=>{});
- const run=()=>{if(Date.now()-LASTUPD>20*36e5)nativeUpdateCheck(false)};
+ run=()=>{if(Date.now()-LASTUPD>20*36e5)nativeUpdateCheck(false)};
  setTimeout(()=>nativeUpdateCheck(false),5000);
- document.addEventListener('visibilitychange',()=>{if(!document.hidden){run();setTimeout(nativeBars,300)}});
  setInterval(run,36e5);
+ }
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden){run();setTimeout(nativeBars,300)}});
  const a0=applyTheme;applyTheme=function(...a){const r=a0.apply(this,a);setTimeout(nativeBars,500);return r};
  setTimeout(nativeBars,700);
 }
