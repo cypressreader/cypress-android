@@ -280,7 +280,8 @@ final class CyTts {
                     }
                 }
             }
-            Neural nv = neural();
+            // only once the phone's engine has answered: a non-empty list stops the page asking again
+            Neural nv = rdy || failed ? neural() : null;
             if (nv != null) arr.put(nv.voice());
             out.put("voices", arr);
             out.put("ready", rdy);
