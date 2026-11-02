@@ -1159,3 +1159,8 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Voices test round 5 (grammar tagger, name model, section rhythm): "I read it yesterday" says "red"; names like Okonkwo/Zelenskyy sound plausible; headline slower than body; first story start delay not much longer (tagger + model load ~0.5 s extra). If none of it seems to apply, the tagger may have failed to load on Android (it falls back quietly): check logcat tag CyNeural for "en-pos"/"g2p-en".
 - Read-aloud pill (www, 2026-11-02 s2typy): the bottom pill while a story is read aloud now has Pause/Resume first (then -, speed, +, x). Check: pause, resume continues from the same sentence, TalkBack names it "Pause reading aloud"/"Resume reading aloud", hidden in hands-free scrolling.
 - Voices test: "Debra M. Brown" reads the initial as the letter M with no stop before Brown.
+
+## Natural voice sizes (2026-11-02, branch claude/handoff-continuation-u2m2vl, voices-test APK) — implemented, unverified
+- Settings > Read aloud > Natural voice: Off / Compact (198 MB) / Full (360 MB). Compact downloads on Wi-Fi with % progress; Natural voices then appear in Voice.
+- Switching Compact <-> Full deletes the other model; Delete (confirm dialog) frees all voice files and falls back to the phone's voice.
+- Phone that had the old Full download starts on Full with no re-download.
