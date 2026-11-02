@@ -99,3 +99,22 @@ Built 2026-10-28 (session -8vkgmy, unbumped): TTS skip captions, Surprise me, Bi
 2026-10-28 (after 1.177): built live dot on developing cards (`liveDots`) and Catch me up offer after 3+ days away (`S.lastOpen`). Save from any app already exists (native ACTION_SEND in native/extras). Still open: Car mode, Fold open beside list, Weekend long reads weighting, "More on this" labels, Other angles in reader, seasonal covers.
 2026-10-28 (session -s31j30): built Car mode as a big-button full-screen layout of the existing Now playing player (`tdr.car`, `S.car`, `.tdcar` button, keeps screen on via `rdWake`). Still open: Fold open beside list, Weekend long reads weighting, "More on this" labels, Other angles in reader, seasonal covers.
 2026-10-28 (1.180): built the rest of the picks queue: Fold open beside list (`splitShape` counts near-square windows), "More on this" (`relHead`), Other angles (headlines in `hubTeaser`), seasonal covers (`.dcov[data-sz]` wash + season in edition line), weekend long reads (`wkd`: 9 deep reads, "Weekend Reads"). Picks queue is empty except tilt card (needs a touch design).
+
+## Play Store readiness (audit 2026-11-02, session 4wgedt)
+BLOCKERS
+- P1 Self-updater: remove for Play build. `nativeUpdateCheck/nativeUpdateNow` (www ~16559-16590, `setTimeout(checkUpdate,8000)` ~16862, `#appchk` ~16803), `CP_REPO` (www 5082, filled by prepare_android.py 515-518), CyNativePlugin.java install/download (76, 282-296), CyFileProvider + cy_paths.xml, REQUEST_INSTALL_PACKAGES (native/AndroidManifest.release.xml:6, extras manifest). Plan: `PLAY=1` in prepare_android.py; build-apk.yml CP_REPO check must skip for Play.
+- P2 Google Play Billing: none exists. Needs billing library + Capacitor plugin (query, purchase, acknowledge, restore), paywall with trial/cancel disclosure + link to Play subscription management.
+- P3 privacy.html: add developer name + contact email; remove "isn't on the Play Store" (:50) / APK update text for Play; add subscriptions/Google Play billing; state report retention + how to delete server data; Data safety: Google News/Bing/Feedly/Jina/Morss count as "shared".
+- P4 Site docs/index.html: sideload/web install copy at :173,183,244-264,274,292 (Download APK, /get, Open in browser, iPhone web app, "Why isn't it in an app store?"). Needs Play badge + pricing copy.
+- P5 Listing assets: no 1024x500 feature graphic; phone shots in docs/shots are 780x1688 (ratio outside Play's 9:16..16:9 range? 2.16:1, max allowed 2:1) → recapture; tablet 7"/10" sets; 512 icon exists docs/app/icon-512.png (check no alpha).
+SHOULD-FIX
+- Pin targetSdk (Capacitor 7 template = 35; check Play's current requirement) + commit lockfile.
+- Foreground service mediaPlayback declaration (video) in Play Console.
+- 16 KB page alignment of sherpa-onnx .so (check llvm-readelf / pre-launch report).
+- arm64-only ABI (NEURAL=1) excludes x86_64 emulators/Chromebooks.
+- Voice download: add SHA-256 check (CyNeural.java 41-47, 113-115).
+- Play App Signing: update docs/.well-known/assetlinks.json with Play's signing cert SHA-256.
+- AAB step is continue-on-error: make it fail loudly once Play is live.
+- Copyright risk: full-text helpers Jina (www ~9314-9429, 9807-9816), Morss (~9691-9715), partner copy via Google News (~9594). Consider opt-in / respect paywalls.
+- Content rating: unrestricted web content → answer IARC honestly; audience 18+ (or 13+), no Families.
+- News policy: show developer contact/ownership in app + site.
