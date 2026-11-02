@@ -1,0 +1,89 @@
+# SPIKE: neural voices test build (step 1 of review/tts-plan.md). Never touches the real app or its updates.
+# Builds com.cypress.reader.tts ("CyPress Voices test"), which installs NEXT TO the real app, and publishes it as the
+# pre-release "voices-test" (the app's update check reads releases/latest, which skips pre-releases).
+name: Voices test build
+
+on:
+  push:
+    branches: [claude/handoff-continuation-mnmjdx, claude/handoff-continuation-u2m2vl, claude/handoff-continuation-s4qfk1, claude/handoff-continuation-4d0iqe]
+    paths:
+      - "native/**"
+      - "scripts/prepare_android.py"
+      - ".github/workflows/spike-tts.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: voices-test
+  cancel-in-progress: true
+
+env:
+  ICON: tree
+  EXTRAS: "1"
+  NEURAL: "1"
+  VOICES_TEST: "1"
+  BUILD_NUMBER: ${{ github.run_number }}
+  APP_LABEL: "0.1"
+  SHERPA: "2.0.1"
+  SHERPA_SHA256: a8d09d1d32f3eb8520482c6d3d43fae674681c5b050385967c70a3c2c9bf0ee7
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Create the Android project
+        run: |
+          if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
+          npx cap add android
+      - name: Get the voice engine (sherpa-onnx, Apache-2.0, no eSpeak)
+        run: |
+          set -e
+          mkdir -p android/app/libs
+          curl -fsSL -o android/app/libs/sherpa-onnx.aar "https://github.com/k2-fsa/sherpa-onnx/releases/download/v${SHERPA}/sherpa-onnx-${SHERPA}.aar"
+          echo "${SHERPA_SHA256}  android/app/libs/sherpa-onnx.aar" | sha256sum -c -
+      - name: Add CyPress's Android code (updates switched off in this build)
+        run: GITHUB_REPOSITORY= python3 scripts/prepare_android.py
+      - name: Build
+        run: |
+          npx cap sync android
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon
+      - name: Sign and check there is no eSpeak inside
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          set -e
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/k.keystore"
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          U=$(find android/app/build/outputs/apk/release -name '*.apk' | head -1)
+          "$BT/zipalign" -f -p 4 "$U" "$RUNNER_TEMP/a.apk"
+          "$BT/apksigner" sign --ks "$RUNNER_TEMP/k.keystore" --ks-pass env:KS_PASS --ks-key-alias cypress --out cypress-voices-test.apk "$RUNNER_TEMP/a.apk"
+          rm -f "$RUNNER_TEMP/k.keystore"
+          if unzip -l cypress-voices-test.apk | grep -i 'espeak'; then echo "::error::eSpeak files found in the APK (GPL)."; exit 1; fi
+          for so in $(unzip -Z1 cypress-voices-test.apk 'lib/*.so'); do
+            unzip -p cypress-voices-test.apk "$so" | strings | grep -q 'espeak_\(Initialize\|SetVoice\|TextToPhonemes\)' && { echo "::error::eSpeak code in $so"; exit 1; } || true
+          done
+          "$BT/aapt2" dump badging cypress-voices-test.apk | head -2
+          ls -l cypress-voices-test.apk
+      - name: Publish as the voices-test pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete voices-test -y --cleanup-tag 2>/dev/null || true
+          gh release create voices-test cypress-voices-test.apk --prerelease --target "$GITHUB_SHA" \
+            --title "Voices test (not an update)" \
+            --notes "Test build of the natural voice. Installs next to CyPress Reader as \"CyPress Voices test\"; it has its own data. Not offered as an update. Build ${BUILD_NUMBER}, commit ${GITHUB_SHA}."

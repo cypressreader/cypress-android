@@ -38,6 +38,35 @@ final class CyTts {
         return inst;
     }
 
+    /** Optional on-device neural voice (CyNeural). Only the voices test build includes it; otherwise null. */
+    interface Neural {
+        boolean ready();
+        void voice(JSONArray arr) throws Exception;
+        void fetch();
+        com.getcapacitor.JSObject info();
+        void tier(String t);
+        void speak(String id, String voice, String text, float rate, float pitch, float volume, int pauseMs, boolean add);
+        void stop();
+    }
+
+    static final String NEURAL_ID = "neural:kokoro-en"; // plus ":<speaker>" for the other voices in the same download
+    private Neural neural;
+    private boolean neuralTried = false;
+
+    synchronized Neural neural() {
+        if (!neuralTried) {
+            neuralTried = true;
+            try {
+                neural = (Neural) Class.forName("com.cypress.reader.CyNeural").getDeclaredConstructor(Context.class).newInstance(appCtx);
+            } catch (ClassNotFoundException e) {
+                neural = null; // the normal app: no neural voice
+            } catch (Throwable t) {
+                Log.w(TAG, "neural voice unavailable: " + t);
+            }
+        }
+        return neural;
+    }
+
     private static final class Job {
         String id;
         String text;
@@ -55,11 +84,17 @@ final class CyTts {
     private static final class Piece {
         final String uid;
         final Job job;
-        final int offset;
-        Piece(String uid, Job job, int offset) {
+        final int offset, base;
+        final int[][] map; // positions in the rewritten text -> the text the page sent (null = not rewritten)
+        Piece(String uid, Job job, int offset, int base, int[][] map) {
             this.uid = uid;
             this.job = job;
             this.offset = offset;
+            this.base = base;
+            this.map = map;
+        }
+        int pos(int i) {
+            return offset + (map == null ? base + i : CyText.at(map, base + i));
         }
     }
 
@@ -128,6 +163,11 @@ final class CyTts {
             return;
         }
         refreshVoices(t);
+        try {
+            boundEngine = t.getDefaultEngine();
+        } catch (Throwable e) {
+            boundEngine = null;
+        }
         List<Wait> run;
         synchronized (lock) {
             ready = true;
@@ -186,6 +226,10 @@ final class CyTts {
             }
             voiceByName = m;
             voiceList = l;
+            String lb = "";
+            if (t != null) for (TextToSpeech.EngineInfo e : t.getEngines())
+                if (e.name != null && e.name.equals(t.getDefaultEngine()) && e.label != null) lb = e.label.replace("Speech Services by ", "");
+            engineLabel = lb;
         } catch (Throwable e) {
             Log.w(TAG, "voice list failed: " + e);
         }
@@ -240,18 +284,35 @@ final class CyTts {
         synchronized (lock) {
             rdy = ready;
         }
+        // The phone's default speech app was changed (e.g. to Google) while CyPress stayed in memory, or the old one
+        // died: the engine we hold lists nothing. Start one for the current default; the page asks again shortly.
+        try {
+            String def = android.provider.Settings.Secure.getString(appCtx.getContentResolver(), "tts_default_synth");
+            boolean moved = rdy && def != null && !def.isEmpty() && !def.equals(boundEngine);
+            if ((failed || moved || (rdy && voiceList.isEmpty())) && System.currentTimeMillis() - lastRebind > 8000) {
+                lastRebind = System.currentTimeMillis();
+                restart();
+                rdy = false;
+            }
+        } catch (Throwable e) {
+            Log.w(TAG, "engine check failed: " + e);
+        }
         try {
             if (rdy && tts != null) {
                 if (voiceList.isEmpty()) refreshVoices(tts); // the engine had none at start-up; ask again
                 {
                     List<Voice> list = voiceList;
+                    HashMap<String, Integer> seen = new HashMap<>(); // same-looking names get 2, 3...
                     for (Voice v : list) {
                         if (v == null || v.getLocale() == null) continue;
                         if (v.getFeatures() != null && v.getFeatures().contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED)) continue;
                         JSONObject o = new JSONObject();
                         o.put("id", v.getName());
                         String q = (v.getQuality() >= Voice.QUALITY_HIGH ? " ★" : "") + (v.isNetworkConnectionRequired() ? " (online)" : "");
-                        o.put("name", v.getLocale().getDisplayName() + " · " + shortName(v.getName()) + q);
+                        String nm = v.getLocale().getDisplayName() + " · " + shortName(v.getName());
+                        Integer k = seen.get(nm);
+                        seen.put(nm, k == null ? 1 : k + 1);
+                        o.put("name", nm + (k == null ? "" : " " + (k + 1)) + q);
                         o.put("lang", v.getLocale().toLanguageTag());
                         o.put("local", !v.isNetworkConnectionRequired());
                         o.put("q", v.getQuality());
@@ -259,6 +320,8 @@ final class CyTts {
                     }
                 }
             }
+            Neural n = neural();
+            if (n != null) n.voice(arr);
             out.put("voices", arr);
             out.put("ready", rdy);
             out.put("failed", failed);
@@ -268,11 +331,23 @@ final class CyTts {
         return out;
     }
 
-    private static String shortName(String n) {
+    /** The phone's speech app ("Google", "Samsung TTS"), so its voices say whose they are. */
+    private volatile String engineLabel = "";
+    /** The speech app this engine was started for, and when it was last restarted for a change. */
+    private volatile String boundEngine;
+    private long lastRebind;
+
+    private String shortName(String n) {
         if (n == null) return "";
         int i = n.indexOf("-x-");
+        int c = n.indexOf(':');
+        if (i < 0 && c > 0) { // "elevenlabs:SkAdNM8i..." is a code, not a name: show the app's name instead
+            String e = n.substring(0, c);
+            return (e.equalsIgnoreCase("elevenlabs") ? "ElevenLabs" : Character.toUpperCase(e.charAt(0)) + e.substring(1)) + " voice";
+        }
         String s = i >= 0 ? n.substring(i + 3) : n;
-        return s.replace("-local", "").replace("-network", "");
+        s = s.replace("-local", "").replace("-network", "");
+        return engineLabel.isEmpty() ? s : engineLabel + " " + s;
     }
 
     // ---------------------------------------------------------------- speaking
@@ -290,6 +365,20 @@ final class CyTts {
         job.volume = clamp(volume, 0f, 1f);
         job.voice = voice;
         job.pauseMs = Math.max(0, Math.min(2000, pauseMs));
+        Neural n = voice != null && voice.startsWith(NEURAL_ID) ? neural() : null;
+        if (n != null && n.ready()) {
+            synchronized (lock) {
+                if (!add) ++gen;
+            }
+            if (!add) stopSystem();
+            n.speak(id, voice, job.text, job.rate, job.pitch, job.volume, job.pauseMs, add);
+            return;
+        }
+        if (n != null) {
+            n.fetch(); // first use: download on Wi-Fi, the phone's voice reads meanwhile
+            job.voice = null;
+        }
+        if (!add && neural != null) neural.stop();
         final int g;
         synchronized (lock) {
             g = add ? gen : ++gen;
@@ -363,7 +452,20 @@ final class CyTts {
             } catch (Throwable e) {
                 // keep the default
             }
-            List<int[]> spans = split(text, max);
+            // English phone voices get the natural voice's reading rules (Gov. -> Governor, Memphis, Tenn.)
+            String said = text;
+            int[][] map = null;
+            try {
+                Voice cv = t.getVoice();
+                if ("en".equals((cv != null ? cv.getLocale() : Locale.getDefault()).getLanguage())) {
+                    String r = CyText.phone(text);
+                    if (!r.equals(text) && !r.trim().isEmpty() && (map = CyText.align(text, r)) != null) said = r;
+                }
+            } catch (Throwable e) {
+                Log.w(TAG, "reading rules: " + e);
+                map = null;
+            }
+            List<int[]> spans = split(said, max);
             int run;
             synchronized (lock) {
                 if (!add) pieces.clear();
@@ -382,13 +484,13 @@ final class CyTts {
                 if (stale(g)) return;
                 int[] sp = spans.get(i);
                 String uid = job.id + "@" + run + "#" + i;
-                Piece p = new Piece(uid, job, lead + sp[0]);
+                Piece p = new Piece(uid, job, lead, sp[0], map);
                 synchronized (lock) {
                     pieces.add(p);
                 }
                 Bundle b = new Bundle();
                 b.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, job.volume);
-                int r = t.speak(text.substring(sp[0], sp[1]), (i == 0 && !add) ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD, b, uid);
+                int r = t.speak(said.substring(sp[0], sp[1]), (i == 0 && !add) ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD, b, uid);
                 if (r != TextToSpeech.SUCCESS) {
                     try {
                         t.stop();
@@ -502,11 +604,34 @@ final class CyTts {
             waiting.clear();
             pieces.clear();
         }
+        if (neural != null) neural.stop();
+        stopSystem();
+    }
+
+    private void stopSystem() {
         try {
             TextToSpeech t = tts;
             if (t != null && ready) t.stop();
         } catch (Throwable t) {
             Log.w(TAG, "stop failed: " + t);
+        }
+    }
+
+    static void emitEvent(String event, String id, String extra) {
+        CyTts i = existing();
+        if (i != null) i.emit(event, id, extra);
+    }
+
+    static void emitRange(String id, int start, int end) {
+        try {
+            JSObject o = new JSObject();
+            o.put("id", id);
+            o.put("start", start);
+            o.put("end", end);
+            o.put("ts", System.currentTimeMillis());
+            CyExtras.emit("ttsBoundary", o, false);
+        } catch (Throwable t) {
+            Log.w(TAG, "emitRange failed: " + t);
         }
     }
 
@@ -586,8 +711,9 @@ final class CyTts {
                 if (p == null) return;
                 JSObject o = new JSObject();
                 o.put("id", p.job.id);
-                o.put("start", p.offset + start);
-                o.put("end", p.offset + end);
+                int a = p.pos(start);
+                o.put("start", a);
+                o.put("end", Math.max(a, p.pos(end)));
                 o.put("ts", System.currentTimeMillis());
                 CyExtras.emit("ttsBoundary", o, false);
             } catch (Throwable t) {

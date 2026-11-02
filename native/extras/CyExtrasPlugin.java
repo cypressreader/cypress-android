@@ -346,6 +346,23 @@ public class CyExtrasPlugin extends Plugin {
         }
     }
 
+    /** Natural voice size: {tier?: "phone"|"compact"|"full"} sets it; resolves the state, or {} in an app without it. */
+    @PluginMethod
+    public void ttsNeural(PluginCall call) {
+        try {
+            CyTts.Neural n = CyTts.get(getContext()).neural();
+            if (n == null) {
+                call.resolve(new JSObject());
+                return;
+            }
+            String t = call.getString("tier");
+            if (t != null) n.tier(t);
+            call.resolve(n.info());
+        } catch (Throwable t) {
+            call.reject("ttsNeural failed: " + msg(t));
+        }
+    }
+
     @PluginMethod
     public void ttsSleepAt(PluginCall call) {
         try {

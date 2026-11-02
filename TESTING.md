@@ -1144,3 +1144,35 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Side by side on the Fold (open): the list must stay visible next to the story.
 - Refresh all sites: stories should arrive sooner; story photos fill in a little later, in batches.
 - Coming back to the Daily: the cover headline keeps its size with no jump.
+
+## 2026-11-02 Neural voices spike (test app "CyPress Voices test", pre-release `voices-test`) — implemented, unverified
+Install the APK from the `voices-test` pre-release on GitHub. It installs next to the real app with its own data (add a few sites).
+1. On Wi-Fi: Settings > Read aloud > Voice > "English (United States) · Natural voice (test)". A message says it is downloading (150 MB); the phone's voice reads meanwhile. A second message says when it's ready.
+2. Set "Second voice for quotes" to "Same voice" (mixing the two engines is not handled in the spike).
+3. Play a story. Note: seconds from pressing Play to first sound; any gaps between sentences or paragraphs; how it sounds; stop, pause and skip respond quickly; sleep timer still stops it; battery drain and heat over 15 minutes with the screen off.
+4. On mobile data with the voice not yet downloaded: one "Wi-Fi only" message, and the phone's voice reads.
+5. Highlighting follows sentences, not single words (expected for now).
+
+## 2026-11-02 Voices test (session s2typy): reading rules, unverified on phone
+- Read a story with times ("9 a.m.", "3:30 p.m."), dates ("Nov. 2"), units ("40 mph", "95°F"), titles ("Gov.", "St. Louis") and words like "read"/"record"/"increase" in the CyPress Voices test app; listen for wrong readings.
+- Voices test round 3: pick each Natural voice (Heart, Bella, Nicole, Aoede, Kore, Sarah, Michael, Fenrir, Puck) and confirm the name matches the sound (woman/man); "Memphis, Tennessee" reads without a pause; pauses between sentences feel even; minimize the app for 5+ minutes: does the story repeat? Pause from the notification: does the time left stop?
+- Voices test round 5 (grammar tagger, name model, section rhythm): "I read it yesterday" says "red"; names like Okonkwo/Zelenskyy sound plausible; headline slower than body; first story start delay not much longer (tagger + model load ~0.5 s extra). If none of it seems to apply, the tagger may have failed to load on Android (it falls back quietly): check logcat tag CyNeural for "en-pos"/"g2p-en".
+- Read-aloud pill (www, 2026-11-02 s2typy): the bottom pill while a story is read aloud now has Pause/Resume first (then -, speed, +, x). Check: pause, resume continues from the same sentence, TalkBack names it "Pause reading aloud"/"Resume reading aloud", hidden in hands-free scrolling.
+- Voices test: "Debra M. Brown" reads the initial as the letter M with no stop before Brown.
+
+## Natural voice sizes (2026-11-02, branch claude/handoff-continuation-u2m2vl, voices-test APK) — implemented, unverified
+- Settings > Read aloud > Natural voice: Off / Compact (198 MB) / Full (360 MB). Compact downloads on Wi-Fi with % progress; Natural voices then appear in Voice.
+- Switching Compact <-> Full deletes the other model; Delete (confirm dialog) frees all voice files and falls back to the phone's voice.
+- Phone that had the old Full download starts on Full with no re-download.
+
+## 2026-11-02 Phone voice reading rules (branch claude/handoff-continuation-s4qfk1, voices test app) — implemented, unverified
+- With an English phone voice (not Natural), read a story with "Gov.", "Sen.", "St. Louis", "Nov. 2", a dateline like "MEMPHIS, Tenn. (AP) —", and a middle initial ("Jane M. Smith"). Expect: Governor, Senator, Saint Louis, November second, "Memphis Tennessee" with no "A P", and no full stop pause after "M".
+- The word highlight should still follow along (may sit on the short form while the long form is spoken). Non-English voices read the text unchanged.
+- Voice list: the ElevenLabs voice shows as "English (United States) · ElevenLabs voice ★ (online)" instead of its code; several ElevenLabs voices get 2, 3... The saved choice still works (only the label changed).
+- 2026-11-02 David: ElevenLabs phone voice with the new rules reads perfectly (no regression). Google voice not tried (ElevenLabs is his phone's default engine).
+- 2026-11-02 David: Natural voice Compact/Full download % works; Delete removed it (only one size is kept at a time, by design). VERIFIED.
+- [ ] **Paused countdown (2026-11-02, branch 4d0iqe, implemented, unverified).** Read aloud, lock the phone, tap Pause in the notification (and on headphones/watch): speech stops at once, the countdown stops and shows "N min left" (about the time left when paused). Tap Play: it resumes and counts down again. Pausing from the app first, then tapping Pause in the notification, must never restart reading.
+- [ ] **Read-aloud length + sentence breaths (2026-11-02, branch 4d0iqe, implemented, unverified).** Read a story aloud in the paged reader: the notification's total time should be close to the real reading time (was ~4-5x too long: hidden page-turn copies were counted, and may have made pages repeat). With the Natural voice, each sentence ends with a short breath (~1/3 s) before the next. Pausing jumps the bar back to the start of the current sentence: that is where Play resumes.
+- [ ] **Natural voice offer (2026-11-02, branch 4d0iqe, implemented, unverified).** Fresh install of the Voices test app (or Natural voice Off and never asked): the first Read aloud tap asks "Try the Natural voice?" once. Download: reading starts with the phone's voice; when the download finishes a toast says it's ready and the next story uses it. Not now: never asked again. Keyboard/TalkBack: the box takes focus and Back closes it.
+- [ ] **Photo credits not read + Google voices listed (2026-11-02, branch 4d0iqe, implemented, unverified).** A story with a credit line under a picture ("ANNVIPS/Shutterstock"): new or refreshed copies don't show it, and read aloud skips it even in stories already saved. With Google as the phone's speech engine, restart the app: Settings > Read aloud > Voice lists "English (United States) · Google sfg"-style voices (may take ~10 s after launch) next to the Natural voices.
+- [x] **Google voices listed: VERIFIED on the Fold 2026-11-02 (David).** After switching the phone's speech app to Google, Google voices appear in the Voice list (branch 4d0iqe, 6109bcf).

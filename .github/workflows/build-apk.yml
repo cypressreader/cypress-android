@@ -38,7 +38,11 @@ env:
   ALLOW_DEGRADED: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_degraded && '1' || '0' }}
   BUILD_NUMBER: ${{ github.run_number }}
   # The version name people see. Change it when you want a new release label (1.3, 1.4, ...). The build number behind it always counts up by itself.
-  APP_LABEL: "1.226"
+  APP_LABEL: "1.227"
+  # The Natural voice (on-device, downloaded from our own release when the person picks it): sherpa-onnx engine, Apache-2.0, no eSpeak.
+  NEURAL: "1"
+  SHERPA: "2.0.1"
+  SHERPA_SHA256: a8d09d1d32f3eb8520482c6d3d43fae674681c5b050385967c70a3c2c9bf0ee7
 
 jobs:
   build:
@@ -173,6 +177,13 @@ jobs:
 
       - name: Create the Android project
         run: npx cap add android
+
+      - name: Get the voice engine (sherpa-onnx, Apache-2.0, no eSpeak)
+        run: |
+          set -e
+          mkdir -p android/app/libs
+          curl -fsSL --retry 3 -o android/app/libs/sherpa-onnx.aar "https://github.com/k2-fsa/sherpa-onnx/releases/download/v${SHERPA}/sherpa-onnx-${SHERPA}.aar"
+          echo "${SHERPA_SHA256}  android/app/libs/sherpa-onnx.aar" | sha256sum -c -
 
       - name: Add CyPress's Android code, icon and version number
         run: python3 scripts/prepare_android.py

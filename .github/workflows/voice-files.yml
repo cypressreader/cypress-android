@@ -1,0 +1,43 @@
+# Natural-voice download files, published as the pre-release "voice-files-1" (the app's update check skips pre-releases).
+# Two sizes from the same pinned Kokoro v1.0 model (Apache-2.0): Full (model.onnx) and Compact (model.half.onnx, half the
+# download, nearly the same sound). See scripts/make-voice-files.py and review/tts-plan.md.
+name: Voice files
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/handoff-continuation-mnmjdx]
+    paths:
+      - "scripts/make-voice-files.py"
+      - ".github/workflows/voice-files.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Get the pinned Kokoro v1.0 files
+        run: |
+          mkdir v && cd v
+          B=https://huggingface.co/csukuangfj/kokoro-multi-lang-v1_0/resolve/f7b96bb6bef5c5da4d3aa4f4e0498fbbf62dc78b
+          for f in tokens.txt lexicon-us-en.txt voices.bin model.onnx; do curl -fsSL --retry 4 -o $f $B/$f; done
+          test $(stat -c%s model.onnx) -eq 325560556 && test $(stat -c%s voices.bin) -eq 28200960
+      - name: Make the Compact model
+        run: |
+          pip install -q onnx==1.17.0 numpy
+          cd v && python ../scripts/make-voice-files.py
+      - name: Publish as the voice-files-1 pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd v
+          gh release delete voice-files-1 -y --cleanup-tag 2>/dev/null || true
+          gh release create voice-files-1 tokens.txt lexicon-us-en.txt voices.bin model.onnx model.half.onnx SIZES.txt \
+            --prerelease --target "$GITHUB_SHA" --title "Natural voice files (not an update)" \
+            --notes "Kokoro v1.0 voice files (Apache-2.0) for CyPress Reader's natural voice. Full: model.onnx. Compact: model.half.onnx (weights stored at half precision). Sizes and SHA-256 in SIZES.txt."
