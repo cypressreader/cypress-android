@@ -10479,6 +10479,8 @@ const voiceWhere=()=>NATIVE?'Android Settings > Text-to-speech output':/Mac|iPho
  setTimeout(()=>nvGet(),400);
  const loadVoices=async n=>{try{const r=await x.ttsVoices();syn.voices=((r&&r.voices)||[]).map(v=>({voiceURI:v.id,name:v.name,lang:v.lang,localService:!!v.local,default:false,q:+v.q||0}));syn.voiceState=r&&r.failed?'failed':(syn.voices.length?'ok':'empty');fire('voiceschanged');/* ask again while the phone's engine is still starting: our Natural voices alone make the list look full (Google starts slowly) */if((!syn.voices.length||!(r&&r.ready))&&n>0&&!(r&&r.failed))setTimeout(()=>loadVoices(n-1),1200)}catch(e){syn.voiceState='failed';syn.err=String(e&&e.message||e).slice(0,140);fire('voiceschanged')}};
  syn.reload=()=>loadVoices(2);
+ /* back in the app: the phone's speech app may have been changed in Android settings meanwhile */
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadVoices(6)});
  const gone=()=>{try{delete window.speechSynthesis}catch(e){window.speechSynthesis=undefined}try{delete window.SpeechSynthesisUtterance}catch(e){}document.documentElement.classList.add('nospeech')};
  try{Promise.resolve(x.features()).then(r=>{if(r&&r.features&&r.features.indexOf('tts')>=0)setTimeout(()=>loadVoices(12),300);else gone()}).catch(gone)}catch(e){gone()}
 })();

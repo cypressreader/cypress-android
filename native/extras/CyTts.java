@@ -163,6 +163,11 @@ final class CyTts {
             return;
         }
         refreshVoices(t);
+        try {
+            boundEngine = t.getDefaultEngine();
+        } catch (Throwable e) {
+            boundEngine = null;
+        }
         List<Wait> run;
         synchronized (lock) {
             ready = true;
@@ -279,6 +284,19 @@ final class CyTts {
         synchronized (lock) {
             rdy = ready;
         }
+        // The phone's default speech app was changed (e.g. to Google) while CyPress stayed in memory, or the old one
+        // died: the engine we hold lists nothing. Start one for the current default; the page asks again shortly.
+        try {
+            String def = android.provider.Settings.Secure.getString(appCtx.getContentResolver(), "tts_default_synth");
+            boolean moved = rdy && def != null && !def.isEmpty() && !def.equals(boundEngine);
+            if ((failed || moved || (rdy && voiceList.isEmpty())) && System.currentTimeMillis() - lastRebind > 8000) {
+                lastRebind = System.currentTimeMillis();
+                restart();
+                rdy = false;
+            }
+        } catch (Throwable e) {
+            Log.w(TAG, "engine check failed: " + e);
+        }
         try {
             if (rdy && tts != null) {
                 if (voiceList.isEmpty()) refreshVoices(tts); // the engine had none at start-up; ask again
@@ -315,6 +333,9 @@ final class CyTts {
 
     /** The phone's speech app ("Google", "Samsung TTS"), so its voices say whose they are. */
     private volatile String engineLabel = "";
+    /** The speech app this engine was started for, and when it was last restarted for a change. */
+    private volatile String boundEngine;
+    private long lastRebind;
 
     private String shortName(String n) {
         if (n == null) return "";
