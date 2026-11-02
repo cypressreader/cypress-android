@@ -39,5 +39,6 @@
   stays up to 3 clips (~220 chars each) ahead of a float AudioTrack. Sentence highlight via ttsBoundary.
 - Test app: com.cypress.reader.tts "CyPress Voices test", arm64 only, signed with the real key, updates off, pre-release `voices-test`
   (the app's update check reads releases/latest, which skips pre-releases).
+- Download (fix 2026-11-02): resumes .part files with Range, 6 tries per file with backoff, wake + Wi-Fi locks, failure toast shows the error.
 - Known spike gaps: quotes in a second system voice would overlap; words not in the lexicon may be skipped (check names/numbers);
   huggingface.co must go on docs/privacy.html before anything ships; no UI for delete/progress (toasts only).

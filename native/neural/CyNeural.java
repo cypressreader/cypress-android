@@ -5,8 +5,10 @@ import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioTrack;
 import android.net.ConnectivityManager;
+import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.util.Log;
 import android.widget.Toast;
 import com.getcapacitor.JSObject;
@@ -112,35 +114,78 @@ final class CyNeural implements CyTts.Neural {
         downloading = true;
         toast("Downloading the natural voice (150 MB). Using the phone’s voice until it’s ready.");
         new Thread(() -> {
-            boolean ok = false;
+            String err = null;
+            PowerManager.WakeLock wl = null;
+            WifiManager.WifiLock wf = null;
+            try {
+                // keep the CPU and Wi-Fi up while the screen is off: 150 MB takes minutes on a phone
+                wl = ((PowerManager) ctx.getSystemService(Context.POWER_SERVICE)).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "cypress:voice");
+                wl.acquire(30 * 60 * 1000L);
+                wf = ((WifiManager) ctx.getSystemService(Context.WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "cypress:voice");
+                wf.acquire();
+            } catch (Throwable t) {
+                Log.w(TAG, "locks: " + t);
+            }
             try {
                 if (!dir.isDirectory() && !dir.mkdirs()) throw new Exception("no folder");
                 for (int i = 0; i < FILES.length; i++) {
                     File f = new File(dir, FILES[i]);
                     if (f.isFile() && f.length() == SIZES[i]) continue;
                     File part = new File(dir, FILES[i] + ".part");
-                    HttpURLConnection c = (HttpURLConnection) new URL(BASE + FILES[i]).openConnection();
-                    c.setConnectTimeout(20000);
-                    c.setReadTimeout(30000);
-                    try (InputStream in = c.getInputStream(); FileOutputStream out = new FileOutputStream(part)) {
-                        byte[] buf = new byte[1 << 16];
-                        for (int n; (n = in.read(buf)) > 0; ) out.write(buf, 0, n);
-                    } finally {
-                        c.disconnect();
+                    for (int tries = 0; ; tries++) {
+                        try {
+                            get(FILES[i], part, SIZES[i]);
+                            break;
+                        } catch (Throwable t) {
+                            Log.w(TAG, FILES[i] + " try " + tries + ": " + t);
+                            if (tries >= 5) throw t;
+                            Thread.sleep(2000L << tries); // 2, 4, 8, 16, 32 s; the .part file is kept and resumed
+                        }
                     }
-                    if (part.length() != SIZES[i] || !part.renameTo(f)) {
-                        part.delete();
-                        throw new Exception(FILES[i] + " incomplete");
-                    }
+                    if (!part.renameTo(f)) throw new Exception("could not save " + FILES[i]);
                 }
-                ok = true;
             } catch (Throwable t) {
-                Log.w(TAG, "download failed: " + t);
+                err = t.getClass().getSimpleName() + (t.getMessage() == null ? "" : ": " + t.getMessage());
+                Log.w(TAG, "download failed: " + err);
+            } finally {
+                try {
+                    if (wf != null && wf.isHeld()) wf.release();
+                    if (wl != null && wl.isHeld()) wl.release();
+                } catch (Throwable t) {
+                    // ignore
+                }
             }
             downloading = false;
-            toast(ok ? "The natural voice is ready. It is used from the next story you play."
-                     : "The natural voice didn’t download. Choose it again on Wi-Fi to retry.");
+            toast(err == null ? "The natural voice is ready. It is used from the next story you play."
+                     : "The natural voice didn’t download (" + (err.length() > 90 ? err.substring(0, 90) : err) + "). Choose it again on Wi-Fi to continue where it stopped.");
         }, "CyNeuralGet").start();
+    }
+
+    /** Downloads one file into part, continuing from what part already holds. */
+    private static void get(String name, File part, long size) throws Exception {
+        long have = part.isFile() ? part.length() : 0;
+        if (have > size) {
+            part.delete();
+            have = 0;
+        }
+        if (have == size) return;
+        HttpURLConnection c = (HttpURLConnection) new URL(BASE + name).openConnection();
+        c.setConnectTimeout(20000);
+        c.setReadTimeout(60000);
+        c.setRequestProperty("Accept-Encoding", "identity"); // byte ranges must match the file on disk
+        if (have > 0) c.setRequestProperty("Range", "bytes=" + have + "-");
+        try {
+            int code = c.getResponseCode();
+            boolean append = have > 0 && code == 206;
+            if (code != 200 && code != 206) throw new Exception("HTTP " + code + " for " + name);
+            try (InputStream in = c.getInputStream(); FileOutputStream out = new FileOutputStream(part, append)) {
+                byte[] buf = new byte[1 << 16];
+                for (int n; (n = in.read(buf)) > 0; ) out.write(buf, 0, n);
+            }
+        } finally {
+            c.disconnect();
+        }
+        if (part.length() != size) throw new Exception(name + " stopped at " + part.length() / 1048576 + " of " + size / 1048576 + " MB");
     }
 
     private OfflineTts engine() {
