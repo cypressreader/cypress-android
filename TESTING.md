@@ -1155,3 +1155,4 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 
 ## 2026-11-02 Voices test (session s2typy): reading rules, unverified on phone
 - Read a story with times ("9 a.m.", "3:30 p.m."), dates ("Nov. 2"), units ("40 mph", "95°F"), titles ("Gov.", "St. Louis") and words like "read"/"record"/"increase" in the CyPress Voices test app; listen for wrong readings.
+- Voices test round 3: pick each Natural voice (Heart, Bella, Nicole, Aoede, Kore, Sarah, Michael, Fenrir, Puck) and confirm the name matches the sound (woman/man); "Memphis, Tennessee" reads without a pause; pauses between sentences feel even; minimize the app for 5+ minutes: does the story repeat? Pause from the notification: does the time left stop?

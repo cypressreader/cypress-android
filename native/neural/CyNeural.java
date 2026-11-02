@@ -42,7 +42,12 @@ final class CyNeural implements CyTts.Neural {
             "https://huggingface.co/csukuangfj/kokoro-multi-lang-v1_0/resolve/f7b96bb6bef5c5da4d3aa4f4e0498fbbf62dc78b/";
     private static final String[] FILES = {"tokens.txt", "lexicon-us-en.txt", "voices.bin", "model.onnx"};
     private static final long[] SIZES = {687L, 5956885L, 28200960L, 325560556L};
-    private static final int SID = 3; // af_heart (US English, female)
+    private static final int SID = 3; // af_heart (US English, woman): the plain NEURAL_ID
+    /** American voices in the same voices.bin (no extra download), best-rated first in Kokoro's own VOICES.md grades.
+     *  British ones are left out: CyG2p writes American sounds. {speaker id, name}. */
+    private static final String[][] VOICES = {{"3", "Heart (woman)"}, {"2", "Bella (woman)"}, {"6", "Nicole (woman, soft)"},
+            {"1", "Aoede (woman)"}, {"5", "Kore (woman)"}, {"9", "Sarah (woman)"}, {"16", "Michael (man)"}, {"14", "Fenrir (man)"},
+            {"18", "Puck (man)"}};
 
     private static final class Clip {
         final int g;
@@ -89,13 +94,16 @@ final class CyNeural implements CyTts.Neural {
 
     @Override
     public void voice(org.json.JSONArray arr) throws Exception {
-        JSObject o = new JSObject();
-        o.put("id", CyTts.NEURAL_ID);
-        o.put("name", "English (United States) · Natural voice (test)" + (ready() ? "" : downloading ? " · downloading" : " · downloads 330 MB on Wi-Fi"));
-        o.put("lang", "en-US");
-        o.put("local", true);
-        o.put("q", 0); // never picked by "Best available"; only when chosen by hand
-        arr.put(o);
+        String st = ready() ? "" : downloading ? " · downloading" : " · downloads 330 MB on Wi-Fi";
+        for (String[] v : VOICES) {
+            JSObject o = new JSObject();
+            o.put("id", v[0].equals(String.valueOf(SID)) ? CyTts.NEURAL_ID : CyTts.NEURAL_ID + ":" + v[0]);
+            o.put("name", "English (United States) · Natural " + v[1] + " (test)" + st);
+            o.put("lang", "en-US");
+            o.put("local", true);
+            o.put("q", 0); // never picked by "Best available"; only when chosen by hand
+            arr.put(o);
+        }
     }
 
     /** Starts the one-time download on an unmetered network. Returns at once. */
@@ -223,9 +231,17 @@ final class CyNeural implements CyTts.Neural {
     }
 
     @Override
-    public void speak(String id, String text, float rate, float volume, int pauseMs, boolean add) {
+    public void speak(String id, String voice, String text, float rate, float volume, int pauseMs, boolean add) {
         if (!add) flush();
         final int g = gen;
+        int sid = SID;
+        try {
+            int c = voice == null ? -1 : voice.lastIndexOf(':');
+            if (c > CyTts.NEURAL_ID.length() - 1) sid = Integer.parseInt(voice.substring(c + 1));
+        } catch (Throwable e) {
+            // keep Heart
+        }
+        final int speaker = sid;
         synth.execute(() -> {
             try {
                 int lead = 0;
@@ -247,13 +263,13 @@ final class CyNeural implements CyTts.Neural {
                     int sr = 24000;
                     if (!ph.isEmpty()) { // nothing speakable (only symbols): an empty clip still keeps start/end events in order
                         GenerationConfig gc = new GenerationConfig();
-                        gc.setSid(SID);
+                        gc.setSid(speaker);
                         gc.setSpeed(rate);
                         gc.setSilenceScale(1f);
                         gc.setPhonemeCodepoints(new int[][]{ph.codePoints().toArray()});
                         GeneratedAudio a = t.generateWithConfig(piece, gc);
-                        s = a.getSamples();
                         sr = a.getSampleRate();
+                        s = trim(a.getSamples(), sr, piece, rate, i < spans.size() - 1); // the page adds its own pause between paragraphs
                     }
                     Log.i(TAG, "clip " + i + ": " + (System.currentTimeMillis() - t0) + " ms for " + (s.length * 1000L / sr) + " ms of audio");
                     if (!put(new Clip(g, id, s, sr, lead + sp[0], lead + sp[1],
@@ -304,6 +320,29 @@ final class CyNeural implements CyTts.Neural {
         if (b > a) out.add(new int[]{a, b});
     }
 
+    /**
+     * Even breaths: the voice leaves uneven silence at both ends of each sentence. Cut it (keeping 40 ms so soft endings
+     * like "s" stay whole) and add a pause that fits how the sentence ends: a full stop gets a breath, a cut
+     * mid-sentence (very long sentence) almost none.
+     */
+    static float[] trim(float[] s, int sr, String text, float rate, boolean gapAfter) {
+        final float thr = 0.004f;
+        int a = 0, b = s.length;
+        while (a < b && Math.abs(s[a]) < thr) a++;
+        while (b > a && Math.abs(s[b - 1]) < thr) b--;
+        if (a >= b) return s;
+        int keep = sr / 25;
+        a = Math.max(0, a - keep);
+        b = Math.min(s.length, b + keep);
+        String t = text.trim().replaceAll("[\"'”’)\\]]+$", "");
+        char e = t.isEmpty() ? '.' : t.charAt(t.length() - 1);
+        int ms = e == '?' || e == '!' ? 380 : e == '.' ? 330 : e == '…' ? 480 : ",;:".indexOf(e) >= 0 ? 160 : 60;
+        int gap = !gapAfter ? sr / 20 : (int) (sr * ms / 1000L / Math.max(0.7f, Math.min(2f, rate)));
+        float[] out = new float[b - a + gap]; // the tail of zeros is the pause
+        System.arraycopy(s, a, out, 0, b - a);
+        return out;
+    }
+
     private boolean put(Clip c) throws InterruptedException {
         while (c.g == gen) if (clips.offer(c, 200, TimeUnit.MILLISECONDS)) return true;
         return false;
@@ -333,7 +372,12 @@ final class CyNeural implements CyTts.Neural {
     private void playLoop() {
         while (true) {
             try {
-                Clip c = clips.take();
+                Clip c = clips.poll(50, TimeUnit.MILLISECONDS);
+                if (c == null) {
+                    AudioTrack t0 = track;
+                    if (t0 != null) checkMark(t0); // a short last sentence may not have been reached during its write
+                    continue;
+                }
                 if (c.g != gen) continue;
                 AudioTrack tr;
                 synchronized (this) {
@@ -355,15 +399,22 @@ final class CyNeural implements CyTts.Neural {
                     tr.setVolume(c.vol);
                     if (tr.getPlayState() != AudioTrack.PLAYSTATE_PLAYING) tr.play();
                 }
-                if (c.first) CyTts.emitEvent("ttsStart", c.id, null);
                 if (c.pauseMs > 0) write(tr, new float[c.rate * c.pauseMs / 1000], c.g);
-                if (c.end > c.start) CyTts.emitRange(c.id, c.start, c.end); // sentence highlight (no word timings)
+                // tell the page when this sentence is HEARD, not when it is handed to the speaker: the page keeps its place
+                // (pause/resume, time left) from these reports
+                final Clip cc = c;
+                setMark(tr, written, () -> {
+                    if (cc.g != gen) return;
+                    if (cc.first) CyTts.emitEvent("ttsStart", cc.id, null);
+                    if (cc.end > cc.start) CyTts.emitRange(cc.id, cc.start, cc.end); // sentence highlight (no word timings)
+                });
                 write(tr, c.pcm, c.g);
                 if (c.last && c.g == gen) {
                     // wait until the sound has actually played before telling the page this text is done
                     long frames = tr.getPlaybackHeadPosition() & 0xffffffffL;
                     long need = written;
                     while (c.g == gen && frames < need) {
+                        checkMark(tr);
                         Thread.sleep(25);
                         frames = tr.getPlaybackHeadPosition() & 0xffffffffL;
                     }
@@ -375,6 +426,31 @@ final class CyNeural implements CyTts.Neural {
         }
     }
 
+    private long markAt = -1;
+    private Runnable markRun;
+
+    /** Runs r once the speaker has played up to frame at (an earlier mark still waiting runs now). Play thread only. */
+    private void setMark(AudioTrack tr, long at, Runnable r) {
+        if (markRun != null) markRun.run();
+        markAt = at;
+        markRun = r;
+        checkMark(tr);
+    }
+
+    private void checkMark(AudioTrack tr) {
+        if (markRun == null) return;
+        long head;
+        try {
+            head = tr.getPlaybackHeadPosition() & 0xffffffffL;
+        } catch (Throwable t) {
+            head = Long.MAX_VALUE;
+        }
+        if (head < markAt) return;
+        Runnable r = markRun;
+        markRun = null;
+        r.run();
+    }
+
     /** Frames written since the last flush (flush resets the play head to zero). */
     private volatile long written = 0;
 
@@ -384,6 +460,7 @@ final class CyNeural implements CyTts.Neural {
             if (n <= 0) break;
             o += n;
             written += n;
+            checkMark(tr);
         }
         if (g != gen) {
             // stopped while a write was blocked: drop what that write slipped into the buffer

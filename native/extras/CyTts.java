@@ -43,11 +43,11 @@ final class CyTts {
         boolean ready();
         void voice(JSONArray arr) throws Exception;
         void fetch();
-        void speak(String id, String text, float rate, float volume, int pauseMs, boolean add);
+        void speak(String id, String voice, String text, float rate, float volume, int pauseMs, boolean add);
         void stop();
     }
 
-    static final String NEURAL_ID = "neural:kokoro-en";
+    static final String NEURAL_ID = "neural:kokoro-en"; // plus ":<speaker>" for the other voices in the same download
     private Neural neural;
     private boolean neuralTried = false;
 
@@ -319,13 +319,13 @@ final class CyTts {
         job.volume = clamp(volume, 0f, 1f);
         job.voice = voice;
         job.pauseMs = Math.max(0, Math.min(2000, pauseMs));
-        Neural n = NEURAL_ID.equals(voice) ? neural() : null;
+        Neural n = voice != null && voice.startsWith(NEURAL_ID) ? neural() : null;
         if (n != null && n.ready()) {
             synchronized (lock) {
                 if (!add) ++gen;
             }
             if (!add) stopSystem();
-            n.speak(id, job.text, job.rate, job.volume, job.pauseMs, add);
+            n.speak(id, voice, job.text, job.rate, job.volume, job.pauseMs, add);
             return;
         }
         if (n != null) {

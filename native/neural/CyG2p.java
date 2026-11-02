@@ -42,21 +42,26 @@ final class CyG2p {
     // ------------------------------------------------------------------ text clean-up
 
     private static final Pattern NUM = Pattern.compile("(\\$)?(\\d{1,3}(?:,\\d{3})+|\\d+)(\\.\\d+)?(st|nd|rd|th|s)?(%)?");
-    private static final Pattern TOK = Pattern.compile("[A-Za-z']+(?:-[A-Za-z']+)*|[,.!?;:]");
+    private static final Pattern TOK = Pattern.compile("[A-Za-z']+(?:-[A-Za-z']+)*|[,.!?;:—…()“”]");
+    /** Punctuation the voice was trained with (misaki passes these through); closers attach to the word before. */
+    private static final String PUNCT = ",.!?;:—…()“”", OPEN = "(“";
     private static final Pattern DOTS = Pattern.compile("(?<![A-Za-z])((?:[A-Z]\\.){2,})");
 
     static String clean(String t) {
         t = Normalizer.normalize(t, Normalizer.Form.NFKD).replaceAll("\\p{M}+", ""); // café -> cafe
         t = t.replace('’', '\'').replace('‘', '\'').replace('ʼ', '\'');
+        t = t.replaceAll("\\((?:AP|Reuters|AFP|CNN)\\)\\s*[—–-]*\\s*", " "); // wire-service tags in datelines are not read
         t = times(t);
+        t = places(t);
         t = expand(t);
         Matcher d = DOTS.matcher(t); // U.S. -> US (spelled out below), so the dots are not read as sentence ends
         StringBuffer db = new StringBuffer();
         while (d.find()) d.appendReplacement(db, d.group(1).replace(".", ""));
         d.appendTail(db);
         t = db.toString();
-        t = t.replace("&", " and ").replace("+", " plus ").replace("@", " at ").replace("…", ".");
-        t = t.replaceAll("\\s*[—–]\\s*|\\s+-+\\s+", ", ");
+        t = t.replace("&", " and ").replace("+", " plus ").replace("@", " at ").replace("...", "…");
+        t = t.replaceAll("\\s*[—–]\\s*|\\s+-+\\s+|(?<=[a-z])--(?=[a-z])", "— "); // the voice has its own dash pause
+        t = t.replaceAll("(^|[\\s(\\[—])\"", "$1“").replace('"', '”').replace('[', '(').replace(']', ')');
         StringBuffer sb = new StringBuffer();
         Matcher m = NUM.matcher(t);
         while (m.find()) m.appendReplacement(sb, Matcher.quoteReplacement(" " + numWords(m) + " "));
@@ -138,6 +143,49 @@ final class CyG2p {
             boolean end = nx == null || (a.endsWith("r") && Character.isUpperCase(nx.charAt(0))); // "Lee Jr. He said"
             m.appendReplacement(b, Matcher.quoteReplacement(w == null ? m.group() : end ? w + "." : w)); // keep a sentence-end dot
         }
+        m.appendTail(b);
+        return b.toString();
+    }
+
+    private static final String STATES = "Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia|"
+            + "Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|"
+            + "Mississippi|Missouri|Montana|Nebraska|Nevada|New Hampshire|New Jersey|New Mexico|New York|North Carolina|North Dakota|"
+            + "Ohio|Oklahoma|Oregon|Pennsylvania|Rhode Island|South Carolina|South Dakota|Tennessee|Texas|Utah|Vermont|Virginia|"
+            + "Washington|West Virginia|Wisconsin|Wyoming|D\\.C\\.|DC|Puerto Rico";
+    private static final HashMap<String, String> AP = new HashMap<>(); // AP-style state abbreviations used in datelines
+    static {
+        String[] a = {"Ala", "Alabama", "Ariz", "Arizona", "Ark", "Arkansas", "Calif", "California", "Colo", "Colorado",
+                "Conn", "Connecticut", "Del", "Delaware", "Fla", "Florida", "Ga", "Georgia", "Ill", "Illinois", "Ind", "Indiana",
+                "Kan", "Kansas", "Ky", "Kentucky", "La", "Louisiana", "Md", "Maryland", "Mass", "Massachusetts", "Mich", "Michigan",
+                "Minn", "Minnesota", "Miss", "Mississippi", "Mo", "Missouri", "Mont", "Montana", "Neb", "Nebraska", "Nev", "Nevada",
+                "N.H", "New Hampshire", "N.J", "New Jersey", "N.M", "New Mexico", "N.Y", "New York", "N.C", "North Carolina",
+                "N.D", "North Dakota", "Okla", "Oklahoma", "Ore", "Oregon", "Pa", "Pennsylvania", "R.I", "Rhode Island",
+                "S.C", "South Carolina", "S.D", "South Dakota", "Tenn", "Tennessee", "Vt", "Vermont", "Va", "Virginia",
+                "Wash", "Washington", "W.Va", "West Virginia", "Wis", "Wisconsin", "Wyo", "Wyoming"};
+        for (int i = 0; i < a.length; i += 2) AP.put(a[i], a[i + 1]);
+    }
+    private static final Pattern APST = Pattern.compile("(?<=\\b[A-Z][A-Za-z.'-]{1,30}, )(W\\.Va|[NRS]\\.[A-Z]|[A-Z][a-z]{1,4})\\.(?=\\s*(\\S)?)");
+    // only when the state ends a clause ("Memphis, Tennessee, police said"), and not in a list of states or after a date
+    private static final Pattern CITY = Pattern.compile("\\b([A-Z][A-Za-z.'-]+), (?=(?:" + STATES + ")(?:[,.;:!?)”]|\\s+\\(|\\s*$))");
+    private static final Pattern NOT_CITY = Pattern.compile("(?:" + STATES + "|" + "January|February|March|April|May|June|July|August|"
+            + "September|October|November|December|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Today|Yesterday|Meanwhile|However|Instead)");
+
+    /** "Memphis, Tenn." -> "Memphis Tennessee": no comma pause inside a place name, AP abbreviations read in full. */
+    static String places(String t) {
+        t = t.replace("Washington, D.C.", "Washington D.C.");
+        StringBuffer b = new StringBuffer();
+        Matcher m = APST.matcher(t);
+        while (m.find()) {
+            String w = AP.get(m.group(1)), nx = m.group(2);
+            if (w == null) w = m.group();
+            else if (nx == null || Character.isUpperCase(nx.charAt(0))) w += "."; // sentence end
+            m.appendReplacement(b, Matcher.quoteReplacement(w));
+        }
+        m.appendTail(b);
+        t = b.toString();
+        b = new StringBuffer();
+        m = CITY.matcher(t);
+        while (m.find()) m.appendReplacement(b, Matcher.quoteReplacement(m.group(1) + (NOT_CITY.matcher(m.group(1)).matches() ? ", " : " ")));
         m.appendTail(b);
         return b.toString();
     }
@@ -412,7 +460,7 @@ final class CyG2p {
         java.util.ArrayList<String> low = new java.util.ArrayList<>();
         while (m.find()) {
             String tok = m.group();
-            if (",.!?;:".indexOf(tok.charAt(0)) >= 0) {
+            if (PUNCT.indexOf(tok.charAt(0)) >= 0) {
                 ph.add(tok);
                 low.add(tok);
                 continue;
@@ -429,14 +477,17 @@ final class CyG2p {
             if (het != null) ph.set(i, het);
             switch (low.get(i)) { // weak forms, the way Kokoro was trained (misaki)
                 case "a": ph.set(i, "ɐ"); break;
-                case "an": ph.set(i, "ən"); break;
+                case "an": ph.set(i, "ɐn"); break;
                 case "the": ph.set(i, nv ? "ði" : "ðə"); break;
                 case "to": ph.set(i, nv ? "tʊ" : "tə"); break;
                 default: break;
             }
             String p = ph.get(i);
             if (p.isEmpty()) continue;
-            if (",.!?;:".indexOf(p.charAt(0)) >= 0 && p.length() == 1) {
+            boolean punct = p.length() == 1 && PUNCT.indexOf(p.charAt(0)) >= 0;
+            if (punct && OPEN.indexOf(p.charAt(0)) >= 0) {
+                out.append(p); // opener sticks to the next word
+            } else if (punct) {
                 int e = out.length();
                 while (e > 0 && out.charAt(e - 1) == ' ') e--;
                 out.setLength(e);
@@ -445,6 +496,14 @@ final class CyG2p {
                 out.append(p).append(' ');
             }
         }
-        return out.toString().trim();
+        // a headline or caption with no full stop: end it like a statement, not a voice left hanging
+        String r = out.toString().trim();
+        int e = r.length();
+        while (e > 0 && "”)".indexOf(r.charAt(e - 1)) >= 0) e--;
+        if (e > 0 && ".!?…".indexOf(r.charAt(e - 1)) < 0) {
+            if (",;:—".indexOf(r.charAt(e - 1)) >= 0) r = r.substring(0, e - 1) + "." + r.substring(e);
+            else r = r.substring(0, e) + "." + r.substring(e);
+        }
+        return r;
     }
 }

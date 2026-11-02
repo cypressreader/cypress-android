@@ -68,3 +68,15 @@
   after will/can/I/they/to (after "to" only if an object follows: "rose to record highs" stays a noun), noun form after a/the/its.
   Checked with javac on the real lexicon, 10 test sentences. Weak forms for and/of/for/can: SKIPPED on purpose: the voice's list
   already has them unstressed and misaki (Kokoro's training) never reduces them further.
+- Round 3 (2026-11-02, session s2typy, David: "only one voice", "Memphis, Tennessee has an odd pause", "make it sound as best as possible"):
+  9 American voices from the same voices.bin (no new download): ids neural:kokoro-en (Heart, sid 3) and neural:kokoro-en:<sid>
+  (Bella 2, Nicole 6, Aoede 1, Kore 5, Sarah 9, Michael 16, Fenrir 14, Puck 18; sid order = alphabetical v1.0 list, labels unverified
+  by ear). British voices skipped (CyG2p writes American sounds). CyG2p: "City, State" comma dropped when the state ends a clause
+  (not in state lists or after a date), AP state abbreviations (Tenn., N.Y.) read in full, (AP)/(Reuters) dateline tags skipped;
+  dashes, "…", parentheses and curly quotes now passed to the voice the way misaki does (Kokoro was trained with them) instead of
+  commas; a headline with no full stop gets one (no hanging voice); "an" = ɐn as misaki. CyNeural: silence trimmed at both ends of
+  each sentence and replaced with an even pause by ending (. 330 ms, ?/! 380, … 480, scaled by speed); sentence start/highlight
+  is now reported when the sentence is HEARD (play-head mark) instead of when it is handed to the speaker.
+  David's background bugs (story repeats while minimized; notification time left off and counting down while paused): not
+  reproduced here. The page keeps its place from these reports, so better timing may help the repeat; the countdown is in shared
+  code (CyMediaService chronometer from page's pos/dur estimate) and likely affects the main app too: needs a phone check.
