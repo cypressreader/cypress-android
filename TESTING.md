@@ -1196,3 +1196,6 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 
 ## Check all my sites (session es6faa, 2026-11-02) — implemented, unverified on phone
 - Settings > Sites & backup > Check all my sites: with 30+ sites, button shows "Checking…", phone stays responsive, then a sheet lists only broken sites (or a toast if all work). "Use new address" switches the site and it loads; Remove removes it; Back/× closes and returns focus to the button.
+
+## 2026-11-02 (f7huqg): Report a problem in story menu
+- [ ] Open a story > ... menu > "Report a problem" (bottom of the site group): the box opens with "Story: <link>" at the top of the details; Send works on the phone.
