@@ -10353,9 +10353,9 @@ const voiceWhere=()=>NATIVE?'Android Settings > Text-to-speech output':/Mac|iPho
   /* chosen from the first-time offer: switch to it as soon as it is on the phone */
   if(r.ready&&S.nvpick){delete S.nvpick;S.voice='neural:kokoro-en';save();toast('The Natural voice is ready and will read your next story')}};
  /* offered once, the first time Read aloud is tapped, instead of only deep in Settings */
- window.__nvOffer=()=>{const r=nvShow.r;if(!r||r.tier!=='phone'||r.downloading||S.nvask)return false;S.nvask=1;save();
+ window.__nvOffer=()=>{const r=nvShow.r;if(!r&&!__nvOffer.w){__nvOffer.w=1;Promise.race([nvGet(),new Promise(k=>setTimeout(k,1500))]).then(()=>ttsToggle());return true}if(!r||r.tier!=='phone'||r.downloading||S.nvask)return false;S.nvask=1;save();
   askBox({title:'Try the Natural voice?',text:'A more lifelike voice that runs on this phone, even offline. It’s a one-time download of '+Math.round(r.compact/1e6)+' MB on Wi-Fi. Your phone’s own voice reads until it’s ready. You can change this later in Settings, Read aloud.',ok:'Download',cancel:'Not now'}).then(y=>{if(y){S.nvpick=1;save();nvGet('compact')}ttsToggle()});return true};
- const nvGet=t=>{try{Promise.resolve(x.ttsNeural(t?{tier:t}:{})).then(nvShow).catch(()=>{})}catch(e){}};
+ const nvGet=t=>{try{return Promise.resolve(x.ttsNeural(t?{tier:t}:{})).then(nvShow).catch(()=>{})}catch(e){}};
  on('ttsNeural',nvShow);
  {const z=$('#nvz'),d=$('#nvdel');if(z){z.onchange=()=>{if(TTS.on)ttsStop();nvGet(z.value)};d.onclick=()=>askBox({title:'Delete the natural voice?',text:'This frees its space on your phone. The phone’s own voice will read until you choose a size again.',ok:'Delete',cancel:'Keep it',danger:true}).then(y=>{if(!y)return;if(TTS.on)ttsStop();nvGet('phone')})}}
  setTimeout(()=>nvGet(),400);
@@ -10442,7 +10442,7 @@ const SET_PAGES=[
   more:[{items:['M:covers','L:Side-by-side reading','X:fpst','L:Narrow screen layout','L:Story layout on big screens','L:Hide the side bar']},{h:'The Daily',items:['L:Trending strip','L:Must reads','L:Edition endings','L:Bookmark ribbons','L:I have 10 minutes','L:Monthly tidy-up note','L:Year almanac']}],
   rst:['cards','ts','narrow','sop']},
  {id:'tts',t:'Read Aloud',d:'Voice, speed and volume',c:'#1e88e5',lead:'Have CyPress read a story to you. Open a story and tap Listen.',
-  main:[{items:['L:Voice','L:Speaking speed','L:Volume']}],
+  main:[{items:['L:Voice','L:Natural voice','L:Speaking speed','L:Volume']}],
   more:[{items:['L:Keep playing','L:Skip subscriber sites','L:Second voice for quotes','L:Voice timing']}],
   rst:['rate','vol','voice','prate']},
  {id:'feeds',t:'Feeds and Stories',d:'Your feeds, story order and filters',c:'#0e9aa7',lead:'Which sites you follow, and how their stories are chosen and shown.',
@@ -13767,8 +13767,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.02b';const APP_LABEL='1.227';
-const CHANGES=["New Natural voice for reading aloud: a more lifelike voice that runs on your phone and works offline. The first time you tap Listen you can download it (or later in Settings, Read aloud)","Phone voices read news better: wire tags, initials, state abbreviations, titles and units are read the way a person would say them","Voices from Google and other speech apps show up right after you switch to them in Android settings, and say which app they come from","Read aloud no longer reads picture credits, the time left is right (it showed far too long), and pages are not read twice","Pausing from the notification or headphones stops right away, and the time left stops counting down","The Natural voice takes a short breath between sentences","This version needs Android 8 or newer on a 64-bit phone"];
+const APP_VERSION='2026.11.02c';const APP_LABEL='1.228';
+const CHANGES=["The Natural voice is now at the top of Settings, Listen, so it's easy to find and download","The first time you tap Listen, the offer to try the Natural voice shows up reliably"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
