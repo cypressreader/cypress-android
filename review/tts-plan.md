@@ -98,3 +98,14 @@
   5 Section rhythm in CyNeural from the pitch the page already sends: headline speed x0.92 (page's x1.06 removed), subhead x0.96,
     quote x0.97. Page's pauses between sections unchanged.
   Credits: native/neural/VOICE-NOTICES.txt (bundled). Desktop load of tagger + model 0.35 s.
+- Size tiers (2026-11-02, s2typy, David: "go on everything"): Compact = model.half.onnx, every weight >=1024 values stored float16
+  + a Cast back to float32 at load (scripts/make-voice-files.py). Full conversion to fp16 math was rejected: it clamps a
+  24000 constant to 10000. Desktop, same phonemes vs full: half SNR 19.8 dB, spectral diff 0.159, same length, same speed
+  (1.67 vs 1.71 s for 4.7 s audio), load 1.1 s; int8 (the robotic one): SNR -1.9 dB, diff 0.885. Sizes: half 163.4 MB, full 325.6 MB,
+  + voices.bin 28.2 MB + lexicon 6 MB: Compact ~198 MB, Full ~360 MB total. voices.bin can't be trimmed to 9 voices: sherpa
+  checks it against the model's n_speakers=54 metadata. Voice labels confirmed by the model's speaker_names (3 af_heart, 2 af_bella,
+  6 af_nicole, 1 af_aoede, 5 af_kore, 9 af_sarah, 16 am_michael, 14 am_fenrir, 18 am_puck).
+  Hosting: .github/workflows/voice-files.yml publishes all files as pre-release voice-files-1 on OUR GitHub (already on
+  privacy.html for updates), so the app never needs to contact Hugging Face. SIZES.txt in the release has sizes + SHA-256.
+  NOT DONE YET: CyNeural reading from voice-files-1 with a size choice; Settings UI (size choice, progress, delete);
+  phone-voice text rules (move CyG2p.clean/times/expand/places into shared CyTts for the 0 MB tier); privacy + credits lines.
