@@ -1138,3 +1138,9 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 
 ## 2026-11-01 1.225 Quick Reads cards (implemented, verify on tablet)
 - Daily > Quick Reads on a tablet-width screen: site name and author readable on the cream cards in Halcyon and other themes; no "+1 photo" tag on these cards.
+
+## 2026-11-02 speed fixes (branch claude/handoff-continuation-dn9q8h) — implemented, unverified on a phone
+- Open a story from far down the Daily, read, go back: the list must reappear at once, in the same place, with no blank flash or hitch (the list now skips style work while a story covers it on phones).
+- Side by side on the Fold (open): the list must stay visible next to the story.
+- Refresh all sites: stories should arrive sooner; story photos fill in a little later, in batches.
+- Coming back to the Daily: the cover headline keeps its size with no jump.
