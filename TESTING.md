@@ -1176,3 +1176,8 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - [ ] **Natural voice offer (2026-11-02, branch 4d0iqe, implemented, unverified).** Fresh install of the Voices test app (or Natural voice Off and never asked): the first Read aloud tap asks "Try the Natural voice?" once. Download: reading starts with the phone's voice; when the download finishes a toast says it's ready and the next story uses it. Not now: never asked again. Keyboard/TalkBack: the box takes focus and Back closes it.
 - [ ] **Photo credits not read + Google voices listed (2026-11-02, branch 4d0iqe, implemented, unverified).** A story with a credit line under a picture ("ANNVIPS/Shutterstock"): new or refreshed copies don't show it, and read aloud skips it even in stories already saved. With Google as the phone's speech engine, restart the app: Settings > Read aloud > Voice lists "English (United States) · Google sfg"-style voices (may take ~10 s after launch) next to the Natural voices.
 - [x] **Google voices listed: VERIFIED on the Fold 2026-11-02 (David).** After switching the phone's speech app to Google, Google voices appear in the Voice list (branch 4d0iqe, 6109bcf).
+
+## 1.229 candidate (session 12ylye, implemented, unverified on device)
+- Read aloud skips "Name / Publication" photo credits (e.g. "Stephen Radochia / Android Authority")
+- Dynamic theme: no-photo boxes keep their site color while the page tint changes (no sudden jumps)
+- Dynamic theme: tint changes more often, fades faster (1.6 s) and is a little richer
