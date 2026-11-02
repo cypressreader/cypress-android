@@ -541,4 +541,27 @@ if EXTRAS:
 else:
     say('optional extras are switched off (EXTRAS=0)')
 
+# 7. SPIKE, neural voices test build only (spike-tts.yml sets NEURAL=1 and downloads the sherpa-onnx AAR to
+#    android/app/libs/sherpa-onnx.aar). Installs next to the real app as com.cypress.reader.tts. Never on main builds.
+if os.environ.get('NEURAL', '').strip() == '1':
+    if not EXTRAS:
+        die('NEURAL=1 needs the extras (CyTts lives there).')
+    if not os.path.isfile(os.path.join(APP, 'libs', 'sherpa-onnx.aar')):
+        die('NEURAL=1 but android/app/libs/sherpa-onnx.aar is missing.')
+    for f in glob.glob(os.path.join(NATIVE, 'neural', '*.java')):
+        copy(f, os.path.join(PKG_DIR, os.path.basename(f)))
+    g = open(GRADLE, encoding='utf-8').read()
+    anchor = "implementation project(':capacitor-android')"
+    g = g.replace(anchor, anchor + "\n    implementation files('libs/sherpa-onnx.aar')"
+                  "\n    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.0.21'", 1)
+    g += ("\nandroid {\n    defaultConfig { ndk { abiFilters 'arm64-v8a' } }\n"
+          "    buildTypes { release { applicationIdSuffix '.tts'; versionNameSuffix '-voices' } }\n}\n")
+    open(GRADLE, 'w', encoding='utf-8').write(g)
+    sx = os.path.join(RES, 'values', 'strings.xml')
+    x = open(sx, encoding='utf-8').read()
+    x2 = re.sub(r'(<string name="app_name">)[^<]*', r'\1CyPress Voices test', x, count=1)
+    x2 = re.sub(r'(<string name="title_activity_main">)[^<]*', r'\1CyPress Voices test', x2, count=1)
+    open(sx, 'w', encoding='utf-8').write(x2)
+    say('neural voices test build: sherpa-onnx added, app id com.cypress.reader.tts')
+
 print('Done.')

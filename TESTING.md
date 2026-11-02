@@ -1144,3 +1144,11 @@ Implemented, unverified: Back issues around midnight (no duplicate evening issue
 - Side by side on the Fold (open): the list must stay visible next to the story.
 - Refresh all sites: stories should arrive sooner; story photos fill in a little later, in batches.
 - Coming back to the Daily: the cover headline keeps its size with no jump.
+
+## 2026-11-02 Neural voices spike (test app "CyPress Voices test", pre-release `voices-test`) — implemented, unverified
+Install the APK from the `voices-test` pre-release on GitHub. It installs next to the real app with its own data (add a few sites).
+1. On Wi-Fi: Settings > Read aloud > Voice > "English (United States) · Natural voice (test)". A message says it is downloading (150 MB); the phone's voice reads meanwhile. A second message says when it's ready.
+2. Set "Second voice for quotes" to "Same voice" (mixing the two engines is not handled in the spike).
+3. Play a story. Note: seconds from pressing Play to first sound; any gaps between sentences or paragraphs; how it sounds; stop, pause and skip respond quickly; sleep timer still stops it; battery drain and heat over 15 minutes with the screen off.
+4. On mobile data with the voice not yet downloaded: one "Wi-Fi only" message, and the phone's voice reads.
+5. Highlighting follows sentences, not single words (expected for now).

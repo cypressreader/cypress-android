@@ -38,6 +38,33 @@ final class CyTts {
         return inst;
     }
 
+    /** Optional on-device neural voice (CyNeural). Only the voices test build includes it; otherwise null. */
+    interface Neural {
+        boolean ready();
+        void voice(JSONArray arr) throws Exception;
+        void fetch();
+        void speak(String id, String text, float rate, float volume, int pauseMs, boolean add);
+        void stop();
+    }
+
+    static final String NEURAL_ID = "neural:kokoro-en";
+    private Neural neural;
+    private boolean neuralTried = false;
+
+    private synchronized Neural neural() {
+        if (!neuralTried) {
+            neuralTried = true;
+            try {
+                neural = (Neural) Class.forName("com.cypress.reader.CyNeural").getDeclaredConstructor(Context.class).newInstance(appCtx);
+            } catch (ClassNotFoundException e) {
+                neural = null; // the normal app: no neural voice
+            } catch (Throwable t) {
+                Log.w(TAG, "neural voice unavailable: " + t);
+            }
+        }
+        return neural;
+    }
+
     private static final class Job {
         String id;
         String text;
@@ -259,6 +286,8 @@ final class CyTts {
                     }
                 }
             }
+            Neural n = neural();
+            if (n != null) n.voice(arr);
             out.put("voices", arr);
             out.put("ready", rdy);
             out.put("failed", failed);
@@ -290,6 +319,20 @@ final class CyTts {
         job.volume = clamp(volume, 0f, 1f);
         job.voice = voice;
         job.pauseMs = Math.max(0, Math.min(2000, pauseMs));
+        Neural n = NEURAL_ID.equals(voice) ? neural() : null;
+        if (n != null && n.ready()) {
+            synchronized (lock) {
+                if (!add) ++gen;
+            }
+            if (!add) stopSystem();
+            n.speak(id, job.text, job.rate, job.volume, job.pauseMs, add);
+            return;
+        }
+        if (n != null) {
+            n.fetch(); // first use: download on Wi-Fi, the phone's voice reads meanwhile
+            job.voice = null;
+        }
+        if (!add && neural != null) neural.stop();
         final int g;
         synchronized (lock) {
             g = add ? gen : ++gen;
@@ -502,11 +545,34 @@ final class CyTts {
             waiting.clear();
             pieces.clear();
         }
+        if (neural != null) neural.stop();
+        stopSystem();
+    }
+
+    private void stopSystem() {
         try {
             TextToSpeech t = tts;
             if (t != null && ready) t.stop();
         } catch (Throwable t) {
             Log.w(TAG, "stop failed: " + t);
+        }
+    }
+
+    static void emitEvent(String event, String id, String extra) {
+        CyTts i = existing();
+        if (i != null) i.emit(event, id, extra);
+    }
+
+    static void emitRange(String id, int start, int end) {
+        try {
+            JSObject o = new JSObject();
+            o.put("id", id);
+            o.put("start", start);
+            o.put("end", end);
+            o.put("ts", System.currentTimeMillis());
+            CyExtras.emit("ttsBoundary", o, false);
+        } catch (Throwable t) {
+            Log.w(TAG, "emitRange failed: " + t);
         }
     }
 
