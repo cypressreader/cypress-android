@@ -387,7 +387,7 @@ final class CyNeural implements CyTts.Neural {
                         gc.setPhonemeCodepoints(new int[][]{ph.codePoints().toArray()});
                         GeneratedAudio a = t.generateWithConfig(piece, gc);
                         sr = a.getSampleRate();
-                        s = trim(a.getSamples(), sr, piece, rate, i < spans.size() - 1); // the page adds its own pause between paragraphs
+                        s = trim(a.getSamples(), sr, piece, rate, true); // each piece is one sentence: it always needs its breath (the page adds more between paragraphs)
                     }
                     Log.i(TAG, "clip " + i + ": " + (System.currentTimeMillis() - t0) + " ms for " + (s.length * 1000L / sr) + " ms of audio");
                     if (!put(new Clip(g, id, s, sr, lead + sp[0], lead + sp[1],
