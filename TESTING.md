@@ -1182,3 +1182,4 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Dynamic theme: no-photo boxes keep their site color while the page tint changes (no sudden jumps)
 - Dynamic theme: tint changes more often, fades faster (1.6 s) and is a little richer
 - Dynamic theme: page color changes only after scrolling stops (1.229 stuttered mid-scroll)
+- Cards view: after closing a story read side by side, the last row's cards widen to fill (no empty columns)
