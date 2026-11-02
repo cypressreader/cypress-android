@@ -1169,3 +1169,4 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - With an English phone voice (not Natural), read a story with "Gov.", "Sen.", "St. Louis", "Nov. 2", a dateline like "MEMPHIS, Tenn. (AP) —", and a middle initial ("Jane M. Smith"). Expect: Governor, Senator, Saint Louis, November second, "Memphis Tennessee" with no "A P", and no full stop pause after "M".
 - The word highlight should still follow along (may sit on the short form while the long form is spoken). Non-English voices read the text unchanged.
 - Voice list: the ElevenLabs voice shows as "English (United States) · ElevenLabs voice ★ (online)" instead of its code; several ElevenLabs voices get 2, 3... The saved choice still works (only the label changed).
+- 2026-11-02 David: ElevenLabs phone voice with the new rules reads perfectly (no regression). Google voice not tried (ElevenLabs is his phone's default engine).
