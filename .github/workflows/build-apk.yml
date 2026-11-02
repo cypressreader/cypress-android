@@ -38,7 +38,7 @@ env:
   ALLOW_DEGRADED: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_degraded && '1' || '0' }}
   BUILD_NUMBER: ${{ github.run_number }}
   # The version name people see. Change it when you want a new release label (1.3, 1.4, ...). The build number behind it always counts up by itself.
-  APP_LABEL: "1.231"
+  APP_LABEL: "1.232"
   # The Natural voice (on-device, downloaded from our own release when the person picks it): sherpa-onnx engine, Apache-2.0, no eSpeak.
   NEURAL: "1"
   SHERPA: "2.0.1"
@@ -271,6 +271,8 @@ jobs:
           KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           set -e
+          # the Play Store copy: no self-updater, no install permission (Play updates the app itself)
+          python3 scripts/prepare_android.py --play
           (cd android && ./gradlew bundleRelease --no-daemon)
           AAB=$(find android/app/build/outputs/bundle/release -name '*.aab' | head -1)
           echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/cypress.keystore"

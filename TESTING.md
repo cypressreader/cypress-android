@@ -1188,3 +1188,11 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Settings > Feeds and backup > Report a problem: box shows details, Send says "Sent. Thank you" (needs worker STATS binding, docs/worker/INSIGHTS.md), Copy instead copies details.
 - Share anonymous usage counts: turn on, restart app, after ~45 s a check-in appears on cypressreader.com/insights. "What the counts contain" shows plain list.
 - Build workflow: "Build the Play Store bundle" step green and the cypress-play-bundle artifact downloads.
+
+## Play Store prep (session 34gt7t, 2026-11-02) — implemented, unverified
+- Android 16 target (API 36): app opens, edge-to-edge bars, back gesture, rotation and side-by-side on the Fold still behave.
+- Play bundle (.aab) build: no "App updates" section in Settings, no install permission; phone APK still shows "App updates" and updates itself.
+- Must-fix batch (34gt7t): Android Back during first-run setup goes to the previous step and never skips setup; Back on the "all caught up" page stays in the app; app data no longer in Google backup (Settings > Google > Backup shows no CyPress data after a new install).
+
+## Check all my sites (session es6faa, 2026-11-02) — implemented, unverified on phone
+- Settings > Sites & backup > Check all my sites: with 30+ sites, button shows "Checking…", phone stays responsive, then a sheet lists only broken sites (or a toast if all work). "Use new address" switches the site and it loads; Remove removes it; Back/× closes and returns focus to the button.

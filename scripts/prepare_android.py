@@ -36,6 +36,7 @@ EXTRAS = os.environ.get('EXTRAS', '1').strip().lower() not in ('0', 'false', 'no
 # Otherwise a problem with the extras stops the build instead of quietly publishing a smaller app.
 ALLOW_DEGRADED = os.environ.get('ALLOW_DEGRADED', '').strip().lower() in ('1', 'true', 'yes', 'on')
 STRIP_ONLY = '--strip-extras' in sys.argv
+PLAY_ONLY = '--play' in sys.argv  # after the phone APK is signed: turn the same project into the Play Store version
 NATIVE = os.path.join(ROOT, 'native')
 XDIR = os.path.join(NATIVE, 'extras')
 MANIFEST = os.path.join(MAIN, 'AndroidManifest.xml')
@@ -433,6 +434,26 @@ if STRIP_ONLY:
     print('Done.')
     sys.exit(0)
 
+if PLAY_ONLY:
+    # Play forbids apps that update themselves: no update source in the page, no install permission.
+    n = 0
+    for f in glob.glob(os.path.join(MAIN, 'assets', 'public', 'index.html')):
+        h = open(f, encoding='utf-8').read()
+        h2 = re.sub(r"const CP_REPO='[^']*';", "const CP_REPO='';", h, count=1)
+        if h2 != h:
+            open(f, 'w', encoding='utf-8').write(h2)
+            n += 1
+    if not n:
+        die('Play build: could not switch off in-app updates in the copied page.')
+    for f in glob.glob(os.path.join(APP, 'src', '**', 'AndroidManifest.xml'), recursive=True):
+        x = open(f, encoding='utf-8').read()
+        x2 = re.sub(r'[ \t]*<uses-permission[^>]*REQUEST_INSTALL_PACKAGES[^>]*/>\r?\n?', '', x)
+        if x2 != x:
+            open(f, 'w', encoding='utf-8').write(x2)
+    say('Play Store version: in-app updates and the install permission removed')
+    print('Done.')
+    sys.exit(0)
+
 # 1. CyPress's native code -------------------------------------------------------------
 os.makedirs(PKG_DIR, exist_ok=True)
 for name in ('MainActivity.java', 'CyNativePlugin.java', 'CyFileProvider.java'):
@@ -463,6 +484,21 @@ if anchor in g2 and 'androidx.core:core:' not in g2:
     say('added the AndroidX core library')
 open(gradle, 'w', encoding='utf-8').write(g2)
 say('version set to %s (build number %s)' % (LABEL, BUILD))
+
+# 2b. target Android 16 (API 36): Google Play requires it for new apps
+var = os.path.join(ROOT, 'android', 'variables.gradle')
+if not os.path.isfile(var):
+    die('Could not find android/variables.gradle. Capacitor may have changed its project layout.')
+v = open(var, encoding='utf-8').read()
+v, n = re.subn(r'(compileSdkVersion|targetSdkVersion)\s*=\s*\d+', lambda m: m.group(1) + ' = 36', v)
+if n != 2:
+    die('Could not set the Android target in variables.gradle (found %d of 2 settings).' % n)
+open(var, 'w', encoding='utf-8').write(v)
+gp = os.path.join(ROOT, 'android', 'gradle.properties')
+if os.path.isfile(gp) and 'suppressUnsupportedCompileSdk' not in open(gp, encoding='utf-8').read():
+    with open(gp, 'a', encoding='utf-8') as f:
+        f.write('\nandroid.suppressUnsupportedCompileSdk=36\n')
+say('targets Android 16 (API 36)')
 
 # 3. launcher icon -------------------------------------------------------------------------
 icons = os.path.join(ROOT, 'icons', ICON)
@@ -523,6 +559,15 @@ else:
 
 # 5b. manifest tweak that applies to every build (done before the extras take their pristine manifest copy)
 patch_config_changes()
+# 5c. no Android backup: everything stays on the phone, as the privacy page says (the sync code lives in that data too)
+mf = open(MANIFEST, encoding='utf-8').read()
+mf2, n = re.subn(r'android:allowBackup\s*=\s*"true"', 'android:allowBackup="false"', mf)
+if not n and 'android:allowBackup' not in mf:
+    mf2, n = re.subn(r'<application\b', '<application android:allowBackup="false"', mf, count=1)
+if not n:
+    die('Could not switch off Android backup in AndroidManifest.xml.')
+open(MANIFEST, 'w', encoding='utf-8').write(mf2)
+say('Android backup switched off')
 
 # 6. optional extras. A problem with them stops the build, unless this is a manual run with ALLOW_DEGRADED on:
 #    then they are removed again and a core-only app is built (the workflow publishes that as a pre-release).
