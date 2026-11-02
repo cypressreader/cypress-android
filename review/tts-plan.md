@@ -47,3 +47,8 @@
   misaki-style -s/-ed/-ing/'s rules, numbers/years/ordinals/money/%, U.S., initialisms spelled, rough guess for names) and
   passes GenerationConfig.phonemeCodepoints; sherpa gets no lexicon. Checked on desktop sherpa 2.0.1 + same model:
   test sentence 1.98 s (6 of 13 words skipped) -> 4.84 s, all words. Load 0.3 s, +26 MB heap. Names are approximate.
+- Robotic + odd rhythm (David, 2026-11-02): switched to fp32 model.onnx (325 MB, rev f7b96bb6 of kokoro-multi-lang-v1_0;
+  voices/tokens/lexicon identical). Desktop x86, same sentence: int8 RTF 0.87, fp32 RTF 0.35 (fp32 2.5x FASTER; int8 likely fell
+  behind real time on the phone = gaps). Clips are now whole sentences (CyNeural.sentences, abbreviation-aware, >380 chars cut at
+  a comma) instead of 220-char cuts that could split a sentence. silence_scale set to 1 (default 0.2; measured no difference
+  on the test sentence). Watch: start delay on a long first sentence, RAM with the 325 MB model.

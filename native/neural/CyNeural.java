@@ -37,10 +37,11 @@ import java.util.concurrent.TimeUnit;
 final class CyNeural implements CyTts.Neural {
     private static final String TAG = "CyNeural";
     /** Pinned revision, so the files can never change under us. No espeak-ng-data is fetched. */
+    // full-quality (fp32) Kokoro v1.0: the int8 copy sounded robotic and, measured on desktop, was 2.5x SLOWER (barely real time)
     private static final String BASE =
-            "https://huggingface.co/csukuangfj/kokoro-int8-multi-lang-v1_0/resolve/57adb37fc0e8d4bd430cfc1b8f8c2294945b9af2/";
-    private static final String[] FILES = {"tokens.txt", "lexicon-us-en.txt", "voices.bin", "model.int8.onnx"};
-    private static final long[] SIZES = {687L, 5956885L, 28200960L, 114202993L};
+            "https://huggingface.co/csukuangfj/kokoro-multi-lang-v1_0/resolve/f7b96bb6bef5c5da4d3aa4f4e0498fbbf62dc78b/";
+    private static final String[] FILES = {"tokens.txt", "lexicon-us-en.txt", "voices.bin", "model.onnx"};
+    private static final long[] SIZES = {687L, 5956885L, 28200960L, 325560556L};
     private static final int SID = 3; // af_heart (US English, female)
 
     private static final class Clip {
@@ -90,7 +91,7 @@ final class CyNeural implements CyTts.Neural {
     public void voice(org.json.JSONArray arr) throws Exception {
         JSObject o = new JSObject();
         o.put("id", CyTts.NEURAL_ID);
-        o.put("name", "English (United States) · Natural voice (test)" + (ready() ? "" : downloading ? " · downloading" : " · downloads 150 MB on Wi-Fi"));
+        o.put("name", "English (United States) · Natural voice (test)" + (ready() ? "" : downloading ? " · downloading" : " · downloads 330 MB on Wi-Fi"));
         o.put("lang", "en-US");
         o.put("local", true);
         o.put("q", 0); // never picked by "Best available"; only when chosen by hand
@@ -114,7 +115,7 @@ final class CyNeural implements CyTts.Neural {
             return;
         }
         downloading = true;
-        toast("Downloading the natural voice (150 MB). Using the phone’s voice until it’s ready.");
+        toast("Downloading the natural voice (330 MB). Using the phone’s voice until it’s ready.");
         new Thread(() -> {
             String err = null;
             PowerManager.WakeLock wl = null;
@@ -130,6 +131,8 @@ final class CyNeural implements CyTts.Neural {
             }
             try {
                 if (!dir.isDirectory() && !dir.mkdirs()) throw new Exception("no folder");
+                new File(dir, "model.int8.onnx").delete(); // the first test's smaller model, no longer used
+                new File(dir, "model.int8.onnx.part").delete();
                 for (int i = 0; i < FILES.length; i++) {
                     File f = new File(dir, FILES[i]);
                     if (f.isFile() && f.length() == SIZES[i]) continue;
@@ -195,7 +198,7 @@ final class CyNeural implements CyTts.Neural {
         if (t != null) return t;
         long t0 = System.currentTimeMillis();
         OfflineTtsKokoroModelConfig k = new OfflineTtsKokoroModelConfig();
-        k.setModel(new File(dir, "model.int8.onnx").getPath());
+        k.setModel(new File(dir, "model.onnx").getPath());
         k.setVoices(new File(dir, "voices.bin").getPath());
         k.setTokens(new File(dir, "tokens.txt").getPath());
         // no lexicon for sherpa: CyG2p turns text into phonemes itself, so unknown words are never skipped
@@ -206,6 +209,7 @@ final class CyNeural implements CyTts.Neural {
         m.setProvider("cpu");
         OfflineTtsConfig cfg = new OfflineTtsConfig();
         cfg.setModel(m);
+        cfg.setSilenceScale(1f); // the default 0.2 shortens the voice's own pauses
         t = new OfflineTts(null, cfg);
         Log.i(TAG, "model loaded in " + (System.currentTimeMillis() - t0) + " ms, rate " + t.sampleRate());
         tts = t;
@@ -226,7 +230,7 @@ final class CyNeural implements CyTts.Neural {
                     return;
                 }
                 OfflineTts t = engine();
-                List<int[]> spans = CyTts.split(body, 220); // a sentence or two per clip: first sound comes quickly
+                List<int[]> spans = sentences(body); // whole sentences: a cut mid-sentence ends with a falling voice
                 for (int i = 0; i < spans.size(); i++) {
                     if (g != gen) return;
                     int[] sp = spans.get(i);
@@ -239,6 +243,7 @@ final class CyNeural implements CyTts.Neural {
                         GenerationConfig gc = new GenerationConfig();
                         gc.setSid(SID);
                         gc.setSpeed(rate);
+                        gc.setSilenceScale(1f);
                         gc.setPhonemeCodepoints(new int[][]{ph.codePoints().toArray()});
                         GeneratedAudio a = t.generateWithConfig(piece, gc);
                         s = a.getSamples();
@@ -255,6 +260,42 @@ final class CyNeural implements CyTts.Neural {
                 if (g == gen) CyTts.emitEvent("ttsError", id, "neural");
             }
         });
+    }
+
+    private static final java.util.regex.Pattern END = java.util.regex.Pattern.compile("[.!?…]+[\"'”’)\\]]*(?=\\s)");
+    private static final java.util.Set<String> ABBR = new java.util.HashSet<>(java.util.Arrays.asList(
+            "mr", "mrs", "ms", "dr", "st", "jr", "sr", "vs", "no", "gov", "sen", "rep", "gen", "lt", "col", "sgt", "prof", "inc", "co",
+            "jan", "feb", "mar", "apr", "aug", "sept", "sep", "oct", "nov", "dec", "mt", "ft"));
+
+    /** [start,end) of each sentence; one longer than 380 characters is cut at its last comma/semicolon, else a space. */
+    static List<int[]> sentences(String t) {
+        List<int[]> out = new java.util.ArrayList<>();
+        java.util.regex.Matcher m = END.matcher(t);
+        int from = 0;
+        while (m.find()) {
+            int ws = m.start();
+            while (ws > from && Character.isLetter(t.charAt(ws - 1))) ws--;
+            String w = t.substring(ws, m.start()).toLowerCase(java.util.Locale.ROOT);
+            if (t.charAt(m.start()) == '.' && (ABBR.contains(w) || w.length() == 1)) continue; // Dr. Smith, J. Smith, U.S.
+            add(out, t, from, m.end());
+            from = m.end();
+        }
+        add(out, t, from, t.length());
+        return out;
+    }
+
+    private static void add(List<int[]> out, String t, int a, int b) {
+        while (a < b && Character.isWhitespace(t.charAt(a))) a++;
+        while (b - a > 380) {
+            int cut = -1;
+            for (int k = a + 380; k > a + 120 && cut < 0; k--) if (",;:".indexOf(t.charAt(k - 1)) >= 0) cut = k;
+            for (int k = a + 380; k > a + 120 && cut < 0; k--) if (t.charAt(k - 1) == ' ') cut = k;
+            if (cut < 0) cut = a + 380;
+            out.add(new int[]{a, cut});
+            a = cut;
+            while (a < b && Character.isWhitespace(t.charAt(a))) a++;
+        }
+        if (b > a) out.add(new int[]{a, b});
     }
 
     private boolean put(Clip c) throws InterruptedException {
