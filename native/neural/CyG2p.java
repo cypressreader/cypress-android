@@ -86,6 +86,7 @@ final class CyG2p {
         t = Normalizer.normalize(t, Normalizer.Form.NFKD).replaceAll("\\p{M}+", ""); // café -> cafe
         t = t.replace('’', '\'').replace('‘', '\'').replace('ʼ', '\'');
         t = t.replaceAll("\\((?:AP|Reuters|AFP|CNN)\\)\\s*[—–-]*\\s*", " "); // wire-service tags in datelines are not read
+        t = INITIAL.matcher(t).replaceAll("$1"); // "Debra M. Brown": the dot after an initial is not a full stop
         t = times(t);
         t = places(t);
         t = expand(t);
@@ -641,6 +642,8 @@ final class CyG2p {
         }
     }
 
+    private static final Pattern INITIAL = Pattern.compile("(?<=[A-Z][a-z]{1,30} )([A-Z])\\.(?=\\s+[A-Z][a-z])");
+
     private static final Pattern MIXED = Pattern.compile("([a-z])([A-Z]{1,4})('s)?");
 
     /** One clip of text -> the phoneme string Kokoro reads. */
@@ -671,6 +674,8 @@ final class CyG2p {
                 ph.add(mx.group(3) != null ? plural(b.toString()) : b.toString());
             } else if (ph.isEmpty() && tok.equals("A")) {
                 ph.add("ˈA"); // a sentence that opens with "A" is read "ay", as newsreaders do (David 2026-11-02)
+            } else if (tok.length() == 1 && Character.isUpperCase(tok.charAt(0)) && !tok.equals("I")) {
+                ph.add(tok.equals("A") ? "ˈA" : lex.getOrDefault(lw, lw)); // an initial (Debra M. Brown, Plan B): the letter's name
             } else ph.add(word(lw, caps));
             low.add(lw);
         }
@@ -682,7 +687,7 @@ final class CyG2p {
                     tags == null ? null : tags[i]);
             if (het != null) ph.set(i, het);
             switch (low.get(i)) { // weak forms, the way Kokoro was trained (misaki)
-                case "a": if (i > 0) ph.set(i, "ɐ"); break;
+                case "a": if (i > 0 && raw.get(i).equals("a")) ph.set(i, "ɐ"); break;
                 case "an": ph.set(i, "ɐn"); break;
                 case "the": ph.set(i, nv ? "ði" : "ðə"); break;
                 case "to": ph.set(i, nv ? "tʊ" : "tə"); break;
