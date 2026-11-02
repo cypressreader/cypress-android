@@ -1,4 +1,4 @@
-# Neural voices plan (2026-11-02, session dn9q8h). Status: NOT started, waiting on David's go.
+# Neural voices plan (2026-11-02, session dn9q8h). Status: step 1 (spike) BUILT 2026-11-02 on branch ccr-1d67488b-0prx87, waiting on David's phone test.
 
 ## Decision so far
 - Engine: sherpa-onnx (k2-fsa) >= 2.0.0, Android AAR. 2.0.0 removed GPL eSpeak-NG (issue #3731): lexicon-only, Apache-2.0.
@@ -27,3 +27,10 @@
 2. If good: voice catalog read from the release, picker grouped by language, download manager, language-aware default.
 3. Section prosody (headline/byline/body pauses + speed), unload model on stop, privacy.html disclosure, license notes file.
 4. Ship only on David's `build`.
+
+## Spike as built (2026-11-02)
+- Separate app com.cypress.reader.voices ("CyPress Voices Test"), workflow .github/workflows/build-voices-test.yml, pre-release tag voices-test.
+- native/voices/CyNeural.java (copied in only by that workflow); CyTts.java finds it by class name, lists voice id cy-neural:en_US-ljspeech-medium, falls back to the phone voice.
+- Voice: Piper en_US-ljspeech-medium (LJ Speech, public domain) + lexicon-en-us.txt, BUNDLED in the test APK (download manager = step 2). Lessac/hfc/amy rejected: research-only or NC dataset licenses.
+- piper-phonemize (used by sherpa's own demo app) bundles eSpeak: never use it. Workflow fails if eSpeak files are in the AAR or voice.
+- Events fire at playback position (AudioTrack head), 3 s buffer, one worker thread; highlight is per sentence. Toasts show load time and speed.
