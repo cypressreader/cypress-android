@@ -5,6 +5,9 @@
 //   /get           the latest Android download
 //   /feed?u=<url>  fetches a feed or article for the web app (same-site requests only, plain text out)
 //   GET /api/short/<code>  the story payload behind a short code, for the Android app when a share link opens in it
+//   POST /api/stats  opt-in weekly anonymous counts from the app (needs the STATS binding, see docs/worker/INSIGHTS.md)
+//   POST /api/report a problem report the person wrote and sent from Settings (same STATS binding)
+//   GET /api/insights everything above, for cypressreader.com/insights; needs the INSIGHTS_KEY secret as a Bearer token
 //   everything else is the CyPress site and web app, served from GitHub Pages under this address
 //
 // Abuse limits (E3). /feed follows at most 5 redirects itself and re-checks every hop (no private, loopback or
@@ -253,6 +256,60 @@ async function site(req, u) {
   return new Response(r.body, { status: r.status, headers: h });
 }
 
+// ---- Insights (opt-in counts and problem reports). Nothing here stores an address, an ID or anything about a person.
+const KEEP = 60 * 60 * 24 * 400; // kept about 13 months, then Cloudflare deletes it
+const rid = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(36)).join('');
+const jres = (o, st, h) => new Response(JSON.stringify(o), { status: st || 200, headers: Object.assign({ 'content-type': 'application/json', 'x-content-type-options': 'nosniff', 'cache-control': 'no-store' }, h || {}) });
+const word = (v, n) => String(v == null ? '' : v).replace(/[^\w .:+-]/g, '').slice(0, n || 24);
+// keeps only the fields the app is known to send, so nothing else can be smuggled in; fits KV's 1024-byte metadata
+function cleanStats(o) {
+  const m = {};
+  for (const k of ['v', 'p', 'os', 'dev', 'lang', 'th', 'sch', 'sz', 'vw', 'cv', 'fn', 'sp', 'nv', 'fd', 'sv', 'fo']) if (o[k] != null && o[k] !== '') m[k] = word(o[k], 16);
+  if (o.f && typeof o.f === 'object') { m.f = {}; for (const k of Object.keys(o.f).slice(0, 24)) { const n = Math.min(9999, Math.max(0, Math.round(+o.f[k] || 0))); if (n) m.f[word(k, 8)] = n; } }
+  m.e = Math.min(9999, Math.max(0, Math.round(+o.e || 0)));
+  if (Array.isArray(o.em)) m.em = o.em.slice(0, 3).map(x => String(x).replace(/https?:\/\/\S+/g, '<link>').slice(0, 80));
+  while (JSON.stringify(m).length > 1000 && m.em && m.em.length) m.em.pop();
+  if (JSON.stringify(m).length > 1000) delete m.f;
+  return m;
+}
+async function intake(req, env, kind) {
+  const origin = req.headers.get('origin') || '';
+  const h = ALLOWED_ORIGINS.indexOf(origin) >= 0 ? cors(origin) : {};
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: h });
+  if (req.method !== 'POST') return jres({ error: 'POST only' }, 405, h);
+  if (!env.STATS) return jres({ error: 'Insights are not set up' }, 501, h);
+  if (limited(req, kind, kind === 'report' ? 5 : 10)) return tooMany();
+  const t = await req.text();
+  if (t.length > 8000) return jres({ error: 'Too big' }, 413, h);
+  let o; try { o = JSON.parse(t); } catch (e) { return jres({ error: 'Bad data' }, 400, h); }
+  if (!o || typeof o !== 'object') return jres({ error: 'Bad data' }, 400, h);
+  const day = new Date().toISOString().slice(0, 10);
+  if (kind === 'stats') await env.STATS.put('s:' + day + ':' + rid(), '1', { expirationTtl: KEEP, metadata: cleanStats(o) });
+  else {
+    const msg = String(o.msg || '').slice(0, 2000).trim();
+    if (!msg) return jres({ error: 'Empty report' }, 400, h);
+    await env.STATS.put('r:' + Date.now() + ':' + rid(), JSON.stringify({ msg, info: String(o.info || '').slice(0, 5000), v: word(o.v, 16) }), { expirationTtl: KEEP });
+  }
+  return jres({ ok: true }, 200, h);
+}
+async function listAll(kv, prefix, cap) {
+  const out = []; let cursor;
+  do { const r = await kv.list({ prefix, cursor, limit: 1000 }); out.push(...r.keys); cursor = r.list_complete ? null : r.cursor; } while (cursor && out.length < cap);
+  return out;
+}
+async function insights(req, env) {
+  const key = env.INSIGHTS_KEY || '', got = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
+  if (!env.STATS || !key) return jres({ error: 'Insights are not set up' }, 501);
+  if (limited(req, 'ins', 20)) return tooMany();
+  const a = new TextEncoder().encode(key), b = new TextEncoder().encode(got);
+  let diff = a.length ^ b.length; for (let i = 0; i < a.length; i++) diff |= a[i] ^ (b[i] || 0);
+  if (diff) return jres({ error: 'Wrong key' }, 401);
+  const st = await listAll(env.STATS, 's:', 20000);
+  const rk = (await listAll(env.STATS, 'r:', 2000)).sort((x, y) => (x.name < y.name ? 1 : -1)).slice(0, 60);
+  const reports = await Promise.all(rk.map(async k => { try { return Object.assign({ t: +k.name.split(':')[1] }, JSON.parse(await env.STATS.get(k.name))); } catch (e) { return null; } }));
+  return jres({ stats: st.map(k => Object.assign({ d: k.name.split(':')[1] }, k.metadata || {})), reports: reports.filter(Boolean) });
+}
+
 export default {
   async fetch(req, env) {
     const u = new URL(req.url);
@@ -262,6 +319,9 @@ export default {
       if (req.method === 'POST' && limited(req, 'short', 30)) return tooMany();
       return shorten(req, env);
     }
+    if (u.pathname === '/api/stats') return intake(req, env, 'stats');
+    if (u.pathname === '/api/report') return intake(req, env, 'report');
+    if (u.pathname === '/api/insights') return insights(req, env);
     const sp = u.pathname.match(/^\/api\/short\/([A-Za-z0-9_-]{6,12})$/);
     if (sp) return shortPayload(req, env, sp[1]);
     // a short link: /s/<6 to 12 letters or digits>, looked up in storage

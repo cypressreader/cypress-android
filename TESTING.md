@@ -1183,3 +1183,8 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Dynamic theme: tint changes more often, fades faster (1.6 s) and is a little richer
 - Dynamic theme: page color changes only after scrolling stops (1.229 stuttered mid-scroll)
 - Cards view: after closing a story read side by side, the last row's cards widen to fill (no empty columns)
+
+## 1.231 (implemented, unverified on device)
+- Settings > Feeds and backup > Report a problem: box shows details, Send says "Sent. Thank you" (needs worker STATS binding, docs/worker/INSIGHTS.md), Copy instead copies details.
+- Share anonymous usage counts: turn on, restart app, after ~45 s a check-in appears on cypressreader.com/insights. "What the counts contain" shows plain list.
+- Build workflow: "Build the Play Store bundle" step green and the cypress-play-bundle artifact downloads.

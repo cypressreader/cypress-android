@@ -38,7 +38,7 @@ env:
   ALLOW_DEGRADED: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_degraded && '1' || '0' }}
   BUILD_NUMBER: ${{ github.run_number }}
   # The version name people see. Change it when you want a new release label (1.3, 1.4, ...). The build number behind it always counts up by itself.
-  APP_LABEL: "1.230"
+  APP_LABEL: "1.231"
   # The Natural voice (on-device, downloaded from our own release when the person picks it): sherpa-onnx engine, Apache-2.0, no eSpeak.
   NEURAL: "1"
   SHERPA: "2.0.1"
@@ -261,6 +261,30 @@ jobs:
             echo "::warning title=Version number check::The app file does not report version code ${BUILD_NUMBER}. Check the lines above."
           fi
           rm -f "$RUNNER_TEMP/cypress.keystore"
+
+      # Play Store: the store takes an app bundle (.aab) signed with this same key as its "upload key" (Play App Signing).
+      # Optional: if it fails, the phone download above still publishes.
+      - name: Build the Play Store bundle
+        continue-on-error: true
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          set -e
+          (cd android && ./gradlew bundleRelease --no-daemon)
+          AAB=$(find android/app/build/outputs/bundle/release -name '*.aab' | head -1)
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/cypress.keystore"
+          jarsigner -keystore "$RUNNER_TEMP/cypress.keystore" -storepass:env KS_PASS -signedjar cypress.aab "$AAB" cypress
+          rm -f "$RUNNER_TEMP/cypress.keystore"
+          echo "AAB_OK=1" >> "$GITHUB_ENV"
+
+      - name: Keep the Play Store bundle
+        if: env.AAB_OK == '1'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-play-bundle-${{ env.APP_LABEL }}
+          path: cypress.aab
+          retention-days: 30
 
       - name: Publish the release
         env:
