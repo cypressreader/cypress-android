@@ -557,7 +557,7 @@ if os.environ.get('NEURAL', '').strip() == '1':
     g = g.replace(anchor, anchor + "\n    implementation files('libs/sherpa-onnx.aar')"
                   "\n    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.0.21'"
                   "\n    implementation 'org.apache.opennlp:opennlp-tools:2.5.12'", 1)
-    g += ("\nandroid {\n    defaultConfig { ndk { abiFilters 'arm64-v8a' } }\n"
+    g += ("\nandroid {\n    defaultConfig { ndk { abiFilters 'arm64-v8a' }; minSdkVersion 26 }\n"
           "    buildTypes { release { applicationIdSuffix '.tts'; versionNameSuffix '-voices' } }\n"
           "    packagingOptions { resources { excludes += ['META-INF/LICENSE*', 'META-INF/NOTICE*', 'META-INF/DEPENDENCIES'] } }\n}\n")
     open(GRADLE, 'w', encoding='utf-8').write(g)
