@@ -12703,6 +12703,15 @@ function useText(){const o=usePack();return Object.keys(USEL).map(k=>USEL[k]+': 
 async function useSend(){if(!isOn('ustat')||!navigator.onLine||Date.now()-(S.ustT||0)<6048e5)return;
  try{const r=await fetch(SHARE_W+'/api/stats',{method:'POST',body:JSON.stringify(usePack()),headers:{'content-type':'text/plain'},referrerPolicy:'no-referrer',signal:AbortSignal.timeout(10000)});if(r.ok){S.ustT=Date.now();save();for(const k in UCT)delete UCT[k];try{localStorage.removeItem('folio-use')}catch(e){}}}catch(e){}}
 setTimeout(useSend,45000);
+/* ask once about the usage counts, after real use (about 2 hours of reading, or 5 different days), at a calm moment: not during setup, a story or another window */
+function useAsk(){try{
+ if(S.ustAsk||isOn('ustat')||!S.feeds.length||!S.st||!S.st.d)return;
+ const days=Object.values(S.st.d),min=days.reduce((n,d)=>n+(d.m||0),0);if(min<120&&days.length<5)return;
+ if(document.hidden||document.querySelector('dialog[open]')||$('#rd').classList.contains('on'))return setTimeout(useAsk,6e4);
+ S.ustAsk=1;save();
+ askBox({title:'Help make CyPress better?',text:'CyPress has no accounts and no tracking, so the developer can’t see what’s working. You can help by sending a few anonymous counts once a week: your app version, theme, and how often you use things like Listen or Save.\nNever your sites, your stories, or anything that identifies you. You can turn it off anytime in Settings, Feeds and backup.',ok:'Yes, send counts',cancel:'No thanks'}).then(y=>{if(!y)return;S.ustat=true;save();try{syncSet()}catch(e){}setTimeout(useSend,3000);toast('Thank you. Change it anytime in Settings')});
+}catch(e){}}
+setTimeout(useAsk,9e4);
 $('#ustv').onclick=()=>askBox({title:'What the weekly counts contain',text:useText(),ok:'Close',cancel:'Back'});
 
 /* quick looks */
