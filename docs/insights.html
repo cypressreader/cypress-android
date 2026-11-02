@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>CyPress Insights</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+:root{--bg:#f3ecdc;--pn:#fbf7ee;--ink:#123524;--mut:#5b6b60;--ln:#e2d8c2;--grid:#ebe2cf;--acc:#16804f;--gold:#b08d3e;--tipbg:#123524;--tipfg:#f3ecdc;
+ --c1:#16804f;--c2:#d9822b;--c3:#2a78d6;--c4:#c9a227;--c5:#c2557e;--c6:#6250d6;--c0:#b9b2a2;--warn:#c2410c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c2619;--pn:#123524;--ink:#f3ecdc;--mut:#a9b8ad;--ln:#24503a;--grid:#1c4330;--acc:#199e70;--gold:#e2c27a;--tipbg:#f3ecdc;--tipfg:#123524;
+ --c1:#199e70;--c2:#d95926;--c3:#3987e5;--c4:#c98500;--c5:#d55181;--c6:#9085e9;--c0:#4f6b5c;--warn:#fb923c}}
+:root[data-theme="dark"]{--bg:#0c2619;--pn:#123524;--ink:#f3ecdc;--mut:#a9b8ad;--ln:#24503a;--grid:#1c4330;--acc:#199e70;--gold:#e2c27a;--tipbg:#f3ecdc;--tipfg:#123524;
+ --c1:#199e70;--c2:#d95926;--c3:#3987e5;--c4:#c98500;--c5:#d55181;--c6:#9085e9;--c0:#4f6b5c;--warn:#fb923c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+main{max-width:1180px;margin:0 auto;padding:32px 16px 72px}
+h1{font:600 clamp(2.2rem,6vw,3.4rem)/1 'Cormorant Garamond',Georgia,serif;margin:0;letter-spacing:-.01em}
+h2{font:600 1.3rem/1.2 'Cormorant Garamond',Georgia,serif;margin:0 0 2px}
+.eyebrow{font:600 .72rem/1 Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:40px 0 14px;display:flex;align-items:center;gap:12px}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--ln)}
+.sub{color:var(--mut);margin:8px 0 0;max-width:62ch}
+header{display:flex;flex-wrap:wrap;gap:16px;align-items:end;justify-content:space-between}
+.seg{display:inline-flex;border:1px solid var(--ln);border-radius:999px;overflow:hidden;background:var(--pn)}
+.seg button{border:0;background:none;color:var(--ink);padding:7px 14px;font:inherit;font-size:.9rem;cursor:pointer;min-height:38px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+button,input{font:inherit}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:999px;padding:8px 18px;cursor:pointer;min-height:40px}
+.btn.ghost{background:none;color:var(--ink);border-color:var(--ln)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:16px;padding:18px 18px 16px;min-width:0}
+.card .note{margin:2px 0 14px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr))}
+.g2{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr))}
+.kpis{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));margin-top:26px}
+.kpi{padding-bottom:10px}
+.kpi b{display:block;font:600 2.6rem/1 'Cormorant Garamond',Georgia,serif;margin:8px 0 2px}
+.kpi .k{color:var(--mut);font-size:.8rem}
+.kpi svg{display:block;width:100%;height:34px;margin-top:8px}
+.up{color:var(--acc)}.down{color:var(--warn)}
+.note{color:var(--mut);font-size:.82rem}
+.wide{grid-column:1/-1}
+.chart{position:relative;width:100%}
+.chart svg{display:block;overflow:visible}
+.ax{fill:var(--mut);font-size:11px}
+.gl{stroke:var(--grid);stroke-width:1}
+.hx .gd,.hx .dt{opacity:0}
+.hx:hover .gd,.hx:focus .gd,.hx:hover .dt,.hx:focus .dt{opacity:1}
+.hx{outline:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:.82rem;color:var(--ink)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.donut{display:grid;grid-template-columns:132px minmax(0,1fr);gap:16px;align-items:center}
+.donut svg{width:132px;height:132px}
+.donut .ctr{font:600 26px 'Cormorant Garamond',Georgia,serif;fill:var(--ink)}
+.donut .ctr2{font-size:10px;fill:var(--mut)}
+.donut ul{list-style:none;margin:0;padding:0;display:grid;gap:7px;font-size:.88rem}
+.donut li{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:8px;align-items:center}
+.donut li i{width:10px;height:10px;border-radius:3px}
+.donut li b{font-weight:500;font-variant-numeric:tabular-nums;color:var(--mut)}
+.seg-hover:hover,.seg-hover:focus{opacity:.8}
+.bars{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.bars li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;font-size:.88rem;align-items:center}
+.bars .tr{grid-column:1/-1;height:10px;background:var(--grid);border-radius:5px;overflow:hidden}
+.bars .tr i{display:block;height:100%;border-radius:0 5px 5px 0;background:var(--acc);transition:width .6s cubic-bezier(.2,.7,.2,1)}
+.bars .v{color:var(--mut);font-variant-numeric:tabular-nums}
+.feat li{grid-template-columns:minmax(0,1fr) 84px auto}
+.feat .tr{grid-column:1/-1}
+.feat svg{width:84px;height:22px;display:block}
+.hist{display:flex;align-items:flex-end;gap:6px;height:120px;margin-top:6px}
+.hist div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;text-align:center;font-size:.75rem;color:var(--mut)}
+.hist i{display:block;background:var(--acc);border-radius:5px 5px 0 0;min-height:2px;margin-top:4px}
+.hist span{margin-top:6px;color:var(--ink)}
+.rep{border-top:1px solid var(--ln);padding:14px 0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px}
+.rep:first-of-type{border-top:0;padding-top:4px}
+.rep .dot{width:34px;height:34px;border-radius:50%;background:var(--grid);display:grid;place-items:center;font:600 .72rem Inter;color:var(--acc);grid-row:span 3}
+.rep p{margin:0;white-space:pre-wrap}
+.rep pre{white-space:pre-wrap;font-size:.78rem;color:var(--mut);background:var(--bg);padding:10px;border-radius:8px;overflow:auto;margin:6px 0 0}
+.rep summary{cursor:pointer;color:var(--mut);font-size:.82rem}
+#tip{position:fixed;pointer-events:none;background:var(--tipbg);color:var(--tipfg);font-size:.8rem;line-height:1.35;padding:6px 10px;border-radius:8px;z-index:9;opacity:0;transition:opacity .12s;max-width:260px;box-shadow:0 4px 18px rgba(0,0,0,.18)}
+#tip.on{opacity:1}
+.err{color:var(--warn)}
+#gate{max-width:420px;margin:12vh auto 0}
+#gate label{display:block;font-weight:600;margin:16px 0 6px}
+#gate input[type=password]{width:100%;padding:10px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--pn);color:var(--ink)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.empty{color:var(--mut);font-style:italic;margin:0}
+details.tbl{margin-top:10px;font-size:.82rem}
+details.tbl summary{cursor:pointer;color:var(--mut)}
+details.tbl table{border-collapse:collapse;margin-top:6px;font-variant-numeric:tabular-nums}
+details.tbl td,details.tbl th{padding:2px 12px 2px 0;text-align:left;border-bottom:1px solid var(--ln)}
+@media (prefers-reduced-motion:reduce){.bars .tr i{transition:none}}
+@media (max-width:420px){.donut{grid-template-columns:104px minmax(0,1fr)}.donut svg{width:104px;height:104px}}
+</style>
+</head>
+<body>
+<main>
+<section id="gate" hidden>
+ <h1>Insights</h1>
+ <p class="sub">Private. Enter the key you saved as INSIGHTS_KEY in Cloudflare.</p>
+ <form id="kf">
+  <label for="key">Key</label>
+  <input id="key" type="password" autocomplete="current-password" required>
+  <div class="row"><label style="margin:0;font-weight:400"><input type="checkbox" id="keep" checked> Remember on this browser</label></div>
+  <div class="row"><button class="btn" type="submit">Open</button><a href="?demo" class="note">See it with sample data</a></div>
+  <p id="kmsg" class="err" role="alert"></p>
+ </form>
+</section>
+<section id="dash" hidden>
+ <header>
+  <div><h1>CyPress Insights</h1><p class="sub" id="basis"></p></div>
+  <div class="row" style="margin:0">
+   <div class="seg" role="group" aria-label="Time range" id="rng"><button data-w="4" aria-pressed="false">4 weeks</button><button data-w="12" aria-pressed="true">12 weeks</button><button data-w="52" aria-pressed="false">1 year</button></div>
+   <button class="btn ghost" id="out">Forget key</button>
+  </div>
+ </header>
+ <div class="kpis" id="kpis"></div>
+ <div id="body"></div>
+</section>
+</main>
+<div id="tip" role="tooltip"></div>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let DATA=null,WEEKS=12;
+const LS={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}};
+const DAY=864e5,wk=d=>{const t=new Date(d+'T00:00:00Z');return new Date(t-((t.getUTCDay()+6)%7)*DAY).toISOString().slice(0,10)};
+const fmtW=w=>new Date(w+'T00:00:00Z').toLocaleDateString(undefined,{month:'short',day:'numeric',timeZone:'UTC'});
+const pct=(n,t)=>t?Math.round(n/t*100)+'%':'–';
+const FEAT={open:'Stories opened',aloud:'Read aloud',share:'Shares',save:'Saves',near:'Near you',side:'Side by side',find:'Searches'};
+const NICE={app:'Android app',web:'Website',sys:'Follows phone',light:'Always light',dark:'Always dark',theme:'As the theme is',land:'When sideways',always:'Always',off:'Off',none:'Not available',compact:'Compact',full:'Full',medium:'Medium',large:'Large',tiles:'Tiles',list:'List',halcyon:'Halcyon',oled:'Pure Black',eink:'E-ink',rosewood:'Rosewood',auto:'Automatic',clean:'Clean',gazette:'Gazette',magazine:'Magazine',literata:'Literata',en:'English',es:'Spanish',de:'German',fr:'French',it:'Italian',pt:'Portuguese',nl:'Dutch',ja:'Japanese',fold:'Foldable',tablet:'Tablet',computer:'Computer'};
+const NICE2={nv:{phone:'Phone voice'},dev:{phone:'Phone'}};let DIM='';
+const nice=v=>(NICE2[DIM]&&NICE2[DIM][v])||NICE[v]||(v&&v[0].toUpperCase()+v.slice(1))||'Unknown';
+const COLS=['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c6)'];
+const ORD=['0','1-5','6-20','21-50','51+'];
+
+function demo(){const r=[],now=Date.now(),pick=a=>a[Math.random()*a.length|0],wpick=(a,w)=>{let x=Math.random()*w.reduce((s,v)=>s+v,0);for(let i=0;i<a.length;i++){x-=w[i];if(x<=0)return a[i]}return a[0]};
+ for(let w=51;w>=0;w--){const n=Math.round(10+Math.pow(51-w,1.25)*1.1+Math.random()*8),base=214+Math.floor((51-w)/3);
+  for(let i=0;i<n;i++){const d=new Date(now-w*7*DAY-Math.random()*6*DAY).toISOString().slice(0,10),lag=Math.random()<.55?0:Math.random()<.7?1:2+(Math.random()*3|0),e=Math.random()<(.45-.3*(51-w)/51)?1+(Math.random()*4|0):0;
+  r.push({d,v:'1.'+(base-lag),p:Math.random()<.86?'app':'web',os:wpick(['Android 16','Android 15','Android 14','Android 13','Android 12'],[3,4,3,2,1]),dev:wpick(['phone','fold','tablet','computer'],[10,3,2,1]),lang:wpick(['en','es','de','fr','pt'],[12,3,2,1,1]),th:wpick(['halcyon','light','oled','rosewood','eink','dynamic'],[8,4,3,2,1,3]),sch:wpick(['sys','light','dark','theme'],[6,2,3,1]),sz:wpick(['compact','medium','large'],[2,5,2]),vw:wpick(['tiles','list'],[2,1]),cv:wpick(['clean','auto','gazette','magazine','cinema'],[5,3,2,2,1]),fn:wpick(['theme','literata','inter'],[6,2,1]),sp:wpick(['land','off','always'],[5,3,1]),nv:wpick(['none','phone','compact','full'],[2,4,3,2]),fd:wpick(ORD.slice(1),[3,6,3,1]),sv:wpick(ORD,[3,4,3,1,.5]),fo:wpick(ORD.slice(0,3),[4,5,1]),
+  f:{open:20+Math.random()*60|0,aloud:Math.random()<.6?Math.random()*9|0:0,share:Math.random()<.5?Math.random()*4|0:0,save:Math.random()<.8?Math.random()*10|0:0,near:Math.random()<.25?1+(Math.random()*3|0):0,side:Math.random()<.3?Math.random()*5|0:0,find:Math.random()<.6?Math.random()*6|0:0},e,em:e?[pick(["Cannot read properties of null (reading 'style')",'Failed to fetch','The operation was aborted.','Load failed'])]:[]})}}
+ return{stats:r,reports:[{t:now-2*DAY,v:'1.231',msg:'Read aloud stopped after the first paragraph on a long story.',info:'CyPress diagnostics\napp 2026.11.02e · native 1.231\nscreen 904x2316 @2.6'},{t:now-9*DAY,v:'1.230',msg:'Photos missing on the Daily cover this morning.',info:'CyPress diagnostics\napp 2026.11.02e · web'},{t:now-23*DAY,v:'1.228',msg:'Would love a way to hide sports stories from the Daily.',info:'CyPress diagnostics\napp 2026.10.20a · native 1.228'}]}}
+
+async function open(key,keep){$('#kmsg').textContent='';
+ if(key==='demo'){DATA=demo();return show()}
+ try{const r=await fetch('/api/insights',{headers:{authorization:'Bearer '+key},cache:'no-store'});
+  if(r.status===401){LS.set('cy-ins',null);throw new Error('That key is not right.')}
+  if(r.status===501)throw new Error('Insights are not set up on the server yet. See docs/worker/INSIGHTS.md.');
+  if(!r.ok)throw new Error('The server answered '+r.status+'. Try again in a minute.');
+  DATA=await r.json();if(keep)LS.set('cy-ins',key);show()}
+ catch(e){$('#gate').hidden=false;$('#dash').hidden=true;$('#kmsg').textContent=e.message||'Could not load.'}}
+
+/* ---------- chart pieces (inline SVG, drawn at the card's real width) ---------- */
+function count(rows,k){const m={};rows.forEach(x=>{const v=x[k]==null||x[k]===''?'unknown':String(x[k]);m[v]=(m[v]||0)+1});return Object.entries(m).sort((a,b)=>b[1]-a[1])}
+/* color follows the value, not its rank: slots come from the whole data set, so changing the time range never repaints */
+function palette(k){const top=count(DATA.stats,k).slice(0,6).map(x=>x[0]),m={};top.forEach((v,i)=>m[v]=COLS[i]);return v=>m[v]||'var(--c0)'}
+/* top of the scale: four equal, round steps (5, 10, 20, 25, 50...) */
+function nice5(m){const t=Math.max(1,m/4),p=Math.pow(10,Math.floor(Math.log10(t))),f=t/p;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p*4}
+function spark(vals,color,w,h){w=w||160;h=h||34;if(!vals.length)return'';const mx=Math.max(1e-9,...vals),n=vals.length,X=i=>n<2?w/2:i/(n-1)*w,Y=v=>h-2-(v/mx)*(h-6);
+ const d=vals.map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join(''),id='s'+Math.random().toString(36).slice(2,7);
+ return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".28"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${d}L${w} ${h}L0 ${h}Z" fill="url(#${id})"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/></svg>`}
+/* area chart with crosshair: one hit column per week, each focusable and carrying its own tooltip */
+function area(W,weeks,vals,opt){opt=opt||{};const H=opt.h||220,L=34,R=8,T=12,B=26,iw=Math.max(40,W-L-R),ih=H-T-B,n=weeks.length,mx=nice5(Math.max(1,...vals)),col=opt.color||'var(--acc)';
+ const X=i=>L+(n<2?iw/2:i/(n-1)*iw),Y=v=>T+ih-(v/mx)*ih,id='a'+Math.random().toString(36).slice(2,7);
+ const d=vals.map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join(''),dS=n>1?vals.slice(0,-1).map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join(''):d,dE=n>1?`M${X(n-2)} ${Y(vals[n-2])}L${X(n-1)} ${Y(vals[n-1])}`:'';
+ let g='';for(let k=0;k<=4;k++){const v=mx*k/4,y=Y(v);g+=`<line class="gl" x1="${L}" x2="${W-R}" y1="${y}" y2="${y}"/><text class="ax" x="${L-8}" y="${y+4}" text-anchor="end">${(Math.round(v*10)/10)+(opt.pct?'%':'')}</text>`}
+ const step=Math.max(1,Math.ceil(n/(W<500?4:7)));let xl='';weeks.forEach((w,i)=>{if(i%step===0)xl+=`<text class="ax" x="${X(i)}" y="${H-6}" text-anchor="${i===0?'start':'middle'}">${fmtW(w)}</text>`});
+ const cw=n<2?iw:iw/(n-1);let hx='';
+ weeks.forEach((w,i)=>{const tip=`Week of ${fmtW(w)}${i===n-1?' (so far)':''}: <b>${opt.pct?vals[i].toFixed(1)+'%':vals[i]}</b> ${opt.unit||''}`;
+  hx+=`<g class="hx" tabindex="0" data-tip="${esc(tip)}" aria-label="${esc(tip.replace(/<[^>]+>/g,''))}"><rect x="${X(i)-cw/2}" y="${T}" width="${cw}" height="${ih}" fill="transparent"/><line class="gd" x1="${X(i)}" x2="${X(i)}" y1="${T}" y2="${T+ih}" stroke="var(--mut)" stroke-dasharray="3 3"/><circle class="dt" cx="${X(i)}" cy="${Y(vals[i])}" r="5" fill="${col}" stroke="var(--pn)" stroke-width="2"/></g>`});
+ const last=n?`<circle cx="${X(n-1)}" cy="${Y(vals[n-1])}" r="4" fill="${col}" stroke="var(--pn)" stroke-width="2"/>`:'';
+ return `<div class="chart"><svg width="${W}" height="${H}" role="img" aria-label="${esc(opt.label||'')}"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".32"/><stop offset="1" stop-color="${col}" stop-opacity=".02"/></linearGradient></defs>${g}<path d="${d}L${X(n-1)} ${T+ih}L${X(0)} ${T+ih}Z" fill="url(#${id})"/><path d="${dS}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><path d="${dE}" fill="none" stroke="${col}" stroke-width="2.5" stroke-dasharray="4 5" stroke-linecap="round"/>${last}${xl}${hx}</svg></div>`}
+/* 100% stacked area: share of each version, week by week */
+function stack(W,weeks,keys,mat,colorOf){const H=230,L=34,R=8,T=12,B=26,iw=Math.max(40,W-L-R),ih=H-T-B,n=weeks.length,X=i=>L+(n<2?iw/2:i/(n-1)*iw),Y=v=>T+ih-v*ih;
+ let g='';for(let k=0;k<=4;k++){const y=Y(k/4);g+=`<line class="gl" x1="${L}" x2="${W-R}" y1="${y}" y2="${y}"/><text class="ax" x="${L-8}" y="${y+4}" text-anchor="end">${k*25}%</text>`}
+ const tot=weeks.map((_,i)=>keys.reduce((s,k)=>s+mat[k][i],0)||1);let base=weeks.map(()=>0),paths='';
+ keys.forEach(k=>{const top=base.map((b,i)=>b+mat[k][i]/tot[i]);const up=top.map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join(''),dn=base.map((v,i)=>[X(i).toFixed(1),Y(v).toFixed(1)]).reverse().map(p=>'L'+p[0]+' '+p[1]).join('');
+  paths+=`<path d="${up}${dn}Z" fill="${colorOf(k)}" stroke="var(--pn)" stroke-width="1.5" stroke-linejoin="round"/>`;base=top});
+ const step=Math.max(1,Math.ceil(n/(W<500?4:7)));let xl='';weeks.forEach((w,i)=>{if(i%step===0)xl+=`<text class="ax" x="${X(i)}" y="${H-6}" text-anchor="${i===0?'start':'middle'}">${fmtW(w)}</text>`});
+ const cw=n<2?iw:iw/(n-1);let hx='';weeks.forEach((w,i)=>{const tip=`Week of ${fmtW(w)}<br>`+keys.slice().reverse().filter(k=>mat[k][i]).map(k=>`${esc(k)}: <b>${pct(mat[k][i],tot[i])}</b>`).join('<br>');
+  hx+=`<g class="hx" tabindex="0" data-tip="${esc(tip)}" aria-label="${esc(tip.replace(/<[^>]+>/g,' '))}"><rect x="${X(i)-cw/2}" y="${T}" width="${cw}" height="${ih}" fill="transparent"/><line class="gd" x1="${X(i)}" x2="${X(i)}" y1="${T}" y2="${T+ih}" stroke="var(--ink)" stroke-width="1.5"/></g>`});
+ return `<div class="chart"><svg width="${W}" height="${H}" role="img" aria-label="Share of each app version per week">${g}${paths}${xl}${hx}</svg></div><div class="legend">${keys.slice().reverse().map(k=>`<span><i style="background:${colorOf(k)}"></i>${esc(k)}</span>`).join('')}</div>`}
+function donut(list,total,colorOf,dim){DIM=dim||'';if(!total)return'<p class="empty">Nothing yet</p>';const top=list.slice(0,5),rest=list.slice(5).reduce((s,x)=>s+x[1],0),items=rest?[...top,['Other',rest]]:top;
+ let off=25,segs='';const gap=items.length>1?.8:0;
+ items.forEach(([k,n])=>{const p=n/total*100,c=k==='Other'?'var(--c0)':colorOf(k),tip=`${esc(nice(k))}: <b>${pct(n,total)}</b> (${n})`;
+  segs+=`<circle class="seg-hover" tabindex="0" data-tip="${esc(tip)}" aria-label="${esc(nice(k))} ${pct(n,total)}" cx="60" cy="60" r="46" fill="none" stroke="${c}" stroke-width="20" pathLength="100" stroke-dasharray="${Math.max(.1,p-gap)} ${100-Math.max(.1,p-gap)}" stroke-dashoffset="${off}"/>`;off-=p});
+ const [k0,n0]=items[0];
+ const o=`<div class="donut"><svg viewBox="0 0 120 120" role="img" aria-label="${esc(items.map(([k,n])=>nice(k)+' '+pct(n,total)).join(', '))}"><circle cx="60" cy="60" r="46" fill="none" stroke="var(--grid)" stroke-width="20"/>${segs}<text class="ctr" x="60" y="62" text-anchor="middle">${pct(n0,total)}</text>${nice(k0).length<=12?`<text class="ctr2" x="60" y="77" text-anchor="middle">${esc(nice(k0))}</text>`:''}</svg><ul>${items.map(([k,n])=>`<li><i style="background:${k==='Other'?'var(--c0)':colorOf(k)}"></i><span>${esc(nice(k))}</span><b>${pct(n,total)}</b></li>`).join('')}</ul></div>`;DIM='';return o}
+function hbars(list,total,fmt,max){if(!list.length)return '<p class="empty">Nothing yet</p>';const mx=max||Math.max(...list.map(x=>x[1]));
+ return '<ul class="bars">'+list.slice(0,7).map(([k,n])=>`<li tabindex="0" data-tip="${esc(nice(k))}: <b>${fmt?fmt(n):pct(n,total)}</b>"><span>${esc(nice(k))}</span><span class="v">${fmt?fmt(n):pct(n,total)}</span><span class="tr"><i style="width:${Math.max(1.5,n/mx*100)}%"></i></span></li>`).join('')+(list.length>7?`<li class="note">and ${list.length-7} more</li>`:'')+'</ul>'}
+function hist(list,total){const m=Object.fromEntries(list),mx=Math.max(1,...ORD.map(k=>m[k]||0));
+ return '<div class="hist">'+ORD.map(k=>`<div tabindex="0" data-tip="${k}: <b>${pct(m[k]||0,total)}</b>" aria-label="${k}: ${pct(m[k]||0,total)}">${pct(m[k]||0,total)}<i style="height:${(m[k]||0)/mx*80}%"></i><span>${k}</span></div>`).join('')+'</div>'}
+const card=(t,note,body,cls)=>`<section class="card ${cls||''}"><h2>${esc(t)}</h2><p class="note">${note||''}</p>${body}</section>`;
+const tbl=(head,rows)=>`<details class="tbl"><summary>Show as a table</summary><table><tr>${head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table></details>`;
+
+function show(){$('#gate').hidden=true;$('#dash').hidden=false;
+ const now=Date.now(),from=new Date(now-WEEKS*7*DAY).toISOString().slice(0,10);
+ const rows=DATA.stats.filter(x=>x.d>=from),reps=DATA.reports.filter(x=>x.t>=now-WEEKS*7*DAY);
+ const byW={};DATA.stats.forEach(x=>{const w=wk(x.d);(byW[w]=byW[w]||[]).push(x)});
+ const weeks=[];for(let i=WEEKS-1;i>=0;i--)weeks.push(wk(new Date(now-i*7*DAY).toISOString().slice(0,10)));
+ const wr=w=>byW[w]||[],dev=weeks.map(w=>wr(w).length);
+ const ds=n=>new Date(now-n*DAY).toISOString().slice(0,10),thisW=DATA.stats.filter(x=>x.d>ds(7)).length,lastW=DATA.stats.filter(x=>x.d>ds(14)&&x.d<=ds(7)).length,delta=lastW?Math.round((thisW-lastW)/lastW*100):null;
+ const withE=rows.filter(x=>+x.e>0).length,eW=weeks.map(w=>{const r=wr(w);return r.length?r.filter(x=>+x.e>0).length/r.length*100:0});
+ const vSort=(a,b)=>b.localeCompare(a,undefined,{numeric:true}),vNew=count(rows,'v').map(x=>x[0]).sort(vSort)[0],vNewN=rows.filter(x=>x.v===vNew).length;
+ const rW=weeks.map(w=>reps.filter(r=>wk(new Date(r.t).toISOString().slice(0,10))===w).length);
+ $('#basis').textContent=rows.length?`${rows.length.toLocaleString()} weekly check-ins from people who turned on usage counts. One check-in is one device in one week; there are no IDs.`:'No check-ins in this period yet.';
+ $('#kpis').innerHTML=[
+  ['Devices, last 7 days',thisW.toLocaleString(),delta==null?'no week before to compare':`<span class="${delta>=0?'up':'down'}">${delta>=0?'▲':'▼'} ${Math.abs(delta)}%</span> from the week before`,dev,'var(--c1)'],
+  ['Newest version',vNew||'–',vNew?pct(vNewN,rows.length)+' of check-ins':'',weeks.map(w=>{const r=wr(w);return r.length?r.filter(x=>x.v===vNew).length/r.length:0}),'var(--c3)'],
+  ['Check-ins with errors',pct(withE,rows.length),'lower is better',eW,'var(--c2)'],
+  ['Problem reports',reps.length,'written by people',rW,'var(--c5)']
+ ].map(([a,b,c,s,col])=>`<div class="card kpi"><span class="k">${a}</span><b>${esc(b)}</b><span class="note">${c}</span>${spark(s,col)}</div>`).join('');
+ const body=$('#body'),bw=body.clientWidth,W=bw-38,half=bw>1000?(bw-14)/2-38:W;
+ let h='<div class="eyebrow">Growth</div>';
+ h+=card('Devices checking in each week','Each week counts every device that sent its weekly counts. The newest week is still filling up.',area(W,weeks,dev,{label:'Devices per week',unit:'devices'})+tbl(['Week of','Devices'],weeks.map((w,i)=>[fmtW(w),dev[i]])),'wide');
+ const vAll=count(rows,'v').map(x=>x[0]).sort(vSort),vKeep=vAll.slice(0,5).reverse(),vMat={};vKeep.forEach(v=>vMat[v]=weeks.map(w=>wr(w).filter(x=>x.v===v).length));
+ if(vAll.length>5)vMat['Older']=weeks.map(w=>wr(w).filter(x=>vKeep.indexOf(x.v)<0).length);
+ const vKeys=vAll.length>5?['Older',...vKeep]:vKeep,vc={};vKeys.slice().reverse().forEach((v,i)=>vc[v]=v==='Older'?'var(--c0)':COLS[i%6]);
+ h+='<div class="g2" style="margin-top:14px">'+card('Who has updated','Share of check-ins on each version, week by week. A new color rising fast means people are updating.',rows.length?stack(half,weeks,vKeys,vMat,v=>vc[v]):'<p class="empty">Nothing yet</p>')
+  +card('Android app or website','Where people read CyPress.',donut(count(rows,'p'),rows.length,palette('p'),'p')+'<h2 style="margin-top:22px">Device type</h2><p class="note"></p>'+donut(count(rows,'dev'),rows.length,palette('dev'),'dev'))+'</div>';
+ h+='<div class="eyebrow">What people use</div>';
+ const fu=Object.keys(FEAT).map(k=>({k,n:rows.filter(x=>x.f&&x.f[k]>0).length,tot:rows.reduce((s,x)=>s+(x.f&&x.f[k]||0),0),tr:weeks.map(w=>{const r=wr(w);return r.length?r.filter(x=>x.f&&x.f[k]>0).length/r.length:0})})).sort((a,b)=>b.n-a.n);
+ h+='<div class="g2">'+card('Features people use','Share of weekly check-ins where the feature was used at least once. The small line is the trend over this period.',rows.length?'<ul class="bars feat">'+fu.map(x=>`<li tabindex="0" data-tip="${esc(FEAT[x.k])}: used in <b>${pct(x.n,rows.length)}</b> of weeks, about <b>${(x.tot/Math.max(1,rows.length)).toFixed(1)}</b> times a week"><span>${FEAT[x.k]}</span>${spark(x.tr,'var(--acc)',84,22)}<span class="v">${pct(x.n,rows.length)}</span><span class="tr"><i style="width:${Math.max(1.5,x.n/rows.length*100)}%"></i></span></li>`).join('')+'</ul>':'<p class="empty">Nothing yet</p>')
+  +card('How often, on average','Uses per device per week.',rows.length?hbars(fu.map(x=>[FEAT[x.k],x.tot/rows.length]).sort((a,b)=>b[1]-a[1]),1,n=>n.toFixed(1)+' a week'):'<p class="empty">Nothing yet</p>')+'</div>';
+ h+='<div class="eyebrow">How people set it up</div><div class="grid">';
+ for(const [k,t] of [['th','Theme'],['sch','Light or dark'],['cv','Cover'],['sz','Card size'],['nv','Natural voice'],['sp','Side by side'],['vw','View'],['fn','Font'],['lang','Language']])h+=card(t,'',donut(count(rows,k),rows.length,palette(k),k));
+ h+=card('System','',hbars(count(rows,'os'),rows.length))+card('Number of sites','How many sites people follow.',hist(count(rows,'fd'),rows.length))+card('Saved stories','',hist(count(rows,'sv'),rows.length))+'</div>';
+ h+='<div class="eyebrow">Health</div><div class="g2">';
+ const em={};rows.forEach(x=>(x.em||[]).forEach(m=>em[m]=(em[m]||0)+1));
+ h+=card('Check-ins with errors','Share of devices that hit at least one error that week. Watch for a jump after a release.',area(half,weeks,eW,{pct:true,color:'var(--c2)',label:'Share of check-ins with errors',unit:'of devices',h:200}))
+  +card('Most common errors','Messages the app recorded, web addresses removed.',hbars(Object.entries(em).sort((a,b)=>b[1]-a[1]),1,n=>n+'×'))+'</div>';
+ h+='<div class="eyebrow">Problem reports</div>'+card(reps.length+' '+(reps.length===1?'report':'reports')+' in this period','',reps.length?reps.sort((a,b)=>b.t-a.t).map(r=>`<div class="rep"><span class="dot" aria-hidden="true">${esc((r.v||'?').replace(/^1\./,''))}</span><span class="note">${new Date(r.t).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})} · version ${esc(r.v||'unknown')}</span><p>${esc(r.msg)}</p><details><summary>Details sent with it</summary><pre>${esc(r.info||'')}</pre></details></div>`).join(''):'<p class="empty">No reports in this period</p>','wide');
+ body.innerHTML=h}
+
+/* one shared tooltip for every mark with data-tip (hover, touch or keyboard focus) */
+const tip=$('#tip');
+function tipAt(el,x,y){tip.innerHTML=el.dataset.tip;tip.classList.add('on');const r=tip.getBoundingClientRect();tip.style.left=Math.max(8,Math.min(innerWidth-r.width-8,x-r.width/2))+'px';tip.style.top=(y-r.height-14<8?y+18:y-r.height-14)+'px'}
+document.addEventListener('pointermove',e=>{const el=e.target.closest&&e.target.closest('[data-tip]');if(el)tipAt(el,e.clientX,e.clientY);else tip.classList.remove('on')});
+document.addEventListener('focusin',e=>{const el=e.target.closest&&e.target.closest('[data-tip]');if(el){const r=el.getBoundingClientRect();tipAt(el,r.left+r.width/2,r.top)}else tip.classList.remove('on')});
+document.addEventListener('scroll',()=>tip.classList.remove('on'),{passive:true});
+
+$('#kf').onsubmit=e=>{e.preventDefault();open($('#key').value.trim(),$('#keep').checked)};
+$('#out').onclick=()=>{LS.set('cy-ins',null);DATA=null;$('#key').value='';$('#dash').hidden=true;$('#gate').hidden=false;history.replaceState(null,'',location.pathname)};
+$('#rng').onclick=e=>{const b=e.target.closest('[data-w]');if(!b)return;WEEKS=+b.dataset.w;$('#rng').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));if(DATA)show()};
+let RZ=0,LW=innerWidth;addEventListener('resize',()=>{if(innerWidth===LW)return;LW=innerWidth;clearTimeout(RZ);RZ=setTimeout(()=>DATA&&show(),150)});
+if(/[?&]demo\b/.test(location.search))open('demo');else if(LS.get('cy-ins'))open(LS.get('cy-ins'),true);else $('#gate').hidden=false;
+</script>
+</body>
+</html>
