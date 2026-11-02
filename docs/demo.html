@@ -10473,9 +10473,9 @@ const voiceWhere=()=>NATIVE?'Android Settings > Text-to-speech output':/Mac|iPho
   /* chosen from the first-time offer: switch to it as soon as it is on the phone */
   if(r.ready&&S.nvpick){delete S.nvpick;S.voice='neural:kokoro-en';save();toast('The Natural voice is ready and will read your next story')}};
  /* offered once, the first time Read aloud is tapped, instead of only deep in Settings */
- window.__nvOffer=()=>{const r=nvShow.r;if(!r)nvGet();if(!r||r.tier!=='phone'||r.downloading||S.nvask)return false;S.nvask=1;save();
+ window.__nvOffer=()=>{const r=nvShow.r;if(!r&&!__nvOffer.w){__nvOffer.w=1;Promise.race([nvGet(),new Promise(k=>setTimeout(k,1500))]).then(()=>ttsToggle());return true}if(!r||r.tier!=='phone'||r.downloading||S.nvask)return false;S.nvask=1;save();
   askBox({title:'Try the Natural voice?',text:'A more lifelike voice that runs on this phone, even offline. It’s a one-time download of '+Math.round(r.compact/1e6)+' MB on Wi-Fi. Your phone’s own voice reads until it’s ready. You can change this later in Settings, Read aloud.',ok:'Download',cancel:'Not now'}).then(y=>{if(y){S.nvpick=1;save();nvGet('compact')}ttsToggle()});return true};
- const nvGet=t=>{try{Promise.resolve(x.ttsNeural(t?{tier:t}:{})).then(nvShow).catch(()=>{})}catch(e){}};
+ const nvGet=t=>{try{return Promise.resolve(x.ttsNeural(t?{tier:t}:{})).then(nvShow).catch(()=>{})}catch(e){}};
  on('ttsNeural',nvShow);
  {const z=$('#nvz'),d=$('#nvdel');if(z){z.onchange=()=>{if(TTS.on)ttsStop();nvGet(z.value)};d.onclick=()=>askBox({title:'Delete the natural voice?',text:'This frees its space on your phone. The phone’s own voice will read until you choose a size again.',ok:'Delete',cancel:'Keep it',danger:true}).then(y=>{if(!y)return;if(TTS.on)ttsStop();nvGet('phone')})}}
  setTimeout(()=>nvGet(),400);
