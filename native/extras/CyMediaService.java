@@ -80,6 +80,8 @@ public class CyMediaService extends Service {
     private static final long PAUSED_TIMEOUT_MS = 10L * 60L * 1000L;
     private Runnable pendingShutdown;
     private Runnable pausedTimeout;
+    /** When the playing countdown reaches zero (0 = not counting). */
+    private long endAt = 0;
 
     private AudioManager audioMgr;
     private AudioFocusRequest focusReq;
@@ -91,7 +93,7 @@ public class CyMediaService extends Service {
         public void onAudioFocusChange(int change) {
             if (change == AudioManager.AUDIOFOCUS_LOSS || change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
                 focusHeld = false;
-                pauseForInterruption();
+                pauseHere();
             }
         }
     };
@@ -100,7 +102,7 @@ public class CyMediaService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent != null && AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
-                pauseForInterruption();
+                pauseHere();
             }
         }
     };
@@ -181,7 +183,8 @@ public class CyMediaService extends Service {
                 refreshSession();
             }
             if (ACT_TOGGLE.equals(a)) {
-                CyExtras.emitMediaAction("toggle");
+                if (playing) pauseHere(); // a locked phone's page answers late: pause and stop the countdown now
+                else CyExtras.emitMediaAction("toggle");
             } else if (ACT_NEXT.equals(a)) {
                 CyExtras.emitMediaAction("next");
             } else if (ACT_PREV.equals(a)) {
@@ -372,12 +375,14 @@ public class CyMediaService extends Service {
 
     // ------------------------------------------------------------ audio focus, headphones, speech
 
-    /** Another app took the audio, or the headphones came out: pause once, the way the notification button would. */
-    private void pauseForInterruption() {
+    /** Another app took the audio, the headphones came out, or Pause was tapped: pause once, here, without waiting for the page. */
+    private void pauseHere() {
         if (!playing || pauseAsked) return;
         pauseAsked = true;
         stopSpeech(); // the phone's speech engine keeps talking by itself otherwise, even if the page is asleep
-        CyExtras.emitMediaAction("toggle");
+        if (endAt > 0 && durMs > 0) // freeze time left where the countdown was; the page's own update corrects it later
+            posMs = Math.max(0L, Math.min(durMs, durMs - (long) ((endAt - System.currentTimeMillis()) * Math.max(0.25f, rate))));
+        CyExtras.emitMediaAction("pause"); // "pause", not "toggle": never restarts a page that already paused
         playing = false;
         try {
             enterPlayState();
@@ -587,7 +592,8 @@ public class CyMediaService extends Service {
 
             @Override
             public void onPause() {
-                CyExtras.emitMediaAction("pause");
+                if (playing) pauseHere();
+                else CyExtras.emitMediaAction("pause");
             }
 
             @Override
@@ -680,11 +686,13 @@ public class CyMediaService extends Service {
             .setCategory(Notification.CATEGORY_TRANSPORT)
             .setColor(0xFF133A28);
         if (art != null) b.setLargeIcon(art);
+        endAt = 0;
         if (durMs > 0 && posMs >= 0) {
             // time left shown by the notification itself (phones that hide the seek bar still get it)
             long rem = Math.max(0L, durMs - posMs);
             if (playing && Build.VERSION.SDK_INT >= 24) {
-                b.setShowWhen(true).setWhen(System.currentTimeMillis() + (long) (rem / Math.max(0.25f, rate)))
+                endAt = System.currentTimeMillis() + (long) (rem / Math.max(0.25f, rate));
+                b.setShowWhen(true).setWhen(endAt)
                     .setUsesChronometer(true).setChronometerCountDown(true);
             } else {
                 long m = rem / 60000;

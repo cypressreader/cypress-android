@@ -490,3 +490,6 @@ Last updated: 2026-11-01 (**1.225 on branch**: Quick Reads light-text fix, await
 
 ## Moved 2026-11-02 (session mnmjdx)
 **1.225 on branch (NOT on main):** fixed David's Quick Reads bug. Cause: `.dq-c` cards hide their img by design (CSS line ~788) but keep a.img, so photo-overlay rules (`#f6efe0!important` src rule ~4872, white `.cby` ~4006) hit them. Fix: one override at end of design-picks block (`html body #grid#grid .dq .card.dq-c` src→--mut, cfoot/cby→--ink) + card() skips the +N photo pill when k has dq-c. Verified in Halcyon/Light/Sepia/Dark on demo at 1000px. 1.224 APK 41343394198 + Tests 41343394176 green.
+
+(Moved from HANDOFF 2026-11-02, session 4d0iqe)
+**Speed (1.226):** fixes 1-5 done (og() parses once; fewer forced layouts; cover cache key; refresh waits to look up photos + throttled photo redraws: replayed refresh 11.6->7.5 s sites, 15.9->9.7 s all; list skips style while a story covers it on phones). Launch is near its floor (style recalc vs 811 KB CSS). Tools: review/perf-2026-11-01/, HAR record/replay for stable A/B. Detail + dead ends: HANDOFF-ARCHIVE.md grep 'Speed fixes 2-5 detail'.
