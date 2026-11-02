@@ -43,7 +43,7 @@ final class CyTts {
         boolean ready();
         void voice(JSONArray arr) throws Exception;
         void fetch();
-        void speak(String id, String voice, String text, float rate, float volume, int pauseMs, boolean add);
+        void speak(String id, String voice, String text, float rate, float pitch, float volume, int pauseMs, boolean add);
         void stop();
     }
 
@@ -325,7 +325,7 @@ final class CyTts {
                 if (!add) ++gen;
             }
             if (!add) stopSystem();
-            n.speak(id, voice, job.text, job.rate, job.volume, job.pauseMs, add);
+            n.speak(id, voice, job.text, job.rate, job.pitch, job.volume, job.pauseMs, add);
             return;
         }
         if (n != null) {

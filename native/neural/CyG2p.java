@@ -40,15 +40,38 @@ final class CyG2p {
         }
     }
 
-    /** Same-spelling words from misaki's us_gold.json (Apache-2.0): word, verb form, noun form ("-" = none). */
+    /** Same-spelling words from misaki's us_gold.json (Apache-2.0): word, then TAG=sound (VERB, NOUN, ADJ, ADV, VBD, VBN, VBP). */
     void addHet(java.io.InputStream in) throws Exception {
         try (BufferedReader r = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
             for (String l; (l = r.readLine()) != null; ) {
                 String[] f = l.split("\t");
-                if (f.length != 3 || HET.containsKey(f[0])) continue; // the hand-checked table wins
-                HET.put(f[0], new String[]{f[1].equals("-") ? null : f[1], f[2].equals("-") ? null : f[2]});
+                if (f.length < 2) continue;
+                HashMap<String, String> e = new HashMap<>(4);
+                for (int k = 1; k < f.length; k++) {
+                    int q = f[k].indexOf('=');
+                    if (q > 0) e.put(f[k].substring(0, q), f[k].substring(q + 1));
+                }
+                TAGS.put(f[0], e);
+                if (!HET.containsKey(f[0]) && (e.containsKey("VERB") || e.containsKey("NOUN")))
+                    HET.put(f[0], new String[]{e.get("VERB"), e.get("NOUN")}); // the word-before rules, if the tagger is missing
             }
         }
+    }
+
+    private static final HashMap<String, HashMap<String, String>> TAGS = new HashMap<>();
+    private opennlp.tools.postag.POSTaggerME tagger;
+
+    /** Grammar tagger (OpenNLP, Apache-2.0) with a model trained on UD English EWT (CC BY-SA 4.0), Penn tags. */
+    void setTagger(java.io.InputStream in) throws Exception {
+        tagger = new opennlp.tools.postag.POSTaggerME(new opennlp.tools.postag.POSModel(in),
+                opennlp.tools.postag.POSTagFormat.CUSTOM);
+    }
+
+    private Net net;
+
+    /** g2p_en's model (Apache-2.0, trained on CMUdict) for words in neither list: mostly names. */
+    void setNet(java.io.InputStream in) throws Exception {
+        net = new Net(in);
     }
 
     // ------------------------------------------------------------------ text clean-up
@@ -417,7 +440,124 @@ final class CyG2p {
             }
             return b.toString();
         }
-        return guess(w.replace("'", ""));
+        String bare = w.replace("'", "");
+        if (net != null && bare.length() > 1) {
+            try {
+                String n = net.phonemes(bare);
+                if (!n.isEmpty()) return n;
+            } catch (Throwable e) {
+                // fall through to the rough guess
+            }
+        }
+        return guess(bare);
+    }
+
+    /**
+     * g2p_en (Kyubyong Park, Apache-2.0): a GRU encoder-decoder trained on CMUdict, ported from its numpy code. Weights are
+     * g2p-en.bin: float32 little-endian, the 12 arrays of checkpoint20.npz in order. Output ARPAbet becomes Kokoro symbols.
+     */
+    static final class Net {
+        private static final String[] PH = {"<pad>", "<unk>", "<s>", "</s>", "AA0", "AA1", "AA2", "AE0", "AE1", "AE2", "AH0", "AH1",
+                "AH2", "AO0", "AO1", "AO2", "AW0", "AW1", "AW2", "AY0", "AY1", "AY2", "B", "CH", "D", "DH", "EH0", "EH1", "EH2", "ER0",
+                "ER1", "ER2", "EY0", "EY1", "EY2", "F", "G", "HH", "IH0", "IH1", "IH2", "IY0", "IY1", "IY2", "JH", "K", "L", "M", "N",
+                "NG", "OW0", "OW1", "OW2", "OY0", "OY1", "OY2", "P", "R", "S", "SH", "T", "TH", "UH0", "UH1", "UH2", "UW", "UW0",
+                "UW1", "UW2", "V", "W", "Y", "Z", "ZH"};
+        private static final int H = 256;
+        private final float[] encEmb, encWih, encWhh, encBih, encBhh, decEmb, decWih, decWhh, decBih, decBhh, fcW, fcB;
+
+        Net(java.io.InputStream in) throws Exception {
+            java.io.DataInputStream d = new java.io.DataInputStream(new java.io.BufferedInputStream(in, 1 << 16));
+            encEmb = read(d, 29 * H); encWih = read(d, 3 * H * H); encWhh = read(d, 3 * H * H); encBih = read(d, 3 * H);
+            encBhh = read(d, 3 * H); decEmb = read(d, 74 * H); decWih = read(d, 3 * H * H); decWhh = read(d, 3 * H * H);
+            decBih = read(d, 3 * H); decBhh = read(d, 3 * H); fcW = read(d, 74 * H); fcB = read(d, 74);
+        }
+
+        private static float[] read(java.io.DataInputStream d, int n) throws Exception {
+            byte[] b = new byte[n * 4];
+            d.readFully(b);
+            float[] f = new float[n];
+            java.nio.ByteBuffer.wrap(b).order(java.nio.ByteOrder.LITTLE_ENDIAN).asFloatBuffer().get(f);
+            return f;
+        }
+
+        private static void cell(float[] x, int xo, float[] h, float[] wih, float[] whh, float[] bih, float[] bhh) {
+            float[] gi = new float[3 * H], gh = new float[3 * H];
+            for (int r = 0; r < 3 * H; r++) {
+                float a = bih[r], b = bhh[r];
+                int o = r * H;
+                for (int k = 0; k < H; k++) {
+                    a += wih[o + k] * x[xo + k];
+                    b += whh[o + k] * h[k];
+                }
+                gi[r] = a;
+                gh[r] = b;
+            }
+            for (int k = 0; k < H; k++) {
+                float rr = sig(gi[k] + gh[k]), z = sig(gi[H + k] + gh[H + k]);
+                float n = (float) Math.tanh(gi[2 * H + k] + rr * gh[2 * H + k]);
+                h[k] = (1 - z) * n + z * h[k];
+            }
+        }
+
+        private static float sig(float v) {
+            return (float) (1 / (1 + Math.exp(-v)));
+        }
+
+        String[] arpabet(String w) {
+            float[] h = new float[H];
+            for (int i = 0; i <= w.length(); i++) {
+                int c = i == w.length() ? 2 : w.charAt(i) >= 'a' && w.charAt(i) <= 'z' ? 3 + w.charAt(i) - 'a' : 1;
+                cell(encEmb, c * H, h, encWih, encWhh, encBih, encBhh);
+            }
+            java.util.ArrayList<String> out = new java.util.ArrayList<>();
+            int prev = 2;
+            for (int s = 0; s < 20; s++) {
+                cell(decEmb, prev * H, h, decWih, decWhh, decBih, decBhh);
+                int best = 0;
+                float bv = -Float.MAX_VALUE;
+                for (int p = 0; p < 74; p++) {
+                    float v = fcB[p];
+                    for (int k = 0; k < H; k++) v += fcW[p * H + k] * h[k];
+                    if (v > bv) { bv = v; best = p; }
+                }
+                if (best == 3) break;
+                out.add(PH[best]);
+                prev = best;
+            }
+            return out.toArray(new String[0]);
+        }
+
+        String phonemes(String w) {
+            return arpa(arpabet(w));
+        }
+    }
+
+    private static final HashMap<String, String> ARPA = new HashMap<>();
+    static {
+        String[] a = {"AA", "ɑ", "AE", "æ", "AH", "ʌ", "AO", "ɔ", "AW", "W", "AY", "I", "EH", "ɛ", "ER", "ɜɹ", "EY", "A", "IH", "ɪ",
+                "IY", "i", "OW", "O", "OY", "Y", "UH", "ʊ", "UW", "u", "B", "b", "CH", "ʧ", "D", "d", "DH", "ð", "F", "f", "G", "ɡ",
+                "HH", "h", "JH", "ʤ", "K", "k", "L", "l", "M", "m", "N", "n", "NG", "ŋ", "P", "p", "R", "ɹ", "S", "s", "SH", "ʃ",
+                "T", "t", "TH", "θ", "V", "v", "W", "w", "Y", "j", "Z", "z", "ZH", "ʒ"};
+        for (int i = 0; i < a.length; i += 2) ARPA.put(a[i], a[i + 1]);
+    }
+
+    /** ARPAbet -> Kokoro (misaki) symbols, as cmu-extra.txt was made: AH0 ə, ER0 əɹ, stress mark just before the vowel. */
+    static String arpa(String[] ps) {
+        StringBuilder b = new StringBuilder();
+        boolean stressed = false;
+        for (String p : ps) {
+            char d = p.charAt(p.length() - 1);
+            String base = Character.isDigit(d) ? p.substring(0, p.length() - 1) : p;
+            String v = ARPA.get(base);
+            if (v == null) continue;
+            if (d == '0' && base.equals("AH")) v = "ə";
+            else if (d == '0' && base.equals("ER")) v = "əɹ";
+            if (d == '1') { b.append('ˈ'); stressed = true; }
+            else if (d == '2') b.append('ˌ');
+            b.append(v);
+        }
+        if (!stressed && b.length() > 0) b.insert(0, 'ˈ');
+        return b.toString();
     }
 
     // Same spelling, two sounds. Forms from misaki's us_gold.json (what Kokoro was trained on); the voice's list holds the first
@@ -448,7 +588,18 @@ final class CyG2p {
     }
 
     /** The context form for a same-spelling word, or null to keep the list's. Small rules, not a full grammar. */
-    private static String hetero(String w, String prev, String next) {
+    private static String parent(String t) {
+        return t.startsWith("VB") ? "VERB" : t.startsWith("NN") ? "NOUN" : t.startsWith("JJ") ? "ADJ" : t.startsWith("RB") ? "ADV" : t;
+    }
+
+    private static String hetero(String w, String prev, String next, String tag) {
+        if (tag != null && w.equals("read")) return tag.equals("VBD") || tag.equals("VBN") ? "ɹˈɛd" : null;
+        if (tag != null && TAGS.containsKey(w) && !w.equals("used") && !w.equals("lead") && !w.equals("wound")) {
+            if (prev.equals("to") && tag.startsWith("VB") && !AFTER_TO.contains(next)) tag = "NN"; // "rose to record highs"
+            HashMap<String, String> e = TAGS.get(w);
+            String p = e.get(tag);
+            return p != null ? p : e.get(parent(tag)); // null: the list's usual sound
+        }
         switch (w) {
             case "read": return READ_PAST.contains(prev) ? "ɹˈɛd" : null;
             case "used": return next.equals("to") ? "jˈust" : null;
@@ -463,6 +614,33 @@ final class CyG2p {
         return null;
     }
 
+    private static final Pattern CONTR = Pattern.compile("(?i)(.+?)(n't|'s|'re|'ve|'ll|'d|'m|')");
+
+    /** Penn tag per token (the tagger's own word split: "judge's" = judge + 's), or null without a tagger. */
+    private String[] tags(java.util.List<String> raw) {
+        if (tagger == null || raw.isEmpty()) return null;
+        try {
+            java.util.ArrayList<String> tw = new java.util.ArrayList<>();
+            int[] at = new int[raw.size()];
+            for (int i = 0; i < raw.size(); i++) {
+                String t = raw.get(i);
+                if (i == 0 && t.equals("A")) t = "a"; // a capital "A" opening a sentence was tagged as a symbol
+                at[i] = tw.size();
+                Matcher c = CONTR.matcher(t);
+                if (t.length() > 2 && c.matches()) {
+                    tw.add(c.group(1));
+                    tw.add(c.group(2));
+                } else tw.add(t);
+            }
+            String[] g = tagger.tag(tw.toArray(new String[0]));
+            String[] out = new String[raw.size()];
+            for (int i = 0; i < out.length; i++) out[i] = g[at[i]];
+            return out;
+        } catch (Throwable e) {
+            return null;
+        }
+    }
+
     private static final Pattern MIXED = Pattern.compile("([a-z])([A-Z]{1,4})('s)?");
 
     /** One clip of text -> the phoneme string Kokoro reads. */
@@ -472,8 +650,10 @@ final class CyG2p {
         Matcher m = TOK.matcher(t);
         java.util.ArrayList<String> ph = new java.util.ArrayList<>();
         java.util.ArrayList<String> low = new java.util.ArrayList<>();
+        java.util.ArrayList<String> raw = new java.util.ArrayList<>();
         while (m.find()) {
             String tok = m.group();
+            raw.add(tok);
             if (PUNCT.indexOf(tok.charAt(0)) >= 0) {
                 ph.add(tok);
                 low.add(tok);
@@ -494,10 +674,12 @@ final class CyG2p {
             } else ph.add(word(lw, caps));
             low.add(lw);
         }
+        String[] tags = tags(raw);
         for (int i = 0; i < ph.size(); i++) {
             String next = i + 1 < ph.size() ? ph.get(i + 1) : "";
             boolean nv = vowelStart(next);
-            String het = hetero(low.get(i), i > 0 ? low.get(i - 1) : "", i + 1 < low.size() ? low.get(i + 1) : "");
+            String het = hetero(low.get(i), i > 0 ? low.get(i - 1) : "", i + 1 < low.size() ? low.get(i + 1) : "",
+                    tags == null ? null : tags[i]);
             if (het != null) ph.set(i, het);
             switch (low.get(i)) { // weak forms, the way Kokoro was trained (misaki)
                 case "a": if (i > 0) ph.set(i, "ɐ"); break;

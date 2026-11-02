@@ -87,3 +87,14 @@
   same verb/noun context rules. Limit: misaki has no verb form for some (protest). Credits line needed before release (misaki Apache-2.0).
   Open-source options offered to David: OpenNLP POS tagger (Apache, pure Java) for real grammar; g2p_en (Apache) neural model for
   unknown names; Kokoro stays (best small open voice; Piper needs GPL eSpeak; Kitten smaller/worse); voice blending; section prosody.
+- Round 5 (2026-11-02, s2typy, David: "do 1, 2 and 5"):
+  1 Grammar tagger: Apache OpenNLP 2.5.12 (gradle dep in prepare_android.py step 7) + en-pos.bin, a perceptron POS model we
+    trained on UD_English-EWT r2.14 train+dev XPOS (Penn tags; 150 iterations, cutoff 3; 93.0% on EWT test; 0.7 MB; CC BY-SA 4.0).
+    Apache's own UD model only gives coarse tags (no past tense) and was dropped. CyG2p.tags() splits 's/n't like the treebank,
+    then misaki's rule: exact tag, then parent (VERB/NOUN/ADJ/ADV), else the list's sound. Kept: "to" + non-object = noun
+    ("rose to record highs", the tagger gets this wrong), used to, lead metal. misaki-het.txt now 688 words with all tag keys + 3 ours.
+  2 g2p_en (Apache-2.0) GRU model ported to Java (CyG2p.Net), weights g2p-en.bin (3.3 MB float32). Java output matches the numpy
+    reference on 7 names. Used only for words in neither list (before the rough guess). ~13 ms per word on desktop.
+  5 Section rhythm in CyNeural from the pitch the page already sends: headline speed x0.92 (page's x1.06 removed), subhead x0.96,
+    quote x0.97. Page's pauses between sections unchanged.
+  Credits: native/neural/VOICE-NOTICES.txt (bundled). Desktop load of tagger + model 0.35 s.

@@ -221,6 +221,16 @@ final class CyNeural implements CyTts.Neural {
         } catch (Throwable e) {
             Log.w(TAG, "misaki-het: " + e);
         }
+        try (java.io.InputStream in = ctx.getAssets().open("en-pos.bin")) {
+            g.setTagger(in); // grammar: verb or noun, past or present ("they read it yesterday")
+        } catch (Throwable e) {
+            Log.w(TAG, "en-pos: " + e);
+        }
+        try (java.io.InputStream in = ctx.getAssets().open("g2p-en.bin")) {
+            g.setNet(in); // names and new words no list knows
+        } catch (Throwable e) {
+            Log.w(TAG, "g2p-en: " + e);
+        }
         g2p = g;
         OfflineTtsModelConfig m = new OfflineTtsModelConfig();
         m.setKokoro(k);
@@ -236,7 +246,11 @@ final class CyNeural implements CyTts.Neural {
     }
 
     @Override
-    public void speak(String id, String voice, String text, float rate, float volume, int pauseMs, boolean add) {
+    public void speak(String id, String voice, String text, float rate0, float pitch, float volume, int pauseMs, boolean add) {
+        // Section rhythm. The page marks sections by pitch (a neural voice can't change pitch): headline 1.08 with speed x1.06,
+        // subhead 1.05 with x1.03, a quote without its own voice 1.18. Here a headline is read a little slower and weightier,
+        // a subhead a touch slower, a quote a touch slower too, so they stand apart from the body.
+        final float rate = pitch >= 1.15f ? rate0 * 0.97f : pitch >= 1.07f ? rate0 / 1.06f * 0.92f : pitch >= 1.04f ? rate0 / 1.03f * 0.96f : rate0;
         if (!add) flush();
         final int g = gen;
         int sid = SID;
