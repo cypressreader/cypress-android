@@ -280,13 +280,17 @@ final class CyTts {
                 if (voiceList.isEmpty()) refreshVoices(tts); // the engine had none at start-up; ask again
                 {
                     List<Voice> list = voiceList;
+                    HashMap<String, Integer> seen = new HashMap<>(); // same-looking names get 2, 3...
                     for (Voice v : list) {
                         if (v == null || v.getLocale() == null) continue;
                         if (v.getFeatures() != null && v.getFeatures().contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED)) continue;
                         JSONObject o = new JSONObject();
                         o.put("id", v.getName());
                         String q = (v.getQuality() >= Voice.QUALITY_HIGH ? " ★" : "") + (v.isNetworkConnectionRequired() ? " (online)" : "");
-                        o.put("name", v.getLocale().getDisplayName() + " · " + shortName(v.getName()) + q);
+                        String nm = v.getLocale().getDisplayName() + " · " + shortName(v.getName());
+                        Integer k = seen.get(nm);
+                        seen.put(nm, k == null ? 1 : k + 1);
+                        o.put("name", nm + (k == null ? "" : " " + (k + 1)) + q);
                         o.put("lang", v.getLocale().toLanguageTag());
                         o.put("local", !v.isNetworkConnectionRequired());
                         o.put("q", v.getQuality());
@@ -308,6 +312,11 @@ final class CyTts {
     private static String shortName(String n) {
         if (n == null) return "";
         int i = n.indexOf("-x-");
+        int c = n.indexOf(':');
+        if (i < 0 && c > 0) { // "elevenlabs:SkAdNM8i..." is a code, not a name: show the app's name instead
+            String e = n.substring(0, c);
+            return (e.equalsIgnoreCase("elevenlabs") ? "ElevenLabs" : Character.toUpperCase(e.charAt(0)) + e.substring(1)) + " voice";
+        }
         String s = i >= 0 ? n.substring(i + 3) : n;
         return s.replace("-local", "").replace("-network", "");
     }
