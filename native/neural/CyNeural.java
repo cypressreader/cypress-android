@@ -170,7 +170,7 @@ final class CyNeural implements CyTts.Neural {
         for (String[] v : VOICES) {
             JSObject o = new JSObject();
             o.put("id", v[0].equals(String.valueOf(SID)) ? CyTts.NEURAL_ID : CyTts.NEURAL_ID + ":" + v[0]);
-            o.put("name", "English (United States) · Natural " + v[1] + " (test)" + st);
+            o.put("name", "English (United States) · Natural " + v[1] + st);
             o.put("lang", "en-US");
             o.put("local", true);
             o.put("q", 0); // never picked by "Best available"; only when chosen by hand

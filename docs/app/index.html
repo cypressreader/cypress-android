@@ -5638,7 +5638,9 @@ function pruneJunk(root){
    if(/^(UL|OL)$/.test(e.tagName)&&(pos<.12||pos>.8)){const li=[...e.children].filter(x=>x.tagName==='LI');if(li.length>=2&&li.length<=10&&li.every(x=>{const tt=x.textContent.replace(/\s+/g,' ').trim();const a=x.querySelectorAll('a');return tt.length<=28&&a.length===1&&a[0].textContent.replace(/\s+/g,' ').trim()===tt}))e.remove()}})}catch(e){}
  /* a photo credit is never the opening line of the story: a credit-only caption goes (a figure left empty goes with it), and so does a credit sitting before a line break at the top of a paragraph */
  /* a credit line on its own anywhere in the story ("ANNVIPS/Shutterstock" under a picture) is furniture too */
- try{root.querySelectorAll('p,div').forEach(e=>{if(!root.contains(e)||e.querySelector('img,picture,video,iframe,p,div'))return;const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length&&t.length<80&&CREDITJ.test(t))e.remove()})}catch(e){}
+ try{root.querySelectorAll('p,div').forEach(e=>{if(!root.contains(e)||e.querySelector('img,picture,video,iframe,p,div'))return;const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length&&t.length<80&&CREDITJ.test(t))e.remove()});
+  /* or loose text left beside a picture (Engadget's <span class="gallery-image-credit"> ends up as bare text) */
+  const tw=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),dead=[];let x;while(x=tw.nextNode())if(credLoose(x,root))dead.push(x);dead.forEach(x=>x.remove())}catch(e){}
  try{root.querySelectorAll('figcaption').forEach(c=>{const t=c.textContent.replace(/\s+/g,' ').trim();if(t.length&&t.length<80&&CREDITJ.test(t)){const f=c.closest('figure');c.remove();if(f&&!f.querySelector('img,picture,video,iframe')&&!f.textContent.trim())f.remove()}});
   [...root.querySelectorAll('p,div')].slice(0,6).forEach(e=>{const n0=e.firstChild;if(n0&&n0.nodeType===3&&e.childNodes[1]&&e.childNodes[1].nodeName==='BR'){const t=n0.textContent.replace(/\s+/g,' ').trim();if(t.length<80&&CREDITJ.test(t)){e.childNodes[1].remove();n0.remove()}}})}catch(e){}
  const kids=[...root.querySelectorAll('p,li,div,h2,h3')];/* the article is detached from the page, so isConnected would always be false */
@@ -10139,7 +10141,7 @@ function ttsCollect(){
   if(root.closest('.tl,.tl-leaf'))return;/* page-turn copies: counting them made a 10-minute story read as 50 and could repeat pages */
   const tw=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n,inq=false,lb=null;
   while(n=tw.nextNode()){
-   if(skipDeco(n))continue;
+   if(skipDeco(n)||credLoose(n,root))continue;
    const b=n.parentElement.closest('p,li,h2,h3,h4,blockquote,figcaption,.tt')||root,re=/\S+/g,bq=!!n.parentElement.closest('blockquote');let m;
    if(b!==lb){inq=false;lb=b}
    if(junk(b))continue;
@@ -13931,6 +13933,8 @@ function photoPages(){
  if(imgs.length<4)return;
  imgs.forEach((im,k)=>{if(k%2)return;const host=im.closest('figure')||(im.parentElement&&im.parentElement.tagName==='P'&&!im.parentElement.textContent.trim()?im.parentElement:null);if(host)host.classList.add('fbp')});
 }
+/* a text node that is only a photo credit and stands alone (not words inside a sentence) */
+const credLoose=(x,root)=>{const t=x.data.replace(/\s+/g,' ').trim(),pe=x.parentElement;return t.length>2&&t.length<80&&CREDITJ.test(t)&&(x.parentNode===root||!!pe&&/^(DIV|SECTION|FIGURE|ARTICLE|SPAN|SMALL|CITE)$/.test(pe.tagName)&&pe.textContent.replace(/\s+/g,' ').trim()===t||/^(DIV|SECTION|FIGURE|ARTICLE)$/.test(pe.tagName))};
 const CREDRE=/[\s(\[]*((?:photos?|images?|credits?|illustrations?|photographs?|source|courtesy)s?\s*(?:by|:|\/)\s*[^()\[\]]{2,70}|[A-Z][\w.'’-]*(?: [A-Z][\w.'’-]*){0,3}\s*\/\s*(?:Getty Images|AP|Reuters|AFP|Shutterstock|Unsplash|EPA)[^()\[\]]{0,30}|Getty Images|Associated Press|Reuters|AFP)[)\]]?\s*$/i;
 function captions(){
  const b=$('.cols .body');if(!b)return;

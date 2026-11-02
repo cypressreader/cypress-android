@@ -541,8 +541,8 @@ if EXTRAS:
 else:
     say('optional extras are switched off (EXTRAS=0)')
 
-# 7. SPIKE, neural voices test build only (spike-tts.yml sets NEURAL=1 and downloads the sherpa-onnx AAR to
-#    android/app/libs/sherpa-onnx.aar). Installs next to the real app as com.cypress.reader.tts. Never on main builds.
+# 7. Natural voice (NEURAL=1; both workflows download the sherpa-onnx AAR to android/app/libs/sherpa-onnx.aar).
+#    VOICES_TEST=1 (spike-tts.yml only) makes it the separate test app com.cypress.reader.tts, "CyPress Voices test".
 if os.environ.get('NEURAL', '').strip() == '1':
     if not EXTRAS:
         die('NEURAL=1 needs the extras (CyTts lives there).')
@@ -557,15 +557,17 @@ if os.environ.get('NEURAL', '').strip() == '1':
     g = g.replace(anchor, anchor + "\n    implementation files('libs/sherpa-onnx.aar')"
                   "\n    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.0.21'"
                   "\n    implementation 'org.apache.opennlp:opennlp-tools:2.5.12'", 1)
+    test = os.environ.get('VOICES_TEST', '').strip() == '1'
     g += ("\nandroid {\n    defaultConfig { ndk { abiFilters 'arm64-v8a' }; minSdkVersion 26 }\n"
-          "    buildTypes { release { applicationIdSuffix '.tts'; versionNameSuffix '-voices' } }\n"
+          + ("    buildTypes { release { applicationIdSuffix '.tts'; versionNameSuffix '-voices' } }\n" if test else "") +
           "    packagingOptions { resources { excludes += ['META-INF/LICENSE*', 'META-INF/NOTICE*', 'META-INF/DEPENDENCIES'] } }\n}\n")
     open(GRADLE, 'w', encoding='utf-8').write(g)
-    sx = os.path.join(RES, 'values', 'strings.xml')
-    x = open(sx, encoding='utf-8').read()
-    x2 = re.sub(r'(<string name="app_name">)[^<]*', r'\1CyPress Voices test', x, count=1)
-    x2 = re.sub(r'(<string name="title_activity_main">)[^<]*', r'\1CyPress Voices test', x2, count=1)
-    open(sx, 'w', encoding='utf-8').write(x2)
-    say('neural voices test build: sherpa-onnx added, app id com.cypress.reader.tts')
+    if test:
+        sx = os.path.join(RES, 'values', 'strings.xml')
+        x = open(sx, encoding='utf-8').read()
+        x2 = re.sub(r'(<string name="app_name">)[^<]*', r'\1CyPress Voices test', x, count=1)
+        x2 = re.sub(r'(<string name="title_activity_main">)[^<]*', r'\1CyPress Voices test', x2, count=1)
+        open(sx, 'w', encoding='utf-8').write(x2)
+    say('natural voice added (sherpa-onnx)' + (', test app id com.cypress.reader.tts' if test else ''))
 
 print('Done.')
