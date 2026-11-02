@@ -216,6 +216,11 @@ final class CyNeural implements CyTts.Neural {
         } catch (Throwable e) {
             Log.w(TAG, "cmu-extra: " + e);
         }
+        try (java.io.InputStream in = ctx.getAssets().open("misaki-het.txt")) {
+            g.addHet(in); // ~690 same-spelling words (record, increase, ...): verb and noun sounds
+        } catch (Throwable e) {
+            Log.w(TAG, "misaki-het: " + e);
+        }
         g2p = g;
         OfflineTtsModelConfig m = new OfflineTtsModelConfig();
         m.setKokoro(k);

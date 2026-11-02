@@ -25,6 +25,7 @@ final class CyG2p {
             addMissing(in);
         }
         lex.put("ayem", "ˌAˈɛm"); // "a.m." (clean() writes this; the list only has "pm")
+        lex.put("memphis", "mˈɛmfəs"); // the voice's list has an extra p (mˈɛmpfəs); CMU and locals say it without
     }
 
     /** Adds words not already known. The voice's own list loads first, so it always wins (it matches how Kokoro was trained). */
@@ -35,6 +36,17 @@ final class CyG2p {
                 if (sp <= 0) continue;
                 String k = l.substring(0, sp).toLowerCase(Locale.ROOT);
                 if (!lex.containsKey(k)) lex.put(k, l.substring(sp + 1).replace(" ", ""));
+            }
+        }
+    }
+
+    /** Same-spelling words from misaki's us_gold.json (Apache-2.0): word, verb form, noun form ("-" = none). */
+    void addHet(java.io.InputStream in) throws Exception {
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+            for (String l; (l = r.readLine()) != null; ) {
+                String[] f = l.split("\t");
+                if (f.length != 3 || HET.containsKey(f[0])) continue; // the hand-checked table wins
+                HET.put(f[0], new String[]{f[1].equals("-") ? null : f[1], f[2].equals("-") ? null : f[2]});
             }
         }
     }
@@ -165,8 +177,8 @@ final class CyG2p {
         for (int i = 0; i < a.length; i += 2) AP.put(a[i], a[i + 1]);
     }
     private static final Pattern APST = Pattern.compile("(?<=\\b[A-Z][A-Za-z.'-]{1,30}, )(W\\.Va|[NRS]\\.[A-Z]|[A-Z][a-z]{1,4})\\.(?=\\s*(\\S)?)");
-    // only when the state ends a clause ("Memphis, Tennessee, police said"), and not in a list of states or after a date
-    private static final Pattern CITY = Pattern.compile("\\b([A-Z][A-Za-z.'-]+), (?=(?:" + STATES + ")(?:[,.;:!?)”]|\\s+\\(|\\s*$))");
+    // not in a list of states ("Texas, Georgia") or after a date/opener ("On Tuesday, Florida")
+    private static final Pattern CITY = Pattern.compile("\\b([A-Z][A-Za-z.'-]+), (?=(?:" + STATES + ")\\b(?!'))");
     private static final Pattern NOT_CITY = Pattern.compile("(?:" + STATES + "|" + "January|February|March|April|May|June|July|August|"
             + "September|October|November|December|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Today|Yesterday|Meanwhile|However|Instead)");
 
@@ -389,7 +401,7 @@ final class CyG2p {
         if (caps && w.length() <= 5 && w.indexOf('-') < 0 && (p == null || w.equals("us"))) { // CEO, FBI, US spelled out
             StringBuilder b = new StringBuilder();
             for (char c : w.toCharArray()) {
-                String l = lex.get(String.valueOf(c));
+                String l = c == 'a' ? "ˈA" : lex.get(String.valueOf(c)); // the list has "a" unstressed
                 if (l != null) b.append(l);
             }
             if (b.length() > 0) return b.toString();
@@ -451,6 +463,8 @@ final class CyG2p {
         return null;
     }
 
+    private static final Pattern MIXED = Pattern.compile("([a-z])([A-Z]{1,4})('s)?");
+
     /** One clip of text -> the phoneme string Kokoro reads. */
     String phonemes(String text) {
         String t = clean(text);
@@ -467,7 +481,17 @@ final class CyG2p {
             }
             boolean caps = tok.length() > 1 && tok.equals(tok.toUpperCase(Locale.ROOT)) && !tok.equals(tok.toLowerCase(Locale.ROOT));
             String lw = tok.toLowerCase(Locale.ROOT);
-            ph.add(word(lw, caps));
+            Matcher mx = MIXED.matcher(tok);
+            if (mx.matches() && lex.get(lw) == null) { // xAI, xAI's: say the letters
+                StringBuilder b = new StringBuilder();
+                for (char c : (mx.group(1) + mx.group(2)).toLowerCase(Locale.ROOT).toCharArray()) {
+                    String l = c == 'a' ? "ˈA" : lex.get(String.valueOf(c)); // the list has "a" unstressed
+                    if (l != null) b.append(b.length() > 0 ? " " : "").append(l);
+                }
+                ph.add(mx.group(3) != null ? plural(b.toString()) : b.toString());
+            } else if (ph.isEmpty() && tok.equals("A")) {
+                ph.add("ˈA"); // a sentence that opens with "A" is read "ay", as newsreaders do (David 2026-11-02)
+            } else ph.add(word(lw, caps));
             low.add(lw);
         }
         for (int i = 0; i < ph.size(); i++) {
@@ -476,7 +500,7 @@ final class CyG2p {
             String het = hetero(low.get(i), i > 0 ? low.get(i - 1) : "", i + 1 < low.size() ? low.get(i + 1) : "");
             if (het != null) ph.set(i, het);
             switch (low.get(i)) { // weak forms, the way Kokoro was trained (misaki)
-                case "a": ph.set(i, "ɐ"); break;
+                case "a": if (i > 0) ph.set(i, "ɐ"); break;
                 case "an": ph.set(i, "ɐn"); break;
                 case "the": ph.set(i, nv ? "ði" : "ðə"); break;
                 case "to": ph.set(i, nv ? "tʊ" : "tə"); break;

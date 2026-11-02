@@ -550,7 +550,7 @@ if os.environ.get('NEURAL', '').strip() == '1':
         die('NEURAL=1 but android/app/libs/sherpa-onnx.aar is missing.')
     for f in glob.glob(os.path.join(NATIVE, 'neural', '*.java')):
         copy(f, os.path.join(PKG_DIR, os.path.basename(f)))
-    for f in ('cmu-extra.txt', 'CMUDICT-LICENSE.txt'):  # extra pronunciations + the notice their license asks us to keep
+    for f in ('cmu-extra.txt', 'CMUDICT-LICENSE.txt', 'misaki-het.txt'):  # extra pronunciations + the notice their license asks us to keep
         copy(os.path.join(NATIVE, 'neural', f), os.path.join(MAIN, 'assets', f))
     g = open(GRADLE, encoding='utf-8').read()
     anchor = "implementation project(':capacitor-android')"

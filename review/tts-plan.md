@@ -80,3 +80,10 @@
   David's background bugs (story repeats while minimized; notification time left off and counting down while paused): not
   reproduced here. The page keeps its place from these reports, so better timing may help the repeat; the countdown is in shared
   code (CyMediaService chronometer from page's pos/dur estimate) and likely affects the main app too: needs a phone check.
+- Round 4 (2026-11-02, s2typy): David: "A" at sentence start read "uh"; Memphis, Tennessee still odd. Cause of Memphis: the voice's
+  list (and misaki gold) has mˈɛmpfəs (extra p); override to mˈɛmfəs. City-state comma now dropped whenever the state follows a
+  capitalized word (lists of states / dates / openers keep it). Sentence-opening "A" = ˈA. xAI-style words spell the capitals.
+  Same-spelling table now 627 words from misaki us_gold.json (Apache-2.0), bundled as native/neural/misaki-het.txt (APK asset),
+  same verb/noun context rules. Limit: misaki has no verb form for some (protest). Credits line needed before release (misaki Apache-2.0).
+  Open-source options offered to David: OpenNLP POS tagger (Apache, pure Java) for real grammar; g2p_en (Apache) neural model for
+  unknown names; Kokoro stays (best small open voice; Piper needs GPL eSpeak; Kitten smaller/worse); voice blending; section prosody.
