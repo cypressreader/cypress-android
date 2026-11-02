@@ -43,6 +43,8 @@ final class CyTts {
         boolean ready();
         void voice(JSONArray arr) throws Exception;
         void fetch();
+        com.getcapacitor.JSObject info();
+        void tier(String t);
         void speak(String id, String voice, String text, float rate, float pitch, float volume, int pauseMs, boolean add);
         void stop();
     }
@@ -51,7 +53,7 @@ final class CyTts {
     private Neural neural;
     private boolean neuralTried = false;
 
-    private synchronized Neural neural() {
+    synchronized Neural neural() {
         if (!neuralTried) {
             neuralTried = true;
             try {

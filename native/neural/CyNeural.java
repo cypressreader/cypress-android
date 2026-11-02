@@ -36,12 +36,15 @@ import java.util.concurrent.TimeUnit;
  */
 final class CyNeural implements CyTts.Neural {
     private static final String TAG = "CyNeural";
-    /** Pinned revision, so the files can never change under us. No espeak-ng-data is fetched. */
-    // full-quality (fp32) Kokoro v1.0: the int8 copy sounded robotic and, measured on desktop, was 2.5x SLOWER (barely real time)
-    private static final String BASE =
-            "https://huggingface.co/csukuangfj/kokoro-multi-lang-v1_0/resolve/f7b96bb6bef5c5da4d3aa4f4e0498fbbf62dc78b/";
-    private static final String[] FILES = {"tokens.txt", "lexicon-us-en.txt", "voices.bin", "model.onnx"};
-    private static final long[] SIZES = {687L, 5956885L, 28200960L, 325560556L};
+    /** Our own pre-release (voice-files.yml), so the files never change under us and nothing comes from Hugging Face. */
+    // Kokoro v1.0. Full = fp32; Compact = the same model at half precision (near-identical sound). int8 was robotic and slower.
+    private static final String BASE = "https://github.com/cypressreader/cypress-android/releases/download/voice-files-1/";
+    private static final String[] FILES = {"tokens.txt", "lexicon-us-en.txt", "voices.bin"};
+    private static final long[] SIZES = {687L, 5956885L, 28200960L};
+    /** Voice size: "phone" (no download, the phone's own voice), "compact" or "full". */
+    private static final String[] TIERS = {"compact", "full"};
+    private static final String[] MODELS = {"model.half.onnx", "model.onnx"};
+    private static final long[] MSIZES = {163421292L, 325560556L};
     private static final int SID = 3; // af_heart (US English, woman): the plain NEURAL_ID
     /** American voices in the same voices.bin (no extra download), best-rated first in Kokoro's own VOICES.md grades.
      *  British ones are left out: CyG2p writes American sounds. {speaker id, name}. */
@@ -71,30 +74,99 @@ final class CyNeural implements CyTts.Neural {
     private volatile OfflineTts tts;
     private volatile CyG2p g2p;
     private volatile boolean broken = false, downloading = false, warned = false;
+    private volatile String tier;
+    private volatile long got = 0, need = 0; // download progress, bytes
     private AudioTrack track;
     private int trackRate = 0;
 
     CyNeural(Context c) {
         ctx = c.getApplicationContext();
         dir = new File(ctx.getFilesDir(), "voices/kokoro-en");
+        // the test build downloaded model.onnx before sizes existed: that phone is on Full; everyone else starts on the phone's voice
+        tier = prefs().getString("tier", new File(dir, MODELS[1]).length() == MSIZES[1] ? "full" : "phone");
         Thread t = new Thread(this::playLoop, "CyNeuralPlay");
         t.setDaemon(true);
         t.start();
     }
 
+    private android.content.SharedPreferences prefs() {
+        return ctx.getSharedPreferences("cy_voice", Context.MODE_PRIVATE);
+    }
+
+    /** 0 = Compact, 1 = Full, -1 = phone's voice. */
+    private int ti() {
+        return java.util.Arrays.asList(TIERS).indexOf(tier);
+    }
+
+    private long total(int t) {
+        long n = MSIZES[t];
+        for (long z : SIZES) n += z;
+        return n;
+    }
+
     @Override
     public boolean ready() {
-        if (broken) return false;
+        int t = ti();
+        if (broken || t < 0) return false;
         for (int i = 0; i < FILES.length; i++) {
             File f = new File(dir, FILES[i]);
             if (!f.isFile() || f.length() != SIZES[i]) return false;
         }
-        return true;
+        return new File(dir, MODELS[t]).length() == MSIZES[t];
+    }
+
+    @Override
+    public JSObject info() {
+        JSObject o = new JSObject();
+        o.put("tier", tier);
+        o.put("ready", ready());
+        o.put("downloading", downloading);
+        o.put("got", got);
+        o.put("need", need);
+        o.put("compact", total(0));
+        o.put("full", total(1));
+        return o;
+    }
+
+    /** Sets the voice size. Drops the other size's model (and every file for "phone"), then downloads on Wi-Fi. */
+    @Override
+    public synchronized void tier(String t) {
+        if (!"phone".equals(t) && !java.util.Arrays.asList(TIERS).contains(t)) return;
+        if (!t.equals(tier)) {
+            tier = t;
+            prefs().edit().putString("tier", t).apply();
+            flush();
+            synth.execute(() -> { // on the synthesis thread, so nothing is mid-sentence when the model goes
+                OfflineTts o = tts;
+                tts = null;
+                g2p = null;
+                broken = false;
+                try {
+                    if (o != null) o.release();
+                } catch (Throwable e) {
+                    Log.w(TAG, "release: " + e);
+                }
+                int k = ti();
+                File[] fs = dir.listFiles();
+                if (fs != null) for (File f : fs) {
+                    String n = f.getName();
+                    if (k < 0 || (n.startsWith("model") && !n.startsWith(MODELS[k]))) f.delete(); // keeps a .part of this size to resume
+                }
+                emitInfo();
+            });
+        }
+        warned = false;
+        if (ti() >= 0) fetch();
+    }
+
+    private void emitInfo() {
+        CyExtras.emit("ttsNeural", info(), false);
     }
 
     @Override
     public void voice(org.json.JSONArray arr) throws Exception {
-        String st = ready() ? "" : downloading ? " · downloading" : " · downloads 330 MB on Wi-Fi";
+        if (ti() < 0) return; // voice size "phone": no natural voices on offer
+        String st = ready() ? "" : downloading ? " · downloading" : " · downloads on Wi-Fi";
         for (String[] v : VOICES) {
             JSObject o = new JSObject();
             o.put("id", v[0].equals(String.valueOf(SID)) ? CyTts.NEURAL_ID : CyTts.NEURAL_ID + ":" + v[0]);
@@ -109,7 +181,8 @@ final class CyNeural implements CyTts.Neural {
     /** Starts the one-time download on an unmetered network. Returns at once. */
     @Override
     public void fetch() {
-        if (broken || downloading || ready()) return;
+        final int tk = ti();
+        if (broken || downloading || tk < 0 || ready()) return;
         boolean metered = true;
         try {
             ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -119,11 +192,15 @@ final class CyNeural implements CyTts.Neural {
         }
         if (metered) {
             if (!warned) toast("The natural voice downloads on Wi-Fi only. Using the phone’s voice for now.");
+            emitInfo();
             warned = true; // once per app run, not once per paragraph
             return;
         }
         downloading = true;
-        toast("Downloading the natural voice (330 MB). Using the phone’s voice until it’s ready.");
+        need = total(tk);
+        got = 0;
+        toast("Downloading the natural voice (" + need / 1000000 + " MB). Using the phone’s voice until it’s ready.");
+        emitInfo();
         new Thread(() -> {
             String err = null;
             PowerManager.WakeLock wl = null;
@@ -141,21 +218,28 @@ final class CyNeural implements CyTts.Neural {
                 if (!dir.isDirectory() && !dir.mkdirs()) throw new Exception("no folder");
                 new File(dir, "model.int8.onnx").delete(); // the first test's smaller model, no longer used
                 new File(dir, "model.int8.onnx.part").delete();
-                for (int i = 0; i < FILES.length; i++) {
-                    File f = new File(dir, FILES[i]);
-                    if (f.isFile() && f.length() == SIZES[i]) continue;
-                    File part = new File(dir, FILES[i] + ".part");
+                for (int i = 0; i <= FILES.length; i++) {
+                    String name = i < FILES.length ? FILES[i] : MODELS[tk];
+                    long size = i < FILES.length ? SIZES[i] : MSIZES[tk];
+                    File f = new File(dir, name);
+                    if (f.isFile() && f.length() == size) {
+                        got += size;
+                        continue;
+                    }
+                    File part = new File(dir, name + ".part");
+                    long base = got;
                     for (int tries = 0; ; tries++) {
                         try {
-                            get(FILES[i], part, SIZES[i]);
+                            get(name, part, size, base, tk);
                             break;
-                        } catch (Throwable t) {
-                            Log.w(TAG, FILES[i] + " try " + tries + ": " + t);
-                            if (tries >= 5) throw t;
+                        } catch (Throwable e) {
+                            Log.w(TAG, name + " try " + tries + ": " + e);
+                            if (tries >= 5 || ti() != tk) throw e;
                             Thread.sleep(2000L << tries); // 2, 4, 8, 16, 32 s; the .part file is kept and resumed
                         }
                     }
-                    if (!part.renameTo(f)) throw new Exception("could not save " + FILES[i]);
+                    if (!part.renameTo(f)) throw new Exception("could not save " + name);
+                    got = base + size;
                 }
             } catch (Throwable t) {
                 err = t.getClass().getSimpleName() + (t.getMessage() == null ? "" : ": " + t.getMessage());
@@ -169,13 +253,18 @@ final class CyNeural implements CyTts.Neural {
                 }
             }
             downloading = false;
+            emitInfo();
+            if (ti() != tk) { // the size changed (or Delete) while downloading: say nothing, fetch the new size
+                if (ti() >= 0) fetch();
+                return;
+            }
             toast(err == null ? "The natural voice is ready. It is used from the next story you play."
                      : "The natural voice didn’t download (" + (err.length() > 90 ? err.substring(0, 90) : err) + "). Choose it again on Wi-Fi to continue where it stopped.");
         }, "CyNeuralGet").start();
     }
 
     /** Downloads one file into part, continuing from what part already holds. */
-    private static void get(String name, File part, long size) throws Exception {
+    private void get(String name, File part, long size, long base, int t) throws Exception {
         long have = part.isFile() ? part.length() : 0;
         if (have > size) {
             part.delete();
@@ -193,7 +282,17 @@ final class CyNeural implements CyTts.Neural {
             if (code != 200 && code != 206) throw new Exception("HTTP " + code + " for " + name);
             try (InputStream in = c.getInputStream(); FileOutputStream out = new FileOutputStream(part, append)) {
                 byte[] buf = new byte[1 << 16];
-                for (int n; (n = in.read(buf)) > 0; ) out.write(buf, 0, n);
+                long last = 0;
+                for (int n; (n = in.read(buf)) > 0; ) {
+                    if (ti() != t) throw new Exception("size changed");
+                    out.write(buf, 0, n);
+                    long now = System.currentTimeMillis();
+                    if (now - last > 700) { // progress for Settings, a few times a second at most
+                        last = now;
+                        got = base + part.length();
+                        emitInfo();
+                    }
+                }
             }
         } finally {
             c.disconnect();
@@ -206,7 +305,7 @@ final class CyNeural implements CyTts.Neural {
         if (t != null) return t;
         long t0 = System.currentTimeMillis();
         OfflineTtsKokoroModelConfig k = new OfflineTtsKokoroModelConfig();
-        k.setModel(new File(dir, "model.onnx").getPath());
+        k.setModel(new File(dir, MODELS[Math.max(0, ti())]).getPath());
         k.setVoices(new File(dir, "voices.bin").getPath());
         k.setTokens(new File(dir, "tokens.txt").getPath());
         // no lexicon for sherpa: CyG2p turns text into phonemes itself, so unknown words are never skipped
