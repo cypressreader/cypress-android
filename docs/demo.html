@@ -10384,6 +10384,7 @@ function ttsClean(){
 }
 function ttsToggle(){
  if(!('speechSynthesis' in window)){toast('Reading aloud isn’t available on this device or browser.');return}
+ if(!TTS.on&&window.__nvOffer&&window.__nvOffer())return;
  if(!TTS.on){const why=ttsClean();if(why&&!ttsToggle.force){if(R.queueRun||R.briefAudio){toast('Skipping: '+why);ttsEnd(true)}else{toast('Not reading this aloud because '+why+'. Tap Read aloud again to read what’s here');ttsToggle.force=true;setTimeout(()=>{ttsToggle.force=false},6000)}return}}
  if(TTS.on&&!TTS.paused)return ttsPause();
  if(TTS.on&&TTS.paused)return ttsFrom(ttsPos());
@@ -10464,7 +10465,12 @@ const voiceWhere=()=>NATIVE?'Android Settings > Text-to-speech output':/Mac|iPho
  /* natural voice size: only an app built with it answers with a tier; files live on this phone, Delete frees the space */
  const nvShow=r=>{const w=$('#nvw'),z=$('#nvz');if(!w||!r||!r.tier)return;w.hidden=false;const mb=b=>Math.round(b/1e6)+' MB';z.options[1].text='Compact ('+mb(r.compact)+')';z.options[2].text='Full ('+mb(r.full)+')';z.value=r.tier;$('#nvdel').hidden=r.tier==='phone';
   $('#nvh').textContent='A more lifelike voice that runs on this phone. Compact sounds almost the same as Full in half the space. '+(r.tier==='phone'?'Off: the phone’s own voice reads.':r.ready?'Ready: choose a Natural voice above.':r.downloading?'Downloading… '+Math.floor(100*r.got/Math.max(1,r.need))+'%':'Downloads on Wi-Fi.');
-  if(r.ready!==nvShow.was&&nvShow.was!=null)syn.reload();nvShow.was=r.ready};
+  if(r.ready!==nvShow.was&&nvShow.was!=null)syn.reload();nvShow.was=r.ready;nvShow.r=r;
+  /* chosen from the first-time offer: switch to it as soon as it is on the phone */
+  if(r.ready&&S.nvpick){delete S.nvpick;S.voice='neural:kokoro-en';save();toast('The Natural voice is ready and will read your next story')}};
+ /* offered once, the first time Read aloud is tapped, instead of only deep in Settings */
+ window.__nvOffer=()=>{const r=nvShow.r;if(!r||r.tier!=='phone'||r.downloading||S.nvask)return false;S.nvask=1;save();
+  askBox({title:'Try the Natural voice?',text:'A more lifelike voice that runs on this phone, even offline. It’s a one-time download of '+Math.round(r.compact/1e6)+' MB on Wi-Fi. Your phone’s own voice reads until it’s ready. You can change this later in Settings, Read aloud.',ok:'Download',cancel:'Not now'}).then(y=>{if(y){S.nvpick=1;save();nvGet('compact')}ttsToggle()});return true};
  const nvGet=t=>{try{Promise.resolve(x.ttsNeural(t?{tier:t}:{})).then(nvShow).catch(()=>{})}catch(e){}};
  on('ttsNeural',nvShow);
  {const z=$('#nvz'),d=$('#nvdel');if(z){z.onchange=()=>{if(TTS.on)ttsStop();nvGet(z.value)};d.onclick=()=>askBox({title:'Delete the natural voice?',text:'This frees its space on your phone. The phone’s own voice will read until you choose a size again.',ok:'Delete',cancel:'Keep it',danger:true}).then(y=>{if(!y)return;if(TTS.on)ttsStop();nvGet('phone')})}}
