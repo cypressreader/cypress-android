@@ -24,6 +24,7 @@ final class CyG2p {
         try (java.io.InputStream in = new FileInputStream(lexicon)) {
             addMissing(in);
         }
+        lex.put("ayem", "ˌAˈɛm"); // "a.m." (clean() writes this; the list only has "pm")
     }
 
     /** Adds words not already known. The voice's own list loads first, so it always wins (it matches how Kokoro was trained). */
@@ -47,6 +48,8 @@ final class CyG2p {
     static String clean(String t) {
         t = Normalizer.normalize(t, Normalizer.Form.NFKD).replaceAll("\\p{M}+", ""); // café -> cafe
         t = t.replace('’', '\'').replace('‘', '\'').replace('ʼ', '\'');
+        t = times(t);
+        t = expand(t);
         Matcher d = DOTS.matcher(t); // U.S. -> US (spelled out below), so the dots are not read as sentence ends
         StringBuffer db = new StringBuffer();
         while (d.find()) d.appendReplacement(db, d.group(1).replace(".", ""));
@@ -59,6 +62,84 @@ final class CyG2p {
         while (m.find()) m.appendReplacement(sb, Matcher.quoteReplacement(" " + numWords(m) + " "));
         m.appendTail(sb);
         return sb.toString();
+    }
+
+    // ------------------------------------------------------------------ times, dates, units, titles
+
+    private static final Pattern AMPM = Pattern.compile("\\b(\\d{1,2})(?::([0-5]\\d))?\\s?([AaPp])\\.?[Mm](?:\\.(?!\\s*$))?(?![A-Za-z])");
+    private static final Pattern CLOCK = Pattern.compile("\\b(\\d{1,2}):([0-5]\\d)\\b(?![:\\d])");
+
+    /** 9 a.m. -> nine ayem, 3:30 p.m. -> three thirty pm, 5:00 -> five o'clock, 7:05 -> seven oh five. */
+    static String times(String t) {
+        StringBuffer b = new StringBuffer();
+        Matcher m = AMPM.matcher(t);
+        while (m.find()) m.appendReplacement(b, clock(m.group(1), m.group(2), true)
+                + (Character.toLowerCase(m.group(3).charAt(0)) == 'a' ? " ayem" : " pm"));
+        m.appendTail(b);
+        t = b.toString();
+        b = new StringBuffer();
+        m = CLOCK.matcher(t);
+        while (m.find()) m.appendReplacement(b, Matcher.quoteReplacement(clock(m.group(1), m.group(2), false)));
+        m.appendTail(b);
+        return b.toString();
+    }
+
+    private static String clock(String h, String mm, boolean ampm) {
+        String w = under1000(Integer.parseInt(h));
+        int n = mm == null ? 0 : Integer.parseInt(mm);
+        if (n == 0) return mm == null || ampm ? w : w + " o'clock";
+        return w + (n < 10 ? " oh " + ONES[n] : " " + under1000(n));
+    }
+
+    private static final String MON = "January|February|March|April|May|June|July|August|September|October|November|December";
+    private static final Pattern MONABBR = Pattern.compile("\\b(Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept?|Oct|Nov|Dec)(?:\\.|(?=\\s+\\d{1,2}\\b))");
+    private static final Pattern DAY = Pattern.compile("\\b(" + MON + ")\\s+([1-9]|[12]\\d|3[01])(?:st|nd|rd|th)?\\b(?![\\d:])");
+    private static final Pattern UNIT = Pattern.compile("\\b(\\d+(?:[.,]\\d+)*)\\s?(km|kph|mph|kg|lbs?|ft|mi|cm|mm|oz|°[FC]?)(?![A-Za-z])(?:\\.(?!\\s*$|\\s+[A-Z]))?");
+    private static final Pattern TITLE = Pattern.compile("\\b(Gov|Sen|Rep|Gen|Lt|Col|Sgt|Capt|Cmdr|Adm|Prof|Supt|Mt|Ft|Jr|Sr|St|No|vs)\\.(?=\\s*(\\S)?)");
+    private static final HashMap<String, String> WORDS = new HashMap<>();
+    static {
+        String[] w = {"Jan", "January", "Feb", "February", "Mar", "March", "Apr", "April", "Jun", "June", "Jul", "July", "Aug", "August",
+                "Sep", "September", "Sept", "September", "Oct", "October", "Nov", "November", "Dec", "December",
+                "km", "kilometer", "kph", "kilometers per hour", "mph", "miles per hour", "kg", "kilogram", "lb", "pound", "lbs", "pound",
+                "ft", "foot", "mi", "mile", "cm", "centimeter", "mm", "millimeter", "oz", "ounce", "°", "degree", "°F", "degree Fahrenheit",
+                "°C", "degree Celsius", "Gov", "Governor", "Sen", "Senator", "Rep", "Representative", "Gen", "General", "Lt", "Lieutenant",
+                "Col", "Colonel", "Sgt", "Sergeant", "Capt", "Captain", "Cmdr", "Commander", "Adm", "Admiral", "Prof", "Professor",
+                "Supt", "Superintendent", "Mt", "Mount", "Ft", "Fort", "Jr", "Junior", "Sr", "Senior", "vs", "versus"};
+        for (int i = 0; i < w.length; i += 2) WORDS.put(w[i], w[i + 1]);
+    }
+
+    /** Jan. -> January, Nov. 2 -> November second, 5 km -> five kilometers, Gov. -> Governor, St. Louis / Main St., No. 5. */
+    static String expand(String t) {
+        StringBuffer b = new StringBuffer();
+        Matcher m = MONABBR.matcher(t);
+        while (m.find()) m.appendReplacement(b, WORDS.get(m.group(1)));
+        m.appendTail(b);
+        t = b.toString();
+        b = new StringBuffer();
+        m = DAY.matcher(t);
+        while (m.find()) m.appendReplacement(b, m.group(1) + " " + ordinal(under1000(Integer.parseInt(m.group(2)))));
+        m.appendTail(b);
+        t = b.toString();
+        b = new StringBuffer();
+        m = UNIT.matcher(t);
+        while (m.find()) {
+            String u = WORDS.get(m.group(2)), one = m.group(1);
+            if (!one.equals("1")) u = u.startsWith("foot") ? "feet" : u.contains(" per ") ? u : u.replaceFirst("^(\\S+)", "$1s");
+            m.appendReplacement(b, Matcher.quoteReplacement(one + " " + u));
+        }
+        m.appendTail(b);
+        t = b.toString();
+        b = new StringBuffer();
+        m = TITLE.matcher(t);
+        while (m.find()) {
+            String a = m.group(1), nx = m.group(2), w = WORDS.get(a);
+            if (a.equals("St")) w = nx != null && Character.isUpperCase(nx.charAt(0)) ? "Saint" : "Street";
+            else if (a.equals("No")) w = nx != null && Character.isDigit(nx.charAt(0)) ? "number" : null; // "No. I won't" stays
+            boolean end = nx == null || (a.endsWith("r") && Character.isUpperCase(nx.charAt(0))); // "Lee Jr. He said"
+            m.appendReplacement(b, Matcher.quoteReplacement(w == null ? m.group() : end ? w + "." : w)); // keep a sentence-end dot
+        }
+        m.appendTail(b);
+        return b.toString();
     }
 
     private static final String[] ONES = {"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
@@ -279,6 +360,49 @@ final class CyG2p {
         return guess(w.replace("'", ""));
     }
 
+    // Same spelling, two sounds. Forms from misaki's us_gold.json (what Kokoro was trained on); the voice's list holds the first
+    // (DEFAULT) one. {word, verb form, noun form}; null = keep the list's.
+    private static final HashMap<String, String[]> HET = new HashMap<>();
+    private static final java.util.Set<String> VERB_PREV = new java.util.HashSet<>(java.util.Arrays.asList("will", "would", "can",
+            "could", "may", "might", "must", "shall", "should", "cannot", "can't", "won't", "wouldn't", "couldn't", "shouldn't",
+            "don't", "doesn't", "didn't", "i", "we", "they", "you", "who", "to"));
+    private static final java.util.Set<String> NOUN_PREV = new java.util.HashSet<>(java.util.Arrays.asList("a", "an", "the", "this",
+            "these", "those", "its", "their", "our", "my", "your", "his", "any", "no", "each", "every", "of", "in", "for", "with"));
+    // after "to", only a verb if an object/particle follows: "to record the album", not "rose to record highs"
+    private static final java.util.Set<String> AFTER_TO = new java.util.HashSet<>(java.util.Arrays.asList("the", "a", "an", "his",
+            "her", "their", "its", "our", "my", "your", "this", "that", "these", "those", "it", "them", "him", "us", "me", "in", "on",
+            "with", "at", "for", "from", "up", "down", "out", "off", "by", "and", "or", "than", "as", ",", ".", "!", "?", ";", ":", ""));
+    private static final java.util.Set<String> READ_PAST = new java.util.HashSet<>(java.util.Arrays.asList("have", "has", "had",
+            "was", "were", "been", "be", "being", "is", "are", "i've", "we've", "you've", "they've", "already", "widely"));
+    private static final java.util.Set<String> METAL = new java.util.HashSet<>(java.util.Arrays.asList("poisoning", "pipe", "pipes",
+            "paint", "levels", "level", "exposure", "contamination", "service", "lines", "pipelines", "bullet", "bullets"));
+    static {
+        String[] h = {"live", "lˈɪv", null, "use", null, "jˈus", "close", "klˈOz", null, "record", "ɹəkˈɔɹd", null,
+                "present", "pɹizˈɛnt", null, "object", "əbʤˈɛkt", null, "tear", "tˈɛɹ", null, "wind", "wˈInd", null,
+                "content", null, "kˈɑntɛnt", "project", "pɹəʤˈɛkt", null, "increase", null, "ˈɪnkɹˌis", "permit", "pəɹmˈɪt", null,
+                "progress", "pɹəɡɹˈɛs", null, "conduct", "kəndˈʌkt", null, "contract", "kəntɹˈækt", null, "produce", null, "pɹˈOdˌus",
+                "refuse", null, "ɹˈɛfjˌus", "desert", "dəzˈɜɹt", null, "house", "hˈWz", null, "separate", "sˈɛpəɹˌAt", null,
+                "estimate", null, "ˈɛstəmət", "graduate", "ɡɹˈæʤʊˌAt", null, "moderate", "mˈɑdəɹˌAt", null,
+                "alternate", "ˈɔltəɹnˌAt", null, "duplicate", "dˈupləkˌAt", null, "delegate", "dˈɛləɡˌAt", null};
+        for (int i = 0; i < h.length; i += 3) HET.put(h[i], new String[]{h[i + 1], h[i + 2]});
+    }
+
+    /** The context form for a same-spelling word, or null to keep the list's. Small rules, not a full grammar. */
+    private static String hetero(String w, String prev, String next) {
+        switch (w) {
+            case "read": return READ_PAST.contains(prev) ? "ɹˈɛd" : null;
+            case "used": return next.equals("to") ? "jˈust" : null;
+            case "lead": return METAL.contains(next) ? "lˈɛd" : null;
+            case "wound": return next.equals("up") || next.equals("down") ? "wˈWnd" : null;
+            default: break;
+        }
+        String[] f = HET.get(w);
+        if (f == null) return null;
+        if (f[0] != null && VERB_PREV.contains(prev) && (!prev.equals("to") || AFTER_TO.contains(next))) return f[0];
+        if (f[1] != null && NOUN_PREV.contains(prev)) return f[1];
+        return null;
+    }
+
     /** One clip of text -> the phoneme string Kokoro reads. */
     String phonemes(String text) {
         String t = clean(text);
@@ -301,6 +425,8 @@ final class CyG2p {
         for (int i = 0; i < ph.size(); i++) {
             String next = i + 1 < ph.size() ? ph.get(i + 1) : "";
             boolean nv = vowelStart(next);
+            String het = hetero(low.get(i), i > 0 ? low.get(i - 1) : "", i + 1 < low.size() ? low.get(i + 1) : "");
+            if (het != null) ph.set(i, het);
             switch (low.get(i)) { // weak forms, the way Kokoro was trained (misaki)
                 case "a": ph.set(i, "ɐ"); break;
                 case "an": ph.set(i, "ən"); break;

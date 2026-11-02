@@ -1152,3 +1152,6 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 3. Play a story. Note: seconds from pressing Play to first sound; any gaps between sentences or paragraphs; how it sounds; stop, pause and skip respond quickly; sleep timer still stops it; battery drain and heat over 15 minutes with the screen off.
 4. On mobile data with the voice not yet downloaded: one "Wi-Fi only" message, and the phone's voice reads.
 5. Highlighting follows sentences, not single words (expected for now).
+
+## 2026-11-02 Voices test (session s2typy): reading rules, unverified on phone
+- Read a story with times ("9 a.m.", "3:30 p.m."), dates ("Nov. 2"), units ("40 mph", "95°F"), titles ("Gov.", "St. Louis") and words like "read"/"record"/"increase" in the CyPress Voices test app; listen for wrong readings.

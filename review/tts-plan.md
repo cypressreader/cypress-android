@@ -60,3 +60,11 @@
   The voice's list wins on shared words: of 48,776 shared, sounds match only 64%; the voice list has American flaps/reduced vowels
   (buttery bˈʌɾəɹi vs CMU bˈʌtəɹi) that Kokoro was trained on. Both are General American. License BSD-style: CMUDICT-LICENSE.txt
   ships in assets; an app credits line is needed before release. Load 0.46 s, +38 MB heap on desktop. Missing: recent names.
+- Reading rules (2026-11-02, session s2typy, CyG2p only): times (9 a.m., 3:30 p.m., 5:00 -> five o'clock, 7:05 -> seven oh five);
+  dates (Nov. 2 -> November second, month abbreviations); units after numbers (km, mph, kg, lb/lbs, ft, mi, cm, mm, oz, °F/°C);
+  titles (Gov., Sen., Rep., Gen., Lt., Col., Sgt., Capt., Prof., Mt., Ft., Jr., Sr.), St. Louis vs Main St., No. 5, vs.
+  Same-spelling words by context, forms taken from misaki us_gold.json: read (past after have/was/is...), used to, lead
+  (metal before poisoning/pipes/paint...), live/record/present/object/increase/estimate/use/content/produce/refuse... verb form
+  after will/can/I/they/to (after "to" only if an object follows: "rose to record highs" stays a noun), noun form after a/the/its.
+  Checked with javac on the real lexicon, 10 test sentences. Weak forms for and/of/for/can: SKIPPED on purpose: the voice's list
+  already has them unstressed and misaki (Kokoro's training) never reduces them further.
