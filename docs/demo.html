@@ -12064,6 +12064,9 @@ function dynApply(c){
  next.classList.add('on');prev.classList.remove('on');d.classList.add('has');
  if(first){void next.offsetWidth;next.style.transition=''}
 }
+/* a color change re-styles the page, so it waits until the finger is off and the scroll has stopped (it stuttered mid-scroll) */
+addEventListener('scroll',()=>{dynSet.sc=Date.now()},{capture:true,passive:true});
+function dynIdle(){const q=Date.now()-(dynSet.sc||0);if(q<350){dynSet.w=setTimeout(dynIdle,350-q);return}dynApply(dynSet.tgt)}
 function dynSet(c){
  if(!c)return;
  const d=document.getElementById('dynbg'),has=!!(d&&d.classList.contains('has')),now=Date.now();
@@ -12073,7 +12076,7 @@ function dynSet(c){
  dynSet.h=(dynSet.h||[]).filter(t=>now-t<2500);dynSet.h.push(now);
  const dwell=has?Math.min(1400,500+dynSet.h.length*140):0,wait=Math.max(dwell,1000-(now-(dynSet.t||0)));
  clearTimeout(dynSet.w);
- if(has&&wait>0){dynSet.w=setTimeout(()=>dynApply(dynSet.tgt),wait);return}
+ if(has&&wait>0){dynSet.w=setTimeout(dynIdle,wait);return}
  dynApply(c);
 }
 function dynLive(){
