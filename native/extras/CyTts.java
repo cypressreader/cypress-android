@@ -221,6 +221,10 @@ final class CyTts {
             }
             voiceByName = m;
             voiceList = l;
+            String lb = "";
+            if (t != null) for (TextToSpeech.EngineInfo e : t.getEngines())
+                if (e.name != null && e.name.equals(t.getDefaultEngine()) && e.label != null) lb = e.label.replace("Speech Services by ", "");
+            engineLabel = lb;
         } catch (Throwable e) {
             Log.w(TAG, "voice list failed: " + e);
         }
@@ -309,7 +313,10 @@ final class CyTts {
         return out;
     }
 
-    private static String shortName(String n) {
+    /** The phone's speech app ("Google", "Samsung TTS"), so its voices say whose they are. */
+    private volatile String engineLabel = "";
+
+    private String shortName(String n) {
         if (n == null) return "";
         int i = n.indexOf("-x-");
         int c = n.indexOf(':');
@@ -318,7 +325,8 @@ final class CyTts {
             return (e.equalsIgnoreCase("elevenlabs") ? "ElevenLabs" : Character.toUpperCase(e.charAt(0)) + e.substring(1)) + " voice";
         }
         String s = i >= 0 ? n.substring(i + 3) : n;
-        return s.replace("-local", "").replace("-network", "");
+        s = s.replace("-local", "").replace("-network", "");
+        return engineLabel.isEmpty() ? s : engineLabel + " " + s;
     }
 
     // ---------------------------------------------------------------- speaking

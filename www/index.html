@@ -5637,6 +5637,8 @@ function pruneJunk(root){
    if(t.length&&t.length<80&&!e.querySelector('img')&&/^(P|DIV|FIGCAPTION|SPAN)$/.test(e.tagName)&&CREDITJ.test(t)){e.remove();return}
    if(/^(UL|OL)$/.test(e.tagName)&&(pos<.12||pos>.8)){const li=[...e.children].filter(x=>x.tagName==='LI');if(li.length>=2&&li.length<=10&&li.every(x=>{const tt=x.textContent.replace(/\s+/g,' ').trim();const a=x.querySelectorAll('a');return tt.length<=28&&a.length===1&&a[0].textContent.replace(/\s+/g,' ').trim()===tt}))e.remove()}})}catch(e){}
  /* a photo credit is never the opening line of the story: a credit-only caption goes (a figure left empty goes with it), and so does a credit sitting before a line break at the top of a paragraph */
+ /* a credit line on its own anywhere in the story ("ANNVIPS/Shutterstock" under a picture) is furniture too */
+ try{root.querySelectorAll('p,div').forEach(e=>{if(!root.contains(e)||e.querySelector('img,picture,video,iframe,p,div'))return;const t=e.textContent.replace(/\s+/g,' ').trim();if(t.length&&t.length<80&&CREDITJ.test(t))e.remove()})}catch(e){}
  try{root.querySelectorAll('figcaption').forEach(c=>{const t=c.textContent.replace(/\s+/g,' ').trim();if(t.length&&t.length<80&&CREDITJ.test(t)){const f=c.closest('figure');c.remove();if(f&&!f.querySelector('img,picture,video,iframe')&&!f.textContent.trim())f.remove()}});
   [...root.querySelectorAll('p,div')].slice(0,6).forEach(e=>{const n0=e.firstChild;if(n0&&n0.nodeType===3&&e.childNodes[1]&&e.childNodes[1].nodeName==='BR'){const t=n0.textContent.replace(/\s+/g,' ').trim();if(t.length<80&&CREDITJ.test(t)){e.childNodes[1].remove();n0.remove()}}})}catch(e){}
  const kids=[...root.querySelectorAll('p,li,div,h2,h3')];/* the article is detached from the page, so isConnected would always be false */
@@ -10132,7 +10134,7 @@ setInterval(()=>{if(TTS.on||DIG.on||($('#tmini')&&!$('#tmini').hidden))tminiSync
 
 const BOILER=/^\W*(subscribe|sign up (for|to)|newsletter|all rights reserved|©|copyright|follow us|click here|advertisement|already a subscriber|log in|sign in|read more|this article (originally )?appeared|support (our|independent) journalism|share this|terms of (use|service)|privacy policy)|(all rights reserved|©\s*\d{4})/i;
 function ttsCollect(){
- const w=[],bp=new Map(),junk=b=>{if(b.classList&&b.classList.contains('tt'))return false;if(bp.has(b))return bp.get(b);const t=(b.textContent||'').trim(),r=t.length<160&&(BOILER.test(t)||PWRE.test(t))||t.length<40&&/^(advertisement|sponsored|ad|share|related|read more|more from|photo|image|credit|getty|source:)/i.test(t);bp.set(b,r);return r};
+ const w=[],bp=new Map(),junk=b=>{if(b.classList&&b.classList.contains('tt'))return false;if(bp.has(b))return bp.get(b);const t=(b.textContent||'').trim(),r=t.length<160&&(BOILER.test(t)||PWRE.test(t))||t.length<80&&CREDITJ.test(t)||t.length<40&&/^(advertisement|sponsored|ad|share|related|read more|more from|photo|image|credit|getty|source:)/i.test(t);bp.set(b,r);return r};
  document.querySelectorAll('.cols .tt,.cols .body').forEach(root=>{
   if(root.closest('.tl,.tl-leaf'))return;/* page-turn copies: counting them made a 10-minute story read as 50 and could repeat pages */
   const tw=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n,inq=false,lb=null;
@@ -10355,10 +10357,10 @@ const voiceWhere=()=>NATIVE?'Android Settings > Text-to-speech output':/Mac|iPho
  on('ttsNeural',nvShow);
  {const z=$('#nvz'),d=$('#nvdel');if(z){z.onchange=()=>{if(TTS.on)ttsStop();nvGet(z.value)};d.onclick=()=>askBox({title:'Delete the natural voice?',text:'This frees its space on your phone. The phone’s own voice will read until you choose a size again.',ok:'Delete',cancel:'Keep it',danger:true}).then(y=>{if(!y)return;if(TTS.on)ttsStop();nvGet('phone')})}}
  setTimeout(()=>nvGet(),400);
- const loadVoices=async n=>{try{const r=await x.ttsVoices();syn.voices=((r&&r.voices)||[]).map(v=>({voiceURI:v.id,name:v.name,lang:v.lang,localService:!!v.local,default:false,q:+v.q||0}));syn.voiceState=r&&r.failed?'failed':(syn.voices.length?'ok':'empty');fire('voiceschanged');if(!syn.voices.length&&n>0&&!(r&&r.failed))setTimeout(()=>loadVoices(n-1),1200)}catch(e){syn.voiceState='failed';syn.err=String(e&&e.message||e).slice(0,140);fire('voiceschanged')}};
+ const loadVoices=async n=>{try{const r=await x.ttsVoices();syn.voices=((r&&r.voices)||[]).map(v=>({voiceURI:v.id,name:v.name,lang:v.lang,localService:!!v.local,default:false,q:+v.q||0}));syn.voiceState=r&&r.failed?'failed':(syn.voices.length?'ok':'empty');fire('voiceschanged');/* ask again while the phone's engine is still starting: our Natural voices alone make the list look full (Google starts slowly) */if((!syn.voices.length||!(r&&r.ready))&&n>0&&!(r&&r.failed))setTimeout(()=>loadVoices(n-1),1200)}catch(e){syn.voiceState='failed';syn.err=String(e&&e.message||e).slice(0,140);fire('voiceschanged')}};
  syn.reload=()=>loadVoices(2);
  const gone=()=>{try{delete window.speechSynthesis}catch(e){window.speechSynthesis=undefined}try{delete window.SpeechSynthesisUtterance}catch(e){}document.documentElement.classList.add('nospeech')};
- try{Promise.resolve(x.features()).then(r=>{if(r&&r.features&&r.features.indexOf('tts')>=0)setTimeout(()=>loadVoices(6),300);else gone()}).catch(gone)}catch(e){gone()}
+ try{Promise.resolve(x.features()).then(r=>{if(r&&r.features&&r.features.indexOf('tts')>=0)setTimeout(()=>loadVoices(12),300);else gone()}).catch(gone)}catch(e){gone()}
 })();
 document.documentElement.classList.toggle('nospeech',!('speechSynthesis' in window));
 function fillVoices(){if(!('speechSynthesis' in window))return;const o=voiceOpts();voiceHint();['#voice','#pbvoice'].forEach(id=>{const e=$(id);if(e){e.innerHTML=o;e.value=S.voice||''}});const q=$('#qv');if(q){q.innerHTML='<option value="">Same voice</option><option value="auto">Automatic second voice</option>'+o.replace('<option value="">Default</option>','');q.value=S.qvoice||''}}
