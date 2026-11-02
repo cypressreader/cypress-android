@@ -8,7 +8,8 @@
 //   POST /api/stats  opt-in weekly anonymous counts from the app (needs the STATS binding, see docs/worker/INSIGHTS.md)
 //   POST /api/report a problem report the person wrote and sent from Settings (same STATS binding)
 //   GET /api/insights everything above, for cypressreader.com/insights; needs the INSIGHTS_KEY secret as a Bearer token
-//   /app/ and /feed  the web app, only for family and friends: needs the FAMILY_CODE secret; /app/?invite=<code> lets a browser in for a year
+//   the web app, only for family and friends: served at the secret path FAMILY_PATH (a secret, so it is not in this public file),
+//   behind the FAMILY_CODE password; /<path>/?invite=<code> lets a browser in for a year. /app/ then goes to the home page. /feed needs the same pass.
 //   everything else is the CyPress site and web app, served from GitHub Pages under this address
 //
 // Abuse limits (E3). /feed follows at most 5 redirects itself and re-checks every hop (no private, loopback or
@@ -318,20 +319,30 @@ async function familyOk(req, env) {
   const m = (req.headers.get('cookie') || '').match(/(?:^|;\s*)cyfam=([0-9a-f]{64})/);
   return !!m && m[1] === await famToken(env.FAMILY_CODE);
 }
-async function familyGate(req, env, u) {
+async function familyGate(req, env, u, base) {
   const inv = (u.searchParams.get('invite') || '').trim();
   if (inv) {
     if (limited(req, 'fam', 10)) return tooMany();
-    if (inv.toLowerCase() === String(env.FAMILY_CODE).toLowerCase()) return new Response(null, { status: 302, headers: { location: '/app/', 'set-cookie': 'cyfam=' + await famToken(env.FAMILY_CODE) + '; Path=/; Max-Age=31536000; Secure; HttpOnly; SameSite=Lax', 'cache-control': 'no-store' } });
+    if (inv.toLowerCase() === String(env.FAMILY_CODE).toLowerCase()) return new Response(null, { status: 302, headers: { location: base, 'set-cookie': 'cyfam=' + await famToken(env.FAMILY_CODE) + '; Path=/; Max-Age=31536000; Secure; HttpOnly; SameSite=Lax', 'cache-control': 'no-store' } });
   }
-  const html = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>CyPress Reader</title><link rel="stylesheet" href="/fonts.css"><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f3ecdc;color:#123524;font:16px/1.5 Inter,system-ui,sans-serif;padding:16px}main{max-width:380px}h1{font:600 2.4rem/1 "Cormorant Garamond",Georgia,serif;margin:0 0 12px}label{display:block;font-weight:600;margin:20px 0 6px}input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #c9bfa8;border-radius:10px;font:inherit;background:#fbf7ee;color:inherit}button{margin-top:12px;border:0;border-radius:999px;background:#123524;color:#f3ecdc;padding:10px 20px;font:inherit;min-height:44px;cursor:pointer}.err{color:#9a3412}a{color:inherit}@media (prefers-color-scheme:dark){body{background:#0c2619;color:#f3ecdc}input{background:#123524;border-color:#24503a}button{background:#f3ecdc;color:#123524}.err{color:#fb923c}}</style></head><body><main><h1>CyPress Reader</h1><p>CyPress is an Android app. The web version is open only to family and friends.</p><form method="get" action="/app/"><label for="invite">Invite code</label><input id="invite" name="invite" autocomplete="off" autocapitalize="none" required>' + (inv ? '<p class="err" role="alert">That code isn\u2019t right. Check it and try again.</p>' : '') + '<button type="submit">Open the web version</button></form><p><a href="/">About CyPress Reader</a></p></main></body></html>';
+  const html = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>CyPress Reader</title><link rel="stylesheet" href="/fonts.css"><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f3ecdc;color:#123524;font:16px/1.5 Inter,system-ui,sans-serif;padding:16px}main{max-width:380px}h1{font:600 2.4rem/1 "Cormorant Garamond",Georgia,serif;margin:0 0 12px}label{display:block;font-weight:600;margin:20px 0 6px}input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #c9bfa8;border-radius:10px;font:inherit;background:#fbf7ee;color:inherit}button{margin-top:12px;border:0;border-radius:999px;background:#123524;color:#f3ecdc;padding:10px 20px;font:inherit;min-height:44px;cursor:pointer}.err{color:#9a3412}a{color:inherit}@media (prefers-color-scheme:dark){body{background:#0c2619;color:#f3ecdc}input{background:#123524;border-color:#24503a}button{background:#f3ecdc;color:#123524}.err{color:#fb923c}}</style></head><body><main><h1>CyPress Reader</h1><p>CyPress is an Android app. The web version is open only to family and friends.</p><form method="get" action="' + base + '"><label for="invite">Password</label><input id="invite" name="invite" autocomplete="off" autocapitalize="none" required>' + (inv ? '<p class="err" role="alert">That password isn\u2019t right. Check it and try again.</p>' : '') + '<button type="submit">Open the web version</button></form><p><a href="/">About CyPress Reader</a></p></main></body></html>';
   return new Response(html, { status: 403, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-robots-tag': 'noindex' } });
 }
 
 export default {
   async fetch(req, env) {
     const u = new URL(req.url);
-    if (/^\/app(\/|$)/.test(u.pathname) && !(await familyOk(req, env))) return familyGate(req, env, u);
+    const fp = String(env.FAMILY_PATH || '').replace(/[^\w-]/g, '');
+    if (fp) {
+      const fm = u.pathname.match(new RegExp('^/' + fp + '(/.*)?$', 'i'));
+      if (fm) {
+        if (!fm[1]) return Response.redirect(u.origin + '/' + fp + '/', 301);
+        if (!(await familyOk(req, env))) return familyGate(req, env, u, '/' + fp + '/');
+        const a = new URL(u); a.pathname = '/app' + fm[1];
+        return site(req, a);
+      }
+      if (/^\/app(\/|$)/.test(u.pathname)) return Response.redirect(u.origin + '/', 302);
+    } else if (/^\/app(\/|$)/.test(u.pathname) && !(await familyOk(req, env))) return familyGate(req, env, u, '/app/');
     if (u.pathname === '/feed') return (await familyOk(req, env)) ? feed(req, u) : new Response('Family access only', { status: 403 });
     if (u.pathname === '/get') return Response.redirect(APK, 302);
     if (u.pathname === '/api/short') {
