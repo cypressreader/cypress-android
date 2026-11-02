@@ -42,7 +42,8 @@ On tablets and foldables, read side by side: your stories on one side, the open 
 ## Category and contact
 - App category: News & Magazines
 - Tags: news reader, magazine, read later
-- Contact email: (the new CyPress email address)
+- Developer name: Cy (the Google account itself is in David's legal name; only the display name is Cy)
+- Contact email: cypressreader@gmail.com
 - Website: https://cypressreader.com
 - Privacy policy URL: https://cypressreader.com/privacy.html
 
