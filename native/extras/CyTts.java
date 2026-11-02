@@ -88,27 +88,6 @@ final class CyTts {
     private final List<Wait> waiting = new ArrayList<>();
     private final List<Piece> pieces = new ArrayList<>();
 
-    /** An on-device neural voice. Only the voices test build ships one (CyNeural); otherwise none is found and nothing changes. */
-    interface Neural {
-        JSONObject voice() throws Exception;
-        void speak(String id, String text, float rate, float volume, boolean add, int pauseMs, Runnable fallback);
-        void stop();
-    }
-    private volatile Neural neural;
-    private boolean neuralTried;
-
-    private synchronized Neural neural() {
-        if (!neuralTried) {
-            neuralTried = true;
-            try {
-                neural = (Neural) Class.forName("com.cypress.reader.CyNeural").getDeclaredConstructor(Context.class).newInstance(appCtx);
-            } catch (Throwable e) {
-                neural = null; // the normal build: no neural voice
-            }
-        }
-        return neural;
-    }
-
     private CyTts(Context c) {
         appCtx = c;
         create();
@@ -280,9 +259,6 @@ final class CyTts {
                     }
                 }
             }
-            // only once the phone's engine has answered: a non-empty list stops the page asking again
-            Neural nv = rdy || failed ? neural() : null;
-            if (nv != null) arr.put(nv.voice());
             out.put("voices", arr);
             out.put("ready", rdy);
             out.put("failed", failed);
@@ -314,14 +290,6 @@ final class CyTts {
         job.volume = clamp(volume, 0f, 1f);
         job.voice = voice;
         job.pauseMs = Math.max(0, Math.min(2000, pauseMs));
-        Neural nv = voice != null && voice.startsWith("cy-neural:") ? neural() : null;
-        if (nv != null) {
-            if (!add) stopSystem();
-            // if the neural voice cannot start, this same text is read by the phone's own voice
-            nv.speak(id, job.text, job.rate, job.volume, add, job.pauseMs, () -> speak(id, text, rate, pitch, volume, "", add, 0, pauseMs));
-            return;
-        }
-        if (!add && neural != null) neural.stop();
         final int g;
         synchronized (lock) {
             g = add ? gen : ++gen;
@@ -529,11 +497,6 @@ final class CyTts {
 
     void stop() {
         cancelSleep();
-        if (neural != null) neural.stop();
-        stopSystem();
-    }
-
-    private void stopSystem() {
         synchronized (lock) {
             gen++;
             waiting.clear();
