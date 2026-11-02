@@ -1164,3 +1164,7 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Settings > Read aloud > Natural voice: Off / Compact (198 MB) / Full (360 MB). Compact downloads on Wi-Fi with % progress; Natural voices then appear in Voice.
 - Switching Compact <-> Full deletes the other model; Delete (confirm dialog) frees all voice files and falls back to the phone's voice.
 - Phone that had the old Full download starts on Full with no re-download.
+
+## 2026-11-02 Phone voice reading rules (branch claude/handoff-continuation-s4qfk1, voices test app) — implemented, unverified
+- With an English phone voice (not Natural), read a story with "Gov.", "Sen.", "St. Louis", "Nov. 2", a dateline like "MEMPHIS, Tenn. (AP) —", and a middle initial ("Jane M. Smith"). Expect: Governor, Senator, Saint Louis, November second, "Memphis Tennessee" with no "A P", and no full stop pause after "M".
+- The word highlight should still follow along (may sit on the short form while the long form is spoken). Non-English voices read the text unchanged.

@@ -84,11 +84,17 @@ final class CyTts {
     private static final class Piece {
         final String uid;
         final Job job;
-        final int offset;
-        Piece(String uid, Job job, int offset) {
+        final int offset, base;
+        final int[][] map; // positions in the rewritten text -> the text the page sent (null = not rewritten)
+        Piece(String uid, Job job, int offset, int base, int[][] map) {
             this.uid = uid;
             this.job = job;
             this.offset = offset;
+            this.base = base;
+            this.map = map;
+        }
+        int pos(int i) {
+            return offset + (map == null ? base + i : CyText.at(map, base + i));
         }
     }
 
@@ -408,7 +414,20 @@ final class CyTts {
             } catch (Throwable e) {
                 // keep the default
             }
-            List<int[]> spans = split(text, max);
+            // English phone voices get the natural voice's reading rules (Gov. -> Governor, Memphis, Tenn.)
+            String said = text;
+            int[][] map = null;
+            try {
+                Voice cv = t.getVoice();
+                if ("en".equals((cv != null ? cv.getLocale() : Locale.getDefault()).getLanguage())) {
+                    String r = CyText.phone(text);
+                    if (!r.equals(text) && !r.trim().isEmpty() && (map = CyText.align(text, r)) != null) said = r;
+                }
+            } catch (Throwable e) {
+                Log.w(TAG, "reading rules: " + e);
+                map = null;
+            }
+            List<int[]> spans = split(said, max);
             int run;
             synchronized (lock) {
                 if (!add) pieces.clear();
@@ -427,13 +446,13 @@ final class CyTts {
                 if (stale(g)) return;
                 int[] sp = spans.get(i);
                 String uid = job.id + "@" + run + "#" + i;
-                Piece p = new Piece(uid, job, lead + sp[0]);
+                Piece p = new Piece(uid, job, lead, sp[0], map);
                 synchronized (lock) {
                     pieces.add(p);
                 }
                 Bundle b = new Bundle();
                 b.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, job.volume);
-                int r = t.speak(text.substring(sp[0], sp[1]), (i == 0 && !add) ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD, b, uid);
+                int r = t.speak(said.substring(sp[0], sp[1]), (i == 0 && !add) ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD, b, uid);
                 if (r != TextToSpeech.SUCCESS) {
                     try {
                         t.stop();
@@ -654,8 +673,9 @@ final class CyTts {
                 if (p == null) return;
                 JSObject o = new JSObject();
                 o.put("id", p.job.id);
-                o.put("start", p.offset + start);
-                o.put("end", p.offset + end);
+                int a = p.pos(start);
+                o.put("start", a);
+                o.put("end", Math.max(a, p.pos(end)));
                 o.put("ts", System.currentTimeMillis());
                 CyExtras.emit("ttsBoundary", o, false);
             } catch (Throwable t) {
