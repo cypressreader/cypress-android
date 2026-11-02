@@ -202,7 +202,13 @@ final class CyNeural implements CyTts.Neural {
         k.setVoices(new File(dir, "voices.bin").getPath());
         k.setTokens(new File(dir, "tokens.txt").getPath());
         // no lexicon for sherpa: CyG2p turns text into phonemes itself, so unknown words are never skipped
-        g2p = new CyG2p(new File(dir, "lexicon-us-en.txt"));
+        CyG2p g = new CyG2p(new File(dir, "lexicon-us-en.txt"));
+        try (java.io.InputStream in = ctx.getAssets().open("cmu-extra.txt")) {
+            g.addMissing(in); // 76k names and rarer words from the CMU Pronouncing Dictionary (BSD-style, see CMUDICT-LICENSE.txt)
+        } catch (Throwable e) {
+            Log.w(TAG, "cmu-extra: " + e);
+        }
+        g2p = g;
         OfflineTtsModelConfig m = new OfflineTtsModelConfig();
         m.setKokoro(k);
         m.setNumThreads(Math.max(1, Math.min(4, Runtime.getRuntime().availableProcessors() / 2)));

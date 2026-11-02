@@ -55,3 +55,8 @@
 - David 2026-11-02 on fp32 build: "much better, no gaps", few odd words ("a" read as the letter, "Debra"). Fixed in CyG2p: misaki weak
   forms (a -> ɐ, an -> ən, the/to by next sound), name guesses use digraphs (ph, sh, th, ee, ...), final a -> ə, final y -> i, silent e.
   Names stay approximate; next idea: a public-domain names list (CMUdict has many) as an extra download.
+- CMU Pronouncing Dictionary added (David 2026-11-02): native/neural/cmu-extra.txt = 76,150 CMU words NOT in the voice's list,
+  ARPAbet -> misaki symbols (AH0 ə, ER0 əɹ, stress mark before vowel), bundled as an APK asset (+~0.5 MB), no extra download/host.
+  The voice's list wins on shared words: of 48,776 shared, sounds match only 64%; the voice list has American flaps/reduced vowels
+  (buttery bˈʌɾəɹi vs CMU bˈʌtəɹi) that Kokoro was trained on. Both are General American. License BSD-style: CMUDICT-LICENSE.txt
+  ships in assets; an app credits line is needed before release. Load 0.46 s, +38 MB heap on desktop. Missing: recent names.

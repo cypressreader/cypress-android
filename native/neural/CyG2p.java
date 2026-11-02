@@ -21,7 +21,14 @@ final class CyG2p {
     private final HashMap<String, String> lex = new HashMap<>(240000);
 
     CyG2p(File lexicon) throws Exception {
-        try (BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(lexicon), StandardCharsets.UTF_8), 1 << 16)) {
+        try (java.io.InputStream in = new FileInputStream(lexicon)) {
+            addMissing(in);
+        }
+    }
+
+    /** Adds words not already known. The voice's own list loads first, so it always wins (it matches how Kokoro was trained). */
+    void addMissing(java.io.InputStream in) throws Exception {
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8), 1 << 16)) {
             for (String l; (l = r.readLine()) != null; ) {
                 int sp = l.indexOf(' ');
                 if (sp <= 0) continue;
