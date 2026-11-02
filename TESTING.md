@@ -1192,3 +1192,4 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 ## Play Store prep (session 34gt7t, 2026-11-02) — implemented, unverified
 - Android 16 target (API 36): app opens, edge-to-edge bars, back gesture, rotation and side-by-side on the Fold still behave.
 - Play bundle (.aab) build: no "App updates" section in Settings, no install permission; phone APK still shows "App updates" and updates itself.
+- Must-fix batch (34gt7t): Android Back during first-run setup goes to the previous step and never skips setup; Back on the "all caught up" page stays in the app; app data no longer in Google backup (Settings > Google > Backup shows no CyPress data after a new install).

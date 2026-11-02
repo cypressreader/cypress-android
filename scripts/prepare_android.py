@@ -559,6 +559,15 @@ else:
 
 # 5b. manifest tweak that applies to every build (done before the extras take their pristine manifest copy)
 patch_config_changes()
+# 5c. no Android backup: everything stays on the phone, as the privacy page says (the sync code lives in that data too)
+mf = open(MANIFEST, encoding='utf-8').read()
+mf2, n = re.subn(r'android:allowBackup\s*=\s*"true"', 'android:allowBackup="false"', mf)
+if not n and 'android:allowBackup' not in mf:
+    mf2, n = re.subn(r'<application\b', '<application android:allowBackup="false"', mf, count=1)
+if not n:
+    die('Could not switch off Android backup in AndroidManifest.xml.')
+open(MANIFEST, 'w', encoding='utf-8').write(mf2)
+say('Android backup switched off')
 
 # 6. optional extras. A problem with them stops the build, unless this is a manual run with ALLOW_DEGRADED on:
 #    then they are removed again and a core-only app is built (the workflow publishes that as a pre-release).

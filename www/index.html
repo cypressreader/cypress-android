@@ -6205,7 +6205,7 @@ function covFit(){
   const band=cv.querySelector('.dcv-band');
   if(hit){h.classList.add('cfit');h.style.setProperty('font-size',hit.size+'px','important');if(band){if(hit.band)band.style.maxHeight=hit.band+'px';else band.style.removeProperty('max-height')}const ls=[...cv.querySelectorAll('.cvlines .cvl,.dcv-lines .dcv-l')];ls.forEach((l,i)=>{if(hit.hide.includes(i))l.style.setProperty('display','none','important');else l.style.removeProperty('display')});h.dataset.fk=key;return}
   h.classList.add('cfit');h.style.removeProperty('font-size');band&&band.style.removeProperty('max-height');
-  const max=parseFloat(getComputedStyle(h).fontSize)||40,min=Math.max(13,Math.round(max*.2));
+  const max=parseFloat(getComputedStyle(h).fontSize)||40,min=Math.max(cv.classList.contains('dcov')?Math.min(22,max):13,Math.round(max*.2));/* the Daily's lead headline never drops below 22px (it read smaller than the quote under it); a long one wraps onto more lines instead */
   const lim=Math.max(parseFloat(getComputedStyle(cv).minHeight)||0,0)+2;
   /* where the headline sits inside its cover, from layout offsets (a landing animation's movement must not count) */
   const inside=()=>{let t=0,l=0,e=h;while(e&&e!==cv){t+=e.offsetTop;l+=e.offsetLeft;e=e.offsetParent}if(e!==cv)return true;return t>=-1&&l>=-1&&t+h.offsetHeight<=cv.clientHeight+1&&l+h.offsetWidth<=cv.clientWidth+1};
@@ -9165,7 +9165,7 @@ function tidy(fr){
   if(acc>total*.35&&t.length<240&&END.test(t)){
    const rest=kids.slice(i+1);
    /* a short promo line mid-story ("Read more: …") is not the end when real story follows it: only that line goes */
-   if(rest.filter(k=>txt(k).length>=90).length>=2&&rest.reduce((q,k)=>q+txt(k).length,0)>total*.25){drop(kids[i]);continue}
+   if((rest.filter(k=>txt(k).length>=90).length>=2&&rest.reduce((q,k)=>q+txt(k).length,0)>total*.25)||(/^(read (more|next)|related)\b/i.test(t)&&rest.some(k=>txt(k).length>=200))){drop(kids[i]);continue}
    cut=i;break}
   acc+=t.length;
  }
@@ -12810,7 +12810,7 @@ function openCleanup(){
  $('#clngo').hidden=!l.length;if(!$('#cln').open)$('#cln').showModal();
 }
 $('#cleanb').onclick=openCleanup;$('#tipsx').onclick=()=>$('#tips').close();
-const TIPLIST=[["⤓", "A small <b>arrow into a tray</b> on a story means it is <b>saved on your device</b> and opens even offline. It does not mean you have read it: a read story is shown faded."], ["👉", "Swipe a card <b>right to save</b>, <b>left to mark read</b>."], ["✋", "<b>Press and hold</b> a card for quick actions: save, share, mark above as read, pause a site, more or less like this."], ["📖", "<b>Swipe the page</b> or tap the edges to turn it. <b>Tap the middle</b> to hide the controls."], ["⬇️", "<b>Swipe down</b> on a story to close it."], ["↔️", "Swipe in from the <b>left edge</b> to open your feeds. Drag the edge of the list to resize it, double-tap it to reset."], ["🔗", "<b>Tap a link</b> in a story for a quick preview. Select text to highlight, add a note, look up a word, translate or search."], ["🔄", "<b>Pull down</b> on your stories to refresh. The logo fills as it works."], ["🌳", "<b>Tap the logo</b> to switch between the tree and the circuit board."], ["🔎", "Search also finds stories you read earlier. Your reading history lives under <b>History</b>."]];
+const TIPLIST=[["⤓", "A small <b>arrow into a tray</b> on a story means it is <b>saved on your device</b> and opens even offline. It does not mean you have read it: a read story is shown faded."], ["👉", "Swipe a card <b>right to mark it read</b>, <b>left to save it</b>."], ["✋", "<b>Press and hold</b> a card for quick actions: save, share, mark above as read, pause a site, more or less like this."], ["📖", "<b>Swipe the page</b> or tap the edges to turn it. <b>Tap the middle</b> to hide the controls."], ["⬇️", "<b>Swipe down</b> on a story to close it."], ["↔️", "Swipe in from the <b>left edge</b> to open your feeds. Drag the edge of the list to resize it, double-tap it to reset."], ["🔗", "<b>Tap a link</b> in a story for a quick preview. Select text to highlight, add a note, look up a word, translate or search."], ["🔄", "<b>Pull down</b> on your stories to refresh. The logo fills as it works."], ["🌳", "<b>Tap the logo</b> to switch between the tree and the circuit board."], ["🔎", "Search also finds stories you read earlier. Your reading history lives under <b>History</b>."]];
 function openTips(){$('#tipslist').innerHTML=TIPLIST.map(([i,t])=>`<li><i>${i}</i><span>${t}</span></li>`).join('');if(!$('#tips').open)$('#tips').showModal()}
 const TIPQ=[['card',4500,'Tip: swipe a card right to mark it read, left to save it.'],['reader',2500,'Tip: swipe the page to turn it. Tap the middle to hide the controls.'],['catch',1500,'Tip: The Daily has four views. Today is your personal front page, Brief is a quick list, Headlines is what all your sites are reporting and Sunday is the week in review.'],['health',1500,'Tip: if a site stops loading, Manage your sites in Settings can fix its address or show why.'],['dailyhint',800,'Tip: your feeds can become a personal daily magazine. Open The Daily from the menu to see today’s issue.'],['foldershint',800,'Tip: with this many feeds, folders help. Manage feeds in Settings lets you group them.'],['offlinehint',800,'Tip: want stories ready without a connection? Turn on “Get stories ready in advance” in Settings.']];
 /* introduce features when they become useful, one quiet tip at a time */
@@ -13703,6 +13703,8 @@ function obOpen(rerun){
  OB.fs=-1;obRender();if(!d.open)d.showModal();obFocus();
 }
 const OB_STEPS=['Welcome','Topics','Sources','Look','Ready'];
+/* Back in setup: previous step; on the first step of the first run it does nothing (closing it would skip setup for good) */
+function obBack(){if(OB.step>0){OB.step--;obRender();obFocus();return true}return !OB.rerun}
 function obRender(){
  const d=$('#ob'),s=OB.step;if(!OB.more)OB.more=new Set();
  const dots=`<div class="obd" role="img" aria-label="Step ${s+1} of ${OB_STEPS.length}">${OB_STEPS.map((n,i)=>`<i class="${i===s?'on':i<s?'done':''}"></i>`).join('')}</div>`;
@@ -16496,7 +16498,7 @@ document.addEventListener('close',e=>{const d=e.target;if(d&&d._ly){const n=d._l
 addEventListener('popstate',()=>{
  if(POPSKIP){POPSKIP=false;const q=POPQ;POPQ=[];q.forEach(n=>{try{history.pushState({cp:n,n:LAYER.length},'')}catch(e){}});return}
  const top=LAYER.pop();if(!top)return;
- if(top.startsWith('dlg:')){const d=DLG[top];if(d&&d.open&&((d.id==='set'&&window.setBackHook&&window.setBackHook())||(d.id==='dlg'&&window.addBackHook&&window.addBackHook()))){LAYER.push(top);try{history.pushState({cp:top,n:LAYER.length},'')}catch(e){}return}delete DLG[top];if(d&&d.open){d._ly=null;d.close()}return}
+ if(top.startsWith('dlg:')){const d=DLG[top];if(d&&d.open&&((d.id==='set'&&window.setBackHook&&window.setBackHook())||(d.id==='dlg'&&window.addBackHook&&window.addBackHook())||(d.id==='ob'&&obBack()))){LAYER.push(top);try{history.pushState({cp:top,n:LAYER.length},'')}catch(e){}return}delete DLG[top];if(d&&d.open){d._ly=null;d.close()}return}
  const active={mn:()=>$('#mn')&&!$('#mn').hidden,gal:()=>$('#gal')&&!$('#gal').hidden,rdnav:()=>$('#rdnav')&&!$('#rdnav').hidden,reader:()=>$('#rd').classList.contains('on'),drawer:()=>document.body.classList.contains('open'),yir:()=>!!$('#yir'),fin:()=>FIN.open}[top];
  if(active&&!active()){if(LAYER.length)history.back();return}
  if(top==='mn')rdxMnClose(true,true);else if(top==='gal')galClose(true);else if(top==='rdnav')rdNav(false,true);else if(top==='reader')closeRd(true);else if(top==='drawer')document.body.classList.remove('open');else if(top==='fin')finClose(true);else if(top==='yir'){const y=$('#yir');if(y)y.querySelector('.yx').click()}
