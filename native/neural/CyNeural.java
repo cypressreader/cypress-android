@@ -13,6 +13,7 @@ import android.util.Log;
 import android.widget.Toast;
 import com.getcapacitor.JSObject;
 import com.k2fsa.sherpa.onnx.GeneratedAudio;
+import com.k2fsa.sherpa.onnx.GenerationConfig;
 import com.k2fsa.sherpa.onnx.OfflineTts;
 import com.k2fsa.sherpa.onnx.OfflineTtsConfig;
 import com.k2fsa.sherpa.onnx.OfflineTtsKokoroModelConfig;
@@ -62,6 +63,7 @@ final class CyNeural implements CyTts.Neural {
     private final Handler main = new Handler(Looper.getMainLooper());
     private volatile int gen = 0;
     private volatile OfflineTts tts;
+    private volatile CyG2p g2p;
     private volatile boolean broken = false, downloading = false, warned = false;
     private AudioTrack track;
     private int trackRate = 0;
@@ -188,7 +190,7 @@ final class CyNeural implements CyTts.Neural {
         if (part.length() != size) throw new Exception(name + " stopped at " + part.length() / 1048576 + " of " + size / 1048576 + " MB");
     }
 
-    private OfflineTts engine() {
+    private OfflineTts engine() throws Exception {
         OfflineTts t = tts;
         if (t != null) return t;
         long t0 = System.currentTimeMillis();
@@ -196,7 +198,8 @@ final class CyNeural implements CyTts.Neural {
         k.setModel(new File(dir, "model.int8.onnx").getPath());
         k.setVoices(new File(dir, "voices.bin").getPath());
         k.setTokens(new File(dir, "tokens.txt").getPath());
-        k.setLexicon(new File(dir, "lexicon-us-en.txt").getPath());
+        // no lexicon for sherpa: CyG2p turns text into phonemes itself, so unknown words are never skipped
+        g2p = new CyG2p(new File(dir, "lexicon-us-en.txt"));
         OfflineTtsModelConfig m = new OfflineTtsModelConfig();
         m.setKokoro(k);
         m.setNumThreads(Math.max(1, Math.min(4, Runtime.getRuntime().availableProcessors() / 2)));
@@ -228,11 +231,21 @@ final class CyNeural implements CyTts.Neural {
                     if (g != gen) return;
                     int[] sp = spans.get(i);
                     long t0 = System.currentTimeMillis();
-                    GeneratedAudio a = t.generate(body.substring(sp[0], sp[1]), SID, rate);
-                    float[] s = a.getSamples();
-                    Log.i(TAG, "clip " + i + ": " + (System.currentTimeMillis() - t0) + " ms for "
-                            + (s.length * 1000L / Math.max(1, a.getSampleRate())) + " ms of audio");
-                    if (!put(new Clip(g, id, s, a.getSampleRate(), lead + sp[0], lead + sp[1],
+                    String piece = body.substring(sp[0], sp[1]);
+                    String ph = g2p.phonemes(piece);
+                    float[] s = new float[0];
+                    int sr = 24000;
+                    if (!ph.isEmpty()) { // nothing speakable (only symbols): an empty clip still keeps start/end events in order
+                        GenerationConfig gc = new GenerationConfig();
+                        gc.setSid(SID);
+                        gc.setSpeed(rate);
+                        gc.setPhonemeCodepoints(new int[][]{ph.codePoints().toArray()});
+                        GeneratedAudio a = t.generateWithConfig(piece, gc);
+                        s = a.getSamples();
+                        sr = a.getSampleRate();
+                    }
+                    Log.i(TAG, "clip " + i + ": " + (System.currentTimeMillis() - t0) + " ms for " + (s.length * 1000L / sr) + " ms of audio");
+                    if (!put(new Clip(g, id, s, sr, lead + sp[0], lead + sp[1],
                             i == 0 && add ? pauseMs : 0, volume, i == 0, i == spans.size() - 1))) return;
                 }
             } catch (Throwable e) {

@@ -42,3 +42,8 @@
 - Download (fix 2026-11-02): resumes .part files with Range, 6 tries per file with backoff, wake + Wi-Fi locks, failure toast shows the error.
 - Known spike gaps: quotes in a second system voice would overlap; words not in the lexicon may be skipped (check names/numbers);
   huggingface.co must go on docs/privacy.html before anything ships; no UI for delete/progress (toasts only).
+- Word skipping (David, 2026-11-02): sherpa 2.0 lexicon path drops every out-of-lexicon word, and lexicon-us-en has mostly
+  base forms (minute, not minutes), numbers never. Fix: native/neural/CyG2p.java does text -> phonemes in Java (lexicon,
+  misaki-style -s/-ed/-ing/'s rules, numbers/years/ordinals/money/%, U.S., initialisms spelled, rough guess for names) and
+  passes GenerationConfig.phonemeCodepoints; sherpa gets no lexicon. Checked on desktop sherpa 2.0.1 + same model:
+  test sentence 1.98 s (6 of 13 words skipped) -> 4.84 s, all words. Load 0.3 s, +26 MB heap. Names are approximate.
