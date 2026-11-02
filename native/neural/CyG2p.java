@@ -188,6 +188,24 @@ final class CyG2p {
         return null;
     }
 
+    private static final HashMap<String, String> DIGRAPH = new HashMap<>();
+    static {
+        String[] d = {"ph", "f", "sh", "ʃ", "ch", "ʧ", "th", "θ", "ck", "k", "ng", "ŋ", "qu", "kw", "ee", "i", "ea", "i", "oo", "u",
+                "ou", "W", "ow", "O", "ai", "A", "ay", "A", "ei", "A", "ey", "A", "oi", "Y", "oy", "Y", "au", "ɔ", "aw", "ɔ", "ie", "i",
+                "ar", "ɑɹ", "er", "əɹ", "ir", "ɜɹ", "ur", "ɜɹ", "or", "ɔɹ", "ll", "l", "ss", "s", "tt", "t", "nn", "n", "mm", "m", "rr", "ɹ"};
+        for (int i = 0; i < d.length; i += 2) DIGRAPH.put(d[i], d[i + 1]);
+    }
+
+    private static final String VOWELS = "AIOQWYaeiouæɐɑɒɔəɘɚɛɜɪʊʌᵻ";
+
+    private static boolean vowelStart(String ph) {
+        for (int i = 0; i < ph.length(); i++) {
+            char c = ph.charAt(i);
+            if (!stress(c)) return VOWELS.indexOf(c) >= 0;
+        }
+        return false;
+    }
+
     private static final String[] LETTER = {"æ", "b", "k", "d", "ɛ", "f", "ɡ", "h", "ɪ", "ʤ", "k", "l", "m", "n", "ɑ", "p", "k", "ɹ",
             "s", "t", "ʌ", "v", "w", "ks", "j", "z"};
 
@@ -210,8 +228,19 @@ final class CyG2p {
                 for (char c : bp.toCharArray()) if (!stress(c)) b.append(c);
                 i = best;
             } else {
+                String two = i + 2 <= n ? w.substring(i, i + 2) : "";
+                String d = DIGRAPH.get(two);
+                if (d != null) {
+                    b.append(d);
+                    i += 2;
+                    continue;
+                }
                 char c = w.charAt(i++);
-                if (c >= 'a' && c <= 'z') b.append(LETTER[c - 'a']);
+                boolean end = i == n;
+                if (end && c == 'a') b.append("ə");                         // Debra, Priya
+                else if (end && c == 'y' && n > 2) b.append("i");             // Kelly
+                else if (end && c == 'e' && n > 3 && "aeiou".indexOf(w.charAt(n - 2)) < 0) { /* silent e */ }
+                else if (c >= 'a' && c <= 'z') b.append(LETTER[c - 'a']);
             }
         }
         return b.toString();
@@ -248,19 +277,40 @@ final class CyG2p {
         String t = clean(text);
         StringBuilder out = new StringBuilder();
         Matcher m = TOK.matcher(t);
+        java.util.ArrayList<String> ph = new java.util.ArrayList<>();
+        java.util.ArrayList<String> low = new java.util.ArrayList<>();
         while (m.find()) {
             String tok = m.group();
-            char c0 = tok.charAt(0);
-            if (",.!?;:".indexOf(c0) >= 0) {
-                int e = out.length();
-                while (e > 0 && out.charAt(e - 1) == ' ') e--;
-                out.setLength(e);
-                out.append(c0).append(' ');
+            if (",.!?;:".indexOf(tok.charAt(0)) >= 0) {
+                ph.add(tok);
+                low.add(tok);
                 continue;
             }
             boolean caps = tok.length() > 1 && tok.equals(tok.toUpperCase(Locale.ROOT)) && !tok.equals(tok.toLowerCase(Locale.ROOT));
-            String p = word(tok.toLowerCase(Locale.ROOT), caps);
-            if (!p.isEmpty()) out.append(p).append(' ');
+            String lw = tok.toLowerCase(Locale.ROOT);
+            ph.add(word(lw, caps));
+            low.add(lw);
+        }
+        for (int i = 0; i < ph.size(); i++) {
+            String next = i + 1 < ph.size() ? ph.get(i + 1) : "";
+            boolean nv = vowelStart(next);
+            switch (low.get(i)) { // weak forms, the way Kokoro was trained (misaki)
+                case "a": ph.set(i, "ɐ"); break;
+                case "an": ph.set(i, "ən"); break;
+                case "the": ph.set(i, nv ? "ði" : "ðə"); break;
+                case "to": ph.set(i, nv ? "tʊ" : "tə"); break;
+                default: break;
+            }
+            String p = ph.get(i);
+            if (p.isEmpty()) continue;
+            if (",.!?;:".indexOf(p.charAt(0)) >= 0 && p.length() == 1) {
+                int e = out.length();
+                while (e > 0 && out.charAt(e - 1) == ' ') e--;
+                out.setLength(e);
+                out.append(p).append(' ');
+            } else {
+                out.append(p).append(' ');
+            }
         }
         return out.toString().trim();
     }

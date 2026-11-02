@@ -52,3 +52,6 @@
   behind real time on the phone = gaps). Clips are now whole sentences (CyNeural.sentences, abbreviation-aware, >380 chars cut at
   a comma) instead of 220-char cuts that could split a sentence. silence_scale set to 1 (default 0.2; measured no difference
   on the test sentence). Watch: start delay on a long first sentence, RAM with the 325 MB model.
+- David 2026-11-02 on fp32 build: "much better, no gaps", few odd words ("a" read as the letter, "Debra"). Fixed in CyG2p: misaki weak
+  forms (a -> ɐ, an -> ən, the/to by next sound), name guesses use digraphs (ph, sh, th, ee, ...), final a -> ə, final y -> i, silent e.
+  Names stay approximate; next idea: a public-domain names list (CMUdict has many) as an extra download.
