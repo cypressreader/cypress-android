@@ -3029,6 +3029,9 @@ dialog.xs .sh{gap:12px}dialog.xs .sh h2{margin:0;font-size:22px}.xs .xsb{margin-
 .tidl{list-style:none;margin:0;padding:0}.tidl li{padding:12px 0;border-top:1px solid var(--ln)}.tidl li:first-child{border-top:0}
 .tidl b{display:block;font:600 16px var(--serif)}.tidl small{display:block;color:var(--mut);margin:2px 0 8px}
 .tidl .tidb{display:flex;gap:8px}.tidl .tidb button{min-height:44px}
+.chkb{height:8px;border-radius:4px;background:var(--ln);overflow:hidden;margin:4px 0 14px}.chkb i{display:block;height:100%;width:0;background:var(--a1);border-radius:4px;transition:width .3s}.chkp.fin .chkb i{background:var(--a2,var(--a1))}.chkp.fin #chkm{font:600 18px var(--serif);color:var(--ink)}
+.chkg{border:1px solid var(--ln);border-radius:12px;padding:0 14px;margin:10px 0}.chkg summary{display:flex;justify-content:space-between;align-items:center;min-height:48px;cursor:pointer;font:600 16px var(--serif)}.chkg summary::-webkit-details-marker{display:none}.chkg summary::after{content:'';width:8px;height:8px;margin:0 4px 0 12px;border:solid var(--mut);border-width:0 2px 2px 0;transform:rotate(45deg) translateY(-3px)}.chkg[open] summary::after{transform:rotate(225deg) translateY(-1px)}.chkg summary b{flex:1}.chkg summary span{min-width:28px;padding:2px 8px;border-radius:12px;background:var(--ln);text-align:center;font-size:14px}.chkg .chkall2{margin:0 0 6px;min-height:44px}
+@media (prefers-reduced-motion:reduce){.chkb i{transition:none}}
 .alm-t{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px}.alm-t div{padding:12px;border:1px solid var(--ln);border-radius:12px}
 .alm-t b{display:block;font:600 26px var(--serif)}.alm-t small{color:var(--mut)}
 .xs h3.alm-h{margin:16px 0 6px;font:600 13px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
@@ -12890,22 +12893,43 @@ function renderMng0(){
  }).join('')||'<div class="none">No feeds yet.</div>';
 }
 $('#mgb').onclick=()=>{renderMng();$('#mng').showModal()};
-/* Check all my sites: reload every feed (load() already limits how many run at once), then list only the broken ones with one suggested fix each */
-$('#chkall').onclick=async e=>{
- const b=e.currentTarget;if(b.disabled)return;if(!navigator.onLine){toast('You’re offline. Try again when you’re connected');return}if(!S.feeds.length){toast('You don’t follow any sites yet');return}
- b.disabled=true;b.textContent='Checking…';
- await Promise.all(S.feeds.map(f=>{FLG[f.id]=[];return load(f,true).catch(()=>{})}));
- const bad=S.feeds.filter(f=>state[f.id]==='err'),fix={};
- await Promise.all(bad.map(async f=>{const l=(FLG[f.id]||[]).join(' ');if(/HTTP (429|5\d\d)|timed out/.test(l)||/reddit\.com|youtube\.com|bsky\.app/.test(f.url))return;
-  try{const r=await findFeed(new URL(f.url).origin);if(r&&r.xml&&r.url!==f.url&&!isBing(r.url)&&parse(r.xml,f).list.length)fix[f.id]=r.url}catch(_){}}));
- b.disabled=false;b.textContent='Check all';
- if(!bad.length){toast(S.feeds.length===1?'Your site is working':'All '+S.feeds.length+' sites are working');return}
- const nm=f=>f.title||host(f.url),wait=f=>/HTTP (429|5\d\d)|timed out/.test((FLG[f.id]||[]).join(' '));
- const row=f=>`<li data-tid="${esc(f.id)}"><b>${esc(nm(f))}</b><small>${esc(feedReason(f))}. ${fix[f.id]?'It has a new feed address.':wait(f)?'Try again later; this is usually brief.':'No new feed address was found on the site.'}</small><div class="tidb">${fix[f.id]?`<button type="button" class="tx2" data-chkfix="${esc(f.id)}" aria-label="Use the new address for ${esc(nm(f))}">Use new address</button>`:''}<button type="button" class="tx2" data-tidrm="${esc(f.id)}" aria-label="Remove ${esc(nm(f))}">Remove</button></div></li>`;
- const d=xsOpen('chkq',bad.length===1?'1 site isn’t working':bad.length+' sites aren’t working',`<p class="xsl">${S.feeds.length-bad.length} of ${plu(S.feeds.length,'site')} loaded fine.</p><ul class="tidl">${bad.map(row).join('')}</ul>`,()=>render());
- d.addEventListener('click',e=>{const li=e.target.closest('li[data-tid]');if(!li)return;const id=li.dataset.tid,f=feedOf(id);if(!f.id)return;
+/* Check all my sites: a progress bar while every feed reloads; sites that don't answer get a second, slower try (as the app's own 15 s retry does);
+   then a short summary, with problems grouped and folded: can be fixed (new feed address), probably a hiccup (worked lately, busy or slow), not working for a while */
+$('#chkall').onclick=()=>{
+ if(!navigator.onLine){toast('You’re offline. Try again when you’re connected');return}
+ if(!S.feeds.length){toast('You don’t follow any sites yet');return}
+ const nm=f=>f.title||host(f.url),all=S.feeds.filter(f=>!paused(f)),n=all.length,fix={};let done=0,stop=0;
+ const d=xsOpen('chkq','Check all my sites',`<div class="chkp"><p class="xsl" aria-live="polite" id="chkm">Checking ${plu(n,'site')}…</p><div class="chkb" role="progressbar" aria-labelledby="chkm" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div></div><div id="chkr"></div>`,()=>{stop=1;render()});
+ const bar=d.querySelector('.chkb'),msg=d.querySelector('#chkm'),out=d.querySelector('#chkr');
+ const step=(t,k)=>{const v=Math.min(100,Math.round(k*100));bar.firstChild.style.width=v+'%';bar.setAttribute('aria-valuenow',v);if(t)msg.textContent=t};
+ const batch=async(list,fn,from,span,label)=>{let k=0;for(let i=0;i<list.length&&!stop;i+=4){await Promise.all(list.slice(i,i+4).map(f=>fn(f).catch(()=>{}).finally(()=>step(label(++k),from+span*k/list.length))));}};
+ const bad=()=>all.filter(f=>state[f.id]==='err');
+ (async()=>{
+  await Promise.all(all.map(f=>load(f,true).catch(()=>{}).finally(()=>step(`Checked ${++done} of ${n}`,.7*done/n))));
+  let b=bad();if(stop)return;
+  if(b.length){await new Promise(r=>setTimeout(r,1500));await batch(b,f=>load(f,true),.7,.15,k=>`Trying ${k} of ${b.length} again`)}
+  b=bad();if(stop)return;
+  const slow=f=>/HTTP (429|5\d\d)|timed out/.test((FLG[f.id]||[]).join(' ')),recent=f=>{const t=(S.health[f.id]||{}).ok;return t&&Date.now()-t<14*864e5};
+  await batch(b.filter(f=>!slow(f)&&!/reddit\.com|youtube\.com|bsky\.app/.test(f.url)),async f=>{const r=await findFeed(new URL(f.url).origin);if(r&&r.xml&&r.url!==f.url&&!isBing(r.url)&&parse(r.xml,f).list.length)fix[f.id]=r.url},.85,.15,()=>'Looking for new feed addresses');
+  if(stop)return;step('',1);
+  const A=b.filter(f=>fix[f.id]),B=b.filter(f=>!fix[f.id]&&(slow(f)||recent(f))),C=b.filter(f=>!fix[f.id]&&!slow(f)&&!recent(f)),ok=n-b.length;
+  msg.textContent=b.length?`${ok} of ${plu(n,'site')} ${ok===1?'is':'are'} working.`:`All ${plu(n,'site')} ${n===1?'is':'are'} working.`;
+  d.querySelector('.chkp').classList.add('fin');bar.removeAttribute('role');bar.setAttribute('aria-hidden','true');bar.firstChild.style.width=Math.round(ok/n*100)+'%';
+  const row=(f,why,btns)=>`<li data-tid="${esc(f.id)}"><b>${esc(nm(f))}</b><small>${esc(why)}</small><div class="tidb">${btns}<button type="button" class="tx2" data-tidrm aria-label="Remove ${esc(nm(f))}">Remove</button></div></li>`;
+  const grp=(list,t,sub,open,rows,extra)=>list.length?`<details class="chkg"${open?' open':''}><summary><b>${esc(t)}</b><span>${list.length}</span></summary><p class="xsl">${esc(sub)}</p>${extra||''}<ul class="tidl">${list.map(rows).join('')}</ul></details>`:'';
+  out.innerHTML=b.length?grp(A,'Can be fixed',A.length===1?'This site moved its feed. CyPress found the new address.':'These sites moved their feed. CyPress found the new addresses.',1,f=>row(f,feedReason(f),`<button type="button" class="tx2" data-chkfix aria-label="Use the new address for ${esc(nm(f))}">Use new address</button>`))
+   +grp(B,'Probably a hiccup',B.length===1?'It worked lately, or the site was busy. This usually clears up on its own.':'These worked lately, or the site was busy. This usually clears up on its own.',!A.length,f=>row(f,feedReason(f)+'. '+lastOkTxt(f),`<button type="button" class="tx2" data-chkre aria-label="Try ${esc(nm(f))} again">Try again</button>`),B.length>1?`<button type="button" class="tx2 chkall2" data-chkreall>${B.length===2?'Try both again':'Try all '+B.length+' again'}</button>`:'')
+   +grp(C,'Not working for a while',C.length===1?'No new feed address was found. You can remove it, or keep it in case it comes back.':'No new feed address was found. You can remove these, or keep them in case they come back.',!A.length&&!B.length,f=>row(f,feedReason(f)+'. '+lastOkTxt(f),''))
+   :'<p class="xsl">Nothing needs fixing.</p>';
+  const h=out.querySelector('summary');(h||d.querySelector('[data-xsx]')).focus();
+ })();
+ const retry=async(li,f)=>{li.querySelector('small').textContent='Trying again…';FLG[f.id]=[];await load(f,true).catch(()=>{});if(state[f.id]!=='err'){li.innerHTML=`<b>${esc(nm(f))}</b><small>Working again.</small>`}else li.querySelector('small').textContent=feedReason(f)+'. Still not answering; try again later.'};
+ d.addEventListener('click',e=>{
+  if(e.target.closest('[data-chkreall]')){const bt=e.target.closest('[data-chkreall]');bt.disabled=true;bt.closest('details').querySelectorAll('li[data-tid]').forEach(li=>{if(li.querySelector('[data-chkre]'))retry(li,feedOf(li.dataset.tid))});return}
+  const li=e.target.closest('li[data-tid]');if(!li)return;if(e.target.closest('[data-chkun]')&&li._u)return li._u();const id=li.dataset.tid,f=feedOf(id);if(!f.id)return;
   if(e.target.closest('[data-chkfix]')){f.oldUrl=f.url;f.url=fix[id];f.via='';FLG[id]=[];save();li.innerHTML=`<b>${esc(nm(f))}</b><small>Now using its new address.</small>`;li.setAttribute('tabindex','-1');li.focus();load(f,true)}
-  else if(e.target.closest('[data-tidrm]')){removeFeed(id);li.innerHTML=`<b>Removed ${esc(nm(f))}.</b>`;li.setAttribute('tabindex','-1');li.focus()}
+  else if(e.target.closest('[data-chkre]'))retry(li,f);
+  else if(e.target.closest('[data-tidrm]')){const i=S.feeds.indexOf(f),hh=S.health[id];removeFeed(id);li.innerHTML=`<b>Removed ${esc(nm(f))}.</b><div class="tidb"><button type="button" class="tx2" data-chkun aria-label="Undo removing ${esc(nm(f))}">Undo</button></div>`;li.querySelector('button').focus();li._u=()=>{S.feeds.splice(Math.min(i,S.feeds.length),0,f);if(hh)S.health[id]=hh;save();render();li.innerHTML=`<b>${esc(nm(f))}</b><small>Back in your list.</small>`;li.setAttribute('tabindex','-1');li.focus()}}
  });
 };
 $('#mngx').onclick=()=>$('#mng').close();
