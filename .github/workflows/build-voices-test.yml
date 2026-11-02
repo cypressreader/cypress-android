@@ -73,9 +73,9 @@ jobs:
             echo "::error title=eSpeak found::The voice files contain eSpeak data (GPL). Stop."; exit 1
           fi
           unzip -l android/app/libs/sherpa-onnx.aar | grep '\.so$'
-          N=$(unzip -p android/app/libs/sherpa-onnx.aar 'jni/arm64-v8a/*.so' | strings | grep -ic espeak || true)
-          echo "::notice title=eSpeak text in engine libraries::${N} line(s) mention eSpeak (listed below; error messages are fine, code is not)."
-          unzip -p android/app/libs/sherpa-onnx.aar 'jni/arm64-v8a/*.so' | strings | grep -i espeak | sort -u | head -40 || true
+          N=$(unzip -p android/app/libs/sherpa-onnx.aar 'jni/arm64-v8a/*.so' | strings | grep -icE 'espeak[-_]|libespeak|piper_phonemize' || true)
+          echo "::notice title=eSpeak text in engine libraries::${N} line(s) look like eSpeak code (should be 0; listed below)."
+          unzip -p android/app/libs/sherpa-onnx.aar 'jni/arm64-v8a/*.so' | strings | grep -iE 'espeak[-_]|libespeak|piper_phonemize' | sort -u | head -40 || true
 
       - name: Turn the project into the voices test app
         run: |
