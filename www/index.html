@@ -5063,11 +5063,11 @@ const okId=i=>/^[\w.:-]{1,60}$/.test(String(i||''))?String(i):'';
 function askBox(o){return new Promise(res=>{
  let d=document.getElementById('ask');if(d){/* the box it replaces answers "cancel", so whatever waited on it carries on */if(d._fin)d._fin();else d.remove()}
  d=document.createElement('dialog');d.id='ask';d.setAttribute('aria-labelledby','ask-t');
- d.innerHTML=`<h3 id="ask-t">${esc(o.title||'')}</h3>${o.text?`<p class="hint">${esc(o.text).replace(/\n/g,'<br>')}</p>`:''}${o.input?(o.multi?`<textarea id="ask-i" rows="3" placeholder="${esc(o.placeholder||'')}" aria-label="${esc(o.title||'')}">${esc(o.value||'')}</textarea>`:`<input id="ask-i" type="text" autocomplete="off" placeholder="${esc(o.placeholder||'')}" aria-label="${esc(o.title||'')}" value="${esc(o.value||'')}">`):''}<div class="row"><button type="button" class="tx2" data-a="0">${esc(o.cancel||'Cancel')}</button>${o.alt?`<button type="button" class="tx2" data-a="2">${esc(o.alt)}</button>`:''}<button type="button" class="go${o.danger?' dgr':''}" data-a="1">${esc(o.ok||'OK')}</button></div>`;
+ d.innerHTML=`<h3 id="ask-t">${esc(o.title||'')}</h3>${o.text?`<p class="hint">${esc(o.text).replace(/\n/g,'<br>')}</p>`:''}${o.more?`<details class="hint"><summary>${esc(o.more[0])}</summary><p>${esc(o.more[1]).replace(/\n/g,'<br>')}</p></details>`:''}${o.input?(o.multi?`<textarea id="ask-i" rows="3" placeholder="${esc(o.placeholder||'')}" aria-label="${esc(o.title||'')}">${esc(o.value||'')}</textarea>`:`<input id="ask-i" type="text" autocomplete="off" placeholder="${esc(o.placeholder||'')}" aria-label="${esc(o.title||'')}" value="${esc(o.value||'')}">`):''}<div class="row"><button type="button" class="tx2" data-a="0">${esc(o.cancel||'Cancel')}</button>${o.alt?`<button type="button" class="tx2" data-a="2">${esc(o.alt)}</button>`:''}<button type="button" class="go${o.danger?' dgr':''}" data-a="1">${esc(o.ok||'OK')}</button></div>`;
  document.body.append(d);let done=false;
  const fin=v=>{if(done)return;done=true;try{d.close()}catch(e){}d.remove();res(v)};
  d._fin=()=>fin(o.input?null:false);
- d.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-a]');if(b)fin(b.dataset.a==='2'?'alt':b.dataset.a==='1'?(o.input?d.querySelector('#ask-i').value:true):(o.input?null:false))});
+ d.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-a]');if(b&&b.dataset.a==='2'&&o.input)o.value=d.querySelector('#ask-i').value;if(b)fin(b.dataset.a==='2'?'alt':b.dataset.a==='1'?(o.input?d.querySelector('#ask-i').value:true):(o.input?null:false))});
  d.addEventListener('cancel',e=>{e.preventDefault();fin(o.input?null:false)});
  d.addEventListener('keydown',e=>{if(e.key==='Enter'&&o.input&&!o.multi){e.preventDefault();fin(d.querySelector('#ask-i').value)}});
  d.showModal();const i=d.querySelector('#ask-i');if(i){i.focus();i.select&&i.select()}
@@ -12684,15 +12684,15 @@ function mzSum(){const o=['','Story opening (last '+MZ.L.length+' taps)'];
 async function diagInfo(){
  const bad=S.feeds.filter(f=>state[f.id]==='err').map(f=>host(f.url)+': '+(FLG[f.id]||[]).slice(0,4).join('; ')).slice(0,8);
  let nat='web';try{const p=CyN();if(p){const i=await p.info();nat='native '+i.versionName+' ('+i.versionCode+')'}}catch(e){}
- return ['CyPress diagnostics','app '+APP_VERSION+' · '+nat,'screen '+innerWidth+'x'+innerHeight+' @'+devicePixelRatio,'ua '+navigator.userAgent.slice(0,140),'theme '+(S.theme||'auto')+' · cover '+(S.cvs||'clean')+' · view '+(S.view||'tiles')+(S.setall?' · all settings':''),'feeds '+S.feeds.length+' · failing '+bad.length+' · saved '+S.saved.length,'last refresh '+(S.lastLoad?new Date(S.lastLoad).toISOString():'never'),'online '+navigator.onLine+(S.offline?' · offline mode':''),bad.length?'failing: '+bad.join(' | '):'',ELOG.length?'recent errors:\n'+ELOG.slice(-15).map(x=>new Date(x.t).toISOString().slice(11,19)+' '+x.g+' '+x.m).join('\n'):''].filter(Boolean).join('\n')}
+ return ['CyPress diagnostics','app '+APP_VERSION+' · '+nat,'screen '+innerWidth+'x'+innerHeight+' @'+devicePixelRatio,'ua '+navigator.userAgent.slice(0,140),'theme '+(S.theme||'auto')+' · cover '+(S.cvs||'clean')+' · view '+(S.view||'tiles')+(S.setall?' · all settings':''),'feeds '+S.feeds.length+' · failing '+bad.length+' · saved '+S.saved.length,'last refresh '+(S.lastLoad?new Date(S.lastLoad).toISOString():'never'),'online '+navigator.onLine+(S.offline?' · offline mode':''),bad.length?'failing: '+bad.join(' | '):'',ELOG.length?'recent errors:\n'+ELOG.slice(-15).map(x=>new Date(x.t).toISOString().slice(11,19)+' '+x.g+': '+x.m).join('\n'):''].filter(Boolean).join('\n')}
 $('#diagb').onclick=async()=>{const t=await diagInfo()+mzSum();
  try{await navigator.clipboard.writeText(t);toast('Diagnostics copied')}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.append(ta);ta.select();try{document.execCommand('copy');toast('Diagnostics copied')}catch(_){toast('Couldn’t copy')}ta.remove()}
 };
 
 /* Report a problem: the person writes what went wrong and sees exactly what is sent with it before sending */
 $('#rpb').onclick=async(e,x)=>{const info=(x?x+'\n':'')+await diagInfo();
- const m=await askBox({title:'Report a problem',text:'What went wrong, and what were you doing? Your words are sent to the CyPress developer with these details, and nothing else:\n\n'+info,input:true,multi:true,placeholder:'Describe the problem',ok:'Send',alt:'Copy instead'});
- if(m==='alt'){try{await navigator.clipboard.writeText(info);toast('Details copied')}catch(e){toast('Couldn’t copy')}return}
+ const o={title:'Report a problem',text:'What went wrong, and what were you doing? Only what you write here and a few technical details go to the developer. To get a reply, use Email instead.',more:['See the details that are sent',info],input:true,multi:true,placeholder:'Describe the problem',ok:'Send',alt:'Email instead'},m=await askBox(o);
+ if(m==='alt'){const w=(o.value||'').trim();location.href='mailto:hello@cypressreader.com?subject='+encodeURIComponent('CyPress Reader problem')+'&body='+encodeURIComponent((w?w+'\n\n':'\n\n')+'---\n'+info);return}
  if(!m||!m.trim())return;
  try{const r=await fetch(SHARE_W+'/api/report',{method:'POST',body:JSON.stringify({msg:m.trim(),info,v:APP_LABEL}),headers:{'content-type':'text/plain'},referrerPolicy:'no-referrer',signal:AbortSignal.timeout(15000)});if(!r.ok)throw 0;toast('Sent. Thank you')}catch(e){toast('Couldn’t send. Check your connection and try again')}};
 /* opt-in weekly counts (off unless turned on): versions, settings, how often a few features were used, error count. No IDs, no sites, no stories */
@@ -13864,8 +13864,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.02j';const APP_LABEL='1.235';
-const CHANGES=["Report a problem is now in every story's menu (the ... button), so you can flag a story that looks wrong without leaving it","The privacy page explains how to have problem reports and short links deleted from CyPress Reader's server"];
+const APP_VERSION='2026.11.03a';const APP_LABEL='1.236';
+const CHANGES=["Report a problem is tidier: the technical details are folded away under \"See the details that are sent\", so you can still read everything before sending","New \"Email instead\" button opens your email app with your report filled in, so you can get a reply"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
