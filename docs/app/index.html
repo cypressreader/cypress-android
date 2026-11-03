@@ -5063,11 +5063,11 @@ const okId=i=>/^[\w.:-]{1,60}$/.test(String(i||''))?String(i):'';
 function askBox(o){return new Promise(res=>{
  let d=document.getElementById('ask');if(d){/* the box it replaces answers "cancel", so whatever waited on it carries on */if(d._fin)d._fin();else d.remove()}
  d=document.createElement('dialog');d.id='ask';d.setAttribute('aria-labelledby','ask-t');
- d.innerHTML=`<h3 id="ask-t">${esc(o.title||'')}</h3>${o.text?`<p class="hint">${esc(o.text).replace(/\n/g,'<br>')}</p>`:''}${o.input?(o.multi?`<textarea id="ask-i" rows="3" placeholder="${esc(o.placeholder||'')}" aria-label="${esc(o.title||'')}">${esc(o.value||'')}</textarea>`:`<input id="ask-i" type="text" autocomplete="off" placeholder="${esc(o.placeholder||'')}" aria-label="${esc(o.title||'')}" value="${esc(o.value||'')}">`):''}<div class="row"><button type="button" class="tx2" data-a="0">${esc(o.cancel||'Cancel')}</button>${o.alt?`<button type="button" class="tx2" data-a="2">${esc(o.alt)}</button>`:''}<button type="button" class="go${o.danger?' dgr':''}" data-a="1">${esc(o.ok||'OK')}</button></div>`;
+ d.innerHTML=`<h3 id="ask-t">${esc(o.title||'')}</h3>${o.text?`<p class="hint">${esc(o.text).replace(/\n/g,'<br>')}</p>`:''}${o.more?`<details class="hint"><summary>${esc(o.more[0])}</summary><p>${esc(o.more[1]).replace(/\n/g,'<br>')}</p></details>`:''}${o.input?(o.multi?`<textarea id="ask-i" rows="3" placeholder="${esc(o.placeholder||'')}" aria-label="${esc(o.title||'')}">${esc(o.value||'')}</textarea>`:`<input id="ask-i" type="text" autocomplete="off" placeholder="${esc(o.placeholder||'')}" aria-label="${esc(o.title||'')}" value="${esc(o.value||'')}">`):''}<div class="row"><button type="button" class="tx2" data-a="0">${esc(o.cancel||'Cancel')}</button>${o.alt?`<button type="button" class="tx2" data-a="2">${esc(o.alt)}</button>`:''}<button type="button" class="go${o.danger?' dgr':''}" data-a="1">${esc(o.ok||'OK')}</button></div>`;
  document.body.append(d);let done=false;
  const fin=v=>{if(done)return;done=true;try{d.close()}catch(e){}d.remove();res(v)};
  d._fin=()=>fin(o.input?null:false);
- d.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-a]');if(b)fin(b.dataset.a==='2'?'alt':b.dataset.a==='1'?(o.input?d.querySelector('#ask-i').value:true):(o.input?null:false))});
+ d.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-a]');if(b&&b.dataset.a==='2'&&o.input)o.value=d.querySelector('#ask-i').value;if(b)fin(b.dataset.a==='2'?'alt':b.dataset.a==='1'?(o.input?d.querySelector('#ask-i').value:true):(o.input?null:false))});
  d.addEventListener('cancel',e=>{e.preventDefault();fin(o.input?null:false)});
  d.addEventListener('keydown',e=>{if(e.key==='Enter'&&o.input&&!o.multi){e.preventDefault();fin(d.querySelector('#ask-i').value)}});
  d.showModal();const i=d.querySelector('#ask-i');if(i){i.focus();i.select&&i.select()}
@@ -12691,8 +12691,8 @@ $('#diagb').onclick=async()=>{const t=await diagInfo()+mzSum();
 
 /* Report a problem: the person writes what went wrong and sees exactly what is sent with it before sending */
 $('#rpb').onclick=async(e,x)=>{const info=(x?x+'\n':'')+await diagInfo();
- const m=await askBox({title:'Report a problem',text:'What went wrong, and what were you doing? Your words are sent to the CyPress developer with these details, and nothing else:\n\n'+info,input:true,multi:true,placeholder:'Describe the problem',ok:'Send',alt:'Copy instead'});
- if(m==='alt'){try{await navigator.clipboard.writeText(info);toast('Details copied')}catch(e){toast('Couldn’t copy')}return}
+ const o={title:'Report a problem',text:'What went wrong, and what were you doing? Only what you write here and a few technical details go to the developer. To get a reply, use Email instead.',more:['See the details that are sent',info],input:true,multi:true,placeholder:'Describe the problem',ok:'Send',alt:'Email instead'},m=await askBox(o);
+ if(m==='alt'){const w=(o.value||'').trim();location.href='mailto:hello@cypressreader.com?subject='+encodeURIComponent('CyPress Reader problem')+'&body='+encodeURIComponent((w?w+'\n\n':'\n\n')+'---\n'+info);return}
  if(!m||!m.trim())return;
  try{const r=await fetch(SHARE_W+'/api/report',{method:'POST',body:JSON.stringify({msg:m.trim(),info,v:APP_LABEL}),headers:{'content-type':'text/plain'},referrerPolicy:'no-referrer',signal:AbortSignal.timeout(15000)});if(!r.ok)throw 0;toast('Sent. Thank you')}catch(e){toast('Couldn’t send. Check your connection and try again')}};
 /* opt-in weekly counts (off unless turned on): versions, settings, how often a few features were used, error count. No IDs, no sites, no stories */
