@@ -1,0 +1,47 @@
+# One-time backup of the app signing key (the file that proves updates come from CyPress).
+# GitHub never shows secrets again, so this packs KEYSTORE_BASE64 + KEYSTORE_PASSWORD into a
+# password-locked .7z (AES-256, file names hidden too), locked with BACKUP_PASS, which only the owner knows.
+# The download expires after 1 day. Nothing secret is printed in the log.
+name: Back up the signing key
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/handoff-continuation-wemfdv]
+    paths: [".github/workflows/key-backup.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pack the key into a locked file
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+          BACKUP_PASS: ${{ secrets.BACKUP_PASS }}
+        run: |
+          set -e
+          if [ -z "$KS_B64" ] || [ -z "$KS_PASS" ]; then echo "::error title=Signing key missing::KEYSTORE_BASE64 or KEYSTORE_PASSWORD is not set."; exit 1; fi
+          if [ ${#BACKUP_PASS} -lt 12 ]; then echo "::error title=Add BACKUP_PASS first::Add a secret named BACKUP_PASS (12 or more characters, saved in your password manager) under Settings, Secrets and variables, Actions, then press Re-run all jobs."; exit 1; fi
+          D="$RUNNER_TEMP/k"; mkdir -p "$D"
+          echo "$KS_B64" | base64 -d > "$D/cypress.keystore"
+          # Prove this is the key the app is signed with (public fingerprint, also in docs/.well-known/assetlinks.json)
+          SHA=$(keytool -list -v -keystore "$D/cypress.keystore" -storepass:env KS_PASS -alias cypress | grep -m1 'SHA256:' | sed 's/.*SHA256: *//' | tr -d ' ')
+          WANT=D1:AF:03:3A:C7:79:A0:8C:A6:57:FE:EC:0E:41:01:96:BC:52:70:CE:60:00:F6:AA:8B:73:94:E1:CA:03:2A:8D
+          if [ "$SHA" != "$WANT" ]; then echo "::error title=Wrong key::The saved key does not match the app's fingerprint."; exit 1; fi
+          echo "Key checked: fingerprint matches the app ($WANT)."
+          printf '%s' "$KS_PASS" > "$D/keystore-password.txt"
+          printf 'CyPress Reader signing key\nFile: cypress.keystore\nKey name (alias): cypress\nPassword: in keystore-password.txt\nFingerprint (SHA-256): %s\nTo restore: base64 the .keystore into the KEYSTORE_BASE64 secret, the password into KEYSTORE_PASSWORD.\n' "$WANT" > "$D/README.txt"
+          command -v 7z >/dev/null || sudo apt-get install -y -qq p7zip-full >/dev/null
+          (cd "$D" && 7z a -t7z -mhe=on -p"$BACKUP_PASS" "$GITHUB_WORKSPACE/cypress-signing-key-backup.7z" cypress.keystore keystore-password.txt README.txt >/dev/null)
+          rm -rf "$D"
+          7z t -p"$BACKUP_PASS" cypress-signing-key-backup.7z >/dev/null && echo "Locked file made and tested."
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cypress-signing-key-backup
+          path: cypress-signing-key-backup.7z
+          retention-days: 1
