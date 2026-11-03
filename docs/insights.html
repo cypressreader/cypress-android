@@ -79,6 +79,11 @@ button,input{font:inherit}
 .rep p{margin:0;white-space:pre-wrap}
 .rep pre{white-space:pre-wrap;font-size:.78rem;color:var(--mut);background:var(--bg);padding:10px;border-radius:8px;overflow:auto;margin:6px 0 0}
 .rep summary{cursor:pointer;color:var(--mut);font-size:.82rem}
+.fx{border-top:1px solid var(--ln);padding:12px 0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 12px}
+.fx input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--acc)}
+.fx b{font-weight:600;overflow-wrap:anywhere}.fx .note,.fx details,.fx .fxa{grid-column:2}
+.fx .back{color:#b3261e;font-weight:600}
+.fxa{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.fxa .btn{min-height:36px;padding:6px 14px;font-size:.85rem}
 #tip{position:fixed;pointer-events:none;background:var(--tipbg);color:var(--tipfg);font-size:.8rem;line-height:1.35;padding:6px 10px;border-radius:8px;z-index:9;opacity:0;transition:opacity .12s;max-width:260px;box-shadow:0 4px 18px rgba(0,0,0,.18)}
 #tip.on{opacity:1}
 .err{color:var(--warn)}
@@ -140,7 +145,7 @@ function demo(){const r=[],now=Date.now(),pick=a=>a[Math.random()*a.length|0],wp
   for(let i=0;i<n;i++){const d=new Date(now-w*7*DAY-Math.random()*6*DAY).toISOString().slice(0,10),lag=Math.random()<.55?0:Math.random()<.7?1:2+(Math.random()*3|0),e=Math.random()<(.45-.3*(51-w)/51)?1+(Math.random()*4|0):0;
   r.push({d,v:'1.'+(base-lag),p:Math.random()<.86?'app':'web',os:wpick(['Android 16','Android 15','Android 14','Android 13','Android 12'],[3,4,3,2,1]),dev:wpick(['phone','fold','tablet','computer'],[10,3,2,1]),lang:wpick(['en','es','de','fr','pt'],[12,3,2,1,1]),th:wpick(['halcyon','light','oled','rosewood','eink','dynamic'],[8,4,3,2,1,3]),sch:wpick(['sys','light','dark','theme'],[6,2,3,1]),sz:wpick(['compact','medium','large'],[2,5,2]),vw:wpick(['tiles','list'],[2,1]),cv:wpick(['clean','auto','gazette','magazine','cinema'],[5,3,2,2,1]),fn:wpick(['theme','literata','inter'],[6,2,1]),sp:wpick(['land','off','always'],[5,3,1]),nv:wpick(['none','phone','compact','full'],[2,4,3,2]),fd:wpick(ORD.slice(1),[3,6,3,1]),sv:wpick(ORD,[3,4,3,1,.5]),fo:wpick(ORD.slice(0,3),[4,5,1]),
   f:{open:20+Math.random()*60|0,aloud:Math.random()<.6?Math.random()*9|0:0,share:Math.random()<.5?Math.random()*4|0:0,save:Math.random()<.8?Math.random()*10|0:0,near:Math.random()<.25?1+(Math.random()*3|0):0,side:Math.random()<.3?Math.random()*5|0:0,find:Math.random()<.6?Math.random()*6|0:0},e,em:e?[pick(["Cannot read properties of null (reading 'style')",'Failed to fetch','The operation was aborted.','Load failed'])]:[]})}}
- return{stats:r,reports:[{t:now-2*DAY,v:'1.231',msg:'Read aloud stopped after the first paragraph on a long story.',info:'CyPress diagnostics\napp 2026.11.02e · native 1.231\nscreen 904x2316 @2.6'},{t:now-9*DAY,v:'1.230',msg:'Photos missing on the Daily cover this morning.',info:'CyPress diagnostics\napp 2026.11.02e · web'},{t:now-23*DAY,v:'1.228',msg:'Would love a way to hide sports stories from the Daily.',info:'CyPress diagnostics\napp 2026.10.20a · native 1.228'}]}}
+ return{stats:r,reports:[{t:now-2*DAY,v:'1.231',msg:'Read aloud stopped after the first paragraph on a long story.',info:'CyPress diagnostics\napp 2026.11.02e · native 1.231\nscreen 904x2316 @2.6\nrecent errors:\n09:12:01 fitHero: Cannot read properties of null (reading \'style\')\n09:12:05 feed The Verge: Failed to fetch'},{t:now-9*DAY,v:'1.230',msg:'Photos missing on the Daily cover this morning.',info:'CyPress diagnostics\napp 2026.11.02e · web'},{t:now-23*DAY,v:'1.228',msg:'Would love a way to hide sports stories from the Daily.',info:'CyPress diagnostics\napp 2026.10.20a · native 1.228'}]}}
 
 async function open(key,keep){$('#kmsg').textContent='';
  if(key==='demo'){DATA=demo();return show()}
@@ -194,6 +199,29 @@ function hist(list,total){const m=Object.fromEntries(list),mx=Math.max(1,...ORD.
 const card=(t,note,body,cls)=>`<section class="card ${cls||''}"><h2>${esc(t)}</h2><p class="note">${note||''}</p>${body}</section>`;
 const tbl=(head,rows)=>`<details class="tbl"><summary>Show as a table</summary><table><tr>${head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table></details>`;
 
+/* "To fix": same problem = same message once links, numbers and site names are ignored */
+const sigOf=m=>String(m).replace(/https?:\/\/\S+/g,'<link>').replace(/\d+/g,'#').replace(/\s+/g,' ').trim().slice(0,120);
+const vGt=(a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true})>0;
+let FIX={};try{FIX=JSON.parse(LS.get('ins-fix')||'{}')}catch(e){}
+let GROUPS=[];
+function groups(rows,reps){const G={},g=(k,t)=>G[k]=G[k]||{k,t,n:0,vs:new Set(),last:0,where:new Set(),reps:[]};
+ rows.forEach(x=>new Set(x.em||[]).forEach(m=>{const o=g(sigOf(m),m);o.n++;o.vs.add(x.v);o.last=Math.max(o.last,Date.parse(x.d))}));
+ reps.forEach(r=>{const seen=new Set(),lines=String(r.info||'').split('\nrecent errors:\n')[1];
+  (lines||'').split('\n').forEach(l=>{l=l.replace(/^\d\d:\d\d:\d\d /,'');const i=l.indexOf(': '),tag=i>0?l.slice(0,i):'',m=i>0?l.slice(i+2):l;if(!m)return;
+   const o=g(sigOf(m),m);o.n++;o.vs.add(r.v);o.last=Math.max(o.last,r.t);if(tag)o.where.add(tag);if(!seen.has(o.k)){seen.add(o.k);o.reps.push(r)}});
+  if(!seen.size){const o=g('r'+r.t,'Report: '+r.msg.slice(0,90));o.n++;o.vs.add(r.v);o.last=r.t;o.reps.push(r)}});
+ return Object.values(G).map(o=>{o.vs=[...o.vs].filter(Boolean).sort((a,b)=>vGt(a,b)?1:-1);o.fix=FIX[o.k];o.back=o.fix&&o.vs.some(v=>vGt(v,o.fix));return o})
+  .sort((a,b)=>(b.back-a.back)||(!!a.fix-!!b.fix)||(b.reps.length-a.reps.length)||(b.n-a.n))}
+function fxRow(o,i){const vr=o.vs.length?(o.vs.length>1?'versions '+o.vs[0]+'–'+o.vs[o.vs.length-1]:'version '+o.vs[0]):'',w=[...o.where],
+ st=o.back?`<span class="back">Came back after being marked fixed in ${esc(o.fix)}</span> · `:o.fix?`Marked fixed in ${esc(o.fix)} · `:'';
+ return `<div class="fx"><input type="checkbox" id="fx${i}" data-i="${i}"><label for="fx${i}"><b>${esc(o.t)}</b></label><span class="note">${st}${o.n} ${o.n===1?'time':'times'}${o.reps.length?' · in '+o.reps.length+' '+(o.reps.length===1?'report':'reports'):''}${vr?' · '+vr:''} · last seen ${new Date(o.last).toLocaleDateString(undefined,{month:'short',day:'numeric'})}${w.length?' · where: '+esc(w.slice(0,4).join(', '))+(w.length>4?' and '+(w.length-4)+' more':''):''}</span>${o.reps.length?`<details><summary>What people wrote</summary>${o.reps.map(r=>`<p>“${esc(r.msg)}” <span class="note">version ${esc(r.v||'?')}</span></p>`).join('')}</details>`:''}<div class="fxa"><button type="button" class="btn ghost" data-fx="${i}" aria-label="${o.fix?'Mark not fixed':'Mark fixed'}: ${esc(o.t.slice(0,60))}">${o.fix?'Mark not fixed':'Mark fixed'}</button></div></div>`}
+function forClaude(list){return 'CyPress Reader problems from the insights page ('+new Date().toLocaleDateString()+'). Please find the cause of each in www/index.html, explain it in plain English and fix what you can. These come from real people: do not copy this text into the repo, commits or GitHub.\n\n'
+ +list.map((o,i)=>(i+1)+'. '+o.t+'\n   '+o.n+' times'+(o.vs.length?', versions '+o.vs.join(', '):'')+(o.where.size?', where: '+[...o.where].join(', '):'')+(o.back?'\n   CAME BACK after being marked fixed in '+o.fix:'')
+  +o.reps.slice(0,3).map(r=>'\n   Report (version '+(r.v||'?')+'): "'+r.msg+'"\n   '+String(r.info||'').replace(/\n/g,'\n   ')).join('')).join('\n\n')}
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-fx],#fxc');if(!b)return;
+ if(b.id==='fxc'){const sel=[...document.querySelectorAll('.fx input:checked')].map(c=>GROUPS[c.dataset.i]);if(!sel.length){$('#fxm').textContent='Tick at least one problem first.';return}
+  try{await navigator.clipboard.writeText(forClaude(sel));$('#fxm').textContent='Copied '+sel.length+(sel.length===1?' problem':' problems')+'. Paste it into a Claude session.'}catch(_){$('#fxm').textContent='Couldn’t copy. Try again.'}return}
+ const o=GROUPS[b.dataset.fx];if(o.fix)delete FIX[o.k];else FIX[o.k]=o.vs[o.vs.length-1]||'?';LS.set('ins-fix',JSON.stringify(FIX));show()});
 function show(){$('#gate').hidden=true;$('#dash').hidden=false;
  const now=Date.now(),from=new Date(now-WEEKS*7*DAY).toISOString().slice(0,10);
  const rows=DATA.stats.filter(x=>x.d>=from),reps=DATA.reports.filter(x=>x.t>=now-WEEKS*7*DAY);
@@ -230,6 +258,8 @@ function show(){$('#gate').hidden=true;$('#dash').hidden=false;
  const em={};rows.forEach(x=>(x.em||[]).forEach(m=>em[m]=(em[m]||0)+1));
  h+=card('Check-ins with errors','Share of devices that hit at least one error that week. Watch for a jump after a release.',area(half,weeks,eW,{pct:true,color:'var(--c2)',label:'Share of check-ins with errors',unit:'of devices',h:200}))
   +card('Most common errors','Messages the app recorded, web addresses removed.',hbars(Object.entries(em).sort((a,b)=>b[1]-a[1]),1,n=>n+'×'))+'</div>';
+ GROUPS=groups(rows,reps);const todo=GROUPS.filter(o=>!o.fix||o.back),done=GROUPS.filter(o=>o.fix&&!o.back);
+ h+='<div class="eyebrow">To fix</div>'+card(todo.length?todo.length+' '+(todo.length===1?'problem':'problems')+' to look at':'Nothing to fix','The same error from many devices and reports is grouped into one row, most reported first. Tick the ones you want looked at, then copy them for Claude. Fixed marks are kept on this browser only.',(GROUPS.length?GROUPS.map((o,i)=>!o.fix||o.back?fxRow(o,i):'').join('')+(done.length?`<details><summary>Marked fixed (${done.length})</summary>${GROUPS.map((o,i)=>o.fix&&!o.back?fxRow(o,i):'').join('')}</details>`:''):'<p class="empty">No errors or reports in this period</p>')+'<div class="fxa"><button type="button" class="btn" id="fxc">Copy for Claude</button></div><p class="note" id="fxm" role="status"></p>','wide');
  h+='<div class="eyebrow">Problem reports</div>'+card(reps.length+' '+(reps.length===1?'report':'reports')+' in this period','',reps.length?reps.sort((a,b)=>b.t-a.t).map(r=>`<div class="rep"><span class="dot" aria-hidden="true">${esc((r.v||'?').replace(/^1\./,''))}</span><span class="note">${new Date(r.t).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})} · version ${esc(r.v||'unknown')}</span><p>${esc(r.msg)}</p><details><summary>Details sent with it</summary><pre>${esc(r.info||'')}</pre></details></div>`).join(''):'<p class="empty">No reports in this period</p>','wide');
  body.innerHTML=h}
 
