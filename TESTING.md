@@ -1230,3 +1230,10 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Fix how words are said: Settings > Read aloud > "Fix words", and the player's "Word said wrong? Fix it" (fills in the word being read). Add Nguyen -> win, tap Hear it, Save fix, then read a story with that name on BOTH the Natural voice and a phone voice; check word highlighting still follows on the phone voice. Remove a fix and confirm it's gone. Fixes survive app restart and come along with a backup.
 - (turn 5) Refresh while in a folder (e.g. News) or one site: that folder's stories should arrive first, the other sites keep loading behind it.
 - (turn 6) Keep playing OFF: open a story, Read aloud, let it finish: it must stop, not open the next story (old Daily/shelf leftovers were in Up Next). Adding a story to Up Next yourself still plays it next. Listening to the Daily still goes story to story.
+
+## jubrvc 1.241 (implemented, unverified on phone)
+- Daily cover: Play Daily + "stories left" visible above the tab bar without scrolling (Fold closed + open)
+- Long-press > Mark as read/unread: feed keeps its place, card fades/unfades in place
+- Halcyon dark folder/site page: "Mark read" button and "Cover story · site · time" lines read clearly
+- Story "…" > Mark as unread, then back: card no longer faded
+- Fix how words are said > Hear it while a story is reading aloud: does the story cut off?
