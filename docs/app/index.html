@@ -5967,7 +5967,7 @@ async function load0(f,fresh){
  if(S.offline){state[f.id]=(items[f.id]||[]).length?'ok':'err';loadRender();return}
  state[f.id]='load';LP.t++;pfBar();
  const cb=u=>u+(u.includes('?')?'&':'?')+'_cp='+Date.now();
- let got=null;try{got=(await loadFeed(f,fresh)).map(fixA);state[f.id]='ok'}catch(e){state[f.id]='err';tip('health');if(!(e&&e.message==='no site'))elog('feed '+(f.title||'').slice(0,20),e)}
+ let got=null;try{got=(await loadFeed(f,fresh)).map(fixA);state[f.id]='ok'}catch(e){state[f.id]='err';tip('health');if(!(e&&e.message==='no site')&&navigator.onLine){/* why every route failed (timed out, HTTP 403...) and whether the app was in the background: only reasons, never sites, so the error counts can tell a broken feed from a dozing phone */const why=[...new Set(((FLG[f.id]||[]).join(' ').match(/timed out|HTTP \d+|blocked or offline|empty reply|bot check|no readable/g)||[]))].join(', ');elog('feed '+(f.title||'').slice(0,20),(e&&e.message||e)+(why?' ('+why+')':'')+(document.hidden?' in background':''))}}
  if(!S.feeds.includes(f)){delete items[f.id];delete state[f.id];LP.f++;pfBar();return}
  if(got){got=noTwins(got).filter(a=>!isCouponSpam(a));/* B22: a feed's stories must be from its own site - drop strays from any aggregation path that skipped the onSite filter */
   try{const sd=siteOf(f);if(sd){const n0=got.length;got=got.filter(a=>{if(a.os)return true;return onSite(host(a.link),sd)});if(n0>got.length)(FLG[f.id]=FLG[f.id]||[]).push('dropped '+(n0-got.length)+' off-site stories')}}catch(e){}

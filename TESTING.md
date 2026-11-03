@@ -1242,3 +1242,6 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - cypressreader.com on Android Chrome: theme picker fades the page, choice remembered after reload, phone browser bar color follows
 - "Get the app" bar slides up after the top buttons, hides at Install and at the end; doesn't cover the cookie-free footer links
 - Laptop: QR code scans to the download
+
+## Feed error reasons (handoff after gawgc1, turn 1) — implemented, unverified
+- After the next build, with usage counts on: Insights error messages should read like "Could not fetch (timed out) in background". Errors while offline are no longer counted.
