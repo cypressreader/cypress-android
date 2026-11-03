@@ -8,6 +8,7 @@
 //   POST /api/stats  opt-in weekly anonymous counts from the app (needs the STATS binding, see docs/worker/INSIGHTS.md)
 //   POST /api/report a problem report the person wrote and sent from Settings (same STATS binding)
 //   GET /api/insights everything above, for cypressreader.com/insights; needs the INSIGHTS_KEY secret as a Bearer token
+//   POST /api/insights {t, st} marks one report new / working / fixed (same key)
 //   the web app, only for family and friends: served at the secret path FAMILY_PATH (a secret, so it is not in this public file),
 //   behind the FAMILY_CODE password; /<path>/?invite=<code> lets a browser in for a year. /app/ then goes to the home page. /feed needs the same pass.
 //   everything else is the CyPress site and web app, served from GitHub Pages under this address
@@ -306,6 +307,16 @@ async function insights(req, env) {
   const a = new TextEncoder().encode(key), b = new TextEncoder().encode(got);
   let diff = a.length ^ b.length; for (let i = 0; i < a.length; i++) diff |= a[i] ^ (b[i] || 0);
   if (diff) return jres({ error: 'Wrong key' }, 401);
+  // POST {t, st}: mark one problem report New, Working or Fixed (kept inside the report itself)
+  if (req.method === 'POST') {
+    let o; try { o = JSON.parse(await req.text()); } catch (e) { return jres({ error: 'Bad data' }, 400); }
+    if (!o || !/^\d{10,15}$/.test(String(o.t)) || !['new', 'working', 'fixed'].includes(o.st)) return jres({ error: 'Bad data' }, 400);
+    const k = (await env.STATS.list({ prefix: 'r:' + o.t + ':', limit: 1 })).keys[0];
+    if (!k) return jres({ error: 'No such report' }, 404);
+    const r = JSON.parse(await env.STATS.get(k.name) || '{}'); r.st = o.st; r.stT = Date.now();
+    await env.STATS.put(k.name, JSON.stringify(r), { expirationTtl: KEEP });
+    return jres({ ok: true }, 200);
+  }
   const st = await listAll(env.STATS, 's:', 20000);
   const rk = (await listAll(env.STATS, 'r:', 2000)).sort((x, y) => (x.name < y.name ? 1 : -1)).slice(0, 60);
   const reports = await Promise.all(rk.map(async k => { try { return Object.assign({ t: +k.name.split(':')[1] }, JSON.parse(await env.STATS.get(k.name))); } catch (e) { return null; } }));
