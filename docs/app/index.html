@@ -5967,7 +5967,7 @@ async function load0(f,fresh){
  if(S.offline){state[f.id]=(items[f.id]||[]).length?'ok':'err';loadRender();return}
  state[f.id]='load';LP.t++;pfBar();
  const cb=u=>u+(u.includes('?')?'&':'?')+'_cp='+Date.now();
- let got=null;try{got=(await loadFeed(f,fresh)).map(fixA);state[f.id]='ok'}catch(e){state[f.id]='err';tip('health');if(!(e&&e.message==='no site'))elog('feed '+(f.title||'').slice(0,20),e)}
+ let got=null;try{got=(await loadFeed(f,fresh)).map(fixA);state[f.id]='ok'}catch(e){state[f.id]='err';tip('health');if(!(e&&e.message==='no site')&&navigator.onLine){/* why every route failed (timed out, HTTP 403...) and whether the app was in the background: only reasons, never sites, so the error counts can tell a broken feed from a dozing phone */const why=[...new Set(((FLG[f.id]||[]).join(' ').match(/timed out|HTTP \d+|blocked or offline|empty reply|bot check|no readable/g)||[]))].join(', ');elog('feed '+(f.title||'').slice(0,20),(e&&e.message||e)+(why?' ('+why+')':'')+(document.hidden?' in background':''))}}
  if(!S.feeds.includes(f)){delete items[f.id];delete state[f.id];LP.f++;pfBar();return}
  if(got){got=noTwins(got).filter(a=>!isCouponSpam(a));/* B22: a feed's stories must be from its own site - drop strays from any aggregation path that skipped the onSite filter */
   try{const sd=siteOf(f);if(sd){const n0=got.length;got=got.filter(a=>{if(a.os)return true;return onSite(host(a.link),sd)});if(n0>got.length)(FLG[f.id]=FLG[f.id]||[]).push('dropped '+(n0-got.length)+' off-site stories')}}catch(e){}
@@ -13869,8 +13869,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.03f';const APP_LABEL='1.241';
-const CHANGES=["The Daily's cover fits your phone screen, so Play Daily shows without scrolling","Marking a story as read or unread from its menu no longer makes the feed jump back to the top","Small labels on site and folder pages are easier to read in dark themes","Marking a story as unread from inside it updates its card in the list"];
+const APP_VERSION='2026.11.03g';const APP_LABEL='1.242';
+const CHANGES=["Problem reports from the app now say why a site could not load (timed out, blocked, or offline), so fixes come faster","Sites that fail only while your phone is asleep or offline are no longer counted as problems"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
