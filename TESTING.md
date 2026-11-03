@@ -1252,3 +1252,4 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Report a problem > See the details: has a "recent taps:" line with button names only (no story titles, nothing typed).
 - After sending a report, Settings shows "Your reports: 1 sent"; mark it Fixed on Insights, next day the app shows "1 fixed" and a toast.
 - Daily check step E (dead built-in site -> fix branch) has never fired yet: confirm the scheduled session can push a branch.
+- Report a problem: ticking 'Include the addresses of my sites' adds the site list to the details preview and the sent report; unticked sends none. Box opens unticked every time.
