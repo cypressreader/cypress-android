@@ -1202,3 +1202,4 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 
 ## 1.235 (2026-11-02) — implemented, unverified on phone
 - [ ] Story ... menu > Report a problem opens the report box with "Story: <link>" filled in, and Send works
+- [ ] 1.236: Report a problem shows a short note with folded details; Email instead opens the email app addressed to hello@cypressreader.com with typed words + details
