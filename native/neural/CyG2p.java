@@ -404,6 +404,13 @@ final class CyG2p extends CyText {
             "was", "were", "been", "be", "being", "is", "are", "i've", "we've", "you've", "they've", "already", "widely"));
     private static final java.util.Set<String> METAL = new java.util.HashSet<>(java.util.Arrays.asList("poisoning", "pipe", "pipes",
             "paint", "levels", "level", "exposure", "contamination", "service", "lines", "pipelines", "bullet", "bullets"));
+    private static final java.util.Set<String> FOUND = new java.util.HashSet<>(java.util.Arrays.asList("found", "detected",
+            "elevated", "toxic", "contains", "contained", "containing", "traces", "remove", "removing", "replace", "replacing"));
+    private static final java.util.Set<String> WOUND = new java.util.HashSet<>(java.util.Arrays.asList("up", "down", "around",
+            "through", "its", "his", "her", "their", "back", "along"));
+    private static final java.util.Set<String> WIND_NOUN = new java.util.HashSet<>(java.util.Arrays.asList("gusts", "gust", "speeds",
+            "speed", "chill", "turbine", "turbines", "power", "farm", "farms", "energy", "damage", "warning", "warnings", "advisory",
+            "storm", "shear", "direction", "tunnel", "instrument", "instruments", "and", ",", "."));
     static {
         String[] h = {"live", "lˈɪv", null, "use", null, "jˈus", "close", "klˈOz", null, "record", "ɹəkˈɔɹd", null,
                 "present", "pɹizˈɛnt", null, "object", "əbʤˈɛkt", null, "tear", "tˈɛɹ", null, "wind", "wˈInd", null,
@@ -421,6 +428,7 @@ final class CyG2p extends CyText {
     }
 
     private static String hetero(String w, String prev, String next, String tag) {
+        if (w.equals("wind") && WIND_NOUN.contains(next)) return "wˈɪnd"; // "Wind gusts topped 60 mph" opens with a noun
         if (tag != null && w.equals("read")) return tag.equals("VBD") || tag.equals("VBN") ? "ɹˈɛd" : null;
         if (tag != null && TAGS.containsKey(w) && !w.equals("used") && !w.equals("lead") && !w.equals("wound")) {
             if (prev.equals("to") && tag.startsWith("VB") && !AFTER_TO.contains(next)) tag = "NN"; // "rose to record highs"
@@ -431,8 +439,8 @@ final class CyG2p extends CyText {
         switch (w) {
             case "read": return READ_PAST.contains(prev) ? "ɹˈɛd" : null;
             case "used": return next.equals("to") ? "jˈust" : null;
-            case "lead": return METAL.contains(next) ? "lˈɛd" : null;
-            case "wound": return next.equals("up") || next.equals("down") ? "wˈWnd" : null;
+            case "lead": return METAL.contains(next) || FOUND.contains(prev) ? "lˈɛd" : null; // "found lead in the pipes"
+            case "wound": return WOUND.contains(next) ? "wˈWnd" : null;
             default: break;
         }
         String[] f = HET.get(w);
@@ -440,6 +448,39 @@ final class CyG2p extends CyText {
         if (f[0] != null && VERB_PREV.contains(prev) && (!prev.equals("to") || AFTER_TO.contains(next))) return f[0];
         if (f[1] != null && NOUN_PREV.contains(prev)) return f[1];
         return null;
+    }
+
+    // "read" alone can't tell "red" from "reed"; the rest of its sentence can (David 2026-11-03: "they read the email" said "reed")
+    private static final java.util.Set<String> HABIT = new java.util.HashSet<>(java.util.Arrays.asList("always", "usually", "often",
+            "sometimes", "regularly", "rarely", "seldom", "typically", "generally", "daily", "nowadays"));
+    private static final java.util.Set<String> SAY = new java.util.HashSet<>(java.util.Arrays.asList("say", "says", "said", "tell",
+            "tells", "told", "believe", "believes", "think", "thinks", "claim", "claims", "report", "reports", "allege", "alleges"));
+    private static final java.util.Set<String> SPAN = new java.util.HashSet<>(java.util.Arrays.asList("day", "week", "morning",
+            "night", "month", "year", "time", "evening", "weekend"));
+
+    private static final java.util.Set<String> NOT_FINITE = new java.util.HashSet<>(java.util.Arrays.asList("to", "will", "would",
+            "can", "could", "may", "might", "must", "shall", "should", "do", "does", "did", "have", "has", "had", "be", "been", "being",
+            "is", "are", "am", "was", "were", "not", "'s", "'re", "'ve", "'ll", "'d", "please", "and", "or", "“", "\"", "("));
+    private static final java.util.Set<String> MODAL_NOW = new java.util.HashSet<>(java.util.Arrays.asList("will", "can", "shall",
+            "must", "may", "won't", "can't"));
+
+    /** VBD (past) or VBP (present) for "read" as a sentence's own verb: another past verb in the sentence wins, then a present
+     *  one or a habit word, else past (news). "to read", "will read", "was read", "Read the story", "a good read": the tagger's call. */
+    private static String readTense(java.util.List<String> low, String[] tags, int i) {
+        int s = i, e = i;
+        while (s > 0 && ".!?;:".indexOf(low.get(s - 1).charAt(0)) < 0) s--;
+        if (s == i || !tags[i].startsWith("VB") || NOT_FINITE.contains(low.get(i - 1)) || low.get(i - 1).endsWith("n't")) return tags[i];
+        while (e + 1 < low.size() && ".!?;:".indexOf(low.get(e + 1).charAt(0)) < 0) e++;
+        for (int j = s; j < i; j++) if (low.get(j).matches("do|does|did|don't|doesn't|didn't")) return "VB"; // "Did they read it?"
+        boolean past = false, now = false;
+        for (int j = s; j <= e; j++) {
+            String w = low.get(j), g = tags[j];
+            if (j == i || g == null || SAY.contains(w)) continue; // "they say they read it" is still past
+            if (HABIT.contains(w) || w.equals("every") && j < e && SPAN.contains(low.get(j + 1))) now = true;
+            else if (g.equals("VBD")) past = true;
+            else if (g.equals("VBZ") || g.equals("VBP") || MODAL_NOW.contains(w)) now = true;
+        }
+        return past || !now ? "VBD" : "VBP";
     }
 
     private static final Pattern CONTR = Pattern.compile("(?i)(.+?)(n't|'s|'re|'ve|'ll|'d|'m|')");
@@ -510,7 +551,7 @@ final class CyG2p extends CyText {
             String next = i + 1 < ph.size() ? ph.get(i + 1) : "";
             boolean nv = vowelStart(next);
             String het = hetero(low.get(i), i > 0 ? low.get(i - 1) : "", i + 1 < low.size() ? low.get(i + 1) : "",
-                    tags == null ? null : tags[i]);
+                    tags == null ? null : low.get(i).equals("read") ? readTense(low, tags, i) : tags[i]);
             if (het != null) ph.set(i, het);
             switch (low.get(i)) { // weak forms, the way Kokoro was trained (misaki)
                 case "a": if (i > 0 && raw.get(i).equals("a")) ph.set(i, "ɐ"); break;

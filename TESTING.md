@@ -1211,3 +1211,8 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - [ ] Settings > Sites & backup: "Import or export sites" (no OPML); sync setup says "sync service", not relay/worker
 - [ ] (turn 6, unbuilt) Side bar says "My Sites"; Settings section "Sites & backup"; sort "Best first" / "By site"; setup says "Choose your sites"; Tips list has no "tap the logo" line; BBC/Guardian blurbs have no "Free to read"
 - [ ] (turn 7, unbuilt) All Stories and The Daily, phone: row-style story boxes (e.g. under Last hour / Earlier) have a gap between them, never touching; tablet Cards view unchanged
+
+## Natural voice: "read" past/present by sentence (session po2u0b-cont, 2026-11-03) — implemented, unverified on phone
+- [ ] Natural voice: "They read the email." says "red"; "They read the paper every day." / "Did they read it?" / "You should read it." say "reed".
+- [ ] "Officials found lead in the water pipes" says "led"; "Wind gusts topped 60 mph" says wind (air); "Voters are content" says con-TENT.
+- Desktop check: scripts/check-voice.sh (71 sentences, all pass).
