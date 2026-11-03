@@ -1210,3 +1210,4 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - [ ] Mark all as read with some stories already read: toast counts only the newly read ones; Undo works
 - [ ] Settings > Sites & backup: "Import or export sites" (no OPML); sync setup says "sync service", not relay/worker
 - [ ] (turn 6, unbuilt) Side bar says "My Sites"; Settings section "Sites & backup"; sort "Best first" / "By site"; setup says "Choose your sites"; Tips list has no "tap the logo" line; BBC/Guardian blurbs have no "Free to read"
+- [ ] (turn 7, unbuilt) All Stories and The Daily, phone: row-style story boxes (e.g. under Last hour / Earlier) have a gap between them, never touching; tablet Cards view unchanged
