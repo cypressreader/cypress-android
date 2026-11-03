@@ -1245,3 +1245,10 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 
 ## Feed error reasons (handoff after gawgc1, turn 1) — implemented, unverified
 - After the next build, with usage counts on: Insights error messages should read like "Could not fetch (timed out) in background". Errors while offline are no longer counted.
+
+## Insights extras (s4oqfl, ships next build) — implemented, unverified on phone
+- With "Share anonymous usage counts" on: Settings > Share anonymous usage counts shows the new lines (unexpected closes, seconds to stories/refresh, stutter, repeated taps, failed built-in sites, gave up).
+- Force-stop the app while it is on screen, reopen: "Times the app closed unexpectedly" goes up by 1. Swiping it away from Recents after leaving it must NOT count.
+- Report a problem > See the details: has a "recent taps:" line with button names only (no story titles, nothing typed).
+- After sending a report, Settings shows "Your reports: 1 sent"; mark it Fixed on Insights, next day the app shows "1 fixed" and a toast.
+- Daily check step E (dead built-in site -> fix branch) has never fired yet: confirm the scheduled session can push a branch.
