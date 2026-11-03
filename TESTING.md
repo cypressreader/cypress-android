@@ -1209,3 +1209,4 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - [ ] Add a site with a made-up address: error within about 12 s ("CyPress couldn’t find stories at that address…"); offline: "You’re offline…" straight away
 - [ ] Mark all as read with some stories already read: toast counts only the newly read ones; Undo works
 - [ ] Settings > Sites & backup: "Import or export sites" (no OPML); sync setup says "sync service", not relay/worker
+- [ ] (turn 6, unbuilt) Side bar says "My Sites"; Settings section "Sites & backup"; sort "Best first" / "By site"; setup says "Choose your sites"; Tips list has no "tap the logo" line; BBC/Guardian blurbs have no "Free to read"
