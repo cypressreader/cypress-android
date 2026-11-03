@@ -93,6 +93,7 @@ final class CyG2p extends CyText {
         t = times(t);
         t = places(t);
         t = expand(t);
+        t = t.replaceAll("(?<=\\w)\\.js\\b", " J S").replaceAll("(?<![\\w.])\\.NET\\b", "dot net"); // Node.js, .NET
         Matcher d = DOTS.matcher(t); // U.S. -> US (spelled out below), so the dots are not read as sentence ends
         StringBuffer db = new StringBuffer();
         while (d.find()) d.appendReplacement(db, d.group(1).replace(".", ""));
@@ -252,13 +253,9 @@ final class CyG2p extends CyText {
         String w = raw.replaceAll("^'+|'+$", "");
         if (w.isEmpty()) return "";
         String p = lex.get(w);
-        if (caps && w.length() <= 5 && w.indexOf('-') < 0 && (p == null || w.equals("us"))) { // CEO, FBI, US spelled out
-            StringBuilder b = new StringBuilder();
-            for (char c : w.toCharArray()) {
-                String l = c == 'a' ? "ˈA" : lex.get(String.valueOf(c)); // the list has "a" unstressed
-                if (l != null) b.append(l);
-            }
-            if (b.length() > 0) return b.toString();
+        if (caps && w.length() <= 5 && w.indexOf('-') < 0 && (p == null || SPELL.contains(w))) { // CEO, FBI, US spelled out
+            String b = spell(w, "");
+            if (!b.isEmpty()) return b;
         }
         if (p != null) return p;
         if ((p = inflected(w)) != null) return p;
@@ -532,6 +529,31 @@ final class CyG2p extends CyText {
 
 
     private static final Pattern MIXED = Pattern.compile("([a-z])([A-Z]{1,4})('s)?");
+    // tech words (2026-11-03 sweep of 239 tech articles): exact spelling -> sound; the voice's list has these wrong or not at all
+    private static final HashMap<String, String> TECH = new HashMap<>();
+    private static final java.util.Set<String> SPELL = new java.util.HashSet<>(java.util.Arrays.asList("us", "led", "fa", "vs", "ide"));
+    static {
+        String[] t = {"OpenAI", "ˌOpᵊn ˌAˈI", "ChatGPT", "ʧˈæt ʤˌipˌitˈi", "SpaceX", "spˈAs ˈɛks", "FaceTime", "fˈAstˌIm",
+                "MagSafe", "mˈæɡsˌAf", "AirTag", "ˈɛɹtˌæɡ", "AirTags", "ˈɛɹtˌæɡz", "HomeKit", "hˈOmkˌɪt", "Bluesky", "blˈuskˌI",
+                "Cloudflare", "klˈWdflˌɛɹ", "Gizmodo", "ɡɪzmˈOdO", "Xcode", "ˈɛkskˌOd", "eSIM", "ˈisˌɪm", "NVMe", "ˌɛnvˌiˌɛmˈi",
+                "PCIe", "pˌisˌiˌIˈi", "JSON", "ʤˈAsᵊn", "YAML", "jˈæməl", "npm", "ˌɛnpˌiˈɛm", "nginx", "ˈɛnʤən ˈɛks",
+                "PostgreSQL", "pˈOstɡɹˌɛs kjˌuˈɛl", "SQLite", "ˌɛskjˌuˈɛl lˈIt", "OAuth", "ˈOˌɔθ", "SUSE", "sˈuzə", "BIOS", "bˈIˌOs",
+                "AMOLED", "ˈæmˌOlɛd", "FLAC", "flˈæk", "WebP", "wˈɛb pˈi", "TikTok", "tˈɪktˌɑk", "Tahoe", "tˈɑhO", "iMessage", "ˈImˌɛsɪʤ",
+                "LEDs", "ˌɛlˌiˈdiz", "GitHub", "ɡˈɪthˌʌb", "Wi-Fi", "wˈIfˌI", "Linux", "lˈɪnəks", "Ubuntu", "ʊbˈuntu"};
+        for (int i = 0; i < t.length; i += 2) TECH.put(t[i], t[i + 1]);
+    }
+    private static final Pattern ACRS = Pattern.compile("[A-Z]{2,5}s"); // GPUs, LLMs
+    private static final Pattern CAMEL = Pattern.compile("[A-Z]+(?![a-z])|[A-Z]?[a-z]+");
+
+    /** Letter names: "gpu" -> G P U. */
+    private String spell(String w, String sep) {
+        StringBuilder b = new StringBuilder();
+        for (char c : w.toLowerCase(Locale.ROOT).toCharArray()) {
+            String l = c == 'a' ? "ˈA" : lex.get(String.valueOf(c)); // the list has "a" unstressed
+            if (l != null) b.append(b.length() > 0 ? sep : "").append(l);
+        }
+        return b.toString();
+    }
 
     /** One clip of text -> the phoneme string Kokoro reads. */
     String phonemes(String text) {
@@ -552,13 +574,24 @@ final class CyG2p extends CyText {
             boolean caps = tok.length() > 1 && tok.equals(tok.toUpperCase(Locale.ROOT)) && !tok.equals(tok.toLowerCase(Locale.ROOT));
             String lw = tok.toLowerCase(Locale.ROOT);
             Matcher mx = MIXED.matcher(tok);
-            if (mx.matches() && lex.get(lw) == null) { // xAI, xAI's: say the letters
-                StringBuilder b = new StringBuilder();
-                for (char c : (mx.group(1) + mx.group(2)).toLowerCase(Locale.ROOT).toCharArray()) {
-                    String l = c == 'a' ? "ˈA" : lex.get(String.valueOf(c)); // the list has "a" unstressed
-                    if (l != null) b.append(b.length() > 0 ? " " : "").append(l);
+            String fix = TECH.get(tok);
+            if (fix != null) {
+                ph.add(fix);
+            } else if (mx.matches() && lex.get(lw) == null) { // xAI, xAI's: say the letters
+                String b = spell(mx.group(1) + mx.group(2), " ");
+                ph.add(mx.group(3) != null ? plural(b) : b);
+            } else if (ACRS.matcher(tok).matches() && lex.get(lw) == null) {
+                ph.add(plural(spell(tok.substring(0, tok.length() - 1), ""))); // GPUs: G P U z
+            } else if (!caps && lex.get(lw) == null && tok.indexOf('\'') < 0 && !tok.startsWith("Mc") && tok.substring(1).matches(".*[A-Z].*")) {
+                StringBuilder b = new StringBuilder(); // OpenAI, FreeBSD, macOS, ZDNet: the parts, capital runs spelled out
+                Matcher cm = CAMEL.matcher(tok);
+                while (cm.find()) {
+                    String pt = cm.group();
+                    String sp = pt.length() == 1 && Character.isLowerCase(pt.charAt(0)) ? spell(pt, "") // i, e
+                            : pt.equals(pt.toUpperCase(Locale.ROOT)) && pt.length() <= 4 ? spell(pt, "") : word(pt.toLowerCase(Locale.ROOT), false);
+                    if (!sp.isEmpty()) b.append(b.length() > 0 ? " " : "").append(sp);
                 }
-                ph.add(mx.group(3) != null ? plural(b.toString()) : b.toString());
+                ph.add(b.toString());
             } else if (ph.isEmpty() && tok.equals("A")) {
                 ph.add("ˈA"); // a sentence that opens with "A" is read "ay", as newsreaders do (David 2026-11-02)
             } else if (tok.length() == 1 && Character.isUpperCase(tok.charAt(0)) && !tok.equals("I")) {

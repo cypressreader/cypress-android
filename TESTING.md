@@ -1218,3 +1218,5 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Desktop check: scripts/check-voice.sh (71 sentences, all pass).
 - [ ] New grammar tool (en-pos.bin 0.7→1.7 MB, ~7 MB in memory): Natural voice still starts quickly on the Fold and older phones; no crash on first play.
 - [ ] Natural voice: "in August" says AW-gust; "prices affect people" says uh-FECT; "strong winds" (air); "trying to sow doubt" (so); "associate professor"; "suspects fired" (SUS-pects).
+- [ ] Tech words, Natural voice: "macOS Tahoe" (mac O S), "OpenAI"/"ChatGPT", "GPUs", "Bluesky", "JSON", "npm", "Node.js", "LED" (L E D), "2FA".
+- [ ] Tech units, BOTH Natural and phone voices (shared text cleaner): "16GB" (gigabytes), "3.5GHz", "5,000mAh" (milliamp-hours), "65W" (watts), "3nm", "RTX 5090" (fifty ninety). Highlighting still lands on the right words.
