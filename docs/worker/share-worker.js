@@ -267,11 +267,15 @@ const word = (v, n) => String(v == null ? '' : v).replace(/[^\w .:+-]/g, '').sli
 // keeps only the fields the app is known to send, so nothing else can be smuggled in; fits KV's 1024-byte metadata
 function cleanStats(o) {
   const m = {};
-  for (const k of ['v', 'p', 'os', 'dev', 'lang', 'th', 'sch', 'sz', 'vw', 'cv', 'fn', 'sp', 'nv', 'fd', 'sv', 'fo']) if (o[k] != null && o[k] !== '') m[k] = word(o[k], 16);
+  for (const k of ['v', 'p', 'os', 'dev', 'lang', 'th', 'sch', 'sz', 'vw', 'cv', 'fn', 'sp', 'nv', 'fd', 'sv', 'fo', 'fz', 't1', 'tr', 'lt', 'rg', 'rt']) if (o[k] != null && o[k] !== '') m[k] = word(o[k], 16);
   if (o.f && typeof o.f === 'object') { m.f = {}; for (const k of Object.keys(o.f).slice(0, 24)) { const n = Math.min(9999, Math.max(0, Math.round(+o.f[k] || 0))); if (n) m.f[word(k, 8)] = n; } }
+  const obj = (k, n, kl, num) => { if (o[k] && typeof o[k] === 'object') { const r = {}; for (const x of Object.keys(o[k]).slice(0, n)) { const v = Math.min(9999, Math.max(0, Math.round(+o[k][x] || 0))); if (v) r[word(x, kl)] = v; } if (Object.keys(r).length) m[k] = r; } };
+  obj('ef', 6, 6); obj('cf', 6, 20); obj('g', 4, 2);
   m.e = Math.min(9999, Math.max(0, Math.round(+o.e || 0)));
   if (Array.isArray(o.em)) m.em = o.em.slice(0, 3).map(x => String(x).replace(/https?:\/\/\S+/g, '<link>').slice(0, 80));
   while (JSON.stringify(m).length > 1000 && m.em && m.em.length) m.em.pop();
+  if (JSON.stringify(m).length > 1000) delete m.rt;
+  if (JSON.stringify(m).length > 1000) delete m.cf;
   if (JSON.stringify(m).length > 1000) delete m.f;
   return m;
 }
@@ -279,11 +283,18 @@ async function intake(req, env, kind) {
   const origin = req.headers.get('origin') || '';
   const h = ALLOWED_ORIGINS.indexOf(origin) >= 0 ? cors(origin) : {};
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: h });
-  if (req.method !== 'POST') return jres({ error: 'POST only' }, 405, h);
   if (!env.STATS) return jres({ error: 'Insights are not set up' }, 501, h);
+  // GET /api/report?id=a,b: the app asks how its own sent reports are doing (only the random codes it got back; answers new / working / fixed)
+  if (kind === 'report' && req.method === 'GET') {
+    if (limited(req, 'rps', 20)) return tooMany();
+    const ids = (new URL(req.url).searchParams.get('id') || '').split(',').filter(x => /^\d{10,15}:[0-9a-z]{6,24}$/.test(x)).slice(0, 10), st = {};
+    for (const id of ids) { try { const r = JSON.parse(await env.STATS.get('r:' + id) || 'null'); if (r) st[id] = r.st || 'new'; } catch (e) {} }
+    return jres({ st }, 200, h);
+  }
+  if (req.method !== 'POST') return jres({ error: 'POST only' }, 405, h);
   if (limited(req, kind, kind === 'report' ? 5 : 10)) return tooMany();
   const t = await req.text();
-  if (t.length > 8000) return jres({ error: 'Too big' }, 413, h);
+  if (t.length > (kind === 'report' ? 20000 : 8000)) return jres({ error: 'Too big' }, 413, h);
   let o; try { o = JSON.parse(t); } catch (e) { return jres({ error: 'Bad data' }, 400, h); }
   if (!o || typeof o !== 'object') return jres({ error: 'Bad data' }, 400, h);
   const day = new Date().toISOString().slice(0, 10);
@@ -291,7 +302,9 @@ async function intake(req, env, kind) {
   else {
     const msg = String(o.msg || '').slice(0, 2000).trim();
     if (!msg) return jres({ error: 'Empty report' }, 400, h);
-    await env.STATS.put('r:' + Date.now() + ':' + rid(), JSON.stringify({ msg, info: String(o.info || '').slice(0, 5000), v: word(o.v, 16) }), { expirationTtl: KEEP });
+    const id = Date.now() + ':' + rid();
+    await env.STATS.put('r:' + id, JSON.stringify({ msg, info: String(o.info || '').slice(0, 15000), v: word(o.v, 16) }), { expirationTtl: KEEP });
+    return jres({ ok: true, id }, 200, h);
   }
   return jres({ ok: true }, 200, h);
 }
@@ -318,6 +331,18 @@ async function insights(req, env) {
     return jres({ ok: true }, 200);
   }
   const st = await listAll(env.STATS, 's:', 20000);
+  // ?sum=1: a short per-version summary (for the daily check): phones, unexpected closes, typical speed, error codes, failing built-in sites, give-ups, new reports
+  if (new URL(req.url).searchParams.get('sum')) {
+    const by = {}, med = a => a.length ? a.sort((x, y) => x - y)[a.length >> 1] : null, add = (o, src) => { for (const k in src || {}) o[k] = (o[k] || 0) + src[k]; };
+    for (const k of st) { const m = k.metadata || {}, v = m.v || '?', b = by[v] = by[v] || { n: 0, first: k.name.split(':')[1], last: '', fz: 0, err: 0, rg: 0, t1: [], tr: [], lt: [], ef: {}, efx: {}, cf: {}, g: {} };
+      b.n++; b.last = b.last > k.name.split(':')[1] ? b.last : k.name.split(':')[1]; if (b.first > k.name.split(':')[1]) b.first = k.name.split(':')[1];
+      b.fz += +m.fz || 0; b.err += +m.e || 0; b.rg += +m.rg || 0; for (const x of ['t1', 'tr', 'lt']) if (m[x] !== undefined && m[x] !== '' && !isNaN(+m[x])) b[x].push(+m[x]);
+      add(b.ef, m.ef); add(b.cf, m.cf); add(b.g, m.g); for (const e of m.em || []) { const c = String(e).split(' ')[0]; if (!b.efx[c]) b.efx[c] = String(e).slice(c.length + 1); } }
+    for (const v in by) { const b = by[v]; b.t1 = med(b.t1); b.tr = med(b.tr); b.lt = med(b.lt); b.fzRate = +(b.fz / b.n).toFixed(2); b.errRate = +(b.err / b.n).toFixed(2); }
+    const rs = (await listAll(env.STATS, 'r:', 2000)), newer = [];
+    for (const k of rs.sort((x, y) => (x.name < y.name ? 1 : -1)).slice(0, 30)) { try { const r = JSON.parse(await env.STATS.get(k.name)); if (!r.st || r.st === 'new') newer.push({ t: +k.name.split(':')[1], v: r.v, msg: String(r.msg).slice(0, 300) }); } catch (e) {} }
+    return jres({ versions: by, newReports: newer });
+  }
   const rk = (await listAll(env.STATS, 'r:', 2000)).sort((x, y) => (x.name < y.name ? 1 : -1)).slice(0, 60);
   const reports = await Promise.all(rk.map(async k => { try { return Object.assign({ t: +k.name.split(':')[1] }, JSON.parse(await env.STATS.get(k.name))); } catch (e) { return null; } }));
   return jres({ stats: st.map(k => Object.assign({ d: k.name.split(':')[1] }, k.metadata || {})), reports: reports.filter(Boolean) });
