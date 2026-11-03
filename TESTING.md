@@ -1237,3 +1237,8 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Halcyon dark folder/site page: "Mark read" button and "Cover story · site · time" lines read clearly
 - Story "…" > Mark as unread, then back: card no longer faded
 - Fix how words are said > Hear it while a story is reading aloud: does the story cut off?
+
+## jubrvc website refresh (live, check on a real phone)
+- cypressreader.com on Android Chrome: theme picker fades the page, choice remembered after reload, phone browser bar color follows
+- "Get the app" bar slides up after the top buttons, hides at Install and at the end; doesn't cover the cookie-free footer links
+- Laptop: QR code scans to the download
