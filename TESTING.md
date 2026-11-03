@@ -1209,3 +1209,14 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - [ ] Add a site with a made-up address: error within about 12 s ("CyPress couldn’t find stories at that address…"); offline: "You’re offline…" straight away
 - [ ] Mark all as read with some stories already read: toast counts only the newly read ones; Undo works
 - [ ] Settings > Sites & backup: "Import or export sites" (no OPML); sync setup says "sync service", not relay/worker
+- [ ] (turn 6, unbuilt) Side bar says "My Sites"; Settings section "Sites & backup"; sort "Best first" / "By site"; setup says "Choose your sites"; Tips list has no "tap the logo" line; BBC/Guardian blurbs have no "Free to read"
+- [ ] (turn 7, unbuilt) All Stories and The Daily, phone: row-style story boxes (e.g. under Last hour / Earlier) have a gap between them, never touching; tablet Cards view unchanged
+
+## Natural voice: "read" past/present by sentence (session po2u0b-cont, 2026-11-03) — implemented, unverified on phone
+- [ ] Natural voice: "They read the email." says "red"; "They read the paper every day." / "Did they read it?" / "You should read it." say "reed".
+- [ ] "Officials found lead in the water pipes" says "led"; "Wind gusts topped 60 mph" says wind (air); "Voters are content" says con-TENT.
+- Desktop check: scripts/check-voice.sh (71 sentences, all pass).
+- [ ] New grammar tool (en-pos.bin 0.7→1.7 MB, ~7 MB in memory): Natural voice still starts quickly on the Fold and older phones; no crash on first play.
+- [ ] Natural voice: "in August" says AW-gust; "prices affect people" says uh-FECT; "strong winds" (air); "trying to sow doubt" (so); "associate professor"; "suspects fired" (SUS-pects).
+- [ ] Tech words, Natural voice: "macOS Tahoe" (mac O S), "OpenAI"/"ChatGPT", "GPUs", "Bluesky", "JSON", "npm", "Node.js", "LED" (L E D), "2FA".
+- [ ] Tech units, BOTH Natural and phone voices (shared text cleaner): "16GB" (gigabytes), "3.5GHz", "5,000mAh" (milliamp-hours), "65W" (watts), "3nm", "RTX 5090" (fifty ninety). Highlighting still lands on the right words.

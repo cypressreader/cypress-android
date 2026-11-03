@@ -45,6 +45,9 @@ class CyText {
     private static final Pattern MONABBR = Pattern.compile("\\b(Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept?|Oct|Nov|Dec)(?:\\.|(?=\\s+\\d{1,2}\\b))");
     private static final Pattern DAY = Pattern.compile("\\b(" + MON + ")\\s+([1-9]|[12]\\d|3[01])(?:st|nd|rd|th)?\\b(?![\\d:])");
     private static final Pattern UNIT = Pattern.compile("\\b(\\d+(?:[.,]\\d+)*)\\s?(km|kph|mph|kg|lbs?|ft|mi|cm|mm|oz|°[FC]?)(?![A-Za-z])(?:\\.(?!\\s*$|\\s+[A-Z]))?");
+    // tech: 16GB, 3.5GHz, 5,000mAh; attached only for W/nm/ms ("65W", "3nm") so "Route 9 W" stays
+    private static final Pattern UNIT2 = Pattern.compile("\\b(\\d+(?:[.,]\\d+)*)(?:\\s?(GB|TB|MB|KB|GHz|MHz|mAh|kWh|Gbps|Mbps)|(W|Wh|nm|ms))\\b");
+    private static final Pattern MODEL = Pattern.compile("\\b([A-Z]{2,5}) ([1-9]\\d)(0[1-9]|[1-9]\\d)\\b(?![.,]\\d)"); // RTX 5090: fifty ninety
     private static final Pattern TITLE = Pattern.compile("\\b(Gov|Sen|Rep|Gen|Lt|Col|Sgt|Capt|Cmdr|Adm|Prof|Supt|Mt|Ft|Jr|Sr|St|No|vs)\\.(?=\\s*(\\S)?)");
     private static final HashMap<String, String> WORDS = new HashMap<>();
     static {
@@ -52,7 +55,9 @@ class CyText {
                 "Sep", "September", "Sept", "September", "Oct", "October", "Nov", "November", "Dec", "December",
                 "km", "kilometer", "kph", "kilometers per hour", "mph", "miles per hour", "kg", "kilogram", "lb", "pound", "lbs", "pound",
                 "ft", "foot", "mi", "mile", "cm", "centimeter", "mm", "millimeter", "oz", "ounce", "°", "degree", "°F", "degree Fahrenheit",
-                "°C", "degree Celsius", "Gov", "Governor", "Sen", "Senator", "Rep", "Representative", "Gen", "General", "Lt", "Lieutenant",
+                "°C", "degree Celsius", "GB", "gigabyte", "TB", "terabyte", "MB", "megabyte", "KB", "kilobyte", "GHz", "gigahertz",
+                "MHz", "megahertz", "mAh", "milliamp-hour", "kWh", "kilowatt-hour", "Gbps", "gigabits per second",
+                "Mbps", "megabits per second", "W", "watt", "Wh", "watt-hour", "nm", "nanometer", "ms", "millisecond", "Gov", "Governor", "Sen", "Senator", "Rep", "Representative", "Gen", "General", "Lt", "Lieutenant",
                 "Col", "Colonel", "Sgt", "Sergeant", "Capt", "Captain", "Cmdr", "Commander", "Adm", "Admiral", "Prof", "Professor",
                 "Supt", "Superintendent", "Mt", "Mount", "Ft", "Fort", "Jr", "Junior", "Sr", "Senior", "vs", "versus"};
         for (int i = 0; i < w.length; i += 2) WORDS.put(w[i], w[i + 1]);
@@ -79,6 +84,15 @@ class CyText {
         }
         m.appendTail(b);
         t = b.toString();
+        b = new StringBuffer();
+        m = UNIT2.matcher(t);
+        while (m.find()) {
+            String k = m.group(2) != null ? m.group(2) : m.group(3), u = WORDS.get(k), one = m.group(1);
+            if (!one.equals("1") && !u.endsWith("hertz")) u = u.contains(" per ") ? u : u + "s";
+            m.appendReplacement(b, Matcher.quoteReplacement(one + " " + u));
+        }
+        m.appendTail(b);
+        t = MODEL.matcher(b.toString()).replaceAll("$1 $2 $3");
         b = new StringBuffer();
         m = TITLE.matcher(t);
         while (m.find()) {

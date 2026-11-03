@@ -25,7 +25,10 @@ final class CyG2p extends CyText {
             addMissing(in);
         }
         lex.put("ayem", "ˌAˈɛm"); // "a.m." (clean() writes this; the list only has "pm")
-        lex.put("memphis", "mˈɛmfəs"); // the voice's list has an extra p (mˈɛmpfəs); CMU and locals say it without
+        lex.put("memphis", "mˈɛmfəs");
+        lex.put("august", "ˈɔɡəst"); // the month (the list has the rare adjective, aw-GUST)
+        lex.put("affect", "əfˈɛkt"); // "prices affect people" (the list has the psychology noun)
+        lex.put("affects", "əfˈɛkts"); // the voice's list has an extra p (mˈɛmpfəs); CMU and locals say it without
     }
 
     /** Adds words not already known. The voice's own list loads first, so it always wins (it matches how Kokoro was trained). */
@@ -90,6 +93,7 @@ final class CyG2p extends CyText {
         t = times(t);
         t = places(t);
         t = expand(t);
+        t = t.replaceAll("(?<=\\w)\\.js\\b", " J S").replaceAll("(?<![\\w.])\\.NET\\b", "dot net"); // Node.js, .NET
         Matcher d = DOTS.matcher(t); // U.S. -> US (spelled out below), so the dots are not read as sentence ends
         StringBuffer db = new StringBuffer();
         while (d.find()) d.appendReplacement(db, d.group(1).replace(".", ""));
@@ -249,13 +253,9 @@ final class CyG2p extends CyText {
         String w = raw.replaceAll("^'+|'+$", "");
         if (w.isEmpty()) return "";
         String p = lex.get(w);
-        if (caps && w.length() <= 5 && w.indexOf('-') < 0 && (p == null || w.equals("us"))) { // CEO, FBI, US spelled out
-            StringBuilder b = new StringBuilder();
-            for (char c : w.toCharArray()) {
-                String l = c == 'a' ? "ˈA" : lex.get(String.valueOf(c)); // the list has "a" unstressed
-                if (l != null) b.append(l);
-            }
-            if (b.length() > 0) return b.toString();
+        if (caps && w.length() <= 5 && w.indexOf('-') < 0 && (p == null || SPELL.contains(w))) { // CEO, FBI, US spelled out
+            String b = spell(w, "");
+            if (!b.isEmpty()) return b;
         }
         if (p != null) return p;
         if ((p = inflected(w)) != null) return p;
@@ -404,6 +404,22 @@ final class CyG2p extends CyText {
             "was", "were", "been", "be", "being", "is", "are", "i've", "we've", "you've", "they've", "already", "widely"));
     private static final java.util.Set<String> METAL = new java.util.HashSet<>(java.util.Arrays.asList("poisoning", "pipe", "pipes",
             "paint", "levels", "level", "exposure", "contamination", "service", "lines", "pipelines", "bullet", "bullets"));
+    private static final java.util.Set<String> FOUND = new java.util.HashSet<>(java.util.Arrays.asList("found", "detected",
+            "elevated", "toxic", "contains", "contained", "containing", "traces", "remove", "removing", "replace", "replacing"));
+    private static final java.util.Set<String> WOUND = new java.util.HashSet<>(java.util.Arrays.asList("up", "down", "around",
+            "through", "its", "his", "her", "their", "back", "along"));
+    // found in real news (2026-11-03 sweep of 172 articles): job titles, noun-before-noun, "were content", "suspects fired"
+    private static final java.util.Set<String> TITLE = new java.util.HashSet<>(java.util.Arrays.asList("director", "directors",
+            "professor", "professors", "editor", "dean", "justice", "producer", "member", "members", "membership", "degree", "counsel",
+            "secretary", "judge", "partner", "partners", "editors", "fellow", "groups", "group"));
+    private static final java.util.Set<String> NOUN_NEXT = new java.util.HashSet<>(java.util.Arrays.asList("restrictions", "controls",
+            "ban", "bans", "growth", "market", "markets", "duties", "tariffs", "tariff", "license", "licence", "licenses", "sales",
+            "data", "prices", "costs", "levels", "movement", "movements", "numbers", "figures", "deal", "deals", "rules", "taxes"));
+    private static final java.util.Set<String> BE_PREV = new java.util.HashSet<>(java.util.Arrays.asList("is", "are", "was", "were",
+            "be", "been", "seem", "seems", "seemed", "feel", "feels", "felt", "remain", "remains", "remained", "appear", "appears",
+            "appeared", "perfectly", "quite", "more", "less", "very"));
+    private static final java.util.Set<String> ONE_SUBJ = new java.util.HashSet<>(java.util.Arrays.asList("he", "she", "it", "who",
+            "which", "that", "also", "now", "strongly", "still", "police", "one"));
     static {
         String[] h = {"live", "lˈɪv", null, "use", null, "jˈus", "close", "klˈOz", null, "record", "ɹəkˈɔɹd", null,
                 "present", "pɹizˈɛnt", null, "object", "əbʤˈɛkt", null, "tear", "tˈɛɹ", null, "wind", "wˈInd", null,
@@ -421,18 +437,24 @@ final class CyG2p extends CyText {
     }
 
     private static String hetero(String w, String prev, String next, String tag) {
+        if (w.equals("wind") || w.equals("winds")) return WOUND.contains(next) ? (w.equals("wind") ? "wˈInd" : "wˈIndz") : w.equals("wind") ? "wˈɪnd" : "wˈɪndz"; // weather unless "wind up/down/through"
+        if (w.equals("content") && BE_PREV.contains(prev)) return "kəntˈɛnt"; // "they were content"
+        if (w.equals("suspects") && !ONE_SUBJ.contains(prev)) return null; // "suspects fired": the list's noun
+        if (w.endsWith("ate") && TITLE.contains(next)) return null; // "associate professor": the list's noun
+        if (NOUN_NEXT.contains(next) && TAGS.containsKey(w)) return TAGS.get(w).get("NOUN"); // "export restrictions"
         if (tag != null && w.equals("read")) return tag.equals("VBD") || tag.equals("VBN") ? "ɹˈɛd" : null;
         if (tag != null && TAGS.containsKey(w) && !w.equals("used") && !w.equals("lead") && !w.equals("wound")) {
-            if (prev.equals("to") && tag.startsWith("VB") && !AFTER_TO.contains(next)) tag = "NN"; // "rose to record highs"
             HashMap<String, String> e = TAGS.get(w);
+            if (w.equals("record") && prev.equals("to") && tag.startsWith("VB") && !AFTER_TO.contains(next)) tag = "NN"; // "rose to record highs"
+            else if (prev.equals("to") && !w.equals("present") && !tag.startsWith("NN") && e.get("VERB") != null) return e.get("VERB"); // "refusal to deliberate"
             String p = e.get(tag);
             return p != null ? p : e.get(parent(tag)); // null: the list's usual sound
         }
         switch (w) {
             case "read": return READ_PAST.contains(prev) ? "ɹˈɛd" : null;
             case "used": return next.equals("to") ? "jˈust" : null;
-            case "lead": return METAL.contains(next) ? "lˈɛd" : null;
-            case "wound": return next.equals("up") || next.equals("down") ? "wˈWnd" : null;
+            case "lead": return METAL.contains(next) || FOUND.contains(prev) ? "lˈɛd" : null; // "found lead in the pipes"
+            case "wound": return WOUND.contains(next) ? "wˈWnd" : null;
             default: break;
         }
         String[] f = HET.get(w);
@@ -440,6 +462,42 @@ final class CyG2p extends CyText {
         if (f[0] != null && VERB_PREV.contains(prev) && (!prev.equals("to") || AFTER_TO.contains(next))) return f[0];
         if (f[1] != null && NOUN_PREV.contains(prev)) return f[1];
         return null;
+    }
+
+    // "read" alone can't tell "red" from "reed"; the rest of its sentence can (David 2026-11-03: "they read the email" said "reed")
+    private static final java.util.Set<String> HABIT = new java.util.HashSet<>(java.util.Arrays.asList("always", "usually", "often",
+            "sometimes", "regularly", "rarely", "seldom", "typically", "generally", "daily", "nowadays"));
+    private static final java.util.Set<String> SAY = new java.util.HashSet<>(java.util.Arrays.asList("say", "says", "said", "tell",
+            "tells", "told", "believe", "believes", "think", "thinks", "claim", "claims", "report", "reports", "allege", "alleges"));
+    private static final java.util.Set<String> SPAN = new java.util.HashSet<>(java.util.Arrays.asList("day", "week", "morning",
+            "night", "month", "year", "time", "evening", "weekend"));
+
+    private static final java.util.Set<String> NOT_FINITE = new java.util.HashSet<>(java.util.Arrays.asList("to", "will", "would",
+            "can", "could", "may", "might", "must", "shall", "should", "do", "does", "did", "have", "has", "had", "be", "been", "being",
+            "is", "are", "am", "was", "were", "not", "'s", "'re", "'ve", "'ll", "'d", "please", "and", "or", "“", "\"", "("));
+    private static final java.util.Set<String> MODAL_NOW = new java.util.HashSet<>(java.util.Arrays.asList("will", "can", "shall",
+            "must", "may", "won't", "can't"));
+
+    /** VBD (past) or VBP (present) for "read" as a sentence's own verb: another past verb in the sentence wins, then a present
+     *  one or a habit word, else past (news). "to read", "will read", "was read", "Read the story", "a good read": the tagger's call. */
+    private static String readTense(java.util.List<String> low, String[] tags, int i) {
+        int s = i, e = i;
+        while (s > 0 && ".!?;:".indexOf(low.get(s - 1).charAt(0)) < 0) s--;
+        String pv = i > 0 ? low.get(i - 1) : "";
+        if (pv.matches("to|will|would|can|could|may|might|must|shall|should|cannot|do|does|did")
+                || pv.endsWith("n't") && !pv.matches("(has|have|had|was|were|is|are)n't")) return "VB"; // "cannot read", "didn't read"
+        if (s == i || !tags[i].startsWith("VB") || NOT_FINITE.contains(low.get(i - 1)) || low.get(i - 1).endsWith("n't")) return tags[i];
+        while (e + 1 < low.size() && ".!?;:".indexOf(low.get(e + 1).charAt(0)) < 0) e++;
+        for (int j = s; j < i; j++) if (low.get(j).matches("do|does|did|don't|doesn't|didn't")) return "VB"; // "Did they read it?"
+        boolean past = false, now = false;
+        for (int j = s; j <= e; j++) {
+            String w = low.get(j), g = tags[j];
+            if (j == i || g == null || SAY.contains(w)) continue; // "they say they read it" is still past
+            if (HABIT.contains(w) || w.equals("every") && j < e && SPAN.contains(low.get(j + 1))) now = true;
+            else if (g.equals("VBD")) past = true;
+            else if (g.equals("VBZ") || g.equals("VBP") || MODAL_NOW.contains(w)) now = true;
+        }
+        return past || !now ? "VBD" : "VBP";
     }
 
     private static final Pattern CONTR = Pattern.compile("(?i)(.+?)(n't|'s|'re|'ve|'ll|'d|'m|')");
@@ -471,6 +529,31 @@ final class CyG2p extends CyText {
 
 
     private static final Pattern MIXED = Pattern.compile("([a-z])([A-Z]{1,4})('s)?");
+    // tech words (2026-11-03 sweep of 239 tech articles): exact spelling -> sound; the voice's list has these wrong or not at all
+    private static final HashMap<String, String> TECH = new HashMap<>();
+    private static final java.util.Set<String> SPELL = new java.util.HashSet<>(java.util.Arrays.asList("us", "led", "fa", "vs", "ide"));
+    static {
+        String[] t = {"OpenAI", "ˌOpᵊn ˌAˈI", "ChatGPT", "ʧˈæt ʤˌipˌitˈi", "SpaceX", "spˈAs ˈɛks", "FaceTime", "fˈAstˌIm",
+                "MagSafe", "mˈæɡsˌAf", "AirTag", "ˈɛɹtˌæɡ", "AirTags", "ˈɛɹtˌæɡz", "HomeKit", "hˈOmkˌɪt", "Bluesky", "blˈuskˌI",
+                "Cloudflare", "klˈWdflˌɛɹ", "Gizmodo", "ɡɪzmˈOdO", "Xcode", "ˈɛkskˌOd", "eSIM", "ˈisˌɪm", "NVMe", "ˌɛnvˌiˌɛmˈi",
+                "PCIe", "pˌisˌiˌIˈi", "JSON", "ʤˈAsᵊn", "YAML", "jˈæməl", "npm", "ˌɛnpˌiˈɛm", "nginx", "ˈɛnʤən ˈɛks",
+                "PostgreSQL", "pˈOstɡɹˌɛs kjˌuˈɛl", "SQLite", "ˌɛskjˌuˈɛl lˈIt", "OAuth", "ˈOˌɔθ", "SUSE", "sˈuzə", "BIOS", "bˈIˌOs",
+                "AMOLED", "ˈæmˌOlɛd", "FLAC", "flˈæk", "WebP", "wˈɛb pˈi", "TikTok", "tˈɪktˌɑk", "Tahoe", "tˈɑhO", "iMessage", "ˈImˌɛsɪʤ",
+                "LEDs", "ˌɛlˌiˈdiz", "GitHub", "ɡˈɪthˌʌb", "Wi-Fi", "wˈIfˌI", "Linux", "lˈɪnəks", "Ubuntu", "ʊbˈuntu"};
+        for (int i = 0; i < t.length; i += 2) TECH.put(t[i], t[i + 1]);
+    }
+    private static final Pattern ACRS = Pattern.compile("[A-Z]{2,5}s"); // GPUs, LLMs
+    private static final Pattern CAMEL = Pattern.compile("[A-Z]+(?![a-z])|[A-Z]?[a-z]+");
+
+    /** Letter names: "gpu" -> G P U. */
+    private String spell(String w, String sep) {
+        StringBuilder b = new StringBuilder();
+        for (char c : w.toLowerCase(Locale.ROOT).toCharArray()) {
+            String l = c == 'a' ? "ˈA" : lex.get(String.valueOf(c)); // the list has "a" unstressed
+            if (l != null) b.append(b.length() > 0 ? sep : "").append(l);
+        }
+        return b.toString();
+    }
 
     /** One clip of text -> the phoneme string Kokoro reads. */
     String phonemes(String text) {
@@ -491,13 +574,24 @@ final class CyG2p extends CyText {
             boolean caps = tok.length() > 1 && tok.equals(tok.toUpperCase(Locale.ROOT)) && !tok.equals(tok.toLowerCase(Locale.ROOT));
             String lw = tok.toLowerCase(Locale.ROOT);
             Matcher mx = MIXED.matcher(tok);
-            if (mx.matches() && lex.get(lw) == null) { // xAI, xAI's: say the letters
-                StringBuilder b = new StringBuilder();
-                for (char c : (mx.group(1) + mx.group(2)).toLowerCase(Locale.ROOT).toCharArray()) {
-                    String l = c == 'a' ? "ˈA" : lex.get(String.valueOf(c)); // the list has "a" unstressed
-                    if (l != null) b.append(b.length() > 0 ? " " : "").append(l);
+            String fix = TECH.get(tok);
+            if (fix != null) {
+                ph.add(fix);
+            } else if (mx.matches() && lex.get(lw) == null) { // xAI, xAI's: say the letters
+                String b = spell(mx.group(1) + mx.group(2), " ");
+                ph.add(mx.group(3) != null ? plural(b) : b);
+            } else if (ACRS.matcher(tok).matches() && lex.get(lw) == null) {
+                ph.add(plural(spell(tok.substring(0, tok.length() - 1), ""))); // GPUs: G P U z
+            } else if (!caps && lex.get(lw) == null && tok.indexOf('\'') < 0 && !tok.startsWith("Mc") && tok.substring(1).matches(".*[A-Z].*")) {
+                StringBuilder b = new StringBuilder(); // OpenAI, FreeBSD, macOS, ZDNet: the parts, capital runs spelled out
+                Matcher cm = CAMEL.matcher(tok);
+                while (cm.find()) {
+                    String pt = cm.group();
+                    String sp = pt.length() == 1 && Character.isLowerCase(pt.charAt(0)) ? spell(pt, "") // i, e
+                            : pt.equals(pt.toUpperCase(Locale.ROOT)) && pt.length() <= 4 ? spell(pt, "") : word(pt.toLowerCase(Locale.ROOT), false);
+                    if (!sp.isEmpty()) b.append(b.length() > 0 ? " " : "").append(sp);
                 }
-                ph.add(mx.group(3) != null ? plural(b.toString()) : b.toString());
+                ph.add(b.toString());
             } else if (ph.isEmpty() && tok.equals("A")) {
                 ph.add("ˈA"); // a sentence that opens with "A" is read "ay", as newsreaders do (David 2026-11-02)
             } else if (tok.length() == 1 && Character.isUpperCase(tok.charAt(0)) && !tok.equals("I")) {
@@ -510,7 +604,7 @@ final class CyG2p extends CyText {
             String next = i + 1 < ph.size() ? ph.get(i + 1) : "";
             boolean nv = vowelStart(next);
             String het = hetero(low.get(i), i > 0 ? low.get(i - 1) : "", i + 1 < low.size() ? low.get(i + 1) : "",
-                    tags == null ? null : tags[i]);
+                    tags == null ? null : low.get(i).equals("read") ? readTense(low, tags, i) : tags[i]);
             if (het != null) ph.set(i, het);
             switch (low.get(i)) { // weak forms, the way Kokoro was trained (misaki)
                 case "a": if (i > 0 && raw.get(i).equals("a")) ph.set(i, "ɐ"); break;
