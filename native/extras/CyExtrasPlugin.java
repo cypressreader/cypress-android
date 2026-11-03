@@ -386,6 +386,7 @@ public class CyExtrasPlugin extends Plugin {
             boolean add = call.getBoolean("add", false);
             // optional sleep deadline, epoch milliseconds; 0 or missing means none
             long stopAt = call.getData().optLong("stopAt", 0L);
+            CyText.userWords(call.getString("words")); // "Fix how words are said": both voices read through CyText
             CyTts.get(getContext()).speak(id, text, rate, pitch, volume, voice, add, stopAt, call.getInt("pause", 0));
             call.resolve();
         } catch (Throwable t) {

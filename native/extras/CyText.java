@@ -202,8 +202,50 @@ class CyText {
         }
     }
 
+    // ------------------------------------------------------------------ the reader's own fixes ("Fix how words are said")
+
+    private static volatile String userSrc = "";
+    private static volatile Pattern userP;
+    private static volatile HashMap<String, String> userM;
+
+    /** "word\tsay it like" lines from the page; parsed only when the list changes. */
+    static void userWords(String src) {
+        if (src == null || src.equals(userSrc)) return;
+        HashMap<String, String> m = new HashMap<>();
+        for (String line : src.split("\n")) {
+            int tab = line.indexOf('\t');
+            if (tab <= 0) continue;
+            String w = line.substring(0, tab).trim(), say = line.substring(tab + 1).trim();
+            if (!w.isEmpty() && !say.isEmpty()) m.put(w.toLowerCase(java.util.Locale.ROOT), say);
+        }
+        java.util.List<String> keys = new java.util.ArrayList<>(m.keySet());
+        keys.sort((x, y) -> y.length() - x.length()); // "New Orleans" before "New"
+        StringBuilder r = new StringBuilder();
+        for (String k : keys) r.append(r.length() > 0 ? "|" : "").append(Pattern.quote(k));
+        userM = m;
+        userP = keys.isEmpty() ? null : Pattern.compile("(?<![\\p{L}\\p{N}])(?:" + r + ")(?![\\p{L}\\p{N}])",
+                Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+        userSrc = src;
+    }
+
+    /** Swaps in the reader's spellings (whole words, any case; "Nguyen's" -> "win's"). */
+    static String user(String t) {
+        Pattern p = userP;
+        HashMap<String, String> m = userM;
+        if (p == null || m == null) return t;
+        StringBuffer b = new StringBuffer();
+        Matcher x = p.matcher(t);
+        while (x.find()) {
+            String say = m.get(x.group().toLowerCase(java.util.Locale.ROOT));
+            x.appendReplacement(b, Matcher.quoteReplacement(say == null ? x.group() : say));
+        }
+        x.appendTail(b);
+        return b.toString();
+    }
+
     /** What a phone voice reads (English only). */
     static String phone(String t) {
+        t = user(t);
         t = WIRE.matcher(t).replaceAll(" ");
         t = INITIAL.matcher(t).replaceAll("$1");
         return expand(places(t));
