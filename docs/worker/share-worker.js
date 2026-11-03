@@ -294,7 +294,7 @@ async function intake(req, env, kind) {
   if (req.method !== 'POST') return jres({ error: 'POST only' }, 405, h);
   if (limited(req, kind, kind === 'report' ? 5 : 10)) return tooMany();
   const t = await req.text();
-  if (t.length > 8000) return jres({ error: 'Too big' }, 413, h);
+  if (t.length > (kind === 'report' ? 20000 : 8000)) return jres({ error: 'Too big' }, 413, h);
   let o; try { o = JSON.parse(t); } catch (e) { return jres({ error: 'Bad data' }, 400, h); }
   if (!o || typeof o !== 'object') return jres({ error: 'Bad data' }, 400, h);
   const day = new Date().toISOString().slice(0, 10);
@@ -303,7 +303,7 @@ async function intake(req, env, kind) {
     const msg = String(o.msg || '').slice(0, 2000).trim();
     if (!msg) return jres({ error: 'Empty report' }, 400, h);
     const id = Date.now() + ':' + rid();
-    await env.STATS.put('r:' + id, JSON.stringify({ msg, info: String(o.info || '').slice(0, 5000), v: word(o.v, 16) }), { expirationTtl: KEEP });
+    await env.STATS.put('r:' + id, JSON.stringify({ msg, info: String(o.info || '').slice(0, 15000), v: word(o.v, 16) }), { expirationTtl: KEEP });
     return jres({ ok: true, id }, 200, h);
   }
   return jres({ ok: true }, 200, h);
