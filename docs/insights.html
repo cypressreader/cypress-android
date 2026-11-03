@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
 <title>CyPress Insights</title>
+<link rel="manifest" href="/insights.webmanifest"><meta name="theme-color" content="#123524"><link rel="apple-touch-icon" href="/insights-192.png"><link rel="icon" href="/insights-192.png">
 <link rel="stylesheet" href="fonts.css">
 <style>
 :root{--bg:#f3ecdc;--pn:#fbf7ee;--ink:#123524;--mut:#5b6b60;--ln:#e2d8c2;--grid:#ebe2cf;--acc:#16804f;--gold:#b08d3e;--tipbg:#123524;--tipfg:#f3ecdc;
@@ -118,7 +119,7 @@ details.tbl td,details.tbl th{padding:2px 12px 2px 0;text-align:left;border-bott
   <div><h1>CyPress Insights</h1><p class="sub" id="basis"></p></div>
   <div class="row" style="margin:0">
    <div class="seg" role="group" aria-label="Time range" id="rng"><button data-w="4" aria-pressed="false">4 weeks</button><button data-w="12" aria-pressed="true">12 weeks</button><button data-w="52" aria-pressed="false">1 year</button></div>
-   <button class="btn ghost" id="out">Forget key</button>
+   <button class="btn ghost" id="rf">Refresh</button> <button class="btn ghost" id="out">Forget key</button>
   </div>
  </header>
  <div class="kpis" id="kpis"></div>
@@ -147,7 +148,8 @@ function demo(){const r=[],now=Date.now(),pick=a=>a[Math.random()*a.length|0],wp
   f:{open:20+Math.random()*60|0,aloud:Math.random()<.6?Math.random()*9|0:0,share:Math.random()<.5?Math.random()*4|0:0,save:Math.random()<.8?Math.random()*10|0:0,near:Math.random()<.25?1+(Math.random()*3|0):0,side:Math.random()<.3?Math.random()*5|0:0,find:Math.random()<.6?Math.random()*6|0:0},e,em:e?[pick(["Cannot read properties of null (reading 'style')",'Failed to fetch','The operation was aborted.','Load failed'])]:[]})}}
  return{stats:r,reports:[{t:now-2*DAY,v:'1.231',msg:'Read aloud stopped after the first paragraph on a long story.',info:'CyPress diagnostics\napp 2026.11.02e · native 1.231\nscreen 904x2316 @2.6\nrecent errors:\n09:12:01 fitHero: Cannot read properties of null (reading \'style\')\n09:12:05 feed The Verge: Failed to fetch'},{t:now-9*DAY,v:'1.230',msg:'Photos missing on the Daily cover this morning.',info:'CyPress diagnostics\napp 2026.11.02e · web'},{t:now-23*DAY,v:'1.228',msg:'Would love a way to hide sports stories from the Daily.',info:'CyPress diagnostics\napp 2026.10.20a · native 1.228'}]}}
 
-async function open(key,keep){$('#kmsg').textContent='';
+let KEY='',AT=0;/* last key and load time, for Refresh and coming back to the installed app */
+async function open(key,keep){$('#kmsg').textContent='';KEY=key;AT=Date.now();
  if(key==='demo'){DATA=demo();return show()}
  try{const r=await fetch('/api/insights',{headers:{authorization:'Bearer '+key},cache:'no-store'});
   if(r.status===401){LS.set('cy-ins',null);throw new Error('That key is not right.')}
@@ -271,7 +273,9 @@ document.addEventListener('focusin',e=>{const el=e.target.closest&&e.target.clos
 document.addEventListener('scroll',()=>tip.classList.remove('on'),{passive:true});
 
 $('#kf').onsubmit=e=>{e.preventDefault();open($('#key').value.trim(),$('#keep').checked)};
-$('#out').onclick=()=>{LS.set('cy-ins',null);DATA=null;$('#key').value='';$('#dash').hidden=true;$('#gate').hidden=false;history.replaceState(null,'',location.pathname)};
+$('#out').onclick=()=>{LS.set('cy-ins',null);KEY='';DATA=null;$('#key').value='';$('#dash').hidden=true;$('#gate').hidden=false;history.replaceState(null,'',location.pathname)};
+$('#rf').onclick=()=>{if(KEY){$('#rf').textContent='Refreshing…';open(KEY,!!LS.get('cy-ins')).finally(()=>$('#rf').textContent='Refresh')}};
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&KEY&&DATA&&Date.now()-AT>60000)open(KEY,!!LS.get('cy-ins'))});
 $('#rng').onclick=e=>{const b=e.target.closest('[data-w]');if(!b)return;WEEKS=+b.dataset.w;$('#rng').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));if(DATA)show()};
 let RZ=0,LW=innerWidth;addEventListener('resize',()=>{if(innerWidth===LW)return;LW=innerWidth;clearTimeout(RZ);RZ=setTimeout(()=>DATA&&show(),150)});
 if(/[?&]demo\b/.test(location.search))open('demo');else if(LS.get('cy-ins'))open(LS.get('cy-ins'),true);else $('#gate').hidden=false;
