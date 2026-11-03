@@ -13473,7 +13473,7 @@ function cardTap(c){
  const a=cur[+c.dataset.i];if(!a)return;
  if(!isOn('dtap')){openTx(c,a);return}
  const now=Date.now();
- if(DTAP.c===c&&now-DTAP.t<320){clearTimeout(DTAP.h);DTAP.c=null;toggleSave(a);toast(isSaved(a)?'Saved':'Removed from saved');render();return}
+ if(DTAP.c===c&&now-DTAP.t<320){clearTimeout(DTAP.h);DTAP.c=null;toggleSave(a);toast(isSaved(a)?'Saved':'Removed from saved');if(!cardMarks(a))render();return}
  DTAP.c=c;DTAP.t=now;clearTimeout(DTAP.h);DTAP.h=setTimeout(()=>{DTAP.c=null;const c2=c.isConnected?c:([...document.querySelectorAll('#grid .card[data-i]')].find(x=>chref(x)===a.link)||c);openTx(c2,a)},330);
 }
 /* ---------- long-press quick actions ---------- */
@@ -13496,7 +13496,7 @@ function qaOpen(c,x,y){
 }
 function qaDo(k,i,lk){
  const a=(lk&&(cur.find(x=>x.link===lk)||findStory(lk)))||cur[i];if(!a)return;if(lk){const j=cur.indexOf(a);if(j>=0)i=j}const f=S.feeds.find(x=>x.id===a.feedId);
- if(k==='save'){toggleSave(a);toast(isSaved(a)?'Saved':'Removed from saved');render()}
+ if(k==='save'){toggleSave(a);toast(isSaved(a)?'Saved':'Removed from saved');if(!cardMarks(a))render()}/* mark the card in place: a full render() restarted the feed from its first page, so the story seemed to vanish */
  else if(k==='share'){shareStory(a)}
  else if(k==='read'){if(S.read[a.link])delete S.read[a.link];else{S.read[a.link]=1;(a.more||[]).forEach(m=>S.read[m.l]=1)}save();render()}
  else if(k==='above'){const add=[];cur.slice(0,i).forEach(x=>{[x.link,...(x.more||[]).map(m=>m.l)].forEach(l=>{if(!S.read[l])add.push(l);S.read[l]=1})});save();render();if(add.length)toast('Marked '+add.length+' above as read',()=>{add.forEach(l=>delete S.read[l]);save();render()});else toast('Nothing unread above')}
