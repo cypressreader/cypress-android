@@ -1220,3 +1220,7 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - [ ] Natural voice: "in August" says AW-gust; "prices affect people" says uh-FECT; "strong winds" (air); "trying to sow doubt" (so); "associate professor"; "suspects fired" (SUS-pects).
 - [ ] Tech words, Natural voice: "macOS Tahoe" (mac O S), "OpenAI"/"ChatGPT", "GPUs", "Bluesky", "JSON", "npm", "Node.js", "LED" (L E D), "2FA".
 - [ ] Tech units, BOTH Natural and phone voices (shared text cleaner): "16GB" (gigabytes), "3.5GHz", "5,000mAh" (milliamp-hours), "65W" (watts), "3nm", "RTX 5090" (fifty ninety). Highlighting still lands on the right words.
+
+## 8nqqsu turn 2 (2026-11-03, on branch, not built)
+- Site/folder page, phone, Cards view: a story card followed by a colored text box (or another card) now has a 14px gap (was touching).
+- "In brief / The short ones" box: panel color + site-color border, clearly separate from the background on Halcyon dark (and check it still looks right on a light theme).
