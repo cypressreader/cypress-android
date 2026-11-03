@@ -2,8 +2,7 @@
 Old detail (dated session logs, FIXES 16-26 notes, debugging traces) lives in `HANDOFF-ARCHIVE.md`: don't read it on boot, `grep` it only if needed.
 Keep THIS file under ~8 KB: when it grows past that, move finished/dated items to the archive and keep only rules, open items and the next tasks.
 
-Last updated: 2026-11-03 (session ex3nar: **1.237 SHIPPED** web 2026.11.03b; po2u0b: **1.236 SHIPPED** web 2026.11.03a incl. insights To fix; 1.235 648707e web 2026.11.02j; f7huqg work included; before that es6faa: **1.234 SHIPPED** 1250ef0 web 2026.11.02i v283; 1.233 c6c05e3 v282; 1.232 97ebc28 web 2026.11.02g; 1.231 d15a8c0; older ship notes and session logs 4d0iqe/4wgedt: HANDOFF-ARCHIVE.md, grep "Moved from HANDOFF").
-
+Last updated: 2026-11-03 (session ex3nar: 
 ## 1. Working & locked (verified; don't change core logic without asking)
 - **Halcyon theme** (`halcyon`/`halcyond`): website palette (cream `#f3ecdc`, green `#123524`/`#0c2619`, brass `#c9a24a`/`#b08d3e`), follows phone via `twinApply`. Headlines use `--disp` (narrow display serif) with `!important` (user's choice). Dark-brass labels on cream `#7d5f14`; light-brass `#e2c27a` on dark `.noimg` lead/hero cards (`.noimg` ≠ cream card).
 - **The Daily**: name once per section (`sh()`), one-line intros (`DAYDEK`), "Vol. 26 · No. 290" line, "Next up" styled like "Since this morning", "In this issue" links use `jumpTop`, cover number `.dcv-num`.
