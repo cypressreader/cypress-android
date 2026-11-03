@@ -1203,3 +1203,9 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 ## 1.235 (2026-11-02) — implemented, unverified on phone
 - [ ] Story ... menu > Report a problem opens the report box with "Story: <link>" filled in, and Send works
 - [ ] 1.236: Report a problem shows a short note with folded details; Email instead opens the email app addressed to hello@cypressreader.com with typed words + details
+
+## Session po2u0b turn 3 (2026-11-03): offline, add-site, plain words — implemented, unverified on phone (not built yet)
+- [ ] Airplane mode: an "Offline" pill hangs under the top bar (phone width); an empty list says "You’re offline" with Open saved stories; pill goes away when back online
+- [ ] Add a site with a made-up address: error within about 12 s ("CyPress couldn’t find stories at that address…"); offline: "You’re offline…" straight away
+- [ ] Mark all as read with some stories already read: toast counts only the newly read ones; Undo works
+- [ ] Settings > Sites & backup: "Import or export sites" (no OPML); sync setup says "sync service", not relay/worker
