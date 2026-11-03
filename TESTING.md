@@ -1224,3 +1224,7 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 ## 8nqqsu turn 2 (2026-11-03, on branch, not built)
 - Site/folder page, phone, Cards view: a story card followed by a colored text box (or another card) now has a 14px gap (was touching).
 - "In brief / The short ones" box: panel color + site-color border, clearly separate from the background on Halcyon dark (and check it still looks right on a light theme).
+
+## 8nqqsu turn 4 (2026-11-03, on branch, not built)
+- Save from the story's long-press menu or by double-tapping a card, while scrolled deep in a feed: the feed must not jump back or drop stories; the card just shows as saved.
+- Fix how words are said: Settings > Read aloud > "Fix words", and the player's "Word said wrong? Fix it" (fills in the word being read). Add Nguyen -> win, tap Hear it, Save fix, then read a story with that name on BOTH the Natural voice and a phone voice; check word highlighting still follows on the phone voice. Remove a fix and confirm it's gone. Fixes survive app restart and come along with a backup.

@@ -86,6 +86,7 @@ final class CyG2p extends CyText {
     private static final Pattern DOTS = Pattern.compile("(?<![A-Za-z])((?:[A-Z]\\.){2,})");
 
     static String clean(String t) {
+        t = user(t); // the reader's own fixes come first, so they match the words as written
         t = Normalizer.normalize(t, Normalizer.Form.NFKD).replaceAll("\\p{M}+", ""); // café -> cafe
         t = t.replace('’', '\'').replace('‘', '\'').replace('ʼ', '\'');
         t = WIRE.matcher(t).replaceAll(" "); // wire-service tags in datelines are not read
