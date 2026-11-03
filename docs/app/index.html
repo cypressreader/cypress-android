@@ -3321,7 +3321,7 @@ html.rdx .cols.tplb img.hero{aspect-ratio:16/9;max-height:calc(var(--ih)*.42)}
 .cols:has(.rprev) .stl{display:none}
 /* correction round, cluster 4: feed identity */
 .wcol-d{display:block;margin-top:5px;font:400 14px/1.4 var(--serif,Georgia,serif);color:var(--mut)}
-#grid.fed{--fa:color-mix(in srgb,var(--fb,#0f5a3b) 78%,#0f5a3b);--logo:var(--fa)}
+#grid.fed{--fa:color-mix(in srgb,var(--fb,#0f5a3b) 78%,#0f5a3b);--logo:var(--fa)}html.dkbg #grid.fed{--fa:color-mix(in srgb,var(--fb,#c9a24a) 55%,var(--ink))}/* bug hunt 2026-11-03: on dark themes the site color is lifted toward the text color (Mark read 2.05:1, kickers 2.2:1 before) */
 #grid.fed .fmast{border-bottom-color:var(--fa)}#grid.fed .fm-mark{background:var(--fa)}
 #grid.fed .wsec{border-bottom:2px solid var(--fa);padding-bottom:6px}#grid.fed .wsec>span{color:var(--fa)}
 #grid.fed .wsec-v{margin:6px 0 14px;font:italic 400 15px var(--disp,var(--serif));color:var(--mut)}
@@ -3706,6 +3706,7 @@ html.txo #grid img,html.txo #rd img,html.txo #hub img,html.txo .dcv-art>img{disp
 
 /* Today cover follow-up: the cover leads at every width, and the page's admin chrome whispers in one line beneath it */
 .dcov{min-height:min(92svh,860px)}
+body.narrow .dcov{min-height:max(520px,calc(100svh - 215px - env(safe-area-inset-bottom)))}/* bug hunt 2026-11-03: on phones the cover fits between the masthead and the tab bar, so Play Daily shows without scrolling */
 @media(min-width:900px){.dcov{min-height:max(560px,calc(100svh - 190px))}}
 .dcov.dct-type{background:radial-gradient(120% 80% at 50% 0,#17503a 0,#0b2119 55%,#06130e 100%)}
 .dcov.dct-type .dcv-art>svg{opacity:.35}
@@ -12272,7 +12273,7 @@ async function doAct(k){
  if(k==='focus'){focusTog();return}
  if(k==='auto'){setTimeout(()=>autoRd(true),350);return}
  if(k==='aa'){setTimeout(()=>{const pop=aaBuild();if(pop.hidden){aaToggle();aaOpener=$('#mo')}},0);return}
- else if(k==='unread'){delete S.read[a.link];save();toast('Marked as unread')}
+ else if(k==='unread'){delete S.read[a.link];save();cardMarks(a);toast('Marked as unread')}
  else if(k==='settings'){SETP='read';$('#gear').click()}
  else if(k==='hl'){closeRd();S.sel='notes';save();render()}
 }
@@ -13380,7 +13381,7 @@ function qaDo(k,i,lk){
  const a=(lk&&(cur.find(x=>x.link===lk)||findStory(lk)))||cur[i];if(!a)return;if(lk){const j=cur.indexOf(a);if(j>=0)i=j}const f=S.feeds.find(x=>x.id===a.feedId);
  if(k==='save'){toggleSave(a);toast(isSaved(a)?'Saved':'Removed from saved');if(!cardMarks(a))render()}/* mark the card in place: a full render() restarted the feed from its first page, so the story seemed to vanish */
  else if(k==='share'){shareStory(a)}
- else if(k==='read'){if(S.read[a.link])delete S.read[a.link];else{S.read[a.link]=1;(a.more||[]).forEach(m=>S.read[m.l]=1)}save();render()}
+ else if(k==='read'){if(S.read[a.link])delete S.read[a.link];else{S.read[a.link]=1;(a.more||[]).forEach(m=>S.read[m.l]=1)}save();if(!cardMarks(a))render()}
  else if(k==='above'){const add=[];cur.slice(0,i).forEach(x=>{[x.link,...(x.more||[]).map(m=>m.l)].forEach(l=>{if(!S.read[l])add.push(l);S.read[l]=1})});save();render();if(add.length)toast('Marked '+add.length+' above as read',()=>{add.forEach(l=>delete S.read[l]);save();render()});else toast('Nothing unread above')}
  else if(k==='coll'){collectionPrompt(a)}
  else if(k==='uncoll'){const sv=S.saved.find(x=>x.link===a.link);if(sv&&sv.tags){sv.tags=sv.tags.filter(t=>t!==S.stag);save();render()}}
@@ -13868,8 +13869,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.03e';const APP_LABEL='1.240';
-const CHANGES=["Fix how words are said: teach the voice names and words it gets wrong. Find it in Settings > Read aloud, or tap \"Fix it\" in the player while a story is read. Your fixes stay on this phone and work with every voice","Read aloud stops at the end of a story you started yourself when \"Keep playing\" is off (it used to run on into what was left of an earlier Daily)","Saving a story from its menu or with a double tap no longer makes the feed jump or the story seem to disappear","When you refresh, the site or folder you're looking at loads first, and the rest load behind it"];
+const APP_VERSION='2026.11.03f';const APP_LABEL='1.241';
+const CHANGES=["The Daily's cover fits your phone screen, so Play Daily shows without scrolling","Marking a story as read or unread from its menu no longer makes the feed jump back to the top","Small labels on site and folder pages are easier to read in dark themes","Marking a story as unread from inside it updates its card in the list"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
