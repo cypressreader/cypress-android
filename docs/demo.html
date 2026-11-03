@@ -10116,7 +10116,7 @@ async function digGo(i,o){
  if(i>=DIG.links.length)return digEnd(true);
  if(i<0)i=0;
  const a=findStory(DIG.links[i]);if(!a){DIG.links.splice(i,1);return digGo(i,o)}
- const my=++DIG.tok;DIG.i=i;S.lq=DIG.links.slice(i+1);
+ const my=++DIG.tok;DIG.i=i;S.lq=DIG.links.slice(i+1);S.lqAuto=true;
  R.digOpen=true;ttsStop();tminiSync();
  const vis=$('#rd').classList.contains('on')&&!$('#rd').classList.contains('ghost');
  R.ghostNext=!vis;
@@ -10949,6 +10949,7 @@ $('#rd').onclick=e=>{
  if(t.closest('#fm')){S.fs=Math.max(14,S.fs-1);return applyFs(true)}
  if(t.closest('#fp')){S.fs=Math.min(34,S.fs+1);return applyFs(true)}
  if(t.closest('#sp')){S.sep=!S.sep;return applyFs(true)}
+ if(t.closest('#ra')&&!TTS.on&&!DIG.on&&S.lqAuto!==false&&S.lq.length){S.lq=[];R.briefAudio=false;save();syncUpNext()}/* David 2026-11-03: a story you start yourself doesn't run on into what's left of an old Daily/shelf list (only Keep playing or your own Up Next does that); lqAuto unset = a list from before this flag, also left over */
  if(t.closest('#ra')||t.closest('#pbp'))return ttsToggle();
  if(t.closest('#rp')){const p=$('#pb');rdxMnClose(false);$('#mn').hidden=true;p.hidden=!p.hidden;if(!p.hidden)syncPb();return}
  if(t.closest('#pbk2'))return ttsSkipPara(-1);
@@ -14510,7 +14511,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 function listenShelf(){
  if(!('speechSynthesis' in window)){toast('Reading aloud isn’t available on this device or browser.');return}
  const l=S.saved.filter(a=>!S.read[a.link]);if(!l.length){toast('Nothing unread on your shelf');return}
- S.lq=l.slice(1).map(a=>a.link);R.briefAudio=false;save();
+ S.lq=l.slice(1).map(a=>a.link);S.lqAuto=true;R.briefAudio=false;save();
  const mins=l.reduce((n,a)=>n+(readMin(a)||3),0);
  openReader(l[0]).then(()=>{if(!$('#rd').classList.contains('on'))return;const why=ttsClean();if(why){toast('Skipped “'+l[0].title.slice(0,40)+'”: '+why);S.lq=S.lq.filter(k=>k!==l[0].link);ttsEnd(true);return}mediaOn();mediaNative();speak(`Here’s your shelf. ${plu(l.length,'story','stories')}, about ${MIN(mins)}. First, from ${fof(l[0]).title}.`,()=>{if(curA===l[0]&&!TTS.on)ttsToggle()})});
 }
@@ -16070,7 +16071,7 @@ function mediaOn(){
 /* the silent track is what keeps a browser tab's audio alive while the screen is off or the tab is hidden: if the page gets it paused while reading aloud, start it again when the page is back or hidden */
 document.addEventListener('visibilitychange',()=>{try{if(TTS.on&&!TTS.paused&&silentAu&&silentAu.paused)silentAu.play().catch(()=>{})}catch(e){}});
 function mediaOff(stop){try{if(silentAu)silentAu.pause()}catch(e){}try{if('mediaSession' in navigator)navigator.mediaSession.playbackState=stop?'none':'paused'}catch(e){}}
-function addUpNext(a){if(!a)return;if(!S.lq.includes(a.link)){S.lq.push(a.link);save()}toast('Added to Up Next ('+S.lq.length+')');syncUpNext()}
+function addUpNext(a){if(!a)return;if(S.lqAuto!==false&&!TTS.on)S.lq=[];S.lqAuto=false;if(!S.lq.includes(a.link)){S.lq.push(a.link);save()}toast('Added to Up Next ('+S.lq.length+')');syncUpNext()}
 function syncUpNext(){
  const box=$('#upn');if(!box)return;const l=S.lq.map(findStory).filter(Boolean);
  box.innerHTML=l.length?`<div class="upt"><b>Up next</b><button type="button" class="lnk" data-upclr>Clear</button></div>`+l.map((a,i)=>`<div class="upi"><span>${esc(a.title)}</span><button type="button" class="ib" data-uprm="${i}" aria-label="Remove">${svg('<path d="M6 6l12 12M18 6 6 18"/>')}</button></div>`).join(''):'<p class="hint">Up next is empty. Use “Add to Up Next” in the ••• menu to build a listening queue.</p>';
@@ -16129,7 +16130,7 @@ function briefAudioList(){
 function listenBrief(){
  if(!('speechSynthesis' in window)){toast('Reading aloud isn’t available on this device or browser.');return}
  const links=briefAudioList(),l=links.map(findStory).filter(Boolean);if(!l.length){toast('Nothing left to read aloud');return}
- S.lq=l.slice(1).map(a=>a.link);save();/* Up Next shows the rest of the Daily */
+ S.lq=l.slice(1).map(a=>a.link);S.lqAuto=true;save();/* Up Next shows the rest of the Daily */
  const mins=Math.max(1,Math.round(l.reduce((n,a)=>n+(readMin(a)||3),0)));
  /* the Daily plays from the feed: the player docks at the bottom and the stories are read in the background, one after another */
  digInit(l.map(a=>a.link));
