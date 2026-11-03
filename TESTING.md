@@ -1216,3 +1216,5 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - [ ] Natural voice: "They read the email." says "red"; "They read the paper every day." / "Did they read it?" / "You should read it." say "reed".
 - [ ] "Officials found lead in the water pipes" says "led"; "Wind gusts topped 60 mph" says wind (air); "Voters are content" says con-TENT.
 - Desktop check: scripts/check-voice.sh (71 sentences, all pass).
+- [ ] New grammar tool (en-pos.bin 0.7→1.7 MB, ~7 MB in memory): Natural voice still starts quickly on the Fold and older phones; no crash on first play.
+- [ ] Natural voice: "in August" says AW-gust; "prices affect people" says uh-FECT; "strong winds" (air); "trying to sow doubt" (so); "associate professor"; "suspects fired" (SUS-pects).

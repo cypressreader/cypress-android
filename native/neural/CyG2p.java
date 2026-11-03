@@ -25,7 +25,10 @@ final class CyG2p extends CyText {
             addMissing(in);
         }
         lex.put("ayem", "ˌAˈɛm"); // "a.m." (clean() writes this; the list only has "pm")
-        lex.put("memphis", "mˈɛmfəs"); // the voice's list has an extra p (mˈɛmpfəs); CMU and locals say it without
+        lex.put("memphis", "mˈɛmfəs");
+        lex.put("august", "ˈɔɡəst"); // the month (the list has the rare adjective, aw-GUST)
+        lex.put("affect", "əfˈɛkt"); // "prices affect people" (the list has the psychology noun)
+        lex.put("affects", "əfˈɛkts"); // the voice's list has an extra p (mˈɛmpfəs); CMU and locals say it without
     }
 
     /** Adds words not already known. The voice's own list loads first, so it always wins (it matches how Kokoro was trained). */
@@ -408,9 +411,18 @@ final class CyG2p extends CyText {
             "elevated", "toxic", "contains", "contained", "containing", "traces", "remove", "removing", "replace", "replacing"));
     private static final java.util.Set<String> WOUND = new java.util.HashSet<>(java.util.Arrays.asList("up", "down", "around",
             "through", "its", "his", "her", "their", "back", "along"));
-    private static final java.util.Set<String> WIND_NOUN = new java.util.HashSet<>(java.util.Arrays.asList("gusts", "gust", "speeds",
-            "speed", "chill", "turbine", "turbines", "power", "farm", "farms", "energy", "damage", "warning", "warnings", "advisory",
-            "storm", "shear", "direction", "tunnel", "instrument", "instruments", "and", ",", "."));
+    // found in real news (2026-11-03 sweep of 172 articles): job titles, noun-before-noun, "were content", "suspects fired"
+    private static final java.util.Set<String> TITLE = new java.util.HashSet<>(java.util.Arrays.asList("director", "directors",
+            "professor", "professors", "editor", "dean", "justice", "producer", "member", "members", "membership", "degree", "counsel",
+            "secretary", "judge", "partner", "partners", "editors", "fellow", "groups", "group"));
+    private static final java.util.Set<String> NOUN_NEXT = new java.util.HashSet<>(java.util.Arrays.asList("restrictions", "controls",
+            "ban", "bans", "growth", "market", "markets", "duties", "tariffs", "tariff", "license", "licence", "licenses", "sales",
+            "data", "prices", "costs", "levels", "movement", "movements", "numbers", "figures", "deal", "deals", "rules", "taxes"));
+    private static final java.util.Set<String> BE_PREV = new java.util.HashSet<>(java.util.Arrays.asList("is", "are", "was", "were",
+            "be", "been", "seem", "seems", "seemed", "feel", "feels", "felt", "remain", "remains", "remained", "appear", "appears",
+            "appeared", "perfectly", "quite", "more", "less", "very"));
+    private static final java.util.Set<String> ONE_SUBJ = new java.util.HashSet<>(java.util.Arrays.asList("he", "she", "it", "who",
+            "which", "that", "also", "now", "strongly", "still", "police", "one"));
     static {
         String[] h = {"live", "lˈɪv", null, "use", null, "jˈus", "close", "klˈOz", null, "record", "ɹəkˈɔɹd", null,
                 "present", "pɹizˈɛnt", null, "object", "əbʤˈɛkt", null, "tear", "tˈɛɹ", null, "wind", "wˈInd", null,
@@ -428,11 +440,16 @@ final class CyG2p extends CyText {
     }
 
     private static String hetero(String w, String prev, String next, String tag) {
-        if (w.equals("wind") && WIND_NOUN.contains(next)) return "wˈɪnd"; // "Wind gusts topped 60 mph" opens with a noun
+        if (w.equals("wind") || w.equals("winds")) return WOUND.contains(next) ? (w.equals("wind") ? "wˈInd" : "wˈIndz") : w.equals("wind") ? "wˈɪnd" : "wˈɪndz"; // weather unless "wind up/down/through"
+        if (w.equals("content") && BE_PREV.contains(prev)) return "kəntˈɛnt"; // "they were content"
+        if (w.equals("suspects") && !ONE_SUBJ.contains(prev)) return null; // "suspects fired": the list's noun
+        if (w.endsWith("ate") && TITLE.contains(next)) return null; // "associate professor": the list's noun
+        if (NOUN_NEXT.contains(next) && TAGS.containsKey(w)) return TAGS.get(w).get("NOUN"); // "export restrictions"
         if (tag != null && w.equals("read")) return tag.equals("VBD") || tag.equals("VBN") ? "ɹˈɛd" : null;
         if (tag != null && TAGS.containsKey(w) && !w.equals("used") && !w.equals("lead") && !w.equals("wound")) {
-            if (prev.equals("to") && tag.startsWith("VB") && !AFTER_TO.contains(next)) tag = "NN"; // "rose to record highs"
             HashMap<String, String> e = TAGS.get(w);
+            if (w.equals("record") && prev.equals("to") && tag.startsWith("VB") && !AFTER_TO.contains(next)) tag = "NN"; // "rose to record highs"
+            else if (prev.equals("to") && !w.equals("present") && !tag.startsWith("NN") && e.get("VERB") != null) return e.get("VERB"); // "refusal to deliberate"
             String p = e.get(tag);
             return p != null ? p : e.get(parent(tag)); // null: the list's usual sound
         }
@@ -469,6 +486,9 @@ final class CyG2p extends CyText {
     private static String readTense(java.util.List<String> low, String[] tags, int i) {
         int s = i, e = i;
         while (s > 0 && ".!?;:".indexOf(low.get(s - 1).charAt(0)) < 0) s--;
+        String pv = i > 0 ? low.get(i - 1) : "";
+        if (pv.matches("to|will|would|can|could|may|might|must|shall|should|cannot|do|does|did")
+                || pv.endsWith("n't") && !pv.matches("(has|have|had|was|were|is|are)n't")) return "VB"; // "cannot read", "didn't read"
         if (s == i || !tags[i].startsWith("VB") || NOT_FINITE.contains(low.get(i - 1)) || low.get(i - 1).endsWith("n't")) return tags[i];
         while (e + 1 < low.size() && ".!?;:".indexOf(low.get(e + 1).charAt(0)) < 0) e++;
         for (int j = s; j < i; j++) if (low.get(j).matches("do|does|did|don't|doesn't|didn't")) return "VB"; // "Did they read it?"
