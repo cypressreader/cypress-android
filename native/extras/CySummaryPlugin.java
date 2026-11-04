@@ -58,12 +58,14 @@ public class CySummaryPlugin extends Plugin {
                 } catch (Throwable t) {
                     JSObject r = new JSObject();
                     r.put("st", "unavailable");
+                    r.put("why", msg(t));
                     call.resolve(r);
                 }
             }, ex);
         } catch (Throwable t) {
             JSObject r = new JSObject();
             r.put("st", "unavailable");
+            r.put("why", msg(t));
             call.resolve(r);
         }
     }
