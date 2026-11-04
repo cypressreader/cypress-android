@@ -6001,9 +6001,9 @@ let ONT=0;addEventListener('online',()=>{clearTimeout(ONT);ONT=setTimeout(()=>{i
 /* B95: a feed that keeps failing is tried less and less often (15 min after the third failure in a row, then 30, 60 … up to a day) instead of on every refresh; pulling to refresh or the refresh button still tries everything */
 const deadWait=f=>{const h=S.health[f.id]||{},n=h.fn||0;/* a site that said "too many requests, come back in N" (HTTP 429 Retry-After) is left alone that long */if(h.fail&&h.ra>h.fail)return Math.min(864e5,h.ra-h.fail);if(n<3||!h.fail)return 0;return Math.min(864e5,9e5*Math.pow(2,n-3))};
 const rfDead=(f,fresh)=>{if(fresh===true)return false;const w=deadWait(f);return w>0&&Date.now()-(S.health[f.id].fail||0)<w};
-const loadAll0=(fresh,again)=>{S.lastLoad=Date.now();const bf=!again&&S.follow&&S.follow.length?new Set(S.feeds.flatMap(f=>(items[f.id]||[]).map(a=>a.link))):null;const vw=inView;/* David 2026-11-03: the site or folder on screen goes first in the six-at-a-time queue, the rest load behind it */return Promise.all(S.feeds.filter(f=>{if(!rfSkip(f,fresh)&&!rfDead(f,fresh))return true;/* a site skipped this round (fresh enough, or resting after failures) is not 'still loading': left unset, the feed showed placeholders and 'Setting the type… 74 of 127' forever */if(!state[f.id])state[f.id]='wait'}).sort((x,y)=>vw(y)-vw(x)).map(f=>load(f,fresh===true).catch(()=>{}))).then(r=>{if(LRT||LRW)loadFlush();pfKick();wireSettle();if(!again)loadRetry();if(bf)setTimeout(()=>followAlerts(bf),2600);return r})};
+const loadAll0=(fresh,again,wake)=>{S.lastLoad=Date.now();const bf=!again&&S.follow&&S.follow.length?new Set(S.feeds.flatMap(f=>(items[f.id]||[]).map(a=>a.link))):null;const vw=inView;/* David 2026-11-03: the site or folder on screen goes first in the six-at-a-time queue, the rest load behind it */const L=S.feeds.filter(f=>{if(!rfSkip(f,fresh)&&!rfDead(f,fresh))return true;/* a site skipped this round (fresh enough, or resting after failures) is not 'still loading': left unset, the feed showed placeholders and 'Setting the type… 74 of 127' forever */if(!state[f.id])state[f.id]='wait'}).sort((x,y)=>vw(y)-vw(x));/* David 2026-11-04: after the app wakes, ask one site first and start the rest once it answers (a failed answer waits 3 s): the phone's connection is often not back yet, and asking all at once filled the log with 'Could not fetch' */const go=fs=>Promise.all(fs.map(f=>load(f,fresh===true).catch(()=>{})));return (wake&&L.length>1?go([L[0]]).then(a=>state[L[0].id]==='err'?new Promise(r=>setTimeout(r,3000)).then(()=>a):a).then(a=>go(L.slice(1)).then(b=>a.concat(b))):go(L)).then(r=>{if(LRT||LRW)loadFlush();pfKick();wireSettle();if(!again)loadRetry();if(bf)setTimeout(()=>followAlerts(bf),2600);return r})};
 /* how many refreshes are running: the 'new stories' pill waits until they have all finished */
-let LAN=0;const loadAll=(fresh,again)=>{LAN++;const t0=performance.now(),vis=!document.hidden;const done=()=>{LAN=Math.max(0,LAN-1);if(vis&&!document.hidden&&!again)ux('tr',0,(performance.now()-t0)/1000);if(!LAN&&WIRE.held){WIRE.held=false;try{renderSoon()}catch(e){}}};return loadAll0(fresh,again).then(r=>{done();return r},e=>{done();throw e})};
+let LAN=0;const loadAll=(fresh,again,wake)=>{LAN++;const t0=performance.now(),vis=!document.hidden;const done=()=>{LAN=Math.max(0,LAN-1);if(vis&&!document.hidden&&!again)ux('tr',0,(performance.now()-t0)/1000);if(!LAN&&WIRE.held){WIRE.held=false;try{renderSoon()}catch(e){}}};return loadAll0(fresh,again,wake).then(r=>{done();return r},e=>{done();throw e})};
 /* when a dozen feeds fail in the same refresh it is nearly always the phone's connection dropping for a moment (a Wi-Fi switch, waking up), not the sites: try those feeds once more after a short wait */
 let RETRYT=0;
 function loadRetry(){
@@ -10486,10 +10486,10 @@ const SET_PAGES=[
  {id:'sync',t:'Sync and Backup',d:'Devices and backups',c:'#3b5bdb',lead:'Keep your feeds and settings safe, and move them between devices.',
   main:[{h:'Sync Between Devices',items:['P:sync']},{h:'Backup',items:['L:Back up everything']}],more:[],rst:null},
  {id:'about',t:'About and Help',d:'Tips, shortcuts and version',c:'#6b7280',lead:'The art of staying informed. Help, privacy and the app itself.',
-  main:[{items:['L:Tips and gestures','L:See your year','L:Privacy','L:Keyboard shortcuts','L:Redo setup']},{h:'Sharing and Kindle',items:['L:Shorten shared links','L:Kindle books','L:Your Kindle address']}],
-  more:[{h:'Diagnostics',fold:1,items:['L:Copy support info','L:Test sites on this phone','L:Check scrolling','L:Test suggested feeds']},{h:'Reset',items:['X:resetlook','L:Erase everything and start over']}],rst:null}
+  main:[{items:['L:Tips and gestures','L:See your year','L:Privacy','L:Redo setup']},{h:'Sharing and Kindle',items:['L:Shorten shared links','L:Kindle books','L:Your Kindle address']}],
+  more:[{h:'Keyboard',fold:1,items:['L:Keyboard shortcuts']},{h:'Diagnostics',fold:1,items:['L:Copy support info','L:Test sites on this phone','L:Check scrolling','L:Test suggested feeds']},{h:'Reset',items:['X:resetlook','L:Erase everything and start over']}],rst:null}
 ];
-const SET_GROUPS=[['look','read','daily','listen','stories','sites'],['motion','kb','about']];
+/* David 2026-11-04: touch screens only, so Keyboard shortcuts left the main list; it is a folded row under About > Advanced */const SET_GROUPS=[['look','read','daily','listen','stories','sites'],['motion','about']];
 /* polish-2026-10 (D1): seven pages instead of ten. Appearance, Reading, Home and Stories (layout + feeds + filters), Motion and Sound, Downloads and Storage, Listening and Alerts (read aloud + digest), Backup, Sync and About. The old ids still work as aliases. Restore the old hub by putting the old merge back (feeds/tts/sync/home pages are all still defined above). */
 const SET_ALIAS={tts:'listen',feeds:'sites',sync:'sites',home:'daily',dl:'stories',alerts:'daily'};
 (function(){const by=id=>SET_PAGES.find(p=>p.id===id);
@@ -10505,7 +10505,7 @@ const SET_ALIAS={tts:'listen',feeds:'sites',sync:'sites',home:'daily',dl:'storie
  const stories={id:'stories',t:'Stories & loading',d:'Order, filters, downloads, offline',c:F.c,lead:'How stories are chosen and shown, and what is ready ahead.',main:F.main.filter(c=>!isS(c)).concat(tag(D.main,'Downloads',1)),more:F.more.filter(c=>!isS(c)).concat(D.more),rst:(F.rst||[]).concat(D.rst||[])};
  const sites={id:'sites',t:'Sites & backup',d:'Your sites, sync and backups',c:Sy.c,lead:'The sites you follow, and keeping them safe.',main:F.main.filter(isS).concat(Sy.main),more:F.more.filter(isS),rst:null};
  M.t='Motion and battery';M.d='Animation, effects and vibration';M.lead='Less movement saves battery.';
- Ab.t='About CyPress';Ab.d='Tips, shortcuts, privacy and version';Ab.lead='Help, privacy and the app itself.';
+ Ab.t='About CyPress';Ab.d='Tips, privacy and version';Ab.lead='Help, privacy and the app itself.';
  SET_PAGES.splice(0,SET_PAGES.length,...[L,R,daily,listen,stories,sites,M,Ab]);
  SET_PAGES.OLD={home:H,feeds:F,tts:T,sync:Sy,alerts:A,dl:D};/* kept so the old split can be restored */
 })();
@@ -12793,7 +12793,7 @@ $('#fresh').onclick=()=>startFresh();
 ['click','change','input'].forEach(ev=>set.addEventListener(ev,e=>{if(e.target.closest('.spage')&&!e.target.closest('#sp-about'))S.setT=Date.now()},true));
 $('#pfm').onchange=e=>{const v=e.target.value;if(v==='off')S.pfm='off';else{S.pfm='custom';S.pfn=+v}save();PF.done.clear();PF.n=0;PF.q=[];PF.tot=0;PF.fin=0;pfBar();if(S.pfm!=='off')prefetch(pfList());try{acEvict()}catch(x){}syncSet()};
 let arT;function setAuto(){clearInterval(arT);const m=+S.auto||0;if(m)arT=setInterval(()=>{if(!document.hidden&&!$('#rd').classList.contains('on'))loadAll()},m*6e4)}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-(S.lastLoad||0)>10*6e4&&!$('#rd').classList.contains('on'))loadAll()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-(S.lastLoad||0)>10*6e4&&!$('#rd').classList.contains('on'))loadAll(0,0,1)});
 $('#clr').onclick=async()=>{const n=Object.keys(AC).length;if(!await askBox({title:'Clear downloaded stories?',text:(n===1?'1 downloaded story':n+' downloaded stories')+' will be removed from this device. You can download them again when you’re online.',ok:'Clear',cancel:'Keep them',danger:true}))return;try{localStorage.removeItem(CK);localStorage.removeItem('folio-img')}catch(e){}acClear();toast('Stored stories cleared. Feeds, saved stories and highlights are kept.')};
 
 /* feed health */
