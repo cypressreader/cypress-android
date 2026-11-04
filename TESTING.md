@@ -1276,3 +1276,7 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 
 ## Daily tabs spacing (session kq2amn, unreleased)
 - Phone (cover screen) and Fold open: Today / Headlines / Brief / Sunday have even gaps, none touching, "Sunday" not cut off. Text may be slightly smaller on narrow phones.
+
+## AI summary waits for final text (session kq2amn, unreleased)
+- Open a fresh (not stored) long English story on Wi-Fi: the waiting bars stay until the full article has loaded, then the 3 points appear once. They are never shown and then redrawn.
+- Stored/offline stories still get the summary straight away.
