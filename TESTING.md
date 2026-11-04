@@ -1269,3 +1269,14 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 
 ## AI summary reveal (1.246) — implemented, unverified on device
 - Open a long English story on the Fold 8: the waiting bars show, then the gold line draws down the side while the box opens to fit and the three points fade in. Text below moves only during that half second, then stays put. With Remove animations on, the summary appears at once.
+
+## Story text headline check + AI summary check (1.247) — implemented, unverified on device
+- Open PBS NewsHour stories: no "SCETV is your local station / Change / Select Your Local Station" lines at the top; the AI summary is about the story. Spot-check a few feature stories with slow openings ("It was raining in…"): the first paragraph must still be there.
+- Switching light/dark: no sky animation, switch is instant.
+
+## Daily tabs spacing (session kq2amn, unreleased)
+- Phone (cover screen) and Fold open: Today / Headlines / Brief / Sunday have even gaps, none touching, "Sunday" not cut off. Text may be slightly smaller on narrow phones.
+
+## AI summary waits for final text (session kq2amn, unreleased)
+- Open a fresh (not stored) long English story on Wi-Fi: the waiting bars stay until the full article has loaded, then the 3 points appear once. They are never shown and then redrawn.
+- Stored/offline stories still get the summary straight away.
