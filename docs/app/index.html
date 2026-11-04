@@ -7072,7 +7072,7 @@ addEventListener('resize',cardGrow);try{document.fonts&&document.fonts.ready.the
    (e) "Junk" in the selection bar hides a block, logs the address and its HTML, and teaches the same site's next story. */
 const JK={
  /* (b) classes and ids of ad, promo, newsletter, sponsored and share furniture. Applied to the page before its classes are stripped */
- SEL:'.privacy-policy,#privacy-policy,[class*="cookie" i],[id*="consent" i],[class*="gdpr" i],[class*="cmp-" i],.cc-window,footer.policy,ins.adsbygoogle,[id^="div-gpt-ad" i],[id*="google_ads" i],[data-ad],[data-ad-slot],[data-ad-unit],[class*="adslot" i],[class*="ad-slot" i],[class*="ad-container" i],[class*="ad-wrapper" i],[class*="ad-banner" i],[class*="advert" i],[class*="native-ad" i],[class*="dfp-" i],[class*="sponsor" i],[class*="paid-content" i],[class*="partner-content" i],[class*="outbrain" i],[class*="taboola" i],[class*="newsletter" i],[id*="newsletter" i],[class*="email-signup" i],[class*="signup-form" i],[class*="mailing-list" i],[class*="inline-signup" i],[data-component*="newsletter" i],[data-component*="sign-in-gate" i],[data-component*="support" i],[class*="share-bar" i],[class*="share-tools" i],[class*="social-share" i],[class*="follow-us" i],[class*="you-may-like" i],[class*="more-from" i],[class*="read-next" i],[class*="most-popular" i],[class*="promo-box" i],[class*="promobox" i],[class*="inline-promo" i],[class*="app-promo" i],[class*="donate" i],[class*="contribute-" i],[class*="paywall-promo" i]',
+ SEL:'.privacy-policy,#privacy-policy,[class*="cookie" i],[id*="consent" i],[class*="gdpr" i],[class*="cmp-" i],.cc-window,footer.policy,ins.adsbygoogle,[id^="div-gpt-ad" i],[id*="google_ads" i],[data-ad],[data-ad-slot],[data-ad-unit],[class*="adslot" i],[class*="ad-slot" i],[class*="ad-container" i],[class*="ad-wrapper" i],[class*="ad-banner" i],[class*="advert" i],[class*="native-ad" i],[class*="dfp-" i],[class*="sponsor" i],[class*="paid-content" i],[class*="partner-content" i],[class*="outbrain" i],[class*="taboola" i],[class*="newsletter" i],[id*="newsletter" i],[class*="email-signup" i],[class*="signup-form" i],[class*="mailing-list" i],[class*="inline-signup" i],[data-component*="newsletter" i],[data-component*="sign-in-gate" i],[data-component*="support" i],[class*="share-bar" i],[class*="share-tools" i],[class*="social-share" i],[class*="follow-us" i],[class*="you-may-like" i],[class*="more-from" i],[class*="read-next" i],[class*="most-popular" i],[class*="promo-box" i],[class*="promobox" i],[class*="inline-promo" i],[class*="app-promo" i],[class*="donate" i],[class*="contribute-" i],[class*="paywall-promo" i],dialog,[role="dialog" i],[role="alertdialog" i],[aria-modal="true" i],[class*="modal" i],[class*="popup" i],[hidden],[style*="display:none" i],[style*="display: none" i],[style*="visibility:hidden" i]',
  /* (b) phrases that mark a block as furniture when the block is short */
  TXT:[
   /^\W*(advertisement|advertisements|ad|sponsored( content| post| by .{1,40})?|paid (post|content|partnership)|promoted( stories| content)?|partner content|advertiser content|story continues (below|after) (the )?advertis\w*|continue reading below|scroll to continue|skip advertisement|ad feedback|advertise with us)\W*$/i,
@@ -7268,6 +7268,14 @@ function junkClean(root,url){
  for(let k=0;k<2;k++)w.querySelectorAll('ul,ol,div,section,aside,p').forEach(e=>{if(!e.textContent.trim()&&!e.querySelector('img,video,iframe,br'))e.remove()});
  if(isFrag){while(w.firstChild)root.append(w.firstChild)}
 }
+/* headline check: short lines at the top of the story that share no word with the headline or the feed's summary (a station picker, a "Change" button) go, but only when a real story line follows; lines with Reader View's sentence signs (commas, length) stay */
+function jkKw(x){const o=new Set;String(x||'').toLowerCase().replace(/<[^>]*>/g,' ').split(/[^\p{L}\p{N}]+/u).forEach(w=>{if(w.length>=4&&!STOP.has(w))o.add(w.slice(0,5))});return o}
+function jkHead(b,a){if(!b||!a||b.dataset.hd===a.link)return;b.dataset.hd=a.link;
+ const hw=jkKw(a.title+' '+(a.summary||'')),hit=t=>{let n=0;jkKw(t).forEach(w=>{if(hw.has(w))n++});return n};if(hw.size<3)return;
+ const L=[...b.querySelectorAll('p,li,h2,h3,h4,h5,div,blockquote')].filter(e=>!e.querySelector('p,li,div,blockquote,h2,h3,h4')&&!e.closest('figure,.pullq,.rfoot,table')&&(e.textContent||'').trim()).slice(0,14);
+ const k=L.findIndex(e=>hit(e.textContent)>=2);if(k<1)return;
+ const tot=(b.textContent||'').length,cut=L.slice(0,k).filter(e=>{const t=(e.textContent||'').replace(/\s+/g,' ').trim();return !e.querySelector('img,picture,video')&&!hit(t)&&(t.length<120||t.length<200&&!t.includes(','))});
+ if(cut.reduce((n,e)=>n+e.textContent.length,0)>tot*.25)return;cut.forEach(e=>e.remove())}
 /* (e) Junk: hide the block(s) containing the selected text, log the address and the HTML, and teach this site's next story */
 /* a block inside a small, compact box (a sign-up heading with its bullets, a promo card) grows to the whole box: the biggest wrapper that is still short, holds at least two blocks and no story paragraphs */
 function junkBox(el,body,leaf){
@@ -7305,7 +7313,7 @@ function junkLogText(){
  return 'CyPress clean-up log ('+r.length+')\n\n'+r.map(x=>x.u+'\n'+x.t+'\n'+x.h).join('\n\n---\n\n');
 }
 /* the pipeline's two entry points */
-{const _d=decorate;decorate=function(){try{const b=$('.cols .body');if(b&&curA&&!R.web&&!b.dataset.clean)junkClean(b,curA.link)}catch(e){}return _d.apply(this,arguments)}}
+{const _d=decorate;decorate=function(){try{const b=$('.cols .body');if(b&&curA&&!R.web&&!b.dataset.clean)junkClean(b,curA.link);if(b&&curA&&!R.web)jkHead(b,curA)}catch(e){}return _d.apply(this,arguments)}}
 /* ---- experiment, cluster 14: the magazine article view ----
    A display-serif headline, a drop cap, up to three pull quotes lifted from the article's own sentences, a generous serif body, a live "N min left" pill,
    and an end-of-article footer with a cue to the next story and a few related reads. */
@@ -14051,7 +14059,7 @@ function aiGrow(el,h0){/* Rule and grow: the brass line draws down while the box
  if(!h0||h0===h1||el.getClientRects().length>1)return 0;u.style.cssText='overflow:hidden;height:'+h0+'px;transition:height .45s cubic-bezier(.3,.7,.2,1)';void u.offsetHeight;u.style.height=h1+'px';setTimeout(()=>u.style.cssText='',500);return 500}
 function aiBox(){/* true = the AI box (waiting or done) takes the place of "From the publisher" */
  const P=CyAI(),a=curA,c=$('.cols'),bd=c&&c.querySelector(':scope>.body');if(!P||AIST==='unavailable'||!a||!bd||R.web)return false;
- const k=a.link||a.title,s=AIS.get(k);
+ try{jkHead(bd,a)}catch(e){}const k=a.link||a.title,s=AIS.get(k);
  if(s)return s.length?(aiPut(c,s),true):false;
  if(s===null)return AIST==='available'?(aiPut(c,null),true):false;
  const text=[...bd.querySelectorAll(':scope>p')].map(p=>p.textContent.trim()).filter(Boolean).join('\n').slice(0,12000);if(text.length<800)return false;
@@ -14059,7 +14067,7 @@ function aiBox(){/* true = the AI box (waiting or done) takes the place of "From
 async function aiRun(P,a,k,text){let s=[];
  try{const q=await P.status(),st=q.st;AIST=st;AIWHY=q.why||'';if(st!=='available'){AIS.delete(k);if(/^download/.test(st))P.prepare().catch(()=>{})}
   else{const nt=CyTR(),d=nt&&await nt.detect({text:text.slice(0,800)});if(nt&&!/^en/i.test((d&&d.lang)||''))AIS.set(k,[]);
-   else{const r=await P.summarize({text});s=String((r&&r.summary)||'').split('\n').map(x=>x.replace(/^\s*[*•·\-–]\s*/,'').trim()).filter(Boolean).slice(0,3);AIS.set(k,s)}}}catch(e){AIS.delete(k)}
+   else{const r=await P.summarize({text});s=String((r&&r.summary)||'').split('\n').map(x=>x.replace(/^\s*[*•·\-–]\s*/,'').trim()).filter(Boolean).slice(0,3);{const hw=jkKw(a.title+' '+(a.summary||''));if(hw.size>=3&&!s.some(x=>[...jkKw(x)].some(w=>hw.has(w))))s=[]}AIS.set(k,s)}}}catch(e){AIS.delete(k)}
  const c=$('.cols');if(curA!==a||!c||!c.querySelector(':scope>.body'))return;
  const w=c.querySelector(':scope>.whyit');
  let t=0;if(s.length){const h0=w&&w.classList.contains('wait')&&w.querySelector('ul').offsetHeight;t=aiGrow(aiPut(c,s),h0)}else if(w&&w.classList.contains('wait'))whyBox();else return;/* no summary after all: the publisher's description comes back */
