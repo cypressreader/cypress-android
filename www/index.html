@@ -5302,7 +5302,7 @@ function saveCache(now){
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&SCT)saveCache(true)});addEventListener('pagehide',()=>{if(SCT)saveCache(true)});
 let SCSIG='';
 function saveCache0(force){if(FROZEN)return;/* nothing new since the last save: skip the 40-50 ms of packing it up again (leaving the app always saves) */const sg=itemsSig();if(sg===SCSIG&&!force)return;SCSIG=sg;const c={};for(const id in items)if(S.feeds.some(f=>f.id===id))c[id]=items[id].slice(0,30).map(a=>({...a,html:(a.html||'').slice(0,3500)}));
- try{localStorage.setItem(CK,JSON.stringify(c))}catch(e){try{for(const id in c)c[id].forEach(a=>a.html='');localStorage.setItem(CK,JSON.stringify(c))}catch(_){}}}
+ try{localStorage.setItem(CK,JSON.stringify(c))}catch(e){try{for(const id in c)c[id].forEach(a=>a.html='');localStorage.setItem(CK,JSON.stringify(c))}catch(_){/* storage nearly full: keep fewer stories per site rather than nothing, so a restart never opens on empty placeholders */try{for(const id in c)c[id]=c[id].slice(0,10);localStorage.setItem(CK,JSON.stringify(c))}catch(e3){try{elog('cache save',e3)}catch(_2){}}}}}
 const feedOf=id=>S.feeds.find(f=>f.id===id)||{title:'',url:''};
 const PAT=['mid'];
 const ago=d=>{if(!d)return'';const m=(Date.now()-d)/6e4;return m<60?Math.max(1,m|0)+'m':m<1440?(m/60|0)+'h':(m/1440|0)+'d'};
@@ -13878,7 +13878,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.11.04g';const APP_LABEL='1.250';
-const CHANGES=["20 more sources to browse and follow: MS NOW, The New Yorker, New York Post, Drudge Report, The Daily Signal, Washington Examiner, The Telegraph, Daily Mail, Le Monde in English, Der Spiegel International, New York Times Politics, Fox News Politics","Also new: Business Insider, Hacker News Front Page, Techmeme, New York Times Science, Sports Illustrated, ProFootballTalk, IGN and Game Informer","The folder or site you are looking at now loads first, so it no longer sits on gray placeholders while other sites finish"];
+const CHANGES=["20 more sources to browse and follow: MS NOW, The New Yorker, New York Post, Drudge Report, The Daily Signal, Washington Examiner, The Telegraph, Daily Mail, Le Monde in English, Der Spiegel International, New York Times Politics, Fox News Politics","Also new: Business Insider, Hacker News Front Page, Techmeme, New York Times Science, Sports Illustrated, ProFootballTalk, IGN and Game Informer","The folder or site you are looking at now loads first, so it no longer sits on gray placeholders while other sites finish","When your phone is short on storage, the app now keeps fewer stories per site instead of none, so reopening a feed doesn't start from empty placeholders"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
