@@ -1284,3 +1284,6 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 ## Feed fixes 1.249 (session kq2amn)
 - Add Scientific American, National Post, AP News, Axios, Space.com: each shows fresh stories. Add NYT, ABC News, The Economist, RNZ from the catalog: each loads.
 - Phone-only: feeds that blocked the cloud checker (Newsweek, New Scientist, VentureBeat, Phys.org, Politico Europe, The Walrus, History Today, DPReview, SamMobile, Food52, Axios Markets): note any that fail here.
+
+## 1.250 folder loads first (unverified on phone)
+- Cold start with a big site list (~127): open a folder (e.g. News) right away. Its stories should appear within a few seconds, not stay on gray boxes with "Setting the type… N of 127 sites are in." Switch folders mid-load: the new one should fill in next.
