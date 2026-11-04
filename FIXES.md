@@ -120,3 +120,6 @@ SHOULD-FIX
 - News policy: show developer contact/ownership in app + site.
 - P6 BLOCKER (found 2026-11-02): new apps must target Android 16 / API 36 (Play rule since 31 Aug 2026). Capacitor 7 template = 35. Pin targetSdk/compileSdk 36 in prepare_android.py (or move to Capacitor 8) and re-test.
 - Store kit ready: store/LISTING.md (text, Data safety, rating answers), store/play/*.png (6 phone 1080x1920, 2 tablet 2560x1600, feature 1024x500, icon 512).
+
+## Queued 2026-11-04 (next batch)
+- Remove the "Good morning / Good evening" sky animation: `sky(kind)` (~13110 www/index.html), `.sk-*` CSS, callers, any setting/test that names it. The light/dark change itself stays, just with no animation. David: "looks out of place and isn't necessary."

@@ -9,7 +9,7 @@ Last updated: 2026-11-04 (session kq2amn)
 - **Headlines**: list and tile views share "The front page" first section. **All Stories**: title-case header, centered chips, `tabMast` headings in both views.
 - **Story card size** Compact|Medium|Large drives `--csz`. Cards|Columns (wire) view exists only with Medium/Large + tiles (by design). Daily + Compact sets `data-cards="narrow"` on `#grid` (CSS needs both selectors). Wire "Cards" sets `data-w="mag"`.
 - **No location**: no permission/geolocation code. "Near you" = typed place, up to 10 saved (`S.places`), `locLang`. `nUrl` keeps `q=/query=/search=`.
-- Light/dark: As the theme is / Always light / Always dark / Follow phone (`S.sch`). Sky transition remains; sunset mode and weather removed. Pure Black theme `oled` (light phone falls back to Light).
+- Light/dark: As the theme is / Always light / Always dark / Follow phone (`S.sch`). Sky transition (`sky()`, `.sk-*`) is QUEUED FOR REMOVAL (see next tasks); sunset mode and weather removed. Pure Black theme `oled` (light phone falls back to Light).
 - Excerpts end on whole words (`trimWords`, `sumOf`). Opaque docked tab bar `#mtabs`; pull-to-refresh `#pts`; Search closes after keyboard.
 - **Reader**: No spanning title block in paged reader. Justified text uses hyphens. "Aa" = bottom sheet (Theme/Font/Focus/Large print) from ... menu (`data-act="aa"`). "Why it matters" stays (`whyBox`, `COOKIEJ`).
 - **Side bar** hide setting (Never/portrait+square/Always), hamburger `#menu`, tab `#sideh`; click-to-close skips folder arrows/dots/× buttons.
@@ -40,4 +40,5 @@ Locked: page turn (Play Books style, tap turns 1280 ms, do not retune). Older sh
 **1.243 (Insights extras: UX block, CRUMB, report status, site-list checkbox): archive, grep 'moved rnwh2j'.**
 **1.244/1.245 AI summary notes: archive, grep 'moved kq2amn'.**
 **1.246 MERGED (747831b, APK run 41756564956), session kq2amn:** David picked Rule and grow. `aiType` replaced by `aiGrow(el,h0)`: adds `.whyit.ai.in` for 1.1 s (brass ::before scaleY .5 s with real border transparent, li fade .3/.39/.48 s), grows the ul from the waiting bars' height (skipped if the box spans columns or reduced motion), relayout runs after the 500 ms grow. Also ships promo-row fix 5c781f0.
+**Next batch queue:** remove the "Good morning / Good evening" sky animation (`sky(kind)` ~13110 in www/index.html, `.sk-star/.sk-sun/.sk-moon/.sk-hill/.sk-t` CSS, its callers and any setting for it): David 11-04 says it looks out of place. Light/dark switch stays, just instant.
 **Next 3 tasks:** 1. David installs 1.246 on Fold 8: TESTING.md 'AI summary' + 'AI summary status line' + 'AI summary reveal'. 2. ~11-09: Insights ?sum=1 for 1.243-1.246 rows; then phone-found bugs. 3. Voice/topic sweeps later; Play Store parked.
