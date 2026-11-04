@@ -5271,7 +5271,7 @@ document.documentElement.dataset.theme=POLISH_RETIRED[S.theme]||S.theme||'halcyo
 let QWARN=0;
 let SVSEL=null;/* Saved: null when not picking stories; otherwise the set of picked story links. Declared here, early, because the first draw of the Saved screen reads it */
 /* storage full: drop the story cache and image list (they refill by themselves) so your settings and library still save */
-function quotaFix(){try{localStorage.removeItem('folio-cache');localStorage.removeItem('folio-img');localStorage.setItem('folio',JSON.stringify(S))}catch(e){if(!QWARN){QWARN=1;try{toast('Storage is full, so recent changes may not be saved. Remove old saved stories or free space on your phone')}catch(_){}}}}
+function quotaFix(){/* storage full when saving the library: it used to delete every saved story to make room, so if Android then closed the app in the background it reopened on one site's stories (David's video 2026-11-04). Now the library goes first and the stories are kept, 10 per site without text */let c=null;try{c=JSON.parse(localStorage.getItem(CK)||'null')}catch(e){}try{elog('library save','storage full')}catch(e){}try{localStorage.removeItem(CK);localStorage.removeItem('folio-img');localStorage.setItem('folio',JSON.stringify(S));if(c){for(const id in c)c[id]=c[id].slice(0,10).map(a=>({...a,html:''}));try{localStorage.setItem(CK,JSON.stringify(c))}catch(e){}}try{SCSIG=''}catch(e){}}catch(e){if(!QWARN){QWARN=1;try{toast('Storage is full, so recent changes may not be saved. Remove old saved stories or free space on your phone')}catch(_){}}}}
 /* small on-device error log (last 100), shown under Diagnostics */
 const ELOG=(()=>{try{return JSON.parse(localStorage.getItem('folio-err')||'[]')}catch(e){return[]}})();
 let ELT=0;
