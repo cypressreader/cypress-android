@@ -1628,7 +1628,7 @@ html.rdx .cols>.hsf.hs-top img.hero{width:100%;height:auto;aspect-ratio:auto;max
 .mnotes b{display:block;font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:color-mix(in srgb,var(--a1) 55%,var(--ink));margin-bottom:6px}
 .whyit{break-inside:avoid;margin:1.1em 0 1.3em;padding:.85em 1.1em;border-left:4px solid color-mix(in srgb,var(--a1) 55%,var(--ink));border-radius:0 .6em .6em 0;background:color-mix(in srgb,var(--a1) 8%,var(--pn,transparent));color:var(--ink)}
 .whyit b{display:block;margin-bottom:.45em;font-size:11px;font-weight:600;font-style:normal;letter-spacing:.12em;text-transform:uppercase;color:color-mix(in srgb,var(--a1) 55%,var(--ink))}
-.whyit p{margin:0;font-style:italic;line-height:1.65;color:inherit;text-align:left;text-indent:0}.whyit ul{margin:0;padding-left:1.15em;line-height:1.6;text-align:left}.whyit li+li{margin-top:.35em}.whyit.ai{break-inside:auto}.whyit.ai li{break-inside:avoid}.whyit.wait li{list-style:none;height:.8em;margin:.7em 0;border-radius:4px;background:linear-gradient(90deg,var(--ln) 30%,color-mix(in srgb,var(--ln) 35%,transparent) 50%,var(--ln) 70%) 0 0/200% 100%;animation:aish 1.3s linear infinite}.whyit.wait li:nth-child(2){width:88%}.whyit.wait li:nth-child(3){width:62%}@keyframes aish{to{background-position:-200% 0}}@media(prefers-reduced-motion:reduce){.whyit.wait li{animation:none}}.whyit small{display:block;margin-top:.6em;font-size:12px;color:var(--mut)}
+.whyit p{margin:0;font-style:italic;line-height:1.65;color:inherit;text-align:left;text-indent:0}.whyit ul{margin:0;padding-left:1.15em;line-height:1.6;text-align:left}.whyit li+li{margin-top:.35em}.whyit.ai{break-inside:auto}#rd .cols>.whyit.ai.in{position:relative;border-left-color:transparent!important}.whyit.ai.in::before{content:'';position:absolute;left:-2px;top:0;bottom:0;width:2px;background:var(--brass,#c9a24a);transform-origin:top;animation:airule .5s cubic-bezier(.3,.7,.2,1) both}.whyit.ai.in li{animation:aifade .45s ease-out both}.whyit.ai.in li:nth-child(2){animation-delay:.39s}.whyit.ai.in li:nth-child(3){animation-delay:.48s}.whyit.ai.in li:first-child{animation-delay:.3s}@keyframes airule{from{transform:scaleY(0)}}@keyframes aifade{from{opacity:0}}@media(prefers-reduced-motion:reduce){.whyit.ai.in::before,.whyit.ai.in li{animation:none}}.whyit.ai li{break-inside:avoid}.whyit.wait li{list-style:none;height:.8em;margin:.7em 0;border-radius:4px;background:linear-gradient(90deg,var(--ln) 30%,color-mix(in srgb,var(--ln) 35%,transparent) 50%,var(--ln) 70%) 0 0/200% 100%;animation:aish 1.3s linear infinite}.whyit.wait li:nth-child(2){width:88%}.whyit.wait li:nth-child(3){width:62%}@keyframes aish{to{background-position:-200% 0}}@media(prefers-reduced-motion:reduce){.whyit.wait li{animation:none}}.whyit small{display:block;margin-top:.6em;font-size:12px;color:var(--mut)}
 .mnotes dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0;font-size:13px}
 .mnotes dt{color:var(--mut)}.mnotes dd{margin:0;color:var(--ink)}
 
@@ -9172,6 +9172,7 @@ function tidy(fr){
   let bad=false;
   if(t.length<200&&(/^(posts from this author|see all by|advertisement|sign up|subscribe|share this|more in\b)/i.test(t)||/^follow\b/i.test(t)&&(t.length<40||/see all by|posts from/i.test(t))))bad=true;
   else if(t.length<80&&/^(share (on|via|this)|tweet|email this)/i.test(t)&&k.querySelectorAll&&[...k.querySelectorAll('a')].reduce((q,a)=>q+txt(a).length,0)>t.length*.6)bad=true;
+  else if(t.length<300&&t.split('|').length>=3&&k.querySelectorAll&&[...k.querySelectorAll('a')].reduce((q,a)=>q+txt(a).length,0)>t.length*.5)bad=true;/* a row of links split by bars ("2026 ELECTION COVERAGE: Watch Live | Poll Closing Times | …") is the publisher's menu, not story */
   else if(t.length<170&&CAP.test(t))bad=true;
   else if(/^!?\[.*\]\(https?:/.test(t)||/\]\(https?:\/\//.test(t)&&t.length<260)bad=true;
   else if(t.length<50&&ROLE.test(t))bad=true;
@@ -13894,8 +13895,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.04b';const APP_LABEL='1.245';
-const CHANGES=["The AI summary box shows up right away with a short loading animation, then the summary types itself in. The publisher's description no longer flashes first","A long AI summary no longer leaves empty space under the headline: it carries on into the next column","Settings > Reading shows whether the AI summary is ready on your phone, still getting ready, or not available"];
+const APP_VERSION='2026.11.04c';const APP_LABEL='1.246';
+const CHANGES=["The AI summary no longer types itself in. A gold line now draws down the side as the box opens to fit, and the three points fade in","Story text no longer shows the publisher's link menus split up by bars"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -14045,12 +14046,9 @@ function aiPut(c,lines){/* lines null = the waiting box (three shimmer bars) */
  el.innerHTML='<b aria-hidden="true">AI summary</b><ul></ul><small>'+(lines?'Made on this phone by its built-in AI. It can get things wrong.':'Writing a summary on this phone…')+'</small>';
  const ul=el.querySelector('ul');(lines||['','','']).forEach(t=>{const li=document.createElement('li');li.textContent=t;ul.append(li)});
  c.insertBefore(el,c.querySelector(':scope>.note')||c.querySelector(':scope>.body'));return el}
-function aiType(el){/* types the summary in over 1.5-4 s; the untyped rest stays in place, invisible, so the page never reflows while it types */
- const lis=[...el.querySelectorAll('li')],full=lis.map(l=>l.textContent),n=full.join('').length;if(!n||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
- el.setAttribute('aria-busy','true');lis.forEach(l=>{l.textContent='';const b=document.createElement('span');b.style.visibility='hidden';l.append(document.createElement('span'),b)});
- const t0=performance.now(),D=Math.min(4000,Math.max(1500,n*12)),step=now=>{if(!el.isConnected)return;let k=Math.round(n*Math.min(1,(now-t0)/D));
-  lis.forEach((l,i)=>{const f=full[i],m=Math.max(0,Math.min(f.length,k));k-=f.length;l.firstChild.textContent=f.slice(0,m);l.lastChild.textContent=f.slice(m)});
-  if(now-t0<D)requestAnimationFrame(step);else{lis.forEach((l,i)=>l.textContent=full[i]);el.removeAttribute('aria-busy')}};requestAnimationFrame(step)}
+function aiGrow(el,h0){/* Rule and grow: the brass line draws down while the box grows from the waiting bars to fit, then the points fade in (CSS .whyit.ai.in) */
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches)return 0;const u=el.querySelector('ul'),h1=u.offsetHeight;el.classList.add('in');setTimeout(()=>el.classList.remove('in'),1100);
+ if(!h0||h0===h1||el.getClientRects().length>1)return 0;u.style.cssText='overflow:hidden;height:'+h0+'px;transition:height .45s cubic-bezier(.3,.7,.2,1)';void u.offsetHeight;u.style.height=h1+'px';setTimeout(()=>u.style.cssText='',500);return 500}
 function aiBox(){/* true = the AI box (waiting or done) takes the place of "From the publisher" */
  const P=CyAI(),a=curA,c=$('.cols'),bd=c&&c.querySelector(':scope>.body');if(!P||AIST==='unavailable'||!a||!bd||R.web)return false;
  const k=a.link||a.title,s=AIS.get(k);
@@ -14064,8 +14062,8 @@ async function aiRun(P,a,k,text){let s=[];
    else{const r=await P.summarize({text});s=String((r&&r.summary)||'').split('\n').map(x=>x.replace(/^\s*[*•·\-–]\s*/,'').trim()).filter(Boolean).slice(0,3);AIS.set(k,s)}}}catch(e){AIS.delete(k)}
  const c=$('.cols');if(curA!==a||!c||!c.querySelector(':scope>.body'))return;
  const w=c.querySelector(':scope>.whyit');
- if(s.length)aiType(aiPut(c,s));else if(w&&w.classList.contains('wait'))whyBox();else return;/* no summary after all: the publisher's description comes back */
- try{relayout()}catch(e){}}
+ let t=0;if(s.length){const h0=w&&w.classList.contains('wait')&&w.querySelector('ul').offsetHeight;t=aiGrow(aiPut(c,s),h0)}else if(w&&w.classList.contains('wait'))whyBox();else return;/* no summary after all: the publisher's description comes back */
+ setTimeout(()=>{try{relayout()}catch(e){}},t)}
 /* polish-2026-10 F1: a one-line italic deck under the headline from the feed's summary, only when it adds something: never when "Why it matters" already shows that summary, and never when it repeats how the story starts */
 function rdxDeck(){
  const c=$('.cols');if(!c)return;c.querySelectorAll('.rdk').forEach(x=>x.remove());
