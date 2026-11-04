@@ -43,8 +43,8 @@ MANIFEST = os.path.join(MAIN, 'AndroidManifest.xml')
 BACKUP = MANIFEST + '.cy-orig'
 GRADLE = os.path.join(APP, 'build.gradle')
 WORK_LINE = '\n    implementation "androidx.work:work-runtime:2.9.1"'
-# on-device story translation (ML Kit): added and removed together with the other extras
-TR_LINE = '\n    implementation "com.google.mlkit:translate:17.0.3"\n    implementation "com.google.mlkit:language-id:17.0.6"'
+# on-device story translation and AI summaries (ML Kit): added and removed together with the other extras
+TR_LINE = '\n    implementation "com.google.mlkit:translate:17.0.3"\n    implementation "com.google.mlkit:language-id:17.0.6"\n    implementation "com.google.mlkit:genai-summarization:1.0.0-beta1"'
 ANDROID_NS = '{http://schemas.android.com/apk/res/android}'
 
 
