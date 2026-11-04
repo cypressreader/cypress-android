@@ -5301,8 +5301,8 @@ function saveCache(now){
 }
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&SCT)saveCache(true)});addEventListener('pagehide',()=>{if(SCT)saveCache(true)});
 let SCSIG='';
-function saveCache0(force){if(FROZEN)return;/* nothing new since the last save: skip the 40-50 ms of packing it up again (leaving the app always saves) */const sg=itemsSig();if(sg===SCSIG&&!force)return;SCSIG=sg;const c={};for(const id in items)if(S.feeds.some(f=>f.id===id))c[id]=items[id].slice(0,30).map(a=>({...a,html:(a.html||'').slice(0,3500)}));
- try{localStorage.setItem(CK,JSON.stringify(c))}catch(e){try{for(const id in c)c[id].forEach(a=>a.html='');localStorage.setItem(CK,JSON.stringify(c))}catch(_){/* storage nearly full: keep fewer stories per site rather than nothing, so a restart never opens on empty placeholders */try{for(const id in c)c[id]=c[id].slice(0,10);localStorage.setItem(CK,JSON.stringify(c))}catch(e3){try{elog('cache save',e3)}catch(_2){}}}}}
+function saveCache0(force){if(FROZEN)return;/* nothing new since the last save: skip the 40-50 ms of packing it up again (leaving the app always saves) */const sg=itemsSig();if(sg===SCSIG&&!force)return;const c={};for(const id in items)if(S.feeds.some(f=>f.id===id))c[id]=items[id].slice(0,30).map(a=>({...a,html:(a.html||'').slice(0,3500)}));
+ try{localStorage.setItem(CK,JSON.stringify(c));SCSIG=sg}catch(e){try{for(const id in c)c[id].forEach(a=>a.html='');localStorage.setItem(CK,JSON.stringify(c));SCSIG=sg}catch(_){/* storage nearly full: keep fewer stories per site rather than nothing, so a restart never opens on empty placeholders */try{for(const id in c)c[id]=c[id].slice(0,10);localStorage.setItem(CK,JSON.stringify(c));SCSIG=sg}catch(e3){try{elog('cache save',e3)}catch(_2){}}}}}
 const feedOf=id=>S.feeds.find(f=>f.id===id)||{title:'',url:''};
 const PAT=['mid'];
 const ago=d=>{if(!d)return'';const m=(Date.now()-d)/6e4;return m<60?Math.max(1,m|0)+'m':m<1440?(m/60|0)+'h':(m/1440|0)+'d'};
@@ -5330,14 +5330,16 @@ async function fetchText(url,ok,lg){
  let er;
  for(let k=0;;k++){
   if(lg)lg.blocked=false;
-  try{return await fetchText1(url,ok,lg)}catch(e){er=e}
-  if(!(lg&&lg.retry>k&&lg.blocked)||(er&&(er.hard||er.nm||er.message==='stopped'||er.message==='Offline mode'))||(lg.sig&&lg.sig.aborted))throw er;
-  await new Promise(r=>setTimeout(r,900*Math.pow(2,k)));
+  try{return await fetchText1(url,ok,lg,k&&lg&&lg.slow)}catch(e){er=e}
+  /* a feed that timed out or got no answer is tried once more after a short random pause, with twice the time: just after the phone wakes or switches networks the first request often fails while the same one a moment later works */
+  const net=!k&&lg&&lg.net&&navigator.onLine!==false&&/timed out|blocked or offline/.test(er&&er.message||'');if(net)lg.slow=1;
+  if(!(lg&&(net||lg.retry>k&&lg.blocked))||(er&&(er.hard||er.nm||er.message==='stopped'||er.message==='Offline mode'))||(lg.sig&&lg.sig.aborted))throw er;
+  await new Promise(r=>setTimeout(r,net?1200+Math.random()*1800:900*Math.pow(2,k)));
   if(lg.sig&&lg.sig.aborted)throw er;
   try{lg.push('retrying after a short pause')}catch(e){}
  }
 }
-async function fetchText1(url,ok,lg){
+async function fetchText1(url,ok,lg,sl){
  if(S.offline)return Promise.reject(new Error('Offline mode'));
  /* Tries the best route first and only starts the next one if it is slow or fails,
     so a launch doesn't fire seven requests per feed. The Android app goes straight to the site. */
@@ -5356,7 +5358,7 @@ async function fetchText1(url,ok,lg){
  let hh='';try{hh=new URL(url).hostname.replace(/^www\./,'')}catch(e){}
  let mem={};try{mem=(SROUTE[hh]&&SROUTE[hh].f)||{}}catch(e){}
  const med=x=>{const a=(x||[]).slice().sort((u,v)=>u-v);return a.length?a[a.length>>1]:1e9},rank=p=>p.n==='direct'||p.n==='your relay'||p.w?-2:p.n===mem.w?-1:med(mem.m&&mem.m[p.n]);/* the site itself, your relay and the CyPress fetcher always go before a public relay */if(P.length>1)P.sort((a,b)=>rank(a)-rank(b));
- P.forEach((p,k)=>p.ms=k===P.length-1?7500:4000);
+ P.forEach((p,k)=>p.ms=k===P.length-1?(sl?15000:7500):4000);
  const rec=(n,t)=>{try{const e=SROUTE[hh]||(SROUTE[hh]={}),f=e.f||(e.f={m:{}}),a=f.m[n]||(f.m[n]=[]);a.push(t);if(a.length>5)a.shift();f.w=n;const k=Object.keys(SROUTE);if(k.length>200)delete SROUTE[k[0]];clearTimeout(fetchText1.t);fetchText1.t=setTimeout(()=>{try{localStorage.setItem('folio-sroute',JSON.stringify(SROUTE))}catch(e){}},1500)}catch(e){}};
  const cell=(()=>{try{const c=navigator.connection;return !!(c&&(c.type==='cellular'||c.saveData))}catch(e){return false}})(),gap=NATIVE||cell?950:650;
  let over=false,won=false;const ctls=[],timers=[];
@@ -6005,9 +6007,9 @@ let LAN=0;const loadAll=(fresh,again)=>{LAN++;const t0=performance.now(),vis=!do
 let RETRYT=0;
 function loadRetry(){
  if(RETRYT||S.offline||FROZEN)return;
- const bad=S.feeds.filter(f=>state[f.id]==='err'&&!rfDead(f,true));
+ const bad=S.feeds.filter(f=>state[f.id]==='err'&&!rfDead(f));/* rfDead(f,true) is always false: resting sites and 'come back later' (429) answers were retried every time */
  if(bad.length<Math.max(4,Math.round(S.feeds.length*.1)))return;
- RETRYT=setTimeout(()=>{RETRYT=0;if(S.offline||FROZEN||document.hidden||navigator.onLine===false)return;Promise.all(S.feeds.filter(f=>state[f.id]==='err'&&!rfDead(f,true)).map(f=>load(f,true).catch(()=>{}))).then(()=>{if(LRT||LRW)loadFlush();pfKick()})},15000)
+ RETRYT=setTimeout(()=>{RETRYT=0;if(S.offline||FROZEN||document.hidden||navigator.onLine===false)return;Promise.all(S.feeds.filter(f=>state[f.id]==='err'&&!rfDead(f)).map(f=>load(f,true).catch(()=>{}))).then(()=>{if(LRT||LRW)loadFlush();pfKick()})},15000)
 }
 
 async function viaJson(f){
@@ -16416,7 +16418,7 @@ async function loadFeed(f,fresh){
  if(isHead(f.url)){const sd=siteOf(f);if(!sd)throw new Error('no site');try{const l=await gnewsFeed(f,sd,'nofeed');return l}catch(e){return await bingFeed0(f,'nofeed',sd)}}
  let list=null;
  /* B1: on the Android app (direct route), a feed we already hold is downloaded only if it changed; a pull-to-refresh (fresh) always downloads */
- const h0=S.health[f.id]||{},held=items[f.id]||[],lf=tag('feed via ');
+ const h0=S.health[f.id]||{},held=items[f.id]||[],lf=tag('feed via ');lf.net=1;
  if(NATIVE)lf.cond=!fresh&&held.length&&(h0.etag||h0.lm)?{etag:h0.etag||'',lm:h0.lm||''}:null;
  try{let x;if(fresh){try{x=await fetchText(cb(f.url),isFeed,lf)}catch(e){}}if(!x)x=await fetchText(f.url,isFeed,lf);if(lf.val)lg.val=lf.val;await quietGap();list=parse(x,f).list;if(!list.length)lg.push('The feed came back empty')}catch(e){if(e&&e.hard)GONE.add(f.id);
   if(e&&e.nm&&held.length){lg.val={etag:h0.etag||'',lm:h0.lm||''};lg.push('unchanged since the last check, kept the stories already here');f.via='';return held.slice()}}
@@ -16993,7 +16995,7 @@ render();document.documentElement.classList.remove('boot');
 /* B94: the first screen is drawn from the saved copy and painted before anything else starts: reading the feeds (network, parsing, a redraw per feed) and the other start-up chores wait for that first paint */
 {let gone=false;const go=()=>{if(gone)return;gone=true;try{loadAll()}catch(e){elog('loadAll',e)}};const raf=window.requestAnimationFrame?window.requestAnimationFrame.bind(window):(f=>setTimeout(f,16));raf(()=>raf(()=>setTimeout(go,0)));setTimeout(go,600)}
 /* one quiet retry for feeds that failed on launch (slow wifi, radio waking up) */
-setTimeout(()=>{if(S.offline||FROZEN||!navigator.onLine)return;S.feeds.filter(f=>state[f.id]==='err'&&!paused(f)).forEach(f=>load(f,true).catch(()=>{}))},15000);
+setTimeout(()=>{if(S.offline||FROZEN||!navigator.onLine)return;S.feeds.filter(f=>state[f.id]==='err'&&!paused(f)&&!rfDead(f)).forEach(f=>load(f,true).catch(()=>{}))},15000);
 applyLogo();
 acReady.then(()=>render());
 introAnim();whatsNew();smartNotice();setTimeout(checkUpdate,8000);setTimeout(relayCheck,6000);nativeSetup();

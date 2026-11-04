@@ -1292,3 +1292,4 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 ## Feed stuck on placeholders after a story (fix on branch claude/handoff-continuation-c0857q, unreleased)
 - Sites that keep failing rest for a while and are skipped by a refresh; with no saved stories they used to count as "still loading", so a feed showed gray placeholders and "Setting the type… 74 of 127 sites are in." with nothing running. Now skipped sites are marked as resting (`state='wait'` in `loadAll0`).
 - On the Fold: open a story, come back to All Stories / News / other folders. Placeholders should not stay up when no refresh is running.
+- Same branch: a feed that times out or gets no answer is tried once more 1-3 s later with a 15 s limit (was one 7.5 s try). Resting sites and "come back later" sites are no longer retried 15 s after every refresh. Check: lock the phone 20+ min, unlock, open the app: fewer "didn't answer" sites than before, and no long hang.
