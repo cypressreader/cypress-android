@@ -1288,3 +1288,7 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 ## 1.250 folder loads first (unverified on phone)
 - Cold start with a big site list (~127): open a folder (e.g. News) right away. Its stories should appear within a few seconds, not stay on gray boxes with "Setting the type… N of 127 sites are in." Switch folders mid-load: the new one should fill in next.
 - 1.250 return-from-story blank feed (David's video, no refresh running): suspected the app restarted while reading and the saved story cache was missing/too big. Cache save now falls back to 10 stories per site. Verify: read a story, come back, repeat in News and other feeds; if the placeholders ("Setting the type… N of N sites are in") still show, check Insights for a 'cache save' error and whether the app restarted (Diagnostics).
+
+## Feed stuck on placeholders after a story (fix on branch claude/handoff-continuation-c0857q, unreleased)
+- Sites that keep failing rest for a while and are skipped by a refresh; with no saved stories they used to count as "still loading", so a feed showed gray placeholders and "Setting the type… 74 of 127 sites are in." with nothing running. Now skipped sites are marked as resting (`state='wait'` in `loadAll0`).
+- On the Fold: open a story, come back to All Stories / News / other folders. Placeholders should not stay up when no refresh is running.
