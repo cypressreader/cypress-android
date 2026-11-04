@@ -320,12 +320,13 @@ async function insights(req, env) {
   const a = new TextEncoder().encode(key), b = new TextEncoder().encode(got);
   let diff = a.length ^ b.length; for (let i = 0; i < a.length; i++) diff |= a[i] ^ (b[i] || 0);
   if (diff) return jres({ error: 'Wrong key' }, 401);
-  // POST {t, st}: mark one problem report New, Working or Fixed (kept inside the report itself)
+  // POST {t, st}: mark one problem report New, Working or Fixed (kept inside the report itself), or st 'delete' removes it
   if (req.method === 'POST') {
     let o; try { o = JSON.parse(await req.text()); } catch (e) { return jres({ error: 'Bad data' }, 400); }
-    if (!o || !/^\d{10,15}$/.test(String(o.t)) || !['new', 'working', 'fixed'].includes(o.st)) return jres({ error: 'Bad data' }, 400);
+    if (!o || !/^\d{10,15}$/.test(String(o.t)) || !['new', 'working', 'fixed', 'delete'].includes(o.st)) return jres({ error: 'Bad data' }, 400);
     const k = (await env.STATS.list({ prefix: 'r:' + o.t + ':', limit: 1 })).keys[0];
     if (!k) return jres({ error: 'No such report' }, 404);
+    if (o.st === 'delete') { await env.STATS.delete(k.name); return jres({ ok: true }, 200); }
     const r = JSON.parse(await env.STATS.get(k.name) || '{}'); r.st = o.st; r.stT = Date.now();
     await env.STATS.put(k.name, JSON.stringify(r), { expirationTtl: KEEP });
     return jres({ ok: true }, 200);

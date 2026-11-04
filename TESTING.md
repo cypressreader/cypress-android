@@ -1253,3 +1253,10 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - After sending a report, Settings shows "Your reports: 1 sent"; mark it Fixed on Insights, next day the app shows "1 fixed" and a toast.
 - Daily check step E (dead built-in site -> fix branch) has never fired yet: confirm the scheduled session can push a branch.
 - Report a problem: ticking 'Include the addresses of my sites' adds the site list to the details preview and the sent report; unticked sends none. Box opens unticked every time.
+
+## AI summary (implemented, unverified) — needs Fold8 or another phone with Google's built-in AI
+- Open a long English story: the box under the headline says "AI SUMMARY" with 3 points and "Made on this phone by its built-in AI. It can get things wrong." instead of "From the publisher".
+- First story after install may still show "From the publisher" while the phone fetches the summary part; a few minutes later new stories show the AI summary.
+- Non-English story, very short story, or a phone without built-in AI: "From the publisher" as before, no errors.
+- Paged reader: the box doesn't cut off or overlap text after it appears (page count updates).
+- Airplane mode: summaries still work once the summary part is on the phone.
