@@ -1273,3 +1273,6 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 ## Story text headline check + AI summary check (1.247) — implemented, unverified on device
 - Open PBS NewsHour stories: no "SCETV is your local station / Change / Select Your Local Station" lines at the top; the AI summary is about the story. Spot-check a few feature stories with slow openings ("It was raining in…"): the first paragraph must still be there.
 - Switching light/dark: no sky animation, switch is instant.
+
+## Daily tabs spacing (session kq2amn, unreleased)
+- Phone (cover screen) and Fold open: Today / Headlines / Brief / Sunday have even gaps, none touching, "Sunday" not cut off. Text may be slightly smaller on narrow phones.
