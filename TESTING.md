@@ -1260,3 +1260,9 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Non-English story, very short story, or a phone without built-in AI: "From the publisher" as before, no errors.
 - Paged reader: the box doesn't cut off or overlap text after it appears (page count updates).
 - Airplane mode: summaries still work once the summary part is on the phone.
+
+## AI summary status line (implemented, unverified) — branch claude/handoff-continuation-rnwh2j
+- Settings > Reading, bottom: "AI summary" line shows Ready / Getting ready / Not available on this phone (Android app only; hidden on web).
+- Getting ready: line nudges the phone to fetch the part; reopen Settings a few minutes later (on Wi-Fi) and it should say Ready, then long English stories show the AI box.
+- Copy diagnostics (Settings) now has an "ai …" line with the status and, if off, the phone's reason.
+- (11-04 rnwh2j) Opening a long English story: an "AI SUMMARY" box with three shimmering bars and "Writing a summary on this phone…" shows at once (no "From the publisher" first), then the summary types itself in over a few seconds. Page 1 doesn't jump during typing. A long summary that doesn't fit under the headline continues at the top of column 2 (no empty space under the headline). Non-English story: waiting box turns back into "From the publisher".
