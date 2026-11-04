@@ -1274,9 +1274,13 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Open PBS NewsHour stories: no "SCETV is your local station / Change / Select Your Local Station" lines at the top; the AI summary is about the story. Spot-check a few feature stories with slow openings ("It was raining in…"): the first paragraph must still be there.
 - Switching light/dark: no sky animation, switch is instant.
 
-## Daily tabs spacing (session kq2amn, unreleased)
+## Daily tabs spacing (session kq2amn, 1.248)
 - Phone (cover screen) and Fold open: Today / Headlines / Brief / Sunday have even gaps, none touching, "Sunday" not cut off. Text may be slightly smaller on narrow phones.
 
-## AI summary waits for final text (session kq2amn, unreleased)
+## AI summary waits for final text (session kq2amn, 1.248)
 - Open a fresh (not stored) long English story on Wi-Fi: the waiting bars stay until the full article has loaded, then the 3 points appear once. They are never shown and then redrawn.
 - Stored/offline stories still get the summary straight away.
+
+## Feed fixes 1.249 (session kq2amn)
+- Add Scientific American, National Post, AP News, Axios, Space.com: each shows fresh stories. Add NYT, ABC News, The Economist, RNZ from the catalog: each loads.
+- Phone-only: feeds that blocked the cloud checker (Newsweek, New Scientist, VentureBeat, Phys.org, Politico Europe, The Walrus, History Today, DPReview, SamMobile, Food52, Axios Markets): note any that fail here.
