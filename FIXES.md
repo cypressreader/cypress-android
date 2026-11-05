@@ -151,3 +151,4 @@ Visual: artifact https://claude.ai/artifact/TKMjmiajV9wS7WwvSYT1Qx (19 items, ph
 - 2026-11-05 (session ppo0d5): L6 fixed on the same branch (IndexedDB v2 index on t; not built yet).
 - 2026-11-05 (session ppo0d5): R6, R7 fixed on the same branch (not built yet).
 - 2026-11-05 (session ppo0d5): L7 fixed on the same branch (not built yet).
+- 2026-11-05 (session ppo0d5): R4 fixed; every code item in this review is now done on the branch (not built yet).

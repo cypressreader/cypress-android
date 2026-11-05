@@ -1324,3 +1324,6 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - [ ] Install over the current version with saved stories: saved and recently read stories still open offline (airplane mode), old ones too.
 - [ ] Cold start (swipe the app away, reopen) feels at least as fast; Diagnostics shows no 'idb' errors.
 - Note: the story database moves to version 2. Installing an OLDER build afterwards can't open it (falls back to no stored bodies; nothing is deleted).
+
+## Coming back to the app (review R4, branch ppo0d5, implemented, unverified on phone)
+- [ ] Switch away and back: the feed shows at once; a story saved from the widget still appears within ~1 s; sync and update checks still happen (a few seconds later).

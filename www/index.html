@@ -5183,7 +5183,9 @@ const SAVE0=()=>{if(FROZEN)return;try{const j=JSON.stringify(S);LIBSZ=j.length;l
 /* low-priority save (feed health, reading position): batched so a refresh doesn't rewrite the library once per feed */
 function saveSoon(){if(FROZEN)return;clearTimeout(HST);HST=setTimeout(()=>{HST=0;SAVE0()},1200)}
 function flushSave(){if(HST){clearTimeout(HST);HST=0;SAVE0()}}
-document.addEventListener('visibilitychange',()=>{if(document.hidden)flushSave()});addEventListener('pagehide',flushSave);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flushSave()});
+/* review R4: work that can wait runs a moment after the app comes back, spread out, so the first frame after waking is not held up by ~30 handlers at once */
+function onShow(fn,ms){document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(()=>{if(!document.hidden)try{fn()}catch(e){elog('onShow',e)}},ms)})}addEventListener('pagehide',flushSave);
 function applyFsort(){
  const c=(a,b)=>(a||'').localeCompare(b||'',undefined,{sensitivity:'base',numeric:true});
  if(S.fsort==='az'){
@@ -9433,7 +9435,7 @@ const onCell=()=>{try{const c=navigator.connection;return !!(c&&c.type==='cellul
 /* the phone's own Battery Saver, Data Saver and metered networks (a hotspot) count too, not just our switches (Android app; read on start, on return and when the connection changes) */
 const DEV={powerSave:false,metered:false,dataSaver:false};
 async function devPoll(){try{const x=CyX();if(!x||!x.deviceState)return;const r=await x.deviceState();if(r){DEV.powerSave=!!r.powerSave;DEV.metered=!!r.metered;DEV.dataSaver=!!r.dataSaver;try{window.lowfxUp?window.lowfxUp():document.documentElement.classList.toggle('lowp',isOn('lowfx')&&DEV.powerSave)}catch(e){}}}catch(e){}}
-setTimeout(devPoll,1500);document.addEventListener('visibilitychange',()=>{if(!document.hidden)devPoll()});addEventListener('online',devPoll);try{navigator.connection&&navigator.connection.addEventListener('change',devPoll)}catch(e){}
+setTimeout(devPoll,1500);onShow(devPoll,1200);addEventListener('online',devPoll);try{navigator.connection&&navigator.connection.addEventListener('change',devPoll)}catch(e){}
 const pfAllowed=()=>{if(pfMode()==='off'||!online()||BATLOW||DEV.powerSave||DEV.dataSaver)return false;const c=navigator.connection;if(c&&c.saveData)return false;if((isOn('pfwifi')||isOn('dsave'))&&(onCell()||DEV.metered))return false;return true};
 const storyMap=()=>{const m=new Map();S.feeds.forEach(f=>(items[f.id]||[]).forEach(a=>m.set(a.link,a)));S.saved.forEach(a=>{if(!m.has(a.link))m.set(a.link,a)});return m};
 const WARM=[];
@@ -10314,7 +10316,7 @@ const voiceWhere=()=>NATIVE?'Android Settings > Text-to-speech output':/Mac|iPho
  const loadVoices=async n=>{try{const r=await x.ttsVoices();syn.voices=((r&&r.voices)||[]).map(v=>({voiceURI:v.id,name:v.name,lang:v.lang,localService:!!v.local,default:false,q:+v.q||0}));syn.voiceState=r&&r.failed?'failed':(syn.voices.length?'ok':'empty');fire('voiceschanged');/* ask again while the phone's engine is still starting: our Natural voices alone make the list look full (Google starts slowly) */if((!syn.voices.length||!(r&&r.ready))&&n>0&&!(r&&r.failed))setTimeout(()=>loadVoices(n-1),1200)}catch(e){syn.voiceState='failed';syn.err=String(e&&e.message||e).slice(0,140);fire('voiceschanged')}};
  syn.reload=()=>loadVoices(2);
  /* back in the app: the phone's speech app may have been changed in Android settings meanwhile */
- document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadVoices(6)});
+ onShow(()=>loadVoices(6),2500);
  const gone=()=>{try{delete window.speechSynthesis}catch(e){window.speechSynthesis=undefined}try{delete window.SpeechSynthesisUtterance}catch(e){}document.documentElement.classList.add('nospeech')};
  try{Promise.resolve(x.features()).then(r=>{if(r&&r.features&&r.features.indexOf('tts')>=0)setTimeout(()=>loadVoices(12),300);else gone()}).catch(gone)}catch(e){gone()}
 })();
@@ -13706,7 +13708,7 @@ document.addEventListener('click',async e=>{
  else if(t.closest('#sycopy')){try{await navigator.clipboard.writeText(S.sync);toast('Code copied')}catch(_){}}
  else if(t.closest('#syoff')){if(await askBox({title:'Turn off sync on this device?',text:'Your library stays here.',ok:'Turn off'})){delete S.sync;delete S.syncB;delete S.syncAt;delete S.syncRem;delete S.syncSig;S.syncMsg='';save();syncUi()}}
 });
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.sync)syncNow()});
+onShow(()=>{if(S.sync)syncNow()},1800);
 
 /* ===================== first-run setup ===================== */
 const OB={step:0,topics:new Set(),picks:new Set(),custom:[],rerun:false,last:''};/* polish-2026-10 (I2): no topic is preselected any more; Skip for now still starts with Tech and News (see obQuick) */
@@ -16180,7 +16182,7 @@ function webUpd(){
  const f=pg.querySelector('.sgw');f?f.before(w):pg.append(w);
  w.querySelector('#webupd').onclick=async()=>{const v=$('#webupv');if(!navigator.onLine){v.textContent='You are offline. Try again when you are connected';return}v.textContent='Checking…';await checkUpdate();v.textContent=$('#upd')?'A new version is ready: tap Refresh at the bottom of the screen':'You have the latest version ('+APP_LABEL+')'};
 }
-setInterval(()=>{if(!document.hidden)checkUpdate()},30*6e4);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});
+setInterval(()=>{if(!document.hidden)checkUpdate()},30*6e4);onShow(()=>checkUpdate(),3000);
 
 /* ---------- shortcuts from the home screen ---------- */
 function startView(){try{const v=new URLSearchParams(location.search).get('view');if(!v)return;if(['brief','saved','today','stats','digest'].includes(v)){S.sel=v}if(v==='search')setTimeout(()=>openSearch(true),300);if(v==='listen')setTimeout(listenBrief,1500);history.replaceState(null,'',location.pathname)}catch(e){}}
@@ -16806,7 +16808,7 @@ function widgetBreaking(){try{const now=Date.now(),all=Object.values(items).flat
  let l=all.filter(a=>now-a.date<432e5&&DAYK1.test(a.title)).sort((p,q)=>q.date-p.date).slice(0,5).map(a=>Object.assign(mk(a),{brk:true}));
  if(!l.length)l=all.sort((p,q)=>q.date-p.date).slice(0,5).map(mk);return l}catch(e){return[]}}
 function widgetPush(){const x=CyX();if(!x||!x.widgetUpdate||!nFeat('widget')||!S.widget)return;try{const top=widgetList();if(top.length)x.widgetUpdate({headlines:top,breaking:widgetBreaking(),edition:edKind()==='m'?'Morning edition':'Evening edition'}).catch(()=>{})}catch(e){}}
-document.addEventListener('visibilitychange',()=>{if(document.hidden)widgetPush();else widgetSavePull()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)widgetPush()});onShow(widgetSavePull,700);
 /* B48: stories saved from the home-screen widget */
 async function widgetSavePull(){const x=CyX();if(!x||!x.widgetSaved||!nFeat('widget'))return;try{const r=await x.widgetSaved();const link=r&&r.link;if(!link)return;const a=findStory(link);if(!a){toast('Saved the link — open it once to finish saving');return}if(!isSaved(a)){toggleSave(a);toast('Saved “'+String(a.title||'').slice(0,60)+'”')}else toast('Already saved')}catch(e){}}
 /* a widget save while the app is away is picked up on return (visibilitychange above); the extra 30-second check while the app is open is gone (it woke the phone for nothing) */
@@ -16826,7 +16828,7 @@ function nativeSetup(){
  setTimeout(()=>nativeUpdateCheck(false),5000);
  setInterval(run,36e5);
  }
- document.addEventListener('visibilitychange',()=>{if(!document.hidden){run();setTimeout(nativeBars,300)}});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(nativeBars,300)});onShow(()=>run(),3500);
  const a0=applyTheme;applyTheme=function(...a){const r=a0.apply(this,a);setTimeout(nativeBars,500);return r};
  setTimeout(nativeBars,700);
 }
