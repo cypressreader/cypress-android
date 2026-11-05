@@ -618,7 +618,7 @@ public class CyBgWorker extends Worker {
                 con.setConnectTimeout(12000);
                 con.setReadTimeout(12000);
                 con.setInstanceFollowRedirects(false);
-                con.setRequestProperty("User-Agent", UA);
+                con.setRequestProperty("User-Agent", CyNativePlugin.chromeUa(ctx));
                 con.setRequestProperty("Accept", "application/rss+xml, application/atom+xml, application/feed+json, application/json, application/xml, text/xml, */*");
                 if (etag != null) con.setRequestProperty("If-None-Match", etag);
                 if (lastMod != null) con.setRequestProperty("If-Modified-Since", lastMod);
