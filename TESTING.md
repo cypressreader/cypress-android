@@ -1343,3 +1343,8 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Phone look unchanged: tall lead card, rows as boxes with the picture on the left, "Keep exploring"-style strips swipe sideways, three-story groups show two up and one wide.
 - Side-by-side (Fold open, story open): still redraws once when side-by-side turns on or off; that is expected.
 - 1.258 follow-up: with Side by side at its default (on when the open Fold is wider than tall), unfold on The Daily / All Stories / a site page: the story pane appears, the list narrows to the phone look and keeps its place; the Daily cover and site mastheads now show inside that pane. No fade, no rebuild.
+
+## 1.260 Unfold with the Fold's late size report (implemented, unverified on device)
+- Folded, open the app on The Daily, then unfold: the side bar should not slide out and the page should not shift a moment later. It should be in its final shape at once
+- Fold it again: the bottom tabs appear at once, with no wide layout showing first
+- Repeat with a story open, and with Side by side set to Always
