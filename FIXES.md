@@ -146,3 +146,4 @@ Rendering / code health:
 - R8 `render()`/resize swallow render exceptions silently (6313, 7010): `catch(e){elog('render',e)}`.
 - R9 a11y: `<dialog id="set">` (4991) and several dialogs lack `aria-labelledby` (vhh/prv/shr have it).
 Visual: artifact https://claude.ai/artifact/TKMjmiajV9wS7WwvSYT1Qx (19 items, phone + tablet shots).
+- 2026-11-05 (session ppo0d5): L4, L8, L9, R2, R8, R9 fixed on branch claude/handoff-continuation-ppo0d5 (not built yet).
