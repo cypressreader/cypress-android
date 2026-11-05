@@ -4855,6 +4855,7 @@ html.micro #tabs .tpill.mv{transition:transform .38s cubic-bezier(.3,1.35,.5,1)}
 /* 1.174 look, part 2: one masthead, one section style, cream label on photos, giant monogram, two-line drop cap, story ending, side-menu sites, settings jump chips and full text, clearer switches */
 .tmast.tm-day{text-align:left;border-top:0;padding:8px 0 10px;margin:0 0 8px}
 .tmast.tm-day small{color:var(--logo)}
+/* visual review: All Stories count and Sections share the title block (one row less above the first story) */.tm-day:has(.wmeta){display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:12px}.tm-day>.wmeta{display:contents}.tm-day .nr-meta{grid-area:1/2;text-align:right}.tm-day .wsecb{grid-area:2/2}.tm-day .wdens{grid-column:1/-1;justify-self:start;margin-top:8px}
 html #grid.wire h3.dsh.wsec,html.magx #grid.fed.wire h3.dsh.wsec{background:color-mix(in srgb,var(--a1) 10%,var(--bg))!important;color:var(--ink);border:0!important;border-left:3px solid var(--a1)!important;border-radius:0 10px 10px 0!important;padding:10px 12px 10px 14px!important;margin-top:26px;display:flex;flex-wrap:wrap;align-items:baseline;row-gap:2px}
 html #grid.wire h3.dsh.wsec::after,html.magx #grid.fed.wire h3.dsh.wsec::after{display:none}
 html #grid.wire h3.dsh.wsec small,html.magx #grid.fed.wire h3.dsh.wsec small{order:-1;flex:0 0 100%;display:flex;align-items:center;gap:10px;font:600 11px var(--sans);font-style:normal;letter-spacing:.12em;text-transform:uppercase;color:var(--a1)}
@@ -6919,9 +6920,9 @@ if(FD){
  cur=cn;
  newN=vis?cn.filter(a=>a.date>vis).length:0;WIRE.newN=newN;
  const tr=T?[]:wireStrip(cn),clock=vis?wireClock(vis):'';
- const head=pre+(f1?feedMast(f1,unread,cn):FO&&FD?feedMast(FD,unread,cn):'').replace(/<p class="fm-s">\d+ unread\.<\/p>/,'')+(pend?`<div class="wpill" data-n="${pend}"><span>${pend} new ${pend===1?'story':'stories'} since you opened this</span><button type="button" data-wire="load">Show</button></div>`:'')
-  +`<div class="wmeta"><div class="nr-meta">${stN(cn.length)}${S.hideCount?'':' · '+cn.filter(a=>!S.read[a.link]).length+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>${B.some(x=>/class="[^"]*\bwsec\b/.test(x))?'<button type="button" class="wsecb" data-secm aria-haspopup="dialog">Sections</button>':''}${densHtml()}</div>`
-  +trendStripHtml(tr);
+ const wm=`<div class="wmeta"><div class="nr-meta">${stN(cn.length)}${S.hideCount?'':' · '+cn.filter(a=>!S.read[a.link]).length+' unread'}${vis&&newN?` · ${newN} new since ${clock}`:''}</div>${B.some(x=>/class="[^"]*\bwsec\b/.test(x))?'<button type="button" class="wsecb" data-secm aria-haspopup="dialog">Sections</button>':''}${densHtml()}</div>`;
+ const head=pre.replace('<h2>All Stories</h2></header>','<h2>All Stories</h2>'+wm+'</header>')+(f1?feedMast(f1,unread,cn):FO&&FD?feedMast(FD,unread,cn):'').replace(/<p class="fm-s">\d+ unread\.<\/p>/,'')+(pend?`<div class="wpill" data-n="${pend}"><span>${pend} new ${pend===1?'story':'stories'} since you opened this</span><button type="button" data-wire="load">Show</button></div>`:'')
+  +(pre.includes('<h2>All Stories</h2></header>')?'':wm)+trendStripHtml(tr);
  g.classList.add('nr','wire');g.dataset.w=g.dataset.wdens=S.wdens==='col'?'col':'mag';try{updVw()}catch(e){}if(T)g.classList.add('wtopic');if(FD){g.classList.add('fed');g.style.setProperty('--fb',brand(FD))}if(mode==='p')g.classList.add('nrp');g.dataset.cards='medium';
  /* coming back to a place you left: render far enough to include the story that was at the top of the screen */
  let first=9;const wp=S.wirePos;let anchor=-1;
