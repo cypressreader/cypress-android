@@ -1335,3 +1335,10 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Folder sheet (press and hold a folder): "Open stories on the site" and "Read-aloud voice" apply to every site in the folder; toast names the folder.
 - Read aloud a French or Spanish story with no site voice set: the voice should match the story's language.
 - A story with an embedded <video>: shows a player with controls, nothing plays or downloads until tapped. YouTube cards unchanged.
+
+## 1.257 Single page structure (implemented, unverified on a phone)
+- Fold: open The Daily, scroll down a few screens, unfold. The list must not flash or jump; the same story (or its row) stays at the top. Fold closed again: same.
+- Same check on All Stories, a site page, a folder, Headlines and Sunday.
+- Rotate the phone on each of those: no flash, place kept.
+- Phone look unchanged: tall lead card, rows as boxes with the picture on the left, "Keep exploring"-style strips swipe sideways, three-story groups show two up and one wide.
+- Side-by-side (Fold open, story open): still redraws once when side-by-side turns on or off; that is expected.
