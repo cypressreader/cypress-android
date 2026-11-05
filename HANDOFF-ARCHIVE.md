@@ -598,3 +598,6 @@ Last updated: 2026-11-01 (**1.225 on branch**: Quick Reads light-text fix, await
 
 ## moved ppo0d5 (2026-11-05)
 **Insights (all live after 1.242, merge 43c350a):** cypressreader.com/insights installable app; per-report Copy for Claude + New/Working/Fixed (worker POST /api/insights {t,st}, deployed wemfdv turn 1). `curl -s https://cypressreader.com/api/insights` works with no header (network adds key; never print/commit it). Feed errors logged only when online, with reason. Privacy line live. Scheduled task trig_01KNpzQ3Cuz1KeDcZ2rZv1YW 'CyPress daily check (site, worker, reports)', 7:04 PT, fresh session, push only when something is DOWN (home, /insights, GitHub Pages, /api/insights JSON) or new reports. Worker deploy recipe: fetch raw file in COMPOSIO_REMOTE_WORKBENCH, check sha, base64 into CLOUDFLARE_MCP_EXECUTE (multipart PUT, kv_namespace bindings SHORT+STATS re-sent, keep_bindings secret_text); CF sandbox cannot fetch GitHub. Detail: archive (grep 'moved wemfdv').
+
+## moved ppo0d5 (1.255 review detail)
+DONE in 1.255 (web 2026.11.05c, merged): L1 (no plain retry after timeout, `loadFeed` checks lg for 'HTTP'), L2 (slot handed back during `quietGap`, `sl.free/take` in `load`→`load0`→`loadFeed`), L3 (`lg.nb` busy → treated like `cut`; native queue limit 2), R1 (`saveSoon` in markReadA/openReader/S.rt/pump/DPRE). DONE on branch
