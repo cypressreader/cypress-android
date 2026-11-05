@@ -13815,8 +13815,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.05g';const APP_LABEL='1.259';
-const CHANGES=["Opening the Fold: the side bar no longer flashes out and back, and the page no longer realigns a moment later. The new shape is set in the same instant the screen changes"];
+const APP_VERSION='2026.11.05h';const APP_LABEL='1.260';
+const CHANGES=["Opening the Fold: the page now takes its open shape in the very first frame. Before, the Fold told the app its new size a moment late, so the folded layout showed briefly at full width before snapping into place"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -16150,8 +16150,10 @@ function applySbw(){const r=document.documentElement.style;if(S.sbw)r.setPropert
 function shapeRender(){if(shapeRender.on)return;/* one swap at a time: the fade defers the redraw, and a second resize tick in that gap would start it over */UACT=Date.now();try{rdAnchorSave()}catch(e){}const run=()=>{shapeRender.on=false;try{render()}catch(e){elog('render',e)}try{rdAnchorRestore()}catch(e){}};
  if(document.startViewTransition&&!reduced()&&!document.documentElement.classList.contains('lowp')&&!$('#rd').classList.contains('on')){try{shapeRender.on=true;const t=document.startViewTransition(run);t.finished.catch(()=>{});t.updateCallbackDone.catch(()=>{shapeRender.on=false})}catch(e){shapeRender.on=false;run()}}else run()}
 /* single page structure: the list markup never depends on the window or on side by side, so a resize never redraws it. The shape classes (narrow, split, sidehide, nrp) are set at once, in the same frame the browser lays the new width out: the old 120 ms wait left the wide layout showing with the phone classes still on, so the side bar popped out and everything realigned a beat later */
-function shapeChanged(){try{rdFreeze(false)}catch(e){}VW=innerWidth;VH=innerHeight;screenMode();{const g=$('#grid');g.classList.toggle('nrp',g.classList.contains('nr')&&nrPhone())}applySbw();clearTimeout(screenMode.t);screenMode.t=setTimeout(()=>{if($('#rd').classList.contains('on'))flexUi()},120)}
+function shapeChanged(){try{rdFreeze(false)}catch(e){}const de=document.documentElement;VW=de.clientWidth||innerWidth;VH=de.clientHeight||innerHeight;screenMode();{const g=$('#grid');g.classList.toggle('nrp',g.classList.contains('nr')&&nrPhone())}applySbw();clearTimeout(screenMode.t);screenMode.t=setTimeout(()=>{if($('#rd').classList.contains('on'))flexUi()},120)}
 addEventListener('resize',shapeChanged);
+/* unfolding: the Fold's WebView lays the page out at the new width before its resize event reports it (innerWidth stays at the folded size for a few hundred ms), so the page showed wide with the folded-phone classes until the 450 ms replay below. Watching the page's own box catches the new width straight after layout and before that frame is painted */
+try{new ResizeObserver(()=>{const de=document.documentElement;if(de.clientWidth!==VW||de.clientHeight!==VH)shapeChanged()}).observe(document.documentElement)}catch(e){}
 addEventListener('orientationchange',()=>{shapeChanged();setTimeout(shapeChanged,350)});
 /* folding or unfolding a phone: the WebView can fire its resize while still reporting the old size, so the layout is worked out for the other screen. So the size is looked at again a little later, and if it moved since the last resize, the resize is replayed for every listener */
 {let lw=innerWidth,lh=innerHeight,t1=0,t2=0;const chk=()=>{if(innerWidth!==lw||innerHeight!==lh)dispatchEvent(new Event('resize'))};addEventListener('resize',()=>{lw=innerWidth;lh=innerHeight;clearTimeout(t1);clearTimeout(t2);t1=setTimeout(chk,450);t2=setTimeout(chk,1200)})}
