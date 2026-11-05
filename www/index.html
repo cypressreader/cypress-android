@@ -779,7 +779,7 @@ html.rmo .card>.rib.ribnew,html.lowp .card>.rib.ribnew{animation:none}
 .dlinks button{flex:1;padding:9px 8px;border-radius:12px;border:1px solid var(--ln);background:var(--pn);color:var(--ink);font:600 13px var(--sans);cursor:pointer}
 .dsec2{margin:0 0 40px}
 /* the Daily's sections below the first are laid out only as they come near the screen; the guess at their height comes from their story count (set on the section) */
-#grid section.dsec2{content-visibility:auto;contain-intrinsic-size:auto var(--cis,600px)}
+#grid section.dsec2{content-visibility:auto;contain-intrinsic-size:auto var(--cis,var(--cisw,600px))}@media(max-width:699px){#grid section.dsec2{contain-intrinsic-size:auto var(--cis,var(--cisp,600px))}}
 .dsh{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 18px;padding:0 0 10px;border-bottom:3px solid var(--ink);font:600 13px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--ink)}
 .dsh small{font:italic 400 14px var(--serif);letter-spacing:0;text-transform:none;color:var(--mut)}
 .dq{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 16px;margin:0 -2px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
@@ -6226,7 +6226,8 @@ function alsoFollow(el,f){
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-fsite]');if(!b)return;b.disabled=true;followSite(b.dataset.fsite,b.dataset.n,b.dataset.c).then(r=>{if(r){const row=b.closest('.sali');if(row)row.remove()}else b.disabled=false})});
 /* the window width is cached: reading innerWidth in the middle of a redraw forces the browser to lay the page out first */
 let VW=innerWidth,VH=innerHeight;addEventListener('resize',()=>{VW=innerWidth;VH=innerHeight},{passive:true});
-const layoutKey=()=>((S.narrow||'auto')==='auto'&&VW<=500)+'|'+(VW<700)+'|'+(VW>=840);let LK=layoutKey();
+/* single page structure: the list markup is the same at every width, so only a side-by-side flip (set by screenMode) still needs a redraw on resize */
+const layoutKey=()=>String(document.body.classList.contains('split'));let LK=layoutKey();
 /* Cover headlines are sized to fit THEIR cover: the largest size (up to the style's own big size) at which the whole headline shows (no hidden lines, no "..."), no word is wider than the box (so none is cut in the middle), and the cover stays within its designed height (so nothing is pushed under the masthead or over a picture panel). Re-done when the window or the fonts change. */
 const COVFC=new Map();
 function covFit(){
@@ -6451,8 +6452,7 @@ function coverStyle(lines){
  let m=S.cvs||'clean';if(m==='mosaic'||m==='mosaicr'){m=S.cvs='auto';save()}
  if(m==='clean')return ' cv-clean';
  if(m==='auto'){const d=Math.floor(Date.now()/864e5);m=['magazine','poster','broadcast','plays'][d%4]}
- if(m==='split'&&VW<700)m='photo';
- if(m==='triptych'&&(VW<700||lines.filter(a=>a.img).length<2||document.body.classList.contains('split')))m='block';
+ if(m==='triptych'&&(lines.filter(a=>a.img).length<2||document.body.classList.contains('split')))m='block';
  return m==='photo'?'':' cv-'+(m==='triptych'?'tri':m);
 }
 const cvThumb=a=>a.img?`<i class="cvth" style="background-image:url(&quot;${esc(a.img)}&quot;)"></i>`:'';
@@ -8336,7 +8336,7 @@ function daySections(list,mode){
  NRLAB='Latest';SMARTV=false;
  if(diff)B.push(diffHtml(diff,C));
  if(good)B.push(ritualHtml('good',good));
- if(brief)B.push(`<section class="dsec2" style="--cis:${200+(innerWidth>=700?Math.ceil(quick.length/3)*170:150)}px">${sh('brief','Quick Reads','Short reads, a few minutes each',quick.length,'short reads')}<div class="dq">${quick.map(a=>C(a,'nr dq-c')).join('')}</div></section>`);
+ if(brief)B.push(`<section class="dsec2" style="--cisw:${200+Math.ceil(quick.length/3)*170}px;--cisp:350px">${sh('brief','Quick Reads','Short reads, a few minutes each',quick.length,'short reads')}<div class="dq">${quick.map(a=>C(a,'nr dq-c')).join('')}</div></section>`);
  if(num)B.push(ritualHtml('num',num.a,num.n));
  if(well.length)B.push(wellHtml(well));
  if(deep.length)B.push(`<section class="dsec2 ddv" style="--cis:${200+deep.length*300}px">${sh('deep',wkd?'Weekend Reads':'Deep Dives','Settle in',deep.length,'long reads')}${deep.map(a=>`<div class="nr-color">${C(a,'nr nr-colr')}</div>`).join('')}</section>`);
