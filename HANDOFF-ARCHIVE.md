@@ -601,3 +601,6 @@ Last updated: 2026-11-01 (**1.225 on branch**: Quick Reads light-text fix, await
 
 ## moved ppo0d5 (1.255 review detail)
 DONE in 1.255 (web 2026.11.05c, merged): L1 (no plain retry after timeout, `loadFeed` checks lg for 'HTTP'), L2 (slot handed back during `quietGap`, `sl.free/take` in `load`→`load0`→`loadFeed`), L3 (`lg.nb` busy → treated like `cut`; native queue limit 2), R1 (`saveSoon` in markReadA/openReader/S.rt/pump/DPRE). DONE on branch
+
+## moved ppo0d5 (branch fixes detail)
+L4 (clean empty feed keeps held stories, no fallbacks), L8 (SCSIG reset if IDB put fails), L9 (`LPC` set: `loadAll0` counts the round up front), R2 (`rtSet(link,el)` caps S.rt at 600), R8 (render catches `elog('render')`), R9 (every `<dialog>` has aria-labelledby, ids `<id>-t`), L5 (`ENQ`/`enrichRun`: one timer), R5 (hidden-page guards on ambApply/tminiSync/syncUpNext/checkUpdate intervals), R3 (131 dead lines removed; articleCard/canonicalUrl/articleState kept, tests use them). L6 (IDB 'cypress' v2 + index 't'; boot key-walks newest-first, bodies for 120, placeholders rest; skips 'bi:'/'~cache'; browser-verified 200-story seed; TESTING.md 'Story storage upgrade'). R6 (dead LASTSET loop gone; couponSweep only when itemsSig changed; daySections indexOf already gone), R7 (translate scroll check cached 1 s; `.tg` scan left: debounced, sub-ms)
