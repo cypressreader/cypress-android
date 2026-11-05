@@ -5306,7 +5306,6 @@ function saveCache0(force){if(FROZEN)return;/* nothing new since the last save: 
  const big=()=>{try{if(!IDB.ok)return false}catch(_){return false}CKI=1;try{localStorage.removeItem(CK)}catch(_){}SCSIG=sg;idbTx('readwrite',st=>st.put({c},'~cache')).then(ok=>{if(!ok&&SCSIG===sg)SCSIG=''});return true};if(CKI&&big())return;
  try{localStorage.setItem(CK,JSON.stringify(c));SCSIG=sg}catch(e){if(big())return;try{for(const id in c)c[id].forEach(a=>a.html='');localStorage.setItem(CK,JSON.stringify(c));SCSIG=sg}catch(_){/* storage nearly full: keep fewer stories per site rather than nothing, so a restart never opens on empty placeholders */try{for(const id in c)c[id]=c[id].slice(0,10);localStorage.setItem(CK,JSON.stringify(c));SCSIG=sg}catch(e3){try{elog('cache save',e3)}catch(_2){}}}}}
 const feedOf=id=>S.feeds.find(f=>f.id===id)||{title:'',url:''};
-const PAT=['mid'];
 const ago=d=>{if(!d)return'';const m=(Date.now()-d)/6e4;return m<60?Math.max(1,m|0)+'m':m<1440?(m/60|0)+'h':(m/1440|0)+'d'};
 /* card times: "3h" on screen; a week on, the date ("Oct 12") instead of "45d". Screen readers hear "3 hours ago" as part of the headline link (agoL), so the card gets no extra elements (two hidden spans per card cost scrolling time) */
 const agoT=d=>{if(!d)return'';const m=(Date.now()-d)/6e4;return m>=10080?new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'}):ago(d)};
@@ -6059,7 +6058,7 @@ async function og(a){
 /* while sites or article pages are still downloading, photos that arrive redraw the list at most every 2.5 s (each redraw is 0.4-0.7 s on a budget phone) */
 let rt=0;const schedule=()=>{const busy=OGN||INFL.size;if(rt&&busy)return;clearTimeout(rt);rt=setTimeout(()=>{rt=0;quietRender()},busy?2500:500)};
 /* story photos are looked up (whole article pages fetched and read) only once the other sites have arrived: doing it during a refresh slowed the remaining sites (~2.5 s of phone work at 6x) */
-const enrichLater=id=>[...INFL.keys()].some(k=>k!==id)?setTimeout(()=>enrichLater(id),300):enrich(id);
+const ENQ=new Set();let ENT=0;const enrichLater=id=>{ENQ.add(id);if(!ENT)ENT=setTimeout(enrichRun,300)};function enrichRun(){ENT=0;if([...INFL.keys()].some(k=>!ENQ.has(k))){ENT=setTimeout(enrichRun,300);return}const l=[...ENQ];ENQ.clear();l.forEach(id=>{try{enrich(id)}catch(e){elog('enrich',e)}})}
 /* B4: on mobile data, whole article pages are fetched for pictures only when the download setting allows downloads on mobile data (as background preload does); Wi-Fi is unchanged */
 const ogNet=()=>{try{return netKind()!=='cell'||pfAllowed()}catch(e){return true}};
 async function enrich(id){
@@ -6421,7 +6420,6 @@ function cardLum(im){
   setTimeout(step,25)};
  step();
 }
-const CVNEW=['titleseq','chapters','journal','plays','fact','collage','italic'];
 const cvMix=t=>{const w=String(t).split(/\s+/).filter(Boolean);let o='',i=0,it=false;while(i<w.length){const n=it?1+(i%2):2+(i%2);const g=w.slice(i,i+n).map(x=>esc(x)).join(' ');o+=(it?'<i>'+g+'</i>':g)+' ';i+=n;it=!it}return o.trim()};
 const cvPh=u=>u?` --ph:url(&quot;${esc(u)}&quot;);`:'';
 function coverStyle(lines){
@@ -7537,7 +7535,6 @@ document.addEventListener('keydown',e=>{
 document.addEventListener('change',e=>{if(e.target.id!=='aafns')return;S.font=e.target.value;needFont(S.font);save();refreshReader();aaSync();try{syncSet()}catch(x){}});
 try{new MutationObserver(()=>{const r=$('#rd');if(r&&!r.classList.contains('on'))aaClose(false)}).observe($('#rd'),{attributes:true,attributeFilter:['class']})}catch(e){}
 /* a thumb-height "Aa" button opens the same sheet; dragging the sheet down closes it */
-function aaFab(){if($('#raaf')||!$('#rd'))return;const b=document.createElement('button');b.type='button';b.id='raaf';b.setAttribute('aria-label','Reading appearance');b.setAttribute('aria-haspopup','dialog');b.innerHTML='<span aria-hidden="true">Aa</span>';$('#rd').append(b)}
 {let y0=null;const pd=e=>{const g=e.target.closest&&e.target.closest('#aapop .aahd');if(!g||e.target.closest('button'))return;y0=e.clientY};
  document.addEventListener('pointerdown',pd,true);
  document.addEventListener('pointermove',e=>{if(y0==null)return;const pop=$('#aapop'),d=Math.max(0,e.clientY-y0);if(pop)pop.style.transform='translateY('+d+'px)'},true);
@@ -7680,7 +7677,7 @@ function ambApply(){
  const rgb=pa.map((v,i)=>Math.round(v+(pb[i]-v)*t)).join(',');
  document.documentElement.style.setProperty('--amb','rgba('+rgb+','+A.toFixed(3)+')');
 }
-ambApply();setInterval(ambApply,600000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)ambApply()});
+ambApply();setInterval(()=>{if(!document.hidden)ambApply()},600000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)ambApply()});
 /* the save flourish: a pop, a ring and a few sparks on the star that was just filled */
 function starBurst(el){
  const r=el.getBoundingClientRect();if(!r.width)return;
@@ -7731,7 +7728,6 @@ function markReady(l){document.querySelectorAll('#grid .card').forEach(c=>{if(ch
 const PAYRE=/(^|\.)(nytimes\.com|wsj\.com|ft\.com|bloomberg\.com|economist\.com|washingtonpost\.com|theathletic\.com|barrons\.com|newyorker\.com|thetimes\.co\.uk|hbr\.org|bostonglobe\.com)$/;
 const isPay=a=>{try{return PAYRE.test(new URL(a.link).hostname)}catch(e){return false}};
 const PAYB='<span class="pw" title="Subscriber site. Tapping opens the site itself">Opens the site</span>';
-const favHost=f=>{const h=host(f.url);if(/(^|\.)(news\.google\.com|bing\.com|feedburner\.com|feedblitz\.com)$/.test(h)){const d=siteOf(f);if(d)return d}return h};
 /* pictures that have already loaded once appear at once when a list is redrawn; only a first load fades in (redraws used to make every picture blink) */
 const IMGOK=new Set();
 /* a story card is a container: one headline link plus separate Save and Why buttons beside it, never buttons inside a link */
@@ -8152,25 +8148,6 @@ function storyQuote(pool){
  return `<a class="pqc" href="${esc(a.link)}" data-i="${cur.length-1}" style="--b:${brand(f)}"><blockquote>${esc(q)}</blockquote><footer><i class="av">${esc((f.title||'?').trim().charAt(0).toUpperCase())}</i><span><b>${esc(f.title)}</b><small>${esc(a.title)}</small></span></footer></a>`;
 }
 /* Deep and short Quick lists: a small magazine spread that works with just a few stories (a title block, a lead feature, a pull quote, a color feature, photo cards, then a reading list) */
-function magHtml(l,base,mode,kind){
- const C=(i,k)=>card(l[i],base+i,'nr '+k),B=[],used=new Set(),ph=mode==='p',deep=kind==='deep';
- const mark=i=>{used.add(i);return i},left=f=>l.map((a,i)=>i).filter(i=>!used.has(i)&&(!f||f(l[i])));
- const mins=l.reduce((n,a)=>n+(minsOf(a)||0),0),tot=mins>=90?(Math.round(mins/6)/10)+' hours':MIN(mins);
- B.push(`<section class="dmag-h"><small>${deep?'Settle in':'Quick break'}</small><h3>${deep?(l.length===1?'One long read for when you have time':l.length+' long reads for when you have time'):l.length+' quick reads for a spare moment'}</h3><p>${deep?'About '+tot+' of reading in all. Pick one, get comfortable, and take your time.':'About '+tot+' in all, each one short enough to finish in a few minutes.'}</p></section>`);
- const li=mark(left(nrHas)[0]??left()[0]);
- B.push(ph?`<div class="nr-psec">${C(li,'nr-lead')}</div>`:`<section class="nr-top nr-one"><div class="nr-lw">${C(li,'nr-lead')}</div></section>`);
- const qi=left(a=>nrQuoteText(a))[0];
- if(qi!==undefined&&l.length>=3){mark(qi);B.push(`<section class="nr-quote">${nrQuoteHtml(l[qi],base+qi,ph?0:(nrHas(l[qi])?2:0),nrQuoteText(l[qi]))}</section>`)}
- const ci=left(a=>nrHas(a)&&(a.summary||'').length>60)[0];
- if(ci!==undefined){mark(ci);B.push(ph?`<div class="nr-color">${C(ci,'nr-colr')}</div>`:`<section class="nr-color">${C(ci,'nr-colr')}</section>`)}
- const ps=left(nrHas);
- while(ps.length>(ph?0:1)){const n=ph?1:Math.min(3,ps.length>4?3:ps.length>=2?2:1),g=ps.splice(0,n).map(mark);
-  B.push(ph?`<div class="nr-ph-feat">${C(g[0],'nr-tri')}</div>`:`<section class="nr-trio${g.length<3?' nr-t'+g.length:''}">${g.map(i=>C(i,'nr-tri')).join('')}</section>`)}
- const rs=left();
- if(rs.length)B.push(ph?`<section class="nr-psec"><h4>Also worth your time</h4><div class="nr-ph-rows nr-ph-in">${rs.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`:`<section class="nr-river"><h4>Also worth your time</h4><div class="nr-rv">${rs.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`);
- B.push(`<section class="dmag-f"><p>${deep?'That is every long read for now. A story joins this list once its length is known, and some sites only show that after you open them.':'That is every quick read for now.'}</p><div><button type="button" data-bm="top">See the top stories</button><button type="button" data-bm="latest">Back to the latest</button></div></section>`);
- return B;
-}
 /* The Daily: the cover, today's progress and quick links, then every unread story ranked by freshness, your habits, breaking news and how many sites cover it (see dayRank). The tabs below belong to All stories: Latest (the plain newest-first list), Top (stories several of your sources are covering), Quick (about 1 to 3 minutes) and Deep (about 8 minutes or more) */
 const DTABS=[['latest','For you'],['top','Top stories'],['quick','Quick reads'],['deep','Deep reads'],['off','Offline']];
 /* ---- The Daily's ranking: a score for every unread story, worked out on the phone ----
@@ -8285,10 +8262,6 @@ function ritualHtml(kind,a,n){
  return `<aside class="drit ${kind==='good'?'drg':'drn'}" style="--b:${brand(f)}"><p class="drt-k">${kind==='good'?'One Good Thing':'The Number'}</p>${big}<a class="cvlead drt-a" href="${esc(a.link)}" data-i="${ix}">${esc(a.title)}</a><p class="drt-s">${esc(f.title)} · ${esc(ago(a.date))} ago</p></aside>`;
 }
 function fontName(v,fb){const r=getComputedStyle(document.documentElement).getPropertyValue(v)||'';const m=r.split(',')[0].replace(/["']/g,'').trim();return m&&!/^(ui-|system-|-apple)/i.test(m)?m:fb}
-function colophonHtml(count){
- const am=edKind()==='m',d=new Date(),issue=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
- return `<footer class="colo"><b>Colophon</b><p>The ${am?'Morning':'Evening'} Edition, No. ${issue}. ${plu(count,'story','stories')}, chosen on this device from the sites you follow. Set in ${esc(fontName('--serif','Georgia'))} and ${esc(fontName('--sans','the system sans'))}. Nothing here was sent anywhere.</p></footer>`;
-}
 /* print furniture: folio running heads with the edition number, illustrated section dividers, a dek with a drop cap under each section head */
 /* Section header art: four slim cypress trees with a sun (morning edition) or a crescent moon (evening edition) between them */
 function dayArch(){
@@ -8601,54 +8574,6 @@ function renderToday(tab0,pool0,seg0,ttl0){
  g.dataset.cards='narrow';g.innerHTML=h+(S.view==='list'&&tab!=='latest'?listFlow(list,base,true,tab!=='deep'):list.map((a,i)=>card(a,base+i,''))).join('')+(tab==='latest'?dayEndCard():'');
  g.querySelectorAll('.card').forEach(c=>{const w=c.querySelector(':scope>.why'),sr=c.querySelector('.src');if(w&&sr)sr.append(w)});
 }
-function renderToday0(){
- $('#ttl').textContent='The Daily';
- const skip=new Set(),pool=topOf(S.feeds,20,skip);
- if(!pool.length){
-  const busy=S.feeds.some(f=>state[f.id]==='load'||!state[f.id]);
-  if(busy){cur=[];$('#grid').innerHTML=skel(6);return}
-  cur=[];$('#grid').innerHTML=busy?`<div class="empty">${SKEL()}</div>`:S.feeds.length?empNoStories():emp('No sites yet','Add a few sites you like and their latest stories show up here.',EA('ad','sp'));return;
- }
- let lead=pool.find(a=>!S.read[a.link]&&a.img)||pool.find(a=>a.img)||pool[0];
- {const busy=Object.values(state).some(v=>v==='load'),pv=LEADK&&pool.find(a=>a.link===LEADK&&a.img&&!S.read[a.link]);if(busy&&pv)lead=pv;LEADK=lead&&lead.link}
- cur=[lead];skip.add(lead.link);(lead.more||[]).forEach(m=>skip.add(m.l));
- const TRP=trendPick(pool,lead);TRP.forEach(a=>{skip.add(a.link)});const NW=nrOn(),NP=nrPhoneOn(),NX=NW||NP;const TRX=NX&&isOn('trend')?pool.filter(a=>a!==lead&&a.img&&!skip.has(a.link)&&!S.read[a.link]).slice(0,Math.max(0,5-TRP.length)):[];TRX.forEach(a=>skip.add(a.link));
- const secs=[];let TI=0;
- const groups=S.folders.map(f=>({id:'f:'+f.id,name:f.name,fs:S.feeds.filter(x=>x.folder===f.id)}));
- const un=S.feeds.filter(x=>!S.folders.some(f=>f.id===x.folder));if(un.length)groups.push({id:'',name:'Other feeds',fs:un});
- for(const g of groups){
-  if(!g.fs.length)continue;
-  const l=topOf(g.fs,NX?8:4,skip);if(!l.length)continue;
-  l.forEach(a=>{skip.add(a.link);(a.more||[]).forEach(m=>skip.add(m.l))});
-  secs.push({g,l});
- }
- for(const k of S.sk){const l=topOf(S.feeds,NX?8:4,skip,a=>kmatch(k,a));if(!l.length)continue;l.forEach(a=>{skip.add(a.link);(a.more||[]).forEach(m=>skip.add(m.l))});secs.push({g:{id:'k:'+k.id,name:k.name},l})}
- {const seen=new Set();DGL=[];const add=a=>{if(a&&a.link&&!seen.has(a.link)){seen.add(a.link);DGL.push(a.link)}};add(lead);TRP.forEach(add);secs.forEach(s=>s.l.forEach(add))}
- const unread=uc(S.feeds),d=new Date().toLocaleDateString([], {weekday:'long',month:'long',day:'numeric'});
- for(const k in WHY)delete WHY[k];
- const useCover=isOn('cover')&&lead.img&&!document.body.classList.contains('split');
- let h=useCover?coverHtml(lead,pool):`<div class="dateline"><span>${esc(edition())} · ${esc(shortDate())}</span><small>${S.hideCount?'':unread?unread+' unread in all your feeds':'All caught up'}</small></div>`+(WHY[lead.link]=whyLead(lead),card(lead,0,'lead'));
- if(useCover)h+=`<div class="dateline"><span>Inside&nbsp;·&nbsp;${esc(shortDate())}</span><small>${S.hideCount?'':unread?unread+' unread in all your feeds':'All caught up'}</small></div>`;
- const CVL=new Set(useCover?cur.map(x=>x.link):[]);
- CVL.forEach(l=>skip.add(l));h+=dgProgHtml()+(NW?trendWide(TRP.filter(a=>!CVL.has(a.link)),TRX.filter(a=>!CVL.has(a.link))):NP?trendPhone(TRP.filter(a=>!CVL.has(a.link)),TRX.filter(a=>!CVL.has(a.link))):trendHtml(TRP))+mustHtml(pool);
- h+=dgChip()+fiveChip()+continueRow();
- if(isOn('toc')&&secs.length>1)h+=tocHtml(secs);
- let spreadDone=false,si=0;
- for(const s of secs){
-  h+=`<!--ns--><div class="sech" data-si="${si}"><span class="sno">${String(si+1).padStart(2,'0')}</span><h2>${esc(s.g.name)}</h2><span class="smini">${ringSvg(s.l.filter(a=>S.read[a.link]).length,s.l.length,22,3.5)}${s.l.filter(a=>S.read[a.link]).length} of ${s.l.length}</span>${s.g.id?`<button data-sel="${s.g.id}">See all</button>`:''}</div>`;
-  let sc='';
-  const feat=(!spreadDone&&isOn('spread')&&isOn('mag')&&!document.body.classList.contains('split'))?s.l.find(a=>a.img&&!CVL.has(a.link)&&(a.summary||'').length>=90):null;
-  if(NX){const ls=s.l.filter(a=>!CVL.has(a.link));ls.forEach(a=>{if(!WHY[a.link]&&s.g.id&&s.g.id.startsWith('k:'))WHY[a.link]=`Matches “${s.g.name}”, a topic you follow.`;cur.push(a)});if(ls.length)sc=NW?nrSecHtml(ls,cur.length-ls.length,si):nrSecPhone(ls,cur.length-ls.length,si)}else for(const a of s.l){if(CVL.has(a.link))continue;if(!WHY[a.link]&&s.g.id&&s.g.id.startsWith('k:'))WHY[a.link]=`Matches “${s.g.name}”, a topic you follow.`;cur.push(a);if(a===feat){spreadDone=true;h+=card(a,cur.length-1,'spread');continue}sc+=card(a,cur.length-1,'mid')}
-  if(sc)h+=NX?sc:`<div class="tpl t${TI++%4}">${sc}</div>`;
-  si++;
-  if(si===1&&isOn('mag')){const q=storyQuote(pool);if(q)h+=q}
-  if(si===2&&isOn('mag')&&isOn('pqs')){const q=pqSpread();if(q)h+=q}
- }
- if(NW)h+=nrMore(skip);else if(NP)h+=nrMorePhone(skip);
- h+=endCard();
- if(NP)$('#grid').classList.add('nrp');
- {const parts=h.split('<!--ns-->');if(parts.length>3)setBlocks(parts[0]+parts[1],parts.slice(2),1,1);else{if(NRIO){NRIO.disconnect();NRIO=null}$('#grid').innerHTML=h.split('<!--ns-->').join('');try{dailyDropcaps()}catch(e){}}}
-}
 /* B49: span-based drop caps for Daily ledes — ::first-letter detaches on wide layouts */
 function dailyDropcaps(){
  document.querySelectorAll('#grid .droy-lede:not([data-dc])').forEach(p=>{
@@ -8764,7 +8689,7 @@ function show(){
  $('#pc').textContent=pcText();{const bk=$('.book');if(bk){if(isOn('folio')&&curA&&!R.web&&!isVert()&&R.np>0){const t=(curA.title||'').length>46?curA.title.slice(0,44)+'…':(curA.title||'');bk.dataset.folio=(fof(curA).title||'')+' · '+t+'   ·   '+(R.pg+1)}else delete bk.dataset.folio}}$('#pv').disabled=!isVert()&&R.pg===0;$('#nx').disabled=!isVert()&&R.pg>=R.np-1;fpSync();dialSync();rdxEdge();
  if(R.ready&&curA){delete S.pos[curA.link];if(R.pg>0&&R.pg<R.np-1)S.pos[curA.link]=R.pg;const pk=Object.keys(S.pos);if(pk.length>300)delete S.pos[pk[0]];clearTimeout(pt);pt=setTimeout(save,700)}
 }
-const eOut2=p=>1-Math.pow(1-p,2.2),ePage=p=>(1-Math.pow(1-p,3))*(.55+.45*Math.min(1,p/.3));
+const ePage=p=>(1-Math.pow(1-p,3))*(.55+.45*Math.min(1,p/.3));
 /* turning back starts with the curl already tight, so it needs a gentle start (the forward turn's fast start would look abrupt) */
 const eBack=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
 /* after letting go: a soft start (paper has weight) and a long, gentle settle */
@@ -10159,7 +10084,7 @@ function tdrUpdate(m){
  const sc=d.querySelector('#tdsc');sc.setAttribute('aria-valuemax',String(Math.round(m.tot)));sc.setAttribute('aria-valuenow',String(Math.round(m.pos)));sc.setAttribute('aria-valuetext',digFmt(m.pos)+' of '+digFmt(m.tot));
  d.querySelector('.tdo').hidden=!(curA||TTS.art);
 }
-setInterval(()=>{if(TTS.on||DIG.on||($('#tmini')&&!$('#tmini').hidden))tminiSync()},1000);
+setInterval(()=>{if(!document.hidden&&(TTS.on||DIG.on||($('#tmini')&&!$('#tmini').hidden)))tminiSync()},1000);
 
 const BOILER=/^\W*(subscribe|sign up (for|to)|newsletter|all rights reserved|©|copyright|follow us|click here|advertisement|already a subscriber|log in|sign in|read more|this article (originally )?appeared|support (our|independent) journalism|share this|terms of (use|service)|privacy policy)|(all rights reserved|©\s*\d{4})/i;
 function ttsCollect(){
@@ -11725,7 +11650,6 @@ const secT=x=>String(x||'').replace(/&amp;/gi,'&').replace(/&#0?39;|&apos;/gi,"'
 const kmatch=(k,a)=>k.by?a.by===k.by:k.sec?(a.sec===k.sec&&a.feedId===k.fid):k.words.some(w=>((a.title||'')+' '+(a.summary||'')).toLowerCase().includes(w));
 const kdesc=k=>k.by?'stories by '+k.by:k.sec?'the '+k.sec+' section':k.words.join(', ');
 const hasBy=n=>S.sk.some(k=>k.by===n);
-const hasSec=(n,fid)=>S.sk.some(k=>k.sec===n&&k.fid===fid);
 const kcount=k=>S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>!S.read[a.link]&&kmatch(k,a)).length;
 const readMin=a=>minsOf(a); /* one reading-time rule for the whole app (was a second, slightly different estimate) */
 let pt;
@@ -13041,7 +12965,6 @@ const HANDTWIN={
  y2k:{dark:{'--bg':'#0b1430','--pn':'#122049','--ink':'#e4ecff','--mut':'#9fb2e6','--ln':'#26356b','--logo':'#6fa0ff','--hl':'rgba(111,160,255,.32)','--a1':'#6fa0ff','--a2':'#3fd0ff','--a3':'#ff6ac1','--m1':'#1b2c63','--m2':'#6fa0ff','--m3':'#cddaf8','--m4':'#3fd0ff'}},
  terminal:{light:{'--bg':'#eef3e8','--pn':'#f9fcf5','--ink':'#0f3a1c','--mut':'#4b7a5a','--ln':'#c4d8c4','--logo':'#0d8a3a','--hl':'rgba(13,138,58,.24)','--a1':'#0d8a3a','--a2':'#946a00','--a3':'#0a7c8a','--m1':'#0f3a1c','--m2':'#0d8a3a','--m3':'#c4d8c4','--m4':'#946a00'}}
 };
-const TW_VARS=['--bg','--pn','--ink','--mut','--ln','--a1','--a2','--a3','--logo'];
 function varRgb(v){try{const p=applyTheme.pr||(applyTheme.pr=document.createElement('i'));p.style.cssText='position:absolute;width:0;height:0;visibility:hidden;transition:none!important;background-color:var('+v+')';if(!p.isConnected)document.documentElement.appendChild(p);const c=getComputedStyle(p).backgroundColor,m=c&&c.match(/[\d.]+/g);return m&&m.length>=3?[+m[0],+m[1],+m[2]]:null}catch(e){return null}}
 function rgb2hsl(c){const r=c[0]/255,g=c[1]/255,b=c[2]/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,d=mx-mn;let h=0,s=0;if(d){s=d/(1-Math.abs(2*l-1));h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;h*=60;if(h<0)h+=360}return[h,s,l]}
 function hsl2css(h,s,l){return'hsl('+Math.round(h)+' '+Math.round(s*100)+'% '+Math.round(l*100)+'%)'}
@@ -13943,7 +13866,6 @@ function pgFrac(){if(!R.ready||!curA)return null;const E=R.ep!=null?R.ep:R.np-1;
 function rdFrac(){if(!R.ready||!curA)return null;if(isVert())return vEndFrac();const E=R.ep!=null?R.ep:R.np-1;return E>0?Math.min(1,R.pg/E):0}
 function rdSetFrac(f){if(f==null)return;if(isVert()){const v=vView();if(!v)return;let m=v.scrollHeight-v.clientHeight;const e=bodyEnd();if(e){const endY=e.getBoundingClientRect().bottom-v.getBoundingClientRect().top+v.scrollTop;m=Math.min(m,Math.max(1,endY-v.clientHeight+24))}if(m>0)v.scrollTop=Math.round(f*m)}else if(R.np>1){const E=R.ep!=null?R.ep:R.np-1;R.pg=Math.max(0,Math.min(Math.round(f*E),R.np-1));show()}}
 function vScrollBy(d){const v=vView();if(!v)return;v.scrollBy({top:d*v.clientHeight*.88,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})}
-function vFrac(){const v=vView();if(!v)return 0;const m=v.scrollHeight-v.clientHeight;return m>0?Math.min(1,Math.max(0,v.scrollTop/m)):1}
 function minsLeft(frac){const m=curA?readMin(curA):0;return Math.max(0,Math.round(m*(1-frac)))}
 function pcText(){
  /* polish-2026-10 R-01: one quiet caption ("10 min left"), the total on page 1, "last page" / "done" at the end; the 2px rule under the bar follows the same value */
@@ -14329,7 +14251,6 @@ function rdWhen(d){if(!d)return '';d=new Date(d);const n=new Date(),k=x=>x.toDat
 function dtHtml(a,dt){if(!RDX_OLDHDR){/* polish-2026-10 R-02: name, date, reading time; the Follow chips and the comments link live in the More sheet */const sep='<span class="rdsep" aria-hidden="true">·</span>',m=readMin(a)||0;return [a.by?'<span class="by">'+esc(a.by)+'</span>':'',dt?'<span>'+esc(dt)+'</span>':'',m?'<span>'+m+' min read</span>':''].filter(Boolean).join(sep)}
  const m=readMin(a)||0;return [a.by?'<span class="by">By '+esc(a.by)+(hasBy(a.by)?'<button class="flw" disabled>Following</button>':'<button class="flw" data-fby>Follow</button>')+'</span>':'',dt?'<span>'+esc(dt)+'</span>':'',m?'<span>'+m+' min read</span>':'',rateHtml(a),a.cm?`<a class="cmt" href="${esc(a.cm)}" target="_blank" rel="noopener">💬 ${cmLabel(a.cm)}</a>`:''].filter(Boolean).join('')}
 function hdrFill(){const d=$('.cols .dt');if(d&&curA){const dt=rdWhen(curA.date);d.innerHTML=dtHtml(curA,dt)}}
-const volNo=()=>{const y=new Date().getFullYear();if(!S.born)S.born=y;return Math.max(1,y-S.born+1)};
 function edition(d){d=d||new Date();const h=d.getHours(),n=(h>=5&&h<17)?'Morning':'Evening';return d.toLocaleDateString([],{weekday:'long'})+' '+n+' Edition'}
 const shortDate=d=>(d||new Date()).toLocaleDateString([],{month:'long',day:'numeric'});
 let EDK=edition();setInterval(()=>{const k=edition();if(k!==EDK){EDK=k;if(S.sel==='today'&&!$('#rd').classList.contains('on'))render()}},300000);
@@ -15456,7 +15377,6 @@ function peCtx(extra){
  const{n,t}=dgCount(),frac=t?n/t:0;
  return Object.assign({tod:peTod(),topic:peTopic(),streak:peStreak(),n:DGL.length,read:n,total:t,left:t-n,frac,state:!t||n===0?'start':n>=t?'done':'mid'},extra||{});
 }
-const peNeed=v=>/\{(\w+)\}/g;
 function peFits(v,x){
  if(v.ok&&!v.ok(x))return false;
  if(v.tod&&!v.tod.includes(x.tod))return false;
@@ -15780,49 +15700,6 @@ document.addEventListener('click',e=>{
   if(k==='all'){S.sel='all'}else if(k==='saved'){S.sel='saved'}else if(k==='feeds'){drawer(true);return}
   save();render();return}
 },true);
-function dgLetter(k,pool,unread,fresh){
- const g=k==='evening'?'Good evening':k==='week'?'Hello':'Good morning';
- const src=new Set(fresh.map(a=>a.feedId)).size;
- const top=pool[0],multi=[...pool].sort((a,b)=>(b.more||[]).length-(a.more||[]).length)[0];
- const nm=multi&&(multi.more||[]).length>=1?multi.more.length+1:0;
- const tps=S.sk.map(t=>[t.name,fresh.filter(a=>kmatch(t,a)).length]).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]).slice(0,2);
- const sv=S.saved.filter(a=>!S.read[a.link]).length;
- const q=t=>'“'+t+'”';
- const closing=k==='evening'?'Have a good evening,':k==='week'?'Have a good week ahead,':'Have a good day,';
- const paras=[];
- if(k==='week'){
-  /* The Week looks back at your reading; it does not repeat the morning front page */
-  const days=[...Array(7)].map((_,i)=>{const d=new Date(Date.now()-i*864e5);return [d,S.st.d[dayKey(d)]||{m:0,n:0,f:0}]});
-  const m=days.reduce((n,x)=>n+x[1].m,0),f=days.reduce((n,x)=>n+x[1].f,0),best=days.slice().sort((x,y)=>y[1].m-x[1].m||y[1].n-x[1].n)[0];
-  const fav=Object.entries(S.st.src||{}).sort((x,y)=>y[1]-x[1])[0],sk=streaks();
-  paras.push('Hello, and welcome to your week in review.');
-  let r='';
-  if(m>=1){r=`You spent ${fmtMin(m)} reading and finished ${plu(f,'story','stories')}`;if(best&&best[1].m>=1)r+=`, with ${best[0].toLocaleDateString([],{weekday:'long'})} your busiest day`;r+='. '}
-  else r='It was a quiet week for reading, and that is fine. ';
-  if(sk.cur>=2)r+=`That is ${sk.cur} days in a row. `;
-  if(fav)r+=`${fav[0]} is the site you open most.`;
-  paras.push(r.trim());
-  let n=`Your feeds published ${stN(fresh.length)} in all${src?`, from ${plu(src,'source','sources')}`:''}.`;
-  if(nm>=2&&multi!==top)n+=` The story that traveled furthest was ${q(multi.title)}, picked up by ${nm} sources.`;
-  paras.push(n);
-  let x='';
-  if(tps.length)x+=`In the topics you follow, ${tps.map(t=>`${t[0]} has ${t[1]} new`).join(' and ')}. `;
-  if(sv)x+=`${sv} saved ${sv===1?'story is':'stories are'} still waiting for you.`;
-  if(x.trim())paras.push(x.trim());
- }else{
-  let a=`${g}. ${fresh.length?`${fresh.length} ${fresh.length===1?'story has':'stories have'} arrived ${k==='evening'?'today':'overnight and this morning'}, from ${plu(src,'source','sources')}.`:'It has been a quiet stretch, with nothing new since the last issue.'}`;
-  paras.push(a);
-  let b='';
-  if(top&&multi&&top===multi&&nm>=2)b=`Leading this issue is ${q(top.title)}, which ${nm} sources are covering.`;
-  else{if(top)b=`Leading this issue: ${q(top.title)}. `;if(nm>=2&&multi!==top)b+=`Getting the most attention across your sites: ${q(multi.title)}, covered by ${nm} of them.`}
-  if(b.trim())paras.push(b.trim());
-  let c='';
-  if(tps.length)c+=`In the topics you follow, ${tps.map(t=>`${t[0]} has ${t[1]} new`).join(' and ')}. `;
-  if(sv)c+=`You also have ${sv} saved ${sv===1?'story':'stories'} still waiting.`;
-  if(c.trim())paras.push(c.trim());
- }
- return `<div class="letter"><h3>From the editor</h3>${paras.map(t=>`<p>${esc(t)}</p>`).join('')}<p class="sig"><span class="cl">${closing}</span><span class="sn">Your editor, CyPress</span></p></div>`;
-}
 function renderDigest(){
  let dgNr=false,edN=0,edM=0;
  const k=S.dgk||(now=>{const h=now.getHours();return h>=5&&h<17?'morning':'evening'})(new Date());
@@ -16013,7 +15890,7 @@ function setSleep(v){
  else if(+v>0){SLEEP.min=+v;SLEEP.at=Date.now()+v*6e4;SLEEP.t=setTimeout(()=>{SLEEP.t=0;ttsPause();epPause();mediaOff();toast('Sleep timer: stopped')},v*6e4);toast('Sleep timer: '+v+' min');sleepNative(SLEEP.at)}
  syncUpNext();
 }
-setInterval(()=>{if(SLEEP.t)syncUpNext()},30000);
+setInterval(()=>{if(SLEEP.t&&!document.hidden)syncUpNext()},30000);
 /* "Fix how words are said": the reader's own spellings, kept on this phone (S.say = [[word, say it like]]); the app's voices swap them in (CyText.user) */
 const sayList=()=>(S.say=Array.isArray(S.say)?S.say.filter(p=>Array.isArray(p)&&typeof p[0]==='string'&&typeof p[1]==='string'&&!/[\t\n]/.test(p[0]+p[1])):[]);/* checked on use: a restored backup could hold anything */
 const sayWords=()=>sayList().map(p=>p.join('\t')).join('\n');
@@ -16098,7 +15975,6 @@ document.addEventListener('change',e=>{const t=e.target.closest&&e.target.closes
 
 /* ---------- stage C effects ---------- */
 const FXD={cyber:['rain','Falling rain, glow and scanlines','Neon glow, faint scanlines and falling rain.',1],cyberdawn:['rain','Falling rain and glow','Soft rain with a gentle glow.',1],aurora:['aurora','Aurora lights','A thin line of soft green, blue and violet slowly shifts along the top of the screen.',1],nebula:['vhaze','Violet haze','A slow, faint violet haze behind the header.',1],deepsea:['rays','Light rays','Soft light slowly sways down from the surface.',1],forest:['fly','Fireflies','A few fireflies drift along the edges of the screen.',1],golden:['glow','Golden glow','A soft warm glow from the top corner that slowly breathes.',1],crimson:['vig','Warm vignette','A slow, warm red glow at the edges that shifts gently.',1],alpenglow:['snow','Soft snow','Light snow drifts down.',1],midnight:['maur','Midnight aurora','A slow, dark glow in deep blue and purple at the top edge.',1],terminal:['code','Code rain and cursor','Faint green characters fall and a cursor blinks.',1],outrun:['grid','Neon grid','A gliding neon grid along the bottom.',1],y2k:['iri','Iridescent sheen','A very faint, slowly drifting rainbow sheen at the top.',1],pixel:['run','Pixel runner','A little pixel runner along the top runs as you scroll.',1],arcade:['scan','Scanlines','Faint, still scanlines like an old arcade screen.',1],inkwash:['ink','Ink bleed','Soft ink slowly bleeds in from the corners.',1],spartan:['spark','Energy sparks','Streaks of amber light glide across the screen.',1],covenant:['hdr','Glow line','A soft violet line glows under the header.',1],cortana:['hline','Scan line','A thin blue line sweeps along the header once when a page opens.',1],rivals:['duo','Two-color line','A thin red and blue line under the header.',1],midgar:['life','Lifestream','A few green energy wisps rise slowly.',1],ragnarok:['ash','Runes','A few runes glow softly.',1],protoss:['rim','Shield glow','A soft blue glow at the screen edges that breathes very slowly.',1],nightcity:['nhaze','Neon haze','A faint, still neon haze along the bottom edge.',1]};
-const FXRD=['cyber','cyberdawn','aurora'];
 function fxCfg(th){const o=(S.fxo||{})[th]||{};return{on:o.on!==false,rd:false}}
 const FXRUN=()=>{const A=['..GGGG....','..GGGGGG..','..SSSSS...','..SSSKS...','..SSSSS...','.OOOOOOO..','.OOOOOOO..','..OOOOO...'],L1=['..PP.PP...','.PP...PP..'],L2=['...PPP....','..PP.PP...'],C={G:'#2e9e5b',S:'#f2c9a0',K:'#222',O:'#e8743b',P:'#2b3a67'};const px=(rows,y0)=>rows.map((r,y)=>[...r].map((c,x)=>c==='.'?'':`<rect x="${x}" y="${y+y0}" width="1" height="1" fill="${C[c]}"/>`).join('')).join('');return `<b class="rt"></b><b class="rf"></b><b class="rn"><svg viewBox="0 0 10 10" width="26" height="26" shape-rendering="crispEdges">${px(A,0)}<g class="fa">${px(L1,8)}</g><g class="fb">${px(L2,8)}</g></svg></b>`};
 (function(){let t=0;const last=new WeakMap();const pick=()=>{const m=document.querySelector('main');const c=[m,document.scrollingElement].filter(Boolean);return c.find(e=>e.scrollHeight-e.clientHeight>e.clientHeight*.3)||null};
@@ -16148,13 +16024,6 @@ function fxApply(r,mo){
  fl.classList.remove('nord')
 }
 let FXT=0;
-function fxType(){
- try{const th=document.documentElement.dataset.theme||'',h=document.querySelector('#sheet h2.tt');
-  if(th!=='typewriter'||!h||reduced()||!isOn('cyfx')||fxCfg(th).on===false)return;
-  const full=h.textContent;if(full.length<2)return;const my=++FXT;h.setAttribute('aria-label',full);h.textContent='';let i=0;
-  const tick=()=>{if(my!==FXT||!h.isConnected){h.textContent=full;return}i+=1;h.textContent=full.slice(0,i);if(i<full.length)setTimeout(tick,Math.max(18,Math.min(48,1600/full.length)));else h.removeAttribute('aria-label')};tick()
- }catch(e){}
-}
 function fxPanel(){
  const el=$('#fxp');if(!el)return;const th=S.theme||'auto',d=FXD[th];
  if(!d){el.hidden=true;el.innerHTML='';return}
@@ -16307,7 +16176,7 @@ function webUpd(){
  const f=pg.querySelector('.sgw');f?f.before(w):pg.append(w);
  w.querySelector('#webupd').onclick=async()=>{const v=$('#webupv');if(!navigator.onLine){v.textContent='You are offline. Try again when you are connected';return}v.textContent='Checking…';await checkUpdate();v.textContent=$('#upd')?'A new version is ready: tap Refresh at the bottom of the screen':'You have the latest version ('+APP_LABEL+')'};
 }
-setInterval(checkUpdate,30*6e4);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});
+setInterval(()=>{if(!document.hidden)checkUpdate()},30*6e4);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate()});
 
 /* ---------- shortcuts from the home screen ---------- */
 function startView(){try{const v=new URLSearchParams(location.search).get('view');if(!v)return;if(['brief','saved','today','stats','digest'].includes(v)){S.sel=v}if(v==='search')setTimeout(()=>openSearch(true),300);if(v==='listen')setTimeout(listenBrief,1500);history.replaceState(null,'',location.pathname)}catch(e){}}
