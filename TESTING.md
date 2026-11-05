@@ -1352,3 +1352,4 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 ## 1.263 Fold unfold in one step (implemented, unverified on device)
 - On the Fold, open and close the phone on The Daily: the cover headline/photo, the section tabs and the tab underline should land at their final size at once (no jump a moment later), and the side bar should not slide across.
 - Settings → copy diagnostics → 'Shape changes' line: paste it if anything still moves.
+- 1.264: same check; the redraw after the fold should come a little sooner (two whole-page restyles removed). Sticky Daily tabs must still sit right under the header after folding/unfolding.
