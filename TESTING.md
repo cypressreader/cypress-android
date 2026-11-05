@@ -1308,3 +1308,9 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 ## Sites that block the app (batch or13s3, implemented, unverified)
 - Feeds that used to fail with "Could not fetch" / HTTP 403 now load; Diagnostics log shows "trying the phone browser" for them.
 - Refresh stays quick when nothing is blocked; battery and data look normal after a day.
+
+## Sites going (offline) after leaving the app mid-refresh (eldcyo, unreleased)
+- Pull to refresh, then leave the app right away for a minute. Come back: sites should NOT show "(offline)" in the side bar; they refresh again on their own. Diagnostics should not list a wave of "blocked or offline … in background" sites as failing.
+
+## 1.254: story list moves to large storage when full
+- Settings, About, Diagnostics: "Library size" line now ends with "biggest parts …" and, when moved, "story list in large storage". The "cache save … exceeded the quota" errors should stop. Close the app fully, reopen: the stories from the last refresh are there (not older ones). Send the "biggest parts" line so we can see what fills the 3.7 MB library.
