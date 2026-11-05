@@ -5151,7 +5151,7 @@ document.documentElement.dataset.theme=POLISH_RETIRED[S.theme]||S.theme||'halcyo
 let QWARN=0;
 let SVSEL=null;/* Saved: null when not picking stories; otherwise the set of picked story links. Declared here, early, because the first draw of the Saved screen reads it */
 /* storage full: drop the story cache and image list (they refill by themselves) so your settings and library still save */
-function quotaFix(){/* storage full when saving the library: it used to delete every saved story to make room, so if Android then closed the app in the background it reopened on one site's stories (David's video 2026-11-04). Now the library goes first and the stories are kept, 10 per site without text */let c=null;try{c=JSON.parse(localStorage.getItem(CK)||'null')}catch(e){}try{elog('library save','storage full')}catch(e){}try{localStorage.removeItem(CK);localStorage.removeItem('folio-img');localStorage.setItem('folio',JSON.stringify(S));if(c){for(const id in c)c[id]=c[id].slice(0,10).map(a=>({...a,html:''}));try{localStorage.setItem(CK,JSON.stringify(c))}catch(e){}}try{SCSIG=''}catch(e){}}catch(e){if(!QWARN){QWARN=1;try{toast('Storage is full, so recent changes may not be saved. Remove old saved stories or free space on your phone')}catch(_){}}}}
+function quotaFix(){/* storage full when saving the library: it used to delete every saved story to make room, so if Android then closed the app in the background it reopened on one site's stories (David's video 2026-11-04). Now the library goes first and the stories are kept, 10 per site without text */let c=null;try{c=JSON.parse(localStorage.getItem(CK)||'null')}catch(e){}try{elog('library save','storage full')}catch(e){}try{localStorage.removeItem(CK);localStorage.removeItem('folio-img');localStorage.setItem('folio',JSON.stringify(S));let mv=false;try{if(c&&IDB.ok){CKI=1;mv=true;idbTx('readwrite',st=>{st.put({c},'~cache')})}}catch(_){}if(c&&!mv){for(const id in c)c[id]=c[id].slice(0,10).map(a=>({...a,html:''}));try{localStorage.setItem(CK,JSON.stringify(c))}catch(e){}}try{SCSIG=''}catch(e){}}catch(e){if(!QWARN){QWARN=1;try{toast('Storage is full, so recent changes may not be saved. Remove old saved stories or free space on your phone')}catch(_){}}}}
 /* small on-device error log (last 100), shown under Diagnostics */
 const ELOG=(()=>{try{return JSON.parse(localStorage.getItem('folio-err')||'[]')}catch(e){return[]}})();
 let ELT=0;
@@ -5247,7 +5247,7 @@ function fixA(a){if(a&&a.dd!==3){a.title=cleanT(a.title);a.summary=cleanT(a.summ
 const CK='folio-cache';
 /* a feed that runs on headline-search stand-ins (Google News / Bing) keeps only its own site's stories: ones saved before that rule, from other sites or whose site cannot be told, are left out when the saved copy is read back (the next refresh brings the right ones) */
 function offSiteSaved(a,f){try{if(!(a.gn||a.bing)||a.os||!f)return false;const sd=siteOf(f);if(!sd)return false;const h=host(a.link);return /news\.google\.|bing\.com/.test(h)||!onSite(h,sd)}catch(e){return false}}
-try{const c=JSON.parse(localStorage.getItem(CK)||'{}');for(const id in c){const fd=S.feeds.find(x=>x.id===id);items[id]=noTwins(c[id].map(fixA).filter(a=>!offSiteSaved(a,fd)&&!isCouponSpam(a)).map(a=>{if(a.gn&&/news\.google\.com/.test(a.link))a.img='';return a}))}}catch(e){}
+/* David 2026-11-05: when the phone's small storage is full, the story list lives in the app's large storage (IndexedDB, key '~cache') instead; CKI says which */let CKI=0;const ckLoad=(c,gap)=>{for(const id in c){if(gap&&(items[id]||[]).length)continue;const fd=S.feeds.find(x=>x.id===id);if(!fd&&gap)continue;items[id]=noTwins(c[id].map(fixA).filter(a=>!offSiteSaved(a,fd)&&!isCouponSpam(a)).map(a=>{if(a.gn&&/news\.google\.com/.test(a.link))a.img='';return a}))}};try{ckLoad(JSON.parse(localStorage.getItem(CK)||'{}'))}catch(e){}
 try{(S.saved||[]).forEach(fixA);(S.hl||[]).forEach(h=>h.art&&fixA(h.art))}catch(e){}
 let SCRT=0;
 /* background work (redraws after a refresh, saving the story cache, reading feeds) waits until you have stopped scrolling */
@@ -5303,7 +5303,8 @@ function saveCache(now){
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&SCT)saveCache(true)});addEventListener('pagehide',()=>{if(SCT)saveCache(true)});
 let SCSIG='';
 function saveCache0(force){if(FROZEN)return;/* nothing new since the last save: skip the 40-50 ms of packing it up again (leaving the app always saves) */const sg=itemsSig();if(sg===SCSIG&&!force)return;const c={};for(const id in items)if(S.feeds.some(f=>f.id===id))c[id]=items[id].slice(0,30).map(a=>({...a,html:(a.html||'').slice(0,3500)}));
- try{localStorage.setItem(CK,JSON.stringify(c));SCSIG=sg}catch(e){try{for(const id in c)c[id].forEach(a=>a.html='');localStorage.setItem(CK,JSON.stringify(c));SCSIG=sg}catch(_){/* storage nearly full: keep fewer stories per site rather than nothing, so a restart never opens on empty placeholders */try{for(const id in c)c[id]=c[id].slice(0,10);localStorage.setItem(CK,JSON.stringify(c));SCSIG=sg}catch(e3){try{elog('cache save',e3)}catch(_2){}}}}}
+ const big=()=>{try{if(!IDB.ok)return false}catch(_){return false}CKI=1;try{localStorage.removeItem(CK)}catch(_){}idbTx('readwrite',st=>{st.put({c},'~cache')});SCSIG=sg;return true};if(CKI&&big())return;
+ try{localStorage.setItem(CK,JSON.stringify(c));SCSIG=sg}catch(e){if(big())return;try{for(const id in c)c[id].forEach(a=>a.html='');localStorage.setItem(CK,JSON.stringify(c));SCSIG=sg}catch(_){/* storage nearly full: keep fewer stories per site rather than nothing, so a restart never opens on empty placeholders */try{for(const id in c)c[id]=c[id].slice(0,10);localStorage.setItem(CK,JSON.stringify(c));SCSIG=sg}catch(e3){try{elog('cache save',e3)}catch(_2){}}}}}
 const feedOf=id=>S.feeds.find(f=>f.id===id)||{title:'',url:''};
 const PAT=['mid'];
 const ago=d=>{if(!d)return'';const m=(Date.now()-d)/6e4;return m<60?Math.max(1,m|0)+'m':m<1440?(m/60|0)+'h':(m/1440|0)+'d'};
@@ -11754,6 +11755,7 @@ const acReady=(async()=>{
   acTrim();
  }else AC=old;
 })();
+acReady.then(()=>{try{if(!IDB.ok||localStorage.getItem(CK)!==null)return}catch(e){return}idbTx('readonly',st=>st.get('~cache')).then(v=>{if(!v||!v.c)return;CKI=1;ckLoad(v.c,1);loadRender()})});
 const acGet=l=>AC[l]?AC[l].h:null;
 const acHas=l=>!!AC[l];
 /* only the newest articles stay in memory; the rest are read from storage when opened */
@@ -12688,7 +12690,7 @@ function mzSum(){const o=['','Story opening (last '+MZ.L.length+' taps)'];
  try{const by={};NAVL.forEach(x=>(by[x.k]=by[x.k]||[]).push(x));const q=(v)=>{v=v.slice().sort((a,b)=>a-b);return v[v.length>>1]};
   o.push('Menu taps (this session, tap to page shown): '+(Object.keys(by).map(k=>k+' x'+by[k].length+' median '+q(by[k].map(x=>x.ms))+' ms (build '+q(by[k].map(x=>x.b))+') slowest '+Math.max(...by[k].map(x=>x.ms))).join(' · ')||'none yet'));
   const lf=localStorage.getItem('folio')||'';let all=0;for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);all+=k.length+(localStorage.getItem(k)||'').length}
-  o.push('Library size '+Math.round(lf.length/1024)+' KB of '+Math.round(all/1024)+' KB stored · stories in memory '+Object.values(items).reduce((n,l)=>n+l.length,0)+' · feeds '+S.feeds.length+' · read marks '+Object.keys(S.read).length+' · history '+(S.hist||[]).length+' · saved '+S.saved.length);
+  o.push('Library size '+Math.round(lf.length/1024)+' KB of '+Math.round(all/1024)+' KB stored · stories in memory '+Object.values(items).reduce((n,l)=>n+l.length,0)+' · feeds '+S.feeds.length+' · read marks '+Object.keys(S.read).length+' · history '+(S.hist||[]).length+' · saved '+S.saved.length+' · biggest parts '+Object.keys(S).map(k=>[k,(JSON.stringify(S[k])||'').length]).sort((x,y)=>y[1]-x[1]).slice(0,5).map(x=>x[0]+' '+Math.round(x[1]/1024)+' KB').join(', ')+(CKI?' · story list in large storage':''));
   o.push('Busy spells over 50 ms since launch: '+LT.n+' · total '+Math.round(LT.ms)+' ms · longest '+Math.round(LT.max)+' ms · uptime '+Math.round(performance.now()/1000)+' s'+(LT.top.length?' · longest at '+LT.top.map(x=>x[0]+'ms '+x[1]+'s').join(', '):''))}catch(e){}
  try{o.push('Slowest frames: '+(LOAF.map(x=>x.d+'ms at '+x.t+'s ('+x.s+(x.r>x.d*.5?', mostly drawing':', mostly script')+')').join(' | ')||'none over 120 ms (or not supported)'))}catch(e){}
  try{const by={};MZ.L.forEach(x=>(by[x.k]=by[x.k]||[]).push(x.ms));
@@ -13883,8 +13885,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.05a';const APP_LABEL='1.253';
-const CHANGES=["Sites that turn the app away as a \"robot\" are now opened in a hidden browser on your phone, so more of them load. Other companies' ads and trackers on those pages are blocked","The app now tells sites the real Chrome version on your phone, which looks less like a robot","After the app has been in the background, it asks one site first and the rest once that site answers, so fewer sites come up empty","Say \"Hey Google, play The Daily on CyPress Reader\" (or a folder name, like \"play Tech\"). Settings, Listen, Voice help lists what to say, plus links for routines","Keyboard shortcuts moved off the main Settings list, into About, Advanced"];
+const APP_VERSION='2026.11.05b';const APP_LABEL='1.254';
+const CHANGES=["Leaving the app while it refreshes no longer marks your sites offline: their stories stay, and they refresh again when you come back","When your phone's storage for the app is full, your recent stories move to the app's larger storage, so they are still there after the app restarts"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
