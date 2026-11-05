@@ -73,7 +73,7 @@ public class CyNativePlugin extends Plugin {
         String url = call.getString("url", "");
         if (!url.startsWith("https://") && !url.startsWith("http://")) { call.reject("bad address"); return; }
         synchronized (bQueue) {
-            if (bQueue.size() >= 4) { call.reject("busy"); return; }
+            if (bQueue.size() >= 2) { call.reject("busy"); return; } // a third waiting page would time out on the app side before its turn; it is asked again on the next refresh instead
             bQueue.add(call);
         }
         getActivity().runOnUiThread(this::bNext);

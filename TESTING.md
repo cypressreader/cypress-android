@@ -1314,3 +1314,8 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 
 ## 1.254: story list moves to large storage when full
 - Settings, About, Diagnostics: "Library size" line now ends with "biggest parts …" and, when moved, "story list in large storage". The "cache save … exceeded the quota" errors should stop. Close the app fully, reopen: the stories from the last refresh are there (not older ones). Send the "biggest parts" line so we can see what fills the 3.7 MB library.
+
+## 1.255: refresh speed (eldcyo)
+- Pull to refresh with a few slow sites: the refresh should finish noticeably sooner than 1.254; no site should show (offline) just because it was slow.
+- Scroll continuously during a refresh: the progress count should keep rising while you scroll.
+- Open several stories in a row: no hitch as the reader slides in (read marks now save 1.2 s later, flushed when you leave the app).
