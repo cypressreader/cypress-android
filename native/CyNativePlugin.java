@@ -39,6 +39,127 @@ import java.util.Locale;
 @CapacitorPlugin(name = "CyNative")
 public class CyNativePlugin extends Plugin {
 
+    // ------------------------------------------------------------ looking like the phone's own browser
+
+    private static volatile String UA_CACHE;
+
+    /** The label Chrome on this phone sends (the reduced form real Chrome uses), with the phone's real Chrome version.
+     *  An out-of-date version number is one of the things sites use to spot bots. */
+    static String chromeUa(Context c) {
+        String u = UA_CACHE;
+        if (u != null) return u;
+        String v = "140";
+        try {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("Chrome/(\\d+)").matcher(android.webkit.WebSettings.getDefaultUserAgent(c));
+            if (m.find()) v = m.group(1);
+        } catch (Throwable t) {
+            // keep the fallback
+        }
+        u = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/" + v + ".0.0.0 Mobile Safari/537.36";
+        UA_CACHE = u;
+        return u;
+    }
+
+    /** Sites whose bot check runs from another address; everything else from other companies is blocked in the hidden browser. */
+    private static final String[] CHECK_HOSTS = {"challenges.cloudflare.com", "captcha-delivery.com", "hcaptcha.com", "perimeterx.net", "px-cdn.net", "px-cloud.net"};
+    private final java.util.ArrayDeque<PluginCall> bQueue = new java.util.ArrayDeque<>();
+    private boolean bBusy = false;
+
+    /** Loads a page that blocked the app in a hidden browser view (the phone's Chrome engine: the same connection,
+     *  cookies and bot-check handling as opening it yourself), then reads the page's own text from the site.
+     *  One page at a time; the site's own files and its bot check load, other companies' scripts are blocked. */
+    @PluginMethod
+    public void browserFetch(PluginCall call) {
+        String url = call.getString("url", "");
+        if (!url.startsWith("https://") && !url.startsWith("http://")) { call.reject("bad address"); return; }
+        synchronized (bQueue) {
+            if (bQueue.size() >= 4) { call.reject("busy"); return; }
+            bQueue.add(call);
+        }
+        getActivity().runOnUiThread(this::bNext);
+    }
+
+    private void bNext() {
+        final PluginCall call;
+        synchronized (bQueue) {
+            if (bBusy || bQueue.isEmpty()) return;
+            bBusy = true;
+            call = bQueue.poll();
+        }
+        final String url = call.getString("url", "");
+        final android.os.Handler h = new android.os.Handler(android.os.Looper.getMainLooper());
+        final android.webkit.WebView w;
+        try {
+            w = new android.webkit.WebView(getContext());
+        } catch (Throwable t) {
+            bBusy = false;
+            call.reject("no browser: " + t);
+            return;
+        }
+        final boolean[] done = {false};
+        final String host = Uri.parse(url).getHost() == null ? "" : Uri.parse(url).getHost().toLowerCase(Locale.ROOT).replaceFirst("^www\\.", "");
+        final Runnable[] fin = new Runnable[1];
+        final String[] got = {""};
+        fin[0] = () -> {
+            if (done[0]) return;
+            done[0] = true;
+            h.removeCallbacksAndMessages(null);
+            try { w.stopLoading(); w.destroy(); } catch (Throwable t) { /* ignore */ }
+            JSObject r = new JSObject();
+            r.put("text", got[0]);
+            call.resolve(r);
+            synchronized (bQueue) { bBusy = false; }
+            bNext();
+        };
+        try {
+            android.webkit.WebSettings ws = w.getSettings();
+            ws.setJavaScriptEnabled(true);
+            ws.setDomStorageEnabled(true);
+            ws.setLoadsImagesAutomatically(false);
+            ws.setBlockNetworkImage(true);
+            ws.setMediaPlaybackRequiresUserGesture(true);
+            ws.setUserAgentString(chromeUa(getContext()));
+            android.webkit.CookieManager.getInstance().setAcceptCookie(true);
+            w.layout(0, 0, 1080, 1920);
+            w.addJavascriptInterface(new Object() {
+                @android.webkit.JavascriptInterface
+                public void done(String t) {
+                    got[0] = t == null ? "" : t;
+                    h.post(fin[0]);
+                }
+            }, "CyGrab");
+            final String grab = "(function(){var t=document.title||'';"
+                + "if(/just a moment|attention required|checking your browser|verify you are human|please wait|one more step/i.test(t))return 'wait';"
+                + "fetch(location.href,{credentials:'include'}).then(function(r){return r.ok?r.text():''}).then(function(x){CyGrab.done(x)},function(){CyGrab.done('')});return 'ok'})()";
+            final Runnable[] check = new Runnable[1];
+            check[0] = () -> {
+                if (done[0]) return;
+                w.evaluateJavascript(grab, v -> {
+                    if (!done[0] && v != null && v.contains("wait")) h.postDelayed(check[0], 1500);
+                });
+            };
+            w.setWebViewClient(new android.webkit.WebViewClient() {
+                @Override
+                public void onPageFinished(android.webkit.WebView view, String u) {
+                    h.removeCallbacks(check[0]);
+                    h.postDelayed(check[0], 800);
+                }
+
+                @Override
+                public android.webkit.WebResourceResponse shouldInterceptRequest(android.webkit.WebView view, android.webkit.WebResourceRequest req) {
+                    String rh = req.getUrl().getHost() == null ? "" : req.getUrl().getHost().toLowerCase(Locale.ROOT);
+                    if (rh.equals(host) || rh.endsWith("." + host) || host.endsWith("." + rh)) return null;
+                    for (String c : CHECK_HOSTS) if (rh.equals(c) || rh.endsWith("." + c)) return null;
+                    return new android.webkit.WebResourceResponse("text/plain", "utf-8", new java.io.ByteArrayInputStream(new byte[0]));
+                }
+            });
+            h.postDelayed(fin[0], 20000);
+            w.loadUrl(url);
+        } catch (Throwable t) {
+            fin[0].run();
+        }
+    }
+
     private volatile long received = 0;
     private volatile long total = 0;
     private volatile boolean busy = false;

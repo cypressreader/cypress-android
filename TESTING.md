@@ -1303,3 +1303,8 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Links cypress://daily, cypress://next, cypress://folder/Tech from Samsung Modes and Routines (or a browser address bar) open the app and play.
 - Settings > Listen > Voice and car help opens and closes (back button too); text fits the Fold both ways.
 - Lock-screen controls still behave as before (the media session is now shared and outlives the reading).
+- UPDATE (same batch): Android Auto was dropped at David's request; skip the Android Auto checks above. The help row is now "Voice help".
+
+## Sites that block the app (batch or13s3, implemented, unverified)
+- Feeds that used to fail with "Could not fetch" / HTTP 403 now load; Diagnostics log shows "trying the phone browser" for them.
+- Refresh stays quick when nothing is blocked; battery and data look normal after a day.

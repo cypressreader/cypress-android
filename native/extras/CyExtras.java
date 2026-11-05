@@ -243,7 +243,7 @@ public final class CyExtras {
         return PLAY_MARK + q;
     }
 
-    /** Android Auto list ids (CyAutoService): "daily" or "folder:<name>". */
+    /** Media ids a controller may ask for: "daily" or "folder:<name>". */
     static String mediaIdMarker(String id) {
         if (id != null && id.startsWith("folder:")) return PLAY_MARK + clip(id.substring(7));
         return "cypress:view:listen";
@@ -272,16 +272,6 @@ public final class CyExtras {
         i.putExtra(EXTRA_OPEN_URL, marker);
         if (plugin != null) { handleIntent(i); return; }
         try { c.startActivity(i); } catch (Throwable t) { Log.w(TAG, "voice open not allowed: " + t); }
-    }
-
-    /** Folder names for the Android Auto list, saved by the page (autoFolders). */
-    static void saveFolders(Context c, String joined) {
-        c.getSharedPreferences("cy_auto", Context.MODE_PRIVATE).edit().putString("folders", joined).apply();
-    }
-
-    static String[] folders(Context c) {
-        String j = c.getSharedPreferences("cy_auto", Context.MODE_PRIVATE).getString("folders", "");
-        return j.length() == 0 ? new String[0] : j.split("\n");
     }
 
     private static final Pattern SHARE_PATH = Pattern.compile("^/s/[A-Za-z0-9_-]{6,4000}/?$");

@@ -233,7 +233,7 @@ public class CyMediaService extends Service {
         abandonFocus();
         try {
             if (session != null) {
-                // the session outlives the service: Android Auto (CyAutoService) keeps its token
+                // the session outlives the service so voice can still start The Daily
                 session.setPlaybackState(new PlaybackState.Builder().setActions(VOICE_ACTIONS | PlaybackState.ACTION_PLAY)
                     .setState(PlaybackState.STATE_STOPPED, 0, 0f).build());
                 session = null;
@@ -583,11 +583,11 @@ public class CyMediaService extends Service {
         detached = false;
     }
 
-    /** Voice and Android Auto ask for these on top of the play/pause buttons. */
+    /** Voice asks for these on top of the play/pause buttons. */
     static final long VOICE_ACTIONS = PlaybackState.ACTION_PLAY_FROM_SEARCH | PlaybackState.ACTION_PLAY_FROM_MEDIA_ID;
     private static MediaSession shared;
 
-    /** One media session for the whole app, kept while the process lives, so Android Auto and voice can start
+    /** One media session for the whole app, kept while the process lives, so voice can start
      *  The Daily even when nothing is playing. Buttons go to the running reading when there is one. */
     static synchronized MediaSession sharedSession(Context c) {
         if (shared != null) return shared;
