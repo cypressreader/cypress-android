@@ -9484,28 +9484,29 @@ function getFull(url,light){
 }
 
 /* last-resort routes for stubborn sites (Time, etc.): browser-rendered reader, AMP copy */
-async function getFullDeep(url,lg){
+async function getFullDeep(url,lg,sig){
+ /* review L7: one stop for every route here; pulled when a route wins or the caller gives up */const ac=new AbortController();if(sig){if(sig.aborted)ac.abort();else sig.addEventListener('abort',()=>ac.abort(),{once:true})}
  url=await gnResolve(url);
  const base=url.replace(/[?#].*$/,'').replace(/\/$/,'');
  const jina=(why,hd,html)=>(async()=>{
   if(noReader(url))throw 0;
-  const c=new AbortController(),to=setTimeout(()=>c.abort(),28000);
+  const c=new AbortController(),to=setTimeout(()=>c.abort(),28000);ac.signal.addEventListener('abort',()=>c.abort(),{once:true});
   try{
    const r=await fetch('https://r.jina.ai/'+url,{signal:c.signal,headers:hd});const t=await r.text();
    if(!r.ok){lg.push(why+': HTTP '+r.status);throw 0}
    if(t.length<1500){lg.push(why+': page too short ('+t.length+' chars)');throw 0}
    const f=html?extract(t,url):md(t,url);if(!f||f.textContent.length<600){lg.push(why+': little text left');throw 0}f.tier='reader';return f;
-  }catch(e){if(c.signal.aborted)lg.push(why+': timed out');else if(!(lg[lg.length-1]||'').startsWith(why))lg.push(why+': blocked or offline');throw e}
+  }catch(e){if(ac.signal.aborted){}else if(c.signal.aborted)lg.push(why+': timed out');else if(!(lg[lg.length-1]||'').startsWith(why))lg.push(why+': blocked or offline');throw e}
   finally{clearTimeout(to)}
  })();
  const tasks=[
   jina('reader (browser mode)',{'X-Engine':'browser','X-Return-Format':'markdown','X-No-Cache':'true','X-Timeout':'25'},0),
   jina('reader (page source)',{'X-Return-Format':'html','X-No-Cache':'true'},1),
-  fromPage(base+'/amp/',lg,'AMP copy via ').then(x=>{if(!x)throw 0;x.tier='deep';return x}),
-  fromPage(url+(url.includes('?')?'&':'?')+'amp=1',lg,'AMP copy 2 via ').then(x=>{if(!x)throw 0;x.tier='deep';return x})
+  fromPage(base+'/amp/',lg,'AMP copy via ',ac.signal).then(x=>{if(!x)throw 0;x.tier='deep';return x}),
+  fromPage(url+(url.includes('?')?'&':'?')+'amp=1',lg,'AMP copy 2 via ',ac.signal).then(x=>{if(!x)throw 0;x.tier='deep';return x})
  ];
  tasks.forEach(t=>t.catch(()=>{}));
- try{return await Promise.any(tasks)}catch(e){return null}
+ try{return await Promise.any(tasks)}catch(e){return null}finally{ac.abort()}
 }
 var DEEPBUSY=0;
 /* a body this long is the whole story: never show a 'couldn't get it' or 'trying' banner over it */
@@ -9798,7 +9799,7 @@ async function mirrorFor(a){
    let l=gnDecode(m.link)||m.link;if(/news\.google\./.test(l||''))try{l=await gnResolve(l)}catch(e){l=''}
    const h=host(l||'');if(!l||/news\.google\./.test(l)||!h||h===own||h.endsWith(own)||own.endsWith(h)||!WIREHOST.test(h)||tried.has(l))continue;
    tried.add(l);if(tried.size>3)break;
-   const n=await Promise.race([getFull(l),new Promise(r=>setTimeout(()=>r(null),15000))]).catch(()=>null);
+   const n=await Promise.race([getFull(l),new Promise(r=>setTimeout(()=>{const e=INF[l];if(e&&e.ctx.stop)e.ctx.stop();r(null)},15000))]).catch(()=>null);
    if(n&&!n.gated_preview&&n.textContent.length>600&&sameStory(n.textContent,a)&&!footerish(n.textContent)){n.tier='mirror';return {n,u:l}}
   }
  }catch(e){}
@@ -9957,11 +9958,11 @@ async function openReader(a){use1('open');RDT=Date.now();
  if(!n&&alts.length){const ms=await Promise.all(alts.map(u=>getFull(u).catch(()=>null)));if(my!==tok)return;for(let i=0;i<alts.length;i++){const m=ms[i];if(m&&sameStory(m.textContent,a)){n=m;src=alts[i];break}}}
  let gated=false;try{gated=(LG[a.link]||[]).some(x=>/HTTP (401|402|403|429|451)\b/.test(String(x)))}catch(e){}
  /* nothing came back: the slow browser-rendered routes start now, alongside the syndication search, instead of after it */
- let deepP=null,deepRan=false;if(!n&&online()&&!TRUNCDONE.has(a.link)){deepRan=true;deepP=getFullDeep(a.link,LG['deep:'+a.link]=[]).catch(()=>null)}
+ let deepP=null,deepRan=false;const dpc=new AbortController();if(!n&&online()&&!TRUNCDONE.has(a.link)){deepRan=true;deepP=getFullDeep(a.link,LG['deep:'+a.link]=[],dpc.signal).catch(()=>null)}
  if(online()&&!TRUNCDONE.has(a.link)&&(needsMore(n,src)||truncReason(n,src,src===a.link))){const dr=await Promise.race([deeperTiers(a,n,src),new Promise(r=>setTimeout(()=>r(null),34000))]);if(my!==tok)return;if(dr&&dr.n){n=dr.n;src=dr.src}}
  if(my!==tok)return;
- if(!n&&deepP){const d=await Promise.race([deepP,new Promise(r=>setTimeout(()=>r(null),30000))]);if(my!==tok)return;if(d){const df=tidy(d.cloneNode(true));if(df.textContent.length>600&&textQuality(df.textContent).ok){df.tier='deep';n=df}}}
- mzDone(n?'network':'feed',a,src!==a.link?'mirror':(n&&n.tier)||(deepRan?'slow routes failed':'direct'));note.hidden=false;
+ if(!n&&deepP){const d=await Promise.race([deepP,new Promise(r=>setTimeout(()=>{dpc.abort();r(null)},30000))]);if(my!==tok)return;if(d){const df=tidy(d.cloneNode(true));if(df.textContent.length>600&&textQuality(df.textContent).ok){df.tier='deep';n=df}}}
+ dpc.abort();mzDone(n?'network':'feed',a,src!==a.link?'mirror':(n&&n.tier)||(deepRan?'slow routes failed':'direct'));note.hidden=false;
  ALT=src!==a.link?src:(!n&&alts[0]?alts[0]:'');
  if(n&&n.textContent.length>Math.max(600,body.textContent.length+100)){
   a.tier=n.tier||(src!==a.link?'mirror':'direct');
@@ -16351,7 +16352,7 @@ async function gnewsFeed(f,s,why){
  if(!l.length){lg.push('Google News: nothing found for '+s);throw new Error('empty')}
  try{ /* Bing's news feed carries photos; borrow them for matching headlines */
   /* the photos are optional: never hold the headlines back for more than 4s waiting on Bing */
-  const bx=await Promise.race([fetchText(bingFor(s),t=>/<item[\s>]/i.test(t),{push:()=>{}}),new Promise((_,j)=>setTimeout(()=>j(0),4000))]);
+  const bc=new AbortController(),bx=await Promise.race([fetchText(bingFor(s),t=>/<item[\s>]/i.test(t),{push:()=>{},sig:bc.signal}),new Promise((_,j)=>setTimeout(()=>{bc.abort();j(0)},4000))]);
   const nt=t=>String(t||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
   const cut=t=>String(t||'').replace(/\s+-\s+[^-]{2,40}$/,'');
   const bl=parseBing(bx,f).list,bm=new Map(bl.filter(a=>a.img).map(a=>[nt(cut(a.title)),a.img])),bk=new Map(bl.map(a=>[nt(cut(a.title)),a]));
