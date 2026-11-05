@@ -7943,7 +7943,7 @@ function setBlocks(head,B,first,step){
  NRIO.observe(s);
 }
 let NRS=null;
-addEventListener('resize',()=>{clearTimeout(addEventListener._nt);addEventListener._nt=setTimeout(()=>{const v=nrMode();if(NRS!==null&&v!==NRS)try{render()}catch(e){elog('render',e)}},200)});
+addEventListener('resize',()=>{clearTimeout(addEventListener._nt);addEventListener._nt=setTimeout(()=>{const v=nrMode();if(NRS!==null&&v!==NRS)shapeRender()},200)});
 /* some feeds mix in pages that are not stories at all (the Goodreads Blog feed is full of spam user profiles, “H19”, “TT789”): only real blog posts are kept */
 const JUNKFEEDS=[[/(^|\.)goodreads\.com$/,/\/blog\//]];
 /* the Goodreads blog feed is flooded with spam profile pages. The link is the best sign, but the titles give them away too: a name followed by (Author of …) or by a made-up handle in brackets, or just a code like TT789 */
@@ -8427,7 +8427,10 @@ function dayPreload(){
  const by=storyMap();
  /* the edition's own stories, in the order the Daily shows them (also when another view is open: the edition is kept per day and rebuilt from the pool), no older than three days; pictures are left to load when you scroll to them */
  const links=(S.sel==='today'&&DGL.length)?DGL:(()=>{try{return dayEdition(topOf(S.feeds,400,new Set(),null,true)).map(a=>a.link)}catch(e){return []}})();
- DPRE.q=links.map(l=>by.get(l)).filter(a=>a&&!DPRE.tried.has(a.link)&&!acHas(a.link)&&!S.read[a.link]&&(!a.date||Date.now()-a.date<72*36e5)).slice(0,dpCap());
+ const ok=a=>a&&!DPRE.tried.has(a.link)&&!acHas(a.link)&&!S.read[a.link]&&(!a.date||Date.now()-a.date<72*36e5);
+ DPRE.q=links.map(l=>by.get(l)).filter(ok).slice(0,dpCap());
+ /* on Wi-Fi the newest unread stories outside the edition follow, so All Stories opens as quickly as the Daily */
+ if(netKind()==='wifi'){const inq=new Set(DPRE.q.map(a=>a.link)),more=pfCap(ED_N);if(more>0){const rest=[...by.values()].filter(a=>ok(a)&&!inq.has(a.link)).sort((x,y)=>(y.date||0)-(x.date||0)).slice(0,more);DPRE.q.push(...rest)}}
  if(DPRE.q.length)dpRun();
 }
 /* the edition is made ready in the background whichever view the app opens on: shortly after start, when the phone is back online, when the app comes to the front, and every few minutes (it does nothing unless it is on Wi-Fi, idle and the edition has stories not yet stored) */
@@ -14430,8 +14433,10 @@ function trimWords(s,n){
  t=t.replace(/(?:\s+(?:a|an|the|of|to|in|on|at|by|for|with|and|or|but|as|from|that|than|into|its|his|her|their|our|your|is|are|was|were|be))+[\s,;:–—-]*$/i,'').replace(/[\s,;:–—-]+$/,'');
  return t+'…';
 }
+const DEKC=new Map();/* excerpts are cut once per story, not on every redraw: the stored text was parsed again for each card */
 function dekOf(a,n){
- n=n||150;const strip=x=>unMd(String(x||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim());
+ n=n||150;const dk=a.link+'|'+n+'|'+(AC[a.link]?1:0)+'|'+(a.summary||'').length;if(DEKC.has(dk))return DEKC.get(dk);if(DEKC.size>3000)DEKC.clear();const r=dekOf0(a,n);DEKC.set(dk,r);return r}
+function dekOf0(a,n){const strip=x=>unMd(String(x||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim());
  const c=[];
  try{const L=ledeOf(a);if(L)c.push(L)}catch(e){}
  c.push(strip(a.summary));
@@ -16147,7 +16152,10 @@ function applySbw(){const r=document.documentElement.style;if(S.sbw)r.setPropert
  applySbw();
 })();
 /* One place for "the window changed shape". Two things the Android WebView does differently from a browser: while the resize event is still running it can still report the size the screen had before, and a rotation does not always resize at all. So the width is read again inside the delay, and rotation is listened to as well. */
-function shapeChanged(){try{rdFreeze(false)}catch(e){}applySbw();clearTimeout(screenMode.t);screenMode.t=setTimeout(()=>{VW=innerWidth;VH=innerHeight;screenMode();if($('#rd').classList.contains('on'))flexUi();if(layoutKey()!==LK&&!$('#rd').classList.contains('on')&&!document.body.classList.contains('open'))render()},120)}
+/* unfolding or rotating swaps the phone layout for the wide one: the story at the top stays at the top, the swap counts as something you did (so the far-down guard in render lets it through), and the old and new layouts cross-fade (the browser's own view transition) instead of popping */
+function shapeRender(){if(shapeRender.on)return;/* one swap at a time: the fade defers the redraw, and a second resize tick in that gap would start it over */UACT=Date.now();try{rdAnchorSave()}catch(e){}const run=()=>{shapeRender.on=false;try{render()}catch(e){elog('render',e)}try{rdAnchorRestore()}catch(e){}};
+ if(document.startViewTransition&&!reduced()&&!document.documentElement.classList.contains('lowp')&&!$('#rd').classList.contains('on')){try{shapeRender.on=true;const t=document.startViewTransition(run);t.finished.catch(()=>{});t.updateCallbackDone.catch(()=>{shapeRender.on=false})}catch(e){shapeRender.on=false;run()}}else run()}
+function shapeChanged(){try{rdFreeze(false)}catch(e){}applySbw();clearTimeout(screenMode.t);screenMode.t=setTimeout(()=>{VW=innerWidth;VH=innerHeight;screenMode();if($('#rd').classList.contains('on'))flexUi();if(layoutKey()!==LK&&!$('#rd').classList.contains('on')&&!document.body.classList.contains('open'))shapeRender()},120)}
 addEventListener('resize',shapeChanged);
 addEventListener('orientationchange',()=>{shapeChanged();setTimeout(shapeChanged,350)});
 /* folding or unfolding a phone: the WebView can fire its resize while still reporting the old size, so the layout is worked out for the other screen. So the size is looked at again a little later, and if it moved since the last resize, the resize is replayed for every listener */
