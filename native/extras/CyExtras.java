@@ -182,6 +182,16 @@ public final class CyExtras {
 
             String url = intent.getStringExtra(EXTRA_OPEN_URL);
             if (url != null && url.length() > 0) intent.removeExtra(EXTRA_OPEN_URL);
+            // "Hey Google, play The Daily on CyPress Reader" (the phone's Assistant opens the app with the words)
+            if ((url == null || url.length() == 0) && "android.media.action.MEDIA_PLAY_FROM_SEARCH".equals(intent.getAction())) {
+                url = searchMarker(intent.getStringExtra(android.app.SearchManager.QUERY));
+                intent.setAction(Intent.ACTION_MAIN);
+            }
+            // cypress://daily, cypress://next, cypress://folder/<name> (routines and other apps)
+            if ((url == null || url.length() == 0) && Intent.ACTION_VIEW.equals(intent.getAction())) {
+                String m = linkMarker(intent.getData());
+                if (m != null) { url = m; intent.setData(null); }
+            }
             // D6: a CyPress share link (https://cypressreader.com/s/...) tapped in another app opens here.
             if ((url == null || url.length() == 0) && Intent.ACTION_VIEW.equals(intent.getAction())) {
                 String link = shareLinkOf(intent.getData());
@@ -190,7 +200,7 @@ public final class CyExtras {
             }
             if (url != null && url.length() > 0) {
                 // The internal pack/digest/shortcut markers and web addresses are fine; anything else (file:, intent:, javascript:) is dropped.
-                boolean ok = PACK_URL.equals(url) || DIGEST_URL.equals(url) || SHORTCUT_URLS.contains(url) || isHttpUrl(url);
+                boolean ok = PACK_URL.equals(url) || DIGEST_URL.equals(url) || SHORTCUT_URLS.contains(url) || url.startsWith(PLAY_MARK) || isHttpUrl(url);
                 boolean dup = false;
                 if (ok) {
                     long now = System.currentTimeMillis();
@@ -216,7 +226,63 @@ public final class CyExtras {
 
     /** Launcher shortcut markers (native/extras/res/xml/cy_shortcuts.xml); the web app routes them in handleOpen. */
     static final java.util.Set<String> SHORTCUT_URLS = new java.util.HashSet<>(java.util.Arrays.asList(
-        "cypress:view:listen", "cypress:view:saved", "cypress:view:search"));
+        "cypress:view:listen", "cypress:view:saved", "cypress:view:search", "cypress:view:next"));
+
+    /** "cypress:play:<words>": the page plays the folder those words name, or The Daily. */
+    static final String PLAY_MARK = "cypress:play:";
+
+    static String clip(String q) {
+        q = q == null ? "" : q.replaceAll("[\\p{Cntrl}]", " ").trim();
+        return q.length() > 80 ? q.substring(0, 80) : q;
+    }
+
+    /** What was said after "play": nothing or "The Daily" plays The Daily, a folder name plays that folder. */
+    static String searchMarker(String q) {
+        q = clip(q).toLowerCase(Locale.ROOT).replaceAll("\\b(on |in )?cypress( reader)?\\b", " ").trim();
+        if (q.length() == 0 || q.matches(".*\\b(the )?daily\\b.*") || q.matches("(the )?news|headlines|my news")) return "cypress:view:listen";
+        return PLAY_MARK + q;
+    }
+
+    /** Android Auto list ids (CyAutoService): "daily" or "folder:<name>". */
+    static String mediaIdMarker(String id) {
+        if (id != null && id.startsWith("folder:")) return PLAY_MARK + clip(id.substring(7));
+        return "cypress:view:listen";
+    }
+
+    static String linkMarker(android.net.Uri u) {
+        try {
+            if (u == null || !"cypress".equalsIgnoreCase(u.getScheme())) return null;
+            String h = u.getHost() == null ? "" : u.getHost().toLowerCase(Locale.ROOT);
+            if (h.equals("daily") || h.equals("play")) return "cypress:view:listen";
+            if (h.equals("next")) return "cypress:view:next";
+            if (h.equals("folder")) {
+                String p = u.getPath() == null ? "" : u.getPath().replaceAll("^/+|/+$", "");
+                return p.length() > 0 ? PLAY_MARK + clip(p) : "cypress:view:listen";
+            }
+        } catch (Throwable t) {
+            // ignore
+        }
+        return null;
+    }
+
+    /** Voice or the car asked for something: hand it to the page, or open the app with it when the page isn't running. */
+    static void voiceOpen(Context c, String marker) {
+        Intent i = new Intent(c, MainActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        i.putExtra(EXTRA_OPEN_URL, marker);
+        if (plugin != null) { handleIntent(i); return; }
+        try { c.startActivity(i); } catch (Throwable t) { Log.w(TAG, "voice open not allowed: " + t); }
+    }
+
+    /** Folder names for the Android Auto list, saved by the page (autoFolders). */
+    static void saveFolders(Context c, String joined) {
+        c.getSharedPreferences("cy_auto", Context.MODE_PRIVATE).edit().putString("folders", joined).apply();
+    }
+
+    static String[] folders(Context c) {
+        String j = c.getSharedPreferences("cy_auto", Context.MODE_PRIVATE).getString("folders", "");
+        return j.length() == 0 ? new String[0] : j.split("\n");
+    }
 
     private static final Pattern SHARE_PATH = Pattern.compile("^/s/[A-Za-z0-9_-]{6,4000}/?$");
 

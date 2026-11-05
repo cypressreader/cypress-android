@@ -233,8 +233,9 @@ public class CyMediaService extends Service {
         abandonFocus();
         try {
             if (session != null) {
-                session.setActive(false);
-                session.release();
+                // the session outlives the service: Android Auto (CyAutoService) keeps its token
+                session.setPlaybackState(new PlaybackState.Builder().setActions(VOICE_ACTIONS | PlaybackState.ACTION_PLAY)
+                    .setState(PlaybackState.STATE_STOPPED, 0, 0f).build());
                 session = null;
             }
         } catch (Throwable t) {
@@ -582,24 +583,45 @@ public class CyMediaService extends Service {
         detached = false;
     }
 
-    private void createSession() {
-        session = new MediaSession(this, "CyPress");
-        session.setCallback(new MediaSession.Callback() {
+    /** Voice and Android Auto ask for these on top of the play/pause buttons. */
+    static final long VOICE_ACTIONS = PlaybackState.ACTION_PLAY_FROM_SEARCH | PlaybackState.ACTION_PLAY_FROM_MEDIA_ID;
+    private static MediaSession shared;
+
+    /** One media session for the whole app, kept while the process lives, so Android Auto and voice can start
+     *  The Daily even when nothing is playing. Buttons go to the running reading when there is one. */
+    static synchronized MediaSession sharedSession(Context c) {
+        if (shared != null) return shared;
+        final Context app = c.getApplicationContext();
+        shared = new MediaSession(app, "CyPress");
+        shared.setCallback(new MediaSession.Callback() {
             @Override
             public void onPlay() {
-                CyExtras.emitMediaAction("play");
+                if (instance != null || CyExtras.plugin != null) CyExtras.emitMediaAction("play");
+                else CyExtras.voiceOpen(app, "cypress:view:listen");
+            }
+
+            @Override
+            public void onPlayFromSearch(String query, android.os.Bundle extras) {
+                CyExtras.voiceOpen(app, CyExtras.searchMarker(query));
+            }
+
+            @Override
+            public void onPlayFromMediaId(String id, android.os.Bundle extras) {
+                CyExtras.voiceOpen(app, CyExtras.mediaIdMarker(id));
             }
 
             @Override
             public void onPause() {
-                if (playing) pauseHere();
+                CyMediaService s = instance;
+                if (s != null && s.playing) s.pauseHere();
                 else CyExtras.emitMediaAction("pause");
             }
 
             @Override
             public void onSeekTo(long pos) {
                 posMs = pos; // the bar stays where it was dropped until the page confirms
-                refreshSession();
+                CyMediaService s = instance;
+                if (s != null) s.refreshSession();
                 CyExtras.emitMediaAction("seek", pos);
             }
 
@@ -622,10 +644,20 @@ public class CyMediaService extends Service {
             @Override
             public void onStop() {
                 CyExtras.emitMediaAction("stop");
-                stopSpeech();
-                shutdown();
+                CyMediaService s = instance;
+                if (s != null) {
+                    s.stopSpeech();
+                    s.shutdown();
+                }
             }
         });
+        shared.setPlaybackState(new PlaybackState.Builder().setActions(VOICE_ACTIONS | PlaybackState.ACTION_PLAY)
+            .setState(PlaybackState.STATE_STOPPED, 0, 0f).build());
+        return shared;
+    }
+
+    private void createSession() {
+        session = sharedSession(this);
         session.setActive(true);
         refreshSession();
     }
@@ -634,7 +666,7 @@ public class CyMediaService extends Service {
         if (session == null) return;
         try {
             long actions = PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY_PAUSE
-                | PlaybackState.ACTION_STOP | PlaybackState.ACTION_SEEK_TO;
+                | PlaybackState.ACTION_STOP | PlaybackState.ACTION_SEEK_TO | VOICE_ACTIONS;
             if (canNext) actions |= PlaybackState.ACTION_SKIP_TO_NEXT;
             if (canPrev) actions |= PlaybackState.ACTION_SKIP_TO_PREVIOUS;
             long pos = posMs >= 0 ? posMs : PlaybackState.PLAYBACK_POSITION_UNKNOWN;

@@ -1296,3 +1296,10 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Same branch: Newsprint dark is calmer: dim lines, cards closer to the background, press red labels, warm slightly dimmed photos. Check Daily, All Stories, reader, side bar in Newsprint + dark.
 - Branch claude/handoff-continuation-c0857q after 1.251: when storage is full, saving settings no longer deletes every saved story (`quotaFix` keeps 10 per site, logs 'library save'). Check: fill a feed, minimize for a while (or swipe the app away), reopen: the folder should still be full, not one site's stories on a cover. If it still happens, Diagnostics error log should show 'library save' or 'cache save'.
 - Branch after 1.251: highlight menu (colors / Note / Listen, then Copy / Share / Follow / Junk) stays fully on screen: below the selection, else above, else at the bottom edge. Check on the Fold: select a long block that reaches the bottom of the page, tap Junk.
+
+## Voice, Android Auto and cypress:// links (batch or13s3, implemented, unverified)
+- Android Auto: turn on Unknown sources (Android Auto settings > tap Version 10x > ⋮ > Developer settings). CyPress Reader shows in media apps; list = The Daily, then folders; picking one starts reading (also when the app was closed).
+- "Hey Google, play The Daily on CyPress Reader" and "... play Tech on CyPress Reader" start the right list; "next"/"pause"/"resume" work while reading.
+- Links cypress://daily, cypress://next, cypress://folder/Tech from Samsung Modes and Routines (or a browser address bar) open the app and play.
+- Settings > Listen > Voice and car help opens and closes (back button too); text fits the Fold both ways.
+- Lock-screen controls still behave as before (the media session is now shared and outlives the reading).

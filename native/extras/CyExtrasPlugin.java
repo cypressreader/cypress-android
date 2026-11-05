@@ -79,6 +79,25 @@ public class CyExtrasPlugin extends Plugin {
         call.resolve(r);
     }
 
+    /** Folder names for the Android Auto list (The Daily first, then these). */
+    @PluginMethod
+    public void autoFolders(PluginCall call) {
+        try {
+            StringBuilder b = new StringBuilder();
+            com.getcapacitor.JSArray a = call.getArray("names");
+            for (int i = 0; a != null && i < a.length() && i < 50; i++) {
+                String n = CyExtras.clip(a.optString(i, "")).replace('\n', ' ');
+                if (n.length() == 0) continue;
+                if (b.length() > 0) b.append('\n');
+                b.append(n);
+            }
+            CyExtras.saveFolders(getContext(), b.toString());
+            call.resolve();
+        } catch (Throwable t) {
+            call.reject("autoFolders failed: " + msg(t));
+        }
+    }
+
     @PluginMethod
     public void features(PluginCall call) {
         try {

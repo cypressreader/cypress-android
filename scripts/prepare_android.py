@@ -133,6 +133,20 @@ OPML_FILTER = """            <intent-filter>
             </intent-filter>
 """
 
+# Voice: "Hey Google, play The Daily on CyPress Reader" opens the app with the words; cypress://daily, cypress://next,
+# cypress://folder/<name> come from routines and other apps. Both are handled in CyExtras.handleIntent.
+VOICE_FILTER = """            <intent-filter>
+                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="cypress" />
+            </intent-filter>
+"""
+
 # D6: long-press launcher shortcuts (Play the Daily, Saved, Search), from native/extras/res/xml/cy_shortcuts.xml
 SHORTCUTS_META = """            <meta-data
                 android:name="android.app.shortcuts"
@@ -199,6 +213,8 @@ def edit_manifest():
         body = body.rstrip() + '\n\n' + LINK_FILTER + '        '
     if 'text/x-opml' not in body:
         body = body.rstrip() + '\n\n' + OPML_FILTER + '        '
+    if 'MEDIA_PLAY_FROM_SEARCH' not in body:
+        body = body.rstrip() + '\n\n' + VOICE_FILTER + '        '
     if 'android.app.shortcuts' not in body:
         body = body.rstrip() + '\n\n' + SHORTCUTS_META + '        '
     close = end + len('</activity>')
