@@ -123,3 +123,26 @@ SHOULD-FIX
 
 ## Queued 2026-11-04 (next batch)
 - Remove the "Good morning / Good evening" sky animation: `sky(kind)` (~13110 www/index.html), `.sk-*` CSS, callers, any setting/test that names it. The light/dark change itself stays, just with no animation. David: "looks out of place and isn't necessary."
+
+## Review 2026-11-05 (session eldcyo; full-app review, verified line refs in www/index.html)
+Loading (ranked):
+- L1 Pull-to-refresh fetches a timing-out feed twice (`loadFeed` ~16429: cache-busted fetch, then plain fetch). Only retry plain when the first was HTTP 4xx; skip after timed out / blocked or offline / hard.
+- L2 `await quietGap()` (no max → 60 s) runs INSIDE the 6-slot load (`load0`); while scrolling, all slots can be held by downloaded-but-unparsed feeds. Free the slot before the gap, or `quietGap(8000)`.
+- L3 Hidden-browser "busy" (native queue >4) is swallowed → feed counted as HTTP 403 failure (`fetchText1` 5380, `load0` fn+1). Treat `busy` like `cut` (keep stories, no fail count); native: reject at 2 queued.
+- L4 Empty-but-valid feed falls through to rss2json + Google News + Bing every refresh (16430-16434). Parsed cleanly with 0 items → return [] "no stories yet".
+- L5 `enrichLater` 6062 polls every 300 ms per finished feed until all done (~130 timers). Run enrich for all from `loadAll0`'s `.then` or when INFL empties.
+- L6 Boot copies EVERY article body from IndexedDB into `AC` then `acTrim` drops all but 120 (11749-11763); tens of MB of clone+GC on cold start. Index on `t`, read newest 120 bodies only; read '~cache' once.
+- L7 Leaked requests after `Promise.race` timers: gnewsFeed 16362, mirrorFor 9751, openReader deeperTiers/deepP. Pass an AbortController as `lg.sig` and abort in the timer branch.
+- L8 `saveCache0` big path sets SCSIG before the IDB put completes (5306); on abort nothing retries. `.then(ok=>{if(!ok)SCSIG=''})`.
+- L9 `LP.t++` per slot makes `pfBar` flip done/undone as batches finish; set `LP.t+=L.length` once in `loadAll0`.
+Rendering / code health:
+- R1 `save()` (sync full-library stringify) on every story open: `markReadA` 13127, openReader ~9939, pump 9808 (every prefetched story). Use `saveSoon()`; keep `save()` for user edits.
+- R2 `S.rt` 600-key trim applied on 1 of 5 write paths (8478, 9487, 9808, 9863 untrimmed; 9928 trims). Add `rtSet(link,n)`.
+- R3 Dead code (defined once, never called): renderToday0 8604-8653, magHtml, colophonHtml, articleCard, canonicalUrl, articleState, favHost, aaFab, CVNEW, TW_VARS, vFrac, volNo, peNeed, dgLetter, FXRD, fxType, eOut2, hasSec, PAT. ~150 lines.
+- R4 30 visibilitychange handlers fire in one task on resume (ambApply, dpSoon, devPoll, loadVoices, loadAll wake, syncNow, checkUpdate, widgetSavePull, applyFs…). One `onShow(fn,delay)` helper staggering non-urgent ones 0.5-3 s.
+- R5 Timers ticking while hidden/idle: 10162 1 Hz tminiSync always; 7683, 16016 unguarded. `if(document.hidden)return`; run 10162 only while TTS/DIG on.
+- R6 `render()` runs `couponSweep` + LASTSET over all ~5,000 items each draw (5213, 6313); move couponSweep into the loader. `daySections` 8360 `cur.indexOf` per card → Map.
+- R7 MutationObserver 12449 rescans whole document for `.tg` on every grid batch; scope to `aside,#set`. Scroll handler 12261 evaluates `S.feeds.some(tr)` per event; cache boolean.
+- R8 `render()`/resize swallow render exceptions silently (6313, 7010): `catch(e){elog('render',e)}`.
+- R9 a11y: `<dialog id="set">` (4991) and several dialogs lack `aria-labelledby` (vhh/prv/shr have it).
+Visual: artifact https://claude.ai/artifact/TKMjmiajV9wS7WwvSYT1Qx (19 items, phone + tablet shots).
