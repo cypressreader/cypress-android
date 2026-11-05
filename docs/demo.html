@@ -11788,12 +11788,16 @@ function removeFeed(id){const i=S.feeds.findIndex(f=>f.id===id);if(i<0)return;co
 /* article storage: IndexedDB (large) with localStorage fallback */
 const AK='folio-art';let AC={};
 const IDB={db:null,ok:false};
-function idbOpen(){return new Promise(res=>{try{const r=indexedDB.open('cypress',1);r.onupgradeneeded=()=>{r.result.createObjectStore('art')};r.onsuccess=()=>{IDB.db=r.result;IDB.ok=true;res(true)};r.onerror=()=>res(false);r.onblocked=()=>res(false)}catch(e){res(false)}})}
+function idbOpen(){return new Promise(res=>{try{const r=indexedDB.open('cypress',2);r.onupgradeneeded=e=>{/* v2 (review L6): an index on each story's saved time, so startup reads only the newest bodies */const st=e.oldVersion<1?r.result.createObjectStore('art'):r.transaction.objectStore('art');if(!st.indexNames.contains('t'))st.createIndex('t','t')};r.onsuccess=()=>{IDB.db=r.result;IDB.ok=true;res(true)};r.onerror=()=>res(false);r.onblocked=()=>res(false)}catch(e){res(false)}})}
 function idbTx(mode,fn){return new Promise(res=>{if(!IDB.ok)return res(null);try{const t=IDB.db.transaction('art',mode),st=t.objectStore('art');const out=fn(st);t.oncomplete=()=>res(out&&out.result!==undefined?out.result:true);t.onerror=t.onabort=()=>{elog('idb',t.error);res(null)}}catch(e){elog('idb',e);res(null)}})}
 const acReady=(async()=>{
  let old={};try{old=JSON.parse(localStorage.getItem(AK)||'{}')}catch(e){}
  if(await idbOpen()){
-  await new Promise(res=>{try{const t=IDB.db.transaction('art','readonly'),c=t.objectStore('art').openCursor();c.onsuccess=()=>{const k=c.result;if(k){if(k.value&&k.value.h)AC[k.key]=k.value;k.continue()}else res()};c.onerror=t.onabort=()=>res()}catch(e){res()}});
+  /* review L6: only the newest 120 story bodies are read at startup (the rest are read when opened, like acTrim leaves them); reading every body cost tens of MB of copying on a cold start */
+  await new Promise(res=>{try{const t=IDB.db.transaction('art','readonly'),st=t.objectStore('art');t.oncomplete=t.onabort=t.onerror=()=>res();
+   if(!st.indexNames.contains('t')){const c=st.openCursor();c.onsuccess=()=>{const k=c.result;if(k){if(k.value&&k.value.h)AC[k.key]=k.value;k.continue()}};return}
+   const ks=[],kc=st.index('t').openKeyCursor(null,'prev');kc.onsuccess=()=>{const c=kc.result;if(c){const k=c.primaryKey;if(typeof k==='string'&&k!=='~cache'&&!k.startsWith('bi:'))ks.push([k,c.key]);c.continue();return}
+    let i=0,n=0;const nx=()=>{while(n>=120&&i<ks.length){const[k,tt]=ks[i++];AC[k]={t:tt,h:'',c:1}}if(i>=ks.length)return;const[k]=ks[i++],g=st.get(k);g.onsuccess=()=>{const v=g.result;if(v&&v.h){AC[k]=v;n++}nx()}};nx()}}catch(e){res()}});
   const ks=Object.keys(old);
   if(ks.length){await idbTx('readwrite',st=>{for(const k of ks){if(!AC[k]){AC[k]=old[k];st.put(old[k],k)}}});try{localStorage.removeItem(AK)}catch(e){}}
   acTrim();

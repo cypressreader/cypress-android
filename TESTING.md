@@ -1319,3 +1319,8 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Pull to refresh with a few slow sites: the refresh should finish noticeably sooner than 1.254; no site should show (offline) just because it was slow.
 - Scroll continuously during a refresh: the progress count should keep rising while you scroll.
 - Open several stories in a row: no hitch as the reader slides in (read marks now save 1.2 s later, flushed when you leave the app).
+
+## Story storage upgrade (review L6, branch ppo0d5, implemented, unverified on phone)
+- [ ] Install over the current version with saved stories: saved and recently read stories still open offline (airplane mode), old ones too.
+- [ ] Cold start (swipe the app away, reopen) feels at least as fast; Diagnostics shows no 'idb' errors.
+- Note: the story database moves to version 2. Installing an OLDER build afterwards can't open it (falls back to no stored bodies; nothing is deleted).
