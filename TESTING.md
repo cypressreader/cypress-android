@@ -1353,3 +1353,9 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - On the Fold, open and close the phone on The Daily: the cover headline/photo, the section tabs and the tab underline should land at their final size at once (no jump a moment later), and the side bar should not slide across.
 - Settings → copy diagnostics → 'Shape changes' line: paste it if anything still moves.
 - 1.264: same check; the redraw after the fold should come a little sooner (two whole-page restyles removed). Sticky Daily tabs must still sit right under the header after folding/unfolding.
+
+## Windowed All Stories, stage 1 (implemented, unverified on device)
+- All Stories with a big library: fling far down, then back up. No blank screens, no stories jumping while you scroll up.
+- Open a story far down, close it: you land on the same story at the same spot.
+- Far down All Stories, fold/unfold the phone a few times: should feel quicker than before; scroll up afterwards and check nothing jumps.
+- Reading progress bars and 'new' tags on stories far up the list still show after scrolling back to them.

@@ -4568,6 +4568,8 @@ body:not(.narrow) .grid:not(.list) .tpl.t2>.card.noimg .tx{grid-column:1}
 #grid .card>img{object-position:50% 30%}
 /* All Stories list: cards off the screen are skipped until near (each card keeps its real height once drawn). Drawing all ~400 made every added batch lay out the whole list again (Fold 1.198: ~110 ms per batch; fling test: style work 13 s -> 6 s, layout shift 0.023, well under 0.1). Row cards keep their 110 px guess: a 300 px one stretched the drawn cards beside them. Return to feed still draws all (cvall) */
 #grid.wire:not(.cvall) :where(.card,.wcol){content-visibility:auto}#grid.wire:not(.cvall) :where(.card:not(.nr-row,.nr-late)){contain-intrinsic-size:auto 300px}
+/* windowed All Stories (vw, see vwSet): far stories are emptied instead, and a refilled card would lose its remembered size and jump */
+#grid.vw .card,#grid.vw .wcol{content-visibility:visible}
 @media(min-width:700px){html #grid .card .src{font-size:12px}}
 /* FIXES 25: the feed's lead picture fills its width (max-height with aspect-ratio was shrinking the width) */
 #grid .fd-fa{width:100%}
@@ -7929,8 +7931,16 @@ try{new MutationObserver(aheadSoon).observe($('#grid'),{childList:true})}catch(e
 let NRIO=null;
 /* Puts the first blocks in the page and adds the rest as you scroll (Smooth mode), so switching feeds in Safari stays quick */
 let NRMORE=null,NRHAD=0,NRK=0;
+/* All Stories keeps only the stories near the screen: a story block more than about 3 screens away is emptied to a blank of the same size (its contents kept aside, so nothing is redrawn) and filled again as you scroll near. A long scroll used to keep every story on the page, so a fold or unfold restyled thousands of elements. Stage 1: Daily and Headlines still keep everything */
+let VWIO=null,VWMO=null;const VWK=new WeakMap();
+function vwSet(){const g=$('#grid'),m=$('main');if(VWMO||!g||!m||!('IntersectionObserver' in window)||!('MutationObserver' in window))return;
+ VWIO=new IntersectionObserver(es=>{const rd=$('#rd'),rdOn=rd&&rd.classList.contains('on');for(const e of es){const el=e.target,k=VWK.get(el);
+  if(e.isIntersecting){if(k){VWK.delete(el);el.style.cssText=k.css;if(k.fr.className)el.classList.add(...k.fr.classList);const x=[...el.children];el.replaceChildren(...k.fr.childNodes);x.forEach(n=>{if(n.classList[0])el.querySelector(':scope>.'+n.classList[0])?.remove();el.append(n)})}}/* anything added to the blank meanwhile (a progress bar, a 'new' tag) replaces its older copy */
+  else if(!k&&!rdOn&&S.sel==='all'&&e.boundingClientRect.height>0){const fr=document.createElement('div');fr.append(...el.childNodes);/* a div, not a fragment: a photo that fails meanwhile runs this.parentNode.classList.add('noimg'), which is copied back on refill */VWK.set(el,{css:el.style.cssText,fr});el.style.height=e.boundingClientRect.height+'px';el.style.boxSizing='border-box';el.style.minHeight='0'}}},{root:m,rootMargin:'100% 0px'});
+ VWMO=new MutationObserver(ms=>{for(const r of ms){r.removedNodes.forEach(n=>{if(n.nodeType===1)VWIO.unobserve(n)});if(S.sel==='all')r.addedNodes.forEach(n=>{if(n.nodeType===1&&(n.matches('.card')||n.querySelector('.card')))VWIO.observe(n)})}});
+ VWMO.observe(g,{childList:true})}
 function setBlocks(head,B,first,step){
- const g=$('#grid');if(NRIO){NRIO.disconnect();NRIO=null}NRMORE=null;NRK=0;
+ vwSet();const g=$('#grid');g.classList.toggle('vw',S.sel==='all');if(NRIO){NRIO.disconnect();NRIO=null}NRMORE=null;NRK=0;
  if(B.length<=first+2||!('IntersectionObserver' in window)){g.innerHTML=head+B.join('');markFresh();return}
  let k=first;NRK=k;g.innerHTML=head+B.slice(0,k).join('')+'<div class="nr-more" aria-hidden="true"></div>';
  markFresh();
