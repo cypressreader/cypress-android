@@ -16119,7 +16119,7 @@ function screenMode(){
  const split=isOn('split')&&VW>=800&&splitShape()&&!narrow;
  const was=document.body.classList.contains('split');if(split&&!was)use1('side');document.body.classList.toggle('split',split);
  {const sm=sideMode(),hide=(sm==='always'||(sm==='portrait'&&VW<VH*1.25))&&VW>=700&&!narrow&&!split;document.body.classList.toggle('sidehide',hide);if(!hide&&!document.body.classList.contains('reading'))document.body.classList.remove('sideshow')}
- if(split&&!$('#rd').classList.contains('on'))splitEmpty();
+ if(split&&!was&&!$('#rd').classList.contains('on'))splitEmpty();
  if(was&&!split&&!$('#rd').classList.contains('on'))$('#sheet').innerHTML='';
 }
 /* safety net for the header: if a phone's browser ever lays the title out under the menu button, the title is pushed clear of it (measured, so a normal layout is left alone) */
@@ -16149,7 +16149,8 @@ function applySbw(){const r=document.documentElement.style;if(S.sbw)r.setPropert
 /* unfolding or rotating swaps the phone layout for the wide one: the story at the top stays at the top, the swap counts as something you did (so the far-down guard in render lets it through), and the old and new layouts cross-fade (the browser's own view transition) instead of popping */
 function shapeRender(){if(shapeRender.on)return;/* one swap at a time: the fade defers the redraw, and a second resize tick in that gap would start it over */UACT=Date.now();try{rdAnchorSave()}catch(e){}const run=()=>{shapeRender.on=false;try{render()}catch(e){elog('render',e)}try{rdAnchorRestore()}catch(e){}};
  if(document.startViewTransition&&!reduced()&&!document.documentElement.classList.contains('lowp')&&!$('#rd').classList.contains('on')){try{shapeRender.on=true;const t=document.startViewTransition(run);t.finished.catch(()=>{});t.updateCallbackDone.catch(()=>{shapeRender.on=false})}catch(e){shapeRender.on=false;run()}}else run()}
-function shapeChanged(){try{rdFreeze(false)}catch(e){}applySbw();clearTimeout(screenMode.t);screenMode.t=setTimeout(()=>{VW=innerWidth;VH=innerHeight;screenMode();{const g=$('#grid');g.classList.toggle('nrp',g.classList.contains('nr')&&nrPhone())}if($('#rd').classList.contains('on'))flexUi();}/* single page structure: the list markup no longer depends on the window or on side by side, so a resize never redraws it */,120)}
+/* single page structure: the list markup never depends on the window or on side by side, so a resize never redraws it. The shape classes (narrow, split, sidehide, nrp) are set at once, in the same frame the browser lays the new width out: the old 120 ms wait left the wide layout showing with the phone classes still on, so the side bar popped out and everything realigned a beat later */
+function shapeChanged(){try{rdFreeze(false)}catch(e){}VW=innerWidth;VH=innerHeight;screenMode();{const g=$('#grid');g.classList.toggle('nrp',g.classList.contains('nr')&&nrPhone())}applySbw();clearTimeout(screenMode.t);screenMode.t=setTimeout(()=>{if($('#rd').classList.contains('on'))flexUi()},120)}
 addEventListener('resize',shapeChanged);
 addEventListener('orientationchange',()=>{shapeChanged();setTimeout(shapeChanged,350)});
 /* folding or unfolding a phone: the WebView can fire its resize while still reporting the old size, so the layout is worked out for the other screen. So the size is looked at again a little later, and if it moved since the last resize, the resize is replayed for every listener */
