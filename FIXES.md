@@ -149,3 +149,4 @@ Visual: artifact https://claude.ai/artifact/TKMjmiajV9wS7WwvSYT1Qx (19 items, ph
 - 2026-11-05 (session ppo0d5): L4, L8, L9, R2, R8, R9 fixed on branch claude/handoff-continuation-ppo0d5 (not built yet).
 - 2026-11-05 (session ppo0d5): L5, R3, R5 fixed on the same branch (not built yet).
 - 2026-11-05 (session ppo0d5): L6 fixed on the same branch (IndexedDB v2 index on t; not built yet).
+- 2026-11-05 (session ppo0d5): R6, R7 fixed on the same branch (not built yet).
