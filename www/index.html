@@ -45,7 +45,7 @@ body>aside .logo[data-lg=tree] .lgw{font-size:clamp(22px,10.5cqi,31px)}
 #sbh:hover::after,#sbh:focus-visible::after,#sbh.drag::after{opacity:1}
 #sbh.drag::after{background:var(--logo)}
 body.sbdrag{user-select:none;-webkit-user-select:none;cursor:col-resize}
-body.sbdrag>aside,body.sbdrag main{transition:none!important}
+body.sbdrag>aside,body.sbdrag main,body.shp>aside,body.shp main,body.shp .tbi{transition:none!important}
 #toast.act{pointer-events:auto;display:flex;align-items:center;gap:12px;padding:7px 7px 7px 18px;max-width:calc(100vw - 24px)}
 #toast .tundo{font-weight:700;padding:7px 14px;border-radius:999px;background:color-mix(in srgb,var(--pn) 20%,transparent);color:inherit;min-height:34px;position:relative;white-space:nowrap}#toast .tundo::after{content:'';position:absolute;inset:-8px -6px}
 .skc{min-height:clamp(180px,20vw,240px);border-radius:var(--r-m);box-shadow:var(--sh-2);border:1px solid var(--ln);background:linear-gradient(100deg,var(--pn) 30%,color-mix(in srgb,var(--ink) 7%,var(--pn)) 50%,var(--pn) 70%) 0 0/300% 100%;animation:skm 1.5s linear infinite}
@@ -6234,7 +6234,7 @@ function covFit(){
   const m=cv.querySelector('.cvm'),mb=m&&m.parentElement;
   if(m&&mb){const mk=mb.clientWidth+'|'+cv.className+'|'+m.textContent;if(m.dataset.mk!==mk){m.style.removeProperty('font-size');const cs=getComputedStyle(mb),av=mb.clientWidth-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0),ow=m.style.whiteSpace;m.style.whiteSpace='nowrap';const w=m.getBoundingClientRect().width;m.style.whiteSpace=ow;if(av>20&&w>av){const f=parseFloat(getComputedStyle(m).fontSize)||40;m.style.setProperty('font-size',Math.max(14,Math.floor(f*av/w*.97))+'px','important')}m.dataset.mk=mk}}
   const h=cv.querySelector('.cvlead h2,.dcv-lead h2');if(!h)return;
-  const key=cv.clientWidth+'|'+innerHeight+'|'+(h.textContent||'').length+'|'+cv.className;if(h.dataset.fk===key&&h.style.fontSize)return;
+  const key=cv.clientWidth+'|'+VH+'|'+(h.textContent||'').length+'|'+cv.className;if(h.dataset.fk===key&&h.style.fontSize)return;
   /* the same cover headline at the same size and look fits the same way: coming back to the Daily reuses the answer instead of measuring again */
   const ck=key+'|'+(h.textContent||'').replace(/\s+/g,' ')+'|'+cv.querySelectorAll('.cvlines .cvl,.dcv-lines .dcv-l').length+'|'+S.theme+'|'+S.font+'|'+S.hfont+'|'+(document.body.className+' '+document.documentElement.className).replace(/\b(cvstill|rdserif|rdx|reading|open|sbdrag|exbusy|ttssm|nospeech|boot|svpick|lpd?)\b/g,'').replace(/\s+/g,' ').trim(),hit=COVFC.get(ck);/* spaces normalized: the no-orphan pass swaps in a no-break space after the first fit, which made every return to the Daily miss and measure again */
   const band=cv.querySelector('.dcv-band');
@@ -6255,14 +6255,14 @@ function covFit(){
   /* a layout with no spare room (a row of photo cards, a floating card) may grow a little for a bigger headline, never more than a fifth of the screen */
   h.style.setProperty('font-size',min+'px','important');
   const lines=[...cv.querySelectorAll('.cvlines .cvl,.dcv-lines .dcv-l')];lines.forEach(l=>l.style.removeProperty('display'));
-  cap=cv.classList.contains('dcov')?Math.max(lim,Math.min(cv.offsetHeight+24,Math.max(Math.round(innerHeight*.86),cv.offsetHeight))):Math.max(lim,cv.offsetHeight+Math.round(innerHeight*.2));
+  cap=cv.classList.contains('dcov')?Math.max(lim,Math.min(cv.offsetHeight+24,Math.max(Math.round(VH*.86),cv.offsetHeight))):Math.max(lim,cv.offsetHeight+Math.round(VH*.2));
   let size=search();
   /* tablet Daily cover: the lead photo band gives up some height (never below about 220px) before the headline drops to a small size */
   if(band){let bh=band.offsetHeight;const fl=Math.min(225,Math.round(cv.clientWidth*.42));while(size<max*.6&&bh>fl){bh=Math.max(fl,Math.round(bh*.88));band.style.maxHeight=bh+'px';size=search()}}
   /* too much text over the photo: drop the last story line, one at a time, while the headline would stay big */
   if(overlay&&!cv.classList.contains('dcov')){let k=lines.length;while(k>0&&(size<max*.6||used()>cv.offsetHeight*.62)){k--;lines[k].style.setProperty('display','none','important');size=search()}}
   COVFC.size>60&&COVFC.clear();COVFC.set(ck,{size,band:band&&band.style.maxHeight?parseFloat(band.style.maxHeight):0,hide:lines.map((l,i)=>l.style.display==='none'?i:-1).filter(i=>i>=0)});
-  h.style.setProperty('font-size',size+'px','important');h.dataset.fk=cv.clientWidth+'|'+innerHeight+'|'+(h.textContent||'').length+'|'+cv.className;
+  h.style.setProperty('font-size',size+'px','important');h.dataset.fk=cv.clientWidth+'|'+VH+'|'+(h.textContent||'').length+'|'+cv.className;
  })
 }
 /* A cover photo is never sliced to a thin strip (faces cut in half, only a flag showing). When filling the space would cut away more than about a quarter of the picture, the whole picture is shown instead: full width in the clear space between the masthead and the text, over a blurred copy of itself. A narrow cell too small to show a picture is left to the type. */
@@ -6284,7 +6284,7 @@ function coverCrop(){
    /* B102: on a tablet or wide screen the picture is never shrunk into a small card between the masthead and the text: it runs the full width of the cover, big, with the text underneath (the way the phone cover reads, only larger) */
    {const top=cv.querySelector('.cvtop'),bot=cv.querySelector('.cvbot');
     if(top&&bot&&cr.width>=520&&!cv.classList.contains('cv-collage')){/* (the Collage cover frames its own picture) */
-     const bw=Math.round(cr.width),maxH=Math.max(300,Math.round(innerHeight*.6));
+     const bw=Math.round(cr.width),maxH=Math.max(300,Math.round(VH*.6));
      let ih=Math.min(maxH,Math.max(Math.round(bw*.5),Math.round(bw/ia)));ih=Math.max(ih,Math.round(bw/(ia*1.45)));
      const A=rc(top).top<=rc(bot).top?top:bot;/* the block that reads first (the headline when the cover is flipped); the picture goes right under it and the other block moves down past it */
      const ty=Math.round(rc(A).bottom-cr.top)+6;
@@ -6301,7 +6301,7 @@ function coverCrop(){
  })
 }
 /* a resize event also arrives at launch with the size unchanged: refitting then measured every cover again for nothing */
-{let t=0,wh=VW+'x'+VH;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{if(VW+'x'+VH===wh)return;wh=VW+'x'+VH;try{COVFC.clear();document.querySelectorAll('#grid .cfit').forEach(h=>delete h.dataset.fk);covFit();coverCrop()}catch(e){}},160)});try{document.fonts&&document.fonts.ready.then(()=>{COVFC.clear();document.querySelectorAll('#grid .cfit').forEach(h=>delete h.dataset.fk);covFit()})}catch(e){}}
+{let t=0,wh=VW+'x'+VH;addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{if(VW+'x'+VH===wh)return;wh=VW+'x'+VH;try{document.querySelectorAll('#grid .cfit').forEach(h=>delete h.dataset.fk);covFit();coverCrop()}catch(e){}},160)});try{document.fonts&&document.fonts.ready.then(()=>{COVFC.clear();document.querySelectorAll('#grid .cfit').forEach(h=>delete h.dataset.fk);covFit()})}catch(e){}}
 const WIRE={order:null,known:null,settled:false,pend:[],newN:0,seed:Math.random().toString(36).slice(2),restored:false,hid:0};
 let _lastSel=null;const SELPOS={};/* where each feed was left, so coming back to it resumes there instead of the top */
 if(!S.seenBase){S.seenBase=Date.now();try{save()}catch(e){}}
@@ -13816,8 +13816,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.05j';const APP_LABEL='1.262';
-const CHANGES=["The diagnostics report's \"Shape changes\" line now also shows how long the page took to lay itself out and to hand over its first frame after a fold or unfold, and any slow frames right after"];
+const APP_VERSION='2026.11.05k';const APP_LABEL='1.263';
+const CHANGES=["Opening or closing a Fold no longer jiggles the page: the Daily cover headline and photo, the section tabs and their underline now take their new size in the same moment as the rest of the page, and the side bar no longer slides across while the screen changes shape"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -16153,7 +16153,7 @@ function shapeRender(){if(shapeRender.on)return;/* one swap at a time: the fade 
 /* single page structure: the list markup never depends on the window or on side by side, so a resize never redraws it. The shape classes (narrow, split, sidehide, nrp) are set at once, in the same frame the browser lays the new width out: the old 120 ms wait left the wide layout showing with the phone classes still on, so the side bar popped out and everything realigned a beat later */
 /* shape log for the diagnostics report: what the phone reported, when, and what the page did with it (the Fold's unfold still showed a moment of the folded layout on 1.260) */
 const SHPL=[];function shpLog(k){try{const de=document.documentElement,vv=visualViewport;SHPL.push(Math.round(performance.now())+' '+k+' in '+innerWidth+'x'+innerHeight+' doc '+de.clientWidth+'x'+de.clientHeight+' scr '+screen.width+'x'+screen.height+(vv?' vv '+Math.round(vv.width)+'x'+Math.round(vv.height)+'@'+vv.scale.toFixed(2):'')+' ['+['narrow','split','sidehide'].filter(c=>document.body.classList.contains(c)).join(',')+($('#grid').classList.contains('nrp')?',nrp':'')+']');if(SHPL.length>60)SHPL.shift();if(k==='shape'||k==='resize')requestAnimationFrame(()=>{shpLog('paint');setTimeout(()=>shpLog('post'),0)})}catch(e){}}
-function shapeChanged(){try{rdFreeze(false)}catch(e){}shpLog('shape');const de=document.documentElement;VW=de.clientWidth||innerWidth;VH=de.clientHeight||innerHeight;screenMode();{const g=$('#grid');g.classList.toggle('nrp',g.classList.contains('nr')&&nrPhone())}applySbw();{const t0=performance.now();de.offsetHeight;SHPL.push('layout '+Math.round(performance.now()-t0)+'ms')}clearTimeout(screenMode.t);screenMode.t=setTimeout(()=>{if($('#rd').classList.contains('on'))flexUi()},120)}
+function shapeChanged(){try{rdFreeze(false)}catch(e){}shpLog('shape');const de=document.documentElement;VW=de.clientWidth||innerWidth;VH=de.clientHeight||innerHeight;screenMode();{const g=$('#grid');g.classList.toggle('nrp',g.classList.contains('nr')&&nrPhone())}applySbw();/* the cover refits now, before the first frame at the new width (a timer refit made its headline jump a split second later), the sticky tabs take the new header height, and the side bar's slide is switched off so it doesn't sweep across while the screen changes shape */try{covFit();coverCrop();tabIndAll()}catch(e){}document.body.classList.add('shp');clearTimeout(shapeChanged.s);shapeChanged.s=setTimeout(()=>document.body.classList.remove('shp'),500);{const t0=performance.now();de.offsetHeight;SHPL.push('layout '+Math.round(performance.now()-t0)+'ms')}clearTimeout(screenMode.t);screenMode.t=setTimeout(()=>{if($('#rd').classList.contains('on'))flexUi()},120)}
 addEventListener('resize',shapeChanged);
 /* unfolding: the Fold's WebView lays the page out at the new width before its resize event reports it (innerWidth stays at the folded size for a few hundred ms), so the page showed wide with the folded-phone classes until the 450 ms replay below. Watching the page's own box catches the new width straight after layout and before that frame is painted */
 addEventListener('resize',()=>shpLog('resize'),{capture:true});try{visualViewport.addEventListener('resize',()=>shpLog('vv'))}catch(e){}

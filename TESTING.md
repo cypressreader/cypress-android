@@ -1348,3 +1348,7 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Folded, open the app on The Daily, then unfold: the side bar should not slide out and the page should not shift a moment later. It should be in its final shape at once
 - Fold it again: the bottom tabs appear at once, with no wide layout showing first
 - Repeat with a story open, and with Side by side set to Always
+
+## 1.263 Fold unfold in one step (implemented, unverified on device)
+- On the Fold, open and close the phone on The Daily: the cover headline/photo, the section tabs and the tab underline should land at their final size at once (no jump a moment later), and the side bar should not slide across.
+- Settings → copy diagnostics → 'Shape changes' line: paste it if anything still moves.
