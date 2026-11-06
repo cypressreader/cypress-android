@@ -1364,3 +1364,12 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 
 ## 1.267 Fold keeps your place (VERIFIED on the Fold by David 2026-11-06)
 - Scroll well down The Daily, unfold: the same story/photo stays at the same spot. Fold back: you're exactly where you were. Same in All Stories and Headlines. Touching the screen during the unfold lets you scroll freely.
+
+## 1.268 (implemented, unverified on device)
+- B6 bottom tabs tuck on scroll down / return on scroll up; never while typing
+- B5 scroll reader: normal reading still finishes stories (3x pace allowance); Read as you scroll ignores flings
+- B10 first-story gesture card wording matches real gestures (swipe down to close)
+- B9 swipe-down close speed follows flick speed (code not located)
+- C2 press-and-hold the ✓ button opens the older-than dialog (no system menu fighting it)
+- C6 Look up opens Wiktionary in the browser from the APK
+- A3 slimmer reader bar on phone: buttons still easy to hit
