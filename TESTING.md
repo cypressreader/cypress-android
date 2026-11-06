@@ -1402,3 +1402,9 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Fresh install: setup shows 4 dots; Topics screen says "Pick a few topics you like" with no counter; 8 topics + "Show more topics".
 - With no topic picked, "Pick a topic first" shows beside the greyed Next; after one topic, footer shows Start reading + Choose sites without scrolling.
 - "Start with popular sites" on the welcome screen starts with Tech + News and shows the "Change them" toast. No theme/font step; last screen mentions Settings.
+
+## a05/a23/a29/a33 (branch mx03wy, 2026-11-06) — implemented, unverified on phone
+- Boot: the app still starts its background refresh after a phone restart and after an update (boot receiver no longer exported).
+- Install works on a phone; Play pre-launch report shows no 16 KB alignment warning.
+- TalkBack: closing a story returns to its card; reader "Listen" announced as "Listen to story"; side panel rows easy to tap.
+- Dark Black & White / Newsprint / Aurora: big picture-less card is dark with readable white text.
