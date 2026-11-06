@@ -1364,3 +1364,18 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 
 ## 1.267 Fold keeps your place (VERIFIED on the Fold by David 2026-11-06)
 - Scroll well down The Daily, unfold: the same story/photo stays at the same spot. Fold back: you're exactly where you were. Same in All Stories and Headlines. Touching the screen during the unfold lets you scroll freely.
+
+## 1.268 (implemented, unverified on device)
+- B6 bottom tabs tuck on scroll down / return on scroll up; never while typing
+- B5 scroll reader: normal reading still finishes stories (3x pace allowance); Read as you scroll ignores flings
+- B10 first-story gesture card wording matches real gestures (swipe down to close)
+- B9 swipe-down close speed follows flick speed (code not located)
+- C2 press-and-hold the ✓ button opens the older-than dialog (no system menu fighting it)
+- C6 Look up opens Wiktionary in the browser from the APK
+- A3 slimmer reader bar on phone: buttons still easy to hit
+
+## C4 High Contrast theme (branch n921s1, unreleased)
+- Settings > Theme > High Contrast: gray text turns black (white in dark), cards get thick black borders, tab marker black. Check light, dark and Follow phone on the Fold; check reader links are underlined.
+- C3 (n921s1): in page mode on a story's last page, turn once: an "Up next" card with the next headline slides up; turn again: the next story opens. Page turn feel unchanged.
+- C5 (n921s1): on a story with section headings, the position line at the bottom shows small marks; drag the line and it snaps to a mark and lands on that section (page and scroll modes, Fold folded and unfolded).
+- A14 (n921s1): unfolded Fold, The Daily/All Stories, cards side by side: the bottom lines (read time, time) sit at the same height in both cards. Wide reader with the side bar hidden: left edge tab is rounded and says "Sites".
