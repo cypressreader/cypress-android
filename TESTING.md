@@ -1373,3 +1373,6 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - C2 press-and-hold the ✓ button opens the older-than dialog (no system menu fighting it)
 - C6 Look up opens Wiktionary in the browser from the APK
 - A3 slimmer reader bar on phone: buttons still easy to hit
+
+## C4 High Contrast theme (branch n921s1, unreleased)
+- Settings > Theme > High Contrast: gray text turns black (white in dark), cards get thick black borders, tab marker black. Check light, dark and Follow phone on the Fold; check reader links are underlined.
