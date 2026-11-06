@@ -746,6 +746,9 @@ u.nd{width:8px;height:8px;padding:0;border-radius:50%;background:var(--logo,var(
 #q{width:0;opacity:0;padding:9px 0;border:0;border-bottom:1px solid var(--ink);border-radius:0;background:transparent;color:var(--ink);font:inherit;outline:0;-webkit-appearance:none;appearance:none;transition:width .3s,opacity .2s}
 #q::-webkit-search-cancel-button{display:none}
 .srch.open #q{width:min(240px,40vw);opacity:1;padding:9px 4px}
+/* F6: on a phone the search field takes the title's place instead of squeezing it to "T…" */
+body.narrow .top:has(#srch.open) #ttl{display:none}
+body.narrow .srch.open #q{width:min(240px,52vw)}
 .dateline{grid-column:1/-1;display:flex;align-items:baseline;justify-content:space-between;gap:12px;font:italic 500 20px var(--serif);color:var(--mut);padding:2px 2px 4px}
 .dateline small{font:13px var(--sans);font-style:normal}.cover+.dateline{margin-top:6px}
 .card.lead{grid-column:span 2;min-height:clamp(240px,28vw,340px)}
@@ -1599,6 +1602,8 @@ html.quiet .cvm{letter-spacing:.06em}
 .cols>.hsf.hs-top img.hero{height:auto;aspect-ratio:auto;object-fit:contain;border-radius:14px}
 html.rdx .cols>.hsf.hs-wide img.hero,.cols>.hsf.hs-wide img.hero{width:var(--sw);max-width:none;height:min(calc(var(--ch)*.45),calc(var(--sw)*.56));max-height:none;aspect-ratio:auto;object-fit:cover;border-radius:16px;display:block;margin:0}/* two-page view: the photo runs across both pages; the headline sits under it on the left page and the text starts under it on the right */
 .cols>.hsf.hs-wide{height:auto;break-after:auto;break-inside:avoid;margin:0 0 22px}
+/* F10: a phone on its side has one short column per page: the photo filled page 1 and pushed the headline to page 2. Here it sits beside the headline instead */
+@media (orientation:landscape) and (max-height:500px){#rd:not(.cpv2) .cols>.hsf.hs-wide{float:left;width:42%;margin:0 24px 10px 0}html.rdx #rd:not(.cpv2) .cols>.hsf.hs-wide img.hero,#rd:not(.cpv2) .cols>.hsf.hs-wide img.hero{width:100%;height:calc(var(--ch) - 12px)}}
 #rd.cpv2 .cols:has(>.hs-wide) .body>:first-child{break-before:auto}
 #rd.cpv2 .cols.wfx:has(>.hs-wide) .body::before{display:none}
 #rd.cpv2 .cols:has(>.hs-wide) .body::before{content:'';display:block;break-before:column;height:var(--wh2,0px)}/* David 2026-10-31: while the story is still loading, the 'still trying' note takes the spacer's place below the wide photo instead of landing on top of it */#rd.cpv2 .cols:has(>.hs-wide):has(>.body>.skp)>.note:not([hidden]){break-before:column;margin-top:var(--wh2,0px)}#rd.cpv2 .cols:has(>.hs-wide):has(>.note:not([hidden])):has(>.body>.skp) .body::before{display:none}
@@ -11585,7 +11590,7 @@ function qrecSync(){const d=$('#qrecent');if(d)d.innerHTML=(S.qr||[]).map(x=>`<o
 $('#q').addEventListener('change',()=>{const v=$('#q').value.trim();if(v.length<2)return;use1('find');S.qr=[v,...(S.qr||[]).filter(x=>x.toLowerCase()!==v.toLowerCase())].slice(0,8);save();qrecSync()});qrecSync();
 {const _rq=render;render=function(){const r=_rq.apply(this,arguments);try{const q=$('#q').value.trim();const g=$('#grid');if(q&&g&&!g.querySelector('#qsc'))g.insertAdjacentHTML('afterbegin',`<div id="qsc" class="segs chips" role="radiogroup" aria-label="Search in">${[['all','All'],['unread','Unread'],['saved','Saved']].map(([k,t])=>`<button type="button" role="radio" data-qsc="${k}" aria-checked="${QSC===k}" class="${QSC===k?'on':''}">${t}</button>`).join('')}</div>`)}catch(e){}return r}}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-qsc]');if(!b)return;QSC=b.dataset.qsc;render()});
-function openSearch(o){srch.classList.toggle('open',o);TOPIC=null;if(o)$('#q').focus();else{$('#q').value='';QSC='all';render()}}
+function openSearch(o){srch.classList.toggle('open',o);TOPIC=null;if(o){/* F6: say what is searched */const q=$('#q'),l=S.sel==='saved'?'Search saved stories':'Search stories';q.placeholder=l;q.setAttribute('aria-label',l);screenMode();q.focus()}else{$('#q').value='';QSC='all';render()}}
 $('#sb').onclick=()=>openSearch(!srch.classList.contains('open'));
 /* an open but empty search box closes by itself once the keyboard is gone and you scroll, or move to another page (it used to stay stuck on screen) */
 {const q=$('#q'),vv=window.visualViewport;let gone=true,hmin=0,selAt='';
@@ -16129,7 +16134,7 @@ function screenMode(){
  let t=$('#tabs');
  if(narrow&&!t){t=document.createElement('nav');t.id='tabs';t.setAttribute('aria-label','Main');t.innerHTML=[['today','The Daily','<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/>'],['all','All','<path d="M4 7h16M4 12h16M4 17h16"/>'],['saved','Saved','<path d="M12 4.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 9.8l5-.7z"/>'],['search','Search','<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>']].map(([k,n,ic])=>`<button data-tab="${k}">${svg(ic)}<span>${n}</span></button>`).join('');document.body.append(t);
   t.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;const k=b.dataset.tab;drawer(false);if(k==='search'){openSearch(!srch.classList.contains('open'));return}/* tapping the tab you are already on glides to the top instead of redrawing the page */if(k===S.sel&&!srch.classList.contains('open')&&!$('#rd').classList.contains('on')){toTop();return}if(srch.classList.contains('open')){srch.classList.remove('open');TOPIC=null;$('#q').value='';$('#q').blur()}if($('#rd').classList.contains('on'))closeRd();S.sel=k;save();render();$('main').scrollTop=0})}
- if(t){tabPill(t);t.hidden=!narrow;t.querySelectorAll('[data-tab]').forEach(b=>{const on=b.dataset.tab===((S.sel==='digest'||S.sel==='brief')?'today':S.sel);b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')})}
+ if(t){tabPill(t);t.hidden=!narrow;/* F6: while the search field is open, Search is the lit tab */const so=$('#srch').classList.contains('open');t.querySelectorAll('[data-tab]').forEach(b=>{const on=so?b.dataset.tab==='search':b.dataset.tab===((S.sel==='digest'||S.sel==='brief')?'today':S.sel);b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')})}
  const split=isOn('split')&&VW>=800&&splitShape()&&!narrow;
  const was=document.body.classList.contains('split');if(split&&!was)use1('side');document.body.classList.toggle('split',split);
  {const sm=sideMode(),hide=(sm==='always'||(sm==='portrait'&&VW<VH*1.25))&&VW>=700&&!narrow&&!split;document.body.classList.toggle('sidehide',hide);if(!hide&&!document.body.classList.contains('reading'))document.body.classList.remove('sideshow')}
