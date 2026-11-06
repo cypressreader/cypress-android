@@ -5018,7 +5018,7 @@ html #grid.wire[data-w="col"] h3.dsh.wsec .dsr{margin-left:0;min-height:44px}
 /* design picks 2026-11-01 (review/design-2026-11-01) */
 @media(max-width:520px){#grid .card.lead .tx h3{font-size:34px!important;line-height:1.02!important;letter-spacing:-.005em}#grid .card.lead .tx h3 a{font-size:inherit!important}}
 #grid .card .rdy{width:22px;height:22px;background:rgba(12,38,25,.55);color:#e2c27a;box-shadow:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}#grid .card .rdy svg{width:14px;height:14px}/* visual review: reads as a status, not a speck */
-/* A1 (Fresh Eyes): the offline mark sits bottom-right on rows and photo-less cards, where the footer's time stamp also ends: leave it room */#grid .card:is(.list-row,.nr-row,:not(:has(>img))):has(>.rdy) .cfoot{padding-right:30px}
+/* A1 (Fresh Eyes): the offline mark sits bottom-right on rows and photo-less cards, where the footer's time stamp also ends: leave it room */#grid .card:is(.list-row,.nr-row,:not(:has(>img))):has(>.rdy) :is(.cfoot,.also,.tx>:last-child){padding-right:30px}/* F07: also the "Also from" line or summary that ends the card */
 /* A4: the scrolling reader drew its progress twice (thin fixed line at the top plus the bar's own underline); the top line stays because it survives the bar hiding */#rd.vert .bar::after{display:none}
 @media(max-width:520px){.dcov .dcv-eds{display:block;height:0;overflow:hidden}}
 .dcov .dcv-q cite{display:none}
@@ -14020,7 +14020,8 @@ function whyBox(){
  const d=nz(raw).slice(0,80),first=nz([...bd.querySelectorAll(':scope>p')].slice(0,2).map(p=>p.textContent).join(' '));
  if(d.length<20)return;const k=Math.min(d.length,80);if(first.includes(d.slice(0,k))||d.includes(first.slice(0,Math.min(first.length,k)))&&first.length>=20)return;
  const el=document.createElement('aside');el.className='whyit';el.setAttribute('aria-label','From the publisher');el.innerHTML='<b aria-hidden="true">From the publisher</b><p></p>';el.querySelector('p').textContent=raw;
- c.insertBefore(el,c.querySelector(':scope>.note')||bd);
+ /* R-07: set as a plain italic line straight under the headline (CSS: no box, no label), so the story starts higher on page 1 */
+ const tt=c.querySelector(':scope>.tt');if(tt)tt.after(el);else c.insertBefore(el,c.querySelector(':scope>.note')||bd);
 }
 function mnotes(){mnotes0();try{if(!aiBox())whyBox()}catch(e){try{whyBox()}catch(_){}}try{rdxDeck()}catch(e){}}
 /* AI summary: on phones with Google's built-in AI (Android app only) a 3-point summary made ON the phone replaces "From the publisher". English stories only; nothing is sent anywhere */

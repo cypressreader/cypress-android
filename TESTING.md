@@ -1418,3 +1418,11 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Add a site: the options list fades at the bottom and scrolls; last card scrolls clear of the fade.
 - Select text in a story: bar says "Follow topic" and "Hide text"; color dots show tooltips; no "Highlighted" toast lingers.
 - Settings hub at 360 wide: card titles and summary lines wrap to two lines, nothing cut with "…".
+
+## Deep-dive fixes firstrun (branch mx03wy, 2026-11-06) — implemented, unverified on phone
+- Offline pill sits in reserved space under the top bar and no longer covers the tab or chip row (phone, airplane mode); the "Saved ahead" chip button "Turn on Get stories ready in advance" works.
+- Tips show as a thin strip above the bottom bar (not pushing the page), never over an empty page; "The Daily has four views" appears on first arrival only.
+- Add a site fills the phone screen; the list scrolls inside it with the bottom fade; "More ways to add" are the last rows of the start list.
+- Story "..." menu: "Listening options", "Send to…" and "Something wrong?" fold open with TalkBack (expanded/collapsed announced), and Hands-free, PDF, Kindle, Browser, both Report rows still work.
+- Tapping a tab with TalkBack keeps focus on the tab (Daily and All Stories); heading navigation shows bands as level 2 and cards as level 3.
+- Kindle address: a wrong address keeps the box open with the message, "Use it anyway" for a non-kindle.com address.

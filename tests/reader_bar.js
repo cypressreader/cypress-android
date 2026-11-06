@@ -18,7 +18,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   ck(W+' '+mode+' primaries are back, more (save and listen too on wide screens)',(W<760?['cl','mo']:['cl','st','ra','mo']).every(i=>r.vis.includes(i))&&(W>=760||!r.vis.includes('st')&&!r.vis.includes('ra')),JSON.stringify(r.vis));
   ck(W+' '+mode+' no hamburger, X or page arrows in the bar',!r.vis.includes('fdn')&&!r.vis.includes('pv')&&!r.vis.includes('nx')&&!r.vis.includes('rp')&&!r.vis.includes('wb'),JSON.stringify(r.vis));
   ck(W+' '+mode+' focus eye only in scroll mode',mode==='vertical'?r.vis.includes('fcs'):!r.vis.includes('fcs'),JSON.stringify(r.vis));
-  ck(W+' '+mode+' menu holds the rest',['Playback settings','Share','Browser','Report junk text'].every(x=>r.menu.includes(x))&&!['Translate in browser','Full screen','Copy link','Show my feeds'].some(x=>r.menu.includes(x))&&r.menu.length<=21&&/* 21: Find in story (deep pass R3) */['PDF','Kindle'].every(x=>r.menu.includes(x)),JSON.stringify(r.menu));
+  ck(W+' '+mode+' menu holds the rest',['Listening options','Share','Send to…','Something wrong?'].every(x=>r.menu.includes(x))/* FR16: Playback, Browser, PDF, Kindle and the two Report rows fold under one row each */&&!['Translate in browser','Full screen','Copy link','Show my feeds'].some(x=>r.menu.includes(x))&&r.menu.length<=21,JSON.stringify(r.menu));
   /* polish-2026-10 F1: the kicker is one brass line with no rule under it */
   ck(W+' '+mode+' kicker is a quiet line with no rule',r.kickRule==='none'&&r.kickColor!==r.ink,JSON.stringify(r));
   if(W>=700)ck(W+' '+mode+' tablet labels under icons',/Save/.test(r.lbl),r.lbl);
