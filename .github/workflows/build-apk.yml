@@ -38,7 +38,7 @@ env:
   ALLOW_DEGRADED: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_degraded && '1' || '0' }}
   BUILD_NUMBER: ${{ github.run_number }}
   # The version name people see. Change it when you want a new release label (1.3, 1.4, ...). The build number behind it always counts up by itself.
-  APP_LABEL: "1.271"
+  APP_LABEL: "1.272"
   # The Natural voice (on-device, downloaded from our own release when the person picks it): sherpa-onnx engine, Apache-2.0, no eSpeak.
   NEURAL: "1"
   SHERPA: "2.0.1"
@@ -237,7 +237,8 @@ jobs:
           BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
           UNSIGNED=$(find android/app/build/outputs/apk/release -name '*.apk' | head -1)
           if [ -z "$UNSIGNED" ]; then echo "::error::The build finished but no app file was produced."; exit 1; fi
-          "$BT/zipalign" -f -p 4 "$UNSIGNED" "$RUNNER_TEMP/aligned.apk"
+          # a29 (audit #36): -P 16 also lines up the native voice and translation libraries for phones with 16 KB memory pages (build-tools 35+); older tools fall back to -p 4
+          "$BT/zipalign" -f -P 16 "$UNSIGNED" "$RUNNER_TEMP/aligned.apk" || "$BT/zipalign" -f -p 4 "$UNSIGNED" "$RUNNER_TEMP/aligned.apk"
           "$BT/apksigner" sign --ks "$RUNNER_TEMP/cypress.keystore" --ks-pass env:KS_PASS --ks-key-alias cypress --out cypress.apk "$RUNNER_TEMP/aligned.apk"
           "$BT/apksigner" verify --print-certs cypress.apk | tee "$RUNNER_TEMP/certs.txt"
           # E5: the signing certificate's SHA-256, so anyone can check a download (and for docs/.well-known/assetlinks.json)

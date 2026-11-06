@@ -663,3 +663,29 @@ C: C2 mark older than 1/3/7 days read; C3 past last page → next story (page tu
 C4 done (1.269): theme `contrast` "High Contrast" = `RETIRED.contrast='eink'` (effTheme returns eink, all B&W CSS applies) + `html.hc` class set in applyTheme/boot; `html.hc` rules: --mut/--a2/--a3/--ln pure ink (!important beats HANDTWIN inline), 3px card borders, 4px `.tbi`, reader links underlined, read items not faded, 3px focus ring. thmPal falls back via RETIRED. Daily cover keeps its fixed design (as in B&W).
 C3 done: turn-past-last-page already armed `R.endArmed` + second turn `advanceNext()`; now `rnHint(t,n)` shows a peek card (`#rnh.pk`: Up next · site, headline, hint) that slides in. C5 done: `#dial` was already draggable in both modes; `dialTicks(d)` (called from dialSync, rebuilt on key link|np|vert|scrollHeight) adds `<b>` marks at `.body` h2-h4 (page: `findPage`/span; scroll: offset-24 / scroll span), drag snaps within 10px (`d._tf`). Hidden with the dial in scroll mode until hover/drag/focus.
 A14 rest done: two-up footers line up (`.card.nr:is(.dq-c,.nr-row,.nr-late)>.tx` flex column stretched, `.cfoot` margin-top:auto; was up to 89px off with uneven headlines at 840px); `#sideh` edge tab pill-rounded and says "Sites" (matches My Sites). Dark cover double frame left (same in light, intended). B9 closed: swipe-down close (`#rd` touchend, >130px <700ms -> `closeRd`) has no close animation, so flick speed has nothing to follow.
+
+
+## moved fuyn8e-2 (2026-11-06): 1.270-1.271 notes
+**1.270 shipped (launch-checklist batch):** a20 removed `#perfb`/`#catchk` (+PERF code) and the hidden `mag3` switch (`isOn('mag3')` now always true, like caps/typo); a27 `#mr` click asks via `askBox` when >1 unread (hold = `mrOlder` unchanged); a22 `quickAdd` makes no folder for empty/"Unfiled" category (`followSite` no longer defaults to "Other"), boot drops folders named Unfiled, `fsFold(f)` adds "New folder…" (`__new` -> askBox input) to `#fsfold`. settings_ux 2 FAILs pre-existing (summary text).
+**1.271 a28:** `tipPlace` drops a tip when the view key (S.sel + selected `.bmseg` tab) changes (B1); `newPool()` shared by `briefNumbers` and `edStats` (B2: 'new overnight' am / 'new today'); reader More > Save toasts, Saved empty state names More (B4).
+**1.271 a26:** F3 already fine (no overflow at 360/390). F6: `openSearch` sets placeholder per view + calls `screenMode()`; screenMode lights Search tab while `#srch.open`; CSS hides `#ttl` in `body.narrow` while open. F10: CSS only, `@media (orientation:landscape) and (max-height:500px)` floats `#rd:not(.cpv2) .cols>.hsf.hs-wide` left 42% (headline beside photo); cinematic/focus_crop unchanged.
+
+
+## moved mx03wy (2026-11-06)
+- Old next-tasks text before a18 shipped:
+**Next 3 tasks:** 1. **a18 simpler setup (David picked "Setup")**, audit #18-#20 (A2-A4), code `obRender` (grep; audit cited ~13713/13726, lines moved): (A2) "Pick three topics · 0 of 3" but 1 topic enables Next -> say "Pick a few topics you like", drop counter. (A3) greyed Next has no visible reason; hint and "Start reading" sit 2-3 screens down under 33 chips -> hint beside Next or sticky Start reading in footer, shorter topic list. (A4) 5 steps; step 4 (7 themes, 7 fonts, light/dark) shown before any story -> move Look to after first story/Settings; "Skip for now" -> "Start with popular sites". Keep §7 a11y (dialog focus). Then label 1.272 on `build`. 2. Then a24 Report a problem (#39) / a25 first-launch proxy requests (#30 #54); David must turn off Cloudflare Web Analytics himself. 3. David tests 1.268-1.271 on phone (TESTING.md); blocked on David: developer name, personal vs business account, free vs paid split.
+
+
+
+## moved mx03wy-2 (2026-11-06)
+**a18 simpler setup DONE on mx03wy (unreleased, label stays 1.271 until `build`):** setup is 4 steps (Welcome, Topics, Sources, Ready); Look step removed, Ready tip points to Settings. Topics: "Pick a few topics you like", no counter, 8 chips + "Show N more topics" (`OB.more` key `_t`). Footer on Topics: reason "Pick a topic first" beside greyed Next (`aria-describedby`), "Start reading" + "Choose sites" once a topic is picked. "Skip for now" -> "Start with popular sites" (tests/settings_reach.js updated).
+**a24 + a25 DONE on mx03wy (unreleased):** `diagInfo` no longer lists failing site names (only with the "Include the addresses" tick). Web `fetchText1`: public relays start only after the CyPress fetcher/your relay fails (no 650 ms hedge); `WPNO` skips wp-json for an origin after a 404 this session. Cloudflare Web Analytics beacon (#30) = David turns it off in Cloudflare.
+**1.238-1.250 notes: HANDOFF-ARCHIVE.md (grep 'moved h0vq5j'). 1.249: weekly feed check task trig_01WVzHQzsP4WKKeQA47q1xys (Sun 19:23 PT). Feed test method: curl --compressed mobile UA, need <rss|feed> + >0 <item|entry>. `CATY` 5th element (topics) REQUIRED.**
+**1.253 shipped (voice play, bot-block hidden browser, real Chrome UA): detail in HANDOFF-ARCHIVE.md (grep 'moved eldcyo').**
+
+
+## moved mx03wy-3 (2026-11-06)
+**FRESH EYES QUEUE (David 11-06 picked: ALL of A, ALL of B, C2-C6; C1 skipped). Artifact https://claude.ai/artifact/RHjcSJxAy9Y6ZdKyrqPk58 has each item's full text.** Done items A1 A2 A4 A5, B1-B10, C2 C6 (1.268): HANDOFF-ARCHIVE.md (grep 'moved n921s1').
+Order: finish A (one or two sessions, one commit per few items, re-shoot), then B5 B6 B2 B3 B7 B9, then C. Bump label once per shipped batch (next 1.268) + whats-new.
+**1.268-1.269 detail (C3 C4 C5 A14, High Contrast = `RETIRED.contrast`+`html.hc`, `rnHint`, `dialTicks`): HANDOFF-ARCHIVE.md (grep 'moved fuyn8e').**
+**1.270-1.271 launch fixes (a20 a22 a26 a27 a28: `quickAdd` no Unfiled, `fsFold`, `#mr` askBox, `newPool`, `tipPlace` view key, F6 search, F10 landscape CSS): HANDOFF-ARCHIVE.md (grep 'moved fuyn8e-2').**
