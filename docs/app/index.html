@@ -333,7 +333,7 @@ figure.pqs figcaption{margin-top:12px;font:600 12px var(--sans);letter-spacing:.
 #grid .nr-top.nr-one{display:block}@media(min-width:700px){#grid .nr-top.nr-one .card.nr-lead{aspect-ratio:2/1;min-height:0;max-height:520px;height:auto}}#grid .nr-top.nr-one>.nr-lw{padding:0}
 #grid .nr-trio.nr-t1,#grid .nr-trio.nr-t2{grid-template-columns:repeat(auto-fit,minmax(0,1fr))}
 @media(min-width:700px){#grid .nr-strip.nr-s3{grid-template-columns:repeat(3,minmax(0,1fr))}#grid .nr-strip.nr-s2{grid-template-columns:repeat(2,minmax(0,1fr))}#grid .nr-strip.nr-s1{grid-template-columns:minmax(0,1fr)}}
-.dg.ed .edbox{margin:16px auto 0;max-width:46em;border:1px solid var(--ln);border-radius:16px;background:var(--pn);padding:12px 14px}
+.dg.ed .edbox{margin:16px auto 0;max-width:46em;border:1px solid var(--ln);border-radius:12px;background:var(--pn);padding:12px 14px}
 .dg.ed .edts{display:flex;gap:8px;flex-wrap:wrap}.dg.ed .edt{flex:1 1 90px;text-align:center;padding:4px 6px;appearance:none;border:0;background:none;font:inherit;color:inherit;cursor:pointer;border-radius:10px}.dg.ed .edt:active{background:color-mix(in srgb,var(--ink) 8%,transparent)}
 .dg.ed button.edl{appearance:none;border:0;background:none;width:100%;cursor:pointer;font:inherit;color:inherit}
 .dg.ed .edt b{display:block;font:700 26px/1.1 var(--serif)}.dg.ed .edt small{display:block;margin-top:2px;font:600 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
@@ -689,6 +689,8 @@ html:is(.mast-tint,.mast-gradient,.mast-glow) .cover:is(.cv-gazette,.cv-gallery,
 #dial i::after{content:"";position:absolute;right:-6px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--b,var(--ink));opacity:0;transform:scale(.4);transition:.15s}
 #dial:hover::before,#dial.act::before,#dial:hover i,#dial.act i{height:5px}#dial:hover i,#dial.act i{margin-top:-2.5px}
 #dial:hover i::after,#dial.act i::after{opacity:1;transform:scale(1)}
+/* A4: in Scroll the top line (#rdprog) shows progress; the slider stays for touch and keyboard but only shows while in use */
+#rd.vert #dial:not(:hover,.act,:focus-visible)::before,#rd.vert #dial:not(:hover,.act,:focus-visible) i{opacity:0}
 ::highlight(tts-s){background-color:color-mix(in srgb,var(--hl) 38%,transparent)}
 .fr small.stl{font-weight:500;color:var(--mut)}
 body.offl #ttl::after,body.netoff #ttl::after{content:'Offline';margin-left:10px;padding:2px 9px;border-radius:99px;font:700 11px var(--sans);letter-spacing:.03em;vertical-align:3px;background:var(--ln);color:var(--mut)}@media(max-width:699px){body.offl #ttl::after,body.netoff #ttl::after{content:none}body.offl .top::before,body.netoff .top::before{content:'Offline';position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);padding:2px 10px;border-radius:99px;font:700 11px var(--sans);letter-spacing:.03em;background:var(--ln);color:var(--ink);pointer-events:none;z-index:1}}/* audit #26: on a phone the long title clips the pill, so it hangs centered under the top bar */
@@ -1167,6 +1169,7 @@ body.narrow>aside{z-index:27}
 #tabs[hidden]{display:none}
 #tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;font:600 11px var(--sans);color:var(--mut);min-height:52px}
 #tabs button svg{width:22px;height:22px}#tabs button.on{color:var(--logo)}
+#tabs{transition:transform .25s ease}body.tabtuck #tabs:not(:focus-within){transform:translateY(100%)}@media(prefers-reduced-motion:reduce){#tabs{transition:none}}
 body.narrow #toast{bottom:calc(76px + env(safe-area-inset-bottom))}body.narrow:has(#rd.on) #toast{bottom:calc(24px + env(safe-area-inset-bottom))}/* W-06: the bar is 64px tall; a toast sits 12px above it, or 24px up when the story page hides the bar */
 body:has(#toast.show) .sky{bottom:calc(140px + env(safe-area-inset-bottom))}/* a hint toast keeps the corner; the sunrise card steps up */
 body.narrow #rd.on~#tabs{display:none}
@@ -3110,6 +3113,8 @@ html.rmo .tbi,html.lowp .tbi{transition:none}
 .dcv-mast{font-family:var(--disp);font-weight:400;letter-spacing:.38em;text-indent:.38em;font-size:clamp(32px,7.8cqi,54px)}
 .dcv-note{font:italic 400 clamp(17px,4.6vw,21px)/1.3 var(--disp);font-synthesis:none}
 .dcov .dcv-l span{font:400 17px/1.12 var(--disp)}
+/* A7: themes whose display face is a wide reading serif ran cover deks to 4-5 lines; a size step down keeps them near 3 without cutting text */
+html:is([data-theme=coast],[data-theme=coastd],[data-theme=press],[data-theme=pressd],[data-theme=rosewood],[data-theme=rosewoodd]) .dcov .dcv-l span{font-size:15px}
 .dsh{font:400 clamp(30px,8vw,42px)/1 var(--disp);letter-spacing:-.005em;text-transform:none;border-bottom:1px solid var(--ink);padding-bottom:12px;font-synthesis:none}
 .dsh .dsn{font:700 11px var(--sans);letter-spacing:.16em}
 .dsh small{font:italic 400 clamp(15px,3.8vw,18px) var(--disp)}
@@ -3177,6 +3182,8 @@ html.pdark #grid.paper{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .dbk-art{position:absolute;inset:0;z-index:-2;opacity:.62}.dbk-art svg{width:100%;height:100%;display:block}
 .dbk-sh{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(4,22,15,.78),rgba(4,22,15,.46) 40%,rgba(3,18,12,.92))}
 .dback::after{content:'';position:absolute;inset:12px;border:2px solid #0f5a3b;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);pointer-events:none}
+/* A10: the sun sat behind the Explore button; lift it into the sky. The card runs down to the tabs (no paper strip under it on a phone) and the colophon reads a shade brighter */
+.dback.dbe .dbk-art circle{transform:translate(40px,-150px)}#grid.nrp .dback{margin-bottom:-96px;padding-bottom:52px}
 .dbk-in{padding:70px clamp(28px,8vw,80px) calc(60px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto}
 .dbk-mast{display:block;font:400 22px var(--disp);letter-spacing:.38em;text-indent:.38em;opacity:.9}
 .dbk-end{margin:22px 0 10px;font:400 clamp(46px,13vw,76px)/.92 var(--disp);letter-spacing:-.01em}
@@ -3185,7 +3192,7 @@ html.pdark #grid.paper{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .dbk-next{margin:36px 0 0;padding-top:24px;border-top:1px solid rgba(255,255,255,.34)}
 .dbk-k{margin:0 0 6px;font:700 11px var(--sans);letter-spacing:.24em;text-transform:uppercase;opacity:.75}
 .dbk-ed{margin:0;font:400 clamp(30px,8vw,44px)/1 var(--disp)}.dbk-at{margin:6px 0 0;font:600 13px var(--sans);opacity:.85}.dbk-t{margin:12px 0 0;font:italic 400 16px/1.4 var(--disp);opacity:.88}
-.dbk-colo{margin:40px 0 0;font:italic 400 13px/1.5 var(--serif,Georgia,serif);opacity:.72}.dbk-colo b{display:block;margin-bottom:5px;font:700 10px var(--sans);font-style:normal;letter-spacing:.24em;text-transform:uppercase}
+.dbk-colo{margin:40px 0 0;font:italic 400 14px/1.5 var(--serif,Georgia,serif);opacity:.88}.dbk-colo b{display:block;margin-bottom:5px;font:700 10px var(--sans);font-style:normal;letter-spacing:.24em;text-transform:uppercase}
 /* experiment, cluster 12: feed motion */
 #wpin{position:fixed;z-index:19;display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:9px clamp(14px,3vw,32px) 8px;background:color-mix(in srgb,var(--bg) 94%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--ln);font:400 22px/1 var(--disp);color:var(--ink);will-change:transform;cursor:pointer}
 #wpin small{font:italic 400 14px var(--disp);color:var(--mut)}#wpin[hidden]{display:none}
@@ -3384,6 +3391,7 @@ body.sideshow .tl-leaf,body.open .tl-leaf,#rdnav.on ~ .tl-leaf{display:none!impo
 body.sideshow .tl-cast,body.open .tl-cast{display:none!important}
 body.sideshow .cols,body.open .cols{will-change:auto}
 #sidehdr{display:none}
+.rgest{position:fixed;left:16px;right:16px;bottom:calc(36px + env(safe-area-inset-bottom));z-index:95;max-width:420px;margin:0 auto;padding:14px 16px;background:var(--pn);color:var(--ink);border:1px solid var(--ln);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.18);font:14px/1.45 var(--sans)}.rgest ul{margin:6px 0 10px;padding-left:18px}.rgest li{margin:2px 0}
 body.sideshow #sidehdr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}#sidehdr h2{font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}#sidehdr .ib{width:34px;height:34px}
 #sideh span{writing-mode:vertical-rl;font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;margin-top:6px}#sideh{flex-direction:column;gap:0}
 #sideh{position:fixed;left:0;top:50%;z-index:44;width:26px;height:92px;margin-top:-46px;border-radius:0 12px 12px 0;background:var(--pn);border:1px solid var(--ln);border-left:0;color:var(--ink);display:none;align-items:center;justify-content:center;box-shadow:2px 0 10px rgba(0,0,0,.12)}#sideh::after{content:'';position:absolute;inset:0 -18px 0 0}/* 44 px to tap, still a slim tab to look at */
@@ -3655,7 +3663,7 @@ html.dkart .sun-m small,html.dkart .sun-t small{color:var(--brass)}
 .dcov.dct-min .dcv-top{color:#1c1d1b}
 .dcov.dct-min .dcv-lead,.dcov.dct-min .dcv-l,.dcov.dct-min .dcv-note{color:#1c1d1b}
 .dcov.dct-min .dcv-lead h2{text-shadow:none;font-size:clamp(34px,10vw,68px);line-height:1}
-.dcov.dct-min .dcv-lead small{border-bottom:2px solid var(--b);padding-bottom:6px;display:inline-block}
+.dcov.dct-min .dcv-lead small{border-bottom:2px solid currentColor;/* A6: the quote bar is the one accent */padding-bottom:6px;display:inline-block}
 .dcov.dct-min .dcv-lines{border-top-color:rgba(0,0,0,.3)}
 .dcov.dct-min .dcv-l small{opacity:1}
 .dcov.dct-min .dcv-why{background:rgba(0,0,0,.12);color:#1c1d1b}
@@ -3747,7 +3755,7 @@ body.narrow .dcov{min-height:max(520px,calc(100svh - 215px - env(safe-area-inset
 .cols .body a:hover,.cols .body a:focus-visible,#rd .body a:hover{text-decoration-color:currentColor}
 .fr .frn{display:contents}
 #side-list .fr{position:relative}
-#side-list .fr>.frx{position:absolute;right:0;top:50%;transform:translateY(-50%);margin:0;min-height:0;background:var(--pn,#fff);border-radius:6px}
+#side-list .fh{position:relative}/* A14: the folder count lines up with the site counts */#side-list .fr>.frx,#side-list .fh>.frx{position:absolute;right:0;top:50%;transform:translateY(-50%);margin:0;min-height:0;background:var(--pn,#fff);border-radius:6px}
 .fr.fr2{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"c t" ". n";column-gap:8px;row-gap:0;align-items:center}
 .fr.fr2 .frc{grid-area:c}.fr.fr2 .frt{grid-area:t}
 .fr.fr2 .frn{grid-area:n;display:flex;align-items:center;gap:6px;min-width:0}
@@ -3808,7 +3816,7 @@ body.narrow .dcov{min-height:max(520px,calc(100svh - 215px - env(safe-area-inset
 .imgfb small{display:block;margin-top:2px;font:italic 400 12px var(--serif,Georgia,serif);letter-spacing:0;text-transform:none;opacity:.85}
 .wtick{gap:0}
 .wtick b{position:relative;z-index:2;background:var(--ink);opacity:1}
-.wtick-vp{flex:1 1 auto;min-width:0;overflow:hidden;margin-left:14px;position:relative;z-index:1}
+.wtick-vp{flex:1 1 auto;min-width:0;overflow:hidden;margin-left:14px;position:relative;z-index:1;-webkit-mask-image:linear-gradient(90deg,transparent,#000 18px);mask-image:linear-gradient(90deg,transparent,#000 18px)}/* A8: letters fade in, never a sliver */
 .wtick-in{width:max-content}
 
 /* Today cover follow-up: the photo is shown whenever there is one; covers without a photo are composed to use the whole height */
@@ -4065,7 +4073,7 @@ body.exbusy [data-exact]{cursor:progress}
 /* David 2026-10-31: text-only stories on a site page sit in site-color boxes, like All Stories */#grid .fd-decks{gap:14px}#grid .fd-deck{padding:18px 18px 20px;border:0;border-radius:14px;overflow:hidden;isolation:isolate;color:#fff;background:linear-gradient(160deg,color-mix(in srgb,var(--b,var(--logo)) 100%,#fff 10%),color-mix(in srgb,var(--b,var(--logo)) 100%,#000 32%))}#grid .fd-deck::before{content:attr(data-ini);left:auto;right:10px;top:-22px;width:auto;height:auto;background:none;font:500 clamp(110px,34vw,150px)/1 var(--disp,var(--serif));color:#fff;opacity:.16;z-index:-1;pointer-events:none}#grid .fd-deck :is(small,b,span){color:#fff}#grid .fd-deck small{opacity:.8}#grid .fd-deck.read{opacity:.7}
 /* the Developing row matches the 1.174 look: brass label and counts, hairline chips in the headline face, a soft live ping instead of a glow */
 .wtrend .wtr-k{color:color-mix(in srgb,var(--a2,var(--mut)) 72%,var(--ink));letter-spacing:.18em;font-weight:700}
-.wtrend button{font-family:var(--disp,var(--serif));font-size:14px;border-color:color-mix(in srgb,var(--a2,var(--ln)) 45%,var(--ln));background:var(--pn)}
+.wtrend button{font-family:var(--sans);font-size:13px;border-color:color-mix(in srgb,var(--a2,var(--ln)) 45%,var(--ln));background:var(--pn)}
 .wtrend button i{color:color-mix(in srgb,var(--a2,var(--mut)) 72%,var(--ink));font-weight:700}
 .wtrend{padding:8px 2px 8px 6px}.wtrend .wtr-dot{flex:none;width:8px;height:8px;min-width:0;padding:0;margin:0;border-radius:50%;background:#c62828;box-shadow:none;position:relative;animation:none;text-decoration:none}
 html.micro .wtrend .wtr-dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:#c62828;animation:wping 1.8s ease-out infinite}
@@ -4196,6 +4204,8 @@ html[data-theme=halcyon] body #grid:not(.list):not([data-cards=narrow]):not([dat
 /* 11. Intrinsic columns and fluid type: widths come from the feed pane, so any screen density or zoom lands on 1, 2 or 3 columns by itself */
 #grid .wcols{column-gap:14px;column-rule:1px solid var(--ln)}
 @container feed (min-width:270px){#grid .wcols{column-width:auto;column-count:2}}
+/* A2: Columns on a phone is one full-width column; two ~180px columns squeezed every headline */
+@container feed (max-width:599px){#grid.wire[data-w=col] .wcols{column-count:1!important;column-rule:0}}
 #grid.wire:not(.wc) .card:is(.nr-hero,.nr-lead,.lead) h3{font-size:clamp(22px,4cqi + 10px,34px)}
 #grid .card[data-ed]:not(.nr-hero,.nr-lead,.lead,.nr-pq) h3{font-size:clamp(15px,2.2vw,19px)}
 @media(min-aspect-ratio:3/4) and (max-width:720px){body:not(.split):not(.narrow){--sw:188px}body:not(.split):not(.narrow)>aside #side-list,body:not(.split):not(.narrow)>aside .addbtn{padding-left:6px;padding-right:6px}}
@@ -4505,6 +4515,8 @@ html.lowp #tdr .tdaur{animation:none}
 @media(max-width:699px){
 #rd .bar{gap:6px}
 #rd .bar .ib{width:40px;height:40px}
+/* A3: after the first turn the bar fades and leaves its height as a blank band (the page must not move, R-10), so on phones the bar itself is slimmer; buttons keep 40px + 2px hit ring */
+@media(max-width:759px){#rd .bar{padding-top:4px;padding-bottom:4px}}
 #rd .book{margin:0 10px calc(10px + env(safe-area-inset-bottom,0px))}
 #rd.vert .cols>.hsf{margin-bottom:12px}
 #rd.vert .cols img.hero{height:auto;max-height:min(26svh,190px)!important;aspect-ratio:16/9;object-fit:cover}
@@ -4609,10 +4621,10 @@ body:has(#tmini:not([hidden])) #raaf{bottom:calc(76px + env(safe-area-inset-bott
 @media(max-width:430px){#aapop .aarow:has(.aaq .aap:nth-child(3)) .aaq{flex:1 1 100%;width:100%}#aapop .aaq .aap{flex:1;padding:0 6px}}
 #aapop .aarow.aacol{gap:8px;flex-wrap:nowrap}
 #aapop .aasw{width:30px;height:30px;font-size:14px}
-#aapop .aamore{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;text-decoration:none;color:var(--mut);font:500 15px var(--sans)}
+#aapop .aamore{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;text-decoration:none;color:var(--ink);font:500 15px var(--sans)}
 #aapop .aamore::after{content:'\203A';font-size:22px;line-height:1}
-#aapop .aap:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
-#aapop .aap.on:hover{background:color-mix(in srgb,var(--rbr,#b08d3e) 22%,transparent)}
+/* A12: a tap leaves :hover stuck on a phone, so a second preset looked chosen */@media(hover:hover){#aapop .aap:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+#aapop .aap.on:hover{background:color-mix(in srgb,var(--rbr,#b08d3e) 22%,transparent)}}
 /* FIXES 20: "Hide the side bar" (tablets). Same slide-away as the reader uses: a small Feeds tab or an edge swipe brings the side bar back over the page */
 @media(min-width:700px){
 body:not(.narrow):not(.split).sidehide{grid-template-columns:0 1fr}
@@ -4879,7 +4891,6 @@ html.micro #tabs .tpill.mv{transition:transform .38s cubic-bezier(.3,1.35,.5,1)}
 html #grid.wire h3.dsh.wsec,html.magx #grid.fed.wire h3.dsh.wsec{background:color-mix(in srgb,var(--a1) 10%,var(--bg))!important;color:var(--ink);border:0!important;border-left:3px solid var(--a1)!important;border-radius:0 10px 10px 0!important;padding:10px 12px 10px 14px!important;margin-top:26px;display:flex;flex-wrap:wrap;align-items:baseline;row-gap:2px}
 html #grid.wire h3.dsh.wsec::after,html.magx #grid.fed.wire h3.dsh.wsec::after{display:none}
 html #grid.wire h3.dsh.wsec small,html.magx #grid.fed.wire h3.dsh.wsec small{order:-1;flex:0 0 100%;display:flex;align-items:center;gap:10px;font:600 11px var(--sans);font-style:normal;letter-spacing:.12em;text-transform:uppercase;color:var(--a1)}
-html #grid.wire h3.dsh.wsec small::after,html.magx #grid.fed.wire h3.dsh.wsec small::after{content:"";height:1px;flex:1;background:var(--ln)}
 html #grid.wire h3.dsh.wsec>span,html.magx #grid.fed.wire h3.dsh.wsec>span{font:500 clamp(24px,6vw,30px)/1.1 var(--disp,var(--serif));color:var(--ink)}
 #grid .wsec .dsr,html.magx #grid.fed.wire h3.dsh.wsec .dsr{margin-left:auto;border:0;background:none;color:var(--logo);font:600 12.5px var(--sans);letter-spacing:.02em;text-transform:none;min-height:44px;padding:0 2px}
 html #grid:not(.list):not([data-cards=compact]):not([data-cards=narrow]) .card:not(.cu):not(.noimg):not(.list-row):not(.nr-row):not(.nr-late):not(.nr-tri):not(.tpl>.card) :is(.src,.sn,.ssec){color:#f6efe0!important;text-shadow:none}
@@ -4893,7 +4904,7 @@ html #grid .card.noimg:not(.list-row):not(.nr-row):not(.nr-late):not(.nr-quote):
 .rhl small{display:block;margin-bottom:6px;font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
 .rhl blockquote{margin:0 0 8px;font:italic 500 1.05em/1.35 var(--serif)}
 #set .sjump{display:none;gap:8px;overflow-x:auto;margin:0 0 12px;padding:2px 28px 6px 0;scrollbar-width:none;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent)}/* fades at the right edge so the cut-off tab reads as scrollable */
-#set.inpage .sjump{display:flex}
+#set.inpage .sjump{display:flex;position:sticky;top:0;z-index:3;background:var(--setbg,var(--pn))}/* A11: each section's strip sticks while that section shows, so the strips read as one nav, not repeats */
 #set .sjump button{flex:none;min-height:40px;padding:0 14px;border:1px solid var(--ln);border-radius:99px;background:var(--pn);color:var(--ink);font:600 13px var(--sans);cursor:pointer}
 #set .sjump button[aria-pressed=true]{background:var(--logo);border-color:var(--logo);color:var(--bg)}
 #set .sjump button:focus-visible{outline:2px solid var(--logo);outline-offset:2px}
@@ -4965,11 +4976,12 @@ html body #grid.wire[data-w="mag"]{row-gap:14px}html body #grid.wire[data-w="mag
 @container feed (min-width:270px){html:not([data-ts="l"]) #grid.wire .wcols>.wtop2{break-before:column}}
 html #grid.wire[data-w="col"] h3.dsh.wsec{background:var(--pn)!important;border-radius:8px!important;padding:6px 8px 6px 12px!important;flex-wrap:nowrap;align-items:center;gap:8px}
 html #grid.wire[data-w="col"] h3.dsh.wsec small{order:0;flex:none;margin-left:auto;display:block}
-html #grid.wire[data-w="col"] h3.dsh.wsec small::after{display:none}
 html #grid.wire[data-w="col"] h3.dsh.wsec .dsr{margin-left:0;min-height:44px}
 /* design picks 2026-11-01 (review/design-2026-11-01) */
 @media(max-width:520px){#grid .card.lead .tx h3{font-size:34px!important;line-height:1.02!important;letter-spacing:-.005em}#grid .card.lead .tx h3 a{font-size:inherit!important}}
 #grid .card .rdy{width:22px;height:22px;background:rgba(12,38,25,.55);color:#e2c27a;box-shadow:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}#grid .card .rdy svg{width:14px;height:14px}/* visual review: reads as a status, not a speck */
+/* A1 (Fresh Eyes): the offline mark sits bottom-right on rows and photo-less cards, where the footer's time stamp also ends: leave it room */#grid .card:is(.list-row,.nr-row,:not(:has(>img))):has(>.rdy) .cfoot{padding-right:30px}
+/* A4: the scrolling reader drew its progress twice (thin fixed line at the top plus the bar's own underline); the top line stays because it survives the bar hiding */#rd.vert .bar::after{display:none}
 @media(max-width:520px){.dcov .dcv-eds{display:block;height:0;overflow:hidden}}
 .dcov .dcv-q cite{display:none}
 .dcov .xsrc{display:block;margin-top:5px;font:italic 13px/1.3 var(--serif);letter-spacing:0;text-transform:none;opacity:.7}
@@ -4996,10 +5008,10 @@ html body main #grid.wire h3.dsh.wsec,html.magx body main #grid.fed.wire h3.dsh.
  <div id="sbh" role="separator" aria-orientation="vertical" aria-label="Resize feeds list" tabindex="0" title="Drag, or use the arrow keys, to resize. Double-click or press Home to reset."></div>
 </aside>
 <main>
- <div class="top"><button class="ib" id="menu" aria-label="Open feeds and sections" aria-expanded="false"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button><span id="tlp" aria-hidden="true"></span><h1 id="ttl">All Stories</h1><button class="ib" id="mr" aria-label="Mark all as read" title="Mark all as read"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 12.5 4 4L14 9"/><path d="m10.5 15.5 1 1L20 8"/></svg></button><button class="ib" id="vw" aria-label="Switch layout" title="Switch layout"></button><button class="ib" id="ref" aria-label="Refresh" title="Refresh"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></svg></button><div class="srch" id="srch"><input id="q" type="search" placeholder="Search stories" aria-label="Search stories" list="qrecent" autocomplete="off"><datalist id="qrecent"></datalist><button class="ib" id="sb" aria-label="Search" title="Search"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button></div></div>
+ <div class="top"><button class="ib" id="menu" aria-label="Open feeds and sections" aria-expanded="false"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button><span id="tlp" aria-hidden="true"></span><h1 id="ttl">All Stories</h1><button class="ib" id="mr" aria-label="Mark all as read" title="Mark all as read (press and hold: only older stories)"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 12.5 4 4L14 9"/><path d="m10.5 15.5 1 1L20 8"/></svg></button><button class="ib" id="vw" aria-label="Switch layout" title="Switch layout"></button><button class="ib" id="ref" aria-label="Refresh" title="Refresh"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></svg></button><div class="srch" id="srch"><input id="q" type="search" placeholder="Search stories" aria-label="Search stories" list="qrecent" autocomplete="off"><datalist id="qrecent"></datalist><button class="ib" id="sb" aria-label="Search" title="Search"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></button></div></div>
  <div class="grid" id="grid"></div>
 </main>
-<div id="rd" role="dialog" aria-modal="true" aria-label="Story reader"><div class="sheet" id="sheet"></div><div id="afx" role="group" aria-label="Hands-free speed" hidden><button type="button" data-afx="p" aria-label="Pause reading aloud" hidden></button><button type="button" data-afx="-1" aria-label="Slower">&minus;</button><span aria-live="polite">1&times;</span><button type="button" data-afx="1" aria-label="Faster">+</button><button type="button" data-afx="0" aria-label="Stop hands-free reading">&times;</button></div><div class="selbar" id="selbar" hidden><div class="sbr"><button class="dot c-v" data-s="hl" data-c="v" aria-label="Highlight in violet"></button><button class="dot c-y" data-s="hl" data-c="y" aria-label="Highlight in yellow"></button><button class="dot c-g" data-s="hl" data-c="g" aria-label="Highlight in green"></button><button class="dot c-r" data-s="hl" data-c="r" aria-label="Highlight in pink"></button><button data-s="note">Note</button><button data-s="listen">Listen from here</button></div><div class="sbr"><button data-s="copy">Copy</button><button data-s="img">Share</button><button data-s="follow">Follow</button><button data-s="junk" title="Hide this and report it as junk">Junk</button></div></div></div>
+<div id="rd" role="dialog" aria-modal="true" aria-label="Story reader"><div class="sheet" id="sheet"></div><div id="afx" role="group" aria-label="Hands-free speed" hidden><button type="button" data-afx="p" aria-label="Pause reading aloud" hidden></button><button type="button" data-afx="-1" aria-label="Slower">&minus;</button><span aria-live="polite">1&times;</span><button type="button" data-afx="1" aria-label="Faster">+</button><button type="button" data-afx="0" aria-label="Stop hands-free reading">&times;</button></div><div class="selbar" id="selbar" hidden><div class="sbr"><button class="dot c-v" data-s="hl" data-c="v" aria-label="Highlight in violet"></button><button class="dot c-y" data-s="hl" data-c="y" aria-label="Highlight in yellow"></button><button class="dot c-g" data-s="hl" data-c="g" aria-label="Highlight in green"></button><button class="dot c-r" data-s="hl" data-c="r" aria-label="Highlight in pink"></button><button data-s="note">Note</button><button data-s="listen">Listen from here</button></div><div class="sbr"><button data-s="copy">Copy</button><button type="button" data-s="look">Look up</button><button data-s="img">Share</button><button data-s="follow">Follow</button><button data-s="junk" title="Hide this and report it as junk">Junk</button></div></div></div>
 <input type="color" id="cp" hidden aria-label="Site color">
 <dialog id="dlg" aria-labelledby="dlg-t"><form method="dialog" id="frm">
  <div class="sh dsh"><h2 id="dlg-t">Add a site</h2><button type="button" class="ib" id="dlgx" aria-label="Close"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
@@ -6520,6 +6532,9 @@ function feedHead(){
 }
 $('.top').addEventListener('click',e=>{if(e.target.closest('.tnew'))wireLoad()});
 {let ft=0;document.addEventListener('scroll',e=>{if(e.target&&e.target.tagName==='MAIN'&&!ft)ft=setTimeout(()=>{ft=0;fpBar()},400)},true)}
+let LSPD=0;
+/* B6: the bottom tabs tuck away while the list scrolls down and come back on the first scroll up; never near the top, while typing, or with reduced motion */
+{let y0=0,raf=0,ly=0,lt=0;const RM=matchMedia('(prefers-reduced-motion: reduce)');document.addEventListener('scroll',e=>{const m=e.target;if(!m||m.tagName!=='MAIN'||raf)return;raf=requestAnimationFrame(()=>{raf=0;const y=m.scrollTop,d=y-y0,t=performance.now();/* B5: list scroll speed in px/ms; Read as you scroll skips cards that leave the top during a fling */LSPD=t-lt<200?Math.abs(y-ly)/Math.max(1,t-lt):0;ly=y;lt=t;if(Math.abs(d)<14)return;y0=y;const ae=document.activeElement,typing=ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);document.body.classList.toggle('tabtuck',d>0&&y>160&&!typing&&!RM.matches)})},{capture:true,passive:true})}
 {const r0=render0;render0=function(){const x=r0.apply(this,arguments);try{feedHead()}catch(e){}return x}}
 function render0(){
  NRS=nrMode();$('#grid').classList.remove('nr','nrp','wire','wtopic','fed','paper','wc','gen-wire','gen-sun');$('#grid').style.removeProperty('--fb');
@@ -6533,7 +6548,7 @@ function render0(){
  {const mr=$('#mr');if(mr)mr.hidden=/^(saved|hist|stats|hl)$/.test(S.sel);const vw=$('#vw');if(vw)vw.hidden=S.sel==='today'}/* Mark all as read has no clear meaning on these pages */
  const q=$('#q').value.trim().toLowerCase();
  if(S.sel==='today'&&!q){if(DNAV&&dailyRestore())return;return renderToday()}
- if(S.sel==='all'&&!q&&atab()!=='latest'){let p=S.feeds.filter(f=>!paused(f)).flatMap(f=>items[f.id]||[]).filter(a=>!muted(a));p.sort((a,b)=>b.date-a.date);p=p.slice(0,300);if(S.hideRead)p=p.filter(a=>!S.read[a.link]);if(S.group!==false)p=group(p);return renderToday(atab(),p,allSeg(atab()),'All Stories')}
+ if(S.sel==='all'&&!q&&atab()!=='latest'){let p=mutCut(S.feeds.filter(f=>!paused(f)).flatMap(f=>items[f.id]||[]));p.sort((a,b)=>b.date-a.date);p=p.slice(0,300);if(S.hideRead)p=p.filter(a=>!S.read[a.link]);if(S.group!==false)p=group(p);return renderToday(atab(),p,allSeg(atab())+mutRow(),'All Stories')}
  if(S.sel==='brief'&&!q)return renderBrief();
  if(S.sel==='stats'&&!q)return renderStats();
  if(S.sel==='bi'&&!q)return renderBack();
@@ -6545,14 +6560,14 @@ function render0(){
  const inSaved=S.sel==='saved';
  /* Saved auto-archive: a story you have read and saved over 30 days ago moves to the Archive chip, out of the main list (a tag still shows it) */
  if(inSaved){const now=Date.now();S.saved.forEach(a=>{if(!a.ar&&S.read[a.link]&&now-(a.st||now)>2592e6)a.ar=1})}
- if(inSaved&&S.stag&&!(S.stag==='~ar'?S.saved.some(a=>a.ar):S.stag==='~ur'?S.saved.some(a=>!a.ar&&!S.read[a.link]):S.saved.some(a=>(a.tags||[]).includes(S.stag))))S.stag='';
- cur=inSaved?S.saved.filter(a=>S.stag==='~ar'?a.ar:S.stag==='~ur'?!a.ar&&!S.read[a.link]:S.stag?(a.tags||[]).includes(S.stag):!a.ar):(q?S.feeds:fs).filter(f=>!(hidePz&&paused(f))).flatMap(f=>items[f.id]||[]).filter(a=>!isCouponSpam(a));
+ if(inSaved&&S.stag&&!(S.stag==='~ar'?S.saved.some(a=>a.ar):S.stag==='~ur'?S.saved.some(a=>!a.ar&&!S.read[a.link]):S.stag==='~rs'?S.saved.some(svRes):S.saved.some(a=>(a.tags||[]).includes(S.stag))))S.stag='';
+ cur=inSaved?S.saved.filter(a=>S.stag==='~ar'?a.ar:S.stag==='~ur'?!a.ar&&!S.read[a.link]:S.stag==='~rs'?svRes(a):S.stag?(a.tags||[]).includes(S.stag):!a.ar):(q?S.feeds:fs).filter(f=>!(hidePz&&paused(f))).flatMap(f=>items[f.id]||[]).filter(a=>!isCouponSpam(a));
  if(S.sel.startsWith('k:')&&!q){const k=S.sk.find(x=>'k:'+x.id===S.sel);cur=k?cur.filter(a=>kmatch(k,a)):[]}
  if(inSaved&&+S.svmin>0){const L=+S.svmin;cur=cur.filter(a=>{const m=minsOf(a);return !m||m<=L})}
  if(!savedView){if(S.sort==='source')cur.sort((a,b)=>(fof(a).title||'').localeCompare(fof(b).title||'')||b.date-a.date);else cur.sort((a,b)=>b.date-a.date);cur=cur.slice(0,q?200:(S.sel==='all'&&smartOn()?600:80))}
  if(S.sel==='saved'&&!q)$('#ttl').textContent='Saved';
  if(q)$('#ttl').textContent='Search';
- if(S.sel!=='saved'||q)cur=cur.filter(a=>!muted(a));
+ MUTN=0;if(S.sel!=='saved'||q)cur=q?cur.filter(a=>!muted(a)):mutCut(cur);
  /* search scope: All (every site, full text, history), Unread or Saved */
  if(q&&QSC==='saved')cur=S.saved.slice();if(q&&QSC==='unread')cur=cur.filter(a=>!S.read[a.link]);
  if(q)cur=cur.filter(a=>((a.title||'')+' '+(a.summary||'')+' '+(a.tags||[]).join(' ')).toLowerCase().includes(q));
@@ -6573,6 +6588,7 @@ function render0(){
  if(q&&q.length>=3&&!S.sk.some(k=>k.words.length===1&&k.words[0]===q))pre=topicMast(q,cur);
  if(!q&&S.sel.startsWith('s:')){const f=S.feeds.find(x=>'s:'+x.id===S.sel);if(f&&paused(f))pre=`<div class="fbar"><span>${esc(f.title)} is paused${f.snz>8e15?'':' until '+esc(new Date(f.snz).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}))}. Its stories are hidden from Today and All Stories.</span><button class="tx2" data-resume="${f.id}">Resume</button></div>`;else if(f&&f.via==='bing')pre=`<div class="fbar"><span>Showing ${esc(f.title)} headlines from Bing News, because ${f.viaWhy==='stale'?'the site’s own feed is out of date':'the site blocks feed readers'}. Stories still open from ${esc(siteOf(f))}.</span></div>`;else if(f&&state[f.id]==='err')pre=`<div class="fbar"><span><b>We couldn’t refresh ${esc(f.title)}.</b> ${esc(feedReason(f))}. ${esc(lastOkTxt(f))}.</span><button class="tx2" data-frep="${f.id}">Try again</button></div>`}
  if(!q&&S.sel.startsWith('k:')){const k=S.sk.find(x=>'k:'+x.id===S.sel);if(k)pre=`<div class="fbar"><span>Following ${k.by||k.sec?'':'“'}${esc(kdesc(k))}${k.by||k.sec?'':'”'} across all your sites</span><button class="tx2" data-unfollow="${k.id}">Unfollow</button></div>`}
+ pre+=mutRow();
  let cov=null,covN=0;
  if(isOn('covers')&&!q&&/^(s|f|k):/.test(S.sel)&&cur.length>=3&&S.view!=='list'&&!(nrMode()&&cur.length>=6)){
   const kd=S.sel[0],id=S.sel.slice(2);let title='',col='';
@@ -7363,10 +7379,16 @@ function nextAfter(a){
  for(let j=i+1;j<cur.length;j++){const n=cur[j];if(n&&n.link!==a.link&&!S.read[n.link])return n}
  return null;
 }
+/* B1: opened from The Daily (Today tab), a story knows its place in the issue as laid out: "4 of 12 · Next up" */
+let DPOS=null;
+function dayPos(a){const t=document.querySelector('.dtabs [aria-selected=true]');if(S.sel!=='today'||!t||t.dataset.bm!=='front')return null;
+ const ed=new Set((S.edn&&S.edn.l)||[]),seen=[],sec={};let s='Cover';
+ document.querySelectorAll('#grid h3.dsh,#grid a[href]').forEach(e=>{if(e.tagName==='H3'){s=(e.querySelector('span')||e).textContent.trim();return}const l=e.getAttribute('href');if(ed.has(l)&&!(l in sec)){sec[l]=s;seen.push(l)}});
+ const i=seen.indexOf(a.link);return i<0?null:i+1+' of '+seen.length+' · '+sec[a.link]}
 function readerFootHtml(a){
  const f=fof(a),nx=nextAfter(a),rel=relatedFor(a).filter(r=>!nx||r.link!==nx.link).slice(0,3),mm=n=>{const m=minsOf(n);return m?' · '+m+' min':''},sv=!!isSaved(a);
  /* R-08: the ending is one composed block: Next up with its photo and how to go on, the story's actions, then up to three related reads; tags moved to the More sheet ("Filed under") */
- return `<div class="rfoot" role="complementary" aria-label="Keep reading"><p class="rf-src">${esc(f.title)}${a.date?' · '+esc(new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'})):''}</p>`
+ return `<div class="rfoot" role="complementary" aria-label="Keep reading"><p class="rf-src">${esc(f.title)}${a.date?' · '+esc(new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'})):''}${DPOS?'<br>The Daily · '+esc(DPOS):''}</p>`
   +(nx?`<button type="button" class="rf-next" data-rnext="${esc(nx.link)}"><small>Next up · ${esc(fof(nx).title)}${mm(nx)}</small>${nx.img?`<span class="rn-i"><img alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="${esc(nx.img)}" onerror="this.parentNode.remove()"></span>`:''}<b>${esc(nx.title)}</b><em aria-hidden="true"></em></button>`:'')
   +`<div class="rf-act"><button type="button" data-act="save" aria-pressed="${sv}">${sv?'Saved':'Save'}</button><button type="button" data-act="share">Share</button><button type="button" data-act="browser">Open site</button></div>`
   +((S.jk&&S.jk.r&&S.jk.r.length)?`<button type="button" class="rf-junk" data-junklog>Copy the list of lines removed (${S.jk.r.length})</button>`:'')
@@ -7965,6 +7987,11 @@ if((S.night&&S.night!=='off')||S.autodark){if(!S.sch||S.sch==='theme')S.sch='sys
 /* a muted single word matches whole words only ("ai" does not hide "said"); a muted phrase matches as text */
 const MUTERX={};
 function muteHit(m,t){if(!/\s/.test(m)){let r=MUTERX[m];if(!r)r=MUTERX[m]=new RegExp('(^|[^\\p{L}\\p{N}])'+m.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^\\p{L}\\p{N}]|$)','iu');return r.test(t)}return t.includes(m)}
+/* B8: stories hidden by muted words, deal hiding or a site rule show as one "3 stories muted · Show" bar instead of vanishing (spam stays gone) */
+let MUTN=0,MUTSHOW=false;
+const mutCut=l=>{MUTN=0;return l.filter(a=>{if(!muted(a))return true;if(junkItem(a))return false;MUTN++;return MUTSHOW})};
+const mutRow=()=>MUTN?`<div class="fbar"><span>${plu(MUTN,'story','stories')} muted</span><button type="button" class="tx2" data-mutshow aria-pressed="${MUTSHOW}">${MUTSHOW?'Hide them':'Show'}</button></div>`:'';
+document.addEventListener('click',e=>{if(e.target.closest('[data-mutshow]')){MUTSHOW=!MUTSHOW;render()}});
 const muted=a=>ruleHide(a)||junkItem(a)||dealHide(a)||(S.mute.length&&(()=>{const t=((a.title||'')+' '+(a.summary||'')).toLowerCase();return S.mute.some(m=>muteHit(String(m).toLowerCase(),t))})());
 const paused=f=>!!(f&&f.snz&&f.snz>Date.now());
 /* A busy feed you haven't opened a single story from in 30 days: offer, gently and once in a while, to pause it. Feeds from before this check get their 30 days counted from the first time it runs. */
@@ -8318,10 +8345,12 @@ function daySections(list,mode){
  const well=pickWell(pool,skip);
  const wset=new Set(well);
  const diff=editionDiff(pool),dset=new Set((diff||[]).map(x=>x.a));
- const rest=list.slice(6).filter(a=>a!==good&&!(a.link&&skip.has(a.link))&&!(num&&a===num.a)&&!wset.has(a)&&!dset.has(a));
+ let rest=list.slice(6).filter(a=>a!==good&&!(a.link&&skip.has(a.link))&&!(num&&a===num.a)&&!wset.has(a)&&!dset.has(a));
+ /* B3: a site that posts less than about once a week would sink under the busy ones: up to three of its stories get their own short section */
+ const quiet=rest.filter(a=>Date.now()-(a.date||0)<2592e5&&rareFeed(fof(a))).slice(0,3);if(quiet.length)rest=rest.filter(a=>!quiet.includes(a));
  const quick=rest.filter(a=>{const m=minsOf(a);return m>=1&&m<=3}).slice(0,10);
  const wkd=[0,6].includes(new Date().getDay()),deep=rest.filter(a=>minsOf(a)>=DEEPMIN).slice(0,wkd?9:6);/* weekends have room for more long reads */
- const used=new Set(quick.concat(deep)),more=rest.filter(a=>!used.has(a));
+ const used=new Set(quick.concat(deep));const more=rest.filter(a=>!used.has(a));
  const brief=quick.length>=2;if(!brief)quick.forEach(a=>more.unshift(a));
  let n=0;const secs=[];
  const issue=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/864e5);
@@ -8340,6 +8369,7 @@ function daySections(list,mode){
  if(num)B.push(ritualHtml('num',num.a,num.n));
  if(well.length)B.push(wellHtml(well));
  if(deep.length)B.push(`<section class="dsec2 ddv" style="--cis:${200+deep.length*300}px">${sh('deep',wkd?'Weekend Reads':'Deep Dives','Settle in',deep.length,'long reads')}${deep.map(a=>`<div class="nr-color">${C(a,'nr nr-colr')}</div>`).join('')}</section>`);
+ if(quiet.length)B.push(`<section class="dsec2">${sh('quiet','From Quieter Sites','',quiet.length,'stories')}${rowsQ(quiet)}</section>`);
  if(more.length){
   B.push(`<section class="dsec2" style="--cis:${200+more.length*110}px">${sh('more',deep.length||brief?'Also in this issue':'More from your sites','',more.length,'stories')}${rowsQ(more)}</section>`);
  }
@@ -8666,7 +8696,7 @@ function show(){
  const c=$('.cols');if(!c)return;setProg();
  if(!isVert())c.style.transform=`translateX(${-R.pg*R.step}px)`;
  if(RP&&!R.T&&RP.T.key!==prepKey())prepSoon();
- $('#pc').textContent=pcText();{const bk=$('.book');if(bk){if(isOn('folio')&&curA&&!R.web&&!isVert()&&R.np>0){const t=(curA.title||'').length>46?curA.title.slice(0,44)+'…':(curA.title||'');bk.dataset.folio=(fof(curA).title||'')+' · '+t+'   ·   '+(R.pg+1)}else delete bk.dataset.folio}}$('#pv').disabled=!isVert()&&R.pg===0;$('#nx').disabled=!isVert()&&R.pg>=R.np-1;fpSync();dialSync();rdxEdge();
+ $('#pc').textContent=pcText();{const bk=$('.book');if(bk){if(isOn('folio')&&curA&&!R.web&&!isVert()&&R.np>0){const t=(curA.title||'').length>46?curA.title.slice(0,44)+'…':(curA.title||'');bk.dataset.folio=(DPOS||fof(curA).title||'')+' · '+t+'   ·   '+(R.pg+1)}else delete bk.dataset.folio}}$('#pv').disabled=!isVert()&&R.pg===0;$('#nx').disabled=!isVert()&&R.pg>=R.np-1;fpSync();dialSync();rdxEdge();
  if(R.ready&&curA){delete S.pos[curA.link];if(R.pg>0&&R.pg<R.np-1)S.pos[curA.link]=R.pg;const pk=Object.keys(S.pos);if(pk.length>300)delete S.pos[pk[0]];clearTimeout(pt);pt=setTimeout(save,700)}
 }
 const ePage=p=>(1-Math.pow(1-p,3))*(.55+.45*Math.min(1,p/.3));
@@ -9778,8 +9808,8 @@ function toggleWeb(auto){
  w.hidden=false;R.web=true;R.auto=!!auto;b.innerHTML=svg(PAGE);b.title='Back to reader view';loadWeb();
 }
 async function openReader(a){use1('open');RDT=Date.now();
- const f=fof(a),my=++tok,sh=$('#sheet');curA=a;RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0,wantResume=RD_CONT;RD_CONT=false;R.navAt=0;R.ready=false;R.tf=0;R.fa=0;try{$('#rd').classList.remove('fauto','fpeek')}catch(e){}const afterLoad=()=>{R.tf=1;{const s=document.querySelector('.cols .body .skp');if(s)s.remove();const h=$('#rd .lhl');if(h)h.hidden=true}legalBody($('.cols .body'));try{markRestricted(a,($('.cols .body')||{}).textContent,false)}catch(e){}try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;/* ...but only when something really changed since the last layout: each one re-lays the whole story, a hitch just as reading starts */try{if(RLD)RLD.off()}catch(e){}const c0=$('.cols'),L={dirty:false},mark=()=>{L.dirty=true};L.mo=new MutationObserver(mark);if(c0){L.mo.observe(c0,{childList:true,subtree:true,characterData:true});c0.addEventListener('load',mark,true)}try{document.fonts&&document.fonts.addEventListener('loadingdone',mark)}catch(e){}L.off=()=>{L.mo.disconnect();if(c0)c0.removeEventListener('load',mark,true);try{document.fonts.removeEventListener('loadingdone',mark)}catch(e){}if(RLD===L)RLD=null};RLD=L;const maybe=()=>{if(curA!==a0){L.off();return}if(L.dirty)relayout()};setTimeout(maybe,800);setTimeout(()=>{maybe();setTimeout(()=>{if(curA===a0)L.off()},3000)},2600);setTimeout(()=>{if(curA===a0)rdWarm()},3300);try{document.fonts&&document.fonts.ready.then(maybe)}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if(!wantResume){R.pg=0;try{show()}catch(e){}/* page 1 again once the pictures have settled, unless the reader has already turned a page */const t0=Date.now();for(const ms of [0,350,900]){setTimeout(()=>{if(my===tok&&!isVert()&&R.pg>0&&!(R.navAt&&R.navAt>=t0-50)){R.pg=0;try{show()}catch(e){}}},ms)}/* a story you were partway through offers your page back instead of starting over in silence */if(resume||progOf(a.link))setTimeout(()=>{if(my!==tok||isVert()||R.pg>0||!R.np)return;const pf=progOf(a.link),tp=Math.max(0,Math.min(pf?Math.round(pf*(R.np-1)):resume,R.np-1));if(tp>0&&tp<R.np-1)toast('You were on page '+(tp+1)+' of '+R.np,()=>{if(my===tok){R.pg=tp;R.navAt=Date.now();show()}},'Resume')},1000)}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);saveSoon();setTimeout(()=>raWhenReady(a,0),1200);
- rdB(brand(f));pushLayer('reader');tip('reader');
+ const f=fof(a),my=++tok,sh=$('#sheet');curA=a;DPOS=dayPos(a);R.vl=null;RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0,wantResume=RD_CONT;RD_CONT=false;R.navAt=0;R.ready=false;R.tf=0;R.fa=0;try{$('#rd').classList.remove('fauto','fpeek')}catch(e){}const afterLoad=()=>{R.tf=1;{const s=document.querySelector('.cols .body .skp');if(s)s.remove();const h=$('#rd .lhl');if(h)h.hidden=true}legalBody($('.cols .body'));try{markRestricted(a,($('.cols .body')||{}).textContent,false)}catch(e){}try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;/* ...but only when something really changed since the last layout: each one re-lays the whole story, a hitch just as reading starts */try{if(RLD)RLD.off()}catch(e){}const c0=$('.cols'),L={dirty:false},mark=()=>{L.dirty=true};L.mo=new MutationObserver(mark);if(c0){L.mo.observe(c0,{childList:true,subtree:true,characterData:true});c0.addEventListener('load',mark,true)}try{document.fonts&&document.fonts.addEventListener('loadingdone',mark)}catch(e){}L.off=()=>{L.mo.disconnect();if(c0)c0.removeEventListener('load',mark,true);try{document.fonts.removeEventListener('loadingdone',mark)}catch(e){}if(RLD===L)RLD=null};RLD=L;const maybe=()=>{if(curA!==a0){L.off();return}if(L.dirty)relayout()};setTimeout(maybe,800);setTimeout(()=>{maybe();setTimeout(()=>{if(curA===a0)L.off()},3000)},2600);setTimeout(()=>{if(curA===a0)rdWarm()},3300);try{document.fonts&&document.fonts.ready.then(maybe)}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if(!wantResume){R.pg=0;try{show()}catch(e){}/* page 1 again once the pictures have settled, unless the reader has already turned a page */const t0=Date.now();for(const ms of [0,350,900]){setTimeout(()=>{if(my===tok&&!isVert()&&R.pg>0&&!(R.navAt&&R.navAt>=t0-50)){R.pg=0;try{show()}catch(e){}}},ms)}/* a story you were partway through offers your page back instead of starting over in silence */if(resume||progOf(a.link))setTimeout(()=>{if(my!==tok||isVert()||R.pg>0||!R.np)return;const pf=progOf(a.link),tp=Math.max(0,Math.min(pf?Math.round(pf*(R.np-1)):resume,R.np-1));if(tp>0&&tp<R.np-1)toast('You were on page '+(tp+1)+' of '+R.np,()=>{if(my===tok){R.pg=tp;R.navAt=Date.now();show()}},'Resume')},1000)}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);saveSoon();setTimeout(()=>raWhenReady(a,0),1200);
+ rdB(brand(f));pushLayer('reader');rdGest();
  try{rdAmbient(null)}catch(e){}
  if(a.img&&isOn('ptint'))imgInfo(a.img).then(o=>{if(o&&o.t&&curA===a){rdB(o.t);try{rdAmbient(o.t)}catch(e){}}});
  document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',chref(c)===a.link));
@@ -11269,6 +11299,8 @@ const arow=(k,t,d,c)=>`<button type="button" class="arow" data-cat="${k}"><i cla
 const ACOL=['#7c5cff','#0a8f4a','#e2231a','#2e7dd7','#d98a1a','#c2307a','#0f9ca8','#6b7a8f'];
 /* how often a site posts and when it last did, worked out from its own feed */
 const INFOC=new Map();
+const RARE=new Map();
+function rareFeed(f){if(!f||!f.id)return false;const l=items[f.id]||[],k=l.length+'|'+(l[0]&&l[0].date);const c=RARE.get(f.id);if(c&&c.k===k)return c.v;const d=l.map(a=>a.date||0).filter(Boolean).sort((a,b)=>b-a),days=d.length>=2?(d[0]-d[d.length-1])/864e5:0,v=days>=14&&(d.length-1)/days*7<.9;RARE.set(f.id,{k,v});return v}
 function freqText(list){
  const d=list.map(a=>a.date||0).filter(Boolean).sort((a,b)=>b-a);
  if(!d.length)return'No stories found in this feed yet';
@@ -11523,8 +11555,16 @@ $('#ref').onclick=async()=>{
  const n=S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>!before.has(a.link)).length,badL=S.feeds.filter(f=>state[f.id]==='err'),bad=badL.length,slow=S.feeds.filter(f=>state[f.id]==='load').length;
  toast((n?n+' new '+(n===1?'story':'stories'):slow?'No new stories yet':'No new stories')+(bad===1?' · '+badL[0].title+' didn’t respond':bad?' · '+bad+' sites didn’t respond':'')+(slow?' · '+slow+(slow===1?' site is':' sites are')+' still loading':''));
 };
-$('#mr').onclick=()=>{const add=[];let k=0;cur.forEach(a=>{if(!S.read[a.link])k++;[a.link,...(a.more||[]).map(m=>m.l)].forEach(l=>{if(!S.read[l])add.push(l);S.read[l]=1})});trimRead();save();render();
- if(add.length)toast('Marked '+(k||1)+(k>1?' stories':' story')+' as read',()=>{add.forEach(l=>delete S.read[l]);save();render()})};
+function markList(L){const add=[];let k=0;L.forEach(a=>{if(!S.read[a.link])k++;[a.link,...(a.more||[]).map(m=>m.l)].forEach(l=>{if(!S.read[l])add.push(l);S.read[l]=1})});trimRead();save();render();
+ if(add.length)toast('Marked '+(k||1)+(k>1?' stories':' story')+' as read',()=>{add.forEach(l=>delete S.read[l]);save();render()});else toast('Nothing that old to mark')}
+/* C2: press and hold (or right-click) the mark-read button: only stories older than 1, 3 or 7 days */
+function mrOlder(){const mr=$('#mr'),d=document.createElement('dialog');d.setAttribute('aria-labelledby','mro-t');
+ d.innerHTML=`<h3 id="mro-t">Mark as read</h3><p class="hint">Only stories older than</p><div class="rf-act">${[1,3,7].map(n=>`<button type="button" data-mro="${n}">${plu(n,'day')}</button>`).join('')}</div><div class="rf-act"><button type="button" class="tx2" data-mro="0">Cancel</button></div>`;
+ document.body.append(d);let n=0;d.addEventListener('close',()=>{d.remove();mr&&mr.focus();if(n){const cut=Date.now()-n*864e5;markList(cur.filter(a=>(a.date||0)<cut))}});
+ d.addEventListener('click',e=>{const b=e.target.closest('[data-mro]');if(b){n=+b.dataset.mro;d.close()}});d.showModal();d.querySelector('button').focus()}
+{const mr=$('#mr');let t=0,held=false;mr.onclick=()=>{if(held){held=false;return}markList(cur)};
+ mr.addEventListener('pointerdown',()=>{held=false;t=setTimeout(()=>{held=true;mrOlder()},550)});['pointerup','pointerleave','pointercancel'].forEach(k=>mr.addEventListener(k,()=>clearTimeout(t)));
+ mr.addEventListener('contextmenu',e=>{e.preventDefault();clearTimeout(t);if(!held)mrOlder();held=false})}
 $('#q').oninput=()=>render();
 const srch=$('#srch');
 /* search remembers your last 8 searches (offered as you type) and can be narrowed to Unread or Saved */
@@ -11795,6 +11835,8 @@ async function selAct(k,col){
 
 
 
+ /* C6: look up a word or short phrase in Wiktionary, opened in the browser only when you tap (nothing is sent before that) */
+ if(k==='look'){const w=SELV.q.trim().replace(/\s+/g,' ').replace(/^[^\w]+|[^\w]+$/g,'');if(!w||w.split(' ').length>3){toast('Select a word or two to look up');return}extOpen('https://en.wiktionary.org/wiki/'+encodeURIComponent(w.toLowerCase()));return}
  if(k==='copy'){navigator.clipboard.writeText(SELV.q).then(()=>toast('Copied'),()=>{});return}
  if(k==='junk'){junkReport(SELV.q,SELV.rg);return}
  if(k==='img'){const f=fof(curA);quoteImage(SELV.q,{...curA,ft:f.title,fc:brand(f)}).then(c=>shareCanvas(c,'cypress-quote.png',curA.title+' '+curA.link));return}
@@ -12255,7 +12297,7 @@ $('#swlsel').onchange=e=>{S.swl=e.target.value;save()};$('#swrsel').onchange=e=>
 {const _ss=syncSet;syncSet=function(){const r=_ss.apply(this,arguments);try{$('#swlsel').value=S.swl||'save';$('#swrsel').value=S.swr||'read'}catch(e){}return r}}
 /* Read You borrow: read as you scroll (off by default). A card counts as read once it has scrolled up past the top of the list; the first second after a redraw is ignored so a rebuild or a return from a story never marks anything. */
 {let ro=null,armed=0;
- const mk=()=>{if(ro)return ro;ro=new IntersectionObserver(es=>{if(!isOn('rdscroll')||Date.now()-armed<1200)return;for(const e of es){if(e.isIntersecting||!e.rootBounds||e.boundingClientRect.bottom>e.rootBounds.top+4)continue;ro.unobserve(e.target);const a=cardStory(e.target);if(a&&!S.read[a.link])markReadA(a)}},{root:$('main'),threshold:0});return ro};
+ const mk=()=>{if(ro)return ro;ro=new IntersectionObserver(es=>{if(!isOn('rdscroll')||Date.now()-armed<1200)return;for(const e of es){if(e.isIntersecting||!e.rootBounds||e.boundingClientRect.bottom>e.rootBounds.top+4||LSPD>2.5)continue;ro.unobserve(e.target);const a=cardStory(e.target);if(a&&!S.read[a.link])markReadA(a)}},{root:$('main'),threshold:0});return ro};
  const arm=()=>{if(!isOn('rdscroll')||!('IntersectionObserver' in window))return;const o=mk();armed=Date.now();o.disconnect();document.querySelectorAll('#grid .card[data-i]').forEach(c=>{const a=cardStory(c);if(a&&!S.read[a.link])o.observe(c)})};
  const _r=render;render=function(){const r=_r.apply(this,arguments);clearTimeout(arm.t);arm.t=setTimeout(arm,500);return r}}
 $('#spm').onchange=e=>{S.splitm=e.target.value;delete S.split;save();syncSet();screenMode();render()};
@@ -12699,7 +12741,7 @@ function cvMini(k){
  const lines='<div class="cvlines"><span class="cvl"><i class="cvth" style="background-image:url(&quot;'+CVPH+'&quot;)"></i><small>Wired</small><span>A second story from another site</span></span><span class="cvl"><i class="cvth" style="background-image:url(&quot;'+CVPH+'&quot;)"></i><small>BBC</small><span>And a third story to read</span></span></div>';
  if(k==='triptych'){const p=`<span class="cvp"><i style="background-image:url(&quot;${CVPH}&quot;)"></i><span><small>Site</small><h3>Story headline here</h3></span></span>`;return `<div class="cover cv-tri" style="--b:#2a5db0"><div class="cvtop"><span class="cvm">CyPress</span><span class="cvd">Thursday Morning Edition</span></div><div class="cvtri">${p}${p}${p}</div></div>`}
  const cls=k==='photo'?'':' cv-'+k;
- return `<div class="cover${cls}" style="--b:#2a5db0;--ph:url(&quot;${CVPH}&quot;)">${ph}<div class="cvsh"></div><div class="cvtop"><span class="cvm">CyPress</span><span class="cvd">Thursday Morning Edition<i class="cvv">Vol. 1, No. 274</i></span></div><div class="cvbot"><span class="cvlead"><small>Android Authority</small><h2>${k==='italic'?cvMix('Samsung is quietly killing one of its newest apps'):'Samsung is quietly killing one of its newest apps'}</h2></span>${lines}</div></div>`;
+ return `<div class="cover${cls}" style="--b:#2a5db0;--ph:url(&quot;${CVPH}&quot;)">${ph}<div class="cvsh"></div><div class="cvtop"><span class="cvm">CyPress</span><span class="cvd">Thursday Morning Edition<i class="cvv">Vol. 1, No. 274</i></span></div><div class="cvbot"><span class="cvlead"><small>Top story</small><h2>${k==='italic'?cvMix('Your top story, set in this look'):'Your top story, set in this look'}</h2></span>${lines}</div></div>`;
 }
 function cvName(k){return (CVNAMES.find(x=>x[0]===k)||CVNAMES[0])[1]}
 /* the plain list in Settings is built from the same table as the picker, so the two always agree (names, descriptions and every style) */
@@ -12852,6 +12894,11 @@ function tipsCheck(){
  if(days>=3&&pfMode()==='off')return tip('offlinehint');
 }
 function tip(k){S.tips=S.tips||{};if(S.tips[k]||TIPQ.shown)return;const t=TIPQ.find(x=>x[0]===k);if(!t)return;TIPQ.shown=1;S.tips[k]=1;save();/* F-09: a tip is an inline card at the top of the list with a Dismiss button (not a toast), and it waits while any toast is up */const go=()=>{const T=$('#toast');if(T&&T.classList.contains('show')){setTimeout(go,3000);return}TIPQ.cur=t[2];tipPlace()};setTimeout(go,t[1])}
+/* B10: the first story ever opened shows the reading gestures once, one line each (replaces the one-line reader tip) */
+function rdGest(){S.tips=S.tips||{};if(S.tips.reader||S.tips.gest||TIPQ.shown)return;TIPQ.shown=1;S.tips.gest=S.tips.reader=1;save();
+ setTimeout(()=>{const rd=$('#rd');if(!rd||!rd.classList.contains('on')||rd.querySelector('.rgest'))return;
+  rd.insertAdjacentHTML('beforeend',`<div class="rgest" role="note" aria-label="Reading gestures"><b>Reading gestures</b><ul><li>${isVert()?'Scroll to read.':'Swipe the page or tap its edges to turn it.'}</li><li>Tap the middle to hide the controls.</li><li>Swipe down on a story to close it.</li><li>Select text to highlight, add a note or look up a word.</li></ul><button type="button" class="tx2" data-gestx>Got it</button></div>`);
+  const c=rd.querySelector('.rgest');['pointerdown','pointerup','touchstart','touchend','click'].forEach(k=>c.addEventListener(k,e=>e.stopPropagation()));c.querySelector('[data-gestx]').onclick=()=>c.remove()},1600)}
 function tipPlace(){if(!TIPQ.cur)return;const g=$('#grid');if(!g||g.querySelector('[data-tipx]'))return;const st=g.querySelector(':scope>.bmseg');(st||g).insertAdjacentHTML(st?'afterend':'afterbegin',`<div class="fbar burn" data-tip role="note" aria-label="Tip"><span>${esc(TIPQ.cur)}</span><button type="button" class="tx2" data-tipx>Dismiss</button></div>`)}
 $('#clnx').onclick=()=>$('#cln').close();
 $('#clngo').onclick=()=>{
@@ -13059,6 +13106,10 @@ function markReadA(a){if(!a||S.read[a.link])return;S.read[a.link]=1;(a.more||[])
 function wpmTick(f){const now=Date.now();if(R.lf!=null&&R.words>150){const dt=(now-R.lt)/60000,df=f-R.lf;if(df>0&&df<.25&&dt>.02&&dt<1.5){const w=df*R.words/dt;if(w>=90&&w<=550)S.wpm=Math.round((S.wpm||230)*.85+w*.15)}}R.lf=f;R.lt=now}
 function bodyEnd(){const b=$('.cols .body');if(!b)return null;const k=[...b.children].filter(e=>!e.matches('.bfold,.endmark,script,style'));return k.pop()||null}
 function pgEnd(){R.ep=null;if(isVert()||!(R.np>1))return;const c=$('.cols'),e=bodyEnd();if(!c||!e)return;const rs=[...e.getClientRects()],r=rs[rs.length-1];if(!r)return;const x=r.left-c.getBoundingClientRect().left;if(!isFinite(x)||!R.step)return;R.ep=Math.max(0,Math.min(R.np-1,Math.floor((x+2)/R.step)))}
+/* B5: in Scroll, how much of the story counts as read: it follows your position but can grow at most 3x reading speed, so a fling to the bottom doesn't finish a story or zero "min left"; time spent at a spot still counts */
+function vReadFrac(){const f=vEndFrac(),v=vView();if(!v||!curA||v.scrollHeight<=v.clientHeight+20)return f;const now=Date.now();
+ if(R.vl!==curA.link){R.vl=curA.link;R.vc=R.vm=progOf(curA.link)||0;R.vt=now}
+ R.vm=Math.max(R.vm,f);R.vc=Math.min(R.vm,R.vc+(now-R.vt)*3/Math.max(3e4,(readMin(curA)||1)*6e4));R.vt=now;return R.vc}
 function vEndFrac(){const v=vView();if(!v)return 0;let m=v.scrollHeight-v.clientHeight;const e=bodyEnd();if(e){const endY=e.getBoundingClientRect().bottom-v.getBoundingClientRect().top+v.scrollTop;m=Math.min(m,Math.max(1,endY-v.clientHeight+24))}return m>0?Math.min(1,Math.max(0,v.scrollTop/m)):1}
 /* a story that fits on the screen is already at its end: it counts as read to the end once it has been open for a few seconds */
 function finishWatch(){
@@ -13071,15 +13122,17 @@ function finishWatch(){
 function setProg(){
  if(!R.ready||!curA)return;
  const l=curA.link,E=R.ep!=null?R.ep:R.np-1;
- {const v=isVert()?vView():null,short=isVert()?(!v||v.scrollHeight<=v.clientHeight+20):R.np<2,fr=isVert()?vEndFrac():(R.np>1?(E>0?Math.min(1,R.pg/E):1):1);if(!S.read[l]&&(short||fr>=.5))markReadA(curA);wpmTick(fr)}
+ {const v=isVert()?vView():null,short=isVert()?(!v||v.scrollHeight<=v.clientHeight+20):R.np<2,fr=isVert()?vReadFrac():(R.np>1?(E>0?Math.min(1,R.pg/E):1):1);if(!S.read[l]&&(short||fr>=.5))markReadA(curA);wpmTick(fr)}
  finishWatch();
- if(isVert()){const f=vEndFrac(),v=vView();if(!v||v.scrollHeight<=v.clientHeight+20)return;if(f>=.97){if(S.prog[l]){S.prog[l].p=1;S.prog[l].t=Date.now()}STAT.finished(l)}else if(f>.03)S.prog[l]={p:f,t:Date.now()};return}
+ if(isVert()){const f=vReadFrac(),v=vView();if(!v||v.scrollHeight<=v.clientHeight+20)return;if(f>=.97){if(S.prog[l]){S.prog[l].p=1;S.prog[l].t=Date.now()}STAT.finished(l)}else if(f>.03)S.prog[l]={p:f,t:Date.now()};return}
  if(R.np<2)return;
  if(R.pg>=E)STAT.finished(l);
  if(R.pg>=E){if(S.prog[l]){S.prog[l].p=1;S.prog[l].t=Date.now()}}
  else if(R.pg>0){S.prog[l]={p:R.pg/E,t:Date.now()}}
  const k=Object.keys(S.prog);if(k.length>300)delete S.prog[k.sort((a,b)=>S.prog[a].t-S.prog[b].t)[0]];
 }
+/* B4: saved stories you started and didn't finish (the Resume chip on Saved) */
+const svRes=a=>!a.ar&&progOf(a.link)>=.05;
 const progOf=l=>{const p=S.prog[l];return p&&p.p>0&&p.p<1?p.p:0};
 function findStory(l){for(const f of S.feeds){const a=(items[f.id]||[]).find(x=>x.link===l);if(a)return a}return S.saved.find(x=>x.link===l)||null}
 function continueRow(){
@@ -13349,8 +13402,8 @@ async function collectionPrompt(a){
  if(!isSaved(a))toggleSave(a);const sv=S.saved.find(x=>x.link===a.link);if(!sv)return;sv.tags=[...new Set([...(sv.tags||[]),t])];save();render();toast('Added to “'+t+'”');
 }
 function savedChips(){
- const tags={};S.saved.forEach(a=>(a.tags||[]).forEach(t=>tags[t]=(tags[t]||0)+1));const nar=S.saved.filter(a=>a.ar).length,nur=S.saved.filter(a=>!a.ar&&!S.read[a.link]).length;
- return `<div class="schips svm" role="group" aria-label="How much time you have"><span class="svl">How much time you have</span>${[0,5,15,30].map(m=>`<button type="button" class="chip ${(+S.svmin||0)===m?'on':''}" data-svmin="${m}" aria-pressed="${(+S.svmin||0)===m}">${m?m+' min':'Any'}</button>`).join('')}</div><div class="schips"><button class="chip ${!S.stag?'on':''}" data-stag="">All ${S.saved.length-nar}</button>${nur?`<button class="chip ${S.stag==='~ur'?'on':''}" data-stag="~ur" aria-pressed="${S.stag==='~ur'}">Not read yet ${nur}</button>`:''}${Object.keys(tags).sort().map(t=>`<button class="chip ${S.stag===t?'on':''}" data-stag="${esc(t)}">${esc(t)} ${tags[t]}</button>`).join('')}${nar?`<button class="chip ${S.stag==='~ar'?'on':''}" data-stag="~ar">Archive ${nar}</button>`:''}<button class="tx2 sx" data-ssel aria-pressed="${SVSEL?'true':'false'}">${SVSEL?'Cancel picking':'Pick stories'}</button><button class="tx2 sx" data-sshare>Share this list</button></div>`;
+ const tags={};S.saved.forEach(a=>(a.tags||[]).forEach(t=>tags[t]=(tags[t]||0)+1));const nar=S.saved.filter(a=>a.ar).length,nur=S.saved.filter(a=>!a.ar&&!S.read[a.link]).length,nrs=S.saved.filter(svRes).length;
+ return `<div class="schips svm" role="group" aria-label="How much time you have"><span class="svl">How much time you have</span>${[0,5,15,30].map(m=>`<button type="button" class="chip ${(+S.svmin||0)===m?'on':''}" data-svmin="${m}" aria-pressed="${(+S.svmin||0)===m}">${m?m+' min':'Any'}</button>`).join('')}</div><div class="schips"><button class="chip ${!S.stag?'on':''}" data-stag="">All ${S.saved.length-nar}</button>${nur?`<button class="chip ${S.stag==='~ur'?'on':''}" data-stag="~ur" aria-pressed="${S.stag==='~ur'}">Not read yet ${nur}</button>`:''}${nrs?`<button class="chip ${S.stag==='~rs'?'on':''}" data-stag="~rs" aria-pressed="${S.stag==='~rs'}">Resume ${nrs}</button>`:''}${Object.keys(tags).sort().map(t=>`<button class="chip ${S.stag===t?'on':''}" data-stag="${esc(t)}">${esc(t)} ${tags[t]}</button>`).join('')}${nar?`<button class="chip ${S.stag==='~ar'?'on':''}" data-stag="~ar">Archive ${nar}</button>`:''}<button class="tx2 sx" data-ssel aria-pressed="${SVSEL?'true':'false'}">${SVSEL?'Cancel picking':'Pick stories'}</button><button class="tx2 sx" data-sshare>Share this list</button></div>`;
 }
 function shareSavedList(){
  const l=S.saved.filter(a=>S.stag==='~ar'?a.ar:S.stag?(a.tags||[]).includes(S.stag):!a.ar);
@@ -13817,8 +13870,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.06c';const APP_LABEL='1.267';
-const CHANGES=["Opening or closing a Fold keeps your place: the story you were looking at stays where it was on the screen, and folding back puts you right where you were"];
+const APP_VERSION='2026.11.06d';const APP_LABEL='1.268';
+const CHANGES=["Your place in The Daily: a story opened from Today shows where it sits in the issue, like \"5 of 28 · The Front Page\"","Saved has a Resume chip for stories you started and didn't finish","Muted words no longer make stories vanish silently: a bar says how many were muted, with Show to see them","The first story you open shows a short card with the reading gestures, once","The Daily has a \"From Quieter Sites\" section, so sites that post rarely aren't buried","The bottom tabs slide away while you scroll down a list and come back when you scroll up","Progress counts at reading speed: flinging to the end of a story or past a list no longer marks things read","Press and hold Mark all as read to mark only stories older than 1, 3 or 7 days"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -13879,10 +13932,10 @@ function minsLeft(frac){const m=curA?readMin(curA):0;return Math.max(0,Math.roun
 function pcText(){
  /* polish-2026-10 R-01: one quiet caption ("10 min left"), the total on page 1, "last page" / "done" at the end; the 2px rule under the bar follows the same value */
  const NP=R.ep!=null?Math.min(R.np,R.ep+1):R.np,PG=Math.min(R.pg,NP-1),v=isVert();
- const f=v?vEndFrac():(NP>1?(PG+1)/NP:1),m=minsLeft(f),tot=curA?readMin(curA):0;
+ const f=v?vEndFrac():(NP>1?(PG+1)/NP:1),cr=v?vReadFrac():f,m=minsLeft(cr),tot=curA?readMin(curA):0;
  {const bar=$('#rd .bar');if(bar)bar.style.setProperty('--rp',Math.round(Math.max(0,Math.min(1,f))*1000)/10+'%')}
  if(v?f<=.02:PG===0)return '';/* polish pick 11: the byline already gives the total on page 1 */
- if(v?f>=.97:PG+1>=NP)return v?'done':'last page';
+ if(v?cr>=.97:PG+1>=NP)return v?'done':'last page';
  return `${Math.max(1,m)} min left`;/* a middle page is never called the last page, even with under a minute to go */
 }
 
@@ -17701,7 +17754,7 @@ document.addEventListener('click',async e=>{
 
 /* ---------- Saved: pick the stories you want, then make a PDF or a Kindle book from just those ---------- */
 /* (SVSEL is declared near the top of the script: the Saved screen reads it on the very first draw) */
-const svList=()=>S.saved.filter(a=>S.stag==='~ar'?a.ar:S.stag==='~ur'?!a.ar&&!S.read[a.link]:!S.stag||(a.tags||[]).includes(S.stag));
+const svList=()=>S.saved.filter(a=>S.stag==='~ar'?a.ar:S.stag==='~ur'?!a.ar&&!S.read[a.link]:S.stag==='~rs'?svRes(a):!S.stag||(a.tags||[]).includes(S.stag));
 function svBar(){
  let b=$('#svbar');
  if(!SVSEL||S.sel!=='saved'){if(b)b.remove();return}

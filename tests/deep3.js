@@ -48,7 +48,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060],['desk',1280,900]]){
  // horizontal swipe does not start a page turn
  await p.touchDrag(bb.x+bb.width*.8,bb.y+200,bb.x+bb.width*.2,bb.y+205,10);await W(500);ck(vp,'no page turn in vertical',await E(()=>!R.T&&!document.querySelector('.tl-leaf')));
  // progress saved + resume
- await E(()=>{const v=$('#rd .view');/* progress counts to the end of the article text, so aim for the middle of that, not of the whole page (which now also holds the end-of-article footer) */let lo=0,hi=v.scrollHeight;for(let i=0;i<22;i++){const mid=(lo+hi)/2;v.scrollTop=mid;if(vEndFrac()<.55)lo=mid;else hi=mid}v.dispatchEvent(new Event('scroll'))});await W(300);
+ await E(()=>{const v=$('#rd .view');vReadFrac();R.vt-=6e5;/* B5: simulate ten minutes of reading so the pace limit allows the jump *//* progress counts to the end of the article text, so aim for the middle of that, not of the whole page (which now also holds the end-of-article footer) */let lo=0,hi=v.scrollHeight;for(let i=0;i<22;i++){const mid=(lo+hi)/2;v.scrollTop=mid;if(vEndFrac()<.55)lo=mid;else hi=mid}v.dispatchEvent(new Event('scroll'))});await W(300);
  const pr=await E(()=>S.prog[curA.link]&&S.prog[curA.link].p);ck(vp,'vertical progress stored',pr>.4&&pr<.8,String(pr));
  const link=await E(()=>curA.link);await p.evaluate(()=>{const r=document.querySelector('#rd');r&&r.classList.add('fpeek')}).then(()=>p.tap('#cl'))/* R-10 peek */;await W(300);await E(l=>openReader(findStory(l)),link);await W(900);
  ck(vp,'vertical resumes position',await E(()=>vEndFrac())>.4);
