@@ -1376,3 +1376,5 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 
 ## C4 High Contrast theme (branch n921s1, unreleased)
 - Settings > Theme > High Contrast: gray text turns black (white in dark), cards get thick black borders, tab marker black. Check light, dark and Follow phone on the Fold; check reader links are underlined.
+- C3 (n921s1): in page mode on a story's last page, turn once: an "Up next" card with the next headline slides up; turn again: the next story opens. Page turn feel unchanged.
+- C5 (n921s1): on a story with section headings, the position line at the bottom shows small marks; drag the line and it snaps to a mark and lands on that section (page and scroll modes, Fold folded and unfolded).

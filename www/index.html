@@ -690,7 +690,8 @@ html:is(.mast-tint,.mast-gradient,.mast-glow) .cover:is(.cv-gazette,.cv-gallery,
 #dial:hover::before,#dial.act::before,#dial:hover i,#dial.act i{height:5px}#dial:hover i,#dial.act i{margin-top:-2.5px}
 #dial:hover i::after,#dial.act i::after{opacity:1;transform:scale(1)}
 /* A4: in Scroll the top line (#rdprog) shows progress; the slider stays for touch and keyboard but only shows while in use */
-#rd.vert #dial:not(:hover,.act,:focus-visible)::before,#rd.vert #dial:not(:hover,.act,:focus-visible) i{opacity:0}
+#rd.vert #dial:not(:hover,.act,:focus-visible)::before,#rd.vert #dial:not(:hover,.act,:focus-visible) :is(i,b){opacity:0}
+#dial b{position:absolute;top:50%;width:2px;height:9px;margin:-4.5px 0 0 -1px;border-radius:1px;background:var(--mut);pointer-events:none}
 ::highlight(tts-s){background-color:color-mix(in srgb,var(--hl) 38%,transparent)}
 .fr small.stl{font-weight:500;color:var(--mut)}
 body.offl #ttl::after,body.netoff #ttl::after{content:'Offline';margin-left:10px;padding:2px 9px;border-radius:99px;font:700 11px var(--sans);letter-spacing:.03em;vertical-align:3px;background:var(--ln);color:var(--mut)}@media(max-width:699px){body.offl #ttl::after,body.netoff #ttl::after{content:none}body.offl .top::before,body.netoff .top::before{content:'Offline';position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);padding:2px 10px;border-radius:99px;font:700 11px var(--sans);letter-spacing:.03em;background:var(--ln);color:var(--ink);pointer-events:none;z-index:1}}/* audit #26: on a phone the long title clips the pill, so it hangs centered under the top bar */
@@ -3416,6 +3417,8 @@ body:not(.narrow):not(.split).reading:not(.sideshow) #sideh{display:flex}
 .rn-t b{display:block;margin-top:3px;font:500 clamp(21px,5vw,28px)/1.15 var(--hf,var(--serif));font-synthesis:none}
 .rn-h{margin:10px 0 0;font:italic 400 13px var(--serif,Georgia,serif);color:var(--mut)}
 #rnh{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px);z-index:60;padding:7px 14px;border-radius:999px;background:var(--ink);color:var(--pn);font:600 13px var(--sans);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}#rnh.on{opacity:.94;transform:translate(-50%,0)}
+#rnh.pk{width:min(86vw,420px);border-radius:14px;padding:10px 16px;text-align:left;font-weight:500;transform:translate(-50%,0);right:auto}#rnh.pk b{display:block;font:600 16px/1.3 var(--serif);margin:3px 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}#rnh.pk small{display:block;font-size:12px;opacity:.8}
+@media(prefers-reduced-motion:no-preference){#rnh.pk{transform:translate(calc(-50% + 48px),0)}#rnh.pk.on{transform:translate(-50%,0)}}
 @media(prefers-reduced-motion:no-preference){.rn-in .book{animation:rnIn .3s ease both}@keyframes rnIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}}
 /* correction round, cluster 13: pattern art where a picture is missing */
 .card.noimg .ov,#grid .nr-lead.noimg .ov{background-image:var(--pat),linear-gradient(150deg,color-mix(in srgb,var(--b) 100%,#fff 12%),color-mix(in srgb,var(--b) 100%,#000 40%));background-size:96px 96px,auto;background-position:0 0,0 0}
@@ -8913,7 +8916,7 @@ function go(d){
  R.navAt=Date.now();if(!R.fa&&!isVert()&&R.np>1){R.fa=1;$('#rd').classList.add('fauto')}/* R-10 */
  if(R.busy&&R.T&&R.T.warm)endTurn(false);
  if(isVert()&&!R.web){vScrollBy(d);return}
- const to=R.pg+d;if(d>0&&to>=R.np&&!R.web&&!R.busy&&R.np>0&&isOn('cont')&&readerNext()){if(R.endArmed){advanceNext();return}R.endArmed=true;rnHint('Turn the page again for the next story');clearTimeout(R.endT);R.endT=setTimeout(()=>{R.endArmed=false},2600);return}
+ const to=R.pg+d;if(d>0&&to>=R.np&&!R.web&&!R.busy&&R.np>0&&isOn('cont')&&readerNext()){if(R.endArmed){advanceNext();return}R.endArmed=true;rnHint('Turn the page again for the next story',readerNext());clearTimeout(R.endT);R.endT=setTimeout(()=>{R.endArmed=false},2600);return}
  if(R.web||R.busy||to<0||to>=R.np)return;
  if(reduced()){R.pg=to;show();return}
  if(rdxPturn()!=='paper'){rdxTurn(to);return}
@@ -13944,9 +13947,16 @@ function pcText(){
  return `${Math.max(1,m)} min left`;/* a middle page is never called the last page, even with under a minute to go */
 }
 
-function dialSync(){const d=$('#dial');if(!d)return;const on=$('#rd').classList.contains('on')&&R.ready&&!R.web&&(isVert()||R.np>1);d.hidden=!on;if(!on)return;const f=isVert()?vEndFrac():Math.min(1,R.pg/Math.max(1,R.ep!=null?R.ep:R.np-1));d.style.setProperty('--f',Math.round(f*1000)/10+'%');{/* the value a screen reader announces: without these a slider reads 50 everywhere */const pc=Math.round(Math.max(0,Math.min(1,f))*100);d.setAttribute('aria-valuemin','0');d.setAttribute('aria-valuemax','100');d.setAttribute('aria-valuenow',String(pc));d.setAttribute('aria-valuetext',pc>=100?'End of the story':pc<=0?'Start of the story':pc+'% through the story')}}
+/* C5: a small mark on the position line at each section heading; rebuilt only when the story, its page count or its length changes */
+function dialTicks(d){
+ const c=$('#rd .cols .body'),v=isVert(),vv=v&&vView(),k=curA&&curA.link+'|'+R.np+'|'+v+'|'+(vv?vv.scrollHeight:0);if(!c||d._tk===k)return;d._tk=k;
+ const top=vv&&vv.getBoundingClientRect().top,span=vv?vv.scrollHeight-vv.clientHeight:Math.max(1,R.ep!=null?R.ep:R.np-1);
+ const fs=[...c.querySelectorAll('h2,h3,h4')].filter(h=>!h.closest('.tl,.tl-leaf')&&h.textContent.trim()).map(h=>v?(h.getBoundingClientRect().top-top+vv.scrollTop-24)/span:findPage(h)/span).filter((f,i,a)=>f>.02&&f<.98&&a.indexOf(f)===i).slice(0,24);
+ d._tf=fs;d.querySelectorAll('b').forEach(b=>b.remove());d.insertAdjacentHTML('beforeend',fs.map(f=>'<b style="left:'+(f*100).toFixed(1)+'%"></b>').join(''));
+}
+function dialSync(){const d=$('#dial');if(!d)return;const on=$('#rd').classList.contains('on')&&R.ready&&!R.web&&(isVert()||R.np>1);d.hidden=!on;if(!on)return;const f=isVert()?vEndFrac():Math.min(1,R.pg/Math.max(1,R.ep!=null?R.ep:R.np-1));d.style.setProperty('--f',Math.round(f*1000)/10+'%');try{dialTicks(d)}catch(e){}{/* the value a screen reader announces: without these a slider reads 50 everywhere */const pc=Math.round(Math.max(0,Math.min(1,f))*100);d.setAttribute('aria-valuemin','0');d.setAttribute('aria-valuemax','100');d.setAttribute('aria-valuenow',String(pc));d.setAttribute('aria-valuetext',pc>=100?'End of the story':pc<=0?'Start of the story':pc+'% through the story')}}
 (function(){const d=document.createElement('div');d.id='dial';d.hidden=true;d.setAttribute('role','slider');d.setAttribute('aria-label','Position in story');d.setAttribute('aria-orientation','horizontal');d.tabIndex=0;d.innerHTML='<i></i>';$('#rd').append(d);
- const at=e=>{const r=d.getBoundingClientRect(),f=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));if(isVert()){const v=vView();if(v)v.scrollTop=f*(v.scrollHeight-v.clientHeight)}else{const pg=Math.round(f*(R.np-1));if(pg!==R.pg&&!R.busy){R.pg=pg;show()}else d.style.setProperty('--f',f*100+'%')}};
+ const at=e=>{const r=d.getBoundingClientRect();let f=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));{/* C5: dragging near a section mark snaps to it */const t=(d._tf||[]).find(x=>Math.abs(x-f)*r.width<10);if(t!=null)f=t}if(isVert()){const v=vView();if(v)v.scrollTop=f*(v.scrollHeight-v.clientHeight)}else{const pg=Math.round(f*(R.np-1));if(pg!==R.pg&&!R.busy){R.pg=pg;show()}else d.style.setProperty('--f',f*100+'%')}};
  d.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();d.classList.add('act');try{d.setPointerCapture(e.pointerId)}catch(_){}at(e)});
  d.addEventListener('pointermove',e=>{if(d.classList.contains('act'))at(e)});
  const up=()=>{d.classList.remove('act');dialSync()};d.addEventListener('pointerup',up);d.addEventListener('pointercancel',up);
@@ -17509,9 +17519,10 @@ function recsCheck(){
  if(end)recsKick(a.link);
 }
 {const _sp=setProg;setProg=function(){const r=_sp.apply(this,arguments);try{recsCheck()}catch(e){}return r}}
-function rnHint(t){
+function rnHint(t,n){
  let h=$('#rnh');if(!h){h=document.createElement('div');h.id='rnh';h.setAttribute('role','status');($('#rd')||document.body).append(h)}
- h.textContent=t;h.classList.add('on');clearTimeout(h._t);h._t=setTimeout(()=>h.classList.remove('on'),2200);
+ /* C3: past the last page, the next story's headline peeks in before the second turn opens it */
+ h.classList.toggle('pk',!!n);if(n)h.innerHTML='<small>Up next · '+esc(fof(n).title||'')+'</small><b>'+esc(n.title)+'</b><small>'+esc(t)+'</small>';else h.textContent=t;h.classList.add('on');clearTimeout(h._t);h._t=setTimeout(()=>h.classList.remove('on'),2200);
 }
 function advanceNext(){
  const n=readerNext();if(!n||R.adv)return;R.adv=true;
