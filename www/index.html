@@ -1169,6 +1169,7 @@ body.narrow>aside{z-index:27}
 #tabs[hidden]{display:none}
 #tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;font:600 11px var(--sans);color:var(--mut);min-height:52px}
 #tabs button svg{width:22px;height:22px}#tabs button.on{color:var(--logo)}
+#tabs{transition:transform .25s ease}body.tabtuck #tabs:not(:focus-within){transform:translateY(100%)}@media(prefers-reduced-motion:reduce){#tabs{transition:none}}
 body.narrow #toast{bottom:calc(76px + env(safe-area-inset-bottom))}body.narrow:has(#rd.on) #toast{bottom:calc(24px + env(safe-area-inset-bottom))}/* W-06: the bar is 64px tall; a toast sits 12px above it, or 24px up when the story page hides the bar */
 body:has(#toast.show) .sky{bottom:calc(140px + env(safe-area-inset-bottom))}/* a hint toast keeps the corner; the sunrise card steps up */
 body.narrow #rd.on~#tabs{display:none}
@@ -6531,6 +6532,8 @@ function feedHead(){
 }
 $('.top').addEventListener('click',e=>{if(e.target.closest('.tnew'))wireLoad()});
 {let ft=0;document.addEventListener('scroll',e=>{if(e.target&&e.target.tagName==='MAIN'&&!ft)ft=setTimeout(()=>{ft=0;fpBar()},400)},true)}
+/* B6: the bottom tabs tuck away while the list scrolls down and come back on the first scroll up; never near the top, while typing, or with reduced motion */
+{let y0=0,raf=0;const RM=matchMedia('(prefers-reduced-motion: reduce)');document.addEventListener('scroll',e=>{const m=e.target;if(!m||m.tagName!=='MAIN'||raf)return;raf=requestAnimationFrame(()=>{raf=0;const y=m.scrollTop,d=y-y0;if(Math.abs(d)<14)return;y0=y;const ae=document.activeElement,typing=ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);document.body.classList.toggle('tabtuck',d>0&&y>160&&!typing&&!RM.matches)})},{capture:true,passive:true})}
 {const r0=render0;render0=function(){const x=r0.apply(this,arguments);try{feedHead()}catch(e){}return x}}
 function render0(){
  NRS=nrMode();$('#grid').classList.remove('nr','nrp','wire','wtopic','fed','paper','wc','gen-wire','gen-sun');$('#grid').style.removeProperty('--fb');
@@ -8341,10 +8344,12 @@ function daySections(list,mode){
  const well=pickWell(pool,skip);
  const wset=new Set(well);
  const diff=editionDiff(pool),dset=new Set((diff||[]).map(x=>x.a));
- const rest=list.slice(6).filter(a=>a!==good&&!(a.link&&skip.has(a.link))&&!(num&&a===num.a)&&!wset.has(a)&&!dset.has(a));
+ let rest=list.slice(6).filter(a=>a!==good&&!(a.link&&skip.has(a.link))&&!(num&&a===num.a)&&!wset.has(a)&&!dset.has(a));
+ /* B3: a site that posts less than about once a week would sink under the busy ones: up to three of its stories get their own short section */
+ const quiet=rest.filter(a=>Date.now()-(a.date||0)<2592e5&&rareFeed(fof(a))).slice(0,3);if(quiet.length)rest=rest.filter(a=>!quiet.includes(a));
  const quick=rest.filter(a=>{const m=minsOf(a);return m>=1&&m<=3}).slice(0,10);
  const wkd=[0,6].includes(new Date().getDay()),deep=rest.filter(a=>minsOf(a)>=DEEPMIN).slice(0,wkd?9:6);/* weekends have room for more long reads */
- const used=new Set(quick.concat(deep)),more=rest.filter(a=>!used.has(a));
+ const used=new Set(quick.concat(deep));const more=rest.filter(a=>!used.has(a));
  const brief=quick.length>=2;if(!brief)quick.forEach(a=>more.unshift(a));
  let n=0;const secs=[];
  const issue=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/864e5);
@@ -8363,6 +8368,7 @@ function daySections(list,mode){
  if(num)B.push(ritualHtml('num',num.a,num.n));
  if(well.length)B.push(wellHtml(well));
  if(deep.length)B.push(`<section class="dsec2 ddv" style="--cis:${200+deep.length*300}px">${sh('deep',wkd?'Weekend Reads':'Deep Dives','Settle in',deep.length,'long reads')}${deep.map(a=>`<div class="nr-color">${C(a,'nr nr-colr')}</div>`).join('')}</section>`);
+ if(quiet.length)B.push(`<section class="dsec2">${sh('quiet','From Quieter Sites','',quiet.length,'stories')}${rowsQ(quiet)}</section>`);
  if(more.length){
   B.push(`<section class="dsec2" style="--cis:${200+more.length*110}px">${sh('more',deep.length||brief?'Also in this issue':'More from your sites','',more.length,'stories')}${rowsQ(more)}</section>`);
  }
@@ -11292,6 +11298,8 @@ const arow=(k,t,d,c)=>`<button type="button" class="arow" data-cat="${k}"><i cla
 const ACOL=['#7c5cff','#0a8f4a','#e2231a','#2e7dd7','#d98a1a','#c2307a','#0f9ca8','#6b7a8f'];
 /* how often a site posts and when it last did, worked out from its own feed */
 const INFOC=new Map();
+const RARE=new Map();
+function rareFeed(f){if(!f||!f.id)return false;const l=items[f.id]||[],k=l.length+'|'+(l[0]&&l[0].date);const c=RARE.get(f.id);if(c&&c.k===k)return c.v;const d=l.map(a=>a.date||0).filter(Boolean).sort((a,b)=>b-a),days=d.length>=2?(d[0]-d[d.length-1])/864e5:0,v=days>=14&&(d.length-1)/days*7<.9;RARE.set(f.id,{k,v});return v}
 function freqText(list){
  const d=list.map(a=>a.date||0).filter(Boolean).sort((a,b)=>b-a);
  if(!d.length)return'No stories found in this feed yet';
