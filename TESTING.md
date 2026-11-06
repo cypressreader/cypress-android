@@ -1386,3 +1386,14 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - [ ] Mark all as read (double-check icon): asks "Mark N stories as read?" when more than one is unread; Cancel leaves them; Undo toast still follows. Press and hold still offers older-than choices.
 - [ ] Follow a site from search: it lands in no folder (no "Unfiled" folder made). An old "Unfiled" folder is gone after update, its sites kept.
 - [ ] Long-press a site > Folder > "New folder…": name it, the site moves there and the folder shows in the sidebar.
+
+## 2026-11-06 small fixes (branch fuyn8e, not built yet)
+- [ ] "Tip: The Daily has four views" shows once on the Daily tab where it first appears and is gone after switching tab or page (not on Saved, Search, All Stories).
+- [ ] Headlines stats box and Brief "in numbers" show the same new-story count and wording (morning: "new overnight", later: "new today").
+- [ ] In a story on a phone: More > Save shows a "Saved" message (and "Removed from saved" when tapped again).
+- [ ] Empty Saved page says where Save is (star on a card, or Save in a story's More menu).
+
+## 2026-11-06 layout glitches (branch fuyn8e, not built yet)
+- [ ] Black & White and High Contrast: Daily tabs (Today, Headlines, Brief, Sunday) have clear gaps at phone width (looked fine at 360/390 in the browser already).
+- [ ] Phone: tap Search in the bottom bar: the title hides, the field says "Search stories" (or "Search saved stories" on Saved), and Search is the lit tab. Tap it again or another tab: back to normal.
+- [ ] Phone on its side, story in pages: page 1 shows the photo on the left and the headline beside it (not a lone small photo). Upright phone and the Fold unchanged.
