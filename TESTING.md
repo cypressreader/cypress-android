@@ -1374,8 +1374,15 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - C6 Look up opens Wiktionary in the browser from the APK
 - A3 slimmer reader bar on phone: buttons still easy to hit
 
-## C4 High Contrast theme (branch n921s1, unreleased)
+## C4 High Contrast theme (1.269)
 - Settings > Theme > High Contrast: gray text turns black (white in dark), cards get thick black borders, tab marker black. Check light, dark and Follow phone on the Fold; check reader links are underlined.
-- C3 (n921s1): in page mode on a story's last page, turn once: an "Up next" card with the next headline slides up; turn again: the next story opens. Page turn feel unchanged.
-- C5 (n921s1): on a story with section headings, the position line at the bottom shows small marks; drag the line and it snaps to a mark and lands on that section (page and scroll modes, Fold folded and unfolded).
-- A14 (n921s1): unfolded Fold, The Daily/All Stories, cards side by side: the bottom lines (read time, time) sit at the same height in both cards. Wide reader with the side bar hidden: left edge tab is rounded and says "Sites".
+- C3 (1.269): in page mode on a story's last page, turn once: an "Up next" card with the next headline slides up; turn again: the next story opens. Page turn feel unchanged.
+- C5 (1.269): on a story with section headings, the position line at the bottom shows small marks; drag the line and it snaps to a mark and lands on that section (page and scroll modes, Fold folded and unfolded).
+- A14 (1.269): unfolded Fold, The Daily/All Stories, cards side by side: the bottom lines (read time, time) sit at the same height in both cards. Wide reader with the side bar hidden: left edge tab is rounded and says "Sites".
+
+## 2026-11-06 launch-checklist fixes (branch fuyn8e, not built yet)
+- [ ] About > Advanced > Diagnostics shows only "Copy support info" and "Test sites on this phone" ("Check scrolling" and "Test suggested feeds" gone).
+- [ ] Photo magazine look is always on (hidden testing switch removed): feed, folder and Saved pages look as before.
+- [ ] Mark all as read (double-check icon): asks "Mark N stories as read?" when more than one is unread; Cancel leaves them; Undo toast still follows. Press and hold still offers older-than choices.
+- [ ] Follow a site from search: it lands in no folder (no "Unfiled" folder made). An old "Unfiled" folder is gone after update, its sites kept.
+- [ ] Long-press a site > Folder > "New folder…": name it, the site moves there and the folder shows in the sidebar.
