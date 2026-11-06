@@ -1361,3 +1361,6 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Reading progress bars and 'new' tags on stories far up the list still show after scrolling back to them.
 - Stage 2 (The Daily and Headlines too): scroll a full Daily issue down and back up, and Headlines: no blank spots, no jumps. Tap "In this issue" links: they land on the right section. The Well (photo break) still shows all its photos.
 - The Well: when its photos load while it's on screen, it keeps its layout until you scroll away, then re-pairs off screen. Scrolling past it should never jump.
+
+## 1.267 Fold keeps your place (implemented, verified headless only)
+- Scroll well down The Daily, unfold: the same story/photo stays at the same spot. Fold back: you're exactly where you were. Same in All Stories and Headlines. Touching the screen during the unfold lets you scroll freely.
