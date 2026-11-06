@@ -1412,3 +1412,9 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 ## Quiet sites sleep + slot hand-back (branch mx03wy, after 1.272) — implemented, unverified on phone
 - With a site that hasn't posted in weeks: an automatic refresh skips it for 3 hours; pull to refresh still checks it; opening that site checks it.
 - With a site that blocks the app (bot check): the other sites keep filling in while the phone browser works on it.
+
+## a33 leftovers (branch mx03wy, 2026-11-06, commit 1595dbb) — implemented, unverified on phone
+- Fresh install, Sunday tab: shows "Longest stories so far" (3 stories) and one friendly line instead of a block of zeros.
+- Add a site: the options list fades at the bottom and scrolls; last card scrolls clear of the fade.
+- Select text in a story: bar says "Follow topic" and "Hide text"; color dots show tooltips; no "Highlighted" toast lingers.
+- Settings hub at 360 wide: card titles and summary lines wrap to two lines, nothing cut with "…".
