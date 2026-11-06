@@ -3281,7 +3281,7 @@ html.pdark #grid.paper{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 
 @media(prefers-reduced-motion:reduce){.dcv-art,.dcov .dcv-main{transform:none!important;opacity:1!important}}
 /* experiment, cluster 11: the well and the back cover */
-.dwell{grid-column:1/-1;margin:8px calc(-1 * clamp(14px,3vw,32px)) 36px;padding:26px clamp(14px,3vw,32px) 28px;background:color-mix(in srgb,var(--ink) 94%,var(--b,#1f4a33));color:var(--bg)}
+.dwell{overflow-anchor:none;grid-column:1/-1;margin:8px calc(-1 * clamp(14px,3vw,32px)) 36px;padding:26px clamp(14px,3vw,32px) 28px;background:color-mix(in srgb,var(--ink) 94%,var(--b,#1f4a33));color:var(--bg)}/* the Well re-pairs its photos once they have all loaded (wellPair), often ~500 px shorter: never let the browser pin the scroll to something inside it, so the story you are reading below it stays put */
 .dwell-k{margin:0 0 16px;font:400 24px/1 var(--disp);letter-spacing:.02em;color:var(--bg)}.dwell-k span{margin-left:10px;font:italic 400 15px var(--disp);opacity:.7}
 .dwell-g{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .dwf{margin:0;min-width:0}.dwf:first-child{grid-column:1/-1}.dwf:last-child:nth-child(even){grid-column:1/-1}
@@ -8397,6 +8397,7 @@ function wellJudge(im){
 /* David 2026-10-31: once every picture has loaded, tall ones are paired with tall ones and wide with wide, so each row is even; one left over takes a full row on its own */
 function wellPair(g){
  const fs=g?[...g.querySelectorAll('.dwf')]:[];if(!fs.length||fs.some(f=>!f.querySelector('img.ok')))return;
+ {const w=g.closest('.dwell'),m=$('main');if(w&&m&&!g._wpw){const r=w.getBoundingClientRect(),mr=m.getBoundingClientRect();if(r.bottom>mr.top&&r.top<mr.bottom){g._wpw=1;const o=new IntersectionObserver(es=>{if(es[es.length-1].isIntersecting)return;o.disconnect();g._wpw=0;wellPair(g)},{root:m});o.observe(w);return}}else if(g._wpw)return}/* on screen: re-pair once it is scrolled away, so nothing jumps under the reader (it is often ~500 px shorter after) */
  const tall=f=>{const i=f.querySelector('img');return i.naturalHeight/i.naturalWidth>=.95},rows=[];
  for(const l of [fs.filter(f=>!tall(f)),fs.filter(tall)]){for(let i=0;i<l.length;i+=2)rows.push(l.slice(i,i+2))}
  rows.sort((a,b)=>b.length-a.length);

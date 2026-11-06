@@ -1360,3 +1360,4 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Far down All Stories, fold/unfold the phone a few times: should feel quicker than before; scroll up afterwards and check nothing jumps.
 - Reading progress bars and 'new' tags on stories far up the list still show after scrolling back to them.
 - Stage 2 (The Daily and Headlines too): scroll a full Daily issue down and back up, and Headlines: no blank spots, no jumps. Tap "In this issue" links: they land on the right section. The Well (photo break) still shows all its photos.
+- The Well: when its photos load while it's on screen, it keeps its layout until you scroll away, then re-pairs off screen. Scrolling past it should never jump.
