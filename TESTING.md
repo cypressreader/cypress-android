@@ -1443,3 +1443,9 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - C14: Settings > Look > Dark, then pick "from 8 pm" "to 7 am": app is light outside those hours and switches within 4 minutes (or on return to the app) when the hour passes.
 - C15: story ... menu > Send to… > Markdown file saves a .md; highlights export escapes * [ ] < > and writes "November 6, 2026".
 - C02: Send to Kindle: the book no longer repeats the opening paragraph under the summary line.
+
+## Deep-dive fixes chrome (branch mx03wy, 2026-11-06) — implemented, unverified on phone
+- R6/F13: on a phone (and a phone on its side) scroll the Daily down: the title bar slides away with the bottom tabs, the Today/Headlines/Brief/Sunday tabs move to the very top; scroll up a little and the bar comes back. Check pull-to-refresh, "In this issue" jumps and closing a story still behave, and nothing slides with Reduce motion on.
+- FR01: on a narrow phone the top bar shows at most three icons; the "..." button swaps the title for Mark all as read and Switch layout; long site names shrink one size before being cut.
+- FR02: open Search on a narrow phone: only the menu, the box and its button show; the button is fully on screen.
+- F09/R3: card times read "27 min", "1 hr", "2-min read" with "·" between them; Play Daily bar says "36 stories left · about 1 hr 46 min".

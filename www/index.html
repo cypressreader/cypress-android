@@ -3791,7 +3791,8 @@ body.narrow .dcov{min-height:max(520px,calc(100svh - 215px - env(safe-area-inset
 /* R-07: the publisher's description is a plain italic line under the headline, not a labeled box (screen readers still hear "From the publisher") */
 /* R-05: with Large print the byline, captions, labels, tables and end-page labels grow with the text, the headline a little less */
 #rd .cols>:is(.dt,.kick,.hcap),#rd .cols .body :is(figcaption,.tbl,.rfoot small){zoom:var(--fsk,1)}#rd .cols>.tt{zoom:calc(1 + (var(--fsk,1) - 1)*.6)}
-#rd.vert:has(>#afx[data-m=tts]:not([hidden])) .cols{padding-bottom:72px}/* R-13: the end of the story can scroll clear of the read-aloud pill */
+/* R-14: thumb-sized tap areas without changing the look: the site name in the reader bar and the Aa sheet's close button (bar icons already reach 44px through .ib::after) */
+#rd .bar .bs{height:auto;min-height:44px;border-top:7px solid transparent;border-bottom:7px solid transparent;margin-block:-7px}#aax::after{inset:-7px}
 /* R-10: the end page leads with Next up; the action buttons are thumb-sized; the website is one quiet text link; no bare rule above the site line */
 #rd .rfoot{border-top:0}#rd .rf-act button{min-height:44px}#rd .rf-next{min-height:48px}
 #rd .cols>.orig{display:flex;width:fit-content;margin:4px auto 20px;align-items:center;min-height:44px;padding:0 2px;background:none;color:var(--mut);font:500 14px var(--sans);text-decoration:underline;text-decoration-color:color-mix(in srgb,currentColor 40%,transparent);text-underline-offset:.2em}
@@ -4966,7 +4967,7 @@ html #grid .card.noimg:not(.list-row):not(.nr-row):not(.nr-late):not(.nr-quote):
 html.ptduo :is(#grid,.dcv-art,#rd) img{filter:url(#duo)!important}
 /* cards about to scroll into view are drawn ahead of time (cvAhead), so a quick fling doesn't land on blank cards that then grow and push the page */
 #grid :is(.card,.card.nr-row,.card.nr-late,.wcol).nv{content-visibility:visible}
-/* F16: "Developing" in words at the end of the site line (it was an unlabeled red dot) */#grid .cdot{flex:none;font-style:normal;white-space:nowrap}#grid .cdot::before{content:'·';margin:0 .4em;opacity:.55}
+/* F16: "Developing" in words at the end of the site line (it was an unlabeled red dot) */#grid .cdot{flex:none;font-style:normal;white-space:nowrap}#grid .cdot::before{content:'·';margin-right:.4em;opacity:.55}
 /* Bigger buttons setting: finger-size icon buttons, tabs, switches and hands-free controls */
 html.bigtap .ib{width:46px!important;height:46px!important}html.bigtap #tabs button{min-height:56px}html.bigtap .tg{min-width:64px;min-height:40px}html.bigtap #afx button{min-width:48px;min-height:48px}
 /* ---- list rows, 2026-10-30 (David's picks L1 + L4; L6 timeline dropped: its line and time column looked busy): headline first, a crisp square photo on the right (no save star: Save is in the story menu), a wash of the photo's own color; every fifth row stays a big-photo feature (L2, .lr-feat) ---- */
@@ -11860,7 +11861,7 @@ function hlClick(e){
  if(t.closest('[data-hcopy]')){navigator.clipboard.writeText(S.hl.map(h=>'“'+h.q+'”'+(h.note?'\nNote: '+h.note:'')+'\n'+h.art.title+' ('+h.art.link+')').join('\n\n')).then(()=>toast('Copied'),()=>{});return true}
  return false;
 }
-function bodyText(){const b=$('.cols .body');if(!b)return null;const nodes=[],tw=document.createTreeWalker(b,NodeFilter.SHOW_TEXT);let t='',n;while(n=tw.nextNode()){if(skipDeco(n))continue;nodes.push({n,s:t.length});t+=n.data}return{b,t,nodes}}
+function bodyText(xs){const b=$('.cols .body');if(!b)return null;const nodes=[];let t='';for(const r of xs||[b]){const tw=document.createTreeWalker(r,NodeFilter.SHOW_TEXT);let n;while(n=tw.nextNode()){if(r===b&&skipDeco(n))continue;nodes.push({n,s:t.length});t+=n.data}if(xs)t+='\n'}return{b,t,nodes}}
 function posAt(m,off){let k=0;while(k+1<m.nodes.length&&m.nodes[k+1].s<=off)k++;const x=m.nodes[k];return x?[x.n,Math.min(off-x.s,x.n.data.length)]:null}
 const nzq=x=>(x||'').replace(/[\u201C\u201D]/g,'"').replace(/[\u2018\u2019]/g,"'").replace(/[\u2013\u2014]/g,'-');
 function hlClear(){HLR=[];try{['mark','mark-y','mark-g','mark-r'].forEach(k=>CSS.highlights.delete(k))}catch(e){}}
@@ -12536,7 +12537,7 @@ addEventListener('keydown',e=>{
  const rd=$('#rd').classList.contains('on'),k=e.key;
  if(!isOn('keysOn')&&k.length===1)return;
  if(k==='?'){kbkSync();$('#kbh').showModal();e.preventDefault();return}
- if(rd){if(k==='s'||k==='S'){const b=$('#st');if(b)b.click()}else if(k==='n'||k==='N'){const b=$('#nx');if(b)b.click()}else if(k==='p'||k==='P'){const b=$('#pv');if(b)b.click()}return}
+ if(rd){if(k==='s'||k==='S'){const b=$('#st');if(b)b.click()}else if(k==='n'||k==='N'){/* C01: N and P go to the next / previous story, like the Next up card (← → turn pages) */const n=curA&&(briefNext()||nextAfter(curA));if(n)openReader(n)}else if(k==='p'||k==='P'){const i=curA?cur.findIndex(x=>x.link===curA.link):-1;if(i>0)openReader(cur[i-1])}return}
  if(k==='j'||k==='J'){kbMove(1);e.preventDefault()}else if(k==='k'||k==='K'){kbMove(-1);e.preventDefault()}
  else if(k==='Enter'){const o=kbCur();if(o){o.click();e.preventDefault()}}
  else if(k==='s'||k==='S'){const o=kbCur();const st=o&&o.querySelector('[data-star]');if(st)st.click()}
@@ -17881,7 +17882,7 @@ function openFind(){
  b.hidden=false;const q=b.querySelector('#rfq');q.focus();q.select();if(q.value)findRun();
 }
 function findRun(){
- const q=($('#rfq')||{}).value||'',m=bodyText();FIND.hits=[];FIND.i=0;
+ const c=$('.cols'),q=($('#rfq')||{}).value||'',m=c&&bodyText([c.querySelector('.tt'),c.querySelector('.whyit:not(.ai) p'),c.querySelector('.body')].filter(Boolean));FIND.hits=[];FIND.i=0;/* R-16: the headline and the publisher's line are searched too */
  if(q.trim().length>=2&&m){const T=m.t.toLowerCase(),k=q.toLowerCase();let i=T.indexOf(k);while(i>=0&&FIND.hits.length<500){const a=posAt(m,i),b=posAt(m,i+k.length);if(a&&b){const r=new Range();r.setStart(a[0],a[1]);r.setEnd(b[0],b[1]);FIND.hits.push(r)}i=T.indexOf(k,i+k.length)}}
  try{CSS.highlights.set('find',new Highlight(...FIND.hits))}catch(e){}
  if(FIND.hits.length){const first=isVert()?0:Math.max(0,FIND.hits.findIndex(r=>findPage(r)>=R.pg));FIND.i=first;findGo(0)}else{$('#rfn').textContent=q.trim().length>=2?'No matches':'';try{CSS.highlights.delete('find-cur')}catch(e){}}
