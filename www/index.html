@@ -1290,7 +1290,7 @@ body.split .card.act{outline:3px solid var(--logo);outline-offset:2px}
 [data-cards="narrow"] .mb{position:absolute;left:auto;right:6px;bottom:6px;top:auto;margin:0;font-size:10px;padding:2px 6px;background:rgba(0,0,0,.6)}
 [data-cards="narrow"] .why{right:40px;top:10px}
 [data-cards="narrow"] .card .star{right:92px;top:6px}
-[data-cards="narrow"] .rdy{right:92px;bottom:8px}
+[data-cards="narrow"] .rdy{right:92px;bottom:8px}[data-cards="narrow"] .card.noimg>.rdy{right:10px}/* F07: no photo on the right, so the mark sits at the edge where the footer leaves it room */
 
 #rdnav{position:absolute;inset:0;z-index:40;background:rgba(8,10,14,.35);opacity:0;transition:opacity .22s}
 #rdnav.on{opacity:1}#rdnav[hidden]{display:none}
@@ -3788,6 +3788,8 @@ body.narrow .dcov{min-height:max(520px,calc(100svh - 215px - env(safe-area-inset
 .cols .body a:hover,.cols .body a:focus-visible,#rd .body a:hover{text-decoration-color:currentColor}
 /* R-01: raised and lowered characters (10⁶, CO₂, footnote marks) stay small and never stretch the line; a footnote mark gets a 24px+ tap area without moving the text */
 .cols .body sup,.cols .body sub{font-size:.7em;line-height:0}
+/* R-07: the publisher's description is a plain italic line under the headline, not a labeled box (screen readers still hear "From the publisher") */
+#rd .cols>.whyit:not(.ai){border:0!important;padding:0!important;margin:.3em 0 .7em;background:none!important}#rd .cols>.whyit:not(.ai) b{display:none}#rd .cols>.whyit:not(.ai) p{font:italic 400 1.06em/1.45 var(--serif)!important;color:var(--mut)}
 .cols .body sup a,.cols .body a[href^="#"]{text-decoration:none;padding:8px 10px;margin:0 -10px;color:var(--a1)}
 .fr .frn{display:contents}
 #side-list .fr{position:relative}
@@ -4333,7 +4335,7 @@ html[data-theme=rosewood] #rd .cols .kick{color:#7f5d1c}
 #rd:not(.cine) .cols .body h2{font:600 1.35em/1.16 var(--disp,var(--serif));letter-spacing:-.005em;text-decoration:none;text-align:left;margin:1.35em 0 .45em}
 #rd:not(.cine) .cols .body h2::before{width:20px;height:2px;margin:0 0 .55em;background:var(--rbr);border-radius:1px}
 #rd .cols .body h3{text-decoration:none}
-body.narrow #rd:not(.vert):not(.cpv2) .cols>img.hero{max-height:min(26svh,190px)}/* phones only: on wide two-column pages the taller picture keeps column 1 from looking empty */
+body.narrow #rd:not(.vert):not(.cpv2) .cols>img.hero{max-height:min(26svh,190px);aspect-ratio:16/9;height:auto}/* R-07: never taller than 16:9 on a phone *//* phones only: on wide two-column pages the taller picture keeps column 1 from looking empty */
 /* 18. End of a story: related links and any publisher appeal stay in one tidy block, inside the column, never split */
 .rfoot,.rfoot *{max-width:100%}.rfoot{break-inside:avoid;column-span:none;overflow:hidden;margin:1.6em 0 .4em}
 .body .rfoot a,.body .rfoot li{overflow-wrap:anywhere}
@@ -5018,7 +5020,7 @@ html #grid.wire[data-w="col"] h3.dsh.wsec .dsr{margin-left:0;min-height:44px}
 /* design picks 2026-11-01 (review/design-2026-11-01) */
 @media(max-width:520px){#grid .card.lead .tx h3{font-size:34px!important;line-height:1.02!important;letter-spacing:-.005em}#grid .card.lead .tx h3 a{font-size:inherit!important}}
 #grid .card .rdy{width:22px;height:22px;background:rgba(12,38,25,.55);color:#e2c27a;box-shadow:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}#grid .card .rdy svg{width:14px;height:14px}/* visual review: reads as a status, not a speck */
-/* A1 (Fresh Eyes): the offline mark sits bottom-right on rows and photo-less cards, where the footer's time stamp also ends: leave it room */#grid .card:is(.list-row,.nr-row,:not(:has(>img))):has(>.rdy) :is(.cfoot,.also,.tx>:last-child){padding-right:30px}/* F07: also the "Also from" line or summary that ends the card */
+/* A1 (Fresh Eyes): the offline mark sits bottom-right on rows and photo-less cards, where the footer's time stamp also ends: leave it room */#grid .card:is(.list-row,.nr-row,:not(:has(>img))):has(>.rdy) :is(.cfoot,.also,.tx>:last-child){padding-right:36px}/* F07: also the "Also from" line or summary that ends the card */
 /* A4: the scrolling reader drew its progress twice (thin fixed line at the top plus the bar's own underline); the top line stays because it survives the bar hiding */#rd.vert .bar::after{display:none}
 @media(max-width:520px){.dcov .dcv-eds{display:block;height:0;overflow:hidden}}
 .dcov .dcv-q cite{display:none}
@@ -16977,13 +16979,13 @@ function mergePackFolders(){
 try{const OLDI=/investopedia\.com\/feedbuilder|site(%3A|:)investopedia\.com/i;let mi=0;for(const f of S.feeds)if(OLDI.test(f.url)||OLDI.test(f.oldUrl||'')){mi=1;f.oldUrl=f.url;f.url='https://feeds-api.dotdashmeredith.com/v1/rss/google/f8466ec3-5044-46bc-94b7-2df65f770eff';f.via=''}if(mi)save()}catch(e){}
 try{const FX={'https://feeds.ign.com/ign/all':'https://www.ign.com/rss/v2/articles/feed','https://www.seriouseats.com/feed/serious-eats':'https://feeds-api.dotdashmeredith.com/v1/rss/google/ad57d421-0ff5-41e7-a5da-f2167b6d7f7a','https://www.core77.com/rss':'https://www.core77.com/rss.xml','https://www.espncricinfo.com/rss/content/story/feeds/0.xml':'https://www.cricinfo.com/rss/content/story/feeds/0.xml','https://www.vulture.com/rss/index.xml':'https://feeds.feedburner.com/nymag/vulture'};let c=0;for(const f of S.feeds){const k=FX[f.url];if(k){f.oldUrl=f.url;f.url=k;f.via='';c=1}}if(c)save()}catch(e){}
 try{if(!S.pkfm){S.pkfm=1;const r=mergePackFolders();if(r.moved||r.gone){save();setTimeout(()=>{try{fillFolders();render();toast('Merged starter-pack folders into your matching folders')}catch(e){}},1500)}else save()}}catch(e){}
-render();document.documentElement.classList.remove('boot');
+/* P3: the first draw moved to the end of this script, after every render add-on (the Daily's "Inside" line, edition actions, columns, text size) is in place, so the page is drawn once and right; it used to be redrawn whole ~0.5 s after it appeared. If anything below stops the script, this still draws it */
+setTimeout(()=>{if(document.documentElement.classList.contains('boot')){try{render()}catch(e){elog('render',e)}document.documentElement.classList.remove('boot')}},0);
 /* B94: the first screen is drawn from the saved copy and painted before anything else starts: reading the feeds (network, parsing, a redraw per feed) and the other start-up chores wait for that first paint */
 {let gone=false;const go=()=>{if(gone)return;gone=true;try{loadAll()}catch(e){elog('loadAll',e)}};const raf=window.requestAnimationFrame?window.requestAnimationFrame.bind(window):(f=>setTimeout(f,16));raf(()=>raf(()=>setTimeout(go,0)));setTimeout(go,600)}
 /* one quiet retry for feeds that failed on launch (slow wifi, radio waking up) */
 setTimeout(()=>{if(S.offline||FROZEN||!navigator.onLine)return;S.feeds.filter(f=>state[f.id]==='err'&&!paused(f)&&!rfDead(f)).forEach(f=>load(f,true).catch(()=>{}))},15000);
 applyLogo();
-acReady.then(()=>render());
 introAnim();whatsNew();smartNotice();setTimeout(checkUpdate,8000);setTimeout(relayCheck,6000);nativeSetup();
 if(FIRST)setTimeout(()=>obOpen(false),60);
 setTimeout(()=>{if(S.sync)syncNow()},2000);
@@ -18169,4 +18171,5 @@ function tsApply(){
  d.dataset.ts=k;d.style.setProperty('--ts',{c:'.9',m:'1',l:'1.16'}[k]);
 }
 try{tsApply()}catch(e){}
+render();document.documentElement.classList.remove('boot');/* P3: the first draw, see the note at the start-up code */
 </script></body></html>
