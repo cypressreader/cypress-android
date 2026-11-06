@@ -1290,7 +1290,7 @@ body.split .card.act{outline:3px solid var(--logo);outline-offset:2px}
 [data-cards="narrow"] .mb{position:absolute;left:auto;right:6px;bottom:6px;top:auto;margin:0;font-size:10px;padding:2px 6px;background:rgba(0,0,0,.6)}
 [data-cards="narrow"] .why{right:40px;top:10px}
 [data-cards="narrow"] .card .star{right:92px;top:6px}
-[data-cards="narrow"] .rdy{right:92px;bottom:8px}[data-cards="narrow"] .card.noimg>.rdy{right:10px}/* F07: no photo on the right, so the mark sits at the edge where the footer leaves it room */
+[data-cards="narrow"] .rdy{right:10px;bottom:8px}/* F07: the photo moved to the left, so the mark sits at the right edge where the footer leaves it room */
 
 #rdnav{position:absolute;inset:0;z-index:40;background:rgba(8,10,14,.35);opacity:0;transition:opacity .22s}
 #rdnav.on{opacity:1}#rdnav[hidden]{display:none}
@@ -2359,7 +2359,7 @@ html[data-fx=duo] .top::after{height:2px;background:linear-gradient(90deg,#ff3b3
 :root[data-theme=dynamic][data-dm=dark]{color-scheme:dark;--bg:#0d0f13;--pn:#15181e;--ink:#eceef2;--mut:#8b93a1;--ln:#262a33;--logo:#9cc9a9;--a1:#9cc9a9;--a2:#e0a35a;--a3:#7fb2d9}
 :root[data-theme=dynamic][data-dm=light] #rd{--pn:var(--rpn,color-mix(in srgb,var(--b) 9%,#fff));--bg:var(--rbg,color-mix(in srgb,var(--b) 15%,#fff));--ln:var(--rln,color-mix(in srgb,var(--b) 24%,#fff))}
 :root[data-theme=dynamic][data-dm=dark] #rd{--pn:var(--rpn,color-mix(in srgb,var(--b) 14%,#0f1116));--bg:var(--rbg,color-mix(in srgb,var(--b) 22%,#0f1116));--ln:var(--rln,color-mix(in srgb,var(--b) 30%,#0f1116))}
-#dlg .uhint{display:block;margin:7px 4px 0;font-size:12px;color:var(--mut)}#dlg .uhint .uls{display:flex;flex-wrap:wrap;gap:2px 16px;margin-top:6px}#dlg .uhint .uls .lnk{text-align:left}
+#dlg .uhint{display:block;margin:7px 4px 0;font-size:12px;color:var(--mut)}#dlg .uhint[hidden]{display:none}#dlg .uhint .uls{display:flex;flex-wrap:wrap;gap:2px 16px;margin-top:6px}#dlg .uhint .uls .lnk{text-align:left}
 .agl{display:flex;flex-direction:column;gap:8px;margin-top:14px}
 .arow{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:13px 14px;border-radius:16px;background:var(--bg);border:1px solid var(--ln)}
 .arow i{flex:none;width:34px;height:34px;border-radius:11px}
@@ -2713,7 +2713,7 @@ html{font-synthesis-weight:none}
 /* rows show the offline mark too, at the bottom right; the line beside it always leaves room (a :has(.rdy) rule re-checked rows each time a mark arrived mid-scroll) */#grid :is(.nr-late,.nr-row) .also{padding-right:28px}
 #grid .nr-late:not(.nr-n)::before,#grid .nr-row::before,#grid .nr-tri::before,#grid .nr-pq::before{display:none!important}
 /* Daily rows: a small site-color dot before the name and a faintly tinted divider on top; Arcade keeps its own glowing edges (dot only), E-ink and Mono stay black and white */
-#grid .nr-row .src::before,#grid .nr-late .src::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--b);flex:none;margin-right:-1px}
+#grid .nr-row .src::before,#grid .nr-late .src::before{content:'';width:8px;height:8px;border-radius:2px;/* F16: the same small square as other cards */background:var(--b);flex:none;margin-right:-1px}
 :root:is([data-theme=eink],[data-theme=mono]) #grid .nr-row .src::before,:root:is([data-theme=eink],[data-theme=mono]) #grid .nr-late .src::before{background:var(--ink)}
 :root:not([data-theme=arcade]):not([data-theme=eink]):not([data-theme=mono]) #grid .card.nr-late,:root:not([data-theme=arcade]):not([data-theme=eink]):not([data-theme=mono]) #grid .card.nr-row{border-top-color:color-mix(in srgb,var(--b) 38%,var(--ln))!important}
 
@@ -3789,6 +3789,8 @@ body.narrow .dcov{min-height:max(520px,calc(100svh - 215px - env(safe-area-inset
 /* R-01: raised and lowered characters (10⁶, CO₂, footnote marks) stay small and never stretch the line; a footnote mark gets a 24px+ tap area without moving the text */
 .cols .body sup,.cols .body sub{font-size:.7em;line-height:0}
 /* R-07: the publisher's description is a plain italic line under the headline, not a labeled box (screen readers still hear "From the publisher") */
+/* R-05: with Large print the byline, captions, labels, tables and end-page labels grow with the text, the headline a little less */
+#rd .cols>:is(.dt,.kick,.hcap),#rd .cols .body :is(figcaption,.tbl,.rfoot small){zoom:var(--fsk,1)}#rd .cols>.tt{zoom:calc(1 + (var(--fsk,1) - 1)*.6)}
 #rd .cols>.whyit:not(.ai){border:0!important;padding:0!important;margin:.3em 0 .7em;background:none!important}#rd .cols>.whyit:not(.ai) b{display:none}#rd .cols>.whyit:not(.ai) p{font:italic 400 1.06em/1.45 var(--serif)!important;color:var(--mut)}
 .cols .body sup a,.cols .body a[href^="#"]{text-decoration:none;padding:8px 10px;margin:0 -10px;color:var(--a1)}
 .fr .frn{display:contents}
@@ -4327,6 +4329,8 @@ html[data-theme=rosewood] #rd .cols .kick{color:#7f5d1c}
 #rd .cols .body blockquote:not(.emb blockquote):not([class*=twitter]):not([class*=instagram]):not([class*=tiktok]){border:0;border-top:1px solid var(--rbr);border-bottom:1px solid var(--rbr);padding:.8em .3em;margin:1.4em auto;max-width:30em;text-align:center;font-family:var(--disp,var(--fd,var(--serif)));font-style:italic;font-weight:400;font-size:1.25em;line-height:1.32;hyphens:manual;text-indent:0;break-inside:avoid}
 #rd .cols .body blockquote:not(.emb blockquote) p{margin:0 0 .45em;font:inherit;text-align:center;text-indent:0;hyphens:manual}
 #rd .cols .body blockquote:not(.emb blockquote) p:last-child{margin-bottom:0}
+#rd .cols .body blockquote.bql:not(.emb blockquote):not([class*=twitter]):not([class*=instagram]):not([class*=tiktok]){border:0;border-left:3px solid var(--brass,var(--a2));padding:0 0 0 16px;margin:1.2em 0;max-width:none;text-align:left;font:inherit;font-size:.97em;line-height:var(--lhp,1.72);font-style:normal;hyphens:inherit;break-inside:auto}
+#rd .cols .body blockquote.bql:not(.emb blockquote) p{text-align:inherit;hyphens:inherit;margin:0 0 .8em}
 #rd .pullq::before,#rd .pullq::after{background:var(--rbr);opacity:1;height:1px}/* polish-2026-10 T-07: a lifted quote is set in the headline face with a hanging opening mark and no rules */#rd .pullq{font-family:var(--fd,var(--disp,var(--serif)));text-align:left;padding:.3em 0 .3em .6em}#rd .pullq::before{content:'\201C';position:absolute;left:0;top:.2em;width:auto;height:auto;margin:0;background:none;font:inherit;font-size:1.5em;line-height:1;opacity:1;color:var(--rbr,var(--b,var(--ink)))}#rd .pullq::after{content:none}#rd .pullq cite{display:block;margin-top:.5em;font:600 12px var(--sans);font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
 #rd .cols .body p.dropcap .dcap{float:left;font-size:calc((2*var(--lh,1.68) + .72)/.72*1em);line-height:.78;margin:.07em .04em 0 0;padding:0 .04em 0 0;border:0;color:var(--rbr)}/* polish-2026-10 T-06: room so round letters (O, C, Q) do not touch the text */
 .cols .body p.dropcap .dcl{font-variant-caps:small-caps;letter-spacing:.03em}
@@ -4958,7 +4962,7 @@ html #grid .card.noimg:not(.list-row):not(.nr-row):not(.nr-late):not(.nr-quote):
 html.ptduo :is(#grid,.dcv-art,#rd) img{filter:url(#duo)!important}
 /* cards about to scroll into view are drawn ahead of time (cvAhead), so a quick fling doesn't land on blank cards that then grow and push the page */
 #grid :is(.card,.card.nr-row,.card.nr-late,.wcol).nv{content-visibility:visible}
-#grid .cdot{display:inline-block;flex:none;box-sizing:border-box;padding:0;width:7px;height:7px;border-radius:50%;background:#c62828;margin:0 .4em .12em 0;vertical-align:middle;position:relative;text-decoration:none}#grid .src>.cdot{margin:0 0 0 .6em}html.micro:not(.rmo):not(.lowp) #grid .cdot::after{content:"";position:absolute;inset:0;border-radius:50%;background:#c62828;animation:wping 1.8s ease-out infinite}@media(prefers-reduced-motion:reduce){#grid .cdot::after{animation:none}}
+/* F16: "Developing" in words at the end of the site line (it was an unlabeled red dot) */#grid .cdot{flex:none;font-style:normal;white-space:nowrap}#grid .cdot::before{content:'·';margin:0 .4em;opacity:.55}
 /* Bigger buttons setting: finger-size icon buttons, tabs, switches and hands-free controls */
 html.bigtap .ib{width:46px!important;height:46px!important}html.bigtap #tabs button{min-height:56px}html.bigtap .tg{min-width:64px;min-height:40px}html.bigtap #afx button{min-width:48px;min-height:48px}
 /* ---- list rows, 2026-10-30 (David's picks L1 + L4; L6 timeline dropped: its line and time column looked busy): headline first, a crisp square photo on the right (no save star: Save is in the story menu), a wash of the photo's own color; every fifth row stays a big-photo feature (L2, .lr-feat) ---- */
@@ -5030,7 +5034,7 @@ html #grid.wire[data-w="col"] h3.dsh.wsec .dsr{margin-left:0;min-height:44px}
 /* not in Dynamic: it rewrites --a1 with every page tint, which made these boxes jump color while scrolling; there they keep their site color */html:not([data-theme=dynamic]) #grid .card.noimg{--b:color-mix(in srgb,var(--a1) 62%,#0b100d)!important}#grid .card.noimg::after{color:var(--a2,#c9a24a)!important;opacity:.4!important}
 html[data-theme^=halcyon] #grid .card.noimg{--b:#1d4a33!important}html[data-theme^=halcyon] #grid .card.noimg::after{color:#c9a24a!important}
 .sgi .ico{background:transparent!important;color:var(--a1)!important;box-shadow:inset 0 0 0 1.5px color-mix(in srgb,currentColor 35%,transparent)}
-#grid .card .cfoot :is(.rt,time)::before{content:none!important}#grid .card .cfoot time{margin-left:14px}#grid .card .src .ssec{margin-left:.35em;letter-spacing:.04em}#grid .card .src .ssec::before{content:'·';margin-right:.55em}
+/* R3: the byline line reads "By … · 27 min · 2-min read · +3 sources" (no dot before the first item shown) */#grid .card .cfoot :is(.rt,time,.pw)::before{content:'·'!important;margin-right:6px;opacity:.55}#grid .card .cfoot time:first-child::before,#grid[data-cards="compact"] .card .cfoot .cby+time::before,#grid:is(:not([data-w=mag]),.nrp) .card.card:is(.nr-row,.nr-late):not(.nr-m:where(#grid:not(.nrp) *)) .cfoot .cby+time::before{content:none!important}#grid .card .cfoot .pw{margin:0;padding:0;border-radius:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;opacity:1;vertical-align:baseline}#grid .card .cfoot{column-gap:6px}#grid .card .src .ssec{margin-left:.35em;letter-spacing:.04em}#grid .card .src .ssec::before{content:'·';margin-right:.55em}
 @media(max-width:520px){#rd .bar .bs{border-color:transparent;background:transparent;padding-left:4px;max-width:210px}#rd .book i:not(.cols *){display:none!important}}
 html[data-theme^=halcyon] #grid .tmast small{color:#7d5f14}html[data-theme=halcyond] #grid .tmast small{color:#e2c27a}
 html body main #grid.wire h3.dsh.wsec,html.magx body main #grid.fed.wire h3.dsh.wsec{background:transparent!important;border:0!important;border-bottom:1px solid var(--ln)!important;border-radius:0!important;padding:6px 0 14px!important}html body main #grid.wire h3.dsh.wsec::after{display:block!important;bottom:-2px}
@@ -5388,7 +5392,7 @@ function saveCache0(force){if(FROZEN)return;/* nothing new since the last save: 
  const big=()=>{try{if(!IDB.ok)return false}catch(_){return false}CKI=1;try{localStorage.removeItem(CK)}catch(_){}SCSIG=sg;idbTx('readwrite',st=>st.put({c},'~cache')).then(ok=>{if(!ok&&SCSIG===sg)SCSIG=''});return true};if(CKI&&big())return;
  try{localStorage.setItem(CK,JSON.stringify(c));SCSIG=sg}catch(e){if(big())return;try{for(const id in c)c[id].forEach(a=>a.html='');localStorage.setItem(CK,JSON.stringify(c));SCSIG=sg}catch(_){/* storage nearly full: keep fewer stories per site rather than nothing, so a restart never opens on empty placeholders */try{for(const id in c)c[id]=c[id].slice(0,10);localStorage.setItem(CK,JSON.stringify(c));SCSIG=sg}catch(e3){try{elog('cache save',e3)}catch(_2){}}}}}
 const feedOf=id=>S.feeds.find(f=>f.id===id)||{title:'',url:''};
-const ago=d=>{if(!d)return'';const m=(Date.now()-d)/6e4;return m<60?Math.max(1,m|0)+'m':m<1440?(m/60|0)+'h':(m/1440|0)+'d'};
+const ago=d=>{if(!d)return'';const m=(Date.now()-d)/6e4,n=m<60?Math.max(1,m|0):m<1440?m/60|0:m/1440|0;return n+(m<60?' min':m<1440?' hr':n===1?' day':' days')};/* F09: one time style everywhere ("27 min", "1 hr", "2 days"); "1m" read like "1 million" */
 /* card times: "3h" on screen; a week on, the date ("Oct 12") instead of "45d". Screen readers hear "3 hours ago" as part of the headline link (agoL), so the card gets no extra elements (two hidden spans per card cost scrolling time) */
 const agoT=d=>{if(!d)return'';const m=(Date.now()-d)/6e4;return m>=10080?new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'}):ago(d)};
 const agoL=d=>{if(!d)return'';const m=(Date.now()-d)/6e4;if(m>=10080)return agoT(d);const n=m<60?Math.max(1,m|0):m<1440?m/60|0:m/1440|0,u=m<60?'minute':m<1440?'hour':'day';return n+' '+u+(n===1?'':'s')+' ago'};
@@ -5999,7 +6003,7 @@ function parseJsonFeed(txt,f){
   const text=new DOMParser().parseFromString(html.replace(/<\/(p|div|li|h[1-6])>|<br\s*\/?>/gi,'$& '),'text/html').body.textContent.replace(/\s+/g,' ').trim();
   let img=String(it.image||it.banner_image||''),imgs='';if(!img){img=firstImg(html,link);imgs=firstImg.s||''}img=img?hi(abs(img,link)):'';
   const au=(Array.isArray(it.attachments)?it.attachments:[]).find(a=>a&&(/audio/i.test(a.mime_type||'')||/\.(mp3|m4a|aac|ogg)(\?|$)/i.test(a.url||'')));
-  let dur='';const ds=au&&+au.duration_in_seconds;if(ds)dur=ds>=3600?Math.floor(ds/3600)+' h '+Math.round(ds%3600/60)+' min':Math.round(ds/60)+' min';
+  let dur='';const ds=au&&+au.duration_in_seconds;if(ds)dur=ds>=3600?Math.floor(ds/3600)+' hr '+Math.round(ds%3600/60)+' min':Math.round(ds/60)+' min';
   const au1=(it.authors&&it.authors[0])||it.author||j.author||{};
   const title=cleanT(String(it.title||'')||text.slice(0,90));
   return{feedId:f.id,by:String(au1.name||'').slice(0,60),sec:String((it.tags||[])[0]||'').slice(0,30),cats:(Array.isArray(it.tags)?it.tags:[]).map(t=>String(t&&t.name||t||'').trim().toLowerCase().slice(0,40)).filter(Boolean).slice(0,8),ce:!!(it.content_html||it.content_text),cm:'',audio:au?abs(au.url,link):'',yt:'',dur,th:'',title,link,date:pdate(it.date_published||it.date_modified||''),img,imgs,html,summary:(it.summary?String(it.summary).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim():text).slice(0,170),wc:text?text.split(' ').length:0};
@@ -6041,7 +6045,7 @@ function parse(xml,f){
   const by=(tx(el,'dc:creator')||(el.getElementsByTagName('author')[0]?tx(el.getElementsByTagName('author')[0],'name'):'')||tx(el,'author')).replace(/^\S+@\S+\s*\((.*)\)$/,'$1').replace(/<[^>]*>/g,' ').replace(/https?:\/\/\S+/g,' ').replace(/\s+/g,' ').trim().slice(0,60);/* an Atom author holds a name and a web address: only the name is the byline */
   const cats=[...el.getElementsByTagName('category')].map(c=>(c.getAttribute('term')||c.textContent||'').trim().toLowerCase().slice(0,40)).filter(Boolean).slice(0,8),ce=!!tx(el,'content:encoded');const sec=(el.getElementsByTagName('category')[0]?(el.getElementsByTagName('category')[0].getAttribute('term')||el.getElementsByTagName('category')[0].textContent):'').trim().slice(0,30);
   let cm=tx(el,'comments');if(!/^https?:/.test(cm)){cm='';const m=(html||'').match(/href="(https?:\/\/(?:www\.|old\.)?(?:reddit\.com\/r\/[^"]+\/comments\/[^"]+|news\.ycombinator\.com\/item\?id=\d+|lobste\.rs\/s\/[^"]+))"/);if(m)cm=m[1]}
-  let dur=tx(el,'itunes:duration');if(/^\d+$/.test(dur)){const n=+dur;dur=n>=3600?Math.floor(n/3600)+' h '+Math.round(n%3600/60)+' min':Math.round(n/60)+' min'}else if(/^\d+:\d+(:\d+)?$/.test(dur)){const q=dur.split(':').map(Number);dur=q.length===3?(q[0]?q[0]+' h ':'')+q[1]+' min':q[0]+' min'}else dur='';
+  let dur=tx(el,'itunes:duration');if(/^\d+$/.test(dur)){const n=+dur;dur=n>=3600?Math.floor(n/3600)+' hr '+Math.round(n%3600/60)+' min':Math.round(n/60)+' min'}else if(/^\d+:\d+(:\d+)?$/.test(dur)){const q=dur.split(':').map(Number);dur=q.length===3?(q[0]?q[0]+' hr ':'')+q[1]+' min':q[0]+' min'}else dur='';
   if(!img&&yv)img='https://i.ytimg.com/vi/'+yv+'/hqdefault.jpg';
   return{feedId:f.id,by,sec,cats,ce,cm,audio:au?abs(au.getAttribute('url'),link):'',yt:yv||'',dur,th:(thu&&thu!==img&&img)?thu:'',pcr,pcp,pics,title:cleanT(tx(el,'title')||trimWords(text,90)),/* B1: Mastodon/Bluesky posts have no headline: use the start of the post, as the JSON reader does */link,date:pdate(tx(el,'pubDate')||tx(el,'published')||tx(el,'updated')||tx(el,'dc:date')),img,imgs,html,summary:trimWords(text,170),wc:text?text.split(' ').length:0};
  });
@@ -7815,7 +7819,7 @@ let DGP_OPEN=false;
 function dgProgHtml(){
  const{n,t}=dgCount();if(t<3)return'';const done=n>=t,g=goalOf(),m=Math.round(readToday()*10)/10;
  const left=t-n,mins=DGL.filter(l=>!S.read[l]).reduce((x,l)=>{const a=findStory(l);return x+(a?(readMin(a)||3):0)},0);
- const sum=done?'Edition finished':plu(left,'story','stories')+' left'+(mins?' • ~'+mins+'m':'');
+ const sum=done?'Edition finished':plu(left,'story','stories')+' left'+(mins?' · about '+(mins>=60?(mins/60|0)+' hr'+(mins%60?' '+mins%60+' min':''):mins+' min'):'');/* F09: "about 1 hr 46 min", not "~106m" */
  const tail=g?` · ${Math.floor(m)} min of your ${g}-min goal`:'';
  const play=(typeof fiveBtns==='function'&&fiveBtns())?`<button type="button" class="dplay" data-play aria-label="Play the Daily"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg><span>Play Daily</span></button>`:'';
  return `<div class="dgp qp${done?' done':''}${DGP_OPEN?' open':''}" data-dgp><div class="qp-bar"><button type="button" class="qp-l" data-qpt aria-expanded="${DGP_OPEN}" aria-label="${esc(sum)}. Show more"><span class="rgw">${ringSvg(n,t,22,3)}</span><span class="qp-s" role="status">${esc(sum)}</span><i aria-hidden="true">⌄</i></button>${play}</div><div class="dgd"${DGP_OPEN?'':' hidden'}><p class="dgq">${esc(pe('progress',{},(done?'done':n?'mid':'start')))}</p><p>${done?'You have read everything in this edition.':left+' '+(left===1?'story':'stories')+' left in this edition'}${esc(tail)}</p>${(typeof fiveBtns==='function'&&fiveBtns())?'<div class="dgb"><button type="button" data-five>⏱ I have 5 minutes</button></div>':''}${goalHtml()}</div></div>`;
@@ -7887,7 +7891,7 @@ function card(a,i,k){
   if(a&&!WHY[a.link]){const pw=priWhy(a);if(pw)WHY[a.link]=pw}
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
   const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],q1=a.img&&IIS[a.img],pc=q1&&q1.t?`--pc:${q1.t};`:'',op=q0&&q0.v>=5&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="${pc}object-position:${q0.px}% ${q0.py}%"`:pc?` style="${pc}"`:'';
-  return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="${!EIO&&i<6?'eager':'lazy'}" decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''/* David 2026-10-31: no hills-and-trees drawing behind a photo-less card's text (hard to read) */}<div class="ov"></div>${a.img&&a.pcr&&isOn('mag3')?`<span class="pcr">Photo: ${esc(a.pcr)}</span>`:''}${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg" style="--pg:${Math.round(progOf(a.link)*100)}%"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><span class="sn" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}">${esc(f.title)}</span>${a.sec?`<span class=" ssec">${esc(a.sec)}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${a.img&&a.pics&&a.pics.length>1&&!/dq-c/.test(k)?`<span class="pw">+${a.pics.length-1} ${a.pics.length===2?'photo':'photos'}</span>`:''}${(a.more&&a.more.length>=2)?`<span class="pw tr" title="${a.more.length+1} sources report this">+${a.more.length} sources</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}" aria-label="${esc(a.title)}${a.date?', '+agoL(a.date):''}">${esc(a.title)}</a></h3>${(()=>{const q=!a.img&&!/\b(nr-row|nr-late|list-row)\b/.test(k||'')?nrQuoteText(a):null;return q?`<p class="lq">${esc(q.q)}</p>`:`<p>${esc(sumOf(a.summary))}</p>`})()}<div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}${readMin(a)?`<span class="rt">${readMin(a)} min read</span>`:''}${pwBadge(a)}<time datetime="${a.date?new Date(a.date).toISOString():''}" aria-hidden="true">${agoT(a.date)}</time></div>${a.more&&a.more.length?`<div class="also">Also from ${a.more.map(m=>esc(fof({feedId:m.f}).title)).join(', ')}</div>`:''}</div></div>`;
+  return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="${!EIO&&i<6?'eager':'lazy'}" decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''/* David 2026-10-31: no hills-and-trees drawing behind a photo-less card's text (hard to read) */}<div class="ov"></div>${a.img&&a.pcr&&isOn('mag3')?`<span class="pcr">Photo: ${esc(a.pcr)}</span>`:''}${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg" style="--pg:${Math.round(progOf(a.link)*100)}%"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><span class="sn" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}">${esc(f.title)}</span>${a.sec?`<span class=" ssec">${esc(a.sec)}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${a.img&&a.pics&&a.pics.length>1&&!/dq-c/.test(k)?`<span class="pw">+${a.pics.length-1} ${a.pics.length===2?'photo':'photos'}</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}" aria-label="${esc(a.title)}${a.date?', '+agoL(a.date):''}">${esc(a.title)}</a></h3>${(()=>{const q=!a.img&&!/\b(nr-row|nr-late|list-row)\b/.test(k||'')?nrQuoteText(a):null;return q?`<p class="lq">${esc(q.q)}</p>`:`<p>${esc(sumOf(a.summary))}</p>`})()}<div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}<time datetime="${a.date?new Date(a.date).toISOString():''}" aria-hidden="true">${agoT(a.date)}</time>${readMin(a)?`<span class="rt">${readMin(a)}-min read</span>`:''}${a.more&&a.more.length?`<span class="pw tr" title="Also from ${esc(a.more.map(m=>fof({feedId:m.f}).title).join(', '))}">+${a.more.length} ${a.more.length===1?'source':'sources'}</span>`:''}${pwBadge(a)}</div></div></div>`;/* R3/R8: one quiet line, "By … · 27 min · 2-min read · +3 sources"; the pill and the "Also from" line folded into it */
 }
 /*NEWSROOM*/
 const IS_SAFARI=(()=>{try{const u=navigator.userAgent;return /iP(hone|ad|od)/.test(u)||(/Safari\//.test(u)&&!/Chrome\/|Chromium\/|Android|Edg\/|OPR\/|CriOS|FxiOS/.test(u))}catch(e){return false}})();
@@ -8375,7 +8379,7 @@ function nextEdition(){
  const d=new Date(),h=d.getHours(),t=new Date(d);
  if(h>=5&&h<17)t.setHours(17,0,0,0);else{if(h>=17)t.setDate(t.getDate()+1);t.setHours(5,0,0,0)}
  const mins=Math.max(1,Math.round((t-d)/6e4)),hh=Math.floor(mins/60),mm=mins%60;
- return {am:!(h>=5&&h<17)?true:false,name:(h>=5&&h<17)?'The Evening Edition':'The Morning Edition',at:(h>=5&&h<17)?'5 PM':'5 AM',left:(hh?hh+' h ':'')+mm+' min'};
+ return {am:!(h>=5&&h<17)?true:false,name:(h>=5&&h<17)?'The Evening Edition':'The Morning Edition',at:(h>=5&&h<17)?'5 PM':'5 AM',left:(hh?hh+' hr ':'')+mm+' min'};
 }
 function backCoverHtml(count,trend){
  const am=edKind()==='m',nx=nextEdition(),d=edDate(),issue=issueNo(d);
@@ -9948,7 +9952,7 @@ function sysScale(){
  if(!k&&Date.now()-(sysScale.t||0)<60000)k=sysScale.k;if(!k){try{const e=document.createElement('div');e.style.cssText='position:absolute;visibility:hidden;font:medium sans-serif;pointer-events:none';e.textContent='x';document.body.append(e);k=parseFloat(getComputedStyle(e).fontSize)/16;e.remove();sysScale.k=k;sysScale.t=Date.now()}catch(er){k=1}}
  return Math.max(.85,Math.min(2,k||1));
 }
-function applyFs(re){needFont(fontKey());if(S.font==='dys'){document.fonts&&document.fonts.load("18px 'OpenDyslexic'").then(()=>relayout(),()=>{})}const r=$('#rd'),sp=!!S.sep&&S.theme!=='dynamic';{const fz=Math.round((+S.fs||18)*sysScale()*10)/10;r.style.setProperty('--fs',fz+'px');r.style.setProperty('--fsu',fz+'px')}r.style.setProperty('--rf',FONTS[fontKey()]||FONTS.serif);/* letter and word spacing for any font (Tight / Normal / Open); OpenDyslexic keeps its own roomier normal */{const sp=S.tsp==='o'?['.05em','.16em']:S.tsp==='t'?['-.01em','-.03em']:S.font==='dys'?['.02em','.12em']:['normal','normal'];r.style.setProperty('--ls',sp[0]);r.style.setProperty('--ws',sp[1])}rdVars();r.classList.toggle('sep',sp);document.documentElement.classList.toggle('sepp',sp);save();if(re)relayout()}
+function applyFs(re){needFont(fontKey());if(S.font==='dys'){document.fonts&&document.fonts.load("18px 'OpenDyslexic'").then(()=>relayout(),()=>{})}const r=$('#rd'),sp=!!S.sep&&S.theme!=='dynamic';{const fz=Math.round((+S.fs||18)*sysScale()*10)/10;r.style.setProperty('--fs',fz+'px');r.style.setProperty('--fsu',fz+'px');/* R-05: Large print grows the small text around the story too (CSS zoom by --fsk); a smaller size never shrinks it */r.style.setProperty('--fsk',Math.max(1,(+S.fs||18)/18).toFixed(3))}r.style.setProperty('--rf',FONTS[fontKey()]||FONTS.serif);/* letter and word spacing for any font (Tight / Normal / Open); OpenDyslexic keeps its own roomier normal */{const sp=S.tsp==='o'?['.05em','.16em']:S.tsp==='t'?['-.01em','-.03em']:S.font==='dys'?['.02em','.12em']:['normal','normal'];r.style.setProperty('--ls',sp[0]);r.style.setProperty('--ws',sp[1])}rdVars();r.classList.toggle('sep',sp);document.documentElement.classList.toggle('sepp',sp);save();if(re)relayout()}
 /* the sample passage on the Reading page follows the font, size, spacing, alignment and drop cap you have chosen */
 function syncReadPrev(){
  const b=$('#rprev');if(!b)return;
@@ -11366,7 +11370,7 @@ function rareFeed(f){if(!f||!f.id)return false;const l=items[f.id]||[],k=l.lengt
 function freqText(list){
  const d=list.map(a=>a.date||0).filter(Boolean).sort((a,b)=>b-a);
  if(!d.length)return'No stories found in this feed yet';
- const last=Date.now()-d[0]>=864e5*120?'hasn’t posted in about '+Math.max(4,Math.round((Date.now()-d[0])/(30*864e5)))+' months':'last story '+(ago(d[0])||'1m')+' ago';
+ const last=Date.now()-d[0]>=864e5*120?'hasn’t posted in about '+Math.max(4,Math.round((Date.now()-d[0])/(30*864e5)))+' months':'last story '+(ago(d[0])||'1 min')+' ago';
  if(d.length<2)return 'Only one story so far · '+last;
  const days=(d[0]-d[d.length-1])/864e5;if(days<.02)return 'Several stories at once · '+last;
  const r=(d.length-1)/days,n=x=>Math.max(2,Math.round(x));
@@ -14139,6 +14143,8 @@ function decorate0(){
   /* column names go on each cell so a phone can show every row as its own small card */
   try{let hd=[...t.querySelectorAll('thead th')];if(!hd.length){const r=t.querySelector('tr');if(r&&r.querySelector('th'))hd=[...r.children]}const hs=hd.map(x=>x.textContent.replace(/\s+/g,' ').trim());if(hs.length>=3&&hs.some(Boolean))t.querySelectorAll('tr').forEach(r=>{if(r.closest('thead')||r===hd[0]?.parentElement)return;[...r.children].forEach((c,i)=>{if(c.tagName==='TD'&&hs[i])c.setAttribute('data-l',hs[i])})}),t.classList.add('cardable');t.closest('.tbl').classList.toggle('wide',hs.length>=4)}catch(e){}});
  b.querySelectorAll('.endmark').forEach(x=>x.remove());
+ /* R-04: a long quote (a letter, a statement) reads as body text with a brass rule; only a short one keeps the pull-quote look */
+ b.querySelectorAll('blockquote').forEach(q=>q.classList.toggle('bql',q.textContent.trim().length>220||q.querySelectorAll('p').length>1));
  if(!isOn('mag'))return;
  {const lp=[...b.querySelectorAll(':scope > p')].filter(p=>p.textContent.trim().length>60).pop();if(lp&&isOn('endm')){const e=document.createElement('p');e.className='endmark';e.setAttribute('aria-hidden','true');e.textContent='◆';b.append(e);try{const hs=(S.hl||[]).filter(h=>h.art&&curA&&h.art.link===curA.link&&h.q).slice(0,2);if(hs.length){const a=document.createElement('aside');a.className='rhl';a.setAttribute('aria-label','Your highlights from this story');a.innerHTML='<small>Your highlights</small>'+hs.map(h=>'<blockquote>'+esc(String(h.q).slice(0,220))+'</blockquote>').join('');b.append(a)}}catch(x){}}}
  const ps=[...b.querySelectorAll(':scope > p')].filter(p=>!p.classList.contains('endmark'));
@@ -15678,7 +15684,7 @@ async function articleCard(a){
  try{await document.fonts.ready;await document.fonts.load("400 60px 'CyPress Display'");await document.fonts.load("600 30px 'Instrument Sans'")}catch(e){}
  const DF="'CyPress Display','Instrument Serif',Georgia,serif",SF="'Instrument Sans',system-ui,sans-serif";
  const f=fof(a),col=(()=>{const t=document.createElement('div');t.style.color=brand(f);document.body.append(t);const r=getComputedStyle(t).color;t.remove();return r})();
- let photo=null;if(a.img&&!isOn('txo')){try{photo=await imgPixels(a.img)}catch(e){}}
+ let photo=null;if(a.img&&!isOn('txo')){try{photo=await edBitmap(a.img)}catch(e){}}/* full size (imgPixels is a tiny color sample) */
  const PH=photo?760:0;
  if(photo){const iw=photo.width||photo.naturalWidth,ih=photo.height||photo.naturalHeight,sc=Math.max(W/iw,PH/ih),dw=iw*sc,dh=ih*sc;x.drawImage(photo,(W-dw)/2,(PH-dh)/2,dw,dh);x.fillStyle='#faf7f0';x.fillRect(0,PH,W,H-PH);x.fillStyle=col;x.fillRect(0,PH,W,10)}
  else{let g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#10382a');g.addColorStop(.55,'#0a2018');g.addColorStop(1,'#050f0b');x.fillStyle=g;x.fillRect(0,0,W,H);
@@ -17740,7 +17746,7 @@ document.addEventListener('keydown',e=>{
 function frMin(feeds){
  if(S.hideCount)return '';
  try{let m=0;for(const f of feeds)for(const a of (items[f.id]||[]))if(!S.read[a.link])m+=minsOf(a);
-  return m>0?`<small class="frm">${m>=90?(Math.round(m/6)/10)+' hr':m+' min'}</small>`:''}catch(e){return ''}
+  const t=m>=90?(Math.round(m/6)/10)+' hr':m+' min';/* F16: say what the number is */return m>0?`<small class="frm" title="${t} of unread stories to read">${t}<span class="vh"> to read</span></small>`:''}catch(e){return ''}
 }
 /* Catch me up: a five-minute mini-edition from the best unread stories */
 function catchUp(){
@@ -17763,7 +17769,7 @@ function cvAhead(more){
 function liveDots(){
  const g=$('#grid'),ws=[...g.querySelectorAll('.wtrend [data-trend]')].map(b=>b.dataset.trend.toLowerCase());if(!ws.length)return;
  const lim=Date.now()-6*36e5,re=new RegExp('\\b('+ws.map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\\b','i');
- g.querySelectorAll('.card[data-i]').forEach(c=>{const a=cur[+c.dataset.i],h=c.querySelector('h3,h2');if(!a||!h||c.querySelector('.cdot')||!(a.date>lim)||!re.test(a.title||''))return;/* David 2026-10-31: the dot sits at the end of the site line, not jammed against the headline */const s=c.querySelector('.src');s?s.insertAdjacentHTML('beforeend','<i class="cdot" role="img" aria-label="Developing"></i>'):h.insertAdjacentHTML('afterbegin','<i class="cdot" role="img" aria-label="Developing"></i>')});
+ g.querySelectorAll('.card[data-i]').forEach(c=>{const a=cur[+c.dataset.i],h=c.querySelector('h3,h2');if(!a||!h||c.querySelector('.cdot')||!(a.date>lim)||!re.test(a.title||''))return;/* David 2026-10-31: the dot sits at the end of the site line, not jammed against the headline */const s=c.querySelector('.src');if(s)s.insertAdjacentHTML('beforeend','<i class="cdot">Developing</i>')});
 }
 {const _r=render;render=function(){_r.apply(this,arguments);try{cvAhead()}catch(e){}try{liveDots()}catch(e){}}}
 /* Surprise me: one random unread story from the last five days; a random site first, so busy sites don't crowd out quiet ones */

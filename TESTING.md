@@ -1426,3 +1426,20 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Story "..." menu: "Listening options", "Send to…" and "Something wrong?" fold open with TalkBack (expanded/collapsed announced), and Hands-free, PDF, Kindle, Browser, both Report rows still work.
 - Tapping a tab with TalkBack keeps focus on the tab (Daily and All Stories); heading navigation shows bands as level 2 and cards as level 3.
 - Kindle address: a wrong address keeps the box open with the message, "Use it anyway" for a non-kindle.com address.
+
+## Deep-dive fixes data (branch mx03wy, 2026-11-06) — implemented, unverified on phone
+- B1: follow a Mastodon (@name@server) and a Bluesky (name.bsky.social) account: posts show with the start of the post as the headline; no "No stories found".
+- B2: hard to fake on a phone; if a library is ever damaged, the app starts empty with the toast "Your library couldn't be read. Restore it from a backup in Settings > Sites & backup."
+- B3: open the Daily between midnight and 5 AM: cover says yesterday's Evening Edition with yesterday's date and issue number.
+- FR15: fresh install, stay on the welcome screen: no site is downloaded until setup is finished.
+- P1/P2: with many sites, the phone settles (no warmth, no lag) within ~30 s of opening; photo-less sites (e.g. Hacker News) show photos on their 5 newest stories only.
+- P3: warm start on the Daily: no visible redraw/jump ~0.5 s after the stories appear; "Inside" line is right from the start.
+- P4/P5/P6/P8: tab taps feel quicker; the Daily no longer flickers every few seconds while stories download; reading aloud and the mini player still update their progress every second.
+- P10 (web only): reopening the web app twice does not re-download the whole app (304), and a real update still shows the "new version" bar.
+- C06: side bar on a phone: each site and folder row has a "…" that opens its settings.
+- C09: Add a site > Near you: no top search box, list uses the height, Remove is a quiet text button, "Added to …" under the name.
+- C11: story ... menu > Share as picture: the picture card goes to the share sheet with the link; with Shorten shared links off the message is headline + site address (no "Read this in CyPress:").
+- C13: swipe a card to mark read / save: the toast has Undo and it restores the card.
+- C14: Settings > Look > Dark, then pick "from 8 pm" "to 7 am": app is light outside those hours and switches within 4 minutes (or on return to the app) when the hour passes.
+- C15: story ... menu > Send to… > Markdown file saves a .md; highlights export escapes * [ ] < > and writes "November 6, 2026".
+- C02: Send to Kindle: the book no longer repeats the opening paragraph under the summary line.
