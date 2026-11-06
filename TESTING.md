@@ -1449,3 +1449,12 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - FR01: on a narrow phone the top bar shows at most three icons; the "..." button swaps the title for Mark all as read and Switch layout; long site names shrink one size before being cut.
 - FR02: open Search on a narrow phone: only the menu, the box and its button show; the button is fully on screen.
 - F09/R3: card times read "27 min", "1 hr", "2-min read" with "·" between them; Play Daily bar says "36 stories left · about 1 hr 46 min".
+
+## Deep-dive fixes reader (branch mx03wy, 2026-11-06) — implemented, unverified on phone
+- R-01: tap a footnote number in a story (raised, small, brass): it jumps to the note in Pages and Scroll and does not open the website; 10⁶ / CO₂ show raised/lowered.
+- R-03: turn the phone sideways in Pages mode: one centered column of about 65 characters, no text from the next page peeking at the edges, page turns still line up.
+- R-08: in Scroll mode a tap anywhere on the text only shows/hides the controls; it never jumps a screenful.
+- R-13: Listen to a story in Pages mode with a real voice: the pill (now with a Previous paragraph button on its left) never covers the line being read; when reading stops the page grows back.
+- R-14: the site name in the reader bar and the Aa sheet's close button are easy to hit with a thumb; the bar looks unchanged.
+- C01: with a Bluetooth keyboard, N / P in a story open the next / previous story (← → still turn pages).
+- C12: the ... menu's "Hide text" is grayed out with "(select some text first)" until text is selected; with a selection it hides it (check whether opening the menu keeps the phone's selection).
