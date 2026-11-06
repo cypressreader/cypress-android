@@ -1408,3 +1408,7 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Install works on a phone; Play pre-launch report shows no 16 KB alignment warning.
 - TalkBack: closing a story returns to its card; reader "Listen" announced as "Listen to story"; side panel rows easy to tap.
 - Dark Black & White / Newsprint / Aurora: big picture-less card is dark with readable white text.
+
+## Quiet sites sleep + slot hand-back (branch mx03wy, after 1.272) — implemented, unverified on phone
+- With a site that hasn't posted in weeks: an automatic refresh skips it for 3 hours; pull to refresh still checks it; opening that site checks it.
+- With a site that blocks the app (bot check): the other sites keep filling in while the phone browser works on it.

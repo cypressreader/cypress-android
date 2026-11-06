@@ -5437,7 +5437,7 @@ async function fetchText1(url,ok,lg,sl){
     if(r.status===429&&lg&&p.h){try{const v=r.headers.get('retry-after');if(v){const s=+v,w=isFinite(s)?s*1e3:Date.parse(v)-Date.now();if(w>0)lg.ra=Date.now()+Math.min(864e5,w)}}catch(e){}}
     if(botCode(r.status)&&lg&&!over)lg.blocked=true;
     /* David 2026-11-05: a site that turns the app away is opened in a hidden browser on the phone (Chrome's engine, its cookies and bot check), the way you would open it yourself */
-    let bt='';if(p.h&&botCode(r.status)&&!(lg&&lg.bt)&&CyN()&&CyN().browserFetch){if(lg)lg.bt=1;clearTimeout(to);to=setTimeout(()=>{dead=true;fail('timed out in the phone browser')},24000);if(lg&&!over)lg.push('direct: HTTP '+r.status+', trying the phone browser');try{bt=((await CyN().browserFetch({url}))||{}).text||''}catch(e){if(lg&&/busy/.test(String(e&&e.message||e)))lg.nb=1}if(!bt&&lg&&!over)lg.push('phone browser: no luck')}
+    let bt='';if(p.h&&botCode(r.status)&&!(lg&&lg.bt)&&CyN()&&CyN().browserFetch){if(lg)lg.bt=1;clearTimeout(to);to=setTimeout(()=>{dead=true;fail('timed out in the phone browser')},24000);if(lg&&!over)lg.push('direct: HTTP '+r.status+', trying the phone browser');/* one site waiting on the phone browser (up to 24 s) hands back its download slot, so the other sites keep loading */try{if(lg&&lg.sl)lg.sl.free()}catch(e){}try{bt=((await CyN().browserFetch({url}))||{}).text||''}catch(e){if(lg&&/busy/.test(String(e&&e.message||e)))lg.nb=1}if(!bt&&lg&&!over)lg.push('phone browser: no luck')}
     if(!bt){if(r.status===202)throw 'the site answered with a bot check instead of the story (HTTP 202)';
     if(!r.ok){if((p.h||p.w)&&(r.status===404||r.status===410)){const er=new Error('HTTP '+r.status);er.hard=1;throw er}throw 'HTTP '+r.status}
     }let t=bt||await readText(r);
@@ -6059,7 +6059,9 @@ function applyRules(f,all){
  }
  f.rseen=[...seen].slice(-400);if(ch||all)save();return n;
 }
-const rfSkip=(f,fresh)=>{if(fresh===true||!f.rfm)return false;if(!(items[f.id]||[]).length)return false;if(f.rfm<0)return true;const ok=(S.health[f.id]||{}).ok||0;return Date.now()-ok<f.rfm*6e4};
+/* quiet sites sleep: a site that hasn't posted in about three weeks (f.quiet, set by staleList) is asked at most every 3 hours, every 12 after two silent months, on automatic refreshes only. Pull to refresh, the refresh button, the site on screen and a refresh interval you set yourself are never held back. Saves battery and data with long site lists. */
+const quietWait=f=>{if(!f.quiet)return 0;let nw=0;for(const a of items[f.id]||[])if(a.date>nw)nw=a.date;return nw&&Date.now()-nw>60*864e5?432e5:108e5};
+const rfSkip=(f,fresh)=>{if(fresh===true)return false;if(!(items[f.id]||[]).length)return false;const ok=(S.health[f.id]||{}).ok||0;if(!f.rfm){const w=quietWait(f);return w>0&&!inView(f)&&Date.now()-ok<w}if(f.rfm<0)return true;return Date.now()-ok<f.rfm*6e4};
 {const n=e=>{document.body.classList.toggle('netoff',navigator.onLine===false);if(e)try{render()}catch(x){elog('render',x)}};n();addEventListener('offline',n);addEventListener('online',n)}/* audit #26: re-render so an empty list says offline, not 'sites didn't answer' */
 let ONT=0;addEventListener('online',()=>{clearTimeout(ONT);ONT=setTimeout(()=>{if(!S.offline&&!FROZEN)loadAll(true)},2000)});
 /* B95: a feed that keeps failing is tried less and less often (15 min after the third failure in a row, then 30, 60 … up to a day) instead of on every refresh; pulling to refresh or the refresh button still tries everything */
@@ -16334,7 +16336,7 @@ async function loadFeed(f,fresh,sl){
  if(isHead(f.url)){const sd=siteOf(f);if(!sd)throw new Error('no site');try{const l=await gnewsFeed(f,sd,'nofeed');return l}catch(e){return await bingFeed0(f,'nofeed',sd)}}
  let list=null;
  /* B1: on the Android app (direct route), a feed we already hold is downloaded only if it changed; a pull-to-refresh (fresh) always downloads */
- const h0=S.health[f.id]||{},held=items[f.id]||[],lf=tag('feed via ');lf.net=1;
+ const h0=S.health[f.id]||{},held=items[f.id]||[],lf=tag('feed via ');lf.net=1;lf.sl=sl;
  if(NATIVE)lf.cond=!fresh&&held.length&&(h0.etag||h0.lm)?{etag:h0.etag||'',lm:h0.lm||''}:null;
  try{let x;if(fresh){try{x=await fetchText(cb(f.url),isFeed,lf)}catch(e){/* David 2026-11-05: a site that timed out or dropped the line is not asked again without the cache-buster (that second try cost ~45 s per slow site on a pull-to-refresh); only an HTTP error, which the extra ?_cp= could have caused, gets the plain try */if(!lg.some(x=>/HTTP \d/.test(x)))throw e}}if(!x)x=await fetchText(f.url,isFeed,lf);if(lf.val)lg.val=lf.val;if(sl){sl.free();await quietGap();await sl.take()}else await quietGap();list=parse(x,f).list;if(!list.length){lg.push('The feed came back empty');if(held.length){lg.push('kept the stories already here');f.via='';return held.slice()}}}catch(e){if(e&&e.hard)GONE.add(f.id);if(lf.nb)lg.nb=1;
   if(e&&e.nm&&held.length){lg.val={etag:h0.etag||'',lm:h0.lm||''};lg.push('unchanged since the last check, kept the stories already here');f.via='';return held.slice()}}
