@@ -3510,6 +3510,7 @@ body.sideshow .tl-leaf,body.open .tl-leaf,#rdnav.on ~ .tl-leaf{display:none!impo
 body.sideshow .tl-cast,body.open .tl-cast{display:none!important}
 body.sideshow .cols,body.open .cols{will-change:auto}
 #sidehdr{display:none}
+.rgest{position:fixed;left:16px;right:16px;bottom:calc(36px + env(safe-area-inset-bottom));z-index:95;max-width:420px;margin:0 auto;padding:14px 16px;background:var(--pn);color:var(--ink);border:1px solid var(--ln);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.18);font:14px/1.45 var(--sans)}.rgest ul{margin:6px 0 10px;padding-left:18px}.rgest li{margin:2px 0}
 body.sideshow #sidehdr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}#sidehdr h2{font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}#sidehdr .ib{width:34px;height:34px}
 #sideh span{writing-mode:vertical-rl;font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;margin-top:6px}#sideh{flex-direction:column;gap:0}
 #sideh{position:fixed;left:0;top:50%;z-index:44;width:26px;height:92px;margin-top:-46px;border-radius:0 12px 12px 0;background:var(--pn);border:1px solid var(--ln);border-left:0;color:var(--ink);display:none;align-items:center;justify-content:center;box-shadow:2px 0 10px rgba(0,0,0,.12)}#sideh::after{content:'';position:absolute;inset:0 -18px 0 0}/* 44 px to tap, still a slim tab to look at */
@@ -6663,7 +6664,7 @@ function render0(){
  {const mr=$('#mr');if(mr)mr.hidden=/^(saved|hist|stats|hl)$/.test(S.sel);const vw=$('#vw');if(vw)vw.hidden=S.sel==='today'}/* Mark all as read has no clear meaning on these pages */
  const q=$('#q').value.trim().toLowerCase();
  if(S.sel==='today'&&!q){if(DNAV&&dailyRestore())return;return renderToday()}
- if(S.sel==='all'&&!q&&atab()!=='latest'){let p=S.feeds.filter(f=>!paused(f)).flatMap(f=>items[f.id]||[]).filter(a=>!muted(a));p.sort((a,b)=>b.date-a.date);p=p.slice(0,300);if(S.hideRead)p=p.filter(a=>!S.read[a.link]);if(S.group!==false)p=group(p);return renderToday(atab(),p,allSeg(atab()),'All Stories')}
+ if(S.sel==='all'&&!q&&atab()!=='latest'){let p=mutCut(S.feeds.filter(f=>!paused(f)).flatMap(f=>items[f.id]||[]));p.sort((a,b)=>b.date-a.date);p=p.slice(0,300);if(S.hideRead)p=p.filter(a=>!S.read[a.link]);if(S.group!==false)p=group(p);return renderToday(atab(),p,allSeg(atab())+mutRow(),'All Stories')}
  if(S.sel==='brief'&&!q)return renderBrief();
  if(S.sel==='stats'&&!q)return renderStats();
  if(S.sel==='bi'&&!q)return renderBack();
@@ -6675,14 +6676,14 @@ function render0(){
  const inSaved=S.sel==='saved';
  /* Saved auto-archive: a story you have read and saved over 30 days ago moves to the Archive chip, out of the main list (a tag still shows it) */
  if(inSaved){const now=Date.now();S.saved.forEach(a=>{if(!a.ar&&S.read[a.link]&&now-(a.st||now)>2592e6)a.ar=1})}
- if(inSaved&&S.stag&&!(S.stag==='~ar'?S.saved.some(a=>a.ar):S.stag==='~ur'?S.saved.some(a=>!a.ar&&!S.read[a.link]):S.saved.some(a=>(a.tags||[]).includes(S.stag))))S.stag='';
- cur=inSaved?S.saved.filter(a=>S.stag==='~ar'?a.ar:S.stag==='~ur'?!a.ar&&!S.read[a.link]:S.stag?(a.tags||[]).includes(S.stag):!a.ar):(q?S.feeds:fs).filter(f=>!(hidePz&&paused(f))).flatMap(f=>items[f.id]||[]).filter(a=>!isCouponSpam(a));
+ if(inSaved&&S.stag&&!(S.stag==='~ar'?S.saved.some(a=>a.ar):S.stag==='~ur'?S.saved.some(a=>!a.ar&&!S.read[a.link]):S.stag==='~rs'?S.saved.some(svRes):S.saved.some(a=>(a.tags||[]).includes(S.stag))))S.stag='';
+ cur=inSaved?S.saved.filter(a=>S.stag==='~ar'?a.ar:S.stag==='~ur'?!a.ar&&!S.read[a.link]:S.stag==='~rs'?svRes(a):S.stag?(a.tags||[]).includes(S.stag):!a.ar):(q?S.feeds:fs).filter(f=>!(hidePz&&paused(f))).flatMap(f=>items[f.id]||[]).filter(a=>!isCouponSpam(a));
  if(S.sel.startsWith('k:')&&!q){const k=S.sk.find(x=>'k:'+x.id===S.sel);cur=k?cur.filter(a=>kmatch(k,a)):[]}
  if(inSaved&&+S.svmin>0){const L=+S.svmin;cur=cur.filter(a=>{const m=minsOf(a);return !m||m<=L})}
  if(!savedView){if(S.sort==='source')cur.sort((a,b)=>(fof(a).title||'').localeCompare(fof(b).title||'')||b.date-a.date);else cur.sort((a,b)=>b.date-a.date);cur=cur.slice(0,q?200:(S.sel==='all'&&smartOn()?600:80))}
  if(S.sel==='saved'&&!q)$('#ttl').textContent='Saved';
  if(q)$('#ttl').textContent='Search';
- if(S.sel!=='saved'||q)cur=cur.filter(a=>!muted(a));
+ MUTN=0;if(S.sel!=='saved'||q)cur=q?cur.filter(a=>!muted(a)):mutCut(cur);
  /* search scope: All (every site, full text, history), Unread or Saved */
  if(q&&QSC==='saved')cur=S.saved.slice();if(q&&QSC==='unread')cur=cur.filter(a=>!S.read[a.link]);
  if(q)cur=cur.filter(a=>((a.title||'')+' '+(a.summary||'')+' '+(a.tags||[]).join(' ')).toLowerCase().includes(q));
@@ -6703,6 +6704,7 @@ function render0(){
  if(q&&q.length>=3&&!S.sk.some(k=>k.words.length===1&&k.words[0]===q))pre=topicMast(q,cur);
  if(!q&&S.sel.startsWith('s:')){const f=S.feeds.find(x=>'s:'+x.id===S.sel);if(f&&paused(f))pre=`<div class="fbar"><span>${esc(f.title)} is paused${f.snz>8e15?'':' until '+esc(new Date(f.snz).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}))}. Its stories are hidden from Today and All Stories.</span><button class="tx2" data-resume="${f.id}">Resume</button></div>`;else if(f&&f.via==='bing')pre=`<div class="fbar"><span>Showing ${esc(f.title)} headlines from Bing News, because ${f.viaWhy==='stale'?'the site’s own feed is out of date':'the site blocks feed readers'}. Stories still open from ${esc(siteOf(f))}.</span></div>`;else if(f&&state[f.id]==='err')pre=`<div class="fbar"><span><b>We couldn’t refresh ${esc(f.title)}.</b> ${esc(feedReason(f))}. ${esc(lastOkTxt(f))}.</span><button class="tx2" data-frep="${f.id}">Try again</button></div>`}
  if(!q&&S.sel.startsWith('k:')){const k=S.sk.find(x=>'k:'+x.id===S.sel);if(k)pre=`<div class="fbar"><span>Following ${k.by||k.sec?'':'“'}${esc(kdesc(k))}${k.by||k.sec?'':'”'} across all your sites</span><button class="tx2" data-unfollow="${k.id}">Unfollow</button></div>`}
+ pre+=mutRow();
  let cov=null,covN=0;
  if(isOn('covers')&&!q&&/^(s|f|k):/.test(S.sel)&&cur.length>=3&&S.view!=='list'&&!(nrMode()&&cur.length>=6)){
   const kd=S.sel[0],id=S.sel.slice(2);let title='',col='';
@@ -7493,10 +7495,16 @@ function nextAfter(a){
  for(let j=i+1;j<cur.length;j++){const n=cur[j];if(n&&n.link!==a.link&&!S.read[n.link])return n}
  return null;
 }
+/* B1: opened from The Daily (Today tab), a story knows its place in the issue as laid out: "4 of 12 · Next up" */
+let DPOS=null;
+function dayPos(a){const t=document.querySelector('.dtabs [aria-selected=true]');if(S.sel!=='today'||!t||t.dataset.bm!=='front')return null;
+ const ed=new Set((S.edn&&S.edn.l)||[]),seen=[],sec={};let s='Cover';
+ document.querySelectorAll('#grid h3.dsh,#grid a[href]').forEach(e=>{if(e.tagName==='H3'){s=(e.querySelector('span')||e).textContent.trim();return}const l=e.getAttribute('href');if(ed.has(l)&&!(l in sec)){sec[l]=s;seen.push(l)}});
+ const i=seen.indexOf(a.link);return i<0?null:i+1+' of '+seen.length+' · '+sec[a.link]}
 function readerFootHtml(a){
  const f=fof(a),nx=nextAfter(a),rel=relatedFor(a).filter(r=>!nx||r.link!==nx.link).slice(0,3),mm=n=>{const m=minsOf(n);return m?' · '+m+' min':''},sv=!!isSaved(a);
  /* R-08: the ending is one composed block: Next up with its photo and how to go on, the story's actions, then up to three related reads; tags moved to the More sheet ("Filed under") */
- return `<div class="rfoot" role="complementary" aria-label="Keep reading"><p class="rf-src">${esc(f.title)}${a.date?' · '+esc(new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'})):''}</p>`
+ return `<div class="rfoot" role="complementary" aria-label="Keep reading"><p class="rf-src">${esc(f.title)}${a.date?' · '+esc(new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'})):''}${DPOS?'<br>The Daily · '+esc(DPOS):''}</p>`
   +(nx?`<button type="button" class="rf-next" data-rnext="${esc(nx.link)}"><small>Next up · ${esc(fof(nx).title)}${mm(nx)}</small>${nx.img?`<span class="rn-i"><img alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="${esc(nx.img)}" onerror="this.parentNode.remove()"></span>`:''}<b>${esc(nx.title)}</b><em aria-hidden="true"></em></button>`:'')
   +`<div class="rf-act"><button type="button" data-act="save" aria-pressed="${sv}">${sv?'Saved':'Save'}</button><button type="button" data-act="share">Share</button><button type="button" data-act="browser">Open site</button></div>`
   +((S.jk&&S.jk.r&&S.jk.r.length)?`<button type="button" class="rf-junk" data-junklog>Copy the list of lines removed (${S.jk.r.length})</button>`:'')
@@ -8095,6 +8103,11 @@ if((S.night&&S.night!=='off')||S.autodark){if(!S.sch||S.sch==='theme')S.sch='sys
 /* a muted single word matches whole words only ("ai" does not hide "said"); a muted phrase matches as text */
 const MUTERX={};
 function muteHit(m,t){if(!/\s/.test(m)){let r=MUTERX[m];if(!r)r=MUTERX[m]=new RegExp('(^|[^\\p{L}\\p{N}])'+m.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^\\p{L}\\p{N}]|$)','iu');return r.test(t)}return t.includes(m)}
+/* B8: stories hidden by muted words, deal hiding or a site rule show as one "3 stories muted · Show" bar instead of vanishing (spam stays gone) */
+let MUTN=0,MUTSHOW=false;
+const mutCut=l=>{MUTN=0;return l.filter(a=>{if(!muted(a))return true;if(junkItem(a))return false;MUTN++;return MUTSHOW})};
+const mutRow=()=>MUTN?`<div class="fbar"><span>${plu(MUTN,'story','stories')} muted</span><button type="button" class="tx2" data-mutshow aria-pressed="${MUTSHOW}">${MUTSHOW?'Hide them':'Show'}</button></div>`:'';
+document.addEventListener('click',e=>{if(e.target.closest('[data-mutshow]')){MUTSHOW=!MUTSHOW;render()}});
 const muted=a=>ruleHide(a)||junkItem(a)||dealHide(a)||(S.mute.length&&(()=>{const t=((a.title||'')+' '+(a.summary||'')).toLowerCase();return S.mute.some(m=>muteHit(String(m).toLowerCase(),t))})());
 const paused=f=>!!(f&&f.snz&&f.snz>Date.now());
 /* A busy feed you haven't opened a single story from in 30 days: offer, gently and once in a while, to pause it. Feeds from before this check get their 30 days counted from the first time it runs. */
@@ -8796,7 +8809,7 @@ function show(){
  const c=$('.cols');if(!c)return;setProg();
  if(!isVert())c.style.transform=`translateX(${-R.pg*R.step}px)`;
  if(RP&&!R.T&&RP.T.key!==prepKey())prepSoon();
- $('#pc').textContent=pcText();{const bk=$('.book');if(bk){if(isOn('folio')&&curA&&!R.web&&!isVert()&&R.np>0){const t=(curA.title||'').length>46?curA.title.slice(0,44)+'…':(curA.title||'');bk.dataset.folio=(fof(curA).title||'')+' · '+t+'   ·   '+(R.pg+1)}else delete bk.dataset.folio}}$('#pv').disabled=!isVert()&&R.pg===0;$('#nx').disabled=!isVert()&&R.pg>=R.np-1;fpSync();dialSync();rdxEdge();
+ $('#pc').textContent=pcText();{const bk=$('.book');if(bk){if(isOn('folio')&&curA&&!R.web&&!isVert()&&R.np>0){const t=(curA.title||'').length>46?curA.title.slice(0,44)+'…':(curA.title||'');bk.dataset.folio=(DPOS||fof(curA).title||'')+' · '+t+'   ·   '+(R.pg+1)}else delete bk.dataset.folio}}$('#pv').disabled=!isVert()&&R.pg===0;$('#nx').disabled=!isVert()&&R.pg>=R.np-1;fpSync();dialSync();rdxEdge();
  if(R.ready&&curA){delete S.pos[curA.link];if(R.pg>0&&R.pg<R.np-1)S.pos[curA.link]=R.pg;const pk=Object.keys(S.pos);if(pk.length>300)delete S.pos[pk[0]];clearTimeout(pt);pt=setTimeout(save,700)}
 }
 const ePage=p=>(1-Math.pow(1-p,3))*(.55+.45*Math.min(1,p/.3));
@@ -9908,8 +9921,8 @@ function toggleWeb(auto){
  w.hidden=false;R.web=true;R.auto=!!auto;b.innerHTML=svg(PAGE);b.title='Back to reader view';loadWeb();
 }
 async function openReader(a){use1('open');RDT=Date.now();
- const f=fof(a),my=++tok,sh=$('#sheet');curA=a;RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0,wantResume=RD_CONT;RD_CONT=false;R.navAt=0;R.ready=false;R.tf=0;R.fa=0;try{$('#rd').classList.remove('fauto','fpeek')}catch(e){}const afterLoad=()=>{R.tf=1;{const s=document.querySelector('.cols .body .skp');if(s)s.remove();const h=$('#rd .lhl');if(h)h.hidden=true}legalBody($('.cols .body'));try{markRestricted(a,($('.cols .body')||{}).textContent,false)}catch(e){}try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;/* ...but only when something really changed since the last layout: each one re-lays the whole story, a hitch just as reading starts */try{if(RLD)RLD.off()}catch(e){}const c0=$('.cols'),L={dirty:false},mark=()=>{L.dirty=true};L.mo=new MutationObserver(mark);if(c0){L.mo.observe(c0,{childList:true,subtree:true,characterData:true});c0.addEventListener('load',mark,true)}try{document.fonts&&document.fonts.addEventListener('loadingdone',mark)}catch(e){}L.off=()=>{L.mo.disconnect();if(c0)c0.removeEventListener('load',mark,true);try{document.fonts.removeEventListener('loadingdone',mark)}catch(e){}if(RLD===L)RLD=null};RLD=L;const maybe=()=>{if(curA!==a0){L.off();return}if(L.dirty)relayout()};setTimeout(maybe,800);setTimeout(()=>{maybe();setTimeout(()=>{if(curA===a0)L.off()},3000)},2600);setTimeout(()=>{if(curA===a0)rdWarm()},3300);try{document.fonts&&document.fonts.ready.then(maybe)}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if(!wantResume){R.pg=0;try{show()}catch(e){}/* page 1 again once the pictures have settled, unless the reader has already turned a page */const t0=Date.now();for(const ms of [0,350,900]){setTimeout(()=>{if(my===tok&&!isVert()&&R.pg>0&&!(R.navAt&&R.navAt>=t0-50)){R.pg=0;try{show()}catch(e){}}},ms)}/* a story you were partway through offers your page back instead of starting over in silence */if(resume||progOf(a.link))setTimeout(()=>{if(my!==tok||isVert()||R.pg>0||!R.np)return;const pf=progOf(a.link),tp=Math.max(0,Math.min(pf?Math.round(pf*(R.np-1)):resume,R.np-1));if(tp>0&&tp<R.np-1)toast('You were on page '+(tp+1)+' of '+R.np,()=>{if(my===tok){R.pg=tp;R.navAt=Date.now();show()}},'Resume')},1000)}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);saveSoon();setTimeout(()=>raWhenReady(a,0),1200);
- rdB(brand(f));pushLayer('reader');tip('reader');
+ const f=fof(a),my=++tok,sh=$('#sheet');curA=a;DPOS=dayPos(a);RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0,wantResume=RD_CONT;RD_CONT=false;R.navAt=0;R.ready=false;R.tf=0;R.fa=0;try{$('#rd').classList.remove('fauto','fpeek')}catch(e){}const afterLoad=()=>{R.tf=1;{const s=document.querySelector('.cols .body .skp');if(s)s.remove();const h=$('#rd .lhl');if(h)h.hidden=true}legalBody($('.cols .body'));try{markRestricted(a,($('.cols .body')||{}).textContent,false)}catch(e){}try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;/* ...but only when something really changed since the last layout: each one re-lays the whole story, a hitch just as reading starts */try{if(RLD)RLD.off()}catch(e){}const c0=$('.cols'),L={dirty:false},mark=()=>{L.dirty=true};L.mo=new MutationObserver(mark);if(c0){L.mo.observe(c0,{childList:true,subtree:true,characterData:true});c0.addEventListener('load',mark,true)}try{document.fonts&&document.fonts.addEventListener('loadingdone',mark)}catch(e){}L.off=()=>{L.mo.disconnect();if(c0)c0.removeEventListener('load',mark,true);try{document.fonts.removeEventListener('loadingdone',mark)}catch(e){}if(RLD===L)RLD=null};RLD=L;const maybe=()=>{if(curA!==a0){L.off();return}if(L.dirty)relayout()};setTimeout(maybe,800);setTimeout(()=>{maybe();setTimeout(()=>{if(curA===a0)L.off()},3000)},2600);setTimeout(()=>{if(curA===a0)rdWarm()},3300);try{document.fonts&&document.fonts.ready.then(maybe)}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if(!wantResume){R.pg=0;try{show()}catch(e){}/* page 1 again once the pictures have settled, unless the reader has already turned a page */const t0=Date.now();for(const ms of [0,350,900]){setTimeout(()=>{if(my===tok&&!isVert()&&R.pg>0&&!(R.navAt&&R.navAt>=t0-50)){R.pg=0;try{show()}catch(e){}}},ms)}/* a story you were partway through offers your page back instead of starting over in silence */if(resume||progOf(a.link))setTimeout(()=>{if(my!==tok||isVert()||R.pg>0||!R.np)return;const pf=progOf(a.link),tp=Math.max(0,Math.min(pf?Math.round(pf*(R.np-1)):resume,R.np-1));if(tp>0&&tp<R.np-1)toast('You were on page '+(tp+1)+' of '+R.np,()=>{if(my===tok){R.pg=tp;R.navAt=Date.now();show()}},'Resume')},1000)}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);saveSoon();setTimeout(()=>raWhenReady(a,0),1200);
+ rdB(brand(f));pushLayer('reader');rdGest();
  try{rdAmbient(null)}catch(e){}
  if(a.img&&isOn('ptint'))imgInfo(a.img).then(o=>{if(o&&o.t&&curA===a){rdB(o.t);try{rdAmbient(o.t)}catch(e){}}});
  document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',chref(c)===a.link));
@@ -12982,6 +12995,11 @@ function tipsCheck(){
  if(days>=3&&pfMode()==='off')return tip('offlinehint');
 }
 function tip(k){S.tips=S.tips||{};if(S.tips[k]||TIPQ.shown)return;const t=TIPQ.find(x=>x[0]===k);if(!t)return;TIPQ.shown=1;S.tips[k]=1;save();/* F-09: a tip is an inline card at the top of the list with a Dismiss button (not a toast), and it waits while any toast is up */const go=()=>{const T=$('#toast');if(T&&T.classList.contains('show')){setTimeout(go,3000);return}TIPQ.cur=t[2];tipPlace()};setTimeout(go,t[1])}
+/* B10: the first story ever opened shows the reading gestures once, one line each (replaces the one-line reader tip) */
+function rdGest(){S.tips=S.tips||{};if(S.tips.reader||S.tips.gest||TIPQ.shown)return;TIPQ.shown=1;S.tips.gest=S.tips.reader=1;save();
+ setTimeout(()=>{const rd=$('#rd');if(!rd||!rd.classList.contains('on')||rd.querySelector('.rgest'))return;
+  rd.insertAdjacentHTML('beforeend',`<div class="rgest" role="note" aria-label="Reading gestures"><b>Reading gestures</b><ul><li>${isVert()?'Scroll to read.':'Swipe the page or tap its edges to turn it.'}</li><li>Tap the middle to hide the controls.</li><li>Swipe down on a story to close it.</li><li>Select text to highlight, add a note or look up a word.</li></ul><button type="button" class="tx2" data-gestx>Got it</button></div>`);
+  const c=rd.querySelector('.rgest');['pointerdown','pointerup','touchstart','touchend','click'].forEach(k=>c.addEventListener(k,e=>e.stopPropagation()));c.querySelector('[data-gestx]').onclick=()=>c.remove()},1600)}
 function tipPlace(){if(!TIPQ.cur)return;const g=$('#grid');if(!g||g.querySelector('[data-tipx]'))return;const st=g.querySelector(':scope>.bmseg');(st||g).insertAdjacentHTML(st?'afterend':'afterbegin',`<div class="fbar burn" data-tip role="note" aria-label="Tip"><span>${esc(TIPQ.cur)}</span><button type="button" class="tx2" data-tipx>Dismiss</button></div>`)}
 $('#clnx').onclick=()=>$('#cln').close();
 $('#clngo').onclick=()=>{
@@ -13210,6 +13228,8 @@ function setProg(){
  else if(R.pg>0){S.prog[l]={p:R.pg/E,t:Date.now()}}
  const k=Object.keys(S.prog);if(k.length>300)delete S.prog[k.sort((a,b)=>S.prog[a].t-S.prog[b].t)[0]];
 }
+/* B4: saved stories you started and didn't finish (the Resume chip on Saved) */
+const svRes=a=>!a.ar&&progOf(a.link)>=.05;
 const progOf=l=>{const p=S.prog[l];return p&&p.p>0&&p.p<1?p.p:0};
 function findStory(l){for(const f of S.feeds){const a=(items[f.id]||[]).find(x=>x.link===l);if(a)return a}return S.saved.find(x=>x.link===l)||null}
 function continueRow(){
@@ -13479,8 +13499,8 @@ async function collectionPrompt(a){
  if(!isSaved(a))toggleSave(a);const sv=S.saved.find(x=>x.link===a.link);if(!sv)return;sv.tags=[...new Set([...(sv.tags||[]),t])];save();render();toast('Added to “'+t+'”');
 }
 function savedChips(){
- const tags={};S.saved.forEach(a=>(a.tags||[]).forEach(t=>tags[t]=(tags[t]||0)+1));const nar=S.saved.filter(a=>a.ar).length,nur=S.saved.filter(a=>!a.ar&&!S.read[a.link]).length;
- return `<div class="schips svm" role="group" aria-label="How much time you have"><span class="svl">How much time you have</span>${[0,5,15,30].map(m=>`<button type="button" class="chip ${(+S.svmin||0)===m?'on':''}" data-svmin="${m}" aria-pressed="${(+S.svmin||0)===m}">${m?m+' min':'Any'}</button>`).join('')}</div><div class="schips"><button class="chip ${!S.stag?'on':''}" data-stag="">All ${S.saved.length-nar}</button>${nur?`<button class="chip ${S.stag==='~ur'?'on':''}" data-stag="~ur" aria-pressed="${S.stag==='~ur'}">Not read yet ${nur}</button>`:''}${Object.keys(tags).sort().map(t=>`<button class="chip ${S.stag===t?'on':''}" data-stag="${esc(t)}">${esc(t)} ${tags[t]}</button>`).join('')}${nar?`<button class="chip ${S.stag==='~ar'?'on':''}" data-stag="~ar">Archive ${nar}</button>`:''}<button class="tx2 sx" data-ssel aria-pressed="${SVSEL?'true':'false'}">${SVSEL?'Cancel picking':'Pick stories'}</button><button class="tx2 sx" data-sshare>Share this list</button></div>`;
+ const tags={};S.saved.forEach(a=>(a.tags||[]).forEach(t=>tags[t]=(tags[t]||0)+1));const nar=S.saved.filter(a=>a.ar).length,nur=S.saved.filter(a=>!a.ar&&!S.read[a.link]).length,nrs=S.saved.filter(svRes).length;
+ return `<div class="schips svm" role="group" aria-label="How much time you have"><span class="svl">How much time you have</span>${[0,5,15,30].map(m=>`<button type="button" class="chip ${(+S.svmin||0)===m?'on':''}" data-svmin="${m}" aria-pressed="${(+S.svmin||0)===m}">${m?m+' min':'Any'}</button>`).join('')}</div><div class="schips"><button class="chip ${!S.stag?'on':''}" data-stag="">All ${S.saved.length-nar}</button>${nur?`<button class="chip ${S.stag==='~ur'?'on':''}" data-stag="~ur" aria-pressed="${S.stag==='~ur'}">Not read yet ${nur}</button>`:''}${nrs?`<button class="chip ${S.stag==='~rs'?'on':''}" data-stag="~rs" aria-pressed="${S.stag==='~rs'}">Resume ${nrs}</button>`:''}${Object.keys(tags).sort().map(t=>`<button class="chip ${S.stag===t?'on':''}" data-stag="${esc(t)}">${esc(t)} ${tags[t]}</button>`).join('')}${nar?`<button class="chip ${S.stag==='~ar'?'on':''}" data-stag="~ar">Archive ${nar}</button>`:''}<button class="tx2 sx" data-ssel aria-pressed="${SVSEL?'true':'false'}">${SVSEL?'Cancel picking':'Pick stories'}</button><button class="tx2 sx" data-sshare>Share this list</button></div>`;
 }
 function shareSavedList(){
  const l=S.saved.filter(a=>S.stag==='~ar'?a.ar:S.stag?(a.tags||[]).includes(S.stag):!a.ar);
@@ -17831,7 +17851,7 @@ document.addEventListener('click',async e=>{
 
 /* ---------- Saved: pick the stories you want, then make a PDF or a Kindle book from just those ---------- */
 /* (SVSEL is declared near the top of the script: the Saved screen reads it on the very first draw) */
-const svList=()=>S.saved.filter(a=>S.stag==='~ar'?a.ar:S.stag==='~ur'?!a.ar&&!S.read[a.link]:!S.stag||(a.tags||[]).includes(S.stag));
+const svList=()=>S.saved.filter(a=>S.stag==='~ar'?a.ar:S.stag==='~ur'?!a.ar&&!S.read[a.link]:S.stag==='~rs'?svRes(a):!S.stag||(a.tags||[]).includes(S.stag));
 function svBar(){
  let b=$('#svbar');
  if(!SVSEL||S.sel!=='saved'){if(b)b.remove();return}
