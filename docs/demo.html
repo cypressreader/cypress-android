@@ -3520,7 +3520,7 @@ body.sideshow .cols,body.open .cols{will-change:auto}
 .rgest{position:fixed;left:16px;right:16px;bottom:calc(36px + env(safe-area-inset-bottom));z-index:95;max-width:420px;margin:0 auto;padding:14px 16px;background:var(--pn);color:var(--ink);border:1px solid var(--ln);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.18);font:14px/1.45 var(--sans)}.rgest ul{margin:6px 0 10px;padding-left:18px}.rgest li{margin:2px 0}
 body.sideshow #sidehdr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 6px}#sidehdr h2{font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}#sidehdr .ib{width:34px;height:34px}
 #sideh span{writing-mode:vertical-rl;font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;margin-top:6px}#sideh{flex-direction:column;gap:0}
-#sideh{position:fixed;left:0;top:50%;z-index:44;width:26px;height:92px;margin-top:-46px;border-radius:0 12px 12px 0;background:var(--pn);border:1px solid var(--ln);border-left:0;color:var(--ink);display:none;align-items:center;justify-content:center;box-shadow:2px 0 10px rgba(0,0,0,.12)}#sideh::after{content:'';position:absolute;inset:0 -18px 0 0}/* 44 px to tap, still a slim tab to look at */
+#sideh{position:fixed;left:0;top:50%;z-index:44;width:28px;height:92px;margin-top:-46px;border-radius:0 999px 999px 0;background:var(--pn);border:1px solid var(--ln);border-left:0;color:var(--ink);display:none;align-items:center;justify-content:center;box-shadow:2px 0 10px rgba(0,0,0,.12)}#sideh::after{content:'';position:absolute;inset:0 -18px 0 0}/* 44 px to tap, still a slim tab to look at */
 body:not(.narrow):not(.split).reading:not(.sideshow) #sideh{display:flex}
 @media(max-width:699px){#sideh{display:none!important}}
 @media(prefers-reduced-motion:reduce){body:not(.narrow):not(.split),body:not(.narrow):not(.split).reading>aside{transition:none}}
@@ -4145,6 +4145,8 @@ body.exbusy [data-exact]{cursor:progress}
 #grid .card:is(.nr-hero,.nr-lead,.nr-tall,.nr-sp,.nr-sm2,.nr-hs,.lead):not(.noimg) .cfoot .cby{color:#fff}
 /* Compact rows keep a single-line rhythm */
 #grid .card:is(.nr-row,.nr-late) .cfoot{margin-top:4px;padding-top:0;border-top:0}
+/* A14: cards side by side share a height; the footer sits at the bottom so the footers of a row line up */
+#grid .card.nr:is(.dq-c,.nr-row,.nr-late)>.tx{display:flex;flex-direction:column;flex:1 1 auto;align-self:stretch}#grid .card.nr:is(.dq-c,.nr-row,.nr-late)>.tx>.cfoot{margin-top:auto}#grid .card.nr:is(.dq-c,.nr-row,.nr-late)>.tx>:has(+.cfoot){margin-bottom:6px}
 
 /* legibility guard for the editorial kicker and footer: most cards sit on their brand color or a photo (white text); only the light rows and trio tiles, and the compact and list layouts, take the brand-colored kicker and quiet grey footer */
 #grid .card:not(:is(.nr-row,.nr-late,.nr-tri)) .src{color:rgba(255,255,255,.92)}
@@ -17586,7 +17588,7 @@ try{const bd=$('#bid');if(bd)bd.value=String(biDays())}catch(e){}
 /* ---- correction round, cluster 9: tablets keep the sidebar while you browse and slide it away while you read; a small tab or an edge swipe brings it back ---- */
 {
  const rd=$('#rd');
- const h=document.createElement('button');h.id='sideh';h.type='button';h.setAttribute('aria-label','Show feeds');h.title='Show your feeds';h.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg><span aria-hidden="true">Feeds</span>';document.body.append(h);
+ const h=document.createElement('button');h.id='sideh';h.type='button';h.setAttribute('aria-label','Show sites');h.title='Show your sites';h.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg><span aria-hidden="true">Sites</span>';document.body.append(h);
  {const as=document.querySelector('aside');if(as&&!$('#sidehdr')){const d=document.createElement('div');d.id='sidehdr';d.innerHTML='<h2>Your feeds</h2><button type="button" class="ib" id="sidehx" aria-label="Close feeds">'+svg('<path d="M6 6l12 12M18 6 6 18"/>')+'</button>';as.prepend(d);d.querySelector('#sidehx').onclick=()=>document.body.classList.remove('sideshow')}}
  const set=on=>{on=on&&!rd.classList.contains('ghost');try{jmpMark(on?'story open':'story close')}catch(e){}if(on)rdFreeze(true);document.body.classList.toggle('reading',on);if(!on){document.body.classList.remove('sideshow');/* the sidebar column slides for about .28 s; hold the feed's width until it has finished */clearTimeout(set.t);set.t=setTimeout(()=>{if(!document.body.classList.contains('reading'))rdFreeze(false)},480)}};
  if(rd){new MutationObserver(()=>set(rd.classList.contains('on'))).observe(rd,{attributes:true,attributeFilter:['class']});set(rd.classList.contains('on'))}
