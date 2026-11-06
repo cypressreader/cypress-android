@@ -6710,7 +6710,7 @@ function render0(){
  if(!cur.length){
   const busy=fs.some(f=>state[f.id]==='load'||!state[f.id]);
   if(busy&&!q&&S.sel!=='saved'&&!S.sel.startsWith('k:')&&!fs.some(f=>(items[f.id]||[]).length)){$('#grid').innerHTML=skel(6);return}
-  $('#grid').innerHTML=(S.sel==='all'&&!q?allSeg('latest'):'')+(q?emp('No matches','Nothing matches “'+esc(q)+'”. Try a shorter word, or a different one.',EA('cl')):S.sel==='saved'&&S.saved.some(x=>x.ar)?savedChips()+emp('All caught up','Stories you read over a month ago are in Archive.'):S.sel==='saved'?emp('Nothing saved yet','Tap the star on any story and it waits here, even offline.',EA('td')):S.sel.startsWith('k:')&&!busy?emp('Nothing here yet','No stories match this topic yet. New ones appear as your sites post them.',''):S.hideRead&&!busy&&fs.some(f=>(items[f.id]||[]).length)?emp('All caught up','You have read everything here. Turn off “Hide stories I’ve read” in Settings to see older stories.',EA('st')):busy?`<div class="empty">${SKEL()}</div>`:fs.length?empNoStories():emp('No sites here yet','Add a few sites you like and their latest stories show up here.',EA('ad','sp')));return;
+  $('#grid').innerHTML=(S.sel==='all'&&!q?allSeg('latest'):'')+(q?emp('No matches','Nothing matches “'+esc(q)+'”. Try a shorter word, or a different one.',EA('cl')):S.sel==='saved'&&S.saved.some(x=>x.ar)?savedChips()+emp('All caught up','Stories you read over a month ago are in Archive.'):S.sel==='saved'?emp('Nothing saved yet','Tap the star on a story card, or Save in a story’s More menu, and it waits here, even offline.',EA('td')):S.sel.startsWith('k:')&&!busy?emp('Nothing here yet','No stories match this topic yet. New ones appear as your sites post them.',''):S.hideRead&&!busy&&fs.some(f=>(items[f.id]||[]).length)?emp('All caught up','You have read everything here. Turn off “Hide stories I’ve read” in Settings to see older stories.',EA('st')):busy?`<div class="empty">${SKEL()}</div>`:fs.length?empNoStories():emp('No sites here yet','Add a few sites you like and their latest stories show up here.',EA('ad','sp')));return;
  }
  let pre='';
  if(S.sel==='all'&&!q)pre=allSeg('latest')+latestMast()+burnCard();
@@ -12380,7 +12380,7 @@ async function doAct(k){
  if(k==='comments'&&a.cm){window.open(a.cm,'_blank','noopener');return}
  if(k==='junk'){const q=String(getSelection()||'').trim();if(q.length>=8){const sl=getSelection();junkReport(q,sl&&sl.rangeCount?sl.getRangeAt(0).cloneRange():null)}else toast('Select the text first, then choose Report junk text');return}
  if(k==='share'){return doAct('card')}
- if(k==='save'){toggleSave(a);const st=$('#st'),o=st&&st.querySelector('svg');if(o)o.outerHTML=starSvg(isSaved(a));rdxMnSync();return}
+ if(k==='save'){toggleSave(a);const st=$('#st'),o=st&&st.querySelector('svg');if(o)o.outerHTML=starSvg(isSaved(a));rdxMnSync();/* B4: say so (Save sits in More on a phone) */toast(isSaved(a)?'Saved':'Removed from saved');return}
  if(k==='listen'){ttsToggle();return}
  if(k==='card'){shareStory(a);return}
  if(k==='more'){likeA(a,1);return}
@@ -12961,13 +12961,14 @@ function tipsCheck(){
  if(S.feeds.length>=8&&!(S.folders||[]).length)return tip('foldershint');
  if(days>=3&&pfMode()==='off')return tip('offlinehint');
 }
-function tip(k){S.tips=S.tips||{};if(S.tips[k]||TIPQ.shown)return;const t=TIPQ.find(x=>x[0]===k);if(!t)return;TIPQ.shown=1;S.tips[k]=1;save();/* F-09: a tip is an inline card at the top of the list with a Dismiss button (not a toast), and it waits while any toast is up */const go=()=>{const T=$('#toast');if(T&&T.classList.contains('show')){setTimeout(go,3000);return}TIPQ.cur=t[2];tipPlace()};setTimeout(go,t[1])}
+function tip(k){S.tips=S.tips||{};if(S.tips[k]||TIPQ.shown)return;const t=TIPQ.find(x=>x[0]===k);if(!t)return;TIPQ.shown=1;S.tips[k]=1;save();/* F-09: a tip is an inline card at the top of the list with a Dismiss button (not a toast), and it waits while any toast is up */const go=()=>{const T=$('#toast');if(T&&T.classList.contains('show')){setTimeout(go,3000);return}TIPQ.cur=t[2];TIPQ.at=null;tipPlace()};setTimeout(go,t[1])}
 /* B10: the first story ever opened shows the reading gestures once, one line each (replaces the one-line reader tip) */
 function rdGest(){S.tips=S.tips||{};if(S.tips.reader||S.tips.gest||TIPQ.shown)return;TIPQ.shown=1;S.tips.gest=S.tips.reader=1;save();
  setTimeout(()=>{const rd=$('#rd');if(!rd||!rd.classList.contains('on')||rd.querySelector('.rgest'))return;
   rd.insertAdjacentHTML('beforeend',`<div class="rgest" role="note" aria-label="Reading gestures"><b>Reading gestures</b><ul><li>${isVert()?'Scroll to read.':'Swipe the page or tap its edges to turn it.'}</li><li>Tap the middle to hide the controls.</li><li>Swipe down on a story to close it.</li><li>Select text to highlight, add a note or look up a word.</li></ul><button type="button" class="tx2" data-gestx>Got it</button></div>`);
   const c=rd.querySelector('.rgest');['pointerdown','pointerup','touchstart','touchend','click'].forEach(k=>c.addEventListener(k,e=>e.stopPropagation()));c.querySelector('[data-gestx]').onclick=()=>c.remove()},1600)}
-function tipPlace(){if(!TIPQ.cur)return;const g=$('#grid');if(!g||g.querySelector('[data-tipx]'))return;const st=g.querySelector(':scope>.bmseg');(st||g).insertAdjacentHTML(st?'afterend':'afterbegin',`<div class="fbar burn" data-tip role="note" aria-label="Tip"><span>${esc(TIPQ.cur)}</span><button type="button" class="tx2" data-tipx>Dismiss</button></div>`)}
+/* B1: a tip stays on the screen it first appeared on; going to another page or Daily tab drops it */
+function tipPlace(){if(!TIPQ.cur)return;const g=$('#grid');if(!g)return;const sg=g.querySelector(':scope>.bmseg [aria-selected="true"]'),vk=S.sel+'|'+(sg?sg.dataset.bm:'');if(TIPQ.at==null)TIPQ.at=vk;else if(TIPQ.at!==vk){TIPQ.cur=null;return}if(g.querySelector('[data-tipx]'))return;const st=g.querySelector(':scope>.bmseg');(st||g).insertAdjacentHTML(st?'afterend':'afterbegin',`<div class="fbar burn" data-tip role="note" aria-label="Tip"><span>${esc(TIPQ.cur)}</span><button type="button" class="tx2" data-tipx>Dismiss</button></div>`)}
 $('#clnx').onclick=()=>$('#cln').close();
 $('#clngo').onclick=()=>{
  const ids=[...document.querySelectorAll('#clnlist [data-cf]:checked')].map(x=>x.dataset.cf);if(!ids.length){toast('Check a site first');return}
@@ -14594,10 +14595,12 @@ PEB.brieffoot=[
  {id:'b4',t:'A short Brief today: {n} {sw}.',ok:x=>x.n<=2}
 ];
 PE_NEUTRAL.brieffoot='That is the briefing.';
+/* B2: one count of new stories for Brief and Headlines: since 6 pm yesterday in the morning edition, since 5 am otherwise */
+function newPool(){const now=new Date(),am=edKind()==='m';const d5=new Date(now);d5.setHours(5,0,0,0);if(d5>now)d5.setDate(d5.getDate()-1);const since=am?new Date(now.getFullYear(),now.getMonth(),now.getDate()-1,18).getTime():d5.getTime();
+ return {am,pool:topOf(S.feeds,400,new Set(),null,true).filter(a=>a.date>=since)}}
 function briefNumbers(list){
  try{
-  const now=new Date(),am=edKind()==='m';const d5=new Date(now);d5.setHours(5,0,0,0);if(d5>now)d5.setDate(d5.getDate()-1);const since=am?new Date(now.getFullYear(),now.getMonth(),now.getDate()-1,18).getTime():d5.getTime();
-  const pool=topOf(S.feeds,400,new Set(),null,true).filter(a=>a.date>=since);
+  const {am,pool}=newPool();
   if(pool.length<3)return '';
   const src=new Set(pool.map(a=>a.feedId)).size,multi=pool.filter(a=>(a.more||[]).length>=1).length,mins=pool.reduce((n,a)=>n+(readMin(a)||0),0);
   const t=(b,l)=>`<div class="bn-t"><b>${b}</b><small>${l}</small></div>`;
@@ -15818,12 +15821,13 @@ function dgChip(){
 }
 /* A compact stats box that replaces the old editor's letter at the top of the Edition */
 function edStats(k,pool,fresh){
- const src=new Set(fresh.map(a=>a.feedId)).size,sv=S.saved.filter(a=>!S.read[a.link]).length;
+ const sv=S.saved.filter(a=>!S.read[a.link]).length;
  const multi=[...pool].sort((a,b)=>(b.more||[]).length-(a.more||[]).length)[0],nm=multi&&(multi.more||[]).length>=1?multi.more.length+1:0;
  const tps=S.sk.map(t=>[t.name,fresh.filter(a=>kmatch(t,a)).length]).filter(x=>x[1]).sort((a,b)=>b[1]-a[1])[0];
  /* B19: tiles deep-link to their views; the most-covered story opens on tap */
  const tile=(b,sm,go)=>`<button type="button" class="edt" data-edgo="${go}"><b>${b}</b><small>${esc(sm)}</small></button>`;
- let t=tile(fresh.length,k==='evening'?'new today':'new since yesterday','all')+tile(src,src===1?'source':'sources','feeds');
+ const np=newPool(),ns=new Set(np.pool.map(a=>a.feedId)).size;
+ let t=tile(np.pool.length,np.am?'new overnight':'new today','all')+tile(ns,ns===1?'source':'sources','feeds');
  if(tps)t+=tile(tps[1],tps[0]+' · new','all');
  if(sv)t+=tile(sv,'saved, unread','saved');
  const lead=multi&&nm>=2?`<button type="button" class="edl" data-edstory="${esc(multi.link)}"><b>Most covered</b> ${esc(multi.title)} <span>· ${nm} sources</span></button>`:'';
