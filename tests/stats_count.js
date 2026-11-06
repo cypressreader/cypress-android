@@ -20,7 +20,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
    /* four different stories, each read to the very end */
    for(const l of ['https://w.test/1/0','https://w.test/2/0','https://w.test/3/0','https://w.test/0/1']){
     openReader(get(l));await w(1800);
-    if(mode==='vertical'){const v=vView();for(let s=0;s<14;s++){v.scrollTop=v.scrollTop+v.clientHeight*.9;await w(100)}v.scrollTop=v.scrollHeight;await w(600)}
+    if(mode==='vertical'){const v=vView();for(let s=0;s<14;s++){v.scrollTop=v.scrollTop+v.clientHeight*.9;R.vt-=6e4;await w(100)}/* B5: each screen is read for a simulated minute (progress only grows at reading pace) */v.scrollTop=v.scrollHeight;await w(600)}
     else{const E=R.ep!=null?R.ep:R.np-1;for(let s=0;s<E;s++){go(1);await w(1500)}await w(400)}
     closeRd();await w(300)}
    o.n4=(S.st.d[k]||{}).n;o.f4=(S.st.d[k]||{}).f;
