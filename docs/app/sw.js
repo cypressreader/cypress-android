@@ -20,9 +20,14 @@ self.addEventListener('fetch', e => {
   const cached = () => caches.match(k0).then(m => m || caches.match('./')).then(m => m || caches.match('index.html'));
   /* shell first: the saved copy answers at once, the network copy refreshes the cache in the background;
      when a different index.html lands, open pages are told so the "new version" bar can show */
-  const net = fetch(r).then(async res => {
+  /* the background check asks "changed since my copy?" (ETag / Last-Modified): an unchanged app answers 304 with no body
+     instead of the whole 2.5 MB file; only a real change is downloaded and compared */
+  const net = caches.open(V).then(async c => {
+    const old = await c.match(k0), et = old && old.headers.get('ETag'), lm = old && old.headers.get('Last-Modified');
+    const res = await fetch(et || lm ? new Request(r.url, { headers: et ? { 'If-None-Match': et } : { 'If-Modified-Since': lm }, cache: 'no-store' }) : r);
+    if (res.status === 304 && old) return old;
     if (!res.ok) throw 0;
-    const c = await caches.open(V), old = await c.match(k0), fresh = res.clone();
+    const fresh = res.clone();
     let changed = false;
     if (old && /index\.html$|\/$/.test(k0.url)) { try { const [x, y] = await Promise.all([old.clone().text(), res.clone().text()]); changed = x !== y; } catch (e) {} }
     await c.put(k0, fresh).catch(() => {});
