@@ -809,6 +809,8 @@ html:is(.mast-tint,.mast-gradient,.mast-glow) .cover:is(.cv-gazette,.cv-gallery,
 #dial i::after{content:"";position:absolute;right:-6px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--b,var(--ink));opacity:0;transform:scale(.4);transition:.15s}
 #dial:hover::before,#dial.act::before,#dial:hover i,#dial.act i{height:5px}#dial:hover i,#dial.act i{margin-top:-2.5px}
 #dial:hover i::after,#dial.act i::after{opacity:1;transform:scale(1)}
+/* A4: in Scroll the top line (#rdprog) shows progress; the slider stays for touch and keyboard but only shows while in use */
+#rd.vert #dial:not(:hover,.act,:focus-visible)::before,#rd.vert #dial:not(:hover,.act,:focus-visible) i{opacity:0}
 ::highlight(tts-s){background-color:color-mix(in srgb,var(--hl) 38%,transparent)}
 .fr small.stl{font-weight:500;color:var(--mut)}
 body.offl #ttl::after,body.netoff #ttl::after{content:'Offline';margin-left:10px;padding:2px 9px;border-radius:99px;font:700 11px var(--sans);letter-spacing:.03em;vertical-align:3px;background:var(--ln);color:var(--mut)}@media(max-width:699px){body.offl #ttl::after,body.netoff #ttl::after{content:none}body.offl .top::before,body.netoff .top::before{content:'Offline';position:absolute;left:50%;bottom:-10px;transform:translateX(-50%);padding:2px 10px;border-radius:99px;font:700 11px var(--sans);letter-spacing:.03em;background:var(--ln);color:var(--ink);pointer-events:none;z-index:1}}/* audit #26: on a phone the long title clips the pill, so it hangs centered under the top bar */
@@ -4185,7 +4187,7 @@ body.exbusy [data-exact]{cursor:progress}
 /* David 2026-10-31: text-only stories on a site page sit in site-color boxes, like All Stories */#grid .fd-decks{gap:14px}#grid .fd-deck{padding:18px 18px 20px;border:0;border-radius:14px;overflow:hidden;isolation:isolate;color:#fff;background:linear-gradient(160deg,color-mix(in srgb,var(--b,var(--logo)) 100%,#fff 10%),color-mix(in srgb,var(--b,var(--logo)) 100%,#000 32%))}#grid .fd-deck::before{content:attr(data-ini);left:auto;right:10px;top:-22px;width:auto;height:auto;background:none;font:500 clamp(110px,34vw,150px)/1 var(--disp,var(--serif));color:#fff;opacity:.16;z-index:-1;pointer-events:none}#grid .fd-deck :is(small,b,span){color:#fff}#grid .fd-deck small{opacity:.8}#grid .fd-deck.read{opacity:.7}
 /* the Developing row matches the 1.174 look: brass label and counts, hairline chips in the headline face, a soft live ping instead of a glow */
 .wtrend .wtr-k{color:color-mix(in srgb,var(--a2,var(--mut)) 72%,var(--ink));letter-spacing:.18em;font-weight:700}
-.wtrend button{font-family:var(--disp,var(--serif));font-size:14px;border-color:color-mix(in srgb,var(--a2,var(--ln)) 45%,var(--ln));background:var(--pn)}
+.wtrend button{font-family:var(--sans);font-size:13px;border-color:color-mix(in srgb,var(--a2,var(--ln)) 45%,var(--ln));background:var(--pn)}
 .wtrend button i{color:color-mix(in srgb,var(--a2,var(--mut)) 72%,var(--ink));font-weight:700}
 .wtrend{padding:8px 2px 8px 6px}.wtrend .wtr-dot{flex:none;width:8px;height:8px;min-width:0;padding:0;margin:0;border-radius:50%;background:#c62828;box-shadow:none;position:relative;animation:none;text-decoration:none}
 html.micro .wtrend .wtr-dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:#c62828;animation:wping 1.8s ease-out infinite}
@@ -4316,6 +4318,8 @@ html[data-theme=halcyon] body #grid:not(.list):not([data-cards=narrow]):not([dat
 /* 11. Intrinsic columns and fluid type: widths come from the feed pane, so any screen density or zoom lands on 1, 2 or 3 columns by itself */
 #grid .wcols{column-gap:14px;column-rule:1px solid var(--ln)}
 @container feed (min-width:270px){#grid .wcols{column-width:auto;column-count:2}}
+/* A2: Columns on a phone is one full-width column; two ~180px columns squeezed every headline */
+@container feed (max-width:599px){#grid.wire[data-w=col] .wcols{column-count:1!important;column-rule:0}}
 #grid.wire:not(.wc) .card:is(.nr-hero,.nr-lead,.lead) h3{font-size:clamp(22px,4cqi + 10px,34px)}
 #grid .card[data-ed]:not(.nr-hero,.nr-lead,.lead,.nr-pq) h3{font-size:clamp(15px,2.2vw,19px)}
 @media(min-aspect-ratio:3/4) and (max-width:720px){body:not(.split):not(.narrow){--sw:188px}body:not(.split):not(.narrow)>aside #side-list,body:not(.split):not(.narrow)>aside .addbtn{padding-left:6px;padding-right:6px}}
@@ -4999,7 +5003,6 @@ html.micro #tabs .tpill.mv{transition:transform .38s cubic-bezier(.3,1.35,.5,1)}
 html #grid.wire h3.dsh.wsec,html.magx #grid.fed.wire h3.dsh.wsec{background:color-mix(in srgb,var(--a1) 10%,var(--bg))!important;color:var(--ink);border:0!important;border-left:3px solid var(--a1)!important;border-radius:0 10px 10px 0!important;padding:10px 12px 10px 14px!important;margin-top:26px;display:flex;flex-wrap:wrap;align-items:baseline;row-gap:2px}
 html #grid.wire h3.dsh.wsec::after,html.magx #grid.fed.wire h3.dsh.wsec::after{display:none}
 html #grid.wire h3.dsh.wsec small,html.magx #grid.fed.wire h3.dsh.wsec small{order:-1;flex:0 0 100%;display:flex;align-items:center;gap:10px;font:600 11px var(--sans);font-style:normal;letter-spacing:.12em;text-transform:uppercase;color:var(--a1)}
-html #grid.wire h3.dsh.wsec small::after,html.magx #grid.fed.wire h3.dsh.wsec small::after{content:"";height:1px;flex:1;background:var(--ln)}
 html #grid.wire h3.dsh.wsec>span,html.magx #grid.fed.wire h3.dsh.wsec>span{font:500 clamp(24px,6vw,30px)/1.1 var(--disp,var(--serif));color:var(--ink)}
 #grid .wsec .dsr,html.magx #grid.fed.wire h3.dsh.wsec .dsr{margin-left:auto;border:0;background:none;color:var(--logo);font:600 12.5px var(--sans);letter-spacing:.02em;text-transform:none;min-height:44px;padding:0 2px}
 html #grid:not(.list):not([data-cards=compact]):not([data-cards=narrow]) .card:not(.cu):not(.noimg):not(.list-row):not(.nr-row):not(.nr-late):not(.nr-tri):not(.tpl>.card) :is(.src,.sn,.ssec){color:#f6efe0!important;text-shadow:none}
@@ -5085,7 +5088,6 @@ html body #grid.wire[data-w="mag"]{row-gap:14px}html body #grid.wire[data-w="mag
 @container feed (min-width:270px){html:not([data-ts="l"]) #grid.wire .wcols>.wtop2{break-before:column}}
 html #grid.wire[data-w="col"] h3.dsh.wsec{background:var(--pn)!important;border-radius:8px!important;padding:6px 8px 6px 12px!important;flex-wrap:nowrap;align-items:center;gap:8px}
 html #grid.wire[data-w="col"] h3.dsh.wsec small{order:0;flex:none;margin-left:auto;display:block}
-html #grid.wire[data-w="col"] h3.dsh.wsec small::after{display:none}
 html #grid.wire[data-w="col"] h3.dsh.wsec .dsr{margin-left:0;min-height:44px}
 /* design picks 2026-11-01 (review/design-2026-11-01) */
 @media(max-width:520px){#grid .card.lead .tx h3{font-size:34px!important;line-height:1.02!important;letter-spacing:-.005em}#grid .card.lead .tx h3 a{font-size:inherit!important}}
