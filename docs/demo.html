@@ -5567,7 +5567,8 @@ async function fetchText1(url,ok,lg,sl){
   const start=()=>{
    if(over||won||i>=P.length)return;
    const p=P[i++],c=new AbortController();ctls.push(c);if(lg&&lg.prog)try{lg.prog(i,P.length,p.n)}catch(e){}
-   const t=setTimeout(start,gap);timers.push(t);
+   /* a25: on the web a public relay starts only once the CyPress fetcher or your relay has failed, not 650 ms in, so a slow start doesn't share the feed list with outside sites */
+   const pub=q=>q&&!q.h&&!q.w&&q.n!=='your relay',t=!pub(p)&&pub(P[i])?0:setTimeout(start,gap);timers.push(t);
    one(p,c).then(v=>{if(over)return;over=true;timers.forEach(clearTimeout);ctls.forEach(x=>{try{x.abort()}catch(e){}});res(v)},er=>{
     clearTimeout(t);fails++;
     if(over)return;
@@ -9453,6 +9454,7 @@ function rdTick(){
 }
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-wait="web"]');if(!b)return;e.preventDefault();e.stopPropagation();if(!R.web)toggleWeb(false)},true);
 document.addEventListener('click',e=>{const h=e.target.closest&&e.target.closest('.lhl,[data-pv]');if(!h)return;const n=document.querySelector('.cols .note');if(!n)return;e.preventDefault();e.stopPropagation();if(h.dataset.pv){/* read the preview now: the feed text stays, the bars and the hairline go; the full story still swaps in if it arrives */clearInterval(R.tk);n.textContent='';n.hidden=true;delete n.dataset.wd;const s=document.querySelector('.cols .body .skp');if(s)s.remove();const l=$('#rd .lhl');if(l)l.hidden=true}else if(n.textContent)n.hidden=false},true);
+const WPNO=new Set();/* a25: sites whose WordPress shortcut answered 404 are not asked again this session */
 async function getFull00(url,ctx){
  if(S.offline)return null;
  const orig=url;url=await gnResolve(url);
@@ -9460,7 +9462,8 @@ async function getFull00(url,ctx){
  const stop=new AbortController(),direct=fromPage(url,lg,'page via ',stop.signal,()=>ctx.light);ctx.stop=()=>stop.abort();
  const wpRun=async()=>{
   const u=new URL(url),slug=u.pathname.split('/').filter(Boolean).pop();
-  let t;try{t=await fetchText(u.origin+'/wp-json/wp/v2/posts?slug='+encodeURIComponent(slug)+'&_fields=content',t=>t.trim().startsWith('['),{push(){},sig:stop.signal})}catch(e){lg.push('WordPress feed: not available');throw e}
+  if(WPNO.has(u.origin)){lg.push('WordPress feed: not available');throw 0}
+  let t;try{t=await fetchText(u.origin+'/wp-json/wp/v2/posts?slug='+encodeURIComponent(slug)+'&_fields=content',t=>t.trim().startsWith('['),{push(){},sig:stop.signal})}catch(e){if(e&&e.hard)WPNO.add(u.origin);lg.push('WordPress feed: not available');throw e}
   const h=JSON.parse(t)[0]?.content?.rendered;if(!h){lg.push('WordPress feed: no post found');throw 0}
   const fr=fromHTML(h,url);if(fr.textContent.length<=600){lg.push('WordPress feed: too short');throw 0}fr.tier='wp-json';return fr;
  };
@@ -12750,7 +12753,7 @@ function mzSum(){const o=['','Story opening (last '+MZ.L.length+' taps)'];
  try{o.push('Stored stories: '+Object.keys(AC).length+' · Daily '+(DGL&&DGL.length?DGL.filter(l=>acHas(l)).length+' of '+DGL.length+' ready':'not built yet')+' · tried this session '+DPRE.tried.size)}catch(e){}
  return o.join('\n')}
 async function diagInfo(){
- const bad=S.feeds.filter(f=>state[f.id]==='err').map(f=>host(f.url)+': '+(FLG[f.id]||[]).slice(0,4).join('; ')).slice(0,8);
+ const bad=S.feeds.filter(f=>state[f.id]==='err').map(f=>(FLG[f.id]||[]).slice(0,4).join('; ')).slice(0,8);/* a24: no site names here; they go only with "Include the addresses of my sites" (privacy page) */
  let nat='web';try{const p=CyN();if(p){const i=await p.info();nat='native '+i.versionName+' ('+i.versionCode+')'}}catch(e){}
  return ['CyPress diagnostics','app '+APP_VERSION+' · '+nat+' · '+(/cypress-preview/.test(location.href)?'preview':'production'),'ai '+(AIST||'unchecked')+(AIWHY?' ('+AIWHY.slice(0,120)+')':''),'screen '+innerWidth+'x'+innerHeight+' @'+devicePixelRatio,'ua '+navigator.userAgent.slice(0,140),'theme '+(S.theme||'auto')+' · light/dark '+(S.sch||'theme')+' · cover '+(S.cvs||'clean')+' · view '+(S.view||'tiles')+(S.setall?' · all settings':''),'feeds '+S.feeds.length+' · failing '+bad.length+' · saved '+S.saved.length,'last refresh '+(S.lastLoad?new Date(S.lastLoad).toISOString():'never'),'online '+navigator.onLine+(S.offline?' · offline mode':''),bad.length?'failing: '+bad.join(' | '):'',CRUMB.length?'recent taps: '+CRUMB.slice(-20).join(' > '):'',ELOG.length?'recent errors:\n'+ELOG.slice(-15).map(x=>new Date(x.t).toISOString().slice(11,19)+' '+x.g+': '+x.m).join('\n'):''].filter(Boolean).join('\n')}
 $('#diagb').onclick=async()=>{const t=await diagInfo()+mzSum();
