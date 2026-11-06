@@ -6,7 +6,7 @@ const WHY={'Light or dark':'replaced by Light, dark or Dynamic','Varied story la
  await p.route(/^https?:\/\/(?!file)/,r=>r.abort());
  await p.addInitScript(()=>{try{localStorage.setItem('x','1')}catch(e){}});
  await p.goto('file://'+APP);await p.waitForTimeout(1500);
- await p.getByText('Skip for now').first().click().catch(()=>{});await p.waitForTimeout(400);
+ await p.getByText('Start with popular sites').first().click().catch(()=>{});await p.waitForTimeout(400);
  const before=await p.evaluate(()=>[...document.querySelectorAll('#set .line')].map(l=>{const lb=l.querySelector('.lb');return {l:lb&&lb.firstChild?lb.firstChild.textContent.trim():'',ids:[...l.querySelectorAll('[id],[data-tg]')].map(e=>e.id||'tg:'+e.dataset.tg)}}));
  await p.evaluate(()=>document.querySelector('#gear').click());await p.waitForTimeout(800);
  const r=await p.evaluate(()=>{const miss=[],hid=[];const ren=Object.values(SET_REN).map(x=>x[0]);document.querySelectorAll('#setlegacy .line').forEach(l=>{const lb=l.querySelector('.lb');hid.push(lb&&lb.firstChild?lb.firstChild.textContent.trim():'?')});return {hid,hidden:SET_HIDE.slice(),lines:[...document.querySelectorAll('#setpane .line')].map(l=>{const lb=l.querySelector('.lb');return lb&&lb.firstChild?lb.firstChild.textContent.trim():''}),ren,renOld:Object.keys(SET_REN),ids:[...document.querySelectorAll('#setpane [id],#setpane [data-tg]')].map(e=>e.id||'tg:'+e.dataset.tg)}});

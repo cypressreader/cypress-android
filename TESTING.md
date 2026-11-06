@@ -1397,3 +1397,8 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - [ ] Black & White and High Contrast: Daily tabs (Today, Headlines, Brief, Sunday) have clear gaps at phone width (looked fine at 360/390 in the browser already).
 - [ ] Phone: tap Search in the bottom bar: the title hides, the field says "Search stories" (or "Search saved stories" on Saved), and Search is the lit tab. Tap it again or another tab: back to normal.
 - [ ] Phone on its side, story in pages: page 1 shows the photo on the left and the headline beside it (not a lone small photo). Upright phone and the Fold unchanged.
+
+## a18 simpler setup (branch mx03wy, 2026-11-06) — implemented, unverified on phone
+- Fresh install: setup shows 4 dots; Topics screen says "Pick a few topics you like" with no counter; 8 topics + "Show more topics".
+- With no topic picked, "Pick a topic first" shows beside the greyed Next; after one topic, footer shows Start reading + Choose sites without scrolling.
+- "Start with popular sites" on the welcome screen starts with Tech + News and shows the "Change them" toast. No theme/font step; last screen mentions Settings.
