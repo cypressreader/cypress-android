@@ -1535,3 +1535,4 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - [ ] When 3+ of your sites cover the same story within 2 hours, a notification arrives within about an hour: headline, "Big story · N of your sites are covering it: A, B and C"; tapping opens the story
 - [ ] A story 2 sites call "Breaking" / "Just in" also alerts; the same story never alerts twice; no more than 3 a day; nothing during quiet hours
 - [ ] Android Settings > Apps > CyPress > Notifications lists a "Big stories" category (pops up on screen by default)
+- [ ] (after 1.279) Fold open, two-page story with a tall headline: a landscape photo that used to be squeezed into a thin strip across both pages now sits at the top of the left page at its own shape, headline and At a glance under it, story text starting on the right page (Slate advice column is a good test)
