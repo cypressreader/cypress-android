@@ -1557,3 +1557,11 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - UPDATE: Auto sleep timer removed (David: a plain sleep timer is enough). Fade + shake stay.
 - Mini player: scrolling down tucks the tab bar away and the player slides down with it to the bottom edge (no gap with stories showing under it); scrolling up brings both back.
 - Review fixes: Next chapter / chapter rollover keeps the mini player and the full player up; a finished audiobook stops (no rolling into news); smart rewind is books-only; "Go back" only after real jumps (Next chapter, chapter tap, scrub over 40 words).
+
+## Keep listening while you look at another story (1.284 candidate)
+- Start Listen on story A, then open story B from the feed: A keeps playing; the mini player shows at the bottom of B; B's Listen button is idle.
+- Pause/resume from the mini player while B is open: controls A, B's page does not turn or scroll with A's words.
+- Tap Listen on B: A stops, B starts.
+- Let A finish while B is open (with something in Up next, or a book with another chapter): it waits and says "Close this story to keep listening"; close B and the next one plays.
+- News story read aloud then reader closed: when it ends it now goes on to Up next (before, it stopped).
+- Same with a Daily podcast story and a book chapter in the background.
