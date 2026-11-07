@@ -48,6 +48,7 @@ public final class CyExtras {
     static final String CH_MEDIA = "cy_media";
     static final String CH_ALERTS = "cy_alerts";
     static final String CH_PACK = "cy_pack";
+    static final String CH_BIG = "cy_big";
     static final String CH_DIGEST = "cy_digest";
     static final String EXTRA_OPEN_URL = "cy_open_url";
     static final String PACK_URL = "cypress:pack";
@@ -361,6 +362,7 @@ public final class CyExtras {
             nm.createNotificationChannel(media);
             nm.createNotificationChannel(new NotificationChannel(CH_ALERTS, "Keyword alerts", NotificationManager.IMPORTANCE_DEFAULT));
             nm.createNotificationChannel(new NotificationChannel(CH_PACK, "Morning pack", NotificationManager.IMPORTANCE_DEFAULT));
+            nm.createNotificationChannel(new NotificationChannel(CH_BIG, "Big stories", NotificationManager.IMPORTANCE_HIGH));
             nm.createNotificationChannel(new NotificationChannel(CH_DIGEST, "Digest", NotificationManager.IMPORTANCE_LOW));
         } catch (Throwable t) {
             Log.w(TAG, "channels failed: " + t);
@@ -629,7 +631,9 @@ public final class CyExtras {
         JSONObject p = cfg.optJSONObject("pack");
         JSONObject w = cfg.optJSONObject("widget");
         JSONObject dg = cfg.optJSONObject("digest");
+        JSONObject bg = cfg.optJSONObject("big");
         return (dg != null && dg.optBoolean("enabled", false))
+            || (bg != null && bg.optBoolean("enabled", false))
             || (a != null && a.optBoolean("enabled", false))
             || (p != null && p.optBoolean("enabled", false))
             || (w != null && w.optBoolean("enabled", false));
