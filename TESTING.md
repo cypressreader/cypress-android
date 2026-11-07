@@ -1536,3 +1536,10 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - [ ] A story 2 sites call "Breaking" / "Just in" also alerts; the same story never alerts twice; no more than 3 a day; nothing during quiet hours
 - [ ] Android Settings > Apps > CyPress > Notifications lists a "Big stories" category (pops up on screen by default)
 - [ ] (after 1.279) Fold open, two-page story with a tall headline: a landscape photo that used to be squeezed into a thin strip across both pages now sits at the top of the left page at its own shape, headline and At a glance under it, story text starting on the right page (Slate advice column is a good test)
+
+## Book ideas 1-4 (2026-11-07, branch claude/book-prototype-handoff-ig1gfo) — implemented, unverified on device
+- [ ] Commonplace Book: "Save as file" opens the Android share sheet with `commonplace-book.md`; "Share as text" still shares the text.
+- [ ] Pacing: after reading books on 2+ days (10+ min), Today's Chapter and the book's page say "About N days left at your pace of M minutes a day"; nothing shows before that, or for a finished book.
+- [ ] Now playing (book): start Listen, go Back to the feed: mini player shows "Chapter …" over the book title, with Next chapter / Start of this chapter buttons; the big player shows the cover, "Open the book", and a Sleep timer menu ("End of this chapter" works).
+- [ ] Book Listen with the reader closed (screen off, pocket): at the end of a chapter it goes on to the next one instead of stopping. Lock-screen next button = next chapter.
+- [ ] Running heads on the Fold open (two pages): book title at top left, chapter at top right, small italic, above the page; hidden on a chapter's first page. Phone/closed: chapter name only, centered. Page turns don't jump or re-flow.
