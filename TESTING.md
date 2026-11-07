@@ -1485,3 +1485,6 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - [ ] Continue returns to the same page after closing and reopening the app.
 - [ ] Books dialogs with TalkBack/keyboard: after closing Contents or a note pop-up, focus lands back on the book name button (top left) or the note mark.
 - [ ] Plain text (.txt) and Markdown (.md) files open from the Books picker as books with chapters.
+
+## Books batch (after 1.274): page turn on the Fold
+- [ ] Two-page view, deep in a long chapter (page 15+): every swipe turns with the curl, no freeze, no repeat swipes needed (FIXES B2)
