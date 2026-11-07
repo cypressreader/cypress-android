@@ -17734,7 +17734,7 @@ async function bkImport(f){
  const bk={id,title,author,lang,ch:chs,words:chs.reduce((s,c)=>s+c.w,0),cover:cov&&ib.some(x=>x[0]===cov.href)?cov.href:'',added:Date.now(),ms:0};
  return bkStore(bk,html,ib,t0);
 }
-async function bkStore(bk,html,ib,t0){const id=bk.id,db=await bkDb();await new Promise((res,rej)=>{const tx=db.transaction(['books','ch','img'],'readwrite');tx.objectStore('books').put(bk);html.forEach((h,i)=>tx.objectStore('ch').put(h,id+'/'+i));ib.forEach(([p,b])=>tx.objectStore('img').put(b,id+'/'+p));tx.oncomplete=res;tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error||Error('Not enough room on this device for this book.'))});
+async function bkStore(bk,html,ib,t0){const id=bk.id,db=await bkDb();bk.sz=html.reduce((n,h)=>n+h.length,0)+ib.reduce((n,x)=>n+(x[1].size||0),0);await new Promise((res,rej)=>{const tx=db.transaction(['books','ch','img'],'readwrite');tx.objectStore('books').put(bk);html.forEach((h,i)=>tx.objectStore('ch').put(h,id+'/'+i));ib.forEach(([p,b])=>tx.objectStore('img').put(b,id+'/'+p));tx.oncomplete=res;tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error||Error('Not enough room on this device for this book.'))});
  bk.ms=Math.round(performance.now()-t0);try{const tx=db.transaction('books','readwrite');tx.objectStore('books').put(bk)}catch(e){}
  return bk;
 }
@@ -17782,6 +17782,10 @@ function bkBmIdx(){const a=curA;if(!a||!a.book||!R.ready)return -1;const L=(S.bk
 function bkBmSync(){const b=$('#st');if(!b||!curA||!curA.book)return;const on=bkBmIdx()>=0,o=b.querySelector('svg');if(o)o.outerHTML=svg(BKBM,on);b.setAttribute('aria-pressed',on)}
 function bkBm(){const a=curA;if(!a||!a.book||!R.ready)return;S.bkmk=S.bkmk||{};const L=S.bkmk[a.book]=S.bkmk[a.book]||[],i=bkBmIdx();if(i>=0)L.splice(i,1);else{L.push({c:a.n,f:Math.round((rdFrac()||0)*1e4)/1e4,t:a.title});L.sort((x,y)=>x.c-y.c||x.f-y.f)}save();bkBmSync();try{rdxMnSync()}catch(e){}toast(i>=0?'Bookmark removed':'Bookmarked')}
 function bkOpen(b,n){R.ctx=b.ch.map((_,i)=>bkArt(b,i));R.keepCtx=true;openReader(R.ctx[n])}
+const bkSz=n=>n<1e6?Math.max(1,Math.round(n/1e3))+' KB':(n/1e6).toFixed(1).replace(/\.0$/,'')+' MB';
+/* books added before sizes were kept: add up chapters + pictures once, then remember it */
+async function bkSize(b){if(b.sz)return b.sz;const db=await bkDb(),rg=IDBKeyRange.bound(b.id+'/',b.id+'/\uffff'),all=st=>new Promise(r=>{const q=db.transaction(st).objectStore(st).getAll(rg);q.onsuccess=()=>r(q.result||[]);q.onerror=()=>r([])});
+ b.sz=(await all('ch')).reduce((n,h)=>n+(h.length||0),0)+(await all('img')).reduce((n,x)=>n+(x.size||0),0);try{db.transaction('books','readwrite').objectStore('books').put(b)}catch(e){}return b.sz}
 const bkMin=w=>Math.max(1,Math.round(w/230)),bkLen=w=>bkMin(w)<90?bkMin(w)+' min':'about '+plu(Math.round(bkMin(w)/60),'hour','hours');
 function renderBooks(){
  $('#ttl').textContent='Books';cur=[];const g=$('#grid');
@@ -17799,7 +17803,7 @@ function renderBooks(){
 async function bkFront(b){
  const g=$('#grid'),at=bkAt(b);let cv='';
  if(b.cover){const x=await bkGet('img',b.id+'/'+b.cover);if(x){BKU.push(cv=URL.createObjectURL(x))}}
- g.innerHTML=`<div class="rki"><button type="button" class="tx2" data-bk="">All books</button>${cv?`<img src="${cv}" alt="" style="display:block;max-width:min(60%,240px);margin:12px 0">`:''}<h2>${esc(b.title)}</h2><p class="hint">${esc(b.author||'')}${b.author?' · ':''}${plu(b.ch.length,'chapter','chapters')} · ${bkLen(b.words)}</p><button type="button" class="go" data-bkch="${at||0}">${at!=null?'Continue: '+esc(b.ch[at]?b.ch[at].t:''):'Start reading'}</button><ol>${b.ch.map((c,i)=>`<li><button type="button" data-bkch="${i}"><b>${esc(c.t)}</b><small>${bkMin(c.w)} min</small></button></li>`).join('')}</ol><button type="button" class="tx2" data-bkdel>Remove this book</button></div>`;
+ g.innerHTML=`<div class="rki"><button type="button" class="tx2" data-bk="">All books</button>${cv?`<img src="${cv}" alt="" style="display:block;max-width:min(60%,240px);margin:12px 0">`:''}<h2>${esc(b.title)}</h2><p class="hint">${esc(b.author||'')}${b.author?' · ':''}${plu(b.ch.length,'chapter','chapters')} · ${bkLen(b.words)} · ${bkSz(await bkSize(b))} on this device</p><button type="button" class="go" data-bkch="${at||0}">${at!=null?'Continue: '+esc(b.ch[at]?b.ch[at].t:''):'Start reading'}</button><ol>${b.ch.map((c,i)=>`<li><button type="button" data-bkch="${i}"><b>${esc(c.t)}</b><small>${bkMin(c.w)} min</small></button></li>`).join('')}</ol><button type="button" class="tx2" data-bkdel>Remove this book</button></div>`;
  g._bk=b;
 }
 async function bkAdd(f){
