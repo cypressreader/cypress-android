@@ -15,7 +15,7 @@ const fx=JSON.parse(fs.readFileSync(__dirname+'/fixtures/pdf_real_feeds.json','u
     const asideT=[...document.querySelectorAll('#rd aside')].filter(e=>getComputedStyle(e).transform!=='none').length;
     const im=c.querySelector(':scope>img.hero,:scope>.hsf img.hero');const hs=c.querySelector(':scope>.kick,:scope>.tt');
     /* the first column must not be left mostly empty under the headline while the picture or the text starts in the second column */
-    const L=[...c.querySelectorAll(':scope>.kick,:scope>.tt,:scope>.dt,:scope>img.hero,:scope>.hsf,:scope>.mnotes,:scope>.note,.body>p,.body>h2,.body>figure')].map(e=>e.getBoundingClientRect()).filter(r=>r.width>5&&r.left+r.width/2<half&&r.top<cr.bottom);
+    const L=[...c.querySelectorAll(':scope>.kick,:scope>.tt,:scope>.dt,:scope>img.hero,:scope>.hsf,:scope>.mnotes,:scope>.note,.body>p,.body>h2,.body>figure')].flatMap(e=>[...e.getClientRects()]).filter(r=>r.width>5&&r.left+r.width/2<half&&r.top<cr.bottom);
     const lb=L.length?Math.max(...L.map(r=>Math.min(r.bottom,cr.bottom))):cr.top;
     out.push({rl,k,strays,asideT,leftVoid:Math.round((cr.bottom-lb)/H*100),np:R.np});document.querySelector('#cl')&&document.querySelector('#cl').click();await w(120)}
    return out},fx);

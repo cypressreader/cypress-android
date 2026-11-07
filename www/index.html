@@ -3357,6 +3357,7 @@ html.rdx .cols.tplb img.hero{aspect-ratio:16/9;max-height:calc(var(--ih)*.42)}
 .droy-fn{margin:14px 0 0;padding-top:8px;border-top:1px solid var(--ln);font:italic 400 13px/1.4 var(--serif,Georgia,serif);color:var(--mut)}
 .ddiff{grid-column:1/-1;margin:0 0 18px;border-top:1px solid var(--ln);border-bottom:1px solid var(--ln);padding:0}
 .ddiff>summary{cursor:pointer;list-style:none;padding:9px 2px;font:italic 400 14px var(--serif,Georgia,serif);color:var(--mut)}.ddiff>summary::-webkit-details-marker{display:none}.ddiff>summary::after{content:" +";font-style:normal}.ddiff[open]>summary::after{content:" −"}
+@keyframes inkr{from{width:0}to{width:100%}}.ddiff .dsh.inkr{position:relative}.ddiff .dsh.inkr::after{content:'';position:absolute;left:0;bottom:-3px;height:3px;width:100%;background:var(--logo,var(--a1));animation:inkr 1.3s cubic-bezier(.2,.7,.2,1) both}@media(prefers-reduced-motion:reduce){.ddiff .dsh.inkr::after{animation:none}}
 .ddiff>summary:focus-visible{outline:2px solid var(--logo);outline-offset:2px}.ddiff[open]{padding-bottom:6px}
 .dtoc{background:none;border:0;border-radius:0;padding:4px 0 6px;border-top:1px solid var(--ln);border-bottom:1px solid var(--ln)}
 .dexp{font-size:13px;padding:4px 10px;opacity:.8;margin-right:6px}
@@ -4364,6 +4365,12 @@ html[data-theme=coast] #rd .cols .kick{color:#b8432a}
 html[data-theme=rosewood] #rd .cols .kick{color:#7f5d1c}
 #rd .cols .kick::after{content:none}
 #rd .cols .kick .rkk{margin:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit}
+.kick .dln{font-weight:700;color:var(--ink)}
+/* 7: Essay look: centered opener, roman numerals at the breaks, no pull quotes, a calmer measure */
+#rd .cols[data-look=essay]{counter-reset:ess}#rd .cols[data-look=essay] :is(.kick,.tt,.dt,.rdk){text-align:center}#rd .cols[data-look=essay] .tt{font-weight:400;font-style:italic;letter-spacing:-.005em}#rd .cols[data-look=essay] .kick::after{content:'';display:block;width:34px;margin:10px auto 0;border-top:1px solid var(--logo,var(--a1))}html #rd .cols[data-look=essay] .body .rbrk{width:auto;height:auto;background:none;color:var(--logo,var(--a1))!important;opacity:1;font:600 .72em/1 var(--sans);letter-spacing:.2em;margin:2em auto 1.2em;text-align:center}#rd .cols[data-look=essay] .body .rbrk::before{counter-increment:ess;content:counter(ess,upper-roman)}
+/* 7: Gallery look: pictures framed with italic captions, quotes as side bars, no drop cap */
+#rd .cols[data-look=gallery] .body :is(img,figure img){box-shadow:0 0 0 1px var(--ln);padding:4px;background:var(--pn,var(--bg))}#rd .cols[data-look=gallery] .body figcaption{font:italic 400 .86em/1.45 var(--serif);color:var(--mut);text-align:left;padding-left:.6em;border-left:2px solid var(--logo,var(--a1))}#rd .cols[data-look=gallery] .body .pullq{border-left-width:2px;font-size:1.12em;padding:.3em 0 .3em .8em;margin:.8em 0 1em;color:var(--mut)}#rd .cols[data-look=gallery] .body p.dropcap .dcap{float:none!important;font:inherit!important;margin:0!important;padding:0!important;color:inherit!important}#rd .cols[data-look=gallery] .body p.dropcap .dcl{font-variant:normal;letter-spacing:0}
+.cols .body a.rnref{font:600 .6em/1 var(--sans);vertical-align:super;color:var(--logo,var(--a1));text-decoration:none;padding:0 2px;margin:0}.cols .body .rnotes{margin:2.2em 0 0;padding-top:.7em;border-top:1px solid var(--ln);font-size:.8em;line-height:1.5;color:var(--mut)}.rnotes h4{margin:0 0 .5em;font:600 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}.rnotes ol{margin:0;padding-left:1.6em}.rnotes li{margin:0 0 .35em}.rnotes a{color:var(--ink);text-decoration:none}.rnotes small{display:block;font:11px var(--sans);color:var(--mut)}
 #rd .cols .rdk{margin:.4em 0 .55em;font:italic 400 1.05em/1.4 var(--serif);color:var(--mut);text-align:left;hyphens:manual;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;break-after:avoid}
 #rd .cols .dt{display:block;font:400 13px/1.6 var(--sans);color:var(--mut)}
 #rd .cols .dt>*{display:inline}
@@ -7534,12 +7541,13 @@ function decorate14(){
  document.documentElement.classList.toggle('rdserif',(S.font||'theme')==='theme'&&!/typewriter|terminal|amber|pixel|arcade|cyber/.test(document.documentElement.dataset.theme||''));
  b.querySelectorAll('.rfoot').forEach(x=>x.remove());
  /* a second and third pull quote for a long article */
- if(isOn('mag')&&isOn('pqs')&&!(curA&&curA.book)){
+ if(isOn('mag')&&isOn('pqs')&&!(curA&&curA.book)&&($('.cols')||{}).dataset.look!=='essay'){
   const ps=[...b.querySelectorAll(':scope > p')].filter(p=>!p.classList.contains('endmark')),wd=rdWords(b),win=pqWin(ps),have=new Set([...b.querySelectorAll('.pullq')].map(q=>(q.firstChild||q).textContent));
   const add=(lo,hi,at)=>{const s=rdQuote(win,lo,hi,have);if(!s)return;have.add(s);(ps[Math.floor(ps.length*at)]||ps[ps.length-1]).before(pqEl(s,win.find(x=>x.textContent.includes(s))))};
   if(ps.length>=14&&wd>=1200)add(.6,.9,.75);
   if(ps.length>=24&&wd>=1800)add(.12,.35,.2);
  }
+ try{endnotes(b)}catch(e){}
  if(curA&&!R.web)b.append(Object.assign(document.createElement('div'),{innerHTML:readerFootHtml(curA)}).firstChild);
  {const c=$('.cols');if(c)c.classList.toggle('rfok',!!b.querySelector('.rf-next,.rf-rel'))}
 }
@@ -7768,9 +7776,11 @@ function editionDiff0(pool){
  if(all.length&&!Object.values(state).some(v=>v==='load'))DIFFSNAP={k:k0,items:all.map(x=>({l:x.a.link,tag:x.tag}))};
  return all.length?all:null;
 }
+let DIFFN=0;/* 6b: the brass rule draws itself across when more stories have arrived since the last redraw */
 function diffHtml(items,C){
+ const inkr=items.length>DIFFN;DIFFN=items.length;
  const rows=items.map(({a,tag})=>{if(cur.indexOf(a)<0)cur.push(a);WHY[a.link]=tag+'. From this evening’s comparison with the morning edition.';return `<div class="dd-i"><span class="dd-t">${esc(tag)}</span>${C(a,'nr nr-row nr-s')}</div>`}).join('');
- return `<section class="dsec2 ddiff"><h3 class="dsh" id="dsec-since" aria-level="2"><span>Since this morning</span><small>${plu(items.length,'story','stories')}</small></h3>${rows}</section>`;
+ return `<section class="dsec2 ddiff"><h3 class="dsh${inkr?' inkr':''}" id="dsec-since" aria-level="2"><span>Since this morning</span><small>${plu(items.length,'story','stories')}</small></h3>${rows}</section>`;
 }
 /* 16: why it matters, from counts only */
 function whyMatters(a){
@@ -13985,8 +13995,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.07e';const APP_LABEL='1.277';
-const CHANGES=["Today's Chapter: while you're reading a book, The Daily shows your next chapter, with its opening lines and the minutes it takes (turn it off from the Bookshelf)","Start reading begins at chapter one, not the cover or title page","Each chapter opens like a printed book, with its number set over the title","The top of the page shows the minutes left in your chapter, and the thin line under it follows the whole book","Search a whole book from Contents","Finishing a book shows a \"You finished\" page","The Bookshelf has a Currently reading row and Sort by","Commonplace Book: your book highlights and notes, gathered by book"];
+const APP_VERSION='2026.11.07f';const APP_LABEL='1.278';
+const CHANGES=["Stories now come in three looks, picked from the story itself: Classic, Gallery for stories with lots of photos, and Essay for long reads and opinion pieces","A story's city and date line at the start now sits above the text, like a newspaper","Links in a story become numbered notes at the end, so the text reads cleanly (Listen skips the numbers)","In The Daily, a gold line draws itself above \"Since this morning\" when new stories arrive"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -14239,8 +14249,33 @@ function makeDropcap(p){
  }
  return false;
 }
+/* 1: "LISBON — The ferry…": the place leaves the first sentence and joins the kicker above the headline */
+function dateline(b){
+ if(b.dataset.dl||!curA||curA.book||R.web)return;b.dataset.dl='1';
+ const p=[...b.querySelectorAll(':scope>p')].find(x=>x.textContent.trim().length>60);if(!p)return;if(p.classList.contains('dropcap')){unDropcap(p);p.classList.remove('dropcap')}
+ const w=document.createTreeWalker(p,NodeFilter.SHOW_TEXT);let n=w.nextNode();while(n&&!/\S/.test(n.nodeValue))n=w.nextNode();if(!n||n.parentElement!==p&&n.parentElement.closest('a,.dcap,.dcl'))return;
+ const m=n.nodeValue.match(/^\s*((?:[A-Z][A-Z.'’]+[ -]?){1,3}(?:,\s*[A-Z][A-Za-z.]+(?: [A-Z][A-Za-z.]+)?)?)\s*(?:—|–|--|-|:)\s+(?=[“"‘'A-Z0-9])/);if(!m)return;
+ const city=m[1].replace(/\s+/g,' ').trim(),cap=city.toLowerCase().replace(/(^|[\s\-.])([a-z])/g,(x,a,c)=>a+c.toUpperCase()).replace(/\bD\.c\./,'D.C.');if(/^(THE|A|AN|IT|HE|SHE|WE|BUT|AND|OR|SO|IN|ON|AT|AS|IF|NO|MY|OF|TO|UPDATE|BREAKING|NEW|LIVE|OPINION|EDITORIAL|ANALYSIS|PHOTOS?|VIDEO|WATCH|READ)$/i.test(city))return;
+ n.nodeValue=n.nodeValue.slice(m[0].length);const k=$('.cols .kick');if(k&&!k.querySelector('.dln'))k.insertAdjacentHTML('beforeend',' · <span class="dln">'+esc(cap)+'</span>');
+}
+/* 2: links in the text become small numbers; the addresses gather under Notes at the end */
+function endnotes(b){
+ if(b.dataset.rn||!curA||curA.book||R.web)return;b.dataset.rn='1';
+ const L=[...b.querySelectorAll('p a[href^="http"]')].filter(a=>!a.closest('.pullq,.rfoot,.rprev,.whyit,.rdl,.emb,figure,figcaption,blockquote.bql,.rnotes')&&!a.querySelector('img')&&a.textContent.trim()&&a.textContent.trim().length<a.closest('p').textContent.trim().length*.8);
+ if(!L.length)return;const rows=[];
+ L.forEach((a,i)=>{const n=i+1,t=a.textContent.replace(/\s+/g,' ').trim(),h=a.href;let host='';try{host=new URL(h).hostname.replace(/^www\./,'')}catch(e){}
+  const sup=document.createElement('a');sup.className='rnref';sup.href='#rn-'+n;sup.setAttribute('aria-label','Note '+n);sup.textContent=n;
+  a.replaceWith(...a.childNodes,sup);rows.push(`<li data-nid="rn-${n}"><a href="${esc(h)}">${esc(t.length>60?t.slice(0,60)+'…':t)}</a><small>${esc(host)}</small></li>`)});
+ b.insertAdjacentHTML('beforeend',`<aside class="rnotes" aria-label="Notes"><h4>Notes</h4><ol>${rows.join('')}</ol></aside>`);
+}
+/* 7: three looks, one per story. Classic (as before), Gallery when a story carries three or more pictures, Essay for long prose with no pictures or from an opinion section. Set once on .cols; the CSS does the rest */
+function storyLook(b){
+ const c=$('.cols'),a=curA;if(!c||!a||a.book||R.web){if(c)delete c.dataset.look;return 'classic'}
+ const n=Math.max(b.querySelectorAll('img:not(.emb img)').length+(a.img?1:0),(a.pics&&a.pics.length)||0),w=rdWords(b),op=/opinion|essay|column|comment|editorial|perspective|ideas|letters?|viewpoint/i.test(a.sec||''),
+  look=n>=3?'gallery':(n===0&&w>=900)||(op&&n<=1&&w>=400)?'essay':'classic';
+ c.dataset.look=look;return look}
 function decorate0(){
- const b=$('.cols .body');if(!b)return;try{underscoreItalics(b)}catch(e){}smarten(b);furnish(b);captions();heroSpread();mnotes();photoPages();
+ const b=$('.cols .body');if(!b)return;try{dateline(b)}catch(e){}const LOOK=(()=>{try{return storyLook(b)}catch(e){return 'classic'}})();try{underscoreItalics(b)}catch(e){}smarten(b);furnish(b);captions();heroSpread();mnotes();photoPages();
  b.querySelectorAll('.pullq').forEach(x=>x.remove());b.querySelectorAll('.dropcap').forEach(x=>{unDropcap(x);x.classList.remove('dropcap')});
  b.querySelectorAll('table').forEach(t=>{if(!t.parentElement.classList.contains('tbl')){const w=document.createElement('div');w.className='tbl';t.replaceWith(w);w.append(t)}
   /* column names go on each cell so a phone can show every row as its own small card */
@@ -14254,7 +14289,7 @@ function decorate0(){
  const first=ps.find(p=>p.textContent.trim().split(/\s+/).length>=25&&/^[A-Za-z\u00C0-\u024F]/.test(p.textContent.trim()));
  if(first&&ps.indexOf(first)<(bk?1:3)){if(makeDropcap(first))first.classList.add('dropcap')}
  if(bk)return;/* a book keeps its own words: no pull quotes */
- if(ps.length<8||rdWords(b)<600)return;
+ if(ps.length<8||rdWords(b)<600||LOOK==='essay')return;
  const win=pqWin(ps);let best=null,bs=-1,bp=null;
  win.slice(Math.floor(win.length*.25),Math.ceil(win.length*.7)).forEach(p=>{
   (p.textContent.match(/[^.!?]+[.!?]/g)||[]).forEach(s=>{s=s.trim();const L=s.length;if(L<60||L>170||/https?:|@|\d{4}/.test(s)||/^["“”']/.test(s))return;const sc=100-Math.abs(L-110)+(/\b(we|our|never|always|first|most|only|why)\b/i.test(s)?15:0);if(sc>bs){bs=sc;best=s;bp=p}});
@@ -14385,7 +14420,7 @@ function cineLongform(b){
  }
  if(vView()){vView().addEventListener('scroll',cineScroll,{passive:true});cineScroll()}
 }
-const skipDeco=n=>n.parentElement&&n.parentElement.closest('.pullq,.endmark,.bfold,.gcard,.rfoot,.rbrk,.rtags,.rdl,.rprev,.whyit,.rdk');
+const skipDeco=n=>n.parentElement&&n.parentElement.closest('.pullq,.endmark,.bfold,.gcard,.rfoot,.rbrk,.rtags,.rdl,.rprev,.whyit,.rdk,.rnref,.rnotes');
 
 /* ---------- follow topics ---------- */
 function followTopic(q){q=(q||'').trim();if(!q)return;const w=q.toLowerCase();if(S.sk.some(k=>k.words.length===1&&k.words[0]===w)){toast('Already following “'+q+'”');return}S.sk.push({id:'k'+Date.now(),name:q.length>28?q.slice(0,28)+'…':q,words:[w],t:Date.now()});save();render();toast('Following “'+q+'”. Find it under Topics.')}
