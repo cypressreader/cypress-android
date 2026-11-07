@@ -4435,7 +4435,7 @@ html[data-theme=halcyon] body #grid:not(.list):not([data-cards=narrow]):not([dat
 .pwchip{margin:8px 10px 0;padding:8px 12px;border-radius:999px;border:1px solid color-mix(in srgb,#d98a00 45%,transparent);background:color-mix(in srgb,#d98a00 10%,transparent);color:var(--ink);font:600 12px var(--sans);text-align:left}
 .pwchip[hidden],.pwwarn[hidden]{display:none}
 /* 15. Reader and feed polish (Fold) */
-#rd.cpv2 .cols .body>:first-child{break-before:column}
+#rd.cpv2:not(.rbk) .cols .body>:first-child{break-before:column}
 body:not(.narrow):not(.split).reading:not(.sideshow){grid-template-columns:var(--sw,clamp(220px,22vw,290px)) 1fr}
 body:not(.narrow):not(.split).reading:not(.sideshow)>aside{transform:none;transition:none}
 #rd.on{animation:rdfade .15s ease-out}
@@ -8955,11 +8955,27 @@ function cutOf(pg){
  const c=$('.cols'),e=c.getBoundingClientRect().left+(pg+1)*R.step-1;
  return CUT.m[pg]=[c,c.querySelector(':scope>.body')].map(p=>{const d=[];if(p)[...p.children].forEach((x,i)=>{const r=x.getClientRects();if(r.length&&[...r].every(q=>q.left>=e))d.push(i)});return d.reverse()});
 }
+/* B2: a book chapter is long, so its copies also drop what ENDS before their page (a late page used to copy the whole chapter so far: ~300 ms per turn at page 15 on a two-page view, a second or more on a phone). Each box it steps into loses its top spacing; a blank of the measured height (a hollow copy of the dropped neighbour, so 'p+p' rules still match) puts the first kept block back on its line, and the copy shifts by the columns it lost. Books only: stories are short. */
+function preOf(pg){
+ const k=prepKey();if(CUT.k!==k)CUT={k,m:{}};const ck='p'+pg;if(ck in CUT.m)return CUT.m[ck];
+ let out=null;const c=$('.cols');
+ if(c&&curA&&curA.book&&pg>0&&R.step>0){const cr=c.getBoundingClientRect(),cl=cr.left,e0=cl+pg*R.step,path=[];let p=c,K=null;
+  for(let d=0;d<6;d++){const ch=[...p.children];let i=0;
+   while(i<ch.length){const r=[...ch[i].getClientRects()];if(r.length&&!r.every(q=>q.right<=e0+1))break;i++}
+   if(i>=ch.length){K=null;break}K=ch[i];path.push(i);
+   if(K.getClientRects()[0].left>=e0-1||!K.children.length||[...K.childNodes].some(n=>n.nodeType===3&&n.data.trim()))break;p=K}
+  if(K&&path.some(x=>x>0)){const r=K.getClientRects()[0];out={path,dc:Math.floor((r.left-cl+2)/(R.step/R.cpv)),h:Math.max(0,r.top-(cr.top+c.clientTop+parseFloat(getComputedStyle(c).paddingTop)))}}
+ }
+ return CUT.m[ck]=out;
+}
 function mkBox(pg,x0){
  const bk=$('.book'),v=$('.view').cloneNode(true),c=v.querySelector('.cols');
  {const ps=[c,c.querySelector(':scope>.body')];cutOf(pg).forEach((d,j)=>{const p=ps[j];if(p)d.forEach(i=>{const x=p.children[i];if(x)x.remove()})})}
  v.removeAttribute('id');v.setAttribute('aria-hidden','true');v.inert=true;/* a copy is only a picture of the page: screen readers and the Tab key skip it */v.style.cssText=`position:absolute;inset:auto;top:0;left:${-x0}px;width:${bk.clientWidth}px;height:${bk.clientHeight}px`;
- c.style.transform=`translateX(${-pg*R.step}px)`;
+ const P=preOf(pg);let sh=0;
+ if(P){let p=c;P.path.forEach((i,d)=>{const ch=[...p.children];for(let j=0;j<i;j++)ch[j].remove();const K=ch[i],st=K.style;st.marginTop='0';st.breakBefore='auto';
+  if(d<P.path.length-1){st.paddingTop='0';st.borderTopWidth='0'}else{const pv=ch[i-1],sp=pv&&!/^(IMG|BR|HR|SVG|PICTURE|VIDEO|IFRAME|TABLE)$/i.test(pv.tagName)?pv.cloneNode(false):document.createElement('div');sp.removeAttribute('id');sp.style.cssText=`display:block;height:${P.h}px;margin:0;padding:0;border:0;min-height:0;float:none;position:static;break-before:auto;break-after:auto`;K.before(sp)}p=K});sh=P.dc*R.step/R.cpv}
+ c.style.transform=`translateX(${-pg*R.step+sh}px)`;
  return v;
 }
 function shade(dir){const e=document.createElement('i');e.className='tsh';e.style.background=`linear-gradient(${dir},rgba(0,0,0,.55),rgba(0,0,0,0) 65%)`;return e}
@@ -9151,7 +9167,7 @@ function go(d){
  R.navAt=Date.now();if(!R.fa&&!isVert()&&R.np>1){R.fa=1;$('#rd').classList.add('fauto')}/* R-10 */
  if(R.busy&&R.T&&R.T.warm)endTurn(false);
  if(isVert()&&!R.web){vScrollBy(d);return}
- const to=R.pg+d;if(d>0&&to>=R.np&&!R.web&&!R.busy&&R.np>0&&isOn('cont')&&readerNext()){if(R.endArmed){advanceNext();return}R.endArmed=true;rnHint(curA.book?'Turn the page again for the next chapter':'Turn the page again for the next story',readerNext());clearTimeout(R.endT);R.endT=setTimeout(()=>{R.endArmed=false},2600);return}
+ const to=R.pg+d;if(d>0&&to>=R.np&&!R.web&&!R.busy&&R.np>0&&isOn('cont')&&readerNext()){if(R.endArmed||curA.book){advanceNext();return}/* B3: a book flows into its next chapter on one tap, like a swipe */R.endArmed=true;rnHint(curA.book?'Turn the page again for the next chapter':'Turn the page again for the next story',readerNext());clearTimeout(R.endT);R.endT=setTimeout(()=>{R.endArmed=false},2600);return}
  if(R.web||R.busy||to<0||to>=R.np)return;
  if(reduced()){R.pg=to;show();return}
  if(rdxPturn()!=='paper'){rdxTurn(to);return}
@@ -10072,8 +10088,9 @@ async function openReader(a){use1('open');RDT=Date.now();
  const c=$('.cols'),body=c.querySelector('.body'),note=c.querySelector('.note');
  R.heroEl=R.heroMark=null;
  /* a story that was got ready ahead of time goes straight onto the page: no network, no parsing of a page, no cleaning (that was all done when it was fetched) */
+ $('#rd').classList.toggle('rbk',!!a.book);/* B4: book chapters start on the left page (stories keep the Fold opener) */
  let fastH=null;if(a.book){fastH=await bkHtml(a);if(my!==tok)return}else if(AC[a.link]&&AC[a.link].c&&!ytId(a)){fastH=acGet(a.link)||await acLoad(a.link);if(my!==tok)return;if(fastH){const lc=legalClean(fastH);if((lc.n||lc.w<150)&&!RD_RF.has(a.link)&&online()){RD_RF.add(a.link);acDrop(a.link);fastH=null}else if(lc.n)fastH=lc.h}}
- if(fastH){body.innerHTML=fastH;body.dataset.clean='1';if(a.book){if(a.lang)body.lang=a.lang;c.querySelectorAll(':scope>.orig').forEach(x=>x.remove())}}else{body.append(fromHTML(a.html,a.link));foldBoiler(body,a);/* the feed's own text opens at once, with its drop cap and pale bars where the rest will go */try{const p=body.querySelector('p');if(p&&p.textContent.trim().length>40&&makeDropcap(p))p.classList.add('dropcap')}catch(e){}const sk=document.createElement('div');sk.className='skp';sk.setAttribute('aria-hidden','true');body.append(sk)}
+ if(fastH){body.innerHTML=fastH;body.dataset.clean='1';if(a.book){if(a.lang)body.lang=a.lang;c.querySelectorAll(':scope>.orig').forEach(x=>x.remove());/* B4: a chapter that opens with its own heading shows its name once */const h=body.querySelector('h1,h2,h3'),tt=c.querySelector(':scope>.tt');if(h&&tt){const r=document.createRange();r.setStart(body,0);r.setEndBefore(h);if(!r.toString().trim())tt.style.display='none'}}}else{body.append(fromHTML(a.html,a.link));foldBoiler(body,a);/* the feed's own text opens at once, with its drop cap and pale bars where the rest will go */try{const p=body.querySelector('p');if(p&&p.textContent.trim().length>40&&makeDropcap(p))p.classList.add('dropcap')}catch(e){}const sk=document.createElement('div');sk.className='skp';sk.setAttribute('aria-hidden','true');body.append(sk)}
  try{heroOnce()}catch(e){}
  c.addEventListener('load',e=>{const im=e.target;/* a logo or icon in a story keeps its own small size instead of being blown up blurry across the column */if(im&&im.tagName==='IMG'&&im.closest&&im.closest('.body')&&!im.classList.contains('hero')&&im.naturalWidth&&im.naturalWidth<220&&im.naturalHeight<220){im.classList.add('tiny');im.style.setProperty('--tw',im.naturalWidth+'px')}heroSpread();photoPages();relayout()},true);c.addEventListener('error',()=>{heroSpread();relayout()},true);
  /* when the full text is already stored, afterLoad lays the page out once, so skip the layout of the short feed version */
@@ -12317,13 +12334,13 @@ const RDX_SHR='<path d="M12 3.5v11.5M7.8 7.7 12 3.5l4.2 4.2"/><path d="M5.5 12.5
 const RIC={auto:'<circle cx="12" cy="12" r="8"/><path d="m10 8.5 5 3.5-5 3.5z"/>',rp:'<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',hub:'<rect x="3.5" y="5" width="13" height="14" rx="2"/><path d="M19.5 8v11a2 2 0 0 1-2 2h-10M7 9h6M7 12.5h6M7 16h3"/>',find:'<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>',jump:'<path d="M5 6h14M5 12h10M5 18h6"/>',upnext:'<path d="M4 6h12M4 11h12M4 16h7M17 14v6M14 17h6"/>',tr:'<path d="M3.5 5.5h8.5M7.7 3.5v2M10.2 5.5c-.8 3.6-2.9 6.4-6 8.3M5.8 9.2c1.2 2 3 3.6 5 4.6"/><path d="m12.5 20.5 4-9 4 9M14 17.5h5"/>',comments:'<path d="M4.5 5.5h15v10h-8l-4 3.5v-3.5h-3z"/>',browser:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.4 3.5 5.3 3.5 8.5s-1.1 6.1-3.5 8.5c-2.4-2.4-3.5-5.3-3.5-8.5s1.1-6.1 3.5-8.5z"/>',web:'<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 8.5h17"/>',pdf:'<path d="M14 3.5H7a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-10z"/><path d="M14 3.5v5h5M9 13h6M9 16.5h4"/>',kindle:'<rect x="5.5" y="2.5" width="13" height="19" rx="2"/><path d="M8.5 6.5h7M8.5 9.5h7M8.5 12.5h4"/>',shimg:'<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="m20.5 16-5-5-8 8.5"/>',md:'<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M6.5 15V9l2.5 3 2.5-3v6M16.5 9v6M14.5 13l2 2 2-2"/>',follow:'<path d="M12 5v14M5 12h14"/>',unread:'<circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r="8.5"/>',junk:'<path d="M5.5 21V4.5h11l-2 4 2 4h-11"/>',rpt:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5.5M12 16.2v.3"/>'};
 function mnMarkup(){
  const a=curA,sv=!!(a&&(a.book?bkBmIdx()>=0:isSaved(a))),v=a?((S.thm||{})[a.link]||0):0,tts='speechSynthesis' in window;
- const q=(act,ic,l,x)=>`<button type="button" data-act="${act}"${x||''}>${svg(ic,act==='save'&&sv)}<span class="mnl">${l}</span></button>`,row=(act,l,x)=>`<button type="button" data-act="${act}"${x||''}>${RIC[act.replace(/^fby$/,'follow')]?svg(RIC[act.replace(/^fby$/,'follow')]):''}<span class="mnl">${l}</span></button>`;
+ const q=(act,ic,l,x)=>`<button type="button" data-act="${act}"${x||''}>${svg(ic,act==='save'&&sv)}<span class="mnl">${l}</span></button>`,row=(act,l,x)=>`<button type="button" data-act="${act}"${x||''}>${RIC[act.replace(/^fby$/,'follow').replace(/^toc$/,'jump')]?svg(RIC[act.replace(/^fby$/,'follow').replace(/^toc$/,'jump')]):''}<span class="mnl">${l}</span></button>`;
  let h='',fl=false,site='';try{h=a&&a.link?host(a.link):'';fl=!!h&&!S.feeds.some(f=>host(f.url)===h);site=fl?h.replace(/^www\./,''):(a&&fof(a).title)||h}catch(e){}
  const grp=(id,l,x)=>`<div class="rshl" role="group" aria-labelledby="${id}"><h3 id="${id}">${l}</h3>${x}</div>`,fold=(id,l,ic)=>`<button type="button" data-fold="${id}" aria-expanded="false">${svg(ic)}<span class="mnl">${l}</span></button>`;/* FR16: rarely used rows fold under one row each; every data-act handler stays the same */
  return `<div class="rshbd" id="mnbd" hidden></div><div class="rsh" id="mn" role="dialog" aria-modal="true" aria-labelledby="mnh" hidden><span class="rshg" aria-hidden="true"></span><h2 class="rshh" id="mnh">Story options</h2>`
   +`<div class="rshq">${a&&a.book?q('save',BKBM,sv?'Bookmarked':'Bookmark',` aria-pressed="${sv}"`):q('save',STAR,sv?'Saved':'Save',` aria-pressed="${sv}"`)}${q('share',RDX_SHR,'Share')}${tts?q('listen',SPK,'Listen'):''}${q('aa',RDX_AA,'Text',' aria-haspopup="dialog" aria-label="Text and appearance"')}</div>`
   +(tts?`<div class="rshl"><div class="rshp">${fold('lst','Listening options',RIC.auto)}${row('auto','Hands-free reading',' hidden data-fg="lst"')}${row('rp','Playback settings',' hidden data-fg="lst"')}</div></div>`:'')
-  +grp('mng1',a&&a.book?'This chapter':'This story',`<div class="rshp">${row('hub','Full coverage')}${row('find',a&&a.book?'Find in chapter':'Find in story')}</div>${row('jump','Jump to section',' hidden')}${row('upnext','Add to Up Next')}${row('tr','Translate story')}${a&&a.cm?row('comments',cmLabel(a.cm)==='Comments'?'Comments on the site':cmLabel(a.cm)):''}`)
+  +grp('mng1',a&&a.book?'This chapter':'This story',`<div class="rshp">${a&&a.book?row('toc','Contents'):row('hub','Full coverage')}${row('find',a&&a.book?'Find in chapter':'Find in story')}</div>${row('jump','Jump to section',' hidden')}${row('upnext','Add to Up Next')}${row('tr','Translate story')}${a&&a.cm?row('comments',cmLabel(a.cm)==='Comments'?'Comments on the site':cmLabel(a.cm)):''}`)
   +grp('mng2','Open or send',`${row('web','Site view in the app')}${fold('snd','Send to…',RIC.browser)}${row('browser','Browser',' hidden data-fg="snd"')}${row('pdf','PDF',' data-exact hidden data-fg="snd"')}${row('kindle','Kindle',' data-exact hidden data-fg="snd"')}${row('md','Markdown file',' data-exact hidden data-fg="snd"')}${row('shimg','Share as picture')}`)
   +grp('mng3',esc(site||'This site'),`${fl?row('follow','Follow '+esc(site),' class="rfol"'):''}${a&&a.by&&!hasBy(a.by)?row('fby','Follow '+esc(a.by)):''}${row('unread','Mark as unread')}${fold('wrg','Something wrong?',RIC.rpt)}${row('junk','Hide text',' hidden data-fg="wrg"')}${row('rpt','Report a problem',' hidden data-fg="wrg"')}`)
   +`<div class="rshr" role="group" aria-label="Rate this story"><button type="button" class="thb${v>0?' on':''}" data-rate="1" aria-pressed="${v>0}">${svg(TH_UP)}<span>More like this</span></button><button type="button" class="thb${v<0?' on':''}" data-rate="-1" aria-pressed="${v<0}">${svg(TH_DN)}<span>Less like this</span></button></div></div>`;
@@ -12505,6 +12522,7 @@ async function doAct(k){
  if(k==='md'){exMarkdown(a);return}
  if(k==='shimg'){shareStoryImg(a);return}
  if(k==='jump'){openJump();return}
+ if(k==='toc'){bkToc();return}
  if(k==='find'){openFind();return}
  if(k==='rpt'){$('#rpb').onclick(null,'Story: '+a.link);return}
  if(k==='browser'){window.open(cleanOut(a.link),'_blank','noopener');return}

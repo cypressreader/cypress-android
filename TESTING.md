@@ -1488,3 +1488,6 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 
 ## Books batch (after 1.274): page turn on the Fold
 - [ ] Two-page view, deep in a long chapter (page 15+): every swipe turns with the curl, no freeze, no repeat swipes needed (FIXES B2)
+- [ ] Fold two-page view: a book chapter starts on the left page; the chapter name shows once (B4)
+- [ ] ··· menu in a book shows Contents and opens the chapter list (B1)
+- [ ] Tapping past a chapter's last page goes straight to the next chapter (B3)
