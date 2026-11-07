@@ -1517,3 +1517,4 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Last page of the last chapter: "You finished …" page, Back to your bookshelf.
 - Bookshelf (3+ books): Currently reading row, Sort by; Commonplace book button once a book has a highlight; tap a passage's chapter to jump there.
 - Listen in a book: sleep timer "End of this chapter" stops after the chapter (lock screen too).
+- Today's Chapter (1.277): after reading part of a book, The Daily shows the card after the front page; Read today's / Keep reading opens the right chapter; Hide from The Daily and the Bookshelf switch turn it off and on.
