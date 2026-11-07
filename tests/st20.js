@@ -36,7 +36,7 @@ ck('empty feed',/No stories found/.test(R.none),R.none);
 ck('burst',/Several stories at once/.test(R.burst),R.burst);
 ck('several a day',/about \d+ a day/.test(R.perDay),R.perDay);
 ck('catalogue rows get a link',R.links>3,String(R.links));
-ck('tap shows how often',/Posts about .* · last story \d+d ago/.test(R.after||''),R.after);
+ck('tap shows how often',/Posts about .* · last story \d+ (min|hr|days?) ago/.test(R.after||''),R.after);
 ck('one fetch per tap',R.calls===1,String(R.calls));
 ck('result remembered when list redraws',R.cached);
 ck('failed check says so kindly',/Couldn’t check/.test(R.fail||''),R.fail);

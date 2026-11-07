@@ -10,7 +10,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   S.feeds.slice(1).forEach(x=>items[x.id]=[]);state[f.id]='ok';S.read={};
   /* sidebar */
   S.fcol=S.fcol||{};S.fcol._mf=0;S.fcol._un=0;S.folders.forEach(x=>{S.fcol[x.id]=0});/* My Feeds starts collapsed: open it so the rows are there */side();
-  render();await w(500);const row=document.querySelector('.fr[data-sel="s:'+f.id+'"]');o.lbl=row&&(row.querySelector('.frm')||{}).textContent;o.lblRow=row&&row.querySelector('.frm')&&row.querySelector('u')?true:false;
+  render();await w(500);const row=document.querySelector('.fr[data-sel="s:'+f.id+'"]');{const m=row&&row.querySelector('.frm');if(m){const c=m.cloneNode(true);c.querySelectorAll('.vh').forEach(x=>x.remove());o.lbl=c.textContent;o.lblSr=(m.querySelector('.vh')||{}).textContent||''}}o.lblRow=row&&row.querySelector('.frm')&&row.querySelector('u')?true:false;
   S.hideCount=true;render();await w(300);o.hidden=!document.querySelector('.fr .frm');S.hideCount=false;render();
   /* catch me up */
   S.sel='today';render();await w(800);o.btns=[...document.querySelectorAll('#grid .dexp')].map(x=>x.textContent);
@@ -25,7 +25,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   document.querySelector('#tpre [data-tp="calm"]').click();await w(300);o.calm=document.documentElement.classList.contains('calm');o.font=S.font;
   document.querySelector('#tpre [data-tp="editorial"]').click();await w(300);o.calmOff=!document.documentElement.classList.contains('calm');
   return o});
- ck('sidebar row shows minutes',/min$/.test(r.lbl||''),JSON.stringify(r));ck('time label sits on the same row as the count',r.lblRow);ck('labels hidden with counts hidden',r.hidden);
+ ck('sidebar row shows minutes',/min$/.test(r.lbl||''),JSON.stringify(r));ck('minutes say "to read" to screen readers',/to read/.test(r.lblSr||''),r.lblSr);ck('time label sits on the same row as the count',r.lblRow);ck('labels hidden with counts hidden',r.hidden);
  ck('Catch me up button on Today',r.btns.some(t=>/Catch me up/.test(t)),JSON.stringify(r.btns));ck('catch up opens the reader',r.reader);
  ck('catch up is about five minutes',r.ctx>=2&&r.ctx<=8&&r.ctxMin<=9,JSON.stringify(r));
  ck('Kindle send passes the address',r.kindle&&r.kindle.x&&r.kindle.x.email==='me@kindle.com',JSON.stringify(r.kindle));

@@ -7,6 +7,8 @@ const html=fs.readFileSync(path.join(__dirname,'..','www','index.html'),'utf8');
 const a=html.indexOf('const PDFW={'),b=html.indexOf('\n}\n',html.indexOf('return {bytes:out,pages:all.length',a))+3;
 /* the typesetter slice below uses constants declared earlier in the app (the slogan on the colophon) */
 const SLOGAN=(html.match(/const SLOGAN='([^']*)'/)||[])[1]||'';
+/* B3: the issue tag counts from the shared edition date (rolls at 5 AM); those two helpers live outside the slice */
+eval(['edDate','issueNo'].map(n=>(html.match(new RegExp('\\nfunction '+n+'\\(.*'))||[''])[0]).join('\n'));
 eval(html.slice(a,b)+';globalThis.pdfIssue=pdfIssue;');
 /* a tiny valid JPEG (1x1, grey), scaled by the PDF viewer */
 const JPG=Buffer.from('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/yQALCAABAAEBAREA/8wABgAQEAX/2gAIAQEAAD8A0s8g/9k=','base64');
