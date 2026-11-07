@@ -4692,7 +4692,7 @@ html.lowp #tdr .tdaur{animation:none}
 #tdr .tdr2{padding:6px 18px calc(16px + env(safe-area-inset-bottom,0px))}
 #tdr .tdq{list-style:none;margin:6px 0 10px;padding:0}#tdr .tdq li{border-bottom:1px solid var(--ln)}
 #tdr .tdq button{all:unset;box-sizing:border-box;position:relative;width:100%;display:flex;align-items:center;gap:12px;padding:9px 2px;cursor:pointer;color:var(--ink);min-height:56px}#tdr .tdq button:focus-visible{outline:2px solid var(--logo);outline-offset:-2px;border-radius:8px}
-#tdr .tdq .dth{flex:none;width:44px;height:44px}
+#tdr .tdq .dth{flex:none;width:44px;height:44px}#tdr .tdq .tdck{display:grid;place-items:center;font:600 15px var(--sans)}
 #tdr .tdq [aria-current] .tdit{color:var(--logo)}
 #tdr .tdit{flex:1;min-width:0;font:600 14px/1.25 var(--sans);display:flex;flex-direction:column;gap:2px}#tdr .tdit small{font:500 12px var(--sans);color:var(--mut)}
 #tdr .tddur{flex:none;min-width:46px;text-align:right;font:600 13px var(--sans);font-variant-numeric:tabular-nums;color:var(--mut)}
@@ -4702,7 +4702,7 @@ html.lowp #tdr .tdaur{animation:none}
 #tdr .tdeq.on i{animation:tdeq .9s ease-in-out infinite}#tdr .tdeq.on i:nth-child(2){animation-delay:-.3s}#tdr .tdeq.on i:nth-child(3){animation-delay:-.6s}
 @keyframes tdeq{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(2.3)}}
 @media(prefers-reduced-motion:reduce){#tdr .tdeq.on i{animation:none}}
-#tdr .tdo{width:100%}
+#tdr .tdo,#tdr .tdun{width:100%}#tdr .tdun{margin-bottom:8px}#tdr .tdbm{margin-right:8px}
 /* a wide screen (the open Fold, a tablet, a desktop window): the frosted artwork and controls stay on the left, the list of stories scrolls on the right (from 700px: David prefers it side by side on the Fold, 2026-10-31) */
 @media(min-width:700px){
  #tdr{inset:50% auto auto 50%;transform:translate(-50%,-50%);width:min(960px,94vw);max-height:min(640px,90vh);border-radius:24px}
@@ -10215,7 +10215,7 @@ function raBtn(){
 /* ===================== The Daily as a podcast: one queue, one player. It sits on top of the read-aloud engine above (same voices, prosody and read-along highlight). ===================== */
 const DIG={on:false,links:[],i:0,tok:0};
 const DIGC=new Map();/* link -> estimated characters of the story, so the timeline can be shown before a story has been opened */
-const digCps=()=>15*(+S.rate||1);/* about 15 characters a second at normal speed */
+const digCps=()=>15*ttsRate();/* about 15 characters a second at normal speed */
 function digChars(a,active){
  if(active&&TTS.words.length){let ch=0;for(const w of TTS.words)ch+=w.t.length+1;DIGC.set(a.link,ch);return ch}
  if(DIGC.has(a.link))return DIGC.get(a.link);
@@ -10276,6 +10276,17 @@ function digSeekTo(sec){
 }
 const digSeekBy=d=>{const m=digModel();digSeekTo(m.pos+d)};
 function digPrev(){const m=digModel();if(!DIG.on||(m.chap[m.i]&&m.pos-m.chap[m.i].start>4)||DIG.i<=0){digSeekTo(m.chap[m.i]?m.chap[m.i].start:0);return}digGo(DIG.i-1,{back:1})}
+/* books in the player: the chapter list, time left in the whole book at the current speed, and jumps (with the last 5 spots kept to go back to) */
+const bkList=a=>{const L=R.ctx||[];return a&&a.book&&L[0]&&L[0].book===a.book&&L[a.n]?L:null};
+function bkLeft(a){const L=bkList(a),fr=TTS.art&&TTS.art.link===a.link&&TTS.words.length?TTS.wi/TTS.words.length:0;let w=(L[a.n].wc||0)*(1-fr);for(let i=a.n+1;i<L.length;i++)w+=L[i].wc||0;const mn=Math.max(1,Math.round(w*6/digCps()/60)),r=ttsRate();return (mn<60?mn+' min':Math.floor(mn/60)+' h'+(mn%60?' '+mn%60+' min':''))+' left in the book'+(r!==1?' at '+r+'×':'')}
+const BKJ=[];
+function bkJmp(){const a=TTS.art;if(a&&a.book&&TTS.words.length){BKJ.push({b:a.book,c:a.n,f:TTS.wi/TTS.words.length,t:a.title});if(BKJ.length>5)BKJ.shift()}}
+async function bkJump(n,f,back){const a=TTS.art,L=bkList(a),x=L&&L[n];if(!x)return;if(!back)bkJmp();f=f||0;
+ const at=()=>{const wi=Math.max(0,Math.min(TTS.words.length-1,Math.floor(f*TTS.words.length)));ttsFrom(wi);ttsMark(wi);setTimeout(tminiSync,60)};
+ if(x.link===a.link&&TTS.words.length)return at();
+ const rd=$('#rd');tdr.hold=1;bkMark(a.book,n,f);R.keepCtx=true;R.ghostNext=!rd.classList.contains('on')||rd.classList.contains('ghost');
+ try{await openReader(x)}catch(e){}tdr.hold=0;
+ if(curA!==x)return tminiSync();ttsCollect();if(TTS.words.length)at()}
 function digNext(){if(DIG.on)digGo(DIG.i+1,{});else if(TTS.art&&TTS.art.book)ttsEnd(true)}
 /* a story opened by hand, or a Daily story shown in the background, uses the same reader; the background one is simply not seen */
 {const _or=openReader;openReader=async function(a){
@@ -10321,7 +10332,7 @@ function tminiToggle(){
 }
 function tminiSync(){
  const rd=$('#rd'),seen=rd.classList.contains('on')&&!rd.classList.contains('ghost');
- const show=!!((TTS.on||DIG.on)&&!seen&&('speechSynthesis' in window));
+ const show=!!((TTS.on||DIG.on||tdr.hold)&&!seen&&('speechSynthesis' in window));
  document.body.classList.toggle('hasdock',show);if(!show){const r=document.documentElement.style;r.setProperty('--dockh','0px');r.setProperty('--tabh','0px')}
  let e=$('#tmini');if(!show&&!e)return;e=tmini();e.hidden=!show;
  if(!show){const d=$('#tdr');if(d&&d.open)d.close();return}
@@ -10335,23 +10346,26 @@ function tminiSync(){
  {const pv=e.querySelector('.tmpv'),nx=e.querySelector('.tmnx');pv.hidden=nx.hidden=!multi&&!bk;pv.setAttribute('aria-label',bk?'Start of this chapter':'Previous story');nx.setAttribute('aria-label',bk?'Next chapter':'Next story')}
  e.querySelector('.tmline i').style.transform='scaleX('+(m.tot?Math.min(1,m.pos/m.tot):0).toFixed(4)+')';
  tdrUpdate(m);
- try{if('mediaSession' in navigator&&navigator.mediaSession.setPositionState&&m.tot>0)navigator.mediaSession.setPositionState({duration:m.tot,position:Math.min(m.tot,Math.max(0,m.pos)),playbackRate:+S.rate||1})}catch(x){}
+ try{if('mediaSession' in navigator&&navigator.mediaSession.setPositionState&&m.tot>0)navigator.mediaSession.setPositionState({duration:m.tot,position:Math.min(m.tot,Math.max(0,m.pos)),playbackRate:ttsRate()})}catch(x){}
 }
 /* ---------- the chapter drawer: scrubber with a tick where each story starts, the queue, and playback speed ---------- */
 function tdr(){let d=$('#tdr');if(d)return d;
  d=document.createElement('dialog');d.id='tdr';d.setAttribute('aria-labelledby','tdr-t');
- d.innerHTML=`<div class="tdw"><section class="tdl"><div class="tdbg" aria-hidden="true"><i class="tdpic"></i><i class="tdaur"></i><i class="tdfr"></i></div><div class="tdh"><h2 id="tdr-t">Now playing</h2><button type="button" class="ib tdcar" aria-pressed="false" aria-label="Car mode" title="Car mode: big buttons, screen stays on">${dkI('<path d="M4 15l1.6-5.2a2 2 0 0 1 1.9-1.4h9a2 2 0 0 1 1.9 1.4L20 15v3H4z"/><circle cx="7.5" cy="18" r="1.5"/><circle cx="16.5" cy="18" r="1.5"/>',19)}</button><button type="button" class="ib" id="tdx" aria-label="Close player">${dkI('<path d="M6 6l12 12M18 6 6 18"/>',19)}</button></div><div class="tdcv"><span class="tdart">${CYSVG}<img alt="" decoding="async" referrerpolicy="no-referrer"></span></div><div class="tdn"><b class="tdt"></b><small class="tdp"></small></div><div id="tdsc" role="slider" tabindex="0" aria-label="Position in the Daily" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0"><div class="tdbar"><i class="tdf"></i></div><span class="tdks"></span></div><div class="tdtm"><span class="tdcur">0:00</span><span class="tdtot">0:00</span></div><div class="tdc"><button type="button" class="ib" data-d="rw" aria-label="Back 15 seconds">${dkI('<path d="M12 5a7 7 0 1 1-6.3 4"/><path d="M12 2 8.5 5 12 8"/>',22)}</button><button type="button" class="ib" data-d="pv" aria-label="Previous story">${dkI('<path d="M7 5v14"/><path d="M19 5.5v13L9 12z" fill="currentColor"/>')}</button><button type="button" class="tdpl" data-d="pl" aria-label="Pause"></button><button type="button" class="ib" data-d="nx" aria-label="Next story">${dkI('<path d="M17 5v14"/><path d="M5 5.5v13L15 12z" fill="currentColor"/>')}</button><button type="button" class="ib" data-d="fw" aria-label="Forward 15 seconds">${dkI('<path d="M12 5a7 7 0 1 0 6.3 4"/><path d="M12 2l3.5 3L12 8"/>',22)}</button></div><div class="tds" role="radiogroup" aria-label="Playback speed">${[1,1.25,1.5,2].map(v=>`<button type="button" role="radio" data-sp="${v}" aria-checked="false">${v}×</button>`).join('')}</div><label class="tdsl">Sleep timer <select class="tdslp"><option value="0">Off</option><option value="15">15 min</option><option value="30">30 min</option><option value="60">1 hour</option><option value="eos">End of this story</option></select></label></section><section class="tdr2"><ol class="tdq" aria-label="Stories in this listen"></ol><button type="button" class="tx2 tdo">Open this story</button></section></div>`;
+ d.innerHTML=`<div class="tdw"><section class="tdl"><div class="tdbg" aria-hidden="true"><i class="tdpic"></i><i class="tdaur"></i><i class="tdfr"></i></div><div class="tdh"><h2 id="tdr-t">Now playing</h2><button type="button" class="ib tdcar" aria-pressed="false" aria-label="Car mode" title="Car mode: big buttons, screen stays on">${dkI('<path d="M4 15l1.6-5.2a2 2 0 0 1 1.9-1.4h9a2 2 0 0 1 1.9 1.4L20 15v3H4z"/><circle cx="7.5" cy="18" r="1.5"/><circle cx="16.5" cy="18" r="1.5"/>',19)}</button><button type="button" class="ib tdbm" aria-label="Bookmark this spot" title="Bookmark this spot" hidden>${dkI(BKBM,19)}</button><button type="button" class="ib" id="tdx" aria-label="Close player">${dkI('<path d="M6 6l12 12M18 6 6 18"/>',19)}</button></div><div class="tdcv"><span class="tdart">${CYSVG}<img alt="" decoding="async" referrerpolicy="no-referrer"></span></div><div class="tdn"><b class="tdt"></b><small class="tdp"></small></div><div id="tdsc" role="slider" tabindex="0" aria-label="Position in the Daily" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0"><div class="tdbar"><i class="tdf"></i></div><span class="tdks"></span></div><div class="tdtm"><span class="tdcur">0:00</span><span class="tdtot">0:00</span></div><div class="tdc"><button type="button" class="ib" data-d="rw" aria-label="Back 15 seconds">${dkI('<path d="M12 5a7 7 0 1 1-6.3 4"/><path d="M12 2 8.5 5 12 8"/>',22)}</button><button type="button" class="ib" data-d="pv" aria-label="Previous story">${dkI('<path d="M7 5v14"/><path d="M19 5.5v13L9 12z" fill="currentColor"/>')}</button><button type="button" class="tdpl" data-d="pl" aria-label="Pause"></button><button type="button" class="ib" data-d="nx" aria-label="Next story">${dkI('<path d="M17 5v14"/><path d="M5 5.5v13L15 12z" fill="currentColor"/>')}</button><button type="button" class="ib" data-d="fw" aria-label="Forward 15 seconds">${dkI('<path d="M12 5a7 7 0 1 0 6.3 4"/><path d="M12 2l3.5 3L12 8"/>',22)}</button></div><div class="tds" role="radiogroup" aria-label="Playback speed">${[1,1.25,1.5,2].map(v=>`<button type="button" role="radio" data-sp="${v}" aria-checked="false">${v}×</button>`).join('')}</div><label class="tdsl">Sleep timer <select class="tdslp"><option value="0">Off</option><option value="15">15 min</option><option value="30">30 min</option><option value="60">1 hour</option><option value="eos">End of this story</option></select></label><label class="tdsl">Auto sleep timer <select class="tdslp tdbed"><option value="0">Off</option><option value="21">After 9 pm</option><option value="22">After 10 pm</option><option value="23">After 11 pm</option></select></label></section><section class="tdr2"><ol class="tdq" aria-label="Stories in this listen"></ol><button type="button" class="tx2 tdun" hidden></button><button type="button" class="tx2 tdo">Open this story</button></section></div>`;
  document.body.append(d);
  d.querySelector('#tdx').onclick=()=>d.close();
  d.querySelector('.tdslp').onchange=e=>setSleep(e.target.value);
+ {const bd=d.querySelector('.tdbed');bd.value=String(S.bed||0);bd.onchange=()=>{S.bed=+bd.value;save();toast(S.bed?'After '+(S.bed-12)+' pm, pressing play starts a 30-minute sleep timer':'Auto sleep timer is off')}}
  /* Car mode: the player fills the screen with big buttons and keeps the screen on; remembered for next time */
  const cb=d.querySelector('.tdcar');tdr.car=on=>{S.car=!!on;d.classList.toggle('car',S.car);cb.setAttribute('aria-pressed',S.car);rdWake(keepOn())};
  cb.onclick=()=>{tdr.car(!S.car);save()};
  d.addEventListener('close',()=>{if(S.car)rdWake(keepOn())});
  d.addEventListener('click',e=>{if(e.target===d)d.close()});
- d.querySelector('.tdc').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;const k=b.dataset.d;if(k==='rw')digSeekBy(-15);else if(k==='fw')digSeekBy(15);else if(k==='pv')digPrev();else if(k==='nx')digNext();else if(k==='pl')tminiToggle();setTimeout(tminiSync,60)});
- d.querySelector('.tds').addEventListener('click',e=>{const b=e.target.closest('[data-sp]');if(!b)return;S.rate=+b.dataset.sp;save();const r=$('#rate');if(r)r.value=S.rate;const rv=$('#ratev');if(rv)rv.value=S.rate.toFixed(1)+'×';if(TTS.on&&!TTS.paused)ttsFrom(ttsPos());tminiSync()});
- d.querySelector('.tdq').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b)return;const k=+b.dataset.k;if(DIG.on)digGo(k,{});else tminiToggle();setTimeout(tminiSync,60)});
+ d.querySelector('.tdc').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;const k=b.dataset.d;if((k==='pv'||k==='nx')&&TTS.art&&TTS.art.book)bkJmp();if(k==='rw')digSeekBy(-15);else if(k==='fw')digSeekBy(15);else if(k==='pv')digPrev();else if(k==='nx')digNext();else if(k==='pl')tminiToggle();setTimeout(tminiSync,60)});
+ d.querySelector('.tds').addEventListener('click',e=>{const b=e.target.closest('[data-sp]');if(!b)return;rateSet(+b.dataset.sp);save();const r=$('#rate');if(r)r.value=S.rate;const rv=$('#ratev');if(rv)rv.value=(+S.rate||1).toFixed(1)+'×';if(TTS.on&&!TTS.paused)ttsFrom(ttsPos());tminiSync()});
+ d.querySelector('.tdq').addEventListener('click',e=>{const j=e.target.closest('[data-bc]');if(j){bkJump(+j.dataset.bc,0);return}const b=e.target.closest('[data-k]');if(!b)return;const k=+b.dataset.k;if(DIG.on)digGo(k,{});else tminiToggle();setTimeout(tminiSync,60)});
+ d.querySelector('.tdun').onclick=()=>{const a=TTS.art,i=a?BKJ.map(x=>x.b).lastIndexOf(a.book):-1;if(i<0)return;const j=BKJ.splice(i,1)[0];bkJump(j.c,j.f,1)};
+ d.querySelector('.tdbm').onclick=()=>tdrBm();
  d.querySelector('.tdo').addEventListener('click',async()=>{d.close();const a=curA||TTS.art;if(!a)return;const wi=ttsPos(),n=TTS.words.length,rd=$('#rd');
    if(rd.classList.contains('on')&&rd.classList.contains('ghost')&&curA===a){rd.classList.remove('ghost');pushLayer('reader');tminiSync();try{layout()}catch(x){}return}
    R.digOpen=true;await openReader(a);R.digOpen=false;if(curA!==a)return;ttsCollect();if(TTS.words.length&&n&&Math.abs(TTS.words.length-n)<=Math.max(3,n*.02)){ttsFrom(wi);ttsMark(wi)}});
@@ -10359,7 +10373,7 @@ function tdr(){let d=$('#tdr');if(d)return d;
  const at=ev=>{const r=sc.getBoundingClientRect();return Math.max(0,Math.min(1,(ev.clientX-r.left)/Math.max(1,r.width)))};
  sc.addEventListener('pointerdown',ev=>{drag={f:at(ev)};try{sc.setPointerCapture(ev.pointerId)}catch(_){}tdrPreview(drag.f)});
  sc.addEventListener('pointermove',ev=>{if(!drag)return;drag.f=at(ev);tdrPreview(drag.f)});
- sc.addEventListener('pointerup',()=>{if(!drag)return;const f=drag.f;drag=null;const m=digModel();digSeekTo(f*m.tot);setTimeout(tminiSync,80)});
+ sc.addEventListener('pointerup',()=>{if(!drag)return;const f=drag.f;drag=null;if(TTS.art&&TTS.art.book)bkJmp();const m=digModel();digSeekTo(f*m.tot);setTimeout(tminiSync,80)});
  sc.addEventListener('pointercancel',()=>{drag=null});
  sc.addEventListener('keydown',e=>{const m=digModel();let t=null;if(e.key==='ArrowRight'||e.key==='ArrowUp')t=m.pos+15;else if(e.key==='ArrowLeft'||e.key==='ArrowDown')t=m.pos-15;else if(e.key==='Home')t=0;else if(e.key==='End')t=m.tot-1;if(t==null)return;e.preventDefault();digSeekTo(t);setTimeout(tminiSync,80)});
  tdr.drag=()=>!!drag;
@@ -10372,7 +10386,7 @@ function tdrUpdate(m){
  const c=m.chap[m.i],run=TTS.on&&!TTS.paused;
  const bk=!!(c&&c.a.book);d.querySelector('.tdt').textContent=c?(bk?bkCh(c.a.title):c.a.title):'Getting your Daily ready…';d.querySelector('.tdo').textContent=bk?'Open the book':'Open this story';
  {const v=SLEEP.eos?'eos':SLEEP.t?String(SLEEP.min):'0',sl=d.querySelector('.tdslp');if(sl.value!==v)sl.value=v;sl.lastChild.textContent=bk?'End of this chapter':'End of this story'}
- d.querySelector('.tdp').textContent=c?fof(c.a).title:'';
+ d.querySelector('.tdp').textContent=c?fof(c.a).title+(bk&&bkList(c.a)?' · '+bkLeft(c.a):''):'';
  /* the artwork: the story's picture behind a heavy blur (so the controls stay legible) and the sharp picture above the scrubber; no picture, a slow drifting aurora in the app's greens */
  {const img=(c&&(c.a.img||c.a.book&&BKDU[c.a.book]))||'',key=(c&&c.a.link||'')+'|'+img;
   if(tdr.art!==key){tdr.art=key;const l=d.querySelector('.tdl'),pic=d.querySelector('.tdpic'),ai=d.querySelector('.tdart img');
@@ -10380,16 +10394,21 @@ function tdrUpdate(m){
    if(img){pic.style.backgroundImage='url("'+img.replace(/"/g,'%22')+'")';ai.style.display='';ai.src=img}else{pic.style.backgroundImage='';ai.removeAttribute('src');ai.style.display='none'}}}
  const pl=d.querySelector('.tdpl');pl.innerHTML=dkI(run?DK_PAUSE:DK_PLAY,28);pl.setAttribute('aria-label',run?'Pause':'Play');
  const multi=m.chap.length>1;{const pv=d.querySelector('[data-d=pv]'),nx=d.querySelector('[data-d=nx]');pv.hidden=nx.hidden=!multi&&!bk;pv.setAttribute('aria-label',bk?'Start of this chapter':'Previous story');nx.setAttribute('aria-label',bk?'Next chapter':'Next story')}
- const sig=m.chap.map(x=>x.l+x.dur).join('|')+'|'+m.i+'|'+(+S.rate||1)+'|'+run;
+ const BL=bk&&bkList(c.a),sig=m.chap.map(x=>x.l+x.dur).join('|')+'|'+m.i+'|'+ttsRate()+'|'+run+'|'+(BL?BL.length:0);
  if(tdr.sig!==sig){tdr.sig=sig;
   d.querySelector('.tdks').innerHTML=m.chap.slice(1).map(x=>`<i style="left:${(x.start/m.tot*100).toFixed(2)}%"></i>`).join('');
-  d.querySelector('.tdq').innerHTML=m.chap.map((x,k)=>`<li><button type="button" data-k="${k}"${k===m.i?' aria-current="true"':''} aria-label="${k===m.i?(run?'Playing: ':'Current: '):'Play '}${esc(x.a.title)}, ${digFmt(x.dur)}">${digThumb(x.a).replace('class="dth"','class="dth"')}${k===m.i?`<span class="tdeq${run?' on':''}" aria-hidden="true"><i></i><i></i><i></i></span>`:''}<span class="tdit">${esc(x.a.book?bkCh(x.a.title):x.a.title)}<small>${esc(fof(x.a).title)}</small></span><span class="tddur">${digFmt(x.dur)}</span></button></li>`).join('');
-  d.querySelectorAll('[data-sp]').forEach(b=>b.setAttribute('aria-checked',String(+b.dataset.sp===(+S.rate||1))));
+  const q=d.querySelector('.tdq');q.setAttribute('aria-label',BL?'Chapters':'Stories in this listen');
+  if(BL){const rows=bkRows(BL.map(x=>({t:x.title,w:x.wc||0}))),n=c.a.n,fin=(S.bkdone||{})[c.a.book];
+   q.innerHTML=rows.map((x,k)=>{const on=x.i<=n&&n<=x.j,ok=!on&&(fin||x.j<n),t=bkCh(x.t),du=digFmt(x.w*6/digCps());return `<li><button type="button" data-bc="${x.i}"${on?' aria-current="true"':''} aria-label="${on?(run?'Playing: ':'Current: '):ok?'Finished. Play again: ':'Play '}${esc(t)}, ${du}"><span class="dth tdck">${ok?dkI('<path d="M5 12.5l4.5 4.5L19 7"/>',20):dkI('<circle cx="12" cy="12" r="7"/>',18)}</span>${on?`<span class="tdeq${run?' on':''}" aria-hidden="true"><i></i><i></i><i></i></span>`:''}<span class="tdit">${esc(t)}</span><span class="tddur">${du}</span></button></li>`}).join('');}
+  else q.innerHTML=m.chap.map((x,k)=>`<li><button type="button" data-k="${k}"${k===m.i?' aria-current="true"':''} aria-label="${k===m.i?(run?'Playing: ':'Current: '):'Play '}${esc(x.a.title)}, ${digFmt(x.dur)}">${digThumb(x.a).replace('class="dth"','class="dth"')}${k===m.i?`<span class="tdeq${run?' on':''}" aria-hidden="true"><i></i><i></i><i></i></span>`:''}<span class="tdit">${esc(x.a.book?bkCh(x.a.title):x.a.title)}<small>${esc(fof(x.a).title)}</small></span><span class="tddur">${digFmt(x.dur)}</span></button></li>`).join('');
+  d.querySelectorAll('[data-sp]').forEach(b=>b.setAttribute('aria-checked',String(+b.dataset.sp===ttsRate())));
  }
  if(!(tdr.drag&&tdr.drag())){d.querySelector('.tdf').style.transform='scaleX('+(m.tot?Math.min(1,m.pos/m.tot):0).toFixed(4)+')';d.querySelector('.tdcur').textContent=digFmt(m.pos)}
  d.querySelector('.tdtot').textContent=digFmt(m.tot);
  const sc=d.querySelector('#tdsc');sc.setAttribute('aria-valuemax',String(Math.round(m.tot)));sc.setAttribute('aria-valuenow',String(Math.round(m.pos)));sc.setAttribute('aria-valuetext',digFmt(m.pos)+' of '+digFmt(m.tot));
  d.querySelector('.tdo').hidden=!(curA||TTS.art);
+ {const u=d.querySelector('.tdun'),j=bk&&bkList(c.a)&&BKJ.filter(x=>x.b===c.a.book).pop();u.hidden=!j;if(j){const t='Go back to '+bkCh(j.t)+', '+Math.round(j.f*100)+'% in';if(u.textContent!==t)u.textContent=t}}
+ d.querySelector('.tdbm').hidden=!bk;
 }
 /* P8: the 1 s player check runs only while audio or the mini player is on (armed when reading aloud or a brief starts), then stops itself */
 let TMI=0;function tmArm(){if(!TMI)TMI=setInterval(()=>{if(!(TTS.on||DIG.on||($('#tmini')&&!$('#tmini').hidden))){clearInterval(TMI);TMI=0;return}if(!document.hidden)tminiSync()},1000)}
@@ -10457,7 +10476,7 @@ function ttsMark(i){
 }
 function ttsFrom(wi){
  if(!('speechSynthesis' in window)||!TTS.words.length)return;
- const id=++TTS.id;TTS.on=true;tmArm();TTS.paused=false;TTS.wi=wi;TTS.sp=wi;if(curA)TTS.art=curA;
+ const id=++TTS.id;TTS.on=true;tmArm();TTS.paused=false;TTS.pt=0;try{sleepAuto()}catch(e){}TTS.wi=wi;TTS.sp=wi;if(curA)TTS.art=curA;
  if(TTS.cps==null&&S.tcps)TTS.cps=+S.tcps;/* B87: "this voice reports words too early" is remembered for two weeks, then forgotten (voices and engines get updated), and can be cleared by hand in Settings */
  if(S.tnbv&&Date.now()-(S.tnbt||0)>14*864e5){delete S.tnbv;delete S.tnbt;TTS.nb=0}
  {const vv=bestVoice();if(S.tnbv&&S.tnbv===((vv&&vv.voiceURI)||'default'))TTS.nb=1;else if(S.tnbv)TTS.nb=0}
@@ -10479,7 +10498,7 @@ function ttsFrom(wi){
   /* B25: a breath between sections — longer after a headline or subhead, short between paragraphs, shorter again at a fast rate */
   {const p0=a>0?TTS.words[a-1]:null;let ms=0;if(p0&&p0.b!==w0.b)ms=p0.hd?700:(p0.sh||w0.sh)?480:(!!w0.q!==!!p0.q)?260:340;if(w0.sh&&ms)ms=Math.max(ms,520);u.pauseMs=Math.round(ms/Math.max(.7,Math.min(2,ttsRate())))}
   u.stopAt=(typeof SLEEP!=='undefined'&&SLEEP.t&&SLEEP.at)||0;
-  u.rate=prate;u.volume=S.vol==null?1:+S.vol;u.pitch=ppitch;
+  u.rate=prate;u.volume=(S.vol==null?1:+S.vol)*(TTS.vf||1);u.pitch=ppitch;
   const v=bestVoice();if(v){u.voice=v;u.lang=v.lang}else if(!NATIVE)u.lang=navigator.language
   if(w0.q&&S.qvoice){const qv=quoteVoice();if(qv){u.voice=qv;u.lang=qv.lang}else u.pitch=1.18}
   let real=false,t0=0,early=0,tm1=null;const cps=()=>Math.max(5,Math.min(60,(TTS.cps||14)*ttsRate()));
@@ -10501,10 +10520,11 @@ function ttsFrom(wi){
  setTimeout(()=>next(wi),60);
 }
 /* B85: pause, resume and restarts carry on from the word the voice had reached; the highlight runs a few words ahead of it, and resuming from the highlight skipped those words */
-const ttsPos=()=>{const p=TTS.sp;return(p!=null&&p>=0&&p<=TTS.wi&&TTS.wi-p<=8)?p:TTS.wi};
+/* smart rewind: after a pause of over 30 s, resume from the start of the sentence; over 5 min, one sentence earlier; over an hour, two */
+const ttsPos=()=>{const p=TTS.sp;let wi=(p!=null&&p>=0&&p<=TTS.wi&&TTS.wi-p<=8)?p:TTS.wi;const g=TTS.paused&&TTS.pt?Date.now()-TTS.pt:0,st=TTS.sent||[];if(g>3e4&&st.length){let k=0;for(let i=0;i<st.length;i++)if(st[i]<=wi)k=i;wi=st[Math.max(0,k-(g>36e5?2:g>3e5?1:0))]}return wi};
 function ttsResetTiming(){delete S.tnbv;delete S.tnbt;delete S.tcps;TTS.nb=0;TTS.cps=null;TTS.lag=null;save();toast('Voice timing reset')}
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#vtreset'))ttsResetTiming()});
-function ttsPause(){TTS.paused=true;TTS.id++;clearInterval(TTS.timer);try{speechSynthesis.cancel()}catch(e){}raBtn();mediaOff();fpSync()}
+function ttsPause(){TTS.paused=true;TTS.pt=Date.now();TTS.id++;clearInterval(TTS.timer);try{speechSynthesis.cancel()}catch(e){}raBtn();mediaOff();fpSync()}
 function ttsStop(){document.documentElement.classList.remove('ttssm');R.queueRun=false;TTS.on=false;TTS.paused=false;TTS.id++;TTS.words=[];TTS.sent=[];clearInterval(TTS.timer);try{speechSynthesis.cancel()}catch(e){}try{CSS.highlights.delete('tts');CSS.highlights.delete('tts-s')}catch(e){}raBtn();mediaOff(true);fpSync()}
 function ttsStartWord(){
  const c=$('.cols'),w=TTS.words;if(!c||!w.length)return 0;
@@ -10581,7 +10601,9 @@ function rdAnchorRestore(){const A=RDANC;if(!A||A.sel!==S.sel)return;const m=$('
 function patchProg(a){const p=progOf(a.link);document.querySelectorAll('#grid .card[data-href]').forEach(c=>{if(c.dataset.href!==a.link)return;let g=c.querySelector(':scope>.prg');if(!p){if(g)g.remove();return}if(!g){g=document.createElement('span');g.className='prg';g.appendChild(document.createElement('span'));const t=c.querySelector(':scope>.tx');c.insertBefore(g,t||null)}g.firstElementChild.style.width=Math.round(p*100)+'%'})}
 const set=$('#set');
 /* a site can have its own voice and speed (feed settings) for its stories */
-const ttsFeed=()=>(typeof curA!=='undefined'&&curA&&curA.feedId&&S.feeds.find(f=>f.id===curA.feedId))||{},ttsRate=()=>+(ttsFeed().rate||S.rate)||1;
+const ttsFeed=()=>(typeof curA!=='undefined'&&curA&&curA.feedId&&S.feeds.find(f=>f.id===curA.feedId))||{},ttsRate=()=>{const a=(typeof curA!=='undefined'&&curA)||TTS.art,b=a&&a.book&&(S.bkrate||{})[a.book];return +(b||ttsFeed().rate||S.rate)||1};
+/* a speed picked while a book plays is kept for that book; a site with its own speed keeps its own; otherwise it's the everyday speed */
+function rateSet(v){const a=(typeof curA!=='undefined'&&curA)||TTS.art,f=ttsFeed();if(a&&a.book){S.bkrate=S.bkrate||{};S.bkrate[a.book]=v}else if(f.rate)f.rate=v;else S.rate=v}
 /* Read You borrow: the story's own words pick the voice language (a French site in an English voice is unlistenable). Counts very common short words of each language; stays quiet unless one language clearly wins. */
 const LANGW={en:'the and of to in that is for with was on are as it this be by',es:'el la de que y en los del las por con una para es se no su al lo como',fr:'le la de et les des en un une du que est pour dans qui pas sur au plus ce',de:'der die und in den von zu das mit sich des auf für ist im dem nicht ein eine',it:'di che il la e per un una non in del con sono le della si al da come',pt:'de que o a e do da em um para com não uma os no se na por mais as',nl:'de het een en van in is dat op te zijn met voor niet aan er ook als'};
 const LANGS=Object.fromEntries(Object.entries(LANGW).map(([k,v])=>[k,new Set(v.split(' '))]));
@@ -14168,7 +14190,7 @@ function autoRd(on){
 ['pointerdown','keydown','wheel'].forEach(ev=>document.addEventListener(ev,e=>{if(AUTO.on&&e.target.closest&&e.target.closest('#rd')&&!e.target.closest('#afx,#fau'))autoRd(false)},{capture:true,passive:true}));
 /* Slower / Faster while hands-free reading runs: 0.5x to 3x of your reading speed, remembered separately for scrolling (S.afxs) and page turns (S.afxp) */
 $('#afx').addEventListener('click',e=>{const b=e.target.closest('[data-afx]');if(!b)return;if(b.dataset.afx==='p')return ttsToggle();if(b.dataset.afx==='k')return ttsSkipPara(-1);const d=+b.dataset.afx;
- if(e.currentTarget.dataset.m==='tts'){if(!d)return ttsStop();const f=ttsFeed(),v=Math.min(2,Math.max(.6,Math.round((ttsRate()+d*.1)*10)/10));if(f.rate)f.rate=v;else S.rate=v;save();e.currentTarget.querySelector('span').textContent=v.toFixed(1)+'\u00d7';{const r=$('#rate'),rv=$('#ratev');if(r)r.value=S.rate;if(rv)rv.value=(+S.rate||1).toFixed(1)+'\u00d7'}ttsApplyLater();try{tminiSync()}catch(x){}return}
+ if(e.currentTarget.dataset.m==='tts'){if(!d)return ttsStop();const f=ttsFeed(),v=Math.min(2,Math.max(.6,Math.round((ttsRate()+d*.1)*10)/10));rateSet(v);save();e.currentTarget.querySelector('span').textContent=v.toFixed(1)+'\u00d7';{const r=$('#rate'),rv=$('#ratev');if(r)r.value=S.rate;if(rv)rv.value=(+S.rate||1).toFixed(1)+'\u00d7'}ttsApplyLater();try{tminiSync()}catch(x){}return}
  if(!d)return autoRd(false);
  const k=AUTO.k;S[k]=Math.min(3,Math.max(.5,Math.round(((S[k]||1)+d*.25)*4)/4));save();$('#afx span').textContent=S[k]+'\u00d7';if(AUTO.re){clearTimeout(AUTO.t);AUTO.re()}});
 /* keep the reader's place when the window changes shape (fold, rotate, split screen) */
@@ -16254,12 +16276,21 @@ function syncUpNext(){
  const sl=$('#slp');if(sl){sl.value=SLEEP.eos?'eos':SLEEP.t?String(SLEEP.min):'0'}const sm=$('#slpm');if(sm)sm.textContent=SLEEP.t?Math.max(1,Math.round((SLEEP.at-Date.now())/6e4))+' min left':SLEEP.eos?(curA&&curA.book?'Stops after this chapter':'Stops after this story'):'';{const o=sl&&sl.querySelector('[value=eos]');if(o)o.textContent=curA&&curA.book?'End of this chapter':'End of this story'}
 }
 /* B86: the page's own timer sleeps with the page when the screen is off, so the phone is also told the stop time (epoch ms): it stops the speech itself and tells the page */
-window.__ttsSleep=()=>{clearTimeout(SLEEP.t);SLEEP.t=0;SLEEP.at=0;try{ttsPause()}catch(e){}epPause();try{mediaOff()}catch(e){}try{syncUpNext()}catch(e){}toast('Sleep timer: stopped')};
+window.__ttsSleep=()=>sleepStop();
+/* the voice fades down over the last 45 s; shaking the phone adds 10 minutes (or, up to 5 minutes after it stopped, plays 10 more); at bedtime (S.bed, an hour) pressing play starts a 30-minute timer */
+function sleepStop(){clearTimeout(SLEEP.t);(SLEEP.fd||[]).forEach(clearTimeout);SLEEP.t=0;SLEEP.at=0;try{ttsPause()}catch(e){}TTS.vf=1;epPause();try{mediaOff()}catch(e){}SLEEP.end=Date.now();setTimeout(()=>{if(!SLEEP.t)sleepShake(false)},3e5);try{syncUpNext()}catch(e){}toast('Sleep timer: stopped. Shake the phone to keep listening')}
+function sleepVol(v){TTS.vf=v;if(TTS.on&&!TTS.paused)ttsFrom(ttsPos())}
+function sleepArm(){clearTimeout(SLEEP.t);(SLEEP.fd||[]).forEach(clearTimeout);if((TTS.vf||1)<1)sleepVol(1);const ms=SLEEP.at-Date.now();SLEEP.t=setTimeout(sleepStop,ms);SLEEP.fd=[[45,.55],[20,.25]].filter(x=>ms>x[0]*1e3+5e3).map(([sc,v])=>setTimeout(()=>sleepVol(v),ms-sc*1e3));sleepNative(SLEEP.at);sleepShake(true)}
+function sleepMore(){const now=Date.now();if(SLEEP.t){SLEEP.at+=6e5;sleepArm();toast('Sleep timer: 10 more minutes')}else if(SLEEP.end&&now-SLEEP.end<3e5&&TTS.on&&TTS.paused){SLEEP.at=now+6e5;sleepArm();ttsFrom(ttsPos());toast('Playing 10 more minutes')}else return;try{navigator.vibrate&&navigator.vibrate(40)}catch(e){}syncUpNext()}
+function sleepShake(on){const h=sleepShake.h||(sleepShake.h=e=>{const a=e.acceleration,b=e.accelerationIncludingGravity;let g=0;if(a&&a.x!=null)g=Math.hypot(a.x,a.y||0,a.z||0);else if(b&&b.x!=null)g=Math.abs(Math.hypot(b.x,b.y||0,b.z||0)-9.81);if(g<13)return;const t=Date.now(),k=sleepShake;if(t-(k.l||0)<150)return;k.l=t;if(t-(k.t||0)>1200){k.t=t;k.n=1;return}if(++k.n>=3){k.t=0;sleepMore()}});
+ if(on&&!sleepShake.on){addEventListener('devicemotion',h);sleepShake.on=1}else if(!on&&sleepShake.on){removeEventListener('devicemotion',h);sleepShake.on=0}}
+function sleepAuto(){const b=+S.bed||0,h=new Date().getHours();if(!b||SLEEP.t||SLEEP.eos||Date.now()-(SLEEP.off||0)<3*36e5||!(h>=b||h<5))return;setSleep('30');toast('Bedtime: sleep timer set for 30 minutes')}
 function sleepNative(at){try{const x=CyX();if(x&&x.ttsSleepAt&&nFeat('ttsSleep'))Promise.resolve(x.ttsSleepAt({stopAt:at||0})).catch(()=>{})}catch(e){}}
 function setSleep(v){
- clearTimeout(SLEEP.t);SLEEP.t=0;SLEEP.eos=false;sleepNative(0);
+ clearTimeout(SLEEP.t);(SLEEP.fd||[]).forEach(clearTimeout);SLEEP.t=0;SLEEP.eos=false;sleepNative(0);sleepShake(false);if((TTS.vf||1)<1)sleepVol(1);
+ if(String(v)==='0')SLEEP.off=Date.now();
  if(v==='eos'){SLEEP.eos=true;toast('Will stop at the end of this '+((curA||TTS.art||{}).book?'chapter':'story'))}
- else if(+v>0){SLEEP.min=+v;SLEEP.at=Date.now()+v*6e4;SLEEP.t=setTimeout(()=>{SLEEP.t=0;ttsPause();epPause();mediaOff();toast('Sleep timer: stopped')},v*6e4);toast('Sleep timer: '+v+' min');sleepNative(SLEEP.at)}
+ else if(+v>0){SLEEP.min=+v;SLEEP.at=Date.now()+v*6e4;sleepArm();toast('Sleep timer: '+v+' min. Shake the phone for 10 more')}
  syncUpNext();
 }
 setInterval(()=>{if(SLEEP.t&&!document.hidden)syncUpNext()},30000);
@@ -17904,6 +17935,8 @@ const BKBM='<path d="M7 4h10v16l-5-4-5 4z"/>';
 function bkBmIdx(){const a=curA;if(!a||!a.book||!R.ready)return -1;const L=(S.bkmk||{})[a.book]||[],f=rdFrac()||0,E=R.ep!=null?R.ep:R.np-1,tol=!isVert()&&E>0?.5/E:.02;return L.findIndex(x=>x.c===a.n&&Math.abs(x.f-f)<tol)}
 function bkBmSync(){const b=$('#st');if(!b||!curA||!curA.book)return;const on=bkBmIdx()>=0,o=b.querySelector('svg');if(o)o.outerHTML=svg(BKBM,on);b.setAttribute('aria-pressed',on)}
 function bkBm(){const a=curA;if(!a||!a.book||!R.ready)return;S.bkmk=S.bkmk||{};const L=S.bkmk[a.book]=S.bkmk[a.book]||[],i=bkBmIdx();if(i>=0)L.splice(i,1);else{L.push({c:a.n,f:Math.round((rdFrac()||0)*1e4)/1e4,t:a.title});L.sort((x,y)=>x.c-y.c||x.f-y.f)}save();bkBmSync();try{rdxMnSync()}catch(e){}toast(i>=0?'Bookmark removed':'Bookmarked')}
+/* the player's bookmark: the spot the voice has reached, so it works with the screen showing the player or the book closed */
+function tdrBm(){const a=TTS.art;if(!a||!a.book||!TTS.words.length)return;const f=Math.round((TTS.sp!=null?TTS.sp:TTS.wi)/TTS.words.length*1e4)/1e4;S.bkmk=S.bkmk||{};const L=S.bkmk[a.book]=S.bkmk[a.book]||[];if(L.some(x=>x.c===a.n&&Math.abs(x.f-f)<.01))return toast('This spot is already bookmarked');L.push({c:a.n,f,t:a.title});L.sort((x,y)=>x.c-y.c||x.f-y.f);save();try{bkBmSync()}catch(e){}toast('Bookmarked: '+bkCh(a.title)+', '+Math.round(f*100)+'% in')}
 function bkOpen(b,n){R.ctx=b.ch.map((_,i)=>bkArt(b,i));R.keepCtx=true;openReader(R.ctx[n])}
 const bkSz=n=>n<1e6?Math.max(1,Math.round(n/1e3))+' KB':(n/1e6).toFixed(1).replace(/\.0$/,'')+' MB';
 /* books added before sizes were kept: add up chapters + pictures once, then remember it */

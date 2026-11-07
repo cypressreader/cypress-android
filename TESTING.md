@@ -1544,3 +1544,12 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - [ ] Book Listen with the reader closed (screen off, pocket): at the end of a chapter it goes on to the next one instead of stopping. Lock-screen next button = next chapter.
 - [ ] Running heads on the Fold open (two pages): book title at top left, chapter at top right, small italic, above the page; hidden on a chapter's first page. Phone/closed: chapter name only, centered. Page turns don't jump or re-flow.
 - [ ] Running heads (follow-up): chapter name only, centered, on both the Fold and the phone; the book title shows only in the top bar.
+
+## Book listening 1-7 (branch claude/book-prototype-handoff-z8iwem, 2026-11-07), implemented, unverified on phone
+- Player (tap the mini player while a book reads aloud): the list below shows the book's chapters, checks on finished ones; tapping one jumps there and keeps reading, with the screen off too.
+- Under the chapter name: "13 h 31 min left in the book" (adds "at 1.5×" when sped up).
+- Pause 1+ min, then resume: starts at the start of the sentence (5+ min: one sentence back; 1+ hr: two).
+- After a chapter tap, Next chapter or a scrubber drag: "Go back to Chapter X, N% in" button returns there (last 5).
+- Bookmark button (top of player) saves the spot the voice is at; shows in Contents > Bookmarks.
+- Speed picked while a book plays stays with that book; news stories keep the everyday speed.
+- Sleep timer: voice fades in the last 45 s (screen on); shaking the phone adds 10 min, or within 5 min after it stopped plays 10 more. Auto sleep timer "After 10 pm": pressing play late starts a 30-min timer. Check shake sensitivity (not too easy in a pocket/bed).
