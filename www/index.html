@@ -17677,6 +17677,9 @@ async function bkFront(b){
  g._bk=b;
 }
 async function bkAdd(f){
+ const bx=(f.name.match(/\.([a-z0-9]+)$/i)||[])[1]||'';/* say which formats work, instead of a blank "couldn’t be opened" */
+ if(/^(mobi|azw|azw3|kfx|prc)$/i.test(bx)){toast('CyPress can’t open Kindle books. Save the book as an EPUB file and add that instead.');return}
+ if(/^(pdf|cbz|cbr|djvu|docx?|rtf)$/i.test(bx)){toast('CyPress opens EPUB books, and plain text or Markdown files.');return}
  if(S.sel!=='books'){if($('#rd').classList.contains('on'))closeRd();S.sel='books';save();render()}
  const g=$('#grid');if(g)g.innerHTML='<div class="empty" role="status">Opening '+esc(f.name)+'…</div>';
  try{const b=await (/\.(txt|md|markdown)$/i.test(f.name)||/^text\//.test(f.type)?bkImportText(f):bkImport(f));try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}S.bkv=b.id;toast('Added '+b.title);renderBooks()}
