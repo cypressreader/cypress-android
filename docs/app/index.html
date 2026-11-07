@@ -3678,6 +3678,8 @@ html.dkart .sun-m small,html.dkart .sun-t small{color:var(--brass)}
 .dexp{grid-column:1/-1;margin:0 0 10px}
 .rkg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}.rkg>.hint,.rkg>.rkm{grid-column:1/-1}.rkm{margin:10px 0 0;font:italic 400 22px var(--disp,var(--serif))}
 .rk{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-height:210px;padding:14px 12px;border-radius:6px;background:linear-gradient(170deg,#12432f,#0b2119);color:#f3ead6;box-shadow:0 0 0 2px #0f5a3b,0 6px 14px rgba(0,0,0,.25);outline-offset:3px}
+.rk>img{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:3px}
+#bknote .bkn{max-height:50vh;overflow:auto;margin:8px 0 12px;font:16px/1.5 var(--serif)}#bknote .bkn>*{margin:0}
 .rk:focus-visible{outline:2px solid var(--logo)}.rk-m{font:400 15px var(--disp,var(--serif));letter-spacing:.3em;text-align:center}.rk-e{font:700 8px var(--sans);letter-spacing:.12em;text-transform:uppercase;text-align:center;color:#d1ad55}
 .rk b{margin-top:auto;font:400 17px/1.1 var(--disp,var(--serif));display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden}.rk small{font:600 10px var(--sans);opacity:.8}
 .rki h2{margin:12px 0 2px;font:400 32px var(--disp,var(--serif))}.rki ol{list-style:none;margin:16px 0 0;padding:0}.rki li{border-top:1px solid var(--ln)}
@@ -8818,7 +8820,7 @@ function show(){
  if(!isVert())c.style.transform=`translateX(${-R.pg*R.step}px)`;
  if(RP&&!R.T&&RP.T.key!==prepKey())prepSoon();
  $('#pc').textContent=pcText();{const bk=$('.book');if(bk){if(isOn('folio')&&curA&&!R.web&&!isVert()&&R.np>0){const t=(curA.title||'').length>46?curA.title.slice(0,44)+'…':(curA.title||'');bk.dataset.folio=(DPOS||fof(curA).title||'')+' · '+t+'   ·   '+(R.pg+1)}else delete bk.dataset.folio}}$('#pv').disabled=!isVert()&&R.pg===0;$('#nx').disabled=!isVert()&&R.pg>=R.np-1;fpSync();dialSync();rdxEdge();
- if(R.ready&&curA){if(curA.book){bkMark(curA.book,curA.n,rdFrac()||0);bkBmSync()}delete S.pos[curA.link];if(R.pg>0&&R.pg<R.np-1)S.pos[curA.link]=R.pg;const pk=Object.keys(S.pos);if(pk.length>300)delete S.pos[pk[0]];clearTimeout(pt);pt=setTimeout(save,700)}
+ if(R.ready&&curA){if(curA.book){bkMark(curA.book,curA.n,rdFrac()||0);bkBmSync();if(curA.n===curA.of-1&&R.pg>=R.np-1){S.bkdone=S.bkdone||{};if(!S.bkdone[curA.book])S.bkdone[curA.book]=Date.now()}}delete S.pos[curA.link];if(R.pg>0&&R.pg<R.np-1)S.pos[curA.link]=R.pg;const pk=Object.keys(S.pos);if(pk.length>300)delete S.pos[pk[0]];clearTimeout(pt);pt=setTimeout(save,700)}
 }
 const ePage=p=>(1-Math.pow(1-p,3))*(.55+.45*Math.min(1,p/.3));
 /* turning back starts with the curl already tight, so it needs a gentle start (the forward turn's fast start would look abrupt) */
@@ -12201,7 +12203,7 @@ function mnMarkup(){
  return `<div class="rshbd" id="mnbd" hidden></div><div class="rsh" id="mn" role="dialog" aria-modal="true" aria-labelledby="mnh" hidden><span class="rshg" aria-hidden="true"></span><h2 class="rshh" id="mnh">Story options</h2>`
   +`<div class="rshq">${a&&a.book?q('save',BKBM,sv?'Bookmarked':'Bookmark',` aria-pressed="${sv}"`):q('save',STAR,sv?'Saved':'Save',` aria-pressed="${sv}"`)}${q('share',RDX_SHR,'Share')}${tts?q('listen',SPK,'Listen'):''}${q('aa',RDX_AA,'Text',' aria-haspopup="dialog" aria-label="Text and appearance"')}</div>`
   +(tts?`<div class="rshl"><div class="rshp">${fold('lst','Listening options',RIC.auto)}${row('auto','Hands-free reading',' hidden data-fg="lst"')}${row('rp','Playback settings',' hidden data-fg="lst"')}</div></div>`:'')
-  +grp('mng1','This story',`<div class="rshp">${row('hub','Full coverage')}${row('find','Find in story')}</div>${row('jump','Jump to section',' hidden')}${row('upnext','Add to Up Next')}${row('tr','Translate story')}${a&&a.cm?row('comments',cmLabel(a.cm)==='Comments'?'Comments on the site':cmLabel(a.cm)):''}`)
+  +grp('mng1',a&&a.book?'This chapter':'This story',`<div class="rshp">${row('hub','Full coverage')}${row('find',a&&a.book?'Find in chapter':'Find in story')}</div>${row('jump','Jump to section',' hidden')}${row('upnext','Add to Up Next')}${row('tr','Translate story')}${a&&a.cm?row('comments',cmLabel(a.cm)==='Comments'?'Comments on the site':cmLabel(a.cm)):''}`)
   +grp('mng2','Open or send',`${row('web','Site view in the app')}${fold('snd','Send to…',RIC.browser)}${row('browser','Browser',' hidden data-fg="snd"')}${row('pdf','PDF',' data-exact hidden data-fg="snd"')}${row('kindle','Kindle',' data-exact hidden data-fg="snd"')}${row('md','Markdown file',' data-exact hidden data-fg="snd"')}${row('shimg','Share as picture')}`)
   +grp('mng3',esc(site||'This site'),`${fl?row('follow','Follow '+esc(site),' class="rfol"'):''}${a&&a.by&&!hasBy(a.by)?row('fby','Follow '+esc(a.by)):''}${row('unread','Mark as unread')}${fold('wrg','Something wrong?',RIC.rpt)}${row('junk','Hide text',' hidden data-fg="wrg"')}${row('rpt','Report a problem',' hidden data-fg="wrg"')}`)
   +`<div class="rshr" role="group" aria-label="Rate this story"><button type="button" class="thb${v>0?' on':''}" data-rate="1" aria-pressed="${v>0}">${svg(TH_UP)}<span>More like this</span></button><button type="button" class="thb${v<0?' on':''}" data-rate="-1" aria-pressed="${v<0}">${svg(TH_DN)}<span>Less like this</span></button></div></div>`;
@@ -15976,7 +15978,7 @@ function renderStats(){
  $('#grid').innerHTML=`<div class="stats">
  <div class="shead"><h2>Your reading</h2><button class="go" data-yir>Your ${new Date().getFullYear()} so far</button></div>
  ${empty?'<p class="hint">Open a few stories and your stats will start filling in.</p>':''}
- <div class="tiles"><div class="tile"><b>${wn?fmtMin(wm):'0 min'}</b><small>read this week</small></div><div class="tile"><b>${wn}</b><small>stories opened</small></div><div class="tile"><b>${wf}</b><small>read to the end</small></div><div class="tile"><b>${sk.cur}<span>${sk.cur===1?' day':' days'}</span></b><small>streak · best ${sk.best}</small></div></div>
+ <div class="tiles"><div class="tile"><b>${wn?fmtMin(wm):'0 min'}</b><small>read this week</small></div><div class="tile"><b>${wn}</b><small>stories opened</small></div><div class="tile"><b>${wf}</b><small>read to the end</small></div>${S.bkn||S.bkdone?`<div class="tile"><b>${Object.keys(S.bkdone||{}).length}</b><small>${Object.keys(S.bkdone||{}).length===1?'book':'books'} finished</small></div>`:''}<div class="tile"><b>${sk.cur}<span>${sk.cur===1?' day':' days'}</span></b><small>streak · best ${sk.best}</small></div></div>
  <div class="sgc"><h3>Minutes each day</h3><div class="sbars">${days.map(x=>bar(x.v.m,mx,x.d.toLocaleDateString([],{weekday:'short'}),`${x.d.toLocaleDateString([],{weekday:'long'})}: ${fmtMin(x.v.m)}, ${plu(x.v.n,'story','stories')}`)).join('')}</div></div>
  <div class="scols"><div class="sgc"><h3>Top sites</h3>${src.map(([n,v])=>hbar(n,v,smx)).join('')||'<p class="hint">Nothing yet.</p>'}</div>
  <div class="sgc"><h3>Top topics</h3>${tp.map(([n,v])=>hbar(n,v,tmx)).join('')||`<p class="hint">${(S.folders||[]).length?'Topics appear after you read a few stories.':'Put sites in folders to see topics.'}</p>`}</div></div>
@@ -17586,13 +17588,33 @@ async function bkImport(f){
  if(!chs.length)throw Error('No readable chapters were found in this book.');
  const ib=[];for(const p of imgs){const b=await zipGet(f,m,p);if(b){const mt=[...man.values()].find(x=>x.href===p);ib.push([p,new Blob([b],{type:(mt&&mt.type)||''})])}}
  const bk={id,title,author,lang,ch:chs,words:chs.reduce((s,c)=>s+c.w,0),cover:cov&&ib.some(x=>x[0]===cov.href)?cov.href:'',added:Date.now(),ms:0};
- const db=await bkDb();await new Promise((res,rej)=>{const tx=db.transaction(['books','ch','img'],'readwrite');tx.objectStore('books').put(bk);html.forEach((h,i)=>tx.objectStore('ch').put(h,id+'/'+i));ib.forEach(([p,b])=>tx.objectStore('img').put(b,id+'/'+p));tx.oncomplete=res;tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error||Error('Not enough room on this device for this book.'))});
+ return bkStore(bk,html,ib,t0);
+}
+async function bkStore(bk,html,ib,t0){const id=bk.id,db=await bkDb();await new Promise((res,rej)=>{const tx=db.transaction(['books','ch','img'],'readwrite');tx.objectStore('books').put(bk);html.forEach((h,i)=>tx.objectStore('ch').put(h,id+'/'+i));ib.forEach(([p,b])=>tx.objectStore('img').put(b,id+'/'+p));tx.oncomplete=res;tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error||Error('Not enough room on this device for this book.'))});
  bk.ms=Math.round(performance.now()-t0);try{const tx=db.transaction('books','readwrite');tx.objectStore('books').put(bk)}catch(e){}
  return bk;
+}
+/* a plain text or Markdown file becomes a book too: chapters start at "Chapter ..." lines (text) or # headings (Markdown), long stretches split at about 7,000 words */
+async function bkImportText(f){
+ if(f.size>30e6)throw Error('That text file is too big to open as a book.');
+ const t0=performance.now(),raw=(await f.text()).replace(/\r\n?/g,'\n'),md=/\.(md|markdown)$/i.test(f.name)||/markdown/.test(f.type);
+ const name=f.name.replace(/\.[^.]+$/,'').replace(/_+/g,' ').trim()||'Untitled';
+ const hd=l=>md?((l.match(/^#{1,3}\s+(.+?)\s*#*$/)||[])[1]||''):(/^\s*(chapter|part|book|prologue|epilogue)\b.{0,40}$/i.test(l)?l.trim():'');
+ const inl=x=>esc(x).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(^|[\s(])[*_]([^*_]+)[*_](?=[\s).,;:!?]|$)/g,'$1<i>$2</i>');
+ const chs=[],html=[];let c=null,para=[];
+ const open=(t,k=1)=>{c={t0:t,k,t:k>1?t+', part '+k:t,h:[],w:0}},close=()=>{if(c&&c.w){chs.push({t:c.t,w:c.w,p:''});html.push(c.h.join(''))}c=null};
+ const flush=()=>{const tx=para.join(' ').trim();para=[];if(!tx)return;if(!c)open(name);c.h.push('<p>'+inl(tx)+'</p>');c.w+=(tx.match(/\S+/g)||[]).length;if(c.w>=7000){const t=c.t0,k=c.k+1;close();open(t,k)}};
+ for(const l of raw.split('\n')){const h=hd(l);if(h){flush();close();open(h);continue}if(!l.trim()){flush();continue}para.push(md?l.replace(/^\s*[-*+]\s+/,'• ').replace(/^\s*>\s?/,'').trim():l.trim())}
+ flush();close();
+ if(!chs.length)throw Error('No readable chapters were found in this book.');
+ const id='t'+[...(name+'|'+f.size)].reduce((h,c)=>Math.imul(h^c.charCodeAt(0),16777619)>>>0,2166136261).toString(36);
+ return bkStore({id,title:name,author:'',lang:'',ch:chs,words:chs.reduce((n,x)=>n+x.w,0),cover:'',added:Date.now(),ms:0},html,[],t0);
 }
 const BKU=[];/* picture addresses of the open chapter, let go when the next one opens */
 async function bkHtml(a){
  BKU.splice(0).forEach(u=>URL.revokeObjectURL(u));
+ /* opened from Highlights, Saved or History: the next chapter still follows */
+ if(!(R.ctx||[]).length||!R.ctx.every(x=>x.book===a.book)){const b=await bkGet('books',a.book);if(b)R.ctx=b.ch.map((_,i)=>bkArt(b,i))}
  let h=null;try{h=await bkGet('ch',a.book+'/'+a.n)}catch(e){}
  if(h==null)return '<p>This chapter isn’t on this device any more. Open the book file again from Books.</p>';
  {const bp=(S.bkpos||{})[a.book];R.rf=bp&&bp.c===a.n&&bp.f>0?bp.f:null;bkMark(a.book,a.n,R.rf||0)}
@@ -17621,12 +17643,13 @@ function renderBooks(){
  $('#ttl').textContent='Books';cur=[];const g=$('#grid');
  const add='<button type="button" class="go" data-bkadd>Open a book file</button>';
  g.innerHTML='<div class="empty">Opening your books…</div>';
- bkAll().then(l=>{
+ bkAll().then(async l=>{
   if(S.sel!=='books')return;if(S.bkn!==l.length){S.bkn=l.length;saveSoon();side()}
   if(S.bkv){const b=l.find(x=>x.id===S.bkv);if(b)return bkFront(b);S.bkv=''}
-  if(!l.length){g.innerHTML=emp('No books yet','Open a DRM-free book file (EPUB) from this device and read it here, one chapter at a time. Books bought from the Kindle, Apple or Kobo stores are locked to their own apps.',add);return}
+  if(!l.length){g.innerHTML=emp('No books yet','Open a DRM-free book file (EPUB), or a plain text or Markdown file, from this device and read it here, one chapter at a time. Books bought from the Kindle, Apple or Kobo stores are locked to their own apps.',add);return}
   l.sort((a,b)=>b.added-a.added);
-  g.innerHTML='<div class="rkg"><p class="hint rkh">'+plu(l.length,'book','books')+' on this device. '+add+'</p>'+l.map(b=>`<button type="button" class="rk" data-bk="${esc(b.id)}" aria-label="${esc(b.title+(b.author?', by '+b.author:''))}"><span class="rk-m">BOOK</span><span class="rk-e">${esc(b.author||'')}</span><b>${esc(b.title)}</b><small>${plu(b.ch.length,'chapter','chapters')} · ${bkLen(b.words)}</small></button>`).join('')+'</div>';
+  const us=await Promise.all(l.map(b=>b.cover?bkGet('img',b.id+'/'+b.cover).then(x=>{if(!x)return '';const u=URL.createObjectURL(x);BKU.push(u);return u}).catch(()=>''):''));if(S.sel!=='books')return;
+  g.innerHTML='<div class="rkg"><p class="hint rkh">'+plu(l.length,'book','books')+' on this device. '+add+'</p>'+l.map((b,i)=>`<button type="button" class="rk" data-bk="${esc(b.id)}" aria-label="${esc(b.title+(b.author?', by '+b.author:''))}">${us[i]?`<img alt="" src="${us[i]}">`:`<span class="rk-m">BOOK</span><span class="rk-e">${esc(b.author||'')}</span>`}<b>${esc(b.title)}</b><small>${plu(b.ch.length,'chapter','chapters')} · ${bkLen(b.words)}</small></button>`).join('')+'</div>';
  }).catch(()=>{g.innerHTML=emp('Books can’t open here','This browser won’t let the app keep books on this device.','')});
 }
 async function bkFront(b){
@@ -17638,20 +17661,32 @@ async function bkFront(b){
 async function bkAdd(f){
  if(S.sel!=='books'){if($('#rd').classList.contains('on'))closeRd();S.sel='books';save();render()}
  const g=$('#grid');if(g)g.innerHTML='<div class="empty" role="status">Opening '+esc(f.name)+'…</div>';
- try{const b=await bkImport(f);try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}S.bkv=b.id;toast('Added '+b.title);renderBooks()}
- catch(e){toast(e&&e.message==='drm'?'This book is locked (DRM) to the store that sold it, so CyPress can’t open it.':(e&&/EPUB|chapters|room/.test(e.message)?e.message:'That book file couldn’t be opened.'));renderBooks()}
+ try{const b=await (/\.(txt|md|markdown)$/i.test(f.name)||/^text\//.test(f.type)?bkImportText(f):bkImport(f));try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}S.bkv=b.id;toast('Added '+b.title);renderBooks()}
+ catch(e){toast(e&&e.message==='drm'?'This book is locked (DRM) to the store that sold it, so CyPress can’t open it.':(e&&/EPUB|chapters|room|too big/.test(e.message)?e.message:'That book file couldn’t be opened.'));renderBooks()}
 }
-function bkPick(){const i=document.createElement('input');i.type='file';i.accept='.epub,application/epub+zip';i.onchange=()=>{const f=i.files&&i.files[0];if(f)bkAdd(f)};i.click()}
+function bkPick(){const i=document.createElement('input');i.type='file';i.accept='.epub,application/epub+zip,.txt,.md,.markdown,text/plain,text/markdown';i.onchange=()=>{const f=i.files&&i.files[0];if(f)bkAdd(f)};i.click()}
 /* Android 'Open with CyPress' on a book file: the app copies it into its own cache and hands over the path */
 async function bkFromPath(p){try{const r=await fetch(window.Capacitor.convertFileSrc(p));if(!r.ok)throw 0;bkAdd(new File([await r.blob()],'book.epub'))}catch(e){toast('That book file couldn’t be opened.')}}
 document.addEventListener('click',async e=>{
  const l=e.target.closest&&e.target.closest('.cols .body a[data-bkh]');if(!l||!curA||!curA.book)return;e.preventDefault();e.stopPropagation();
  const [p,f]=l.dataset.bkh.split('#'),b=await bkGet('books',curA.book);if(!b)return;
- const c=b.ch.map((x,i)=>x.p===p?i:-1).filter(i=>i>=0);if(!c.length)return;let n=c[0];
- if(f&&c.length>1)for(const i of c){const h=await bkGet('ch',b.id+'/'+i);if(h&&h.includes('id="bk-'+f+'"')){n=i;break}}
- if(curA.link!==bkArt(b,n).link){bkMark(b.id,n,0);R.ctx=b.ch.map((_,i)=>bkArt(b,i));R.keepCtx=true;await openReader(R.ctx[n])}
- const el=f&&document.getElementById('bk-'+f);if(!el||!el.closest('.cols'))return;
- if(isVert())el.scrollIntoView({block:'start'});else{const r=new Range();r.selectNode(el);const pg=findPage(r);if(pg>=0&&pg<R.np){R.pg=pg;R.navAt=Date.now();show()}}
+ const c=b.ch.map((x,i)=>x.p===p?i:-1).filter(i=>i>=0);if(!c.length)return;let n=c[0],h=null;
+ if(f)for(const i of c){const x=await bkGet('ch',b.id+'/'+i);if(x&&x.includes('id="bk-'+f+'"')){n=i;h=x;break}}
+ const go=async()=>{
+  if(curA.link!==bkArt(b,n).link){bkMark(b.id,n,0);R.ctx=b.ch.map((_,i)=>bkArt(b,i));R.keepCtx=true;await openReader(R.ctx[n])}
+  const el=f&&document.getElementById('bk-'+f);if(!el||!el.closest('.cols'))return;
+  if(isVert())el.scrollIntoView({block:'start'});else{const r=new Range();r.selectNode(el);const pg=findPage(r);if(pg>=0&&pg<R.np){R.pg=pg;R.navAt=Date.now();show()}}};
+ /* a note mark (1, *, †) shows its note in a small window over the page; "Go to the note" still jumps there */
+ if(h&&(/noteref/.test(l.getAttribute('epub:type')||'')||l.textContent.trim().length<=4)){
+  const t=document.createElement('template');t.innerHTML=h;let el=t.content.getElementById('bk-'+f);if(el&&!el.textContent.trim())el=el.parentElement;
+  if(el&&el.textContent.trim()){
+   el=el.cloneNode(true);el.querySelectorAll('a').forEach(x=>{if(/backlink/.test(x.getAttribute('epub:type')||'')||/^[\s↩↑⤴]*$/.test(x.textContent))x.remove();else x.replaceWith(...x.childNodes)});el.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));el.removeAttribute('id');
+   const d=document.createElement('dialog');d.id='bknote';d.setAttribute('aria-labelledby','bkn-t');
+   d.innerHTML='<h3 id="bkn-t">Note</h3><div class="bkn"></div><div class="row"><button type="button" class="tx2" data-g>Go to the note</button><button type="button" class="go" data-x>Close</button></div>';
+   d.querySelector('.bkn').append(el);document.body.append(d);d.addEventListener('keydown',e=>e.stopPropagation());
+   d.addEventListener('click',e=>{if(e.target.closest('[data-x]'))d.close();else if(e.target.closest('[data-g]')){d.close();go()}});d.addEventListener('close',()=>d.remove());
+   d.showModal();d.querySelector('[data-x]').focus();return}}
+ go();
 },true);
 document.addEventListener('click',async e=>{
  const g=$('#grid'),t=e.target.closest&&e.target.closest('[data-bk],[data-bkch],[data-bkadd],[data-bkdel]');if(!t||!g||S.sel!=='books')return;
