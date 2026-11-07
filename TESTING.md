@@ -1469,3 +1469,10 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - R4/F06: on the Fold and tablets, All Stories photos sit beside the text at 3:2 (no thin strips); the opening Daily photo on the Fold is 16:9.
 - F03: on the Daily cover, the three bottom-column headlines stop at three lines with "…"; the evening moon sits top right, clear of the site name.
 - F10: on 768-1024 tablets, Headlines rows in narrow columns put the photo on top instead of 2-3 words a line beside it.
+
+## Books prototype (phase 0, branch claude/book-prototype, preview slot `books`) — implemented, unverified on a phone
+- Settings > Downloads and Storage > Books (beta) On → "Books" appears in the side panel Library group.
+- Books > Open a book file → the Android file picker offers .epub files; a Standard Ebooks or Gutenberg EPUB imports and shows its cover, title, author and chapters.
+- A chapter opens instantly with no network (try in airplane mode); page turns feel the same as stories; the last page flows into the next chapter.
+- A very large book (War and Peace) imports without the app freezing or crashing on a low-end phone.
+- Remove this book clears it; Erase everything also removes books.
