@@ -1520,3 +1520,10 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Today's Chapter (1.277): after reading part of a book, The Daily shows the card after the front page; Read today's / Keep reading opens the right chapter; Hide from The Daily and the Bookshelf switch turn it off and on.
 - Magazine shortlist (branch, after 1.277): "Since this morning" rule draws itself when new stories arrive (not on reduce-motion); a story opening "LISBON —" shows Lisbon in the kicker; links in the text are small numbers with a Notes list at the end; tapping a number turns to Notes; Listen skips the numbers.
 - Three looks (branch): a long opinion piece or long story with no pictures opens with a centered italic headline and roman numerals at its breaks; a story with three or more pictures shows framed pictures with italic captions and no drop cap; ordinary reports look as before.
+
+## 1.278 reader looks (2026-11-07) — implemented, unverified on device
+- [ ] A photo-heavy story opens in the Gallery look: framed pictures, italic captions with a side rule, no big first letter
+- [ ] A long opinion piece or essay opens in the Essay look: centered italic title, Roman-numeral section breaks, no pull quotes
+- [ ] A story starting "CITY —" shows the city as a small line above the text
+- [ ] Links turn into small numbers; tapping one jumps to the Notes at the end; Listen doesn't read the numbers
+- [ ] The Daily: the gold line draws across "Since this morning" when new stories come in
