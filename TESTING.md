@@ -1498,3 +1498,9 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Open a comic or picture book: expect "This book has fixed pages, like a comic or picture book, and CyPress can't open that kind yet."
 - Rename a .mobi and try it: expect "CyPress can't open Kindle books. Save the book as an EPUB file and add that instead."
 - Open a PDF: expect "CyPress opens EPUB books, and plain text or Markdown files."
+
+## Books: quick page turns + new book page (2026-11-07, branch claude/book-prototype-handoff-azxnv9, implemented, unverified on phone)
+- In a book, tap the right edge 4 times quickly: each tap turns one page (no tap lost while the page is still curling). Same going back.
+- Swipe a page, then tap right away: the tap turns the next page (it used to be ignored for about a third of a second).
+- Drag a page halfway and let it fall back: it still settles back cleanly, no stuck page.
+- Book page: centered cover and title, author in small capitals, brass rule, a Continue card ("Continue: Chapter 2 · N min left in this chapter"), chapter list with "read" / "you are here" / minutes. Check in Halcyon light and dark and on the open Fold.

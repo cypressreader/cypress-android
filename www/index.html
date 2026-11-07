@@ -3682,8 +3682,14 @@ html.dkart .sun-m small,html.dkart .sun-t small{color:var(--brass)}
 #bknote .bkn{max-height:50vh;overflow:auto;margin:8px 0 12px;font:16px/1.5 var(--serif)}#bknote .bkn>*{margin:0}
 .rk:focus-visible{outline:2px solid var(--logo)}.rk-m{font:400 15px var(--disp,var(--serif));letter-spacing:.3em;text-align:center}.rk-e{font:700 8px var(--sans);letter-spacing:.12em;text-transform:uppercase;text-align:center;color:#d1ad55}
 .rk b{margin-top:auto;font:400 17px/1.1 var(--disp,var(--serif));display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden}.rk small{font:600 10px var(--sans);opacity:.8}
-.rki h2{margin:12px 0 2px;font:400 32px var(--disp,var(--serif))}.rki ol{list-style:none;margin:16px 0 0;padding:0}.rki li{border-top:1px solid var(--ln)}
-.rki li button{all:unset;cursor:pointer;display:block;width:100%;box-sizing:border-box;padding:12px 2px}.rki li b{display:block;font:400 18px/1.25 var(--serif,Georgia,serif)}.rki li small{color:var(--mut);font:12px var(--sans)}
+.rki{max-width:560px;margin:0 auto}.rkt{text-align:center}.rkt img{display:block;max-width:min(55%,220px);margin:14px auto 18px;border-radius:2px 5px 5px 2px;box-shadow:0 10px 28px rgba(0,0,0,.28)}
+.rki h2{margin:12px 0 6px;font:400 34px/1.05 var(--disp,var(--serif));text-wrap:balance}.rkby{margin:0;font:600 11px var(--sans);letter-spacing:.2em;text-transform:uppercase}.rkt .hint{margin:8px 0 0}
+.rkr{border:0;border-top:1px solid var(--logo);margin:22px 15%;height:0;overflow:visible;position:relative}.rkr::after{content:"";position:absolute;left:50%;top:-4px;width:7px;height:7px;background:var(--logo);transform:translateX(-50%) rotate(45deg)}
+.rki button.rkc{display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;border-radius:12px;padding:14px 18px;text-align:left}.rkc span{flex:1;min-width:0}.rkc b{display:block;font:400 19px/1.15 var(--disp,var(--serif));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rkc small{display:block;font:500 12px var(--sans);opacity:.75;margin-top:3px}.rkc i{font-style:normal;font-size:20px}
+.rkl{margin:26px 0 6px;font:600 10.5px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
+.rki ol{list-style:none;margin:0;padding:0}.rki li{border-bottom:1px dotted var(--ln)}
+.rki li button{all:unset;cursor:pointer;display:flex;align-items:baseline;gap:12px;width:100%;box-sizing:border-box;padding:10px 2px}.rki li b{flex:1;min-width:0;font:400 17px/1.3 var(--serif,Georgia,serif)}.rki li small{flex:none;color:var(--mut);font:12px var(--sans)}
+.rki li.done b{color:var(--mut)}.rki li.here b{font-weight:600}.rki li.here small{color:var(--logo);font-weight:600}.rki>.tx2:last-child{display:block;margin:22px auto 0}
 .rki li button:focus-visible{outline:2px solid var(--logo)}
 
 /* correction round, cluster 15: rotating covers, this day, story hub */
@@ -9014,6 +9020,8 @@ function endTurn(ok){
  const bk=$('.book');if(bk){edgeHide(bk,0);bk.style.perspectiveOrigin=''}
  R.busy=false;prepSoon();
 }
+/* a tap or swipe while a page is still turning lands that page at once and turns the next, so every tap counts (the turn itself keeps its speed) */
+const hurry=()=>{const T=R.T;if(T&&!T.warm&&T.ok!=null)endTurn(T.ok)};
 const reduced=()=>!!S.rmo||matchMedia('(prefers-reduced-motion:reduce)').matches;
 let ACX=null;
 function paperSound(){if(!isOn('tsound'))return;try{ACX=ACX||new (window.AudioContext||window.webkitAudioContext)();const c=ACX;if(c.state==='suspended')c.resume();
@@ -9044,14 +9052,14 @@ function rdxSlideEnd(d,ts){
  setTimeout(()=>{if(my===tok)c.style.transition='';R.busy=false;if(ok&&my===tok)turnTick()},260);
 }
 function go(d){
- R.navAt=Date.now();if(!R.fa&&!isVert()&&R.np>1){R.fa=1;$('#rd').classList.add('fauto')}/* R-10 */
+hurry();R.navAt=Date.now();if(!R.fa&&!isVert()&&R.np>1){R.fa=1;$('#rd').classList.add('fauto')}/* R-10 */
  if(R.busy&&R.T&&R.T.warm)endTurn(false);
  if(isVert()&&!R.web){vScrollBy(d);return}
  const to=R.pg+d;if(d>0&&to>=R.np&&!R.web&&!R.busy&&R.np>0&&isOn('cont')&&readerNext()){if(R.endArmed||curA.book){advanceNext();return}/* B3: a book flows into its next chapter on one tap, like a swipe */R.endArmed=true;rnHint(curA.book?'Turn the page again for the next chapter':'Turn the page again for the next story',readerNext());clearTimeout(R.endT);R.endT=setTimeout(()=>{R.endArmed=false},2600);return}
  if(R.web||R.busy||to<0||to>=R.np)return;
  if(reduced()){R.pg=to;show();return}
  if(rdxPturn()!=='paper'){rdxTurn(to);return}
- const T=startTurn(d);paperSound();
+ const T=startTurn(d);T.ok=true;paperSound();
  anim(T.ang,d>0?180:0,1280,eBack,()=>endTurn(true));
 }
 let D=null;
@@ -9064,7 +9072,7 @@ function turnRelease(cancel,ts){
  let ok=prog>90;if(flick>.4)ok=true;else if(flick<-.4)ok=false;
  const tgt=ok?(T.dir>0?180:0):(T.dir>0?0:180),rem=Math.abs(tgt-T.ang)/180;
  let dur=380+rem*820;if(ok&&flick>.4)dur*=Math.max(.75,1-flick*.1);
- R.noClick=true;setTimeout(()=>{R.noClick=false},350);
+ T.ok=ok;R.noClick=true;setTimeout(()=>{R.noClick=false},350);
  anim(T.ang,tgt,dur,eRel,()=>endTurn(ok));
 }
 let ALT='',RDY=null;
@@ -10974,6 +10982,7 @@ rdEl.addEventListener('pointerdown',e=>{
  if(e.pointerType==='mouse'||!e.isPrimary)return;
  const bk=e.target.closest('.book');
  if(bk&&R.busy&&R.T&&R.T.warm)endTurn(false);
+ if(bk){R.noClick=false;hurry()}/* a fresh touch is never the tail of the last swipe */
  if(!bk||R.web||R.busy||e.target.closest('button,input,select,summary,.web,.strip,.code,.tbl'))return;
  D={id:e.pointerId,x:e.clientX,y:e.clientY,act:false,s:[]};
 });
@@ -17683,7 +17692,8 @@ function renderBooks(){
 async function bkFront(b){
  const g=$('#grid'),at=bkAt(b);let cv='';
  if(b.cover){const x=await bkGet('img',b.id+'/'+b.cover);if(x){BKU.push(cv=URL.createObjectURL(x))}}
- g.innerHTML=`<div class="rki"><button type="button" class="tx2" data-bk="">All books</button>${cv?`<img src="${cv}" alt="" style="display:block;max-width:min(60%,240px);margin:12px 0">`:''}<h2>${esc(b.title)}</h2><p class="hint">${esc(b.author||'')}${b.author?' · ':''}${plu(b.ch.length,'chapter','chapters')} · ${bkLen(b.words)} · ${bkSz(await bkSize(b))} on this device</p><button type="button" class="go" data-bkch="${at||0}">${at!=null?'Continue: '+esc(b.ch[at]?b.ch[at].t:''):'Start reading'}</button><ol>${b.ch.map((c,i)=>`<li><button type="button" data-bkch="${i}"><b>${esc(c.t)}</b><small>${bkMin(c.w)} min</small></button></li>`).join('')}</ol><button type="button" class="tx2" data-bkdel>Remove this book</button></div>`;
+ const p=(S.bkpos||{})[b.id],f=at!=null&&p&&p.f||0,c=b.ch[at||0]||{t:'',w:0},left=bkMin(c.w*(1-f));
+ g.innerHTML=`<div class="rki"><button type="button" class="tx2" data-bk="">All books</button><div class="rkt">${cv?`<img src="${cv}" alt="">`:''}<h2>${esc(b.title)}</h2>${b.author?`<p class="rkby">${esc(b.author)}</p>`:''}<p class="hint">${plu(b.ch.length,'chapter','chapters')} · ${bkLen(b.words)} · ${bkSz(await bkSize(b))} on this device</p></div><hr class="rkr"><button type="button" class="go rkc" data-bkch="${at||0}"><span><b>${at!=null?'Continue: '+(/^([ivxlcdm]+|\d+)\.?$/i.test(c.t.trim())?'Chapter ':'')+esc(c.t):'Start reading'}</b><small>${at!=null?left+' min left in this chapter':esc(c.t)+' · '+bkMin(c.w)+' min'}</small></span><i aria-hidden="true">→</i></button><p class="rkl">In this book · ${plu(b.ch.length,'chapter','chapters')}</p><ol>${b.ch.map((x,i)=>`<li${at==null?'':i<at?' class="done"':i===at?' class="here"':''}><button type="button" data-bkch="${i}"><b>${esc(x.t)}</b><small>${at!=null&&i<at?'read':i===at?'you are here':bkMin(x.w)+' min'}</small></button></li>`).join('')}</ol><button type="button" class="tx2" data-bkdel>Remove this book</button></div>`;
  g._bk=b;
 }
 async function bkAdd(f){
