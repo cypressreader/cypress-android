@@ -1527,3 +1527,11 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - [ ] A story starting "CITY —" shows the city as a small line above the text
 - [ ] Links turn into small numbers; tapping one jumps to the Notes at the end; Listen doesn't read the numbers
 - [ ] The Daily: the gold line draws across "Since this morning" when new stories come in
+- [ ] (1.278 fix) Tapping the right side of a story page turns it forward with the full page-curl animation, every time (1.278 skipped it: a tap re-ran the theme and rebuilt the page)
+- [ ] (1.278 fix) Your theme and card style stay as you set them after tapping through a story
+
+## Big story alerts (2026-11-07) — implemented, unverified on device
+- [ ] Settings > Digest and Alerts shows "Big story alerts" (off by default); turning it on asks for notification permission if needed
+- [ ] When 3+ of your sites cover the same story within 2 hours, a notification arrives within about an hour: headline, "Big story · N of your sites are covering it: A, B and C"; tapping opens the story
+- [ ] A story 2 sites call "Breaking" / "Just in" also alerts; the same story never alerts twice; no more than 3 a day; nothing during quiet hours
+- [ ] Android Settings > Apps > CyPress > Notifications lists a "Big stories" category (pops up on screen by default)

@@ -162,6 +162,14 @@ public class CyBgWorker extends Worker {
         while (all.size() > MAX_TOTAL) all.remove(all.size() - 1);
         saveItems(dir, all);
 
+        JSONObject big = cfg.optJSONObject("big");
+        if (big != null && big.optBoolean("enabled", false) && !quiet) {
+            try {
+                doBig(ctx, all);
+            } catch (Throwable t) {
+                Log.w(TAG, "big stories failed: " + t);
+            }
+        }
         if (alertsOn && !quiet) {
             try {
                 doAlerts(ctx, dir, alerts, fresh, all, quietOn);
@@ -227,6 +235,90 @@ public class CyBgWorker extends Worker {
                 CyExtras.updateWidgets(ctx);
             }
         }
+    }
+
+    // ------------------------------------------------------------------ big stories
+
+    private static final long BIG_WINDOW_MS = 2L * 3600L * 1000L;
+    private static final int BIG_PER_DAY = 3;
+    private static final Set<String> BIG_STOP = new HashSet<String>(java.util.Arrays.asList(
+        "with from that this have will after over into about their they been were what when your more than them says said just also could would news".split(" ")));
+    private static final java.util.regex.Pattern BIG_BRK = java.util.regex.Pattern.compile("\\b(breaking(?! bad)|just in)\\b", java.util.regex.Pattern.CASE_INSENSITIVE);
+
+    private static Set<String> bigWords(String title) {
+        Set<String> t = new HashSet<String>();
+        for (String w : title.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9\\s]", " ").split("\\s+"))
+            if (w.length() > 3 && !BIG_STOP.contains(w)) t.add(w);
+        return t;
+    }
+
+    /**
+     * A big story: three or more of the reader's sites run the same story within two hours (or two, when one
+     * calls it breaking). "The same story" is the app's own rule (group() in index.html): 3+ shared headline
+     * words and a 45% overlap, from different sites. Each story alerts once, at most one per run and three a day.
+     */
+    private static void doBig(Context ctx, List<Item> all) throws Exception {
+        long now = System.currentTimeMillis();
+        SharedPreferences p = CyExtras.prefs(ctx);
+        String today = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(new java.util.Date());
+        int n = today.equals(p.getString("big_day", "")) ? p.getInt("big_n", 0) : 0;
+        if (n >= BIG_PER_DAY) return;
+        Set<String> told = new LinkedHashSet<String>();
+        try {
+            JSONArray a = new JSONArray(p.getString("big_seen", "[]"));
+            for (int i = 0; i < a.length(); i++) told.add(a.optString(i));
+        } catch (Throwable t) { /* start fresh */ }
+
+        List<List<Item>> groups = new ArrayList<List<Item>>();
+        List<Set<String>> gw = new ArrayList<Set<String>>();
+        Set<String> links = new HashSet<String>();
+        for (Item it : all) {
+            if (it.link.length() == 0 || it.date <= 0 || now - it.date > BIG_WINDOW_MS || now - it.date < -BIG_WINDOW_MS || !links.add(it.link)) continue;
+            Set<String> t = bigWords(it.title);
+            if (t.size() < 3) continue;
+            int best = -1;
+            for (int g = 0; g < groups.size() && best < 0; g++) {
+                boolean sameSite = false;
+                for (Item o : groups.get(g)) if (o.feedId.equals(it.feedId)) { sameSite = true; break; }
+                if (sameSite) continue;
+                int inter = 0;
+                for (String w : t) if (gw.get(g).contains(w)) inter++;
+                if (inter >= 3 && inter / (double) (t.size() + gw.get(g).size() - inter) >= .45) best = g;
+            }
+            if (best >= 0) groups.get(best).add(it);
+            else {
+                List<Item> g = new ArrayList<Item>();
+                g.add(it);
+                groups.add(g);
+                gw.add(t);
+            }
+        }
+        List<Item> pick = null;
+        for (List<Item> g : groups) {
+            boolean brk = false, old = false;
+            for (Item it : g) {
+                if (BIG_BRK.matcher(it.title).find()) brk = true;
+                if (told.contains(it.link)) old = true;
+            }
+            if (old || g.size() < (brk ? 2 : 3)) continue;
+            if (pick == null || g.size() > pick.size()) pick = g;
+        }
+        if (pick == null) return;
+        Item lead = pick.get(0); // newest first: the stored list is sorted newest first
+        StringBuilder srcs = new StringBuilder();
+        for (int i = 0; i < pick.size() && i < 3; i++) {
+            if (i > 0) srcs.append(i == pick.size() - 1 ? " and " : ", ");
+            srcs.append(pick.get(i).feedTitle.length() > 0 ? pick.get(i).feedTitle : "another site");
+        }
+        if (pick.size() > 3) srcs.append(" and ").append(pick.size() - 3).append(pick.size() == 4 ? " other" : " others");
+        String text = "Big story \u00b7 " + pick.size() + " of your sites are covering it: " + srcs;
+        int id = 40000 + Math.abs(lead.link.hashCode() % 10000);
+        if (!CyExtras.post(ctx, CyExtras.CH_BIG, id, lead.title, text, lead.link, "cy_big_group", false)) return;
+        for (Item it : pick) told.add(it.link);
+        JSONArray keep = new JSONArray();
+        List<String> tl = new ArrayList<String>(told);
+        for (int i = Math.max(0, tl.size() - 300); i < tl.size(); i++) keep.put(tl.get(i));
+        p.edit().putString("big_seen", keep.toString()).putString("big_day", today).putInt("big_n", n + 1).apply();
     }
 
     // ------------------------------------------------------------------ alerts
