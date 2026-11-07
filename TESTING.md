@@ -1504,3 +1504,7 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Swipe a page, then tap right away: the tap turns the next page (it used to be ignored for about a third of a second).
 - Drag a page halfway and let it fall back: it still settles back cleanly, no stuck page.
 - Book page: centered cover and title, author in small capitals, brass rule, a Continue card ("Continue: Chapter 2 · N min left in this chapter"), chapter list with "read" / "you are here" / minutes. Check in Halcyon light and dark and on the open Fold.
+
+## Books: chapters split in two show once (2026-11-07, branch claude/book-prototype-handoff-azxnv9, implemented, unverified on phone)
+- Open the book whose contents showed "Chapter 2: Suspended and Undead" then "SUSPENDED AND UNDEAD": each chapter now shows once, with the full minutes (title page + text). The chapter count drops to match.
+- "you are here" stays on the right chapter while reading its text; Contents in the ... menu shows the same single list and "Reading now".
