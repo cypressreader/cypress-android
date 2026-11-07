@@ -1491,3 +1491,10 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - [ ] Fold two-page view: a book chapter starts on the left page; the chapter name shows once (B4)
 - [ ] ··· menu in a book shows Contents and opens the chapter list (B1)
 - [ ] Tapping past a chapter's last page goes straight to the next chapter (B3)
+
+## Books: messy-EPUB sweep (claude/book-prototype-handoff-azxnv9, 2026-11-07)
+Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no device needed. Worth a look on the Fold anyway:
+- Open a real store EPUB (publisher free sample / free Play Books or Kobo title) and check the chapter list and accents.
+- Open a comic or picture book: expect "This book has fixed pages, like a comic or picture book, and CyPress can't open that kind yet."
+- Rename a .mobi and try it: expect "CyPress can't open Kindle books. Save the book as an EPUB file and add that instead."
+- Open a PDF: expect "CyPress opens EPUB books, and plain text or Markdown files."

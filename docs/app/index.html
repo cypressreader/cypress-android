@@ -17565,10 +17565,16 @@ const bkTag=(d,n)=>d.getElementsByTagNameNS('*',n);
 const bkTxt=t=>String(t||'').replace(/\s+/g,' ').trim();
 async function bkImport(f){
  const t0=performance.now(),m=await zipIndex(f);
- const xml=async nm=>{const b=await zipGet(f,m,nm);if(!b)return null;const s=await b.text();let d=new DOMParser().parseFromString(s,'application/xml');if(d.getElementsByTagName('parsererror').length)d=new DOMParser().parseFromString(s,'text/html');return d};
+ const xml=async nm=>{const b=await zipGet(f,m,nm);if(!b)return null;const ab=await b.arrayBuffer();
+  /* older books declare their own character set (windows-1252 and friends): decode as the file says, or accents turn to mojibake */
+  const hd0=new TextDecoder('latin1').decode(new Uint8Array(ab,0,Math.min(400,ab.byteLength))),en=((hd0.match(/encoding=["']([\w-]+)["']/i)||hd0.match(/charset=["']?([\w-]+)/i)||[])[1]||'utf-8').toLowerCase();
+  let s;try{s=new TextDecoder(en).decode(ab)}catch(e){s=new TextDecoder().decode(ab)}
+  let d=new DOMParser().parseFromString(s,'application/xml');if(d.getElementsByTagName('parsererror').length)d=new DOMParser().parseFromString(s,'text/html');return d};
  const ct=await xml('META-INF/container.xml'),rf=ct&&bkTag(ct,'rootfile')[0];if(!rf)throw Error('This file is not an EPUB book.');
  {const en=await zipGet(f,m,'META-INF/encryption.xml');if(en&&/URI="[^"]+\.x?html?"/i.test(await en.text()))throw Error('drm')}/* only locked chapters mean DRM; hidden fonts are fine */
  const op=rf.getAttribute('full-path'),opf=await xml(op);if(!opf)throw Error('This file is not an EPUB book.');
+ /* comics and picture books set their own page size: the flowing reader can't lay those out */
+ if([...bkTag(opf,'meta')].some(x=>(x.getAttribute('property')||'')==='rendition:layout'&&/pre-paginated/i.test(bkTxt(x.textContent))))throw Error('This book has fixed pages, like a comic or picture book, and CyPress can’t open that kind yet.');
  const md=k=>{const x=bkTag(opf,k)[0];return x?bkTxt(x.textContent):''};
  const man=new Map();for(const it of bkTag(opf,'item'))man.set(it.getAttribute('id'),{href:bkRes(it.getAttribute('href'),op),type:it.getAttribute('media-type')||'',props:it.getAttribute('properties')||''});
  const title=md('title')||f.name.replace(/\.epub$/i,''),author=[...bkTag(opf,'creator')].map(x=>bkTxt(x.textContent)).filter(Boolean).slice(0,2).join(' and '),lang=md('language')||'';
@@ -17683,7 +17689,7 @@ async function bkAdd(f){
  if(S.sel!=='books'){if($('#rd').classList.contains('on'))closeRd();S.sel='books';save();render()}
  const g=$('#grid');if(g)g.innerHTML='<div class="empty" role="status">Opening '+esc(f.name)+'…</div>';
  try{const b=await (/\.(txt|md|markdown)$/i.test(f.name)||/^text\//.test(f.type)?bkImportText(f):bkImport(f));try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}S.bkv=b.id;toast('Added '+b.title);renderBooks()}
- catch(e){toast(e&&e.message==='drm'?'This book is copy-protected by the store that sold it, so CyPress can’t open it.':(e&&/EPUB|chapters|room|too big/.test(e.message)?e.message:'That book file couldn’t be opened.'));renderBooks()}
+ catch(e){toast(e&&e.message==='drm'?'This book is copy-protected by the store that sold it, so CyPress can’t open it.':(e&&/EPUB|chapters|room|too big|fixed pages/.test(e.message)?e.message:'That book file couldn’t be opened.'));renderBooks()}
 }
 function bkPick(){const i=document.createElement('input');i.type='file';i.accept='.epub,application/epub+zip,.txt,.md,.markdown,text/plain,text/markdown';i.onchange=()=>{const f=i.files&&i.files[0];if(f)bkAdd(f)};i.click()}
 /* Android 'Open with CyPress' on a book file: the app copies it into its own cache and hands over the path */
