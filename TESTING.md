@@ -1527,3 +1527,5 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - [ ] A story starting "CITY —" shows the city as a small line above the text
 - [ ] Links turn into small numbers; tapping one jumps to the Notes at the end; Listen doesn't read the numbers
 - [ ] The Daily: the gold line draws across "Since this morning" when new stories come in
+- [ ] (1.278 fix) Tapping the right side of a story page turns it forward with the full page-curl animation, every time (1.278 skipped it: a tap re-ran the theme and rebuilt the page)
+- [ ] (1.278 fix) Your theme and card style stay as you set them after tapping through a story

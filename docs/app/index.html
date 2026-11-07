@@ -4367,9 +4367,9 @@ html[data-theme=rosewood] #rd .cols .kick{color:#7f5d1c}
 #rd .cols .kick .rkk{margin:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit}
 .kick .dln{font-weight:700;color:var(--ink)}
 /* 7: Essay look: centered opener, roman numerals at the breaks, no pull quotes, a calmer measure */
-#rd .cols[data-look=essay]{counter-reset:ess}#rd .cols[data-look=essay] :is(.kick,.tt,.dt,.rdk){text-align:center}#rd .cols[data-look=essay] .tt{font-weight:400;font-style:italic;letter-spacing:-.005em}#rd .cols[data-look=essay] .kick::after{content:'';display:block;width:34px;margin:10px auto 0;border-top:1px solid var(--logo,var(--a1))}html #rd .cols[data-look=essay] .body .rbrk{width:auto;height:auto;background:none;color:var(--logo,var(--a1))!important;opacity:1;font:600 .72em/1 var(--sans);letter-spacing:.2em;margin:2em auto 1.2em;text-align:center}#rd .cols[data-look=essay] .body .rbrk::before{counter-increment:ess;content:counter(ess,upper-roman)}
+#rd .cols[data-rlook=essay]{counter-reset:ess}#rd .cols[data-rlook=essay] :is(.kick,.tt,.dt,.rdk){text-align:center}#rd .cols[data-rlook=essay] .tt{font-weight:400;font-style:italic;letter-spacing:-.005em}#rd .cols[data-rlook=essay] .kick::after{content:'';display:block;width:34px;margin:10px auto 0;border-top:1px solid var(--logo,var(--a1))}html #rd .cols[data-rlook=essay] .body .rbrk{width:auto;height:auto;background:none;color:var(--logo,var(--a1))!important;opacity:1;font:600 .72em/1 var(--sans);letter-spacing:.2em;margin:2em auto 1.2em;text-align:center}#rd .cols[data-rlook=essay] .body .rbrk::before{counter-increment:ess;content:counter(ess,upper-roman)}
 /* 7: Gallery look: pictures framed with italic captions, quotes as side bars, no drop cap */
-#rd .cols[data-look=gallery] .body :is(img,figure img){box-shadow:0 0 0 1px var(--ln);padding:4px;background:var(--pn,var(--bg))}#rd .cols[data-look=gallery] .body figcaption{font:italic 400 .86em/1.45 var(--serif);color:var(--mut);text-align:left;padding-left:.6em;border-left:2px solid var(--logo,var(--a1))}#rd .cols[data-look=gallery] .body .pullq{border-left-width:2px;font-size:1.12em;padding:.3em 0 .3em .8em;margin:.8em 0 1em;color:var(--mut)}#rd .cols[data-look=gallery] .body p.dropcap .dcap{float:none!important;font:inherit!important;margin:0!important;padding:0!important;color:inherit!important}#rd .cols[data-look=gallery] .body p.dropcap .dcl{font-variant:normal;letter-spacing:0}
+#rd .cols[data-rlook=gallery] .body :is(img,figure img){box-shadow:0 0 0 1px var(--ln);padding:4px;background:var(--pn,var(--bg))}#rd .cols[data-rlook=gallery] .body figcaption{font:italic 400 .86em/1.45 var(--serif);color:var(--mut);text-align:left;padding-left:.6em;border-left:2px solid var(--logo,var(--a1))}#rd .cols[data-rlook=gallery] .body .pullq{border-left-width:2px;font-size:1.12em;padding:.3em 0 .3em .8em;margin:.8em 0 1em;color:var(--mut)}#rd .cols[data-rlook=gallery] .body p.dropcap .dcap{float:none!important;font:inherit!important;margin:0!important;padding:0!important;color:inherit!important}#rd .cols[data-rlook=gallery] .body p.dropcap .dcl{font-variant:normal;letter-spacing:0}
 .cols .body a.rnref{font:600 .6em/1 var(--sans);vertical-align:super;color:var(--logo,var(--a1));text-decoration:none;padding:0 2px;margin:0}.cols .body .rnotes{margin:2.2em 0 0;padding-top:.7em;border-top:1px solid var(--ln);font-size:.8em;line-height:1.5;color:var(--mut)}.rnotes h4{margin:0 0 .5em;font:600 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}.rnotes ol{margin:0;padding-left:1.6em}.rnotes li{margin:0 0 .35em}.rnotes a{color:var(--ink);text-decoration:none}.rnotes small{display:block;font:11px var(--sans);color:var(--mut)}
 #rd .cols .rdk{margin:.4em 0 .55em;font:italic 400 1.05em/1.4 var(--serif);color:var(--mut);text-align:left;hyphens:manual;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;break-after:avoid}
 #rd .cols .dt{display:block;font:400 13px/1.6 var(--sans);color:var(--mut)}
@@ -5288,6 +5288,7 @@ let S,LIBBAD=0;try{S=JSON.parse(localStorage.getItem('folio'))}catch(e){}
 /* a half-written save must not stop the app from starting */
 if(S&&typeof S==='object'&&!Array.isArray(S)){if(!Array.isArray(S.feeds))S.feeds=[];if(!Array.isArray(S.folders))S.folders=[];/* B7: an old folder named Unfiled (made by mistake) goes away; its sites stay, with no folder */S.folders=S.folders.filter(fo=>{if(!/^unfiled$/i.test(String(fo.name||'').trim()))return true;S.feeds.forEach(f=>{if(f.folder===fo.id)f.folder=''});return false})}else S=null;
 /* B2: a library that can't be read is set aside under folio-bad (never overwritten by the next save) and the app starts empty, not with the sample sites; if even that copy can't be stored, nothing is saved this session so the original stays */
+if(S&&/^(classic|gallery|essay)$/.test(S.theme)){delete S.theme;delete S.cvs}/* 1.278 bug: a tap on a story saved its look as the theme */
 if(!S&&!FIRST){LIBBAD=1;try{localStorage.setItem('folio-bad',localStorage.getItem('folio'))}catch(e){LIBBAD=2}S={folders:[],feeds:[],sel:'all'}}
 S=S||{folders:[{id:'f1',name:'Tech'},{id:'f2',name:'World'}],feeds:[
 {id:'a1',url:'https://techcrunch.com/feed/',title:'TechCrunch',folder:'f1'},
@@ -7541,7 +7542,7 @@ function decorate14(){
  document.documentElement.classList.toggle('rdserif',(S.font||'theme')==='theme'&&!/typewriter|terminal|amber|pixel|arcade|cyber/.test(document.documentElement.dataset.theme||''));
  b.querySelectorAll('.rfoot').forEach(x=>x.remove());
  /* a second and third pull quote for a long article */
- if(isOn('mag')&&isOn('pqs')&&!(curA&&curA.book)&&($('.cols')||{}).dataset.look!=='essay'){
+ if(isOn('mag')&&isOn('pqs')&&!(curA&&curA.book)&&($('.cols')||{}).dataset.rlook!=='essay'){
   const ps=[...b.querySelectorAll(':scope > p')].filter(p=>!p.classList.contains('endmark')),wd=rdWords(b),win=pqWin(ps),have=new Set([...b.querySelectorAll('.pullq')].map(q=>(q.firstChild||q).textContent));
   const add=(lo,hi,at)=>{const s=rdQuote(win,lo,hi,have);if(!s)return;have.add(s);(ps[Math.floor(ps.length*at)]||ps[ps.length-1]).before(pqEl(s,win.find(x=>x.textContent.includes(s))))};
   if(ps.length>=14&&wd>=1200)add(.6,.9,.75);
@@ -14270,10 +14271,10 @@ function endnotes(b){
 }
 /* 7: three looks, one per story. Classic (as before), Gallery when a story carries three or more pictures, Essay for long prose with no pictures or from an opinion section. Set once on .cols; the CSS does the rest */
 function storyLook(b){
- const c=$('.cols'),a=curA;if(!c||!a||a.book||R.web){if(c)delete c.dataset.look;return 'classic'}
+ const c=$('.cols'),a=curA;if(!c||!a||a.book||R.web){if(c)delete c.dataset.rlook;return 'classic'}
  const n=Math.max(b.querySelectorAll('img:not(.emb img)').length+(a.img?1:0),(a.pics&&a.pics.length)||0),w=rdWords(b),op=/opinion|essay|column|comment|editorial|perspective|ideas|letters?|viewpoint/i.test(a.sec||''),
   look=n>=3?'gallery':(n===0&&w>=900)||(op&&n<=1&&w>=400)?'essay':'classic';
- c.dataset.look=look;return look}
+ c.dataset.rlook=look;return look}
 function decorate0(){
  const b=$('.cols .body');if(!b)return;try{dateline(b)}catch(e){}const LOOK=(()=>{try{return storyLook(b)}catch(e){return 'classic'}})();try{underscoreItalics(b)}catch(e){}smarten(b);furnish(b);captions();heroSpread();mnotes();photoPages();
  b.querySelectorAll('.pullq').forEach(x=>x.remove());b.querySelectorAll('.dropcap').forEach(x=>{unDropcap(x);x.classList.remove('dropcap')});
