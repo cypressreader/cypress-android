@@ -29,7 +29,31 @@ const FX=path.resolve(__dirname,'fixtures/pride-and-prejudice.epub');
  const n0=await p.evaluate(()=>curA.n);
  await p.evaluate(()=>advanceNext());await p.waitForFunction(n=>R.ready&&curA&&curA.n===n+1,n0,{timeout:20000}).catch(()=>{});
  const nx=await p.evaluate(()=>({n:curA.n,t:curA.title,txt:document.querySelector('.cols .body').textContent.length,pos:S.bkpos[curA.book]}));
- ck('the next chapter follows the last page, from the device',nx.n===n0+1&&nx.txt>500&&nx.pos===nx.n,JSON.stringify(nx));
+ ck('the next chapter follows the last page, from the device',nx.n===n0+1&&nx.txt>500&&nx.pos&&nx.pos.c===nx.n,JSON.stringify(nx));
+ const dl=await p.evaluate(()=>({dt:(document.querySelector('#rd .dt')||{}).textContent||'',orig:!!document.querySelector('.cols .orig')}));
+ ck('the line under the title says which chapter of how many, with no "Read original" link',/\d+ of \d+/.test(dl.dt)&&!dl.orig,JSON.stringify(dl));
+ /* reading spot: turn on, leave, open the book again with Continue: same chapter, same place */
+ for(let i=0;i<4;i++){await p.evaluate(()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true})));await p.waitForTimeout(1500)}
+ const at=await p.evaluate(()=>({pg:R.pg,np:R.np,n:curA.n,f:S.bkpos[curA.book].f}));
+ await p.evaluate(()=>{document.getElementById('cl').click()});await p.waitForTimeout(700);
+ await p.evaluate(()=>{S.sel='books';render()});await p.waitForFunction(()=>document.querySelector('#grid .rki .go'),null,{timeout:10000});
+ await p.evaluate(()=>document.querySelector('#grid .rki .go').click());
+ await p.waitForFunction(n=>R.ready&&curA&&curA.n===n,at.n,{timeout:20000});await p.waitForTimeout(900);
+ const back=await p.evaluate(()=>({pg:R.pg,np:R.np,n:curA.n}));
+ ck('Continue opens the same chapter at the same page',at.pg>=3&&at.f>0&&Math.abs(back.pg-at.pg)<=1,JSON.stringify({at,back}));
+ /* a link inside the book goes to the chapter and the page with its anchor */
+ const lk=await p.evaluate(async()=>{const b=(await bkAll())[0];for(let i=0;i<b.ch.length;i++){const h=await bkGet('ch',b.id+'/'+i);const m=h&&h.match(/data-bkh="([^"#]+)#([^"]+)"/);if(m){const j=b.ch.findIndex(c=>c.p===m[1]);if(j>=0&&j!==i)return {from:i,to:j,a:m[2]}}}return null});
+ await p.evaluate(()=>{document.getElementById('cl').click();S.sel='books';S.bkv='';render()});await p.waitForTimeout(500);
+ const [fl]=await Promise.all([p.waitForEvent('filechooser'),p.evaluate(()=>document.querySelector('#grid [data-bkadd]').click())]);
+ await fl.setFiles(path.resolve(__dirname,'fixtures/links.epub'));
+ await p.waitForFunction(()=>/Link Test/.test((document.querySelector('#grid .rki h2')||{}).textContent),null,{timeout:20000});
+ await p.evaluate(()=>document.querySelector('#grid [data-bkch="0"]:not(.go)').click());
+ await p.waitForFunction(()=>R.ready&&curA&&curA.n===0&&curA.book,null,{timeout:20000});await p.waitForTimeout(700);
+ const ids=await p.evaluate(()=>[...document.querySelectorAll('.cols .body [id]')].map(x=>x.id));
+ await p.evaluate(()=>document.querySelector('.cols .body a[data-bkh]').click());
+ await p.waitForFunction(()=>R.ready&&curA&&curA.n===1,null,{timeout:20000});await p.waitForTimeout(900);
+ const ln=await p.evaluate(()=>{const el=document.getElementById('bk-n1'),r=new Range();r.selectNode(el);return {pg:R.pg,np:R.np,at:findPage(r)}});
+ ck('a note link opens the other chapter at the page with the note; ids get a bk- prefix',ln.np>1&&ln.pg>0&&ln.pg===ln.at&&ids.every(i=>/^bk-/.test(i)),JSON.stringify({ln,ids}));
  ck('nothing about the book went to the network',!net.length,net.slice(0,3).join(' '));
  ck('no page errors',!errs.length,errs.slice(0,3).join(' | '));
  await p.screenshot({path:OUT+'/book_chapter.png'});
