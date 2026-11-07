@@ -1458,3 +1458,7 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - R-14: the site name in the reader bar and the Aa sheet's close button are easy to hit with a thumb; the bar looks unchanged.
 - C01: with a Bluetooth keyboard, N / P in a story open the next / previous story (← → still turn pages).
 - C12: the ... menu's "Hide text" is grayed out with "(select some text first)" until text is selected; with a selection it hides it (check whether opening the menu keeps the phone's selection).
+
+## Deep-dive fixes design2 (branch mx03wy, 2026-11-06) — implemented, unverified on phone
+- R5/F11: on the unfolded Fold (and a tablet held sideways) All Stories shows the top story over two thirds with a "Next up" column beside it, single stories as side-by-side picture + text, summaries no wider than about 68 characters. Fold and unfold with a story list open: the layout switches without a redraw and the list stays in place; open a story and go back: you land on the same card.
+- R7: each of the 7 themes now has its own look beyond color (Newsprint square corners + ink hairlines, Cypress brass rules + small-caps site names, Coast more room in cards, High Contrast thick borders + bold labels, Black & White square, Sepia Rosewood italic site names, Aurora rounder corners + soft shadow). Check each theme light and dark on the phone for anything that looks broken or hard to read.
