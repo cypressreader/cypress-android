@@ -1553,3 +1553,5 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Bookmark button (top of player) saves the spot the voice is at; shows in Contents > Bookmarks.
 - Speed picked while a book plays stays with that book; news stories keep the everyday speed.
 - Sleep timer: voice fades in the last 45 s (screen on); shaking the phone adds 10 min, or within 5 min after it stopped plays 10 more. Auto sleep timer "After 10 pm": pressing play late starts a 30-min timer. Check shake sensitivity (not too easy in a pocket/bed).
+
+- UPDATE: Auto sleep timer removed (David: a plain sleep timer is enough). Fade + shake stay.
