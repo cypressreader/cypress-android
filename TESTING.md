@@ -1483,3 +1483,5 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - [ ] Listen across chapters: start Listen near a chapter's end, lock the phone: it goes on into the next chapter.
 - [ ] Bookmark star in a book: lights on the bookmarked page only; Contents (tap book name, top left) lists it and goes back to it.
 - [ ] Continue returns to the same page after closing and reopening the app.
+- [ ] Books dialogs with TalkBack/keyboard: after closing Contents or a note pop-up, focus lands back on the book name button (top left) or the note mark.
+- [ ] Plain text (.txt) and Markdown (.md) files open from the Books picker as books with chapters.
