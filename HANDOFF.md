@@ -2,7 +2,7 @@
 Old detail (dated session logs, FIXES 16-26 notes, debugging traces) lives in `HANDOFF-ARCHIVE.md`: don't read it on boot, `grep` it only if needed.
 Keep THIS file under ~8 KB: when it grows past that, move finished/dated items to the archive and keep only rules, open items and the next tasks.
 
-Last updated: 2026-11-07 late (main = 1.283, APK run 342 green; book listening 1-7).
+Last updated: 2026-11-07 night (main = 1.283, APK run 342 green; z8iwem holds 1.284 candidates).
 ## 1. Working & locked (verified; don't change core logic without asking)
 - **Halcyon theme** (`halcyon`/`halcyond`): website palette (cream `#f3ecdc`, green `#123524`/`#0c2619`, brass `#c9a24a`/`#b08d3e`), follows phone via `twinApply`. Headlines use `--disp` (narrow display serif) with `!important` (user's choice). Dark-brass labels on cream `#7d5f14`; light-brass `#e2c27a` on dark `.noimg` lead/hero cards (`.noimg` ≠ cream card).
 - **The Daily**: name once per section (`sh()`), one-line intros (`DAYDEK`), "Vol. 26 · No. 290" line, "Next up" styled like "Since this morning", "In this issue" links use `jumpTop`, cover number `.dcv-num`.
@@ -41,6 +41,7 @@ Side-by-side setting + deep-dive audit notes: HANDOFF-ARCHIVE grep "moved 388479
 **Visual brainstorm 2026-11-07:** shortlist 6b/1/2/7 built below; 3 (fresh ink) dropped; photo treatments: no. Artifacts + detail: archive grep "moved 2026-11-07 c3wydg".
 1.278 looks + 1.279 Big story alerts detail: archive grep 'moved ig1gfo'.
 **SHIPPED 1.283 (main cec4c39, APK run 342): book listening 1-7.** Symbols: `bkList`/`bkLeft`/`bkJump`/`bkJmp`/`BKJ` (before `digNext`), `tdrBm`, `.tdun`/`.tdbm` in `tdr()`, `tdr.hold` keeps player open during a jump, `ttsPos` smart rewind via `TTS.pt`, `ttsRate`/`rateSet` + `S.bkrate`, `sleepStop/sleepArm/sleepMore/sleepShake` (auto bedtime timer removed on branch, David: not needed; next release notes should say so), `TTS.vf` fade volume. Scratch check (10/10 ok): import P&P + native TTS mock (tts_sync harness).
+**Unshipped on z8iwem (ship as 1.284 on `build`; whats-new must say the auto sleep timer option is gone):** auto sleep timer removed; mini player slides with tucked tab bar (`body.tabtuck #tmini`); review fixes: `ttsEnd` sets `tdr.hold` + try/finally, keeps ghost across chapter rollover, stops at end of book; smart rewind gated to books in `ttsPos`; `BKJ` only on real jumps; `#tdsc` label per book; chapter checks refresh on finish.
 **Next 3 tasks:** 1. David installs 1.283 (run 342) and checks TESTING.md 'Book listening 1-7' + 'Book ideas 1-4'. 2. Tune shake threshold (13 m/s², 3 jolts in 1.2 s) from device feedback. 3. Blocked on David: developer name, account type, free vs paid, Cloudflare Web Analytics off, full-story helpers (a30). Reminder scheduled 2026-11-21 10:00 PT (trig_01Wso38mBKPVg2bCmNsjBaFM); don't nag before then. Test books: Standard Ebooks, Gutenberg, Baen, samples; never pirated. Note: the container's local `main` is a stale unrelated clone; merge onto `origin/main` (detached) and push HEAD:main.
 
 **Books Phase 1 + messy sweep detail (what's implemented, symbol by symbol): HANDOFF-ARCHIVE grep 'books-phase1-moved'.**

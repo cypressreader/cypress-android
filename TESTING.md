@@ -1556,3 +1556,4 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 
 - UPDATE: Auto sleep timer removed (David: a plain sleep timer is enough). Fade + shake stay.
 - Mini player: scrolling down tucks the tab bar away and the player slides down with it to the bottom edge (no gap with stories showing under it); scrolling up brings both back.
+- Review fixes: Next chapter / chapter rollover keeps the mini player and the full player up; a finished audiobook stops (no rolling into news); smart rewind is books-only; "Go back" only after real jumps (Next chapter, chapter tap, scrub over 40 words).

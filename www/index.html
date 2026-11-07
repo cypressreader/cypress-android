@@ -10242,7 +10242,7 @@ function tdr(){let d=$('#tdr');if(d)return d;
  cb.onclick=()=>{tdr.car(!S.car);save()};
  d.addEventListener('close',()=>{if(S.car)rdWake(keepOn())});
  d.addEventListener('click',e=>{if(e.target===d)d.close()});
- d.querySelector('.tdc').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;const k=b.dataset.d;if((k==='pv'||k==='nx')&&TTS.art&&TTS.art.book)bkJmp();if(k==='rw')digSeekBy(-15);else if(k==='fw')digSeekBy(15);else if(k==='pv')digPrev();else if(k==='nx')digNext();else if(k==='pl')tminiToggle();setTimeout(tminiSync,60)});
+ d.querySelector('.tdc').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;const k=b.dataset.d;if(k==='nx'&&TTS.art&&TTS.art.book)bkJmp();if(k==='rw')digSeekBy(-15);else if(k==='fw')digSeekBy(15);else if(k==='pv')digPrev();else if(k==='nx')digNext();else if(k==='pl')tminiToggle();setTimeout(tminiSync,60)});
  d.querySelector('.tds').addEventListener('click',e=>{const b=e.target.closest('[data-sp]');if(!b)return;rateSet(+b.dataset.sp);save();const r=$('#rate');if(r)r.value=S.rate;const rv=$('#ratev');if(rv)rv.value=(+S.rate||1).toFixed(1)+'×';if(TTS.on&&!TTS.paused)ttsFrom(ttsPos());tminiSync()});
  d.querySelector('.tdq').addEventListener('click',e=>{const j=e.target.closest('[data-bc]');if(j){bkJump(+j.dataset.bc,0);return}const b=e.target.closest('[data-k]');if(!b)return;const k=+b.dataset.k;if(DIG.on)digGo(k,{});else tminiToggle();setTimeout(tminiSync,60)});
  d.querySelector('.tdun').onclick=()=>{const a=TTS.art,i=a?BKJ.map(x=>x.b).lastIndexOf(a.book):-1;if(i<0)return;const j=BKJ.splice(i,1)[0];bkJump(j.c,j.f,1)};
@@ -10254,7 +10254,7 @@ function tdr(){let d=$('#tdr');if(d)return d;
  const at=ev=>{const r=sc.getBoundingClientRect();return Math.max(0,Math.min(1,(ev.clientX-r.left)/Math.max(1,r.width)))};
  sc.addEventListener('pointerdown',ev=>{drag={f:at(ev)};try{sc.setPointerCapture(ev.pointerId)}catch(_){}tdrPreview(drag.f)});
  sc.addEventListener('pointermove',ev=>{if(!drag)return;drag.f=at(ev);tdrPreview(drag.f)});
- sc.addEventListener('pointerup',()=>{if(!drag)return;const f=drag.f;drag=null;if(TTS.art&&TTS.art.book)bkJmp();const m=digModel();digSeekTo(f*m.tot);setTimeout(tminiSync,80)});
+ sc.addEventListener('pointerup',()=>{if(!drag)return;const f=drag.f;drag=null;if(TTS.art&&TTS.art.book&&TTS.words.length&&Math.abs(f*TTS.words.length-TTS.wi)>40)bkJmp();const m=digModel();digSeekTo(f*m.tot);setTimeout(tminiSync,80)});
  sc.addEventListener('pointercancel',()=>{drag=null});
  sc.addEventListener('keydown',e=>{const m=digModel();let t=null;if(e.key==='ArrowRight'||e.key==='ArrowUp')t=m.pos+15;else if(e.key==='ArrowLeft'||e.key==='ArrowDown')t=m.pos-15;else if(e.key==='Home')t=0;else if(e.key==='End')t=m.tot-1;if(t==null)return;e.preventDefault();digSeekTo(t);setTimeout(tminiSync,80)});
  tdr.drag=()=>!!drag;
@@ -10275,7 +10275,7 @@ function tdrUpdate(m){
    if(img){pic.style.backgroundImage='url("'+img.replace(/"/g,'%22')+'")';ai.style.display='';ai.src=img}else{pic.style.backgroundImage='';ai.removeAttribute('src');ai.style.display='none'}}}
  const pl=d.querySelector('.tdpl');pl.innerHTML=dkI(run?DK_PAUSE:DK_PLAY,28);pl.setAttribute('aria-label',run?'Pause':'Play');
  const multi=m.chap.length>1;{const pv=d.querySelector('[data-d=pv]'),nx=d.querySelector('[data-d=nx]');pv.hidden=nx.hidden=!multi&&!bk;pv.setAttribute('aria-label',bk?'Start of this chapter':'Previous story');nx.setAttribute('aria-label',bk?'Next chapter':'Next story')}
- const BL=bk&&bkList(c.a),sig=m.chap.map(x=>x.l+x.dur).join('|')+'|'+m.i+'|'+ttsRate()+'|'+run+'|'+(BL?BL.length:0);
+ const BL=bk&&bkList(c.a),sig=m.chap.map(x=>x.l+x.dur).join('|')+'|'+m.i+'|'+ttsRate()+'|'+run+'|'+(BL?BL.length+((S.bkdone||{})[c.a.book]?'f':''):'');
  if(tdr.sig!==sig){tdr.sig=sig;
   d.querySelector('.tdks').innerHTML=m.chap.slice(1).map(x=>`<i style="left:${(x.start/m.tot*100).toFixed(2)}%"></i>`).join('');
   const q=d.querySelector('.tdq');q.setAttribute('aria-label',BL?'Chapters':'Stories in this listen');
@@ -10286,7 +10286,7 @@ function tdrUpdate(m){
  }
  if(!(tdr.drag&&tdr.drag())){d.querySelector('.tdf').style.transform='scaleX('+(m.tot?Math.min(1,m.pos/m.tot):0).toFixed(4)+')';d.querySelector('.tdcur').textContent=digFmt(m.pos)}
  d.querySelector('.tdtot').textContent=digFmt(m.tot);
- const sc=d.querySelector('#tdsc');sc.setAttribute('aria-valuemax',String(Math.round(m.tot)));sc.setAttribute('aria-valuenow',String(Math.round(m.pos)));sc.setAttribute('aria-valuetext',digFmt(m.pos)+' of '+digFmt(m.tot));
+ const sc=d.querySelector('#tdsc');sc.setAttribute('aria-label',bk?'Position in this chapter':'Position in the Daily');sc.setAttribute('aria-valuemax',String(Math.round(m.tot)));sc.setAttribute('aria-valuenow',String(Math.round(m.pos)));sc.setAttribute('aria-valuetext',digFmt(m.pos)+' of '+digFmt(m.tot));
  d.querySelector('.tdo').hidden=!(curA||TTS.art);
  {const u=d.querySelector('.tdun'),j=bk&&bkList(c.a)&&BKJ.filter(x=>x.b===c.a.book).pop();u.hidden=!j;if(j){const t='Go back to '+bkCh(j.t)+', '+Math.round(j.f*100)+'% in';if(u.textContent!==t)u.textContent=t}}
  d.querySelector('.tdbm').hidden=!bk;
@@ -10402,7 +10402,7 @@ function ttsFrom(wi){
 }
 /* B85: pause, resume and restarts carry on from the word the voice had reached; the highlight runs a few words ahead of it, and resuming from the highlight skipped those words */
 /* smart rewind: after a pause of over 30 s, resume from the start of the sentence; over 5 min, one sentence earlier; over an hour, two */
-const ttsPos=()=>{const p=TTS.sp;let wi=(p!=null&&p>=0&&p<=TTS.wi&&TTS.wi-p<=8)?p:TTS.wi;const g=TTS.paused&&TTS.pt?Date.now()-TTS.pt:0,st=TTS.sent||[];if(g>3e4&&st.length){let k=0;for(let i=0;i<st.length;i++)if(st[i]<=wi)k=i;wi=st[Math.max(0,k-(g>36e5?2:g>3e5?1:0))]}return wi};
+const ttsPos=()=>{const p=TTS.sp;let wi=(p!=null&&p>=0&&p<=TTS.wi&&TTS.wi-p<=8)?p:TTS.wi;const g=TTS.paused&&TTS.pt&&TTS.art&&TTS.art.book?Date.now()-TTS.pt:0,st=TTS.sent||[];if(g>3e4&&st.length){let k=0;for(let i=0;i<st.length;i++)if(st[i]<=wi)k=i;wi=st[Math.max(0,k-(g>36e5?2:g>3e5?1:0))]}return wi};
 function ttsResetTiming(){delete S.tnbv;delete S.tnbt;delete S.tcps;TTS.nb=0;TTS.cps=null;TTS.lag=null;save();toast('Voice timing reset')}
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#vtreset'))ttsResetTiming()});
 function ttsPause(){TTS.paused=true;TTS.pt=Date.now();TTS.id++;clearInterval(TTS.timer);try{speechSynthesis.cancel()}catch(e){}raBtn();mediaOff();fpSync()}
@@ -12484,11 +12484,11 @@ $('#set').addEventListener('close',refreshReader);
 /* listen queue */
 let MADV=0;
 async function ttsEnd(manual){
- const bg=!curA&&TTS.art&&TTS.art.book?TTS.art:null,was=curA||bg;MADV=Date.now();ttsStop();
+ const bg=!curA&&TTS.art&&TTS.art.book?TTS.art:null,was=curA||bg;MADV=Date.now();if(was&&was.book)tdr.hold=1;/* the player stays up between chapters */try{ttsStop();
  if(SLEEP.eos&&!manual){SLEEP.eos=false;syncUpNext();toast('Sleep timer: stopped');R.briefAudio=false;mediaNativeStop();return}
  if(!was){mediaNativeStop();return}
  let nx=null;
- if(was.book){if(bg){const L=R.ctx||[],i=L.findIndex(x=>x.link===was.link);nx=i>=0&&L[i+1]&&L[i+1].book===was.book?L[i+1]:null;R.ghostNext=!!nx}else nx=readerNext();R.keepCtx=!!nx}/* a book read aloud goes on to its next chapter */
+ if(was.book){if(bg){const L=R.ctx||[],i=L.findIndex(x=>x.link===was.link);nx=i>=0&&L[i+1]&&L[i+1].book===was.book?L[i+1]:null;R.ghostNext=!!nx}else{nx=readerNext();R.ghostNext=!!nx&&$('#rd').classList.contains('ghost')}R.keepCtx=!!nx;if(!nx||nx.book!==was.book){save();syncUpNext();mediaNativeStop();return}}/* a book read aloud goes on to its next chapter, and stops at the end of the book */
  while(S.lq.length&&!nx){const l=S.lq.shift();if(l!==was.link&&!S.read[l])nx=findStory(l)}
  save();syncUpNext();
  if(!nx&&S.queue){const i=cur.findIndex(x=>x.link===was.link);if(i>=0)for(let k=i+1;k<cur.length;k++){if(!S.read[cur[k].link]){nx=cur[k];break}}}
@@ -12498,6 +12498,7 @@ async function ttsEnd(manual){
  if(curA!==nx||!$('#rd').classList.contains('on')){if(!TTS.on)mediaNativeStop();return}
  if(brief){R.briefAudio=true;const why=isOn('skippay')?ttsClean():'';if(why){toast('Skipped “'+nx.title.slice(0,40)+'”: '+why);S.lq=S.lq.filter(l=>l!==nx.link);ttsEnd(true);return}const B=R.audioList||(S.brief&&S.brief.links)||[],n=B.indexOf(nx.link);mediaOn();speak(`${n>=0?'Story '+(n+1)+' of '+B.length+'. ':'Next. '}From ${fof(nx).title}.`,()=>{if(curA===nx)ttsToggle()})}
  else{R.queueRun=true;const why=ttsClean();if(why){toast('Skipped “'+nx.title.slice(0,40)+'”: '+why);S.lq=S.lq.filter(l=>l!==nx.link);ttsEnd(true);return}ttsToggle()}
+ }finally{if(tdr.hold){tdr.hold=0;tminiSync()}}
 }
 
 /* settings controls */
