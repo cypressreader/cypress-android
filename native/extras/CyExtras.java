@@ -127,8 +127,42 @@ public final class CyExtras {
             android.net.Uri u = intent.getData();
             if (u == null || !"content".equals(u.getScheme()) && !"file".equals(u.getScheme())) return;
             if ((intent.getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0) return;
-            java.io.InputStream in = c.getContentResolver().openInputStream(u);
-            if (in == null) return;
+            java.io.InputStream in0 = c.getContentResolver().openInputStream(u);
+            if (in0 == null) return;
+            java.io.BufferedInputStream in = new java.io.BufferedInputStream(in0);
+            // A book (EPUB): a ZIP whose first entry says application/epub+zip. Copied into the app's own cache,
+            // then the web app reads it from there (no storage permission; the next book replaces it).
+            in.mark(128);
+            byte[] hd = new byte[64];
+            int hn = 0, r;
+            while (hn < hd.length && (r = in.read(hd, hn, hd.length - hn)) > 0) hn += r;
+            in.reset();
+            String hs = new String(hd, 0, hn, java.nio.charset.StandardCharsets.ISO_8859_1);
+            if (hs.startsWith("PK") && hs.contains("application/epub+zip") || "application/epub+zip".equals(intent.getType())) {
+                java.io.File f = new java.io.File(c.getCacheDir(), "open-book.epub");
+                long total = 0;
+                boolean ok = true;
+                try (java.io.FileOutputStream o = new java.io.FileOutputStream(f)) {
+                    byte[] bb = new byte[65536];
+                    int k;
+                    while ((k = in.read(bb)) > 0) {
+                        o.write(bb, 0, k);
+                        total += k;
+                        if (total > 300L * 1024 * 1024) { ok = false; break; } // far bigger than any book
+                    }
+                } finally {
+                    in.close();
+                }
+                if (!ok) { f.delete(); return; }
+                JSObject d = new JSObject();
+                d.put("book", f.getAbsolutePath());
+                synchronized (LOCK) {
+                    pendingShare = d;
+                }
+                emit("sharedContent", d, true);
+                intent.setData(null);
+                return;
+            }
             java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
             byte[] buf = new byte[8192];
             int n;

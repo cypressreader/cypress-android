@@ -4,7 +4,7 @@ let bad=0;const ck=(nm,ok,x)=>{if(!ok){bad++;console.log('FAIL',nm,x||'')}else c
 const FX=path.resolve(__dirname,'fixtures/pride-and-prejudice.epub');
 (async()=>{const b=await chromium.launch();
  const ctx=await b.newContext({viewport:{width:390,height:800},hasTouch:true,isMobile:true});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));await mock(p,{n:3});
- const net=[];p.on('request',r=>{const u=r.url();if(/^book:|w\.test|^https?:/.test(u)&&/book/.test(u))net.push(u)});
+ const net=[];p.on('request',r=>{const u=r.url();if(/^book:|w\.test|^https?:/.test(u)&&/book/.test(u)&&!/_capacitor_file_/.test(u))net.push(u)});
  await p.goto('file://'+APP);await p.waitForTimeout(1500);await p.click('text=Get started').catch(()=>{});
  await p.evaluate(()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());S.scroll="pages";S.sel='books';side();render()});await p.waitForTimeout(400);
  ck('the Books row shows in the side panel for everyone, with no switch needed',await p.evaluate(()=>!!document.querySelector('aside [data-sel="books"]')));
@@ -62,6 +62,30 @@ const FX=path.resolve(__dirname,'fixtures/pride-and-prejudice.epub');
  await p.waitForFunction(()=>R.ready&&curA&&curA.n===1,null,{timeout:20000});await p.waitForTimeout(900);
  const ln=await p.evaluate(()=>{const el=document.getElementById('bk-n1'),r=new Range();r.selectNode(el);return {pg:R.pg,np:R.np,at:findPage(r)}});
  ck('a note link opens the other chapter at the page with the note; ids get a bk- prefix',ln.np>1&&ln.pg>0&&ln.pg===ln.at&&ids.every(i=>/^bk-/.test(i)),JSON.stringify({ln,ids}));
+ /* bookmarks: the star becomes a bookmark in a book; it lights on that page, shows in Contents, and takes you back */
+ await p.evaluate(()=>{R.pg=Math.min(1,R.np-1);show()});await p.waitForTimeout(300);
+ const bm0=await p.evaluate(()=>{const b=document.getElementById('st');return {lbl:b.getAttribute('aria-label'),pr:b.getAttribute('aria-pressed')}});
+ await p.evaluate(()=>document.getElementById('st').click());await p.waitForTimeout(200);
+ const bm1=await p.evaluate(()=>({pr:document.getElementById('st').getAttribute('aria-pressed'),n:(S.bkmk[curA.book]||[]).length,txt:!!document.querySelector('#st .bl')}));
+ await p.evaluate(()=>{R.pg=0;show()});await p.waitForTimeout(200);
+ const bm2=await p.evaluate(()=>document.getElementById('st').getAttribute('aria-pressed'));
+ await p.evaluate(()=>document.querySelector('#rd .bar .bs').click());await p.waitForTimeout(300);
+ await p.evaluate(()=>document.querySelector('dialog#secm [data-bm="0"]').click());await p.waitForTimeout(400);
+ const bm3=await p.evaluate(()=>({pg:R.pg,pr:document.getElementById('st').getAttribute('aria-pressed')}));
+ ck('a bookmark is set on this page, lit only there, listed in Contents and goes back to it',/^Bookmark/.test(bm0.lbl)&&bm0.pr==='false'&&bm1.pr==='true'&&bm1.n===1&&bm1.txt&&bm2==='false'&&bm3.pr==='true'&&bm3.pg===1,JSON.stringify({bm0,bm1,bm2,bm3}));
+ /* Listen: at the end of a chapter, reading aloud goes on to the next chapter of the book */
+ await p.evaluate(()=>{R.keepCtx=true;return openReader(R.ctx[0])});await p.waitForFunction(()=>R.ready&&curA&&curA.n===0,null,{timeout:20000});
+ const c0=await p.evaluate(()=>curA.n);
+ await p.evaluate(()=>ttsEnd(false));await p.waitForFunction(n=>R.ready&&curA&&curA.n===n+1,c0,{timeout:20000}).catch(()=>{});
+ const ln2=await p.evaluate(()=>({n:curA.n,book:!!curA.book,ctx:R.ctx.length}));
+ ck('Listen goes on to the next chapter',ln2.n===c0+1&&ln2.book,JSON.stringify(ln2));
+ await p.evaluate(()=>{try{ttsStop()}catch(e){}});
+ /* Android 'Open with': the native side hands over a path in the app's cache; the app reads it and adds the book */
+ await p.route('https://localhost/_capacitor_file_/**',r=>r.fulfill({path:path.resolve(__dirname,'fixtures/links.epub'),contentType:'application/epub+zip'}));
+ await p.evaluate(()=>{window.__cap0=window.Capacitor;window.Capacitor=Object.assign({},window.Capacitor||{},{convertFileSrc:x=>'https://localhost/_capacitor_file_'+x});S.bkv='';handleShare({book:'/data/user/0/com.cypress.reader/cache/open-book.epub'})});
+ await p.waitForFunction(()=>S.sel==='books'&&/Link Test/.test((document.querySelector('#grid .rki h2')||{}).textContent),null,{timeout:20000}).catch(()=>{});
+ const ow=await p.evaluate(()=>{window.Capacitor=window.__cap0;return {sel:S.sel,rd:document.getElementById('rd').classList.contains('on'),h:(document.querySelector('#grid .rki h2')||{}).textContent}});
+ ck('Open with: a book handed over by Android is added and its page shows',ow.sel==='books'&&!ow.rd&&/Link Test/.test(ow.h||''),JSON.stringify(ow));
  ck('nothing about the book went to the network',!net.length,net.slice(0,3).join(' '));
  ck('no page errors',!errs.length,errs.slice(0,3).join(' | '));
  await p.screenshot({path:OUT+'/book_chapter.png'});
