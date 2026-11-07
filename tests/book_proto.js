@@ -30,6 +30,14 @@ const FX=path.resolve(__dirname,'fixtures/pride-and-prejudice.epub');
  await p.evaluate(()=>advanceNext());await p.waitForFunction(n=>R.ready&&curA&&curA.n===n+1,n0,{timeout:20000}).catch(()=>{});
  const nx=await p.evaluate(()=>({n:curA.n,t:curA.title,txt:document.querySelector('.cols .body').textContent.length,pos:S.bkpos[curA.book]}));
  ck('the next chapter follows the last page, from the device',nx.n===n0+1&&nx.txt>500&&nx.pos&&nx.pos.c===nx.n,JSON.stringify(nx));
+ /* Contents: the book's name at the top opens a list dialog with this chapter marked; picking another opens it */
+ await p.evaluate(()=>document.querySelector('#rd .bar .bs').click());await p.waitForTimeout(300);
+ const tc=await p.evaluate(()=>{const d=document.querySelector('dialog#secm[open]');return d?{n:d.querySelectorAll('.secl button').length,cur:(d.querySelector('[aria-current]')||{}).textContent,foc:d.contains(document.activeElement),lbl:document.querySelector('#rd .bar .bs').getAttribute('aria-label')}:null});
+ await p.keyboard.press('ArrowRight');const pgK=await p.evaluate(()=>R.pg);
+ await p.evaluate(()=>{const b=document.querySelector('dialog#secm [aria-current]');(b.previousElementSibling||b).click()});
+ await p.waitForFunction(n=>R.ready&&curA&&curA.n===n-1,nx.n,{timeout:20000});
+ ck('Contents lists every chapter, marks this one, keeps focus and keys, and opens the one picked',tc&&tc.n===65&&tc.cur&&tc.foc&&/^Contents of /.test(tc.lbl)&&pgK===0,JSON.stringify({tc,pgK}));
+ await p.evaluate(()=>advanceNext());await p.waitForFunction(n=>R.ready&&curA&&curA.n===n,nx.n,{timeout:20000});await p.waitForTimeout(500);
  const dl=await p.evaluate(()=>({dt:(document.querySelector('#rd .dt')||{}).textContent||'',orig:!!document.querySelector('.cols .orig')}));
  ck('the line under the title says which chapter of how many, with no "Read original" link',/\d+ of \d+/.test(dl.dt)&&!dl.orig,JSON.stringify(dl));
  /* reading spot: turn on, leave, open the book again with Continue: same chapter, same place */
