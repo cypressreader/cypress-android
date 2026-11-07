@@ -743,3 +743,10 @@ DONE 2026-11-07 (branch a5196b8): messy-EPUB sweep — `tests/fixtures/messy-epu
 ## moved ig1gfo-2 2026-11-07 (1.279 fix, 1.280 detail)
 **SHIPPED 1.279 fix:** story looks used `data-look`, which Quick Looks' document click handler matches, so every story tap changed the theme and re-laid out mid-turn (forward curl lost). Now `data-rlook`; startup clears a theme saved as classic/gallery/essay. Never reuse `data-look` outside Quick Looks.
 **SHIPPED 1.280:** squeezed wide photo. `fitWide` shrinks the across-both-pages banner until the headline block fits on the left page; when that leaves the picture at more than 1.8x its natural aspect (most of it cropped), it sets `R.hsq='top'` and `relayout()`s, and `heroSpread` auto then picks `top` (photo at its own shape atop the left page, text starts right page). `R.hsq` reset in openReader. Checked at 2000x1864 with a 3:2 photo; reader_figure/text/asides/st19 pass.
+
+
+## moved 2026-11-07 uvd97b (pointers trimmed from HANDOFF)
+Side-by-side setting + deep-dive audit notes: HANDOFF-ARCHIVE grep "moved 3884797".
+**SHIPPED 1.277 (merge 9b7b52c):** book batch + Today's Chapter. Symbol list: HANDOFF-ARCHIVE grep "moved 2026-11-07 c3wydg".
+**Visual brainstorm 2026-11-07:** shortlist 6b/1/2/7 built below; 3 (fresh ink) dropped; photo treatments: no. Artifacts + detail: archive grep "moved 2026-11-07 c3wydg".
+1.278 looks + 1.279 Big story alerts detail: archive grep 'moved ig1gfo'.
