@@ -1491,3 +1491,16 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - [ ] Fold two-page view: a book chapter starts on the left page; the chapter name shows once (B4)
 - [ ] ··· menu in a book shows Contents and opens the chapter list (B1)
 - [ ] Tapping past a chapter's last page goes straight to the next chapter (B3)
+
+## Books: messy-EPUB sweep (claude/book-prototype-handoff-azxnv9, 2026-11-07)
+Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no device needed. Worth a look on the Fold anyway:
+- Open a real store EPUB (publisher free sample / free Play Books or Kobo title) and check the chapter list and accents.
+- Open a comic or picture book: expect "This book has fixed pages, like a comic or picture book, and CyPress can't open that kind yet."
+- Rename a .mobi and try it: expect "CyPress can't open Kindle books. Save the book as an EPUB file and add that instead."
+- Open a PDF: expect "CyPress opens EPUB books, and plain text or Markdown files."
+
+## Books: quick page turns + new book page (2026-11-07, branch claude/book-prototype-handoff-azxnv9, implemented, unverified on phone)
+- In a book, tap the right edge 4 times quickly: each tap turns one page (no tap lost while the page is still curling). Same going back.
+- Swipe a page, then tap right away: the tap turns the next page (it used to be ignored for about a third of a second).
+- Drag a page halfway and let it fall back: it still settles back cleanly, no stuck page.
+- Book page: centered cover and title, author in small capitals, brass rule, a Continue card ("Continue: Chapter 2 · N min left in this chapter"), chapter list with "read" / "you are here" / minutes. Check in Halcyon light and dark and on the open Fold.
