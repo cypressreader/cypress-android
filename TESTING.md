@@ -1543,3 +1543,4 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - [ ] Now playing (book): start Listen, go Back to the feed: mini player shows "Chapter …" over the book title, with Next chapter / Start of this chapter buttons; the big player shows the cover, "Open the book", and a Sleep timer menu ("End of this chapter" works).
 - [ ] Book Listen with the reader closed (screen off, pocket): at the end of a chapter it goes on to the next one instead of stopping. Lock-screen next button = next chapter.
 - [ ] Running heads on the Fold open (two pages): book title at top left, chapter at top right, small italic, above the page; hidden on a chapter's first page. Phone/closed: chapter name only, centered. Page turns don't jump or re-flow.
+- [ ] Running heads (follow-up): chapter name only, centered, on both the Fold and the phone; the book title shows only in the top bar.
