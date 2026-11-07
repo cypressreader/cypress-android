@@ -15741,7 +15741,9 @@ function edArtSvg(am,seed,wash){
 dayCoverHtml.ran=0;function dayCoverHtml(lead,pool){covSeen();/* David 2026-10-31: a cover photo that never arrives (blocked or stalled, e.g. LA Times) falls back to the drawn cover instead of a gray box */clearTimeout(dayCoverHtml.t);dayCoverHtml.t=setTimeout(()=>document.querySelectorAll('.dcv-art>img:not(.ok)').forEach(i=>cvArtFail(i,'timed out')),9000);
  const d=edDate(),issue=issueNo(d),am=edKind()==='m',tr=coverTreat(lead);
  const lines=[],seen=new Set([lead.feedId]),usedCL=new Set();
- for(const a of pool){if(lines.length>=3)break;if(a===lead||seen.has(a.feedId)||S.read[a.link])continue;seen.add(a.feedId);lines.push(a)}
+ /* David 2026-11-07: the three story boxes prefer headlines of 45 characters or fewer (three lines in the narrowest box, ~103px at 17px), so the 3-line clamp is only a safety net; long ones fill in when short ones run out, and the boxes keep the pool's order */
+ for(const sh of [1,0])for(const a of pool){if(lines.length>=3)break;if(a===lead||seen.has(a.feedId)||S.read[a.link]||sh&&(a.title||'').length>45)continue;seen.add(a.feedId);lines.push(a)}
+ lines.sort((x,y)=>pool.indexOf(x)-pool.indexOf(y));
  cur=[lead];WHY[lead.link]=whyLead(lead);
  const li=lines.map(a=>{cur.push(a);WHY[a.link]='Cover line: a top unread story from '+fof(a).title+', one per site';return `<a class="cvl dcv-l" href="${esc(a.link)}" data-i="${cur.length-1}"><small style="--b:${brand(fof(a))}">${esc(pe('coverline',{},'cl'+cur.length,usedCL))}</small><span>${esc(a.title)}</span><em class="xsrc">${esc(fof(a).title)}</em></a>`}).join('');
  const note=pe('note',{},'cover');
