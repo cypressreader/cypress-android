@@ -1462,3 +1462,10 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 ## Deep-dive fixes design2 (branch mx03wy, 2026-11-06) — implemented, unverified on phone
 - R5/F11: on the unfolded Fold (and a tablet held sideways) All Stories shows the top story over two thirds with a "Next up" column beside it, single stories as side-by-side picture + text, summaries no wider than about 68 characters. Fold and unfold with a story list open: the layout switches without a redraw and the list stays in place; open a story and go back: you land on the same card.
 - R7: each of the 7 themes now has its own look beyond color (Newsprint square corners + ink hairlines, Cypress brass rules + small-caps site names, Coast more room in cards, High Contrast thick borders + bold labels, Black & White square, Sepia Rosewood italic site names, Aurora rounder corners + soft shadow). Check each theme light and dark on the phone for anything that looks broken or hard to read.
+
+## Deep-dive fixes design1 (branch mx03wy, 2026-11-06) — implemented, unverified on phone
+- R1/F04: on the phone, the lead story's headline is clearly bigger (about 28 px) than secondary stories (20 px) and rows (17 px), at Compact/Medium/Large; section titles (Next up, Since this morning, Headlines sections, All Stories) share one look.
+- R2/F08: a lead story with no photo, or whose photo fails to load, shows as type (label, big headline, two-line italic summary, time) with a thin rule, not a green block with a giant letter. Check Cypress light/dark and Aurora.
+- R4/F06: on the Fold and tablets, All Stories photos sit beside the text at 3:2 (no thin strips); the opening Daily photo on the Fold is 16:9.
+- F03: on the Daily cover, the three bottom-column headlines stop at three lines with "…"; the evening moon sits top right, clear of the site name.
+- F10: on 768-1024 tablets, Headlines rows in narrow columns put the photo on top instead of 2-3 words a line beside it.
