@@ -1469,3 +1469,19 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - R4/F06: on the Fold and tablets, All Stories photos sit beside the text at 3:2 (no thin strips); the opening Daily photo on the Fold is 16:9.
 - F03: on the Daily cover, the three bottom-column headlines stop at three lines with "…"; the evening moon sits top right, clear of the site name.
 - F10: on 768-1024 tablets, Headlines rows in narrow columns put the photo on top instead of 2-3 words a line beside it.
+
+## Books prototype (phase 0, branch claude/book-prototype, preview slot `books`) — implemented, unverified on a phone
+- Settings > Downloads and Storage > Books (beta) On → "Books" appears in the side panel Library group.
+- Books > Open a book file → the Android file picker offers .epub files; a Standard Ebooks or Gutenberg EPUB imports and shows its cover, title, author and chapters.
+- A chapter opens instantly with no network (try in airplane mode); page turns feel the same as stories; the last page flows into the next chapter.
+- A very large book (War and Peace) imports without the app freezing or crashing on a low-end phone.
+- Remove this book clears it; Erase everything also removes books.
+
+## Books (claude/book-prototype, 2026-11-07) — implemented, unverified on a phone
+- [ ] "Open with CyPress" on an .epub from Files, Gmail and Downloads: app opens on Books with the book added (native `CyExtras.handleFile` copies to cache `open-book.epub`; manifest filter `application/epub+zip`). Also while the app is already open (onNewIntent).
+- [ ] A 20+ MB illustrated EPUB via Open with: no freeze longer than ~1 s on open, imports.
+- [ ] Listen across chapters: start Listen near a chapter's end, lock the phone: it goes on into the next chapter.
+- [ ] Bookmark star in a book: lights on the bookmarked page only; Contents (tap book name, top left) lists it and goes back to it.
+- [ ] Continue returns to the same page after closing and reopening the app.
+- [ ] Books dialogs with TalkBack/keyboard: after closing Contents or a note pop-up, focus lands back on the book name button (top left) or the note mark.
+- [ ] Plain text (.txt) and Markdown (.md) files open from the Books picker as books with chapters.

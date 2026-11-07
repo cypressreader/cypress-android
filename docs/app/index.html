@@ -3678,6 +3678,8 @@ html.dkart .sun-m small,html.dkart .sun-t small{color:var(--brass)}
 .dexp{grid-column:1/-1;margin:0 0 10px}
 .rkg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}.rkg>.hint,.rkg>.rkm{grid-column:1/-1}.rkm{margin:10px 0 0;font:italic 400 22px var(--disp,var(--serif))}
 .rk{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-height:210px;padding:14px 12px;border-radius:6px;background:linear-gradient(170deg,#12432f,#0b2119);color:#f3ead6;box-shadow:0 0 0 2px #0f5a3b,0 6px 14px rgba(0,0,0,.25);outline-offset:3px}
+.rk>img{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:3px}
+#bknote .bkn{max-height:50vh;overflow:auto;margin:8px 0 12px;font:16px/1.5 var(--serif)}#bknote .bkn>*{margin:0}
 .rk:focus-visible{outline:2px solid var(--logo)}.rk-m{font:400 15px var(--disp,var(--serif));letter-spacing:.3em;text-align:center}.rk-e{font:700 8px var(--sans);letter-spacing:.12em;text-transform:uppercase;text-align:center;color:#d1ad55}
 .rk b{margin-top:auto;font:400 17px/1.1 var(--disp,var(--serif));display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden}.rk small{font:600 10px var(--sans);opacity:.8}
 .rki h2{margin:12px 0 2px;font:400 32px var(--disp,var(--serif))}.rki ol{list-style:none;margin:16px 0 0;padding:0}.rki li{border-top:1px solid var(--ln)}
@@ -6302,13 +6304,13 @@ const feedRow=x=>`<div class="fr ${S.sel==='s:'+x.id?'on':''}${paused(x)?' pz':'
 const fold=id=>!!(S.fcol&&S.fcol[id]);
 const chev=(id,nm)=>{const nn=nm||'Unfiled',lb=(fold(id)?'Open folder ':'Close folder ')+nn;return `<button type="button" class="chv ${fold(id)?'':'open'}" data-tgl="${id}" aria-expanded="${fold(id)?'false':'true'}" aria-label="${esc(lb)}" title="${esc(lb)}"></button>`};
 /* polish-2026-10 (J6/E6): 1.5px line icons for the drawer; Daily, All and Saved use the same drawings as the bottom bar */
-const NI_P={daily:'<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/>',all:'<path d="M4 7h16M4 12h16M4 17h16"/>',feeds:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',saved:'<path d="M12 4.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 9.8l5-.7z"/>',notes:'<path d="M4 20l4.2-1 10-10-3.2-3.2-10 10zM13 7.8l3.2 3.2"/>',hist:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',stats:'<path d="M5 20v-8M12 20V5M19 20v-5"/>',bi:'<rect x="3.5" y="4" width="17" height="5" rx="1"/><path d="M5 9v10h14V9M10 13h4"/>'};
+const NI_P={books:'<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/>',daily:'<path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/>',all:'<path d="M4 7h16M4 12h16M4 17h16"/>',feeds:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',saved:'<path d="M12 4.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 9.8l5-.7z"/>',notes:'<path d="M4 20l4.2-1 10-10-3.2-3.2-10 10zM13 7.8l3.2 3.2"/>',hist:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',stats:'<path d="M5 20v-8M12 20V5M19 20v-5"/>',bi:'<rect x="3.5" y="4" width="17" height="5" rx="1"/><path d="M5 9v10h14V9M10 13h4"/>'};
 const nIc=k=>`<svg class="ni" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${NI_P[k]}</svg>`;
 function side(){UCC=new Map();try{side0()}finally{UCC=null}}
 function side0(){
  {const gv=$('#gv');if(gv&&!gv.textContent)gv.textContent='Version '+APP_LABEL}
  let h=`<div class="nav ${S.sel==='today'||S.sel==='brief'||S.sel==='digest'?'on':''}" data-sel="today">${nIc('daily')}<span class="nt">The Daily</span>${(()=>{const b=S.brief&&S.brief.day===new Date().toDateString()?S.brief.links.filter(l=>!S.read[l]).length:0;return b?(S.hideCount?dotU:bad(b)):''})()}</div><div class="nav ${S.sel==='all'?'on':''}" data-sel="all">${nIc('all')}<span class="nt">All Stories</span>${navDot(()=>uc(S.feeds),()=>newIn(S.feeds))}</div>`;
- const bot=`<div class="dlib" role="group" aria-label="Library"><h4 class="dlh">Library</h4><div class="dlg"><div class="nav dlt ${S.sel==='saved'?'on':''}" data-sel="saved">${nIc('saved')}<span class="nt">Saved</span>${bad(S.saved.filter(a=>!a.ar).length)}</div><div class="nav dlt ${S.sel==='notes'?'on':''}" data-sel="notes">${nIc('notes')}<span class="nt">Highlights</span>${bad(S.hl.length)}</div><div class="nav dlt ${S.sel==='hist'?'on':''}" data-sel="hist">${nIc('hist')}<span class="nt">History</span></div><div class="nav dlt ${S.sel==='stats'?'on':''}" data-sel="stats">${nIc('stats')}<span class="nt">Stats</span></div></div>${isOn('bi')?`<div class="nav ${S.sel==='bi'?'on':''}" data-sel="bi">${nIc('bi')}<span class="nt">Back issues</span></div>`:''}</div>`;
+ const bot=`<div class="dlib" role="group" aria-label="Library"><h4 class="dlh">Library</h4><div class="dlg"><div class="nav dlt ${S.sel==='saved'?'on':''}" data-sel="saved">${nIc('saved')}<span class="nt">Saved</span>${bad(S.saved.filter(a=>!a.ar).length)}</div><div class="nav dlt ${S.sel==='notes'?'on':''}" data-sel="notes">${nIc('notes')}<span class="nt">Highlights</span>${bad(S.hl.length)}</div><div class="nav dlt ${S.sel==='hist'?'on':''}" data-sel="hist">${nIc('hist')}<span class="nt">History</span></div><div class="nav dlt ${S.sel==='stats'?'on':''}" data-sel="stats">${nIc('stats')}<span class="nt">Stats</span></div></div>${isOn('bi')?`<div class="nav ${S.sel==='bi'?'on':''}" data-sel="bi">${nIc('bi')}<span class="nt">Back issues</span></div>`:''}<div class="nav ${S.sel==='books'?'on':''}" data-sel="books">${nIc('books')}<span class="nt">Books</span></div></div>`;
  /* B44: all feed folders live under one collapsible "My Feeds" header, collapsed by default */
  let mf='';
  for(const f of S.folders)mf+=`<div class="fold" data-drop="${f.id}"><div class="fh ${S.sel==='f:'+f.id?'on':''}" data-sel="f:${f.id}">${chev(f.id,f.name)}<button type="button" class="fht">${esc(f.name)}</button>${navDot(()=>uc(S.feeds.filter(x=>x.folder===f.id)),()=>newIn(S.feeds.filter(x=>x.folder===f.id)))}<button type="button" class="frx" data-delf="${f.id}" title="Delete folder" aria-label="Delete folder ${esc(f.name)}">×</button><button type="button" class="frmo" data-fopt aria-label="Settings for folder ${esc(f.name)}">…</button></div>${fold(f.id)?'':S.feeds.filter(x=>x.folder===f.id).map(feedRow).join('')}</div>`;
@@ -6660,13 +6662,14 @@ function render0(){
  else if(S.sel.startsWith('k:')){const k=S.sk.find(x=>'k:'+x.id===S.sel);if(k)t=k.name}
  $('#ttl').textContent=t;
  document.body.style.setProperty('--tint',(S.theme==='dynamic'&&S.sel.startsWith('s:')&&fs[0])?`color-mix(in srgb,${brand(fs[0])} 8%,var(--bg))`:'');
- {const mr=$('#mr');if(mr)mr.hidden=/^(saved|hist|stats|hl)$/.test(S.sel);const vw=$('#vw');if(vw)vw.hidden=S.sel==='today'}/* Mark all as read has no clear meaning on these pages */
+ {const mr=$('#mr');if(mr)mr.hidden=/^(saved|hist|stats|hl|books)$/.test(S.sel);const vw=$('#vw');if(vw)vw.hidden=S.sel==='today'}/* Mark all as read has no clear meaning on these pages */
  const q=$('#q').value.trim().toLowerCase();
  if(S.sel==='today'&&!q){if(DNAV&&dailyRestore())return;return renderToday()}
  if(S.sel==='all'&&!q&&atab()!=='latest'){let p=mutCut(S.feeds.filter(f=>!paused(f)).flatMap(f=>items[f.id]||[]));p.sort((a,b)=>b.date-a.date);p=p.slice(0,300);if(S.hideRead)p=p.filter(a=>!S.read[a.link]);if(S.group!==false)p=group(p);return renderToday(atab(),p,allSeg(atab())+mutRow(),'All Stories')}
  if(S.sel==='brief'&&!q)return renderBrief();
  if(S.sel==='stats'&&!q)return renderStats();
  if(S.sel==='bi'&&!q)return renderBack();
+ if(S.sel==='books'&&!q)return renderBooks();
  if(S.sel==='digest'&&!q)return renderDigest();
  if(S.sel==='notes'&&!q)return renderNotes();
  if(S.sel==='hist'&&!q)return renderHist();
@@ -7505,7 +7508,7 @@ function dayPos(a){const t=document.querySelector('.dtabs [aria-selected=true]')
  document.querySelectorAll('#grid h3.dsh,#grid a[href]').forEach(e=>{if(e.tagName==='H3'){s=(e.querySelector('span')||e).textContent.trim();return}const l=e.getAttribute('href');if(ed.has(l)&&!(l in sec)){sec[l]=s;seen.push(l)}});
  const i=seen.indexOf(a.link);return i<0?null:i+1+' of '+seen.length+' · '+sec[a.link]}
 function readerFootHtml(a){
- const f=fof(a),nx=nextAfter(a),rel=relatedFor(a).filter(r=>!nx||r.link!==nx.link).slice(0,3),mm=n=>{const m=minsOf(n);return m?' · '+m+' min':''},sv=!!isSaved(a);
+ const f=fof(a),nx=a.book?readerNext():nextAfter(a),rel=a.book?[]:relatedFor(a).filter(r=>!nx||r.link!==nx.link).slice(0,3),mm=n=>{const m=minsOf(n);return m?' · '+m+' min':''},sv=!!isSaved(a);
  /* R-08: the ending is one composed block: Next up with its photo and how to go on, the story's actions, then up to three related reads; tags moved to the More sheet ("Filed under") */
  return `<div class="rfoot" role="complementary" aria-label="Keep reading"><p class="rf-src">${esc(f.title)}${a.date?' · '+esc(new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'})):''}${DPOS?'<br>The Daily · '+esc(DPOS):''}</p>`
   +(nx?`<button type="button" class="rf-next" data-rnext="${esc(nx.link)}"><small>Next up · ${esc(fof(nx).title)}${mm(nx)}</small>${nx.img?`<span class="rn-i"><img alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="${esc(nx.img)}" onerror="this.parentNode.remove()"></span>`:''}<b>${esc(nx.title)}</b><em aria-hidden="true"></em></button>`:'')
@@ -8817,7 +8820,7 @@ function show(){
  if(!isVert())c.style.transform=`translateX(${-R.pg*R.step}px)`;
  if(RP&&!R.T&&RP.T.key!==prepKey())prepSoon();
  $('#pc').textContent=pcText();{const bk=$('.book');if(bk){if(isOn('folio')&&curA&&!R.web&&!isVert()&&R.np>0){const t=(curA.title||'').length>46?curA.title.slice(0,44)+'…':(curA.title||'');bk.dataset.folio=(DPOS||fof(curA).title||'')+' · '+t+'   ·   '+(R.pg+1)}else delete bk.dataset.folio}}$('#pv').disabled=!isVert()&&R.pg===0;$('#nx').disabled=!isVert()&&R.pg>=R.np-1;fpSync();dialSync();rdxEdge();
- if(R.ready&&curA){delete S.pos[curA.link];if(R.pg>0&&R.pg<R.np-1)S.pos[curA.link]=R.pg;const pk=Object.keys(S.pos);if(pk.length>300)delete S.pos[pk[0]];clearTimeout(pt);pt=setTimeout(save,700)}
+ if(R.ready&&curA){if(curA.book){bkMark(curA.book,curA.n,rdFrac()||0);bkBmSync();if(curA.n===curA.of-1&&R.pg>=R.np-1){S.bkdone=S.bkdone||{};if(!S.bkdone[curA.book])S.bkdone[curA.book]=Date.now()}}delete S.pos[curA.link];if(R.pg>0&&R.pg<R.np-1)S.pos[curA.link]=R.pg;const pk=Object.keys(S.pos);if(pk.length>300)delete S.pos[pk[0]];clearTimeout(pt);pt=setTimeout(save,700)}
 }
 const ePage=p=>(1-Math.pow(1-p,3))*(.55+.45*Math.min(1,p/.3));
 /* turning back starts with the curl already tight, so it needs a gentle start (the forward turn's fast start would look abrupt) */
@@ -9028,7 +9031,7 @@ function go(d){
  R.navAt=Date.now();if(!R.fa&&!isVert()&&R.np>1){R.fa=1;$('#rd').classList.add('fauto')}/* R-10 */
  if(R.busy&&R.T&&R.T.warm)endTurn(false);
  if(isVert()&&!R.web){vScrollBy(d);return}
- const to=R.pg+d;if(d>0&&to>=R.np&&!R.web&&!R.busy&&R.np>0&&isOn('cont')&&readerNext()){if(R.endArmed){advanceNext();return}R.endArmed=true;rnHint('Turn the page again for the next story',readerNext());clearTimeout(R.endT);R.endT=setTimeout(()=>{R.endArmed=false},2600);return}
+ const to=R.pg+d;if(d>0&&to>=R.np&&!R.web&&!R.busy&&R.np>0&&isOn('cont')&&readerNext()){if(R.endArmed){advanceNext();return}R.endArmed=true;rnHint(curA.book?'Turn the page again for the next chapter':'Turn the page again for the next story',readerNext());clearTimeout(R.endT);R.endT=setTimeout(()=>{R.endArmed=false},2600);return}
  if(R.web||R.busy||to<0||to>=R.np)return;
  if(reduced()){R.pg=to;show();return}
  if(rdxPturn()!=='paper'){rdxTurn(to);return}
@@ -9481,7 +9484,7 @@ async function getFull00(url,ctx){
 /* stories read ahead are kept in memory the moment they arrive, so opening one right after scrolling never has to fetch it again */
 const PFHOT=new Map();
 const TIER={};/* which route delivered each story, and what the page said about itself */
-function getFull(url,light){
+function getFull(url,light){if(/^book:/.test(url))return Promise.resolve(null);/* a book chapter never goes to the network */
  const hot=PFHOT.get(url);if(hot&&Date.now()-hot.t<6e5){const f=hot.n.cloneNode(true);if(hot.n.pw)f.pw=true;f.tier=hot.n.tier;f.meta=hot.n.meta;if(hot.n.incomplete)f.incomplete=true;if(hot.n.gate)f.gate=true;if(hot.n.nofree)f.nofree=true;if(hot.n.gated_preview)f.gated_preview=true;return Promise.resolve(f)}
  let e=INF[url];
  if(e){if(!light&&e.ctx.light){e.ctx.light=false;if(e.ctx.up)e.ctx.up()}}
@@ -9647,7 +9650,7 @@ function prefetch(list,first){
  const add=[];
  for(const a of list){
   if(PF.n>=Math.max(400,pfN()+100))break;
-  if(!a.link||PF.done.has(a.link)||acHas(a.link)||S.read[a.link]||(curA&&curA.link===a.link))continue;
+  if(!a.link||a.book||PF.done.has(a.link)||acHas(a.link)||S.read[a.link]||(curA&&curA.link===a.link))continue;
   if(a.date&&Date.now()-a.date>14*864e5)continue;
   PF.done.add(a.link);add.push(a);PF.n++;PF.tot++;
  }
@@ -9930,14 +9933,14 @@ function toggleWeb(auto){
  w.hidden=false;R.web=true;R.auto=!!auto;b.innerHTML=svg(PAGE);b.title='Back to reader view';loadWeb();
 }
 async function openReader(a){use1('open');RDT=Date.now();
- const f=fof(a),my=++tok,sh=$('#sheet');curA=a;DPOS=dayPos(a);R.vl=null;RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0,wantResume=RD_CONT;RD_CONT=false;R.navAt=0;R.ready=false;R.tf=0;R.fa=0;try{$('#rd').classList.remove('fauto','fpeek')}catch(e){}const afterLoad=()=>{R.tf=1;{const s=document.querySelector('.cols .body .skp');if(s)s.remove();const h=$('#rd .lhl');if(h)h.hidden=true}legalBody($('.cols .body'));try{markRestricted(a,($('.cols .body')||{}).textContent,false)}catch(e){}try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;/* ...but only when something really changed since the last layout: each one re-lays the whole story, a hitch just as reading starts */try{if(RLD)RLD.off()}catch(e){}const c0=$('.cols'),L={dirty:false},mark=()=>{L.dirty=true};L.mo=new MutationObserver(mark);if(c0){L.mo.observe(c0,{childList:true,subtree:true,characterData:true});c0.addEventListener('load',mark,true)}try{document.fonts&&document.fonts.addEventListener('loadingdone',mark)}catch(e){}L.off=()=>{L.mo.disconnect();if(c0)c0.removeEventListener('load',mark,true);try{document.fonts.removeEventListener('loadingdone',mark)}catch(e){}if(RLD===L)RLD=null};RLD=L;const maybe=()=>{if(curA!==a0){L.off();return}if(L.dirty)relayout()};setTimeout(maybe,800);setTimeout(()=>{maybe();setTimeout(()=>{if(curA===a0)L.off()},3000)},2600);setTimeout(()=>{if(curA===a0)rdWarm()},3300);try{document.fonts&&document.fonts.ready.then(maybe)}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if(!wantResume){R.pg=0;try{show()}catch(e){}/* page 1 again once the pictures have settled, unless the reader has already turned a page */const t0=Date.now();for(const ms of [0,350,900]){setTimeout(()=>{if(my===tok&&!isVert()&&R.pg>0&&!(R.navAt&&R.navAt>=t0-50)){R.pg=0;try{show()}catch(e){}}},ms)}/* a story you were partway through offers your page back instead of starting over in silence */if(resume||progOf(a.link))setTimeout(()=>{if(my!==tok||isVert()||R.pg>0||!R.np)return;const pf=progOf(a.link),tp=Math.max(0,Math.min(pf?Math.round(pf*(R.np-1)):resume,R.np-1));if(tp>0&&tp<R.np-1)toast('You were on page '+(tp+1)+' of '+R.np,()=>{if(my===tok){R.pg=tp;R.navAt=Date.now();show()}},'Resume')},1000)}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);saveSoon();setTimeout(()=>raWhenReady(a,0),1200);
+ const f=fof(a),my=++tok,sh=$('#sheet');curA=a;DPOS=dayPos(a);R.vl=null;RDSIG=rdSig(a);R.sf=null;R.rf=null;ttsStop();hlClear();const resume=S.pos[a.link]||0,wantResume=RD_CONT||!!a.book;RD_CONT=false;R.navAt=0;R.ready=false;R.tf=0;R.fa=0;try{$('#rd').classList.remove('fauto','fpeek')}catch(e){}const afterLoad=()=>{R.tf=1;{const s=document.querySelector('.cols .body .skp');if(s)s.remove();const h=$('#rd .lhl');if(h)h.hidden=true}if(!a.book){legalBody($('.cols .body'));try{markRestricted(a,($('.cols .body')||{}).textContent,false)}catch(e){}}try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;/* ...but only when something really changed since the last layout: each one re-lays the whole story, a hitch just as reading starts */try{if(RLD)RLD.off()}catch(e){}const c0=$('.cols'),L={dirty:false},mark=()=>{L.dirty=true};L.mo=new MutationObserver(mark);if(c0){L.mo.observe(c0,{childList:true,subtree:true,characterData:true});c0.addEventListener('load',mark,true)}try{document.fonts&&document.fonts.addEventListener('loadingdone',mark)}catch(e){}L.off=()=>{L.mo.disconnect();if(c0)c0.removeEventListener('load',mark,true);try{document.fonts.removeEventListener('loadingdone',mark)}catch(e){}if(RLD===L)RLD=null};RLD=L;const maybe=()=>{if(curA!==a0){L.off();return}if(L.dirty)relayout()};setTimeout(maybe,800);setTimeout(()=>{maybe();setTimeout(()=>{if(curA===a0)L.off()},3000)},2600);setTimeout(()=>{if(curA===a0)rdWarm()},3300);try{document.fonts&&document.fonts.ready.then(maybe)}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if(!wantResume){R.pg=0;try{show()}catch(e){}/* page 1 again once the pictures have settled, unless the reader has already turned a page */const t0=Date.now();for(const ms of [0,350,900]){setTimeout(()=>{if(my===tok&&!isVert()&&R.pg>0&&!(R.navAt&&R.navAt>=t0-50)){R.pg=0;try{show()}catch(e){}}},ms)}/* a story you were partway through offers your page back instead of starting over in silence */if(resume||progOf(a.link))setTimeout(()=>{if(my!==tok||isVert()||R.pg>0||!R.np)return;const pf=progOf(a.link),tp=Math.max(0,Math.min(pf?Math.round(pf*(R.np-1)):resume,R.np-1));if(tp>0&&tp<R.np-1)toast('You were on page '+(tp+1)+' of '+R.np,()=>{if(my===tok){R.pg=tp;R.navAt=Date.now();show()}},'Resume')},1000)}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);saveSoon();setTimeout(()=>raWhenReady(a,0),1200);
  rdB(brand(f));pushLayer('reader');rdGest();
  try{rdAmbient(null)}catch(e){}
  if(a.img&&isOn('ptint'))imgInfo(a.img).then(o=>{if(o&&o.t&&curA===a){rdB(o.t);try{rdAmbient(o.t)}catch(e){}}});
  document.querySelectorAll('#grid .card').forEach(c=>c.classList.toggle('act',chref(c)===a.link));
  const dt=rdWhen(a.date);
  const cov=covOf(a).length?hubTeaser(a):'';
- sh.innerHTML=`<div class="bar"><button class="ib" id="cl" data-lbl="Back" aria-label="Back" title="Back">${svg('<path d="m14.5 5-7 7 7 7"/>')}</button><button class="ib" id="fdn" aria-label="Back to all feeds" title="Back to all feeds" tabindex="-1" aria-hidden="true" hidden>${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><button type="button" class="bs" aria-label="Go to ${esc(f.title)}" title="Go to ${esc(f.title)}"${f.id?'':' disabled'}>${esc(f.title)}</button><span id="pc"></span><button class="ib" id="st" data-lbl="Save" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>${'speechSynthesis' in window?`<button class="ib" id="ra" data-lbl="Listen" aria-label="Listen to story" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings" hidden>${svg(TUNE)}</button>`:''}<button class="ib" id="fau" data-lbl="Hands-free" aria-label="Hands-free reading" aria-pressed="false" title="Hands-free reading: the story moves on at your reading speed">${svg('<path class="pl" d="M8 5v14l11-7z"/><path class="pa" d="M8 5v14M16 5v14"/>')}</button><button class="ib" id="fcs" data-lbl="Focus" aria-label="Focus mode" aria-pressed="false" title="Focus: hide the controls and highlight the paragraph you are reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site in the app" title="View the site in the app" hidden>${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page" hidden>${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page" hidden>${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" data-lbl="More" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec)):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}"${heroAR(a)} onerror="const c=this.parentNode.querySelector('.hcap');c&&c.remove();this.remove()">${(a.pcp&&a.pcp!==a.title)||a.pcr||(a.pics&&a.pics.length>1)?`<p class="hcap">${a.pcp&&a.pcp!==a.title?esc(a.pcp)+(a.pcr?' · ':''):''}${a.pcr?`<span class="crd">${esc(a.pcr)}</span>`:''}${a.pics&&a.pics.length>1?`<button type="button" class="lnk" data-gal>See all ${a.pics.length} photos</button>`:''}</p>`:''}`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener noreferrer" href="${esc(a.link)}">Read original on ${esc(host(a.link))} ↗</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p class="wmp">This site can’t be shown inside the app. It may block automated access.</p><div><button type="button" class="lnk" id="wtry">Try again</button> <a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up your own service</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
+ sh.innerHTML=`<div class="bar"><button class="ib" id="cl" data-lbl="Back" aria-label="Back" title="Back">${svg('<path d="m14.5 5-7 7 7 7"/>')}</button><button class="ib" id="fdn" aria-label="Back to all feeds" title="Back to all feeds" tabindex="-1" aria-hidden="true" hidden>${svg('<path d="M4 6h16M4 12h10M4 18h13"/>')}</button><button type="button" class="bs" aria-label="${a.book?'Contents of ':'Go to '}${esc(f.title)}" title="${a.book?'Contents':'Go to '+esc(f.title)}"${a.book?' aria-haspopup="dialog"':f.id?'':' disabled'}>${esc(f.title)}</button><span id="pc"></span>${a.book?`<button class="ib" id="st" data-lbl="Bookmark" aria-label="Bookmark this page" title="Bookmark" aria-pressed="false">${svg(BKBM)}</button>`:`<button class="ib" id="st" data-lbl="Save" aria-label="Save story" title="Save">${starSvg(isSaved(a))}</button>`}${'speechSynthesis' in window?`<button class="ib" id="ra" data-lbl="Listen" aria-label="Listen to story" title="Read aloud">${svg(SPK)}</button>`:''}${'speechSynthesis' in window?`<button class="ib" id="rp" aria-label="Playback settings" title="Playback settings" hidden>${svg(TUNE)}</button>`:''}<button class="ib" id="fau" data-lbl="Hands-free" aria-label="Hands-free reading" aria-pressed="false" title="Hands-free reading: the story moves on at your reading speed">${svg('<path class="pl" d="M8 5v14l11-7z"/><path class="pa" d="M8 5v14M16 5v14"/>')}</button><button class="ib" id="fcs" data-lbl="Focus" aria-label="Focus mode" aria-pressed="false" title="Focus: hide the controls and highlight the paragraph you are reading">${svg(FOCUSI)}</button><button class="ib" id="wb" aria-label="View the site in the app" title="View the site in the app" hidden>${svg(GLOBE)}</button><button class="ib" id="pv" aria-label="Previous page" title="Previous page" hidden>${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib" id="nx" aria-label="Next page" title="Next page" hidden>${svg('<path d="m9.5 6 6 6-6 6"/>')}</button><button class="ib" id="mo" data-lbl="More" aria-label="More" title="More">${svg('<circle cx="6" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="18" cy="12" r="1.2"/>')}</button></div>${'speechSynthesis' in window?pbMarkup():''}${mnMarkup()}<div class="book"><div class="view"><div class="cols"><div class="kick">${esc(f.title)}${a.sec&&a.sec.toLowerCase()!==(f.title||'').toLowerCase()?' · '+esc(secT(a.sec)):''}</div><h2 class="tt">${esc(a.title)}</h2><div class="dt">${dtHtml(a,dt)}</div>${a.img?`<img class="hero" referrerpolicy="no-referrer" alt="" src="${esc(a.img)}"${heroAR(a)} onerror="const c=this.parentNode.querySelector('.hcap');c&&c.remove();this.remove()">${(a.pcp&&a.pcp!==a.title)||a.pcr||(a.pics&&a.pics.length>1)?`<p class="hcap">${a.pcp&&a.pcp!==a.title?esc(a.pcp)+(a.pcr?' · ':''):''}${a.pcr?`<span class="crd">${esc(a.pcr)}</span>`:''}${a.pics&&a.pics.length>1?`<button type="button" class="lnk" data-gal>See all ${a.pics.length} photos</button>`:''}</p>`:''}`:''}${mediaBlock(a)}<div class="note">Loading the full article…</div><div class="body"></div>${cov}<a class="orig" target="_blank" rel="noopener noreferrer" href="${esc(a.link)}">Read original on ${esc(host(a.link))} ↗</a></div></div><div class="web" hidden><div class="webbar"><span>Site view. Pages look simpler here.</span><span class="wr"><button type="button" class="lnk" id="wsw" hidden>Reader view</button><a class="wo" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a></span></div><div class="wld">Loading site…</div><iframe title="Site view" referrerpolicy="no-referrer"></iframe><div class="wmsg" hidden><p class="wmp">This site can’t be shown inside the app. It may block automated access.</p><div><button type="button" class="lnk" id="wtry">Try again</button> <a class="lnk" target="_blank" rel="noopener" href="${esc(a.link)}">Open in browser</a><button type="button" class="lnk" id="wrl">Set up your own service</button></div><details class="why" hidden><summary>Why?</summary><div class="wl"></div></details></div></div></div>`;
  /* the text stays hidden for the moment the page columns are being worked out, so the open never shows half-wrapped lines */
  {const rd=$('#rd');rd.classList.add('rdb');clearTimeout(rdbDone.t);rdbDone.t=setTimeout(rdbDone,420)}
  for(const lb of sh.querySelectorAll('.bar .ib[data-lbl]')){const sp=document.createElement('span');sp.className='bl';sp.setAttribute('aria-hidden','true');sp.textContent=lb.dataset.lbl;lb.append(sp)}
@@ -9949,12 +9952,12 @@ async function openReader(a){use1('open');RDT=Date.now();
  const c=$('.cols'),body=c.querySelector('.body'),note=c.querySelector('.note');
  R.heroEl=R.heroMark=null;
  /* a story that was got ready ahead of time goes straight onto the page: no network, no parsing of a page, no cleaning (that was all done when it was fetched) */
- let fastH=null;if(AC[a.link]&&AC[a.link].c&&!ytId(a)){fastH=acGet(a.link)||await acLoad(a.link);if(my!==tok)return;if(fastH){const lc=legalClean(fastH);if((lc.n||lc.w<150)&&!RD_RF.has(a.link)&&online()){RD_RF.add(a.link);acDrop(a.link);fastH=null}else if(lc.n)fastH=lc.h}}
- if(fastH){body.innerHTML=fastH;body.dataset.clean='1'}else{body.append(fromHTML(a.html,a.link));foldBoiler(body,a);/* the feed's own text opens at once, with its drop cap and pale bars where the rest will go */try{const p=body.querySelector('p');if(p&&p.textContent.trim().length>40&&makeDropcap(p))p.classList.add('dropcap')}catch(e){}const sk=document.createElement('div');sk.className='skp';sk.setAttribute('aria-hidden','true');body.append(sk)}
+ let fastH=null;if(a.book){fastH=await bkHtml(a);if(my!==tok)return}else if(AC[a.link]&&AC[a.link].c&&!ytId(a)){fastH=acGet(a.link)||await acLoad(a.link);if(my!==tok)return;if(fastH){const lc=legalClean(fastH);if((lc.n||lc.w<150)&&!RD_RF.has(a.link)&&online()){RD_RF.add(a.link);acDrop(a.link);fastH=null}else if(lc.n)fastH=lc.h}}
+ if(fastH){body.innerHTML=fastH;body.dataset.clean='1';if(a.book){if(a.lang)body.lang=a.lang;c.querySelectorAll(':scope>.orig').forEach(x=>x.remove())}}else{body.append(fromHTML(a.html,a.link));foldBoiler(body,a);/* the feed's own text opens at once, with its drop cap and pale bars where the rest will go */try{const p=body.querySelector('p');if(p&&p.textContent.trim().length>40&&makeDropcap(p))p.classList.add('dropcap')}catch(e){}const sk=document.createElement('div');sk.className='skp';sk.setAttribute('aria-hidden','true');body.append(sk)}
  try{heroOnce()}catch(e){}
  c.addEventListener('load',e=>{const im=e.target;/* a logo or icon in a story keeps its own small size instead of being blown up blurry across the column */if(im&&im.tagName==='IMG'&&im.closest&&im.closest('.body')&&!im.classList.contains('hero')&&im.naturalWidth&&im.naturalWidth<220&&im.naturalHeight<220){im.classList.add('tiny');im.style.setProperty('--tw',im.naturalWidth+'px')}heroSpread();photoPages();relayout()},true);c.addEventListener('error',()=>{heroSpread();relayout()},true);
  /* when the full text is already stored, afterLoad lays the page out once, so skip the layout of the short feed version */
- if(!(acGet(a.link)&&!ytId(a)))layout();
+ if(!a.book&&!(acGet(a.link)&&!ytId(a)))layout();
  mediaWire();
  if(ytId(a)){note.remove();afterLoad();return}
  if(fastH){mzDone('ready',a);note.remove();ALT='';afterLoad();return}
@@ -10346,6 +10349,7 @@ function ttsClean(){
  const body=$('.cols .body');if(!body)return 'there’s no text';
  const t=body.textContent.replace(/\s+/g,' ').trim();
  if(t.length<200)return 'there’s hardly any text';
+ if(curA&&curA.book)return '';/* a book's own text: no paywall or quality guessing */
  if(curA&&curA.pw&&/preview/i.test(($('.cols .note')||{}).textContent||''))return 'it’s only a paywalled preview';
  if(/Partial story/.test(($('.cols .note')||{}).textContent||''))return 'the full story couldn’t be loaded';
  if(paywalled(t))return 'it’s behind a paywall';
@@ -10878,7 +10882,7 @@ $('#rd').onclick=e=>{
  const t=e.target;
  if(t.closest('#rfind'))return;
  if(t.id==='rd'||t.closest('#cl'))return closeRd();
- if(t.closest('.bar .bs')&&curA){const id=fof(curA).id;if(!id)return;closeRd();setTimeout(()=>{S.sel='s:'+id;save();render();try{$('main').scrollTop=0}catch(e){}},380);return}
+ if(t.closest('.bar .bs')&&curA&&curA.book){bkToc();return}if(t.closest('.bar .bs')&&curA){const id=fof(curA).id;if(!id)return;closeRd();setTimeout(()=>{S.sel='s:'+id;save();render();try{$('main').scrollTop=0}catch(e){}},380);return}
  const sbb=t.closest('#selbar button');if(sbb)return selAct(sbb.dataset.s,sbb.dataset.c);
  document.querySelectorAll('#pb,#mn').forEach(p=>{if(!p.hidden&&!p.contains(t)&&!t.closest('#rp')&&!t.closest('#mo')){if(p.id==='mn'&&p.classList.contains('rsh'))rdxMnClose(true);else p.hidden=true}});
  if(t.closest('#mnbd'))return;
@@ -10900,7 +10904,7 @@ $('#rd').onclick=e=>{
  const fl=t.closest('.cols .body a[href^="#"]');if(fl&&!R.noClick&&!R.web&&!(getSelection()+'')){e.preventDefault();const k=fl.getAttribute('href').slice(1),h=[...document.querySelectorAll('.cols .body [data-nid]')].find(x=>x.dataset.nid===k&&!x.closest('.tl,.tl-leaf'));if(h)rdJumpTo(h);else if(curA)extOpen(curA.link.split('#')[0]+'#'+k);return}
  const lk=t.closest('.cols .body a[href]');if(lk&&!lk.closest('.emb')&&!R.noClick&&!R.web&&!(getSelection()+'')){e.preventDefault();extOpen(lk.href);return}
  const bn=t.closest('[data-bnext]');if(bn){const n=briefNext();if(n)openReader(n);return}
- const rn=t.closest('[data-rnext]');if(rn){const n=findStory(rn.dataset.rnext);if(n)openReader(n);return}
+ const rn=t.closest('[data-rnext]');if(rn){const n=findStory(rn.dataset.rnext)||(R.ctx||[]).find(x=>x.link===rn.dataset.rnext);if(n)openReader(n);return}
  const jl=t.closest('[data-junklog]');if(jl){navigator.clipboard.writeText(junkLogText()).then(()=>toast('Junk log copied'),()=>toast('Could not copy'));return}
  if(t.closest('[data-bfin]'))return closeRd();
  const sp=t.closest('[data-aspd]');if(sp){S.prate=+sp.dataset.aspd;S.setT=Date.now();save();if(EPA)EPA.playbackRate=S.prate;document.querySelectorAll('[data-aspd]').forEach(b=>{b.classList.toggle('on',b===sp);b.setAttribute('aria-pressed',b===sp)});return}
@@ -10913,7 +10917,7 @@ $('#rd').onclick=e=>{
  if(t.closest('#wb')||t.closest('[data-web]'))return toggleWeb();
  if(t.closest('[data-diag]')){if(curA)navigator.clipboard.writeText(diagText(curA)).then(()=>toast('Details copied. Paste them wherever you report the problem'),()=>toast('Couldn’t copy the problem details'));return}
  if(t.closest('[data-retry]')){if(curA){deepTry(curA,true)}return}
- if(t.closest('#st')){toggleSave(curA);t.closest('#st').innerHTML=starSvg(isSaved(curA));return}
+ if(t.closest('#st')){if(curA&&curA.book){bkBm();return}toggleSave(curA);const o=t.closest('#st').querySelector('svg');if(o)o.outerHTML=starSvg(isSaved(curA));return}
  if(t.closest('#fm')){S.fs=Math.max(14,S.fs-1);return applyFs(true)}
  if(t.closest('#fp')){S.fs=Math.min(34,S.fs+1);return applyFs(true)}
  if(t.closest('#sp')){S.sep=!S.sep;return applyFs(true)}
@@ -12159,7 +12163,7 @@ async function discFetch(u,n){
  return l;
 }
 async function alsoLike(){
- const c=$('.cols'),a=curA;if(!c||!a||!isOn('disc')||S.offline||(isOn('dsave')&&onCell())||c.querySelector('.dsc'))return;
+ const c=$('.cols'),a=curA;if(!c||!a||a.book||!isOn('disc')||S.offline||(isOn('dsave')&&onCell())||c.querySelector('.dsc'))return;
  const g=storyGenre(a,(c.querySelector('.body')||{}).textContent);if(!g)return;
  const cat=CAT.find(x=>x.n===g);if(!cat)return;
  const hosts=new Set(S.feeds.map(f=>{try{return new URL(f.url).hostname.replace(/^www\./,'')}catch(e){return''}}));
@@ -12192,14 +12196,14 @@ const RDX_SHR='<path d="M12 3.5v11.5M7.8 7.7 12 3.5l4.2 4.2"/><path d="M5.5 12.5
 /* line icons for the sheet's rows (menu option C) */
 const RIC={auto:'<circle cx="12" cy="12" r="8"/><path d="m10 8.5 5 3.5-5 3.5z"/>',rp:'<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',hub:'<rect x="3.5" y="5" width="13" height="14" rx="2"/><path d="M19.5 8v11a2 2 0 0 1-2 2h-10M7 9h6M7 12.5h6M7 16h3"/>',find:'<circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/>',jump:'<path d="M5 6h14M5 12h10M5 18h6"/>',upnext:'<path d="M4 6h12M4 11h12M4 16h7M17 14v6M14 17h6"/>',tr:'<path d="M3.5 5.5h8.5M7.7 3.5v2M10.2 5.5c-.8 3.6-2.9 6.4-6 8.3M5.8 9.2c1.2 2 3 3.6 5 4.6"/><path d="m12.5 20.5 4-9 4 9M14 17.5h5"/>',comments:'<path d="M4.5 5.5h15v10h-8l-4 3.5v-3.5h-3z"/>',browser:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.4 3.5 5.3 3.5 8.5s-1.1 6.1-3.5 8.5c-2.4-2.4-3.5-5.3-3.5-8.5s1.1-6.1 3.5-8.5z"/>',web:'<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 8.5h17"/>',pdf:'<path d="M14 3.5H7a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-10z"/><path d="M14 3.5v5h5M9 13h6M9 16.5h4"/>',kindle:'<rect x="5.5" y="2.5" width="13" height="19" rx="2"/><path d="M8.5 6.5h7M8.5 9.5h7M8.5 12.5h4"/>',shimg:'<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="m20.5 16-5-5-8 8.5"/>',md:'<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M6.5 15V9l2.5 3 2.5-3v6M16.5 9v6M14.5 13l2 2 2-2"/>',follow:'<path d="M12 5v14M5 12h14"/>',unread:'<circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r="8.5"/>',junk:'<path d="M5.5 21V4.5h11l-2 4 2 4h-11"/>',rpt:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5.5M12 16.2v.3"/>'};
 function mnMarkup(){
- const a=curA,sv=!!(a&&isSaved(a)),v=a?((S.thm||{})[a.link]||0):0,tts='speechSynthesis' in window;
+ const a=curA,sv=!!(a&&(a.book?bkBmIdx()>=0:isSaved(a))),v=a?((S.thm||{})[a.link]||0):0,tts='speechSynthesis' in window;
  const q=(act,ic,l,x)=>`<button type="button" data-act="${act}"${x||''}>${svg(ic,act==='save'&&sv)}<span class="mnl">${l}</span></button>`,row=(act,l,x)=>`<button type="button" data-act="${act}"${x||''}>${RIC[act.replace(/^fby$/,'follow')]?svg(RIC[act.replace(/^fby$/,'follow')]):''}<span class="mnl">${l}</span></button>`;
  let h='',fl=false,site='';try{h=a&&a.link?host(a.link):'';fl=!!h&&!S.feeds.some(f=>host(f.url)===h);site=fl?h.replace(/^www\./,''):(a&&fof(a).title)||h}catch(e){}
  const grp=(id,l,x)=>`<div class="rshl" role="group" aria-labelledby="${id}"><h3 id="${id}">${l}</h3>${x}</div>`,fold=(id,l,ic)=>`<button type="button" data-fold="${id}" aria-expanded="false">${svg(ic)}<span class="mnl">${l}</span></button>`;/* FR16: rarely used rows fold under one row each; every data-act handler stays the same */
  return `<div class="rshbd" id="mnbd" hidden></div><div class="rsh" id="mn" role="dialog" aria-modal="true" aria-labelledby="mnh" hidden><span class="rshg" aria-hidden="true"></span><h2 class="rshh" id="mnh">Story options</h2>`
-  +`<div class="rshq">${q('save',STAR,sv?'Saved':'Save',` aria-pressed="${sv}"`)}${q('share',RDX_SHR,'Share')}${tts?q('listen',SPK,'Listen'):''}${q('aa',RDX_AA,'Text',' aria-haspopup="dialog" aria-label="Text and appearance"')}</div>`
+  +`<div class="rshq">${a&&a.book?q('save',BKBM,sv?'Bookmarked':'Bookmark',` aria-pressed="${sv}"`):q('save',STAR,sv?'Saved':'Save',` aria-pressed="${sv}"`)}${q('share',RDX_SHR,'Share')}${tts?q('listen',SPK,'Listen'):''}${q('aa',RDX_AA,'Text',' aria-haspopup="dialog" aria-label="Text and appearance"')}</div>`
   +(tts?`<div class="rshl"><div class="rshp">${fold('lst','Listening options',RIC.auto)}${row('auto','Hands-free reading',' hidden data-fg="lst"')}${row('rp','Playback settings',' hidden data-fg="lst"')}</div></div>`:'')
-  +grp('mng1','This story',`<div class="rshp">${row('hub','Full coverage')}${row('find','Find in story')}</div>${row('jump','Jump to section',' hidden')}${row('upnext','Add to Up Next')}${row('tr','Translate story')}${a&&a.cm?row('comments',cmLabel(a.cm)==='Comments'?'Comments on the site':cmLabel(a.cm)):''}`)
+  +grp('mng1',a&&a.book?'This chapter':'This story',`<div class="rshp">${row('hub','Full coverage')}${row('find',a&&a.book?'Find in chapter':'Find in story')}</div>${row('jump','Jump to section',' hidden')}${row('upnext','Add to Up Next')}${row('tr','Translate story')}${a&&a.cm?row('comments',cmLabel(a.cm)==='Comments'?'Comments on the site':cmLabel(a.cm)):''}`)
   +grp('mng2','Open or send',`${row('web','Site view in the app')}${fold('snd','Send to…',RIC.browser)}${row('browser','Browser',' hidden data-fg="snd"')}${row('pdf','PDF',' data-exact hidden data-fg="snd"')}${row('kindle','Kindle',' data-exact hidden data-fg="snd"')}${row('md','Markdown file',' data-exact hidden data-fg="snd"')}${row('shimg','Share as picture')}`)
   +grp('mng3',esc(site||'This site'),`${fl?row('follow','Follow '+esc(site),' class="rfol"'):''}${a&&a.by&&!hasBy(a.by)?row('fby','Follow '+esc(a.by)):''}${row('unread','Mark as unread')}${fold('wrg','Something wrong?',RIC.rpt)}${row('junk','Hide text',' hidden data-fg="wrg"')}${row('rpt','Report a problem',' hidden data-fg="wrg"')}`)
   +`<div class="rshr" role="group" aria-label="Rate this story"><button type="button" class="thb${v>0?' on':''}" data-rate="1" aria-pressed="${v>0}">${svg(TH_UP)}<span>More like this</span></button><button type="button" class="thb${v<0?' on':''}" data-rate="-1" aria-pressed="${v<0}">${svg(TH_DN)}<span>Less like this</span></button></div></div>`;
@@ -12387,7 +12391,7 @@ async function doAct(k){
  if(k==='comments'&&a.cm){window.open(a.cm,'_blank','noopener');return}
  if(k==='junk'){const q=String(getSelection()||'').trim();if(q.length>=8){const sl=getSelection();junkReport(q,sl&&sl.rangeCount?sl.getRangeAt(0).cloneRange():null)}else toast('Select the text first, then choose Hide text');return}
  if(k==='share'){return doAct('card')}
- if(k==='save'){toggleSave(a);const st=$('#st'),o=st&&st.querySelector('svg');if(o)o.outerHTML=starSvg(isSaved(a));rdxMnSync();/* B4: say so (Save sits in More on a phone) */toast(isSaved(a)?'Saved':'Removed from saved');return}
+ if(k==='save'){if(a&&a.book){bkBm();return}toggleSave(a);const st=$('#st'),o=st&&st.querySelector('svg');if(o)o.outerHTML=starSvg(isSaved(a));rdxMnSync();/* B4: say so (Save sits in More on a phone) */toast(isSaved(a)?'Saved':'Removed from saved');return}
  if(k==='listen'){ttsToggle();return}
  if(k==='card'){shareStory(a);return}
  if(k==='more'){likeA(a,1);return}
@@ -12408,6 +12412,7 @@ async function ttsEnd(manual){
  if(SLEEP.eos&&!manual){SLEEP.eos=false;syncUpNext();toast('Sleep timer: stopped');R.briefAudio=false;mediaNativeStop();return}
  if(!was){mediaNativeStop();return}
  let nx=null;
+ if(was.book){nx=readerNext();R.keepCtx=!!nx}/* a book read aloud goes on to its next chapter */
  while(S.lq.length&&!nx){const l=S.lq.shift();if(l!==was.link&&!S.read[l])nx=findStory(l)}
  save();syncUpNext();
  if(!nx&&S.queue){const i=cur.findIndex(x=>x.link===was.link);if(i>=0)for(let k=i+1;k<cur.length;k++){if(!S.read[cur[k].link]){nx=cur[k];break}}}
@@ -13940,13 +13945,13 @@ async function startFresh(){
  freezeApp();
  try{const x=CyX();if(x&&x.wipe)await x.wipe()}catch(e){}
  try{localStorage.clear();sessionStorage.clear()}catch(e){}
- try{if(IDB.db)IDB.db.close();indexedDB.deleteDatabase('cypress')}catch(e){}try{caches.delete('cy-img');caches.delete('cyp-icons-1')}catch(e){}
+ try{if(IDB.db)IDB.db.close();indexedDB.deleteDatabase('cypress')}catch(e){}try{bkErase()}catch(e){}try{caches.delete('cy-img');caches.delete('cyp-icons-1')}catch(e){}
  location.reload();
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.07a';const APP_LABEL='1.273';
-const CHANGES=["The top bar keeps three icons on phones, with a More button for the rest, so page names are never cut off; the title bar tucks away as you scroll down and comes back when you scroll up","Headlines come in real sizes: the lead is big, secondary stories medium, rows small; section titles share one style","A lead story with no photo is set in type instead of a plain block with a giant letter","Each story card has one quiet line: who wrote it, how old it is, how long it takes, how many sites cover it; the badges and dots are gone, and read stories simply look lighter","Times read the same way everywhere, like \"27 min\" and \"2-min read\"","Photos are cropped toward faces and never squashed into thin strips; tall photos in a story show whole","Every theme has its own look beyond color: Newsprint is square with hairlines, Cypress has brass rules and small caps, Aurora is soft and round, High Contrast has heavier rules","On tablets and the open Fold, All Stories reads like a magazine spread: the top story with a Next up column beside it, then rows of three"];
+const APP_VERSION='2026.11.07b';const APP_LABEL='1.274';
+const CHANGES=["Books: open a book you own without copy protection (EPUB), or a plain text or Markdown file, from Books in the side panel","Books open chapter by chapter in the same reader as stories, and the app remembers your place in each one","Tap the book's name at the top of a page for the Contents list and your bookmarks; the star becomes a bookmark while reading a book","Notes in a book pop up where you tap them, with a link to go to the note","Listen keeps reading into the next chapter","Books show their covers on the shelf, and Stats counts the books you've finished","On Android, choose \"Open with\" CyPress Reader on an EPUB file to open it straight away"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -14079,7 +14084,7 @@ function heroSpread(){
  mnotes();
 }
 /* "From the publisher" (was "Why it matters"; R-03): the story's own description in an editor's-note box between the byline and the text; skipped when it only repeats how the article starts */
-function whyBox(){
+function whyBox(){if(curA&&curA.book)return;
  const c=$('.cols');if(!c)return;c.querySelectorAll(':scope>.whyit').forEach(x=>x.remove());
  const a=curA,bd=c.querySelector(':scope>.body');if(!a||!bd)return;
  const nz=t=>String(t||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').toLowerCase().replace(/[…]|\.{3}/g,' ').replace(/[^\p{L}\p{N}\s]/gu,'').replace(/\s+/g,' ').trim();
@@ -14107,7 +14112,7 @@ function aiGrow(el,h0){/* Rule and grow: the brass line draws down while the box
  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return 0;const u=el.querySelector('ul'),h1=u.offsetHeight;el.classList.add('in');setTimeout(()=>el.classList.remove('in'),1100);
  if(!h0||h0===h1||el.getClientRects().length>1)return 0;u.style.cssText='overflow:hidden;height:'+h0+'px;transition:height .45s cubic-bezier(.3,.7,.2,1)';void u.offsetHeight;u.style.height=h1+'px';setTimeout(()=>u.style.cssText='',500);return 500}
 function aiBox(){/* true = the AI box (waiting or done) takes the place of "From the publisher" */
- const P=CyAI(),a=curA,c=$('.cols'),bd=c&&c.querySelector(':scope>.body');if(!P||AIST==='unavailable'||!a||!bd||R.web)return false;
+ const P=CyAI(),a=curA,c=$('.cols'),bd=c&&c.querySelector(':scope>.body');if(!P||AIST==='unavailable'||!a||!bd||R.web||a.book)return false;
  try{jkHead(bd,a)}catch(e){}const k=a.link||a.title,s=AIS.get(k);
  if(s)return s.length?(aiPut(c,s),true):false;
  if(s===null)return AIST==='available'?(aiPut(c,null),true):false;
@@ -14395,7 +14400,7 @@ function rateA(a,v){const m=S.thm=S.thm||{},old=m[a.link]||0,nv=old===v?0:v,delt
 /* polish-2026-10 F1: the header is kicker, headline, deck, then one quiet "By … · date" line; the reading time lives in the kicker and the thumbs in the … sheet. Restore the old header by setting RDX_OLDHDR to true. */
 const RDX_OLDHDR=false;
 function rdWhen(d){if(!d)return '';d=new Date(d);const n=new Date(),k=x=>x.toDateString(),t=d.toLocaleTimeString([],{timeStyle:'short'});if(k(d)===k(n))return 'Today, '+t;if(k(d)===k(new Date(n-864e5)))return 'Yesterday, '+t;return d.toLocaleDateString([],{month:'short',day:'numeric',...(d.getFullYear()!==n.getFullYear()&&{year:'numeric'})})}/* design pick R2: friendly date line */
-function dtHtml(a,dt){if(!RDX_OLDHDR){/* polish-2026-10 R-02: name, date, reading time; the Follow chips and the comments link live in the More sheet */const sep='<span class="rdsep" aria-hidden="true">·</span>',m=readMin(a)||0;return [a.by?'<span class="by">'+esc(a.by)+'</span>':'',dt?'<span>'+esc(dt)+'</span>':'',m?'<span>'+m+'-min read</span>':''].filter(Boolean).join(sep)}
+function dtHtml(a,dt){if(a.book)return esc(a.ft)+'<span class="rdsep" aria-hidden="true">·</span><span>'+(a.n+1)+' of '+a.of+'</span>';if(!RDX_OLDHDR){/* polish-2026-10 R-02: name, date, reading time; the Follow chips and the comments link live in the More sheet */const sep='<span class="rdsep" aria-hidden="true">·</span>',m=readMin(a)||0;return [a.by?'<span class="by">'+esc(a.by)+'</span>':'',dt?'<span>'+esc(dt)+'</span>':'',m?'<span>'+m+'-min read</span>':''].filter(Boolean).join(sep)}
  const m=readMin(a)||0;return [a.by?'<span class="by">By '+esc(a.by)+(hasBy(a.by)?'<button class="flw" disabled>Following</button>':'<button class="flw" data-fby>Follow</button>')+'</span>':'',dt?'<span>'+esc(dt)+'</span>':'',m?'<span>'+m+'-min read</span>':'',rateHtml(a),a.cm?`<a class="cmt" href="${esc(a.cm)}" target="_blank" rel="noopener">💬 ${cmLabel(a.cm)}</a>`:''].filter(Boolean).join('')}
 function hdrFill(){const d=$('.cols .dt');if(d&&curA){const dt=rdWhen(curA.date);d.innerHTML=dtHtml(curA,dt)}}
 /* B3: the edition's day rolls at 5 AM like edKey (1:30 AM Friday is still Thursday's evening issue); the issue number is a calendar-day count, safe across clock changes */
@@ -15973,7 +15978,7 @@ function renderStats(){
  $('#grid').innerHTML=`<div class="stats">
  <div class="shead"><h2>Your reading</h2><button class="go" data-yir>Your ${new Date().getFullYear()} so far</button></div>
  ${empty?'<p class="hint">Open a few stories and your stats will start filling in.</p>':''}
- <div class="tiles"><div class="tile"><b>${wn?fmtMin(wm):'0 min'}</b><small>read this week</small></div><div class="tile"><b>${wn}</b><small>stories opened</small></div><div class="tile"><b>${wf}</b><small>read to the end</small></div><div class="tile"><b>${sk.cur}<span>${sk.cur===1?' day':' days'}</span></b><small>streak · best ${sk.best}</small></div></div>
+ <div class="tiles"><div class="tile"><b>${wn?fmtMin(wm):'0 min'}</b><small>read this week</small></div><div class="tile"><b>${wn}</b><small>stories opened</small></div><div class="tile"><b>${wf}</b><small>read to the end</small></div>${S.bkn||S.bkdone?`<div class="tile"><b>${Object.keys(S.bkdone||{}).length}</b><small>${Object.keys(S.bkdone||{}).length===1?'book':'books'} finished</small></div>`:''}<div class="tile"><b>${sk.cur}<span>${sk.cur===1?' day':' days'}</span></b><small>streak · best ${sk.best}</small></div></div>
  <div class="sgc"><h3>Minutes each day</h3><div class="sbars">${days.map(x=>bar(x.v.m,mx,x.d.toLocaleDateString([],{weekday:'short'}),`${x.d.toLocaleDateString([],{weekday:'long'})}: ${fmtMin(x.v.m)}, ${plu(x.v.n,'story','stories')}`)).join('')}</div></div>
  <div class="scols"><div class="sgc"><h3>Top sites</h3>${src.map(([n,v])=>hbar(n,v,smx)).join('')||'<p class="hint">Nothing yet.</p>'}</div>
  <div class="sgc"><h3>Top topics</h3>${tp.map(([n,v])=>hbar(n,v,tmx)).join('')||`<p class="hint">${(S.folders||[]).length?'Topics appear after you read a few stories.':'Put sites in folders to see topics.'}</p>`}</div></div>
@@ -16855,7 +16860,7 @@ async function openSharedLink(p,u){
  toast('Couldn’t open that shared story, so here is its page');openLink({link:u,title:'A story shared from CyPress Reader'});
 }
 let LASTSHARE='';
-function handleShare(d){
+function handleShare(d){if(d&&d.book){bkFromPath(String(d.book));return}
  if(!d)return;/* a feed list opened with "Open with CyPress" goes through the normal import (preview, then Undo) */if(d.opml){try{opmlImport(String(d.opml),'feed list')}catch(e){toast('That file couldn’t be read as a feed list')}return}const txt=[d.url,d.text].filter(Boolean).join(' ');const m=txt.match(/https?:\/\/[^\s]+/);const url=m?m[0]:'';
  if(!url||url===LASTSHARE)return;LASTSHARE=url;
  $('#shu').textContent=url;$('#shr')._u=url;$('#shr')._t=d.title||'';
@@ -17520,6 +17525,178 @@ async function biSave(){
   S.bisig=sig;save();biPurge();
  }catch(e){elog('biSave',e)}
 }
+/* ---- Books (prototype): a DRM-free EPUB is read straight from its ZIP with the browser's own unzip, cleaned with a light book-only cleaner (never the web cleaner, which cuts short lines and "Chapter" headings), and kept in its own database, so feed cleanup never touches it.
+   Each chapter is a story with the link book:<id>/<n> and opens through openReader's fast path: one chapter on the page at a time, never the whole book. */
+const BKDB={};
+function bkDb(){return BKDB.p||(BKDB.p=new Promise((res,rej)=>{const r=indexedDB.open('cypress-books',1);r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('books',{keyPath:'id'});d.createObjectStore('ch');d.createObjectStore('img')};r.onsuccess=()=>res(r.result);r.onerror=()=>{BKDB.p=null;rej(r.error)}}))}
+async function bkGet(st,k){const d=await bkDb();return new Promise(res=>{const r=d.transaction(st).objectStore(st).get(k);r.onsuccess=()=>res(r.result);r.onerror=()=>res(null)})}
+async function bkAll(){const d=await bkDb();return new Promise(res=>{const r=d.transaction('books').objectStore('books').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>res([])})}
+function bkErase(){const p=BKDB.p;BKDB.p=null;const del=()=>{try{indexedDB.deleteDatabase('cypress-books')}catch(e){}};if(p)p.then(d=>{d.close();del()},del);else del()}
+/* ZIP: the central directory at the end lists every file; each one is read only when needed, straight from the file on disk */
+async function zipIndex(f){
+ const n=f.size,tl=Math.min(n,65557),t=new DataView(await f.slice(n-tl).arrayBuffer());let e=-1;
+ for(let i=tl-22;i>=0;i--)if(t.getUint32(i,true)===0x06054b50){e=i;break}
+ if(e<0)throw Error('not a zip');
+ const cnt=t.getUint16(e+10,true),cs=t.getUint32(e+12,true),co=t.getUint32(e+16,true),d=new DataView(await f.slice(co,co+cs).arrayBuffer()),m=new Map(),td=new TextDecoder();
+ for(let k=0,p=0;k<cnt&&d.getUint32(p,true)===0x02014b50;k++){const nl=d.getUint16(p+28,true);m.set(td.decode(new Uint8Array(d.buffer,p+46,nl)),{meth:d.getUint16(p+10,true),csz:d.getUint32(p+20,true),lo:d.getUint32(p+42,true)});p+=46+nl+d.getUint16(p+30,true)+d.getUint16(p+32,true)}
+ return m;
+}
+async function zipGet(f,m,nm){const e=m.get(nm);if(!e)return null;const h=new DataView(await f.slice(e.lo,e.lo+30).arrayBuffer()),s=e.lo+30+h.getUint16(26,true)+h.getUint16(28,true),b=f.slice(s,s+e.csz);return e.meth===0?b:new Response(b.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob()}
+const bkRes=(h,from)=>{try{return decodeURIComponent(new URL(h,'http://z/'+from).pathname.slice(1))}catch(e){return h}};
+const bkTag=(d,n)=>d.getElementsByTagNameNS('*',n);
+const bkTxt=t=>String(t||'').replace(/\s+/g,' ').trim();
+async function bkImport(f){
+ const t0=performance.now(),m=await zipIndex(f);
+ const xml=async nm=>{const b=await zipGet(f,m,nm);if(!b)return null;const s=await b.text();let d=new DOMParser().parseFromString(s,'application/xml');if(d.getElementsByTagName('parsererror').length)d=new DOMParser().parseFromString(s,'text/html');return d};
+ const ct=await xml('META-INF/container.xml'),rf=ct&&bkTag(ct,'rootfile')[0];if(!rf)throw Error('This file is not an EPUB book.');
+ {const en=await zipGet(f,m,'META-INF/encryption.xml');if(en&&/URI="[^"]+\.x?html?"/i.test(await en.text()))throw Error('drm')}/* only locked chapters mean DRM; hidden fonts are fine */
+ const op=rf.getAttribute('full-path'),opf=await xml(op);if(!opf)throw Error('This file is not an EPUB book.');
+ const md=k=>{const x=bkTag(opf,k)[0];return x?bkTxt(x.textContent):''};
+ const man=new Map();for(const it of bkTag(opf,'item'))man.set(it.getAttribute('id'),{href:bkRes(it.getAttribute('href'),op),type:it.getAttribute('media-type')||'',props:it.getAttribute('properties')||''});
+ const title=md('title')||f.name.replace(/\.epub$/i,''),author=[...bkTag(opf,'creator')].map(x=>bkTxt(x.textContent)).filter(Boolean).slice(0,2).join(' and '),lang=md('language')||'';
+ const id='b'+[...(md('identifier')+'|'+title)].reduce((h,c)=>Math.imul(h^c.charCodeAt(0),16777619)>>>0,2166136261).toString(36);
+ let cov=[...man.values()].find(x=>/cover-image/.test(x.props));if(!cov){const mc=[...bkTag(opf,'meta')].find(x=>x.getAttribute('name')==='cover');if(mc)cov=man.get(mc.getAttribute('content'))}
+ /* contents: EPUB 3 nav first, then the older toc.ncx; the first title found for each file names that chapter */
+ const toc=new Map(),put=(h,t,from)=>{const k=bkRes(String(h||'').split('#')[0],from);if(t&&!toc.has(k))toc.set(k,t)};
+ const nav=[...man.values()].find(x=>/\bnav\b/.test(x.props));
+ if(nav){const d=await xml(nav.href);if(d){const ns=[...bkTag(d,'nav')],tn=ns.find(x=>/toc/.test(x.getAttribute('epub:type')||''))||ns[0];if(tn)for(const a of bkTag(tn,'a'))put(a.getAttribute('href'),bkTxt(a.textContent),nav.href)}}
+ if(!toc.size){const sp=bkTag(opf,'spine')[0],nc=sp&&man.get(sp.getAttribute('toc'));const d=nc&&await xml(nc.href);if(d)for(const p of bkTag(d,'navPoint')){const l=bkTag(p,'text')[0],c=bkTag(p,'content')[0];if(l&&c)put(c.getAttribute('src'),bkTxt(l.textContent),nc.href)}}
+ const hd=document.implementation.createHTMLDocument(''),chs=[],html=[],imgs=new Set();if(cov)imgs.add(cov.href);
+ const words=el=>(el.textContent.match(/\S+/g)||[]).length;
+ for(const ir of bkTag(opf,'itemref')){
+  const it=man.get(ir.getAttribute('idref'));if(!it||!/html/.test(it.type))continue;
+  const d=await xml(it.href),b0=d&&(d.body||bkTag(d,'body')[0]);if(!b0)continue;
+  const b=hd.createElement('div');for(const n of [...b0.childNodes])b.append(hd.importNode(n,true));
+  b.querySelectorAll('script,style,link,meta,base,form,iframe,object,embed,input,button,select,textarea,audio,video,noscript').forEach(x=>x.remove());
+  /* pictures (also the SVG-wrapped kind) become plain images read from the book later */
+  b.querySelectorAll('svg').forEach(s=>{const im=s.querySelector('image');if(!im){s.remove();return}const i=hd.createElement('img');i.setAttribute('src',im.getAttribute('href')||im.getAttribute('xlink:href')||'');i.setAttribute('alt','');s.replaceWith(i)});
+  for(const el of b.querySelectorAll('*')){for(const at of [...el.attributes])if(!/^(id|href|src|alt|title|colspan|rowspan|lang|epub:type|data-bkh)$/i.test(at.name))el.removeAttribute(at.name)}
+  b.querySelectorAll('img').forEach(i=>{const p=bkRes(i.getAttribute('src')||'',it.href);i.removeAttribute('src');i.setAttribute('data-bimg',p);imgs.add(p)});
+  b.querySelectorAll('[id]').forEach(x=>x.id='bk-'+x.id);
+  /* a link inside the book (contents, footnotes) keeps working: data-bkh holds its file and anchor */
+  b.querySelectorAll('a[href]').forEach(a=>{const h=a.getAttribute('href');if(/^https?:/i.test(h))return;const [fp,fr]=h.split('#');a.dataset.bkh=(fp?bkRes(fp,it.href):it.href)+'#'+(fr||'');a.setAttribute('href','#'+(fr?'bk-'+fr:''))});
+  let t=toc.get(it.href)||'';const h=b.querySelector('h1,h2,h3,h4');if(!t&&h)t=bkTxt(h.textContent);
+  if(h&&t&&bkTxt(h.textContent).toLowerCase()===t.toLowerCase()&&!h.querySelector('img'))h.remove();
+  const w=words(b);if(!w&&!b.querySelector('img'))continue;
+  t=t||('Section '+(chs.length+1));
+  /* a very long chapter is split at a paragraph boundary, so the paged reader never lays out more than about 8,000 words at once */
+  if(w<=9000){chs.push({t,w,p:it.href});html.push(b.innerHTML);continue}
+  let box=b;while(box.children.length===1&&box.firstElementChild.children.length>1)box=box.firstElementChild;
+  let part=[],pw=0,k=1;const flush=()=>{if(!part.length)return;const x=hd.createElement('div');x.append(...part);chs.push({t:k>1?t+', part '+k:t,w:pw,p:it.href});html.push(x.innerHTML);k++;part=[];pw=0};
+  for(const n of [...box.childNodes]){part.push(n);pw+=n.nodeType===1?words(n):(n.textContent.match(/\S+/g)||[]).length;if(pw>=7000)flush()}flush();
+ }
+ if(!chs.length)throw Error('No readable chapters were found in this book.');
+ const ib=[];for(const p of imgs){const b=await zipGet(f,m,p);if(b){const mt=[...man.values()].find(x=>x.href===p);ib.push([p,new Blob([b],{type:(mt&&mt.type)||''})])}}
+ const bk={id,title,author,lang,ch:chs,words:chs.reduce((s,c)=>s+c.w,0),cover:cov&&ib.some(x=>x[0]===cov.href)?cov.href:'',added:Date.now(),ms:0};
+ return bkStore(bk,html,ib,t0);
+}
+async function bkStore(bk,html,ib,t0){const id=bk.id,db=await bkDb();await new Promise((res,rej)=>{const tx=db.transaction(['books','ch','img'],'readwrite');tx.objectStore('books').put(bk);html.forEach((h,i)=>tx.objectStore('ch').put(h,id+'/'+i));ib.forEach(([p,b])=>tx.objectStore('img').put(b,id+'/'+p));tx.oncomplete=res;tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error||Error('Not enough room on this device for this book.'))});
+ bk.ms=Math.round(performance.now()-t0);try{const tx=db.transaction('books','readwrite');tx.objectStore('books').put(bk)}catch(e){}
+ return bk;
+}
+/* a plain text or Markdown file becomes a book too: chapters start at "Chapter ..." lines (text) or # headings (Markdown), long stretches split at about 7,000 words */
+async function bkImportText(f){
+ if(f.size>30e6)throw Error('That text file is too big to open as a book.');
+ const t0=performance.now(),raw=(await f.text()).replace(/\r\n?/g,'\n'),md=/\.(md|markdown)$/i.test(f.name)||/markdown/.test(f.type);
+ const name=f.name.replace(/\.[^.]+$/,'').replace(/_+/g,' ').trim()||'Untitled';
+ const hd=l=>md?((l.match(/^#{1,3}\s+(.+?)\s*#*$/)||[])[1]||''):(/^\s*(chapter|part|book|prologue|epilogue)\b.{0,40}$/i.test(l)?l.trim():'');
+ const inl=x=>esc(x).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(^|[\s(])[*_]([^*_]+)[*_](?=[\s).,;:!?]|$)/g,'$1<i>$2</i>');
+ const chs=[],html=[];let c=null,para=[];
+ const open=(t,k=1)=>{c={t0:t,k,t:k>1?t+', part '+k:t,h:[],w:0}},close=()=>{if(c&&c.w){chs.push({t:c.t,w:c.w,p:''});html.push(c.h.join(''))}c=null};
+ const flush=()=>{const tx=para.join(' ').trim();para=[];if(!tx)return;if(!c)open(name);c.h.push('<p>'+inl(tx)+'</p>');c.w+=(tx.match(/\S+/g)||[]).length;if(c.w>=7000){const t=c.t0,k=c.k+1;close();open(t,k)}};
+ for(const l of raw.split('\n')){const h=hd(l);if(h){flush();close();open(h);continue}if(!l.trim()){flush();continue}para.push(md?l.replace(/^\s*[-*+]\s+/,'• ').replace(/^\s*>\s?/,'').trim():l.trim())}
+ flush();close();
+ if(!chs.length)throw Error('No readable chapters were found in this book.');
+ const id='t'+[...(name+'|'+f.size)].reduce((h,c)=>Math.imul(h^c.charCodeAt(0),16777619)>>>0,2166136261).toString(36);
+ return bkStore({id,title:name,author:'',lang:'',ch:chs,words:chs.reduce((n,x)=>n+x.w,0),cover:'',added:Date.now(),ms:0},html,[],t0);
+}
+const BKU=[];/* picture addresses of the open chapter, let go when the next one opens */
+async function bkHtml(a){
+ BKU.splice(0).forEach(u=>URL.revokeObjectURL(u));
+ /* opened from Highlights, Saved or History: the next chapter still follows */
+ if(!(R.ctx||[]).length||!R.ctx.every(x=>x.book===a.book)){const b=await bkGet('books',a.book);if(b)R.ctx=b.ch.map((_,i)=>bkArt(b,i))}
+ let h=null;try{h=await bkGet('ch',a.book+'/'+a.n)}catch(e){}
+ if(h==null)return '<p>This chapter isn’t on this device any more. Open the book file again from Books.</p>';
+ {const bp=(S.bkpos||{})[a.book];R.rf=bp&&bp.c===a.n&&bp.f>0?bp.f:null;bkMark(a.book,a.n,R.rf||0)}
+ if(!/data-bimg/.test(h))return h;
+ const d=document.createElement('div');d.innerHTML=h;
+ for(const i of d.querySelectorAll('img[data-bimg]')){const b=await bkGet('img',a.book+'/'+i.dataset.bimg);if(b){const u=URL.createObjectURL(b);BKU.push(u);i.src=u}else i.remove()}
+ return d.innerHTML;
+}
+function bkMark(id,c,f){S.bkpos=S.bkpos||{};S.bkpos[id]={c,f:Math.round(f*1e4)/1e4};saveSoon()}
+const bkAt=(b)=>{const p=(S.bkpos||{})[b.id];return p==null?null:Math.min(typeof p==='number'?p:p.c,b.ch.length-1)};
+const bkArt=(b,n)=>({of:b.ch.length,title:b.ch[n].t,link:'book:'+b.id+'/'+n,feedId:'__book',book:b.id,n,ft:b.title,author:b.author,lang:b.lang,date:b.added,html:'',summary:'',img:''});
+/* Contents inside the reader: tap the book's name at the top. Same list dialog as 'Jump to a section'; keys stay in it, so arrows never turn the page behind */
+function bkToc(){const L=R.ctx||[],a=curA;if(!a||!L.length)return;const B=(S.bkmk||{})[a.book]||[];const d=document.createElement('dialog');d.id='secm';d.setAttribute('aria-labelledby','secm-t');
+ d.innerHTML=`<h3 id="secm-t">Contents</h3>${B.length?`<h4>Bookmarks</h4><div class="secl">${B.map((m,i)=>`<button type="button" data-bm="${i}"><span>${esc(m.t)}</span><small>${Math.round(m.f*100)}% in</small></button>`).join('')}</div><h4>Chapters</h4>`:''}<div class="secl">${L.map((x,i)=>`<button type="button" data-si="${i}"${x.link===a.link?' aria-current="true"':''}><span>${esc(x.title)}</span>${x.link===a.link?'<small>Reading now</small>':''}</button>`).join('')}</div><div class="row"><button type="button" class="tx2" data-si="x">Close</button></div>`;
+ document.body.append(d);d.addEventListener('keydown',e=>{e.stopPropagation();if(/^Arrow(Up|Down)$/.test(e.key)){const bs=[...d.querySelectorAll('.secl button')],i=bs.indexOf(document.activeElement);if(i>=0){e.preventDefault();(bs[i+(e.key==='ArrowDown'?1:-1)]||bs[i]).focus()}}});
+ d.addEventListener('click',e=>{const m=e.target.closest('[data-bm]');if(m){d.close();const k=B[+m.dataset.bm],x=k&&L[k.c];if(!x)return;if(x.link===a.link)rdSetFrac(k.f);else{bkMark(a.book,k.c,k.f);R.keepCtx=true;openReader(x)}return}const b=e.target.closest('[data-si]');if(!b)return;d.close();const x=L[+b.dataset.si];if(x&&x.link!==a.link){R.keepCtx=true;openReader(x)}});d.addEventListener('close',()=>d.remove());
+ d.showModal();const c=d.querySelector('[aria-current]');if(c){c.focus();c.scrollIntoView({block:'center'})}}
+/* bookmarks: chapter + fraction, so they survive font changes; the reader's star becomes a bookmark for a book */
+const BKBM='<path d="M7 4h10v16l-5-4-5 4z"/>';
+function bkBmIdx(){const a=curA;if(!a||!a.book||!R.ready)return -1;const L=(S.bkmk||{})[a.book]||[],f=rdFrac()||0,E=R.ep!=null?R.ep:R.np-1,tol=!isVert()&&E>0?.5/E:.02;return L.findIndex(x=>x.c===a.n&&Math.abs(x.f-f)<tol)}
+function bkBmSync(){const b=$('#st');if(!b||!curA||!curA.book)return;const on=bkBmIdx()>=0,o=b.querySelector('svg');if(o)o.outerHTML=svg(BKBM,on);b.setAttribute('aria-pressed',on)}
+function bkBm(){const a=curA;if(!a||!a.book||!R.ready)return;S.bkmk=S.bkmk||{};const L=S.bkmk[a.book]=S.bkmk[a.book]||[],i=bkBmIdx();if(i>=0)L.splice(i,1);else{L.push({c:a.n,f:Math.round((rdFrac()||0)*1e4)/1e4,t:a.title});L.sort((x,y)=>x.c-y.c||x.f-y.f)}save();bkBmSync();try{rdxMnSync()}catch(e){}toast(i>=0?'Bookmark removed':'Bookmarked')}
+function bkOpen(b,n){R.ctx=b.ch.map((_,i)=>bkArt(b,i));R.keepCtx=true;openReader(R.ctx[n])}
+const bkMin=w=>Math.max(1,Math.round(w/230)),bkLen=w=>bkMin(w)<90?bkMin(w)+' min':'about '+plu(Math.round(bkMin(w)/60),'hour','hours');
+function renderBooks(){
+ $('#ttl').textContent='Books';cur=[];const g=$('#grid');
+ const add='<button type="button" class="go" data-bkadd>Open a book file</button>';
+ g.innerHTML='<div class="empty">Opening your books…</div>';
+ bkAll().then(async l=>{
+  if(S.sel!=='books')return;if(S.bkn!==l.length){S.bkn=l.length;saveSoon();side()}
+  if(S.bkv){const b=l.find(x=>x.id===S.bkv);if(b)return bkFront(b);S.bkv=''}
+  if(!l.length){g.innerHTML=emp('No books yet','Open a book file (EPUB) without copy protection, or a plain text or Markdown file, from this device and read it here, one chapter at a time. Books bought from the Kindle, Apple or Kobo stores are locked to their own apps.',add);return}
+  l.sort((a,b)=>b.added-a.added);
+  const us=await Promise.all(l.map(b=>b.cover?bkGet('img',b.id+'/'+b.cover).then(x=>{if(!x)return '';const u=URL.createObjectURL(x);BKU.push(u);return u}).catch(()=>''):''));if(S.sel!=='books')return;
+  g.innerHTML='<div class="rkg"><p class="hint rkh">'+plu(l.length,'book','books')+' on this device. '+add+'</p>'+l.map((b,i)=>`<button type="button" class="rk" data-bk="${esc(b.id)}" aria-label="${esc(b.title+(b.author?', by '+b.author:''))}">${us[i]?`<img alt="" src="${us[i]}">`:`<span class="rk-m">BOOK</span><span class="rk-e">${esc(b.author||'')}</span>`}<b>${esc(b.title)}</b><small>${plu(b.ch.length,'chapter','chapters')} · ${bkLen(b.words)}</small></button>`).join('')+'</div>';
+ }).catch(()=>{g.innerHTML=emp('Books can’t open here','This browser won’t let the app keep books on this device.','')});
+}
+async function bkFront(b){
+ const g=$('#grid'),at=bkAt(b);let cv='';
+ if(b.cover){const x=await bkGet('img',b.id+'/'+b.cover);if(x){BKU.push(cv=URL.createObjectURL(x))}}
+ g.innerHTML=`<div class="rki"><button type="button" class="tx2" data-bk="">All books</button>${cv?`<img src="${cv}" alt="" style="display:block;max-width:min(60%,240px);margin:12px 0">`:''}<h2>${esc(b.title)}</h2><p class="hint">${esc(b.author||'')}${b.author?' · ':''}${plu(b.ch.length,'chapter','chapters')} · ${bkLen(b.words)}</p><button type="button" class="go" data-bkch="${at||0}">${at!=null?'Continue: '+esc(b.ch[at]?b.ch[at].t:''):'Start reading'}</button><ol>${b.ch.map((c,i)=>`<li><button type="button" data-bkch="${i}"><b>${esc(c.t)}</b><small>${bkMin(c.w)} min</small></button></li>`).join('')}</ol><button type="button" class="tx2" data-bkdel>Remove this book</button></div>`;
+ g._bk=b;
+}
+async function bkAdd(f){
+ if(S.sel!=='books'){if($('#rd').classList.contains('on'))closeRd();S.sel='books';save();render()}
+ const g=$('#grid');if(g)g.innerHTML='<div class="empty" role="status">Opening '+esc(f.name)+'…</div>';
+ try{const b=await (/\.(txt|md|markdown)$/i.test(f.name)||/^text\//.test(f.type)?bkImportText(f):bkImport(f));try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}S.bkv=b.id;toast('Added '+b.title);renderBooks()}
+ catch(e){toast(e&&e.message==='drm'?'This book is copy-protected by the store that sold it, so CyPress can’t open it.':(e&&/EPUB|chapters|room|too big/.test(e.message)?e.message:'That book file couldn’t be opened.'));renderBooks()}
+}
+function bkPick(){const i=document.createElement('input');i.type='file';i.accept='.epub,application/epub+zip,.txt,.md,.markdown,text/plain,text/markdown';i.onchange=()=>{const f=i.files&&i.files[0];if(f)bkAdd(f)};i.click()}
+/* Android 'Open with CyPress' on a book file: the app copies it into its own cache and hands over the path */
+async function bkFromPath(p){try{const r=await fetch(window.Capacitor.convertFileSrc(p));if(!r.ok)throw 0;bkAdd(new File([await r.blob()],'book.epub'))}catch(e){toast('That book file couldn’t be opened.')}}
+document.addEventListener('click',async e=>{
+ const l=e.target.closest&&e.target.closest('.cols .body a[data-bkh]');if(!l||!curA||!curA.book)return;e.preventDefault();e.stopPropagation();
+ const [p,f]=l.dataset.bkh.split('#'),b=await bkGet('books',curA.book);if(!b)return;
+ const c=b.ch.map((x,i)=>x.p===p?i:-1).filter(i=>i>=0);if(!c.length)return;let n=c[0],h=null;
+ if(f)for(const i of c){const x=await bkGet('ch',b.id+'/'+i);if(x&&x.includes('id="bk-'+f+'"')){n=i;h=x;break}}
+ const go=async()=>{
+  if(curA.link!==bkArt(b,n).link){bkMark(b.id,n,0);R.ctx=b.ch.map((_,i)=>bkArt(b,i));R.keepCtx=true;await openReader(R.ctx[n])}
+  const el=f&&document.getElementById('bk-'+f);if(!el||!el.closest('.cols'))return;
+  if(isVert())el.scrollIntoView({block:'start'});else{const r=new Range();r.selectNode(el);const pg=findPage(r);if(pg>=0&&pg<R.np){R.pg=pg;R.navAt=Date.now();show()}}};
+ /* a note mark (1, *, †) shows its note in a small window over the page; "Go to the note" still jumps there */
+ if(h&&(/noteref/.test(l.getAttribute('epub:type')||'')||l.textContent.trim().length<=4)){
+  const t=document.createElement('template');t.innerHTML=h;let el=t.content.getElementById('bk-'+f);if(el&&!el.textContent.trim())el=el.parentElement;
+  if(el&&el.textContent.trim()){
+   el=el.cloneNode(true);el.querySelectorAll('a').forEach(x=>{if(/backlink/.test(x.getAttribute('epub:type')||'')||/^[\s↩↑⤴]*$/.test(x.textContent))x.remove();else x.replaceWith(...x.childNodes)});el.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));el.removeAttribute('id');
+   const d=document.createElement('dialog');d.id='bknote';d.setAttribute('aria-labelledby','bkn-t');
+   d.innerHTML='<h3 id="bkn-t">Note</h3><div class="bkn"></div><div class="row"><button type="button" class="tx2" data-g>Go to the note</button><button type="button" class="go" data-x>Close</button></div>';
+   d.querySelector('.bkn').append(el);document.body.append(d);d.addEventListener('keydown',e=>e.stopPropagation());
+   d.addEventListener('click',e=>{if(e.target.closest('[data-x]'))d.close();else if(e.target.closest('[data-g]')){d.close();go()}});d.addEventListener('close',()=>d.remove());
+   d.showModal();d.querySelector('[data-x]').focus();return}}
+ go();
+},true);
+document.addEventListener('click',async e=>{
+ const g=$('#grid'),t=e.target.closest&&e.target.closest('[data-bk],[data-bkch],[data-bkadd],[data-bkdel]');if(!t||!g||S.sel!=='books')return;
+ e.preventDefault();e.stopPropagation();
+ if(t.hasAttribute('data-bkadd'))return bkPick();
+ if(t.hasAttribute('data-bk')){S.bkv=t.dataset.bk;saveSoon();return renderBooks()}
+ const b=g._bk;if(!b)return;
+ if(t.hasAttribute('data-bkch'))return bkOpen(b,+t.dataset.bkch);
+ if(t.hasAttribute('data-bkdel')&&confirm('Remove “'+b.title+'” from this device? Your highlights stay.')){const db=await bkDb(),tx=db.transaction(['books','ch','img'],'readwrite'),rg=IDBKeyRange.bound(b.id+'/',b.id+'/￿');tx.objectStore('books').delete(b.id);tx.objectStore('ch').delete(rg);tx.objectStore('img').delete(rg);tx.oncomplete=()=>{S.bkv='';if(S.bkpos)delete S.bkpos[b.id];if(S.bkmk)delete S.bkmk[b.id];saveSoon();renderBooks()}}
+});
 function renderBack(){
  $('#ttl').textContent='Back issues';cur=[];const g=$('#grid');
  if(!isOn('bi')){g.innerHTML='<div class="empty">Back issues are off. Turn on “Keep back issues” in Settings and CyPress will keep each edition’s text, from stories already stored on this device, for a while. Nothing extra is downloaded.</div>';return}
@@ -17578,11 +17755,12 @@ function readerNext(){
  if(!curA)return null;
  if(R.inBrief){return briefNext()}
  const L=R.ctx&&R.ctx.length?R.ctx:cur,i=L.findIndex(x=>x.link===curA.link);
+ if(curA.book){const x=L[i+1];return x&&x.book===curA.book?x:null}/* a book goes on to its next chapter, read before or not */
  for(let j=i+1;j<L.length;j++){const x=L[j];if(x&&x.link&&!S.read[x.link]&&x.link!==curA.link&&x.feedId!=null)return x}
  return null;
 }
 async function preloadNext(){
- const n=readerNext();if(!n||acHas(n.link)||R.pre===n.link)return;R.pre=n.link;
+ const n=readerNext();if(!n||n.book||acHas(n.link)||R.pre===n.link)return;R.pre=n.link;
  try{
   if(!(typeof pfMode==='function'&&pfMode()!=='off')||S.offline||isOn('dsave')||!online())return;
   const r=await getFull(n.link,true);
@@ -18141,7 +18319,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 /* ---------- page mode: no dead gaps mid-article ----------
    A picture, table or quote cannot be split across columns, so when one does not fit the room left at the foot of a column the browser leaves that room empty. When the previous column is left clearly short because the next one opens with such a block, the block is moved after the paragraph that follows it (never further than three paragraphs from where it was) so the text fills the gap. */
 /* the lead picture sits under the title; when it is too tall for what is left of the first column it used to jump to the second column and leave the first one half empty under the headline. It is now cropped to fit the room that is left (when that is a fair amount), so the picture and the first paragraph follow the headline in reading order */
-function fitHero(c,cw,gap){
+function fitHero(c,cw,gap){if(curA&&curA.book)return;
  const im=c.querySelector(':scope>img.hero');if(!im||R.web||isVert())return;
  im.style.removeProperty('height');im.style.removeProperty('max-height');im.style.removeProperty('aspect-ratio');
  const pitch=cw+gap,H=c.clientHeight;if(!(H>0&&pitch>0))return;
@@ -18165,7 +18343,7 @@ function fitWide(c,cw,gap){
  for(let k=0;k<12&&!fits();k++){const h=im.offsetHeight;if(h<=150)break;im.style.height=Math.max(150,Math.round(h*.88))+'px';set()}
  if(!fits()){im.style.width='100%';im.style.removeProperty('height');c.style.setProperty('--wh2','0px');c.classList.add('wfx')}/* even a short photo leaves no room on a low screen: the photo stays on the left page and the story follows straight on */
 }
-function fitPage1(c,cw,gap){
+function fitPage1(c,cw,gap){if(curA&&curA.book)return;
  const m=c.querySelector(':scope>.mnotes'),hs=c.querySelector(':scope>.hsf'),im=hs&&hs.querySelector('img.hero');
  const undo=()=>{if(im){im.style.removeProperty('height');im.style.removeProperty('max-height');im.style.removeProperty('object-fit');im.style.removeProperty('aspect-ratio')}};
  undo();if(m)m.style.removeProperty('display');
@@ -18181,7 +18359,7 @@ function fitPage1(c,cw,gap){
  shrink();
 }
 /* the story text normally starts at the top of a fresh column (#rd.cpv2 .cols .body>:first-child). On page 1 the "Why it matters" box can land at the top of column 2 when it does not fit under the picture block; the forced break then pushed the text to the next page and left the rest of column 2 empty. In that case the text follows the box. Returns true when the break was lifted. */
-function fitWhy(c,cw,gap){
+function fitWhy(c,cw,gap){if(curA&&curA.book)return false;
  const bd=c.querySelector(':scope>.body'),f=bd&&bd.firstElementChild;if(!f)return false;
  f.style.removeProperty('break-before');
  if(R.cpv!==2||R.web||isVert())return false;

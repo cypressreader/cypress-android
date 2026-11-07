@@ -133,6 +133,15 @@ OPML_FILTER = """            <intent-filter>
             </intent-filter>
 """
 
+# Books: "Open with CyPress" for a DRM-free book (.epub) in Files, email or Downloads (CyExtras.handleFile copies it to the cache).
+EPUB_FILTER = """            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/epub+zip" />
+            </intent-filter>
+"""
+
 # Voice: "Hey Google, play The Daily on CyPress Reader" opens the app with the words; cypress://daily, cypress://next,
 # cypress://folder/<name> come from routines and other apps. Both are handled in CyExtras.handleIntent.
 VOICE_FILTER = """            <intent-filter>
@@ -213,6 +222,8 @@ def edit_manifest():
         body = body.rstrip() + '\n\n' + LINK_FILTER + '        '
     if 'text/x-opml' not in body:
         body = body.rstrip() + '\n\n' + OPML_FILTER + '        '
+    if 'application/epub+zip' not in body:
+        body = body.rstrip() + '\n\n' + EPUB_FILTER + '        '
     if 'MEDIA_PLAY_FROM_SEARCH' not in body:
         body = body.rstrip() + '\n\n' + VOICE_FILTER + '        '
     if 'android.app.shortcuts' not in body:
