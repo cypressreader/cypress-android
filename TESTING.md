@@ -1508,3 +1508,12 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 ## Books: chapters split in two show once (2026-11-07, branch claude/book-prototype-handoff-azxnv9, implemented, unverified on phone)
 - Open the book whose contents showed "Chapter 2: Suspended and Undead" then "SUSPENDED AND UNDEAD": each chapter now shows once, with the full minutes (title page + text). The chapter count drops to match.
 - "you are here" stays on the right chapter while reading its text; Contents in the ... menu shows the same single list and "Reading now".
+
+## Books batch 2026-11-07 (branch, ships as 1.277) — implemented, unverified on the Fold
+- Start reading on a new book opens the first real chapter (not Cover/Title Page/Imprint).
+- Chapter openers: "CHAPTER" small over the number/title, lower on the page; drop cap only when the first paragraph is long.
+- Top bar: "N min left in chapter"; the thin line under it fills for the whole book with small chapter ticks.
+- Contents > Search this book: matches with context; tapping one opens the chapter at the match and tints it briefly.
+- Last page of the last chapter: "You finished …" page, Back to your bookshelf.
+- Bookshelf (3+ books): Currently reading row, Sort by; Commonplace book button once a book has a highlight; tap a passage's chapter to jump there.
+- Listen in a book: sleep timer "End of this chapter" stops after the chapter (lock screen too).
