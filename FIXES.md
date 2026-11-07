@@ -152,3 +152,7 @@ Visual: artifact https://claude.ai/artifact/TKMjmiajV9wS7WwvSYT1Qx (19 items, ph
 - 2026-11-05 (session ppo0d5): R6, R7 fixed on the same branch (not built yet).
 - 2026-11-05 (session ppo0d5): L7 fixed on the same branch (not built yet).
 - 2026-11-05 (session ppo0d5): R4 fixed; every code item in this review is now done on the branch (not built yet).
+
+## Books batch (after 1.274, David's reports 2026-11-07)
+- B1. Contents is hard to find once a book is open: the only way in is tapping the book's name in the top bar (`.bar .bs` -> `bkToc`), and that bar hides while reading. Add a visible way in (e.g. "Contents" in the ... menu while a book is open).
+- B2. Page turn on the Fold is inconsistent: sometimes it takes several swipes, sometimes the page changes with no animation. Device-only; find why the swipe is missed and why the animation is skipped (pre-built next turn `.tl`/`.tl-leaf` not ready?). Page turn timing is locked (1280 ms): fix the cause, don't retune.
