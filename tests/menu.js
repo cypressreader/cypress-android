@@ -2,7 +2,7 @@
 const {APP}=require('./env');const {mock,PW}=require('./mock');const {chromium}=require(PW);
 let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else console.log('ok',n)};
 /* the trimmed menu (B32): 11 actions, plus Save as PDF and Send to Kindle (B66) = 13. Copy link, Translate, Full screen, Show my feeds and the second site-view item are gone on purpose */
-/* polish S-03: three labeled groups (This story / Send to / site), no More expander; the sheet scrolls on a short phone */
+/* polish S-03: three labeled groups (This story / Open or send / site name), no More expander; the sheet scrolls on a short phone */
 const WANT={quick:['save','share','aa'],list:['pdf','kindle','hub','jump','upnext','tr','web','browser','unread','junk','rp']};
 const GONE=['copy','translate','fullscreen','fdn','webpref'];
 (async()=>{
@@ -30,7 +30,7 @@ const GONE=['copy','translate','fullscreen','fdn','webpref'];
   ck(t+'a modal sheet with focus inside',r.dialog&&r.focusIn,JSON.stringify(r));
   ck(t+'the removed actions are really gone',GONE.every(k=>!Object.values(r.groups).some(l=>l.includes(k))),JSON.stringify(r.groups));
   ck(t+'every action is still in the menu',Object.entries(WANT).every(([g,l])=>l.every(k=>(r.groups[g]||[]).includes(k))),JSON.stringify(r.groups));
-  ck(t+'three labeled groups',r.heads.length===3&&r.heads[0]==='This story'&&r.heads[1]==='Send to',JSON.stringify(r.heads));
+  ck(t+'three labeled groups',r.heads.length===3&&r.heads[0]==='This story'&&r.heads[1]==='Open or send'&&r.heads[2]==='w.test',JSON.stringify(r.heads));
   ck(t+'it fits the screen: the sheet is inside the viewport and scrolls when it has to',r.top>=0&&r.bottom<=r.vh&&r.left>=0&&r.right<=r.vw+1&&(r.scrolls||r.cut===0),JSON.stringify({top:r.top,bottom:r.bottom,vh:r.vh,cut:r.cut,scrolls:r.scrolls}));
   ck(t+'targets stay tappable (48px or taller)',r.small===0,String(r.small));
   ck(t+'choosing an action closes the menu',r.menuClosed);

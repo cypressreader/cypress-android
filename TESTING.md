@@ -1408,3 +1408,64 @@ Install the APK from the `voices-test` pre-release on GitHub. It installs next t
 - Install works on a phone; Play pre-launch report shows no 16 KB alignment warning.
 - TalkBack: closing a story returns to its card; reader "Listen" announced as "Listen to story"; side panel rows easy to tap.
 - Dark Black & White / Newsprint / Aurora: big picture-less card is dark with readable white text.
+
+## Quiet sites sleep + slot hand-back (branch mx03wy, after 1.272) — implemented, unverified on phone
+- With a site that hasn't posted in weeks: an automatic refresh skips it for 3 hours; pull to refresh still checks it; opening that site checks it.
+- With a site that blocks the app (bot check): the other sites keep filling in while the phone browser works on it.
+
+## a33 leftovers (branch mx03wy, 2026-11-06, commit 1595dbb) — implemented, unverified on phone
+- Fresh install, Sunday tab: shows "Longest stories so far" (3 stories) and one friendly line instead of a block of zeros.
+- Add a site: the options list fades at the bottom and scrolls; last card scrolls clear of the fade.
+- Select text in a story: bar says "Follow topic" and "Hide text"; color dots show tooltips; no "Highlighted" toast lingers.
+- Settings hub at 360 wide: card titles and summary lines wrap to two lines, nothing cut with "…".
+
+## Deep-dive fixes firstrun (branch mx03wy, 2026-11-06) — implemented, unverified on phone
+- Offline pill sits in reserved space under the top bar and no longer covers the tab or chip row (phone, airplane mode); the "Saved ahead" chip button "Turn on Get stories ready in advance" works.
+- Tips show as a thin strip above the bottom bar (not pushing the page), never over an empty page; "The Daily has four views" appears on first arrival only.
+- Add a site fills the phone screen; the list scrolls inside it with the bottom fade; "More ways to add" are the last rows of the start list.
+- Story "..." menu: "Listening options", "Send to…" and "Something wrong?" fold open with TalkBack (expanded/collapsed announced), and Hands-free, PDF, Kindle, Browser, both Report rows still work.
+- Tapping a tab with TalkBack keeps focus on the tab (Daily and All Stories); heading navigation shows bands as level 2 and cards as level 3.
+- Kindle address: a wrong address keeps the box open with the message, "Use it anyway" for a non-kindle.com address.
+
+## Deep-dive fixes data (branch mx03wy, 2026-11-06) — implemented, unverified on phone
+- B1: follow a Mastodon (@name@server) and a Bluesky (name.bsky.social) account: posts show with the start of the post as the headline; no "No stories found".
+- B2: hard to fake on a phone; if a library is ever damaged, the app starts empty with the toast "Your library couldn't be read. Restore it from a backup in Settings > Sites & backup."
+- B3: open the Daily between midnight and 5 AM: cover says yesterday's Evening Edition with yesterday's date and issue number.
+- FR15: fresh install, stay on the welcome screen: no site is downloaded until setup is finished.
+- P1/P2: with many sites, the phone settles (no warmth, no lag) within ~30 s of opening; photo-less sites (e.g. Hacker News) show photos on their 5 newest stories only.
+- P3: warm start on the Daily: no visible redraw/jump ~0.5 s after the stories appear; "Inside" line is right from the start.
+- P4/P5/P6/P8: tab taps feel quicker; the Daily no longer flickers every few seconds while stories download; reading aloud and the mini player still update their progress every second.
+- P10 (web only): reopening the web app twice does not re-download the whole app (304), and a real update still shows the "new version" bar.
+- C06: side bar on a phone: each site and folder row has a "…" that opens its settings.
+- C09: Add a site > Near you: no top search box, list uses the height, Remove is a quiet text button, "Added to …" under the name.
+- C11: story ... menu > Share as picture: the picture card goes to the share sheet with the link; with Shorten shared links off the message is headline + site address (no "Read this in CyPress:").
+- C13: swipe a card to mark read / save: the toast has Undo and it restores the card.
+- C14: Settings > Look > Dark, then pick "from 8 pm" "to 7 am": app is light outside those hours and switches within 4 minutes (or on return to the app) when the hour passes.
+- C15: story ... menu > Send to… > Markdown file saves a .md; highlights export escapes * [ ] < > and writes "November 6, 2026".
+- C02: Send to Kindle: the book no longer repeats the opening paragraph under the summary line.
+
+## Deep-dive fixes chrome (branch mx03wy, 2026-11-06) — implemented, unverified on phone
+- R6/F13: on a phone (and a phone on its side) scroll the Daily down: the title bar slides away with the bottom tabs, the Today/Headlines/Brief/Sunday tabs move to the very top; scroll up a little and the bar comes back. Check pull-to-refresh, "In this issue" jumps and closing a story still behave, and nothing slides with Reduce motion on.
+- FR01: on a narrow phone the top bar shows at most three icons; the "..." button swaps the title for Mark all as read and Switch layout; long site names shrink one size before being cut.
+- FR02: open Search on a narrow phone: only the menu, the box and its button show; the button is fully on screen.
+- F09/R3: card times read "27 min", "1 hr", "2-min read" with "·" between them; Play Daily bar says "36 stories left · about 1 hr 46 min".
+
+## Deep-dive fixes reader (branch mx03wy, 2026-11-06) — implemented, unverified on phone
+- R-01: tap a footnote number in a story (raised, small, brass): it jumps to the note in Pages and Scroll and does not open the website; 10⁶ / CO₂ show raised/lowered.
+- R-03: turn the phone sideways in Pages mode: one centered column of about 65 characters, no text from the next page peeking at the edges, page turns still line up.
+- R-08: in Scroll mode a tap anywhere on the text only shows/hides the controls; it never jumps a screenful.
+- R-13: Listen to a story in Pages mode with a real voice: the pill (now with a Previous paragraph button on its left) never covers the line being read; when reading stops the page grows back.
+- R-14: the site name in the reader bar and the Aa sheet's close button are easy to hit with a thumb; the bar looks unchanged.
+- C01: with a Bluetooth keyboard, N / P in a story open the next / previous story (← → still turn pages).
+- C12: the ... menu's "Hide text" is grayed out with "(select some text first)" until text is selected; with a selection it hides it (check whether opening the menu keeps the phone's selection).
+
+## Deep-dive fixes design2 (branch mx03wy, 2026-11-06) — implemented, unverified on phone
+- R5/F11: on the unfolded Fold (and a tablet held sideways) All Stories shows the top story over two thirds with a "Next up" column beside it, single stories as side-by-side picture + text, summaries no wider than about 68 characters. Fold and unfold with a story list open: the layout switches without a redraw and the list stays in place; open a story and go back: you land on the same card.
+- R7: each of the 7 themes now has its own look beyond color (Newsprint square corners + ink hairlines, Cypress brass rules + small-caps site names, Coast more room in cards, High Contrast thick borders + bold labels, Black & White square, Sepia Rosewood italic site names, Aurora rounder corners + soft shadow). Check each theme light and dark on the phone for anything that looks broken or hard to read.
+
+## Deep-dive fixes design1 (branch mx03wy, 2026-11-06) — implemented, unverified on phone
+- R1/F04: on the phone, the lead story's headline is clearly bigger (about 28 px) than secondary stories (20 px) and rows (17 px), at Compact/Medium/Large; section titles (Next up, Since this morning, Headlines sections, All Stories) share one look.
+- R2/F08: a lead story with no photo, or whose photo fails to load, shows as type (label, big headline, two-line italic summary, time) with a thin rule, not a green block with a giant letter. Check Cypress light/dark and Aurora.
+- R4/F06: on the Fold and tablets, All Stories photos sit beside the text at 3:2 (no thin strips); the opening Daily photo on the Fold is 16:9.
+- F03: on the Daily cover, the three bottom-column headlines stop at three lines with "…"; the evening moon sits top right, clear of the site name.
+- F10: on 768-1024 tablets, Headlines rows in narrow columns put the photo on top instead of 2-3 words a line beside it.

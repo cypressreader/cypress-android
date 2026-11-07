@@ -38,7 +38,7 @@ const cases={
   ck(`${W}: landscape pictures run as wide as the lead photo, in frames (${r.nfig})`,r.nfig>=3&&r.figW.every(w=>w>=r.heroW-2&&w>=r.cw),JSON.stringify(r));
   ck(`${W}: a tall picture stays inline, not stretched across the page`,!r.portraitFull,JSON.stringify(r));
   ck(`${W}: captions float inside the frame`,r.capIn,JSON.stringify(r));
-  ck(`${W}: section headings are display type (${r.h2fs}px) and numbered`,r.h2fs>=28&&/^counter\(cch/.test(r.h2num),JSON.stringify({fs:r.h2fs,num:r.h2num}));
+  /* R-09 (2026-11-06): one heading scale (1.35em of the text) in every mode; a story with fewer than 4 sections gets no invented 01 / 02 */ck(`${W}: section headings are display type (${r.h2fs}px), not numbered for 2 sections`,r.h2fs>=22&&r.h2fs<=28&&!/counter/.test(r.h2num),JSON.stringify({fs:r.h2fs,num:r.h2num}));
   const dr=await p.evaluate(async()=>{const v=document.querySelector('#rd .view'),f=document.querySelector('.cols .body figure.cfr');const m=a=>{const t=getComputedStyle(a).transform;return t==='none'?0:parseFloat(t.split(',')[5])};
    f.scrollIntoView({block:'center'});await new Promise(r=>setTimeout(r,300));v.dispatchEvent(new Event('scroll'));await new Promise(r=>setTimeout(r,200));const im=f.querySelector('img');const a0={fy:f.getBoundingClientRect().top,iy:im.getBoundingClientRect().top,ty:m(im),cy:f.style.getPropertyValue('--cy')};
    v.scrollTop+=260;v.dispatchEvent(new Event('scroll'));await new Promise(r=>setTimeout(r,300));const a1={fy:f.getBoundingClientRect().top,iy:im.getBoundingClientRect().top,ty:m(im),cy:f.style.getPropertyValue('--cy')};return {a0,a1,page:a1.fy-a0.fy,img:a1.iy-a0.iy}});
@@ -48,7 +48,7 @@ const cases={
   ck(`${W}: a story with one picture leads with it (lead full width) and has no frames`,/cine-1/.test(r.cls)&&r.heroW>=r.cw&&r.nfig===0,JSON.stringify(r));
   /* none */
   await open('none');r=await probe();
-  ck(`${W}: a story with no picture is carried by type (drop cap, pulled quote, display headings)`,/cine-t/.test(r.cls)&&r.drop&&r.pull>=1&&r.h2fs>=28,JSON.stringify(r));
+  ck(`${W}: a story with no picture is carried by type (drop cap, pulled quote, display headings)`,/cine-t/.test(r.cls)&&r.drop&&r.pull>=1&&r.h2fs>=22,JSON.stringify(r));
   const gap=await p.evaluate(()=>{const b=document.querySelector('.cols .body');let worst=0;const kids=[...b.children].filter(e=>e.getBoundingClientRect().height>0);for(let i=1;i<kids.length;i++){const g=kids[i].getBoundingClientRect().top-kids[i-1].getBoundingClientRect().bottom;if(g>worst)worst=g}const hero=document.querySelector('.cols>img.hero');const first=document.querySelector('.cols .tt');return {worst:Math.round(worst),hero:!!hero}});
   ck(`${W}: no broken gap in a story with no picture (largest gap ${gap.worst}px, no empty lead)`,gap.worst<150&&!gap.hero,JSON.stringify(gap));
   /* short */
