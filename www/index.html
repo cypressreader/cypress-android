@@ -8799,7 +8799,7 @@ function layout(){prepDrop();noteFix();
  heroSpread();
  bk.style.marginLeft='';bk.style.marginRight='';
  flexUi();
- const vert=isVert();$('#rd').classList.toggle('vert',vert);$('#rd').classList.toggle('tpg',!vert&&isWide());
+ const vert=isVert();$('#rd').classList.toggle('vert',vert);$('#rd').classList.toggle('tpg',!vert&&isWide());try{rdTmSet(!vert)}catch(e){}
  R.words=rdWords(c.querySelector('.body')||c)+((c.querySelector('.tt')||{}).textContent||'').split(' ').length;
  if(vert)pagesUndo(c);
  if(vert){const rw=rdxRw(),W=bk.clientWidth,H=bk.clientHeight,P=Math.round((W>700?34:(narrowC()?12:18))*(narrowC()?Math.min(+S.mg||1,1):(+S.mg||1))*(W>700?1:rw.p));
@@ -11118,10 +11118,10 @@ const pend=e=>{
  if(e.type==='pointerup'&&(reduced()||rdxPturn()!=='paper')&&Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.3&&!(getSelection()+''))go(dx<0?1:-1);
  D=null;
 };
-/* the blocking touchmove listener is only on the reader while a finger is down in page mode: left on all the time it made every scroll in a story wait for the script */
-const rdTm=e=>{if(D&&(D.act||D.slide)&&e.cancelable)e.preventDefault()},rdTmOff=()=>rdEl.removeEventListener('touchmove',rdTm);
-rdEl.addEventListener('touchstart',()=>{if(!isVert())rdEl.addEventListener('touchmove',rdTm,{passive:false})},{passive:true});
-rdEl.addEventListener('touchend',rdTmOff,{passive:true});rdEl.addEventListener('touchcancel',rdTmOff,{passive:true});
+/* the blocking touchmove listener is on the reader only in page mode (set from layout as the mode changes): left on in vertical mode it made every scroll in a story wait for the script. It must already be there when a finger lands, so it is switched per mode, not per touch */
+const rdTm=e=>{if(D&&(D.act||D.slide)&&e.cancelable)e.preventDefault()};let RDTMON=false;
+const rdTmSet=on=>{if(on===RDTMON)return;RDTMON=on;if(on)rdEl.addEventListener('touchmove',rdTm,{passive:false});else rdEl.removeEventListener('touchmove',rdTm)};
+rdTmSet(!isVert());
 rdEl.addEventListener('pointerup',pend);
 rdEl.addEventListener('click',e=>{if(R.noClick&&e.target.closest('.book')){e.preventDefault();e.stopPropagation()}},true);rdEl.addEventListener('pointercancel',pend);
 addEventListener('resize',()=>{if($('#rd').classList.contains('on')){if(R.rf==null){/* _vm is the mode the story was laid out in, which the resize has not yet changed */R.rf=_vm?(R.sf!=null?R.sf:vEndFrac()):pgFrac()}if(R.T){D=null;endTurn(false)}const v=isVert();if(_vm!==null&&v!==_vm&&(S.scroll||'auto')==='auto'){_vm=v;refreshReader();return}_vm=v;relayout()}});
