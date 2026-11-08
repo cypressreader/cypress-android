@@ -1571,3 +1571,4 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Paged reader: last line on each page stays above the player. Scroll reader: the story's end scrolls clear of it.
 - Hands-free reading (not read-aloud) still shows its speed pill.
 - Dynamic follows the phone: with the phone in dark mode, pick Dynamic in Settings > Light, dark or Dynamic. It should come up dark (and light with the phone light), even if "Dynamic is" was set to Light or Dark before.
+- Side panel: folder and site rows sit closer together and have no "…". Press and hold a folder or site still opens its settings.
