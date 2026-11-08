@@ -11240,8 +11240,7 @@ const pend=e=>{
 };
 /* the blocking touchmove listener is on the reader only in page mode (set from layout as the mode changes): left on in vertical mode it made every scroll in a story wait for the script. It must already be there when a finger lands, so it is switched per mode, not per touch */
 const rdTm=e=>{if(D&&(D.act||D.slide)&&e.cancelable)e.preventDefault()};let RDTMON=false;
-const rdTmSet=on=>{if(on===RDTMON)return;RDTMON=on;if(on)rdEl.addEventListener('touchmove',rdTm,{passive:false});else rdEl.removeEventListener('touchmove',rdTm)};
-rdTmSet(!isVert());
+const rdTmSet=on=>{if(on===RDTMON)return;RDTMON=on;if(on)rdEl.addEventListener('touchmove',rdTm,{passive:false});else rdEl.removeEventListener('touchmove',rdTm)};/* first set by layout() when a story opens */
 rdEl.addEventListener('pointerup',pend);
 rdEl.addEventListener('click',e=>{if(R.noClick&&e.target.closest('.book')){e.preventDefault();e.stopPropagation()}},true);rdEl.addEventListener('pointercancel',pend);
 addEventListener('resize',()=>{if($('#rd').classList.contains('on')){if(R.rf==null){/* _vm is the mode the story was laid out in, which the resize has not yet changed */R.rf=_vm?(R.sf!=null?R.sf:vEndFrac()):pgFrac()}if(R.T){D=null;endTurn(false)}const v=isVert();if(_vm!==null&&v!==_vm&&(S.scroll||'auto')==='auto'){_vm=v;refreshReader();return}_vm=v;relayout()}});
