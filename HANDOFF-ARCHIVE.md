@@ -755,3 +755,28 @@ Side-by-side setting + deep-dive audit notes: HANDOFF-ARCHIVE grep "moved 388479
 ## moved o3lbuq 2026-11-08
 **SHIPPED 1.283 (main cec4c39, APK run 342): book listening 1-7.** Symbols: `bkList`/`bkLeft`/`bkJump`/`bkJmp`/`BKJ` (before `digNext`), `tdrBm`, `.tdun`/`.tdbm` in `tdr()`, `tdr.hold` keeps player open during a jump, `ttsPos` smart rewind via `TTS.pt`, `ttsRate`/`rateSet` + `S.bkrate`, `sleepStop/sleepArm/sleepMore/sleepShake` (auto bedtime timer removed on branch, David: not needed; next release notes should say so), `TTS.vf` fade volume. Scratch check (10/10 ok): import P&P + native TTS mock (tts_sync harness).
 **SHIPPED 1.284 (main d09b9ad, run 343):** auto sleep timer removed; mini player slides with tucked tab bar (`body.tabtuck #tmini`); review fixes: `ttsEnd` sets `tdr.hold` + try/finally, keeps ghost across chapter rollover, stops at end of book; smart rewind gated to books in `ttsPos`; `BKJ` only on real jumps; `#tdsc` label per book; chapter checks refresh on finish. **Keep playing while browsing** (dc62a9f): `ttsAway()`/`ttsHere()` by `ttsStop`; openReader skips ttsStop when away (stashes `R.tctx` for books); `TTS.src` = story the words came from; outer ttsEnd wrapper defers to `R.ttsPend` until closeRd0; background news end now continues Up next in ghost (whats-new must say).
+
+## bugcheck-1.288 (2026-11-08): 4-worker review of 1.287/1.288 (fix list, most severe first)
+NATIVE (CyMediaService / CyListenWidget):
+N1 SECURITY: CyMediaService exported="true" (for Android Auto) lets any app startService ACT_START/STOP/TOGGLE with fake title + arbitrary image URL (fetched). Fix: revert CyMediaService to `extends Service`, exported=false; add NEW exported `CyAutoBrowser extends MediaBrowserService` holding the intent-filter, onGetRoot/onLoadChildren (title from prefs lw_t/lw_s) and setSessionToken(CyMediaService.sharedSession(this).getSessionToken()). Also fixes N2/N3.
+N2 Auto binding (never started) runs onCreate→refreshSession→widgetSync: saves lw_t="CyPress", lw_p=true; start() then calls s.apply() on a bound-only instance, goes foreground without start; Auto unbind kills playback.
+N3 shutdown() while bound: stopSelf doesn't destroy; dead=true, instance=null; next start reaches zombie, pauses dropped. (gone with N1 split; else set dead=false; instance=this on ACT_START)
+N4 loadArt data: decode + Base64 on main thread at full size (ANR/TransactionTooLarge); CyListenWidget.save scales+PNG-writes on main thread. Use inSampleSize (480px) + cap length, worker thread.
+N5 appLogo() not cached → art!=wArt each time → PNG rewrite + widget redraw. Cache logo / compare artFor.
+N6 widget play uses PendingIntent.getService; use getForegroundService or open app unless lw_p && started.
+N7 onGetRoot rejects googlequicksearchbox / com.android.car.media (Assistant / Automotive). Low.
+WEB:
+W1 bkWhole: chapter wc 0 → pos frozen, seek skips it; bkWhole null while TTS.words empty during chapter load → bar flickers to chapter mode. Use TTS.words.length when wc 0.
+W2 bkWhole.seek cross-chapter calls bkJump(i,f) without back → every skip across a boundary fills BKJ (Go back) list. Pass back=1 for skips; record only scrubber drags.
+W3 .tdks chapter ticks drawn from chapter model on whole-book bar; S.bkall not in tdr sig. Add to sig; ticks only when W===m.
+W4 .tdsr chips rebuilt on rate change → keyboard focus lost; refocus checked chip.
+W5 .tdsr radiogroup lacks roving tabindex + Arrow/Home/End (CLAUDE §7). Copy pattern near line ~7726.
+W6 .tdn tap when nothing playing closes the sheet (tdo handler d.close() before return). Skip when .tdo hidden.
+W7 Book: tapping current chapter row ([data-bc], checked first) restarts chapter at 0 instead of opening at the spoken word. In data-bc branch: aria-current → .tdo.click().
+W8 native 'fwd' = skipS()*2 (60 s setting → 120 s fwd). Decide: use skipS() both ways.
+W9 lsnTick dt cap 70 s undercounts when WebView timer is throttled with screen off; raise cap (~600 s while playing) and reset lsnTick.t=0 when paused.
+W10 .tdaur 3rd blob color-mix(--tc 70%,--ink) dark behind dark text in light themes → use 55% with --pn.
+W11 `.tdslp option{color:#000}` unreadable in dark popups → color:var(--ink);background:var(--pn).
+W12 npTint caches '' on fetch failure forever (NPT.delete on fail); #tmini rebuilt with same key loses tint (call npTint each sync, cached).
+CLEAN: rate float rounding, chip compare, empty m.chap, seek clamp, Dynamic closest('#schd [data-dm]') (no other <html> attr collisions), S.lsn not synced (lost on restore; fine), themes all opaque --pn/--ink, setSessionToken guard, RemoteViews tint/vectors.
+LIVE QA: no page errors; speed 0.5–3 clean; skip labels; stats line; contrast OK for 5 tints x 2 schemes; tests tts_sync settings_reach theme_picker daily_real theme_fonts 0 FAIL. settings_ux CRASHES deterministically at page.click('#mo') "More" not visible after 9 ok — NOT yet checked against pre-1.287 base (git stash/checkout 561bfec to compare).
