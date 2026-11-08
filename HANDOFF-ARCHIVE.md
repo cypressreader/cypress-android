@@ -750,3 +750,8 @@ Side-by-side setting + deep-dive audit notes: HANDOFF-ARCHIVE grep "moved 388479
 **SHIPPED 1.277 (merge 9b7b52c):** book batch + Today's Chapter. Symbol list: HANDOFF-ARCHIVE grep "moved 2026-11-07 c3wydg".
 **Visual brainstorm 2026-11-07:** shortlist 6b/1/2/7 built below; 3 (fresh ink) dropped; photo treatments: no. Artifacts + detail: archive grep "moved 2026-11-07 c3wydg".
 1.278 looks + 1.279 Big story alerts detail: archive grep 'moved ig1gfo'.
+
+
+## moved o3lbuq 2026-11-08
+**SHIPPED 1.283 (main cec4c39, APK run 342): book listening 1-7.** Symbols: `bkList`/`bkLeft`/`bkJump`/`bkJmp`/`BKJ` (before `digNext`), `tdrBm`, `.tdun`/`.tdbm` in `tdr()`, `tdr.hold` keeps player open during a jump, `ttsPos` smart rewind via `TTS.pt`, `ttsRate`/`rateSet` + `S.bkrate`, `sleepStop/sleepArm/sleepMore/sleepShake` (auto bedtime timer removed on branch, David: not needed; next release notes should say so), `TTS.vf` fade volume. Scratch check (10/10 ok): import P&P + native TTS mock (tts_sync harness).
+**SHIPPED 1.284 (main d09b9ad, run 343):** auto sleep timer removed; mini player slides with tucked tab bar (`body.tabtuck #tmini`); review fixes: `ttsEnd` sets `tdr.hold` + try/finally, keeps ghost across chapter rollover, stops at end of book; smart rewind gated to books in `ttsPos`; `BKJ` only on real jumps; `#tdsc` label per book; chapter checks refresh on finish. **Keep playing while browsing** (dc62a9f): `ttsAway()`/`ttsHere()` by `ttsStop`; openReader skips ttsStop when away (stashes `R.tctx` for books); `TTS.src` = story the words came from; outer ttsEnd wrapper defers to `R.ttsPend` until closeRd0; background news end now continues Up next in ghost (whats-new must say).
