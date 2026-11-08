@@ -1602,3 +1602,6 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Book cover appears on the lock screen, notification and Continue listening widget without the app stalling.
 - Widget play button resumes a paused book (not only pause); "Forward" from headphones/notification skips the same time as the setting (not double).
 - Now Playing: tapping the current chapter opens the book at the spoken word; Speed chips work with arrow keys; listening stats keep counting with the screen off.
+
+## Photo-less cards (implemented, unverified on phone)
+- Stories with no photo (or a photo that fails to load) in big hero, side-by-side pair and Headlines front-page spots: headline fully visible (not cut at the top), no tall empty box above the text. Check with large phone text too.
