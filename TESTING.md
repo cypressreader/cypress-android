@@ -1619,3 +1619,18 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Fold/rotate: unfold while reading and while on the list; no stutter spike, columns re-deal once; two-page reader with a photo-heavy story paginates once after images land.
 - First refresh after install or after clearing data: the first cards appear while other sites are still loading (not after all 40 finish).
 - Background: stories that arrive while the app is hidden are drawn when you come back.
+
+## Visual batch 2026-11-08 (David said yes to all 16; implemented, unverified on phone)
+- Refresh with the drawer closed: a thin brass bar grows under the title while sites load and fades out ~0.3 s after the round ends; pull-to-refresh tree still works.
+- Cold start: the first placeholder is drawn as the cover frame; the real cover fades in over it without the headline jumping.
+- Settings and other dialogs rise in over 250 ms with the backdrop fading; instant when Reduce motion is on.
+- Aa sheet and the narration drawer: drag the header down; past a third (or 120 px) it leaves, otherwise it springs back; header buttons still tap; focus returns; Back layer cleared.
+- Press a card: it scales to 98.5% for 150 ms (no more flat dim); marking read eases the photo to gray over 400 ms; photo fade-in on load is back.
+- Reader bar at 320 px wide: back/menu buttons stay 38 px, the title truncates instead.
+- Halcyon light: secondary text (times, "+N sources") is one step darker; check it still reads as muted, not as body text.
+- Reader: loading shimmer under the summary is 3 px; hero box is tinted before the photo arrives.
+- Lead photos only zoom while near the screen; with Reduce motion on they do not zoom at all.
+- Saved-for-offline badge on photo cards is a solid dark tint (no blur); on tablets/Fold the reader background is opaque (no blur of the list).
+- Landscape on a phone with a camera cutout: the first and last bottom tabs clear the cutout.
+- Copy: boot caption "Setting the front page, N sites to go…"; empty bookshelf is one sentence plus "Which books work?"; topic folder, empty Daily tab and failed Near you search each have a button.
+- Motion token sweep (76 transitions moved to 150/250/400 ms): watch for anything that feels slower or snappier than before (page turns untouched).

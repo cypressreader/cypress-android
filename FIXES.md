@@ -171,3 +171,4 @@ Visual: artifact https://claude.ai/artifact/TKMjmiajV9wS7WwvSYT1Qx (19 items, ph
 - Stability (Phase 1 items 1-3, 6-18), performance (Phase 2 items 1-19 except 14-diag and 15b image sizes), all non-visual. Visual items wait on David's answers in https://claude.ai/artifact/JoabWH4buHyAjBdCZu4QrX. Detail and patches: the four audit artifacts linked in HANDOFF.md.
 - Kept the single 15 s launch retry (Phase 1 item 17) on purpose: loadRetry only covers rounds with 4+ failures.
 - Deferred: Phase 1 items 4/5 reconnect + outage policy SHIPPED with the recommended answers (60 s gate, round-level network heuristic); revert there if David disagrees.
+- 2026-11-08 (session Kdre62): visual batch, all 16 items David approved on the choices page, shipped on claude/book-prototype-handoff-nyko0x (commits ba15dc0, a26eb33 + merges; not built yet). Note: the Aa sheet already had a plain 70 px drag; replaced by the spring version shared with the narration drawer.
