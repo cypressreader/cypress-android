@@ -1640,3 +1640,7 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Scroll the list fast with your thumb: no extra data use (a scroll cancels the press before anything is fetched).
 - Long-press a card for quick actions: works as before (the story may start downloading in the background; harmless).
 - After opening 20+ stories, the background download (Wi-Fi) fills stories from the sites you actually open first; sites you never open are left until last.
+
+## Error log, email intake 2026-11-08 (implemented, unverified on phone)
+- Settings > Report a problem > "See the details that are sent": recent errors now end in @LINE and include "promise:" lines for failed background work; up to 40 lines.
+- Send an email to hello@cypressreader.com from a phone (with a screenshot attached): it should still arrive in Gmail AND appear on cypressreader.com/insights marked @ with a Reply button; the attachment is listed by name only.

@@ -9,6 +9,7 @@
 //   POST /api/report a problem report the person wrote and sent from Settings (same STATS binding)
 //   GET /api/insights everything above, for cypressreader.com/insights; needs the INSIGHTS_KEY secret as a Bearer token
 //   POST /api/insights {t, st} marks one report new / working / fixed (same key)
+//   email to hello@ (Cloudflare Email Routing -> this worker): kept as a report {kind:'email'}, then forwarded to MAIL_TO
 //   the web app, only for family and friends: served at the secret path FAMILY_PATH (a secret, so it is not in this public file),
 //   behind the FAMILY_CODE password; /<path>/?invite=<code> lets a browser in for a year. /app/ then goes to the home page. /feed needs the same pass.
 //   everything else is the CyPress site and web app, served from GitHub Pages under this address
@@ -366,7 +367,45 @@ async function familyGate(req, env, u, base) {
   return new Response(html, { status: 403, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-robots-tag': 'noindex' } });
 }
 
+// Mail sent to hello@: the readable text of the message is kept as a problem report (subject, sender for a reply, body),
+// then the message goes on to the owner's inbox (MAIL_TO, a verified Email Routing address). Attachments are not kept, only named.
+function mailText(raw, depth) {
+  const i = raw.search(/\r?\n\r?\n/); if (i < 0) return '';
+  const head = raw.slice(0, i), body = raw.slice(i).replace(/^\r?\n\r?\n/, '');
+  const bm = head.match(/boundary="?([^";\r\n]+)"?/i);
+  if (bm && (depth || 0) < 4) {
+    const parts = body.split('--' + bm[1]).slice(1).filter(p => !/^--/.test(p));
+    const pick = re => parts.find(p => re.test(p.slice(0, p.search(/\r?\n\r?\n/) + 1 || 400)));
+    const p = pick(/content-type:\s*multipart\//i) || pick(/content-type:\s*text\/plain/i) || pick(/content-type:\s*text\/html/i) || parts[0];
+    const files = parts.filter(p => /filename=/i.test(p.slice(0, 600))).map(p => (p.match(/filename="?([^";\r\n]+)"?/i) || [])[1]).filter(Boolean);
+    return (p ? mailText(p.replace(/^\r?\n/, ''), (depth || 0) + 1) : '') + (files.length ? '\n[attachments: ' + files.join(', ') + ']' : '');
+  }
+  if (/content-disposition:\s*attachment/i.test(head)) return '';
+  let t = body;
+  try {
+    if (/transfer-encoding:\s*quoted-printable/i.test(head)) { const b = []; t.replace(/=\r?\n/g, '').replace(/=([0-9A-F]{2})|([\s\S])/gi, (m, h, c) => { if (h) b.push(parseInt(h, 16)); else b.push(...new TextEncoder().encode(c)); return ''; }); t = new TextDecoder().decode(new Uint8Array(b)); }
+    else if (/transfer-encoding:\s*base64/i.test(head)) t = new TextDecoder().decode(Uint8Array.from(atob(t.replace(/\s+/g, '')), c => c.charCodeAt(0)));
+  } catch (e) {}
+  if (/content-type:\s*text\/html/i.test(head)) t = t.replace(/<(style|script)[\s\S]*?<\/\1>/gi, '').replace(/<br\s*\/?>|<\/p>|<\/div>/gi, '\n').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  return t.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+async function mailIn(message, env) {
+  try {
+    if (!env.STATS) return;
+    const subj = (message.headers.get('subject') || '(no subject)').replace(/\s+/g, ' ').trim();
+    let text = '';
+    if (message.rawSize <= 3e6) { try { text = mailText(await new Response(message.raw).text(), 0); } catch (e) { text = '(could not read the message text)'; } }
+    else text = '(message too large to keep; see the inbox)';
+    const v = (text.match(/native (\d+\.\d+)/) || text.match(/\b(1\.\d{3})\b/) || [])[1] || '';
+    const id = Date.now() + ':' + rid();
+    await env.STATS.put('r:' + id, JSON.stringify({ msg: ('Email: ' + subj).slice(0, 2000), info: ('from ' + message.from + '\n' + text).slice(0, 15000), v: word(v, 16), kind: 'email' }), { expirationTtl: KEEP });
+  } catch (e) {}
+}
 export default {
+  async email(message, env) {
+    await mailIn(message, env);
+    if (env.MAIL_TO) await message.forward(env.MAIL_TO);
+  },
   async fetch(req, env) {
     const u = new URL(req.url);
     const fp = String(env.FAMILY_PATH || '').replace(/[^\w-]/g, '');
