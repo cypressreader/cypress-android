@@ -17212,6 +17212,8 @@ try{if(!S.pkfm){S.pkfm=1;const r=mergePackFolders();if(r.moved||r.gone){save();s
 setTimeout(()=>{if(document.documentElement.classList.contains('boot')){try{render()}catch(e){elog('render',e)}document.documentElement.classList.remove('boot')}},0);
 /* B94: the first screen is drawn from the saved copy and painted before anything else starts: reading the feeds (network, parsing, a redraw per feed) and the other start-up chores wait for that first paint */
 {let gone=false;const go=()=>{if(gone)return;gone=true;try{loadAll()}catch(e){elog('loadAll',e)}};const raf=window.requestAnimationFrame?window.requestAnimationFrame.bind(window):(f=>setTimeout(f,16));raf(()=>raf(()=>setTimeout(go,0)));setTimeout(go,600)}
+/* one quiet retry for feeds that failed on launch (slow wifi, radio waking up) */
+setTimeout(()=>{if(S.offline||FROZEN||!navigator.onLine)return;S.feeds.filter(f=>state[f.id]==='err'&&!paused(f)&&!rfDead(f)).forEach(f=>load(f,true).catch(()=>{}))},15000);
 applyLogo();
 introAnim();whatsNew();smartNotice();setTimeout(checkUpdate,8000);setTimeout(relayCheck,6000);nativeSetup();
 if(FIRST)setTimeout(()=>obOpen(false),60);
