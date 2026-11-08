@@ -1585,3 +1585,13 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 2. Mini player: shows the book cover instead of the leaf, and the same cover tint (light/dark following the app).
 3. A story with a photo: tinted from the photo. No picture: plain theme colors (slow color drift uses the theme color).
 4. Switch phone light/dark while the sheet is open: it follows.
+
+## Audiobook player extras (2026-11-08, unreleased)
+1. Speed: Now Playing has − and + beside the speed chips (0.5× to 3×, steps of 0.1). An in-between speed shows as its own chip. The book remembers it.
+2. Book line under the title reads "12 min left in chapter · 9 h in the book at 1.5×".
+3. Skip: Now Playing > Skip (10 s, 15 s, 30 s, 1 min). Player buttons, mini player (number on the icon), headphone buttons and lock screen all use it. Lock screen forward jumps twice the skip.
+4. Whole book: in a book, tap "Whole book" under the bar. The bar, times and dragging cover the whole book; dragging into another chapter goes there (Undo jump appears). Tap again for chapter only.
+5. Stats: after some listening, a line above the list: "Listened today ... this week ...", or in a book "You've listened to this book for ... At your pace this week, you'll finish around <day>."
+6. Android Auto: needs Android Auto's developer settings > Unknown sources ON (sideloaded app). CyPress shows in the car's media apps: "Continue listening" and "The Daily". Play/pause/skip from the car screen. Cover on the car screen for books.
+7. Lock screen and notification show the BOOK COVER for books (was the logo) and the title of what's being read even if another story is open.
+8. Widget: long-press home screen > Widgets > CyPress Continue listening. Shows cover, title, play/pause. Play while nothing is running opens CyPress to listen. Shows Play again after listening ends.

@@ -37,7 +37,8 @@ import java.net.URL;
  * lock-screen / notification controls. Uses framework MediaSession + Notification.MediaStyle.
  * Button presses are sent to the web page as the "mediaAction" event.
  */
-public class CyMediaService extends Service {
+/** Also a media browser, so Android Auto (and the phone's media controls) can show and start what is playing. */
+public class CyMediaService extends android.service.media.MediaBrowserService {
 
     private static final String TAG = "CyMediaService";
     static final int NOTIF_ID = 7301;
@@ -146,7 +147,33 @@ public class CyMediaService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
+        return super.onBind(intent); // only the media browser binds (Android Auto, system media controls)
+    }
+
+    /** Who may browse: Android Auto, the phone's own media controls and this app. Others get nothing. */
+    @Override
+    public BrowserRoot onGetRoot(String pkg, int uid, android.os.Bundle hints) {
+        if (getPackageName().equals(pkg) || "com.google.android.projection.gearhead".equals(pkg)
+                || "com.android.systemui".equals(pkg) || uid == android.os.Process.SYSTEM_UID) {
+            return new BrowserRoot("root", null);
+        }
         return null;
+    }
+
+    /** One short list: what is playing now (or was last) and The Daily. Tapping either starts it. */
+    @Override
+    public void onLoadChildren(String parent, Result<java.util.List<android.media.browse.MediaBrowser.MediaItem>> result) {
+        java.util.List<android.media.browse.MediaBrowser.MediaItem> out = new java.util.ArrayList<>();
+        if ("root".equals(parent)) {
+            if (title != null && !"CyPress".equals(title)) out.add(item("now", title, subtitle == null || subtitle.isEmpty() ? "Continue listening" : subtitle));
+            out.add(item("daily", "The Daily", "Today's stories, read aloud"));
+        }
+        result.sendResult(out);
+    }
+
+    private static android.media.browse.MediaBrowser.MediaItem item(String id, String t, String sub) {
+        android.media.MediaDescription d = new android.media.MediaDescription.Builder().setMediaId(id).setTitle(t).setSubtitle(sub).build();
+        return new android.media.browse.MediaBrowser.MediaItem(d, android.media.browse.MediaBrowser.MediaItem.FLAG_PLAYABLE);
     }
 
     @Override
@@ -472,6 +499,16 @@ public class CyMediaService extends Service {
         if (art != null && want.equals(artFor)) return;
         artFor = want;
         if (art == null) art = appLogo();
+        if (want.startsWith("data:image/")) { // a book's cover, kept on the phone: the page sends a small copy
+            try {
+                byte[] b = android.util.Base64.decode(want.substring(want.indexOf(',') + 1), android.util.Base64.DEFAULT);
+                Bitmap got = BitmapFactory.decodeByteArray(b, 0, b.length);
+                art = got != null ? got : appLogo();
+            } catch (Throwable t) {
+                art = appLogo();
+            }
+            return;
+        }
         if (want.length() == 0 || !(want.startsWith("http://") || want.startsWith("https://"))) {
             art = appLogo();
             return;
@@ -551,6 +588,11 @@ public class CyMediaService extends Service {
     }
 
     void shutdown() {
+        try { // the widget shows Play once listening has ended
+            final Context app = getApplicationContext();
+            app.getSharedPreferences("cypress", Context.MODE_PRIVATE).edit().putBoolean("lw_p", false).apply();
+            uiHandler.postDelayed(() -> CyListenWidget.draw(app), 1500);
+        } catch (Throwable t) { /* no widget */ }
         cancelShutdown();
         cancelPausedTimeout();
         unregisterNoisy();
@@ -607,6 +649,7 @@ public class CyMediaService extends Service {
 
             @Override
             public void onPlayFromMediaId(String id, android.os.Bundle extras) {
+                if ("now".equals(id) && CyExtras.plugin != null) { CyExtras.emitMediaAction("play"); return; } // Android Auto: resume what was playing
                 CyExtras.voiceOpen(app, CyExtras.mediaIdMarker(id));
             }
 
@@ -659,6 +702,7 @@ public class CyMediaService extends Service {
     private void createSession() {
         session = sharedSession(this);
         session.setActive(true);
+        try { if (getSessionToken() == null) setSessionToken(session.getSessionToken()); } catch (Throwable t) { Log.w(TAG, "browser token: " + t); }
         refreshSession();
     }
 
@@ -672,7 +716,7 @@ public class CyMediaService extends Service {
             long pos = posMs >= 0 ? posMs : PlaybackState.PLAYBACK_POSITION_UNKNOWN;
             PlaybackState ps = new PlaybackState.Builder()
                 .setActions(actions)
-                .addCustomAction(CA_REW, "Back 15 seconds", R.drawable.cy_ic_rew)
+                .addCustomAction(CA_REW, "Skip back", R.drawable.cy_ic_rew)
                 .addCustomAction(CA_FWD, "Forward 30 seconds", R.drawable.cy_ic_fwd)
                 .setState(playing ? PlaybackState.STATE_PLAYING : PlaybackState.STATE_PAUSED,
                     pos, playing ? rate : 0f)
@@ -687,9 +731,23 @@ public class CyMediaService extends Service {
                 mb.putBitmap(MediaMetadata.METADATA_KEY_ART, art);
             }
             session.setMetadata(mb.build());
+            widgetSync();
         } catch (Throwable t) {
             Log.w(TAG, "session refresh failed: " + t);
         }
+    }
+
+    private String wKey = "";
+    private Bitmap wArt = null;
+
+    /** The Continue listening widget follows the title, the picture and play/pause (not every position update). */
+    private void widgetSync() {
+        String k = title + "|" + subtitle + "|" + playing;
+        boolean artChanged = art != wArt;
+        if (k.equals(wKey) && !artChanged) return;
+        wKey = k;
+        wArt = art;
+        CyListenWidget.save(this, title, subtitle, playing, art, artChanged);
     }
 
     private PendingIntent actionIntent(String action, int code) {
@@ -736,7 +794,7 @@ public class CyMediaService extends Service {
         int[] compact = new int[3];
         int ci = 0;
         if (canPrev) { b.addAction(action(R.drawable.cy_ic_prev, "Previous", ACT_PREV, 81)); n++; }
-        b.addAction(action(R.drawable.cy_ic_rew, "Back 15 seconds", ACT_REW, 85)); compact[ci++] = n++;
+        b.addAction(action(R.drawable.cy_ic_rew, "Skip back", ACT_REW, 85)); compact[ci++] = n++;
         b.addAction(action(playing ? R.drawable.cy_ic_pause : R.drawable.cy_ic_play, playing ? "Pause" : "Play", ACT_TOGGLE, 82));
         compact[ci++] = n++;
         b.addAction(action(R.drawable.cy_ic_fwd, "Forward 30 seconds", ACT_FWD, 86)); compact[ci++] = n++;
