@@ -1573,3 +1573,9 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Dynamic follows the phone: with the phone in dark mode, pick Dynamic in Settings > Light, dark or Dynamic. It should come up dark (and light with the phone light), even if "Dynamic is" was set to Light or Dark before.
 - Side panel: folder and site rows sit closer together and have no "…". Press and hold a folder or site still opens its settings.
 - Dynamic pace (after 1.285): scroll the feed slowly. The color should follow the story a third of the way down within about half a second of stopping, including text-only stories (site color). Not jumpy during a fast fling.
+
+## Dynamic "Match my phone" stays put + Now Playing opens the playing story (2026-11-08, unreleased)
+1. Settings > Appearance: Dynamic, Dynamic is Match my phone. Switch the phone to dark, open Settings and tap around: it should still say Match my phone (app goes dark).
+2. Play a story aloud, open a different story, open Now Playing. Tap the big title: the playing story opens and scrolls/turns to the spoken words.
+3. Same, but tap the highlighted (playing) row in the list below: same result. Other rows still jump to that story.
+4. "Open this story" now opens the playing story, not the one you were looking at.

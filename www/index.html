@@ -4573,7 +4573,7 @@ html.lowp #tdr .tdaur{animation:none}
 #tdr .tds{display:flex;gap:8px;justify-content:center;margin:12px 0 2px}#tdr .tdsl{white-space:nowrap;display:flex;justify-content:center;align-items:center;gap:8px;margin:10px 0 0;font:600 13px var(--sans);color:#fff}#tdr .tdslp{width:auto;min-height:40px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,255,255,.45);background:transparent;color:#fff;font:600 13px var(--sans)}#tdr .tdslp option{color:#000}#tdr .tds button{all:unset;box-sizing:border-box;min-width:54px;min-height:40px;display:grid;place-items:center;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.45);font:700 13px var(--sans);cursor:pointer;color:#fff}
 #tdr .tds button[aria-checked=true]{background:#fff;color:#0b2119;border-color:#fff}#tdr .tds button:focus-visible{outline:2px solid #fff;outline-offset:2px}
 #tdr .tdr2{padding:6px 18px calc(16px + env(safe-area-inset-bottom,0px))}
-#tdr .tdq{list-style:none;margin:6px 0 10px;padding:0}#tdr .tdq li{border-bottom:1px solid var(--ln)}
+#tdr .tdq{list-style:none;margin:6px 0 10px;padding:0}#tdr .tdq li{border-bottom:1px solid var(--ln)}#tdr .tdn{cursor:pointer}
 #tdr .tdq button{all:unset;box-sizing:border-box;position:relative;width:100%;display:flex;align-items:center;gap:12px;padding:9px 2px;cursor:pointer;color:var(--ink);min-height:56px}#tdr .tdq button:focus-visible{outline:2px solid var(--logo);outline-offset:-2px;border-radius:8px}
 #tdr .tdq .dth{flex:none;width:44px;height:44px}#tdr .tdq .tdck{display:grid;place-items:center;font:600 15px var(--sans)}
 #tdr .tdq [aria-current] .tdit{color:var(--logo)}
@@ -10246,12 +10246,13 @@ function tdr(){let d=$('#tdr');if(d)return d;
  d.addEventListener('click',e=>{if(e.target===d)d.close()});
  d.querySelector('.tdc').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;const k=b.dataset.d;if(k==='nx'&&TTS.art&&TTS.art.book)bkJmp();if(k==='rw')digSeekBy(-15);else if(k==='fw')digSeekBy(15);else if(k==='pv')digPrev();else if(k==='nx')digNext();else if(k==='pl')tminiToggle();setTimeout(tminiSync,60)});
  d.querySelector('.tds').addEventListener('click',e=>{const b=e.target.closest('[data-sp]');if(!b)return;rateSet(+b.dataset.sp);save();const r=$('#rate');if(r)r.value=S.rate;const rv=$('#ratev');if(rv)rv.value=(+S.rate||1).toFixed(1)+'×';if(TTS.on&&!TTS.paused)ttsFrom(ttsPos());tminiSync()});
- d.querySelector('.tdq').addEventListener('click',e=>{const j=e.target.closest('[data-bc]');if(j){bkJump(+j.dataset.bc,0);return}const b=e.target.closest('[data-k]');if(!b)return;const k=+b.dataset.k;if(DIG.on)digGo(k,{});else tminiToggle();setTimeout(tminiSync,60)});
+ d.querySelector('.tdq').addEventListener('click',e=>{const j=e.target.closest('[data-bc]');if(j){bkJump(+j.dataset.bc,0);return}const b=e.target.closest('[data-k]');if(!b)return;const k=+b.dataset.k;if(b.hasAttribute('aria-current')){d.querySelector('.tdo').click();return}/* the story playing now: open it where the voice is (David) */if(DIG.on)digGo(k,{});else tminiToggle();setTimeout(tminiSync,60)});
+ d.querySelector('.tdn').addEventListener('click',()=>d.querySelector('.tdo').click());/* tapping the title opens the story; the Open button stays for keyboard and screen readers */
  d.querySelector('.tdun').onclick=()=>{const a=TTS.art,i=a?BKJ.map(x=>x.b).lastIndexOf(a.book):-1;if(i<0)return;const j=BKJ.splice(i,1)[0];bkJump(j.c,j.f,1)};
  d.querySelector('.tdbm').onclick=()=>tdrBm();
- d.querySelector('.tdo').addEventListener('click',async()=>{d.close();const a=curA||TTS.art;if(!a)return;const wi=ttsPos(),n=TTS.words.length,rd=$('#rd');
-   if(rd.classList.contains('on')&&rd.classList.contains('ghost')&&curA===a){rd.classList.remove('ghost');pushLayer('reader');tminiSync();try{layout()}catch(x){}return}
-   R.digOpen=true;await openReader(a);R.digOpen=false;if(curA!==a)return;ttsCollect();if(TTS.words.length&&n&&Math.abs(TTS.words.length-n)<=Math.max(3,n*.02)){ttsFrom(wi);ttsMark(wi)}});
+ d.querySelector('.tdo').addEventListener('click',async()=>{d.close();const a=TTS.art||curA;if(!a)return;/* the story being read aloud, even while another story is open */const wi=ttsPos(),n=TTS.words.length,rd=$('#rd'),seek=i=>{TTS.um=0;TTS.fl=0;ttsMark(i)};/* jump to the spoken word now, even if the reader was scrolled by hand */
+   if(rd.classList.contains('on')&&curA&&curA.link===a.link){if(rd.classList.contains('ghost')){rd.classList.remove('ghost');pushLayer('reader');tminiSync();try{layout()}catch(x){}}setTimeout(()=>seek(TTS.wi),80);return}
+   R.digOpen=true;await openReader(a);R.digOpen=false;if(curA!==a)return;ttsCollect();if(TTS.words.length&&n&&Math.abs(TTS.words.length-n)<=Math.max(3,n*.02)){ttsFrom(wi);setTimeout(()=>seek(wi),80)}});
  const sc=d.querySelector('#tdsc');let drag=null;
  const at=ev=>{const r=sc.getBoundingClientRect();return Math.max(0,Math.min(1,(ev.clientX-r.left)/Math.max(1,r.width)))};
  sc.addEventListener('pointerdown',ev=>{drag={f:at(ev)};try{sc.setPointerCapture(ev.pointerId)}catch(_){}tdrPreview(drag.f)});
@@ -10756,7 +10757,7 @@ function schSet(k){
  save();applyTheme.did=0;applyTheme((k==='dynamic')!==dyn0?'quick':true);if(!applyTheme.did)renderSoon();/* applyTheme already redrew the page when the background went light or dark: a second full redraw made the switch stutter */syncSet()}
 set.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-sch]');if(b)schSet(b.dataset.sch)});
 set.addEventListener('close',()=>{if(applyTheme.pend){applyTheme.pend=0;setTimeout(()=>{try{render()}catch(e){elog('render',e)}},80)}});
-set.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-dm]');if(b){S.dynm=b.dataset.dm;save();applyTheme(true);syncSet()}});
+set.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#schd [data-dm]');if(b){S.dynm=b.dataset.dm;save();applyTheme(true);syncSet()}});
 set.addEventListener('keydown',e=>{const b=e.target.closest&&e.target.closest('[data-sch]');if(!b||!/^Arrow(Left|Right|Up|Down)$/.test(e.key))return;e.preventDefault();const bs=[...b.parentNode.querySelectorAll('[data-sch]')],i=bs.indexOf(b),n=bs[(i+(/Right|Down/.test(e.key)?1:bs.length-1))%bs.length];n.focus();schSet(n.dataset.sch)});
 const MO_KEYS=['curl','sitecol','tod','czoom','clive','micro'];
 function moLevel(){if(S.rmo)return'off';if(MO_KEYS.every(k=>isOn(k)))return'full';if(!isOn('czoom')&&!isOn('clive')&&!isOn('micro')&&isOn('curl')&&isOn('sitecol')&&isOn('tod'))return'calm';return'custom'}
