@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
+import android.os.Build;
 import android.widget.RemoteViews;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,7 +27,14 @@ public class CyListenWidget extends AppWidgetProvider {
     }
 
     /** Remember what is playing, then redraw. The picture is written only when it changed. */
+    private static final java.util.concurrent.ExecutorService IO = java.util.concurrent.Executors.newSingleThreadExecutor();
+
+    /** N4: the picture is scaled and written off the main thread, in order. */
     static void save(Context c, String title, String sub, boolean playing, Bitmap art, boolean artChanged) {
+        IO.execute(() -> saveNow(c, title, sub, playing, art, artChanged));
+    }
+
+    private static void saveNow(Context c, String title, String sub, boolean playing, Bitmap art, boolean artChanged) {
         try {
             c.getSharedPreferences("cypress", Context.MODE_PRIVATE).edit()
                     .putString("lw_t", title).putString("lw_s", sub).putBoolean("lw_p", playing).apply();
@@ -65,7 +73,8 @@ public class CyListenWidget extends AppWidgetProvider {
             PendingIntent btn;
             if (CyMediaService.instance != null) {
                 Intent i = new Intent(c, CyMediaService.class).setAction(CyMediaService.ACT_TOGGLE);
-                btn = PendingIntent.getService(c, 7411, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+                int fl = PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT; // N6: paused = not foreground, so resume must start it as one
+                btn = playing || Build.VERSION.SDK_INT < 26 ? PendingIntent.getService(c, 7411, i, fl) : PendingIntent.getForegroundService(c, 7411, i, fl);
             } else {
                 Intent i = new Intent(c, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP)
                         .putExtra(CyExtras.EXTRA_OPEN_URL, "cypress:view:listen");

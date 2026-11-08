@@ -38,7 +38,7 @@ import java.net.URL;
  * Button presses are sent to the web page as the "mediaAction" event.
  */
 /** Also a media browser, so Android Auto (and the phone's media controls) can show and start what is playing. */
-public class CyMediaService extends android.service.media.MediaBrowserService {
+public class CyMediaService extends Service {
 
     private static final String TAG = "CyMediaService";
     static final int NOTIF_ID = 7301;
@@ -147,33 +147,7 @@ public class CyMediaService extends android.service.media.MediaBrowserService {
 
     @Override
     public IBinder onBind(Intent intent) {
-        return super.onBind(intent); // only the media browser binds (Android Auto, system media controls)
-    }
-
-    /** Who may browse: Android Auto, the phone's own media controls and this app. Others get nothing. */
-    @Override
-    public BrowserRoot onGetRoot(String pkg, int uid, android.os.Bundle hints) {
-        if (getPackageName().equals(pkg) || "com.google.android.projection.gearhead".equals(pkg)
-                || "com.android.systemui".equals(pkg) || uid == android.os.Process.SYSTEM_UID) {
-            return new BrowserRoot("root", null);
-        }
-        return null;
-    }
-
-    /** One short list: what is playing now (or was last) and The Daily. Tapping either starts it. */
-    @Override
-    public void onLoadChildren(String parent, Result<java.util.List<android.media.browse.MediaBrowser.MediaItem>> result) {
-        java.util.List<android.media.browse.MediaBrowser.MediaItem> out = new java.util.ArrayList<>();
-        if ("root".equals(parent)) {
-            if (title != null && !"CyPress".equals(title)) out.add(item("now", title, subtitle == null || subtitle.isEmpty() ? "Continue listening" : subtitle));
-            out.add(item("daily", "The Daily", "Today's stories, read aloud"));
-        }
-        result.sendResult(out);
-    }
-
-    private static android.media.browse.MediaBrowser.MediaItem item(String id, String t, String sub) {
-        android.media.MediaDescription d = new android.media.MediaDescription.Builder().setMediaId(id).setTitle(t).setSubtitle(sub).build();
-        return new android.media.browse.MediaBrowser.MediaItem(d, android.media.browse.MediaBrowser.MediaItem.FLAG_PLAYABLE);
+        return null; // private: Android Auto browses CyAutoBrowser, which shares this session
     }
 
     @Override
@@ -205,7 +179,7 @@ public class CyMediaService extends android.service.media.MediaBrowserService {
                 goForeground(); // always: startForegroundService() requires it within a few seconds
                 enterPlayState();
                 refreshSession();
-            } else if (!foregrounded && !detached) {
+            } else if (!foregrounded && (!detached || ACT_TOGGLE.equals(a))) { // N6: the widget resumes with startForegroundService
                 goForeground();
                 refreshSession();
             }
@@ -499,24 +473,18 @@ public class CyMediaService extends android.service.media.MediaBrowserService {
         if (art != null && want.equals(artFor)) return;
         artFor = want;
         if (art == null) art = appLogo();
-        if (want.startsWith("data:image/")) { // a book's cover, kept on the phone: the page sends a small copy
-            try {
-                byte[] b = android.util.Base64.decode(want.substring(want.indexOf(',') + 1), android.util.Base64.DEFAULT);
-                Bitmap got = BitmapFactory.decodeByteArray(b, 0, b.length);
-                art = got != null ? got : appLogo();
-            } catch (Throwable t) {
-                art = appLogo();
-            }
-            return;
-        }
-        if (want.length() == 0 || !(want.startsWith("http://") || want.startsWith("https://"))) {
+        boolean data = want.startsWith("data:image/"); // a book's cover, kept on the phone: the page sends a small copy
+        if (want.length() == 0 || want.length() > 3000000 || !(data || want.startsWith("http://") || want.startsWith("https://"))) {
             art = appLogo();
             return;
         }
         new Thread(() -> {
             Bitmap b = null;
             try {
-                b = fetchBitmap(want);
+                if (data) { // N4: decode off the main thread, scaled down
+                    byte[] raw = android.util.Base64.decode(want.substring(want.indexOf(',') + 1), android.util.Base64.DEFAULT);
+                    b = decodeSmall(raw);
+                } else b = fetchBitmap(want);
             } catch (Throwable t) {
                 Log.w(TAG, "cover picture failed: " + t);
             }
@@ -551,36 +519,42 @@ public class CyMediaService extends android.service.media.MediaBrowserService {
                 if (total > 4000000) return null;
                 bo.write(buf, 0, n);
             }
-            byte[] data = bo.toByteArray();
-            BitmapFactory.Options o = new BitmapFactory.Options();
-            o.inJustDecodeBounds = true;
-            BitmapFactory.decodeByteArray(data, 0, data.length, o);
-            int sample = 1;
-            while (o.outWidth / sample > 800 || o.outHeight / sample > 800) sample *= 2;
-            o.inJustDecodeBounds = false;
-            o.inSampleSize = sample;
-            Bitmap b = BitmapFactory.decodeByteArray(data, 0, data.length, o);
-            if (b == null) return null;
-            int big = Math.max(b.getWidth(), b.getHeight());
-            if (big > 480) {
-                float f = 480f / big;
-                b = Bitmap.createScaledBitmap(b, Math.max(1, Math.round(b.getWidth() * f)), Math.max(1, Math.round(b.getHeight() * f)), true);
-            }
-            return b;
+            return decodeSmall(bo.toByteArray());
         } finally {
             c.disconnect();
         }
     }
 
+    private static Bitmap decodeSmall(byte[] data) {
+        BitmapFactory.Options o = new BitmapFactory.Options();
+        o.inJustDecodeBounds = true;
+        BitmapFactory.decodeByteArray(data, 0, data.length, o);
+        int sample = 1;
+        while (o.outWidth / sample > 800 || o.outHeight / sample > 800) sample *= 2;
+        o.inJustDecodeBounds = false;
+        o.inSampleSize = sample;
+        Bitmap b = BitmapFactory.decodeByteArray(data, 0, data.length, o);
+        if (b == null) return null;
+        int big = Math.max(b.getWidth(), b.getHeight());
+        if (big > 480) {
+            float f = 480f / big;
+            b = Bitmap.createScaledBitmap(b, Math.max(1, Math.round(b.getWidth() * f)), Math.max(1, Math.round(b.getHeight() * f)), true);
+        }
+        return b;
+    }
+
+    private Bitmap logo; // N5: one copy, so the widget sees the same picture and does not redraw
+
     /** The CyPress app icon as a picture, for stories that have none. */
     private Bitmap appLogo() {
+        if (logo != null) return logo;
         try {
             Drawable d = getPackageManager().getApplicationIcon(getPackageName());
             Bitmap b = Bitmap.createBitmap(256, 256, Bitmap.Config.ARGB_8888);
             Canvas cv = new Canvas(b);
             d.setBounds(0, 0, 256, 256);
             d.draw(cv);
-            return b;
+            return logo = b;
         } catch (Throwable t) {
             Log.w(TAG, "app logo failed: " + t);
             return null;
@@ -702,7 +676,6 @@ public class CyMediaService extends android.service.media.MediaBrowserService {
     private void createSession() {
         session = sharedSession(this);
         session.setActive(true);
-        try { if (getSessionToken() == null) setSessionToken(session.getSessionToken()); } catch (Throwable t) { Log.w(TAG, "browser token: " + t); }
         refreshSession();
     }
 

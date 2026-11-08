@@ -34,11 +34,14 @@
                 android:resource="@xml/cy_paths" />
         </provider>
 
-        <!-- also a media browser so Android Auto can show and start listening; onGetRoot only answers Android Auto, the system media controls and this app -->
         <service
             android:name="com.cypress.reader.CyMediaService"
-            android:exported="true"
-            android:foregroundServiceType="mediaPlayback">
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+        <!-- N1: the only exported media service. Android Auto browses here; onGetRoot answers Auto, Assistant, the system media controls and this app. It plays nothing itself. -->
+        <service
+            android:name="com.cypress.reader.CyAutoBrowser"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
