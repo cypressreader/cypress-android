@@ -1605,3 +1605,17 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 
 ## Photo-less cards (implemented, unverified on phone)
 - Stories with no photo (or a photo that fails to load) in big hero, side-by-side pair and Headlines front-page spots: headline fully visible (not cut at the top), no tall empty box above the text. Check with large phone text too.
+
+## Audit fixes 2026-11-08 (implemented, unverified on phone; branch claude/book-prototype-handoff-nyko0x)
+- Narration keeps playing while you open and read a second story, including when that story's full text arrives (before: it stopped at that moment).
+- Full coverage: open it from a story, press Back once: the coverage sheet closes and the story stays; a second Back closes the story. Also with predictive back.
+- Leave the app 3 to 7 seconds after a refresh finishes, force-stop it, reopen: the stories you just saw are still there (cache write no longer lost in that window).
+- Wi-Fi that drops and returns several times in a minute: one normal refresh at most per minute, no full forced reload each time; list does not flicker.
+- Captive-portal or dead Wi-Fi (phone says online, nothing loads): after a round where most sites time out, the Offline pill shows for a minute and sites are NOT put to rest.
+- Pull to refresh while a background refresh is already running: the pull still gets fresh results, not "unchanged".
+- Web app only: when the "A new version is ready" bar shows, one tap on Refresh loads the new version (not the old one); the version check no longer re-downloads the whole page on each resume.
+- Reader: tap and swipe page turns still work after any page-turn hiccup (flags reset on error); curl drag in page mode still blocks vertical scrolling; vertical mode scroll starts promptly while narration plays.
+- Close a story back to the feed (All Stories AND The Daily): the list lands on the same card without a visible hitch; no second hitch 2.5 s later.
+- Fold/rotate: unfold while reading and while on the list; no stutter spike, columns re-deal once; two-page reader with a photo-heavy story paginates once after images land.
+- First refresh after install or after clearing data: the first cards appear while other sites are still loading (not after all 40 finish).
+- Background: stories that arrive while the app is hidden are drawn when you come back.

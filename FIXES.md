@@ -166,3 +166,8 @@ Visual: artifact https://claude.ai/artifact/TKMjmiajV9wS7WwvSYT1Qx (19 items, ph
 - Covered: EPUB2 NCX-only, nested/`../` paths, stored (uncompressed) entries, broken spine href, 12k-word single chapter (splits), no cover, font obfuscation (not DRM), locked chapters (DRM), fixed-layout, empty chapters, zip without container.xml, not-a-zip, windows-1252 text.
 - FOUND + FIXED: chapter markup was always decoded as UTF-8, so a book declaring windows-1252 showed mojibake. `bkImport`'s `xml()` now reads the declared encoding (XML decl or meta charset) and decodes with it.
 - Added: fixed-layout books are refused with a plain message (`rendition:layout` = pre-paginated); non-EPUB formats (Kindle .mobi/.azw, PDF, comics, Word) are named instead of a blank "couldn't be opened".
+
+## Audit 2026-11-08 (session Kdre62): batches A, C, D shipped on claude/book-prototype-handoff-nyko0x (not built yet)
+- Stability (Phase 1 items 1-3, 6-18), performance (Phase 2 items 1-19 except 14-diag and 15b image sizes), all non-visual. Visual items wait on David's answers in https://claude.ai/artifact/JoabWH4buHyAjBdCZu4QrX. Detail and patches: the four audit artifacts linked in HANDOFF.md.
+- Kept the single 15 s launch retry (Phase 1 item 17) on purpose: loadRetry only covers rounds with 4+ failures.
+- Deferred: Phase 1 items 4/5 reconnect + outage policy SHIPPED with the recommended answers (60 s gate, round-level network heuristic); revert there if David disagrees.
