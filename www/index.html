@@ -8135,7 +8135,7 @@ const dealHide=a=>(!!S.hideDeals&&dealItem(a))||promoItem(a);
    editorial card, and demoted or labeled everywhere else — one coherent rule */
 const noCover=a=>dealItem(a)||promoItem(a);
 /* the sunset setting is gone: anyone who had it on now follows the phone's light or dark setting, and the Dynamic theme's daylight option does the same */
-if((S.night&&S.night!=='off')||S.autodark){if(!S.sch||S.sch==='theme')S.sch='sys'}delete S.night;delete S.autodark;delete S.geo;delete S.wx;if(S.dynm==='time')S.dynm='sys';
+if((S.night&&S.night!=='off')||S.autodark){if(!S.sch||S.sch==='theme')S.sch='sys'}delete S.night;delete S.autodark;delete S.geo;delete S.wx;if(S.dynm==='time'||!S.dmv){S.dynm='sys';S.dmv=1}/* once: an old Light or Dark pick for Dynamic goes back to matching the phone; picks made after this stick (David) */
 /* a muted single word matches whole words only ("ai" does not hide "said"); a muted phrase matches as text */
 const MUTERX={};
 function muteHit(m,t){if(!/\s/.test(m)){let r=MUTERX[m];if(!r)r=MUTERX[m]=new RegExp('(^|[^\\p{L}\\p{N}])'+m.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^\\p{L}\\p{N}]|$)','iu');return r.test(t)}return t.includes(m)}
@@ -10751,7 +10751,7 @@ function schSync(){const v=$('#schv');if(!v)return;const cur=schCur();let any=fa
 set.addEventListener('change',e=>{const id=e.target&&e.target.id;if(id!=='schf'&&id!=='scht')return;const f=$('#schf').value;S.scht=f===''?null:{f:+f,t:+$('#scht').value};save();applyTheme(true);syncSet()});
 function schSet(k){
  const dyn0=(S.theme||'auto')==='dynamic';
- if(k==='dynamic'){if((S.theme||'auto')!=='dynamic'){S.lastTheme=S.theme||'auto';S.theme='dynamic';S.dynm='sys'/* turning Dynamic on starts by matching the phone, like the other themes; 'Dynamic is' Light/Dark can still pin it */}}
+ if(k==='dynamic'){if((S.theme||'auto')!=='dynamic'){S.lastTheme=S.theme||'auto';S.theme='dynamic'}}
  else{S.sch=k;if((S.theme||'auto')==='dynamic'){S.theme=(S.lastTheme&&S.lastTheme!=='dynamic')?S.lastTheme:'halcyon'}}
  save();applyTheme.did=0;applyTheme((k==='dynamic')!==dyn0?'quick':true);if(!applyTheme.did)renderSoon();/* applyTheme already redrew the page when the background went light or dark: a second full redraw made the switch stutter */syncSet()}
 set.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-sch]');if(b)schSet(b.dataset.sch)});
