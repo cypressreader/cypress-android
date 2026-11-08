@@ -1579,3 +1579,9 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 2. Play a story aloud, open a different story, open Now Playing. Tap the big title: the playing story opens and scrolls/turns to the spoken words.
 3. Same, but tap the highlighted (playing) row in the list below: same result. Other rows still jump to that story.
 4. "Open this story" now opens the playing story, not the one you were looking at.
+
+## Players take the book cover's colors (2026-11-08, unreleased)
+1. Listen to a book with a cover. Now Playing: background tinted from the cover; light in light mode, dark in dark mode; text and buttons readable in both.
+2. Mini player: shows the book cover instead of the leaf, and the same cover tint (light/dark following the app).
+3. A story with a photo: tinted from the photo. No picture: plain theme colors (slow color drift uses the theme color).
+4. Switch phone light/dark while the sheet is open: it follows.
