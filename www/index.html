@@ -5487,7 +5487,8 @@ function saveCache0(force){if(FROZEN)return;/* nothing new since the last save: 
 const feedOf=id=>S.feeds.find(f=>f.id===id)||{title:'',url:''};
 const ago=d=>{if(!d)return'';const m=(Date.now()-d)/6e4,n=m<60?Math.max(1,m|0):m<1440?m/60|0:m/1440|0;return n+(m<60?' min':m<1440?' hr':n===1?' day':' days')};/* F09: one time style everywhere ("27 min", "1 hr", "2 days"); "1m" read like "1 million" */
 /* card times: "3h" on screen; a week on, the date ("Oct 12") instead of "45d". Screen readers hear "3 hours ago" as part of the headline link (agoL), so the card gets no extra elements (two hidden spans per card cost scrolling time) */
-const agoT=d=>{if(!d)return'';const m=(Date.now()-d)/6e4;return m>=10080?new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'}):ago(d)};
+const AGOF=new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric'}),AGOM=new Map();/* "Oct 3" is formatted once per calendar day, not once per card */
+const agoT=d=>{if(!d)return'';const m=(Date.now()-d)/6e4;if(m<10080)return ago(d);const k=new Date(d).setHours(0,0,0,0);let v=AGOM.get(k);if(v===undefined){v=AGOF.format(d);AGOM.set(k,v)}return v};
 const agoL=d=>{if(!d)return'';const m=(Date.now()-d)/6e4;if(m>=10080)return agoT(d);const n=m<60?Math.max(1,m|0):m<1440?m/60|0:m/1440|0,u=m<60?'minute':m<1440?'hour':'day';return n+' '+u+(n===1?'':'s')+' ago'};
 
 /* decode with the charset the site declares (header, XML declaration or meta tag) instead of always UTF-8 */
@@ -6283,7 +6284,9 @@ function group(list){
  });
  return out.map(o=>{const lead=o.all.find(x=>x.img)||o.all[0];return{...lead,more:o.all.filter(x=>x!==lead).map(m=>({t:m.title,l:m.link,f:m.feedId}))}});
 }
-const fof=a=>S.feeds.find(x=>x.id===a.feedId)||{title:a.ft||'Saved',url:a.fu||'',color:a.fc};
+/* feed by id in one step (fof runs for every card drawn): the map is rebuilt when the list is replaced or a site is added or removed */
+let FM,FMV,FML;const fmap=()=>{if(FMV!==S.feeds||FML!==S.feeds.length){FMV=S.feeds;FML=S.feeds.length;FM=new Map(S.feeds.map(f=>[f.id,f]))}return FM};
+const fof=a=>fmap().get(a.feedId)||{title:a.ft||'Saved',url:a.fu||'',color:a.fc};
 /* UCC: per-feed counts kept for one side bar build, which counts each feed for All Stories, its folder and its own row */
 let UCC=null;const uc1=f=>paused(f)?0:(items[f.id]||[]).filter(a=>!S.read[a.link]&&!junkItem(a)&&!dealHide(a)).length;
 const uc=fs=>fs.reduce((n,f)=>{if(!UCC)return n+uc1(f);let v=UCC.get(f.id);if(v==null)UCC.set(f.id,v=uc1(f));return n+v},0);
@@ -6303,10 +6306,11 @@ function markSeen(sel){
 const newIn=(fs,key)=>fs.reduce((n,f)=>n+(paused(f)?0:(items[f.id]||[]).filter(a=>a.date>seenOf(key||'s:'+f.id)&&!S.read[a.link]&&!junkItem(a)&&!dealHide(a)).length),0);
 const dotU='<u class="nd" role="img" aria-label="New stories"></u>';
 const navDot=(num,nn)=>S.hideCount?(nn()>0?dotU:''):bad(num());
-function waterline(){
- const g=$('#grid');if(!g)return;g.querySelectorAll('.wline').forEach(e=>e.remove());
+function waterline(sc){
+ /* sc: cards just added at the end of the list. They come after everything drawn, so a line already on the page stays where it is; the date map built for this draw is reused */
+ const g=$('#grid');if(!g)return;if(sc&&g.querySelector('.wline'))return;g.querySelectorAll('.wline').forEach(e=>e.remove());
  const qq=$('#q');if(!VIS||!trackSel(S.sel)||(qq&&qq.value.trim()))return;
- const dm=new Map();for(const f of S.feeds)for(const a of (items[f.id]||[]))dm.set(a.link,a.date||0);
+ let dm=sc?waterline.dm:null;if(!dm){dm=waterline.dm=new Map();for(const f of S.feeds)for(const a of (items[f.id]||[]))dm.set(a.link,a.date||0)}
  const cs=[...g.querySelectorAll('.card[data-i],.fd-feat[data-i],.fd-deck[data-i],.fd-bl[data-i]')];let nw=0,old=null;
  for(const c of cs){const d=dm.get(chref(c));if(d==null)continue;if(d>VIS)nw++;else{old=c;break}}
  if(!old||!nw)return;
@@ -6887,7 +6891,7 @@ function folderPseudo(fo){
 function wireReset(){WIREX={};WIRE.order=null;WIRE.known=null;WIRE.anchor=null;WIRE.settled=false;clearTimeout(wireReset.t);wireReset.t=setTimeout(wireSettle,8000)}
 function wireSettle(){WIRE.settled=true;clearTimeout(wireReset.t);if(wireSel()&&!WIRE.order&&!(($('#q')||{}).value||'').trim()){/* far down the page the late re-rank would reshuffle what you are reading: leave it for the next natural redraw */const m=$('main');if(m&&m.scrollTop>500)return;try{quietRender()}catch(e){elog('render',e)}}}
 /* after tapping the pill, the stories that were waiting wear a small 'New' tag so you can see where the ranking put them */
-function markFresh(){const F=WIRE.fresh,g=$('#grid');if(!F||!g)return;g.querySelectorAll('.card:not(.fresh)').forEach(c=>{if(F.has(chref(c))){c.classList.add('fresh');const t=document.createElement('span');t.className='newtag';t.textContent='New';c.append(t)}})}
+function markFresh(sc){const F=WIRE.fresh,g=$('#grid');if(!F||!g)return;(sc?sc.flatMap(n=>n.matches('.card:not(.fresh)')?[n]:[...n.querySelectorAll('.card:not(.fresh)')]):[...g.querySelectorAll('.card:not(.fresh)')]).forEach(c=>{if(F.has(chref(c))){c.classList.add('fresh');const t=document.createElement('span');t.className='newtag';t.textContent='New';c.append(t)}})}
 /* the pill: never while a refresh is running, and after you tap it (or pull to refresh) not again for 30 minutes. Stories that wait meanwhile load the next time you pull to refresh. */
 function pillCount(){const n=WIRE.pend.length;if(!n){WIRE.held=false;return 0}const hold=LAN>0||(WIRE.pillT&&Date.now()-WIRE.pillT<30*6e4);WIRE.held=!!hold;return hold?0:n}
 function wireLoad(){WIRE.pillT=Date.now();WIRE.fresh=new Set(WIRE.pend.map(a=>a.link));WIRE.order=null;WIRE.known=null;WIRE.anchor=null;WIRE.settled=true;render();markFresh();const m=$('main');if(m)m.scrollTop=0}
@@ -7147,10 +7151,12 @@ function cvPar(){
  const r=c.getBoundingClientRect(),mr=m.getBoundingClientRect(),p=Math.max(0,Math.min(1,(mr.top-r.top)/Math.max(1,r.height)));
  c.style.setProperty('--par',p.toFixed(3));
 }
+/* resize work that only needs the new size runs together in one frame (cover drift, the pinned feed name, tall cards, the reading bar) instead of each on its own in the middle of the resize */
+const RSZ=[];let RSZT=0;const onRsz=f=>{RSZ.push(f);if(RSZ.length===1)addEventListener('resize',()=>{if(RSZT)return;RSZT=requestAnimationFrame(()=>{RSZT=0;RSZ.forEach(f=>{try{f()}catch(e){}})})},{passive:true})};
 {
  const m=$('main');let raf=0;
  if(m)m.addEventListener('scroll',()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;cvPar()})},{passive:true});
- addEventListener('resize',()=>cvPar());
+ onRsz(()=>cvPar());
 }
 const DTAB_ORDER=['front','brief','edition','week'];
 function dayTabKey(){return S.sel==='today'?'front':S.sel==='brief'?'brief':S.sel==='digest'?(S.dgk==='week'?'week':'edition'):''}
@@ -7230,7 +7236,7 @@ function parWatch(root){
  if(m)m.addEventListener('scroll',()=>{if(raf)return;const wait=Math.max(0,80-(performance.now()-lastT));raf=setTimeout(()=>requestAnimationFrame(()=>{raf=0;lastT=performance.now();const pr=parRead();wireChrome();parWrite(pr)}),wait)},{passive:true});
  /* B94: the pinned name and the hairline are measured in the next frame, not in the middle of drawing the list: measuring there forced the whole page to be laid out an extra time for every redraw */const wireChromeSoon=()=>{if(wireChrome.q)return;wireChrome.q=requestAnimationFrame(()=>{wireChrome.q=0;wireChrome()})};
  const g=$('#grid');if(g&&'MutationObserver' in window)new MutationObserver(()=>{wireChrome.dirty=true;parWatch();wireChromeSoon();if(WFOLD.size)foldApply()}).observe(g,{childList:true});
- addEventListener('resize',()=>wireChrome());
+ onRsz(()=>wireChrome());
  {const _r3=render;render=function(){_r3.apply(this,arguments);wireChrome.dirty=true;parWatch();wireChromeSoon()}}
 }
 /* B104: a card that has a fixed shape (hero, lead, tall...) grows to fit its text when the headline is long or the text is large, so the headline is never cut off at the top of the picture */
@@ -7244,7 +7250,7 @@ function cardGrow(){
  }catch(e){}});
 }
 {const _r5=render;render=function(){_r5.apply(this,arguments);if(!DRES)cardGrow()}}
-addEventListener('resize',cardGrow);try{document.fonts&&document.fonts.ready.then(cardGrow)}catch(e){}
+onRsz(cardGrow);try{document.fonts&&document.fonts.ready.then(cardGrow)}catch(e){}
 /* ---- cluster C: the content-cleaning pipeline ----
    One pipeline for what the reader shows and what the print export sets: (a) the extractor scores text blocks by density, not just by length; (b) blocklists of
    ad, promo, newsletter and sponsored selectors and phrases; (c) per-publisher rules for the top feeds, where promos sit inside the article body; (d) a conservative
@@ -7988,7 +7994,7 @@ function card(a,i,k){
   if(a&&!WHY[a.link]){const pw=priWhy(a);if(pw)WHY[a.link]=pw}
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
   const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],q1=a.img&&IIS[a.img],pc=q1&&q1.t?`--pc:${q1.t};`:'',op=q0&&q0.v>=5&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="${pc}object-position:${q0.px}% ${q0.py}%"`:pc?` style="${pc}"`:'';
-  return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="${!EIO&&i<6?'eager':'lazy'}" decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''/* David 2026-10-31: no hills-and-trees drawing behind a photo-less card's text (hard to read) */}<div class="ov"></div>${a.img&&a.pcr&&isOn('mag3')?`<span class="pcr">Photo: ${esc(a.pcr)}</span>`:''}${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg" style="--pg:${Math.round(progOf(a.link)*100)}%"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><span class="sn" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}">${esc(f.title)}</span>${a.sec?`<span class=" ssec">${esc(a.sec)}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${a.img&&a.pics&&a.pics.length>1&&!/dq-c/.test(k)?`<span class="pw">+${a.pics.length-1} ${a.pics.length===2?'photo':'photos'}</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}" aria-label="${esc(a.title)}${a.date?', '+agoL(a.date):''}">${esc(a.title)}</a></h3>${(()=>{const q=!a.img&&!/\b(nr-row|nr-late|list-row)\b/.test(k||'')?nrQuoteText(a):null;return q?`<p class="lq">${esc(q.q)}</p>`:`<p>${esc(sumOf(a.summary))}</p>`})()}<div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}<time datetime="${a.date?new Date(a.date).toISOString():''}" aria-hidden="true">${agoT(a.date)}</time>${readMin(a)?`<span class="rt">${readMin(a)}-min read</span>`:''}${a.more&&a.more.length?`<span class="pw tr" title="Also from ${esc(a.more.map(m=>fof({feedId:m.f}).title).join(', '))}">+${a.more.length} ${a.more.length===1?'source':'sources'}</span>`:''}${pwBadge(a)}</div></div></div>`;/* R3/R8: one quiet line, "By … · 27 min · 2-min read · +3 sources"; the pill and the "Also from" line folded into it */
+  return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="${i<2||!EIO&&i<6?'eager':'lazy'}"${i<2?' fetchpriority="high"':''/* the first two pictures are what the opening screen waits for */} decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''/* David 2026-10-31: no hills-and-trees drawing behind a photo-less card's text (hard to read) */}<div class="ov"></div>${a.img&&a.pcr&&isOn('mag3')?`<span class="pcr">Photo: ${esc(a.pcr)}</span>`:''}${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg" style="--pg:${Math.round(progOf(a.link)*100)}%"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><span class="sn" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}">${esc(f.title)}</span>${a.sec?`<span class=" ssec">${esc(a.sec)}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${a.img&&a.pics&&a.pics.length>1&&!/dq-c/.test(k)?`<span class="pw">+${a.pics.length-1} ${a.pics.length===2?'photo':'photos'}</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}" aria-label="${esc(a.title)}${a.date?', '+agoL(a.date):''}">${esc(a.title)}</a></h3>${(()=>{const q=!a.img&&!/\b(nr-row|nr-late|list-row)\b/.test(k||'')?nrQuoteText(a):null;return q?`<p class="lq">${esc(q.q)}</p>`:`<p>${esc(sumOf(a.summary))}</p>`})()}<div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}<time datetime="${a.date?new Date(a.date).toISOString():''}" aria-hidden="true">${agoT(a.date)}</time>${readMin(a)?`<span class="rt">${readMin(a)}-min read</span>`:''}${a.more&&a.more.length?`<span class="pw tr" title="Also from ${esc(a.more.map(m=>fof({feedId:m.f}).title).join(', '))}">+${a.more.length} ${a.more.length===1?'source':'sources'}</span>`:''}${pwBadge(a)}</div></div></div>`;/* R3/R8: one quiet line, "By … · 27 min · 2-min read · +3 sources"; the pill and the "Also from" line folded into it */
 }
 /*NEWSROOM*/
 const IS_SAFARI=(()=>{try{const u=navigator.userAgent;return /iP(hone|ad|od)/.test(u)||(/Safari\//.test(u)&&!/Chrome\/|Chromium\/|Android|Edg\/|OPR\/|CriOS|FxiOS/.test(u))}catch(e){return false}})();
@@ -8036,34 +8042,36 @@ const nrLH=n=>NRLAB==='Next up'?`<h3 class="dsh nr-nu" aria-level="2"><span>${NR
 const nrLC=()=>NRLAB==='Next up'?'nr nr-row nr-s':'nr-late';
 /* the first heading in the varied layouts; The Daily calls it something else */
 function nrBlocks(l,base,o){
- const P=nrPick(l),C=(i,k)=>card(l[i],base+i,'nr '+k),B=[],seed=o&&o.seed!=null?o.seed:nrHash(S.sel),tv=o&&o.tv!=null?o.tv:seed%3;
+ /* each block is a function that builds its markup when setBlocks draws it, so card() runs only for the blocks on screen. Whatever depends on the moment of planning is settled here: NRLAB, SMARTV, the flip counter, and the pattern class (pf0, pf1 … is handed out in first-seen order, and the first three carry a headline rule), so pb registers a block's sites in the order their cards would have been built */
+ const P=nrPick(l),C=(i,k)=>card(l[i],base+i,'nr '+k),B=[],pb=(ids,fn)=>{for(const i of ids)patCls(fof(l[i]));B.push(fn)},seed=o&&o.seed!=null?o.seed:nrHash(S.sel),tv=o&&o.tv!=null?o.tv:seed%3;
  const lead=P.pick(nrHas,1,true)||P.pick(null,1);
  if(o&&o.mag){
   const tri=P.pick(nrHas,3);
-  B.push(`<section class="nr-top nr-one"><div class="nr-lw">${C(lead[0],'nr-lead')}</div></section>`);if(tri&&tri.length)B.push(`<section class="nr-trio">${tri.map(i=>C(i,'nr-tri')).join('')}</section>`);
+  pb([lead[0]],()=>`<section class="nr-top nr-one"><div class="nr-lw">${C(lead[0],'nr-lead')}</div></section>`);if(tri&&tri.length)pb(tri,()=>`<section class="nr-trio">${tri.map(i=>C(i,'nr-tri')).join('')}</section>`);
  }else if(tv===1){
-  const tri=P.pick(nrHas,3),rail=P.pick(null,8);
-  B.push(`<section class="nr-top nr-tb2"><div class="nr-lw">${C(lead[0],'nr-lead nr-wide')}</div>${rail.length?`<div class="nr-rail">${nrLH(rail.length)}<div class="nr-rl">${rail.map(i=>C(i,nrLC())).join('')}</div></div>`:''}<div class="nr-t3">${tri.map(i=>C(i,'nr-tri')).join('')}</div></section>`);
+  const tri=P.pick(nrHas,3),rail=P.pick(null,8),lh=nrLH(rail.length),lc=nrLC();
+  pb([lead[0],...rail,...tri],()=>`<section class="nr-top nr-tb2"><div class="nr-lw">${C(lead[0],'nr-lead nr-wide')}</div>${rail.length?`<div class="nr-rail">${lh}<div class="nr-rl">${rail.map(i=>C(i,lc)).join('')}</div></div>`:''}<div class="nr-t3">${tri.map(i=>C(i,'nr-tri')).join('')}</div></section>`);
  }else{
   const mid=P.pick(nrHas,4),sub=P.pick(null,4),rail=P.pick(null,6);
   /* a lone leftover story joins the lead's list instead of getting its own "Next up" header, and an empty middle column draws no rule */
   if(rail.length===1)sub.push(rail.pop());
-  B.push(`<section class="nr-top${tv===2?' nr-flip':''}"><div class="nr-lw">${C(lead[0],'nr-lead')}${sub.length?`<div class="nr-lsub">${sub.map(i=>C(i,'nr-late')).join('')}</div>`:''}</div>${mid.length?`<div class="nr-mid">${mid.map(i=>C(i,'nr-row nr-m')).join('')}</div>`:''}${rail.length?`<div class="nr-rail">${nrLH(rail.length)}<div class="nr-rl">${rail.map(i=>C(i,nrLC())).join('')}</div></div>`:''}</section>`);
+  const lh=nrLH(rail.length),lc=nrLC();
+  pb([lead[0],...sub,...mid,...rail],()=>`<section class="nr-top${tv===2?' nr-flip':''}"><div class="nr-lw">${C(lead[0],'nr-lead')}${sub.length?`<div class="nr-lsub">${sub.map(i=>C(i,'nr-late')).join('')}</div>`:''}</div>${mid.length?`<div class="nr-mid">${mid.map(i=>C(i,'nr-row nr-m')).join('')}</div>`:''}${rail.length?`<div class="nr-rail">${lh}<div class="nr-rl">${rail.map(i=>C(i,lc)).join('')}</div></div>`:''}</section>`);
  }
  const seq=(o&&o.seq)||NRPAT[(seed>>3)%3];let n=0,guard=0,fl=0,qn=0,statDone=false;
- const river=max=>{const ix=P.pick(null,max);if(!ix.length)return false;B.push(`<section class="nr-river">${SMARTV?'':`<h4>${nrAge(l[ix[0]])}</h4>`}<div class="nr-rv">${ix.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`);return true};
+ const river=max=>{const ix=P.pick(null,max);if(!ix.length)return false;const hd=SMARTV?'':`<h4>${nrAge(l[ix[0]])}</h4>`;pb(ix,()=>`<section class="nr-river">${hd}<div class="nr-rv">${ix.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`);return true};
  while(P.left()>0&&guard++<90){
   const t=seq[n++%seq.length];let ix,done=false;
-  if(t==='trio'&&(ix=P.pick(nrHas,3,true))){B.push(`<section class="nr-trio${ix.length<3?' nr-t'+ix.length:''}">${ix.map(i=>C(i,'nr-tri')).join('')}</section>`);done=true}
-  else if(t==='split'&&(ix=P.pick(nrHas,1,true))){const tx=P.pick(null,3);B.push(`<section class="nr-split${(fl++%2)?' nr-flip':''}"><div class="nr-spl">${C(ix[0],'nr-sp')}</div><div class="nr-spr">${tx.map(i=>C(i,'nr-row')).join('')}</div></section>`);done=true}
-  else if(t==='mosaic'&&(ix=P.pick(nrHas,5,true))){B.push(`<section class="nr-mos">${ix.map((i,k)=>C(i,'nr-m'+(k+1))).join('')}</section>`);done=true}
-  else if(t==='strip'&&(ix=P.pick(nrHas,4,true))){B.push(`<section class="nr-strip${ix.length<4?' nr-s'+ix.length:''}">${ix.map(i=>C(i,'nr-tall')).join('')}</section>`);done=true}
-  else if(t==='color'&&(ix=P.pick(a=>nrHas(a)&&(a.summary||'').length>60,1,true))){B.push(`<section class="nr-color">${C(ix[0],'nr-colr')}</section>`);done=true}
+  if(t==='trio'&&(ix=P.pick(nrHas,3,true))){pb(ix,()=>`<section class="nr-trio${ix.length<3?' nr-t'+ix.length:''}">${ix.map(i=>C(i,'nr-tri')).join('')}</section>`);done=true}
+  else if(t==='split'&&(ix=P.pick(nrHas,1,true))){const tx=P.pick(null,3),fp=(fl++%2)?' nr-flip':'';pb([ix[0],...tx],()=>`<section class="nr-split${fp}"><div class="nr-spl">${C(ix[0],'nr-sp')}</div><div class="nr-spr">${tx.map(i=>C(i,'nr-row')).join('')}</div></section>`);done=true}
+  else if(t==='mosaic'&&(ix=P.pick(nrHas,5,true))){pb(ix,()=>`<section class="nr-mos">${ix.map((i,k)=>C(i,'nr-m'+(k+1))).join('')}</section>`);done=true}
+  else if(t==='strip'&&(ix=P.pick(nrHas,4,true))){pb(ix,()=>`<section class="nr-strip${ix.length<4?' nr-s'+ix.length:''}">${ix.map(i=>C(i,'nr-tall')).join('')}</section>`);done=true}
+  else if(t==='color'&&(ix=P.pick(a=>nrHas(a)&&(a.summary||'').length>60,1,true))){pb(ix,()=>`<section class="nr-color">${C(ix[0],'nr-colr')}</section>`);done=true}
   else if(t==='quote'){const lk=((qn++ +seed)%2)*2,need=lk>0;ix=P.pick(a=>(!need||nrHas(a))&&nrQuoteText(a),1,true);if(ix){B.push(`<section class="nr-quote">${nrQuoteHtml(l[ix[0]],base+ix[0],lk,nrQuoteText(l[ix[0]]))}</section>`);done=true}else continue}
-  else if(t==='sect'&&(ix=P.pick(nrHas,4,true))){const src=fof(l[ix[0]]).title;B.push(`<section class="nr-sect"><h4><span style="background:${brand(fof(l[ix[0]]))}"></span>More from ${esc(src)}</h4><div class="nr-sc"><div class="nr-scl">${C(ix[0],'nr-sp')}</div><div class="nr-scr">${ix.slice(1).map(i=>C(i,'nr-row nr-tl')).join('')}</div></div></section>`);done=true}
-  else if(t==='quick'&&(ix=P.pick(null,9,true))){B.push(`<section class="nr-quick"><h4>Quick hits</h4><div class="nr-qk">${ix.map(i=>C(i,'nr-late')).join('')}</div></section>`);done=true}
+  else if(t==='sect'&&(ix=P.pick(nrHas,4,true))){const src=fof(l[ix[0]]).title;pb(ix,()=>`<section class="nr-sect"><h4><span style="background:${brand(fof(l[ix[0]]))}"></span>More from ${esc(src)}</h4><div class="nr-sc"><div class="nr-scl">${C(ix[0],'nr-sp')}</div><div class="nr-scr">${ix.slice(1).map(i=>C(i,'nr-row nr-tl')).join('')}</div></div></section>`);done=true}
+  else if(t==='quick'&&(ix=P.pick(null,9,true))){pb(ix,()=>`<section class="nr-quick"><h4>Quick hits</h4><div class="nr-qk">${ix.map(i=>C(i,'nr-late')).join('')}</div></section>`);done=true}
   else if(t==='stat'){const h=statDone?'':nrStatHtml(l);statDone=true;if(h){B.push(h);done=true}else continue}
-  else if(t==='seg'){const main=P.pick(null,6),side=P.pick(null,5);if(main.length){B.push(`<section class="nr-seg"><div class="nr-sm">${main.map(i=>C(i,'nr-row')).join('')}</div>${side.length?`<div class="nr-side"><h4>Also new</h4>${side.map(i=>C(i,'nr-late nr-n')).join('')}</div>`:''}</section>`);done=true}}
+  else if(t==='seg'){const main=P.pick(null,6),side=P.pick(null,5);if(main.length){pb([...main,...side],()=>`<section class="nr-seg"><div class="nr-sm">${main.map(i=>C(i,'nr-row')).join('')}</div>${side.length?`<div class="nr-side"><h4>Also new</h4>${side.map(i=>C(i,'nr-late nr-n')).join('')}</div>`:''}</section>`);done=true}}
   if(!done&&!river(8))break;
  }
  return B;
@@ -8108,13 +8116,16 @@ try{new MutationObserver(aheadSoon).observe($('#grid'),{childList:true})}catch(e
 let NRIO=null;
 /* Puts the first blocks in the page and adds the rest as you scroll (Smooth mode), so switching feeds in Safari stays quick */
 let NRMORE=null,NRHAD=0,NRK=0;
+/* a block is markup, or a function that builds its markup when drawn (nrBlocks): resolved here, only for the blocks that reach the page */
+const nrR=x=>typeof x==='function'?x():x;
 function setBlocks(head,B,first,step){
  const g=$('#grid');if(NRIO){NRIO.disconnect();NRIO=null}NRMORE=null;NRK=0;
- if(B.length<=first+2||!('IntersectionObserver' in window)){g.innerHTML=head+B.join('');markFresh();return}
- let k=first;NRK=k;g.innerHTML=head+B.slice(0,k).join('')+'<div class="nr-more" aria-hidden="true"></div>';
+ if(B.length<=first+2||!('IntersectionObserver' in window)){g.innerHTML=head+B.map(nrR).join('');markFresh();return}
+ let k=first;NRK=k;g.innerHTML=head+B.slice(0,k).map(nrR).join('')+'<div class="nr-more" aria-hidden="true"></div>';
  markFresh();
  const s=g.querySelector('.nr-more');
- const next=want=>{if(k>=B.length)return false;const n=B.slice(k,k+(want||step));k+=n.length;NRK=k;s.insertAdjacentHTML('beforebegin',n.join(''));markFresh();try{cvAhead(1)}catch(e){}try{liveDots()}catch(e){}setTimeout(endObs,60);setTimeout(fixOrph,140);waterline();if(k>=B.length){if(NRIO){NRIO.disconnect();NRIO=null}s.remove();NRMORE=null;return false}return true};
+ /* the fresh tags, live dots and the "before your last visit" line only look at the blocks just added, not the whole page again */
+ const next=want=>{if(k>=B.length)return false;const n=B.slice(k,k+(want||step));k+=n.length;NRK=k;const p0=s.previousElementSibling;s.insertAdjacentHTML('beforebegin',n.map(nrR).join(''));const N=[];for(let x=p0?p0.nextElementSibling:g.firstElementChild;x&&x!==s;x=x.nextElementSibling)N.push(x);markFresh(N);try{cvAhead(1)}catch(e){}try{liveDots(N)}catch(e){}setTimeout(endObs,60);setTimeout(fixOrph,140);waterline(N);if(k>=B.length){if(NRIO){NRIO.disconnect();NRIO=null}s.remove();NRMORE=null;return false}return true};
  next.k=()=>k;next.B=B;NRMORE=next;
  NRIO=new IntersectionObserver(es=>{if(!es.some(e=>e.isIntersecting))return;if(next()&&NRIO){NRIO.unobserve(s);NRIO.observe(s)}},{root:$('main'),rootMargin:'1600px 0px'});
  NRIO.observe(s);
@@ -8185,7 +8196,7 @@ const toks=a=>[...new Set(((a.title||'').toLowerCase().replace(/[^a-z0-9\s]/g,' 
 const likeScore=a=>{const k=S.lk;if(!k)return 0;let v=(k.s[a.feedId]||0)*2;for(const w of toks(a))v+=k.w[w]||0;return Math.max(-12,Math.min(12,v))};
 /* D2: priority sites (f.pri) and followed phrases (S.follow). Fresh stories from a priority site lead; a followed phrase lifts a story a little. */
 let PRIC=null;
-function priOf(a){if(!a)return false;const fs=S.feeds||[];if(!PRIC||PRIC.f!==fs||PRIC.n!==fs.length||PRIC.k!==fs.filter(f=>f.pri).length)PRIC={f:fs,n:fs.length,k:fs.filter(f=>f.pri).length,s:new Set(fs.filter(f=>f.pri).map(f=>f.id))};return PRIC.s.has(a.feedId)}
+function priOf(a){if(!a)return false;const fs=S.feeds||[];/* the priority switch in site settings clears PRIC itself, so only a replaced or resized list rebuilds here */if(!PRIC||PRIC.f!==fs||PRIC.n!==fs.length)PRIC={f:fs,n:fs.length,s:new Set(fs.filter(f=>f.pri).map(f=>f.id))};return PRIC.s.has(a.feedId)}
 const FHC=new WeakMap();
 function followHit(a){const L=S.follow;if(!a||!L||!L.length)return '';const k=L.join('\u0001');const c=FHC.get(a);if(c&&c.k===k)return c.v;const t=((a.title||'')+' '+(a.summary||'')).toLowerCase();let v='';for(const m of L){const p=String(m||'').toLowerCase();if(p&&muteHit(p,t)){v=m;break}}FHC.set(a,{k,v});return v}
 const priFresh=a=>priOf(a)&&Date.now()-(a.date||0)<36*36e5;
@@ -8212,7 +8223,7 @@ function topOf(fs,n,skip,pred,nocap){
  if(l.length>300)l=l.slice(0,Math.max(300,(n||0)*12));/* only the newest stories compete for The Daily, so grouping stays fast with many feeds */
  if(S.group!==false)l=group(l);
  if(fs.length>1&&!nocap)l=capList(l);/* the For you list ranks everything itself, so it isn't capped per site */
- l=l.map((a,i)=>[a,i]).sort((x,y)=>rankOf(y[0])-rankOf(x[0])||x[1]-y[1]).map(x=>x[0]);
+ l=l.map((a,i)=>[a,i,rankOf(a)]).sort((x,y)=>y[2]-x[2]||x[1]-y[1]).map(x=>x[0]);/* ranked once per story, not once per comparison */
  const fresh=l.filter(a=>!S.read[a.link]);
  return fresh.concat(l.filter(a=>S.read[a.link])).slice(0,n);
 }
@@ -8273,7 +8284,7 @@ function endCard(){
 let ENDIO=null;
 /* the last row of a multi-column grid (tablets) never leaves empty columns: its stories widen to fill the row.
    Everything is measured first and the widening is applied in one go at the end: writing between reads made the phone redo the layout once per section (5 s with 600 cards drawn) */
-function fixOrph(){try{const g=document.getElementById('grid');if(!g)return;const gw=g.clientWidth,fk=gw+'|'+g.className+'|'+g.childElementCount;if(g._fk===fk&&g._f0===g.firstElementChild&&g._f1===g.lastElementChild)return;g._fk=fk;g._f0=g.firstElementChild;g._f1=g.lastElementChild;if(innerWidth<700){g.querySelectorAll('.orow').forEach(w=>w.replaceWith(...w.children));g.querySelectorAll('.orph').forEach(c=>{c.classList.remove('orph');c.style.gridColumn=''});/* David 2026-10-31: on a phone a 2-column grid never pairs a photo story with a text one: a story that would sit beside the other kind, or alone, takes the whole row (no measuring, just card order) */const ps=new Set([g]);g.querySelectorAll(':scope>div,.nr-rv,.nr-sm,.nr-mid,.nr-trl,.nr-side,.dq').forEach(d=>ps.add(d));ps.forEach(P=>{if(!P.querySelector(':scope>.card')||getComputedStyle(P).gridTemplateColumns.split(' ').length!==2)return;let o=null;const fl=()=>{if(o){o.c.classList.add('orph');o.c.style.gridColumn='1/-1'}o=null};for(const c of P.children){if(!c.classList.contains('card')||!c.offsetWidth||/span\s*[2-9]|-1/.test(getComputedStyle(c).gridColumnEnd)){fl();continue}const p=!!c.querySelector(':scope>img');if(o&&o.p!==p){fl();o={c,p}}else o=o?null:{c,p}}fl()});return}const W=[];
+function fixOrph(){try{const g=document.getElementById('grid');if(!g)return;const gw=g.clientWidth,fk=gw+'|'+g.className+'|'+g.childElementCount;if(g._fk===fk&&g._f0===g.firstElementChild&&g._f1===g.lastElementChild)return;g._fk=fk;g._f0=g.firstElementChild;g._f1=g.lastElementChild;if(innerWidth<700){g.querySelectorAll('.orow').forEach(w=>w.replaceWith(...w.children));g.querySelectorAll('.orph').forEach(c=>{c.classList.remove('orph');c.style.gridColumn=''});/* David 2026-10-31: on a phone a 2-column grid never pairs a photo story with a text one: a story that would sit beside the other kind, or alone, takes the whole row (no measuring, just card order) */const ps=new Set([g]);g.querySelectorAll(':scope>div,.nr-rv,.nr-sm,.nr-mid,.nr-trl,.nr-side,.dq').forEach(d=>ps.add(d));/* measured first, written after: a card widened in the loop forced the next card's measure to lay the page out again */const Q=[];ps.forEach(P=>{if(!P.querySelector(':scope>.card')||getComputedStyle(P).gridTemplateColumns.split(' ').length!==2)return;Q.push([...P.children].map(c=>[c,c.classList.contains('card')&&!!c.offsetWidth&&!/span\s*[2-9]|-1/.test(getComputedStyle(c).gridColumnEnd)]))});Q.forEach(L=>{let o=null;const fl=()=>{if(o){o.c.classList.add('orph');o.c.style.gridColumn='1/-1'}o=null};for(const [c,ok] of L){if(!ok){fl();continue}const p=!!c.querySelector(':scope>img');if(o&&o.p!==p){fl();o={c,p}}else o=o?null:{c,p}}fl()});return}const W=[];
  /* each grid remembers where its last (still fillable) row began, so cards added while scrolling are measured on their own, not every card on the page again (187 ms per pass on a Fold with 386 cards) */
  const ps=new Set([g]);g.querySelectorAll(':scope>div,.nr-rv,.nr-sm,.nr-mid,.nr-trl,.nr-side,.dq').forEach(d=>ps.add(d));ps.forEach(P=>{if(!P.querySelector(':scope>.card'))return;/* only rows of whole cards are evened out: measuring inside a card that is skipped offscreen forced it to be laid out there and then, card by card (the 100-190 ms passes) */const pk=gw+'|'+P.className,all=P.children;if(P._ok===pk&&P._oc===all.length&&P._ol===P.lastElementChild)return;{const keep=P._ok===pk?':not(.omix)':'';if(P.querySelector(':scope>.orow'+keep)){P.querySelectorAll(':scope>.orow'+keep).forEach(w=>w.replaceWith(...w.children));P._oe=null}}/* unchanged since its last pass (_on points at the last row, so it never equals the count: every pass re-measured every section's last row, 2 s per scroll check on the Fold) */let from=P._ok===pk&&P._oe&&P._oe.parentNode===P?[...all].indexOf(P._oe):0;/* a redraw replaces the cards: the remembered row start is gone, so every row is measured again */if(!from)P._sp=0;P._ok=pk;P._ol=P.lastElementChild;if(from>all.length)from=0;for(let i=from;i<all.length;i++)if(all[i].classList.contains('orph')){all[i].classList.remove('orph');all[i].style.gridColumn=''}P._on=all.length;P._oc=all.length;const cs=getComputedStyle(P);if(cs.display!=='grid')return;const n=cs.gridTemplateColumns.split(' ').length;if(n<2)return;/* David 2026-10-31: in a multi-column group, photo stories come first and text-only ones after, so a row never pairs a picture with a bare headline (once per group: stories added later stay where they land) */if(!P._grp){P._grp=1;const k=[...all],pic=k.filter(c=>c.classList.contains('card')&&c.querySelector(':scope>img'));if(pic.length&&pic.length<k.length&&k.every(c=>c.classList.contains('card'))&&k.some((c,i)=>i<pic.length&&!pic.includes(c))){P.append(...pic,...k.filter(c=>!pic.includes(c)));from=0}}const kids=[...all].slice(from).filter(c=>c.offsetWidth);P._oc=kids.length?all.length:-1;if(P._sp||kids.some(c=>/span\s*[2-9]/.test(getComputedStyle(c).gridRowEnd))){P._sp=1;return}const rows=[];kids.forEach(
 c=>{const t=c.offsetTop/* R5: layout position, not the painted one: a card still sliding in (18 px) was read as a row of its own and stretched over the whole width */,r=rows[rows.length-1];if(r&&Math.abs(r.t-t)<10)r.k.push(c);else rows.push({t,k:[c]})});if(rows.length){P._oe=rows[rows.length-1].k[0];P._on=[...all].indexOf(P._oe)};rows.forEach(({k:row})=>{/* David 2026-10-31: photo tiles pair with photo tiles and text with text: a row that mixes them gives its photos a row of their own (shared evenly) and the text stories move down to sit with the other text stories */if(row.length>1&&row.every(c=>c.classList.contains('card'))){const ph=row.filter(c=>c.querySelector(':scope>img'));if(ph.length&&ph.length<row.length){W.push([ph,0,1]);return}}if(row.length>=n||!row.every(c=>c.classList.contains('card')))return;let used=0;for(const c of row){const q=getComputedStyle(c),m=/span\s*(\d+)/.exec(q.gridColumnEnd)||/span\s*(\d+)/.exec(q.gridColumnStart);if(q.gridColumnStart!=='auto'&&!/span/.test(q.gridColumnStart)||q.gridColumnEnd
@@ -8540,7 +8551,7 @@ function daySections(list,mode){
 /* Sections: a list of the time blocks in All Stories (Last hour, This morning, Wild card...) to jump straight to one; opened from the Sections button or by tapping the pinned section name */
 function secMenu(){const g=$('#grid');const ss=g?[...g.querySelectorAll('.wsec')]:[];
  /* sections further down that are not drawn yet (the page draws in batches as you scroll): listed too, drawn up to that point when picked */
- const nx=NRMORE,k0=nx&&nx.B?nx.k():0;if(k0)nx.B.slice(k0).forEach((h,j)=>{if(!/^<h3 class="dsh wsec/.test(h))return;const t=document.createElement('template');t.innerHTML=h;const x=t.content.firstElementChild;x._j=j;ss.push(x)});
+ const nx=NRMORE,k0=nx&&nx.B?nx.k():0;if(k0)nx.B.slice(k0).forEach((h,j)=>{if(typeof h!=='string'||!/^<h3 class="dsh wsec/.test(h))return;const t=document.createElement('template');t.innerHTML=h;const x=t.content.firstElementChild;x._j=j;ss.push(x)});
  if(!ss.length)return;const d=document.createElement('dialog');d.id='secm';d.setAttribute('aria-labelledby','secm-t');
  d.innerHTML=`<h3 id="secm-t">Jump to a section</h3><div class="secl">${ss.map((x,i)=>{const t=((x.querySelector('span')||x).textContent||'').trim(),c=((x.querySelector('small')||{}).textContent||'').trim();return `<button type="button" data-si="${i}"><span>${esc(t)}</span>${c?`<small>${esc(c)}</small>`:''}</button>`}).join('')}</div><div class="row"><button type="button" class="tx2" data-si="x">Close</button></div>`;
  document.body.append(d);d.addEventListener('click',e=>{const b=e.target.closest('[data-si]');if(!b)return;d.close();if(b.dataset.si!=='x'){let el=ss[+b.dataset.si];if(el&&!el.isConnected&&el._j!=null&&NRMORE===nx){nx(Math.max(1,el._j+4-(nx.k()-k0)));el=g.querySelector('.wsec[data-wk="'+CSS.escape(el.dataset.wk)+'"]')}if(el&&el.isConnected)jumpTop(el)}});d.addEventListener('close',()=>d.remove());d.showModal()}
@@ -8750,6 +8761,8 @@ function dailyDropcaps(){
 }
 const R={web:false,pg:0,np:1,cpv:1,step:0,busy:false};
 let lq,RLD=null;const relayout=()=>{cancelAnimationFrame(lq);lq=requestAnimationFrame(layout)};
+/* pictures arriving in an open story: one pass 150 ms after the last of a burst, not a hero/photo/page pass per picture */
+let IRT=0,IRP=0;const imgRelayout=pp=>{if(pp)IRP=1;clearTimeout(IRT);IRT=setTimeout(()=>{IRT=0;const p=IRP;IRP=0;heroSpread();if(p)photoPages();relayout()},150)};
 function narrowC(){return isOn('pcomp')&&document.body.classList.contains('narrow')}
 /* polish-2026-10 F6: Reading width. Comfortable (the default) is exactly the width the reader always had; Narrow and Wide only change the side margins and the scroll column's cap, never the text size. Restore by deleting rdxRw and its two uses in layout(). */
 const RDX_RW={n:{p:1.8,mw:600},c:{p:1,mw:0},w:{p:.45,mw:900}};
@@ -10012,7 +10025,7 @@ async function openReader(a){use1('open');RDT=Date.now();
  let fastH=null;if(a.book){fastH=await bkHtml(a);if(my!==tok)return}else if(AC[a.link]&&AC[a.link].c&&!ytId(a)){fastH=acGet(a.link)||await acLoad(a.link);if(my!==tok)return;if(fastH){const lc=legalClean(fastH);if((lc.n||lc.w<150)&&!RD_RF.has(a.link)&&online()){RD_RF.add(a.link);acDrop(a.link);fastH=null}else if(lc.n)fastH=lc.h}}
  if(fastH){body.innerHTML=fastH;body.dataset.clean='1';if(a.book){if(a.lang)body.lang=a.lang;c.querySelectorAll(':scope>.orig').forEach(x=>x.remove());/* B4: a chapter that opens with its own heading shows its name once */const h=body.querySelector('h1,h2,h3'),tt=c.querySelector(':scope>.tt');if(h&&tt){const r=document.createRange();r.setStart(body,0);r.setEndBefore(h);if(!r.toString().trim())tt.style.display='none'}try{bkOpener(body,tt)}catch(e){}}}else{body.append(fromHTML(a.html,a.link));foldBoiler(body,a);/* the feed's own text opens at once, with its drop cap and pale bars where the rest will go */try{const p=body.querySelector('p');if(p&&p.textContent.trim().length>40&&makeDropcap(p))p.classList.add('dropcap')}catch(e){}const sk=document.createElement('div');sk.className='skp';sk.setAttribute('aria-hidden','true');body.append(sk)}
  try{heroOnce()}catch(e){}
- c.addEventListener('load',e=>{const im=e.target;/* a logo or icon in a story keeps its own small size instead of being blown up blurry across the column */if(im&&im.tagName==='IMG'&&im.closest&&im.closest('.body')&&!im.classList.contains('hero')&&im.naturalWidth&&im.naturalWidth<220&&im.naturalHeight<220){im.classList.add('tiny');im.style.setProperty('--tw',im.naturalWidth+'px')}heroSpread();photoPages();relayout()},true);c.addEventListener('error',()=>{heroSpread();relayout()},true);
+ c.addEventListener('load',e=>{const im=e.target;/* a logo or icon in a story keeps its own small size instead of being blown up blurry across the column */if(im&&im.tagName==='IMG'&&im.closest&&im.closest('.body')&&!im.classList.contains('hero')&&im.naturalWidth&&im.naturalWidth<220&&im.naturalHeight<220){im.classList.add('tiny');im.style.setProperty('--tw',im.naturalWidth+'px')}imgRelayout(1)},true);c.addEventListener('error',()=>imgRelayout(0),true);
  /* when the full text is already stored, afterLoad lays the page out once, so skip the layout of the short feed version */
  if(!a.book&&!(acGet(a.link)&&!ytId(a)))layout();
  mediaWire();
@@ -10505,13 +10518,13 @@ let RDTRIG=null;
 const rdInert=on=>{try{const rd=$('#rd');document.querySelectorAll('aside,main,#tabs,a.skip').forEach(e=>{if(e.contains(rd))return;e.inert=!!on&&!document.body.classList.contains('split')&&!rd.classList.contains('ghost')/* a Daily story read in the background is not on screen: the app stays usable */&&!(e.tagName==='ASIDE'&&document.body.classList.contains('sideshow'))})}catch(e){}};
 /* no cross-fade on close: it snapshots the whole page and stuttered while the feed was still repainting */
 let RDT=0;const closeRd=fromPop=>{if(RDT&&Date.now()-RDT<3000)ux('g','q');RDT=0;return closeRd0(fromPop)};
-const closeRd0=fromPop=>{prepDrop();try{raCancel()}catch(e){}try{if($('#rfind')&&!$('#rfind').hidden)closeFind()}catch(e){}try{closeHub()}catch(e){}if(AUTO.on)autoRd(false);const was=curA,feedSel=/^(all|f:|s:|k:)/.test(S.sel||''),same=!!was&&RDSIG===rdSig(was)&&feedSel,soft=!same&&!!was&&feedSel&&rdBase(RDSIG)===rdBase(rdSig(was));$('#rd').classList.remove('focus');if(fromPop!==true){dropLayer('rdnav');dropLayer('reader')}else dropLayer('rdnav');const nv=$('#rdnav');if(nv){nv.classList.remove('on');nv.hidden=true}tok++;R.busy=false;/* read-aloud keeps going when you back out to the feed: the floating pill (#tmini) carries the controls */if(!(TTS.on&&('speechSynthesis' in window)))ttsStop();hlClear();$('#selbar').hidden=true;$('#rd').classList.remove('on','flex','vert');rdInert(false);try{/* a23 F4: if the list was redrawn while reading, focus the new card of the same story */let tg=RDTRIG&&RDTRIG.isConnected&&RDTRIG!==document.body?RDTRIG:null;const lk=was&&was.link,ref=()=>{const ae=document.activeElement;if(lk&&(!ae||ae===document.body)){const x=[...document.querySelectorAll('a.cl')].find(x=>x.getAttribute('href')===lk);if(x)x.focus({preventScroll:true})}};if(tg)tg.focus({preventScroll:true});else ref();setTimeout(ref,0);setTimeout(ref,500)}catch(e){};curA=null;try{tminiSync()}catch(e){}if(R.ttsPend){const p=R.ttsPend;R.ttsPend=null;if(!TTS.on&&TTS.art===p[0])setTimeout(()=>ttsEnd(p[1]),0)}applyFolderTheme();if(document.body.classList.contains('split'))splitEmpty();if(same||soft){try{side();dgProgUpdate();if(soft)patchProg(was)}catch(e){}}else render();if(feedSel)rdAnchorRestore()};
+const closeRd0=fromPop=>{prepDrop();try{raCancel()}catch(e){}try{if($('#rfind')&&!$('#rfind').hidden)closeFind()}catch(e){}try{closeHub()}catch(e){}if(AUTO.on)autoRd(false);const was=curA,feedSel=/^(all|today|f:|s:|k:)/.test(S.sel||''),same=!!was&&RDSIG===rdSig(was)&&feedSel,soft=!same&&!!was&&feedSel&&rdBase(RDSIG)===rdBase(rdSig(was));$('#rd').classList.remove('focus');if(fromPop!==true){dropLayer('rdnav');dropLayer('reader')}else dropLayer('rdnav');const nv=$('#rdnav');if(nv){nv.classList.remove('on');nv.hidden=true}tok++;R.busy=false;/* read-aloud keeps going when you back out to the feed: the floating pill (#tmini) carries the controls */if(!(TTS.on&&('speechSynthesis' in window)))ttsStop();hlClear();$('#selbar').hidden=true;$('#rd').classList.remove('on','flex','vert');rdInert(false);try{/* a23 F4: if the list was redrawn while reading, focus the new card of the same story */let tg=RDTRIG&&RDTRIG.isConnected&&RDTRIG!==document.body?RDTRIG:null;const lk=was&&was.link,ref=()=>{const ae=document.activeElement;if(lk&&(!ae||ae===document.body)){const x=[...document.querySelectorAll('a.cl')].find(x=>x.getAttribute('href')===lk);if(x)x.focus({preventScroll:true})}};if(tg)tg.focus({preventScroll:true});else ref();setTimeout(ref,0);setTimeout(ref,500)}catch(e){};curA=null;try{tminiSync()}catch(e){}if(R.ttsPend){const p=R.ttsPend;R.ttsPend=null;if(!TTS.on&&TTS.art===p[0])setTimeout(()=>ttsEnd(p[1]),0)}applyFolderTheme();if(document.body.classList.contains('split'))splitEmpty();/* a theme change that waited while the story was open (renderSoon) gets its full redraw now */if((same||soft)&&!applyTheme.pend){try{side();dgProgUpdate();if(soft)patchProg(was)}catch(e){}}else render();applyTheme.pend=0;if(feedSel)rdAnchorRestore()};
 /* going back to the feed: put the story that was at the top of the screen back at the same spot, even if the list moved while the story was open (pictures loading, a refresh) */
 /* while a story is open the feed is hidden behind it, but the sidebar column comes back and squeezes the feed to a sliver on mid-width windows; the whole list then re-wraps twice (open and close) and the scroll position jumps. Keep the feed at the width it had. */
 function rdFreeze(on){const b=document.body;if(!on){if(b.style.gridTemplateColumns)try{jmpMark('feed width released')}catch(e){}b.style.removeProperty('grid-template-columns');return}if(b.classList.contains('narrow')||b.classList.contains('split')||b.style.gridTemplateColumns)return;const g=getComputedStyle(b).gridTemplateColumns;if(g&&g!=='none')b.style.setProperty('grid-template-columns',g)}
 let RDANC=null;
 function rdAnchorSave(){try{const m=$('main'),mt=m.getBoundingClientRect().top;RDANC=null;for(const c of m.querySelectorAll('#grid .card[data-href]')){const r=c.getBoundingClientRect();if(r.width&&r.bottom>mt+40){RDANC={h:c.dataset.href,o:r.top-mt,sel:S.sel};return}}}catch(e){RDANC=null}}
-function rdAnchorRestore(){const A=RDANC;if(!A||A.sel!==S.sel)return;const m=$('main');const g=$('#grid');if(g){g.classList.add('cvall');setTimeout(()=>g.classList.remove('cvall'),2500)}let moved=false;const ac=new AbortController(),stop=()=>{moved=true;ac.abort()};for(const t of ['wheel','touchstart','keydown'])m.addEventListener(t,stop,{signal:ac.signal,passive:true});let c0=null;const fix=()=>{if(moved)return;if(!c0||!c0.isConnected)c0=[...m.querySelectorAll('#grid .card[data-href]')].find(x=>x.dataset.href===A.h);if(!c0)return;const d=(c0.getBoundingClientRect().top-m.getBoundingClientRect().top)-A.o;if(Math.abs(d)>2)m.scrollTop+=d};fix();/* every frame for the first second, before it is painted, so a wrong spot never shows even for a moment */let n=0;const tick=()=>{fix();if(!moved&&++n<60)requestAnimationFrame(tick)};requestAnimationFrame(tick);setTimeout(()=>{fix();ac.abort()},1200)}
+function rdAnchorRestore(){const A=RDANC;if(!A||A.sel!==S.sel)return;const m=$('main');const g=$('#grid');if(g){/* only the cards around the one being put back are forced to draw (every card, with cvall, laid the whole list out); cvall stays the fallback when that card is not on the page yet */const all=[...g.querySelectorAll('.card[data-href]')],ai=all.findIndex(x=>x.dataset.href===A.h),vis=ai<0?null:all.slice(Math.max(0,ai-30),ai+31);if(vis)vis.forEach(c=>c.style.contentVisibility='visible');else g.classList.add('cvall');setTimeout(()=>{if(vis)vis.forEach(c=>c.style.contentVisibility='');else g.classList.remove('cvall')},2500)}let moved=false;const ac=new AbortController(),stop=()=>{moved=true;ac.abort()};for(const t of ['wheel','touchstart','keydown'])m.addEventListener(t,stop,{signal:ac.signal,passive:true});let c0=null;const fix=()=>{if(moved)return;if(!c0||!c0.isConnected)c0=[...m.querySelectorAll('#grid .card[data-href]')].find(x=>x.dataset.href===A.h);if(!c0)return;const d=(c0.getBoundingClientRect().top-m.getBoundingClientRect().top)-A.o;if(Math.abs(d)>2){m.scrollTop+=d;ok=0}else ok++};let ok=0;fix();/* every frame for the first second, before it is painted, so a wrong spot never shows even for a moment; it stops once two frames in a row found the card in place */let n=0;const tick=()=>{fix();if(!moved&&++n<60&&ok<2)requestAnimationFrame(tick)};requestAnimationFrame(tick);setTimeout(()=>{fix();ac.abort()},1200)}
 /* reading only moves a story's progress bar: update that one bar instead of rebuilding hundreds of cards */
 function patchProg(a){const p=progOf(a.link);document.querySelectorAll('#grid .card[data-href]').forEach(c=>{if(c.dataset.href!==a.link)return;let g=c.querySelector(':scope>.prg');if(!p){if(g)g.remove();return}if(!g){g=document.createElement('span');g.className='prg';g.appendChild(document.createElement('span'));const t=c.querySelector(':scope>.tx');c.insertBefore(g,t||null)}g.firstElementChild.style.width=Math.round(p*100)+'%'})}
 const set=$('#set');
@@ -11103,7 +11116,10 @@ const pend=e=>{
  if(e.type==='pointerup'&&(reduced()||rdxPturn()!=='paper')&&Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.3&&!(getSelection()+''))go(dx<0?1:-1);
  D=null;
 };
-rdEl.addEventListener('touchmove',e=>{if(D&&(D.act||D.slide)&&e.cancelable)e.preventDefault()},{passive:false});
+/* the blocking touchmove listener is only on the reader while a finger is down in page mode: left on all the time it made every scroll in a story wait for the script */
+const rdTm=e=>{if(D&&(D.act||D.slide)&&e.cancelable)e.preventDefault()},rdTmOff=()=>rdEl.removeEventListener('touchmove',rdTm);
+rdEl.addEventListener('touchstart',()=>{if(!isVert())rdEl.addEventListener('touchmove',rdTm,{passive:false})},{passive:true});
+rdEl.addEventListener('touchend',rdTmOff,{passive:true});rdEl.addEventListener('touchcancel',rdTmOff,{passive:true});
 rdEl.addEventListener('pointerup',pend);
 rdEl.addEventListener('click',e=>{if(R.noClick&&e.target.closest('.book')){e.preventDefault();e.stopPropagation()}},true);rdEl.addEventListener('pointercancel',pend);
 addEventListener('resize',()=>{if($('#rd').classList.contains('on')){if(R.rf==null){/* _vm is the mode the story was laid out in, which the resize has not yet changed */R.rf=_vm?(R.sf!=null?R.sf:vEndFrac()):pgFrac()}if(R.T){D=null;endTurn(false)}const v=isVert();if(_vm!==null&&v!==_vm&&(S.scroll||'auto')==='auto'){_vm=v;refreshReader();return}_vm=v;relayout()}});
@@ -13248,7 +13264,7 @@ function twinApply(root,th,want){
  root.style.setProperty('color-scheme',toD?'dark':'light');applyTheme.tv.push('color-scheme');root.classList.add('twinned');
  return th;
 }
-function renderSoon(){if(document.querySelector('dialog[open]'))applyTheme.pend=1;else(window.requestIdleCallback?requestIdleCallback(()=>render(),{timeout:900}):setTimeout(render,400))}
+function renderSoon(){/* with a story open (and the list hidden behind it) the redraw waits for closeRd0, like it waits for Settings to close; side by side the list is in view, so it is redrawn */if(document.querySelector('dialog[open]')||($('#rd').classList.contains('on')&&!document.body.classList.contains('split')))applyTheme.pend=1;else(window.requestIdleCallback?requestIdleCallback(()=>render(),{timeout:900}):setTimeout(render,400))}
 /* Tinted photos: a duotone filter whose dark and light ends are the theme's two accent colors */
 function duoSync(){
  if(!isOn('ptduo'))return;let f=document.getElementById('duo');
@@ -14410,7 +14426,7 @@ function rdProgBar(){const rd=$('#rd'),v=vView();let b=$('#rdprog');
  new MutationObserver(()=>{rdWake(keepOn());rdProgBar()}).observe(rd,{attributes:true,attributeFilter:['class']});
  document.addEventListener('scroll',e=>{if(t||!e.target||!e.target.classList||!e.target.classList.contains('view'))return;t=requestAnimationFrame(()=>{t=0;rdProgBar()})},true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)rdWake(false);else if(keepOn())rdWake(true)});
- addEventListener('resize',()=>rdProgBar())})();
+ onRsz(()=>rdProgBar())})();
 /* Bold word starts: the first letters of each word are set heavier, so the eye can skim along a line. Words are only wrapped, never changed, so listening, highlights and search see the same text. */
 function focusRead(b){
  if(!b)return;
@@ -16043,7 +16059,7 @@ function renderDigest(){
   const big=allW.slice().sort((a,b)=>((b.more||[]).length-(a.more||[]).length)||b.date-a.date).filter(a=>{if(dupW.has(a.link))return false;dupW.add(a.link);return true}).slice(0,16);
   if(nrMode()&&big.length>=7){
    const b0=cur.length;big.forEach(a=>{cur.push(a);WHY[a.link]='One of the week’s biggest stories: covered by the most sources over the last 7 days.';seenW.add(a.link)});dgNr=true;
-   h+=`<div class="dsec"><h3>The week’s biggest stories</h3><small>Covered by the most sources</small></div>`+nrBlocks(big,b0,{seed:5,mag:true,seq:MAG_W}).join('');
+   h+=`<div class="dsec"><h3>The week’s biggest stories</h3><small>Covered by the most sources</small></div>`+nrBlocks(big,b0,{seed:5,mag:true,seq:MAG_W}).map(nrR).join('');
   }else{
    big.splice(5);big.forEach(a=>seenW.add(a.link));
    if(big.length>=2){const bl=big.find(a=>a.img)||big[0];const rest=big.filter(a=>a!==bl).slice(0,3);
@@ -16086,7 +16102,7 @@ function renderDigest(){
  const regL=(l,why)=>{const b=cur.length;l.forEach(a=>{cur.push(a);WHY[a.link]=why});return b};
  /* F-08: above 760px the front page is a broadsheet: the lead across 7 of 12 columns, two secondaries stacked beside it, then up to six text-only headlines in three ruled columns (the stories are already in cur from index b) */
  const wide=(($('#grid')||{}).clientWidth||VW)>=860&&!document.body.classList.contains('split'),bsheet=(l,b)=>`<div class="dbs"><div class="dfront">${card(l[0],b,'lead')}</div>${l.length>1?`<div class="dgrid">${l.slice(1,3).map((a,i)=>card(a,b+1+i,'mid')).join('')}</div>`:''}</div>${l.length>3?`<div class="nr-rl dbs-rows">${l.slice(3,9).map((a,i)=>card(a,b+3+i,'nr nr-late')).join('')}</div>`:''}`;
- if(useNews){const b=regL(fp,'On the front page: ranked by how many sources cover it, and how new it is.'),bs=wide&&fp.length>=15,fr=bs?fp.slice(9):fp,fb=bs?b+9:b;h+=`<div class="dsec nws" id="edin-front"><h3>The front page</h3></div>`+(bs?bsheet(fp,b):'')+nrBlocks(fr,fb,{seed:3,tv:0,seq:NEWS_W}).join('');dgNr=true}
+ if(useNews){const b=regL(fp,'On the front page: ranked by how many sources cover it, and how new it is.'),bs=wide&&fp.length>=15,fr=bs?fp.slice(9):fp,fb=bs?b+9:b;h+=`<div class="dsec nws" id="edin-front"><h3>The front page</h3></div>`+(bs?bsheet(fp,b):'')+nrBlocks(fr,fb,{seed:3,tv:0,seq:NEWS_W}).map(nrR).join('');dgNr=true}
  for(const [ni,[n,l,why,kind]] of all.entries()){h+=`<div class="dsec" id="edin-s${ni}"><h3>${esc(n)}</h3></div>`+(kind==='front'?(wide&&l.length>=4?bsheet(l,regL(l,why)):`<div class="dfront">${mk(l[0],'lead',why)}</div>`+(l.length>1?`<div class="dgrid">${l.slice(1).map(a=>mk(a,'mid',why)).join('')}</div>`:'')):kind==='lead'?l.map(a=>mk(a,'lead',why)).join(''):`<div class="dgrid">${l.map(a=>mk(a,'mid',why)).join('')}</div>`)}
  tsecs.forEach(([n,l,why],ti)=>{if(useNews&&l.length>=3){dgNr=true;const b=regL(l,why);h+=`<div class="dsec nws" id="edin-t${ti}"><h3>${esc(n)}</h3></div>`+nrSecHtml(l,b,ti)}else h+=`<div class="dsec" id="edin-t${ti}"><h3>${esc(n)}</h3></div><div class="dgrid">${l.map(a=>mk(a,'mid',why)).join('')}</div>`});
  if(sv.length)h+=`<div class="dsec" id="edin-sv"><h3>Saved, still unread</h3></div><div class="dgrid">${sv.map(a=>mk(findStory(a.link)||a,'mid','You saved this and haven’t read it yet.')).join('')}</div>`;
@@ -18245,10 +18261,10 @@ function cvAhead(more){
  /* a full redraw starts afresh; cards added while scrolling are only added, so the hundreds already watched aren't all re-measured at once */if(!more)io.disconnect();$('#grid').querySelectorAll('.card,.wcol').forEach(c=>{if(more&&c._cv===io)return;c._cv=io;io.observe(c)});
 }
 /* live dot: a card from the last 6 hours whose headline names a topic in the Developing row gets the row's red dot before its headline */
-function liveDots(){
+function liveDots(sc){
  const g=$('#grid'),ws=[...g.querySelectorAll('.wtrend [data-trend]')].map(b=>b.dataset.trend.toLowerCase());if(!ws.length)return;
  const lim=Date.now()-6*36e5,re=new RegExp('\\b('+ws.map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\\b','i');
- g.querySelectorAll('.card[data-i]').forEach(c=>{const a=cur[+c.dataset.i],h=c.querySelector('h3,h2');if(!a||!h||c.querySelector('.cdot')||!(a.date>lim)||!re.test(a.title||''))return;/* David 2026-10-31: the dot sits at the end of the site line, not jammed against the headline */const s=c.querySelector('.src');if(s)s.insertAdjacentHTML('beforeend','<i class="cdot">Developing</i>')});
+ (sc?sc.flatMap(n=>n.matches('.card[data-i]')?[n]:[...n.querySelectorAll('.card[data-i]')]):[...g.querySelectorAll('.card[data-i]')]).forEach(c=>{const a=cur[+c.dataset.i],h=c.querySelector('h3,h2');if(!a||!h||c.querySelector('.cdot')||!(a.date>lim)||!re.test(a.title||''))return;/* David 2026-10-31: the dot sits at the end of the site line, not jammed against the headline */const s=c.querySelector('.src');if(s)s.insertAdjacentHTML('beforeend','<i class="cdot">Developing</i>')});
 }
 {const _r=render;render=function(){_r.apply(this,arguments);try{cvAhead()}catch(e){}try{liveDots()}catch(e){}}}
 /* Surprise me: one random unread story from the last five days; a random site first, so busy sites don't crowd out quiet ones */
@@ -18481,6 +18497,7 @@ function wcolsFix(){
  const g=$('#grid');if(!g)return;
  g.querySelectorAll('.wcols').forEach(el=>{
   const W=el.clientWidth;if(!el.children.length||!W)return;
+  /* already dealt at this width with these stories: cards added further down the page (childList) and the width check after a story closes must not re-deal every group */const wk=W+'|'+el.children.length;if(el._wk===wk)return;el._wk=wk;
   /* photo openers (.wtop): one at the top of each column, the other stories shared out evenly; spare openers become plain rows. Starts from the drawn order every time so a resize can re-deal */
   const kids=el._o||(el._o=[...el.children].map(k=>(k._t=k.classList.contains('wtop'),k)));
   kids.forEach(k=>{k.classList.toggle('wtop',k._t);k.classList.remove('wtop2')});el.append(...kids);
@@ -18498,7 +18515,7 @@ function wcolsFix(){
  });
 }
 {const _rw=render;render=function(){_rw.apply(this,arguments);try{wcolsFix()}catch(e){}}}
-try{document.fonts&&document.fonts.ready.then(()=>{try{wcolsFix()}catch(e){}})}catch(e){}/* heights change once the headline font arrives: share the columns out again */
+try{document.fonts&&document.fonts.ready.then(()=>{try{document.querySelectorAll('#grid .wcols').forEach(e=>{e._wk=null});wcolsFix()}catch(e){}})}catch(e){}/* heights change once the headline font arrives: share the columns out again */
 {let t=0;const go=()=>{clearTimeout(t);t=setTimeout(()=>{try{wcolsFix()}catch(e){}},120)};
  addEventListener('resize',go);
  try{const g=$('#grid');if(g)new MutationObserver(go).observe(g,{childList:true})}catch(e){}}
