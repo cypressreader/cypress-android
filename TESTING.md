@@ -1634,3 +1634,9 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Landscape on a phone with a camera cutout: the first and last bottom tabs clear the cutout.
 - Copy: boot caption "Setting the front page, N sites to go…"; empty bookshelf is one sentence plus "Which books work?"; topic folder, empty Daily tab and failed Near you search each have a button.
 - Motion token sweep (76 transitions moved to 150/250/400 ms): watch for anything that feels slower or snappier than before (page turns untouched).
+
+## Press-to-load + habit preload 2026-11-08 (implemented, unverified on phone)
+- Tap a story that was NOT preloaded (e.g. on mobile data): it should open a little quicker than before; with Double-tap to save on, the 330 ms wait now overlaps the download.
+- Scroll the list fast with your thumb: no extra data use (a scroll cancels the press before anything is fetched).
+- Long-press a card for quick actions: works as before (the story may start downloading in the background; harmless).
+- After opening 20+ stories, the background download (Wi-Fi) fills stories from the sites you actually open first; sites you never open are left until last.

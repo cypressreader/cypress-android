@@ -8701,6 +8701,8 @@ function acStoreOk(n,a){
 /* the network and the battery decide how much a background pass may take: nothing on mobile data, a few stories when the connection or the charge is unknown or low, more on Wi-Fi and on charge */
 function netKind(){try{const c=navigator.connection;if(!c)return 'unknown';if(c.type==='cellular')return 'cell';if(c.type==='wifi'||c.type==='ethernet')return 'wifi';if(/^(slow-2g|2g|3g)$/.test(c.effectiveType||''))return 'cell';return 'unknown'}catch(e){return 'unknown'}}
 const MOBILEUA=(()=>{try{return /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent))}catch(e){return false}})();
+/* habit: once 20 stories have been opened, background downloads take stories from sites you actually open first; sites never opened wait at the back (order is otherwise kept) */
+function habSort(L){const o=S.ops;if(!o||L.length<2)return L;let t=0;for(const k in o)t+=o[k].n||0;if(t<20)return L;const w=a=>o[a.feedId]&&o[a.feedId].n?0:1;return L.sort((x,y)=>w(x)-w(y))}
 function pfCap(base){
  let n=base;const k=netKind();if(k==='cell')return 0;
  if(k==='unknown'&&MOBILEUA)n=Math.min(n,6);
@@ -8726,9 +8728,9 @@ function dayPreload(){
  /* the edition's own stories, in the order the Daily shows them (also when another view is open: the edition is kept per day and rebuilt from the pool), no older than three days; pictures are left to load when you scroll to them */
  const links=(S.sel==='today'&&DGL.length)?DGL:(()=>{try{return dayEdition(topOf(S.feeds,400,new Set(),null,true)).map(a=>a.link)}catch(e){return []}})();
  const ok=a=>a&&!DPRE.tried.has(a.link)&&!acHas(a.link)&&!S.read[a.link]&&(!a.date||Date.now()-a.date<72*36e5);
- DPRE.q=links.map(l=>by.get(l)).filter(ok).slice(0,dpCap());
+ DPRE.q=habSort(links.map(l=>by.get(l)).filter(ok)).slice(0,dpCap());
  /* on Wi-Fi the newest unread stories outside the edition follow, so All Stories opens as quickly as the Daily */
- if(netKind()==='wifi'){const inq=new Set(DPRE.q.map(a=>a.link)),more=pfCap(ED_N);if(more>0){const rest=[...by.values()].filter(a=>ok(a)&&!inq.has(a.link)).sort((x,y)=>(y.date||0)-(x.date||0)).slice(0,more);DPRE.q.push(...rest)}}
+ if(netKind()==='wifi'){const inq=new Set(DPRE.q.map(a=>a.link)),more=pfCap(ED_N);if(more>0){const rest=[...by.values()].filter(a=>ok(a)&&!inq.has(a.link)).sort((x,y)=>(y.date||0)-(x.date||0));DPRE.q.push(...habSort(rest).slice(0,more))}}
  if(DPRE.q.length)dpRun();
 }
 /* the edition is made ready in the background whichever view the app opens on: shortly after start, when the phone is back online, when the app comes to the front, and every few minutes (it does nothing unless it is on Wi-Fi, idle and the edition has stories not yet stored) */
@@ -9850,6 +9852,7 @@ function prefetch(list,first){
   if(a.date&&Date.now()-a.date>14*864e5)continue;
   PF.done.add(a.link);add.push(a);PF.n++;PF.tot++;
  }
+ habSort(add);
  /* stories from short-feed sites go to the front of the line */
  if(isOn('pfshort')&&S.shortF&&add.length>1){const w=a=>isShortFeed(S.feeds.find(x=>x.id===a.feedId))?0:1;add.sort((x,y)=>w(x)-w(y))}
  if(first)PF.q.unshift(...add);else PF.q.push(...add);
@@ -9869,6 +9872,12 @@ function pfAhead(){
  prefetch(cur.slice(Math.max(0,a0),z+11).filter(x=>x&&x.link&&!S.read[x.link]&&!muted(x)),true)
 }
 $('main').addEventListener('scroll',()=>{clearTimeout(pfAhead.t);pfAhead.t=setTimeout(pfAhead,1200)},{passive:true});
+/* press-to-load: a finger resting on a card starts that story's download a beat before the tap lands (the reader joins the same download); a scroll cancels it first, so nothing is fetched */
+{let pt=0,px=0,py=0;const g=$('#grid'),stop=()=>{clearTimeout(pt);pt=0};
+ g.addEventListener('pointerdown',e=>{stop();if(e.button||e.target.closest('button,.star,[data-why]'))return;const c=e.target.closest('.card,.bi,.bi-d,.cr,.cvl,.cvlead,.cvp,.tri,.pqc');if(!c)return;px=e.clientX;py=e.clientY;
+  pt=setTimeout(()=>{pt=0;const a=cur[+c.dataset.i];if(a&&a.link&&!a.book&&!ytId(a)&&!acHas(a.link)&&!INF[a.link]&&!S.offline&&online())getFull(a.link).catch(()=>{})},60)},{passive:true});
+ g.addEventListener('pointermove',e=>{if(pt&&Math.abs(e.clientX-px)+Math.abs(e.clientY-py)>12)stop()},{passive:true});
+ g.addEventListener('pointercancel',stop,{passive:true})}
 /* stubborn sites: for the first few stories the quick fetch leaves short or cut off, the slower routes (saved copy, Morss, partner copy) are tried quietly in the background, on Wi-Fi only */
 const pfDeepOk=()=>pfAllowed()&&!onCell()&&!isOn('dsave')&&!document.hidden;
 async function pfDeep(a,n){
