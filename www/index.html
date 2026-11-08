@@ -9023,7 +9023,7 @@ function prepDrop(){if(RP){RP.T.els.forEach(e=>e.remove());RP=null}}
 function prepTurn(){
  if(RP&&RP.T.key===prepKey())return;prepDrop();
  if(!isOn('curl')||rdxPturn()!=='paper'||reduced()||R.busy||R.T||D||R.web||isVert()||!R.ready||R.pg+1>=R.np||!$('.book')||!$('#rd').classList.contains('on'))return;
- let T;try{T=startTurn(1,true)}catch(e){return}
+ let T;try{T=startTurn(1,true)}catch(e){R.T=null;R.busy=false;elog('prepTurn',e);return}
  R.T=null;R.busy=false;const bk=$('.book');edgeHide(bk,0);bk.style.perspectiveOrigin='';
  T.hid=[...T.leaf.querySelectorAll('.tf'),...T.els.filter(e=>e!==T.leaf)];T.hid.forEach(e=>{e.style.opacity='0'});T.key=prepKey();RP={T};
  /* the page is copied into the strips a few at a time between idle moments (copying all of them at once held the phone up for a moment after every turn), so a tap or a scroll never waits long; a turn asked for before they are all in builds the usual way */
@@ -9067,7 +9067,7 @@ function rdxPturn(){const m=S.pturn||'paper';return reduced()&&m!=='paper'?'none
 function rdxTurn(to){
  const m=rdxPturn(),c=$('.cols'),v=$('.view');
  if(m==='none'||!c||!v){R.pg=to;show();turnTick();return}
- R.busy=true;const my=tok,done=()=>{if(my===tok){c.style.transition='';v.style.transition='';v.style.opacity=''}R.busy=false;if(my===tok)turnTick()};
+ R.busy=true;const my=tok,done=()=>{if(my!==tok)return;c.style.transition='';v.style.transition='';v.style.opacity='';R.busy=false;turnTick()};
  if(m==='slide'){c.style.transition='transform 280ms cubic-bezier(.22,.7,.24,1)';R.pg=to;show();setTimeout(done,300);return}
  v.style.transition='opacity 90ms ease-out';v.style.opacity='0';
  setTimeout(()=>{if(my!==tok){done();return}c.style.transition='none';R.pg=to;show();void c.offsetWidth;v.style.transition='opacity 90ms ease-in';v.style.opacity='1';setTimeout(done,100)},95);
@@ -9598,7 +9598,7 @@ async function deepTry(a,manual){
  const body=document.querySelector('.cols .body');
  if(f&&body&&f.textContent.length>Math.max(600,body.textContent.length+100)){
   const im=f.querySelector('img');if(im&&a.img&&sameImg(im.src,a.img))im.remove();
-  ttsStop();body.replaceChildren(dropTitle(f,a.title));try{heroOnce()}catch(e){}
+  if(!ttsAway())ttsStop();body.replaceChildren(dropTitle(f,a.title));try{heroOnce()}catch(e){}
   const nt=note();if(nt)nt.textContent='Full story loaded another way.';
   acPut(a.link,body.innerHTML);markReady(a.link);
   rtSet(a.link,body);save();
@@ -9973,7 +9973,7 @@ function switchReader(){
  const{n,url}=RDY;RDY=null;
  if(n.textContent.length>body.textContent.length+100){
   const im=n.querySelector('img');if(im&&curA.img&&sameImg(im.src,curA.img))im.remove();
-  ttsStop();body.replaceChildren(dropTitle(n,curA.title));try{heroOnce()}catch(e){}
+  if(!ttsAway())ttsStop();body.replaceChildren(dropTitle(n,curA.title));try{heroOnce()}catch(e){}
   const note=c.querySelector('.note');if(note)note.textContent='Reader view of '+host(url)+'.';
   if(url!==curA.link)ALT=url;
   acPut(curA.link,body.innerHTML);
@@ -10032,14 +10032,14 @@ async function openReader(a){use1('open');RDT=Date.now();
  let gated=false;try{gated=(LG[a.link]||[]).some(x=>/HTTP (401|402|403|429|451)\b/.test(String(x)))}catch(e){}
  /* nothing came back: the slow browser-rendered routes start now, alongside the syndication search, instead of after it */
  let deepP=null,deepRan=false;const dpc=new AbortController();if(!n&&online()&&!TRUNCDONE.has(a.link)){deepRan=true;deepP=getFullDeep(a.link,LG['deep:'+a.link]=[],dpc.signal).catch(()=>null)}
- if(online()&&!TRUNCDONE.has(a.link)&&(needsMore(n,src)||truncReason(n,src,src===a.link))){const dr=await Promise.race([deeperTiers(a,n,src),new Promise(r=>setTimeout(()=>r(null),34000))]);if(my!==tok)return;if(dr&&dr.n){n=dr.n;src=dr.src}}
- if(my!==tok)return;
- if(!n&&deepP){const d=await Promise.race([deepP,new Promise(r=>setTimeout(()=>{dpc.abort();r(null)},30000))]);if(my!==tok)return;if(d){const df=tidy(d.cloneNode(true));if(df.textContent.length>600&&textQuality(df.textContent).ok){df.tier='deep';n=df}}}
+ if(online()&&!TRUNCDONE.has(a.link)&&(needsMore(n,src)||truncReason(n,src,src===a.link))){const dr=await Promise.race([deeperTiers(a,n,src),new Promise(r=>setTimeout(()=>r(null),34000))]);if(my!==tok){try{dpc.abort()}catch(e){}return}if(dr&&dr.n){n=dr.n;src=dr.src}}
+ if(my!==tok){try{dpc.abort()}catch(e){}return}
+ if(!n&&deepP){const d=await Promise.race([deepP,new Promise(r=>setTimeout(()=>{dpc.abort();r(null)},30000))]);if(my!==tok){try{dpc.abort()}catch(e){}return}if(d){const df=tidy(d.cloneNode(true));if(df.textContent.length>600&&textQuality(df.textContent).ok){df.tier='deep';n=df}}}
  dpc.abort();mzDone(n?'network':'feed',a,src!==a.link?'mirror':(n&&n.tier)||(deepRan?'slow routes failed':'direct'));note.hidden=false;
  ALT=src!==a.link?src:(!n&&alts[0]?alts[0]:'');
  if(n&&n.textContent.length>Math.max(600,body.textContent.length+100)){
   a.tier=n.tier||(src!==a.link?'mirror':'direct');
-  ttsStop();
+  if(!ttsAway())ttsStop();
   body.replaceChildren(dropTitle(n,a.title));try{heroOnce()}catch(e){}try{focusLine()}catch(e){}
   if(n.pw&&src===a.link){a.pw=1;note.innerHTML='This looks like a preview, and the site may want a subscription for the rest. <button type="button" class="lnk" data-web="1">View the site in the app</button>';if(my===tok&&!R.web&&(S.autoWeb||isBing(f.url)||/news\.google\./.test(f.url||'')||/news\.google\./.test(a.link||'')))toggleWeb(true)}else if(n.gated_preview&&src===a.link)note.innerHTML='<span class="sbadge">Subscriber preview</span>The site is holding back the rest of this story.';else if(n.tier==='morss')note.textContent='Full story loaded through Morss.';else if(src!==a.link)note.textContent='Full story loaded from '+host(src)+'.';else if(n.incomplete&&looksIncomplete(n.textContent,src)&&/* a short story from its own page is only called partial when it visibly stops */(t=>t.split(' ').length<120||!/[.!?…”"')]$/.test(t)||/(\.\.\.|…)$/.test(t)||/(read more|continue reading|subscribe)\W*$/i.test(t))(body.textContent.replace(/\s+/g,' ').trim()))note.innerHTML='<span class="sbadge">Partial story</span>This may be only the start of the story. <a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener">Open the original story</a>';else note.remove();
   legalBody(body);try{markRestricted(a,body.textContent,true)}catch(e){}if(!((n.incomplete&&looksIncomplete(n.textContent,src))||(n.gated_preview&&src===a.link)))acPut(a.link,body.innerHTML);markReady(a.link);
@@ -10195,7 +10195,7 @@ function digNext(){if(DIG.on)digGo(DIG.i+1,{});else if(TTS.art&&TTS.art.book)tts
   if(!R.digOpen&&DIG.on&&!(TTS.on&&TTS.art&&TTS.art.link!==a.link))digEnd(false);
   $('#rd').classList.toggle('ghost',gh);
   const r=await _or.call(this,a);
-  if(gh){try{dropLayer('reader')}catch(e){}}
+  if(gh&&$('#rd').classList.contains('ghost')){try{dropLayer('reader')}catch(e){}}
   return r;
  }}
 {const _te=ttsEnd;ttsEnd=async function(manual){
@@ -10505,13 +10505,13 @@ let RDTRIG=null;
 const rdInert=on=>{try{const rd=$('#rd');document.querySelectorAll('aside,main,#tabs,a.skip').forEach(e=>{if(e.contains(rd))return;e.inert=!!on&&!document.body.classList.contains('split')&&!rd.classList.contains('ghost')/* a Daily story read in the background is not on screen: the app stays usable */&&!(e.tagName==='ASIDE'&&document.body.classList.contains('sideshow'))})}catch(e){}};
 /* no cross-fade on close: it snapshots the whole page and stuttered while the feed was still repainting */
 let RDT=0;const closeRd=fromPop=>{if(RDT&&Date.now()-RDT<3000)ux('g','q');RDT=0;return closeRd0(fromPop)};
-const closeRd0=fromPop=>{prepDrop();try{raCancel()}catch(e){}try{if($('#rfind')&&!$('#rfind').hidden)closeFind()}catch(e){}if(AUTO.on)autoRd(false);const was=curA,feedSel=/^(all|f:|s:|k:)/.test(S.sel||''),same=!!was&&RDSIG===rdSig(was)&&feedSel,soft=!same&&!!was&&feedSel&&rdBase(RDSIG)===rdBase(rdSig(was));$('#rd').classList.remove('focus');if(fromPop!==true){dropLayer('rdnav');dropLayer('reader')}else dropLayer('rdnav');const nv=$('#rdnav');if(nv){nv.classList.remove('on');nv.hidden=true}tok++;R.busy=false;/* read-aloud keeps going when you back out to the feed: the floating pill (#tmini) carries the controls */if(!(TTS.on&&('speechSynthesis' in window)))ttsStop();hlClear();$('#selbar').hidden=true;$('#rd').classList.remove('on','flex','vert');rdInert(false);try{/* a23 F4: if the list was redrawn while reading, focus the new card of the same story */let tg=RDTRIG&&RDTRIG.isConnected&&RDTRIG!==document.body?RDTRIG:null;const lk=was&&was.link,ref=()=>{const ae=document.activeElement;if(lk&&(!ae||ae===document.body)){const x=[...document.querySelectorAll('a.cl')].find(x=>x.getAttribute('href')===lk);if(x)x.focus({preventScroll:true})}};if(tg)tg.focus({preventScroll:true});else ref();setTimeout(ref,0);setTimeout(ref,500)}catch(e){};curA=null;try{tminiSync()}catch(e){}if(R.ttsPend){const p=R.ttsPend;R.ttsPend=null;if(!TTS.on&&TTS.art===p[0])setTimeout(()=>ttsEnd(p[1]),0)}applyFolderTheme();if(document.body.classList.contains('split'))splitEmpty();if(same||soft){try{side();dgProgUpdate();if(soft)patchProg(was)}catch(e){}}else render();if(feedSel)rdAnchorRestore()};
+const closeRd0=fromPop=>{prepDrop();try{raCancel()}catch(e){}try{if($('#rfind')&&!$('#rfind').hidden)closeFind()}catch(e){}try{closeHub()}catch(e){}if(AUTO.on)autoRd(false);const was=curA,feedSel=/^(all|f:|s:|k:)/.test(S.sel||''),same=!!was&&RDSIG===rdSig(was)&&feedSel,soft=!same&&!!was&&feedSel&&rdBase(RDSIG)===rdBase(rdSig(was));$('#rd').classList.remove('focus');if(fromPop!==true){dropLayer('rdnav');dropLayer('reader')}else dropLayer('rdnav');const nv=$('#rdnav');if(nv){nv.classList.remove('on');nv.hidden=true}tok++;R.busy=false;/* read-aloud keeps going when you back out to the feed: the floating pill (#tmini) carries the controls */if(!(TTS.on&&('speechSynthesis' in window)))ttsStop();hlClear();$('#selbar').hidden=true;$('#rd').classList.remove('on','flex','vert');rdInert(false);try{/* a23 F4: if the list was redrawn while reading, focus the new card of the same story */let tg=RDTRIG&&RDTRIG.isConnected&&RDTRIG!==document.body?RDTRIG:null;const lk=was&&was.link,ref=()=>{const ae=document.activeElement;if(lk&&(!ae||ae===document.body)){const x=[...document.querySelectorAll('a.cl')].find(x=>x.getAttribute('href')===lk);if(x)x.focus({preventScroll:true})}};if(tg)tg.focus({preventScroll:true});else ref();setTimeout(ref,0);setTimeout(ref,500)}catch(e){};curA=null;try{tminiSync()}catch(e){}if(R.ttsPend){const p=R.ttsPend;R.ttsPend=null;if(!TTS.on&&TTS.art===p[0])setTimeout(()=>ttsEnd(p[1]),0)}applyFolderTheme();if(document.body.classList.contains('split'))splitEmpty();if(same||soft){try{side();dgProgUpdate();if(soft)patchProg(was)}catch(e){}}else render();if(feedSel)rdAnchorRestore()};
 /* going back to the feed: put the story that was at the top of the screen back at the same spot, even if the list moved while the story was open (pictures loading, a refresh) */
 /* while a story is open the feed is hidden behind it, but the sidebar column comes back and squeezes the feed to a sliver on mid-width windows; the whole list then re-wraps twice (open and close) and the scroll position jumps. Keep the feed at the width it had. */
 function rdFreeze(on){const b=document.body;if(!on){if(b.style.gridTemplateColumns)try{jmpMark('feed width released')}catch(e){}b.style.removeProperty('grid-template-columns');return}if(b.classList.contains('narrow')||b.classList.contains('split')||b.style.gridTemplateColumns)return;const g=getComputedStyle(b).gridTemplateColumns;if(g&&g!=='none')b.style.setProperty('grid-template-columns',g)}
 let RDANC=null;
 function rdAnchorSave(){try{const m=$('main'),mt=m.getBoundingClientRect().top;RDANC=null;for(const c of m.querySelectorAll('#grid .card[data-href]')){const r=c.getBoundingClientRect();if(r.width&&r.bottom>mt+40){RDANC={h:c.dataset.href,o:r.top-mt,sel:S.sel};return}}}catch(e){RDANC=null}}
-function rdAnchorRestore(){const A=RDANC;if(!A||A.sel!==S.sel)return;const m=$('main');const g=$('#grid');if(g){g.classList.add('cvall');setTimeout(()=>g.classList.remove('cvall'),2500)}let moved=false;const stop=()=>{moved=true};m.addEventListener('wheel',stop,{once:true,passive:true});m.addEventListener('touchstart',stop,{once:true,passive:true});m.addEventListener('keydown',stop,{once:true});let c0=null;const fix=()=>{if(moved)return;if(!c0||!c0.isConnected)c0=[...m.querySelectorAll('#grid .card[data-href]')].find(x=>x.dataset.href===A.h);if(!c0)return;const d=(c0.getBoundingClientRect().top-m.getBoundingClientRect().top)-A.o;if(Math.abs(d)>2)m.scrollTop+=d};fix();/* every frame for the first second, before it is painted, so a wrong spot never shows even for a moment */let n=0;const tick=()=>{fix();if(!moved&&++n<60)requestAnimationFrame(tick)};requestAnimationFrame(tick);setTimeout(fix,1200)}
+function rdAnchorRestore(){const A=RDANC;if(!A||A.sel!==S.sel)return;const m=$('main');const g=$('#grid');if(g){g.classList.add('cvall');setTimeout(()=>g.classList.remove('cvall'),2500)}let moved=false;const ac=new AbortController(),stop=()=>{moved=true;ac.abort()};for(const t of ['wheel','touchstart','keydown'])m.addEventListener(t,stop,{signal:ac.signal,passive:true});let c0=null;const fix=()=>{if(moved)return;if(!c0||!c0.isConnected)c0=[...m.querySelectorAll('#grid .card[data-href]')].find(x=>x.dataset.href===A.h);if(!c0)return;const d=(c0.getBoundingClientRect().top-m.getBoundingClientRect().top)-A.o;if(Math.abs(d)>2)m.scrollTop+=d};fix();/* every frame for the first second, before it is painted, so a wrong spot never shows even for a moment */let n=0;const tick=()=>{fix();if(!moved&&++n<60)requestAnimationFrame(tick)};requestAnimationFrame(tick);setTimeout(()=>{fix();ac.abort()},1200)}
 /* reading only moves a story's progress bar: update that one bar instead of rebuilding hundreds of cards */
 function patchProg(a){const p=progOf(a.link);document.querySelectorAll('#grid .card[data-href]').forEach(c=>{if(c.dataset.href!==a.link)return;let g=c.querySelector(':scope>.prg');if(!p){if(g)g.remove();return}if(!g){g=document.createElement('span');g.className='prg';g.appendChild(document.createElement('span'));const t=c.querySelector(':scope>.tx');c.insertBefore(g,t||null)}g.firstElementChild.style.width=Math.round(p*100)+'%'})}
 const set=$('#set');
@@ -16152,9 +16152,9 @@ function openYir(){
  o.innerHTML=`<div class="ybars">${slides.map(()=>'<b><i></i></b>').join('')}</div><button class="ib yx" aria-label="Close">${svg('<path d="M6 6l12 12M18 6 6 18"/>')}</button>${slides.map((h,i)=>`<section class="ys" data-s="${i}">${h}</section>`).join('')}`;
  document.body.append(o);pushLayer('yir');let i=0,tm=0;
  const go=k=>{i=k;if(i<0)i=0;if(i>=slides.length)return close();o.querySelectorAll('.ys').forEach((s,j)=>s.classList.toggle('on',j===i));o.querySelectorAll('.ybars b').forEach((b,j)=>{b.className=j<i?'done':j===i?'on':''});clearTimeout(tm);if(i<slides.length-1&&!matchMedia('(prefers-reduced-motion:reduce)').matches)tm=setTimeout(()=>go(i+1),6000)};
- const close=()=>{clearTimeout(tm);dropLayer('yir');o.classList.remove('in');setTimeout(()=>o.remove(),250)};
+ const ac=new AbortController(),close=()=>{ac.abort();clearTimeout(tm);dropLayer('yir');o.classList.remove('in');setTimeout(()=>o.remove(),250)};
  o.addEventListener('click',async e=>{if(e.target.closest('.yx'))return close();if(e.target.closest('[data-yshare]')){clearTimeout(tm);const c=await yirImage(D);shareCanvas(c,'cypress-'+D.y+'.png','My '+D.y+' in CyPress');return}const r=o.getBoundingClientRect();go(e.clientX<r.left+r.width*.3?i-1:i+1)});
- document.addEventListener('keydown',function k(e){if(!document.body.contains(o)){document.removeEventListener('keydown',k,true);return}if(e.key==='Escape'){e.stopImmediatePropagation();close()}else if(e.key==='ArrowRight')go(i+1);else if(e.key==='ArrowLeft')go(i-1)},true);
+ document.addEventListener('keydown',e=>{if(!document.body.contains(o)){ac.abort();return}if(e.key==='Escape'){e.stopImmediatePropagation();close()}else if(e.key==='ArrowRight')go(i+1);else if(e.key==='ArrowLeft')go(i-1)},{capture:true,signal:ac.signal});
  requestAnimationFrame(()=>{o.classList.add('in');go(0)});
 }
 async function yirImage(D){
@@ -16467,7 +16467,7 @@ addEventListener('resize',shapeChanged);
 /* keep your place on fold/unfold: whatever sat a third of the way down the list before the width changed is put back there (the list is not redrawn, so the element itself is kept). Recorded when scrolling stops, because by the time the resize is reported the page has already reflowed */
 let SHPA=null;function shpSave(){const m=$('main');if(!m||$('#rd').classList.contains('on')||performance.now()<(SHPA&&SHPA.h||0))return;/* not while shpHold is still putting it back: it would re-pick, and folding back would drift */const r=m.getBoundingClientRect();for(const x of [.5,.25,.75]){const e=document.elementsFromPoint(r.left+r.width*x,r.top+r.height/3).find(e=>e!==m&&m.contains(e)&&e.offsetHeight<r.height/2);if(e){SHPA={e,o:e.getBoundingClientRect().top-r.top,w:VW};return}}}
 $('main').addEventListener('scroll',()=>{clearTimeout(shpSave.t);shpSave.t=setTimeout(shpSave,150)},{passive:true});
-function shpHold(){const A=SHPA,m=$('main');if(!A||A.w===VW||!A.e.isConnected||$('#rd').classList.contains('on'))return;A.w=VW;A.h=performance.now()+1500;let moved=false;const stop=()=>{moved=true;A.h=0};m.addEventListener('touchstart',stop,{once:true,passive:true});m.addEventListener('wheel',stop,{once:true,passive:true});let n=0;const fix=()=>{if(moved)return;const d=A.e.getBoundingClientRect().top-m.getBoundingClientRect().top-A.o;if(Math.abs(d)>2)m.scrollTop+=d;if(++n<60)requestAnimationFrame(fix)};fix()}
+function shpHold(){const A=SHPA,m=$('main');if(!A||A.w===VW||!A.e.isConnected||$('#rd').classList.contains('on'))return;A.w=VW;A.h=performance.now()+1500;let moved=false;const ac=new AbortController(),stop=()=>{moved=true;A.h=0;ac.abort()};for(const t of ['touchstart','wheel'])m.addEventListener(t,stop,{signal:ac.signal,passive:true});setTimeout(()=>ac.abort(),1500);let n=0;const fix=()=>{if(moved)return;const d=A.e.getBoundingClientRect().top-m.getBoundingClientRect().top-A.o;if(Math.abs(d)>2)m.scrollTop+=d;if(++n<60)requestAnimationFrame(fix)};fix()}
 /* unfolding: the Fold's WebView lays the page out at the new width before its resize event reports it (innerWidth stays at the folded size for a few hundred ms), so the page showed wide with the folded-phone classes until the 450 ms replay below. Watching the page's own box catches the new width straight after layout and before that frame is painted */
 addEventListener('resize',()=>shpLog('resize'),{capture:true});try{visualViewport.addEventListener('resize',()=>shpLog('vv'))}catch(e){}
 try{new ResizeObserver(()=>{const de=document.documentElement;shpLog('ro');if(de.clientWidth!==VW||de.clientHeight!==VH)shapeChanged()}).observe(document.documentElement)}catch(e){}
@@ -16496,9 +16496,12 @@ function whatsNew(){
 }
 async function checkUpdate(){
  if(NATIVE||!/^https?:/.test(location.protocol)||!navigator.onLine||$('#upd'))return;
- try{const t=await (await fetch(location.pathname,{cache:'no-store'})).text();const m=t.match(/const APP_VERSION='([^']+)'/);
+ /* the offline copy is refreshed by the service worker on every visit, so read that first; the whole 2.6 MB page is downloaded again only when there is no saved copy */
+ try{let t='';const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration().catch(()=>null);
+  if(reg){try{await reg.update()}catch(e){}try{const c=await caches.open('cyp-web-14'),r=await c.match('./')||await c.match(location.pathname);if(r)t=await r.text()}catch(e){}}
+  if(!t)t=await (await fetch(location.pathname,{cache:'no-store'})).text();const m=t.match(/const APP_VERSION='([^']+)'/);
   if(m&&m[1]!==APP_VERSION){const b=document.createElement('div');b.id='upd';b.innerHTML=`<span>A new version of CyPress is ready</span><button class="go" data-upd>Refresh</button><button class="ib" data-updx aria-label="Later">${svg('<path d="M6 6l12 12M18 6 6 18"/>')}</button>`;document.body.append(b);
-   b.addEventListener('click',e=>{if(e.target.closest('[data-upd]'))location.reload();else if(e.target.closest('[data-updx]'))b.remove()})}}catch(e){}
+   b.addEventListener('click',e=>{const u=e.target.closest('[data-upd]');if(u){if(u.disabled)return;u.disabled=true;fetch(location.pathname,{cache:'reload'}).catch(()=>{}).finally(()=>location.reload())}else if(e.target.closest('[data-updx]'))b.remove()})}}catch(e){}
 }
 /* David 2026-10-31: the web app gets the same "Check for updates" row the Android app has (Settings > About CyPress > The app) */
 function webUpd(){
@@ -16828,6 +16831,7 @@ window.cyBackP=(p,edge)=>{try{const r=$('#rd.on');if(!r||matchMedia('(prefers-re
  r.style.transition='none';r.style.transform='translateX('+(edge?-1:1)*p*18+'px) scale('+(1-p*.1).toFixed(3)+')';r.style.borderRadius=Math.round(p*28)+'px';
  clearTimeout(window._cbpT);window._cbpT=setTimeout(()=>{r.style.transition='';r.style.transform='';r.style.borderRadius=''},900)}catch(e){}};
 let POPQ=[];
+try{if(history.state&&history.state.cp)history.replaceState(null,'')}catch(e){}
 function pushLayer(name){if(LAYER[LAYER.length-1]===name)return;LAYER.push(name);if(POPSKIP){POPQ.push(name);return}try{history.pushState({cp:name,n:LAYER.length},'')}catch(e){}}
 function dropLayer(name){const i=LAYER.lastIndexOf(name);if(i<0)return false;if(i===LAYER.length-1&&history.state&&history.state.cp===name){POPSKIP=true;history.back();}LAYER.splice(i,1);return true}
 let POPSKIP=false;
@@ -16838,9 +16842,9 @@ addEventListener('popstate',()=>{
  if(POPSKIP){POPSKIP=false;const q=POPQ;POPQ=[];q.forEach(n=>{try{history.pushState({cp:n,n:LAYER.length},'')}catch(e){}});return}
  const top=LAYER.pop();if(!top)return;
  if(top.startsWith('dlg:')){const d=DLG[top];if(d&&d.open&&((d.id==='set'&&window.setBackHook&&window.setBackHook())||(d.id==='dlg'&&window.addBackHook&&window.addBackHook())||(d.id==='ob'&&obBack()))){LAYER.push(top);try{history.pushState({cp:top,n:LAYER.length},'')}catch(e){}return}delete DLG[top];if(d&&d.open){d._ly=null;d.close()}return}
- const active={mn:()=>$('#mn')&&!$('#mn').hidden,gal:()=>$('#gal')&&!$('#gal').hidden,rdnav:()=>$('#rdnav')&&!$('#rdnav').hidden,reader:()=>$('#rd').classList.contains('on'),drawer:()=>document.body.classList.contains('open'),yir:()=>!!$('#yir'),fin:()=>FIN.open}[top];
+ const active={mn:()=>$('#mn')&&!$('#mn').hidden,gal:()=>$('#gal')&&!$('#gal').hidden,rdnav:()=>$('#rdnav')&&!$('#rdnav').hidden,reader:()=>$('#rd').classList.contains('on'),drawer:()=>document.body.classList.contains('open'),yir:()=>!!$('#yir'),fin:()=>FIN.open,hub:()=>!!$('#hub')&&$('#hub').classList.contains('on')}[top];
  if(active&&!active()){if(LAYER.length)history.back();return}
- if(top==='mn')rdxMnClose(true,true);else if(top==='gal')galClose(true);else if(top==='rdnav')rdNav(false,true);else if(top==='reader')closeRd(true);else if(top==='drawer')document.body.classList.remove('open');else if(top==='fin')finClose(true);else if(top==='yir'){const y=$('#yir');if(y)y.querySelector('.yx').click()}
+ if(top==='mn')rdxMnClose(true,true);else if(top==='gal')galClose(true);else if(top==='rdnav')rdNav(false,true);else if(top==='reader')closeRd(true);else if(top==='drawer')document.body.classList.remove('open');else if(top==='fin')finClose(true);else if(top==='hub')closeHub(true);else if(top==='yir'){const y=$('#yir');if(y)y.querySelector('.yx').click()}
 });
 
 /* ---------- in-reader navigation panel ---------- */
@@ -18199,10 +18203,10 @@ function openHub(a){
   +(()=>{const o0=covOf(a).map(c=>c.s).filter(Boolean),o=o0.filter(x=>x!==a&&x.link!==a.link).sort((x,y)=>(x.feedId===a.feedId)-(y.feedId===a.feedId));return o.length?`<h3>Compare coverage</h3><label for="hcmpsel" class="hk">Compare with</label><br><select id="hcmpsel" data-a="${esc(a.link)}">${o.map(x=>`<option value="${esc(x.link)}">${esc(fof(x).title||'')}: ${esc(x.title.slice(0,60))}</option>`).join('')}</select><div class="hcmp" id="hcmp">${cmpHtml(a,o[0])}</div>`:''})()
   +(H.older.length?`<h3>Background</h3>${H.older.map(x=>row(x)).join('')}`:'')
   +`</div>`;
- HUBT=document.activeElement;el.classList.add('on');
+ HUBT=document.activeElement;el.classList.add('on');pushLayer('hub');
  const f=el.querySelector('.hx');if(f)f.focus({preventScroll:true});
 }
-function closeHub(){const el=$('#hub');if(!el||!el.classList.contains('on'))return false;el.classList.remove('on');el.innerHTML='';try{if(HUBT&&document.contains(HUBT))HUBT.focus({preventScroll:true})}catch(e){}HUBT=null;return true}
+function closeHub(fromPop){const el=$('#hub');if(!el||!el.classList.contains('on'))return false;if(!fromPop)dropLayer('hub');el.classList.remove('on');el.innerHTML='';try{if(HUBT&&document.contains(HUBT))HUBT.focus({preventScroll:true})}catch(e){}HUBT=null;return true}
 document.addEventListener('click',e=>{
  const t=e.target.closest&&e.target.closest('[data-hub],[data-hubx],[data-hopen],#hub');if(!t)return;
  if(t.matches('[data-hub]')){e.preventDefault();e.stopPropagation();openHub(curA);return}
