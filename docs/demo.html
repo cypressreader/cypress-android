@@ -12280,15 +12280,15 @@ function dynApply(c){
 }
 /* a color change re-styles the page, so it waits until the finger is off and the scroll has stopped (it stuttered mid-scroll) */
 addEventListener('scroll',()=>{dynSet.sc=Date.now()},{capture:true,passive:true});
-function dynIdle(){const q=Date.now()-(dynSet.sc||0);if(q<350){dynSet.w=setTimeout(dynIdle,350-q);return}dynApply(dynSet.tgt)}
+function dynIdle(){const q=Date.now()-(dynSet.sc||0);if(q<200){dynSet.w=setTimeout(dynIdle,200-q);return}dynApply(dynSet.tgt)}
 function dynSet(c){
  if(!c)return;
  const d=document.getElementById('dynbg'),has=!!(d&&d.classList.contains('has')),now=Date.now();
  dynSet.tgt=c;
- if(has&&dynSet.c&&dynDist(c,dynSet.c)<45){clearTimeout(dynSet.w);return}/* a color that is nearly the same is not worth a change */
+ if(has&&dynSet.c&&dynDist(c,dynSet.c)<30){clearTimeout(dynSet.w);return}/* a color that is nearly the same is not worth a change */
  /* the color only changes once scrolling settles for a moment, and the faster the colors come, the longer it waits */
  dynSet.h=(dynSet.h||[]).filter(t=>now-t<2500);dynSet.h.push(now);
- const dwell=has?Math.min(1400,500+dynSet.h.length*140):0,wait=Math.max(dwell,1000-(now-(dynSet.t||0)));
+ const dwell=has?Math.min(700,250+dynSet.h.length*80):0,wait=Math.max(dwell,600-(now-(dynSet.t||0)));/* David: quicker, still not flashy */
  clearTimeout(dynSet.w);
  if(has&&wait>0){dynSet.w=setTimeout(dynIdle,wait);return}
  dynApply(c);
@@ -12298,22 +12298,22 @@ function dynLive(){
  if(dynLive.io){dynLive.io.disconnect();dynLive.io=null}
  if(!on){dynEls().forEach(e=>e.style.removeProperty('--dyn'));const d=document.getElementById('dynbg');if(d)d.remove();dynSet.c=null;dynSet.tb=null;dynAccentOff();clearTimeout(dynSet.w);return}
  const g=$('#grid');if(!g)return;
- const cs=[...g.querySelectorAll(':scope>.card,:scope>.cover,:scope .card')];
+ const cs=[...g.querySelectorAll(':scope>.card,:scope>.cover,:scope .card,:scope [data-href]')];/* text-only rows and boxes count too */
  const c0=cs[0]?(cs[0].style.getPropertyValue('--b')||getComputedStyle(cs[0]).getPropertyValue('--b')).trim():'';
  const keep=dynSet.c&&dynLive.sel===S.sel;dynLive.sel=S.sel;if(!keep){clearTimeout(dynSet.w);dynApply(c0||getComputedStyle(r).getPropertyValue('--a1').trim()||'#0a8f4a')}
  if(!('IntersectionObserver' in window))return;
  const io=new IntersectionObserver(es=>{const e=es.filter(x=>x.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top)[0];if(!e)return;
   /* the tint follows the story's own photo (a far wider range than one color per site); a story without a usable photo falls back to its site color */
-  const el=e.target,c=(el.style.getPropertyValue('--b')||'').trim();dynLive.cur=el;
+  const el=e.target,c=(el.style.getPropertyValue('--b')||getComputedStyle(el).getPropertyValue('--b')||'').trim();dynLive.cur=el;/* no photo: the story's site color */
   const im=el.matches('img')?el:el.querySelector('img'),u=im&&im.getAttribute('src');
   const pc=o=>{if(!o||!o.t)return '';const r=anyRgb(o.t);if(!r)return '';const hs=rgb2hsl(r);return hs[1]>=.14?o.t:''};
   const q=u&&IIS[u]&&IIS[u].v>=5?pc(IIS[u]):'';
   if(q){dynSet(q);return}
   if(u&&/^https?:/.test(u))imgInfo(u).then(o=>{const t=pc(o)||c;if(t&&dynLive.cur===el&&el.isConnected)dynSet(t)}).catch(()=>{if(c&&dynLive.cur===el)dynSet(c)});
-  else if(c)dynSet(c)},{rootMargin:'-28% 0px -56% 0px'});
+  else if(c)dynSet(c)},{rootMargin:'-20% 0px -45% 0px'});
  cs.forEach(x=>io.observe(x));dynLive.io=io;
  /* David 2026-10-31: stories drawn later (lower sections, more while scrolling) are watched too, so the color keeps moving all the way down */
- if(!dynLive.mo){dynLive.mo=new MutationObserver(ms=>{const o=dynLive.io;if(!o)return;for(const m of ms)for(const n of m.addedNodes){if(n.nodeType!==1)continue;if(n.matches('.card'))o.observe(n);else n.querySelectorAll('.card').forEach(c=>o.observe(c))}});dynLive.mo.observe(g,{childList:true,subtree:true})}
+ if(!dynLive.mo){dynLive.mo=new MutationObserver(ms=>{const o=dynLive.io;if(!o)return;for(const m of ms)for(const n of m.addedNodes){if(n.nodeType!==1)continue;if(n.matches('.card,[data-href]'))o.observe(n);else n.querySelectorAll('.card,[data-href]').forEach(c=>o.observe(c))}});dynLive.mo.observe(g,{childList:true,subtree:true})}
 }
 function dynReader(){
  if(!isOn('dynx')||document.documentElement.dataset.theme!=='dynamic')return;
