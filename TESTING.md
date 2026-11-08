@@ -1595,3 +1595,10 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 6. Android Auto: needs Android Auto's developer settings > Unknown sources ON (sideloaded app). CyPress shows in the car's media apps: "Continue listening" and "The Daily". Play/pause/skip from the car screen. Cover on the car screen for books.
 7. Lock screen and notification show the BOOK COVER for books (was the logo) and the title of what's being read even if another story is open.
 8. Widget: long-press home screen > Widgets > CyPress Continue listening. Shows cover, title, play/pause. Play while nothing is running opens CyPress to listen. Shows Play again after listening ends.
+
+## Bug check fixes for 1.289 (implemented, unverified on phone)
+- Android Auto still lists "The Daily" and the last book/story, and tapping either starts playback (browsing now goes through a separate CyAutoBrowser service; the player service is private).
+- Unplugging Android Auto does not stop playback that was started on the phone.
+- Book cover appears on the lock screen, notification and Continue listening widget without the app stalling.
+- Widget play button resumes a paused book (not only pause); "Forward" from headphones/notification skips the same time as the setting (not double).
+- Now Playing: tapping the current chapter opens the book at the spoken word; Speed chips work with arrow keys; listening stats keep counting with the screen off.
