@@ -4650,6 +4650,7 @@ html.dkart .dcov.dct-min::after{border-color:color-mix(in srgb,var(--ink) 55%,tr
 #tmini .tmb{background:var(--pn)!important;color:var(--ink)!important;width:44px!important;height:44px!important;margin:0 2px}
 #tmini .tmx{width:36px;height:36px;opacity:.8}
 @media(max-width:380px){#tmini .tmrw{display:none}#tmini .tmth{width:40px;height:40px}}
+body.hasdock #rd.vert .view::after{content:"";display:block;height:var(--dockh,0px)}/* the scrolling reader ends above the player */
 body.hasdock main{padding-bottom:calc(var(--dockh,64px) + var(--tabh,0px) + 24px)}
 /* the locked sidebar leaves the player's height free at its foot, so Settings stays clear of it */
 body.hasdock:not(.narrow)>aside{padding-bottom:var(--dockh,64px)}
@@ -8920,7 +8921,7 @@ function layout(){prepDrop();noteFix();
  try{$('#rd').classList.remove('spread')}catch(e){} /* B40 spread disabled 1.77: the facing-pages styling collided at the spine */
  /* R-03: a phone turned sideways reads one centered column of about 65 characters, not one 80-character line across the screen */
  const xo=R.cpv===1&&!vert&&H<600&&W>H*1.6?Math.max(0,Math.round((W-2*P-(+S.fs||18)*34)/2)):0;
- const use=W-2*P-2*xo,ch=H-2*P-(R.ttsPad&&!vert?56:0)/* R-13: room for the read-aloud pill */;gap+=2*xo;/* the page step stays the book's width, so the next page's text stays out of view */
+ const use=W-2*P-2*xo,ch=H-2*P-(R.ttsPad&&!vert?(parseFloat(document.documentElement.style.getPropertyValue('--dockh'))||72):0)/* R-13: room for the mini player */;gap+=2*xo;/* the page step stays the book's width, so the next page's text stays out of view */
  c.style.cssText=`left:${P+xo}px;top:${P}px;width:${use}px;height:${ch}px;column-count:${R.cpv};column-gap:${gap}px;--ih:${Math.round(ch*.5)}px;--ch:${ch}px;--sw:${use}px;--bleed:${P}px`;
  const cw=(use-(R.cpv-1)*gap)/R.cpv;
  R.step=use+gap;
@@ -10210,7 +10211,7 @@ function raBtn(){
  if(b){const bl=b.querySelector('.bl');b.innerHTML=svg(run?PAUSE:TTS.on&&!aw?PLAY:SPK);if(bl)b.append(bl);/* the icon changes, the 'Listen' label under it stays */b.classList.toggle('on',run);b.title=run?'Pause':TTS.on?'Resume':'Listen to story'}
  const p=$('#pbp');if(p)p.innerHTML=svg(run?PAUSE:PLAY);
  /* while a story is read aloud, the hands-free speed pill shows the reading speed instead (theme colors, Slower / Faster / Stop) */
- try{const fx=$('#afx');if(fx&&!AUTO.on){const sh=TTS.on&&!aw&&$('#rd').classList.contains('on');fx.hidden=!sh;fx.dataset.m=sh?'tts':'';if(sh){fx.setAttribute('aria-label','Reading speed');fx.querySelector('span').textContent=ttsRate().toFixed(1)+'\u00d7';fx.querySelector('[data-afx="0"]').setAttribute('aria-label','Stop reading aloud')}/* pause / resume right on the pill (David: pausing needed the ... menu) */const pb=fx.querySelector('[data-afx="p"]');pb.hidden=!sh;fx.querySelector('[data-afx="k"]').hidden=!sh;/* R-13: the pill's height is kept free at the foot of the page while it shows, so it never covers the line being read */if(!!R.ttsPad!==sh){R.ttsPad=sh;relayout()}if(sh){pb.innerHTML=svg(run?PAUSE:PLAY);pb.setAttribute('aria-label',run?'Pause reading aloud':'Resume reading aloud')}}}catch(e){}
+ try{const fx=$('#afx');if(fx&&!AUTO.on){const sh=TTS.on&&!aw&&$('#rd').classList.contains('on');fx.hidden=true;/* the mini player shows in the reader now (David: the pill looked out of place) */fx.dataset.m=sh?'tts':'';if(sh){fx.setAttribute('aria-label','Reading speed');fx.querySelector('span').textContent=ttsRate().toFixed(1)+'\u00d7';fx.querySelector('[data-afx="0"]').setAttribute('aria-label','Stop reading aloud')}/* pause / resume right on the pill (David: pausing needed the ... menu) */const pb=fx.querySelector('[data-afx="p"]');pb.hidden=!sh;fx.querySelector('[data-afx="k"]').hidden=!sh;/* R-13: the pill's height is kept free at the foot of the page while it shows, so it never covers the line being read */if(!!R.ttsPad!==sh){R.ttsPad=sh;relayout()}if(sh){pb.innerHTML=svg(run?PAUSE:PLAY);pb.setAttribute('aria-label',run?'Pause reading aloud':'Resume reading aloud')}}}catch(e){}
  try{tminiSync()}catch(e){}
 }
 
@@ -10335,8 +10336,7 @@ function tminiToggle(){
  ttsFrom(ttsPos());
 }
 function tminiSync(){
- const rd=$('#rd'),seen=rd.classList.contains('on')&&!rd.classList.contains('ghost')&&!ttsAway();
- const show=!!((TTS.on||DIG.on||tdr.hold)&&!seen&&('speechSynthesis' in window));
+ const show=!!((TTS.on||DIG.on||tdr.hold)&&('speechSynthesis' in window));
  document.body.classList.toggle('hasdock',show);if(!show){const r=document.documentElement.style;r.setProperty('--dockh','0px');r.setProperty('--tabh','0px')}
  let e=$('#tmini');if(!show&&!e)return;e=tmini();e.hidden=!show;
  if(!show){const d=$('#tdr');if(d&&d.open)d.close();return}

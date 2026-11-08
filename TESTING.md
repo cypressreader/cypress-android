@@ -1565,3 +1565,8 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Let A finish while B is open (with something in Up next, or a book with another chapter): it waits and says "Close this story to keep listening"; close B and the next one plays.
 - News story read aloud then reader closed: when it ends it now goes on to Up next (before, it stopped).
 - Same with a Daily podcast story and a book chapter in the background.
+
+## Mini player in the reader (branch, unreleased)
+- Listen to a story, stay on it: the dark mini player shows at the bottom (no small pill). Play/pause, back 15, × stop work from it; tap the title to open the full player.
+- Paged reader: last line on each page stays above the player. Scroll reader: the story's end scrolls clear of it.
+- Hands-free reading (not read-aloud) still shows its speed pill.
