@@ -1,5 +1,5 @@
 /* CyPress web app: keeps the app itself available offline. Feeds are never cached here. */
-const V = 'cyp-web-13';
+const V = 'cyp-web-14';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'icon-mono-512.png'];
 /* one missing icon must not stop the offline copy from installing */
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => Promise.all(FILES.map(f => c.add(f).catch(() => {})))).then(() => self.skipWaiting())); });
@@ -26,15 +26,22 @@ self.addEventListener('fetch', e => {
     const old = await c.match(k0), et = old && old.headers.get('ETag'), lm = old && old.headers.get('Last-Modified');
     const res = await fetch(et || lm ? new Request(r.url, { headers: et ? { 'If-None-Match': et } : { 'If-Modified-Since': lm }, cache: 'no-store' }) : r);
     if (res.status === 304 && old) return old;
-    if (!res.ok) throw 0;
+    /* a redirect (captive portal, sign-in page) or a cross-origin answer must never replace the saved app */
+    if (!res.ok || res.redirected || res.type !== 'basic') throw 0;
     const fresh = res.clone();
     let changed = false;
-    if (old && /index\.html$|\/$/.test(k0.url)) { try { const [x, y] = await Promise.all([old.clone().text(), res.clone().text()]); changed = x !== y; } catch (e) {} }
+    /* the page itself must really be the app, not an error or placeholder page served with 200 */
+    if (/index\.html$|\/$/.test(k0.url)) {
+      const y = await res.clone().text();
+      if (!y.includes('const APP_VERSION=')) throw 0;
+      if (old) { try { changed = (await old.clone().text()) !== y; } catch (e) {} }
+    }
     await c.put(k0, fresh).catch(() => {});
     if (changed) self.clients.matchAll({ type: 'window' }).then(cs => cs.forEach(w => w.postMessage({ type: 'update-ready' })));
     return res;
   });
-  e.respondWith(cached().then(m => m || net).catch(() => cached()));
+  /* nothing saved yet and the answer was refused for saving: show the network answer as the browser would */
+  e.respondWith(cached().then(m => m || net).catch(() => cached().then(m => m || fetch(r))));
   e.waitUntil(net.catch(() => {}));
 });
 self.addEventListener('notificationclick', e => {
