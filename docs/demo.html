@@ -17306,7 +17306,9 @@ const safeRelay=v=>{try{const x=new URL(String(v||'').trim());return x.protocol=
 /* the selected bottom tab's highlight slides to the tab you pick */
 function tabPill(tb){if(tb._pl)return;{const pl=tb._pl=document.createElement('span');pl.className='tpill';pl.setAttribute('aria-hidden','true');tb.prepend(pl);tb.classList.add('pl');
  const mv=()=>{const b=tb.querySelector('button.on'),i=b&&b.querySelector('svg');if(!b||!i||!b.offsetWidth){pl.style.opacity=0;return}pl.style.opacity=1;const r=i.getBoundingClientRect(),q=tb.getBoundingClientRect();pl.style.transform=`translate(${r.left-q.left+r.width/2-32}px,${r.top-q.top+r.height/2-15}px)`;requestAnimationFrame(()=>pl.classList.add('mv'))};
- new MutationObserver(ms=>{if(ms.some(m=>m.target!==pl))mv()}).observe(tb,{subtree:true,attributes:true,attributeFilter:['class']});addEventListener('resize',mv);setTimeout(mv,0)}}
+ /* class flips on the tabs during boot and every render each measured twice: one measure per frame instead */
+ let mq=0;const mvSoon=()=>{if(mq)return;mq=requestAnimationFrame(()=>{mq=0;mv()})};
+ new MutationObserver(ms=>{if(ms.some(m=>m.target!==pl))mvSoon()}).observe(tb,{subtree:true,attributes:true,attributeFilter:['class']});addEventListener('resize',mvSoon);setTimeout(mvSoon,0)}}
 async function makeBackup(){const d={...S,bkAt:Date.now()};delete d.key;['sync','syncB','syncMsg','syncRem','syncSig','syncAt','imt','relay'].forEach(k=>delete d[k]);/* C18: the private sync address stays out of the file */const ok=await saveFile('cypress-backup.json',new Blob([JSON.stringify(d)],{type:'application/json'}));if(ok){S.bkAt=Date.now();save()}return ok}
 /* everything lives on this phone: once a month (counted from the last backup or reminder), a quiet nudge to save a backup */
 setTimeout(()=>{try{const now=Date.now(),last=Math.max(S.bkAt||0,S.bkSeen||0);if(!last){S.bkSeen=now;save();return}if((S.feeds||[]).length<3||now-last<30*864e5)return;S.bkSeen=now;save();toast(S.bkAt?'Your last backup is over a month old':'You haven’t saved a backup yet',()=>makeBackup(),'Back up')}catch(e){}},25000);
