@@ -3962,7 +3962,7 @@ body.narrow .dcov{min-height:max(520px,calc(100svh - 215px - env(safe-area-inset
 #rd .rshbd{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.34)}
 #rd .rsh{position:fixed;left:0;right:0;bottom:0;z-index:61;margin:0 auto;width:min(560px,100%);max-height:min(88svh,760px);overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box;background:var(--pn);color:var(--ink);border:1px solid var(--ln);border-bottom:0;border-radius:20px 20px 0 0;padding:4px 12px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -14px 40px rgba(0,0,0,.25);text-align:left}
 #rd .rsh[hidden],#rd .rshbd[hidden],#rd .rsh [hidden]{display:none!important}
-#rd .rshg{display:block;width:40px;height:4px;border-radius:2px;background:var(--rbr,#b08d3e);margin:8px auto 6px}
+#rd .rshgw{padding:10px 0 6px}#rd .rshg{display:block;width:40px;height:4px;border-radius:2px;background:var(--rbr,#b08d3e);margin:0 auto}
 #rd .rshh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;margin:0}
 #rd .rsh button{all:unset;box-sizing:border-box;cursor:pointer;color:var(--ink);-webkit-tap-highlight-color:transparent}
 #rd .rsh button:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
@@ -12462,7 +12462,7 @@ function mnMarkup(){
  const q=(act,ic,l,x)=>`<button type="button" data-act="${act}"${x||''}>${svg(ic,act==='save'&&sv)}<span class="mnl">${l}</span></button>`,row=(act,l,x)=>`<button type="button" data-act="${act}"${x||''}>${RIC[act.replace(/^fby$/,'follow').replace(/^toc$/,'jump')]?svg(RIC[act.replace(/^fby$/,'follow').replace(/^toc$/,'jump')]):''}<span class="mnl">${l}</span></button>`;
  let h='',fl=false,site='';try{h=a&&a.link?host(a.link):'';fl=!!h&&!S.feeds.some(f=>host(f.url)===h);site=fl?h.replace(/^www\./,''):(a&&fof(a).title)||h}catch(e){}
  const grp=(id,l,x)=>`<div class="rshl" role="group" aria-labelledby="${id}"><h3 id="${id}">${l}</h3>${x}</div>`,fold=(id,l,ic)=>`<button type="button" data-fold="${id}" aria-expanded="false">${svg(ic)}<span class="mnl">${l}</span></button>`;/* FR16: rarely used rows fold under one row each; every data-act handler stays the same */
- return `<div class="rshbd" id="mnbd" hidden></div><div class="rsh" id="mn" role="dialog" aria-modal="true" aria-labelledby="mnh" hidden><span class="rshg" aria-hidden="true"></span><h2 class="rshh" id="mnh">Story options</h2>`
+ return `<div class="rshbd" id="mnbd" hidden></div><div class="rsh" id="mn" role="dialog" aria-modal="true" aria-labelledby="mnh" hidden><div class="rshgw" data-grab><span class="rshg" aria-hidden="true"></span></div><h2 class="rshh" id="mnh">Story options</h2>`
   +`<div class="rshq">${a&&a.book?q('save',BKBM,sv?'Bookmarked':'Bookmark',` aria-pressed="${sv}"`):q('save',STAR,sv?'Saved':'Save',` aria-pressed="${sv}"`)}${q('share',RDX_SHR,'Share')}${tts?q('listen',SPK,'Listen'):''}${q('aa',RDX_AA,'Text',' aria-haspopup="dialog" aria-label="Text and appearance"')}</div>`
   +(tts?`<div class="rshl"><div class="rshp">${fold('lst','Listening options',RIC.auto)}${row('auto','Hands-free reading',' hidden data-fg="lst"')}${row('rp','Playback settings',' hidden data-fg="lst"')}</div></div>`:'')
   +grp('mng1',a&&a.book?'This chapter':'This story',`<div class="rshp">${a&&a.book?row('toc','Contents'):row('hub','Full coverage')}${row('find',a&&a.book?'Find in chapter':'Find in story')}</div>${row('jump','Jump to section',' hidden')}${row('upnext','Add to Up Next')}${row('tr','Translate story')}${a&&a.cm?row('comments',cmLabel(a.cm)==='Comments'?'Comments on the site':cmLabel(a.cm)):''}`)
@@ -12477,7 +12477,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 function rdxMnSync(){if(!curA)return;const sv=isSaved(curA);document.querySelectorAll('#mn [data-act="save"],.rfoot [data-act="save"]').forEach(b=>{b.setAttribute('aria-pressed',String(sv));const o=b.querySelector('svg');if(o)o.outerHTML=starSvg(sv);const l=b.querySelector('.mnl');if(l)l.textContent=sv?'Saved':'Save';else if(!o)b.textContent=sv?'Saved':'Save'})}
 let RDX_MNO=null;
 function rdxMnOpen(){
- const m=$('#mn');if(!m||!m.hidden)return;if($('#pb'))$('#pb').hidden=true;try{mnJump()}catch(e){}rdxMnSync();
+ const m=$('#mn');if(!m||!m.hidden)return;if(!m.dataset.drag){m.dataset.drag=1;sheetDrag(m,()=>rdxMnClose(true))}/* pull the grip down to close, like the Aa sheet; the sheet is rebuilt with each story, so this is wired on first open */if($('#pb'))$('#pb').hidden=true;try{mnJump()}catch(e){}rdxMnSync();
  /* C12: "Hide text" (same name as in the selection pop-up) works on selected text; with nothing selected it shows why it can't be used yet */
  {const jb=m.querySelector('[data-act="junk"]');if(jb){const on=String(getSelection()||'').trim().length>=8;jb.disabled=!on;jb.style.opacity=on?'':'.5';const l=jb.querySelector('.mnl');if(l)l.textContent=on?'Hide text':'Hide text (select some text first)'}}
  /* R-08: "Filed under" row group, only when the story has tags */

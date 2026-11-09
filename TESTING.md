@@ -1644,3 +1644,4 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 ## Error log, email intake 2026-11-08 (implemented, unverified on phone)
 - Settings > Report a problem > "See the details that are sent": recent errors now end in @LINE and include "promise:" lines for failed background work; up to 40 lines.
 - Send an email to hello@cypressreader.com from a phone (with a screenshot attached): it should still arrive in Gmail AND appear on cypressreader.com/insights marked @ with a Reply button; the attachment is listed by name only.
+- Story "..." menu: pull the brass grip bar at the top of the sheet down. A long pull closes it, a short pull springs back (David 2026-11-09: it would not move). Pulling on the rows still scrolls the list.
