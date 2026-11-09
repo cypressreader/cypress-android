@@ -44,12 +44,12 @@ const P=k=>'<p>'+('Paragraph '+k+' of the story with enough ordinary words to ma
   ck(t+'the sample follows alignment',pv.c2.ta==='left'&&pv.a.ta==='justify',JSON.stringify([pv.a.ta,pv.c2.ta]));
   /* diagnostics folded away */
   await p.evaluate(()=>{setShow('about')});await p.waitForTimeout(300);
-  const dv=await p.evaluate(()=>{const d=document.querySelector('#sp-about details.sdev');const ids=['diagb','schkb'].map(i=>{const e=document.getElementById(i);return !!e&&!!e.closest('details.sdev')});return {has:!!d,open:d&&d.open,sum:d&&d.querySelector('summary').textContent.trim(),ids,sup:(()=>{const e=document.getElementById('diagb');return e&&e.getBoundingClientRect().width>0})()}});
+  const dv=await p.evaluate(()=>{const d=[...document.querySelectorAll('#sp-about details.sdev')].find(x=>/Diagnostics/.test(x.querySelector('summary').textContent))/* Keyboard and Diagnostics are separate folded groups now */;const ids=['diagb','schkb'].map(i=>{const e=document.getElementById(i);return !!e&&!!e.closest('details.sdev')});return {has:!!d,open:d&&d.open,sum:d&&d.querySelector('summary').textContent.trim(),ids,sup:(()=>{const e=document.getElementById('diagb');return e&&e.getBoundingClientRect().width>0})()}});
   ck(t+'the developer rows live in their own "Developer and diagnostics" group',dv.has&&/Diagnostics/.test(dv.sum)&&dv.ids.every(Boolean),JSON.stringify(dv));
   /* reset appearance keeps the library */
   await p.evaluate(()=>{S.theme='forest';S.cvs='gallery';S.font='garamond';S.fs=24;S.hl=S.hl||[];S.saved=['https://w.test/keep'];save()});
   const before=await p.evaluate(()=>({feeds:S.feeds.length,saved:S.saved.length}));
-  await p.evaluate(()=>{document.querySelector('#sp-about details.smore').open=true;const d=document.querySelector('#sp-about details.sdev');});
+  await p.evaluate(()=>{document.querySelector('#sp-about details.smore').open=true;const d=[...document.querySelectorAll('#sp-about details.sdev')].find(x=>/Diagnostics/.test(x.querySelector('summary').textContent))/* Keyboard and Diagnostics are separate folded groups now */;});
   await p.click('#resetlookb');await p.waitForTimeout(300);
   const dlg=await p.evaluate(()=>{const d=document.getElementById('ask');return d&&d.open?d.querySelector('h3').textContent:null});
   ck(t+'Reset asks first',/Reset appearance/.test(dlg||''),dlg);

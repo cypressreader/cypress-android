@@ -7724,7 +7724,7 @@ document.addEventListener('click',e=>{
  const t=e.target;if(!t.closest)return;
  if(t.closest('#raa,#raaf,#aaopen')){e.preventDefault();e.stopPropagation();aaToggle(t.closest('#raa,#raaf,#aaopen'));return}
  const pop=$('#aapop');if(!pop||pop.hidden)return;
- if(!t.closest('#aapop')){aaClose(false);return}
+ if(!t.closest('#aapop')){aaClose(false);if(t.closest('.book')){e.stopPropagation();e.preventDefault()}/* a tap on the story only dismisses the sheet; it must not also hide the controls */return}
  const b=t.closest('button');if(!b)return;
  if(b.id==='aax'){aaClose(true);return}
  if(b.id==='aamore'||b.id==='aaall'){aaClose(false);try{$('#gear').onclick()}catch(x){}try{setShow(b.id==='aaall'?'look':'read')}catch(x){}return}
@@ -18018,7 +18018,7 @@ try{const bd=$('#bid');if(bd)bd.value=String(biDays())}catch(e){}
  document.addEventListener('click',e=>{if(document.body.classList.contains('sideshow')&&!e.target.closest('aside')&&!e.target.closest('#sideh,#menu')){document.body.classList.remove('sideshow')}else if(document.body.classList.contains('sideshow')&&e.target.closest('aside [data-sel],aside .fr,aside .nav')&&!e.target.closest('[data-tgl],.frc,.frx,.frmo,.mfh,[data-col],[data-delf],[data-delx]')){setTimeout(()=>{document.body.classList.remove('sideshow');if(rd&&rd.classList.contains('on')&&typeof closeRd==='function')try{closeRd()}catch(er){}},50)}},true);
  let sx=null;document.addEventListener('touchstart',e=>{const t=e.touches[0];sx=(document.body.classList.contains('reading')||document.body.classList.contains('sidehide'))&&t.clientX<18?{x:t.clientX,y:t.clientY}:null},{passive:true});
  document.addEventListener('touchmove',e=>{if(!sx)return;const t=e.touches[0];if(t.clientX-sx.x>48&&Math.abs(t.clientY-sx.y)<40){document.body.classList.add('sideshow');sx=null}},{passive:true});
- document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('sideshow')){document.body.classList.remove('sideshow');e.stopPropagation()}},true);
+ document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const b=document.body,m=$('#menu');if(b.classList.contains('sideshow')){b.classList.remove('sideshow');e.stopPropagation();if(m)m.focus()}else if(b.classList.contains('open')&&!document.querySelector('dialog[open]')&&!e.target.closest('input,textarea,select')){drawer(false);e.stopPropagation();if(m)m.focus()}},true);
 }
 
 

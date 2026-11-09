@@ -4,7 +4,7 @@ let bad=0;const ck=(n,ok,x)=>{console.log((ok?'ok ':'FAIL ')+n+(ok?'':' '+(x||''
 /* [query, names that must appear within the first N results, N] */
 const WANT=[
  ['ctv',['CTV News'],1],['ctv news',['CTV News'],1],['global news',['Global News'],1],['cbc',['CBC News'],1],['globe and mail',['The Globe and Mail'],1],['toronto star',['Toronto Star'],1],
- ['nyt',['The Daily (NYT)'],1],/* hard-paywalled papers left the catalog (1.65) */['hn',['Hacker News'],1],['la times',['Los Angeles Times'],1],
+ ['nyt',['The New York Times'],1],/* the paper is back in the catalog; The Daily (NYT) left it */['hn',['Hacker News'],1],['la times',['Los Angeles Times'],1],
  ['gurdian',['The Guardian World'],4],['techcrnch',['TechCrunch'],1],['arstechnica',['Ars Technica'],1],['nasa',['NASA'],2],['npr',['NPR'],1],
  ['home decor',['Apartment Therapy','Dezeen','Design Milk'],8],['home decorating',['Apartment Therapy'],8],['interior design',['Dezeen'],8],['gardening',['Gardeners\' World'],6],['gardning',['Gardeners\' World'],6],
  ['crypto',['CoinDesk'],4],['bitcoin',['CoinDesk'],4],['knitting',['Knitting Daily'],4],['woodworking',['Popular Woodworking'],4],['woodwork',['Popular Woodworking'],4],['sleep',['Sleep Review'],4],['personal development',['James Clear'],5],

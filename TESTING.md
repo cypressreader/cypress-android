@@ -1651,3 +1651,5 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Bookshelf tiles show "· N% read" or "· Finished" after the chapter count; check with one book partly read and one finished (real device, Books screen).
 - Page pad A−/A+ buttons now announce "Smaller text" / "Larger text" with TalkBack.
 - Email to hello@ with a large screenshot attached before the text: the Insights report should still carry the text (worker reads up to 6 MB now). Live worker needs a redeploy for this.
+- Reader: open the ... menu → Text and appearance, then tap the story text once. The sheet should close and the top bar must stay visible (before, the same tap also hid the controls).
+- Phone: open the sites drawer with the top-left button, press Escape on a keyboard (or Back): drawer closes and focus returns to that button.
