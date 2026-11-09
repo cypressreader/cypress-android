@@ -260,7 +260,7 @@ async function site(req, u) {
   return new Response(r.body, { status: r.status, headers: h });
 }
 
-// ---- Insights (opt-in counts and problem reports). Nothing here stores an address, an ID or anything about a person.
+// ---- Insights (opt-in counts and problem reports). Counts and app reports store no address or ID; an email kept as a report carries its sender so the owner can reply.
 const KEEP = 60 * 60 * 24 * 400; // kept about 13 months, then Cloudflare deletes it
 const rid = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(36)).join('');
 const jres = (o, st, h) => new Response(JSON.stringify(o), { status: st || 200, headers: Object.assign({ 'content-type': 'application/json', 'x-content-type-options': 'nosniff', 'cache-control': 'no-store' }, h || {}) });
@@ -341,11 +341,11 @@ async function insights(req, env) {
       b.fz += +m.fz || 0; b.err += +m.e || 0; b.rg += +m.rg || 0; for (const x of ['t1', 'tr', 'lt']) if (m[x] !== undefined && m[x] !== '' && !isNaN(+m[x])) b[x].push(+m[x]);
       add(b.ef, m.ef); add(b.cf, m.cf); add(b.g, m.g); for (const e of m.em || []) { const c = String(e).split(' ')[0]; if (!b.efx[c]) b.efx[c] = String(e).slice(c.length + 1); } }
     for (const v in by) { const b = by[v]; b.t1 = med(b.t1); b.tr = med(b.tr); b.lt = med(b.lt); b.fzRate = +(b.fz / b.n).toFixed(2); b.errRate = +(b.err / b.n).toFixed(2); }
-    const rs = (await listAll(env.STATS, 'r:', 2000)), newer = [];
-    for (const k of rs.sort((x, y) => (x.name < y.name ? 1 : -1)).slice(0, 30)) { try { const r = JSON.parse(await env.STATS.get(k.name)); if (!r.st || r.st === 'new') newer.push({ t: +k.name.split(':')[1], v: r.v, msg: String(r.msg).slice(0, 300) }); } catch (e) {} }
+    const rs = (await listAll(env.STATS, 'r:', 20000)), newer = [];
+    for (const k of rs.sort((x, y) => (x.name < y.name ? 1 : -1)).slice(0, 30)) { try { const r = JSON.parse(await env.STATS.get(k.name)); if (!r.st || r.st === 'new') newer.push({ t: +k.name.split(':')[1], v: r.v, kind: r.kind || 'app', msg: String(r.msg).slice(0, 300) }); } catch (e) {} }
     return jres({ versions: by, newReports: newer });
   }
-  const rk = (await listAll(env.STATS, 'r:', 2000)).sort((x, y) => (x.name < y.name ? 1 : -1)).slice(0, 60);
+  const rk = (await listAll(env.STATS, 'r:', 20000)).sort((x, y) => (x.name < y.name ? 1 : -1)).slice(0, 60);
   const reports = await Promise.all(rk.map(async k => { try { return Object.assign({ t: +k.name.split(':')[1] }, JSON.parse(await env.STATS.get(k.name))); } catch (e) { return null; } }));
   return jres({ stats: st.map(k => Object.assign({ d: k.name.split(':')[1] }, k.metadata || {})), reports: reports.filter(Boolean) });
 }
@@ -375,36 +375,47 @@ function mailText(raw, depth) {
   const bm = head.match(/boundary="?([^";\r\n]+)"?/i);
   if (bm && (depth || 0) < 4) {
     const parts = body.split('--' + bm[1]).slice(1).filter(p => !/^--/.test(p));
-    const pick = re => parts.find(p => re.test(p.slice(0, p.search(/\r?\n\r?\n/) + 1 || 400)));
-    const p = pick(/content-type:\s*multipart\//i) || pick(/content-type:\s*text\/plain/i) || pick(/content-type:\s*text\/html/i) || parts[0];
-    const files = parts.filter(p => /filename=/i.test(p.slice(0, 600))).map(p => (p.match(/filename="?([^";\r\n]+)"?/i) || [])[1]).filter(Boolean);
+    const hd = p => p.slice(0, p.search(/\r?\n\r?\n/) + 1 || 400), pick = re => parts.find(p => re.test(hd(p)) && !/content-disposition:\s*attachment/i.test(hd(p)));
+    const p = pick(/content-type:\s*text\/plain/i) || pick(/content-type:\s*multipart\//i) || pick(/content-type:\s*text\/html/i) || parts[0];
+    const files = parts.filter(p => /filename=/i.test(hd(p))).map(p => (p.match(/filename="?([^";\r\n]+)"?/i) || [])[1]).filter(Boolean);
     return (p ? mailText(p.replace(/^\r?\n/, ''), (depth || 0) + 1) : '') + (files.length ? '\n[attachments: ' + files.join(', ') + ']' : '');
   }
-  if (/content-disposition:\s*attachment/i.test(head)) return '';
+  if (/content-disposition:\s*attachment/i.test(head) || /^content-type:\s*(?!text\/)\w/im.test(head)) return '';
+  // bounded work: at most 400 KB of a part is decoded, in one pass, honoring the part's charset
+  const cs = (head.match(/charset="?([\w.:-]+)/i) || [])[1], dec = s => { const b = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i); try { return new TextDecoder(cs || 'utf-8').decode(b); } catch (e) { return new TextDecoder().decode(b); } };
   let t = body;
   try {
-    if (/transfer-encoding:\s*quoted-printable/i.test(head)) { const b = []; t.replace(/=\r?\n/g, '').replace(/=([0-9A-F]{2})|([\s\S])/gi, (m, h, c) => { if (h) b.push(parseInt(h, 16)); else b.push(...new TextEncoder().encode(c)); return ''; }); t = new TextDecoder().decode(new Uint8Array(b)); }
-    else if (/transfer-encoding:\s*base64/i.test(head)) t = new TextDecoder().decode(Uint8Array.from(atob(t.replace(/\s+/g, '')), c => c.charCodeAt(0)));
+    if (/transfer-encoding:\s*quoted-printable/i.test(head)) t = dec(t.slice(0, 4e5).replace(/=\r?\n/g, '').replace(/=([0-9A-F]{2})/gi, (m, h) => String.fromCharCode(parseInt(h, 16))));
+    else if (/transfer-encoding:\s*base64/i.test(head)) t = dec(atob(t.replace(/\s+/g, '').slice(0, 4e5)));
   } catch (e) {}
+  t = t.slice(0, 4e5);
   if (/content-type:\s*text\/html/i.test(head)) t = t.replace(/<(style|script)[\s\S]*?<\/\1>/gi, '').replace(/<br\s*\/?>|<\/p>|<\/div>/gi, '\n').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
   return t.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 }
+// encoded words in headers (=?UTF-8?B?...?=) become readable text
+const ew = s => String(s).replace(/\?=\s+=\?/g, '?==?').replace(/=\?([\w-]+)(?:\*[\w-]+)?\?([bq])\?([^?]*)\?=/gi, (m, cs, e, x) => { try { const r = e.toLowerCase() === 'b' ? atob(x) : x.replace(/_/g, ' ').replace(/=([0-9a-f]{2})/gi, (_, h) => String.fromCharCode(parseInt(h, 16))); const b = Uint8Array.from(r, c => c.charCodeAt(0)); try { return new TextDecoder(cs).decode(b); } catch (_) { return new TextDecoder().decode(b); } } catch (_) { return m; } });
+// true when the mail was kept as a report; bulk mail (newsletters, auto-replies) is forwarded but not kept
 async function mailIn(message, env) {
   try {
-    if (!env.STATS) return;
-    const subj = (message.headers.get('subject') || '(no subject)').replace(/\s+/g, ' ').trim();
-    let text = '';
-    if (message.rawSize <= 3e6) { try { text = mailText(await new Response(message.raw).text(), 0); } catch (e) { text = '(could not read the message text)'; } }
-    else text = '(message too large to keep; see the inbox)';
-    const v = (text.match(/native (\d+\.\d+)/) || text.match(/\b(1\.\d{3})\b/) || [])[1] || '';
+    if (!env.STATS) return false;
+    const hh = message.headers; if (hh.get('list-unsubscribe') || /^(bulk|list|junk)$/i.test(hh.get('precedence') || '') || /^auto-(?!.*\bno\b)/i.test(hh.get('auto-submitted') || '')) return false;
+    const subj = ew(hh.get('subject') || '(no subject)').replace(/\s+/g, ' ').trim();
+    const from = ew(hh.get('reply-to') || hh.get('from') || message.from || '').replace(/\s+/g, ' ').slice(0, 300);
+    // only the first ~1 MB is read, whatever the size: a phone screenshot must not cost the text
+    let raw = '', text = ''; try { const rd = message.raw.getReader(), d = new TextDecoder(); while (raw.length < 1e6) { const { done, value } = await rd.read(); if (done) break; raw += d.decode(value, { stream: true }); } rd.cancel().catch(() => {}); } catch (e) {}
+    try { text = mailText(raw, 0); } catch (e) { text = '(could not read the message text)'; }
+    const v = (text.match(/\bnative (1\.\d+) \(\d+\)/) || [])[1] || '';
     const id = Date.now() + ':' + rid();
-    await env.STATS.put('r:' + id, JSON.stringify({ msg: ('Email: ' + subj).slice(0, 2000), info: ('from ' + message.from + '\n' + text).slice(0, 15000), v: word(v, 16), kind: 'email' }), { expirationTtl: KEEP });
-  } catch (e) {}
+    await env.STATS.put('r:' + id, JSON.stringify({ msg: ('Email: ' + subj).slice(0, 2000), info: ('from ' + from + '\n' + text).slice(0, 15000), v: word(v, 16), kind: 'email' }), { expirationTtl: KEEP });
+    return true;
+  } catch (e) { return false; }
 }
 export default {
   async email(message, env) {
-    await mailIn(message, env);
-    if (env.MAIL_TO) await message.forward(env.MAIL_TO);
+    // forward first (the inbox copy matters most), keep a report either way, and only refuse the mail when it was kept nowhere
+    let err = env.MAIL_TO ? null : new Error('MAIL_TO is not set');
+    if (!err) try { await message.forward(env.MAIL_TO); } catch (e) { err = e; }
+    if (!(await mailIn(message, env)) && err) throw err;
   },
   async fetch(req, env) {
     const u = new URL(req.url);

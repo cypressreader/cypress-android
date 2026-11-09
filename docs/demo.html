@@ -5462,7 +5462,7 @@ function quotaFix(){/* storage full when saving the library: it used to delete e
 const ELOG=(()=>{try{return JSON.parse(localStorage.getItem('folio-err')||'[]')}catch(e){return[]}})();
 let ELT=0;
 function elog(tag,e){try{const m=String((e&&(e.message||(e.error&&e.error.message)||e.error||e.reason))||e||'').slice(0,200);let w='';try{const st=String((e&&(e.stack||(e.error&&e.error.stack)||(e.reason&&e.reason.stack)))||''),mm=st.match(/index\.html:(\d+)/)||st.match(/:(\d+):\d+\)?(?:\n|$)/);w=mm?mm[1]:(e&&e.lineno?String(e.lineno):'')}catch(_){}/* line in the app where it happened: the same message can come from five places */ELOG.push({t:Date.now(),g:String(tag).slice(0,40),m,w});if(ELOG.length>100)ELOG.splice(0,ELOG.length-100);clearTimeout(ELT);ELT=setTimeout(()=>{try{localStorage.setItem('folio-err',JSON.stringify(ELOG))}catch(_){}},2000)}catch(_){}}
-addEventListener('error',e=>elog('error',e));addEventListener('unhandledrejection',e=>elog('promise',e&&e.reason!==undefined?e.reason:e));/* failed background work (fetches, parsing, storage) used to vanish without a trace */
+addEventListener('error',e=>elog('error',e));
 /* feature counts for the opt-in weekly counts; kept only while that setting is on */
 const UCT=(()=>{try{return JSON.parse(localStorage.getItem('folio-use')||'{}')}catch(e){return{}}})();
 function use1(k){try{if(!S.ustat)return;UCT[k]=(UCT[k]||0)+1;clearTimeout(use1.t);use1.t=setTimeout(()=>{try{localStorage.setItem('folio-use',JSON.stringify(UCT))}catch(_){}},3000)}catch(e){}}addEventListener('unhandledrejection',e=>elog('promise',e.reason));
@@ -9874,8 +9874,8 @@ function pfAhead(){
 $('main').addEventListener('scroll',()=>{clearTimeout(pfAhead.t);pfAhead.t=setTimeout(pfAhead,1200)},{passive:true});
 /* press-to-load: a finger resting on a card starts that story's download a beat before the tap lands (the reader joins the same download); a scroll cancels it first, so nothing is fetched */
 {let pt=0,px=0,py=0;const g=$('#grid'),stop=()=>{clearTimeout(pt);pt=0};
- g.addEventListener('pointerdown',e=>{stop();if(e.button||e.target.closest('button,.star,[data-why]'))return;const c=e.target.closest('.card,.bi,.bi-d,.cr,.cvl,.cvlead,.cvp,.tri,.pqc');if(!c)return;px=e.clientX;py=e.clientY;
-  pt=setTimeout(()=>{pt=0;const a=cur[+c.dataset.i];if(a&&a.link&&!a.book&&!ytId(a)&&!acHas(a.link)&&!INF[a.link]&&!S.offline&&online())getFull(a.link).catch(()=>{})},60)},{passive:true});
+ g.addEventListener('pointerdown',e=>{stop();if(e.button||e.isPrimary===false||e.target.closest('button,.star,[data-why]'))return;const c=e.target.closest('.card,.bi,.bi-d,.cr,.cvl,.cvlead,.cvp,.tri,.pqc');if(!c)return;px=e.clientX;py=e.clientY;
+  pt=setTimeout(()=>{pt=0;const a=cardStory(c);/* light: the direct route only, no backup services, never on mobile data; the reader upgrades the same download in place when the tap lands */if(a&&a.link&&!a.book&&!ytId(a)&&!acHas(a.link)&&!INF[a.link]&&!S.offline&&online()&&netKind()!=='cell')getFull(a.link,true).catch(()=>{})},60)},{passive:true});
  g.addEventListener('pointermove',e=>{if(pt&&Math.abs(e.clientX-px)+Math.abs(e.clientY-py)>12)stop()},{passive:true});
  g.addEventListener('pointercancel',stop,{passive:true})}
 /* stubborn sites: for the first few stories the quick fetch leaves short or cut off, the slower routes (saved copy, Morss, partner copy) are tried quietly in the background, on Wi-Fi only */
