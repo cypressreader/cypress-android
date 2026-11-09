@@ -1653,3 +1653,9 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Email to hello@ with a large screenshot attached before the text: the Insights report should still carry the text (worker reads up to 6 MB now). Live worker needs a redeploy for this.
 - Reader: open the ... menu → Text and appearance, then tap the story text once. The sheet should close and the top bar must stay visible (before, the same tap also hid the controls).
 - Phone: open the sites drawer with the top-left button, press Escape on a keyboard (or Back): drawer closes and focus returns to that button.
+
+## High contrast switch (2026-11-09, branch)
+- Settings, Look: the theme tiles no longer include High Contrast. Tap Black & White: a "High contrast" switch appears right under its row. Turn it on: gray text goes pure black, lines get thicker, read stories stop fading. Check with TalkBack that it reads as a switch named "High contrast".
+- Pick another theme: the switch disappears. Back to Black & White: it is still on.
+- Someone already on High Contrast before the update: after installing, the screen looks the same, the Black & White tile is selected, and the switch is on.
+- Same in dark mode (Always dark): high contrast shows white on black.
