@@ -1646,3 +1646,8 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Send an email to hello@cypressreader.com from a phone (with a screenshot attached): it should still arrive in Gmail AND appear on cypressreader.com/insights marked @ with a Reply button; the attachment is listed by name only.
 - Story "..." menu: pull the brass grip bar at the top of the sheet down. A long pull closes it, a short pull springs back (David 2026-11-09: it would not move). Pulling on the rows still scrolls the list.
 - Press-to-load after the bug check: a press only ever uses the direct route (no helper services) and never on mobile data. A very slow scroll start can still begin one direct fetch; that is expected.
+
+## Sweep 2026-11-09 (1.294 branch)
+- Bookshelf tiles show "· N% read" or "· Finished" after the chapter count; check with one book partly read and one finished (real device, Books screen).
+- Page pad A−/A+ buttons now announce "Smaller text" / "Larger text" with TalkBack.
+- Email to hello@ with a large screenshot attached before the text: the Insights report should still carry the text (worker reads up to 6 MB now). Live worker needs a redeploy for this.

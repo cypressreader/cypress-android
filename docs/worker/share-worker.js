@@ -401,8 +401,8 @@ async function mailIn(message, env) {
     const hh = message.headers; if (hh.get('list-unsubscribe') || /^(bulk|list|junk)$/i.test(hh.get('precedence') || '') || /^auto-(?!.*\bno\b)/i.test(hh.get('auto-submitted') || '')) return false;
     const subj = ew(hh.get('subject') || '(no subject)').replace(/\s+/g, ' ').trim();
     const from = ew(hh.get('reply-to') || hh.get('from') || message.from || '').replace(/\s+/g, ' ').slice(0, 300);
-    // only the first ~1 MB is read, whatever the size: a phone screenshot must not cost the text
-    let raw = '', text = ''; try { const rd = message.raw.getReader(), d = new TextDecoder(); while (raw.length < 1e6) { const { done, value } = await rd.read(); if (done) break; raw += d.decode(value, { stream: true }); } rd.cancel().catch(() => {}); } catch (e) {}
+    // at most ~6 MB is read, so a phone screenshot placed before the text does not push the text out of the window; parts are still decoded 400 KB at most
+    let raw = '', text = ''; try { const rd = message.raw.getReader(), d = new TextDecoder(); while (raw.length < 6e6) { const { done, value } = await rd.read(); if (done) break; raw += d.decode(value, { stream: true }); } rd.cancel().catch(() => {}); } catch (e) {}
     try { text = mailText(raw, 0); } catch (e) { text = '(could not read the message text)'; }
     const v = (text.match(/\bnative (1\.\d+) \(\d+\)/) || [])[1] || '';
     const id = Date.now() + ':' + rid();
