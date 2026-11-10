@@ -1753,6 +1753,11 @@ html.dynx[data-theme=dynamic] #rd{transition:background-color var(--dur-3) ease}
 #rd.cpv2 .cols:has(>.hs-wcov) .body::before{display:none}#rd.cpv2:not(.rbk) .cols:has(>.hs-wcov) .body>.wbrk{break-before:column;margin-top:var(--wh2,0px)!important}.cols.wfx>.hsf.hs-wcov .hov{width:100%}
 html.rdx .cols>.hsf.hs-wide.hs-wcov img.hero{height:min(calc(var(--ch)*.56),calc(var(--sw)*.62))}.cols>.hsf.hs-wcov .hov{right:auto;width:var(--sw);box-sizing:border-box}.cols>.hsf.hs-wcov .hov .tt{max-width:22em}/* Dynamic cover on two pages: the banner across both pages carries the headline */
 #rd.vert .cols>.hsf.hs-cov+*{margin-top:-20px;padding-top:20px;border-radius:20px 20px 0 0;box-shadow:0 40px 0 var(--sbg),0 -8px 20px rgba(0,0,0,.16)}
+/* Dynamic cover, sharp wide picture on two pages: the picture fills the whole first screen, the headline sits lower left and the story starts on a paper sheet over the right page */
+#rd.cpv2 .cols:has(>.hs-ccov){isolation:isolate}#rd.cpv2 .cols>.hsf.hs-ccov{position:static;pointer-events:none;--cr:min(var(--bleed),calc(var(--cg) - var(--bleed)))}/* not positioned on purpose: the picture, shading and sheet then hang off the page strip itself, so they can run past the page edges without being cut into the next column */
+html.rdx #rd.cpv2 .cols>.hsf.hs-ccov img.hero{position:absolute;z-index:-3;left:calc(-1*var(--bleed));top:calc(-1*var(--bleed));width:calc(var(--sw) + var(--bleed) + var(--cr));height:calc(var(--ch) + 2*var(--bleed));max-width:none;border-radius:0}/* --cr: the right edge stops short of the next screen */
+#rd.cpv2 .cols>.hsf.hs-ccov .hov{z-index:-2;pointer-events:auto;left:calc(-1*var(--bleed));right:auto;bottom:calc(-1*var(--bleed));width:calc(var(--sw) + var(--bleed) + var(--cr));box-sizing:border-box;padding-left:calc(24px + var(--bleed));padding-bottom:calc(24px + var(--bleed));padding-right:calc((var(--sw) + var(--cg))/2 + var(--bleed) + 24px);border-radius:0}
+#rd.cpv2 .cols>.hsf.hs-ccov::after{content:'';position:absolute;z-index:-1;top:-14px;bottom:-14px;right:-18px;width:calc((var(--sw) - var(--cg))/2 + 36px);background:var(--pn);border-radius:20px;box-shadow:0 8px 28px rgba(0,0,0,.35)}
 /* Dynamic reader palette: the picture's second color tints the label and first letter, its third the quotes (set by rdPal; text stays well above readable contrast) */
 html.dynx[data-theme=dynamic] #rd.pal :is(.kick,.body p.dropcap .dcap){color:color-mix(in srgb,var(--rk) 75%,var(--ink))}
 html.dynx[data-theme=dynamic] #rd.pal .body :is(blockquote:not(.emb blockquote),.pullq){background:color-mix(in srgb,var(--rq) 15%,transparent);border-radius:10px}
@@ -8856,7 +8861,7 @@ function layout(){prepDrop();noteFix();
  /* R-03: a phone turned sideways reads one centered column of about 65 characters, not one 80-character line across the screen */
  const xo=R.cpv===1&&!vert&&H<600&&W>H*1.6?Math.max(0,Math.round((W-2*P-(+S.fs||18)*34)/2)):0;
  const use=W-2*P-2*xo,ch=H-2*P-(R.ttsPad&&!vert?(parseFloat(document.documentElement.style.getPropertyValue('--dockh'))||72):0)/* R-13: room for the mini player */;gap+=2*xo;/* the page step stays the book's width, so the next page's text stays out of view */
- c.style.cssText=`left:${P+xo}px;top:${P}px;width:${use}px;height:${ch}px;column-count:${R.cpv};column-gap:${gap}px;--ih:${Math.round(ch*.5)}px;--ch:${ch}px;--sw:${use}px;--bleed:${P}px`;
+ c.style.cssText=`left:${P+xo}px;top:${P}px;width:${use}px;height:${ch}px;column-count:${R.cpv};column-gap:${gap}px;--ih:${Math.round(ch*.5)}px;--ch:${ch}px;--sw:${use}px;--bleed:${P}px;--cg:${gap}px`;
  const cw=(use-(R.cpv-1)*gap)/R.cpv;
  R.step=use+gap;
  try{fitHero(c,cw,gap)}catch(e){elog('fitHero',e)}
@@ -14278,7 +14283,7 @@ function heroSpread(){
  const want=(()=>{
   let m=S.rl||'auto';
   /* Dynamic cover: on a one-page screen a large sharp picture opens the story as page 1, headline over it and the opening lines underneath; small or unmeasured pictures open as before */
-  if(m!=='classic'&&!R.web&&!(curA&&curA.book)&&isOn('dynx')&&document.documentElement.dataset.theme==='dynamic'){const i=old?old.querySelector('img.hero'):c.querySelector(':scope>img.hero'),d=i&&((i.complete&&i.naturalWidth)?[i.naturalWidth,i.naturalHeight]:IMGDIM.get(i.getAttribute('src')));if(d&&d[0]>=900&&d[1]>=500){if(isVert()||bk.clientWidth<700)return 'cov';/* two pages (open Fold, tablet): a tall or square picture fills the left page, a wide one runs across both pages; headline over the picture either way. Only on Automatic, and never after the banner was squeezed to a strip (R.hsq) */if(m==='auto'&&isOn('mag')&&!R.hsq&&innerWidth>=700&&Math.min(innerWidth,innerHeight)>=600)return d[1]>d[0]*.85?'hero':'wcov'}}
+  if(m!=='classic'&&!R.web&&!(curA&&curA.book)&&isOn('dynx')&&document.documentElement.dataset.theme==='dynamic'){const i=old?old.querySelector('img.hero'):c.querySelector(':scope>img.hero'),d=i&&((i.complete&&i.naturalWidth)?[i.naturalWidth,i.naturalHeight]:IMGDIM.get(i.getAttribute('src')));if(d&&d[0]>=900&&d[1]>=500){if(isVert()||bk.clientWidth<700)return 'cov';/* two pages (open Fold, tablet): a tall or square picture fills the left page, a wide one runs across both pages, and a wide one sharp enough for the whole screen (1600px+) sits behind everything with the story on a sheet over the right page; headline over the picture every time. Only on Automatic, and never after the banner was squeezed to a strip (R.hsq) */if(m==='auto'&&isOn('mag')&&!R.hsq&&innerWidth>=700&&Math.min(innerWidth,innerHeight)>=600)return d[1]>d[0]*.85?'hero':d[0]>=1600?'ccov':'wcov'}}
   if(m==='classic'||!isOn('mag')||isVert()||bk.clientWidth<700)return '';
   const im=old?old.querySelector('img.hero'):c.querySelector(':scope>img.hero');if(!im)return '';
   if(m==='auto'){const d=(im.complete&&im.naturalWidth)?[im.naturalWidth,im.naturalHeight]:IMGDIM.get(im.getAttribute('src'));/* a picture the lists already loaded is known before it arrives, so the opening layout is the final one */const dd=d||[1600,1000];/* size not known yet: a landscape photo is the usual case, so the room is held for it and the layout does not jump when it arrives */if(dd[0]<800)return '';m=dd[1]>dd[0]*.85||R.hsq?'top':'wide'}
@@ -14288,10 +14293,10 @@ function heroSpread(){
  if(old){const tx=[...old.querySelectorAll('.kick,.tt,.dt')];tx.forEach(x=>c.insertBefore(x,old));const im=old.querySelector('img.hero');if(im){const dt=c.querySelector(':scope>.dt');if(!tx.length&&dt)dt.after(im);else c.insertBefore(im,old)}old.remove()}
  if(!want){mnotes();return}
  const im=c.querySelector(':scope>img.hero');if(!im)return;
- const fig=document.createElement('figure');fig.className='hsf hs-'+(want==='cov'?'hero hs-cov':want==='wcov'?'wide hs-hero hs-wcov':want);fig.dataset.m=want;
+ const fig=document.createElement('figure');fig.className='hsf hs-'+(want==='cov'?'hero hs-cov':want==='wcov'?'wide hs-hero hs-wcov':want==='ccov'?'hero hs-ccov':want);fig.dataset.m=want;
  const first=c.firstElementChild;c.insertBefore(fig,first);
  fig.append(im);{const hc=c.querySelector(':scope>.hcap');if(hc)fig.after(hc)}/* polish-2026-10 R-02: the caption and credit stay under the photo, never under the byline */
- const hero=want==='hero'||want==='cov'||want==='wcov';
+ const hero=want==='hero'||want==='cov'||want==='wcov'||want==='ccov';
  if(hero||want==='top'){const ov=document.createElement('div');ov.className='hov';['.kick','.tt','.dt'].forEach(q=>{const e=c.querySelector(':scope>'+q);if(e)ov.append(e)});fig.append(ov);if(hero||want==='wide'){cardFocus(im)}if(hero)imgInfo(im.getAttribute('src')).then(o=>{if(o&&o.l>105)fig.classList.add('bright')}).catch(()=>{})}
  mnotes();
 }
@@ -18692,7 +18697,7 @@ function fitPage1(c,cw,gap){if(curA&&curA.book)return;
  const m=c.querySelector(':scope>.mnotes'),hs=c.querySelector(':scope>.hsf'),im=hs&&hs.querySelector('img.hero');
  const undo=()=>{if(im){im.style.removeProperty('height');im.style.removeProperty('max-height');im.style.removeProperty('object-fit');im.style.removeProperty('aspect-ratio')}};
  undo();if(m)m.style.removeProperty('display');
- if(R.cpv!==2||!m||!hs||R.web||isVert()||hs.dataset.m==='hero')return;
+ if(R.cpv!==2||!m||!hs||R.web||isVert()||hs.dataset.m==='hero'||hs.dataset.m==='ccov')return;
  const pitch=cw+gap,cr=()=>c.getBoundingClientRect();
  /* everything in the picture block, and the box, must sit inside column 1 */
  const fits=()=>{const L=cr().left,els=[...(m.style.display==='none'?[]:[m]),...hs.querySelectorAll('*')];for(const e of els)for(const q of e.getClientRects()){if(q.width&&q.height&&q.left-L>=pitch-4)return false}return true};

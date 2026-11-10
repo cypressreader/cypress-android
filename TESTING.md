@@ -1688,3 +1688,8 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - [ ] Same, story with a TALL or square large picture: the picture fills the left page with the headline over it; the story starts at the top of the right page.
 - [ ] A story that is still loading keeps its banner (it used to drop to the small picture). Page turn away from the cover and back looks normal.
 - [ ] Wide-picture stories outside the Dynamic theme: the story now starts on the right page of the first screen, not one page later.
+
+## Two-page Dynamic cover, option C (unshipped, for 1.300) — implemented, unverified on device
+- Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at least 1600px across: picture fills the whole first screen, headline lower left, story on a paper sheet over the right page.
+- Check: sheet sits clear of the hinge; page turn away and back looks right (the lifting page shows the sheet); no sliver of the picture on page 2; Follow button on the cover still taps.
+- Wide pictures under 1600px still open as the banner across both pages; tall/square ones still fill the left page.
