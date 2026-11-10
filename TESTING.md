@@ -1671,3 +1671,10 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - A story that just arrived has a wash of its site color that is gone by the next day (tile cards and list rows; text-only color boxes do not change)
 - (ideas 12, 15, same branch) Card views in Dynamic: pictures away from the middle of the screen sit in one wash of their site color and open into full color near the middle; scrolling stays smooth on an older phone; all pictures full color in list, Columns, low-power, reduced motion. If no wash shows at all, the phone's web view is too old for it (fails safe to full color)
 - Photo cards in Dynamic throw a soft shadow in the picture's own color; neighbors' glows do not run together
+
+## Cover page in the page-turn reader (Dynamic theme, built 2026-11-10, not yet shipped)
+- [ ] Dynamic theme, page-turn reading, phone (or Fold cover screen): a story with a large sharp picture opens with the picture filling most of page 1, the headline over it, and the opening lines underneath.
+- [ ] The headline is easy to read over light and dark pictures.
+- [ ] Turning forward and back from the cover feels the same as any other page.
+- [ ] A story with a small or missing picture opens as before.
+- [ ] Other themes, scrolling stories and the unfolded Fold look as before.

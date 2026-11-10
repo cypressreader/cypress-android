@@ -1864,6 +1864,7 @@ html.dynx[data-theme=dynamic] #grid .card.nr{border-bottom-width:0}
 html.dynx[data-theme=dynamic] #grid .card.act{box-shadow:0 0 0 2px color-mix(in srgb,var(--b) 70%,transparent),0 8px 26px color-mix(in srgb,var(--b) 30%,transparent)}
 html.dynx[data-theme=dynamic] #tabs{background:color-mix(in srgb,var(--dyn) 12%,color-mix(in srgb,var(--pn) 92%,transparent))}
 html.dynx[data-theme=dynamic] #rd{transition:background-color var(--dur-3) ease}
+.cols>.hsf.hs-cov{height:calc(var(--ch)*.62);break-after:auto;margin:0 0 18px;border-radius:16px;overflow:hidden}/* Dynamic cover: the picture takes most of page 1 and the story starts under it */
 /* Dynamic reader palette: the picture's second color tints the label and first letter, its third the quotes (set by rdPal; text stays well above readable contrast) */
 html.dynx[data-theme=dynamic] #rd.pal :is(.kick,.body p.dropcap .dcap){color:color-mix(in srgb,var(--rk) 75%,var(--ink))}
 html.dynx[data-theme=dynamic] #rd.pal .body :is(blockquote:not(.emb blockquote),.pullq){background:color-mix(in srgb,var(--rq) 15%,transparent);border-radius:10px}
@@ -14399,6 +14400,8 @@ function heroSpread(){
  const old=c.querySelector(':scope>.hsf');
  const want=(()=>{
   let m=S.rl||'auto';
+  /* Dynamic cover: on a one-page screen a large sharp picture opens the story as page 1, headline over it and the opening lines underneath; small or unmeasured pictures open as before */
+  if(m!=='classic'&&!isVert()&&bk.clientWidth<700&&!R.web&&!(curA&&curA.book)&&isOn('dynx')&&document.documentElement.dataset.theme==='dynamic'){const i=old?old.querySelector('img.hero'):c.querySelector(':scope>img.hero'),d=i&&((i.complete&&i.naturalWidth)?[i.naturalWidth,i.naturalHeight]:IMGDIM.get(i.getAttribute('src')));if(d&&d[0]>=900&&d[1]>=500)return 'cov'}
   if(m==='classic'||!isOn('mag')||isVert()||bk.clientWidth<700)return '';
   const im=old?old.querySelector('img.hero'):c.querySelector(':scope>img.hero');if(!im)return '';
   if(m==='auto'){const d=(im.complete&&im.naturalWidth)?[im.naturalWidth,im.naturalHeight]:IMGDIM.get(im.getAttribute('src'));/* a picture the lists already loaded is known before it arrives, so the opening layout is the final one */const dd=d||[1600,1000];/* size not known yet: a landscape photo is the usual case, so the room is held for it and the layout does not jump when it arrives */if(dd[0]<800)return '';m=dd[1]>dd[0]*.85||R.hsq?'top':'wide'}
@@ -14408,10 +14411,11 @@ function heroSpread(){
  if(old){const tx=[...old.querySelectorAll('.kick,.tt,.dt')];tx.forEach(x=>c.insertBefore(x,old));const im=old.querySelector('img.hero');if(im){const dt=c.querySelector(':scope>.dt');if(!tx.length&&dt)dt.after(im);else c.insertBefore(im,old)}old.remove()}
  if(!want){mnotes();return}
  const im=c.querySelector(':scope>img.hero');if(!im)return;
- const fig=document.createElement('figure');fig.className='hsf hs-'+want;fig.dataset.m=want;
+ const fig=document.createElement('figure');fig.className='hsf hs-'+(want==='cov'?'hero hs-cov':want);fig.dataset.m=want;
  const first=c.firstElementChild;c.insertBefore(fig,first);
  fig.append(im);{const hc=c.querySelector(':scope>.hcap');if(hc)fig.after(hc)}/* polish-2026-10 R-02: the caption and credit stay under the photo, never under the byline */
- if(want==='hero'||want==='top'){const ov=document.createElement('div');ov.className='hov';['.kick','.tt','.dt'].forEach(q=>{const e=c.querySelector(':scope>'+q);if(e)ov.append(e)});fig.append(ov);if(want==='hero'||want==='wide'){cardFocus(im)}if(want==='hero')imgInfo(im.getAttribute('src')).then(o=>{if(o&&o.l>105)fig.classList.add('bright')}).catch(()=>{})}
+ const hero=want==='hero'||want==='cov';
+ if(hero||want==='top'){const ov=document.createElement('div');ov.className='hov';['.kick','.tt','.dt'].forEach(q=>{const e=c.querySelector(':scope>'+q);if(e)ov.append(e)});fig.append(ov);if(hero||want==='wide'){cardFocus(im)}if(hero)imgInfo(im.getAttribute('src')).then(o=>{if(o&&o.l>105)fig.classList.add('bright')}).catch(()=>{})}
  mnotes();
 }
 /* "From the publisher" (was "Why it matters"; R-03): the story's own description in an editor's-note box between the byline and the text; skipped when it only repeats how the article starts */
