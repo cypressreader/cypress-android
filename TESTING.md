@@ -1659,3 +1659,7 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Pick another theme: the switch disappears. Back to Black & White: it is still on.
 - Someone already on High Contrast before the update: after installing, the screen looks the same, the Black & White tile is selected, and the switch is on.
 - Same in dark mode (Always dark): high contrast shows white on black.
+
+## 1.296 (2026-11-10) — implemented, unverified on device
+- Fold unfolded, All Stories, Cards view: scroll through several loads; no row of 3 photo cards with an empty 4th slot
+- A story card whose label had "&AMP;" now reads "Privacy & Security"
