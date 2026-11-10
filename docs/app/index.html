@@ -1623,7 +1623,7 @@ html.rdx .cols>.hsf.hs-wide img.hero,.cols>.hsf.hs-wide img.hero{width:var(--sw)
 .cols>.hsf.hs-wide{height:auto;break-after:auto;break-inside:avoid;margin:0 0 22px}
 /* F10: a phone on its side has one short column per page: the photo filled page 1 and pushed the headline to page 2. Here it sits beside the headline instead */
 @media (orientation:landscape) and (max-height:500px){#rd:not(.cpv2) .cols>.hsf.hs-wide{float:left;width:42%;margin:0 24px 10px 0}html.rdx #rd:not(.cpv2) .cols>.hsf.hs-wide img.hero,#rd:not(.cpv2) .cols>.hsf.hs-wide img.hero{width:100%;height:calc(var(--ch) - 12px)}}
-#rd.cpv2 .cols:has(>.hs-wide) .body>:first-child{break-before:auto}
+#rd.cpv2:not(.rbk) .cols:has(>.hs-wide) .body>:first-child{break-before:auto}/* :not(.rbk) only so this outranks the later 'story starts on a fresh page' rule */
 #rd.cpv2 .cols.wfx:has(>.hs-wide) .body::before{display:none}
 #rd.cpv2 .cols:has(>.hs-wide) .body::before{content:'';display:block;break-before:column;height:var(--wh2,0px)}/* David 2026-10-31: while the story is still loading, the 'still trying' note takes the spacer's place below the wide photo instead of landing on top of it */#rd.cpv2 .cols:has(>.hs-wide):has(>.body>.skp)>.note:not([hidden]){break-before:column;margin-top:var(--wh2,0px)}#rd.cpv2 .cols:has(>.hs-wide):has(>.note:not([hidden])):has(>.body>.skp) .body::before{display:none}
 html.rdx .cols>.hsf.hs-top img.hero{width:100%;height:auto;aspect-ratio:auto;max-height:calc(var(--ch)*.6);object-fit:cover}/* the whole photo across the page above the headline; only a very tall one is trimmed */
@@ -1750,6 +1750,7 @@ html.dynx[data-theme=dynamic] #rd{transition:background-color var(--dur-3) ease}
 #rd.vert .cols>.hsf.hs-cov~*{position:relative;z-index:1;--sbg:var(--pn);background:var(--sbg);box-shadow:0 40px 0 var(--sbg)}
 #rd.amb.vert .cols>.hsf.hs-cov~*{--sbg:var(--rbg)}
 #rd.vert .cols>.hsf.hs-cov~.whyit{background:var(--sbg)!important;box-shadow:0 40px 0 var(--sbg)!important}/* the summary box is see-through elsewhere; over the cover it must hide the picture */
+html.rdx .cols>.hsf.hs-wide.hs-wcov img.hero{height:min(calc(var(--ch)*.56),calc(var(--sw)*.62))}.cols>.hsf.hs-wcov .hov{right:auto;width:var(--sw);box-sizing:border-box}.cols>.hsf.hs-wcov .hov .tt{max-width:22em}/* Dynamic cover on two pages: the banner across both pages carries the headline */
 #rd.vert .cols>.hsf.hs-cov+*{margin-top:-20px;padding-top:20px;border-radius:20px 20px 0 0;box-shadow:0 40px 0 var(--sbg),0 -8px 20px rgba(0,0,0,.16)}
 /* Dynamic reader palette: the picture's second color tints the label and first letter, its third the quotes (set by rdPal; text stays well above readable contrast) */
 html.dynx[data-theme=dynamic] #rd.pal :is(.kick,.body p.dropcap .dcap){color:color-mix(in srgb,var(--rk) 75%,var(--ink))}
@@ -14276,7 +14277,7 @@ function heroSpread(){
  const want=(()=>{
   let m=S.rl||'auto';
   /* Dynamic cover: on a one-page screen a large sharp picture opens the story as page 1, headline over it and the opening lines underneath; small or unmeasured pictures open as before */
-  if(m!=='classic'&&(isVert()||bk.clientWidth<700)&&!R.web&&!(curA&&curA.book)&&isOn('dynx')&&document.documentElement.dataset.theme==='dynamic'){const i=old?old.querySelector('img.hero'):c.querySelector(':scope>img.hero'),d=i&&((i.complete&&i.naturalWidth)?[i.naturalWidth,i.naturalHeight]:IMGDIM.get(i.getAttribute('src')));if(d&&d[0]>=900&&d[1]>=500)return 'cov'}
+  if(m!=='classic'&&!R.web&&!(curA&&curA.book)&&isOn('dynx')&&document.documentElement.dataset.theme==='dynamic'){const i=old?old.querySelector('img.hero'):c.querySelector(':scope>img.hero'),d=i&&((i.complete&&i.naturalWidth)?[i.naturalWidth,i.naturalHeight]:IMGDIM.get(i.getAttribute('src')));if(d&&d[0]>=900&&d[1]>=500){if(isVert()||bk.clientWidth<700)return 'cov';/* two pages (open Fold, tablet): a tall or square picture fills the left page, a wide one runs across both pages; headline over the picture either way. Only on Automatic, and never after the banner was squeezed to a strip (R.hsq) */if(m==='auto'&&isOn('mag')&&!R.hsq&&innerWidth>=700&&Math.min(innerWidth,innerHeight)>=600)return d[1]>d[0]*.85?'hero':'wcov'}}
   if(m==='classic'||!isOn('mag')||isVert()||bk.clientWidth<700)return '';
   const im=old?old.querySelector('img.hero'):c.querySelector(':scope>img.hero');if(!im)return '';
   if(m==='auto'){const d=(im.complete&&im.naturalWidth)?[im.naturalWidth,im.naturalHeight]:IMGDIM.get(im.getAttribute('src'));/* a picture the lists already loaded is known before it arrives, so the opening layout is the final one */const dd=d||[1600,1000];/* size not known yet: a landscape photo is the usual case, so the room is held for it and the layout does not jump when it arrives */if(dd[0]<800)return '';m=dd[1]>dd[0]*.85||R.hsq?'top':'wide'}
@@ -14286,10 +14287,10 @@ function heroSpread(){
  if(old){const tx=[...old.querySelectorAll('.kick,.tt,.dt')];tx.forEach(x=>c.insertBefore(x,old));const im=old.querySelector('img.hero');if(im){const dt=c.querySelector(':scope>.dt');if(!tx.length&&dt)dt.after(im);else c.insertBefore(im,old)}old.remove()}
  if(!want){mnotes();return}
  const im=c.querySelector(':scope>img.hero');if(!im)return;
- const fig=document.createElement('figure');fig.className='hsf hs-'+(want==='cov'?'hero hs-cov':want);fig.dataset.m=want;
+ const fig=document.createElement('figure');fig.className='hsf hs-'+(want==='cov'?'hero hs-cov':want==='wcov'?'wide hs-hero hs-wcov':want);fig.dataset.m=want;
  const first=c.firstElementChild;c.insertBefore(fig,first);
  fig.append(im);{const hc=c.querySelector(':scope>.hcap');if(hc)fig.after(hc)}/* polish-2026-10 R-02: the caption and credit stay under the photo, never under the byline */
- const hero=want==='hero'||want==='cov';
+ const hero=want==='hero'||want==='cov'||want==='wcov';
  if(hero||want==='top'){const ov=document.createElement('div');ov.className='hov';['.kick','.tt','.dt'].forEach(q=>{const e=c.querySelector(':scope>'+q);if(e)ov.append(e)});fig.append(ov);if(hero||want==='wide'){cardFocus(im)}if(hero)imgInfo(im.getAttribute('src')).then(o=>{if(o&&o.l>105)fig.classList.add('bright')}).catch(()=>{})}
  mnotes();
 }
@@ -18677,7 +18678,7 @@ function fitWide(c,cw,gap){
  const im=c.querySelector(':scope>.hs-wide img.hero'),set=()=>c.style.setProperty('--wh2',im?im.offsetHeight+22+'px':'0px');
  c.classList.remove('wfx');if(im)im.style.removeProperty('width');
  set();if(!im||R.cpv!==2)return;
- const pitch=cw+gap,L=c.getBoundingClientRect().left,pre=[];for(const k of c.children){if(k.classList.contains('body'))break;pre.push(k)}
+ const pitch=cw+gap,L=c.getBoundingClientRect().left,pre=[];for(const k of c.children){if(k.classList.contains('body'))break;/* Dynamic cover: the loading line is put on the right page on purpose (CSS), so it must not count as spilled or every loading story loses its banner */if(k.classList.contains('note')&&c.querySelector(':scope>.hs-wcov'))continue;pre.push(k)}
  const fits=()=>pre.every(e=>[...e.getClientRects()].every(q=>!q.width||!q.height||q.left-L<pitch-4));
  for(let k=0;k<12&&!fits();k++){const h=im.offsetHeight;if(h<=150)break;im.style.height=Math.max(150,Math.round(h*.88))+'px';set()}
  /* David 2026-11-07: a banner squeezed to a strip by a tall headline block showed a quarter of the picture while the right page sat empty: the photo goes to the top of the left page at its own shape instead, and the story starts on the right page */

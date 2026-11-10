@@ -1682,3 +1682,9 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 
 ## Scrolling cover: summary box over the picture (after 1.298, not yet built)
 - [ ] Dynamic theme, phone size, scrolling story with a large picture and an AI summary: as the story slides up, the summary box hides the picture behind it and every line stays readable.
+
+## Cover on the open Fold / tablet (after 1.299, not yet built)
+- [ ] Dynamic theme, Fold open, page-turn mode, Reading layout on Automatic, story with a WIDE large picture: the picture runs across both pages with the headline over it; the story starts on the right page under it (At a glance / summary boxes sit on the left).
+- [ ] Same, story with a TALL or square large picture: the picture fills the left page with the headline over it; the story starts at the top of the right page.
+- [ ] A story that is still loading keeps its banner (it used to drop to the small picture). Page turn away from the cover and back looks normal.
+- [ ] Wide-picture stories outside the Dynamic theme: the story now starts on the right page of the first screen, not one page later.
