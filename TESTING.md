@@ -1663,3 +1663,9 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 ## 1.296 (2026-11-10) — implemented, unverified on device
 - Fold unfolded, All Stories, Cards view: scroll through several loads; no row of 3 photo cards with an empty 4th slot
 - A story card whose label had "&AMP;" now reads "Privacy & Security"
+
+## Dynamic theme upgrades (2026-11-10, on branch, NOT built) — implemented, unverified on device
+- Open a story with a colorful picture in Dynamic: label and big first letter take a second color from the picture, quotes get a soft wash; text stays easy to read in light and dark
+- The Daily in Dynamic: glow, tab bar and the line under each section heading change color per section (front red, quick reads teal, deep dives indigo, quiet green, more orange)
+- Cards view, Medium or Large size: the story nearest the middle lifts and glows; scrolling stays smooth; none in Compact, list, Columns, low-power or data-saver
+- A story that just arrived has a wash of its site color that is gone by the next day (tile cards and list rows; text-only color boxes do not change)
