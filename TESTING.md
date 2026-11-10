@@ -1693,3 +1693,15 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at least 1600px across: picture fills the whole first screen, headline lower left, story on a paper sheet over the right page.
 - Check: sheet sits clear of the hinge; page turn away and back looks right (the lifting page shows the sheet); no sliver of the picture on page 2; Follow button on the cover still taps.
 - Wide pictures under 1600px still open as the banner across both pages; tall/square ones still fill the left page.
+
+## Deep-dive audit fixes (2026-11-10, unshipped, for 1.301) — implemented, unverified on device
+- [ ] Open a large EPUB from the Files app ("Open with CyPress"), ideally one stored in a cloud drive: the app stays responsive and the book appears when the copy finishes.
+- [ ] Erase everything: afterwards the natural voice needs downloading again, and a site that needed the hidden browser check asks for it again (its cookies are gone).
+- [ ] A site that blocks the app (bot check) still loads its stories through the hidden browser.
+- [ ] Natural voice download: start on Wi-Fi, switch Wi-Fi off mid-download: it stops with a message, and continues from where it stopped when chosen again on Wi-Fi. The finished voice plays.
+- [ ] Turn on the phone's own Data Saver: hourly background refresh waits for Wi-Fi.
+- [ ] Translated headlines on mobile data with no language pack yet: headlines stay in the original language; on Wi-Fi the pack downloads and they translate.
+- [ ] The Daily: the cover picture drift while scrolling still looks smooth (it now updates about 12 times a second, like the card pictures).
+- [ ] Search finds a headline from several days ago when many sites are followed.
+- [ ] Sync on two devices (both updated): Undo "Marked as read" on one, sync both: the stories stay unread on the other.
+- [ ] First build after this: the "Location permission found" check passes, and the build still produces the Play bundle.
