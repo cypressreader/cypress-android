@@ -1872,6 +1872,14 @@ html.dynx[data-theme=dynamic] #grid .dhd h3.dsh[style*="--sc"]{border-bottom-col
 /* Dynamic spotlight: the story near the middle of the screen lifts a little and glows in its site color (transform and shadow only, so rows and sizes never change) */
 @media(prefers-reduced-motion:no-preference){html.dynx[data-theme=dynamic]:not(.lowp):not(.rmo):not(.smooth) #grid:not(.list):not([data-wdens=col]):is([data-cards=medium],[data-cards=large]) .card{transition:transform var(--dur-2),box-shadow var(--dur-3)}
 html.dynx[data-theme=dynamic]:not(.lowp):not(.rmo):not(.smooth) #grid:not(.list):not([data-wdens=col]):is([data-cards=medium],[data-cards=large]) .card.spot{transform:translateY(-4px);z-index:2;box-shadow:0 0 0 1px color-mix(in srgb,var(--b) 45%,transparent),0 12px 32px color-mix(in srgb,var(--b) 38%,transparent)}}
+/* Dynamic bloom: away from the middle of the screen a story's picture sits in its site color (light and dark kept, hue replaced); in the middle half it opens into full color. An overlay pinned to the picture, paint only; #grid.dbl exists only while dynLive's observer runs, so full color is the default */
+@supports(anchor-name:--a){html.dynx[data-theme=dynamic]:not(.lowp) #grid.dbl:not(.list):not([data-wdens=col]) .card:not(.list-row)>img{anchor-name:--dpic}
+html.dynx[data-theme=dynamic]:not(.lowp) #grid.dbl:not(.list):not([data-wdens=col]) .card:not(.noimg):not(.list-row):has(>img)::after{content:"";position:absolute;position-anchor:--dpic;top:anchor(top);left:anchor(left);right:anchor(right);bottom:anchor(bottom);z-index:-1;background:var(--b);mix-blend-mode:color;opacity:0;pointer-events:none}
+html.dynx[data-theme=dynamic]:not(.lowp) #grid.dbl:not(.list):not([data-wdens=col]) .card.dw:not(.noimg):not(.list-row):has(>img)::after{opacity:1}
+html.dynx[data-theme=dynamic]:not(.lowp) #grid.dbl:not(.list):not([data-wdens=col]) .card.dw{--pc:var(--b)!important}/* a washed picture glows in the color it shows */
+@media(prefers-reduced-motion:no-preference){html.dynx[data-theme=dynamic]:not(.lowp) #grid.dbl .card:not(.noimg):has(>img)::after{transition:opacity var(--dur-3)}}}
+/* Dynamic glow: a photo card throws a soft shadow in its picture's own color (its site color until the picture is measured); the spotlit card keeps its stronger halo */
+html.dynx[data-theme=dynamic]:not(.lowp) #grid:not(.list):not([data-wdens=col]) .card:not(.noimg):not(.list-row):has(>img){box-shadow:0 12px 20px -10px color-mix(in srgb,var(--pc,var(--b)) 75%,transparent)}
 /* Dynamic fresh stories: the tile (or list row) is washed in the site color, up to 30% for a story that just arrived, fading to nothing within a day (--fr is set when the card is drawn) */
 html.dynx[data-theme=dynamic] #grid .card[style*="--fr"]{--tile:color-mix(in srgb,color-mix(in srgb,var(--b) calc(var(--fr)*30%),var(--pn)) 55%,transparent)}
 html.dynx[data-theme=dynamic] #grid.list .card.list-row[style*="--fr"]{background-color:color-mix(in srgb,var(--b) calc(var(--fr)*30%),var(--pn))}
@@ -6748,10 +6756,10 @@ function cardFocus(im,done){
 const LUMQ=[];let lumRun=false;
 function cardLum(im){
  if(S.scrim==='strong'||S.scrim==='panel'||!im.getAttribute('src'))return;
- {const q=IIS[im.getAttribute('src')],c0=q&&im.closest&&im.closest('.card');if(q&&q.v>=5&&c0){if(q.l>125)c0.classList.add('bright');return}}
+ {const q=IIS[im.getAttribute('src')],c0=q&&im.closest&&im.closest('.card');if(q&&q.v>=5&&c0){if(q.l>125)c0.classList.add('bright');if(q.t)c0.style.setProperty('--pc',q.t);return}}
  LUMQ.push(im);if(lumRun)return;lumRun=true;
  const step=async()=>{const x=LUMQ.shift();if(!x){lumRun=false;return}
-  try{const o=await imgInfo(x.getAttribute('src'));const c=x.closest&&x.closest('.card');if(o&&c&&o.l>125)c.classList.add('bright')}catch(e){}
+  try{const o=await imgInfo(x.getAttribute('src'));const c=x.closest&&x.closest('.card');if(o&&c&&o.l>125)c.classList.add('bright');if(o&&c&&o.t)c.style.setProperty('--pc',o.t)/* the picture's own color, for Dynamic's glow */}catch(e){}
   setTimeout(step,25)};
  step();
 }
@@ -8137,7 +8145,7 @@ function card(a,i,k){
   if(a&&!WHY[a.link]){const pw=priWhy(a);if(pw)WHY[a.link]=pw}
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
   const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],q1=a.img&&IIS[a.img],pc=q1&&q1.t?`--pc:${q1.t};`:'',op=q0&&q0.v>=5&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="${pc}object-position:${q0.px}% ${q0.py}%"`:pc?` style="${pc}"`:'';
-  return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}${frWash(a)}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="${i<2||!EIO&&i<6?'eager':'lazy'}"${i<2?' fetchpriority="high"':''/* the first two pictures are what the opening screen waits for */} decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''/* David 2026-10-31: no hills-and-trees drawing behind a photo-less card's text (hard to read) */}<div class="ov"></div>${a.img&&a.pcr&&isOn('mag3')?`<span class="pcr">Photo: ${esc(a.pcr)}</span>`:''}${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg" style="--pg:${Math.round(progOf(a.link)*100)}%"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><span class="sn" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}">${esc(f.title)}</span>${a.sec?`<span class=" ssec">${esc(secT(a.sec))}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${a.img&&a.pics&&a.pics.length>1&&!/dq-c/.test(k)?`<span class="pw">+${a.pics.length-1} ${a.pics.length===2?'photo':'photos'}</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}" aria-label="${esc(a.title)}${a.date?', '+agoL(a.date):''}">${esc(a.title)}</a></h3>${(()=>{const q=!a.img&&!/\b(nr-row|nr-late|list-row)\b/.test(k||'')?nrQuoteText(a):null;return q?`<p class="lq">${esc(q.q)}</p>`:`<p>${esc(sumOf(a.summary))}</p>`})()}<div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}<time datetime="${a.date?new Date(a.date).toISOString():''}" aria-hidden="true">${agoT(a.date)}</time>${readMin(a)?`<span class="rt">${readMin(a)}-min read</span>`:''}${a.more&&a.more.length?`<span class="pw tr" title="Also from ${esc(a.more.map(m=>fof({feedId:m.f}).title).join(', '))}">+${a.more.length} ${a.more.length===1?'source':'sources'}</span>`:''}${pwBadge(a)}</div></div></div>`;/* R3/R8: one quiet line, "By … · 27 min · 2-min read · +3 sources"; the pill and the "Also from" line folded into it */
+  return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="${pc}--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}${frWash(a)}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="${i<2||!EIO&&i<6?'eager':'lazy'}"${i<2?' fetchpriority="high"':''/* the first two pictures are what the opening screen waits for */} decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''/* David 2026-10-31: no hills-and-trees drawing behind a photo-less card's text (hard to read) */}<div class="ov"></div>${a.img&&a.pcr&&isOn('mag3')?`<span class="pcr">Photo: ${esc(a.pcr)}</span>`:''}${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg" style="--pg:${Math.round(progOf(a.link)*100)}%"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${mediaBadge(a)}<div class="tx"><div class="src"><span class="sn" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}">${esc(f.title)}</span>${a.sec?`<span class=" ssec">${esc(secT(a.sec))}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${a.img&&a.pics&&a.pics.length>1&&!/dq-c/.test(k)?`<span class="pw">+${a.pics.length-1} ${a.pics.length===2?'photo':'photos'}</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}" aria-label="${esc(a.title)}${a.date?', '+agoL(a.date):''}">${esc(a.title)}</a></h3>${(()=>{const q=!a.img&&!/\b(nr-row|nr-late|list-row)\b/.test(k||'')?nrQuoteText(a):null;return q?`<p class="lq">${esc(q.q)}</p>`:`<p>${esc(sumOf(a.summary))}</p>`})()}<div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}<time datetime="${a.date?new Date(a.date).toISOString():''}" aria-hidden="true">${agoT(a.date)}</time>${readMin(a)?`<span class="rt">${readMin(a)}-min read</span>`:''}${a.more&&a.more.length?`<span class="pw tr" title="Also from ${esc(a.more.map(m=>fof({feedId:m.f}).title).join(', '))}">+${a.more.length} ${a.more.length===1?'source':'sources'}</span>`:''}${pwBadge(a)}</div></div></div>`;/* R3/R8: one quiet line, "By … · 27 min · 2-min read · +3 sources"; the pill and the "Also from" line folded into it */
 }
 /*NEWSROOM*/
 const IS_SAFARI=(()=>{try{const u=navigator.userAgent;return /iP(hone|ad|od)/.test(u)||(/Safari\//.test(u)&&!/Chrome\/|Chromium\/|Android|Edg\/|OPR\/|CriOS|FxiOS/.test(u))}catch(e){return false}})();
@@ -12384,12 +12392,13 @@ function secCol(el){
  }
  return '';
 }
-const spOb=c=>{const s=dynLive.sp;if(s&&c.matches('.card:not(.list-row):not(.dq-c)'))s.observe(c)};
+const spOb=c=>{if(!c.matches('.card:not(.list-row):not(.dq-c)'))return;dynLive.sp&&dynLive.sp.observe(c);dynLive.bl&&dynLive.bl.observe(c)};
 function dynLive(){
  const r=document.documentElement,on=isOn('dynx')&&r.dataset.theme==='dynamic';
  if(dynLive.io){dynLive.io.disconnect();dynLive.io=null}
  if(dynLive.sp){dynLive.sp.disconnect();dynLive.sp=null}
  if(dynLive.spot){dynLive.spot.classList.remove('spot');dynLive.spot=null}
+ if(dynLive.bl){dynLive.bl.disconnect();dynLive.bl=null}{const g0=$('#grid');if(g0)g0.classList.remove('dbl')}
  if(!on){dynEls().forEach(e=>e.style.removeProperty('--dyn'));const d=document.getElementById('dynbg');if(d)d.remove();dynSet.c=null;dynSet.tb=null;dynAccentOff();clearTimeout(dynSet.w);return}
  const g=$('#grid');if(!g)return;
  const cs=[...g.querySelectorAll(':scope>.card,:scope>.cover,:scope .card,:scope [data-href]')];/* text-only rows and boxes count too */
@@ -12408,7 +12417,10 @@ function dynLive(){
   else if(c)dynSet(c)},{rootMargin:'-20% 0px -45% 0px'});
  cs.forEach(x=>io.observe(x));dynLive.io=io;
  /* the story nearest the middle of the screen gets a gentle lift and a glow in its site color: card views at Medium and Large size only (none in list or Columns view, with reduced motion, in low-power or data-saver mode). One observer, nothing runs while scrolling. */
- if(!reduced()&&!r.classList.contains('lowp')&&!isOn('dsave')&&!DEV.dataSaver&&!(navigator.connection&&navigator.connection.saveData)&&!g.classList.contains('list')&&g.dataset.wdens!=='col'&&/^(medium|large)$/.test((S.sel==='today'&&!$('#q').value.trim()&&!nrMode())?'narrow':(S.cards||'medium'))/* the card size render() is about to set on the grid */){
+ const fx=!reduced()&&!r.classList.contains('lowp')&&!isOn('dsave')&&!DEV.dataSaver&&!(navigator.connection&&navigator.connection.saveData)&&!g.classList.contains('list')&&g.dataset.wdens!=='col',sz=(S.sel==='today'&&!$('#q').value.trim()&&!nrMode())?'narrow':(S.cards||'medium')/* the card size render() is about to set on the grid */;
+ /* pictures away from the middle of the screen sit in their site's color and bloom into full color in the middle half: same views and modes as the spotlight, at every card size. Full color is the default: the wash needs #grid.dbl, which only lives while this observer does */
+ if(fx){g.classList.add('dbl');dynLive.bl=new IntersectionObserver(es=>{for(const e of es)e.target.classList.toggle('dw',!e.isIntersecting)},{rootMargin:'-25% 0px -25% 0px'})}
+ if(fx&&/^(medium|large)$/.test(sz)){
   const live=new Set();
   dynLive.sp=new IntersectionObserver(es=>{
    for(const e of es)e.isIntersecting?live.add(e.target):live.delete(e.target);
@@ -12416,8 +12428,8 @@ function dynLive(){
    for(const x of live){if(!x.isConnected){live.delete(x);continue}const b=x.getBoundingClientRect(),d=Math.abs((b.top+b.bottom)/2-my)+Math.abs((b.left+b.right)/2-mx)/4;if(d<bd){bd=d;best=x}}
    if(best&&best!==dynLive.spot){if(dynLive.spot)dynLive.spot.classList.remove('spot');best.classList.add('spot');dynLive.spot=best}
   },{rootMargin:'-42% 0px -42% 0px'});
-  cs.forEach(spOb);
  }
+ cs.forEach(spOb);
  /* David 2026-10-31: stories drawn later (lower sections, more while scrolling) are watched too, so the color keeps moving all the way down */
  if(!dynLive.mo){dynLive.mo=new MutationObserver(ms=>{const o=dynLive.io;if(!o)return;for(const m of ms)for(const n of m.addedNodes){if(n.nodeType!==1)continue;if(n.matches('.card,[data-href]')){o.observe(n);spOb(n)}else n.querySelectorAll('.card,[data-href]').forEach(c=>{o.observe(c);spOb(c)})}});dynLive.mo.observe(g,{childList:true,subtree:true})}
 }

@@ -1669,3 +1669,5 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - The Daily in Dynamic: glow, tab bar and the line under each section heading change color per section (front red, quick reads teal, deep dives indigo, quiet green, more orange)
 - Cards view, Medium or Large size: the story nearest the middle lifts and glows; scrolling stays smooth; none in Compact, list, Columns, low-power or data-saver
 - A story that just arrived has a wash of its site color that is gone by the next day (tile cards and list rows; text-only color boxes do not change)
+- (ideas 12, 15, same branch) Card views in Dynamic: pictures away from the middle of the screen sit in one wash of their site color and open into full color near the middle; scrolling stays smooth on an older phone; all pictures full color in list, Columns, low-power, reduced motion. If no wash shows at all, the phone's web view is too old for it (fails safe to full color)
+- Photo cards in Dynamic throw a soft shadow in the picture's own color; neighbors' glows do not run together
