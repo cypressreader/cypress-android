@@ -1870,6 +1870,7 @@ html.dynx[data-theme=dynamic] #rd{transition:background-color var(--dur-3) ease}
 #rd.vert .cols>.hsf.hs-cov~*{position:relative;z-index:1;--sbg:var(--pn);background:var(--sbg);box-shadow:0 40px 0 var(--sbg)}
 #rd.amb.vert .cols>.hsf.hs-cov~*{--sbg:var(--rbg)}
 #rd.vert .cols>.hsf.hs-cov~.whyit{background:var(--sbg)!important;box-shadow:0 40px 0 var(--sbg)!important}/* the summary box is see-through elsewhere; over the cover it must hide the picture */
+#rd.cpv2 .cols:has(>.hs-wcov) .body::before{display:none}#rd.cpv2:not(.rbk) .cols:has(>.hs-wcov) .body>.wbrk{break-before:column;margin-top:var(--wh2,0px)!important}.cols.wfx>.hsf.hs-wcov .hov{width:100%}
 html.rdx .cols>.hsf.hs-wide.hs-wcov img.hero{height:min(calc(var(--ch)*.56),calc(var(--sw)*.62))}.cols>.hsf.hs-wcov .hov{right:auto;width:var(--sw);box-sizing:border-box}.cols>.hsf.hs-wcov .hov .tt{max-width:22em}/* Dynamic cover on two pages: the banner across both pages carries the headline */
 #rd.vert .cols>.hsf.hs-cov+*{margin-top:-20px;padding-top:20px;border-radius:20px 20px 0 0;box-shadow:0 40px 0 var(--sbg),0 -8px 20px rgba(0,0,0,.16)}
 /* Dynamic reader palette: the picture's second color tints the label and first letter, its third the quotes (set by rdPal; text stays well above readable contrast) */
@@ -18804,6 +18805,8 @@ function fitWide(c,cw,gap){
  /* David 2026-11-07: a banner squeezed to a strip by a tall headline block showed a quarter of the picture while the right page sat empty: the photo goes to the top of the left page at its own shape instead, and the story starts on the right page */
  {const d=(im.complete&&im.naturalWidth)?[im.naturalWidth,im.naturalHeight]:IMGDIM.get(im.getAttribute('src'));if(!R.hsq&&d&&d[1]&&im.offsetHeight&&im.offsetWidth/im.offsetHeight>1.8*d[0]/d[1]){R.hsq='top';relayout();return}}
  if(!fits()){im.style.width='100%';im.style.removeProperty('height');c.style.setProperty('--wh2','0px');c.classList.add('wfx')}/* even a short photo leaves no room on a low screen: the photo stays on the left page and the story follows straight on */
+ /* Dynamic cover banner: the story starts on the left page under the picture; the first block that reaches the right page is moved there whole and pushed down below the picture (CSS .wbrk) */
+ if(im.closest('.hs-wcov')){const bd=c.querySelector(':scope>.body');if(bd){bd.querySelectorAll(':scope>.wbrk').forEach(x=>x.classList.remove('wbrk'));if(!c.classList.contains('wfx'))for(const k of bd.children){const q=[...k.getClientRects()].pop();if(q&&q.height&&(q.left-L+2)/pitch>=1){k.classList.add('wbrk');break}}}}
 }
 function fitPage1(c,cw,gap){if(curA&&curA.book)return;
  const m=c.querySelector(':scope>.mnotes'),hs=c.querySelector(':scope>.hsf'),im=hs&&hs.querySelector('img.hero');
