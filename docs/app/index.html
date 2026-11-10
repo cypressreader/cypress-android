@@ -5272,8 +5272,10 @@ function cleanLib(d){
  const L=a=>Array.isArray(a)?a:[];
  d.feeds=L(d.feeds).filter(f=>f&&typeof f==='object'&&okId(f.id)&&webUrl(f.url)).map(f=>{f.url=webUrl(f.url);f.title=String(f.title||'').slice(0,120);if(f.color&&!okColor(f.color))delete f.color;if(f.folder&&!okId(f.folder))f.folder='';return f});
  d.folders=L(d.folders).filter(f=>f&&typeof f==='object'&&okId(f.id)).map(f=>{f.name=String(f.name||'').slice(0,80);return f});
- if(d.saved)d.saved=L(d.saved).filter(a=>a&&typeof a==='object'&&webUrl(a.link)).map(a=>{a.link=webUrl(a.link);if(a.fc&&!okColor(a.fc))delete a.fc;if(a.feedId&&!okId(a.feedId))a.feedId='';return a});
- L(d.hl).forEach(h=>{if(h&&h.art&&h.art.fc&&!okColor(h.art.fc))delete h.art.fc});
+ if(d.saved!=null)d.saved=L(d.saved).filter(a=>a&&typeof a==='object'&&webUrl(a.link)).map(a=>{a.link=webUrl(a.link);if(a.fc&&!okColor(a.fc))delete a.fc;if(a.feedId&&!okId(a.feedId))a.feedId='';return a});
+ for(const k of ['hl','sk','mute'])if(d[k]!=null&&!Array.isArray(d[k]))d[k]=[];
+ for(const k of ['read','pos','rt','prog'])if(d[k]!=null&&(typeof d[k]!=='object'||Array.isArray(d[k])))d[k]={};
+ d.hl=L(d.hl).filter(h=>h&&typeof h==='object');d.hl.forEach(h=>{if(h.art&&h.art.fc&&!okColor(h.art.fc))delete h.art.fc});
  return d;
 }
 
@@ -5332,7 +5334,7 @@ function brand0(f){if(f.color&&okColor(f.color))return f.color;const k=known(f.u
 let FIRST=false;try{FIRST=!localStorage.getItem('folio')}catch(e){}
 let S,LIBBAD=0;try{S=JSON.parse(localStorage.getItem('folio'))}catch(e){}
 /* a half-written save must not stop the app from starting */
-if(S&&typeof S==='object'&&!Array.isArray(S)){if(!Array.isArray(S.feeds))S.feeds=[];if(!Array.isArray(S.folders))S.folders=[];/* B7: an old folder named Unfiled (made by mistake) goes away; its sites stay, with no folder */S.folders=S.folders.filter(fo=>{if(!/^unfiled$/i.test(String(fo.name||'').trim()))return true;S.feeds.forEach(f=>{if(f.folder===fo.id)f.folder=''});return false})}else S=null;
+if(S&&typeof S==='object'&&!Array.isArray(S)){if(!Array.isArray(S.feeds))S.feeds=[];if(!Array.isArray(S.folders))S.folders=[];S.feeds=S.feeds.filter(f=>f&&typeof f==='object');S.folders=S.folders.filter(f=>f&&typeof f==='object');/* B7: an old folder named Unfiled (made by mistake) goes away; its sites stay, with no folder */S.folders=S.folders.filter(fo=>{if(!/^unfiled$/i.test(String(fo.name||'').trim()))return true;S.feeds.forEach(f=>{if(f.folder===fo.id)f.folder=''});return false})}else S=null;
 /* B2: a library that can't be read is set aside under folio-bad (never overwritten by the next save) and the app starts empty, not with the sample sites; if even that copy can't be stored, nothing is saved this session so the original stays */
 if(S&&/^(classic|gallery|essay)$/.test(S.theme)){delete S.theme;delete S.cvs}/* 1.278 bug: a tap on a story saved its look as the theme */
 if(!S&&!FIRST){LIBBAD=1;try{localStorage.setItem('folio-bad',localStorage.getItem('folio'))}catch(e){LIBBAD=2}S={folders:[],feeds:[],sel:'all'}}
@@ -5362,7 +5364,7 @@ document.documentElement.dataset.theme=S.theme==='contrast'?'eink':POLISH_RETIRE
 let QWARN=0;
 let SVSEL=null;/* Saved: null when not picking stories; otherwise the set of picked story links. Declared here, early, because the first draw of the Saved screen reads it */
 /* storage full: drop the story cache and image list (they refill by themselves) so your settings and library still save */
-function quotaFix(){/* storage full when saving the library: it used to delete every saved story to make room, so if Android then closed the app in the background it reopened on one site's stories (David's video 2026-11-04). Now the library goes first and the stories are kept, 10 per site without text */let c=null;try{c=JSON.parse(localStorage.getItem(CK)||'null')}catch(e){}try{elog('library save','storage full')}catch(e){}try{localStorage.removeItem(CK);localStorage.removeItem('folio-img');localStorage.setItem('folio',JSON.stringify(S));let mv=false;const keep=()=>{for(const id in c)c[id]=c[id].slice(0,10).map(a=>({...a,html:''}));try{localStorage.setItem(CK,JSON.stringify(c))}catch(e){}};try{if(c&&IDB.ok){CKI=1;mv=true;idbTx('readwrite',st=>{st.put({c},'~cache')}).then(ok=>{if(!ok){CKI=0;keep()}})}}catch(_){}if(c&&!mv)keep();try{SCSIG=''}catch(e){}}catch(e){if(!QWARN){QWARN=1;try{toast('Storage is full, so recent changes may not be saved. Remove old saved stories or free space on your phone')}catch(_){}}}}
+function quotaFix(){/* storage full when saving the library: it used to delete every saved story to make room, so if Android then closed the app in the background it reopened on one site's stories (David's video 2026-11-04). Now the library goes first and the stories are kept, 10 per site without text */let c=null;try{c=JSON.parse(localStorage.getItem(CK)||'null')}catch(e){}try{elog('library save','storage full')}catch(e){}try{localStorage.removeItem(CK);localStorage.removeItem('folio-img');localStorage.setItem('folio',JSON.stringify(S));let mv=false;const keep=()=>{for(const id in c)c[id]=c[id].slice(0,10).map(a=>({...a,html:''}));try{localStorage.setItem(CK,JSON.stringify(c))}catch(e){}};try{if(c&&IDB.ok){CKI=1;mv=true;idbTx('readwrite',st=>{st.put({c},'~cache')}).then(ok=>{if(!ok){CKI=0;keep()}})}}catch(_){}if(c&&!mv)keep();try{SCSIG=''}catch(e){}}catch(e){if(!QWARN||Date.now()-QWARN>6e4){QWARN=Date.now();try{toast('Storage is full, so recent changes may not be saved. Remove old saved stories or free space on your phone')}catch(_){}}}}
 /* small on-device error log (last 100), shown under Diagnostics */
 const ELOG=(()=>{try{return JSON.parse(localStorage.getItem('folio-err')||'[]')}catch(e){return[]}})();
 let ELT=0;
@@ -5410,7 +5412,7 @@ function applyFsort(){
 let LSIG=null;
 const setSig=()=>{try{return SET_KEYS.map(k=>JSON.stringify(S[k])).join('|')}catch(e){return ''}};
 /* Saved keeps up to 1000 stories; only the newest 100 keep their stored text, so older ones shrink instead of being deleted */
-function capSaved(){if(S.saved.length>1000)S.saved.length=1000;let n=0;for(let i=100;i<S.saved.length;i++){if(S.saved[i].html){S.saved[i].html='';n++}}/* say so the first time: past the newest 100, a saved story keeps its headline but its text is read from the site again when opened */if(n&&!S.capW){S.capW=1;setTimeout(()=>{try{toast('Saved stories older than your newest 100 keep their headline, but their full text is loaded from the site again when you open them.')}catch(e){}},0)}}
+function capSaved(){if(S.saved.length>1000){/* stories a rule saved go first, hand-saved ones last, and it says so */for(let i=S.saved.length-1;i>=0&&S.saved.length>1000;i--)if(S.saved[i].auto)S.saved.splice(i,1);if(S.saved.length>1000)S.saved.length=1000;setTimeout(()=>{try{toast('Saved is full: the oldest were removed.')}catch(e){}},0)}let n=0;for(let i=100;i<S.saved.length;i++){if(S.saved[i].html){S.saved[i].html='';n++}}/* say so the first time: past the newest 100, a saved story keeps its headline but its text is read from the site again when opened */if(n&&!S.capW){S.capW=1;setTimeout(()=>{try{toast('Saved stories older than your newest 100 keep their headline, but their full text is loaded from the site again when you open them.')}catch(e){}},0)}}
 const save=()=>{if(FROZEN)return;if(S.fsort==='az'||S.ordBak)applyFsort();const g=setSig();if(LSIG!==null&&g!==LSIG)S.setT=Date.now();LSIG=g;if(HST){clearTimeout(HST);HST=0}SAVE0();syncSoon()};
 const items={},state={};let cur=[],tok=0,curA=null;
 const _dt=document.createElement('textarea');
@@ -6199,6 +6201,7 @@ async function load0(f,fresh,sl){
  if(!S.feeds.includes(f)){delete items[f.id];delete state[f.id];LP.f++;pfBar();return}
  if(got){got=noTwins(got).filter(a=>!isCouponSpam(a));/* B22: a feed's stories must be from its own site - drop strays from any aggregation path that skipped the onSite filter */
   try{const sd=siteOf(f);if(sd){const n0=got.length;got=got.filter(a=>{if(a.os)return true;return onSite(host(a.link),sd)});if(n0>got.length)(FLG[f.id]=FLG[f.id]||[]).push('dropped '+(n0-got.length)+' off-site stories')}}catch(e){}
+  {const o=items[f.id],fut=Date.now()+3e6;if(o)got.forEach(a=>{if(a.date>fut){const p=o.find(x=>x.link===a.link);if(p&&p.date)a.date=p.date}})}
   items[f.id]=got;dropGeneric(got);shortNote(f,got)}
  if(!cut){const pv=S.health[f.id]||{},now=Date.now();const lv=FLG[f.id]||{},vl=lv.val||{};S.health[f.id]=state[f.id]==='ok'?(vl.etag||vl.lm?{ok:now,etag:vl.etag,lm:vl.lm}:{ok:now}):(navigator.onLine?{...pv,fail:now,fn:(pv.fn||0)+1,ff:pv.ff||now,ra:lv.ra||0}:pv)}saveSoon();
  LP.f++;pfBar();
@@ -6215,7 +6218,7 @@ function applyRules(f,all){
  for(const a of (items[f.id]||[])){
   if(!all&&seen.has(a.link))continue;seen.add(a.link);
   if(ruleHit(a,r.read)&&!S.read[a.link]){S.read[a.link]=1;n++;ch=true}
-  if(ruleHit(a,r.save)&&!isSaved(a)){const {more,...b}=a;S.saved.unshift({...b,st:Date.now(),html:(a.html||'').slice(0,8000),ft:f.title,fu:f.url,fc:brand(f)});capSaved();n++;ch=true}
+  if(ruleHit(a,r.save)&&!isSaved(a)){const {more,...b}=a;S.saved.unshift({...b,auto:1,st:Date.now(),html:(a.html||'').slice(0,8000),ft:f.title,fu:f.url,fc:brand(f)});capSaved();n++;ch=true}
  }
  f.rseen=[...seen].slice(-400);if(ch||all)save();return n;
 }
@@ -6758,13 +6761,13 @@ function render0(){
  cur=inSaved?S.saved.filter(a=>S.stag==='~ar'?a.ar:S.stag==='~ur'?!a.ar&&!S.read[a.link]:S.stag==='~rs'?svRes(a):S.stag?(a.tags||[]).includes(S.stag):!a.ar):(q?S.feeds:fs).filter(f=>!(hidePz&&paused(f))).flatMap(f=>items[f.id]||[]).filter(a=>!isCouponSpam(a));
  if(S.sel.startsWith('k:')&&!q){const k=S.sk.find(x=>'k:'+x.id===S.sel);cur=k?cur.filter(a=>kmatch(k,a)):[]}
  if(inSaved&&+S.svmin>0){const L=+S.svmin;cur=cur.filter(a=>{const m=minsOf(a);return !m||m<=L})}
- if(!savedView){if(S.sort==='source')cur.sort((a,b)=>(fof(a).title||'').localeCompare(fof(b).title||'')||b.date-a.date);else cur.sort((a,b)=>b.date-a.date);cur=cur.slice(0,q?200:(S.sel==='all'&&smartOn()?600:80))}
+ if(!savedView){if(S.sort==='source')cur.sort((a,b)=>(fof(a).title||'').localeCompare(fof(b).title||'')||b.date-a.date);else cur.sort((a,b)=>b.date-a.date);if(!q)cur=cur.slice(0,S.sel==='all'&&smartOn()?600:80)}
  if(S.sel==='saved'&&!q)$('#ttl').textContent='Saved';
  if(q)$('#ttl').textContent='Search';
  MUTN=0;if(S.sel!=='saved'||q)cur=q?cur.filter(a=>!muted(a)):mutCut(cur);
  /* search scope: All (every site, full text, history), Unread or Saved */
  if(q&&QSC==='saved')cur=S.saved.slice();if(q&&QSC==='unread')cur=cur.filter(a=>!S.read[a.link]);
- if(q)cur=cur.filter(a=>((a.title||'')+' '+(a.summary||'')+' '+(a.tags||[]).join(' ')).toLowerCase().includes(q));
+ if(q)cur=cur.filter(a=>((a.title||'')+' '+(a.summary||'')+' '+(a.tags||[]).join(' ')).toLowerCase().includes(q));if(q&&QSC!=='saved')cur=cur.slice(0,200);
  if(q&&q.length>=3&&S.sel!=='saved'&&QSC==='all'){const have0=new Set(cur.map(a=>a.link));let n=0;for(const l in AC){if(n>=30)break;if(have0.has(l))continue;if(acText(l).includes(q)){const st=findStory(l);if(st){cur.push(st);have0.add(l);WHY[l]='Found in the full text of this story.';n++}}}}
  if(q&&S.sel!=='saved'&&QSC==='all'){const have=new Set(cur.map(a=>a.link));S.hist.filter(h=>!have.has(h.l)&&((h.ti||'')+' '+(h.ft||'')).toLowerCase().includes(q)).slice(0,40).forEach(h=>{cur.push(histStory(h));WHY[h.l]='You read this earlier.'})}
  if(S.hideRead&&S.sel!=='saved'&&!q)cur=cur.filter(a=>!S.read[a.link]);
@@ -7194,8 +7197,6 @@ function cvPar(){
 /* resize work that only needs the new size runs together in one frame (cover drift, the pinned feed name, tall cards, the reading bar) instead of each on its own in the middle of the resize */
 const RSZ=[];let RSZT=0;const onRsz=f=>{RSZ.push(f);if(RSZ.length===1)addEventListener('resize',()=>{if(RSZT)return;RSZT=requestAnimationFrame(()=>{RSZT=0;RSZ.forEach(f=>{try{f()}catch(e){}})})},{passive:true})};
 {
- const m=$('main');let raf=0;
- if(m)m.addEventListener('scroll',()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;cvPar()})},{passive:true});
  onRsz(()=>cvPar());
 }
 const DTAB_ORDER=['front','brief','edition','week'];
@@ -7203,7 +7204,7 @@ function dayTabKey(){return S.sel==='today'?'front':S.sel==='brief'?'brief':S.se
 let TABPREV='';
 function tabAnim(){
  const k=dayTabKey(),prev=TABPREV;TABPREV=k;
- try{cvPar()}catch(e){}
+ try{const m=$('main');if(m&&m.scrollTop)cvPar()}catch(e){}
  if(!k||!prev||k===prev||reduced())return;
  const g=$('#grid');if(!g)return;
  /* animated per section with animate(): an inline --dx on #grid plus a class restart restyled the whole page twice on every tab tap */
@@ -7273,7 +7274,7 @@ function parWatch(root){
 {
  const m=$('main');let raf=0,lastT=0;
  /* the pinned section name, the position hairline and the picture drift are caught up about twelve times a second while scrolling, not on every frame: each pass measures the page */
- if(m)m.addEventListener('scroll',()=>{if(raf)return;const wait=Math.max(0,80-(performance.now()-lastT));raf=setTimeout(()=>requestAnimationFrame(()=>{raf=0;lastT=performance.now();const pr=parRead();wireChrome();parWrite(pr)}),wait)},{passive:true});
+ if(m)m.addEventListener('scroll',()=>{if(raf)return;const wait=Math.max(0,80-(performance.now()-lastT));raf=setTimeout(()=>requestAnimationFrame(()=>{raf=0;lastT=performance.now();const pr=parRead();wireChrome();cvPar();parWrite(pr)}),wait)},{passive:true});
  /* B94: the pinned name and the hairline are measured in the next frame, not in the middle of drawing the list: measuring there forced the whole page to be laid out an extra time for every redraw */const wireChromeSoon=()=>{if(wireChrome.q)return;wireChrome.q=requestAnimationFrame(()=>{wireChrome.q=0;wireChrome()})};
  const g=$('#grid');if(g&&'MutationObserver' in window)new MutationObserver(()=>{wireChrome.dirty=true;parWatch();wireChromeSoon();if(WFOLD.size)foldApply()}).observe(g,{childList:true});
  onRsz(()=>wireChrome());
@@ -10134,7 +10135,7 @@ function sysScale(){
  if(!k&&Date.now()-(sysScale.t||0)<60000)k=sysScale.k;if(!k){try{const e=document.createElement('div');e.style.cssText='position:absolute;visibility:hidden;font:medium sans-serif;pointer-events:none';e.textContent='x';document.body.append(e);k=parseFloat(getComputedStyle(e).fontSize)/16;e.remove();sysScale.k=k;sysScale.t=Date.now()}catch(er){k=1}}
  return Math.max(.85,Math.min(2,k||1));
 }
-function applyFs(re){needFont(fontKey());if(S.font==='dys'){document.fonts&&document.fonts.load("18px 'OpenDyslexic'").then(()=>relayout(),()=>{})}const r=$('#rd'),sp=!!S.sep&&S.theme!=='dynamic';{const fz=Math.round((+S.fs||18)*sysScale()*10)/10;r.style.setProperty('--fs',fz+'px');r.style.setProperty('--fsu',fz+'px');/* R-05: Large print grows the small text around the story too (CSS zoom by --fsk); a smaller size never shrinks it */r.style.setProperty('--fsk',Math.max(1,(+S.fs||18)/18).toFixed(3))}r.style.setProperty('--rf',FONTS[fontKey()]||FONTS.serif);/* letter and word spacing for any font (Tight / Normal / Open); OpenDyslexic keeps its own roomier normal */{const sp=S.tsp==='o'?['.05em','.16em']:S.tsp==='t'?['-.01em','-.03em']:S.font==='dys'?['.02em','.12em']:['normal','normal'];r.style.setProperty('--ls',sp[0]);r.style.setProperty('--ws',sp[1])}rdVars();r.classList.toggle('sep',sp);document.documentElement.classList.toggle('sepp',sp);save();if(re)relayout()}
+function applyFs(re){needFont(fontKey());if(S.font==='dys'){document.fonts&&document.fonts.load("18px 'OpenDyslexic'").then(()=>relayout(),()=>{})}const r=$('#rd'),sp=!!S.sep&&S.theme!=='dynamic';{const fz=Math.round((+S.fs||18)*sysScale()*10)/10;r.style.setProperty('--fs',fz+'px');r.style.setProperty('--fsu',fz+'px');/* R-05: Large print grows the small text around the story too (CSS zoom by --fsk); a smaller size never shrinks it */r.style.setProperty('--fsk',Math.max(1,(+S.fs||18)/18).toFixed(3))}r.style.setProperty('--rf',FONTS[fontKey()]||FONTS.serif);/* letter and word spacing for any font (Tight / Normal / Open); OpenDyslexic keeps its own roomier normal */{const sp=S.tsp==='o'?['.05em','.16em']:S.tsp==='t'?['-.01em','-.03em']:S.font==='dys'?['.02em','.12em']:['normal','normal'];r.style.setProperty('--ls',sp[0]);r.style.setProperty('--ws',sp[1])}rdVars();r.classList.toggle('sep',sp);document.documentElement.classList.toggle('sepp',sp);saveSoon();if(re)relayout()}
 /* the sample passage on the Reading page follows the font, size, spacing, alignment and drop cap you have chosen */
 function syncReadPrev(){
  const b=$('#rprev');if(!b)return;
@@ -11797,13 +11798,14 @@ function localHtml(){
  if(pl.length)h+='<div class="none" style="padding-bottom:4px">My places:</div>'+pl.map((n,i)=>row({n,u:locGoogle(n),d:'Local news from Google News'},`<button type="button" class="tx2" data-local="rm" data-i="${i}" aria-label="Remove ${esc(n)} from my places">Remove</button>`)).join('');
  return h;
 }
-async function localGo(q){use1('near');
+async function localGo(q){use1('near');const my=localGo.n=(localGo.n||0)+1;
  q=String(q==null?LOC.q:q).trim().replace(/\s+/g,' ');LOC.q=q;
  if(!q){LOC={st:'fail',q:'',msg:'Type a town, city or region first.'};pop();return}
  LOC={st:'busy',q};pop();
  try{
   const cands=[{n:q+' news (Google News)',d:'Headlines mentioning '+q,u:locGoogle(q)},{n:q+' news (Bing News)',d:'Headlines mentioning '+q,u:locBing(q)}];
   const ok=[];await Promise.all(cands.map(async c=>{try{const fd=await Promise.race([findFeed(c.u),new Promise((_,j)=>setTimeout(j,15000))]);if(fd&&fd.xml)ok.push(c)}catch(_){}}));
+  if(my!==localGo.n)return;
   if(!ok.length)throw new Error('Couldn’t reach a local news source right now. Check your connection and try again');
   LOC={st:'ok',q,city:q,res:ok};
  }catch(e){LOC={st:'fail',q,msg:e.message}}
@@ -11864,12 +11866,12 @@ $('#ref').onclick=async()=>{
  const n=S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>!before.has(a.link)).length,badL=S.feeds.filter(f=>state[f.id]==='err'),bad=badL.length,slow=S.feeds.filter(f=>state[f.id]==='load').length;
  toast((n?n+' new '+(n===1?'story':'stories'):slow?'No new stories yet':'No new stories')+(bad===1?' · '+badL[0].title+' didn’t respond':bad?' · '+bad+' sites didn’t respond':'')+(slow?' · '+slow+(slow===1?' site is':' sites are')+' still loading':''));
 };
-function markList(L){const add=[];let k=0;L.forEach(a=>{if(!S.read[a.link])k++;[a.link,...(a.more||[]).map(m=>m.l)].forEach(l=>{if(!S.read[l])add.push(l);S.read[l]=1})});trimRead();save();render();
- if(add.length)toast('Marked '+(k||1)+(k>1?' stories':' story')+' as read',()=>{add.forEach(l=>delete S.read[l]);save();render()});else toast('Nothing that old to mark')}
+function markList(L,old){const add=[];let k=0;L.forEach(a=>{if(!S.read[a.link])k++;[a.link,...(a.more||[]).map(m=>m.l)].forEach(l=>{if(!S.read[l])add.push(l);S.read[l]=1})});trimRead();save();render();
+ if(add.length)toast('Marked '+(k||1)+(k>1?' stories':' story')+' as read',()=>{add.forEach(l=>delete S.read[l]);save();render()});else toast(old?'Nothing that old to mark':'Everything here is already read')}
 /* C2: press and hold (or right-click) the mark-read button: only stories older than 1, 3 or 7 days */
 function mrOlder(){const mr=$('#mr'),d=document.createElement('dialog');d.setAttribute('aria-labelledby','mro-t');
  d.innerHTML=`<h3 id="mro-t">Mark as read</h3><p class="hint">Only stories older than</p><div class="rf-act">${[1,3,7].map(n=>`<button type="button" data-mro="${n}">${plu(n,'day')}</button>`).join('')}</div><div class="rf-act"><button type="button" class="tx2" data-mro="0">Cancel</button></div>`;
- document.body.append(d);let n=0;d.addEventListener('close',()=>{d.remove();mr&&mr.focus();if(n){const cut=Date.now()-n*864e5;markList(cur.filter(a=>(a.date||0)<cut))}});
+ document.body.append(d);let n=0;d.addEventListener('close',()=>{d.remove();mr&&mr.focus();if(n){const cut=Date.now()-n*864e5;markList(cur.filter(a=>(a.date||0)<cut),1)}});
  d.addEventListener('click',e=>{const b=e.target.closest('[data-mro]');if(b){n=+b.dataset.mro;d.close()}});d.showModal();d.querySelector('button').focus()}
 {const mr=$('#mr');let t=0,held=false;mr.onclick=async()=>{if(held){held=false;return}/* E1: ask first when it touches more than one story (Undo still follows) */const k=cur.filter(a=>!S.read[a.link]).length;if(k>1){const ok=await askBox({title:'Mark '+k+' stories as read?',text:'Press and hold this button to mark only older stories.',ok:'Mark as read'});mr.focus();if(!ok)return}markList(cur)};
  mr.addEventListener('pointerdown',()=>{held=false;t=setTimeout(()=>{held=true;mrOlder()},550)});['pointerup','pointerleave','pointercancel'].forEach(k=>mr.addEventListener(k,()=>clearTimeout(t)));
@@ -12024,7 +12026,7 @@ const acReady=(async()=>{
    const ks=[],kc=st.index('t').openKeyCursor(null,'prev');kc.onsuccess=()=>{const c=kc.result;if(c){const k=c.primaryKey;if(typeof k==='string'&&k!=='~cache'&&!k.startsWith('bi:'))ks.push([k,c.key]);c.continue();return}
     let i=0,n=0;const nx=()=>{while(n>=120&&i<ks.length){const[k,tt]=ks[i++];AC[k]={t:tt,h:'',c:1}}if(i>=ks.length)return;const[k]=ks[i++],g=st.get(k);g.onsuccess=()=>{const v=g.result;if(v&&v.h){AC[k]=v;n++}nx()}};nx()}}catch(e){res()}});
   const ks=Object.keys(old);
-  if(ks.length){await idbTx('readwrite',st=>{for(const k of ks){if(!AC[k]){AC[k]=old[k];st.put(old[k],k)}}});try{localStorage.removeItem(AK)}catch(e){}}
+  if(ks.length){const ok=await idbTx('readwrite',st=>{for(const k of ks){if(!AC[k]){AC[k]=old[k];st.put(old[k],k)}}});if(ok)try{localStorage.removeItem(AK)}catch(e){}}
   acTrim();
  }else AC=old;
 })();
@@ -13265,11 +13267,13 @@ export default{async fetch(req,env){
   if(!env.SYNC)return new Response('no storage',{status:501,headers:H});
   const id=url.searchParams.get('id')||'';
   if(!/^[a-f0-9]{64}$/.test(id))return new Response('bad id',{status:400,headers:H});
-  if(req.method==='PUT'){const b=await req.text();if(b.length>20000000)return new Response('too big',{status:413,headers:H});await env.SYNC.put(id,b);return new Response('ok',{headers:H})}
+  if(req.method==='PUT'){const b=await req.text();if(b.length>8000000)return new Response('too big',{status:413,headers:H});await env.SYNC.put(id,b);return new Response('ok',{headers:H})}
   const v=await env.SYNC.get(id);return new Response(v||'',{status:v?200:404,headers:H});
  }
  const u=url.searchParams.get('url');
  if(!u)return new Response('CyPress relay is running v2',{headers:H});
+ let t=null;try{t=new URL(u)}catch(e){}
+ if(!t||!/^https?:$/.test(t.protocol)||(t.port&&t.port!=='80'&&t.port!=='443')||t.username||/^(localhost|[0-9.]+)$/.test(t.hostname)||t.hostname.startsWith('['))return new Response('bad address',{status:400,headers:H});
  const feedish=/rss|feed|atom|\.xml/i.test(u),order=[0,1];let r=null,tries=0;
  for(const i of order){
   tries++;
@@ -13974,7 +13978,7 @@ function touchMt(){
 }
 function mtOut(){const M=touchMt(),o={};for(const k of Object.keys(M)){o[k]={};for(const [key,e] of Object.entries(M[k]))o[k][key]=e.t}return o}
 function snapshot(){const o={v:1,t:Date.now(),set:{},setT:S.setT||0};SYNC_KEYS.forEach(k=>o[k]=S[k]);SET_KEYS.forEach(k=>{if(S[k]!==undefined)o.set[k]=S[k]});o.mt=mtOut();return o}
-function baseFrom(snap){const b={};for(const k of Object.keys(keyed))b[k]=(snap[k]||[]).map(keyed[k]);return b}
+function baseFrom(snap){const b={};for(const k of Object.keys(keyed))b[k]=(snap[k]||[]).map(keyed[k]);b.rd=Object.keys(snap.read||{}).map(H32);return b}
 /* three-way merge: an item the other side no longer has is a deletion only if we had synced it before; items on both sides keep the newer edit */
 function merge3(base,loc,rem,kf,lmt,rmt){
  base=new Set(base||[]);const lk=new Map((loc||[]).map(x=>[kf(x),x])),rk=new Map((rem||[]).map(x=>[kf(x),x]));
@@ -13998,7 +14002,7 @@ function mergeIn(r){
   if(Object.keys(remap).length)S.feeds.forEach(f=>{if(remap[f.folder])f.folder=remap[f.folder]})}
  const fids=new Set(S.folders.map(f=>f.id));S.feeds.forEach(f=>{if(f.folder&&!fids.has(f.folder))f.folder=''});
  const ids=new Set();S.feeds.forEach(f=>{if(ids.has(f.id))f.id='x'+Math.random().toString(36).slice(2,9);ids.add(f.id)});
- S.read={...(r.read||{}),...S.read};trimRead();
+ {/* a mark both devices had at the last sync and one has since removed stays removed */const br=new Set(B.rd||[]),rr=r.read||{},m={};for(const l in rr)if(S.read[l]||!br.has(H32(l)))m[l]=rr[l];for(const l in S.read)if(rr[l]||!br.has(H32(l)))m[l]=S.read[l];S.read=m}trimRead();
  for(const k of ['prog','pos','rt']){const m={...(r[k]||{})};for(const [a,v] of Object.entries(S[k]||{})){if(k==='prog'&&m[a]&&(m[a].t||0)>(v.t||0))continue;m[a]=v}S[k]=m}
  if((r.setT||0)>(S.setT||0)){Object.assign(S,r.set||{});S.setT=r.setT;LSIG=setSig()}
  S.saved.sort((a,b)=>(b.st||0)-(a.st||0));
@@ -14151,8 +14155,8 @@ function obFinish(){
 function freezeApp(){FROZEN=true;clearTimeout(HST);clearTimeout(syncT);clearTimeout(LRT);clearTimeout(LRW);LRT=LRW=0}
 async function startFresh(){
  /* two questions, not three; and it now erases everything it promises: every stored value (the previous library kept for undo, caches, the sync route...), and on Android the alert words, widget headlines and pictures and the hourly job */
- if(!(await askBox({title:'Erase everything?',text:'This removes all feeds, saved stories, highlights, notes and settings on this device. It can’t be undone.',ok:'Continue',cancel:'Keep my data',danger:true})))return;
- const want=await askBox({title:'Save a backup first?',text:'A backup lets you bring everything back later.',ok:'Save a backup, then erase',alt:'Erase without a backup',cancel:'Keep my data'});
+ if(!(await askBox({title:'Erase everything?',text:'This removes all feeds, saved stories, highlights, notes, books and settings on this device. It can’t be undone.',ok:'Continue',cancel:'Keep my data',danger:true})))return;
+ const want=await askBox({title:'Save a backup first?',text:'A backup lets you bring everything back later, except books: keep your original book files.',ok:'Save a backup, then erase',alt:'Erase without a backup',cancel:'Keep my data'});
  if(!want)return;
  if(want===true){const ok=await makeBackup();if(!ok){if(!(await askBox({title:'The backup wasn’t saved',text:'Erase anyway? Your data can’t be recovered afterwards.',ok:'Erase anyway',cancel:'Keep my data',danger:true})))return}}
  freezeApp();
@@ -15833,7 +15837,7 @@ function pe(slot,extra,key,skip){
   const s=peFill(v,x);if(!peValid(s))return null;
   st.c[slot+'|'+(key||'')]={k,id:v.id};used.add(v.id);
   const hl=st.h[slot]||(st.h[slot]=[]);if(hl[hl.length-1]!==v.id){hl.push(v.id);if(hl.length>12)hl.shift()}
-  try{save()}catch(e){}
+  try{saveSoon()}catch(e){}
   return s;
  };
  /* the chain: derived, then contextual, then neutral. A tier whose lines were all used recently is skipped, so the next tier supplies something new */
@@ -17799,11 +17803,11 @@ async function zipIndex(f){
  for(let k=0,p=0;k<cnt&&d.getUint32(p,true)===0x02014b50;k++){const nl=d.getUint16(p+28,true);m.set(td.decode(new Uint8Array(d.buffer,p+46,nl)),{meth:d.getUint16(p+10,true),csz:d.getUint32(p+20,true),lo:d.getUint32(p+42,true)});p+=46+nl+d.getUint16(p+30,true)+d.getUint16(p+32,true)}
  return m;
 }
-async function zipGet(f,m,nm){const e=m.get(nm);if(!e)return null;const h=new DataView(await f.slice(e.lo,e.lo+30).arrayBuffer()),s=e.lo+30+h.getUint16(26,true)+h.getUint16(28,true),b=f.slice(s,s+e.csz);return e.meth===0?b:new Response(b.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob()}
+async function zipGet(f,m,nm){const e=m.get(nm);if(!e)return null;const h=new DataView(await f.slice(e.lo,e.lo+30).arrayBuffer()),s=e.lo+30+h.getUint16(26,true)+h.getUint16(28,true),b=f.slice(s,s+e.csz);return e.meth===0?b:new Response(b.stream().pipeThrough(new DecompressionStream('deflate-raw')).pipeThrough(new TransformStream({transform(c,k){if((zipGet.n=(zipGet.n||0)+c.length)>3e8)throw Error('This book is too big to open.');k.enqueue(c)}}))).blob()}
 const bkRes=(h,from)=>{try{return decodeURIComponent(new URL(h,'http://z/'+from).pathname.slice(1))}catch(e){return h}};
 const bkTag=(d,n)=>d.getElementsByTagNameNS('*',n);
 const bkTxt=t=>String(t||'').replace(/\s+/g,' ').trim();
-async function bkImport(f){
+async function bkImport(f){zipGet.n=0;
  const t0=performance.now(),m=await zipIndex(f);
  const xml=async nm=>{const b=await zipGet(f,m,nm);if(!b)return null;const ab=await b.arrayBuffer();
   /* older books declare their own character set (windows-1252 and friends): decode as the file says, or accents turn to mojibake */
@@ -17854,7 +17858,7 @@ async function bkImport(f){
  const bk={id,title,author,lang,ch:chs,words:chs.reduce((s,c)=>s+c.w,0),cover:cov&&ib.some(x=>x[0]===cov.href)?cov.href:'',added:Date.now(),ms:0};
  return bkStore(bk,html,ib,t0);
 }
-async function bkStore(bk,html,ib,t0){const id=bk.id,db=await bkDb();bk.sz=html.reduce((n,h)=>n+h.length,0)+ib.reduce((n,x)=>n+(x[1].size||0),0);await new Promise((res,rej)=>{const tx=db.transaction(['books','ch','img'],'readwrite');tx.objectStore('books').put(bk);html.forEach((h,i)=>tx.objectStore('ch').put(h,id+'/'+i));ib.forEach(([p,b])=>tx.objectStore('img').put(b,id+'/'+p));tx.oncomplete=res;tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error||Error('Not enough room on this device for this book.'))});
+async function bkStore(bk,html,ib,t0){const id=bk.id,db=await bkDb();bk.sz=html.reduce((n,h)=>n+h.length,0)+ib.reduce((n,x)=>n+(x[1].size||0),0);await new Promise((res,rej)=>{const tx=db.transaction(['books','ch','img'],'readwrite');tx.objectStore('books').put(bk);html.forEach((h,i)=>tx.objectStore('ch').put(h,id+'/'+i));ib.forEach(([p,b])=>tx.objectStore('img').put(b,id+'/'+p));tx.oncomplete=res;tx.onerror=tx.onabort=()=>rej(tx.error&&tx.error.name!=='QuotaExceededError'?tx.error:Error('Not enough room on this device for this book.'))});
  bk.ms=Math.round(performance.now()-t0);try{const tx=db.transaction('books','readwrite');tx.objectStore('books').put(bk)}catch(e){}
  return bk;
 }
@@ -17863,12 +17867,13 @@ async function bkImportText(f){
  if(f.size>30e6)throw Error('That text file is too big to open as a book.');
  const t0=performance.now(),raw=(await f.text()).replace(/\r\n?/g,'\n'),md=/\.(md|markdown)$/i.test(f.name)||/markdown/.test(f.type);
  const name=f.name.replace(/\.[^.]+$/,'').replace(/_+/g,' ').trim()||'Untitled';
- const hd=l=>md?((l.match(/^#{1,3}\s+(.+?)\s*#*$/)||[])[1]||''):(/^\s*(chapter|part|book|prologue|epilogue)\b.{0,40}$/i.test(l)?l.trim():'');
+ const hd=l=>md?((l.match(/^#{1,3}\s+(.+?)\s*#*$/)||[])[1]||''):(/^\s*(?:(?:chapter|part|book)\s+(?:\d+|[ivxlcdm]+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b.{0,40}|(?:prologue|epilogue)\b.{0,20})$/i.test(l)?l.trim():'');
  const inl=x=>esc(x).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(^|[\s(])[*_]([^*_]+)[*_](?=[\s).,;:!?]|$)/g,'$1<i>$2</i>');
  const chs=[],html=[];let c=null,para=[];
  const open=(t,k=1)=>{c={t0:t,k,t:k>1?t+', part '+k:t,h:[],w:0}},close=()=>{if(c&&c.w){chs.push({t:c.t,w:c.w,p:''});html.push(c.h.join(''))}c=null};
  const flush=()=>{const tx=para.join(' ').trim();para=[];if(!tx)return;if(!c)open(name);c.h.push('<p>'+inl(tx)+'</p>');c.w+=(tx.match(/\S+/g)||[]).length;if(c.w>=7000){const t=c.t0,k=c.k+1;close();open(t,k)}};
- for(const l of raw.split('\n')){const h=hd(l);if(h){flush();close();open(h);continue}if(!l.trim()){flush();continue}para.push(md?l.replace(/^\s*[-*+]\s+/,'• ').replace(/^\s*>\s?/,'').trim():l.trim())}
+ /* a file with almost no blank lines has one paragraph per line; a chapter heading follows a blank line */const ls=raw.split('\n'),one=!md&&ls.filter(l=>!l.trim()).length*50<ls.length;let pb=true;
+ for(const l of ls){const h=(md||pb||one)?hd(l):'';pb=!l.trim();if(h){flush();close();open(h);continue}if(pb){flush();continue}para.push(md?l.replace(/^\s*[-*+]\s+/,'• ').replace(/^\s*>\s?/,'').trim():l.trim());if(one)flush()}
  flush();close();
  if(!chs.length)throw Error('No readable chapters were found in this book.');
  const id='t'+[...(name+'|'+f.size)].reduce((h,c)=>Math.imul(h^c.charCodeAt(0),16777619)>>>0,2166136261).toString(36);

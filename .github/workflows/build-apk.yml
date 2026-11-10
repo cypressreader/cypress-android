@@ -262,6 +262,11 @@ jobs:
             echo "::warning title=Version number check::The app file does not report version code ${BUILD_NUMBER}. Check the lines above."
           fi
           rm -f "$RUNNER_TEMP/cypress.keystore"
+          # the finished app, libraries included, must never ask for location
+          if "$BT/aapt2" dump permissions cypress.apk | grep -i "LOCATION"; then
+            echo "::error title=Location permission found::The finished app asks for a location permission (see the line above). A library added it; remove it before shipping."
+            exit 1
+          fi
 
       # Play Store: the store takes an app bundle (.aab) signed with this same key as its "upload key" (Play App Signing).
       # Optional: if it fails, the phone download above still publishes.
@@ -275,6 +280,11 @@ jobs:
           # the Play Store copy: no self-updater, no install permission (Play updates the app itself)
           python3 scripts/prepare_android.py --play
           (cd android && ./gradlew bundleRelease --no-daemon)
+          # the store copy, libraries included, must not ask to install other apps
+          if grep -rq "REQUEST_INSTALL_PACKAGES" android/app/build/intermediates/merged_manifests 2>/dev/null; then
+            echo "::error title=Install permission found::The Play Store bundle still asks for REQUEST_INSTALL_PACKAGES."
+            exit 1
+          fi
           AAB=$(find android/app/build/outputs/bundle/release -name '*.aab' | head -1)
           echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/cypress.keystore"
           jarsigner -keystore "$RUNNER_TEMP/cypress.keystore" -storepass:env KS_PASS -signedjar cypress.aab "$AAB" cypress

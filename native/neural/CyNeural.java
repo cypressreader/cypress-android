@@ -45,6 +45,21 @@ final class CyNeural implements CyTts.Neural {
     private static final String[] TIERS = {"compact", "full"};
     private static final String[] MODELS = {"model.half.onnx", "model.onnx"};
     private static final long[] MSIZES = {163421292L, 325560556L};
+    // SHA-256 of each file (SIZES.txt in the release): a damaged download of the right size is thrown away
+    private static final String[] SHAS = {"6ebb6bb288f20f3ae8d004d3c2ca27697da27c037d75e81a60e2a6a663f95425", "7daaab53a181be9885b853a8582bf1838186317e5dadacbcef9c426d6fa0da14", "1c5a5b983d3d50d8586d437a51f3faa2da7919ce76a013c081e65671a3447c29"};
+    private static final String[] MSHAS = {"59f6e71cc7c35c4e501105bae1751b94a4c781e439d42c3af794377070bcf1d6", "b40f62b166ac8164b0627ef48a0b358eda0985e272fb03ef5252e7206305da11"};
+    private static final String OFF_WIFI = "left Wi-Fi";
+
+    private static String sha(File f) throws Exception {
+        java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+        try (InputStream in = new java.io.FileInputStream(f)) {
+            byte[] b = new byte[1 << 16];
+            for (int n; (n = in.read(b)) > 0; ) md.update(b, 0, n);
+        }
+        StringBuilder sb = new StringBuilder();
+        for (byte x : md.digest()) sb.append(String.format("%02x", x));
+        return sb.toString();
+    }
     private static final int SID = 3; // af_heart (US English, woman): the plain NEURAL_ID
     /** American voices in the same voices.bin (no extra download), best-rated first in Kokoro's own VOICES.md grades.
      *  British ones are left out: CyG2p writes American sounds. {speaker id, name}. */
@@ -234,9 +249,13 @@ final class CyNeural implements CyTts.Neural {
                             break;
                         } catch (Throwable e) {
                             Log.w(TAG, name + " try " + tries + ": " + e);
-                            if (tries >= 5 || ti() != tk) throw e;
+                            if (tries >= 5 || ti() != tk || OFF_WIFI.equals(e.getMessage())) throw e;
                             Thread.sleep(2000L << tries); // 2, 4, 8, 16, 32 s; the .part file is kept and resumed
                         }
+                    }
+                    if (!sha(part).equals(i < FILES.length ? SHAS[i] : MSHAS[tk])) {
+                        part.delete();
+                        throw new Exception(name + " arrived damaged");
                     }
                     if (!part.renameTo(f)) throw new Exception("could not save " + name);
                     got = base + size;
@@ -289,6 +308,8 @@ final class CyNeural implements CyTts.Neural {
                     long now = System.currentTimeMillis();
                     if (now - last > 700) { // progress for Settings, a few times a second at most
                         last = now;
+                        ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
+                        if (cm != null && cm.isActiveNetworkMetered()) throw new Exception(OFF_WIFI); // the part file is kept and resumed on Wi-Fi
                         got = base + part.length();
                         emitInfo();
                     }

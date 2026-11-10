@@ -226,7 +226,12 @@ public class CyExtrasPlugin extends Plugin {
             CyExtras.prefs(c).edit().clear().commit();
             for (String n : new String[] { CyExtras.FILE_ITEMS, CyExtras.FILE_PACK, "bg_seen.json" }) new File(c.getFilesDir(), n).delete();
             File[] cs = c.getCacheDir().listFiles();
-            if (cs != null) for (File f : cs) if (f.isFile() && f.getName().startsWith("cyw_")) f.delete();
+            if (cs != null) for (File f : cs) if (f.isFile() && (f.getName().startsWith("cyw_") || f.getName().equals("open-book.epub"))) f.delete();
+            // what sites left behind in the hidden browser, and the downloaded voice
+            try { android.webkit.CookieManager.getInstance().removeAllCookies(null); } catch (Throwable t) { /* no WebView */ }
+            try { android.webkit.WebStorage.getInstance().deleteAllData(); } catch (Throwable t) { /* no WebView */ }
+            File[] vs = new File(c.getFilesDir(), "voices").listFiles();
+            if (vs != null) for (File f : vs) { File[] in = f.listFiles(); if (in != null) for (File g : in) g.delete(); f.delete(); }
             try { CyWidgets.refreshAll(c); } catch (Throwable t) { /* no widgets placed */ }
             call.resolve();
         } catch (Throwable t) {

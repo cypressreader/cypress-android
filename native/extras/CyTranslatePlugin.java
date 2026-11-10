@@ -71,7 +71,7 @@ public class CyTranslatePlugin extends Plugin {
                 .setTargetLanguage(tgt)
                 .build();
             final Translator tr = Translation.getClient(opts);
-            tr.downloadModelIfNeeded(new DownloadConditions.Builder().build())
+            tr.downloadModelIfNeeded(new DownloadConditions.Builder().requireWifi().build())
                 .addOnSuccessListener(v -> next(tr, texts, new ArrayList<String>(), call))
                 .addOnFailureListener(e -> {
                     tr.close();

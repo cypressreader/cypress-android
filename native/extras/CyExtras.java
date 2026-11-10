@@ -122,9 +122,14 @@ public final class CyExtras {
 
     /** A feed list (.opml) opened from Files, email or Downloads with "Open with CyPress": its text is handed to the
      *  page as a share with an "opml" field, and the page runs its normal import (with a preview and Undo). */
-    static void handleFile(Context c, Intent intent) {
+    static void handleFile(final Context c, final Intent intent) {
+        if (intent == null || !Intent.ACTION_VIEW.equals(intent.getAction())) return;
+        // off the main thread: copying a big book, or a file a cloud drive still has to download, froze the app
+        new Thread(() -> handleFile0(c, intent), "cy-open").start();
+    }
+
+    private static void handleFile0(Context c, Intent intent) {
         try {
-            if (intent == null || !Intent.ACTION_VIEW.equals(intent.getAction())) return;
             android.net.Uri u = intent.getData();
             if (u == null || !"content".equals(u.getScheme()) && !"file".equals(u.getScheme())) return;
             if ((intent.getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0) return;
@@ -648,6 +653,10 @@ public final class CyExtras {
         }
         // "dsave" is what an earlier build stored; the page now sends dataSaver / unmetered
         boolean dsave = cfg.optBoolean("dataSaver", false) || cfg.optBoolean("unmetered", false) || cfg.optBoolean("dsave", false);
+        try { // the phone's own Data Saver counts too
+            android.net.ConnectivityManager cm = (android.net.ConnectivityManager) c.getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (cm != null && cm.getRestrictBackgroundStatus() == android.net.ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED) dsave = true;
+        } catch (Throwable t) { /* keep the page's setting */ }
         Constraints cons = new Constraints.Builder()
             .setRequiredNetworkType(dsave ? NetworkType.UNMETERED : NetworkType.CONNECTED)
             .setRequiresBatteryNotLow(true)

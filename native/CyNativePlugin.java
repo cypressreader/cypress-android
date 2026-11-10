@@ -121,16 +121,19 @@ public class CyNativePlugin extends Plugin {
             ws.setUserAgentString(chromeUa(getContext()));
             android.webkit.CookieManager.getInstance().setAcceptCookie(true);
             w.layout(0, 0, 1080, 1920);
+            // only our own script knows this word, so the page's scripts can't hand back text of their own
+            final String tok = Long.toHexString(new java.security.SecureRandom().nextLong());
             w.addJavascriptInterface(new Object() {
                 @android.webkit.JavascriptInterface
-                public void done(String t) {
+                public void done(String k, String t) {
+                    if (!tok.equals(k)) return;
                     got[0] = t == null ? "" : t;
                     h.post(fin[0]);
                 }
             }, "CyGrab");
             final String grab = "(function(){var t=document.title||'';"
                 + "if(/just a moment|attention required|checking your browser|verify you are human|please wait|one more step/i.test(t))return 'wait';"
-                + "fetch(location.href,{credentials:'include'}).then(function(r){return r.ok?r.text():''}).then(function(x){CyGrab.done(x)},function(){CyGrab.done('')});return 'ok'})()";
+                + "fetch(location.href,{credentials:'include'}).then(function(r){return r.ok?r.text():''}).then(function(x){CyGrab.done('" + tok + "',x)},function(){CyGrab.done('" + tok + "','')});return 'ok'})()";
             final Runnable[] check = new Runnable[1];
             check[0] = () -> {
                 if (done[0]) return;
