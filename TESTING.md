@@ -1679,3 +1679,6 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - [ ] A story with a small or missing picture opens as before.
 - [ ] Other themes, scrolling stories and the unfolded Fold look as before.
 - [ ] Scrolling stories (Dynamic theme): a story with a large picture opens with the picture filling most of the screen and the headline over it; as you scroll, the story slides up over the picture on a plain sheet.
+
+## Scrolling cover: summary box over the picture (after 1.298, not yet built)
+- [ ] Dynamic theme, phone size, scrolling story with a large picture and an AI summary: as the story slides up, the summary box hides the picture behind it and every line stays readable.
