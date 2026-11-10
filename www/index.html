@@ -1758,14 +1758,6 @@ html.dynx[data-theme=dynamic] #grid .dhd h3.dsh[style*="--sc"]{border-bottom-col
 /* Dynamic spotlight: the story near the middle of the screen lifts a little and glows in its site color (transform and shadow only, so rows and sizes never change) */
 @media(prefers-reduced-motion:no-preference){html.dynx[data-theme=dynamic]:not(.lowp):not(.rmo):not(.smooth) #grid:not(.list):not([data-wdens=col]):is([data-cards=medium],[data-cards=large]) .card{transition:transform var(--dur-2),box-shadow var(--dur-3)}
 html.dynx[data-theme=dynamic]:not(.lowp):not(.rmo):not(.smooth) #grid:not(.list):not([data-wdens=col]):is([data-cards=medium],[data-cards=large]) .card.spot{transform:translateY(-4px);z-index:2;box-shadow:0 0 0 1px color-mix(in srgb,var(--b) 45%,transparent),0 12px 32px color-mix(in srgb,var(--b) 38%,transparent)}}
-/* Dynamic bloom: away from the middle of the screen a story's picture sits in its site color (light and dark kept, hue replaced); in the middle half it opens into full color. An overlay pinned to the picture, paint only; #grid.dbl exists only while dynLive's observer runs, so full color is the default */
-@supports(anchor-name:--a){html.dynx[data-theme=dynamic]:not(.lowp) #grid.dbl:not(.list):not([data-wdens=col]) .card:not(.list-row)>img{anchor-name:--dpic}
-html.dynx[data-theme=dynamic]:not(.lowp) #grid.dbl:not(.list):not([data-wdens=col]) .card:not(.noimg):not(.list-row):has(>img)::after{content:"";position:absolute;position-anchor:--dpic;top:anchor(top);left:anchor(left);right:anchor(right);bottom:anchor(bottom);z-index:-1;background:var(--b);mix-blend-mode:color;opacity:0;pointer-events:none}
-html.dynx[data-theme=dynamic]:not(.lowp) #grid.dbl:not(.list):not([data-wdens=col]) .card.dw:not(.noimg):not(.list-row):has(>img)::after{opacity:1}
-html.dynx[data-theme=dynamic]:not(.lowp) #grid.dbl:not(.list):not([data-wdens=col]) .card.dw{--pc:var(--b)!important}/* a washed picture glows in the color it shows */
-@media(prefers-reduced-motion:no-preference){html.dynx[data-theme=dynamic]:not(.lowp) #grid.dbl .card:not(.noimg):has(>img)::after{transition:opacity var(--dur-3)}}}
-/* Dynamic glow: a photo card throws a soft shadow in its picture's own color (its site color until the picture is measured); the spotlit card keeps its stronger halo */
-html.dynx[data-theme=dynamic]:not(.lowp) #grid:not(.list):not([data-wdens=col]) .card:not(.noimg):not(.list-row):has(>img){box-shadow:0 12px 20px -10px color-mix(in srgb,var(--pc,var(--b)) 75%,transparent)}
 /* Dynamic fresh stories: the tile (or list row) is washed in the site color, up to 30% for a story that just arrived, fading to nothing within a day (--fr is set when the card is drawn) */
 html.dynx[data-theme=dynamic] #grid .card[style*="--fr"]{--tile:color-mix(in srgb,color-mix(in srgb,var(--b) calc(var(--fr)*30%),var(--pn)) 55%,transparent)}
 html.dynx[data-theme=dynamic] #grid.list .card.list-row[style*="--fr"]{background-color:color-mix(in srgb,var(--b) calc(var(--fr)*30%),var(--pn))}
@@ -12278,13 +12270,12 @@ function secCol(el){
  }
  return '';
 }
-const spOb=c=>{if(!c.matches('.card:not(.list-row):not(.dq-c)'))return;dynLive.sp&&dynLive.sp.observe(c);dynLive.bl&&dynLive.bl.observe(c)};
+const spOb=c=>{if(!c.matches('.card:not(.list-row):not(.dq-c)'))return;dynLive.sp&&dynLive.sp.observe(c)};
 function dynLive(){
  const r=document.documentElement,on=isOn('dynx')&&r.dataset.theme==='dynamic';
  if(dynLive.io){dynLive.io.disconnect();dynLive.io=null}
  if(dynLive.sp){dynLive.sp.disconnect();dynLive.sp=null}
  if(dynLive.spot){dynLive.spot.classList.remove('spot');dynLive.spot=null}
- if(dynLive.bl){dynLive.bl.disconnect();dynLive.bl=null}{const g0=$('#grid');if(g0)g0.classList.remove('dbl')}
  if(!on){dynEls().forEach(e=>e.style.removeProperty('--dyn'));const d=document.getElementById('dynbg');if(d)d.remove();dynSet.c=null;dynSet.tb=null;dynAccentOff();clearTimeout(dynSet.w);return}
  const g=$('#grid');if(!g)return;
  const cs=[...g.querySelectorAll(':scope>.card,:scope>.cover,:scope .card,:scope [data-href]')];/* text-only rows and boxes count too */
@@ -12304,8 +12295,6 @@ function dynLive(){
  cs.forEach(x=>io.observe(x));dynLive.io=io;
  /* the story nearest the middle of the screen gets a gentle lift and a glow in its site color: card views at Medium and Large size only (none in list or Columns view, with reduced motion, in low-power or data-saver mode). One observer, nothing runs while scrolling. */
  const fx=!reduced()&&!r.classList.contains('lowp')&&!isOn('dsave')&&!DEV.dataSaver&&!(navigator.connection&&navigator.connection.saveData)&&!g.classList.contains('list')&&g.dataset.wdens!=='col',sz=(S.sel==='today'&&!$('#q').value.trim()&&!nrMode())?'narrow':(S.cards||'medium')/* the card size render() is about to set on the grid */;
- /* pictures away from the middle of the screen sit in their site's color and bloom into full color in the middle half: same views and modes as the spotlight, at every card size. Full color is the default: the wash needs #grid.dbl, which only lives while this observer does */
- if(fx){g.classList.add('dbl');dynLive.bl=new IntersectionObserver(es=>{for(const e of es)e.target.classList.toggle('dw',!e.isIntersecting)},{rootMargin:'-25% 0px -25% 0px'})}
  if(fx&&/^(medium|large)$/.test(sz)){
   const live=new Set();
   dynLive.sp=new IntersectionObserver(es=>{
@@ -14166,8 +14155,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.10b';const APP_LABEL='1.297';
-const CHANGES=["In the Dynamic theme, a story with a large, sharp picture opens on a cover page: the picture fills most of the first page with the headline over it, and the story starts underneath","In the Dynamic theme, the reader takes its colors from the story's picture, and each section of the Daily has its own color","In the Dynamic theme, the story in the middle of the screen stands out, new stories get a soft wash of color, and pictures bloom into full color as they reach the middle of the screen, with a glow in their own color"];
+const APP_VERSION='2026.11.10c';const APP_LABEL='1.298';
+const CHANGES=["Scrolling is smooth again in the Dynamic theme: the pictures that bloomed into color and the colored glow under them are gone, because they made scrolling stutter","In the Dynamic theme, stories you scroll through also open on a cover: the picture fills most of the screen with the headline over it, and the story slides up over it as you read"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
