@@ -1678,3 +1678,4 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - [ ] Turning forward and back from the cover feels the same as any other page.
 - [ ] A story with a small or missing picture opens as before.
 - [ ] Other themes, scrolling stories and the unfolded Fold look as before.
+- [ ] Scrolling stories (Dynamic theme): a story with a large picture opens with the picture filling most of the screen and the headline over it; as you scroll, the story slides up over the picture on a plain sheet.
