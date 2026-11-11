@@ -1804,3 +1804,10 @@ Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at 
 - After the second turn both pages are plain and there is no line or shadow down the middle.
 - Turning back from there returns to the opening; tapping the picture on the opening still peeks.
 - Dynamic look: the top bar, the Daily tabs and the bottom bar are the same color as the page and fade with it while scrolling.
+
+## Two-page screens: one-line Notes and end block that runs on (2026-11-11, headless 900x1000 only, unverified on device)
+- Fold open, paged, a story with links: under the story there is one line "Notes · N links"; the full list is not shown.
+- Tapping the line opens the list in place and the pages re-count; tapping a small note number in the text opens the list and jumps to that note.
+- The end block (Next up, Save, Share, More lists) starts right under the Notes line and may continue on the next page; no piece is cut in half and the source line stays with the Next up card.
+- "Read original" does not sit on a pair of pages by itself.
+- Phone (one page) and scrolling mode: Notes list and end block look the same as before.
