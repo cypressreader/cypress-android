@@ -1738,3 +1738,14 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Open Fold / tablet, Dynamic theme: pull quotes sit in the column like before (no box floating beside squeezed text).
 - Poster headline, title page, split opener: fill the left page, the story starts at the top of the right page. Postcard picture: left page with the headline under it.
 - Page turning stays smooth from these first pages; rotating the tablet keeps the layout sensible.
+
+## Two-page cover, slide + peek and picture first (for 1.303; checked headless at 1100x800 only, unverified on device)
+Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at least 1600px across. The picture picks the opening, so the same story always opens the same way.
+- [ ] Picture first (picture about twice as wide as tall, or with a caption or credit): page 1 is the picture alone across both pages, headline lower left, caption under the date; the first turn starts the story at the top of the left page; turning back shows the picture again.
+- [ ] Slide + peek (other wide pictures): page 1 as before (picture, headline, story on the sheet over the right page). The first turn slides the sheet onto the left page with the next part of the story while the picture holds still; the right page is the picture. The next turn lifts the picture like a page and the story continues on the right page. Then normal turns.
+- [ ] Turning back from page 3 lands on the two text pages; back again slides the sheet to the right and the headline returns.
+- [ ] Tap the picture on page 1: the sheet slides off and the whole picture fills both pages. Another tap, a swipe or an arrow key brings the sheet back without turning.
+- [ ] Swipes: a swipe on page 1 slides (no page curl); with Paper turns, dragging the picture page on the slid page curls it like a real page and can be let go to put it back.
+- [ ] Reduced motion (phone setting or in-app): all of the above is instant.
+- [ ] Follow button on the cover still taps; the Listen bar and progress bar count pages as before.
+- [ ] The "At a glance" box no longer sits at the top of the sheet (it pushed the story to page 2 in 1.302 on this cover).

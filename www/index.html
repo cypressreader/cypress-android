@@ -1696,6 +1696,22 @@ html.rdx .cols>.hsf.hs-wide.hs-wcov img.hero{height:min(calc(var(--ch)*.56),calc
 html.rdx #rd.cpv2 .cols>.hsf.hs-ccov img.hero{position:absolute;z-index:-3;left:calc(-1*var(--bleed));top:calc(-1*var(--bleed));width:calc(var(--sw) + var(--bleed) + var(--cr));height:calc(var(--ch) + 2*var(--bleed));max-width:none;border-radius:0}/* --cr: the right edge stops short of the next screen */
 #rd.cpv2 .cols>.hsf.hs-ccov .hov{z-index:-2;pointer-events:auto;left:calc(-1*var(--bleed));right:auto;bottom:calc(-1*var(--bleed));width:calc(var(--sw) + var(--bleed) + var(--cr));box-sizing:border-box;padding-left:calc(24px + var(--bleed));padding-bottom:calc(24px + var(--bleed));padding-right:calc((var(--sw) + var(--cg))/2 + var(--bleed) + 24px);border-radius:0}
 #rd.cpv2 .cols>.hsf.hs-ccov::after{content:'';position:absolute;z-index:-1;top:-14px;bottom:-14px;right:-18px;width:calc((var(--sw) - var(--cg))/2 + 36px);background:var(--pn);border-radius:20px;box-shadow:0 8px 28px rgba(0,0,0,.35)}
+/* Two-page cover, slide + peek (1.303): the first turn slides the sheet from the right page onto the left page (.cslid; .cslide while it moves, --cvd = its time, 0 outside a slide) carrying the next part of the story; the picture and headline hold still under it, and on the right page the picture then covers the next column until it turns away like a page (.cpk). A tap on the picture on page 1 slides the sheet off (.cpeek) so the whole picture shows */
+#rd.cpv2 .cols>.hsf.hs-ccov :is(img.hero,.hov),#rd.cpv2 .cols>.hsf.hs-ccov::after{transition:transform var(--cvd,0ms) cubic-bezier(.4,0,.2,1),opacity var(--cvd,0ms) linear,top var(--cvd,0ms) cubic-bezier(.4,0,.2,1),bottom var(--cvd,0ms) cubic-bezier(.4,0,.2,1),border-radius var(--cvd,0ms) linear,clip-path 0s 0s,z-index 0s 0s}html.rdx #rd.cpv2 .cols>.hsf.hs-ccov img.hero{clip-path:inset(0 0 0 0)}/* a shape from the start, so the cut below can wait for the end of the slide */
+#rd.cpv2 .cols.cslid>.hsf.hs-ccov :is(img.hero,.hov){transform:translateX(calc(var(--sw) + var(--cg)))}
+#rd.cpv2 .cols.cslid>.hsf.hs-ccov .hov{pointer-events:none}
+#rd.cpv2 .cols.cslid>.hsf.hs-ccov::after{transform:translateX(calc((var(--sw) + var(--cg))/2 - var(--bleed) + 18px));top:calc(-1*var(--bleed));bottom:calc(-1*var(--bleed));border-radius:0}/* the sheet becomes the whole left page, flush with the book's edge */
+html.rdx #rd.cpv2 .cols.cslid>.hsf.hs-ccov img.hero{z-index:1;clip-path:inset(0 0 0 calc((var(--sw) - var(--cg))/2 + 36px));transition-delay:0s,0s,0s,0s,0s,var(--cvd,0ms),var(--cvd,0ms)}/* over the next column, cut at the sheet's edge; the cut and the lift above the text land only once the sheet is there */
+#rd.cpv2 .cols:has(>.hs-ccov)::after{content:'';position:absolute;z-index:2;pointer-events:none;top:calc(-1*var(--bleed));bottom:calc(-1*var(--bleed));left:calc(var(--sw) + var(--cg) - var(--bleed) + (var(--sw) - var(--cg))/2 + 36px);width:30px;background:linear-gradient(to right,rgba(0,0,0,.3),rgba(0,0,0,.08) 40%,transparent);opacity:0;transition:opacity .15s}#rd.cpv2 .cols.cslid:not(.cpk):has(>.hs-ccov)::after{opacity:1;transition-delay:var(--cvd,0ms)}/* the sheet's shadow on the picture beside it */
+html.rdx #rd.cpv2 .cols.cpk>.hsf.hs-ccov img.hero{opacity:0}#rd.cpv2 .cols.cpk>.hsf.hs-ccov .hov{opacity:0}/* lifted: its shading goes with it */
+#rd.cpv2 .cols.cslide>:not(.hsf){animation:cvfade var(--cvd,0ms) linear both}
+@keyframes cvfade{0%{opacity:1}28%{opacity:0}72%{opacity:0}100%{opacity:1}}
+#rd.cpv2 .cols.cpeek>.hsf.hs-ccov::after{transform:translateX(calc(var(--sw)/2 + 90px))}
+#rd.cpv2 .cols.cpeek>.hsf.hs-ccov .hov{opacity:0;pointer-events:none}
+#rd.cpv2 .cols.cpeeking>:not(.hsf){transition:opacity var(--cvd,0ms) linear}#rd.cpv2 .cols.cpeek>:not(.hsf){opacity:0}
+/* Picture first: a very wide picture, or one with a caption or credit, is page 1 on its own across both pages with the headline over it; the story starts on normal pages after the first turn (.hsp holds the right page empty) */
+#rd.cpv2 .cols>.hsf.hs-pcov::after{display:none}#rd.cpv2 .cols>.hsf.hs-pcov .hov .hcap{margin:10px 0 0;font:400 13px/1.45 var(--sans);opacity:.8}
+.cols>.hsp{display:none}#rd.cpv2 .cols>.hsf.hs-pcov+.hsp{display:block;height:var(--ch);break-inside:avoid}
 /* Dynamic reader palette: the picture's second color tints the label and first letter, its third the quotes (set by rdPal; text stays well above readable contrast) */
 html.dynx[data-theme=dynamic] #rd.pal :is(.kick,.body p.dropcap .dcap){color:color-mix(in srgb,var(--rk) 75%,var(--ink))}
 html.dynx[data-theme=dynamic] #rd.pal .body :is(blockquote:not(.emb blockquote),.pullq){background:color-mix(in srgb,var(--rq) 15%,transparent);border-radius:10px}
@@ -1733,7 +1749,7 @@ html.dynx[data-theme=dynamic] #rd .cols>.hsf.hs-ftp .hov{flex:1;display:flex;fle
 /* Split opener: the picture on top, the headline on a panel in the picture's color underneath */
 html.dynx[data-theme=dynamic] #rd .cols>.hsf.hs-spl{display:flex;flex-direction:column;border-radius:16px;overflow:hidden}html.dynx[data-theme=dynamic] #rd.vert .cols>.hsf.hs-spl{height:calc(100svh - 170px)}html.dynx[data-theme=dynamic] #rd .cols>.hsf.hs-spl img.hero{flex:1 1 0;min-height:0;height:auto;width:100%;aspect-ratio:auto;object-fit:cover;border-radius:0}html.dynx[data-theme=dynamic] #rd .cols>.hsf.hs-spl .hov{position:static;flex:none;background:color-mix(in srgb,var(--dk) 68%,#000);border-radius:0;padding:20px 20px 22px}html.dynx[data-theme=dynamic] #rd .cols>.hsf.hs-spl .hov :is(.tt,.kick,.dt,.dt span){text-shadow:none}html.dynx[data-theme=dynamic] #rd .cols>.hsf.hs-spl .hov .tt{font-size:clamp(28px,8vw,44px)}html.dynx[data-theme=dynamic] #rd .cols>.hsf.hs-spl .hov .kick{color:#fff}
 /* two pages: a poster, title page or split opener fills the left page and the story starts at the top of the right page (the facts box would push it a page further) */
-html.dynx[data-theme=dynamic] #rd.cpv2 .cols:has(>.hs-post,>.hs-ftp,>.hs-spl,>.hs-pc)>.mnotes{display:none}
+html.dynx[data-theme=dynamic] #rd.cpv2 .cols:has(>.hs-post,>.hs-ftp,>.hs-spl,>.hs-pc,>.hs-ccov)>.mnotes{display:none}/* 1.303: also beside the two-page covers, where the box at the top of the sheet pushed the story to page 2 */
 /* By the numbers and the review verdict */
 html.dynx[data-theme=dynamic] #rd .cols .body :is(.bnum,.rvw){break-inside:avoid;margin:1.5em 0;font-family:var(--sans)}html.dynx[data-theme=dynamic] #rd .cols .body :is(.bnum,.rvw) small{display:block;font:700 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:color-mix(in srgb,var(--dk) 78%,var(--ink));margin-bottom:8px}
 html.dynx[data-theme=dynamic] #rd .cols .body .bnum>div{display:flex;gap:10px}html.dynx[data-theme=dynamic] #rd .cols .body .bnum p{flex:1;min-width:0;margin:0;padding:8px 0 0;border-top:2px solid var(--dk);text-indent:0;text-align:left;font:400 13px/1.3 var(--sans);color:var(--mut);hyphens:none}html.dynx[data-theme=dynamic] #rd .cols .body .bnum p b{display:block;font:700 clamp(20px,6.4vw,32px)/1.05 var(--disp,var(--serif));color:color-mix(in srgb,var(--dk) 78%,var(--ink));margin-bottom:4px;overflow-wrap:anywhere}
@@ -8759,6 +8775,7 @@ function rdxEdge(){
 function show(){
  const c=$('.cols');if(!c)return;setProg();
  if(!isVert())c.style.transform=`translateX(${-R.pg*R.step}px)`;
+ if(ccv()){if(R.pg===0)R.cpk=false;else if(R.pg>1)R.cpk=true;c.classList.toggle('cslid',R.pg>=1);c.classList.toggle('cpk',!!R.cpk)}else if(c.classList.contains('cslid')||c.classList.contains('cpk'))c.classList.remove('cslid','cpk');
  if(RP&&!R.T&&RP.T.key!==prepKey())prepSoon();
  $('#pc').textContent=pcText();{const bk=$('.book');if(bk){if(isOn('folio')&&curA&&!R.web&&!isVert()&&R.np>0){const t=(curA.title||'').length>46?curA.title.slice(0,44)+'…':(curA.title||'');bk.dataset.folio=(DPOS||fof(curA).title||'')+' · '+t+'   ·   '+(R.pg+1)}else delete bk.dataset.folio;if(bk.dataset.rh!=null&&curA){const t=bkCh(curA.title).trim();bk.dataset.rh=t.length>60?t.slice(0,58)+'…':t;bk.classList.toggle('rh0',R.pg===0);const c=$('.cols');if(c)bk.style.setProperty('--rhp',c.offsetLeft+'px')}}}$('#pv').disabled=!isVert()&&R.pg===0;$('#nx').disabled=!isVert()&&R.pg>=R.np-1;fpSync();dialSync();rdxEdge();
  if(R.ready&&curA){if(curA.book){bkMark(curA.book,curA.n,rdFrac()||0);bkBmSync();if(curA.n===curA.of-1&&R.pg>=R.np-1){S.bkdone=S.bkdone||{};if(!S.bkdone[curA.book])S.bkdone[curA.book]=Date.now()}}delete S.pos[curA.link];if(R.pg>0&&R.pg<R.np-1)S.pos[curA.link]=R.pg;const pk=Object.keys(S.pos);if(pk.length>300)delete S.pos[pk[0]];clearTimeout(pt);pt=setTimeout(save,700)}
@@ -8788,8 +8805,8 @@ function preOf(pg){
  }
  return CUT.m[ck]=out;
 }
-function mkBox(pg,x0){
- const bk=$('.book'),v=$('.view').cloneNode(true),c=v.querySelector('.cols');
+function mkBox(pg,x0,pk){
+ const bk=$('.book'),v=$('.view').cloneNode(true),c=v.querySelector('.cols');if(pk)c.classList.add('cpk');/* the page under the lifted picture */
  {const ps=[c,c.querySelector(':scope>.body')];cutOf(pg).forEach((d,j)=>{const p=ps[j];if(p)d.forEach(i=>{const x=p.children[i];if(x)x.remove()})})}
  v.removeAttribute('id');v.setAttribute('aria-hidden','true');v.inert=true;/* a copy is only a picture of the page: screen readers and the Tab key skip it */v.style.cssText=`position:absolute;inset:auto;top:0;left:${-x0}px;width:${bk.clientWidth}px;height:${bk.clientHeight}px`;
  const P=preOf(pg);let sh=0;
@@ -8802,11 +8819,11 @@ function shade(dir){const e=document.createElement('i');e.className='tsh';e.styl
 function startTurn(dir,lazy){
  curlGet();
  if(RP){const P=RP.T;RP=null;const bk0=$('.book');if(dir>0&&bk0&&!P.part&&P.key===prepKey()&&P.els.every(e=>e.isConnected)){R.T=P;R.busy=true;edgeHide(bk0,1);bk0.classList.toggle('one',!P.two);bk0.style.perspectiveOrigin=P.po||'';P.hid.forEach(e=>e.style.opacity='');setAng(P.ang);return P}P.els.forEach(e=>e.remove())}
- const bk=$('.book'),W=bk.clientWidth,two=R.cpv===2,hw=two?W/2:W,hx=two?W/2:0,to=R.pg+dir;
- const T=R.T={my:tok,dir,to,hw,hx,two,ang:dir>0?0:180,dead:false,els:[],q:lazy?[]:null};
+ const bk=$('.book'),W=bk.clientWidth,two=R.cpv===2,hw=two?W/2:W,hx=two?W/2:0,peel=dir>0&&R.pg===1&&!R.cpk&&ccv(),to=peel?R.pg:R.pg+dir;
+ const T=R.T={my:tok,dir,to,hw,hx,two,peel,ang:dir>0?0:180,dead:false,els:[],q:lazy?[]:null};
  R.busy=true;edgeHide(bk,1);bk.classList.toggle('one',!two);
  const pgF=dir>0?R.pg:to,pgB=dir>0?to:R.pg;
- const face=(cls,pg,x0)=>{const f=mkEl('tf '+cls);f.style.width=hw+'px';if(pg!=null)f.append(mkBox(pg,x0));return f};
+ const face=(cls,pg,x0,pk)=>{const f=mkEl('tf '+cls);f.style.width=hw+'px';if(pg!=null)f.append(mkBox(pg,x0,pk));return f};
  const cast=mkEl('tl-cast');
  T.cr=document.createElement('i');T.cl=document.createElement('i');
  T.cr.style.background='linear-gradient(to right,rgba(0,0,0,.2),rgba(0,0,0,.08) 35%,rgba(0,0,0,.02) 70%,rgba(0,0,0,0))';T.cl.style.background='linear-gradient(to left,rgba(0,0,0,.2),rgba(0,0,0,.08) 35%,rgba(0,0,0,.02) 70%,rgba(0,0,0,0))';
@@ -8819,13 +8836,13 @@ function startTurn(dir,lazy){
    const el=mkEl('tl-s',`left:0;width:${sw+1}px`);
    const f=mkEl('tf'),fs=shade('to right');fs.style.background='#000';f.append(fs);el.append(f);
    const b=mkEl('tf bk'),bs=shade('to left');bs.style.background='#000';b.append(bs);el.append(b);
-   const fill=()=>{f.prepend(mkBox(pgF,hx+i*sw));if(two)b.prepend(mkBox(pgB,hw-(i+1)*sw))};if(T.q)T.q.push(fill);else fill();/* a turn built ahead copies the page into its strips later, a few per idle moment */
+   const fill=()=>{f.prepend(mkBox(pgF,hx+i*sw));if(two)b.prepend(mkBox(pgB,hw-(i+1)*sw,peel))};if(T.q)T.q.push(fill);else fill();/* a turn built ahead copies the page into its strips later, a few per idle moment */
    leaf.append(el);T.st.push({el,f,b,o:-1});
   }
  }else{
  const f=face('',pgF,hx);T.fs=shade('to right');f.append(T.fs);T.sn=mkEl('tsheen');f.append(T.sn);
  leaf.append(f);
- if(two){const b=face('bk',pgB,0);T.bs=shade('to left');b.append(T.bs);leaf.append(b)}
+ if(two){const b=face('bk',pgB,0,peel);T.bs=shade('to left');b.append(T.bs);leaf.append(b)}
  else{const b=mkEl('tf bk');b.style.width=hw+'px';T.bs=shade('to left');b.append(T.bs);leaf.append(b)}
  }
  T.leaf=leaf;
@@ -8835,7 +8852,7 @@ function startTurn(dir,lazy){
  const ux=(dir>0)?hx:0;
  if(dir>0||two){
   const u=mkEl('tl tl-under',`left:${ux}px;width:${hw}px`);
-  u.append(mkBox(to,ux));
+  u.append(mkBox(to,ux,peel));
   T.us=shade(dir>0?'to right':'to left');u.append(T.us);
   bk.append(u);T.els.push(u);
  }
@@ -8918,13 +8935,13 @@ function rdWarm(){
 }
 /* the next page turn is built ahead, while the reader reads: copying the story into the strips of the turning page and drawing them is the slow part, so a tap or swipe starts the motion on the very next frame. The ready turn sits invisibly (1% see-through) over the page so its layers are already drawn. Any change to the page (layout, page, story) makes it stale and it is thrown away. */
 let RP=null;
-const prepKey=()=>{const bk=$('.book');return bk?[tok,R.pg,R.step,R.np,R.cpv,bk.clientWidth,bk.clientHeight,curlN].join():''};
+const prepKey=()=>{const bk=$('.book');return bk?[tok,R.pg,R.step,R.np,R.cpv,bk.clientWidth,bk.clientHeight,curlN,R.cpk?1:0].join():''};
 /* the page-edge stack hides while a page turns; set on the stack itself, since changing the book's class made the browser recheck the whole story and its copies (a 40 ms hitch on the first frame) */
 function edgeHide(bk,on){const e=bk&&bk.querySelector(':scope>.rdedge');if(e)e.style.opacity=on?'0':''}
 function prepDrop(){if(RP){RP.T.els.forEach(e=>e.remove());RP=null}}
 function prepTurn(){
  if(RP&&RP.T.key===prepKey())return;prepDrop();
- if(!isOn('curl')||rdxPturn()!=='paper'||reduced()||R.busy||R.T||D||R.web||isVert()||!R.ready||R.pg+1>=R.np||!$('.book')||!$('#rd').classList.contains('on'))return;
+ if(!isOn('curl')||rdxPturn()!=='paper'||reduced()||R.busy||R.T||D||R.web||isVert()||!R.ready||R.pg+1>=R.np||!$('.book')||!$('#rd').classList.contains('on')||(R.pg===0&&ccv()))return;/* the sliding cover's first turn is a slide, nothing to build ahead */
  let T;try{T=startTurn(1,true)}catch(e){R.T=null;R.busy=false;elog('prepTurn',e);return}
  R.T=null;R.busy=false;const bk=$('.book');edgeHide(bk,0);bk.style.perspectiveOrigin='';
  T.hid=[...T.leaf.querySelectorAll('.tf'),...T.els.filter(e=>e!==T.leaf)];T.hid.forEach(e=>{e.style.opacity='0'});T.key=prepKey();RP={T};
@@ -8949,7 +8966,7 @@ function anim(from,to,dur,ease,done){
 function endTurn(ok){
  const T=R.T;if(!T)return;R.T=null;cancelAnimationFrame(T.raf);
  curlTune(T);
- if(ok&&!T.dead&&T.my===tok){R.pg=T.to;show();turnTick()}
+ if(ok&&!T.dead&&T.my===tok){if(T.peel)R.cpk=true;R.pg=T.to;show();turnTick()}
  T.els.forEach(e=>e.remove());
  const bk=$('.book');if(bk){edgeHide(bk,0);bk.style.perspectiveOrigin=''}
  R.busy=false;prepSoon();
@@ -8985,10 +9002,19 @@ function rdxSlideEnd(d,ts){
  if(ok)R.pg=to;show();
  setTimeout(()=>{if(my===tok)c.style.transition='';R.busy=false;if(ok&&my===tok)turnTick()},260);
 }
+/* Two-page cover with the sliding sheet (1.303). ccv(): the open story shows it. cvSlide: page 1 <-> the slid page; cvPeek: the sheet off and back on page 1 */
+const ccv=()=>{if(R.cpv!==2||R.web||isVert())return false;const h=$('.cols>.hsf');return !!h&&h.dataset.m==='ccov'};
+function cvSlide(to){const c=$('.cols');if(!c)return;if(R.peek)cvPeek(false,true);const ms=reduced()?0:900,my=tok;R.busy=true;hurry();prepDrop();
+ c.style.setProperty('--cvd',ms+'ms');c.style.transition=ms?`transform ${ms}ms cubic-bezier(.4,0,.2,1)`:'';c.classList.toggle('cslide',ms>0);
+ R.pg=to;show();
+ setTimeout(()=>{if(my!==tok)return;c.classList.remove('cslide');c.style.transition='';c.style.removeProperty('--cvd');R.busy=false;turnTick();prepSoon()},ms+40)}
+function cvPeek(on,now){const c=$('.cols');if(!c)return;const ms=now||reduced()?0:420;R.peek=!!on;c.style.setProperty('--cvd',ms+'ms');c.classList.add('cpeeking');c.classList.toggle('cpeek',R.peek);
+ clearTimeout(R.pkT);R.pkT=setTimeout(()=>{c.classList.remove('cpeeking');if(!c.classList.contains('cslide'))c.style.removeProperty('--cvd')},ms+40)}
 function go(d){
 hurry();R.navAt=Date.now();if(!R.fa&&!isVert()&&R.np>1){R.fa=1;$('#rd').classList.add('fauto')}/* R-10 */
  if(R.busy&&R.T&&R.T.warm)endTurn(false);
  if(isVert()&&!R.web){vScrollBy(d);return}
+ if(!R.web&&!R.busy&&ccv()){if(R.peek){cvPeek(false);return}if(d>0&&R.pg===0&&R.np>1){cvSlide(1);return}if(d<0&&R.pg===1){cvSlide(0);return}if(d>0&&R.pg===1&&!R.cpk&&(reduced()||rdxPturn()!=='paper')){R.cpk=true;rdxTurn(1);return}/* with Paper, startTurn lifts the picture like a page */}
  const to=R.pg+d;if(d>0&&to>=R.np&&!R.web&&!R.busy&&R.np>0&&isOn('cont')&&readerNext()){if(R.endArmed||curA.book){advanceNext();return}/* B3: a book flows into its next chapter on one tap, like a swipe */R.endArmed=true;rnHint(curA.book?'Turn the page again for the next chapter':'Turn the page again for the next story',readerNext());clearTimeout(R.endT);R.endT=setTimeout(()=>{R.endArmed=false},2600);return}
  if(R.web||R.busy||to<0||to>=R.np)return;
  if(reduced()){R.pg=to;show();return}
@@ -10951,7 +10977,7 @@ $('#rd').onclick=e=>{
  if(t.closest('#pv'))return go(-1);
  if(t.closest('#nx'))return go(1);
  const bk=t.closest('.book');
- if(bk&&!t.closest('a,summary,details,button,audio,iframe')&&!R.noClick&&!(getSelection()+'')){const r=bk.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;if(isVert())fpeek()/* R-08: in Scroll a tap only shows or hides the controls; it never jumps the text */;else if(x>.7)go(1);else if(x<.3)go(-1);else fpeek()}
+ if(bk&&!t.closest('a,summary,details,button,audio,iframe')&&!R.noClick&&!(getSelection()+'')){const r=bk.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;if(isVert())fpeek()/* R-08: in Scroll a tap only shows or hides the controls; it never jumps the text */;else if(ccv()&&R.pg===0&&(R.peek||x<.5))cvPeek(!R.peek)/* 1.303: a tap on the cover picture shows all of it; another brings the sheet back */;else if(x>.7)go(1);else if(x<.3)go(-1);else fpeek()}
 };
 /* R-10: a tap in the middle while the controls are auto-hidden shows them for 3 seconds; otherwise it toggles Focus as before */
 function fpeek(){const r=$('#rd');if(!r.classList.contains('fauto')||r.classList.contains('focus'))return focusTog();r.classList.add('fpeek');clearTimeout(R.fpT);R.fpT=setTimeout(()=>r.classList.remove('fpeek'),3000)}
@@ -10994,6 +11020,7 @@ rdEl.addEventListener('pointermove',e=>{
   if(R.busy){D=null;return}
   /* a swipe past the last (or before the first) page goes to the next (or previous) story, like pulling past the end in scroll mode */
   if(R.pg+dir<0||R.pg+dir>=R.np){D.edge=dir;return}
+  if(ccv()&&(R.peek||R.pg===0||(R.pg===1&&(dir<0||(!R.cpk&&rdxPturn()!=='paper'))))){D=null;go(dir);return}
   if(reduced())return;
   {const ps=rdxPturn();if(ps==='slide'){R.busy=true;D.slide=true;D.x0=e.clientX;try{$('.book').setPointerCapture(e.pointerId)}catch(_){}}if(ps!=='paper'){if(D.slide){D.s.push({t:e.timeStamp,x:e.clientX});rdxSlideMove(D,e.clientX)}return}}
   startTurn(dir);paperSound();D.act=true;D.dir=dir;D.x0=e.clientX;
@@ -14134,21 +14161,22 @@ function heroSpread(){
  const want=(()=>{
   let m=S.rl||'auto';
   /* Dynamic cover: on a one-page screen a large sharp picture opens the story as page 1, headline over it and the opening lines underneath; small or unmeasured pictures open as before */
-  if(m!=='classic'&&!R.web&&!(curA&&curA.book)&&isOn('dynx')&&document.documentElement.dataset.theme==='dynamic'){const i=old?old.querySelector('img.hero'):c.querySelector(':scope>img.hero'),d=i&&((i.complete&&i.naturalWidth)?[i.naturalWidth,i.naturalHeight]:IMGDIM.get(i.getAttribute('src')));if(isVert()||bk.clientWidth<700||(m==='auto'&&isOn('mag')&&!R.hsq&&innerWidth>=700&&Math.min(innerWidth,innerHeight)>=600)){const bd=c.querySelector(':scope>.body'),w=bd?rdWords(bd):0;/* story looks, batch 2: no picture anywhere and a short headline opens on a poster; a lone small picture is shown small on purpose, like a printed photo */if(!i&&w>=2000&&!c.dataset.op)return 'ftp';if(!i&&w>150&&!c.dataset.op&&!bd.querySelector('img')&&curA&&!curA.img&&String(curA.title||'').trim().split(/\s+/).length<=8)return 'post';if(d&&d[0]<500&&w&&!bd.querySelector('img'))return 'pc';/* a picture too small for a cover sits over a color panel that carries the headline */if(d&&w>150&&d[0]>=600&&d[0]<900&&d[0]>d[1])return 'spl'}if(d&&d[0]>=900&&d[1]>=500){if(isVert()||bk.clientWidth<700)return 'cov';/* two pages (open Fold, tablet): a tall or square picture fills the left page, a wide one runs across both pages, and a wide one sharp enough for the whole screen (1600px+) sits behind everything with the story on a sheet over the right page; headline over the picture every time. Only on Automatic, and never after the banner was squeezed to a strip (R.hsq) */if(m==='auto'&&isOn('mag')&&!R.hsq&&innerWidth>=700&&Math.min(innerWidth,innerHeight)>=600)return d[1]>d[0]*.85?'hero':d[0]>=1600?'ccov':'wcov'}}
+  if(m!=='classic'&&!R.web&&!(curA&&curA.book)&&isOn('dynx')&&document.documentElement.dataset.theme==='dynamic'){const i=old?old.querySelector('img.hero'):c.querySelector(':scope>img.hero'),d=i&&((i.complete&&i.naturalWidth)?[i.naturalWidth,i.naturalHeight]:IMGDIM.get(i.getAttribute('src')));if(isVert()||bk.clientWidth<700||(m==='auto'&&isOn('mag')&&!R.hsq&&innerWidth>=700&&Math.min(innerWidth,innerHeight)>=600)){const bd=c.querySelector(':scope>.body'),w=bd?rdWords(bd):0;/* story looks, batch 2: no picture anywhere and a short headline opens on a poster; a lone small picture is shown small on purpose, like a printed photo */if(!i&&w>=2000&&!c.dataset.op)return 'ftp';if(!i&&w>150&&!c.dataset.op&&!bd.querySelector('img')&&curA&&!curA.img&&String(curA.title||'').trim().split(/\s+/).length<=8)return 'post';if(d&&d[0]<500&&w&&!bd.querySelector('img'))return 'pc';/* a picture too small for a cover sits over a color panel that carries the headline */if(d&&w>150&&d[0]>=600&&d[0]<900&&d[0]>d[1])return 'spl'}if(d&&d[0]>=900&&d[1]>=500){if(isVert()||bk.clientWidth<700)return 'cov';/* two pages (open Fold, tablet): a tall or square picture fills the left page, a wide one runs across both pages, and a wide one sharp enough for the whole screen (1600px+) sits behind everything with the story on a sheet over the right page; headline over the picture every time. Only on Automatic, and never after the banner was squeezed to a strip (R.hsq) */if(m==='auto'&&isOn('mag')&&!R.hsq&&innerWidth>=700&&Math.min(innerWidth,innerHeight)>=600)if(d[1]>d[0]*.85)return 'hero';if(d[0]<1600)return 'wcov';/* 1.303: the picture picks the opening, so a story always opens the same way: very wide, or captioned, = picture first; else the sheet that slides */const hc0=c.querySelector('.hcap');return d[0]>=d[1]*1.9||(hc0&&!hc0.hidden&&hc0.textContent.trim())?'pcov':'ccov'}}
   if(m==='classic'||!isOn('mag')||isVert()||bk.clientWidth<700)return '';
   const im=old?old.querySelector('img.hero'):c.querySelector(':scope>img.hero');if(!im)return '';
   if(m==='auto'){const d=(im.complete&&im.naturalWidth)?[im.naturalWidth,im.naturalHeight]:IMGDIM.get(im.getAttribute('src'));/* a picture the lists already loaded is known before it arrives, so the opening layout is the final one */const dd=d||[1600,1000];/* size not known yet: a landscape photo is the usual case, so the room is held for it and the layout does not jump when it arrives */if(dd[0]<800)return '';m=dd[1]>dd[0]*.85||R.hsq?'top':'wide'}
   return m;
  })();
  if(old&&old.dataset.m===want)return;
+ c.querySelectorAll(':scope>.hsp').forEach(x=>x.remove());
  if(old){const tx=[...old.querySelectorAll('.kick,.tt,.dt')];tx.forEach(x=>c.insertBefore(x,old));const im=old.querySelector('img.hero');if(im){const dt=c.querySelector(':scope>.dt'),hc=old.querySelector(':scope>.hcap');if(!tx.length&&dt)dt.after(im);else c.insertBefore(im,old);if(hc)im.after(hc)}old.remove()}
  if(!want){mnotes();return}
  const im=c.querySelector(':scope>img.hero');if(!im&&want!=='post'&&want!=='ftp')return;
- const fig=document.createElement('figure');fig.className='hsf hs-'+(want==='post'?'hero hs-post':want==='ftp'?'top hs-ftp':want==='spl'?'hero hs-spl':want==='pc'?'top hs-pc':want==='cov'?'hero hs-cov':want==='wcov'?'wide hs-hero hs-wcov':want==='ccov'?'hero hs-ccov':want);fig.dataset.m=want;
+ const fig=document.createElement('figure');fig.className='hsf hs-'+(want==='post'?'hero hs-post':want==='ftp'?'top hs-ftp':want==='spl'?'hero hs-spl':want==='pc'?'top hs-pc':want==='cov'?'hero hs-cov':want==='wcov'?'wide hs-hero hs-wcov':want==='ccov'?'hero hs-ccov':want==='pcov'?'hero hs-ccov hs-pcov':want);fig.dataset.m=want;
  const first=c.firstElementChild;c.insertBefore(fig,first);
- if(im)fig.append(im);{const hc=c.querySelector(':scope>.hcap');if(hc)want==='pc'?fig.append(hc):fig.after(hc)}/* polish-2026-10 R-02: the caption and credit stay under the photo, never under the byline */
- const hero=want==='hero'||want==='cov'||want==='wcov'||want==='ccov'||want==='post'||want==='spl';
- if(hero||want==='top'||want==='pc'||want==='ftp'){const ov=document.createElement('div');ov.className='hov';['.kick','.tt','.dt'].forEach(q=>{const e=c.querySelector(':scope>'+q);if(e)ov.append(e)});fig.append(ov);if(want==='ftp'){const n=c.querySelectorAll(':scope>.body>h2').length;if(n>=3)ov.dataset.parts=n+' parts'}if(im&&(hero||want==='wide')){cardFocus(im)}if(hero&&im)imgInfo(im.getAttribute('src')).then(o=>{if(o&&o.l>105)fig.classList.add('bright')}).catch(()=>{})}
+ if(im)fig.append(im);{const hc=c.querySelector(':scope>.hcap');if(hc&&want!=='pcov')want==='pc'?fig.append(hc):fig.after(hc)}/* polish-2026-10 R-02: the caption and credit stay under the photo, never under the byline */
+ const hero=want==='hero'||want==='cov'||want==='wcov'||want==='ccov'||want==='pcov'||want==='post'||want==='spl';
+ if(hero||want==='top'||want==='pc'||want==='ftp'){const ov=document.createElement('div');ov.className='hov';['.kick','.tt','.dt'].forEach(q=>{const e=c.querySelector(':scope>'+q);if(e)ov.append(e)});fig.append(ov);if(want==='ftp'){const n=c.querySelectorAll(':scope>.body>h2').length;if(n>=3)ov.dataset.parts=n+' parts'}if(want==='pcov'){const hc=c.querySelector(':scope>.hcap');if(hc)ov.append(hc);const sp=document.createElement('div');sp.className='hsp';sp.setAttribute('aria-hidden','true');fig.after(sp)}if(im&&(hero||want==='wide')){cardFocus(im)}if(hero&&im)imgInfo(im.getAttribute('src')).then(o=>{if(o&&o.l>105)fig.classList.add('bright')}).catch(()=>{})}
  mnotes();
 }
 /* "From the publisher" (was "Why it matters"; R-03): the story's own description in an editor's-note box between the byline and the text; skipped when it only repeats how the article starts */
@@ -18572,7 +18600,7 @@ function fitPage1(c,cw,gap){if(curA&&curA.book)return;
  const m=c.querySelector(':scope>.mnotes'),hs=c.querySelector(':scope>.hsf'),im=hs&&hs.querySelector('img.hero');
  const undo=()=>{if(im){im.style.removeProperty('height');im.style.removeProperty('max-height');im.style.removeProperty('object-fit');im.style.removeProperty('aspect-ratio')}};
  undo();if(m)m.style.removeProperty('display');
- if(R.cpv!==2||!m||!hs||R.web||isVert()||/^(hero|ccov|post|ftp|spl|pc)$/.test(hs.dataset.m))return;
+ if(R.cpv!==2||!m||!hs||R.web||isVert()||/^(hero|ccov|pcov|post|ftp|spl|pc)$/.test(hs.dataset.m))return;
  const pitch=cw+gap,cr=()=>c.getBoundingClientRect();
  /* everything in the picture block, and the box, must sit inside column 1 */
  const fits=()=>{const L=cr().left,els=[...(m.style.display==='none'?[]:[m]),...hs.querySelectorAll('*')];for(const e of els)for(const q of e.getClientRects()){if(q.width&&q.height&&q.left-L>=pitch-4)return false}return true};
