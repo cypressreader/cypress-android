@@ -1750,3 +1750,8 @@ Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at 
 - [ ] Follow button on the cover still taps; the Listen bar and progress bar count pages as before.
 - [ ] The "At a glance" box no longer sits at the top of the sheet (it pushed the story to page 2 in 1.302 on this cover).
 - [ ] (after the 1.303 Fold recording) Slide end: the third column must never show through the picture on the right page as the text comes back. Text now returns only after the picture is lifted (slide 900 ms, text back by about 1.2 s).
+
+## Dynamic openings spread over pictured stories (for 1.306; unverified on device)
+- [ ] Read 8+ pictured Dynamic stories on the phone: about a quarter should open on the color panel (picture over a color block with the headline), a quarter with the picture in the column (a quote or figure opening above the headline when the story has one), the rest on the cover.
+- [ ] Same on the Fold open: the quarter that keep the picture in the column should not look broken on two pages.
+- [ ] Reopen the same story: it opens the same way every time.
