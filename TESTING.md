@@ -1847,3 +1847,9 @@ Checked headless only (412x860 and 884x1104, page turns and scrolling). On a rea
 - A wide picture shows whole, nothing cut from the sides, caption beneath, "1 of 6" on or just above it. With page turns it sits in the middle of its own page.
 - A tall picture still fills the page with its caption over the lower edge.
 - On a slow connection a tall picture may first appear whole and switch to filling the page once it has loaded: check this does not look jumpy.
+
+## Story-page signatures for Newsprint, Coast and Sepia Rosewood (after 1.312, unreleased)
+Checked headless only (412x860 and 1280x800, page turns, light versions). Open any story in each theme:
+- Newsprint, on a screen wide enough for two columns: a thin line runs between the columns. Check it during a page turn and on the Fold.
+- Coast: the section label above the headline is a small color tab with white text. Check it is readable for a site with a very light or very dark color, and in the dark version.
+- Sepia Rosewood: the first line of the story is italic. Check the dark version.
