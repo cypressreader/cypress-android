@@ -1859,3 +1859,9 @@ Checked headless only (phone size). In Settings:
 - Look: "Light, dark or Dynamic" is the first choice, above Quick setup and the looks. "Tinted photos" sits under Advanced > Theme extras.
 - Stories & loading: one "Hidden stories" group (Hide stories I've read, Muted words, Hide deals and shopping) and one "Offline" group (Offline mode, Get stories ready in advance, Only on Wi-Fi, Keep photos for offline). Every switch still does what it did.
 - On a wide screen the Stories & loading icon is a list with a down arrow (not looked at in a screenshot).
+
+## Running line on phones (after 1.312, unreleased)
+Checked headless only (412x860). On a real phone with page turns and "Page marks" on:
+- Under each page a small line reads site, short story title and "3 of 9". Before, it sat below the screen edge.
+- It must not touch the progress bar or the phone's gesture bar, and the page must not jump between page 1 and page 2.
+- The page is about one line of text shorter than before to make room.

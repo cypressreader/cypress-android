@@ -4710,6 +4710,8 @@ html.lowp #tdr .tdaur{animation:none}
 /* A3: after the first turn the bar fades and leaves its height as a blank band (the page must not move, R-10), so on phones the bar itself is slimmer; buttons keep 40px + 2px hit ring */
 @media(max-width:759px){#rd .bar{padding-top:4px;padding-bottom:4px}}
 #rd .book{margin:0 10px calc(10px + env(safe-area-inset-bottom,0px))}
+/* phones: room under the page for the running line (site, story, page number); it used to sit below the screen edge */
+@media(max-width:759px){#rd:not(.vert) .book[data-folio]{margin-bottom:calc(30px + env(safe-area-inset-bottom,0px))}#rd:not(.vert) .book[data-folio]::after{bottom:-17px;font-size:9.5px;letter-spacing:.08em;padding:0 12px}}
 #rd.vert .cols>.hsf{margin-bottom:12px}
 #rd.vert .cols img.hero{height:auto;max-height:min(26svh,190px)!important;aspect-ratio:16/9;object-fit:cover}
 }
@@ -8050,10 +8052,6 @@ const lrWeak=u=>{const d=IMGDIM.get(u);return !!d&&(Math.min(d[0],d[1])<240||d[0
 function lrKind(a,i){
  /* 2026-10-30 (David's pick L2): every fifth row is a big-photo feature again (not with Compact size); quotes and text-only rows stay off */
  if(i%5||nrDense())return '';return a.img&&!lrWeak(a.img)?'feat':'';
- const r=i%5;
- if(r===0){if(a.img&&!lrWeak(a.img))return 'feat';return a.img?'':'type'}
- if(r===2){if(nrQuoteText(a))return 'quote';return a.img?'':'type'}
- return '';
 }
 /* The list as a flow: the rows from lrKind, now and then two small pictures side by side, and (for lists in date order) a small heading where the day changes */
 function listFlow(list,base,dated,latest,wire,ixOf0){
@@ -8076,10 +8074,6 @@ function listFlow(list,base,dated,latest,wire,ixOf0){
   const a=list[i],ia=ixOf0?ixOf0(a):base+i;
   /* the same headings the tile view has: the first story stands alone, then "Latest", then a heading each time the day changes */
   if(dated){const g=nrAge(a);if(i===0)prev=g;else if(latest&&i===1&&list.length>3){out.push('<h4 class="lr-h" aria-level="2">Latest</h4>')}else if(g!==prev){out.push(`<h4 class="lr-h" aria-level="2">${g}${rdn(g)}</h4>`);prev=g}}
-  const nb=list[i+1],ib=nb?(ixOf0?ixOf0(nb):base+i+1):0;
-  if(false&&!nrDense()&&i%5===3&&!lrKind(a,ia)&&pics(a)&&pics(nb)&&!lrKind(nb,ib)&&(!dated||nrAge(nb)===prev)){
-   out.push(`<div class="lr-pair">${card(a,ia,'lr-half')}${card(nb,ib,'lr-half')}</div>`);i++;continue;
-  }
   out.push(card(a,ia,''));
  }
  return out;
@@ -8953,7 +8947,7 @@ function show(){
  if(!isVert())c.style.transform=`translateX(${-R.pg*R.step}px)`;
  if(ccv()){if(R.pg===0)R.cpk=false;else if(R.pg>1)R.cpk=true;c.classList.toggle('cslid',R.pg>=1);c.classList.toggle('cpk',!!R.cpk)}else if(c.classList.contains('cslid')||c.classList.contains('cpk'))c.classList.remove('cslid','cpk');
  if(RP&&!R.T&&RP.T.key!==prepKey())prepSoon();
- $('#pc').textContent=pcText();{const bk=$('.book');if(bk){if(isOn('folio')&&curA&&!R.web&&!isVert()&&R.np>0){const t=(curA.title||'').length>46?curA.title.slice(0,44)+'…':(curA.title||'');bk.dataset.folio=(DPOS||fof(curA).title||'')+' · '+t+'   ·   '+(R.pg+1)}else delete bk.dataset.folio;if(bk.dataset.rh!=null&&curA){const t=bkCh(curA.title).trim();bk.dataset.rh=t.length>60?t.slice(0,58)+'…':t;bk.classList.toggle('rh0',R.pg===0);const c=$('.cols');if(c)bk.style.setProperty('--rhp',c.offsetLeft+'px')}}}$('#pv').disabled=!isVert()&&R.pg===0;$('#nx').disabled=!isVert()&&R.pg>=R.np-1;fpSync();dialSync();rdxEdge();
+ $('#pc').textContent=pcText();{const bk=$('.book');if(bk){if(isOn('folio')&&curA&&!R.web&&!isVert()&&R.np>0){const ph=innerWidth<760,/* phones: a shorter title so the page number is never cut off, and the page count */tl=ph?22:46,t=(curA.title||'').length>tl?curA.title.slice(0,tl-2)+'…':(curA.title||'');bk.dataset.folio=(DPOS||fof(curA).title||'')+' · '+t+'   ·   '+(R.pg+1)+(ph?' of '+R.np:'')}else delete bk.dataset.folio;if(bk.dataset.rh!=null&&curA){const t=bkCh(curA.title).trim();bk.dataset.rh=t.length>60?t.slice(0,58)+'…':t;bk.classList.toggle('rh0',R.pg===0);const c=$('.cols');if(c)bk.style.setProperty('--rhp',c.offsetLeft+'px')}}}$('#pv').disabled=!isVert()&&R.pg===0;$('#nx').disabled=!isVert()&&R.pg>=R.np-1;fpSync();dialSync();rdxEdge();
  if(R.ready&&curA){if(curA.book){bkMark(curA.book,curA.n,rdFrac()||0);bkBmSync();if(curA.n===curA.of-1&&R.pg>=R.np-1){S.bkdone=S.bkdone||{};if(!S.bkdone[curA.book])S.bkdone[curA.book]=Date.now()}}delete S.pos[curA.link];if(R.pg>0&&R.pg<R.np-1)S.pos[curA.link]=R.pg;const pk=Object.keys(S.pos);if(pk.length>300)delete S.pos[pk[0]];clearTimeout(pt);pt=setTimeout(save,700)}
 }
 /* turning back starts with the curl already tight, so it needs a gentle start (the forward turn's fast start would look abrupt) */
