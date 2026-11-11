@@ -1903,3 +1903,4 @@ On the open Fold, Dynamic look:
 - A wide cover with the headline on the picture: the whole headline shows, even with an AI summary and a large text size (the picture was squeezed to a strip and the top lines were cut off).
 - A story without a picture that opens on a color panel: the whole headline shows and long words are not split (the panel grows; its type follows the panel's width).
 - The arch opening and the small-picture-over-a-color-panel opening no longer appear.
+- The film strip opening (picture as a thin band under the headline) no longer appears.
