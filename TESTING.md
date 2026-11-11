@@ -1822,3 +1822,9 @@ Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at 
 - A story whose paragraphs start with clock times shows them down a line with "As it happened".
 - NOT CHECKED AT ALL (test pictures were dropped by the reader): photo story one picture per page in page-turn mode; two pictures side by side in page-turn mode.
 - Headlines tab, phone: the circled 1, 2 on the "Also new" pictures is gone. Check a wide screen still shows the numbers beside text-only rows.
+
+## Speed changes in 1.312 (headless tests only, no phone timings)
+- On Wi-Fi, open a story and wait about 20 seconds: the next three unread stories in the list should open at once with full text. On mobile data only the next one is prepared, as before.
+- Watch for stutter while reading right after opening a story (three stories are now prepared in the background, one at a time). If the 1.307 freeze comes back, report it: the wait for the on-phone summary before reading ahead was cut from 45 s to 15 s.
+- A slow site on Android: the backup way of fetching the story now starts after 2 s instead of 5 s.
+- Refresh with many sites on Wi-Fi: ten load at once instead of six. Watch for sites failing with "too many requests".

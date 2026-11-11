@@ -6126,7 +6126,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&(LRT||LRW)
 function loadRender(){/* nothing on screen yet: the first draw is not pushed back by every feed that lands */if(LRT&&!document.querySelector('#grid .card'))return;clearTimeout(LRT);LRT=setTimeout(loadFlush,350);if(!LRW)LRW=setTimeout(loadFlush,1500)}
 const INFL=new Map();
 /* B95: at most six feeds are read at the same time (the same six-slot pool the picture fetches use); the rest wait their turn, so a long list or an import never opens dozens of connections at once */
-const LDQ=[];let LDN=0;const inView=f=>S.sel==='s:'+f.id||(!!f.folder&&S.sel==='f:'+f.folder);/* the site or folder on screen jumps the queue whenever a slot frees up, even if you opened it after the refresh began */const ldSlot=f=>LDN<6?(LDN++,Promise.resolve()):new Promise(r=>LDQ.push({r,f}));const ldFree=()=>{const i=LDQ.findIndex(e=>inView(e.f)),e=LDQ.splice(i<0?0:i,1)[0];if(e)e.r();else LDN--};
+const LDQ=[];let LDN=0;const inView=f=>S.sel==='s:'+f.id||(!!f.folder&&S.sel==='f:'+f.folder);/* the site or folder on screen jumps the queue whenever a slot frees up, even if you opened it after the refresh began *//* 1.312: ten sites at a time on Wi-Fi (six on mobile data, data saver or low power) */const onWifi=()=>{const cn=navigator.connection;return !cn||(cn.type?/wifi|ethernet/.test(cn.type):!cn.saveData)},ldSlot=f=>LDN<(onWifi()&&!document.documentElement.classList.contains('lowp')?10:6)?(LDN++,Promise.resolve()):new Promise(r=>LDQ.push({r,f}));const ldFree=()=>{const i=LDQ.findIndex(e=>inView(e.f)),e=LDQ.splice(i<0?0:i,1)[0];if(e)e.r();else LDN--};
 function load(f,fresh){/* FR15: nothing is downloaded on first run until setup is finished (the sample list behind the welcome screen is never fetched) */if(!S.onboarded)return Promise.resolve();if(INFL.has(f.id))return INFL.get(f.id);/* a refresh joins a download already running (a second forced fetch per site doubled the round on long lists and tripped Google News rate limits, 1.291) */const p=(async()=>{await ldSlot(f);/* David 2026-11-05: the slot is handed back while a downloaded feed waits for the scroll to stop (up to 60 s), so other sites keep downloading; it is taken again to parse */let held=true;const sl={free(){if(held){held=false;ldFree()}},async take(){if(!held){await ldSlot(f);held=true}}};try{if(!S.feeds.includes(f))return;return await load0(f,fresh,sl)}finally{sl.free()}})().finally(()=>INFL.delete(f.id));INFL.set(f.id,p);return p}
 async function load0(f,fresh,sl){
  const pre=LPC.delete(f.id);if(S.offline){state[f.id]=(items[f.id]||[]).length?'ok':'err';if(pre)LP.f++;pfBar();loadRender();return}
@@ -9502,7 +9502,7 @@ async function getFull00(url,ctx){
   })();
   jn.catch(()=>{});
  };
- const first=await Promise.race([good.then(v=>({v}),()=>({v:null})),new Promise(r=>setTimeout(()=>r({slow:1}),NATIVE?5000:3500))]);
+ const first=await Promise.race([good.then(v=>({v}),()=>({v:null})),new Promise(r=>setTimeout(()=>r({slow:1}),NATIVE?2000:3500)/* 1.312: was 5 s on Android */)]);
  if(first.v)return first.v;
  /* a read-ahead load that gets opened by the reader is upgraded in place (ctx.light=false) instead of being fetched a second time */
  return await new Promise(res=>{
@@ -14089,8 +14089,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.11k';const APP_LABEL='1.311';
-const CHANGES=["Dynamic look: the top bar, the Daily tabs and the bottom bar now wear the same color as the page and fade with it","Two-page story openings: the text card stays the same card when it slides to the left page, and no line is left down the middle after the next turn","Two-page screens: Notes under a story is one line, such as \"Notes · 14 links\", that opens when tapped","Two-page screens: the end of a story starts right under the text instead of jumping to pages of its own"];
+const APP_VERSION='2026.11.11m';const APP_LABEL='1.312';
+const CHANGES=["Fixed: on phones in the Dynamic look, some stories opened to a blank page after the picture and headline","Dynamic look: stories now open in more ways and two in a row never open alike, with a color panel for stories that have no picture, a postcard for small pictures, and a strong quote or number up top when the story has one","Dynamic look: short fresh stories say \"Just in\", opinion pieces show the writer's initials large, headline type follows the kind of story, and stories written as timed updates are set down a line","Faster reading: on Wi-Fi the next three stories are made ready ahead of time, more sites load at once, and the backup way of fetching a story starts sooner on Android","Headlines on phones: the stray circled number no longer sits on the \"Also new\" pictures"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -18082,12 +18082,18 @@ function readerNext(){
  return null;
 }
 async function preloadNext(){
- /* the next story is fetched and cleaned only after this story's summary is written: both at once stalled the page on phones */if(curA&&AIS.get(curA.link||curA.title)===null&&(preloadNext.n=(preloadNext.n||0)+1)<30){clearTimeout(R.preT);R.preT=setTimeout(preloadNext,1500);return}preloadNext.n=0;
- const n=readerNext();if(!n||n.book||R.pre===n.link)return;if(acHas(n.link)){try{aiAhead()}catch(e){}return}R.pre=n.link;
+ /* the next story is fetched and cleaned only after this story's summary is written: both at once stalled the page on phones. 1.312: the wait is at most 15 s (was 45), and on Wi-Fi the two stories after the next one are made ready too, one at a time with a pause between */if(curA&&AIS.get(curA.link||curA.title)===null&&(preloadNext.n=(preloadNext.n||0)+1)<10){clearTimeout(R.preT);R.preT=setTimeout(preloadNext,1500);return}preloadNext.n=0;
+ const n=readerNext();if(!n||n.book||R.pre===n.link)return;R.pre=n.link;
  try{
   if(!(typeof pfMode==='function'&&pfMode()!=='off')||S.offline||isOn('dsave')||!online())return;
-  const r=await getFull(n.link,true);
-  if(r&&!r.pw&&!acHas(n.link)){const d=document.createElement('div');d.append(dropTitle(r,n.title));if(d.textContent.length>=600){acPut(n.link,d.innerHTML);markReady(n.link);warmImgs(d,n);rtSet(n.link,d);try{aiAhead()}catch(e){}}}
+  const L=R.ctx&&R.ctx.length?R.ctx:cur,i0=L.findIndex(x=>x.link===n.link),more=onWifi()&&!R.inBrief&&i0>=0?L.slice(i0+1).filter(x=>x&&x.link&&!x.book&&!S.read[x.link]&&x.feedId!=null).slice(0,2):[];
+  for(const x of [n,...more]){
+   if(R.pre!==n.link)return;/* the reader moved on: the newer call takes over */
+   if(acHas(x.link)){if(x===n)try{aiAhead()}catch(e){}continue}
+   if(x!==n)await new Promise(r=>setTimeout(r,1500));
+   const r=await getFull(x.link,true);
+   if(r&&!r.pw&&!acHas(x.link)){const d=document.createElement('div');d.append(dropTitle(r,x.title));if(d.textContent.length>=600){acPut(x.link,d.innerHTML);markReady(x.link);warmImgs(d,x);rtSet(x.link,d);if(x===n)try{aiAhead()}catch(e){}}}
+  }
  }catch(e){}
 }
 /* B97: when the end of a story is reached, everything its end card offers (Next up, Related reads, Up next) is fetched, cleaned and stored in the background, so tapping any of them opens at once.
