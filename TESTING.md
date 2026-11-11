@@ -1706,3 +1706,9 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - [ ] Sync on two devices (both updated): Undo "Marked as read" on one, sync both: the stories stay unread on the other.
 - [ ] First build after this: the "Location permission found" check passes, and the build still produces the Play bundle.
 - [ ] Dynamic theme, scrolling story with a cover and "See all photos": scroll up slowly; no black corners at either side just under the photo-button sheet.
+
+## Dynamic story looks, batch 1 (2026-11-11, unshipped, for 1.301) — implemented, unverified on device
+- [ ] Dynamic theme, a short story (under about 400 words): the first three words are larger and in color, with no large first letter.
+- [ ] A long opinion or picture-less essay: the first line is in small capitals.
+- [ ] A long story with three or more sub-headings: each sub-heading has a large number (01, 02, 03) above it; page turning still breaks cleanly around them.
+- [ ] Pull quotes in long stories: with a named speaker it sits beside a color bar with the name under it; in a story with a picture it sits on a color band with white text; otherwise centered between two thin lines. Check each is readable in light and dark.

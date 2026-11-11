@@ -1699,6 +1699,15 @@ html.rdx #rd.cpv2 .cols>.hsf.hs-ccov img.hero{position:absolute;z-index:-3;left:
 /* Dynamic reader palette: the picture's second color tints the label and first letter, its third the quotes (set by rdPal; text stays well above readable contrast) */
 html.dynx[data-theme=dynamic] #rd.pal :is(.kick,.body p.dropcap .dcap){color:color-mix(in srgb,var(--rk) 75%,var(--ink))}
 html.dynx[data-theme=dynamic] #rd.pal .body :is(blockquote:not(.emb blockquote),.pullq){background:color-mix(in srgb,var(--rq) 15%,transparent);border-radius:10px}
+/* Dynamic story looks, batch 1 (ideas 7, 8, 11). Each is chosen from what the story holds, so a story always looks the same.
+   Pull quotes: a named speaker sets it bold beside a color bar; a story with a picture palette sets it on a color band; the rest sit centered between two rules */
+html.dynx[data-theme=dynamic] #rd .cols .body .pullq.pqby{font-style:normal;text-align:left;border-left:4px solid var(--rq,var(--ra,var(--a1)))!important;padding:.15em 0 .15em .8em;margin:1.3em 0;background:none;border-radius:0}html.dynx[data-theme=dynamic] #rd .cols .body .pullq.pqby::before{content:none}
+html.dynx[data-theme=dynamic] #rd.pal .cols .body .pullq:not(.pqby){background:color-mix(in srgb,var(--rq) 70%,#000);color:#fff;border-radius:14px;padding:1em 1.1em;margin:1.4em 0}html.dynx[data-theme=dynamic] #rd.pal .cols .body .pullq:not(.pqby)::before{content:none}
+html.dynx[data-theme=dynamic] #rd:not(.pal) .cols .body .pullq:not(.pqby){text-align:center;padding:0;margin:1.5em auto}html.dynx[data-theme=dynamic] #rd:not(.pal) .cols .body .pullq:not(.pqby)::before,html.dynx[data-theme=dynamic] #rd:not(.pal) .cols .body .pullq:not(.pqby)::after{content:'';position:static;display:block;width:100%;height:1px;margin:0 0 .7em;background:currentColor;opacity:.35}html.dynx[data-theme=dynamic] #rd:not(.pal) .cols .body .pullq:not(.pqby)::after{margin:.7em 0 0}
+/* How a story starts: an essay's first line in small capitals, a short story's first words larger in color; the rest keep the large first letter */
+html.dynx[data-theme=dynamic] #rd .cols .body p.st-caps::first-line{font-variant-caps:all-small-caps;letter-spacing:.06em;font-weight:600}html.dynx[data-theme=dynamic] #rd .cols .body p.st-run .rin{font-family:var(--disp,var(--serif));font-size:1.35em!important;line-height:1;color:color-mix(in srgb,var(--rk,var(--ra,var(--a1))) 75%,var(--ink))}
+/* Chapter markers: a long story with its own sub-headings numbers them */
+html.dynx[data-theme=dynamic] #rd:not(.cine) .cols.chap .body{counter-reset:dch}html.dynx[data-theme=dynamic] #rd:not(.cine) .cols.chap .body>h2{counter-increment:dch}html.dynx[data-theme=dynamic] #rd:not(.cine) .cols.chap .body>h2::before{content:counter(dch,decimal-leading-zero);display:block;position:static;width:auto;height:auto;background:none;white-space:nowrap;font:700 1.9em/1 var(--disp,var(--serif));margin-bottom:.12em;color:color-mix(in srgb,var(--rk,var(--ra,var(--a1))) 75%,var(--ink))}
 /* Dynamic Daily: the section heading's rule takes the section's color (the same one the top glow and tab bar use) */
 html.dynx[data-theme=dynamic] #grid .dhd h3.dsh[style*="--sc"]{border-bottom-color:var(--sc);box-shadow:0 1px 0 var(--sc)}
 /* Dynamic spotlight: the story near the middle of the screen lifts a little and glows in its site color (transform and shadow only, so rows and sizes never change) */
@@ -7384,7 +7393,7 @@ function pqEl(s,p){
  else if(p){const t=p.textContent,i=t.indexOf(s);if(i>=0&&/[“"][^”"]*$/.test(t.slice(0,i))){const r=t.slice(i+s.length);m=r.match(re('^[^”"]{0,200}',V+' '+NM))||r.match(re('^[^”"]{0,200}',NM+' '+V+'\\b'));if(m)by=m[1]}}
  if(/^(He|She|They|It|The|A|An|One|I|We|You|That|This)$/.test(by))by='';
  const d=document.createElement('div');d.className='pullq';d.setAttribute('aria-hidden','true');d.textContent=q.replace(/^["“]|["”]$/g,'').trim();
- if(by){const c=document.createElement('cite');c.textContent='— '+by;d.append(c)}
+ if(by){const c=document.createElement('cite');c.textContent='— '+by;d.append(c);d.classList.add('pqby')}
  return d;
 }
 function rdQuote(ps,lo,hi,skip){
@@ -14249,7 +14258,7 @@ function storyLook(b){
  c.dataset.rlook=look;return look}
 function decorate0(){
  const b=$('.cols .body');if(!b)return;try{dateline(b)}catch(e){}const LOOK=(()=>{try{return storyLook(b)}catch(e){return 'classic'}})();try{underscoreItalics(b)}catch(e){}smarten(b);furnish(b);captions();heroSpread();mnotes();photoPages();
- b.querySelectorAll('.pullq').forEach(x=>x.remove());b.querySelectorAll('.dropcap').forEach(x=>{unDropcap(x);x.classList.remove('dropcap')});
+ b.querySelectorAll('.pullq').forEach(x=>x.remove());b.querySelectorAll('.dropcap').forEach(x=>{unDropcap(x);x.classList.remove('dropcap')});b.querySelectorAll('.rin').forEach(x=>x.replaceWith(x.textContent));b.querySelectorAll('.st-caps,.st-run').forEach(x=>{x.classList.remove('st-caps','st-run');x.normalize()});
  b.querySelectorAll('table').forEach(t=>{if(!t.parentElement.classList.contains('tbl')){const w=document.createElement('div');w.className='tbl';t.replaceWith(w);w.append(t)}
   /* column names go on each cell so a phone can show every row as its own small card */
   try{let hd=[...t.querySelectorAll('thead th')];if(!hd.length){const r=t.querySelector('tr');if(r&&r.querySelector('th'))hd=[...r.children]}const hs=hd.map(x=>x.textContent.replace(/\s+/g,' ').trim());if(hs.length>=3&&hs.some(Boolean))t.querySelectorAll('tr').forEach(r=>{if(r.closest('thead')||r===hd[0]?.parentElement)return;[...r.children].forEach((c,i)=>{if(c.tagName==='TD'&&hs[i])c.setAttribute('data-l',hs[i])})}),t.classList.add('cardable');t.closest('.tbl').classList.toggle('wide',hs.length>=4)}catch(e){}});
@@ -14260,7 +14269,14 @@ function decorate0(){
  {const lp=[...b.querySelectorAll(':scope > p')].filter(p=>p.textContent.trim().length>60).pop();if(lp&&isOn('endm')){const e=document.createElement('p');e.className='endmark';e.setAttribute('aria-hidden','true');e.textContent='◆';b.append(e);try{const hs=(S.hl||[]).filter(h=>h.art&&curA&&h.art.link===curA.link&&h.q).slice(0,2);if(hs.length){const a=document.createElement('aside');a.className='rhl';a.setAttribute('aria-label','Your highlights from this story');a.innerHTML='<small>Your highlights</small>'+hs.map(h=>'<blockquote>'+esc(String(h.q).slice(0,220))+'</blockquote>').join('');b.append(a)}}catch(x){}}}
  const bk=!!(curA&&curA.book),ps=[...b.querySelectorAll(bk?'p':':scope > p')].filter(p=>!p.classList.contains('endmark'));
  const first=ps.find(p=>p.textContent.trim().split(/\s+/).length>=25&&/^[A-Za-z\u00C0-\u024F]/.test(p.textContent.trim()));
- if(first&&ps.indexOf(first)<(bk?1:3)){if(makeDropcap(first))first.classList.add('dropcap')}
+ const dyn=!bk&&isOn('dynx')&&document.documentElement.dataset.theme==='dynamic',wds=rdWords(b),cl=$('.cols');
+ if(cl)cl.classList.toggle('chap',dyn&&wds>=1200&&b.querySelectorAll(':scope>h2').length>=3);
+ if(first&&ps.indexOf(first)<(bk?1:3)){
+  /* Dynamic: the opening follows the story (essay: small capitals; short: first words larger; otherwise the large first letter) */
+  const t=first.firstChild,m=dyn&&LOOK!=='essay'&&wds<400&&t&&t.nodeType===3&&t.nodeValue.match(/^\s*(\S+\s+\S+\s+\S+)(?=\s)/);
+  if(dyn&&LOOK==='essay')first.classList.add('st-caps');
+  else if(m){const sp=document.createElement('span');sp.className='rin';sp.textContent=m[1];t.nodeValue=t.nodeValue.slice(m[0].length);first.insertBefore(sp,t);first.classList.add('st-run')}
+  else if(makeDropcap(first))first.classList.add('dropcap')}
  if(bk)return;/* a book keeps its own words: no pull quotes */
  if(ps.length<8||rdWords(b)<600||LOOK==='essay')return;
  const win=pqWin(ps);let best=null,bs=-1,bp=null;
