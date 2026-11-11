@@ -48,7 +48,7 @@ Check which model this session is running (`get_session` / attribution reminder)
 - **Keep HANDOFF.md under ~8 KB:** Move finished/dated items to `HANDOFF-ARCHIVE.md` (never read on boot). Silently update and commit `HANDOFF.md` whenever a task/fix finishes.
 - **MANDATORY AUTO-HANDOFF ALARM (NO EXCEPTIONS):**
   - At **`[Turn 7/8]`**: Include a 1-line warning at the bottom of your reply: *"⚠️ Next message is Turn 8 — I will wrap up and trigger a session handoff after the next turn."*
-  - At **`[Turn 8/8]`** (OR immediately when a major milestone finishes, OR if the `[turn-counter]` hook fires): **HARD STOP.** Finish the immediate edit, update and commit `HANDOFF.md`, push the branch, and output EXACTLY this banner at the end of your message:
+  - At **`[Turn 8/8]`** (OR if the `[turn-counter]` hook fires): **HARD STOP.** Finish the immediate edit, update and commit `HANDOFF.md`, push the branch, and output EXACTLY this banner at the end of your message:
 
   🛑 **WEEKLY QUOTA CHECKPOINT: START A NEW SESSION** 🛑
   (Put this 1-click copy line in a code fence with the real branch name): `Checkout branch <current-branch-name>, read CLAUDE.md and HANDOFF.md, and Continue.`
