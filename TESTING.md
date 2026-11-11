@@ -1778,3 +1778,16 @@ Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at 
 - [ ] Long story with pictures, scroll mode: full-width pictures still reach the edges and slide gently; scrolling feels no worse.
 - [ ] Web app: "A new version of CyPress is ready" > Refresh lands on the new version the first time.
 - [ ] Storage full: a one-time note appears when a story cannot be kept for offline.
+
+## Deep-dive speed, feed and story batch (2026-11-11, unshipped, headless only)
+- [ ] Launch with many sites: first screen appears no later than before; ready dots and offline text still appear.
+- [ ] After launch the list no longer blinks every few seconds while photos arrive (photos now land one site at a time).
+- [ ] Pull-to-refresh on Android still brings new stories from every site (it now asks each site "anything new?" first). Watch for a site that looks stale.
+- [ ] Reading minutes and streak still count after reading a story and closing the app.
+- [ ] Web app: after an update the fonts are still there offline.
+- [ ] Daily: Deep Dives shows one big feature then a list with big minute figures (needs 2+ long reads; the demo has one, so this layout is unseen). Volume line only on the first section. "In Short" group appears when 3+ stories have no reading time.
+- [ ] Daily cover status reads "24 left · 49 min" on one line.
+- [ ] All Stories on a phone: the second card of each group has a short picture band.
+- [ ] Quote cards without a real quote say "From the story" and have no quotation marks.
+- [ ] Story: author initials circle beside the byline; last page shows "More from <site>"; Aurora story headline is serif.
+- [ ] Settings: "Flow into the next story", "Mark stories read as they scroll past", "Card layout", "List text size" read clearly and search still finds them by the old words.
