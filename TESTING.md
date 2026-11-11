@@ -1896,3 +1896,10 @@ Each look is picked from the story's link, so a story always opens the same way.
 - Interlude page: long reads (1,200+ words) with a quote from a named person get that quote on a full colored page mid-story. CHECK page turning before and after it on the phone and the Fold.
 - Tint follows the pictures: page color moves to each picture's color as it comes into view (2+ pictures; off with data saver). CHECK it feels calm, never flashing. Not measured headless.
 - Contact sheet: picture stories open with numbered thumbnails; tap one to jump to it. CHECK the jump lands on the right page in page-turn mode (tap not exercised headless).
+
+## David's reports of 2026-11-11 after 1.314 (unreleased; headless 884x920/980 two-page only, unverified on device)
+On the open Fold, Dynamic look:
+- Two-page cover with the card: the first turn slides the card from the right page to the left with its words on it, and the turn back slides it home. No empty card, no blank flash, no words of the next page over the picture; the headline fades back in at the end of the turn back.
+- A wide cover with the headline on the picture: the whole headline shows, even with an AI summary and a large text size (the picture was squeezed to a strip and the top lines were cut off).
+- A story without a picture that opens on a color panel: the whole headline shows and long words are not split (the panel grows; its type follows the panel's width).
+- The arch opening and the small-picture-over-a-color-panel opening no longer appear.
