@@ -6527,7 +6527,7 @@ async function imgInfo(url){
  if(IIS[url]&&IIS[url].v>=5)return IIS[url];
  if(!IINFO.has(url))IINFO.set(url,new Promise(res=>{
   if(IIQ.length>80){const d=IIQ.shift();d.cancel&&d.cancel()}
-  const job=async()=>{try{const im=await imgPixels(url);if(!im){res(null);return}await iiIdle();const o=await faceAdjust(url,analyzePx(im));if(!o.face)o.py=Math.min(o.py,o.pt?30:35);/* no face found: the busiest spot is often a suit or a flag below the head, so the crop never aims below the upper third */IIS[url]=o;const k=Object.keys(IIS);if(k.length>250)delete IIS[k[0]];iiStore();res(o)}catch(e){res(null)}};
+  const job=async()=>{try{const im=await imgPixels(url);if(!im){res(null);return}await iiIdle();const o=await faceAdjust(url,analyzePx(im));if(!o.face)o.py=Math.min(o.py,o.pt?30:35);/* no face found: the busiest spot is often a suit or a flag below the head, so the crop never aims below the upper third */IIS[url]=o;const k=Object.keys(IIS);if(k.length>600)delete IIS[k[0]];/* a list holds 300-600 cards: at 250 scrolling back redid the work */iiStore();res(o)}catch(e){res(null)}};
   job.cancel=()=>{IINFO.delete(url);res(null)};
   IIQ.push(job);iiPump();
  }));
@@ -6577,13 +6577,13 @@ function imgFx(){
   if(IIS[u]&&IIS[u].v>=5)ap(IIS[u]);else imgInfo(u).then(ap)});
 }
 /* what size a picture is, remembered from the lists (the same picture opens as the story's lead photo), so the lead photo's room is held before it has loaded and nothing below it is pushed down when it arrives */
-const IMGDIM=new Map();
+const IMGDIM=new Map();/* picture sizes are kept between launches, so the first screen is planned knowing which pictures are too small to lead */try{(JSON.parse(localStorage.getItem('folio-dim')||'[]')||[]).forEach(x=>IMGDIM.set(x[0],[x[1],x[2]]))}catch(e){}let dimT=0;
 /* the card pictures that are really on screen (plus 200 px) load first, whatever the screen size; without the observer the first six cards stay eager */
 const EIO='IntersectionObserver' in window?new IntersectionObserver(es=>{for(const x of es)if(x.isIntersecting){const im=x.target;im.loading='eager';im.fetchPriority='high';EIO.unobserve(im)}},{rootMargin:'200px'}):null;
 if(EIO){const g=document.getElementById('grid');if(g)new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(n.nodeType===1)(n.matches('.card>img[loading="lazy"]')?[n]:n.querySelectorAll('.card>img[loading="lazy"]')).forEach(im=>EIO.observe(im))})/* only what was just added is looked at */.observe(g,{childList:true,subtree:true})}
 /* every feed picture states its shape: the real size once known, otherwise a 16:10 guess (the card's own CSS sets the displayed size), so the browser reserves the box before the picture arrives */
 const imgWH=u=>{const d=IMGDIM.get(u);return d&&d[0]>0&&d[1]>0?` width="${Math.round(d[0])}" height="${Math.round(d[1])}"`:' width="640" height="400"'};
-document.addEventListener('load',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.naturalWidth>40&&im.naturalHeight>40&&/^https?:/.test(im.currentSrc||im.src||'')){const u=im.currentSrc||im.src;IMGDIM.set(u,[im.naturalWidth,im.naturalHeight]);if(IMGDIM.size>400)IMGDIM.delete(IMGDIM.keys().next().value)}},true);
+document.addEventListener('load',e=>{const im=e.target;if(im&&im.tagName==='IMG'&&im.naturalWidth>40&&im.naturalHeight>40&&/^https?:/.test(im.currentSrc||im.src||'')){const u=im.currentSrc||im.src;IMGDIM.set(u,[im.naturalWidth,im.naturalHeight]);if(IMGDIM.size>400)IMGDIM.delete(IMGDIM.keys().next().value);clearTimeout(dimT);dimT=setTimeout(()=>{try{localStorage.setItem('folio-dim',JSON.stringify([...IMGDIM].map(x=>[x[0],x[1][0],x[1][1]])))}catch(e){}},4000)}},true);
 function heroAR(a){
  try{const d=IMGDIM.get(a.img)||(()=>{const i=[...document.querySelectorAll('#grid img')].find(x=>x.complete&&x.naturalWidth>40&&(x.currentSrc===a.img||x.getAttribute('src')===a.img));return i?[i.naturalWidth,i.naturalHeight]:null})();
   const r=d?Math.max(.6,Math.min(2.4,d[0]/d[1])):1.5;return ' style="aspect-ratio:'+r.toFixed(3)+'"'}catch(e){return ' style="aspect-ratio:1.5"'}
