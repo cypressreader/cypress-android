@@ -1721,3 +1721,15 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Every story: last sentence a little larger in italics, end mark in the story's color, "Up next" on a color panel with white text that is easy to read.
 - Open Fold / tablet paged reading: none of the poster or postcard looks should appear, and page 1 should look as before.
 - Read aloud, highlights and large print still work on a story with the larger last sentence.
+
+## Dynamic story looks, batch 3 (1.301; checked headless only, unverified on a phone)
+- No-picture story with a quote from a named person near the top: opens on a color block with the quote and the name; headline smaller under it.
+- No-picture story with a percentage or sum of money early on: opens on the large figure with its sentence under it.
+- Very long read (2,000+ words) with no lead picture: a centered title page fills the first screen ("3 parts" when it has sub-headings).
+- Story with a mid-size wide picture (600-899px): picture on top, headline on a color panel under it; words on the panel are easy to read.
+- Story with several figures: a "By the numbers" row of three; check the words under each figure make sense on real stories.
+- Review with a score ("8/10", "four stars"): verdict box at the top. Interview: questions bold in color. "7 things" list: big numbers beside each sub-heading.
+- Story with two pictures in a row: side by side; a large wide picture runs edge to edge.
+- Story with 5+ pictures and little text (scrolling): each picture fills the screen with caption and "3 of 9".
+- Open Fold / tablet: pull quotes sit beside the text with the words running around them; page turning still smooth.
+- Read aloud does not read the opener quote, figure row or verdict box twice.
