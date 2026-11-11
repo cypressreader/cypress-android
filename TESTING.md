@@ -1764,3 +1764,4 @@ Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at 
 - Dynamic, phone: open several stories with a big picture; none may show the headline/text cut off on the right (1.306 crashed the opening picker: undefined word count). Expect a mix of cover, picture beside color panel, and picture in the column.
 - Captions with a credit ("...ends badly. Anna Moneymaker/Getty Images", "Photo: X/Getty Images", "J. Scott Applewhite/AP") split once, at the sentence end, never mid-word.
 - Same fix: scrolling a Dynamic story on phone works again (1.306 left the page locked).
+- Long read scrolled on a low-end phone: scrolling past a full-width picture must stay smooth (clip-path now follows the parallax each frame).
