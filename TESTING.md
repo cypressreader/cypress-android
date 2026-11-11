@@ -1755,3 +1755,7 @@ Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at 
 - [ ] Read 8+ pictured Dynamic stories on the phone: about a quarter should open on the color panel (picture over a color block with the headline), a quarter with the picture in the column (a quote or figure opening above the headline when the story has one), the rest on the cover.
 - [ ] Same on the Fold open: the quarter that keep the picture in the column should not look broken on two pages.
 - [ ] Reopen the same story: it opens the same way every time.
+
+## Pull quotes and long-read captions (2026-11-11, branch, headless CSS check only)
+- Paged reader (any theme, Dynamic on Fold): a pull quote near the bottom of a column moves whole to the next column/page, never split.
+- Long read scrolled on phone (800+ words): a full-width picture with its caption underneath; scroll slowly: the picture must stay inside its own box and never cover the first caption line.
