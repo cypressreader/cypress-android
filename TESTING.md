@@ -1853,3 +1853,9 @@ Checked headless only (412x860 and 1280x800, page turns, light versions). Open a
 - Newsprint, on a screen wide enough for two columns: a thin line runs between the columns. Check it during a page turn and on the Fold.
 - Coast: the section label above the headline is a small color tab with white text. Check it is readable for a site with a very light or very dark color, and in the dark version.
 - Sepia Rosewood: the first line of the story is italic. Check the dark version.
+
+## Settings regrouped (after 1.312, unreleased)
+Checked headless only (phone size). In Settings:
+- Look: "Light, dark or Dynamic" is the first choice, above Quick setup and the looks. "Tinted photos" sits under Advanced > Theme extras.
+- Stories & loading: one "Hidden stories" group (Hide stories I've read, Muted words, Hide deals and shopping) and one "Offline" group (Offline mode, Get stories ready in advance, Only on Wi-Fi, Keep photos for offline). Every switch still does what it did.
+- On a wide screen the Stories & loading icon is a list with a down arrow (not looked at in a screenshot).
