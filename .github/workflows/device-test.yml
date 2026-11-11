@@ -63,6 +63,8 @@ jobs:
           npm ci --no-audit --no-fund
           npx cap add android
           python3 scripts/prepare_android.py
+          # the Natural voice step normally sets this; the on-phone summary library needs Android 8 or newer
+          printf '\nandroid { defaultConfig { minSdkVersion 26 } }\n' >> android/app/build.gradle
           npx cap sync android
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
           (cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon)
