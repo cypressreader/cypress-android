@@ -1733,3 +1733,8 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - Story with 5+ pictures and little text (scrolling): each picture fills the screen with caption and "3 of 9".
 - Open Fold / tablet: pull quotes sit beside the text with the words running around them; page turning still smooth.
 - Read aloud does not read the opener quote, figure row or verdict box twice.
+
+## Tablet fix after 1.301 (checked headless at 1280x800 and 1100x700 only)
+- Open Fold / tablet, Dynamic theme: pull quotes sit in the column like before (no box floating beside squeezed text).
+- Poster headline, title page, split opener: fill the left page, the story starts at the top of the right page. Postcard picture: left page with the headline under it.
+- Page turning stays smooth from these first pages; rotating the tablet keeps the layout sensible.
