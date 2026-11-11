@@ -1791,3 +1791,9 @@ Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at 
 - [ ] Quote cards without a real quote say "From the story" and have no quotation marks.
 - [ ] Story: author initials circle beside the byline; last page shows "More from <site>"; Aurora story headline is serif.
 - [ ] Settings: "Flow into the next story", "Mark stories read as they scroll past", "Card layout", "List text size" read clearly and search still finds them by the old words.
+
+## Deep-dive batch 3 (2026-11-11, unshipped, headless only)
+- [ ] Aa sheet: "Dim the page" and "Warm light" sliders darken and warm the story only (not the lists), stay after reopening the app, and never block taps or page turns.
+- [ ] Aa sheet and Settings show text size as "Medium · 18", not "18px".
+- [ ] Mute a word from a story: asked "For a week" or "Always"; a week-long mute is gone by itself after 7 days.
+- [ ] Highlights page (6+ highlights): the search box filters by quote, note, title or site as you type.
