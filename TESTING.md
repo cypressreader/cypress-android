@@ -1770,3 +1770,11 @@ Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at 
 - Open a long English story, wait for its 3 points, then go to the next story with Next: it should open with its points already there (no gray waiting bars).
 - Close the app fully, reopen, open a story that had a summary: points appear at once, no waiting bars.
 - While reading, the app should stay smooth; no extra heat or battery drain worth noticing over a 10-story session.
+
+## Deep-dive stability batch (2026-11-11, unshipped, headless tests only)
+- [ ] Story freeze: reopen the Esquire 'James Gunn's DC Universe' story in Dynamic, scroll mode. It should not lock up (guard: opening paragraphs over 2,000 characters are skipped when looking for a quote or figure opening). If it still freezes, send Settings > About diagnostics.
+- [ ] AI summary: the "Writing a summary" box never stays longer than about a minute; if the phone's AI does not answer, the publisher's description shows instead.
+- [ ] Next story still opens at once after reading a story for a while (it is now prepared after the summary is written, in an idle moment).
+- [ ] Long story with pictures, scroll mode: full-width pictures still reach the edges and slide gently; scrolling feels no worse.
+- [ ] Web app: "A new version of CyPress is ready" > Refresh lands on the new version the first time.
+- [ ] Storage full: a one-time note appears when a story cannot be kept for offline.

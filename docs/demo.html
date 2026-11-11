@@ -5386,10 +5386,12 @@ function quotaFix(){/* storage full when saving the library: it used to delete e
 const ELOG=(()=>{try{return JSON.parse(localStorage.getItem('folio-err')||'[]')}catch(e){return[]}})();
 let ELT=0;
 function elog(tag,e){try{const m=String((e&&(e.message||(e.error&&e.error.message)||e.error||e.reason))||e||'').slice(0,200);let w='';try{const st=String((e&&(e.stack||(e.error&&e.error.stack)||(e.reason&&e.reason.stack)))||''),mm=st.match(/index\.html:(\d+)/)||st.match(/:(\d+):\d+\)?(?:\n|$)/);w=mm?mm[1]:(e&&e.lineno?String(e.lineno):'')}catch(_){}/* line in the app where it happened: the same message can come from five places */ELOG.push({t:Date.now(),g:String(tag).slice(0,40),m,w});if(ELOG.length>100)ELOG.splice(0,ELOG.length-100);clearTimeout(ELT);ELT=setTimeout(()=>{try{localStorage.setItem('folio-err',JSON.stringify(ELOG))}catch(_){}},2000)}catch(_){}}
-addEventListener('error',e=>elog('error',e));
+addEventListener('error',e=>{elog('error',e);if(e&&e.error)elBurst()});
 /* feature counts for the opt-in weekly counts; kept only while that setting is on */
 const UCT=(()=>{try{return JSON.parse(localStorage.getItem('folio-use')||'{}')}catch(e){return{}}})();
 function use1(k){try{if(!S.ustat)return;UCT[k]=(UCT[k]||0)+1;clearTimeout(use1.t);use1.t=setTimeout(()=>{try{localStorage.setItem('folio-use',JSON.stringify(UCT))}catch(_){}},3000)}catch(e){}}addEventListener('unhandledrejection',e=>elog('promise',e.reason));
+/* three script errors within ten seconds once the app is running: offer a reload instead of leaving a half-drawn screen (once per visit) */
+function elBurst(){try{const n=Date.now(),b=elBurst.b=(elBurst.b||[]).filter(x=>n-x<10000);b.push(n);if(b.length>=3&&window.__CYBOOT&&!elBurst.d){elBurst.d=1;toast('Something went wrong.',()=>location.reload(),'Reload')}}catch(_){}}
 /* extras for the opt-in weekly counts (collected only while that setting is on, cleared once sent): error codes, unexpected closes, speed, failing catalog sites, give-ups, repeated taps. Never stories or sites people added */
 const UX=(()=>{try{return JSON.parse(localStorage.getItem('folio-ux')||'{}')}catch(e){return{}}})();
 function uxSave(){clearTimeout(uxSave.t);uxSave.t=setTimeout(()=>{try{localStorage.setItem('folio-ux',JSON.stringify(UX))}catch(_){}},3000)}
@@ -6572,7 +6574,7 @@ async function shrinkImg(im){
  const u=im.src;im._sm=1;im.style.visibility='hidden';
  try{
   let s=BIGM.get(u);
-  if(!s){const r=await fetch(u,NATIVE?{headers:NHDR}:{referrerPolicy:'no-referrer',credentials:'omit'});if(!r.ok)throw 0;
+  if(!s){const r=await fetch(u,NATIVE?{headers:NHDR,signal:AbortSignal.timeout(15000)}:{referrerPolicy:'no-referrer',credentials:'omit',signal:AbortSignal.timeout(15000)});if(!r.ok)throw 0;
    const w=Math.min(1600,im.naturalWidth),o=await shrinkOff(await r.blob(),w,Math.max(1,Math.round(im.naturalHeight*w/im.naturalWidth)));if(!o)throw 0;
    s=URL.createObjectURL(o);BIGM.set(u,s);if(BIGM.size>80){const k=BIGM.keys().next().value;URL.revokeObjectURL(BIGM.get(k));BIGM.delete(k)}}
   if(im.src===u){im.dataset.big=u;im.src=s}
@@ -6584,7 +6586,7 @@ document.addEventListener('load',e=>{const im=e.target;if(!im||im.tagName!=='IMG
 function imgPixels(url){return new Promise(async res=>{
  let done=false;const fin=v=>{if(!done){done=true;res(v)}};setTimeout(()=>fin(null),9000);
  /* decode the photo off the main thread, straight to a tiny bitmap, so scrolling never stalls on a full-size decode */
- if(typeof createImageBitmap==='function'){try{const r=await fetch(url,NATIVE?{headers:NHDR}:{referrerPolicy:'no-referrer',credentials:'omit'});if(r.ok){const bl=await r.blob();IBLOB.set(url,bl);if(IBLOB.size>6)IBLOB.delete(IBLOB.keys().next().value);let bm;try{bm=await createImageBitmap(bl,{resizeWidth:40,resizeHeight:40,resizeQuality:'low'})}catch(e){bm=await createImageBitmap(bl)}fin(bm);return}}catch(e){}}
+ if(typeof createImageBitmap==='function'){try{const r=await fetch(url,NATIVE?{headers:NHDR,signal:AbortSignal.timeout(15000)}:{referrerPolicy:'no-referrer',credentials:'omit',signal:AbortSignal.timeout(15000)});if(r.ok){const bl=await r.blob();IBLOB.set(url,bl);if(IBLOB.size>6)IBLOB.delete(IBLOB.keys().next().value);let bm;try{bm=await createImageBitmap(bl,{resizeWidth:40,resizeHeight:40,resizeQuality:'low'})}catch(e){bm=await createImageBitmap(bl)}fin(bm);return}}catch(e){}}
  const im=new Image();im.crossOrigin='anonymous';im.referrerPolicy='no-referrer';im.onload=()=>fin(im);im.onerror=()=>fin(null);im.src=url});}
 function toTint(r,g,b){const mx=Math.max(r,g,b)/255,mn=Math.min(r,g,b)/255;let h=0,l=(mx+mn)/2,d=mx-mn,sat=d?d/(1-Math.abs(2*l-1)):0;
  if(d){if(mx===r/255)h=((g-b)/255/d)%6;else if(mx===g/255)h=(b-r)/255/d+2;else h=(r-g)/255/d+4;h*=60;if(h<0)h+=360}
@@ -12012,7 +12014,7 @@ function removeFeed(id){const i=S.feeds.findIndex(f=>f.id===id);if(i<0)return;co
 const AK='folio-art';let AC={};
 const IDB={db:null,ok:false};
 function idbOpen(){return new Promise(res=>{try{const r=indexedDB.open('cypress',2);r.onupgradeneeded=e=>{/* v2 (review L6): an index on each story's saved time, so startup reads only the newest bodies */const st=e.oldVersion<1?r.result.createObjectStore('art'):r.transaction.objectStore('art');if(!st.indexNames.contains('t'))st.createIndex('t','t')};r.onsuccess=()=>{IDB.db=r.result;IDB.ok=true;IDB.db.onclose=IDB.db.onversionchange=()=>{IDB.ok=false;CKI=0;try{IDB.db.close()}catch(e){}};res(true)};r.onerror=()=>res(false);r.onblocked=()=>res(false)}catch(e){res(false)}})}
-function idbTx(mode,fn){return new Promise(res=>{if(!IDB.ok)return res(null);try{const t=IDB.db.transaction('art',mode),st=t.objectStore('art');const out=fn(st);t.oncomplete=()=>res(out&&out.result!==undefined?out.result:true);t.onerror=t.onabort=()=>{elog('idb',t.error);res(null)}}catch(e){elog('idb',e);res(null)}})}
+function idbTx(mode,fn){return new Promise(res=>{if(!IDB.ok)return res(null);try{const t=IDB.db.transaction('art',mode),st=t.objectStore('art');const out=fn(st);t.oncomplete=()=>res(out&&out.result!==undefined?out.result:true);t.onerror=t.onabort=()=>{elog('idb',t.error);if(t.error&&t.error.name==='QuotaExceededError'&&!idbTx.q){idbTx.q=1;try{toast('Storage is full. New stories may not be kept for offline reading.')}catch(_){}}res(null)}}catch(e){elog('idb',e);res(null)}})}
 const acReady=(async()=>{
  let old={};try{old=JSON.parse(localStorage.getItem(AK)||'{}')}catch(e){}
  if(await idbOpen()){
@@ -14338,10 +14340,10 @@ function aiBox(){/* true = the AI box (waiting or done) takes the place of "From
  const text=[...bd.querySelectorAll(':scope>p')].map(p=>p.textContent.trim()).filter(Boolean).join('\n').slice(0,12000);if(text.length<800)return false;
  if(!R.tf)return AIST==='available'?(aiPut(c,null),true):false;/* the full article may still replace the feed text: wait for the final text so the summary is made once and never redrawn */
  AIS.set(k,null);const shown=AIST==='available';if(shown)aiPut(c,null);aiRun(P,a,k,text);return shown}
-async function aiRun(P,a,k,text){let s=[];
- try{const q=await P.status(),st=q.st;AIST=st;AIWHY=q.why||'';if(st!=='available'){AIS.delete(k);if(/^download/.test(st))P.prepare().catch(()=>{})}
-  else{const nt=CyTR(),d=nt&&await nt.detect({text:text.slice(0,800)});if(nt&&!/^en/i.test((d&&d.lang)||''))AIS.set(k,[]);
-   else{const r=await P.summarize({text});s=String((r&&r.summary)||'').split('\n').map(x=>x.replace(/^\s*[*•·\-–]\s*/,'').trim()).filter(Boolean).slice(0,3);{const hw=jkKw(a.title+' '+(a.summary||''));if(hw.size>=3&&!s.some(x=>[...jkKw(x)].some(w=>hw.has(w))))s=[]}AIS.set(k,s)}}}catch(e){AIS.delete(k)}
+async function aiRun(P,a,k,text){let s=[];const lim=(p,ms)=>Promise.race([p,new Promise((_,j)=>setTimeout(j,ms))]);/* a phone AI that never answers must not leave the waiting box up for good */
+ try{const q=await lim(P.status(),10000),st=q.st;AIST=st;AIWHY=q.why||'';if(st!=='available'){AIS.delete(k);if(/^download/.test(st))P.prepare().catch(()=>{})}
+  else{const nt=CyTR(),d=nt&&await lim(nt.detect({text:text.slice(0,800)}),10000);if(nt&&!/^en/i.test((d&&d.lang)||''))AIS.set(k,[]);
+   else{const r=await lim(P.summarize({text}),45000);s=String((r&&r.summary)||'').split('\n').map(x=>x.replace(/^\s*[*•·\-–]\s*/,'').trim()).filter(Boolean).slice(0,3);{const hw=jkKw(a.title+' '+(a.summary||''));if(hw.size>=3&&!s.some(x=>[...jkKw(x)].some(w=>hw.has(w))))s=[]}AIS.set(k,s)}}}catch(e){AIS.delete(k)}
  aiKeep(k);setTimeout(aiAhead,1500);
  const c=$('.cols');if(!curA||(curA.link||curA.title)!==k||!c||!c.querySelector(':scope>.body'))return;
  const w=c.querySelector(':scope>.whyit');
@@ -14458,7 +14460,7 @@ function storyLook(b){
 /* Dynamic story looks, batch 3: every look is read from the story's own words and pictures, so nothing is invented and a story always looks the same */
 function storyLooks3(b,c,ps,wds,LOOK){
  const a=curA,NM='((?:[A-Z][\\w\'’-]+ ){1,3}[A-Z][\\w\'’-]+)',V='(?:said|says|wrote|added|told)',mk=(t,k,x)=>{const e=document.createElement(t);e.className=k;if(x!=null)e.textContent=x;return e},
-  sents=p=>p.textContent.replace(/\s+/g,' ').match(/[^.!?]+(?:[.!?](?=\S)[^.!?]*)*[.!?]+["”’)]*/g)||[],figs=[...b.querySelectorAll('figure')].filter(f=>f.querySelector('img')&&!f.closest('.emb,.tbl'));
+  sents=p=>p.textContent.length>2000?[]/* one huge paragraph with no full stops took seconds to split on a phone (story freeze, 2026-11-11) */:p.textContent.replace(/\s+/g,' ').match(/[^.!?]+(?:[.!?](?=\S)[^.!?]*)*[.!?]+["”’)]*/g)||[],figs=[...b.querySelectorAll('figure')].filter(f=>f.querySelector('img')&&!f.closest('.emb,.tbl'));
  /* picture story: five or more pictures and little text, each picture a screen of its own with its number */
  const pst=figs.length>=5&&wds<400;c.classList.toggle('pst',pst);if(pst)figs.forEach(f=>f.style.setProperty('--pt','"'+figs.length+'"'));
  /* picture breaks: two pictures in a row sit side by side, a large wide one runs edge to edge */
@@ -14586,11 +14588,11 @@ let cineRaf=0,cineIO=null;
 function cineScroll(){if(cineRaf)return;cineRaf=requestAnimationFrame(()=>{cineRaf=0;try{cineParallax()}catch(e){}})}
 function cineParallax(){
  const v=vView(),rd=$('#rd');if(!v||!rd||!rd.classList.contains('cine')||!isVert())return;
- const bd=$('.cols .body');if(bd)cineBleed(bd);
+ const bd=$('.cols .body'),nw=performance.now();if(bd&&nw-(cineParallax.t||0)>400){cineParallax.t=nw;cineBleed(bd)}/* the bleed only changes when the page or lead photo does: not measured on every scroll frame */
  const calm=reduced()||document.documentElement.classList.contains('lowp'),vh=v.clientHeight,vr=v.getBoundingClientRect();
  /* each full-width picture slides inside its frame against the page (the frame clips it), and the lead photo's crop slides the other way */
  const pos=r=>Math.max(-1,Math.min(1,((r.top-vr.top)+r.height/2-vh/2)/(vh/2+r.height/2)));
- rd.querySelectorAll('.cols .body figure.cfr').forEach(f=>{const r=f.getBoundingClientRect();if(r.bottom<vr.top-vh*.3||r.top>vr.bottom+vh*.3)return;f.style.setProperty('--cy',calm?'0px':(-pos(r)*r.height*.065).toFixed(1)+'px')});
+ [...rd.querySelectorAll('.cols .body figure.cfr')].map(f=>[f,f.getBoundingClientRect()])/* measure all, then move all */.forEach(([f,r])=>{if(r.bottom<vr.top-vh*.3||r.top>vr.bottom+vh*.3)return;f.style.setProperty('--cy',calm?'0px':(-pos(r)*r.height*.065).toFixed(1)+'px')});
  const h=rd.querySelector('.cols>img.hero');if(h&&!calm){const r=h.getBoundingClientRect();if(r.bottom>vr.top-vh*.3&&r.top<vr.bottom+vh*.3)h.style.objectPosition='50% '+(50+pos(r)*20).toFixed(1)+'%'}
 }
 /* every full-width frame: a picture that sits in a figure (or alone in a paragraph) becomes one; tall pictures (phone screenshots) stay inline, and a picture that fails to load shows the app's own retry card inside its frame */
@@ -16636,10 +16638,10 @@ async function checkUpdate(){
  if(NATIVE||!/^https?:/.test(location.protocol)||!navigator.onLine||$('#upd'))return;
  /* the offline copy is refreshed by the service worker on every visit, so read that first; the whole 2.6 MB page is downloaded again only when there is no saved copy */
  try{let t='';const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration().catch(()=>null);
-  if(reg){try{await reg.update()}catch(e){}try{const c=await caches.open('cyp-web-14'),r=await c.match('./')||await c.match(location.pathname);if(r)t=await r.text()}catch(e){}}
-  if(!t)t=await (await fetch(location.pathname,{cache:'no-store'})).text();const m=t.match(/const APP_VERSION='([^']+)'/);
+  if(reg){try{await reg.update()}catch(e){}try{const ck=(await caches.keys()).find(x=>/^cyp-web/.test(x)),c=ck&&await caches.open(ck),r=c&&(await c.match('./')||await c.match(location.pathname));if(r)t=await r.text()}catch(e){}}
+  if(!t)t=await (await fetch(location.pathname,{cache:'no-store',signal:AbortSignal.timeout(15000)})).text();const m=t.match(/const APP_VERSION='([^']+)'/);
   if(m&&m[1]!==APP_VERSION){const b=document.createElement('div');b.id='upd';b.innerHTML=`<span>A new version of CyPress is ready</span><button class="go" data-upd>Refresh</button><button class="ib" data-updx aria-label="Later">${svg('<path d="M6 6l12 12M18 6 6 18"/>')}</button>`;document.body.append(b);
-   b.addEventListener('click',e=>{const u=e.target.closest('[data-upd]');if(u){if(u.disabled)return;u.disabled=true;fetch(location.pathname,{cache:'reload'}).catch(()=>{}).finally(()=>location.reload())}else if(e.target.closest('[data-updx]'))b.remove()})}}catch(e){}
+   b.addEventListener('click',e=>{const u=e.target.closest('[data-upd]');if(u){if(u.disabled)return;u.disabled=true;fetch(location.pathname,{cache:'no-store',signal:AbortSignal.timeout(20000)}).then(async r=>{/* the saved copy answers every reload, so the new page is stored first: Refresh used to land on the old version */const y=r.ok&&!r.redirected&&await r.clone().text();if(!y||!y.includes('const APP_VERSION='))return;for(const k of await caches.keys())if(/^cyp-web/.test(k))await (await caches.open(k)).put(new Request(location.origin+location.pathname.replace(/index\.html$/,'')),r.clone())}).catch(()=>{}).finally(()=>location.reload())}else if(e.target.closest('[data-updx]'))b.remove()})}}catch(e){}
 }
 /* David 2026-10-31: the web app gets the same "Check for updates" row the Android app has (Settings > About CyPress > The app) */
 function webUpd(){
@@ -17045,7 +17047,7 @@ async function nativeUpdateCheck(manual){
  let inf;try{inf=await p.info()}catch(e){return null}
  try{
   LASTUPD=Date.now();
-  const r=await fetch('https://api.github.com/repos/'+CP_REPO+'/releases/latest',{headers:{'Accept':'application/vnd.github+json'}});
+  const r=await fetch('https://api.github.com/repos/'+CP_REPO+'/releases/latest',{headers:{'Accept':'application/vnd.github+json'},signal:AbortSignal.timeout(15000)});
   if(!r.ok)throw new Error('HTTP '+r.status);
   const j=await r.json(),n=parseInt(String(j.tag_name||'').replace(/\D/g,''),10)||0;
   const keep=NU&&NU.code===n?NU.got:0;
@@ -18139,6 +18141,7 @@ function readerNext(){
  return null;
 }
 async function preloadNext(){
+ /* the next story is fetched and cleaned only after this story's summary is written: both at once stalled the page on phones */if(curA&&AIS.get(curA.link||curA.title)===null&&(preloadNext.n=(preloadNext.n||0)+1)<30){clearTimeout(R.preT);R.preT=setTimeout(preloadNext,1500);return}preloadNext.n=0;
  const n=readerNext();if(!n||n.book||R.pre===n.link)return;if(acHas(n.link)){try{aiAhead()}catch(e){}return}R.pre=n.link;
  try{
   if(!(typeof pfMode==='function'&&pfMode()!=='off')||S.offline||isOn('dsave')||!online())return;
@@ -18217,7 +18220,7 @@ function rdNext(){
  c.append(el);
  /* polish-2026-10 F7: in scroll mode the end shows one "Up next" card; the end card's "Next up" is hidden when it names the same story */
  c.querySelectorAll('.rf-next').forEach(x=>x.style.display=x.dataset.rnext===n.link?'none':'');
- clearTimeout(R.preT);R.preT=setTimeout(preloadNext,1200);
+ clearTimeout(R.preT);R.preT=setTimeout(()=>window.requestIdleCallback?requestIdleCallback(preloadNext,{timeout:3000}):preloadNext(),1200);
 }
 /* only the bare "Up next" card (no story named on it) flows on to the next story; a card that names its own story (Next up, Related reads) is opened by the handler that reads that name */
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-rnext]');if(!b||b.dataset.rnext)return;e.preventDefault();e.stopPropagation();advanceNext()},true);
