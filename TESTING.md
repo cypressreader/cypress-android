@@ -1865,3 +1865,14 @@ Checked headless only (412x860). On a real phone with page turns and "Page marks
 - Under each page a small line reads site, short story title and "3 of 9". Before, it sat below the screen edge.
 - It must not touch the progress bar or the phone's gesture bar, and the page must not jump between page 1 and page 2.
 - The page is about one line of text shorter than before to make room.
+
+## David's recordings of 2026-11-11: cover turn, top bar, story ending (after 1.312, unreleased)
+Checked headless only (900x1000 two-page, 412x860 phone). On the Fold, Dynamic theme:
+- Two-page cover with the card: the first turn and the turn back are one quick fade. No empty card on the way, no empty card where it lands, no words of the next page over the picture.
+- On that cover the section label and the author's name over the picture are white (they were dark on dark).
+- Feed: scrolling down slides the top bar away and scrolling up slides it back (it used to pop in and out in Dynamic).
+- End of a story from a site with a comment box: no stray "+", "Conversation" or "Read what readers said" lines.
+- Two-page screens: the ending (Next up, Save, Share, related reads, Read original) stays on one screen; related reads are dropped if they would land alone on an extra, almost empty screen.
+
+## Trip pack (after 1.312, unreleased)
+Not verified beyond the button running without errors in a test browser. On a real phone on Wi-Fi: Settings > Stories & loading > Offline > Trip pack > Get ready now. A message says how many stories are being readied; then turn on airplane mode and check those stories open in full with pictures. On mobile data it must refuse and say to connect to Wi-Fi.

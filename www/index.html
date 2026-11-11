@@ -1681,7 +1681,7 @@ html.dynx[data-theme=dynamic] #grid .card{border-bottom:2px solid color-mix(in s
 html.dynx[data-theme=dynamic] #grid .card.nr{border-bottom-width:0}
 html.dynx[data-theme=dynamic] #grid .card.act{box-shadow:0 0 0 2px color-mix(in srgb,var(--b) 70%,transparent),0 8px 26px color-mix(in srgb,var(--b) 30%,transparent)}
 /* the top bar, the Daily tabs and the bottom bar wear the page's own tint (one color, set with the page in dynApply) and fade with it */
-html.dynx[data-theme=dynamic] :is(.top,.dtabs,#tabs){--ln:color-mix(in srgb,var(--ink) 14%,transparent);background:var(--dynb,var(--bg))!important;transition:background-color 1.6s ease-in-out,box-shadow 1.6s ease-in-out}
+html.dynx[data-theme=dynamic] :is(.top,.dtabs,#tabs){--ln:color-mix(in srgb,var(--ink) 14%,transparent);background:var(--dynb,var(--bg))!important;transition:background-color 1.6s ease-in-out,box-shadow 1.6s ease-in-out,transform var(--dur-2) ease/* keeps the bars sliding away on scroll: this rule used to replace that animation, so they popped in and out (David, 2026-11-11) */}
 html.dynx[data-theme=dynamic] .dtabs{box-shadow:0 0 0 100vmax var(--dynb,var(--bg))}
 html.dynx[data-theme=dynamic] #rd{transition:background-color var(--dur-3) ease}
 .cols>.hsf.hs-cov{height:calc(var(--ch)*.62);break-after:auto;margin:0 0 18px;border-radius:16px;overflow:hidden}/* Dynamic cover: the picture takes most of page 1 and the story starts under it */
@@ -1698,6 +1698,7 @@ html.rdx .cols>.hsf.hs-wide.hs-wcov img.hero{height:min(calc(var(--ch)*.56),calc
 html.rdx #rd.cpv2 .cols>.hsf.hs-ccov img.hero{position:absolute;z-index:-3;left:calc(-1*var(--bleed));top:calc(-1*var(--bleed));width:calc(var(--sw) + var(--bleed) + var(--cr));height:calc(var(--ch) + 2*var(--bleed));max-width:none;border-radius:0}/* --cr: the right edge stops short of the next screen */
 #rd.cpv2 .cols>.hsf.hs-ccov .hov{z-index:-2;pointer-events:auto;left:calc(-1*var(--bleed));right:auto;bottom:calc(-1*var(--bleed));width:calc(var(--sw) + var(--bleed) + var(--cr));box-sizing:border-box;padding-left:calc(24px + var(--bleed));padding-bottom:calc(24px + var(--bleed));padding-right:calc((var(--sw) + var(--cg))/2 + var(--bleed) + 24px);border-radius:0}
 #rd.cpv2 .cols>.hsf.hs-ccov::after{content:'';position:absolute;z-index:-1;top:-14px;bottom:-14px;right:-18px;width:calc((var(--sw) - var(--cg))/2 + 36px);background:var(--pn);border-radius:20px;box-shadow:0 8px 28px rgba(0,0,0,.35)}
+/* the section label and the author's name over the picture were dark on dark (David 2026-11-11) */#rd.cpv2 .cols>.hsf.hs-ccov .hov :is(.kick,.dt,.dt *){color:#fff!important}
 /* Two-page cover, slide + peek (1.303): the first turn slides the sheet from the right page onto the left page (.cslid; .cslide while it moves, --cvd = its time, 0 outside a slide) carrying the next part of the story; the picture and headline hold still under it, and on the right page the picture then covers the next column until it turns away like a page (.cpk). A tap on the picture on page 1 slides the sheet off (.cpeek) so the whole picture shows */
 #rd.cpv2 .cols>.hsf.hs-ccov :is(img.hero,.hov),#rd.cpv2 .cols>.hsf.hs-ccov::after{transition:transform var(--cvd,0ms) cubic-bezier(.4,0,.2,1),opacity var(--cvd,0ms) linear,top var(--cvd,0ms) cubic-bezier(.4,0,.2,1),bottom var(--cvd,0ms) cubic-bezier(.4,0,.2,1),border-radius var(--cvd,0ms) linear,clip-path 0s 0s,z-index 0s 0s}html.rdx #rd.cpv2 .cols>.hsf.hs-ccov img.hero{clip-path:inset(0 0 0 0)}/* a shape from the start, so the cut below can wait for the end of the slide */
 #rd.cpv2 .cols.cslid>.hsf.hs-ccov :is(img.hero,.hov){transform:translateX(calc(var(--sw) + var(--cg)))}
@@ -7396,6 +7397,8 @@ function junkClean(root,url){
   const t=(e.textContent||'').replace(/\s+/g,' ').trim();
   if(!t){return}
   {const pre=jkPre(e,t,i,url);if(pre){kill.push(e);why.set(e,{r:pre,t:t.slice(0,140)});return}}
+  /* the comment box left at the end of a story: its heading, its invitation, its lone + button */
+  if(i>=N*.7&&/^(?:\+|conversation|comments?(?: \(\d+\))?|read what readers said\b.{0,40}|join the (?:conversation|discussion)\b.{0,60})$/i.test(t)){kill.push(e);why.set(e,{r:'comments',t:t.slice(0,140)});return}
   if(e.querySelector('img,video,iframe')&&t.length>140)return;
   if(jkNarrative(e)&&!learned.has(jkNorm(t)))return;
   const lk=[...e.querySelectorAll('a')].reduce((q,a)=>q+(a.textContent||'').length,0),ld=lk/Math.max(1,t.length),tail=i>=N*.7;
@@ -9054,10 +9057,12 @@ function rdxSlideEnd(d,ts){
 }
 /* Two-page cover with the sliding sheet (1.303). ccv(): the open story shows it. cvSlide: page 1 <-> the slid page; cvPeek: the sheet off and back on page 1 */
 const ccv=()=>{if(R.cpv!==2||R.web||isVert())return false;const h=$('.cols>.hsf');return !!h&&h.dataset.m==='ccov'};
-function cvSlide(to){const c=$('.cols');if(!c)return;if(R.peek)cvPeek(false,true);const ms=reduced()?0:900,my=tok;R.busy=true;hurry();prepDrop();
- c.style.setProperty('--cvd',ms+'ms');c.style.transition=ms?`transform ${ms}ms cubic-bezier(.4,0,.2,1)`:'';c.classList.toggle('cslide',ms>0);
- R.pg=to;show();
- setTimeout(()=>{if(my!==tok)return;c.classList.remove('cslide');c.style.transition='';c.style.removeProperty('--cvd');R.busy=false;turnTick();prepSoon()},ms*1.3+40)}
+/* David 2026-11-11: the slide showed an empty card on its way, an empty card where it would land, and the next page's words over the picture. The two screens now swap in one quick fade, so no half-built state is ever on screen */
+function cvSlide(to){const c=$('.cols');if(!c)return;if(R.peek)cvPeek(false,true);const ms=reduced()?0:170,my=tok;R.busy=true;hurry();prepDrop();
+ const end=()=>{c.style.transition='';c.style.opacity='';if(my!==tok)return;R.busy=false;turnTick();prepSoon()};
+ if(!ms){R.pg=to;show();end();return}
+ c.style.transition=`opacity ${ms}ms linear`;c.style.opacity='0';
+ setTimeout(()=>{if(my!==tok){end();return}R.pg=to;show();c.style.transition=`opacity ${ms}ms linear`;c.style.opacity='1';setTimeout(end,ms+40)},ms+20)}
 function cvPeek(on,now){const c=$('.cols');if(!c)return;const ms=now||reduced()?0:420;R.peek=!!on;c.style.setProperty('--cvd',ms+'ms');c.classList.add('cpeeking');c.classList.toggle('cpeek',R.peek);
  clearTimeout(R.pkT);R.pkT=setTimeout(()=>{c.classList.remove('cpeeking');if(!c.classList.contains('cslide'))c.style.removeProperty('--cvd')},ms+40)}
 function go(d){
@@ -10643,7 +10648,7 @@ const SET_PAGES=[
   main:[{h:'Cards',items:['L:Swipe a card to the left','L:Swipe a card to the right','L:Read as you scroll']}],
   more:[],rst:['swl','swr','rdscroll']},
  {id:'dl',t:'Downloads and Storage',d:'Get ready ahead, offline, back issues',c:'#0b7285',lead:'Stories ready ahead, and how much room they use.',
-  main:[{h:'Loading',items:['L:Refresh automatically','X:pics']},{h:'Offline',items:['L:Offline mode','L:Get stories ready in advance','L:Only on Wi-Fi','L:Keep photos for offline']},{h:'Back issues',items:['L:Keep back issues','L:Keep back issues for']}],
+  main:[{h:'Loading',items:['L:Refresh automatically','X:pics']},{h:'Offline',items:['L:Offline mode','X:trip','L:Get stories ready in advance','L:Only on Wi-Fi','L:Keep photos for offline']},{h:'Back issues',items:['L:Keep back issues','L:Keep back issues for']}],
   more:[{h:'Offline',items:['L:Fill up only while charging','L:Short sites first']},{h:'Storage',items:['L:Space for stored stories','L:Clear downloaded stories']}],
   rst:['auto','acMB','pfm']},
  {id:'alerts',t:'Digest and Alerts',d:'Daily digest and notifications',c:'#e2231a',lead:'A short digest of the day’s best stories, and notifications when you want them.',
@@ -10711,6 +10716,7 @@ function setItems(items){
   else if(k==='X:sch')out.push(setSchLine());
   else if(k==='X:aa')out.push(setAaLine());
   else if(k==='X:pics')out.push(setPicsLine());
+  else if(k==='X:trip')out.push(setTripLine());
   else if(k==='X:trl'){if(CyTR())out.push(setTrLine())}
   else if(k==='X:fpst')out.push(setFsLine());
   else if(k==='X:resetlook')out.push(setResetLine());
@@ -10756,6 +10762,17 @@ function setTrLine(){
 const TRL_HINT={pick:'Choose which sites to translate in each site’s own settings. Done on your phone. Uses Google’s translator, built into the app. Machine translated for convenience; inaccuracies may occur.',all:'Headlines and stories in any other language are shown in yours, on your phone. The first time for a language it downloads a small pack. Uses Google’s translator, built into the app. Machine translated for convenience; inaccuracies may occur.'};
 function trlSync(){const v=$('#trlv');if(!v)return;v.value=S.trg==='all'?'all':'pick';const h=$('#trlh');if(h)h.textContent=TRL_HINT[v.value]}
 set.addEventListener('change',e=>{if(!e.target||e.target.id!=='trlv')return;S.trg=e.target.value==='all'?'all':'pick';TRF.fail.clear();save();trlSync();render()});
+/* Trip pack: one tap gets the newest unread stories ready for offline, full text and pictures. It only uses the download-ahead and offline-photo machinery that is already there, and never runs on mobile data */
+function setTripLine(){const d=document.createElement('div');d.className='line';d.innerHTML='<span class="lb">Trip pack<small>Before a flight or a long drive: downloads your newest unread stories in full, with their pictures, so you can read them offline. Wi-Fi only</small></span><button type="button" class="tx2" id="trip">Get ready now</button>';return d}
+function tripPack(){
+ if(!online()||S.offline){toast('You are offline. Connect to Wi-Fi, then try again');return}
+ if(netKind()==='cell'){toast('Connect to Wi-Fi first. Stories are never downloaded ahead on mobile data');return}
+ if(pfMode()==='off'){S.pfm='custom';S.pfn=100}S.offimg=true;save();syncSet();
+ if(!pfAllowed()){toast('Downloads are paused while your phone saves battery or data');return}
+ const L=[];S.feeds.forEach(f=>{if(!paused(f))(items[f.id]||[]).forEach(a=>{if(a&&a.link&&!S.read[a.link]&&!muted(a))L.push(a)})});L.sort((x,y)=>y.date-x.date);
+ const n0=PF.n;prefetch(L.slice(0,100),true);oiSync(true);const n=PF.n-n0;
+ toast(n?'Getting '+plu(n,'story','stories')+' ready for offline':'Your newest stories are already ready for offline')}
+set.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('#trip'))tripPack()});
 function setPicsLine(){
  const d=document.createElement('div');d.className='line';d.id='picrow';
  d.innerHTML='<span class="lb">Pictures<small id="pich"></small></span><select id="pics" aria-label="Pictures"><option value="all">Show all pictures</option><option value="save">Save data on mobile</option><option value="none">No pictures</option></select>';return d}
@@ -18707,7 +18724,10 @@ function fitWhy(c,cw,gap){if(curA&&curA.book)return false;
  f.style.setProperty('break-before','auto');return true;
 }
 /* T-07: an end card that fills the last column of a page pushed the Read original link onto a page of its own; start the card on that next page so the two share it */
-function origAlone(c){const rf=c.querySelector('.body .rfoot'),o=c.querySelector(':scope>.orig');if(!rf||!o)return;rf.style.breakBefore='';if(isVert()||!(R.step>0))return;const cl=c.getBoundingClientRect().left,pg=e=>{const q=[...e.getClientRects()].pop();return q?Math.floor((q.left-cl+2)/R.step):-1};if(pg(o)>pg(rf))rf.style.breakBefore='column'}
+function origAlone(c){const rf=c.querySelector('.body .rfoot'),o=c.querySelector(':scope>.orig');if(!rf||!o)return;rf.style.breakBefore='';rf.querySelectorAll('[data-ff]').forEach(x=>{x.hidden=false;delete x.dataset.ff});if(isVert()||!(R.step>0))return;const cl=c.getBoundingClientRect().left,pg=e=>{const q=[...e.getClientRects()].pop();return q?Math.floor((q.left-cl+2)/R.step):-1};
+ /* two-page screens: the ending keeps to the screen it starts on. Related reads are dropped from the bottom up rather than left alone on an almost empty last screen (David 2026-11-11) */
+ if(R.cpv===2){const p0=e=>{const q=e.getClientRects()[0];return q?Math.floor((q.left-cl+2)/R.step):-1};for(let n=0;n<8&&pg(o)>p0(rf);n++){const b=[...rf.querySelectorAll('.rf-rel button:not([hidden])')].pop();if(!b)break;b.hidden=true;b.dataset.ff='1';const g=b.closest('.rf-rel');if(!g.querySelector('button:not([hidden])')){g.hidden=true;g.dataset.ff='1'}}}
+ if(pg(o)>pg(rf))rf.style.breakBefore='column'}
 /* the page count comes from the width of the column strip, which can run a column or two past the last text (a margin, a hidden box); a page with nothing on it is never offered */
 function trimBlankPages(c){
  if(R.np<2||!(R.step>0)||R.web||isVert())return;
