@@ -1765,3 +1765,8 @@ Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at 
 - Captions with a credit ("...ends badly. Anna Moneymaker/Getty Images", "Photo: X/Getty Images", "J. Scott Applewhite/AP") split once, at the sentence end, never mid-word.
 - Same fix: scrolling a Dynamic story on phone works again (1.306 left the page locked).
 - Long read scrolled on a low-end phone: scrolling past a full-width picture must stay smooth (clip-path now follows the parallax each frame).
+
+## AI summary ahead + kept (2026-11-11, unshipped, headless with a fake phone AI only)
+- Open a long English story, wait for its 3 points, then go to the next story with Next: it should open with its points already there (no gray waiting bars).
+- Close the app fully, reopen, open a story that had a summary: points appear at once, no waiting bars.
+- While reading, the app should stay smooth; no extra heat or battery drain worth noticing over a 10-story session.

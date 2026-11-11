@@ -14332,7 +14332,7 @@ function aiGrow(el,h0){/* Rule and grow: the brass line draws down while the box
  if(!h0||h0===h1||el.getClientRects().length>1)return 0;u.style.cssText='overflow:hidden;height:'+h0+'px;transition:height .45s cubic-bezier(.3,.7,.2,1)';void u.offsetHeight;u.style.height=h1+'px';setTimeout(()=>u.style.cssText='',500);return 500}
 function aiBox(){/* true = the AI box (waiting or done) takes the place of "From the publisher" */
  const P=CyAI(),a=curA,c=$('.cols'),bd=c&&c.querySelector(':scope>.body');if(!P||AIST==='unavailable'||!a||!bd||R.web||a.book)return false;
- try{jkHead(bd,a)}catch(e){}const k=a.link||a.title,s=AIS.get(k);
+ try{jkHead(bd,a)}catch(e){}const k=a.link||a.title;let s=AIS.get(k);if(s===undefined&&AC[k]&&Array.isArray(AC[k].ai))AIS.set(k,s=AC[k].ai);/* made before (kept with the stored story): shown at once */
  if(s)return s.length?(aiPut(c,s),true):false;
  if(s===null)return AIST==='available'?(aiPut(c,null),true):false;
  const text=[...bd.querySelectorAll(':scope>p')].map(p=>p.textContent.trim()).filter(Boolean).join('\n').slice(0,12000);if(text.length<800)return false;
@@ -14342,11 +14342,19 @@ async function aiRun(P,a,k,text){let s=[];
  try{const q=await P.status(),st=q.st;AIST=st;AIWHY=q.why||'';if(st!=='available'){AIS.delete(k);if(/^download/.test(st))P.prepare().catch(()=>{})}
   else{const nt=CyTR(),d=nt&&await nt.detect({text:text.slice(0,800)});if(nt&&!/^en/i.test((d&&d.lang)||''))AIS.set(k,[]);
    else{const r=await P.summarize({text});s=String((r&&r.summary)||'').split('\n').map(x=>x.replace(/^\s*[*•·\-–]\s*/,'').trim()).filter(Boolean).slice(0,3);{const hw=jkKw(a.title+' '+(a.summary||''));if(hw.size>=3&&!s.some(x=>[...jkKw(x)].some(w=>hw.has(w))))s=[]}AIS.set(k,s)}}}catch(e){AIS.delete(k)}
- const c=$('.cols');if(curA!==a||!c||!c.querySelector(':scope>.body'))return;
+ aiKeep(k);setTimeout(aiAhead,1500);
+ const c=$('.cols');if(!curA||(curA.link||curA.title)!==k||!c||!c.querySelector(':scope>.body'))return;
  const w=c.querySelector(':scope>.whyit');
  let t=0;if(s.length){const h0=w&&w.classList.contains('wait')&&w.querySelector('ul').offsetHeight;t=aiGrow(aiPut(c,s),h0)}else if(w&&w.classList.contains('wait'))whyBox();else return;/* no summary after all: the publisher's description comes back */
  setTimeout(()=>{try{relayout()}catch(e){}},t)}
 /* polish-2026-10 F1: a one-line italic deck under the headline from the feed's summary, only when it adds something: never when "Why it matters" already shows that summary, and never when it repeats how the story starts */
+/* a finished summary is kept with the stored story, so reopening it (even after the app was closed) never asks the phone again */
+function aiKeep(k){const s=AIS.get(k),e=AC[k];if(!Array.isArray(s)||!e||!e.h)return;e.ai=s;if(IDB.ok)idbTx('readwrite',st=>{st.put(e,k)})}
+/* the next story's summary is made while this one is read: one at a time, after this story's own, only with the app on screen (the phone's AI does not run in the background), and only from its stored copy */
+function aiAhead(){const P=CyAI();if(!P||AIST!=='available'||document.hidden||!curA||curA.book)return;if(AIS.get(curA.link||curA.title)===null)return;
+ const n=readerNext(),l=n&&n.link;if(!l||n.book||AIS.has(l)||!acGet(l))return;if(Array.isArray(AC[l].ai)){AIS.set(l,AC[l].ai);return}
+ const t=document.createElement('template');t.innerHTML=acGet(l);const text=[...t.content.querySelectorAll('p')].map(p=>p.textContent.trim()).filter(Boolean).join('\n').slice(0,12000);if(text.length<800)return;
+ AIS.set(l,null);aiRun(P,n,l,text)}
 function rdxDeck(){
  const c=$('.cols');if(!c)return;c.querySelectorAll('.rdk').forEach(x=>x.remove());
  const a=curA,bd=c.querySelector(':scope>.body'),t=c.querySelector('.tt');if(RDX_OLDHDR||!a||!bd||!t||R.web||c.querySelector(':scope>.whyit'))return;
@@ -18131,11 +18139,11 @@ function readerNext(){
  return null;
 }
 async function preloadNext(){
- const n=readerNext();if(!n||n.book||acHas(n.link)||R.pre===n.link)return;R.pre=n.link;
+ const n=readerNext();if(!n||n.book||R.pre===n.link)return;if(acHas(n.link)){try{aiAhead()}catch(e){}return}R.pre=n.link;
  try{
   if(!(typeof pfMode==='function'&&pfMode()!=='off')||S.offline||isOn('dsave')||!online())return;
   const r=await getFull(n.link,true);
-  if(r&&!r.pw&&!acHas(n.link)){const d=document.createElement('div');d.append(dropTitle(r,n.title));if(d.textContent.length>=600){acPut(n.link,d.innerHTML);markReady(n.link);warmImgs(d,n);rtSet(n.link,d)}}
+  if(r&&!r.pw&&!acHas(n.link)){const d=document.createElement('div');d.append(dropTitle(r,n.title));if(d.textContent.length>=600){acPut(n.link,d.innerHTML);markReady(n.link);warmImgs(d,n);rtSet(n.link,d);try{aiAhead()}catch(e){}}}
  }catch(e){}
 }
 /* B97: when the end of a story is reached, everything its end card offers (Next up, Related reads, Up next) is fetched, cleaned and stored in the background, so tapping any of them opens at once.
