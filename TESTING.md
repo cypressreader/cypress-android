@@ -1712,3 +1712,12 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - [ ] A long opinion or picture-less essay: the first line is in small capitals.
 - [ ] A long story with three or more sub-headings: each sub-heading has a large number (01, 02, 03) above it; page turning still breaks cleanly around them.
 - [ ] Pull quotes in long stories: with a named speaker it sits beside a color bar with the name under it; in a story with a picture it sits on a color band with white text; otherwise centered between two thin lines. Check each is readable in light and dark.
+
+## Dynamic story looks, batch 2 (implemented, checked headless at 390px scrolling only; unverified on a phone)
+- Dynamic theme, a story with no picture and a headline of 8 words or fewer: opens on a full-screen color poster with the headline large; the story starts when you scroll.
+- A story whose only picture is small (under 500px wide): picture shown small, framed and tilted like a printed photo, caption under it, headline below.
+- A complete story of 150 words or fewer with no picture: "In brief" label, a rule above and below. A story marked "Partial story" must stay plain.
+- An opinion or column story: italic headline under a large quotation mark, the writer's name bold.
+- Every story: last sentence a little larger in italics, end mark in the story's color, "Up next" on a color panel with white text that is easy to read.
+- Open Fold / tablet paged reading: none of the poster or postcard looks should appear, and page 1 should look as before.
+- Read aloud, highlights and large print still work on a story with the larger last sentence.
