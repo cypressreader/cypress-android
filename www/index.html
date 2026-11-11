@@ -1704,8 +1704,8 @@ html.rdx #rd.cpv2 .cols>.hsf.hs-ccov img.hero{position:absolute;z-index:-3;left:
 html.rdx #rd.cpv2 .cols.cslid>.hsf.hs-ccov img.hero{z-index:1;clip-path:inset(0 0 0 calc((var(--sw) - var(--cg))/2 + 36px));transition-delay:0s,0s,0s,0s,0s,var(--cvd,0ms),var(--cvd,0ms)}/* over the next column, cut at the sheet's edge; the cut and the lift above the text land only once the sheet is there */
 #rd.cpv2 .cols:has(>.hs-ccov)::after{content:'';position:absolute;z-index:2;pointer-events:none;top:calc(-1*var(--bleed));bottom:calc(-1*var(--bleed));left:calc(var(--sw) + var(--cg) - var(--bleed) + (var(--sw) - var(--cg))/2 + 36px);width:30px;background:linear-gradient(to right,rgba(0,0,0,.3),rgba(0,0,0,.08) 40%,transparent);opacity:0;transition:opacity .15s}#rd.cpv2 .cols.cslid:not(.cpk):has(>.hs-ccov)::after{opacity:1;transition-delay:var(--cvd,0ms)}/* the sheet's shadow on the picture beside it */
 html.rdx #rd.cpv2 .cols.cpk>.hsf.hs-ccov img.hero{opacity:0}#rd.cpv2 .cols.cpk>.hsf.hs-ccov .hov{opacity:0}/* lifted: its shading goes with it */
-#rd.cpv2 .cols.cslide>:not(.hsf){animation:cvfade var(--cvd,0ms) linear both}
-@keyframes cvfade{0%{opacity:1}28%{opacity:0}72%{opacity:0}100%{opacity:1}}
+#rd.cpv2 .cols.cslide>:not(.hsf){animation:cvfade calc(var(--cvd,0ms)*1.3) linear both}/* the text comes back only after the picture is lifted over the next column (at --cvd), so that column never shows through it */
+@keyframes cvfade{0%{opacity:1}22%{opacity:0}77%{opacity:0}100%{opacity:1}}
 #rd.cpv2 .cols.cpeek>.hsf.hs-ccov::after{transform:translateX(calc(var(--sw)/2 + 90px))}
 #rd.cpv2 .cols.cpeek>.hsf.hs-ccov .hov{opacity:0;pointer-events:none}
 #rd.cpv2 .cols.cpeeking>:not(.hsf){transition:opacity var(--cvd,0ms) linear}#rd.cpv2 .cols.cpeek>:not(.hsf){opacity:0}
@@ -9007,7 +9007,7 @@ const ccv=()=>{if(R.cpv!==2||R.web||isVert())return false;const h=$('.cols>.hsf'
 function cvSlide(to){const c=$('.cols');if(!c)return;if(R.peek)cvPeek(false,true);const ms=reduced()?0:900,my=tok;R.busy=true;hurry();prepDrop();
  c.style.setProperty('--cvd',ms+'ms');c.style.transition=ms?`transform ${ms}ms cubic-bezier(.4,0,.2,1)`:'';c.classList.toggle('cslide',ms>0);
  R.pg=to;show();
- setTimeout(()=>{if(my!==tok)return;c.classList.remove('cslide');c.style.transition='';c.style.removeProperty('--cvd');R.busy=false;turnTick();prepSoon()},ms+40)}
+ setTimeout(()=>{if(my!==tok)return;c.classList.remove('cslide');c.style.transition='';c.style.removeProperty('--cvd');R.busy=false;turnTick();prepSoon()},ms*1.3+40)}
 function cvPeek(on,now){const c=$('.cols');if(!c)return;const ms=now||reduced()?0:420;R.peek=!!on;c.style.setProperty('--cvd',ms+'ms');c.classList.add('cpeeking');c.classList.toggle('cpeek',R.peek);
  clearTimeout(R.pkT);R.pkT=setTimeout(()=>{c.classList.remove('cpeeking');if(!c.classList.contains('cslide'))c.style.removeProperty('--cvd')},ms+40)}
 function go(d){

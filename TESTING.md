@@ -1749,3 +1749,4 @@ Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at 
 - [ ] Reduced motion (phone setting or in-app): all of the above is instant.
 - [ ] Follow button on the cover still taps; the Listen bar and progress bar count pages as before.
 - [ ] The "At a glance" box no longer sits at the top of the sheet (it pushed the story to page 2 in 1.302 on this cover).
+- [ ] (after the 1.303 Fold recording) Slide end: the third column must never show through the picture on the right page as the text comes back. Text now returns only after the picture is lifted (slide 900 ms, text back by about 1.2 s).
