@@ -1833,3 +1833,11 @@ Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at 
 Checked headless only (412x860, 884x1104, 1280x800) with test pictures. On a real phone, Dynamic theme, page-turn mode:
 - A story with five or more pictures and little text: each picture fills a page of its own with "1 of 6" and its caption over the lower edge. Wide pictures are cropped hard to the tall page: check faces are not cut off.
 - A story with exactly two pictures in a row and no lead picture: the two sit side by side as equal squares (they were uneven heights on wide screens before this fix).
+
+## Magazine touches in every theme (after 1.312, unreleased)
+Checked headless only (412x860, scrolling; light, Halcyon light and dark, Black & White, Cyber Rain, Typewriter). On a real phone, in any theme other than Dynamic:
+- An interview (three or more short bold questions): questions are bold in the theme's accent color with room above.
+- A review whose text states a score ("four out of five stars"): "The verdict" box at the top.
+- A long story (500+ words) with three figures: "By the numbers" strip about a third of the way down.
+- A list story ("Five ways to ...", with exactly five sub-headings): a large number beside each sub-heading.
+- Halcyon shows these in brass. Page-turn mode and two-page screens were not checked outside Dynamic.
