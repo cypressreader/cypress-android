@@ -1759,3 +1759,7 @@ Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at 
 ## Pull quotes and long-read captions (2026-11-11, branch, headless CSS check only)
 - Paged reader (any theme, Dynamic on Fold): a pull quote near the bottom of a column moves whole to the next column/page, never split.
 - Long read scrolled on phone (800+ words): a full-width picture with its caption underneath; scroll slowly: the picture must stay inside its own box and never cover the first caption line.
+
+## 1.306 opener crash + caption credits (2026-11-11, branch, headless 412x900 only)
+- Dynamic, phone: open several stories with a big picture; none may show the headline/text cut off on the right (1.306 crashed the opening picker: undefined word count). Expect a mix of cover, picture beside color panel, and picture in the column.
+- Captions with a credit ("...ends badly. Anna Moneymaker/Getty Images", "Photo: X/Getty Images", "J. Scott Applewhite/AP") split once, at the sentence end, never mid-word.
