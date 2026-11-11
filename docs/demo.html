@@ -5507,7 +5507,7 @@ async function bgGate(){await quietGap(6000);await new Promise(r=>setTimeout(r,0
 /* a short fingerprint of everything the lists are drawn from; when a background refresh brings nothing new the page is left alone instead of being redrawn (which made pictures blink) */
 let LASTSIG='';
 /* jump log for Copy support info: every full redraw and every layout shift over 0.02 (the last few), so a "pictures jump while scrolling" report names its cause */
-const JMP={r:[],s:[],n:0,k:0,t0:Date.now(),e:null};const jmpWho=sk=>{const L0=Error.stackTraceLimit;Error.stackTraceLimit=60;const s=new Error().stack||'';Error.stackTraceLimit=L0;return s.split('\n').slice(1,60).map(x=>{const f=(x.match(/at (?:async )?([\w$.<>]+) \(/)||[])[1],l=(x.match(/:(\d+):(\d+)\)?$/)||[]);return f||(l[1]?'L'+l[1]+':'+l[2]:'')}).filter((n,i,A)=>n&&n!==A[i-1]&&n!=='jmpWho'&&!sk.includes(n)).slice(0,5).join('<')};
+const JMP={r:[],s:[],n:0,k:0,t0:Date.now(),e:null};const jmpWho=sk=>{const L0=Error.stackTraceLimit;Error.stackTraceLimit=18;/* 60 frames were captured and parsed on every redraw */const s=new Error().stack||'';Error.stackTraceLimit=L0;return s.split('\n').slice(1,60).map(x=>{const f=(x.match(/at (?:async )?([\w$.<>]+) \(/)||[])[1],l=(x.match(/:(\d+):(\d+)\)?$/)||[]);return f||(l[1]?'L'+l[1]+':'+l[2]:'')}).filter((n,i,A)=>n&&n!==A[i-1]&&n!=='jmpWho'&&!sk.includes(n)).slice(0,5).join('<')};
 /* jump catcher: when code (not your finger) moves the feed more than half a screen, the "Jumps:" line names the code that did it; a big move nobody asked for is logged as "unexplained" */
 JMP.j=[];{let ly=0,lw=0,lt=0;const jl=(t,w)=>{JMP.j.push(Math.round(performance.now()/1000)+'s '+t+' by '+w);if(JMP.j.length>6)JMP.j.shift()};
 const mv=(m,to,k)=>{lw=Date.now();const y=m.scrollTop;if(to==null||Math.abs(to-y)>m.clientHeight/2)jl(k+' '+Math.round(y)+'>'+(to==null?'?':Math.round(to)),jmpWho(['mv','set','scrollTo','scrollBy','scrollIntoView','m.scrollTo','m.scrollBy','Element.scrollIntoView'])||'?')};
@@ -6152,7 +6152,7 @@ function parseJsonFeed(txt,f){
  const list=(Array.isArray(j.items)?j.items:[]).filter(it=>it&&typeof it==='object').map(it=>{
   let link=String(it.url||it.external_url||'').trim();if(link)link=abs(link,base)||link;
   const html=String(it.content_html||(it.content_text?'<p>'+esc(it.content_text).replace(/\n+/g,'</p><p>')+'</p>':'')||it.summary||'');
-  const text=new DOMParser().parseFromString(html.replace(/<\/(p|div|li|h[1-6])>|<br\s*\/?>/gi,'$& '),'text/html').body.textContent.replace(/\s+/g,' ').trim();
+  /* one spare document is reused for every story (a new one per story was most of a refresh's work) */const td=window.__td||(window.__td=document.implementation.createHTMLDocument(''));td.body.innerHTML=html.replace(/<(script|style|title)\b[\s\S]*?<\/\1>/gi,' ').replace(/<\/(p|div|li|h[1-6])>|<br\s*\/?>/gi,'$& ');const text=td.body.textContent.replace(/\s+/g,' ').trim();td.body.textContent='';
   let img=String(it.image||it.banner_image||''),imgs='';if(!img){img=firstImg(html,link);imgs=firstImg.s||''}img=img?hi(abs(img,link)):'';
   const au=(Array.isArray(it.attachments)?it.attachments:[]).find(a=>a&&(/audio/i.test(a.mime_type||'')||/\.(mp3|m4a|aac|ogg)(\?|$)/i.test(a.url||'')));
   let dur='';const ds=au&&+au.duration_in_seconds;if(ds)dur=ds>=3600?Math.floor(ds/3600)+' hr '+Math.round(ds%3600/60)+' min':Math.round(ds/60)+' min';
@@ -6191,7 +6191,7 @@ function parse(xml,f){
   /* every photo the feed lists for the story (its own media and the pictures in its text), for the '+N photos' badge and the reader's photo viewer */
   const pics=(()=>{const m=new Map();[img,...[...el.getElementsByTagName('media:content')].filter(x=>(x.getAttribute('medium')||'image')==='image'&&!/video|audio/.test(x.getAttribute('type')||'')).map(x=>x.getAttribute('url')),...[...String(html).matchAll(/<img\b[^>]*?\ssrc=["']([^"']+)/gi)].map(x=>x[1])].forEach(u=>{if(!u||/1x1|pixel|track|gravatar|emoji|feedburner|\.gif(\?|$)/i.test(u))return;const v=hi(abs(u.replace(/&amp;/g,'&'),link));if(v&&/^https?:/.test(v)&&!m.has(v.split('?')[0]))m.set(v.split('?')[0],v)});const l=[...m.values()].slice(0,12);return l.length>1?l:undefined})();
   const pcp=img?String(tx(el,'media:description')||tx(el,'media:title')).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,220):'';
-  const text=new DOMParser().parseFromString(html.replace(/<\/(p|div|li|h[1-6])>|<br\s*\/?>/gi,'$& '),'text/html').body.textContent.replace(/\s+/g,' ').trim();
+  /* one spare document is reused for every story (a new one per story was most of a refresh's work) */const td=window.__td||(window.__td=document.implementation.createHTMLDocument(''));td.body.innerHTML=html.replace(/<(script|style|title)\b[\s\S]*?<\/\1>/gi,' ').replace(/<\/(p|div|li|h[1-6])>|<br\s*\/?>/gi,'$& ');const text=td.body.textContent.replace(/\s+/g,' ').trim();td.body.textContent='';
   const au=[...el.getElementsByTagName('enclosure'),...el.getElementsByTagName('media:content')].find(e=>/audio/.test(e.getAttribute('type')||'')||/\.(mp3|m4a|aac|ogg)(\?|$)/i.test(e.getAttribute('url')||''));
   const yv=tx(el,'yt:videoId');
   const by=(tx(el,'dc:creator')||(el.getElementsByTagName('author')[0]?tx(el.getElementsByTagName('author')[0],'name'):'')||tx(el,'author')).replace(/^\S+@\S+\s*\((.*)\)$/,'$1').replace(/<[^>]*>/g,' ').replace(/https?:\/\/\S+/g,' ').replace(/\s+/g,' ').trim().slice(0,60);/* an Atom author holds a name and a web address: only the name is the byline */
@@ -6311,7 +6311,7 @@ async function enrich(id){
  if(!ogNet()){dropGeneric(items[id]||[]);return}
  /* P1: photos are looked up for the 5 newest photo-less stories per site (20 meant ~600 page downloads at launch with 30 sites); the rest keep the designed no-photo card */
  const q=(items[id]||[]).filter(a=>!a.img).sort((x,y)=>(y.date||0)-(x.date||0)).slice(0,5);let n=0;
- await Promise.all([0,1,2,3].map(async()=>{while(n<q.length&&online()){const a=q[n++],u=await og(a);if(u){a.img=u;a.imgs='';schedule()}}}));
+ await Promise.all([0,1,2,3].map(async()=>{while(n<q.length&&online()){const a=q[n++],u=await og(a);if(u){a.img=u;a.imgs=''}}}));/* one redraw per site when its photos are in, not one per photo: the list blinked every few seconds after launch */
  dropGeneric(items[id]||[]);schedule();
 }
 function lowres(im){
@@ -12017,18 +12017,18 @@ function idbOpen(){return new Promise(res=>{try{const r=indexedDB.open('cypress'
 function idbTx(mode,fn){return new Promise(res=>{if(!IDB.ok)return res(null);try{const t=IDB.db.transaction('art',mode),st=t.objectStore('art');const out=fn(st);t.oncomplete=()=>res(out&&out.result!==undefined?out.result:true);t.onerror=t.onabort=()=>{elog('idb',t.error);if(t.error&&t.error.name==='QuotaExceededError'&&!idbTx.q){idbTx.q=1;try{toast('Storage is full. New stories may not be kept for offline reading.')}catch(_){}}res(null)}}catch(e){elog('idb',e);res(null)}})}
 const acReady=(async()=>{
  let old={};try{old=JSON.parse(localStorage.getItem(AK)||'{}')}catch(e){}
- if(await idbOpen()){
+ if(await idbOpen()){try{ckIdb()}catch(e){}
   /* review L6: only the newest 120 story bodies are read at startup (the rest are read when opened, like acTrim leaves them); reading every body cost tens of MB of copying on a cold start */
   await new Promise(res=>{try{const t=IDB.db.transaction('art','readonly'),st=t.objectStore('art');t.oncomplete=t.onabort=t.onerror=()=>res();
    if(!st.indexNames.contains('t')){const c=st.openCursor();c.onsuccess=()=>{const k=c.result;if(k){if(k.value&&k.value.h)AC[k.key]=k.value;k.continue()}};return}
    const ks=[],kc=st.index('t').openKeyCursor(null,'prev');kc.onsuccess=()=>{const c=kc.result;if(c){const k=c.primaryKey;if(typeof k==='string'&&k!=='~cache'&&!k.startsWith('bi:'))ks.push([k,c.key]);c.continue();return}
-    let i=0,n=0;const nx=()=>{while(n>=120&&i<ks.length){const[k,tt]=ks[i++];AC[k]={t:tt,h:'',c:1}}if(i>=ks.length)return;const[k]=ks[i++],g=st.get(k);g.onsuccess=()=>{const v=g.result;if(v&&v.h){AC[k]=v;n++}nx()}};nx()}}catch(e){res()}});
+    /* the 120 newest are asked for together (one after another made the ready dots and offline text late) */ks.slice(120).forEach(([k,tt])=>{AC[k]={t:tt,h:'',c:1}});ks.slice(0,120).forEach(([k])=>{const g=st.get(k);g.onsuccess=()=>{const v=g.result;if(v&&v.h)AC[k]=v}})}}catch(e){res()}});
   const ks=Object.keys(old);
   if(ks.length){const ok=await idbTx('readwrite',st=>{for(const k of ks){if(!AC[k]){AC[k]=old[k];st.put(old[k],k)}}});if(ok)try{localStorage.removeItem(AK)}catch(e){}}
   acTrim();
  }else AC=old;
 })();
-acReady.then(()=>{try{if(!IDB.ok||localStorage.getItem(CK)!==null)return}catch(e){return}idbTx('readonly',st=>st.get('~cache')).then(v=>{if(!v||!v.c)return;CKI=1;ckLoad(v.c,1);loadRender()})});
+/* the saved story list is read as soon as the database opens, not after the 120 story bodies: a big library drew its first screen late */function ckIdb(){try{if(!IDB.ok||localStorage.getItem(CK)!==null)return}catch(e){return}idbTx('readonly',st=>st.get('~cache')).then(v=>{if(!v||!v.c||CKI)return;CKI=1;ckLoad(v.c,1);loadRender();acReady.then(loadRender)})}
 const acGet=l=>AC[l]?AC[l].h:null;
 const acHas=l=>!!AC[l];
 /* only the newest articles stay in memory; the rest are read from storage when opened */
@@ -16106,7 +16106,7 @@ setInterval(()=>{
  const reading=$('#rd').classList.contains('on')&&curA&&!document.hidden&&(Date.now()-STAT.last<90000||TTS.on&&!TTS.paused);
  const au=EPA,listening=au&&!au.paused;
  if(!reading&&!listening)return;
- const k=dayKey(),d=S.st.d[k]=S.st.d[k]||{m:0,n:0,f:0};d.m+=.25;if(curA&&curA.book&&$('#rd').classList.contains('on'))d.b=(d.b||0)+.25;(S.st.hr=S.st.hr||Array(24).fill(0))[new Date().getHours()]+=.25;clearTimeout(pt);pt=setTimeout(SAVE0,2000);
+ const k=dayKey(),d=S.st.d[k]=S.st.d[k]||{m:0,n:0,f:0};d.m+=.25;if(curA&&curA.book&&$('#rd').classList.contains('on'))d.b=(d.b||0)+.25;(S.st.hr=S.st.hr||Array(24).fill(0))[new Date().getHours()]+=.25;if(!HST)HST=setTimeout(()=>{HST=0;SAVE0()},60000);/* reading minutes are written with the next save or once a minute (and when the app is hidden), not by rewriting the whole library every 15 s while a page is being read */
 },15000);
 function streaks(){
  const ks=Object.keys(S.st.d).filter(k=>S.st.d[k].m>=1||S.st.d[k].n>0).sort();const set=new Set(ks);
@@ -16768,8 +16768,8 @@ async function loadFeed(f,fresh,sl){
  let list=null;
  /* B1: on the Android app (direct route), a feed we already hold is downloaded only if it changed; a pull-to-refresh (fresh) always downloads */
  const h0=S.health[f.id]||{},held=items[f.id]||[],lf=tag('feed via ');lf.net=1;lf.sl=sl;
- if(NATIVE)lf.cond=!fresh&&held.length&&(h0.etag||h0.lm)?{etag:h0.etag||'',lm:h0.lm||''}:null;
- try{let x;if(fresh){try{x=await fetchText(cb(f.url),isFeed,lf)}catch(e){/* David 2026-11-05: a site that timed out or dropped the line is not asked again without the cache-buster (that second try cost ~45 s per slow site on a pull-to-refresh); only an HTTP error, which the extra ?_cp= could have caused, gets the plain try */if(!lg.some(x=>/HTTP \d/.test(x)))throw e}}if(!x)x=await fetchText(f.url,isFeed,lf);if(lf.val)lg.val=lf.val;if(sl){sl.free();await quietGap();await sl.take()}else await quietGap();list=parse(x,f).list;if(!list.length){lg.push('The feed came back empty');if(held.length){lg.push('kept the stories already here');f.via='';return held.slice()}}}catch(e){if(e&&e.hard)GONE.add(f.id);if(lf.nb)lg.nb=1;
+ if(NATIVE)lf.cond=held.length&&(h0.etag||h0.lm)?{etag:h0.etag||'',lm:h0.lm||''}:null;
+ try{let x;if(fresh&&!lf.cond/* a site that can say 'nothing new' is asked that on a pull-to-refresh too, instead of being downloaded in full */){try{x=await fetchText(cb(f.url),isFeed,lf)}catch(e){/* David 2026-11-05: a site that timed out or dropped the line is not asked again without the cache-buster (that second try cost ~45 s per slow site on a pull-to-refresh); only an HTTP error, which the extra ?_cp= could have caused, gets the plain try */if(!lg.some(x=>/HTTP \d/.test(x)))throw e}}if(!x)x=await fetchText(f.url,isFeed,lf);if(lf.val)lg.val=lf.val;if(sl){sl.free();await quietGap();await sl.take()}else await quietGap();list=parse(x,f).list;if(!list.length){lg.push('The feed came back empty');if(held.length){lg.push('kept the stories already here');f.via='';return held.slice()}}}catch(e){if(e&&e.hard)GONE.add(f.id);if(lf.nb)lg.nb=1;
   if(e&&e.nm&&held.length){lg.val={etag:h0.etag||'',lm:h0.lm||''};lg.push('unchanged since the last check, kept the stories already here');f.via='';return held.slice()}}
  if(lf.ra)lg.ra=lf.ra;
  if(!list||!list.length){try{list=await viaJson(f);if(!list.length)throw 0}catch(e){lg.push('rss2json: couldn’t read it');list=null}}

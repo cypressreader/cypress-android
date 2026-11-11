@@ -3,7 +3,9 @@ const V = 'cyp-web-14';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'icon-mono-512.png'];
 /* one missing icon must not stop the offline copy from installing */
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => Promise.all(FILES.map(f => c.add(f).catch(() => {})))).then(() => self.skipWaiting())); });
-self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
+/* the bundled fonts never change: they move to the new cache before the old one is deleted, so an update never re-downloads them or leaves them missing offline */
+const keepFonts = async k => { try { const o = await caches.open(k), n = await caches.open(V); for (const q of await o.keys()) if (/\/fonts\//.test(q.url) && !(await n.match(q))) { const m = await o.match(q); if (m) await n.put(q, m); } } catch (e) {} };
+self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => keepFonts(k).then(() => caches.delete(k))))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {
   const r = e.request, u = new URL(r.url), base = new URL(self.registration.scope).pathname;
   /* the bundled fonts never change: answer from the phone, fetch only the first time
