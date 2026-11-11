@@ -1770,7 +1770,6 @@ html .grid.list .card,html [data-cards=compact] .card{contain-intrinsic-size:aut
 @media (max-width:520px){header .ttl,#hd .ttl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 /* stage M: theme layouts + living dynamic */
 /* not inherited: only the page background and the tab bar use it, so a color change re-styles two elements instead of the whole page */
-@property --dyn{syntax:'<color>';inherits:false;initial-value:#888888}
 html.tlay:is([data-theme=rosewood],[data-theme=rosewoodd],[data-theme=newsprint]) .cvtop{border-bottom:3px double color-mix(in srgb,currentColor 65%,transparent);padding-bottom:8px}
 html.tlay:is([data-theme=rosewood],[data-theme=rosewoodd],[data-theme=newsprint]) #grid .card{border-radius:0;border-top:3px double var(--ink)}
 html.tlay:is([data-theme=rosewood],[data-theme=rosewoodd],[data-theme=newsprint]) .card .tx h3{font-weight:500;letter-spacing:0}/* David 2026-10-31: the heavy (faux bold) headlines read fat and messy; regular weight */
@@ -1790,7 +1789,6 @@ html.tlay:is([data-theme=rosewood],[data-theme=rosewoodd],[data-theme=newsprint]
 
 
 
-html.dynx[data-theme=dynamic] #tabs{transition:--dyn .9s ease}
 /* the page tint is two fixed layers that cross-fade by opacity, so changing color while you scroll costs no repaint */
 html.dynx[data-theme=dynamic]{background:var(--bg)!important}/* beats the dark boot color painted inline at start-up, which otherwise shows through the tint layers while they cross-fade */
 html.dynx[data-theme=dynamic] body{background:none}
@@ -1802,7 +1800,9 @@ html.dynx[data-theme=dynamic] #grid .card{border-bottom:2px solid color-mix(in s
 /* the front-page cards already show their site with the dot and tinted divider, so no extra underline glued under the headline */
 html.dynx[data-theme=dynamic] #grid .card.nr{border-bottom-width:0}
 html.dynx[data-theme=dynamic] #grid .card.act{box-shadow:0 0 0 2px color-mix(in srgb,var(--b) 70%,transparent),0 8px 26px color-mix(in srgb,var(--b) 30%,transparent)}
-html.dynx[data-theme=dynamic] #tabs{background:color-mix(in srgb,var(--dyn) 12%,color-mix(in srgb,var(--pn) 92%,transparent))}
+/* the top bar, the Daily tabs and the bottom bar wear the page's own tint (one color, set with the page in dynApply) and fade with it */
+html.dynx[data-theme=dynamic] :is(.top,.dtabs,#tabs){--ln:color-mix(in srgb,var(--ink) 14%,transparent);background:var(--dynb,var(--bg))!important;transition:background-color 1.6s ease-in-out,box-shadow 1.6s ease-in-out}
+html.dynx[data-theme=dynamic] .dtabs{box-shadow:0 0 0 100vmax var(--dynb,var(--bg))}
 html.dynx[data-theme=dynamic] #rd{transition:background-color var(--dur-3) ease}
 .cols>.hsf.hs-cov{height:calc(var(--ch)*.62);break-after:auto;margin:0 0 18px;border-radius:16px;overflow:hidden}/* Dynamic cover: the picture takes most of page 1 and the story starts under it */
 /* scrolling stories: the cover stays put while the story slides up over it on a sheet */
@@ -3060,7 +3060,7 @@ body.narrow .top h1{font-size:clamp(20px,5.6vw,26px)}
 html.smooth *,html.smooth *::before,html.smooth *::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 /* with the blur off the bottom bar must be solid, or a bright card scrolling under it tints the whole bar */
 html.smooth #tabs,html.smooth.dynx[data-theme=dynamic] #tabs{background:color-mix(in srgb,var(--pn) 100%,transparent)}
-html.smooth.dynx[data-theme=dynamic] #tabs{background:color-mix(in srgb,var(--dyn) 12%,var(--pn))}
+
 html.smooth .card[data-th]::before{display:none!important}
 html.smooth .card{transition:none;box-shadow:none}
 html.smooth .card>img{transition:none}
@@ -12250,7 +12250,6 @@ function rdB(c){const rd=$('#rd');if(!rd)return;rd.style.setProperty('--b',c);rd
 /* only undoes what the Dynamic theme itself set: the light/dark twin of another theme sets its own accent colors on the same two properties */
 function dynAccentOff(){if(!dynAccentOff.on)return;dynAccentOff.on=false;const r=document.documentElement;['--logo','--a1'].forEach(k=>r.style.removeProperty(k))}
 const dynDist=(a,b)=>{const x=anyRgb(a),y=anyRgb(b);return x&&y?Math.hypot(x[0]-y[0],x[1]-y[1],x[2]-y[2]):999};
-const dynEls=()=>[document.getElementById('tabs')].filter(Boolean);
 /* while you scroll the color changes at once instead of fading over 0.9 s, so the page is not re-styled on every frame of a fade */
 function dynApply(c){
  if(!c||dynSet.c===c)return;
@@ -12260,11 +12259,10 @@ function dynApply(c){
  /* each new tint is mixed with the one before it, so fast scrolling through many colors shifts gently instead of flashing */
  next.style.setProperty('--c',first||!dynSet.c?c:'color-mix(in srgb,'+dynSet.c+' 20%,'+c+')');
  {const T=dynTone(c,dynIsDark()),root=document.documentElement;
-  if(T){next.style.setProperty('--tb',first||!dynSet.tb?T.bg:'color-mix(in srgb,'+dynSet.tb+' 20%,'+T.bg+')');next.style.setProperty('--tg',T.glow);dynSet.tb=T.bg}
-  else{next.style.removeProperty('--tb');next.style.removeProperty('--tg');dynSet.tb=null}
+  if(T){const tb=first||!dynSet.tb?T.bg:'color-mix(in srgb,'+dynSet.tb+' 20%,'+T.bg+')';next.style.setProperty('--tb',tb);root.style.setProperty('--dynb',tb);next.style.setProperty('--tg',T.glow);dynSet.tb=T.bg}
+  else{next.style.removeProperty('--tb');next.style.removeProperty('--tg');root.style.removeProperty('--dynb');dynSet.tb=null}
   if(T){root.style.setProperty('--logo',T.a);root.style.setProperty('--a1',T.a);dynAccentOff.on=true}else dynAccentOff()}
  dynSet.t=Date.now();dynSet.c=c;d.dataset.on=next===a?'a':'b';
- dynEls().forEach(e=>{e.style.transition='';e.style.setProperty('--dyn',c)});
  if(first){next.style.transition='none'}
  next.classList.add('on');prev.classList.remove('on');d.classList.add('has');
  if(first){void next.offsetWidth;next.style.transition=''}
@@ -12300,7 +12298,7 @@ function dynLive(){
  if(dynLive.io){dynLive.io.disconnect();dynLive.io=null}
  if(dynLive.sp){dynLive.sp.disconnect();dynLive.sp=null}
  if(dynLive.spot){dynLive.spot.classList.remove('spot');dynLive.spot=null}
- if(!on){dynEls().forEach(e=>e.style.removeProperty('--dyn'));const d=document.getElementById('dynbg');if(d)d.remove();dynSet.c=null;dynSet.tb=null;dynAccentOff();clearTimeout(dynSet.w);return}
+ if(!on){r.style.removeProperty('--dynb');const d=document.getElementById('dynbg');if(d)d.remove();dynSet.c=null;dynSet.tb=null;dynAccentOff();clearTimeout(dynSet.w);return}
  const g=$('#grid');if(!g)return;
  const cs=[...g.querySelectorAll(':scope>.card,:scope>.cover,:scope .card,:scope [data-href]')];/* text-only rows and boxes count too */
  const c0=cs[0]?(secCol(cs[0])||cs[0].style.getPropertyValue('--b')||getComputedStyle(cs[0]).getPropertyValue('--b')).trim():'';
