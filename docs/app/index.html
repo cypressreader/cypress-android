@@ -2981,6 +2981,8 @@ html.rmo .tbi,html.lowp .tbi{transition:none}
 .bmseg.chips button{position:relative}.bmseg.chips button::after{content:'';position:absolute;left:0;right:0;top:-9px;bottom:-9px}
 .bmseg.chips{gap:5px;flex-wrap:nowrap;justify-content:safe center;overflow-x:auto;scrollbar-width:none;margin:2px 0 12px}
 .bmseg.chips::-webkit-scrollbar{display:none}
+#grid .nr-m2.hlong h3,#grid .nr-m3.hlong h3,#grid .nr-m4.hlong h3,#grid .nr-m5.hlong h3,#grid .nr-tall.hlong h3{font-size:clamp(13.5px,1vw,16px)}#grid .nr-m1.hlong h3{font-size:clamp(19px,1.8vw,27px)}
+.ddl{display:grid;grid-template-columns:58px minmax(0,1fr);gap:12px;align-items:start;border-top:1px solid var(--ln);padding:12px 0 2px}.ddl-n{font:400 40px/1 var(--disp);color:var(--a1);text-align:center;padding-top:8px}.ddl-n small{display:block;margin-top:2px;font:600 10px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
 /* side by side the narrow column can't fit every chip: the row fades at its right edge so you can tell it scrolls (static, no scroll-driven animation: tests/scroll_cost.js) */body.split .bmseg.chips{padding-right:28px;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent)}
 @media(max-width:699px){.bmseg.chips{justify-content:safe center;/* visual review 2026-11-05: on a phone the row was cut off mid-word ('Offlin'); same static fade as side by side */padding-right:28px;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent)}}
 .bmseg.chips button{flex:none;min-width:0;padding:5px 10px;border-radius:999px;border:1px solid var(--ln);background:transparent;color:var(--mut);font-size:13px;font-weight:500;box-shadow:none!important;white-space:nowrap}
@@ -7857,7 +7859,7 @@ let DGP_OPEN=false;
 function dgProgHtml(){
  const{n,t}=dgCount();if(t<3)return'';const done=n>=t,g=goalOf(),m=Math.round(readToday()*10)/10;
  const left=t-n,mins=DGL.filter(l=>!S.read[l]).reduce((x,l)=>{const a=findStory(l);return x+(a?(readMin(a)||3):0)},0);
- const sum=done?'Edition finished':plu(left,'story','stories')+' left'+(mins?' · about '+(mins>=60?(mins/60|0)+' hr'+(mins%60?' '+mins%60+' min':''):mins+' min'):'');/* F09: "about 1 hr 46 min", not "~106m" */
+ const sum=done?'Edition finished':left+' left'+(mins?' · '+(mins>=60?(mins/60|0)+' hr'+(mins%60?' '+mins%60+' min':''):mins+' min'):'');/* F09: "about 1 hr 46 min", not "~106m" */
  const tail=g?` · ${Math.floor(m)} min of your ${g}-min goal`:'';
  const play=(typeof fiveBtns==='function'&&fiveBtns())?`<button type="button" class="dplay" data-play aria-label="Play the Daily"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg><span>Play Daily</span></button>`:'';
  return `<div class="dgp qp${done?' done':''}${DGP_OPEN?' open':''}" data-dgp><div class="qp-bar"><button type="button" class="qp-l" data-qpt aria-expanded="${DGP_OPEN}" aria-label="${esc(sum)}. Show more"><span class="rgw">${ringSvg(n,t,22,3)}</span><span class="qp-s" role="status">${esc(sum)}</span><i aria-hidden="true">⌄</i></button>${play}</div><div class="dgd"${DGP_OPEN?'':' hidden'}><p class="dgq">${esc(pe('progress',{},(done?'done':n?'mid':'start')))}</p><p>${done?'You have read everything in this edition.':left+' '+(left===1?'story':'stories')+' left in this edition'}${esc(tail)}</p>${(typeof fiveBtns==='function'&&fiveBtns())?'<div class="dgb"><button type="button" data-five>⏱ I have 5 minutes</button></div>':''}${goalHtml()}</div></div>`;
@@ -7927,7 +7929,7 @@ function listRow(a,i,k,f){
   if(lk==='quote'&&qt)return `<div class="card list-row lr-quote ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}${frWash(a)}"><div class="tx"><span class="lr-qm" aria-hidden="true">“</span><p class="lr-q">${esc(qt.q)}</p><div class="src"><span class="sn">${esc(f.title)}</span></div><h3><a class="cl" href="${esc(a.link)}" aria-label="${esc(a.title)}${a.date?', '+agoL(a.date):''}">${esc(a.title)}</a></h3><time datetime="${a.date?new Date(a.date).toISOString():''}" aria-hidden="true">${mn?mn+'-min read · ':''}${agoT(a.date)}</time></div>${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
   return `<div class="card list-row${lk==='feat'?' lr-feat':lk==='type'?' lr-type':''} ${k} ${a.img?'':'noimg'} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="--b:${brand(f)}${IIS[a.img]&&IIS[a.img].t?';--pc:'+IIS[a.img].t:''}${frWash(a)}">${a.img?`<img class="cimg" width="96" height="96" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" src="${esc(a.imgs||a.img)}" onload="this.classList.add('ok')" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div class="tx"><div class="src"><span class="sn" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}">${esc(f.title)}</span>${mn?`<span class="rt">${mn}-min read</span>`:''}<time datetime="${a.date?new Date(a.date).toISOString():''}" aria-hidden="true">${agoT(a.date)}</time></div><h3><a class="cl" href="${esc(a.link)}" aria-label="${esc(a.title)}${a.date?', '+agoL(a.date):''}${rd?'':', unread'}">${esc(a.title)}</a></h3>${pwBadge(a)}</div>${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button></div>`;
 }
-function card(a,i,k){
+function card(a,i,k){if(k&&a&&a.title&&a.title.length>=80)k+=' hlong';/* a very long headline steps down a size in picture tiles */
   if(a&&!WHY[a.link]){const pw=priWhy(a);if(pw)WHY[a.link]=pw}
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
   const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],q1=a.img&&IIS[a.img],pc=q1&&q1.t?`--pc:${q1.t};`:'',op=q0&&q0.v>=5&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="${pc}object-position:${q0.px}% ${q0.py}%"`:pc?` style="${pc}"`:'';
@@ -7956,7 +7958,7 @@ function nrQuoteText(a){
 }
 function nrQuoteHtml(a,idx,look,qt){
  const f=fof(a),src=esc(f.title),ti=esc(a.title);
- const mark='<span class="nr-qm" aria-hidden="true">“</span>';
+ /* quotation marks only when somebody really said it; a plain sentence from the story is labeled as that */const mark=qt.real?'<span class="nr-qm" aria-hidden="true">“</span>':'<span class="nr-pqa"><b>From the story</b></span>';
  const spk=typeof quoteBy==='function'?quoteBy(a,qt.q):'';const att='<span class="nr-pqa">'+(spk?'<b>'+esc(spk)+'</b> · ':'')+'<b>'+src+'</b> · <em>'+ti+'</em></span>';
  const open=`<a class="card nr nr-pq nr-pq${look} ${a.img?'':'noimg'}" href="${esc(a.link)}" data-i="${idx}" style="--b:${brand(f)}">`;
  if(look===2&&a.img)return `${open}<img loading="lazy" decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onerror="this.parentNode.classList.add('noimg');this.remove()"><div class="ov"></div><div class="tx">${mark}<p>${esc(qt.q)}</p>${att}</div></a>`;
@@ -7995,10 +7997,10 @@ function nrBlocks(l,base,o){
   const lh=nrLH(rail.length),lc=nrLC();
   pb([lead[0],...sub,...mid,...rail],()=>`<section class="nr-top${tv===2?' nr-flip':''}"><div class="nr-lw">${C(lead[0],'nr-lead')}${sub.length?`<div class="nr-lsub">${sub.map(i=>C(i,'nr-late')).join('')}</div>`:''}</div>${mid.length?`<div class="nr-mid">${mid.map(i=>C(i,'nr-row nr-m')).join('')}</div>`:''}${rail.length?`<div class="nr-rail">${lh}<div class="nr-rl">${rail.map(i=>C(i,lc)).join('')}</div></div>`:''}</section>`);
  }
- const seq=(o&&o.seq)||NRPAT[(seed>>3)%3];let n=0,guard=0,fl=0,qn=0,statDone=false;
+ const seq=(o&&o.seq)||NRPAT[(seed>>3)%3];let n=0,guard=0,fl=0,qn=0,statDone=false,lt='';
  const river=max=>{const ix=P.pick(null,max);if(!ix.length)return false;const hd=SMARTV?'':`<h4>${nrAge(l[ix[0]])}</h4>`;pb(ix,()=>`<section class="nr-river">${hd}<div class="nr-rv">${ix.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`);return true};
  while(P.left()>0&&guard++<90){
-  const t=seq[n++%seq.length];let ix,done=false;
+  /* each pass through the pattern starts five steps further on, and the same kind of block never comes twice running: a long page no longer repeats one order */let sk=(n%seq.length+Math.floor(n/seq.length)*5)%seq.length;n++;if(seq[sk]===lt)sk=(sk+1)%seq.length;const t=lt=seq[sk];let ix,done=false;
   if(t==='trio'&&(ix=P.pick(nrHas,3,true))){pb(ix,()=>`<section class="nr-trio${ix.length<3?' nr-t'+ix.length:''}">${ix.map(i=>C(i,'nr-tri')).join('')}</section>`);done=true}
   else if(t==='split'&&(ix=P.pick(nrHas,1,true))){const tx=P.pick(null,3),fp=(fl++%2)?' nr-flip':'';pb([ix[0],...tx],()=>`<section class="nr-split${fp}"><div class="nr-spl">${C(ix[0],'nr-sp')}</div><div class="nr-spr">${tx.map(i=>C(i,'nr-row')).join('')}</div></section>`);done=true}
   else if(t==='mosaic'&&(ix=P.pick(nrHas,5,true))){pb(ix,()=>`<section class="nr-mos">${ix.map((i,k)=>C(i,'nr-m'+(k+1))).join('')}</section>`);done=true}
@@ -8321,7 +8323,7 @@ function royalHtml(a,ix){
 }
 function pullQuoteHtml(a){
  const q=nrQuoteText(a);if(!q||!q.q)return '';
- const i=cur.indexOf(a);return `<blockquote class="dpq"><p>“${esc(q.q)}”</p><cite>${i<0?esc(fof(a).title):`<a class="cvlead dpq-a" href="${esc(a.link)}" data-i="${i}" aria-label="${esc(fof(a).title)} · Read the story: ${esc(a.title)}"><b class="dpq-t" aria-hidden="true">${esc(a.title)}</b>${esc(fof(a).title)}<span aria-hidden="true"> · Read the story</span></a>`}</cite></blockquote>`;
+ const i=cur.indexOf(a);return `<blockquote class="dpq"><p>${q.real?'“':''}${esc(q.q)}${q.real?'”':''}</p><cite>${i<0?esc(fof(a).title):`<a class="cvlead dpq-a" href="${esc(a.link)}" data-i="${i}" aria-label="${esc(fof(a).title)} · Read the story: ${esc(a.title)}"><b class="dpq-t" aria-hidden="true">${esc(a.title)}</b>${esc(fof(a).title)}<span aria-hidden="true"> · Read the story</span></a>`}</cite></blockquote>`;
 }
 function pickGood(pool,skip){
  const lim=Date.now()-48*36e5;
@@ -8435,7 +8437,7 @@ function daySections(list,mode){
  const brief=quick.length>=2;if(!brief)quick.forEach(a=>more.unshift(a));
  let n=0;const secs=[];
  const issue=issueNo();
- const sh=(id,t,sub,count,unit)=>{n++;const nn=String(n).padStart(2,'0');secs.push([id,nn,t,count,unit]);const dk=(DAYDEK[id]||[])[id==='front'&&S.feeds.length<2?0:peHash(edKey()+id)%2]||'';return `<div class="dhd">${dayArch()}<div class="dfx"><span>Vol. ${String(edDate().getFullYear()).slice(-2)}</span><i></i><b>${nn}</b><i></i><span>No. ${issue}</span></div><h3 class="dsh" id="dsec-${id}" aria-level="2"${SECCOL[id]?` style="--sc:${SECCOL[id]}"`:''}><span>${t}</span></h3>${dk?`<p class="ddek">${dk}</p>`:''}</div>`};
+ const sh=(id,t,sub,count,unit)=>{n++;const nn=String(n).padStart(2,'0');secs.push([id,nn,t,count,unit]);const dk=(DAYDEK[id]||[])[id==='front'&&S.feeds.length<2?0:peHash(edKey()+id)%2]||'';return `<div class="dhd">${dayArch()}<div class="dfx">${n===1?`<span>Vol. ${String(edDate().getFullYear()).slice(-2)}</span>`:''}<i></i><b>${nn}</b><i></i>${n===1?`<span>No. ${issue}</span>`:''}</div><h3 class="dsh" id="dsec-${id}" aria-level="2"${SECCOL[id]?` style="--sc:${SECCOL[id]}"`:''}><span>${t}</span></h3>${dk?`<p class="ddek">${dk}</p>`:''}</div>`};
  /* a pull quote after every fifth headline row, when that story has a line worth lifting */
  const rowsQ=arr=>{let h='',buf='',k=0;const wrap=x=>`<div class="nr-river"><div class="nr-rv">${x}</div></div>`;for(const a of arr){buf+=C(a,'nr nr-row nr-s');k++;if(k%5===0){const pq=pullQuoteHtml(a);if(pq){h+=wrap(buf)+pq;buf=''}}}return h+(buf?wrap(buf):'')};
  const frontCount=front.length+(lead&&!COVSHOWN?1:0);
@@ -8450,8 +8452,9 @@ function daySections(list,mode){
  if(brief)B.push(`<section class="dsec2" style="--cisw:${200+Math.ceil(quick.length/3)*170}px;--cisp:350px">${sh('brief','Quick Reads','Short reads, a few minutes each',quick.length,'short reads')}<div class="dq">${quick.map(a=>C(a,'nr dq-c')).join('')}</div></section>`);
  if(num)B.push(ritualHtml('num',num.a,num.n));
  if(well.length)B.push(wellHtml(well));
- if(deep.length)B.push(`<section class="dsec2 ddv" style="--cis:${200+deep.length*300}px">${sh('deep',wkd?'Weekend Reads':'Deep Dives','Settle in',deep.length,'long reads')}${deep.map(a=>`<div class="nr-color">${C(a,'nr nr-colr')}</div>`).join('')}</section>`);
+ if(deep.length)B.push(`<section class="dsec2 ddv" style="--cis:${200+deep.length*300}px">${sh('deep',wkd?'Weekend Reads':'Deep Dives','Settle in',deep.length,'long reads')}${/* one big feature, then a numbered reading list with the minutes set large: six identical cards read as a wall */deep.map((a,j)=>j?`<div class="ddl"><b class="ddl-n" aria-hidden="true">${minsOf(a)}<small>min</small></b>${C(a,'nr nr-row')}</div>`:`<div class="nr-color">${C(a,'nr nr-colr')}</div>`).join('')}</section>`);
  if(quiet.length)B.push(`<section class="dsec2">${sh('quiet','From Quieter Sites','',quiet.length,'stories')}${rowsQ(quiet)}</section>`);
+ /* stories whose site sends only a sentence or two have no reading time: they get their own short group instead of piling up at the end */const shortS=more.filter(a=>!minsOf(a)),fullS=more.filter(a=>minsOf(a));if(shortS.length>=3&&fullS.length>=3){more.length=0;more.push(...fullS);B.push(`<section class="dsec2">${sh('short','In Short','',shortS.length,'stories')}${rowsQ(shortS)}</section>`)}
  if(more.length){
   B.push(`<section class="dsec2" style="--cis:${200+more.length*110}px">${sh('more',deep.length||brief?'Also in this issue':'More from your sites','',more.length,'stories')}${rowsQ(more)}</section>`);
  }
@@ -16049,7 +16052,7 @@ function renderDigest(){
  const d=edDate(),issue=issueNo(d);
  const title=k==='week'?'The Week':'Headlines';
  const wkR=new Date(Date.now()-6*864e5).toLocaleDateString([],{month:'short',day:'numeric'})+' to '+d.toLocaleDateString([],{month:'short',day:'numeric'});
- let h=k==='week'?`<div class="dg wk">`:`<div class="dg ed"><div class="dmast"><h2>${title}</h2><small><span class="dm-l">${k==='evening'?'Evening':'Morning'} Edition · <span class="dm-d">${esc(d.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'}))}</span></span><span class="dm-l">Vol. ${String(d.getFullYear()).slice(-2)} · No. ${issue}</span></small><p class="dwhy">What all your sites are reporting right now, laid out like a newspaper. Ranked by how many sites cover a story, not by your habits.</p></div>`;
+ let h=k==='week'?`<div class="dg wk">`:`<div class="dg ed"><div class="dmast"><h2>${title}</h2><small><span class="dm-l">${k==='evening'?'Evening':'Morning'} Edition · <span class="dm-d">${esc(d.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'}))}</span></span><span class="dm-l">Vol. ${String(d.getFullYear()).slice(-2)} · No. ${issue}</span></small><p class="dwhy">Ranked by how many of your sites cover a story.</p></div>`;
  if(k!=='week')h+=edStats(k,pool,fresh);
  if(k==='week'){
   /* the week is a look back, and it is laid out like a recap rather than a newspaper: your numbers, the week's biggest stories, day by day, where your time went, and what you missed */
