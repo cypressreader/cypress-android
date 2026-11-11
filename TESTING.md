@@ -1705,3 +1705,4 @@ Automated (`node tests/book_messy.js`, 13 generated books, all passing) — no d
 - [ ] Search finds a headline from several days ago when many sites are followed.
 - [ ] Sync on two devices (both updated): Undo "Marked as read" on one, sync both: the stories stay unread on the other.
 - [ ] First build after this: the "Location permission found" check passes, and the build still produces the Play bundle.
+- [ ] Dynamic theme, scrolling story with a cover and "See all photos": scroll up slowly; no black corners at either side just under the photo-button sheet.
