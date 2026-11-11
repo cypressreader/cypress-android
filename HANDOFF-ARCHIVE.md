@@ -877,3 +877,10 @@ David's 1.303 Fold recording: slide worked; at the end the third column showed t
 
 ## moved-1311 (from HANDOFF 2026-11-11)
 Deep dive. Built smaller than the page said: photo (one redraw per site in `enrich`, not an in-place card patch), start (saved list read first via `ckIdb`; stored text not cut), lib (15 s stats tick only), house (2 of 4), mute (week-long via `S.muteT`; no per-site scope), find (Highlights page box `#hlq` only), look (text size name `fsLbl` only).
+
+## moved-1312 (from HANDOFF 2026-11-11)
+**ccov fixes (David's Fold recording 2026-11-11, shipped 1.311):** the slid sheet stays an inset card on the left (`.cslid ::after` only translates one column; `img.hero` gets a `polygon(evenodd…)` clip with a rounded hole for the card; `.cols::after` is now the card's shadow above the picture); `.cpk` hides the sheet (it left a line down the middle). End pages (David picked the one-line Notes): `endnotes` adds `button.rnb` ('Notes · N links'); on `#rd.cpv2` the list is hidden until `.rnotes.open` (click handler next to `.capx`, note-number taps open it too, both call `layout()`); `#rd.cpv2 .rfoot` may break between its children (`origAlone` still applies). TESTING 'Two-page cover: card stays a card', 'Two-page screens: one-line Notes'.
+
+dyn (SHIPPED 1.311: the page tint is the `#dynbg` layer filled by `dynApply` from `dynTone`; `dynApply` now also sets `--dynb` on <html> and `.top`, `.dtabs`, `#tabs` paint with it and fade 1.6 s; old `--dyn`/`dynEls` removed.)
+**Deep dive (2026-11-11):** ideas page https://claude.ai/artifact/2jPAvxDTZqsxzvJUWSJeCv (ArtifactData `picks`). David chose 50: 34 built and shipped (1.309 + 1.310), 8 needed no change (tap, bar, dup, caught, contrast, side, start2 and part of look), 8 left. What was built, by symbol: archive 'moved-1310'. Built-smaller notes: archive 'moved-1311'. Open question for David: a title in the All Stories top bar would repeat the page heading (left as is).
+

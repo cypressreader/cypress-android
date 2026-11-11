@@ -1811,3 +1811,14 @@ Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at 
 - The end block (Next up, Save, Share, More lists) starts right under the Notes line and may continue on the next page; no piece is cut in half and the source line stays with the Next up card.
 - "Read original" does not sit on a pair of pages by itself.
 - Phone (one page) and scrolling mode: Notes list and end block look the same as before.
+
+## Story variety, blank-page fix, Also new numbers (2026-11-11, headless 360x800 scrolling and 900x1000 two-page only, unverified on device)
+- BLANK PAGES (phone, Dynamic): open several stories with pictures; when one opens on the picture-over-color-panel look, the text follows right under it (it used to be blank to the end), and the picture fills its half.
+- Pictured stories now open three ways (color panel, quote or figure with the picture below, full cover) and two in a row never open alike.
+- A story with no picture and a long headline opens on a half-page block of its color; a short headline still gets the full poster.
+- A picture 500 to 599 wide opens as a small tilted postcard.
+- Short stories up to 250 words say "In brief"; under six hours old they say "Just in". Long stories with headings get numbered chapters from 900 words.
+- Headlines: plain tight type for news, italic for long reads. Opinion: initials in a large circle, centered italic headline.
+- A story whose paragraphs start with clock times shows them down a line with "As it happened".
+- NOT CHECKED AT ALL (test pictures were dropped by the reader): photo story one picture per page in page-turn mode; two pictures side by side in page-turn mode.
+- Headlines tab, phone: the circled 1, 2 on the "Also new" pictures is gone. Check a wide screen still shows the numbers beside text-only rows.
