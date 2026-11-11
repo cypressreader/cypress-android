@@ -66,7 +66,7 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
 
   await step('story', async s => storyTour(s, 3));
 
-  await step('scroll', async s => { for (let i = 0; i < 3; i++) await swipe(.5, .8, .5, .25, 160); await shot(s); return facts() });
+  await step('scroll', async s => { /* run 4 ended this step with a story open: record when that happens, then close it so later steps can go on */ const rd = () => page.evaluate(() => !!document.querySelector('#rd.on')), log = [await rd()]; for (let i = 0; i < 3; i++) { await swipe(.5, .8, .5, .25, 160); log.push(await rd()) } await shot(s); const f = await facts(); f.readerAfterEachSwipe = log; if (f.reader) { s.ok = false; s.error = 'a story was open after scrolling the list: ' + JSON.stringify(log); await back().catch(() => {}) } return f });
 
   await step('themes', async s => {
     const out = {};
