@@ -1876,3 +1876,23 @@ Checked headless only (900x1000 two-page, 412x860 phone). On the Fold, Dynamic t
 
 ## Trip pack (after 1.312, unreleased)
 Not verified beyond the button running without errors in a test browser. On a real phone on Wi-Fi: Settings > Stories & loading > Offline > Trip pack > Get ready now. A message says how many stories are being readied; then turn on airplane mode and check those stories open in full with pictures. On mobile data it must refuse and say to connect to Wi-Fi.
+
+## New story looks, Dynamic only (built 2026-11-11 after 1.313, unreleased; headless only at 411x902 and 1280x800 with sample stories)
+Each look is picked from the story's link, so a story always opens the same way. To see them, open many different stories in Dynamic.
+- Arch window: picture in a tall arch, headline under it (about 1 in 4 stories with a large picture).
+- Film strip: headline first, then a thin wide slice of the picture (wide pictures; some medium pictures). The strip stays on the left page on tablets (it does not run across both pages).
+- Two-ink picture: picture in two colors, headline stepping over its lower edge (opinion pieces; some medium pictures). CHECK speed on the phone and that it looks right in dark mode.
+- Framed on its own glow: small picture, sharp, on a blurred copy of itself (half of the small-picture stories; the other half stay postcards).
+- One big word: huge faint word behind a short headline, no picture.
+- Spec sheet: plain headline with a small facts table (no picture; tech, business, science, and about 1 in 3 others). The "At a glance" box is hidden here because it repeats the table.
+- Mosaic: lead picture plus two pictures from the text as tiles, headline as a colored tile. Uses only pictures without captions, which are then not repeated in the text.
+- Side strip: tall picture as a strip beside the headline. CHECK on a narrow phone: is the headline column too tight?
+- Stepping start: first sentence large, stepping down in two lines (about 1 in 3 longer stories, never essays).
+- Letter: paper sheet, natural line ends, italic greeting and sign-off. Triggers on a greeting first line or a sign-off last line. In tests the cleaner dropped a bare "Dear reader," line, so the sign-off is the usual trigger. CHECK with a real newsletter.
+- Step by step: numbered lists of 3+ get large numerals; a short plain list before one becomes a checklist card.
+- Questions answered: 3+ sub-headings that are questions get a large "?" and are listed at the top.
+- Marked passages: every other long story highlights its key sentence in place instead of a pull quote.
+- Plates: captioned pictures in a mount with "Plate N" (every other story with pictures, 600+ words).
+- Interlude page: long reads (1,200+ words) with a quote from a named person get that quote on a full colored page mid-story. CHECK page turning before and after it on the phone and the Fold.
+- Tint follows the pictures: page color moves to each picture's color as it comes into view (2+ pictures; off with data saver). CHECK it feels calm, never flashing. Not measured headless.
+- Contact sheet: picture stories open with numbered thumbnails; tap one to jump to it. CHECK the jump lands on the right page in page-turn mode (tap not exercised headless).
