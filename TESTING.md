@@ -1907,7 +1907,7 @@ On the open Fold, Dynamic look:
 
 ## Pictures first, 1.316 work (unreleased; headless only at 411x902 and 884x1104, unverified on device)
 Dynamic look:
-- Phone: every story with a sharp picture opens on a picture that fills the whole first page, headline low on it. It drifts very slowly (not with Reduce motion).
+- Phone: every story with a sharp picture opens on a picture that fills the whole first page, headline low on it. (The slow drift, P2, was removed: on the emulator it stopped pages turning.)
 - Phone, scrolling mode: as the text comes up, the picture shrinks to a band that stays at the top; back at the top it is whole again. Check the band does not jitter and scrolling stays smooth.
 - Open Fold: a sharp picture fills the left page and the story starts on the right (very wide panoramas still run across both pages).
 - A small picture always gets the soft-glow look. A story that opens on a quote or figure shows the picture first, then the quote.
