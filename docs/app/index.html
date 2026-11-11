@@ -5187,6 +5187,8 @@ html body #grid .card.noimg:is(.nr-hero,.nr-sm2,.nr-tall,.nr-sp,.nr-wide,.nr-lea
 /* P1: on a phone the cover picture fills the whole first page, headline low on it */
 html.dynx[data-theme=dynamic] #rd:not(.vert) .cols>.hsf.hs-cov{height:var(--ch);margin:0;break-after:column}
 html.dynx[data-theme=dynamic] #rd.vert .cols>.hsf.hs-cov{height:calc(100svh - 96px)}
+/* the first-story tip sits at the top when the cover fills the page, so it does not hide the headline */
+html.dynx[data-theme=dynamic] #rd:has(.cols>.hsf.hs-cov) .rgest{bottom:auto;top:calc(72px + env(safe-area-inset-top))}
 /* P10: a cropped picture keeps its upper middle, where faces usually are */
 #rd .cols>.hsf img.hero,.body .fbp img,.rf-next .rn-i img{object-position:50% 30%}
 /* P3: in scrolling mode the cover shrinks to a band that stays at the top; the picture slides inside it so its upper middle shows */
@@ -7458,6 +7460,8 @@ function junkDom(d,base){
 /* strong signals checked before the keep policy (a long video blurb or a doubled caption can read like story): each one was seen on real pages */
 function jkPre(e,t,i,url){
  const tg=e.tagName,inFig=!!e.closest('figure');
+ /* a picture marker left as text by the reading route ('5 hrs ago ![Image 3: A man sits...'): a link to another story, never part of this one */
+ if(t.length<400&&/!\[Image \d+:/.test(t))return 'image-marker';
  /* website build names left in the text ("website-containers-global-navigation-index-js") */
  if(!/\s/.test(t)&&/^[a-z0-9]+(?:-[a-z0-9]+){3,}$/.test(t))return 'build-name';
  /* a video blurb whose video was removed ("WATCH | A debate at...") */
