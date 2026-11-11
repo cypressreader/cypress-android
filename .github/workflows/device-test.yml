@@ -1,0 +1,108 @@
+# CyPress: installs a test copy of the Android app on an Android emulator (a real Android phone image) and drives it:
+# real taps, swipes, the back button, rotation, Fold screen sizes, big system text, dark phone, share-in, cold start.
+# It never publishes a release. Screenshots and report.json go to the "device-results" branch (replaced on every run).
+# Start it by pushing a change under tests/device/ on a claude/ branch (for example edit tests/device/RUN), or by hand.
+name: Device test
+
+on:
+  push:
+    branches: ["claude/**"]
+    paths:
+      - "tests/device/**"
+      - ".github/workflows/device-test.yml"
+  workflow_dispatch:
+    inputs:
+      steps:
+        description: "Only these steps, comma separated (empty = all). See tests/device/run.js."
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: device-test
+  cancel-in-progress: true
+
+env:
+  ICON: tree
+  EXTRAS: "1"
+  # the Natural voice is left out: its library is built for real phones only (arm64) and the emulator is x86_64
+  NEURAL: "0"
+  # higher than any release, so the test copy never shows the "update available" box over the screens
+  BUILD_NUMBER: "999999"
+  OUT: device-out
+  STEPS: ${{ inputs.steps }}
+
+jobs:
+  device:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - name: Get the files
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Build the test copy of the app (debug, so the page inside can be inspected)
+        run: |
+          set -e
+          echo "APP_LABEL=$(grep -m1 -oP 'APP_LABEL: "\K[^"]+' .github/workflows/build-apk.yml)" >> "$GITHUB_ENV"
+          export APP_LABEL="$(grep -m1 -oP 'APP_LABEL: "\K[^"]+' .github/workflows/build-apk.yml)"
+          npm ci --no-audit --no-fund
+          npx cap add android
+          python3 scripts/prepare_android.py
+          npx cap sync android
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          (cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon)
+          cp "$(find android/app/build/outputs/apk/debug -name '*.apk' | head -1)" cypress-debug.apk
+          npm install -g --no-audit --no-fund playwright@1.63.0
+
+      - name: Let the emulator use hardware speed-up
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run the app on the emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          ram-size: 4096M
+          disk-size: 6000M
+          disable-animations: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: |
+            adb install -r cypress-debug.apk
+            node tests/device/run.js
+
+      - name: Publish the screenshots and the report
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ -d "$OUT" ] || { echo "No results were written."; exit 0; }
+          cd "$OUT"
+          # smaller pictures: quicker to fetch and to look through
+          if sudo apt-get install -y -qq imagemagick > /dev/null 2>&1; then
+            mogrify -format jpg -quality 82 -resize '720x1600>' *.png && rm -f *.png && sed -i 's/\.png"/.jpg"/g' report.json || true
+          fi
+          git init -q -b device-results .
+          git add -A
+          git -c user.name=device-test -c user.email=device-test@users.noreply.github.com commit -qm "Device test of ${GITHUB_SHA} (${GITHUB_REF_NAME})"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" device-results
+          echo "Results: https://github.com/${GITHUB_REPOSITORY}/tree/device-results" >> "$GITHUB_STEP_SUMMARY"
