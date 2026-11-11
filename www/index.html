@@ -7930,10 +7930,6 @@ const lrWeak=u=>{const d=IMGDIM.get(u);return !!d&&(Math.min(d[0],d[1])<240||d[0
 function lrKind(a,i){
  /* 2026-10-30 (David's pick L2): every fifth row is a big-photo feature again (not with Compact size); quotes and text-only rows stay off */
  if(i%5||nrDense())return '';return a.img&&!lrWeak(a.img)?'feat':'';
- const r=i%5;
- if(r===0){if(a.img&&!lrWeak(a.img))return 'feat';return a.img?'':'type'}
- if(r===2){if(nrQuoteText(a))return 'quote';return a.img?'':'type'}
- return '';
 }
 /* The list as a flow: the rows from lrKind, now and then two small pictures side by side, and (for lists in date order) a small heading where the day changes */
 function listFlow(list,base,dated,latest,wire,ixOf0){
@@ -7956,10 +7952,6 @@ function listFlow(list,base,dated,latest,wire,ixOf0){
   const a=list[i],ia=ixOf0?ixOf0(a):base+i;
   /* the same headings the tile view has: the first story stands alone, then "Latest", then a heading each time the day changes */
   if(dated){const g=nrAge(a);if(i===0)prev=g;else if(latest&&i===1&&list.length>3){out.push('<h4 class="lr-h" aria-level="2">Latest</h4>')}else if(g!==prev){out.push(`<h4 class="lr-h" aria-level="2">${g}${rdn(g)}</h4>`);prev=g}}
-  const nb=list[i+1],ib=nb?(ixOf0?ixOf0(nb):base+i+1):0;
-  if(false&&!nrDense()&&i%5===3&&!lrKind(a,ia)&&pics(a)&&pics(nb)&&!lrKind(nb,ib)&&(!dated||nrAge(nb)===prev)){
-   out.push(`<div class="lr-pair">${card(a,ia,'lr-half')}${card(nb,ib,'lr-half')}</div>`);i++;continue;
-  }
   out.push(card(a,ia,''));
  }
  return out;
