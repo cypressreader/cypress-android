@@ -1775,6 +1775,9 @@ html.dynx[data-theme=dynamic] #rd .cols.pst .body figure:has(img) figcaption{pos
 /* 1.312 story variety */
 /* picture story with page turns: each picture is a page of its own */
 html.dynx[data-theme=dynamic] #rd:not(.vert) .cols.pst .body figure:has(img){height:var(--ch);margin:0;break-before:column;break-inside:avoid}
+/* picture story: a wide picture is shown whole with its caption beneath (David: faces at the edges were cut off) */
+html.dynx[data-theme=dynamic] #rd .cols.pst .body figure.pfw:has(img){height:auto;overflow:visible;border-radius:0}html.dynx[data-theme=dynamic] #rd .cols.pst .body figure.pfw:has(img)>:not(figcaption){height:auto}html.dynx[data-theme=dynamic] #rd .cols.pst .body figure.pfw:has(img) img{height:auto;object-fit:contain;border-radius:14px}html.dynx[data-theme=dynamic] #rd .cols.pst .body figure.pfw:has(img) figcaption{position:static;padding:8px 2px 0;background:none;color:var(--mut)}
+html.dynx[data-theme=dynamic] #rd:not(.vert) .cols.pst .body figure.pfw:has(img){height:var(--ch);display:flex;flex-direction:column;justify-content:center}html.dynx[data-theme=dynamic] #rd:not(.vert) .cols.pst .body figure.pfw:has(img) img{max-height:calc(var(--ch) - 130px)}html.dynx[data-theme=dynamic] #rd:not(.vert) .cols.pst .body figure.pfw:has(img)::after{position:static;order:-1;align-self:flex-start;margin-bottom:8px}
 /* color panel: a story with no picture and a longer headline opens on a half-page block of its color */
 html.dynx[data-theme=dynamic] #rd .cols>.hsf.hs-post.hs-pan{height:calc(var(--ch)*.5);break-after:auto;margin:0 0 18px}
 html.dynx[data-theme=dynamic] #rd.vert .cols>.hsf.hs-post.hs-pan{height:auto;min-height:46svh}
@@ -14403,7 +14406,7 @@ function storyLooks3(b,c,ps,wds,LOOK,dyn){
  const a=curA,NM='((?:[A-Z][\\w\'’-]+ ){1,3}[A-Z][\\w\'’-]+)',V='(?:said|says|wrote|added|told)',mk=(t,k,x)=>{const e=document.createElement(t);e.className=k;if(x!=null)e.textContent=x;return e},
   sents=p=>p.textContent.length>2000?[]/* one huge paragraph with no full stops took seconds to split on a phone (story freeze, 2026-11-11) */:p.textContent.replace(/\s+/g,' ').match(/[^.!?]+(?:[.!?](?=\S)[^.!?]*)*[.!?]+["”’)]*/g)||[],figs=[...b.querySelectorAll('figure')].filter(f=>f.querySelector('img')&&!f.closest('.emb,.tbl'));
  /* picture story: five or more pictures and little text, each picture a screen of its own with its number */
- const pst=dyn&&figs.length>=5&&wds<400;c.classList.toggle('pst',pst);if(pst)figs.forEach(f=>f.style.setProperty('--pt','"'+figs.length+'"'));
+ const pst=dyn&&figs.length>=5&&wds<400;c.classList.toggle('pst',pst);if(pst)figs.forEach(f=>{f.style.setProperty('--pt','"'+figs.length+'"');/* a wide picture is shown whole; only a tall one fills the page */const i=f.querySelector('img'),d=(i.complete&&i.naturalWidth)?[i.naturalWidth,i.naturalHeight]:IMGDIM.get(i.getAttribute('src'));f.classList.toggle('pfw',!(d&&d[1]>d[0]*1.1));if(!d)i.addEventListener('load',()=>f.classList.toggle('pfw',i.naturalHeight<=i.naturalWidth*1.1),{once:true})});
  /* picture breaks: two pictures in a row sit side by side, a large wide one runs edge to edge */
  if(dyn&&!pst&&LOOK!=='gallery'&&figs.length>=2)figs.forEach(f=>{const n=f.nextElementSibling,i=f.querySelector('img'),d=(i.complete&&i.naturalWidth)?[i.naturalWidth,i.naturalHeight]:IMGDIM.get(i.getAttribute('src'));
   if(!f.classList.contains('pb2')&&n&&figs.includes(n)&&f.parentNode===b){f.classList.add('pb2');n.classList.add('pb2')}else if(!f.classList.contains('pb2')&&d&&d[0]>=1200&&d[0]>d[1]*1.2)f.classList.add('pbw')});

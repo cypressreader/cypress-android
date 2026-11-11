@@ -1841,3 +1841,9 @@ Checked headless only (412x860, scrolling; light, Halcyon light and dark, Black 
 - A long story (500+ words) with three figures: "By the numbers" strip about a third of the way down.
 - A list story ("Five ways to ...", with exactly five sub-headings): a large number beside each sub-heading.
 - Halcyon shows these in brass. Page-turn mode and two-page screens were not checked outside Dynamic.
+
+## Picture story: wide pictures shown whole (after 1.312, unreleased)
+Checked headless only (412x860 and 884x1104, page turns and scrolling). On a real phone, Dynamic theme, a story with five or more pictures and little text:
+- A wide picture shows whole, nothing cut from the sides, caption beneath, "1 of 6" on or just above it. With page turns it sits in the middle of its own page.
+- A tall picture still fills the page with its caption over the lower edge.
+- On a slow connection a tall picture may first appear whole and switch to filling the page once it has loaded: check this does not look jumpy.
