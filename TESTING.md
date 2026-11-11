@@ -1797,3 +1797,10 @@ Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at 
 - [ ] Aa sheet and Settings show text size as "Medium · 18", not "18px".
 - [ ] Mute a word from a story: asked "For a week" or "Always"; a week-long mute is gone by itself after 7 days.
 - [ ] Highlights page (6+ highlights): the search box filters by quote, note, title or site as you type.
+
+## Two-page cover: card stays a card, no line after the flip, Dynamic bars tint (2026-11-11, headless 900x1000 only, unverified on device)
+- Fold open, Dynamic, paged, a story with a big picture across both pages: the first turn slides the text card to the left page and it stays the same rounded card with the picture around it (it no longer grows into a whole page).
+- The right half of the picture still hides the next page's text until the second turn; no text shows through the picture.
+- After the second turn both pages are plain and there is no line or shadow down the middle.
+- Turning back from there returns to the opening; tapping the picture on the opening still peeks.
+- Dynamic look: the top bar, the Daily tabs and the bottom bar are the same color as the page and fade with it while scrolling.
