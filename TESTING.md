@@ -1828,3 +1828,8 @@ Open Fold / tablet, Dynamic theme, page-turn mode, story with a wide picture at 
 - Watch for stutter while reading right after opening a story (three stories are now prepared in the background, one at a time). If the 1.307 freeze comes back, report it: the wait for the on-phone summary before reading ahead was cut from 45 s to 15 s.
 - A slow site on Android: the backup way of fetching the story now starts after 2 s instead of 5 s.
 - Refresh with many sites on Wi-Fi: ten load at once instead of six. Watch for sites failing with "too many requests".
+
+## Picture story and side-by-side pictures with page turns (after 1.312, unreleased)
+Checked headless only (412x860, 884x1104, 1280x800) with test pictures. On a real phone, Dynamic theme, page-turn mode:
+- A story with five or more pictures and little text: each picture fills a page of its own with "1 of 6" and its caption over the lower edge. Wide pictures are cropped hard to the tall page: check faces are not cut off.
+- A story with exactly two pictures in a row and no lead picture: the two sit side by side as equal squares (they were uneven heights on wide screens before this fix).
