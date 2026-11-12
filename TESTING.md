@@ -1938,3 +1938,4 @@ Dynamic look:
 - Open Fold or tablet, a story whose picture fills the whole screen: the first turn is a flat page (no curl) and the app does not stop responding.
 - With a keyboard: Tab through a story's links; the book turns to the page that holds the link, pages never sit cut mid-word.
 - Sliding cover: quick double taps still land on the right page.
+- An NPR story that is audio only ("3-Minute Listen"): shows the feed's short text, not the site's menu.

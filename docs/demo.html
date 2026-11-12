@@ -6243,7 +6243,7 @@ const ALTICON=/\b(icon|logo|badge|check ?mark|arrow|chevron|verified)\b/i;
 const AUTHJ=/(follow on x\b|follow @\w+|multiple authors|^\s*close\b.*\b(am|pm) et\b|\b\d{1,2}:\d\d (am|pm) et\s*close\b|\b(am|pm) et\s+close\b)/i,JUNKT=/^(close|follow on x|follow on twitter|multiple authors|follow|share|copy link)$/i,ICONRE=/(\.svg\b|check(mark)?|tick|\bicon|badge|sprite|bullet|arrow|chevron|verified)/i;
 const ADRE=/^(Ad is Hidden|Paid Promoted|Promoted Stories|Sponsored|Advertisement|Newsletter\b|Politics News Alerts|Breaking news email alerts|View \d+ more stor|Sign up for|Subscribe to|Read more:|Related:|Up Next|Size Small Standard Large\b)|utm_source=(outbrain|taboola)|Please tell us why you hid/i;
 function md(txt,base){
- txt=txt.replace(/^[\s\S]*?Markdown Content:\s*/,'').replace(/\s*\n\s*\](?=\s*\(https?:)/g,']').replace(/\]\s*\n?\s*\(https?:/g,'](https:').replace(/!\[[^\]]*(Ad is Hidden|hid this ad|Paid Promoted|Sponsored)[^\]]*\]\([^)]*\)/gi,'').replace(/\[(!\[[^\]]*\]\([^)]*\))\]\([^)]*\)/g,'$1').replace(/!\[[^\]]*\]\([^)]*(author|avatar|headshot|profile|logo)[^)]*\)/gi,'');
+ txt=txt.replace(/^[\s\S]*?Markdown Content:\s*/,'').replace(/\s*\n\s*\](?=\s*\(https?:)/g,']').replace(/\]\s*\n?\s*\(https?:/g,'](https:').replace(/!\[[^\]]*(Ad is Hidden|hid this ad|Paid Promoted|Sponsored)[^\]]*\]\([^)]*\)/gi,'').replace(/\[(!\[[^\]]*\]\([^)]*\))([^\]\n]*)\]\(([^)]*)\)/g,(m,i,t,u)=>t.trim()?i+' ['+t.trim()+']('+u+')':i)/* a linked picture, with or without a label after it (a site menu's logo + name used to stay as raw text and hid the menu from the all-links check below) */.replace(/!\[[^\]]*\]\([^)]*(author|avatar|headshot|profile|logo)[^)]*\)/gi,'');
  txt=txt.replace(/\[\s*(?:image|photo|picture)\s*\d*\s*:?\s*(https?:\/\/[^\]\s]+)\s*\]/gi,'![]($1)').replace(/!\[[^\]]*\]\((https?:[^)\s]+)[^)]*\)/g,(m,u)=>adImgUrl(u)?'':m);
  const out=document.createDocumentFragment();
  let bl=txt.split(/\n{2,}/).map(x=>x.trim()).filter(x=>x&&!(x.length<900&&COOKIEJ.test(x)));/* a site's cookie panel is not the story */
@@ -6264,6 +6264,8 @@ function md(txt,base){
  bl=bl.filter(x=>{const t=pl(x);if(!t&&!/!\[/.test(x))return false;if(/^(close|follow on x|multiple authors)$/i.test(t))return false;if(t.length<700&&AUTHJ.test(t))return false;const im=x.match(/!\[([^\]]*)\]\(([^)]*)\)/g)||[];if(im.length&&t.length<30&&im.every(i=>ICONRE.test(i)&&!/\.(jpe?g|webp)\b/i.test(i)))return false;return true});
  bl=bl.filter(x=>{const t=pl(x);if(t.length<140&&GTXT.test(t))return false;const m=x.match(/!\[([^\]]*)\]\(([^)]*)\)/g)||[];return !(m.length&&m.every(i=>GPROMO.test(i)||GALT.test(i))&&t.length<140)});
  bl=bl.filter(x=>!(/^[-*]\s/.test(x)&&x.split('\n').every(l=>/^[-*]\s+\[[^\]]*\]\([^)]*\)\s*$/.test(l))));
+ /* a site menu with a title line or 'expand' labels in it: three or more lines that are a list mark and a link with at most a few words after it, and little else */
+ bl=bl.filter(x=>{const L=x.split('\n'),n=L.filter(l=>/^\s*[-*]\s+(\*\*)?!?\[[^\]]*\]\([^)]*\).{0,60}$/.test(l)).length;return !(n>=3&&n>=L.length*.6)});
  for(const b of bl){
   const s=b.trim();if(!s)continue;
   const h=s.match(/^(#{1,4})\s+(.*)/);let e;
@@ -6277,6 +6279,8 @@ function md(txt,base){
  }
  /* a page that is nearly all links (a profile or menu page) is not a story: return nothing so the feed’s own text is shown */
  {const tot=out.textContent.replace(/\s+/g,' ').trim().length;let lk=0;out.querySelectorAll('a').forEach(a=>{lk+=a.textContent.replace(/\s+/g,' ').trim().length});if(tot<4000&&tot>0&&lk/tot>.6)return document.createDocumentFragment()}
+ /* the same for a page with no story text at all (an audio-only story came back as the site's menu, its labels and a sponsor line): a short result must hold some real paragraphs, counted as text of 110+ characters that is not mostly links */
+ {const T=e=>e.textContent.replace(/\s+/g,' ').trim().length,tot=T(out);let pr=0;out.querySelectorAll('p,blockquote,li').forEach(e=>{const n=T(e);let k=0;e.querySelectorAll('a').forEach(a=>{k+=T(a)});if(n>=110&&k<n*.5)pr+=n});if(tot>0&&tot<4000&&pr<600)return document.createDocumentFragment()}
  return tidyFrag(out);
 }
 function fromHTML(html,base){const d=new DOMParser().parseFromString(html||'','text/html');try{junkDom(d,base)}catch(e){}try{d.querySelectorAll('.screen-reader-text,.sr-only,.visually-hidden,.visuallyhidden,.u-visually-hidden,.assistive-text,[class*="sr-only" i],[class*="screen-reader" i]').forEach(e=>{if((e.textContent||'').length<120){rmGap(e);e.remove()}})}catch(e){}const f=clean(d.body,base);try{unglue(f)}catch(e){}try{junkClean(f,base)}catch(e){}return f}

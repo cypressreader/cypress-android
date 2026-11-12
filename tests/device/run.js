@@ -100,7 +100,8 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
   await step('covers', async s => {
     const out = [], seen = {}; s.info = out; /* kept even when a turn kills the step */
     try {
-      await sx('wm size 1768x2208'); await sx('wm density 320'); await sleep(3500); await page.evaluate(() => scrollTo(0, 0));
+      /* runs 10 and 11: the emulator itself died at the Fold's real 1768x2208 (software drawing). Half the pixels each way at half the density gives the app the very same page size (884x1104), a quarter of the drawing work */
+      await sx('wm size 884x1104'); await sx('wm density 160'); await sleep(3500); await page.evaluate(() => scrollTo(0, 0));
       for (let i = 0; i < 10; i++) {
         try { await openStory(i) } catch (e) { out.push({ i, err: String(e.message).split('\n')[0].slice(0, 120) }); if (await page.evaluate(() => !!document.querySelector('#rd.on')).catch(() => false)) await back(); continue }
         const m = await page.evaluate(() => { const h = document.querySelector('.cols>.hsf'), im = h && h.querySelector('img.hero'), t = document.querySelector('.cols .tt'); window.__lt = []; return { m: h ? h.dataset.m : '', pic: im ? im.naturalWidth + 'x' + im.naturalHeight : '', title: t ? t.textContent.slice(0, 50) : '' } });
