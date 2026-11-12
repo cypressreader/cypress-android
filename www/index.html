@@ -9191,6 +9191,8 @@ hurry();R.navAt=Date.now();if(!R.fa&&!isVert()&&R.np>1){R.fa=1;$('#rd').classLis
  const T=startTurn(d);T.ok=true;paperSound();
  anim(T.ang,d>0?180:0,1280,eBack,()=>endTurn(true));
 }
+/* Tab onto a link on a later page: the browser slid the page strip sideways to show it (both pages cut mid-word, page number unchanged). The strip is put back and the book turns to the page that holds the link */
+document.addEventListener('focusin',e=>{const v=$('#rd.on .view'),c=v&&v.querySelector('.cols'),t=e.target;if(!c||!c.contains(t)||R.web||isVert()||!R.step)return;const fix=()=>{if(!t.isConnected)return;v.scrollLeft=0;v.scrollTop=0;const pg=Math.max(0,Math.min(R.np-1,Math.floor((t.getBoundingClientRect().left-c.getBoundingClientRect().left+2)/R.step)));if(pg!==R.pg&&!R.busy){R.pg=pg;show()}};fix();requestAnimationFrame(fix)});
 let D=null;
 function turnRelease(cancel,ts){
  const T=R.T,d=D;D=null;if(!T||!d)return;
