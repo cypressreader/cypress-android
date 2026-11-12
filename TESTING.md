@@ -1922,3 +1922,8 @@ Dynamic look:
 ## Left-page cover guard (branch, for 1.317; needs David's open Fold)
 - Open Fold, Dynamic, large text, story with a tall or square picture (cover on the left page): the byline ('Today, ... read') stays on the picture, never as a dark block at the top of the right page. Headless: forcing the page height 75px too tall no longer moves the byline (it did before).
 - Open Fold: wide pictures run across both pages again (wide cover), only tall/square ones take the left page.
+
+## Whole-screen covers on two pages (branch, after 1.317; needs David's open Fold / tablet)
+- Open Fold or tablet, Dynamic: a story with a large wide (or, on the Fold, square) picture opens with the picture over both pages, headline low on the left; the story starts on the next turn. Turn forward and back: no leftover picture, no blank spread.
+- A portrait picture still takes the left page only. Pictures 1600px+ without a caption still open with the sliding sheet on the right.
+- Slow connection: when the picture arrives late there is no empty strip down the right edge of the cover.
