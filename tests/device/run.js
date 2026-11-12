@@ -86,7 +86,7 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
   await step('sizes', async s => {
     const out = {};
     try {
-      for (const [name, w, h, d] of [['foldcover', 904, 1984, 352], ['foldopen', 1768, 2208, 320]]) {
+      for (const [name, w, h, d] of [['foldcover', 904, 1984, 352], ['foldopen', 884, 1104, 160]]) {
         await sx(`wm size ${w}x${h}`); await sx(`wm density ${d}`); await sleep(3500);
         await page.evaluate(() => scrollTo(0, 0)); await shot(s, name); out[name] = await storyTour({ name: s.name + '-' + name, shots: s.shots }, 2, 2); out[name + '2'] = await storyTour({ name: s.name + '-' + name + '-b', shots: s.shots }, 2, 3);
       }
