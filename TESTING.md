@@ -1966,3 +1966,4 @@ Dynamic look:
 - [ ] BBC 'Watch:' and sport stories no longer show a list of other videos; The Verge stories no longer end with 'Follow topics and authors'.
 - [ ] Long reads with no picture (open Fold, Dynamic) open on one of three title pages: a dark spine strip, a ruled frame with the CyPress tree, or a dark band with who is speaking (only when the headline has a quotation). Headline fits the page in each.
 - [ ] No new settings: on the open Fold in Dynamic, a story whose picture is under 1600px wide opens with the whole picture in a ruled frame or with the banner (the same one every time for that story); larger pictures still get the sliding cover. Both open and turn without flicker.
+- (The list above shipped as 1.324 on 2026-11-12.)
