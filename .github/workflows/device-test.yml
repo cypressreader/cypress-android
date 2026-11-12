@@ -90,7 +90,17 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           script: |
             adb install -r cypress-debug.apk
+            adb logcat -v time '*:W' > /tmp/logcat.txt 2>&1 &
             node tests/device/run.js
+
+      # runs 10, 11, 12 and 14: the emulator vanished mid-test with nothing in its own output. This says why:
+      # the runner's kernel log names a process it killed for memory, or one that crashed
+      - name: Note why the emulator stopped, if it did
+        if: always()
+        run: |
+          mkdir -p "$OUT"
+          { echo "== memory"; free -m; echo "== kernel: killed or crashed processes"; sudo dmesg -T | grep -iE "out of memory|oom|killed process|segfault|general protection|qemu|trap" | tail -40; echo "== last Android warnings"; tail -n 150 /tmp/logcat.txt 2>/dev/null; } > "$OUT/host.txt" 2>&1 || true
+          sed -n '1,60p' "$OUT/host.txt"
 
       - name: Publish the screenshots and the report
         if: always()
