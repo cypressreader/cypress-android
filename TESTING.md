@@ -1917,3 +1917,4 @@ Dynamic look:
 - Last page: an unused picture from the story when there is one, and Next up set over the next story's picture.
 - A story whose feed sent no picture: the picture from the story's own page appears as the cover a moment after opening (not on data saver or offline).
 - AI summary: a story where the phone's AI fails must show the publisher's line once and stay still (1.315: the text jumped several times a second, Gizmodo 'Universities Are Giving Up on Trying to Detect AI Cheating').
+- (After 1.316, unreleased) Open Fold: wide pictures run across the pages again; only tall or square pictures fill the left page. Check the byline no longer spills onto the right page (David's Nvidia story, large text, AI summary).
