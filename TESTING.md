@@ -1955,3 +1955,8 @@ Dynamic look:
 - Open Fold, Dynamic, long story with no picture and a very long headline (the Guardian live page): the big headline fits on the left page and nothing overlaps the right page.
 - All Stories > Top stories in tile view: same cards with pictures as For you, under the "top stories" heading; tapping a card opens that story (not a neighbor); Sections and Mark read work.
 - (1.323) Open Fold, Dynamic, story with the sliding card over a whole-screen picture: swipe so the card slides left: no flicker when it lands. Turn the next page (the picture lifts away): no flicker on the first moment of the turn.
+
+## After 1.323 (not released yet): pictures in live-update stories, Headlines speed
+- [ ] The Verge live-update story (many short dated posts): its pictures are full width, not thumbnail size (headless-checked only).
+- [ ] Small icons inside a list in a story still stay small.
+- [ ] Headlines opens the same as before in portrait, sideways, with the side bar hidden and shown, and in split view (wide front page layout appears only when there is room).
