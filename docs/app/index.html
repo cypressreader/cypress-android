@@ -11246,7 +11246,8 @@ const pend=e=>{
  if(D.slide){const d=D;D=null;if(e.type==='pointercancel')d.lx=d.x0;rdxSlideEnd(d,e.timeStamp);return}
  const dx=e.clientX-D.x,dy=e.clientY-D.y;
  if(D.edge&&e.type==='pointerup'&&Math.abs(dx)>=60&&Math.abs(dx)>Math.abs(dy)*1.3&&!(getSelection()+'')){const eg=D.edge;D=null;edgeSwipe(eg);return}
- if(e.type==='pointerup'&&(reduced()||rdxPturn()!=='paper')&&Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.3&&!(getSelection()+''))go(dx<0?1:-1);
+ /* also for the paper turn: when the phone is busy a quick swipe can arrive as finger down and finger up with nothing between, so no turn was started; the page still turns */
+ if(e.type==='pointerup'&&Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.3&&!(getSelection()+'')&&(!isVert()||reduced()||rdxPturn()!=='paper')){R.noClick=true;setTimeout(()=>{R.noClick=false},350);go(dx<0?1:-1)}
  D=null;
 };
 /* the blocking touchmove listener is on the reader only in page mode (set from layout as the mode changes): left on in vertical mode it made every scroll in a story wait for the script. It must already be there when a finger lands, so it is switched per mode, not per touch */
