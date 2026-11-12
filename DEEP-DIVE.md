@@ -35,4 +35,12 @@ Ideas, ranked:
 8. ~170 KB of rarely used data constants + 95 KB data-URI variables parsed every start: more risk than reward.
 First turn of a story was not pre-built in the agent's run (46-59 ms sync vs 1 ms on turn 2).
 
-## Bug hunt (agent 1): NOT BACK when this was written
+## Bug hunt (agent 1; headless, 4 sizes x light/dark/dynamic/halcyon/oled; no JS errors, no blank pages, no page overflow, dialogs and names OK)
+1. FIXED on the branch: author name (`.dt .by`) dark on the dark cover picture on every picture cover (phone `cov`, left-page `hero`, 'Hero spread' setting in any theme, sideways). Cause: `#rd .cols .dt .by{color:var(--ink)}` beat the white byline rule. New rule in the '1.316 pictures first' block.
+2. OPEN: phone sideways 902x411, Dynamic, long headline: 47px headline overflows the top of the page, first line clipped (cover there is `ccov` with one page).
+3. OPEN: reader keyboard focus escapes the dialog: at 1280x800, Tab past the 'Position in story' slider lands on `#sideh` ('Show sites'), then body.
+4. OPEN, low: dim meta text in dark mode ('1 min', '2-min read' about 2.7:1).
+5. OPEN, low: 'Follow ...' buttons in the reader More sheet clip long names with no ellipsis at 411px.
+6. OPEN, low: on the left-page cover '2-min read' wraps as '2-' / 'min read'.
+Unconfirmed: light 'wide' cover at 902x411 cuts a 150-character headline after 4 lines with no ellipsis; one blank page seen once (page 10 of 13, light+dark, 902x411), not reproduced.
+Not covered: real phone, Search/Saved with real data, Headlines/Brief/Sunday in depth, site settings dialogs.
