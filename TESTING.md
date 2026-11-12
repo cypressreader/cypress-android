@@ -1960,3 +1960,5 @@ Dynamic look:
 - [ ] The Verge live-update story (many short dated posts): its pictures are full width, not thumbnail size (headless-checked only).
 - [ ] Small icons inside a list in a story still stay small.
 - [ ] Headlines opens the same as before in portrait, sideways, with the side bar hidden and shown, and in split view (wide front page layout appears only when there is room).
+- [ ] A quick flick across a story page always turns it (paper turn), even right after opening a story while the phone is still busy; a tap on a picture still opens the picture viewer.
+- [ ] The Verge covers still look sharp on the open Fold (pictures are now asked at 2000px wide, not the camera original) and the first turn off them is quicker.
