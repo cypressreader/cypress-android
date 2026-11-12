@@ -86,43 +86,6 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
   });
 
   /* other screens on the same emulator: Fold cover (411x902), Fold open (884x1104), then the open Fold turned sideways */
-  await step('sizes', async s => {
-    const out = {};
-    try {
-      for (const [name, w, h, d] of [['foldcover', 904, 1984, 352], ['foldopen', 884, 1104, 160]]) {
-        await sx(`wm size ${w}x${h}`); await sx(`wm density ${d}`); await sleep(3500);
-        await page.evaluate(() => scrollTo(0, 0)); await shot(s, name); out[name] = await storyTour({ name: s.name + '-' + name, shots: s.shots }, 2, 2); out[name + '2'] = await storyTour({ name: s.name + '-' + name + '-b', shots: s.shots }, 2, 3);
-      }
-      await sx('settings put system accelerometer_rotation 0'); await sx('settings put system user_rotation 1'); await sleep(3500);
-      await shot(s, 'sideways'); out.sideways = await storyTour({ name: s.name + '-sideways', shots: s.shots }, 2);
-    } finally { await sx('settings put system user_rotation 0'); await sx('wm size reset'); await sx('wm density reset'); await sleep(3000) }
-    return out;
-  });
-
-  /* the open Fold, story by story: which cover each one opens with, and how long the main thread stops on its first two turns (run 8: the first turn from a whole-screen picture cover hung the app) */
-  await step('covers', async s => {
-    const out = [], seen = {}; s.info = out; /* kept even when a turn kills the step */
-    try {
-      /* runs 10 and 11: the emulator itself died at the Fold's real 1768x2208 (software drawing). Half the pixels each way at half the density gives the app the very same page size (884x1104), a quarter of the drawing work */
-      /* runs 17-19: alone this step survives, after the other steps the emulator dies in it: start the app afresh so it begins with empty memory */
-      await restart();
-      await sx('wm size 884x1104'); await sx('wm density 160'); await sleep(3500); await page.evaluate(() => scrollTo(0, 0));
-      /* run 12: three stories turned with the curl, then the emulator died again. So: a feed with large pictures (whole-screen covers need 1600px+), its first five stories turned flat first (curl off), then the same five with the curl. If only the curl half kills the emulator, the strip copies are the heavy part */
-      s.feedPicked = await page.evaluate(() => { const f = S.feeds.find(f => /verge/i.test(JSON.stringify(f))); if (!f) return null; S.sel = 's:' + f.id; render(); scrollTo(0, 0); return f.id }); await sleep(2500);
-      for (let n = 0; n < 10; n++) { const i = n % 5, curl = n >= 5; await page.evaluate(c => { S.curl = c }, curl);
-        try { await openStory(i) } catch (e) { out.push({ i, err: String(e.message).split('\n')[0].slice(0, 120) }); if (await page.evaluate(() => !!document.querySelector('#rd.on')).catch(() => false)) await back(); continue }
-        const m = await page.evaluate(() => { const h = document.querySelector('.cols>.hsf'), im = h && h.querySelector('img.hero'), t = document.querySelector('.cols .tt'); window.__lt = []; return { m: h ? h.dataset.m : '', pic: im ? im.naturalWidth + 'x' + im.naturalHeight : '', title: t ? t.textContent.slice(0, 50) : '' } });
-        const o = { i, curl, ...m, turns: [] }, first = !seen[m.m + curl]; seen[m.m + curl] = 1; out.push(o);
-        for (let k = 1; k <= 2; k++) {
-          await swipe(.85, .5, .15, .5);
-          const r = await Promise.race([page.evaluate(() => { const l = (window.__lt || []).slice(); window.__lt = []; return { pg: typeof R !== 'undefined' ? R.pg : null, stalls: l.filter(d => d >= 100), turn: typeof curlLog !== 'undefined' ? curlLog[curlLog.length - 1] : '' } }), sleep(20000).then(() => ({ hung: true }))]);
-          o.turns.push(r); if (first || r.hung || /cov/.test(m.m)) await shot(s, (m.m || 'plain') + '-' + i + (curl ? '-curl' : '-flat') + '-turn' + k); if (r.hung) break;
-        }
-        await back();
-      }
-    } finally { await sx('wm size reset'); await sx('wm density reset'); await sleep(3000) }
-    return out;
-  });
   await step('big-text', async s => {
     try { await sx('settings put system font_scale 1.3'); await restart(); await shot(s); return await storyTour(s, 1) }
     finally { await sx('settings put system font_scale 1.0'); await restart() }
@@ -150,6 +113,45 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
     const o = await sx(`am start -W -n ${act}`); const t = Date.now();
     await attach(); await page.waitForSelector('#grid .card', { timeout: 60000 }); const cards = Date.now() - t;
     await shot(s); return { androidStartMs: +(o.match(/TotalTime:\s*(\d+)/) || [])[1] || null, cardsAfterMs: cards };
+  });
+
+  /* runs 17-20: the emulator itself stops (no message, no memory shortage) around the 2nd or 3rd change of screen size. So the two steps that change it run last: when it stops, only they are lost */
+  await step('sizes', async s => {
+    const out = {};
+    try {
+      for (const [name, w, h, d] of [['foldcover', 904, 1984, 352], ['foldopen', 884, 1104, 160]]) {
+        await sx(`wm size ${w}x${h}`); await sx(`wm density ${d}`); await sleep(3500);
+        await page.evaluate(() => scrollTo(0, 0)); await shot(s, name); out[name] = await storyTour({ name: s.name + '-' + name, shots: s.shots }, 2, 2); out[name + '2'] = await storyTour({ name: s.name + '-' + name + '-b', shots: s.shots }, 2, 3);
+      }
+      await sx('settings put system accelerometer_rotation 0'); await sx('settings put system user_rotation 1'); await sleep(3500);
+      await shot(s, 'sideways'); out.sideways = await storyTour({ name: s.name + '-sideways', shots: s.shots }, 2);
+    } finally { await sx('settings put system user_rotation 0'); await sx('wm size reset'); await sx('wm density reset'); await sleep(9000) }
+    return out;
+  });
+
+  /* the open Fold, story by story: which cover each one opens with, and how long the main thread stops on its first two turns (run 8: the first turn from a whole-screen picture cover hung the app) */
+  await step('covers', async s => {
+    const out = [], seen = {}; s.info = out; /* kept even when a turn kills the step */
+    try {
+      /* runs 10 and 11: the emulator itself died at the Fold's real 1768x2208 (software drawing). Half the pixels each way at half the density gives the app the very same page size (884x1104), a quarter of the drawing work */
+      /* runs 17-19: alone this step survives, after the other steps the emulator dies in it: start the app afresh so it begins with empty memory */
+      await restart();
+      await sx('wm size 884x1104'); await sx('wm density 160'); await sleep(3500); await page.evaluate(() => scrollTo(0, 0));
+      /* run 12: three stories turned with the curl, then the emulator died again. So: a feed with large pictures (whole-screen covers need 1600px+), its first five stories turned flat first (curl off), then the same five with the curl. If only the curl half kills the emulator, the strip copies are the heavy part */
+      s.feedPicked = await page.evaluate(() => { const f = S.feeds.find(f => /verge/i.test(JSON.stringify(f))); if (!f) return null; S.sel = 's:' + f.id; render(); scrollTo(0, 0); return f.id }); await sleep(2500);
+      for (let n = 0; n < 10; n++) { const i = n % 5, curl = n >= 5; await page.evaluate(c => { S.curl = c }, curl);
+        try { await openStory(i) } catch (e) { out.push({ i, err: String(e.message).split('\n')[0].slice(0, 120) }); if (await page.evaluate(() => !!document.querySelector('#rd.on')).catch(() => false)) await back(); continue }
+        const m = await page.evaluate(() => { const h = document.querySelector('.cols>.hsf'), im = h && h.querySelector('img.hero'), t = document.querySelector('.cols .tt'); window.__lt = []; return { m: h ? h.dataset.m : '', pic: im ? im.naturalWidth + 'x' + im.naturalHeight : '', title: t ? t.textContent.slice(0, 50) : '' } });
+        const o = { i, curl, ...m, turns: [] }, first = !seen[m.m + curl]; seen[m.m + curl] = 1; out.push(o);
+        for (let k = 1; k <= 2; k++) {
+          await swipe(.85, .5, .15, .5);
+          const r = await Promise.race([page.evaluate(() => { const l = (window.__lt || []).slice(); window.__lt = []; return { pg: typeof R !== 'undefined' ? R.pg : null, stalls: l.filter(d => d >= 100), turn: typeof curlLog !== 'undefined' ? curlLog[curlLog.length - 1] : '' } }), sleep(20000).then(() => ({ hung: true }))]);
+          o.turns.push(r); if (first || r.hung || /cov/.test(m.m)) await shot(s, (m.m || 'plain') + '-' + i + (curl ? '-curl' : '-flat') + '-turn' + k); if (r.hung) break;
+        }
+        await back();
+      }
+    } finally { await sx('wm size reset'); await sx('wm density reset'); await sleep(3000) }
+    return out;
   });
 
   R.crashes = (await sx('logcat -d -b crash -t 300').catch(() => '')).split('\n').filter(l => /cypress|FATAL|AndroidRuntime/i.test(l)).slice(0, 40);
