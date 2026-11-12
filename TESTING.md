@@ -1931,3 +1931,10 @@ Dynamic look:
 ## Sliding cover: flash of text at the top right (branch, after 1.318; needs David's open Fold)
 - Open Fold, Dynamic, a story with the sliding sheet cover: turn once (sheet slides to the left page), wait two seconds. The picture on the right must not blink out and show the next page's words for an instant (David's recording 2026-11-11, 1.316: one frame, about a second after the slide).
 - Then turn again: the picture lifts away like a page as before (this one turn is now built when asked for, so check it does not start late).
+
+## After 1.319 (work branch, not yet shipped): fixes from the outside reviews
+- Open an Ars Technica story and wait for it to finish loading: it starts with the story, not the site's cookie text.
+- BBC story with a second picture: the picture shows, not a line starting "![Image".
+- Open Fold or tablet, a story whose picture fills the whole screen: the first turn is a flat page (no curl) and the app does not stop responding.
+- With a keyboard: Tab through a story's links; the book turns to the page that holds the link, pages never sit cut mid-word.
+- Sliding cover: quick double taps still land on the right page.
