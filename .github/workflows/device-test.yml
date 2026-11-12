@@ -99,7 +99,7 @@ jobs:
         if: always()
         run: |
           mkdir -p "$OUT"
-          { echo "== memory"; free -m; echo "== kernel: killed or crashed processes"; sudo dmesg -T | grep -iE "out of memory|oom|killed process|segfault|general protection|qemu|trap" | tail -40; echo "== last Android warnings"; tail -n 150 /tmp/logcat.txt 2>/dev/null; } > "$OUT/host.txt" 2>&1 || true
+          { echo "== memory"; free -m; echo "== kernel: killed or crashed processes"; sudo dmesg -T | grep -iE "out of memory|oom|killed process|segfault|general protection|qemu|trap" | tail -40; echo "== last Android warnings"; grep -v 'Image decoding logging dropped' /tmp/logcat.txt | tail -n 150 2>/dev/null; } > "$OUT/host.txt" 2>&1 || true
           sed -n '1,60p' "$OUT/host.txt"
 
       - name: Publish the screenshots and the report

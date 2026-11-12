@@ -1945,3 +1945,7 @@ Dynamic look:
 - Open Fold: a story with a sliding picture cover and one with a whole-screen picture cover: first two turns still look right, and the app keeps responding.
 - Phone: page turns look the same as before (pages 2+ of a story now use lighter copies too).
 - A book: turn deep into a chapter; no stray "Details" mark at the top of a page.
+
+## On the branch after 1.320 (2026-11-12)
+- Screen reader (TalkBack): open a story with pictures inside the text; a picture whose page describes it is read with that description (implemented, unverified on a phone).
+- Open a BBC 'Watch: …' video story on 1.320: it should no longer show a list of other videos as the story.
