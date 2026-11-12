@@ -1939,3 +1939,9 @@ Dynamic look:
 - With a keyboard: Tab through a story's links; the book turns to the page that holds the link, pages never sit cut mid-word.
 - Sliding cover: quick double taps still land on the right page.
 - An NPR story that is audio only ("3-Minute Listen"): shows the feed's short text, not the site's menu.
+
+## 1.320
+- Open Fold: turn pages through a long story with the curl on; turns should feel lighter than 1.319, most of all deep into the story, and every page must look right while it turns (nothing missing or shifted at the top of a page).
+- Open Fold: a story with a sliding picture cover and one with a whole-screen picture cover: first two turns still look right, and the app keeps responding.
+- Phone: page turns look the same as before (pages 2+ of a story now use lighter copies too).
+- A book: turn deep into a chapter; no stray "Details" mark at the top of a page.
