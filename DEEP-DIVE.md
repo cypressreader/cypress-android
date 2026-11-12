@@ -17,3 +17,22 @@ Read-only agents, headless Chromium (not a phone). Nothing here is built. David 
 13. Small: Fold/tablet show 'Save · Listen · More', phone only '...': one set.
 14. Small: 'No sites here yet' has no hint of the starter packs that sit in the Add dialog.
 Wording check: seeded data showed '10 stories' on Brief vs '15 new' on Headlines (unverified against real data).
+
+## EMULATOR RUN 8 on 1.318 (b140c6c, Android 16, WebView Chrome 133): app stopped responding
+Step 'sizes' FAILED at open Fold: story opened on the new whole-screen cover (`pcov`, BBC 'Burnham's push...', shot 25), and on the first turn Android showed 'CyPress isn't responding' (shots 26, 27, 28-FAILED; Back did not close after 3 presses). Run 7 passed the same step when that size opened on the left-page cover. Correlation, not proof: cause not found (headless turns from `pcov` fine). All other steps passed (first-run feed story scroll themes big-text dark-phone leave-and-return share-in cold-start), 0 crashes. Phone-size stalls up to ~1 s on the list, ~0.7 s in a story. Shots not yet reviewed by eye beyond 25-28.
+Branch now restores the 1.317 choice (`wcov` under 1600px, `hero` for tall/square). 1600px+ captioned or very wide pictures still take `pcov` as they did before 1.318: SAME RISK, unproven either way.
+
+## Speed (agent 2; headless Chromium, software raster, CPU throttled 4x unless said; 32 sites, 448 stories; NOT a phone)
+Numbers at 4x: first paint 260 ms, first list card warm 1355 / cold 2835 ms; main script run 710-750 ms; render() Daily 117 / All Stories 124 / Headlines 226 ms; open a story 493 ms (auto) / 234 (dynamic); page turn worst frame 184 ms (first turn), 60 (second); close 344 ms. Dynamic theme: style recalc ~1.9x on Daily. Scroll: Daily 55-63 of 225 frames over 32 ms. File 2.58 MB (CSS 746 KB, 5569 rules, 126 `:has(`, 47 backdrop-filter).
+Ideas, ranked:
+1. `renderDigest` (~line 16323) reads `$('#grid').clientWidth` just before replacing the list: forces a full layout of the old page. Stubbed: Headlines render 190 -> 87 ms. One line (use cached width). Low risk.
+2. Lead-card picture animations (`kbz` + `cpx`, ~lines 5011-5012): disabled, scroll paint halved headless (software raster overstates; needs a phone).
+3. `:is(.tf,.tl) *` (~line 858): universal selector, top-3 on every style recalc; small gain.
+4. Long `:is()` descendant lists (~2667-2669): modest.
+5. `::highlight(...)` rules matched 1000-1700 elements per recalc: inject on first use; small.
+6. `fixOrph` ~75 ms per Daily render at 4x (known dead-end area; only angle: skip the phone path when no group is a 2-column grid).
+7. `hdrClear` (~16670) 15-40 ms per render: skip when title+width unchanged; small.
+8. ~170 KB of rarely used data constants + 95 KB data-URI variables parsed every start: more risk than reward.
+First turn of a story was not pre-built in the agent's run (46-59 ms sync vs 1 ms on turn 2).
+
+## Bug hunt (agent 1): NOT BACK when this was written
