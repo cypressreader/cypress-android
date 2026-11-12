@@ -6123,10 +6123,10 @@ const ALTICON=/\b(icon|logo|badge|check ?mark|arrow|chevron|verified)\b/i;
 const AUTHJ=/(follow on x\b|follow @\w+|multiple authors|^\s*close\b.*\b(am|pm) et\b|\b\d{1,2}:\d\d (am|pm) et\s*close\b|\b(am|pm) et\s+close\b)/i,JUNKT=/^(close|follow on x|follow on twitter|multiple authors|follow|share|copy link)$/i,ICONRE=/(\.svg\b|check(mark)?|tick|\bicon|badge|sprite|bullet|arrow|chevron|verified)/i;
 const ADRE=/^(Ad is Hidden|Paid Promoted|Promoted Stories|Sponsored|Advertisement|Newsletter\b|Politics News Alerts|Breaking news email alerts|View \d+ more stor|Sign up for|Subscribe to|Read more:|Related:|Up Next|Size Small Standard Large\b)|utm_source=(outbrain|taboola)|Please tell us why you hid/i;
 function md(txt,base){
- txt=txt.replace(/^[\s\S]*?Markdown Content:\s*/,'').replace(/\]\s*\n?\s*\(https?:/g,'](https:').replace(/!\[[^\]]*(Ad is Hidden|hid this ad|Paid Promoted|Sponsored)[^\]]*\]\([^)]*\)/gi,'').replace(/\[(!\[[^\]]*\]\([^)]*\))\]\([^)]*\)/g,'$1').replace(/!\[[^\]]*\]\([^)]*(author|avatar|headshot|profile|logo)[^)]*\)/gi,'');
+ txt=txt.replace(/^[\s\S]*?Markdown Content:\s*/,'').replace(/\s*\n\s*\](?=\s*\(https?:)/g,']').replace(/\]\s*\n?\s*\(https?:/g,'](https:').replace(/!\[[^\]]*(Ad is Hidden|hid this ad|Paid Promoted|Sponsored)[^\]]*\]\([^)]*\)/gi,'').replace(/\[(!\[[^\]]*\]\([^)]*\))\]\([^)]*\)/g,'$1').replace(/!\[[^\]]*\]\([^)]*(author|avatar|headshot|profile|logo)[^)]*\)/gi,'');
  txt=txt.replace(/\[\s*(?:image|photo|picture)\s*\d*\s*:?\s*(https?:\/\/[^\]\s]+)\s*\]/gi,'![]($1)').replace(/!\[[^\]]*\]\((https?:[^)\s]+)[^)]*\)/g,(m,u)=>adImgUrl(u)?'':m);
  const out=document.createDocumentFragment();
- let bl=txt.split(/\n{2,}/).map(x=>x.trim()).filter(Boolean);
+ let bl=txt.split(/\n{2,}/).map(x=>x.trim()).filter(x=>x&&!(x.length<900&&COOKIEJ.test(x)));/* a site's cookie panel is not the story */
  const pl=x=>x.replace(/!\[[^\]]*\]\([^)]*\)/g,'').replace(/\[([^\]]*)\]\([^)]*\)/g,'$1').replace(/[#*_>`-]/g,'').trim();
  const lg=bl.map(x=>!/^[-*]\s/.test(x)&&pl(x).length>=110);
  if(lg.filter(Boolean).length>=3){
@@ -9166,7 +9166,7 @@ function rdxSlideEnd(d,ts){
 /* Two-page cover with the sliding sheet (1.303). ccv(): the open story shows it. cvSlide: page 1 <-> the slid page; cvPeek: the sheet off and back on page 1 */
 const ccv=()=>{if(R.cpv!==2||R.web||isVert())return false;const h=$('.cols>.hsf');return !!h&&h.dataset.m==='ccov'};
 /* David 2026-11-11: the slide showed an empty card on its way, an empty card where it would land, and the next page's words over the picture. The two screens now swap in one quick fade, so no half-built state is ever on screen */
-function cvSlide(to){const c=$('.cols');if(!c)return;if(R.peek)cvPeek(false,true);const ms=reduced()?0:460,my=tok;R.busy=true;hurry();prepDrop();
+function cvSlide(to){const c=$('.cols');if(!c)return;if(R.peek)cvPeek(false,true);const ms=reduced()?0:460,my=tok;hurry();R.busy=true;prepDrop();
  /* David 2026-11-11: the card slides across with its words on it (the 900 ms slide moved card and words at different speeds: empty cards; the fade just swapped sides). The page changes at once, then everything is carried back by the card's travel (half the page shift) and eased home; the picture and headline are moved the other way so they hold still, and the hole cut in the lifted picture travels with the card, so no words of the other page show over the picture */
  const im=c.querySelector(':scope>.hs-ccov img.hero'),hv=c.querySelector(':scope>.hs-ccov .hov'),x0=c.getBoundingClientRect().left,cp0=im?getComputedStyle(im).clipPath:'';
  R.pg=to;show();
@@ -14969,7 +14969,7 @@ function isJunkText(t){
  return JK_EX.some(r=>r.test(t));
 }
 /* a site's cookie-banner wording that got into a summary (Why it matters, excerpts) */
-const COOKIEJ=/(this (web)?site uses (essential |some )?cookies|these cookies are (set|necessary|used|required)|cookies are set by (a range of|third)|\bwe use (essential )?cookies\b|cookie (policy|settings|preferences|consent) )/i;
+const COOKIEJ=/(this (web)?site uses (\w+ )?cookies|these cookies (are (set|necessary|used|required)|may be (set|used)|allow us)|consent management platform|cookies are set by (a range of|third)|\bwe use (\w+ ){0,3}cookies\b|cookie (policy|settings|preferences|consent) )/i;
 /* shorten at a word boundary (or a sentence end), with a proper ellipsis; never mid-word */
 /* a stored excerpt that was cut mid-word (older saved stories) is tidied when it is shown */
 function sumOf(t){t=String(t||'');return t.length>=150&&!/[.!?…"”’)]$/.test(t)?trimWords(t,t.length-1):t}
