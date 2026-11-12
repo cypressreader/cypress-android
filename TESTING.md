@@ -1953,3 +1953,4 @@ Dynamic look:
 - Open Fold, Dynamic: a wide cover with both a publisher note and an AI summary keeps its full height; the second box starts the right page under the picture.
 - Phone, any look other than Dynamic: the opening picture is taller (about a quarter of the screen) and no longer cropped to a thin strip.
 - Open Fold, Dynamic, long story with no picture and a very long headline (the Guardian live page): the big headline fits on the left page and nothing overlaps the right page.
+- All Stories > Top stories in tile view: same cards with pictures as For you, under the "top stories" heading; tapping a card opens that story (not a neighbor); Sections and Mark read work.
