@@ -1876,6 +1876,10 @@ html.dynx[data-theme=dynamic] #rd .cols>.hsf.hs-spl{display:flex;flex-direction:
 #rd.vert .cols>.hsf{break-after:auto}
 html.rdx #rd.vert .cols>.hsf.hs-spl img.hero{max-height:none!important}html.dynx[data-theme=dynamic] #rd .cols>.hsf.hs-spl img.hero{flex:1 1 0;min-height:0;height:auto;width:100%;aspect-ratio:auto;object-fit:cover;border-radius:0}html.dynx[data-theme=dynamic] #rd .cols>.hsf.hs-spl .hov{position:static;flex:none;background:color-mix(in srgb,var(--dk) 68%,#000);border-radius:0;padding:20px 20px 22px}html.dynx[data-theme=dynamic] #rd .cols>.hsf.hs-spl .hov :is(.tt,.kick,.dt,.dt span){text-shadow:none}html.dynx[data-theme=dynamic] #rd .cols>.hsf.hs-spl .hov .tt{font-size:clamp(28px,8vw,44px)}html.dynx[data-theme=dynamic] #rd .cols>.hsf.hs-spl .hov .kick{color:#fff}
 /* two pages: a poster, title page or split opener fills the left page and the story starts at the top of the right page (the facts box would push it a page further) */
+/* the long-read title page reads like a printed title page: the headline in the display serif, centered and evenly broken, between two short rules; ftpFit turns straight quotes into printer's quotes */
+html.dynx[data-theme=dynamic] #rd .cols>.hsf.hs-ftp .hov .tt{font-family:'CyPress Display',var(--fd),Georgia,serif!important;font-weight:500;font-size:clamp(34px,9.4vw,60px);line-height:1.08;letter-spacing:-.005em;text-align:center;text-wrap:balance;max-width:13em}
+html.dynx[data-theme=dynamic] #rd .cols>.hsf.hs-ftp .hov .dt{justify-content:center;text-align:center;font-style:italic}
+html.dynx[data-theme=dynamic] #rd .cols>.hsf.hs-ftp .hov[data-parts]::after{padding-top:14px;border-top:1px solid var(--ln);min-width:40px;text-align:center}
 html.dynx[data-theme=dynamic] #rd.cpv2 .cols:has(>.hs-post,>.hs-ftp,>.hs-spl,>.hs-pc,>.hs-ccov)>.mnotes{display:none}/* 1.303: also beside the two-page covers, where the box at the top of the sheet pushed the story to page 2 */
 /* By the numbers and the review verdict */
 /* Magazine touches (verdict, by the numbers, interview, numbered list) in every theme: colored by the theme's accent, brass in Halcyon */
@@ -14509,7 +14513,7 @@ const dyWord=()=>(String(curA&&curA.title||'').match(/[A-Za-z]{4,8}(?![A-Za-z’
 const mozFigs=bd=>bd?[...bd.querySelectorAll(':scope>figure')].filter(f=>{const i=f.querySelector('img'),cp=f.querySelector('figcaption');return i&&/^https?:/.test(i.currentSrc||i.src||'')&&!(cp&&cp.textContent.trim())}):[];
 function csGo(f){if(isVert()){f.scrollIntoView({behavior:reduced()?'auto':'smooth',block:'start'});return}const c=$('.cols');if(!c||!R.step)return;R.pg=Math.max(0,Math.floor((f.getBoundingClientRect().left-c.getBoundingClientRect().left+2)/R.step));show()}
 /* 1.322: a long headline on the long-read title page is made smaller until the whole block fits the page (it ran on over the next page's text: David, open Fold, 2026-11-12) */
-function ftpFit(f){const o=f&&f.querySelector(':scope>.hov'),t=o&&o.querySelector('.tt');if(!t)return;t.style.fontSize='';if(isVert())return;let z=parseFloat(getComputedStyle(t).fontSize);for(let k=0;k<16&&f.clientHeight>80&&o.offsetHeight>f.clientHeight&&z>20;k++){z*=.9;t.style.fontSize=z+'px'}}
+function ftpFit(f){const o=f&&f.querySelector(':scope>.hov'),t=o&&o.querySelector('.tt');if(!t)return;if(!t.dataset.q){t.dataset.q=1;const w=document.createTreeWalker(t,4);for(let n;n=w.nextNode();)n.data=n.data.replace(/(^|[\s(\[\u2014-])"/g,'$1\u201c').replace(/"/g,'\u201d').replace(/(^|[\s(\[\u2014-])'/g,'$1\u2018').replace(/'/g,'\u2019')}t.style.fontSize='';if(isVert())return;let z=parseFloat(getComputedStyle(t).fontSize);for(let k=0;k<16&&f.clientHeight>80&&o.offsetHeight>f.clientHeight&&z>20;k++){z*=.9;t.style.fontSize=z+'px'}}
 function heroSpread(){
  const c=$('.cols'),bk=$('.book');if(!c||!bk)return;delete c.dataset.dyo;
  const old=c.querySelector(':scope>.hsf');

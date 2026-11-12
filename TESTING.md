@@ -1962,3 +1962,5 @@ Dynamic look:
 - [ ] Headlines opens the same as before in portrait, sideways, with the side bar hidden and shown, and in split view (wide front page layout appears only when there is room).
 - [ ] A quick flick across a story page always turns it (paper turn), even right after opening a story while the phone is still busy; a tap on a picture still opens the picture viewer.
 - [ ] The Verge covers still look sharp on the open Fold (pictures are now asked at 2000px wide, not the camera original) and the first turn off them is quicker.
+- [ ] Long-read title page (open Fold, Dynamic, no picture): headline is a centered serif with curly quotes, evenly broken lines, and still fits the left page.
+- [ ] BBC 'Watch:' and sport stories no longer show a list of other videos; The Verge stories no longer end with 'Follow topics and authors'.
