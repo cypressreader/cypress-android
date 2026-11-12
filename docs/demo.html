@@ -11365,7 +11365,7 @@ rdEl.addEventListener('pointermove',e=>{
 const pend=e=>{
  if(!D||e.pointerId!==D.id)return;
  /* the lift counts as the finger's last position: when moves were dropped (a busy phone can deliver finger down, one move, finger up) the page is judged by where the finger ended, not by the one early move */
- if(D.act){const T=R.T;if(T&&e.type==='pointerup'){if(D.s.length<2)D.s.push({t:e.timeStamp,x:e.clientX});/* with moves dropped there is no speed to read a flick from: the lift supplies it */}if(T&&e.type==='pointerup')D.pa=Math.acos(Math.max(-T.hw,Math.min(T.hw,T.xt0+(e.clientX-D.x0)*1.35))/T.hw)*180/Math.PI;turnRelease(e.type==='pointercancel',e.timeStamp);return}
+ if(D.act){const T=R.T;if(T&&e.type==='pointerup'){if(!D.s.length||Math.abs(e.clientX-D.s[D.s.length-1].x)>30)D.s.push({t:e.timeStamp,x:e.clientX});/* the finger lifted far from its last reported move: moves were dropped, so the lift supplies the flick's speed */}if(T&&e.type==='pointerup')D.pa=Math.acos(Math.max(-T.hw,Math.min(T.hw,T.xt0+(e.clientX-D.x0)*1.35))/T.hw)*180/Math.PI;turnRelease(e.type==='pointercancel',e.timeStamp);return}
  if(D.slide){const d=D;D=null;if(e.type==='pointercancel')d.lx=d.x0;rdxSlideEnd(d,e.timeStamp);return}
  const dx=e.clientX-D.x,dy=e.clientY-D.y;
  if(D.edge&&e.type==='pointerup'&&Math.abs(dx)>=60&&Math.abs(dx)>Math.abs(dy)*1.3&&!(getSelection()+'')){const eg=D.edge;D=null;edgeSwipe(eg);return}

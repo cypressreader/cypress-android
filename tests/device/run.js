@@ -138,6 +138,7 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
       await restart();
       await sx('wm size 884x1104'); await sx('wm density 160'); await sleep(3500); await page.evaluate(() => scrollTo(0, 0));
       /* run 12: three stories turned with the curl, then the emulator died again. So: a feed with large pictures (whole-screen covers need 1600px+), its first five stories turned flat first (curl off), then the same five with the curl. If only the curl half kills the emulator, the strip copies are the heavy part */
+      /* run 23: this step ran in the Halcyon theme (an earlier step's restart brought back a stored theme), so no story opened with a whole-screen or sliding cover: those belong to Dynamic */ await page.evaluate(() => { S.theme = 'dynamic'; applyTheme(); render() }); await sleep(1500);
       s.feedPicked = await page.evaluate(() => { const f = S.feeds.find(f => /verge/i.test(JSON.stringify(f))); if (!f) return null; S.sel = 's:' + f.id; render(); scrollTo(0, 0); return f.id }); await sleep(2500);
       for (let n = 0; n < 10; n++) { const i = n % 5, curl = n >= 5; await page.evaluate(c => { S.curl = c }, curl);
         try { await openStory(i) } catch (e) { out.push({ i, err: String(e.message).split('\n')[0].slice(0, 120) }); if (await page.evaluate(() => !!document.querySelector('#rd.on')).catch(() => false)) await back(); continue }
