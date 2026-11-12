@@ -1964,3 +1964,5 @@ Dynamic look:
 - [ ] The Verge covers still look sharp on the open Fold (pictures are now asked at 2000px wide, not the camera original) and the first turn off them is quicker.
 - [ ] Long-read title page (open Fold, Dynamic, no picture): headline is a centered serif with curly quotes, evenly broken lines, and still fits the left page.
 - [ ] BBC 'Watch:' and sport stories no longer show a list of other videos; The Verge stories no longer end with 'Follow topics and authors'.
+- [ ] Long reads with no picture (open Fold, Dynamic) open on one of three title pages: a dark spine strip, a ruled frame with the CyPress tree, or a dark band with who is speaking (only when the headline has a quotation). Headline fits the page in each.
+- [ ] Settings > story opening has two new choices, "Banner across the top" and "Framed picture"; both open and turn without flicker on the open Fold. Automatic still gives the sliding cover.
