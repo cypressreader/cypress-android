@@ -102,14 +102,16 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
     try {
       /* runs 10 and 11: the emulator itself died at the Fold's real 1768x2208 (software drawing). Half the pixels each way at half the density gives the app the very same page size (884x1104), a quarter of the drawing work */
       await sx('wm size 884x1104'); await sx('wm density 160'); await sleep(3500); await page.evaluate(() => scrollTo(0, 0));
-      for (let i = 0; i < 10; i++) {
+      /* run 12: three stories turned with the curl, then the emulator died again. So: a feed with large pictures (whole-screen covers need 1600px+), its first five stories turned flat first (curl off), then the same five with the curl. If only the curl half kills the emulator, the strip copies are the heavy part */
+      s.feedPicked = await page.evaluate(() => { const f = S.feeds.find(f => /verge/i.test(JSON.stringify(f))); if (!f) return null; S.sel = f.id; render(); scrollTo(0, 0); return f.id }); await sleep(2500);
+      for (let n = 0; n < 10; n++) { const i = n % 5, curl = n >= 5; await page.evaluate(c => { S.curl = c }, curl);
         try { await openStory(i) } catch (e) { out.push({ i, err: String(e.message).split('\n')[0].slice(0, 120) }); if (await page.evaluate(() => !!document.querySelector('#rd.on')).catch(() => false)) await back(); continue }
         const m = await page.evaluate(() => { const h = document.querySelector('.cols>.hsf'), im = h && h.querySelector('img.hero'), t = document.querySelector('.cols .tt'); window.__lt = []; return { m: h ? h.dataset.m : '', pic: im ? im.naturalWidth + 'x' + im.naturalHeight : '', title: t ? t.textContent.slice(0, 50) : '' } });
-        const o = { i, ...m, turns: [] }, first = !seen[m.m]; seen[m.m] = 1; out.push(o);
+        const o = { i, curl, ...m, turns: [] }, first = !seen[m.m + curl]; seen[m.m + curl] = 1; out.push(o);
         for (let k = 1; k <= 2; k++) {
           await swipe(.85, .5, .15, .5);
           const r = await Promise.race([page.evaluate(() => { const l = (window.__lt || []).slice(); window.__lt = []; return { pg: typeof R !== 'undefined' ? R.pg : null, stalls: l.filter(d => d >= 100), turn: typeof curlLog !== 'undefined' ? curlLog[curlLog.length - 1] : '' } }), sleep(20000).then(() => ({ hung: true }))]);
-          o.turns.push(r); if (first || r.hung || /cov/.test(m.m)) await shot(s, (m.m || 'plain') + '-' + i + '-turn' + k); if (r.hung) break;
+          o.turns.push(r); if (first || r.hung || /cov/.test(m.m)) await shot(s, (m.m || 'plain') + '-' + i + (curl ? '-curl' : '-flat') + '-turn' + k); if (r.hung) break;
         }
         await back();
       }
