@@ -1927,3 +1927,7 @@ Dynamic look:
 - Open Fold or tablet, Dynamic: a story with a large wide (or, on the Fold, square) picture opens with the picture over both pages, headline low on the left; the story starts on the next turn. Turn forward and back: no leftover picture, no blank spread.
 - A portrait picture still takes the left page only. Pictures 1600px+ without a caption still open with the sliding sheet on the right.
 - Slow connection: when the picture arrives late there is no empty strip down the right edge of the cover.
+
+## Sliding cover: flash of text at the top right (branch, after 1.318; needs David's open Fold)
+- Open Fold, Dynamic, a story with the sliding sheet cover: turn once (sheet slides to the left page), wait two seconds. The picture on the right must not blink out and show the next page's words for an instant (David's recording 2026-11-11, 1.316: one frame, about a second after the slide).
+- Then turn again: the picture lifts away like a page as before (this one turn is now built when asked for, so check it does not start late).
