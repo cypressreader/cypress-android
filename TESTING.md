@@ -1954,3 +1954,4 @@ Dynamic look:
 - Phone, any look other than Dynamic: the opening picture is taller (about a quarter of the screen) and no longer cropped to a thin strip.
 - Open Fold, Dynamic, long story with no picture and a very long headline (the Guardian live page): the big headline fits on the left page and nothing overlaps the right page.
 - All Stories > Top stories in tile view: same cards with pictures as For you, under the "top stories" heading; tapping a card opens that story (not a neighbor); Sections and Mark read work.
+- (branch, would be 1.323) Open Fold, Dynamic, story with the sliding card over a whole-screen picture: swipe so the card slides left: no flicker when it lands. Turn the next page (the picture lifts away): no flicker on the first moment of the turn.
