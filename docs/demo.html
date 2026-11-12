@@ -5837,7 +5837,9 @@ const hi=u=>{
   .replace(/([?&](?:w|width|maxwidth|resize)=)\d{2,3}\b/gi,'$11200')
   .replace(/(\/resize:fit:)\d{2,3}(\/)/i,'$11200$2')
   .replace(/(substackcdn\.com\/image\/fetch\/[^/]*?w_)\d{2,3}([,/])/i,'$11200$2')
-  .replace(/([?&]quality=)\d{1,2}\b/i,'$185');
+  .replace(/([?&]quality=)\d{1,2}\b/i,'$185')
+  /* a picture service that hands out the camera original when no width is asked for (a 7008x4672 cover is 130 MB once opened: slow turns on a phone, and it killed the test emulator): ask for 2000 px */
+  .replace(/^(https?:\/\/[^?#]*\/wp-content\/uploads\/[^?#]*\?(?!(?:[^#]*&)?(?:w|resize|fit)=)[^#]*\b(?:strip|crop)=[^#]*)$/i,'$1&w=2000');
 };
 function bestFromSrcset(ss){
  if(!ss)return '';
