@@ -98,19 +98,19 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
 
   /* the open Fold, story by story: which cover each one opens with, and how long the main thread stops on its first two turns (run 8: the first turn from a whole-screen picture cover hung the app) */
   await step('covers', async s => {
-    const out = [], seen = {};
+    const out = [], seen = {}; s.info = out; /* kept even when a turn kills the step */
     try {
       await sx('wm size 1768x2208'); await sx('wm density 320'); await sleep(3500); await page.evaluate(() => scrollTo(0, 0));
       for (let i = 0; i < 10; i++) {
         try { await openStory(i) } catch (e) { out.push({ i, err: String(e.message).split('\n')[0].slice(0, 120) }); if (await page.evaluate(() => !!document.querySelector('#rd.on')).catch(() => false)) await back(); continue }
         const m = await page.evaluate(() => { const h = document.querySelector('.cols>.hsf'), im = h && h.querySelector('img.hero'), t = document.querySelector('.cols .tt'); window.__lt = []; return { m: h ? h.dataset.m : '', pic: im ? im.naturalWidth + 'x' + im.naturalHeight : '', title: t ? t.textContent.slice(0, 50) : '' } });
-        const o = { i, ...m, turns: [] }, first = !seen[m.m]; seen[m.m] = 1;
+        const o = { i, ...m, turns: [] }, first = !seen[m.m]; seen[m.m] = 1; out.push(o);
         for (let k = 1; k <= 2; k++) {
           await swipe(.85, .5, .15, .5);
           const r = await Promise.race([page.evaluate(() => { const l = (window.__lt || []).slice(); window.__lt = []; return { pg: typeof R !== 'undefined' ? R.pg : null, stalls: l.filter(d => d >= 100), turn: typeof curlLog !== 'undefined' ? curlLog[curlLog.length - 1] : '' } }), sleep(20000).then(() => ({ hung: true }))]);
           o.turns.push(r); if (first || r.hung || /cov/.test(m.m)) await shot(s, (m.m || 'plain') + '-' + i + '-turn' + k); if (r.hung) break;
         }
-        out.push(o); await back();
+        await back();
       }
     } finally { await sx('wm size reset'); await sx('wm density reset'); await sleep(3000) }
     return out;
