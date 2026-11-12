@@ -9387,6 +9387,9 @@ function tidy(fr){
  if(!fr||!fr.childNodes)return fr;
  try{underscoreItalics(fr)}catch(e){}
  unglue(fr);
+ /* leftovers the device runs caught: a strip of other videos read as story text ('0:59 Title 00:00:59, play video Title'), and a 'Follow topics and authors' box with its list of names */
+ try{fr.querySelectorAll('li').forEach(l=>{if(/\d\d:\d\d:\d\d, play video/i.test(l.textContent)){const u=l.parentNode;l.remove();if(u&&u.nodeType===1&&!u.querySelector('li'))u.remove()}});
+ fr.querySelectorAll('strong,b').forEach(b=>{if(!/^Follow topics and authors$/i.test(b.textContent.trim()))return;const pp=b.parentNode,box=pp&&pp.nodeType===1&&/^Follow topics and authors\s+from this story/i.test(pp.textContent.trim())?pp:null,n=(box||b).nextSibling,t=!box&&n&&n.nodeType===3&&/personalized homepage feed/i.test(n.data)?n:null,u=t?t.nextSibling:n;if(u&&u.nodeType===1&&/^(UL|OL)$/.test(u.tagName))u.remove();if(t)t.remove();(box||b).remove()})}catch(e){}
  const txt=k=>(k.textContent||'').trim(),els=()=>[...fr.childNodes].filter(k=>k.nodeType===1);
  const drop=k=>{if(k.parentNode)k.remove();else k.removed=true};
  /* 1. bylines, bios, roles, captions, share/follow rows and raw markdown left over */
