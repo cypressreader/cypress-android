@@ -1918,3 +1918,7 @@ Dynamic look:
 - A story whose feed sent no picture: the picture from the story's own page appears as the cover a moment after opening (not on data saver or offline).
 - AI summary: a story where the phone's AI fails must show the publisher's line once and stay still (1.315: the text jumped several times a second, Gizmodo 'Universities Are Giving Up on Trying to Detect AI Cheating').
 - (After 1.316, unreleased) Open Fold: wide pictures run across the pages again; only tall or square pictures fill the left page. Check the byline no longer spills onto the right page (David's Nvidia story, large text, AI summary).
+
+## Left-page cover guard (branch, for 1.317; needs David's open Fold)
+- Open Fold, Dynamic, large text, story with a tall or square picture (cover on the left page): the byline ('Today, ... read') stays on the picture, never as a dark block at the top of the right page. Headless: forcing the page height 75px too tall no longer moves the byline (it did before).
+- Open Fold: wide pictures run across both pages again (wide cover), only tall/square ones take the left page.
