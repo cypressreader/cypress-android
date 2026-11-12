@@ -1949,3 +1949,7 @@ Dynamic look:
 ## On the branch after 1.320 (2026-11-12)
 - Screen reader (TalkBack): open a story with pictures inside the text; a picture whose page describes it is read with that description (implemented, unverified on a phone).
 - Open a BBC 'Watch: …' video story on 1.320: it should no longer show a list of other videos as the story.
+- (branch, would be 1.322) Dynamic look, turning pages: a full-screen cover picture drifts very slowly for about 20 seconds and stops the moment you touch the screen; the page turn off the cover shows no jump in the picture. Off with Reduce motion or low power.
+- Open Fold, Dynamic: a wide cover with both a publisher note and an AI summary keeps its full height; the second box starts the right page under the picture.
+- Phone, any look other than Dynamic: the opening picture is taller (about a quarter of the screen) and no longer cropped to a thin strip.
+- Open Fold, Dynamic, long story with no picture and a very long headline (the Guardian live page): the big headline fits on the left page and nothing overlaps the right page.

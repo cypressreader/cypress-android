@@ -1810,7 +1810,7 @@ html.dynx[data-theme=dynamic] #rd{transition:background-color var(--dur-3) ease}
 #rd.vert .cols>.hsf.hs-cov~*{position:relative;z-index:1;--sbg:var(--pn);background:var(--sbg);box-shadow:0 40px 0 var(--sbg)}
 #rd.amb.vert .cols>.hsf.hs-cov~*{--sbg:var(--rbg)}
 #rd.vert .cols>.hsf.hs-cov~.whyit{background:var(--sbg)!important;box-shadow:0 40px 0 var(--sbg)!important}/* the summary box is see-through elsewhere; over the cover it must hide the picture */
-#rd.cpv2 .cols:has(>.hs-wcov) .body::before{display:none}#rd.cpv2:not(.rbk) .cols:has(>.hs-wcov) .body>.wbrk{break-before:column;margin-top:var(--wh2,0px)!important}.cols.wfx>.hsf.hs-wcov .hov{width:100%}
+#rd.cpv2 .cols:has(>.hs-wcov) .body::before{display:none}#rd.cpv2:not(.rbk) .cols:has(>.hs-wcov) :is(.body>.wbrk,.cols>.wbrk){break-before:column;margin-top:var(--wh2,0px)!important}.cols.wfx>.hsf.hs-wcov .hov{width:100%}
 html.rdx .cols>.hsf.hs-wide.hs-wcov img.hero{height:min(calc(var(--ch)*.56),calc(var(--sw)*.62))}.cols>.hsf.hs-wcov .hov{right:auto;width:var(--sw);box-sizing:border-box}.cols>.hsf.hs-wcov .hov .tt{max-width:22em}/* Dynamic cover on two pages: the banner across both pages carries the headline */
 #rd.vert .cols>.hsf.hs-cov+*{margin-top:-20px;padding-top:20px;border-radius:20px 20px 0 0;box-shadow:0 10px 0 var(--sbg),0 20px 0 var(--sbg),0 30px 0 var(--sbg),0 40px 0 var(--sbg),0 -8px 20px rgba(0,0,0,.16)}/* the fill under the sheet copies its rounded corners, so one 40px copy left the picture showing at the sides under a short sheet (the photo button): copies every 10px cover each other's corners */
 /* Dynamic cover, sharp wide picture on two pages: the picture fills the whole first screen, the headline sits lower left and the story starts on a paper sheet over the right page */
@@ -4552,7 +4552,7 @@ html[data-theme=rosewood] #rd .cols .kick{color:#7f5d1c}
 #rd:not(.cine) .cols .body h2{font:600 1.35em/1.16 var(--disp,var(--serif));letter-spacing:-.005em;text-decoration:none;text-align:left;margin:1.35em 0 .45em}
 #rd:not(.cine) .cols .body h2::before{width:20px;height:2px;margin:0 0 .55em;background:var(--rbr);border-radius:1px}
 #rd .cols .body h3{text-decoration:none}
-body.narrow #rd:not(.vert):not(.cpv2) .cols>img.hero{max-height:min(26svh,190px);aspect-ratio:16/9;height:auto}/* R-07: never taller than 16:9 on a phone *//* phones only: on wide two-column pages the taller picture keeps column 1 from looking empty */
+body.narrow #rd:not(.vert):not(.cpv2) .cols>img.hero{max-height:min(40svh,340px);aspect-ratio:3/2;height:auto}/* 1.322 R7: was 16/9 capped at 190px *//* R-07: never taller than 16:9 on a phone *//* phones only: on wide two-column pages the taller picture keeps column 1 from looking empty */
 /* 18. End of a story: related links and any publisher appeal stay in one tidy block, inside the column, never split */
 .rfoot,.rfoot *{max-width:100%}.rfoot{break-inside:avoid;column-span:none;overflow:hidden;margin:1.6em 0 .4em}
 /* two-page screens: the end block may run on from one page to the next (each piece stays whole), so it starts right under the story instead of jumping to a new pair of pages */
@@ -4784,7 +4784,7 @@ html.lowp #tdr .tdaur{animation:none}
 /* phones: room under the page for the running line (site, story, page number); it used to sit below the screen edge */
 @media(max-width:759px){#rd:not(.vert) .book[data-folio]{margin-bottom:calc(30px + env(safe-area-inset-bottom,0px))}#rd:not(.vert) .book[data-folio]::after{bottom:-17px;font-size:9.5px;letter-spacing:.08em;padding:0 12px}}
 #rd.vert .cols>.hsf{margin-bottom:12px}
-#rd.vert .cols img.hero{height:auto;max-height:min(26svh,190px)!important;aspect-ratio:16/9;object-fit:cover}
+#rd.vert .cols img.hero{height:auto;max-height:min(40svh,340px)!important;aspect-ratio:3/2;object-fit:cover}
 }
 /* FIXES 16: one uniform compact story row: picture (or brand tile) on the left, source / headline / "min read · age" on the right, time on the right edge */
 #grid:is(:not([data-w=mag]),.nrp) .card.card:is(.nr-row,.nr-late):not(.nr-m:where(#grid:not(.nrp) *)){display:grid!important;grid-template-columns:clamp(84px,22%,120px) minmax(0,1fr)!important;column-gap:14px;align-items:start;padding:13px 0!important}
@@ -5304,6 +5304,10 @@ html body #grid .card.noimg:is(.nr-hero,.nr-sm2,.nr-tall,.nr-sp,.nr-wide,.nr-lea
 [data-grab]{touch-action:none;cursor:grab}
 #grid .emp details.why{position:static;display:block;width:auto;height:auto;border-radius:0;background:none;border:0;color:var(--mut);font:14px/1.5 var(--sans);margin-top:16px;max-width:28em;text-align:center}
 /* ===== 1.316 pictures first (Dynamic look) ===== */
+/* 1.322 P2: the cover picture drifts very slowly, once, while the page is looked at (paged reading only; the first touch or key stops it where it is, pdStop, so the turning page matches) */
+@keyframes pdrift{to{transform:scale(1.08)}}
+@media (prefers-reduced-motion:no-preference){html.dynx[data-theme=dynamic]:not(.rmo,.lowp) #rd:not(.vert) .cols>.hsf:is([data-m=cov],[data-m=hero])>img.hero:not(.pdz){animation:pdrift 24s linear both}}
+#rd:not(.vert) :is(.tl,.tl-leaf) .hsf>img.hero{animation:none!important}
 /* P1: on a phone the cover picture fills the whole first page, headline low on it */
 html.dynx[data-theme=dynamic] #rd:not(.vert) .cols>.hsf.hs-cov{height:var(--ch);margin:0;break-after:column}
 html.dynx[data-theme=dynamic] #rd.vert .cols>.hsf.hs-cov{height:calc(100svh - 96px)}
@@ -9017,7 +9021,7 @@ function layout(){prepDrop();noteFix();
  try{fitHero(c,cw,gap)}catch(e){elog('fitHero',e)}
  try{fillVoids(c,cw,gap)}catch(e){elog('fillVoids',e)}
  try{fitPage1(c,cw,gap)}catch(e){elog('fitPage1',e)}
- try{fitWide(c,cw,gap)}catch(e){elog('fitWide',e)}
+ try{fitWide(c,cw,gap)}catch(e){elog('fitWide',e)}try{ftpFit(c.querySelector(':scope>.hs-ftp'))}catch(e){}
  try{if(fitWhy(c,cw,gap))fillVoids(c,cw,gap)}catch(e){elog('fitWhy',e)}
  try{origAlone(c)}catch(e){elog('origAlone',e)}
  R.np=Math.max(1,Math.ceil(Math.round((c.scrollWidth+gap)/(cw+gap))/R.cpv));
@@ -9263,6 +9267,8 @@ function endTurn(ok){
 /* a tap or swipe while a page is still turning lands that page at once and turns the next, so every tap counts (the turn itself keeps its speed) */
 const hurry=()=>{const T=R.T;if(T&&!T.warm&&T.ok!=null)endTurn(T.ok)};
 const reduced=()=>!!S.rmo||matchMedia('(prefers-reduced-motion:reduce)').matches;
+/* 1.322 P2: the first touch or key freezes the cover's slow drift where it is, on the page and on its page-turn copies alike */
+const pdStop=()=>{const i=[...document.querySelectorAll('#rd.on:not(.vert) .cols>.hsf>img.hero:not(.pdz)')].find(x=>!x.closest('.tl,.tl-leaf'));if(!i||getComputedStyle(i).animationName!=='pdrift')return;const t=getComputedStyle(i).transform;document.querySelectorAll('#rd .hsf>img.hero').forEach(x=>{x.style.transform=t;x.classList.add('pdz')})};addEventListener('pointerdown',pdStop,true);addEventListener('keydown',pdStop,true);
 let ACX=null;
 function paperSound(){if(!isOn('tsound'))return;try{ACX=ACX||new (window.AudioContext||window.webkitAudioContext)();const c=ACX;if(c.state==='suspended')c.resume();
  const dur=.34,n=Math.floor(c.sampleRate*dur),buf=c.createBuffer(1,n,c.sampleRate),d=buf.getChannelData(0);let lp=0;
@@ -14489,6 +14495,8 @@ function dyVar(land,c){
 const dyWord=()=>(String(curA&&curA.title||'').match(/[A-Za-z]{4,8}(?![A-Za-z’'])/g)||[]).filter(w=>!/^(this|that|with|from|have|will|what|when|where|after|before|about|their|there|could|would|should|been|were|they|them|into|over|more|than|says|said|just|your)$/i.test(w)).sort((a,b)=>b.length-a.length)[0]||'';
 const mozFigs=bd=>bd?[...bd.querySelectorAll(':scope>figure')].filter(f=>{const i=f.querySelector('img'),cp=f.querySelector('figcaption');return i&&/^https?:/.test(i.currentSrc||i.src||'')&&!(cp&&cp.textContent.trim())}):[];
 function csGo(f){if(isVert()){f.scrollIntoView({behavior:reduced()?'auto':'smooth',block:'start'});return}const c=$('.cols');if(!c||!R.step)return;R.pg=Math.max(0,Math.floor((f.getBoundingClientRect().left-c.getBoundingClientRect().left+2)/R.step));show()}
+/* 1.322: a long headline on the long-read title page is made smaller until the whole block fits the page (it ran on over the next page's text: David, open Fold, 2026-11-12) */
+function ftpFit(f){const o=f&&f.querySelector(':scope>.hov'),t=o&&o.querySelector('.tt');if(!t)return;t.style.fontSize='';if(isVert())return;let z=parseFloat(getComputedStyle(t).fontSize);for(let k=0;k<16&&f.clientHeight>80&&o.offsetHeight>f.clientHeight&&z>20;k++){z*=.9;t.style.fontSize=z+'px'}}
 function heroSpread(){
  const c=$('.cols'),bk=$('.book');if(!c||!bk)return;delete c.dataset.dyo;
  const old=c.querySelector(':scope>.hsf');
@@ -14503,7 +14511,7 @@ function heroSpread(){
  })();
  if(old&&old.dataset.m===want)return;
  c.querySelectorAll(':scope>.hsp').forEach(x=>x.remove());c.querySelectorAll('.mzh').forEach(x=>x.classList.remove('mzh'));
- if(old){const tx=[...old.querySelectorAll('.kick,.tt,.dt')];tx.forEach(x=>c.insertBefore(x,old));const im=old.querySelector('img.hero');if(im){/* sizes the banner fitter left on the picture must not follow it into the next cover */im.style.removeProperty('width');im.style.removeProperty('height');const dt=c.querySelector(':scope>.dt'),hc=old.querySelector(':scope>.hcap');if(!tx.length&&dt)dt.after(im);else c.insertBefore(im,old);if(hc)im.after(hc)}old.remove()}
+ if(old){const tx=[...old.querySelectorAll('.kick,.tt,.dt')];tx.forEach(x=>c.insertBefore(x,old));const im=old.querySelector('img.hero');if(im){/* sizes the banner fitter left on the picture must not follow it into the next cover */im.style.removeProperty('width');im.style.removeProperty('height');im.style.removeProperty('transform');im.classList.remove('pdz');const dt=c.querySelector(':scope>.dt'),hc=old.querySelector(':scope>.hcap');if(!tx.length&&dt)dt.after(im);else c.insertBefore(im,old);if(hc)im.after(hc)}old.remove()}
  if(!want){mnotes();return}
  const im=c.querySelector(':scope>img.hero');const pcf=/^(pc|arch|band|duo|glow|side|moz)$/.test(want),pnf=want==='pan'||want==='word'||want==='spec';if(!im&&want!=='post'&&!pnf&&want!=='ftp')return;
  const fig=document.createElement('figure');fig.className='hsf hs-'+(want==='post'?'hero hs-post':pnf?'hero hs-post hs-pan'+(want==='pan'?'':' hs-'+want):pcf?'top hs-pc'+(want==='pc'?'':' hs-'+want):want==='ftp'?'top hs-ftp':want==='spl'?'hero hs-spl':want==='cov'?'hero hs-cov':want==='wcov'?'wide hs-hero hs-wcov':want==='ccov'?'hero hs-ccov':want==='pcov'?'hero hs-ccov hs-pcov':want);fig.dataset.m=want;
@@ -18954,13 +18962,15 @@ function fitWide(c,cw,gap){
  c.classList.remove('wfx');if(im)im.style.removeProperty('width');
  set();if(!im||R.cpv!==2)return;
  const pitch=cw+gap,L=c.getBoundingClientRect().left,pre=[];for(const k of c.children){if(k.classList.contains('body'))break;/* Dynamic cover: the loading line is put on the right page on purpose (CSS), so it must not count as spilled or every loading story loses its banner */if(k.classList.contains('note')&&c.querySelector(':scope>.hs-wcov'))continue;pre.push(k)}
- const fits=()=>pre.every(e=>[...e.getClientRects()].every(q=>!q.width||!q.height||q.left-L<pitch-4));
+ let fit2=false;const fits=()=>fit2||pre.every(e=>[...e.getClientRects()].every(q=>!q.width||!q.height||q.left-L<pitch-4));
+ /* 1.322 R6: the Dynamic banner is not squeezed for a tall summary: the first box that does not fit under it on the left page starts the right page, below the picture (CSS .wbrk), and the story follows it. Only when that does not fit either is the picture made shorter as before */
+ pre.forEach(e=>e.classList.remove('wbrk'));{const wc=c.querySelector(':scope>.hs-wcov');if(wc&&!fits()){const sp=pre.find(e=>e!==wc&&[...e.getClientRects()].some(q=>q.width&&q.height&&q.left-L>=pitch-4));if(sp){sp.classList.add('wbrk');fit2=pre.every(e=>[...e.getClientRects()].every(q=>!q.width||!q.height||q.left-L<2*pitch-4));if(!fit2)sp.classList.remove('wbrk')}}}
  /* David 2026-11-11: the headline sits on the picture, so the picture is never squeezed shorter than the headline block (its top lines were cut off) */const hv=c.querySelector(':scope>.hsf>.hov'),lo=Math.max(150,hv?[...hv.children].reduce((n,e)=>n+e.offsetHeight,0)+64:0);for(let k=0;k<12&&!fits();k++){const h=im.offsetHeight;if(h<=lo)break;im.style.height=Math.max(lo,Math.round(h*.88))+'px';set()}
  /* David 2026-11-07: a banner squeezed to a strip by a tall headline block showed a quarter of the picture while the right page sat empty: the photo goes to the top of the left page at its own shape instead, and the story starts on the right page */
  {const d=(im.complete&&im.naturalWidth)?[im.naturalWidth,im.naturalHeight]:IMGDIM.get(im.getAttribute('src'));if(!R.hsq&&d&&d[1]&&im.offsetHeight&&im.offsetWidth/im.offsetHeight>1.8*d[0]/d[1]){R.hsq='top';relayout();return}}
  if(!fits()){im.style.width='100%';im.style.removeProperty('height');c.style.setProperty('--wh2','0px');c.classList.add('wfx')}/* even a short photo leaves no room on a low screen: the photo stays on the left page and the story follows straight on */
  /* Dynamic cover banner: the story starts on the left page under the picture; the first block that reaches the right page is moved there whole and pushed down below the picture (CSS .wbrk) */
- if(im.closest('.hs-wcov')){const bd=c.querySelector(':scope>.body');if(bd){bd.querySelectorAll(':scope>.wbrk').forEach(x=>x.classList.remove('wbrk'));if(!c.classList.contains('wfx'))for(const k of bd.children){const q=[...k.getClientRects()].pop();if(q&&q.height&&(q.left-L+2)/pitch>=1){k.classList.add('wbrk');break}}}}
+ if(im.closest('.hs-wcov')){const bd=c.querySelector(':scope>.body');if(bd){bd.querySelectorAll(':scope>.wbrk').forEach(x=>x.classList.remove('wbrk'));if(!c.classList.contains('wfx')&&!fit2)for(const k of bd.children){const q=[...k.getClientRects()].pop();if(q&&q.height&&(q.left-L+2)/pitch>=1){k.classList.add('wbrk');break}}}}
 }
 function fitPage1(c,cw,gap){if(curA&&curA.book)return;
  const m=c.querySelector(':scope>.mnotes'),hs=c.querySelector(':scope>.hsf'),im=hs&&hs.querySelector('img.hero');
