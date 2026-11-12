@@ -9072,16 +9072,19 @@ const eRel=p=>1-Math.pow(1-p,1.7);
 const mkEl=(c,st)=>{const e=document.createElement('div');e.className=c;if(st)e.style.cssText=st;return e};
 /* a copy only needs the story up to the end of its own page: the columns fill in order at a fixed height, so what comes after cannot move what is shown; dropping it makes each copy far cheaper to draw. The cut is measured once per page on the real page. */
 let CUT={k:'',m:{}};
-function cutOf(pg){
- const k=prepKey();if(CUT.k!==k)CUT={k,m:{}};if(CUT.m[pg])return CUT.m[pg];
- const c=$('.cols'),e=c.getBoundingClientRect().left+(pg+1)*R.step-1;
- return CUT.m[pg]=[c,c.querySelector(':scope>.body')].map(p=>{const d=[];if(p)[...p.children].forEach((x,i)=>{const r=x.getClientRects();if(r.length&&[...r].every(q=>q.left>=e))d.push(i)});return d.reverse()});
+function cutOf(pg,lh){
+ const k=prepKey();if(CUT.k!==k)CUT={k,m:{}};const ck=pg+(lh?'L':'');if(CUT.m[ck])return CUT.m[ck];
+ const c=$('.cols'),e=c.getBoundingClientRect().left+(pg+1)*R.step-(lh?R.step/R.cpv:0)-1;
+ return CUT.m[ck]=[c,c.querySelector(':scope>.body')].map(p=>{const d=[];if(p)[...p.children].forEach((x,i)=>{const r=x.getClientRects();if(r.length&&[...r].every(q=>q.left>=e))d.push(i)});return d.reverse()});
 }
 /* B2: a book chapter is long, so its copies also drop what ENDS before their page (a late page used to copy the whole chapter so far: ~300 ms per turn at page 15 on a two-page view, a second or more on a phone). Each box it steps into loses its top spacing; a blank of the measured height (a hollow copy of the dropped neighbour, so 'p+p' rules still match) puts the first kept block back on its line, and the copy shifts by the columns it lost. Books only: stories are short. */
-function preOf(pg){
- const k=prepKey();if(CUT.k!==k)CUT={k,m:{}};const ck='p'+pg;if(ck in CUT.m)return CUT.m[ck];
+/* 1.320: stories too, and by the page, not only by the screen. Emulator run 13 and a slowed-down profile showed where a two-page turn's time goes: not in making the 21 copies (about 20 ms) but in the browser laying each one out (170 to 360 ms, growing with the page number, since every copy held the whole story so far). A strip only ever shows one page of the two, so its copy now holds that page alone: the back of the turning page keeps the left page (cutOf lh), its front and the page under it keep the right page (preOf rh). Left alone: the first screen of a story (covers, banners) and the first two screens of a sliding or whole-screen picture cover, whose picture reaches across pages. BOXT=false brings the old whole-story copies back. */
+let BOXT=true;
+const boxTrim=pg=>BOXT&&pg>0&&R.step>0&&(!!(curA&&curA.book)||pg>=2||!$('.cols>.hsf[data-m=ccov],.cols>.hsf[data-m=pcov]'));
+function preOf(pg,rh){
+ const k=prepKey();if(CUT.k!==k)CUT={k,m:{}};const ck='p'+pg+(rh?'R':'');if(ck in CUT.m)return CUT.m[ck];
  let out=null;const c=$('.cols');
- if(c&&curA&&curA.book&&pg>0&&R.step>0){const cr=c.getBoundingClientRect(),cl=cr.left,e0=cl+pg*R.step,path=[];let p=c,K=null;
+ if(c&&curA&&(BOXT?boxTrim(pg):curA.book&&pg>0&&R.step>0)){const cr=c.getBoundingClientRect(),cl=cr.left,e0=cl+pg*R.step+(rh?R.step/R.cpv:0),path=[];let p=c,K=null;
   for(let d=0;d<6;d++){const ch=[...p.children];let i=0;
    while(i<ch.length){const r=[...ch[i].getClientRects()];if(r.length&&!r.every(q=>q.right<=e0+1))break;i++}
    if(i>=ch.length){K=null;break}K=ch[i];path.push(i);
@@ -9090,13 +9093,14 @@ function preOf(pg){
  }
  return CUT.m[ck]=out;
 }
-function mkBox(pg,x0,pk){
+function mkBox(pg,x0,pk,sd){
+ if(!(sd&&R.cpv===2&&boxTrim(pg)))sd='';/* sd: 'L' or 'R', the one page of the two this copy is seen through */
  const bk=$('.book'),v=$('.view').cloneNode(true),c=v.querySelector('.cols');if(pk)c.classList.add('cpk');/* the page under the lifted picture */
- {const ps=[c,c.querySelector(':scope>.body')];cutOf(pg).forEach((d,j)=>{const p=ps[j];if(p)d.forEach(i=>{const x=p.children[i];if(x)x.remove()})})}
+ {const ps=[c,c.querySelector(':scope>.body')];cutOf(pg,sd==='L').forEach((d,j)=>{const p=ps[j];if(p)d.forEach(i=>{const x=p.children[i];if(x)x.remove()})})}
  v.removeAttribute('id');v.setAttribute('aria-hidden','true');v.inert=true;/* a copy is only a picture of the page: screen readers and the Tab key skip it */v.style.cssText=`position:absolute;inset:auto;top:0;left:${-x0}px;width:${bk.clientWidth}px;height:${bk.clientHeight}px`;
- const P=preOf(pg);let sh=0;
+ const P=preOf(pg,sd==='R');let sh=0;
  if(P){let p=c;P.path.forEach((i,d)=>{const ch=[...p.children];for(let j=0;j<i;j++)ch[j].remove();const K=ch[i],st=K.style;st.marginTop='0';st.breakBefore='auto';
-  if(d<P.path.length-1){st.paddingTop='0';st.borderTopWidth='0'}else{const pv=ch[i-1],sp=pv&&!/^(IMG|BR|HR|SVG|PICTURE|VIDEO|IFRAME|TABLE)$/i.test(pv.tagName)?pv.cloneNode(false):document.createElement('div');sp.removeAttribute('id');sp.style.cssText=`display:block;height:${P.h}px;margin:0;padding:0;border:0;min-height:0;float:none;position:static;break-before:auto;break-after:auto`;K.before(sp)}p=K});sh=P.dc*R.step/R.cpv}
+  if(d<P.path.length-1){st.paddingTop='0';st.borderTopWidth='0'}else{const pv=ch[i-1],sp=pv&&!/^(IMG|BR|HR|SVG|PICTURE|VIDEO|IFRAME|TABLE)$/i.test(pv.tagName)?pv.cloneNode(false):document.createElement('div');sp.removeAttribute('id');sp.style.cssText=`display:block;visibility:hidden;height:${P.h}px;margin:0;padding:0;border:0;min-height:0;float:none;position:static;break-before:auto;break-after:auto`;K.before(sp)}p=K});sh=P.dc*R.step/R.cpv}
  c.style.transform=`translateX(${-pg*R.step+sh}px)`;
  return v;
 }
@@ -9108,26 +9112,26 @@ function startTurn(dir,lazy){
  const T=R.T={my:tok,dir,to,hw,hx,two,peel,ang:dir>0?0:180,dead:false,els:[],q:lazy?[]:null};
  R.busy=true;edgeHide(bk,1);bk.classList.toggle('one',!two);
  const pgF=dir>0?R.pg:to,pgB=dir>0?to:R.pg;
- const face=(cls,pg,x0,pk)=>{const f=mkEl('tf '+cls);f.style.width=hw+'px';if(pg!=null)f.append(mkBox(pg,x0,pk));return f};
+ const face=(cls,pg,x0,pk,sd)=>{const f=mkEl('tf '+cls);f.style.width=hw+'px';if(pg!=null)f.append(mkBox(pg,x0,pk,sd));return f};
  const cast=mkEl('tl-cast');
  T.cr=document.createElement('i');T.cl=document.createElement('i');
  T.cr.style.background='linear-gradient(to right,rgba(0,0,0,.2),rgba(0,0,0,.08) 35%,rgba(0,0,0,.02) 70%,rgba(0,0,0,0))';T.cl.style.background='linear-gradient(to left,rgba(0,0,0,.2),rgba(0,0,0,.08) 35%,rgba(0,0,0,.02) 70%,rgba(0,0,0,0))';
  cast.append(T.cr,T.cl);
  const leaf=mkEl('tl-leaf',`left:${hx}px;width:${hw}px`);
- /* a whole-screen picture cover turns as one flat page: the curl copied the full-spread picture into every strip (33 copies), and the open Fold stopped responding on that turn in emulator run 8 (unproven as the cause: runs 10 and 11 lost the emulator itself) */const cp=two&&Math.min(R.pg,to)===0&&$('.cols>.hsf[data-m=pcov]')?{N:0,why:'whole-screen picture'}:curlPlan();curlNote(cp);
+ const cp=curlPlan();curlNote(cp);
  if(cp.N){
   const N=cp.N,sw=hw/N;T.st=[];T.N=N;T.sw=sw;T.cap=cp.cap;
   for(let i=0;i<N;i++){
    const el=mkEl('tl-s',`left:0;width:${sw+1}px`);
    const f=mkEl('tf'),fs=shade('to right');fs.style.background='#000';f.append(fs);el.append(f);
    const b=mkEl('tf bk'),bs=shade('to left');bs.style.background='#000';b.append(bs);el.append(b);
-   const fill=()=>{f.prepend(mkBox(pgF,hx+i*sw));if(two)b.prepend(mkBox(pgB,hw-(i+1)*sw,peel))};if(T.q)T.q.push(fill);else fill();/* a turn built ahead copies the page into its strips later, a few per idle moment */
+   const fill=()=>{f.prepend(mkBox(pgF,hx+i*sw,0,'R'));if(two)b.prepend(mkBox(pgB,hw-(i+1)*sw,peel,'L'))};if(T.q)T.q.push(fill);else fill();/* a turn built ahead copies the page into its strips later, a few per idle moment */
    leaf.append(el);T.st.push({el,f,b,o:-1});
   }
  }else{
- const f=face('',pgF,hx);T.fs=shade('to right');f.append(T.fs);T.sn=mkEl('tsheen');f.append(T.sn);
+ const f=face('',pgF,hx,0,'R');T.fs=shade('to right');f.append(T.fs);T.sn=mkEl('tsheen');f.append(T.sn);
  leaf.append(f);
- if(two){const b=face('bk',pgB,0,peel);T.bs=shade('to left');b.append(T.bs);leaf.append(b)}
+ if(two){const b=face('bk',pgB,0,peel,'L');T.bs=shade('to left');b.append(T.bs);leaf.append(b)}
  else{const b=mkEl('tf bk');b.style.width=hw+'px';T.bs=shade('to left');b.append(T.bs);leaf.append(b)}
  }
  T.leaf=leaf;
@@ -9137,7 +9141,7 @@ function startTurn(dir,lazy){
  const ux=(dir>0)?hx:0;
  if(dir>0||two){
   const u=mkEl('tl tl-under',`left:${ux}px;width:${hw}px`);
-  u.append(mkBox(to,ux,peel));
+  u.append(mkBox(to,ux,peel,dir>0?'R':'L'));
   T.us=shade(dir>0?'to right':'to left');u.append(T.us);
   bk.append(u);T.els.push(u);
  }
