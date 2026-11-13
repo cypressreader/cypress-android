@@ -1975,5 +1975,5 @@ Dynamic look:
 - [ ] Dragging slowly with a finger: the card follows the finger; letting go early drops it back.
 - [ ] Page-turn style set to Slide, Fade or None, or Reduce motion on: the cover still works (card slides or jumps as before).
 
-## After 1.325 (not released yet)
+## 1.326
 - [ ] Phone (or closed Fold), Dynamic, scrolling mode, story with a whole-screen picture: scroll down. The story slides up over the picture and the picture is gone completely; no strip of it stays at the top (headless-checked only).
