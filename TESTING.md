@@ -1968,7 +1968,7 @@ Dynamic look:
 - [ ] No new settings: on the open Fold in Dynamic, a story whose picture is under 1600px wide opens with the whole picture in a ruled frame or with the banner (the same one every time for that story); larger pictures still get the sliding cover. Both open and turn without flicker.
 - (The list above shipped as 1.324 on 2026-11-12.)
 
-## After 1.324 (not released yet): cover card turns like a leaf
+## 1.325: cover card turns like a leaf
 - [ ] Open Fold, Dynamic, story with a whole-screen picture and the card: swipe or tap forward. The card swings over on the middle of the book like one sheet and lands on the left page with the next words on it; the picture does not move, flicker or stutter (headless-checked only).
 - [ ] Next turn: the picture fades away in place and both pages are plain text; no stutter, no headline showing through the card while it fades.
 - [ ] Going back: first the picture fades back in, then the card swings back to the right page.
