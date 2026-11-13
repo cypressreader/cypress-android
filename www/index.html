@@ -7464,6 +7464,7 @@ const JK={
   {h:/(^|\.)engadget\.com$/,sel:['[class*="newsletter" i]','[class*="deals-widget" i]'],txt:[/^add engadget on google\W*$/i,/^(follow|find) engadget (on|at) /i]},
   {h:/(^|\.)wired\.com$/,sel:['[class*="newsletter" i]','[class*="paywall" i][class*="promo" i]','[class*="inline-ad" i]','[class*="consumer-marketing" i]'],txt:[/^subscribe to wired\b/i,/^(sign up|get) .{0,50}wired.{0,40}(newsletter|inbox)/i,/^read(ing)? (more|similar) (stories|from)/i,/^this (story|article) (originally )?appeared in wired/i,/^(you can (also )?)?(read|find) (more|the rest)\b.{0,40}\bwired\b/i]},
   {h:/(^|\.)cnn\.com$/,sel:['[class*="ad-feedback" i]','[class*="newsletter" i]','[class*="inline-placeholder" i]'],txt:[/^sign up for cnn.{0,60}/i,/^(cnn )?(breaking )?news alerts?\W*$/i,/^download the cnn app/i,/^(watch|listen) (cnn|now)\b.{0,40}$/i,/^(cnn['’]s? .{2,40}) (contributed|reported) to this report\W*$/i]},
+  {h:/(^|\.)justthenews\.com$/,cut:['.node__sidebar','.node__post-content','.node__text--dig-deeper','.node__dates','.block-tabs','.views-element-container','.node--view-mode-card','[class*="Unlock_unlimited" i]'],sel:[],txt:[/^published: \w+ \d{1,2}, \d{4}/i,/^unlock unlimited access\W*$/i]},
   {h:/(^|\.)npr\.org$/,sel:['[class*="sponsor" i]','[class*="donate" i]','[class*="support" i][class*="npr" i]'],txt:[/^(support|donate to) (public|npr|the)/i,/^sponsor message\W*$/i,/^become an npr sponsor/i,/^(subscribe to|get) (the )?npr .{0,40}(newsletter|podcast)/i,/^copyright (\d{4} )?npr/i]},
   {h:/(^|\.)aljazeera\.(com|net)$/,sel:['[class*="newsletter" i]','[class*="more-on" i]','[class*="trending" i]'],txt:[/^sign up for al jazeera\b/i,/^follow al jazeera\b/i,/^(recommended|more) stories\W*$/i,/^list of \d+ items\W*$/i,/^(advertisement|sponsored)\W*$/i,/^(the )?(al jazeera|aj) (app|newsletter|podcast)\b/i]},
   {h:/(^|\.)(reuters\.com|apnews\.com)$/,sel:['[class*="newsletter" i]'],txt:[/^(our standards|acquire licensing rights|sign up here)\b/i,/^(thomson reuters|the associated press) (trust principles|all rights)/i]},
@@ -7489,6 +7490,8 @@ function jkNarrative(el){
 function junkDom(d,base){
  if(!d||!d.querySelectorAll)return;
  const host=jkHost(base),pub=JK.PUB.find(x=>x.h.test(host)),sels=[JK.SEL].concat(pub?pub.sel:[]).filter(Boolean).join(',');
+ /* cut: a publisher's own page furniture, named exactly, removed whatever it holds (lists of other stories hold <article> cards, which the careful rules below never touch) */
+ if(pub&&pub.cut)try{d.querySelectorAll(pub.cut.join(',')).forEach(e=>e.remove())}catch(e){}
  let n=0;
  try{d.querySelectorAll(sels).forEach(e=>{
   if(!e.isConnected||e.matches('html,body,main,article')||e.querySelector('article,main,h1'))return;
@@ -9230,6 +9233,8 @@ function cvSlide(to){const c=$('.cols');if(!c)return;if(R.peek)cvPeek(false,true
 function cvFade(on){const c=$('.cols');if(!c)return;const ms=reduced()?0:320;R.cpk=on;c.style.setProperty('--cvd',ms+'ms');c.classList.add('cfd');show();clearTimeout(R.pkT);R.pkT=setTimeout(()=>{c.style.removeProperty('--cvd');c.classList.remove('cfd')},ms+60);turnTick()}
 function cvPeek(on,now){const c=$('.cols');if(!c)return;const ms=now||reduced()?0:420;R.peek=!!on;c.style.setProperty('--cvd',ms+'ms');c.classList.add('cpeeking');c.classList.toggle('cpeek',R.peek);
  clearTimeout(R.pkT);R.pkT=setTimeout(()=>{c.classList.remove('cpeeking');c.style.removeProperty('--cvd')},ms+40)}
+/* a page turn that cannot be built must never leave the story stuck on its page (David 2026-11-13: a story would not change pages): clear the half-built turn and change the page plainly */
+function turnFail(e,to){elog('turn',e);const T=R.T;R.T=null;if(T&&T.els)T.els.forEach(x=>x.remove());R.busy=false;const bk=$('.book');if(bk){edgeHide(bk,0);bk.style.perspectiveOrigin=''}R.pg=to;show()}
 function go(d){
 hurry();R.navAt=Date.now();if(!R.fa&&!isVert()&&R.np>1){R.fa=1;$('#rd').classList.add('fauto')}/* R-10 */
  if(R.busy&&R.T&&R.T.warm)endTurn(false);
@@ -9239,7 +9244,7 @@ hurry();R.navAt=Date.now();if(!R.fa&&!isVert()&&R.np>1){R.fa=1;$('#rd').classLis
  if(R.web||R.busy||to<0||to>=R.np)return;
  if(reduced()){R.pg=to;show();return}
  if(rdxPturn()!=='paper'){rdxTurn(to);return}
- const T=startTurn(d);T.ok=true;paperSound();
+ let T;try{T=startTurn(d)}catch(e){turnFail(e,to);return}T.ok=true;paperSound();
  anim(T.ang,d>0?180:0,1280,eBack,()=>endTurn(true));
 }
 /* Tab onto a link on a later page: the browser slid the page strip sideways to show it (both pages cut mid-word, page number unchanged). The strip is put back and the book turns to the page that holds the link */
@@ -11266,7 +11271,7 @@ rdEl.addEventListener('pointermove',e=>{
   if(ccv()&&(R.peek||(R.pg===1&&(dir>0?!R.cpk:R.cpk))||((R.pg===0||(R.pg===1&&dir<0))&&(reduced()||rdxPturn()!=='paper')))){D=null;go(dir);return}
   if(reduced())return;
   {const ps=rdxPturn();if(ps==='slide'){R.busy=true;D.slide=true;D.x0=e.clientX;try{$('.book').setPointerCapture(e.pointerId)}catch(_){}}if(ps!=='paper'){if(D.slide){D.s.push({t:e.timeStamp,x:e.clientX});rdxSlideMove(D,e.clientX)}return}}
-  startTurn(dir);paperSound();D.act=true;D.dir=dir;D.x0=e.clientX;
+  try{startTurn(dir)}catch(er){D=null;turnFail(er,R.pg+dir);return}paperSound();D.act=true;D.dir=dir;D.x0=e.clientX;
   try{$('.book').setPointerCapture(e.pointerId)}catch(_){}
  }
  const T=R.T;if(!T)return;
