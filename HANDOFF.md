@@ -2,7 +2,7 @@
 Old detail (dated session logs, FIXES 16-26 notes, debugging traces) lives in `HANDOFF-ARCHIVE.md`: don't read it on boot, `grep` it only if needed.
 Keep THIS file under ~8 KB: when it grows past that, move finished/dated items to the archive and keep only rules, open items and the next tasks.
 
-Last updated: 2026-11-12 (main = 1.326 (2026.11.13b), released on David's `build`, build 391 NOT yet confirmed green; work branch claude/handoff-continuation-4dxx6p). Do NOT push HANDOFF-only commits to main (every push to main starts an APK build).
+Last updated: 2026-11-12 (main = 1.326 (2026.11.13b), build 391 + tests + site CONFIRMED green; work branch claude/handoff-continuation-4dxx6p). Do NOT push HANDOFF-only commits to main (every push to main starts an APK build).
 ## 1. Working & locked (verified; don't change core logic without asking)
 - **Halcyon theme** (`halcyon`/`halcyond`): website palette (cream `#f3ecdc`, green `#123524`/`#0c2619`, brass `#c9a24a`/`#b08d3e`), follows phone via `twinApply`. Headlines use `--disp` (narrow display serif) with `!important` (user's choice). Dark-brass labels on cream `#7d5f14`; light-brass `#e2c27a` on dark `.noimg` lead/hero cards (`.noimg` ≠ cream card).
 - **The Daily**: name once per section (`sh()`), one-line intros (`DAYDEK`), "Vol. 26 · No. 290" line, "Next up" styled like "Since this morning", "In this issue" links use `jumpTop`, cover number `.dcv-num`.
