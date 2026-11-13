@@ -1978,6 +1978,6 @@ Dynamic look:
 ## 1.326
 - [ ] Phone (or closed Fold), Dynamic, scrolling mode, story with a whole-screen picture: scroll down. The story slides up over the picture and the picture is gone completely; no strip of it stays at the top (headless-checked only).
 
-## After 1.326 (not released yet)
+## 1.327
 - [ ] Just the News story (the Microsoft outage one, or any other): only the story's own paragraphs, ending with the tree mark; no "Unlock unlimited access", "Top Stories" or section lists, in page mode and in scrolling mode (checked headless against the real page).
 - [ ] Same story on the open Fold in page mode: pages turn. (The stuck page from the 2026-11-13 recording was NOT reproduced; a failed page turn now falls back to a plain page change instead of sticking.)
