@@ -1071,7 +1071,7 @@ main{overscroll-behavior-y:none}
 @media(max-width:600px){
  .body .tbl.wide{border:0;overflow:visible;box-shadow:none}
  .body .tbl.wide table.cardable,.body .tbl.wide table.cardable tbody,.body .tbl.wide table.cardable tr,.body .tbl.wide table.cardable td{display:block;width:100%;min-width:0;max-width:none}
- .body .tbl.wide table.cardable thead{display:none}
+ .body .tbl.wide table.cardable thead,.body .tbl.wide table.cardable tr:has(>th):not(:has(>td)){display:none}
  .body .tbl.wide table.cardable tr{border:1px solid var(--ln);border-radius:12px;margin:0 0 10px;padding:6px 12px;background:var(--pn,var(--bg));break-inside:avoid}
  .body .tbl.wide table.cardable td{border:0;padding:4px 0;display:flex;gap:10px;position:static;font-size:13.5px;font-weight:400}
  .body .tbl.wide table.cardable td::before{content:attr(data-l);flex:0 0 84px;color:var(--mut);font-size:12px;padding-top:1px}
@@ -3546,7 +3546,7 @@ body:not(.narrow):not(.split).reading:not(.sideshow) #sideh{display:flex}
 .hlh{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;margin:0 0 6px}.hlh .hint{margin:0}
 .hlc{position:relative;margin:0 0 16px;padding:26px 22px 14px 24px;border:0;border-radius:6px;background:linear-gradient(160deg,color-mix(in srgb,var(--b) 14%,var(--pn)),var(--pn));border-top:4px solid var(--b);box-shadow:0 1px 0 var(--ln)}
 .hl-q{position:absolute;left:14px;top:-4px;font:400 84px/1 var(--disp,var(--serif));color:var(--b);opacity:.35}
-.hlc blockquote{font:italic 400 clamp(21px,5vw,26px)/1.3 var(--disp,var(--serif));text-indent:0;padding-top:12px}
+.hlc blockquote{font:italic 400 clamp(21px,5vw,26px)/1.3 var(--disp,var(--serif));text-indent:0;padding-top:12px;overflow-wrap:anywhere}
 .hlc figcaption{margin-top:10px;display:flex;flex-direction:column;gap:2px;font:12.5px var(--sans);color:var(--mut)}.hlc figcaption button{all:unset;cursor:pointer;color:var(--ink);font:600 13.5px var(--sans);text-decoration:underline;text-decoration-color:var(--ln);text-underline-offset:3px}
 .hlc .hm{display:flex;gap:14px;margin-top:8px}.hlc .hm button{all:unset;cursor:pointer;font:600 12px var(--sans);color:var(--mut)}.hlc .hm button:focus-visible,.hlc figcaption button:focus-visible{outline:2px solid var(--logo);outline-offset:2px}
 /* correction round, cluster 2: briefing furniture */
@@ -11933,13 +11933,15 @@ async function localGo(q){use1('near');const my=localGo.n=(localGo.n||0)+1;
   if(!ok.length)throw new Error('Couldn’t reach a local news source right now. Check your connection and try again');
   LOC={st:'ok',q,city:q,res:ok};
  }catch(e){LOC={st:'fail',q,msg:e.message}}
- pop();
+ pop();locFocus();
 }
+/* redrawing Near you must not drop a keyboard user's focus to the page; on a touch screen the box is left alone so the keyboard does not pop up over the results */
+function locFocus(){const q=$('#locq');if(q&&document.activeElement===document.body&&matchMedia('(hover:hover)').matches)q.focus()}
 function localAct(t){
  const a=t.dataset.local;
  if(a==='find'){localGo($('#locq').value);return}
- if(a==='save'){S.places=S.places||[];if(S.places.length>=PLACES_MAX){toast('You can save up to '+PLACES_MAX+' places. Remove one first.');return}if(LOC.city&&!S.places.some(x=>x.toLowerCase()===LOC.city.toLowerCase())){S.places.push(LOC.city);save();pop()}}
- else if(a==='rm'){const i=+t.dataset.i;if(S.places&&S.places[i]!=null){const n=S.places[i];S.places.splice(i,1);save();pop();toast('Removed “'+n+'” from your places')}}
+ if(a==='save'){S.places=S.places||[];if(S.places.length>=PLACES_MAX){toast('You can save up to '+PLACES_MAX+' places. Remove one first.');return}if(LOC.city&&!S.places.some(x=>x.toLowerCase()===LOC.city.toLowerCase())){S.places.push(LOC.city);save();pop();locFocus()}}
+ else if(a==='rm'){const i=+t.dataset.i;if(S.places&&S.places[i]!=null){const n=S.places[i];S.places.splice(i,1);save();pop();locFocus();toast('Removed “'+n+'” from your places')}}
 }
 $('#pop').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='locq'){e.preventDefault();localGo(e.target.value)}});
 let wsAuto=0;
@@ -12207,7 +12209,7 @@ function renderNotes(){
  if(!S.hl.length){$('#grid').innerHTML=emp('No highlights yet','Select text in a story and tap Highlight. Your highlights are kept here.',EA('td'));return}
  $('#grid').innerHTML=`<div class="hlh"><p class="hint">${plu(S.hl.length,'highlight','highlights')}</p><button class="tx2" data-hexport="1">Export as Markdown</button></div>${S.hl.length>5?'<input type="search" id="hlq" class="hlq" placeholder="Search your highlights and notes" aria-label="Search your highlights and notes" enterkeyhint="search">':''}`+S.hl.map((h,i)=>`<figure class="hlc" style="--b:${esc({y:'#e6b800',g:'#2fa866',r:'#e0567a'}[h.c]||h.art.fc||'#7c5cff')}"><span class="hl-q" aria-hidden="true">“</span><blockquote>${esc(h.q)}</blockquote>${h.note?`<p class="hn">${esc(h.note)}</p>`:''}<figcaption><button data-hopen="${i}">${esc(h.art.title)}</button><span>${esc(h.art.ft||'')} · ${esc(new Date(h.t).toLocaleDateString())}</span></figcaption><div class="hm"><button data-hshare="${i}">Share as image</button><button data-hdel="${i}" aria-label="Remove highlight: ${esc(String(h.q||'').slice(0,40))}">Remove</button></div></figure>`).join('');
 }
-/* the Highlights page filters as you type: quote, note, story title and site */document.addEventListener('input',e=>{if(!e.target||e.target.id!=='hlq')return;const q=e.target.value.trim().toLowerCase();document.querySelectorAll('#grid .hlc').forEach(c=>{c.style.display=q&&!c.textContent.toLowerCase().includes(q)?'none':''})});
+/* the Highlights page filters as you type: quote, note, story title and site */document.addEventListener('input',e=>{if(!e.target||e.target.id!=='hlq')return;const q=e.target.value.trim().toLowerCase();let n=0;document.querySelectorAll('#grid .hlc').forEach(c=>{const h=q&&!c.textContent.toLowerCase().includes(q);c.style.display=h?'none':'';if(!h)n++});let m=$('#hlnone');if(!m){m=document.createElement('p');m.id='hlnone';m.className='hint';m.setAttribute('role','status');m.style.cssText='padding:24px 16px;text-align:center';$('#grid').append(m)}m.textContent=n?'':'No highlights match that.';m.hidden=!!n});
 function hlText(){
  const by={};S.hl.forEach(h=>{(by[h.art.link]=by[h.art.link]||{art:h.art,l:[]}).l.push(h)});
  return '# My highlights\n\n'+Object.values(by).map(g=>`## ${g.art.title}\n${g.art.ft||''}${g.art.date?' · '+new Date(g.art.date).toLocaleDateString():''}\n${g.art.link}\n\n`+g.l.map(h=>'> '+h.q.replace(/\n+/g,' ')+(h.note?'\n\nNote: '+h.note:'')).join('\n\n')).join('\n\n---\n\n');
@@ -12539,15 +12541,15 @@ function mnMarkup(){
   +`<div class="rshq">${a&&a.book?q('save',BKBM,sv?'Bookmarked':'Bookmark',` aria-pressed="${sv}"`):q('save',STAR,sv?'Saved':'Save',` aria-pressed="${sv}"`)}${q('share',RDX_SHR,'Share')}${tts?q('listen',SPK,'Listen'):''}${q('aa',RDX_AA,'Text',' aria-haspopup="dialog" aria-label="Text and appearance"')}</div>`
   +(tts?`<div class="rshl"><div class="rshp">${fold('lst','Listening options',RIC.auto)}${row('auto','Hands-free reading',' hidden data-fg="lst"')}${row('rp','Playback settings',' hidden data-fg="lst"')}</div></div>`:'')
   +grp('mng1',a&&a.book?'This chapter':'This story',`<div class="rshp">${a&&a.book?row('toc','Contents'):row('hub','Full coverage')}${row('find',a&&a.book?'Find in chapter':'Find in story')}</div>${row('jump','Jump to section',' hidden')}${row('upnext','Add to Up Next')}${row('tr','Translate story')}${a&&a.cm?row('comments',cmLabel(a.cm)==='Comments'?'Comments on the site':cmLabel(a.cm)):''}`)
-  +grp('mng2','Open or send',`${row('web','Site view in the app')}${fold('snd','Send to…',RIC.browser)}${row('browser','Browser',' hidden data-fg="snd"')}${row('pdf','PDF',' data-exact hidden data-fg="snd"')}${row('kindle','Kindle',' data-exact hidden data-fg="snd"')}${row('md','Markdown file',' data-exact hidden data-fg="snd"')}${row('shimg','Share as picture')}`)
-  +grp('mng3',esc(site||'This site'),`${fl?row('follow','Follow '+esc(site),' class="rfol"'):''}${a&&a.by&&!hasBy(a.by)?row('fby','Follow '+esc(a.by)):''}${row('unread','Mark as unread')}${fold('wrg','Something wrong?',RIC.rpt)}${row('junk','Hide text',' hidden data-fg="wrg"')}${row('rpt','Report a problem',' hidden data-fg="wrg"')}`)
-  +`<div class="rshr" role="group" aria-label="Rate this story"><button type="button" class="thb${v>0?' on':''}" data-rate="1" aria-pressed="${v>0}">${svg(TH_UP)}<span>More like this</span></button><button type="button" class="thb${v<0?' on':''}" data-rate="-1" aria-pressed="${v<0}">${svg(TH_DN)}<span>Less like this</span></button></div></div>`;
+  +(a&&a.book?'':grp('mng2','Open or send',`${row('web','Site view in the app')}${fold('snd','Send to…',RIC.browser)}${row('browser','Browser',' hidden data-fg="snd"')}${row('pdf','PDF',' data-exact hidden data-fg="snd"')}${row('kindle','Kindle',' data-exact hidden data-fg="snd"')}${row('md','Markdown file',' data-exact hidden data-fg="snd"')}${row('shimg','Share as picture')}`))
+  +(a&&a.book?'':grp('mng3',esc(site||'This site'),`${fl?row('follow','Follow '+esc(site),' class="rfol"'):''}${a&&a.by&&!hasBy(a.by)?row('fby','Follow '+esc(a.by)):''}${row('unread','Mark as unread')}${fold('wrg','Something wrong?',RIC.rpt)}${row('junk','Hide text',' hidden data-fg="wrg"')}${row('rpt','Report a problem',' hidden data-fg="wrg"')}`))
+  +(a&&a.book?'</div>':`<div class="rshr" role="group" aria-label="Rate this story"><button type="button" class="thb${v>0?' on':''}" data-rate="1" aria-pressed="${v>0}">${svg(TH_UP)}<span>More like this</span></button><button type="button" class="thb${v<0?' on':''}" data-rate="-1" aria-pressed="${v<0}">${svg(TH_DN)}<span>Less like this</span></button></div></div>`);/* a book chapter has no site, no web page and nothing to rate: those groups are left out */
 }
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#mn [data-fold]');if(!b)return;e.stopPropagation();const o=b.getAttribute('aria-expanded')!=='true';b.setAttribute('aria-expanded',String(o));document.querySelectorAll('#mn [data-fg="'+b.dataset.fold+'"]').forEach(x=>{x.hidden=!o})},true);
 /* polish-2026-10 I6: a story from a site you don't follow (full coverage, search, Near you) can be followed from the sheet */
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#mn [data-act="follow"]');if(!b||!curA)return;e.preventDefault();e.stopPropagation();b.disabled=true;(b.querySelector('.mnl')||b).textContent='Following…';followSite('https://'+host(curA.link)).then(r=>{(b.querySelector('.mnl')||b).textContent=r?'Following':'Follow site';b.disabled=!!r}).catch(()=>{(b.querySelector('.mnl')||b).textContent='Follow site';b.disabled=false})},true);
 /* keeps the sheet's Save button in step with the story's saved state */
-function rdxMnSync(){if(!curA)return;const sv=isSaved(curA);document.querySelectorAll('#mn [data-act="save"],.rfoot [data-act="save"]').forEach(b=>{b.setAttribute('aria-pressed',String(sv));const o=b.querySelector('svg');if(o)o.outerHTML=starSvg(sv);const l=b.querySelector('.mnl');if(l)l.textContent=sv?'Saved':'Save';else if(!o)b.textContent=sv?'Saved':'Save'})}
+function rdxMnSync(){if(!curA||curA.book)return;/* a chapter's button is Bookmark, set when the sheet is built */const sv=isSaved(curA);document.querySelectorAll('#mn [data-act="save"],.rfoot [data-act="save"]').forEach(b=>{b.setAttribute('aria-pressed',String(sv));const o=b.querySelector('svg');if(o)o.outerHTML=starSvg(sv);const l=b.querySelector('.mnl');if(l)l.textContent=sv?'Saved':'Save';else if(!o)b.textContent=sv?'Saved':'Save'})}
 let RDX_MNO=null;
 function rdxMnOpen(){
  const m=$('#mn');if(!m||!m.hidden)return;if(!m.dataset.drag){m.dataset.drag=1;sheetDrag(m,()=>rdxMnClose(true))}/* pull the grip down to close, like the Aa sheet; the sheet is rebuilt with each story, so this is wired on first open */if($('#pb'))$('#pb').hidden=true;try{mnJump()}catch(e){}rdxMnSync();
@@ -16452,14 +16454,14 @@ function openYir(){
   D.hl.length?`<small>You highlighted ${D.hl.length} passage${D.hl.length===1?'':'s'}. One of them:</small><blockquote>“${esc(D.hl[0].q.slice(0,200))}”</blockquote><p>${esc(D.hl[0].art.title||'')}</p>`:'',
   `<small>Thanks for reading</small><h1>See you in ${D.y+1}</h1><button class="go" data-yshare>Share my year</button>`
  ].filter(Boolean);
- let o=$('#yir');if(o)o.remove();o=document.createElement('div');o.id='yir';o.style.setProperty('--yc',col);
+ let o=$('#yir');if(o)o.remove();o=document.createElement('div');o.id='yir';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Your year in reading');const opener=document.activeElement;o.style.setProperty('--yc',col);
  o.innerHTML=`<div class="ybars">${slides.map(()=>'<b><i></i></b>').join('')}</div><button class="ib yx" aria-label="Close">${svg('<path d="M6 6l12 12M18 6 6 18"/>')}</button>${slides.map((h,i)=>`<section class="ys" data-s="${i}">${h}</section>`).join('')}`;
  document.body.append(o);pushLayer('yir');let i=0,tm=0;
  const go=k=>{i=k;if(i<0)i=0;if(i>=slides.length)return close();o.querySelectorAll('.ys').forEach((s,j)=>s.classList.toggle('on',j===i));o.querySelectorAll('.ybars b').forEach((b,j)=>{b.className=j<i?'done':j===i?'on':''});clearTimeout(tm);if(i<slides.length-1&&!matchMedia('(prefers-reduced-motion:reduce)').matches)tm=setTimeout(()=>go(i+1),6000)};
- const ac=new AbortController(),close=()=>{ac.abort();clearTimeout(tm);dropLayer('yir');o.classList.remove('in');setTimeout(()=>o.remove(),250)};
+ const ac=new AbortController(),close=()=>{ac.abort();clearTimeout(tm);dropLayer('yir');o.classList.remove('in');setTimeout(()=>o.remove(),250);try{opener&&opener.focus()}catch(e){}};
  o.addEventListener('click',async e=>{if(e.target.closest('.yx'))return close();if(e.target.closest('[data-yshare]')){clearTimeout(tm);const c=await yirImage(D);shareCanvas(c,'cypress-'+D.y+'.png','My '+D.y+' in CyPress');return}const r=o.getBoundingClientRect();go(e.clientX<r.left+r.width*.3?i-1:i+1)});
- document.addEventListener('keydown',e=>{if(!document.body.contains(o)){ac.abort();return}if(e.key==='Escape'){e.stopImmediatePropagation();close()}else if(e.key==='ArrowRight')go(i+1);else if(e.key==='ArrowLeft')go(i-1)},{capture:true,signal:ac.signal});
- requestAnimationFrame(()=>{o.classList.add('in');go(0)});
+ document.addEventListener('keydown',e=>{if(!document.body.contains(o)){ac.abort();return}if(e.key==='Escape'){e.stopImmediatePropagation();close()}else if(e.key==='Tab'){/* focus stays inside */const f=[...o.querySelectorAll('button')].filter(b=>b.offsetParent),k=f.indexOf(document.activeElement);e.preventDefault();if(f.length)f[(k+(e.shiftKey?-1:1)+f.length)%f.length].focus()}else if(e.key==='ArrowRight')go(i+1);else if(e.key==='ArrowLeft')go(i-1)},{capture:true,signal:ac.signal});
+ requestAnimationFrame(()=>{o.classList.add('in');go(0);o.querySelector('.yx').focus()});
 }
 async function yirImage(D){
  const c=await quoteImage(`${stN(D.n)}, ${fmtMin(D.m)} of reading. Top site: ${D.src[0]?D.src[0][0]:'—'}. ${D.pe[0]}. Longest streak: ${plu(D.sk.best,'day')}.`,{title:'My '+D.y+' in CyPress',ft:'Year in review',fc:getComputedStyle(document.documentElement).getPropertyValue('--logo').trim()||'#1f4a33'});
