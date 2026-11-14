@@ -2,7 +2,7 @@
 Old detail (dated session logs, FIXES 16-26 notes, debugging traces) lives in `HANDOFF-ARCHIVE.md`: don't read it on boot, `grep` it only if needed.
 Keep THIS file under ~8 KB: when it grows past that, move finished/dated items to the archive and keep only rules, open items and the next tasks.
 
-Last updated: 2026-11-14 (main = 1.328 (2026.11.14a), build started 2026-11-14, NOT yet confirmed green; work branch claude/handoff-continuation-he3yvg). Do NOT push HANDOFF-only commits to main (every push to main starts an APK build).
+Last updated: 2026-11-14 (main = 1.328 (2026.11.14a), build 393 + tests + site CONFIRMED green; work branch claude/handoff-continuation-he3yvg). Do NOT push HANDOFF-only commits to main (every push to main starts an APK build).
 ## 1. Working & locked (verified; don't change core logic without asking)
 - **Halcyon theme** (`halcyon`/`halcyond`): website palette (cream `#f3ecdc`, green `#123524`/`#0c2619`, brass `#c9a24a`/`#b08d3e`), follows phone via `twinApply`. Headlines use `--disp` (narrow display serif) with `!important` (user's choice). Dark-brass labels on cream `#7d5f14`; light-brass `#e2c27a` on dark `.noimg` lead/hero cards (`.noimg` ≠ cream card).
 - **The Daily**: name once per section (`sh()`), one-line intros (`DAYDEK`), "Vol. 26 · No. 290" line, "Next up" styled like "Since this morning", "In this issue" links use `jumpTop`, cover number `.dcv-num`.
@@ -41,6 +41,6 @@ Full detail of everything below: archive grep 'moved-1323b' (older: 'moved-1323'
 - Build: `paths-ignore` now skips *.md, tests/, review/ etc. (HANDOFF-only pushes to main no longer build, but still never push to main without `build`/`merge`); APP_LABEL check; hooks use `$CLAUDE_PROJECT_DIR`.
 **Tests:** known failures as listed above plus, never fixed: cover_lead (7), instant_open (1: stored story opens instantly but relays are still asked), deep + polish_nits (crash). st26 passes now. cover_rules + mixing flake.
 **Next 3 tasks:**
-1. Confirm the 1.328 build went green (Actions > Build CyPress APK), then wait for David: Fold verdict on the leaf card + fade (1.325); does any page still stick after the `CUT` fix; which Font he has set (his framed title page showed the plain sans).
+1. Wait for David: Fold verdict on the leaf card + fade (1.325); does any page still stick after the `CUT` fix; which Font he has set (his framed title page showed the plain sans).
 2. Left from deep dive 2 (section H): History page at tablet size (needs a design pass: `listRow` without `#grid.list` looks broken, tried and reverted); Look preview cover clipped; Fold side bar 'HighlightsHistory'; Bookshelf checkbox; scroll-mode ArrowDown/Home/End; sw.js double copy of the app; core-only manifest cleartext; device test uses the debug manifest; CSP hashes; stale docs/shots/laptop.jpg.
 3. Older: NPR / The Verge content leftovers need a device dump; OPEN QUESTION whether Quick reads, Deep reads and Saved ahead should use the For you cards; freeze retest (1.307 Esquire); framed-picture headline size.
