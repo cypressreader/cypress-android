@@ -1981,3 +1981,14 @@ Dynamic look:
 ## 1.327
 - [ ] Just the News story (the Microsoft outage one, or any other): only the story's own paragraphs, ending with the tree mark; no "Unlock unlimited access", "Top Stories" or section lists, in page mode and in scrolling mode (checked headless against the real page).
 - [ ] Same story on the open Fold in page mode: pages turn. (The stuck page from the 2026-11-13 recording was NOT reproduced; a failed page turn now falls back to a plain page change instead of sticking.)
+
+## 2026-11-14 branch claude/handoff-continuation-he3yvg (after 1.327, not yet released): check on a phone
+- Open a story with a big cover picture in the Dynamic theme, turn pages right away while the picture is still loading: every turn should animate and show the same text as the page it lands on (was: a stuck or plain page change).
+- Open Fold, very long story (title page in a double frame): the headline sits inside the frame, in Pages and in Scroll.
+- Hold the phone sideways and open a story with a mid-size picture: the headline is on the first page.
+- In a story, More > Text > switch Pages to Scroll and back: you stay near the same place.
+- Highlights: tap a story title, the story opens. Type nonsense in the search box: 'No highlights match that.'
+- A book chapter: More shows Bookmark / Contents / Find in chapter and no site or rating rows.
+- Stats > Your year: TalkBack announces a dialog; Back closes it.
+- Restore a normal backup: followed topics are still there afterwards.
+- A story that opens with one or two short paragraphs has no large first letter; one with a long first paragraph still has it.
