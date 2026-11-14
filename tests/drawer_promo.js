@@ -27,8 +27,8 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   else{
    const r2=await p.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));const f=S.feeds[0];const para=n=>`<p>${'Words for the story here, ordinary reporting text. '.repeat(n)}</p>`;const a={feedId:f.id,title:'Edge tab',link:'https://w.test/e',date:Date.now(),summary:'x',img:'',html:para(20)};items[f.id]=[a];S.sel='all';render();await w(200);S.scroll='paged';openReader(a);await w(1500);
     const h=document.querySelector('#sideh'),o={tab:!!h,txt:h?h.textContent.trim():'',vis:h&&getComputedStyle(h).display!=='none'};h.click();await w(500);const hd=document.querySelector('#sidehdr');o.hdr=hd?hd.textContent.trim():'';o.hdrVis=!!hd&&hd.getBoundingClientRect().height>10;document.querySelector('#sidehx').click();await w(400);o.closed=!document.body.classList.contains('sideshow');return o});
-   ck(t+'the edge tab carries a visible label ("Feeds")',r2.tab&&r2.vis&&/Feeds/.test(r2.txt),JSON.stringify(r2));
-   ck(t+'its drawer opens with a header ("Your feeds") and a close button that works',/Your feeds/.test(r2.hdr)&&r2.hdrVis&&r2.closed,JSON.stringify(r2));
+   ck(t+'the edge tab carries a visible label ("Sites")',r2.tab&&r2.vis&&/Sites/.test(r2.txt),JSON.stringify(r2));
+   ck(t+'its drawer opens with a header ("Your sites") and a close button that works',/Your sites/.test(r2.hdr)&&r2.hdrVis&&r2.closed,JSON.stringify(r2));
   }
   ck(t+'no page errors',!errs.length,errs[0]);await ctx.close();
  }

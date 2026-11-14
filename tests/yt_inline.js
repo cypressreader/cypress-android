@@ -14,7 +14,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    const c=document.querySelector('.cols .yt-tap');o.card=!!c;o.tag=c&&c.tagName;o.noIframeYet=!document.querySelector('.cols iframe[src*="youtube"]');o.label=c&&c.getAttribute('aria-label');o.nested=document.querySelectorAll('.cols a button,.cols button a').length;o.beforeTap=performance.getEntriesByType('resource').some(e=>/youtube-nocookie|youtube\.com\/embed/.test(e.name));
    c.click();await w(300);const fr=document.querySelector('.cols .yt-live iframe');o.iframe=!!fr;o.src=fr&&fr.src;o.card2=!!document.querySelector('.cols .yt-tap');
    window.dispatchEvent(new MessageEvent('message',{data:JSON.stringify({event:'onError',info:150}),source:fr.contentWindow}));await w(150);
-   const fb=document.querySelector('.cols a.emb.yt');o.fallback=!!fb&&/Opens in YouTube/.test(fb.textContent)&&/watch\?v=dQw4w9WgXcQ/.test(fb.href);o.liveGone=!document.querySelector('.cols .yt-live');
+   const fb=document.querySelector('.cols a.emb.yt');o.fallback=!!fb&&/Opens in YouTube/.test(fb.textContent)&&/watch\?v=dQw4w9WgXcQ/.test(fb.href);o.liveGone=![...document.querySelectorAll('.cols .yt-live')].some(x=>!x.closest('.tl,.tl-leaf'));/* page-turn copies of the page are not the story */
    return o});
   ck(t+'a tap-to-play card (a button, labelled) replaces the link card',r.card&&r.tag==='BUTTON'&&r.label==='Play video'&&r.nested===0,JSON.stringify(r));
   ck(t+'nothing is loaded from the player before the tap',r.noIframeYet&&!r.beforeTap,JSON.stringify(r));

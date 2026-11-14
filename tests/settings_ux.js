@@ -17,7 +17,7 @@ const P=k=>'<p>'+('Paragraph '+k+' of the story with enough ordinary words to ma
   
   const fs0=await p.evaluate(()=>S.fs);await p.click('#aapop [data-fs="1"]');await p.waitForTimeout(400);
   const r1=await p.evaluate(()=>({fs:S.fs,ro:document.getElementById('aafsv').textContent,css:document.getElementById('rd').style.getPropertyValue('--fs'),open:document.getElementById('rd').classList.contains('on'),pop:!document.getElementById('aapop').hidden}));
-  ck(t+'A+ makes the text bigger, shows the size, reflows the story and keeps the reader and popover open',r1.fs===fs0+1&&r1.ro===(fs0+1)+'px'&&parseFloat(r1.css)>=fs0+1&&r1.open&&r1.pop,JSON.stringify(r1));
+  ck(t+'A+ makes the text bigger, shows the size, reflows the story and keeps the reader and popover open',r1.fs===fs0+1&&new RegExp('\\b'+(fs0+1)+'\\b').test(r1.ro)/* the readout names the size too: 'Medium · 19' */&&parseFloat(r1.css)>=fs0+1&&r1.open&&r1.pop,JSON.stringify(r1));
   await p.click('#aapop [data-fs="-1"]');await p.click('#aapop [data-fs="-1"]');await p.waitForTimeout(300);
   ck(t+'A− makes it smaller',(await p.evaluate(()=>S.fs))===fs0-1);
   await p.click('#aapop [data-lh="1.9"]');await p.waitForTimeout(300);
