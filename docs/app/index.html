@@ -7806,7 +7806,7 @@ function focusLine(){
 const AA_LH=[['Tight',1.5],['Normal',1.68],['Roomy',1.9]];
 /* polish S-02: the reading presets set size, line spacing and width together; a preset lights up while the three values still match it */
 const AA_PRE=[['Default',18,1.68,'c'],['Comfortable',19,1.9,'c'],['Large print',24,1.8,'n'],['Dense',16,1.5,'w']];
-const aaPreOn=p=>(+S.fs||18)===p[1]&&Math.abs((+S.lh||1.68)-p[2])<.02&&(S.rw||'c')===p[3];
+const aaPreOn=p=>rfs()===p[1]&&Math.abs((+S.lh||1.68)-p[2])<.02&&(S.rw||'c')===p[3];
 let aaOpener=null;
 function aaBuild(){
  let pop=$('#aapop');if(pop)return pop;
@@ -7833,7 +7833,7 @@ function aaBuild(){
 }
 function aaSync(){
  const pop=$('#aapop');if(!pop)return;
- $('#aafsv').textContent=fsLbl(S.fs||18);{const d=$('#aadim'),w=$('#aawarm');if(d)d.value=S.dimv||0;if(w)w.value=S.warm||0}
+ $('#aafsv').textContent=fsLbl(rfs());{const d=$('#aadim'),w=$('#aawarm');if(d)d.value=S.dimv||0;if(w)w.value=S.warm||0}
  pop.querySelectorAll('[data-aapre]').forEach(b=>{const on=aaPreOn(AA_PRE[+b.dataset.aapre]);b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))});
  pop.querySelectorAll('[data-sc]').forEach(b=>{const on=b.dataset.sc===(S.scroll||'auto');b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))});
  pop.querySelectorAll('[data-lh]').forEach(b=>{const on=Math.abs((+S.lh||1.68)-+b.dataset.lh)<.02;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))});
@@ -7866,10 +7866,10 @@ document.addEventListener('click',e=>{
  if(b.id==='aamore'||b.id==='aaall'){aaClose(false);try{$('#gear').onclick()}catch(x){}try{setShow(b.id==='aaall'?'look':'read')}catch(x){}return}
  const fz=b.dataset.fs,sc=b.dataset.sc,lh=b.dataset.lh,tg=b.dataset.tg,arw=b.dataset.aarw,apt=b.dataset.aapt,pre=b.dataset.aapre;
  if(b.dataset.aasp){S.tsp=b.dataset.aasp;if(S.tsp==='n')delete S.tsp;save();applyFs(true);aaSync();return}
- if(pre){const p=AA_PRE[+pre];S.fs=p[1];S.lh=p[2];S.rw=p[3];if(S.rw==='c')delete S.rw;save();applyFs(true);relayout()}
+ if(pre){const p=AA_PRE[+pre];rfsSet(p[1]);S.lh=p[2];S.rw=p[3];if(S.rw==='c')delete S.rw;save();applyFs(true);relayout()}
  else if(arw){S.rw=arw==='c'?undefined:arw;if(!S.rw)delete S.rw;save();relayout()}
  else if(apt){S.pturn=apt;if(apt==='paper')delete S.pturn;save()}
- else if(fz){S.fs=Math.max(14,Math.min(34,(+S.fs||18)+ +fz));save();applyFs(true)}
+ else if(fz){rfsSet(rfs()+ +fz);save();applyFs(true)}
  else if(sc){try{if(R.rf==null&&$('#rd').classList.contains('on')&&R.ready)R.rf=isVert()?vEndFrac():pgFrac()}catch(e){}/* keep the place when the reading mode changes mid-story */S.scroll=sc;save();refreshReader()}
  else if(lh){S.lh=+lh;save();applyFs(true)}
  else if(tg==='sep'){S.sep=!S.sep;save();applyFs(true)}
@@ -8880,7 +8880,7 @@ function narrowC(){return isOn('pcomp')&&document.body.classList.contains('narro
 /* polish-2026-10 F6: Reading width. Comfortable (the default) is exactly the width the reader always had; Narrow and Wide only change the side margins and the scroll column's cap, never the text size. Restore by deleting rdxRw and its two uses in layout(). */
 const RDX_RW={n:{p:1.8,mw:600},c:{p:1,mw:0},w:{p:.45,mw:900}};
 function rdxRw(){const r=RDX_RW[S.rw]||RDX_RW.c;try{$('#rd').style.setProperty('--rdmw',r.mw?(r.mw-40)+'px':'700px')}catch(e){}return r}
-function rdVars(){const r=$('#rd');if(!r)return;const nc=narrowC();r.style.setProperty('--lh',nc&&!S.lh?1.5:(S.lh||1.68));r.style.setProperty('--lhp',S.lh?String(S.lh):'');/* compact phones tighten only the default spacing: a spacing or Large print you picked always wins */{/* B61: a phone always left-aligns, so the page is not measured (that read forced a full layout in the middle of opening a story) *//* ragged (left-aligned) text only breaks long words: "report-ing" split three lines in a row on phones */r.style.setProperty('--hlc','6 3 3');if(S.just===false||nc||innerWidth<640){r.style.setProperty('--ta','start');r.style.setProperty('--hlc','12 5 5');/* R-11: only long words split on ragged lines; justified text keeps the fuller hyphenation */return}const bk=$('.book'),W=bk?bk.clientWidth:innerWidth,cw=isVert()?Math.min(W-60,740):(W>=700?(W-60-56)/2:W-40),chars=cw/((+S.fs||18)*.5);/* justify only when a line holds enough words; narrow columns left-align so gaps do not open up */r.style.setProperty('--ta',(S.just===false||nc||innerWidth<640||chars<60)?'start':'justify');if(chars<60)r.style.setProperty('--hlc','9 4 4')}}
+function rdVars(){const r=$('#rd');if(!r)return;const nc=narrowC();r.style.setProperty('--lh',nc&&!S.lh?1.5:(S.lh||1.68));r.style.setProperty('--lhp',S.lh?String(S.lh):'');/* compact phones tighten only the default spacing: a spacing or Large print you picked always wins */{/* B61: a phone always left-aligns, so the page is not measured (that read forced a full layout in the middle of opening a story) *//* ragged (left-aligned) text only breaks long words: "report-ing" split three lines in a row on phones */r.style.setProperty('--hlc','6 3 3');if(S.just===false||nc||innerWidth<640){r.style.setProperty('--ta','start');r.style.setProperty('--hlc','12 5 5');/* R-11: only long words split on ragged lines; justified text keeps the fuller hyphenation */return}const bk=$('.book'),W=bk?bk.clientWidth:innerWidth,cw=isVert()?Math.min(W-60,740):(W>=700?(W-60-56)/2:W-40),chars=cw/(rfs()*.5);/* justify only when a line holds enough words; narrow columns left-align so gaps do not open up */r.style.setProperty('--ta',(S.just===false||nc||innerWidth<640||chars<60)?'start':'justify');if(chars<60)r.style.setProperty('--hlc','9 4 4')}}
 function imgKey(u){try{let x=String(u||'').split(/[?#]/)[0].toLowerCase();x=x.split('/').filter(Boolean).pop()||'';return x.replace(/\.(jpe?g|png|webp|avif|gif)(\.(jpe?g|png|webp|avif|gif))?$/,'').replace(/[-_@]?\d{2,4}x\d{2,4}/g,'').replace(/[-_](scaled|large|medium|small|thumb(nail)?|full|orig(inal)?|hires|hi-res)$/,'').replace(/@\dx$/,'')}catch(e){return ''}}
 function sameImg(a,b){if(!a||!b)return false;if(String(a).split('?')[0]===String(b).split('?')[0])return true;const x=imgKey(a),y=imgKey(b);if(x.length>=8&&x===y)return true;if(x.length>=5&&x===y&&!/^(image|img|photo|picture|pic|hero|cover|main|lead|thumb|thumbnail|banner|article|featured|default|placeholder|logo|share|og|story|news)\d*$/.test(x))return true;if(x.length<10||y.length<10)return false;let i=0;while(i<x.length&&i<y.length&&x[i]===y[i])i++;return i>=10&&i/Math.min(x.length,y.length)>=.75}
 /* The picture shows once, in the body. The moment a body (the feed's copy, the stored copy or the full page) is in place, and before it can paint, the separate top-of-page copy is set aside; if a later body has no such picture, the top copy goes back. Two never show together. */
@@ -8931,7 +8931,7 @@ function layout(){prepDrop();CUT.k='';/* a new layout can move the story's block
  try{$('#rd').classList.toggle('cpv2',R.cpv===2)}catch(e){}
  try{$('#rd').classList.remove('spread')}catch(e){} /* B40 spread disabled 1.77: the facing-pages styling collided at the spine */
  /* R-03: a phone turned sideways reads one centered column of about 65 characters, not one 80-character line across the screen */
- const xo=R.cpv===1&&!vert&&H<600&&W>H*1.6?Math.max(0,Math.round((W-2*P-(+S.fs||18)*34)/2)):0;
+ const xo=R.cpv===1&&!vert&&H<600&&W>H*1.6?Math.max(0,Math.round((W-2*P-rfs()*34)/2)):0;
  const use=W-2*P-2*xo,ch=H-2*P-(R.ttsPad&&!vert?(parseFloat(document.documentElement.style.getPropertyValue('--dockh'))||72):0)/* R-13: room for the mini player */;gap+=2*xo;/* the page step stays the book's width, so the next page's text stays out of view */
  c.style.cssText=`left:${P+xo}px;top:${P}px;width:${use}px;height:${ch}px;column-count:${R.cpv};column-gap:${gap}px;--ih:${Math.round(ch*.5)}px;--ch:${ch}px;--sw:${use}px;--bleed:${P}px;--cg:${gap}px`;
  const cw=(use-(R.cpv-1)*gap)/R.cpv;
@@ -10241,7 +10241,11 @@ function sysScale(){
  if(!k&&Date.now()-(sysScale.t||0)<60000)k=sysScale.k;if(!k){try{const e=document.createElement('div');e.style.cssText='position:absolute;visibility:hidden;font:medium sans-serif;pointer-events:none';e.textContent='x';document.body.append(e);k=parseFloat(getComputedStyle(e).fontSize)/16;e.remove();sysScale.k=k;sysScale.t=Date.now()}catch(er){k=1}}
  return Math.max(.85,Math.min(2,k||1));
 }
-function applyFs(re){needFont(fontKey());if(S.font==='dys'){document.fonts&&document.fonts.load("18px 'OpenDyslexic'").then(()=>relayout(),()=>{})}const r=$('#rd'),sp=!!S.sep&&S.theme!=='dynamic';{const fz=Math.round((+S.fs||18)*sysScale()*10)/10;r.style.setProperty('--fs',fz+'px');r.style.setProperty('--fsu',fz+'px');/* R-05: Large print grows the small text around the story too (CSS zoom by --fsk); a smaller size never shrinks it */r.style.setProperty('--fsk',Math.max(1,(+S.fs||18)/18).toFixed(3))}r.style.setProperty('--rf',FONTS[fontKey()]||FONTS.serif);/* letter and word spacing for any font (Tight / Normal / Open); OpenDyslexic keeps its own roomier normal */{const sp=S.tsp==='o'?['.05em','.16em']:S.tsp==='t'?['-.01em','-.03em']:S.font==='dys'?['.02em','.12em']:['normal','normal'];r.style.setProperty('--ls',sp[0]);r.style.setProperty('--ws',sp[1])}rdVars();r.classList.toggle('sep',sp);document.documentElement.classList.toggle('sepp',sp);saveSoon();if(re)relayout()}
+/* a book keeps its own text size (S.bfs): the reader's size controls change it while a book is open, and story text size (S.fs) is left alone; a book starts at the story size until it is changed */
+function inBk(){return !!(curA&&curA.book&&$('#rd').classList.contains('on'))}
+function rfs(){return +(inBk()&&S.bfs)||+S.fs||18}
+function rfsSet(v){v=Math.max(14,Math.min(34,+v||18));if(inBk())S.bfs=v;else S.fs=v}
+function applyFs(re){needFont(fontKey());if(S.font==='dys'){document.fonts&&document.fonts.load("18px 'OpenDyslexic'").then(()=>relayout(),()=>{})}const r=$('#rd'),sp=!!S.sep&&S.theme!=='dynamic';{const fz=Math.round(rfs()*sysScale()*10)/10;r.style.setProperty('--fs',fz+'px');r.style.setProperty('--fsu',fz+'px');/* R-05: Large print grows the small text around the story too (CSS zoom by --fsk); a smaller size never shrinks it */r.style.setProperty('--fsk',Math.max(1,rfs()/18).toFixed(3))}r.style.setProperty('--rf',FONTS[fontKey()]||FONTS.serif);/* letter and word spacing for any font (Tight / Normal / Open); OpenDyslexic keeps its own roomier normal */{const sp=S.tsp==='o'?['.05em','.16em']:S.tsp==='t'?['-.01em','-.03em']:S.font==='dys'?['.02em','.12em']:['normal','normal'];r.style.setProperty('--ls',sp[0]);r.style.setProperty('--ws',sp[1])}rdVars();r.classList.toggle('sep',sp);document.documentElement.classList.toggle('sepp',sp);saveSoon();if(re)relayout()}
 /* the sample passage on the Reading page follows the font, size, spacing, alignment and drop cap you have chosen */
 function syncReadPrev(){
  const b=$('#rprev');if(!b)return;
@@ -11212,8 +11216,8 @@ $('#rd').onclick=e=>{
  if(t.closest('[data-diag]')){if(curA)navigator.clipboard.writeText(diagText(curA)).then(()=>toast('Details copied. Paste them wherever you report the problem'),()=>toast('Couldn’t copy the problem details'));return}
  if(t.closest('[data-retry]')){if(curA){deepTry(curA,true)}return}
  if(t.closest('#st')){if(curA&&curA.book){bkBm();return}toggleSave(curA);const o=t.closest('#st').querySelector('svg');if(o)o.outerHTML=starSvg(isSaved(curA));return}
- if(t.closest('#fm')){S.fs=Math.max(14,S.fs-1);return applyFs(true)}
- if(t.closest('#fp')){S.fs=Math.min(34,S.fs+1);return applyFs(true)}
+ if(t.closest('#fm')){rfsSet(rfs()-1);save();return applyFs(true)}
+ if(t.closest('#fp')){rfsSet(rfs()+1);save();return applyFs(true)}
  if(t.closest('#sp')){S.sep=!S.sep;return applyFs(true)}
  if(t.closest('#ra')&&!TTS.on&&!DIG.on&&S.lqAuto!==false&&S.lq.length){S.lq=[];R.briefAudio=false;save();syncUpNext()}/* David 2026-11-03: a story you start yourself doesn't run on into what's left of an old Daily/shelf list (only Keep playing or your own Up Next does that); lqAuto unset = a list from before this flag, also left over */
  if(t.closest('#ra')||t.closest('#pbp'))return ttsHere();
@@ -16714,7 +16718,7 @@ function flexUi(){
  const rd=$('#rd'),fh=flexHinge();rd.classList.toggle('flex',!!fh);document.body.classList.toggle('flexp',!!fh);
  if(!fh)return;rd.style.setProperty('--segtop',fh.top+'px');rd.style.setProperty('--segbot',fh.bot+'px');
  let p=$('#fpad');if(!p){p=document.createElement('div');p.id='fpad';p.innerHTML=`<div class="fpi"><span id="fpc"></span></div><div class="fpb"><button class="ib big" data-fp="prev" aria-label="Previous page">${svg('<path d="m14.5 6-6 6 6 6"/>')}</button><button class="ib big" data-fp="play" aria-label="Read aloud">${svg(SPK)}</button><button class="ib big" data-fp="next" aria-label="Next page">${svg('<path d="m9.5 6 6 6-6 6"/>')}</button></div><div class="fpb sm"><button class="tx2" data-fp="smaller" aria-label="Smaller text">A−</button><button class="tx2" data-fp="bigger" aria-label="Larger text">A+</button><button class="tx2" data-fp="close">Close</button></div>`;rd.append(p);
-  p.addEventListener('click',e=>{const b=e.target.closest('[data-fp]');if(!b)return;e.stopPropagation();const k=b.dataset.fp;if(k==='prev')go(-1);else if(k==='next')go(1);else if(k==='play')ttsHere();else if(k==='close')closeRd();else{S.fs=Math.max(14,Math.min(34,S.fs+(k==='bigger'?1:-1)));save();applyFs(true)}fpSync()})}
+  p.addEventListener('click',e=>{const b=e.target.closest('[data-fp]');if(!b)return;e.stopPropagation();const k=b.dataset.fp;if(k==='prev')go(-1);else if(k==='next')go(1);else if(k==='play')ttsHere();else if(k==='close')closeRd();else{rfsSet(rfs()+(k==='bigger'?1:-1));save();applyFs(true)}fpSync()})}
  fpSync();
 }
 /* half-folded (tabletop) changes arrive as a posture change or a change in the number of stacked screen segments, not always as a resize: lay the open story out again for them */

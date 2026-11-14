@@ -1992,3 +1992,4 @@ Dynamic look:
 - Stats > Your year: TalkBack announces a dialog; Back closes it.
 - Restore a normal backup: followed topics are still there afterwards.
 - A story that opens with one or two short paragraphs has no large first letter; one with a long first paragraph still has it.
+- (branch, after 1.328) Book text size: open a book chapter, make the text bigger with Aa; open a news story: its text is the old size. Go back to the book: still the bigger size, also after closing and reopening the app.
