@@ -5,7 +5,7 @@
 const fs = require('fs'), path = require('path');
 let raw = ''; process.stdin.on('data', d => raw += d).on('end', () => {
   let sid = 'x'; try { sid = String(JSON.parse(raw).session_id || 'x'); } catch (e) {}
-  const f = path.join(process.cwd(), '.git', 'turn-counter.json');
+  const f = path.join(process.env.CLAUDE_PROJECT_DIR || process.cwd(), '.git', 'turn-counter.json');
   let s = { sid: '', n: 0 }; try { s = JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) {}
   if (s.sid !== sid) s = { sid, n: 0 };
   s.n++; try { fs.writeFileSync(f, JSON.stringify(s)); } catch (e) {}

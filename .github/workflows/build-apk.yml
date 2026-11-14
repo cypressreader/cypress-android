@@ -1,14 +1,20 @@
 # CyPress: builds the Android app and publishes it under "Releases".
-# It runs by itself whenever you add or change a file in this repository (except README.md, docs/ and the homepage demo scripts).
+# It runs by itself whenever you change a file that goes into the app (notes, tests, the website and review folders do not start a build).
 name: Build CyPress APK
 
 on:
   push:
     branches: [main, master]
-    # whats-new.txt must still start a build, so only the readme and the docs folder are ignored
+    # whats-new.txt must still start a build; notes (*.md), tests and review material never change the app, so they do not publish a release
     paths-ignore:
-      - "README.md"
+      - "*.md"
       - "docs/**"
+      - "tests/**"
+      - "review/**"
+      - "store/**"
+      - "audit/**"
+      - "brand/**"
+      - ".claude/**"
       - "scripts/build-demo.js"
       - "scripts/demo-content.js"
       - "scripts/demo-shim.js"
@@ -92,6 +98,11 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
+          cache: npm
+
+      - name: Check the version label here matches the app
+        run: |
+          grep -q "APP_LABEL='${APP_LABEL}'" www/index.html || { echo "::error title=Version label::APP_LABEL in this workflow (${APP_LABEL}) is not the APP_LABEL in www/index.html"; exit 1; }
 
       - name: Run the quick tests (no browser needed)
         run: |
@@ -258,8 +269,12 @@ jobs:
           fi
           BADGE=$("$BT/aapt2" dump badging cypress.apk | head -3 || true)
           echo "$BADGE"
-          if ! echo "$BADGE" | grep -q "versionCode='${BUILD_NUMBER}'"; then
-            echo "::warning title=Version number check::The app file does not report version code ${BUILD_NUMBER}. Check the lines above."
+          if [ -z "$BADGE" ]; then
+            echo "::warning title=Version number check::Could not read the app file's version code."
+          elif ! echo "$BADGE" | grep -q "versionCode='${BUILD_NUMBER}'"; then
+            echo "::error title=Version number check::The app file does not report version code ${BUILD_NUMBER}: phones could not update to it."
+            rm -f "$RUNNER_TEMP/cypress.keystore"
+            exit 1
           fi
           rm -f "$RUNNER_TEMP/cypress.keystore"
           # the finished app, libraries included, must never ask for location
@@ -323,7 +338,7 @@ jobs:
           if [ -f whats-new.txt ]; then
             # only this version's section, so the update dialog doesn't open with the oldest notes (compared as text: as numbers 1.70 would match the old 1.7 heading)
             awk -v L="$APP_LABEL" '$0""==L""{p=1;next} p&&/^[0-9]+\.[0-9]+[a-z]?$/{exit} p&&/^CyPress v/{exit} p' whats-new.txt >> notes.txt
-            if [ ! -s notes.txt ] || ! grep -q '^- ' notes.txt; then cat whats-new.txt >> notes.txt; fi
+            if [ ! -s notes.txt ] || ! grep -q '^- ' notes.txt; then tail -n 40 whats-new.txt >> notes.txt; fi
           else echo "CyPress build ${BUILD_NUMBER}" >> notes.txt; fi
           if [ -n "${SIGN_SHA256:-}" ]; then
             # plain text: the app shows these notes as they are in its What's New box
