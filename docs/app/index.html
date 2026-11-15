@@ -8262,7 +8262,7 @@ function setBlocks(head,B,first,step){
  markFresh();
  const s=g.querySelector('.nr-more');
  /* the fresh tags, live dots and the "before your last visit" line only look at the blocks just added, not the whole page again */
- const next=want=>{if(k>=B.length)return false;const n=B.slice(k,k+(want||step));k+=n.length;NRK=k;const p0=s.previousElementSibling;s.insertAdjacentHTML('beforebegin',n.map(nrR).join(''));const N=[];for(let x=p0?p0.nextElementSibling:g.firstElementChild;x&&x!==s;x=x.nextElementSibling)N.push(x);markFresh(N);try{cvAhead(1)}catch(e){}try{liveDots(N)}catch(e){}setTimeout(endObs,60);setTimeout(fixOrph,140);waterline(N);if(k>=B.length){if(NRIO){NRIO.disconnect();NRIO=null}s.remove();NRMORE=null;return false}return true};
+ const next=want=>{if(k>=B.length||!s.isConnected)return false;/* the Daily can be parked in a cache (off the page) while a refresh asks for more: wait until it is back */const n=B.slice(k,k+(want||step));k+=n.length;NRK=k;const p0=s.previousElementSibling;s.insertAdjacentHTML('beforebegin',n.map(nrR).join(''));const N=[];for(let x=p0?p0.nextElementSibling:g.firstElementChild;x&&x!==s;x=x.nextElementSibling)N.push(x);markFresh(N);try{cvAhead(1)}catch(e){}try{liveDots(N)}catch(e){}setTimeout(endObs,60);setTimeout(fixOrph,140);waterline(N);if(k>=B.length){if(NRIO){NRIO.disconnect();NRIO=null}s.remove();NRMORE=null;return false}return true};
  next.k=()=>k;next.B=B;NRMORE=next;
  NRIO=new IntersectionObserver(es=>{if(!es.some(e=>e.isIntersecting))return;if(next()&&NRIO){NRIO.unobserve(s);NRIO.observe(s)}},{root:$('main'),rootMargin:'1600px 0px'});
  NRIO.observe(s);
