@@ -2009,3 +2009,4 @@ Dynamic look:
 - [ ] In Pages mode, drag a page slowly from the right edge to just past the middle and let go: the page turns (before, it fell back unless you dragged about 70% of the way or flicked).
 - [ ] A short slow drag (about a third of the page) still falls back. Dragging across and then back before letting go still falls back.
 - [ ] Open Fold (two pages): same checks.
+- [ ] Picture breaks in the feed (the edge-to-edge photo every dozen stories, incl. the big split one): the headline has a thin dark outline and the source line a lighter one; words stay readable over a pale or busy part of the photo, in Halcyon and in a dark theme (David 2026-11-15 screenshots: Pope Leo / "Breaking news").
