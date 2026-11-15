@@ -2003,3 +2003,4 @@ Dynamic look:
 - Fold open, Settings > Look: the Magazine preview shows its whole headline.
 - Wide screen, story with "At a glance": its reading time matches the byline.
 - Bookshelf: the "Today's chapter in The Daily" checkbox sits right next to its words.
+- History on phone, open Fold and tablet: compact rows under Today / Yesterday / date headings, one column; tapping a row opens that story; other pages look as before afterwards.

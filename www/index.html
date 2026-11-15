@@ -4739,7 +4739,7 @@ body:not(.narrow) .grid:not(.list) .tpl.t2>.card.noimg .tx{grid-column:1}
 #grid[data-cards="compact"] .card.noimg::before{content:attr(data-ini);display:grid;place-items:center;grid-column:1;grid-row:1;width:100%;aspect-ratio:3/2;border-radius:8px;background:color-mix(in srgb,var(--b) 20%,var(--pn,var(--bg)));color:color-mix(in srgb,var(--b) 72%,var(--ink));font:700 clamp(20px,6vw,26px)/1 var(--fd,Georgia,serif);text-transform:uppercase;position:static;inset:auto;height:auto;margin:0}
 #grid[data-cards="compact"] .card>.tx{grid-column:2;grid-row:1;padding:0 30px 0 0;display:flex;flex-direction:column;min-width:0}
 /* FIXES 22: tablet list. Wide screens get two columns of rows (headings span both); a summary ends in "..." instead of being cut mid-word; a picture that is still loading shows a tinted tile instead of a blank gap */
-@media(min-width:760px){#grid.list{display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));column-gap:36px;max-width:1500px}#grid.list>:not(.card),#grid.list>.lr-feat{grid-column:1/-1}#grid.list>.lr-feat>.cimg{max-height:min(440px,55svh);object-fit:cover}}
+@media(min-width:760px){#grid.list{display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));column-gap:36px;max-width:1500px}#grid.list[data-hist]{grid-template-columns:minmax(0,1fr)}/* History: one even column */#grid.list>:not(.card),#grid.list>.lr-feat{grid-column:1/-1}#grid.list>.lr-feat>.cimg{max-height:min(440px,55svh);object-fit:cover}}
 #grid .card:is(.list-row,.nr-row,.nr-late) .tx p{display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;max-height:none!important;height:auto!important;text-overflow:ellipsis}
 /* FIXES 22 part 2: on tablets a story picture above its headline is shorter (it was a wide banner that dwarfed the headline), and the pinned section name is a slim strip */
 @media(min-width:700px){#grid[data-w="mag"] .card:is([data-ed],.nr-row,.nr-late):not(.lead):not(.nr-lead):not(.nr-hero)>img{max-height:170px!important}#wpin{padding:8px clamp(14px,3vw,32px) 7px;font-size:17px;line-height:1.2;gap:8px;border-bottom-width:1px}#wpin small{font-size:12px}}
@@ -6827,7 +6827,7 @@ let LSPD=0;
 {const r0=render0;render0=function(){const x=r0.apply(this,arguments);try{feedHead()}catch(e){}return x}}
 function render0(){
  NRS=nrMode();$('#grid').classList.remove('nr','nrp','wire','wtopic','fed','paper','wc','gen-wire','gen-sun');$('#grid').style.removeProperty('--fb');
- side();$('#grid').classList.toggle('list',S.view==='list');{const g=$('#grid');g.dataset.w=S.view==='list'?'list':'card';g.dataset.wdens=S.wdens==='col'?'col':'mag'}
+ side();$('#grid').classList.toggle('list',S.view==='list');{const g=$('#grid');g.dataset.w=S.view==='list'?'list':'card';g.dataset.wdens=S.wdens==='col'?'col':'mag';g.removeAttribute('data-hist')}
  let fs=S.feeds,t='All Stories';
  if(S.sel.startsWith('f:')){const id=S.sel.slice(2);fs=S.feeds.filter(x=>x.folder===id);t=S.folders.find(f=>f.id===id)?.name||t}
  else if(S.sel.startsWith('s:')){fs=S.feeds.filter(x=>'s:'+x.id===S.sel);t=fs[0]?.title||t}
@@ -8086,7 +8086,7 @@ const chref=c=>(c&&((c.dataset&&c.dataset.href)||c.getAttribute('href')))||'';
 const lrWeak=u=>{const d=IMGDIM.get(u);return !!d&&(Math.min(d[0],d[1])<240||d[0]/d[1]>3.2||d[1]/d[0]>2.4)};
 function lrKind(a,i){
  /* 2026-10-30 (David's pick L2): every fifth row is a big-photo feature again (not with Compact size); quotes and text-only rows stay off */
- if(i%5||nrDense())return '';return a.img&&!lrWeak(a.img)?'feat':'';
+ if(i%5||nrDense()||S.sel==='hist')return '';/* History keeps every row the same */return a.img&&!lrWeak(a.img)?'feat':'';
 }
 /* The list as a flow: the rows from lrKind, now and then two small pictures side by side, and (for lists in date order) a small heading where the day changes */
 function listFlow(list,base,dated,latest,wire,ixOf0){
@@ -12208,7 +12208,8 @@ function renderHist(){
  $('#ttl').textContent='History';
  cur=S.hist.map(histStory);
  if(!cur.length){$('#grid').innerHTML=emp('No history yet','Stories you open show up here, newest first.',EA('td'));return}
- $('#grid').innerHTML=`<div class="schips"><span class="hint">${cur.length} recently read</span><button class="tx2 sx" data-hclear>Clear history</button></div>`+cur.map((a,i)=>card(a,i,'mid')).join('');
+ /* 2026-11-15: History is a log: compact rows under a heading per day, at every screen size (big picture cards showed one story per tablet screen) */const g=$('#grid');g.classList.add('list');g.dataset.w='list';g.dataset.hist='';let last='';const n=new Date(),y=new Date(n-864e5),day=t=>{const d=new Date(t);return d.toDateString()===n.toDateString()?'Today':d.toDateString()===y.toDateString()?'Yesterday':d.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'})};
+ g.innerHTML=`<div class="schips"><span class="hint">${cur.length} recently read</span><button class="tx2 sx" data-hclear>Clear history</button></div>`+cur.map((a,i)=>{const h=day(a.date),s=h!==last?`<h3 class="wsec">${h}</h3>`:'';last=h;return s+listRow(a,i,'',fof(a))}).join('');
 }
 function renderNotes(){
  $('#ttl').textContent='Highlights';cur=[];
