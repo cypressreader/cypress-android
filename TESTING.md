@@ -1994,6 +1994,6 @@ Dynamic look:
 - A story that opens with one or two short paragraphs has no large first letter; one with a long first paragraph still has it.
 - (branch, after 1.328) Book text size: open a book chapter, make the text bigger with Aa; open a news story: its text is the old size. Go back to the book: still the bigger size, also after closing and reopening the app.
 
-## Branch ccr-efae05bf-qaj9ph (2026-11-14, not released)
+## 1.329 (2026-11-15)
 - Open Fold, side bar showing: the Saved / Highlights / History / Stats / Bookshelf labels have clear space between them.
 - Keyboard attached, story open in Scroll: with a bar button focused, the arrow keys, Home and End move the text; Space presses the focused button.
