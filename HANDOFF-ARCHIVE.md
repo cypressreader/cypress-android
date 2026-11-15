@@ -1001,3 +1001,9 @@ Run 35 (STEPS=covers, no COVERFIX, Dynamic, open Fold size): first-run and feed 
 
 ## moved-1329 (2026-11-15)
 **ON THE BRANCH, NOT RELEASED (2026-11-14, offer `build`; needs 1.329 + whats-new):** books keep their own text size `S.bfs` (David asked): `rfs()`/`rfsSet()`/`inBk()` just above `applyFs`; the reader's size controls (Aa A+/A-, presets, `#fm`/`#fp`, keys) write `S.bfs` while a book is open, else `S.fs`; a book starts at the story size until changed. Settings > Reading still sets the STORY size only; 'Reset appearance' does not clear `S.bfs` (decide). Headless-checked only. ALSO on the branch (same day, headless-checked): Fold side bar labels no longer touch (`.dlib .dlg` columns `auto`); in the reader Space presses a focused button instead of turning the page; Scroll mode ArrowUp/Down/Home/End move the text when a bar button has focus (reader `keydown`).
+
+## moved-1328c (2026-11-15)
+**RELEASED IN 1.328 (2026-11-14, David said `build`; unverified on a phone, checks at the end of TESTING.md):**
+- Large first letter only on a story's FIRST paragraph (David picked C); `ftpFit` fits framed/two-tone title pages (pages AND scrolling).
+- DEEP DIVE 2 fixes (findings + what is left: `DEEP-DIVE.md`, second half, last section 'H. Done / left'): `CUT.k=''` in `layout()` (stale page-turn copies = likely David's stuck page) + guarded pre-build; `cleanLib` drops `sk` with unsafe ids; Highlights title tap; privacy page + in-app text cover the Google News/Bing fallback, Google Fonts request deleted; sideways phone opens on `cov`; `md()` keeps short-paragraph stories; gallery captions white; Pages<->Scroll keeps the place (`bodyEnd` skips `.rfoot`); book chapter menu; Stats overlay is a dialog; wording 'sites' not 'feeds'.
+- Build: `paths-ignore` now skips *.md, tests/, review/ etc. (HANDOFF-only pushes to main no longer build, but still never push to main without `build`/`merge`); APP_LABEL check; hooks use `$CLAUDE_PROJECT_DIR`.
