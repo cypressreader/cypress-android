@@ -268,7 +268,7 @@ const word = (v, n) => String(v == null ? '' : v).replace(/[^\w .:+-]/g, '').sli
 // keeps only the fields the app is known to send, so nothing else can be smuggled in; fits KV's 1024-byte metadata
 function cleanStats(o) {
   const m = {};
-  for (const k of ['v', 'p', 'os', 'dev', 'lang', 'th', 'sch', 'sz', 'vw', 'cv', 'fn', 'sp', 'nv', 'fd', 'sv', 'fo', 'fz', 't1', 'tr', 'lt', 'rg', 'rt']) if (o[k] != null && o[k] !== '') m[k] = word(o[k], 16);
+  for (const k of ['v', 'p', 'os', 'dev', 'lang', 'th', 'sch', 'sz', 'vw', 'cv', 'fn', 'sp', 'nv', 'fd', 'sv', 'fo', 'fz', 'fu', 't1', 'tr', 'lt', 'rg', 'rt']) if (o[k] != null && o[k] !== '') m[k] = word(o[k], 16);
   if (o.f && typeof o.f === 'object') { m.f = {}; for (const k of Object.keys(o.f).slice(0, 24)) { const n = Math.min(9999, Math.max(0, Math.round(+o.f[k] || 0))); if (n) m.f[word(k, 8)] = n; } }
   const obj = (k, n, kl, num) => { if (o[k] && typeof o[k] === 'object') { const r = {}; for (const x of Object.keys(o[k]).slice(0, n)) { const v = Math.min(9999, Math.max(0, Math.round(+o[k][x] || 0))); if (v) r[word(x, kl)] = v; } if (Object.keys(r).length) m[k] = r; } };
   obj('ef', 6, 6); obj('cf', 6, 20); obj('g', 4, 2);
