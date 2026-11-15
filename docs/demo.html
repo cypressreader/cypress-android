@@ -9371,13 +9371,14 @@ hurry();R.navAt=Date.now();if(!R.fa&&!isVert()&&R.np>1){R.fa=1;$('#rd').classLis
 /* Tab onto a link on a later page: the browser slid the page strip sideways to show it (both pages cut mid-word, page number unchanged). The strip is put back and the book turns to the page that holds the link */
 document.addEventListener('focusin',e=>{const v=$('#rd.on .view'),c=v&&v.querySelector('.cols'),t=e.target;if(!c||!c.contains(t)||R.web||isVert()||!R.step)return;const fix=()=>{if(!t.isConnected)return;v.scrollLeft=0;v.scrollTop=0;const pg=Math.max(0,Math.min(R.np-1,Math.floor((t.getBoundingClientRect().left-c.getBoundingClientRect().left+2)/R.step)));if(pg!==R.pg&&!R.busy){R.pg=pg;show()}};fix();requestAnimationFrame(fix)});
 let D=null;
-function turnRelease(cancel,ts){
+function turnRelease(cancel,ts,far){
  const T=R.T,d=D;D=null;if(!T||!d)return;
  if(d.raf){cancelAnimationFrame(d.raf);d.raf=0}if(d.pa!=null&&!T.dead)setAng(d.pa);
  /* speed only counts if the finger was still moving when it lifted: a drag that rests before letting go is a slow drag, not a flick */
  let vx=0;const sm=d.s;if(sm.length>1){const a=sm[0],b=sm[sm.length-1];if(b.t>a.t&&!(ts&&ts-b.t>120))vx=(b.x-a.x)/(b.t-a.t)}
  const flick=-vx*T.dir,prog=T.dir>0?T.ang:180-T.ang;
- let ok=prog>90;if(flick>.4)ok=true;else if(flick<-.4)ok=false;
+ /* far: the finger lifted more than half a page from where it touched down, so a slow drag across the page turns it even though the curl (1.35x the finger) has not passed upright yet */
+ let ok=prog>90||!!far;if(flick>.4)ok=true;else if(flick<-.4)ok=false;
  const tgt=ok?(T.dir>0?180:0):(T.dir>0?0:180),rem=Math.abs(tgt-T.ang)/180;
  let dur=380+rem*820;if(ok&&flick>.4)dur*=Math.max(.75,1-flick*.1);
  T.ok=ok;R.noClick=true;setTimeout(()=>{R.noClick=false},350);
@@ -11410,7 +11411,7 @@ rdEl.addEventListener('pointermove',e=>{
 const pend=e=>{
  if(!D||e.pointerId!==D.id)return;
  /* the lift counts as the finger's last position: when moves were dropped (a busy phone can deliver finger down, one move, finger up) the page is judged by where the finger ended, not by the one early move */
- if(D.act){const T=R.T;if(T&&e.type==='pointerup'){if(!D.s.length||Math.abs(e.clientX-D.s[D.s.length-1].x)>30)D.s.push({t:e.timeStamp,x:e.clientX});/* the finger lifted far from its last reported move: moves were dropped, so the lift supplies the flick's speed */}if(T&&e.type==='pointerup')D.pa=Math.acos(Math.max(-T.hw,Math.min(T.hw,T.xt0+(e.clientX-D.x0)*1.35))/T.hw)*180/Math.PI;turnRelease(e.type==='pointercancel',e.timeStamp);return}
+ if(D.act){const T=R.T;if(T&&e.type==='pointerup'){if(!D.s.length||Math.abs(e.clientX-D.s[D.s.length-1].x)>30)D.s.push({t:e.timeStamp,x:e.clientX});/* the finger lifted far from its last reported move: moves were dropped, so the lift supplies the flick's speed */}if(T&&e.type==='pointerup')D.pa=Math.acos(Math.max(-T.hw,Math.min(T.hw,T.xt0+(e.clientX-D.x0)*1.35))/T.hw)*180/Math.PI;turnRelease(e.type==='pointercancel',e.timeStamp,T&&e.type==='pointerup'&&(D.x-e.clientX)*T.dir>T.hw/2);return}
  if(D.slide){const d=D;D=null;if(e.type==='pointercancel')d.lx=d.x0;rdxSlideEnd(d,e.timeStamp);return}
  const dx=e.clientX-D.x,dy=e.clientY-D.y;
  if(D.edge&&e.type==='pointerup'&&Math.abs(dx)>=60&&Math.abs(dx)>Math.abs(dy)*1.3&&!(getSelection()+'')){const eg=D.edge;D=null;edgeSwipe(eg);return}
