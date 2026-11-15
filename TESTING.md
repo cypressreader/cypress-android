@@ -1997,3 +1997,9 @@ Dynamic look:
 ## 1.329 (2026-11-15)
 - Open Fold, side bar showing: the Saved / Highlights / History / Stats / Bookshelf labels have clear space between them.
 - Keyboard attached, story open in Scroll: with a bar button focused, the arrow keys, Home and End move the text; Space presses the focused button.
+
+## Branch ccr-efae05bf-qaj9ph after 1.329 (2026-11-15, not released)
+- Pull to refresh with a few sites that keep failing: the refresh finishes noticeably sooner; a failing site you are looking at is still tried.
+- Fold open, Settings > Look: the Magazine preview shows its whole headline.
+- Wide screen, story with "At a glance": its reading time matches the byline.
+- Bookshelf: the "Today's chapter in The Daily" checkbox sits right next to its words.
