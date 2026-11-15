@@ -2004,3 +2004,8 @@ Dynamic look:
 - Wide screen, story with "At a glance": its reading time matches the byline.
 - Bookshelf: the "Today's chapter in The Daily" checkbox sits right next to its words.
 - History on phone, open Fold and tablet: compact rows under Today / Yesterday / date headings, one column; tapping a row opens that story; other pages look as before afterwards.
+
+## Slow drag turns the page (branch after 1.330, 2026-11-15) — implemented, unverified on a phone
+- [ ] In Pages mode, drag a page slowly from the right edge to just past the middle and let go: the page turns (before, it fell back unless you dragged about 70% of the way or flicked).
+- [ ] A short slow drag (about a third of the page) still falls back. Dragging across and then back before letting go still falls back.
+- [ ] Open Fold (two pages): same checks.
