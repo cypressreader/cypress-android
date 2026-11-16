@@ -654,7 +654,7 @@ final class CyWidgets {
             card.setTextViewText(R.id.cy_card_src, kick);
             card.setViewVisibility(R.id.cy_card_src, kick.length() == 0 ? View.GONE : View.VISIBLE);
             card.setTextViewText(R.id.cy_card_head, o.optString("title", ""));
-            card.setTextViewTextSize(R.id.cy_card_head, TypedValue.COMPLEX_UNIT_SP, compact ? 16f : (expanded ? 20f : 19f));
+            card.setTextViewTextSize(R.id.cy_card_head, TypedValue.COMPLEX_UNIT_SP, compact ? 17.5f : (expanded ? 22f : 21f));
             card.setInt(R.id.cy_card_head, "setMaxLines", compact ? (hDp >= 140 ? 3 : 2) : (expanded ? 4 : 3));
 
             String link = o.optString("link", "");
