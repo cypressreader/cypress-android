@@ -2073,3 +2073,8 @@ All implemented and checked in a headless browser only; unverified on a phone.
 
 ## Quiet sites in the Monthly tidy-up (unreleased, 44m0dk, 2026-11-16)
 - With several sites you never open: The Daily shows one tidy-up card ("N sites you haven't read in a month"), no one-site "Pause it?" card on All Stories. Review: all ticked, untick one, "Pause N" count follows, Undo in the toast brings them back; "Keep all" stops the question for two months.
+
+## Widgets batch 1 (unreleased, 44m0dk, 2026-11-16)
+- Top Story: every page that turns shows its own photo (not only the first). Arrows still work.
+- Headlines: resize to a small square (one story), wide and short (picture beside headline, "Next: ..." under it), large (spread as before).
+- Pick a non-Halcyon theme in the app, wait a few seconds: all three widgets take its colors (Android 12+). Back to Halcyon: cream by day, green at night as before.
