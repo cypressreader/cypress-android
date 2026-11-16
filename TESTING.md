@@ -2058,3 +2058,7 @@ Dynamic look:
 - Car mode: big buttons still work; the three small buttons stay available under them.
 All implemented and checked in a headless browser only; unverified on a phone.
 - (unreleased, after 1.332) Phone or Fold cover screen, All Stories in Cards view: scroll down, then up a little. The top bar and the pinned section name ("Last hour") slide away and back together, with no jitter and no gap showing the stories behind. Implemented and checked headless (strip stays on the bar every frame), unverified on a phone.
+
+## New-story dots + breaking strip (unreleased, work branch, 2026-11-16)
+- Dot: open the app after being away a while. Stories newer than your last visit show a small dot after the site name; it fades a few seconds after the story has been on screen and is gone once read. Check it is visible on photo cards and in list view, on the Fold open and closed.
+- Breaking strip: only when a story has breaking wording AND 3+ of your sites report it within an hour, in the last 3 hours. Shows at the top of The Daily and All Stories; tap opens the story; × hides it and it stays hidden. Simulated only in a headless browser; needs a real news day to confirm it is rare enough.
