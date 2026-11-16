@@ -2070,3 +2070,6 @@ All implemented and checked in a headless browser only; unverified on a phone.
 
 ## Sync join takes the other device's settings (unreleased, 44m0dk, 2026-11-16)
 - Phone A: change the theme, turn on sync. Phone B: Settings → Join sync with A's code. B should switch to A's theme (before the fix, B kept its own because tapping Join counted as a settings change).
+
+## Quiet sites in the Monthly tidy-up (unreleased, 44m0dk, 2026-11-16)
+- With several sites you never open: The Daily shows one tidy-up card ("N sites you haven't read in a month"), no one-site "Pause it?" card on All Stories. Review: all ticked, untick one, "Pause N" count follows, Undo in the toast brings them back; "Keep all" stops the question for two months.
