@@ -2020,3 +2020,6 @@ Dynamic look:
 ## Short feeds keep recent stories (2026-11-16, headless-checked only)
 - [ ] The Verge (its feed lists only its 10 newest stories): after a day of refreshes, the site shows more than 8 stories. Stories that dropped off its feed in the last 2 days stay, up to 30. Nothing older than 2 days lingers.
 - [ ] Storage: with many sites the app still opens fast and nothing about "storage full" appears.
+
+## Deep dive 3 fixes (2026-11-16, headless-checked only)
+- [ ] Open Fold and tablet: open 15 photo stories in a row from The Daily, closing each one (Back or swipe). The app must never close itself. (Before: Chromium killed the tab on about the 12th open.)
