@@ -2047,3 +2047,4 @@ Dynamic look:
 
 ## Android Authority story endings (unreleased, after 1.331)
 - Open the Android Authority story "Samsung's Galaxy Claw is no longer a mystery" (or any newer Android Authority story) on the Fold and page to the end: the story should stop at its last paragraph. No "Conversation / Read what readers said or add your take." and no "More reading from Android Authority" list. Implemented, unverified on a phone (the phone's copy of the page could not be reproduced in the cloud).
+- Listen: play a story with an amount like "$30 billion" (also "$12.5 billion", "$2 million"): the voice should say "thirty billion dollars", not "thirty dollars billion". Implemented, unverified on a phone.

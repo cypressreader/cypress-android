@@ -10711,7 +10711,12 @@ function ttsFrom(wi){
  const hid=()=>document.hidden||Date.now()-(TTS.vis||0)<4000;
  const chunk=(a,b,last,first)=>{
   const off=[];let txt='';if(first)TTS.wi=a;
-  TTS.words.slice(a,b).forEach(x=>{off.push(txt.length);txt+=x.t+' '});
+  /* "$30 billion" is handed over as "30 billion dollars": some voices say "thirty dollars billion" */
+  const CUR=/^[$£€][\d,.]*\d$/,BIG=/^((?:m|b|tr)illion)(\W*)$/i;
+  TTS.words.slice(a,b).forEach((x,i,A)=>{off.push(txt.length);let t=x.t,m;
+   if(CUR.test(t)&&A[i+1]&&BIG.test(A[i+1].t))t=t.slice(1);
+   else if(i&&CUR.test(A[i-1].t)&&(m=BIG.exec(t)))t=m[1]+({'$':' dollars','£':' pounds','€':' euros'})[A[i-1].t[0]]+m[2];
+   txt+=t+' '});
   const u=new SpeechSynthesisUtterance(txt.trim());
   /* B25: prosody per section — headlines brisker, subheads lifted, quotes warm */
   const w0=TTS.words[a]||{};let prate=ttsRate(),ppitch=1;
