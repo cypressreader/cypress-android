@@ -980,7 +980,8 @@ final class CyWidgets {
      * Draws the widgets the way a home screen would (the same RemoteViews, applied in this app) and returns them as JPEGs (base64),
      * so the device test can look at them. A widget that cannot be built or applied is reported as "<name>_error".
      */
-    static JSONObject probe(Context c) {
+    static JSONObject probe(Context ctx) {
+        final Context c = ctx.getApplicationContext(); // like a home screen: plain Android views, not the app's own styled ones
         JSONObject out = new JSONObject();
         String[] names = {"top-4x3", "top-4x3-page3", "top-2x2", "headlines-4x3", "headlines-4x1", "headlines-2x2", "ticker"};
         int[][] sz = {{300, 226, 0}, {300, 226, 2}, {146, 146, 1}, {300, 226, 0}, {300, 120, 0}, {146, 146, 0}, {300, 64, 0}};
