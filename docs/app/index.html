@@ -7550,13 +7550,15 @@ function junkClean(root,url){
  const host=jkHost(url),pub=JK.PUB.find(x=>x.h.test(host)),txt=JK.TXT.concat(pub?pub.txt:[]),learned=new Set(((S.jk&&S.jk.t&&S.jk.t[host])||[]));
  const total=(w.textContent||'').replace(/\s+/g,' ').trim().length;
  const blocks=[...w.querySelectorAll('p,div,section,aside,ul,ol,h2,h3,h4,blockquote,figure')].filter(e=>!e.querySelector('p,div,section,aside,ul,ol,h2,h3,h4,blockquote,figure,li')||/^(UL|OL)$/.test(e.tagName));
- const kill=[],why=new Map();let gone=0;
+ const kill=[],why=new Map();let gone=0,end=0;
  const N=blocks.length;
  blocks.forEach((e,i)=>{
   if(e.closest('.pullq,.rfoot,.endmark,.tbl,table,pre,code'))return;
   const t=(e.textContent||'').replace(/\s+/g,' ').trim();
   if(!t){return}
   {const pre=jkPre(e,t,i,url);if(pre){kill.push(e);why.set(e,{r:pre,t:t.slice(0,140)});return}}
+  /* the site's own ending (its "More reading from ..." list, or the comment box): everything from there on goes, however long the list after it */
+  if(end||(i>3&&(/^more reading from\b.{2,40}$/i.test(t)||(/^conversation$/i.test(t)&&/^read what readers said\b/i.test(((blocks[i+1]||{}).textContent||'').trim()))))){end=1;kill.push(e);why.set(e,{r:'site-end',t:t.slice(0,140)});return}
   /* the comment box left at the end of a story: its heading, its invitation, its lone + button */
   if(i>=N*.7&&/^(?:\+|conversation|comments?(?: \(\d+\))?|read what readers said\b.{0,40}|join the (?:conversation|discussion)\b.{0,60})$/i.test(t)){kill.push(e);why.set(e,{r:'comments',t:t.slice(0,140)});return}
   if(e.querySelector('img,video,iframe')&&t.length>140)return;
@@ -7591,7 +7593,7 @@ function junkClean(root,url){
  /* teaser strips, topic codes, build names, stray credits, price leftovers and video blurbs are matched tightly, so they get their own, looser limit (half the text) instead of counting toward the quarter */
  const SURE=new Set(['teasers','codes','build-name','credit','prices','video-blurb']);
  /* build names and topic codes are never story text: no limit at all (an empty result falls back to the feed's own summary) */
- const NOCAP=new Set(['codes','build-name']);
+ const NOCAP=new Set(['codes','build-name','site-end']);
  let gt=0;kill.forEach(e=>{const r=(why.get(e)||{}).r,L=(e.textContent||'').replace(/\s+/g,' ').trim().length;if(NOCAP.has(r))return;if(SURE.has(r))gt+=L;else gone+=L});
  if(gt>total*.5){for(let j=kill.length-1;j>=0;j--){const r=(why.get(kill[j])||{}).r;if(SURE.has(r)&&!NOCAP.has(r))kill.splice(j,1)}}
  if(total&&gone>total*.25&&total>600){JK.last=[{r:'undone',t:'would remove '+gone+' of '+total+' characters'}];/* the tightly matched kinds still go */kill.forEach(e=>{const r=(why.get(e)||{}).r;if((SURE.has(r)||NOCAP.has(r))&&e.parentNode)e.remove()})}

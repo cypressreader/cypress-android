@@ -2044,3 +2044,6 @@ Dynamic look:
 - [ ] Web app installed as an app: after this update it re-downloads itself once, then works offline as before.
 - [ ] Slide and Fade page turns: two quick taps turn two pages.
 - [ ] Core-only (pre-release) APK, if built: installs and refreshes normally; our own addresses stay HTTPS-only.
+
+## Android Authority story endings (unreleased, after 1.331)
+- Open the Android Authority story "Samsung's Galaxy Claw is no longer a mystery" (or any newer Android Authority story) on the Fold and page to the end: the story should stop at its last paragraph. No "Conversation / Read what readers said or add your take." and no "More reading from Android Authority" list. Implemented, unverified on a phone (the phone's copy of the page could not be reproduced in the cloud).
