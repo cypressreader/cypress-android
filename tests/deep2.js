@@ -41,14 +41,14 @@ for(const [nm,w,h,mob] of [['setup-phone',380,820,true],['setup-fold',884,1060,f
  ck(nm,'setup builds feeds',r.n===n0,JSON.stringify(r).slice(0,200));
  ck(nm,'folders per topic',r.fo.includes('Tech')&&r.fo.includes('Science')&&r.fo.includes('News'),r.fo.join());
  ck(nm,'setup closes',!r.ob&&r.on===1);
- ck(nm,'custom feed loads',await p.E(()=>{const f=S.feeds.find(f=>f.url.includes('alpha'));return f&&state[f.id]==='ok'}));
+ /* the refresh queue loads sites a few at a time, so give the new site up to 12 s */ck(nm,'custom feed loads',await p.waitForFunction(()=>{const f=S.feeds.find(f=>f.url.includes('alpha'));return f&&state[f.id]==='ok'},null,{timeout:12000}).then(()=>true,()=>false));
  await p.reload();await W(1200);ck(nm,'setup not shown again',await p.E(()=>!$('#ob')||!$('#ob').open));
  // run setup again: remove one catalog source
  if(w<=720)await p.tap('#menu');await W(300);await p.tap('#gear');await W(300);await p.E(()=>$('#obagain').scrollIntoView());await p.tap('#obagain');await W(300);
  ck(nm,'rerun opens',await p.E(()=>$('#ob').open&&OB.rerun));
  await p.tap('[data-obnext]');await p.tap('[data-obnext]');await W(150);
  const rem=await p.E(()=>document.querySelector('[data-obsrc].on').dataset.obsrc);await p.tap(`[data-obsrc="${rem}"]`);
- await p.tap('[data-obnext]');await p.tap('[data-obnext]');await p.tap('[data-obdone]');await W(500);
+ /* sources and your own sites share one page now: one Next to the last page */await p.tap('[data-obnext]');await W(150);await p.tap('[data-obdone]');await W(500);
  ck(nm,'rerun removes unchecked, keeps custom',await p.E(u=>!S.feeds.some(f=>f.url===u)&&S.feeds.some(f=>f.url.includes('alpha')),rem));
  // start fresh
  await p.E(()=>{S.saved.push({link:'x',title:'x'});save()});
@@ -100,7 +100,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  const im=await E(()=>{const i=[...document.querySelectorAll('.cols img')].find(x=>{const r=x.getBoundingClientRect();return r.width>50&&r.left>=0&&r.right<=innerWidth});if(!i)return null;const r=i.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}});
  if(im){await p.touchscreen.tap(im.x,im.y);await W(400)}
  ck(vp,'tap photo opens viewer',await E(()=>$('#gal')&&!$('#gal').hidden),JSON.stringify(im));
- const gc=await E(()=>$('#gcnt').textContent);ck(vp,'viewer counts photos',/\/ [2-9]/.test(gc),gc);
+ const gc=await E(()=>$('#gcnt').textContent);ck(vp,'viewer counts photos',/\/ ([2-9]|\d\d)/.test(gc),gc);
  await p.screenshot({path:`/tmp/t/n-${vp}-gallery.png`});
  const i0=await E(()=>G.i);await p.touchDrag(w*.8,h/2,w*.2,h/2+5,10);await W(300);
  ck(vp,'swipe to next photo',await E(()=>G.i)===i0+1||await E(()=>G.list.length)===1);
@@ -190,7 +190,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  const code=await A.E(()=>S.sync);ck('sync','code created',/^[A-Z0-9]{4}(-[A-Z0-9]{4}){3}$/.test(code),code);
  ck('sync','A synced',await A.E(()=>!!S.syncAt),await A.E(()=>S.syncMsg));
  const blob=Object.values(KV)[0]||'';ck('sync','stored data is encrypted',blob.length>100&&!blob.includes('alpha.test')&&!blob.includes('quote A'));
- await B.tap('#gear');await W(300);await B.E(()=>$('#s-sync').scrollIntoView());B.nextPrompt=code.toLowerCase().replace(/-/g,' ');await B.tap('#syjoin');await W(3500);
+ await B.tap('#gear');await W(300);await B.E(()=>$('#s-sync').scrollIntoView());/* Join now asks in the app's own box, not a browser prompt */await B.E(c=>{askBox=async()=>c},code.toLowerCase().replace(/-/g,' '));await B.tap('#syjoin');await W(3500);
  const bs=await B.E(()=>({feeds:S.feeds.map(f=>f.url).sort(),saved:S.saved.length,hl:S.hl.length,theme:S.theme,msg:S.syncMsg}));
  ck('sync','B gets A feeds and keeps its own',bs.feeds.length===3,JSON.stringify(bs));
  ck('sync','B gets saved + highlights',bs.saved===1&&bs.hl===1,JSON.stringify(bs));

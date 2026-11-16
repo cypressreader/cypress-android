@@ -2067,3 +2067,6 @@ All implemented and checked in a headless browser only; unverified on a phone.
 - Settings: The Daily, Reading, Look, Stories and Sites pages are shorter (22 rows gone). Check nothing you use is missing, Quick setup (Simple / Full / Everything) still changes the look, and Settings search no longer finds the removed rows.
 - Refresh three times within a few minutes: sites that rely on Google News headlines should stay online and keep their stories.
 - Airplane mode: open a stored story that has no picture; it should open at once with no waiting.
+
+## Sync join takes the other device's settings (unreleased, 44m0dk, 2026-11-16)
+- Phone A: change the theme, turn on sync. Phone B: Settings → Join sync with A's code. B should switch to A's theme (before the fix, B kept its own because tapping Join counted as a settings change).

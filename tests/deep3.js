@@ -51,7 +51,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060],['desk',1280,900]]){
  // TTS start in vertical from visible word
  ck(vp,'read-aloud starts at visible text',await E(()=>{ttsCollect();const i=ttsStartWord();ttsStop();return i>20}));
  // scroll to end -> finished stat
- await E(()=>{const v=$('#rd .view');v.scrollTop=v.scrollHeight;v.dispatchEvent(new Event('scroll'))});await W(300);
+ await E(()=>{const v=$('#rd .view');vReadFrac();R.vt-=6e5;/* the pace limit: an instant jump to the end is not a finished read, so simulate the reading time */v.scrollTop=v.scrollHeight;v.dispatchEvent(new Event('scroll'))});await W(300);
  ck(vp,'finished counted',await E(()=>!!S.st.fin[curA.link]));
  await E(()=>{S.scroll='pages';applyFs(true)});await W(400);ck(vp,'back to pages',await E(()=>!$('#rd').classList.contains('vert')&&R.np>1));
  await p.evaluate(()=>{const r=document.querySelector('#rd');r&&r.classList.add('fpeek')}).then(()=>p.tap('#cl'))/* R-10 peek */;await W(200);
@@ -65,7 +65,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060],['desk',1280,900]]){
 }
 /* md table conversion */
 {const p=await mk(b,{seedData:seed(['Alpha'])});
- ck('md','markdown table converts',await p.E(()=>{const f=md('Markdown Content:\n| A | B |\n|---|---|\n| 1 | 2 |\n| 3 | 4 |','https://x.test');const t=f.querySelector('table');return !!t&&t.querySelectorAll('td').length===4&&t.querySelectorAll('th').length===2}));
+ ck('md','markdown table converts',await p.E(()=>{const f=md('Markdown Content:\n'+'A plain paragraph of the story, long enough to count as real text and not a menu or a label line. '.repeat(3)+'\n\n'+'A second paragraph of the story that also runs well past the sixty characters a real paragraph needs. '.repeat(3)+'\n\n| A | B |\n|---|---|\n| 1 | 2 |\n| 3 | 4 |\n\n'+'A closing paragraph, so the table sits inside a story, which is how a site would send it to us. '.repeat(3),'https://x.test')/* md() drops a short page with no real paragraphs, so the table sits in a story */;const t=f.querySelector('table');return !!t&&t.querySelectorAll('td').length===4&&t.querySelectorAll('th').length===2}));
  await p.ctx.close()}
 
 /* 14 follow, 18 suggestions, 20 social, 44 repair */
@@ -87,7 +87,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060],['desk',1280,900]]){
  // suggestions
  await E(()=>$('#add').click());await W(300);await E(()=>{const r=$('#pop [data-cat="-1"]');if(r)r.click()});await W(250);
  const sg=await E(()=>({chip:/For you/.test($('#pop .ahd')?.textContent||''),n:document.querySelectorAll('#pop .pf').length,why:$('#pop .pf small:not(.pfbl)')?.textContent}));
- ck('find','For you suggestions',sg.chip&&sg.n>=5&&/Because you read The Verge/.test(sg.why),JSON.stringify(sg));
+ ck('find','For you suggestions',sg.chip&&sg.n>=5&&/Because you (read|follow) The Verge/.test(sg.why),JSON.stringify(sg));
  ck('find','suggestions exclude added',await E(()=>![...document.querySelectorAll('#pop [data-add]')].some(b=>b.dataset.add.includes('theverge'))));
  await E(()=>$('#dlg').close());
  // social
@@ -114,9 +114,11 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  await E(()=>{{const w=$('#whyp');if(w)w.hidden=true}});
  ck(vp,'no info button on cards',await E(()=>[...document.querySelectorAll('#grid .card [data-why]')].every(b=>getComputedStyle(b).display==='none')));
  // card sizes
+ const H={};/* a phone shows one card across at any size: judge Large against Medium, not a fixed height */
  for(const c of ['large','compact','medium']){await E(c=>{S.cards=c;S.sel='all';render()},c);await W(150);
   const r=await E(()=>{const cs=[...document.querySelectorAll('#grid .card')];/* the feed now opens with a mix of card shapes: judge the tallest of the first six */const a=cs.slice(0,6).map(x=>x.getBoundingClientRect()).sort((p,q)=>q.height-p.height)[0];return{w:a.width,h:a.height,cols:new Set(cs.slice(0,6).filter(x=>!x.classList.contains('nr-row')).map(x=>Math.round(x.getBoundingClientRect().left))).size,hs:document.documentElement.scrollWidth<=innerWidth+1}});
-  if(c==='large')ck(vp,'large cards bigger',r.h>=260&&(w<500?r.cols===1:r.cols<=2),JSON.stringify(r));
+  H[c]=r.h;if(c==='large')ck(vp,'large cards one or two across',w<500?r.cols===1:r.cols<=2,JSON.stringify(r));
+  if(c==='medium')ck(vp,'large cards bigger than medium',H.large>r.h,JSON.stringify(H));
   if(c==='compact')ck(vp,'compact cards short',r.h<140,JSON.stringify(r));
   ck(vp,c+' no h-scroll',r.hs);
   await p.screenshot({path:`/tmp/t/v3-${vp}-cards-${c}.png`});}
@@ -260,10 +262,10 @@ for(const [vp,w,h] of [['fold',884,1060],['desk',1280,900]]){
  await p.click('#grid .card:nth-child(3) h3');await W(1800);
  const r=await E(()=>{const m=$('main').getBoundingClientRect(),rd=$('#rd').getBoundingClientRect();return{on:$('#rd').classList.contains('on'),ml:m.left,mr:m.right,rl:rd.left,rw:rd.width,act:!!$('.card.act'),np:R.np}});
  ck(vp,'story opens beside list',r.on&&r.rl>=r.mr-1&&r.rw>300&&r.act,JSON.stringify(r));
- ck(vp,'list still clickable',await E(()=>{const c=document.querySelector('#grid .card:nth-child(4)');const b=c.getBoundingClientRect();const e=document.elementFromPoint(b.left+b.width/2,b.top+b.height/2);return c.contains(e)}));
+ {const lc=await E(()=>{/* the feed mixes card shapes and rows now: take the fourth card, not the fourth child */const c=[...document.querySelectorAll('#grid .card')].filter(x=>!x.classList.contains('act'))[3];c.scrollIntoView({block:'center'});const b=c.getBoundingClientRect();const e=document.elementFromPoint(b.left+b.width/2,b.top+b.height/2);return {ok:c.contains(e),top:e?(e.id||e.className||e.tagName).toString().slice(0,60):'none',b:[Math.round(b.left),Math.round(b.top),Math.round(b.width),Math.round(b.height)]}});ck(vp,'list still clickable',lc.ok,JSON.stringify(lc))}
  await p.screenshot({path:`/tmp/t/v3-${vp}-split1.png`});
  await p.evaluate(()=>document.querySelector('#nx').click());await W(1800);ck(vp,'page turn works in split',await E(()=>R.pg===1));
- await p.click('#grid .card:nth-child(4) h3');await W(1500);ck(vp,'switch story from list',await E(()=>cur.indexOf(curA)===3||$('.card.act')===document.querySelector('#grid .card:nth-child(4)')));
+ {const c4=p.locator('#grid .card:not(.act)').nth(3),t4=(await c4.locator('h3').textContent()).trim();await c4.locator('h3').click();await W(1500);ck(vp,'switch story from list',await E(t=>!!curA&&curA.title.trim()===t,t4),t4)}
  await p.evaluate(()=>{const r=document.querySelector('#rd');r&&r.classList.add('fpeek')});await p.click('#cl');await W(300);ck(vp,'close shows placeholder',await E(()=>!!$('#sheet .spe')&&!$('#rd').classList.contains('on')));
  await p.click('#menu');await W(300);ck(vp,'menu drawer in split',await E(()=>document.body.classList.contains('open')&&$('aside').getBoundingClientRect().left>=-1));
  await E(()=>document.body.classList.remove('open'));

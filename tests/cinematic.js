@@ -25,7 +25,7 @@ const cases={
   const probe=()=>p.evaluate(()=>{const rd=document.getElementById('rd'),b=document.querySelector('.cols .body'),cols=document.querySelector('.cols'),cw=cols.getBoundingClientRect().width;
    const figs=[...b.querySelectorAll('figure.cfr')],hero=document.querySelector('.cols>img.hero'),h2=[...b.querySelectorAll('h2')];
    const cs=e=>getComputedStyle(e);
-   return {cls:rd.className,cw:Math.round(cw),nfig:figs.length,figW:figs.map(f=>Math.round(f.getBoundingClientRect().width)),heroW:hero?Math.round(hero.getBoundingClientRect().width):0,
+   return {cls:rd.className,look:cols.dataset.rlook||'',cw:Math.round(cw),nfig:figs.length,figW:figs.map(f=>Math.round(f.getBoundingClientRect().width)),heroW:hero?Math.round(hero.getBoundingClientRect().width):0,
     capIn:figs.every(f=>{const c=f.querySelector('figcaption');if(!c)return true;const cr=c.getBoundingClientRect(),fr=f.getBoundingClientRect();return cr.bottom<=fr.bottom+1&&cr.top>=fr.top-1}),
     portraitFull:[...b.querySelectorAll('img')].some(i=>/portrait/.test(i.src)&&i.closest('figure.cfr')),
     h2fs:h2.length?Math.round(parseFloat(cs(h2[0]).fontSize)):0,h2num:h2.length?getComputedStyle(h2[0],'::before').content:'',
@@ -48,7 +48,7 @@ const cases={
   ck(`${W}: a story with one picture leads with it (lead full width) and has no frames`,/cine-1/.test(r.cls)&&r.heroW>=r.cw&&r.nfig===0,JSON.stringify(r));
   /* none */
   await open('none');r=await probe();
-  ck(`${W}: a story with no picture is carried by type (drop cap, pulled quote, display headings)`,/cine-t/.test(r.cls)&&r.drop&&r.pull>=1&&r.h2fs>=22,JSON.stringify(r));
+  /* storyLook: no picture and 900+ words = the essay look, which keeps the writer's words and lifts no pull quote */ck(`${W}: a story with no picture is carried by type (drop cap, essay look with no lifted quote, display headings)`,/cine-t/.test(r.cls)&&r.drop&&r.look==='essay'&&r.pull===0&&r.h2fs>=22,JSON.stringify(r));
   const gap=await p.evaluate(()=>{const b=document.querySelector('.cols .body');let worst=0;const kids=[...b.children].filter(e=>e.getBoundingClientRect().height>0);for(let i=1;i<kids.length;i++){const g=kids[i].getBoundingClientRect().top-kids[i-1].getBoundingClientRect().bottom;if(g>worst)worst=g}const hero=document.querySelector('.cols>img.hero');const first=document.querySelector('.cols .tt');return {worst:Math.round(worst),hero:!!hero}});
   ck(`${W}: no broken gap in a story with no picture (largest gap ${gap.worst}px, no empty lead)`,gap.worst<150&&!gap.hero,JSON.stringify(gap));
   /* short */
