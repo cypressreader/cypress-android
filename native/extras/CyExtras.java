@@ -240,7 +240,8 @@ public final class CyExtras {
             }
             if (url != null && url.length() > 0) {
                 // The internal pack/digest/shortcut markers and web addresses are fine; anything else (file:, intent:, javascript:) is dropped.
-                boolean ok = PACK_URL.equals(url) || DIGEST_URL.equals(url) || SHORTCUT_URLS.contains(url) || url.startsWith(PLAY_MARK) || isHttpUrl(url);
+                boolean ok = PACK_URL.equals(url) || DIGEST_URL.equals(url) || SHORTCUT_URLS.contains(url) || url.startsWith(PLAY_MARK) || isHttpUrl(url)
+                    || (url.startsWith(LISTEN_MARK) && isHttpUrl(url.substring(LISTEN_MARK.length())));
                 boolean dup = false;
                 if (ok) {
                     long now = System.currentTimeMillis();
@@ -266,7 +267,10 @@ public final class CyExtras {
 
     /** Launcher shortcut markers (native/extras/res/xml/cy_shortcuts.xml); the web app routes them in handleOpen. */
     static final java.util.Set<String> SHORTCUT_URLS = new java.util.HashSet<>(java.util.Arrays.asList(
-        "cypress:view:listen", "cypress:view:saved", "cypress:view:search", "cypress:view:next"));
+        "cypress:view:listen", "cypress:view:saved", "cypress:view:search", "cypress:view:next", "cypress:view:today"));
+
+    /** The Top Story widget's Listen button: "cypress:listen:<story address>" opens the story and reads it aloud. */
+    static final String LISTEN_MARK = "cypress:listen:";
 
     /** "cypress:play:<words>": the page plays the folder those words name, or The Daily. */
     static final String PLAY_MARK = "cypress:play:";

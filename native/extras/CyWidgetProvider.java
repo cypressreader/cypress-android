@@ -90,6 +90,8 @@ public class CyWidgetProvider extends AppWidgetProvider {
                 CyWidgets.flip(context, 1);
             } else if (CyWidgets.ACT_PREV.equals(a)) {
                 CyWidgets.flip(context, -1);
+            } else if (CyWidgets.ACT_SAVE.equals(a)) {
+                CyWidgets.saveFromWidget(context, intent.getStringExtra("link"));
             }
         } catch (Throwable t) {
             Log.w(TAG, "receive failed: " + t);

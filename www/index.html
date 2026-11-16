@@ -6619,12 +6619,13 @@ const NWS=new Set(),NWD='<i class="nwd" aria-hidden="true"></i>',nwOn=a=>a.date>
 function nwSeen(){clearTimeout(nwSeen.t);nwSeen.t=setTimeout(()=>{if(document.hidden)return;const h=innerHeight;document.querySelectorAll('#grid .nwd:not(.nwx)').forEach(d=>{const c=d.closest('.card'),r=c.getBoundingClientRect();if(r.height&&r.top<h-40&&r.bottom>60){NWS.add(chref(c));d.classList.add('nwx')}})},700)}
 /* breaking strip, rare on purpose: breaking wording AND three or more of your sites on the story within the hour, in the last three hours. Closing it keeps that story away */
 let BRKL=[];
+function brkOf(a){
+ const x=S.brkx||[];if(Date.now()-a.date>108e5||S.read[a.link]||!(a.more||[]).length)return null;
+ const c=[a,...covOf(a).map(m=>m.s).filter(Boolean)].filter(s=>Math.abs(s.date-a.date)<36e5),n=new Set(c.map(s=>s.feedId)).size;
+ return n<3||!c.some(s=>DAYK1.test(s.title||''))||c.some(s=>x.includes(s.link))?null:{c,n}}
 function brkHtml(pool){
- const now=Date.now(),x=S.brkx||[];
  for(const a of pool){
-  if(now-a.date>108e5||S.read[a.link]||!(a.more||[]).length)continue;
-  const c=[a,...covOf(a).map(m=>m.s).filter(Boolean)].filter(s=>Math.abs(s.date-a.date)<36e5),n=new Set(c.map(s=>s.feedId)).size;
-  if(n<3||!c.some(s=>DAYK1.test(s.title||''))||c.some(s=>x.includes(s.link)))continue;
+  const b=brkOf(a);if(!b)continue;const {c,n}=b;
   BRKL=c.map(s=>s.link);
   return `<div class="brk" role="region" aria-label="Breaking news"><a class="brk-a" href="${esc(a.link)}" data-brk><b>Breaking</b><span>${esc(a.title)}</span><small>${n} of your sites · ${ago(a.date)} ago</small></a><button type="button" class="brk-x" data-brkx aria-label="Hide this breaking story" title="Hide">×</button></div>`;
  }
@@ -8628,7 +8629,7 @@ function nextEdition(){
  const d=new Date(),h=d.getHours(),t=new Date(d);
  if(h>=5&&h<17)t.setHours(17,0,0,0);else{if(h>=17)t.setDate(t.getDate()+1);t.setHours(5,0,0,0)}
  const mins=Math.max(1,Math.round((t-d)/6e4)),hh=Math.floor(mins/60),mm=mins%60;
- return {am:!(h>=5&&h<17)?true:false,name:(h>=5&&h<17)?'The Evening Edition':'The Morning Edition',at:(h>=5&&h<17)?'5 PM':'5 AM',left:(hh?hh+' hr ':'')+mm+' min'};
+ return {t:+t,am:!(h>=5&&h<17)?true:false,name:(h>=5&&h<17)?'The Evening Edition':'The Morning Edition',at:(h>=5&&h<17)?'5 PM':'5 AM',left:(hh?hh+' hr ':'')+mm+' min'};
 }
 function backCoverHtml(count,trend){
  const am=edKind()==='m',nx=nextEdition(),d=edDate(),issue=issueNo(d);
@@ -17357,6 +17358,9 @@ function handleOpen(u){if(!u)return;if(u==='cypress:pack')return openPack();if(u
  const sv=/^cypress:view:(listen|saved|search)$/.exec(u);if(sv)return shortcutView(sv[1]);
  /* voice and cypress:// links (native CyExtras.voiceMarker): next story, or play the Daily or a folder by name */
  if(u==='cypress:view:next'){if(TTS.on)ttsEnd(true);else shortcutView('listen');return}
+ if(u==='cypress:view:today'){try{document.querySelectorAll('dialog[open]').forEach(d=>d.close())}catch(e){}S.sel='today';save();render();return}
+ /* the Top Story widget's Listen button: open the story, then read it aloud once its text is in (up to ~11 s) */
+ if(u.startsWith('cypress:listen:')){const l=webUrl(u.slice(15));if(!l)return;openLink({link:l,title:l});let n=0;const go=()=>{n++;if(curA&&curA.link===l&&(!ttsClean()||n>12))return ttsHere();if(n<14)setTimeout(go,800)};setTimeout(go,1200);return}
  if(u.startsWith('cypress:play:')){const q=u.slice(13).toLowerCase().trim(),N=f=>f.name.toLowerCase();const fo=q&&(S.folders.find(f=>N(f)===q)||S.folders.find(f=>q.includes(N(f)))||S.folders.find(f=>N(f).includes(q)));return shortcutView('listen',fo)}
  /* D6: a CyPress share link (cypressreader.com/s/...) opened from another app lands here */
  const sl=/^https:\/\/(?:www\.)?cypressreader\.com\/s\/([A-Za-z0-9_-]{6,4000})\/?(?:[?#].*)?$/.exec(u);if(sl)return openSharedLink(sl[1],u);
@@ -17502,17 +17506,26 @@ function nativeExtrasUi(x){
 }
 function widgetList(){let l=[];try{if(typeof DGL!=='undefined'&&DGL.length){l=[LEADK&&findStory(LEADK),...DGL.map(findStory)].filter((a,i,arr)=>a&&a.title&&a.link&&arr.indexOf(a)===i)}}catch(e){}
  if(!l.length)l=(typeof cur!=='undefined'&&cur||[]).filter(a=>a&&a.title&&a.link);if(!l.length)l=Object.values(items).flat().sort((a,b)=>b.date-a.date);
- return l.slice(0,6).map(a=>{let f;try{f=fof(a)}catch(e){}return{title:String(a.title).slice(0,140),link:a.link,src:String((f&&f.title)||'').slice(0,60),img:/^https?:/.test(a.img||'')?a.img:'',date:+a.date||0,read:!!(S.read&&S.read[a.link])}})}
+ return l.slice(0,6).map(a=>{let f;try{f=fof(a)}catch(e){}return{title:String(a.title).slice(0,140),link:a.link,src:String((f&&f.title)||'').slice(0,60),img:/^https?:/.test(a.img||'')?a.img:'',date:+a.date||0,read:!!(S.read&&S.read[a.link]),nw:nwOn(a),sv:isSaved(a)}})}
 /* B67: the Ticker widget cycles breaking stories (last 12 hours, flagged by the same words the Daily uses); with none, the newest stories */
 function widgetBreaking(){try{const now=Date.now(),all=Object.values(items).flat().filter(a=>a&&a.title&&a.link&&a.date),mk=a=>{let f;try{f=fof(a)}catch(e){}return{title:String(a.title).slice(0,140),link:a.link,src:String((f&&f.title)||'').slice(0,60),date:+a.date||0,read:!!(S.read&&S.read[a.link])}};
- let l=all.filter(a=>now-a.date<432e5&&DAYK1.test(a.title)).sort((p,q)=>q.date-p.date).slice(0,5).map(a=>Object.assign(mk(a),{brk:true}));
- if(!l.length)l=all.sort((p,q)=>q.date-p.date).slice(0,5).map(mk);return l}catch(e){return[]}}
+ let l=all.filter(a=>now-a.date<432e5&&DAYK1.test(a.title)).sort((p,q)=>q.date-p.date).slice(0,5).map(mk);
+ if(!l.length)l=all.sort((p,q)=>q.date-p.date).slice(0,5).map(mk);
+ /* "Breaking" only by the app's own rule (three or more of your sites on it within the hour), first in line */
+ let b=null;const g=(typeof cur!=='undefined'&&cur||[]).find(a=>a&&a.link&&(b=brkOf(a)));
+ if(g)l=[Object.assign(mk(g),{brk:true,n:b.n}),...l.filter(a=>a.link!==g.link)].slice(0,5);
+ return l.map(a=>Object.assign(a,{nw:nwOn(a)}))}catch(e){return[]}}
+/* The Daily widget: how far through this edition, the next unread story, and when the next edition comes */
+function widgetDaily(){try{let L=[];if(typeof DGL!=='undefined'&&DGL.length)L=[LEADK&&findStory(LEADK),...DGL.map(findStory)].filter((a,i,arr)=>a&&a.title&&a.link&&arr.indexOf(a)===i);if(!L.length)return null;
+ const un=L.filter(a=>!S.read[a.link]),nx=un[0],nd=nextEdition();let f;try{f=nx&&fof(nx)}catch(e){}
+ return{n:L.length,r:L.length-un.length,ed:edKind()==='m'?'Morning edition':'Evening edition',left:un.reduce((s,a)=>s+(readMin(a)||0),0),next:nx?{title:String(nx.title).slice(0,140),link:nx.link,src:String((f&&f.title)||'').slice(0,60)}:null,nxName:nd.name,nxAt:nd.t,nxAtL:nd.at}}catch(e){return null}}
 /* the widgets wear the app's theme (Android 12+): its page, text, accent, quiet-text and line colors as plain #rrggbb. Halcyon and Dynamic send nothing, so the widgets keep their own cream and green with the phone's day and night */
 function widgetTheme(){try{const t=document.documentElement.dataset.theme||'';if(/^halcyon|^dynamic$|^thegoat$/.test(t))return null;const cs=getComputedStyle(document.documentElement),cx=document.createElement('canvas').getContext('2d'),o={};for(const [k,v] of [['bg','--bg'],['ink','--ink'],['a1','--a1'],['mut','--mut'],['ln','--ln']]){cx.fillStyle='#000';cx.fillStyle=cs.getPropertyValue(v).trim();o[k]=cx.fillStyle;if(!/^#[0-9a-f]{6}$/i.test(o[k]))return null}return o}catch(e){return null}}
-function widgetPush(){const x=CyX();if(!x||!x.widgetUpdate||!nFeat('widget')||!S.widget)return;try{const top=widgetList();if(top.length)x.widgetUpdate({headlines:top,breaking:widgetBreaking(),edition:edKind()==='m'?'Morning edition':'Evening edition',theme:widgetTheme()}).catch(()=>{})}catch(e){}}
+function widgetPush(){const x=CyX();if(!x||!x.widgetUpdate||!nFeat('widget')||!S.widget)return;try{const top=widgetList();if(top.length)x.widgetUpdate({headlines:top,breaking:widgetBreaking(),edition:edKind()==='m'?'Morning edition':'Evening edition',theme:widgetTheme(),daily:widgetDaily()}).catch(()=>{})}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)widgetPush()});onShow(widgetSavePull,700);
 /* B48: stories saved from the home-screen widget */
-async function widgetSavePull(){const x=CyX();if(!x||!x.widgetSaved||!nFeat('widget'))return;try{const r=await x.widgetSaved();const link=r&&r.link;if(!link)return;const a=findStory(link);if(!a){toast('Saved the link — open it once to finish saving');return}if(!isSaved(a)){toggleSave(a);toast('Saved “'+String(a.title||'').slice(0,60)+'”')}else toast('Already saved')}catch(e){}}
+async function widgetSavePull(){const x=CyX();if(!x||!x.widgetSaved||!nFeat('widget'))return;try{let n=0,miss=0;for(let k=0;k<20;k++){const r=await x.widgetSaved();const link=r&&r.link;if(!link)break;const a=findStory(link);if(!a){miss++;continue}if(!isSaved(a)){toggleSave(a);n++}}
+ if(n)toast(n===1?'Saved 1 story from the widget':'Saved '+n+' stories from the widget');if(miss)toast(miss===1?'One story from the widget is no longer here, so it wasn’t saved':miss+' stories from the widget are no longer here, so they weren’t saved')}catch(e){}}
 /* a widget save while the app is away is picked up on return (visibilitychange above); the extra 30-second check while the app is open is gone (it woke the phone for nothing) */
 
 function nativeSetup(){

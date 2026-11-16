@@ -1,71 +1,144 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Continue listening: the cover, what is playing and a play/pause button. Tapping the card opens CyPress. -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/cy_wl_root"
+<!-- Continue listening: the story's picture behind a forest veil (or the plain card with a small cover when there is none),
+     what is playing and time left, skip back / play-pause / next story, and a thin progress line along the bottom.
+     Tapping the card opens CyPress. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/cy_w_bg"
-    android:gravity="center_vertical"
-    android:minHeight="64dp"
-    android:orientation="horizontal"
-    android:padding="10dp">
+    android:minHeight="64dp">
 
     <ImageView
-        android:id="@+id/cy_wl_art"
-        android:layout_width="52dp"
-        android:layout_height="52dp"
-        android:background="@drawable/cy_w_thumb_bg"
-        android:contentDescription="@null"
+        android:id="@+id/cy_wl_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
         android:scaleType="centerCrop"
-        android:src="@drawable/cy_w_mark" />
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/cy_wl_veil"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/cy_w_veil"
+        android:importantForAccessibility="no"
+        android:visibility="gone" />
 
     <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:paddingStart="12dp"
-        android:paddingEnd="8dp">
+        android:id="@+id/cy_wl_root"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="10dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="10dp">
 
-        <TextView
-            android:id="@+id/cy_wl_kick"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Continue listening"
-            android:textAllCaps="true"
-            android:textColor="@color/cy_w_kicker"
-            android:textSize="11sp"
-            android:textStyle="bold" />
+        <ImageView
+            android:id="@+id/cy_wl_art"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/cy_w_thumb_bg"
+            android:importantForAccessibility="no"
+            android:scaleType="centerCrop"
+            android:src="@drawable/cy_w_mark" />
 
-        <TextView
-            android:id="@+id/cy_wl_title"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:fontFamily="serif"
-            android:maxLines="2"
-            android:text="The Daily"
-            android:textColor="@color/cy_w_ink"
-            android:textSize="15sp"
-            android:textStyle="bold" />
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:paddingStart="4dp"
+            android:paddingEnd="6dp">
 
-        <TextView
-            android:id="@+id/cy_wl_sub"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="@color/cy_w_muted"
-            android:textSize="12sp" />
+            <TextView
+                android:id="@+id/cy_wl_kick"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.1"
+                android:maxLines="1"
+                android:text="CONTINUE LISTENING"
+                android:textColor="@color/cy_w_kicker"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/cy_wl_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="serif"
+                android:maxLines="1"
+                android:text="The Daily"
+                android:textColor="@color/cy_w_ink"
+                android:textSize="15.5sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/cy_wl_sub"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/cy_w_muted"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/cy_wl_rew"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="Skip back"
+            android:padding="9dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/cy_ic_rew"
+            android:tint="@color/cy_w_ink"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/cy_wl_play"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/cy_w_pill_bg"
+            android:contentDescription="Play"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/cy_ic_play"
+            android:tint="@color/cy_w_brass" />
+
+        <ImageView
+            android:id="@+id/cy_wl_next"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="Next story"
+            android:padding="9dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/cy_ic_next"
+            android:tint="@color/cy_w_ink"
+            android:visibility="gone" />
     </LinearLayout>
 
-    <ImageButton
-        android:id="@+id/cy_wl_play"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:background="@drawable/cy_w_pill_bg"
-        android:contentDescription="Play"
-        android:scaleType="center"
-        android:src="@drawable/cy_ic_play"
-        android:tint="@color/cy_w_ink" />
-</LinearLayout>
+    <ProgressBar
+        android:id="@+id/cy_wl_prog"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_gravity="bottom"
+        android:max="100"
+        android:progressDrawable="@drawable/cy_w_prog"
+        android:visibility="gone" />
+
+    <ProgressBar
+        android:id="@+id/cy_wl_prog2"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_gravity="bottom"
+        android:max="100"
+        android:progressDrawable="@drawable/cy_w_prog_photo"
+        android:visibility="gone" />
+</FrameLayout>

@@ -39,6 +39,7 @@ final class CyWidgets {
     static final String ACT_NEXT = "com.cypress.reader.widget.NEXT";
     static final String ACT_PREV = "com.cypress.reader.widget.PREV";
     static final String ACT_REFRESH = "com.cypress.reader.widget.REFRESH";
+    static final String ACT_SAVE = "com.cypress.reader.widget.SAVE";
     static final long STEP_MS = 15L * 60L * 1000L;
     static final int TOP_N = 5;
     static final int TICK_N = 5;
@@ -66,7 +67,8 @@ final class CyWidgets {
     static boolean any(Context c) {
         return ids(c, CyWidgetProvider.class).length > 0
             || ids(c, CyWidgetListProvider.class).length > 0
-            || ids(c, CyWidgetTickerProvider.class).length > 0;
+            || ids(c, CyWidgetTickerProvider.class).length > 0
+            || ids(c, CyDailyWidget.class).length > 0;
     }
 
     private static boolean cycles(Context c) {
@@ -210,6 +212,67 @@ final class CyWidgets {
         refreshTop(c);
         refreshList(c);
         refreshTicker(c);
+        refreshDaily(c);
+    }
+
+    static void refreshDaily(Context c) {
+        try {
+            AppWidgetManager m = AppWidgetManager.getInstance(c);
+            for (int id : ids(c, CyDailyWidget.class)) {
+                try {
+                    m.updateAppWidget(id, buildDaily(c, widthDp(m, id), heightDp(m, id)));
+                } catch (Throwable t) {
+                    Log.w(TAG, "daily refresh " + id + ": " + t);
+                }
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "daily refresh: " + t);
+        }
+    }
+
+    /** The Daily widget's state from the app: {n, r, ed, left, next:{title,link,src}, nxName, nxAt}; null = nothing yet. */
+    static void saveDaily(Context c, JSONObject d) {
+        try {
+            sp(c).edit().putString("widget_daily", d == null ? "" : d.toString()).apply();
+        } catch (Throwable t) {
+            Log.w(TAG, "daily: " + t);
+        }
+    }
+
+    // ---------------------------------------------------------------- Save from the Top Story
+
+    private static PendingIntent saveIntent(Context c, String link, int code) {
+        Intent i = new Intent(c, CyWidgetProvider.class);
+        i.setAction(ACT_SAVE);
+        i.putExtra("t", tok(c));
+        i.putExtra("link", link);
+        return PendingIntent.getBroadcast(c, code, i, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    /** Stories saved from the widget that the app has not picked up yet (the app saves them the next time it opens). */
+    private static java.util.Set<String> pendingSaves(Context c) {
+        java.util.HashSet<String> out = new java.util.HashSet<>();
+        String q = c.getSharedPreferences("cypress", Context.MODE_PRIVATE).getString("widget_save", "");
+        for (String l : q.split("\n")) if (l.length() > 0) out.add(l);
+        return out;
+    }
+
+    /** The Save button: queue the link for the app (CyExtrasPlugin.widgetSaved hands them over one by one) and say so. */
+    static void saveFromWidget(Context c, String link) {
+        try {
+            if (!CyExtras.isHttpUrl(link)) return;
+            SharedPreferences p = c.getSharedPreferences("cypress", Context.MODE_PRIVATE);
+            String q = p.getString("widget_save", "");
+            if (!pendingSaves(c).contains(link)) {
+                String[] old = q.split("\n");
+                StringBuilder b = new StringBuilder();
+                for (int i = Math.max(0, old.length - 19); i < old.length; i++) if (old[i].length() > 0) b.append(old[i]).append('\n'); // keep the last 20
+                p.edit().putString("widget_save", b.append(link).toString()).apply();
+            }
+            android.widget.Toast.makeText(c, "Saved for later", android.widget.Toast.LENGTH_SHORT).show();
+        } catch (Throwable t) {
+            Log.w(TAG, "save failed: " + t);
+        }
     }
 
     static void refreshTop(Context c) {
@@ -363,7 +426,7 @@ final class CyWidgets {
     }
 
     /** {background, text, accent, quiet text, line} or null for the widgets' own look. */
-    private static int[] theme(Context c) {
+    static int[] theme(Context c) {
         try {
             if (Build.VERSION.SDK_INT < 31) return null;
             String s = sp(c).getString("widget_theme", "");
@@ -379,13 +442,21 @@ final class CyWidgets {
     }
 
     /** Recolors a rounded card background, keeping its corners. Only called when theme() is not null (Android 12+). */
-    private static void tintBg(RemoteViews rv, int id, int color) {
+    static void tintBg(RemoteViews rv, int id, int color) {
         if (Build.VERSION.SDK_INT >= 31) rv.setColorStateList(id, "setBackgroundTintList", android.content.res.ColorStateList.valueOf(color));
     }
 
-    private static int ink(Context c, int[] th) { return th != null ? th[T_INK] : col(c, R.color.cy_w_ink); }
-    private static int kicker(Context c, int[] th) { return th != null ? th[T_ACC] : col(c, R.color.cy_w_kicker); }
-    private static int muted(Context c, int[] th) { return th != null ? th[T_MUT] : col(c, R.color.cy_w_muted); }
+    static int ink(Context c, int[] th) { return th != null ? th[T_INK] : col(c, R.color.cy_w_ink); }
+    static int kicker(Context c, int[] th) { return th != null ? th[T_ACC] : col(c, R.color.cy_w_kicker); }
+    static int muted(Context c, int[] th) { return th != null ? th[T_MUT] : col(c, R.color.cy_w_muted); }
+
+    /** A story the reader has not seen yet gets a small dot before its label, as in the app. */
+    static CharSequence dot(String kick, JSONObject o, boolean quiet) {
+        if (quiet || !o.optBoolean("nw", false)) return kick;
+        android.text.SpannableString s = new android.text.SpannableString("\u25CF  " + kick);
+        s.setSpan(new android.text.style.RelativeSizeSpan(0.8f), 0, 1, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return s;
+    }
 
     /** "12 MIN", "2H", "3D", or "" when the story has no date. */
     static String ageLabel(long ms) {
@@ -399,7 +470,7 @@ final class CyWidgets {
     }
 
     /** Fills w x h from the middle of src (like centerCrop), with rounded corners of radius r pixels (0 = square). */
-    private static Bitmap cropFill(Bitmap src, int w, int h, float r) {
+    static Bitmap cropFill(Bitmap src, int w, int h, float r) {
         Bitmap.Config cfg = (r > 0f) ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565;
         Bitmap out = Bitmap.createBitmap(Math.max(1, w), Math.max(1, h), cfg);
         Canvas cv = new Canvas(out);
@@ -416,7 +487,7 @@ final class CyWidgets {
     }
 
     /** Decodes the downloaded picture file at about the size wanted; null if there is none or it cannot be read. */
-    private static Bitmap decodeFor(Context c, String url, int wantW, int wantH, Bitmap.Config cfg) {
+    static Bitmap decodeFor(Context c, String url, int wantW, int wantH, Bitmap.Config cfg) {
         try {
             File f = CyWidgetProvider.imageFile(c, url);
             if (f == null || !f.isFile()) return null;
@@ -649,7 +720,19 @@ final class CyWidgets {
 
             boolean compact = (hDp > 0 && hDp < 140) || (wDp > 0 && wDp < 200);
             boolean expanded = hDp >= 220;
-            card.setTextViewText(R.id.cy_card_folio, "CYPRESS  ·  " + (position + 1) + " / " + Math.max(1, total));
+            String link = o.optString("link", "");
+            // Save and Listen sit left of the arrows on medium and large widgets; a narrower one shortens the page count to make room
+            boolean acts = !compact && !inCollection && (wDp == 0 || wDp >= 250) && CyExtras.isHttpUrl(link) && !isStale(c);
+            card.setViewVisibility(R.id.cy_card_acts, acts ? View.VISIBLE : View.GONE);
+            if (acts) {
+                boolean saved = o.optBoolean("sv", false) || pendingSaves(c).contains(link);
+                card.setImageViewResource(R.id.cy_card_save, saved ? R.drawable.cy_ic_save : R.drawable.cy_w_save_off);
+                card.setContentDescription(R.id.cy_card_save, saved ? "Saved" : "Save for later");
+                if (!saved) card.setOnClickPendingIntent(R.id.cy_card_save, saveIntent(c, link, 320 + position));
+                card.setOnClickPendingIntent(R.id.cy_card_listen, CyExtras.openIntent(c, CyExtras.LISTEN_MARK + link, 330 + position));
+            }
+            String folio = (position + 1) + " / " + Math.max(1, total);
+            card.setTextViewText(R.id.cy_card_folio, acts && wDp > 0 && wDp < 320 ? folio : "CYPRESS  ·  " + folio);
             card.setViewVisibility(R.id.cy_card_folio, compact || (wDp > 0 && wDp < 200) ? View.GONE : View.VISIBLE);
             card.setTextViewText(R.id.cy_card_src, kick);
             card.setViewVisibility(R.id.cy_card_src, kick.length() == 0 ? View.GONE : View.VISIBLE);
@@ -657,7 +740,6 @@ final class CyWidgets {
             card.setTextViewTextSize(R.id.cy_card_head, TypedValue.COMPLEX_UNIT_SP, compact ? 17.5f : (expanded ? 22f : 21f));
             card.setInt(R.id.cy_card_head, "setMaxLines", compact ? (hDp >= 140 ? 3 : 2) : (expanded ? 4 : 3));
 
-            String link = o.optString("link", "");
             if (inCollection) {
                 card.setOnClickFillInIntent(R.id.cy_card_root, CyExtras.fillInOpenIntent(link));
             } else {
@@ -683,7 +765,7 @@ final class CyWidgets {
         String src = lead.optString("src", "").trim().toUpperCase(Locale.getDefault());
         String age = (upd || stale) ? "" : ageLabel(lead.optLong("date", 0L));
         String kick = stale ? "TAP TO REFRESH" : (age.length() > 0 ? (src.length() > 0 ? src + "  ·  " + age : age) : src);
-        rv.setTextViewText(R.id.cy_wlw_src, kick);
+        rv.setTextViewText(R.id.cy_wlw_src, dot(kick, lead, upd || stale));
         rv.setTextViewText(R.id.cy_wlw_head, lead.optString("title", ""));
         rv.setInt(R.id.cy_wlw_head, "setMaxLines", heightDp > 0 && heightDp < 110 ? 2 : 3);
         boolean next = stories.size() > 1 && heightDp >= 110;
@@ -759,7 +841,7 @@ final class CyWidgets {
         String leadKick = leadSrc.toUpperCase(Locale.getDefault());
         if (leadAge.length() > 0) leadKick = leadKick.length() > 0 ? leadKick + "  ·  " + leadAge : leadAge;
         if (stale) leadKick = "TAP TO REFRESH";
-        rv.setTextViewText(R.id.cy_wsp_hero_src, leadKick);
+        rv.setTextViewText(R.id.cy_wsp_hero_src, dot(leadKick, lead, upd || stale));
         rv.setTextViewText(R.id.cy_wsp_hero_head, lead.optString("title", ""));
 
         String ed = sp(c).getString("widget_ed", "");
@@ -796,7 +878,7 @@ final class CyWidgets {
             String b1Src = b1.optString("src", "").trim().toUpperCase(Locale.getDefault());
             String b1Age = (upd || stale) ? "" : ageLabel(b1.optLong("date", 0L));
             String b1Kick = b1Age.length() > 0 ? (b1Src.length() > 0 ? b1Src + "  ·  " + b1Age : b1Age) : b1Src;
-            rv.setTextViewText(R.id.cy_wsp_b1_src, b1Kick);
+            rv.setTextViewText(R.id.cy_wsp_b1_src, dot(b1Kick, b1, upd || stale));
             rv.setTextViewText(R.id.cy_wsp_b1_head, b1.optString("title", ""));
             rv.setInt(R.id.cy_wsp_b1_src, "setTextColor", kicker(c, th));
             rv.setInt(R.id.cy_wsp_b1_head, "setTextColor", ink(c, th));
@@ -812,7 +894,7 @@ final class CyWidgets {
             String b2Src = b2.optString("src", "").trim().toUpperCase(Locale.getDefault());
             String b2Age = (upd || stale) ? "" : ageLabel(b2.optLong("date", 0L));
             String b2Kick = b2Age.length() > 0 ? (b2Src.length() > 0 ? b2Src + "  ·  " + b2Age : b2Age) : b2Src;
-            rv.setTextViewText(R.id.cy_wsp_b2_src, b2Kick);
+            rv.setTextViewText(R.id.cy_wsp_b2_src, dot(b2Kick, b2, upd || stale));
             rv.setTextViewText(R.id.cy_wsp_b2_head, b2.optString("title", ""));
             rv.setInt(R.id.cy_wsp_b2_src, "setTextColor", kicker(c, th));
             rv.setInt(R.id.cy_wsp_b2_head, "setTextColor", ink(c, th));
@@ -927,12 +1009,23 @@ final class CyWidgets {
             JSONObject o = h.optJSONObject(i);
             if (o == null || o.optString("title", "").length() == 0) continue;
             RemoteViews pg = new RemoteViews(c.getPackageName(), R.layout.cy_widget_ticker_page);
-            String kick = stale ? "TAP TO REFRESH" : (upd ? "UPDATING…" : (o.optBoolean("brk", false) ? "BREAKING" : "LATEST"));
+            boolean brk = !stale && !upd && o.optBoolean("brk", false);
+            String kick = stale ? "TAP TO REFRESH" : (upd ? "UPDATING…" : (brk ? "BREAKING" : "LATEST"));
             String age = (upd || stale) ? "" : ageLabel(o.optLong("date", 0L));
             String src = o.optString("src", "").trim().toUpperCase(Locale.getDefault());
+            int sites = o.optInt("n", 0);
+            if (brk && sites >= 2) src = sites + " SITES";
             if (!stale && !upd && src.length() > 0) kick = kick + "  ·  " + src;
             if (age.length() > 0) kick = kick + "  ·  " + age;
-            pg.setTextViewText(R.id.cy_wq_src, kick);
+            if (brk) {
+                // a small red "Breaking" label, white letters
+                android.text.SpannableString bs = new android.text.SpannableString(" BREAKING " + kick.substring(8));
+                bs.setSpan(new android.text.style.BackgroundColorSpan(0xFF8F2A1C), 0, 10, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                bs.setSpan(new android.text.style.ForegroundColorSpan(0xFFFFFFFF), 0, 10, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                pg.setTextViewText(R.id.cy_wq_src, bs);
+            } else {
+                pg.setTextViewText(R.id.cy_wq_src, dot(kick, o, stale || upd));
+            }
             pg.setInt(R.id.cy_wq_src, "setTextColor", kicker(c, th));
             pg.setTextViewText(R.id.cy_wq_head, o.optString("title", ""));
             pg.setInt(R.id.cy_wq_head, "setTextColor", ink(c, th));
@@ -976,6 +1069,79 @@ final class CyWidgets {
         return rv;
     }
 
+    // ---------------------------------------------------------------- The Daily 4x2
+
+    static RemoteViews buildDaily(Context c, int wDp, int hDp) {
+        RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_daily);
+        int[] th = theme(c);
+        if (th != null) {
+            tintBg(rv, android.R.id.background, th[T_BG]);
+            tintBg(rv, R.id.cy_wd_go, th[T_INK]);
+            rv.setInt(R.id.cy_wd_go, "setTextColor", th[T_BG]);
+            rv.setColorStateList(R.id.cy_wd_prog, "setProgressTintList", android.content.res.ColorStateList.valueOf(th[T_INK]));
+            rv.setColorStateList(R.id.cy_wd_prog, "setProgressBackgroundTintList", android.content.res.ColorStateList.valueOf(th[T_LN]));
+        }
+        rv.setInt(R.id.cy_wd_name, "setTextColor", ink(c, th));
+        rv.setInt(R.id.cy_wd_head, "setTextColor", ink(c, th));
+        rv.setInt(R.id.cy_wd_cnt, "setTextColor", kicker(c, th));
+        rv.setInt(R.id.cy_wd_kick, "setTextColor", kicker(c, th));
+        rv.setInt(R.id.cy_wd_sub, "setTextColor", muted(c, th));
+        boolean small = hDp > 0 && hDp < 130; // a short widget: one headline line
+        rv.setInt(R.id.cy_wd_head, "setMaxLines", small ? 1 : 2);
+        JSONObject d = null;
+        try {
+            String s = sp(c).getString("widget_daily", "");
+            if (s.length() > 0) d = new JSONObject(s);
+        } catch (Throwable t) {
+            d = null;
+        }
+        int n = d == null ? 0 : d.optInt("n", 0), r = d == null ? 0 : Math.min(n, d.optInt("r", 0));
+        JSONObject next = d == null ? null : d.optJSONObject("next");
+        long nxAt = d == null ? 0L : d.optLong("nxAt", 0L);
+        boolean newEd = nxAt > 0 && System.currentTimeMillis() >= nxAt; // the next edition is out but the app has not run since
+        if (n == 0 || newEd) {
+            rv.setTextViewText(R.id.cy_wd_cnt, "");
+            rv.setViewVisibility(R.id.cy_wd_prog, View.GONE);
+            rv.setViewVisibility(R.id.cy_wd_kick, View.GONE);
+            rv.setViewVisibility(R.id.cy_wd_go, newEd ? View.VISIBLE : View.GONE);
+            rv.setTextViewText(R.id.cy_wd_go, "Open");
+            rv.setTextViewText(R.id.cy_wd_head, newEd ? d.optString("nxName", "The next edition") + " is ready" : "Open CyPress to load The Daily");
+            rv.setTextViewText(R.id.cy_wd_sub, "");
+            PendingIntent open = CyExtras.openIntent(c, "cypress:view:today", 600);
+            rv.setOnClickPendingIntent(android.R.id.background, open);
+            rv.setOnClickPendingIntent(R.id.cy_wd_go, open);
+            return rv;
+        }
+        String ed = d.optString("ed", "");
+        rv.setViewVisibility(R.id.cy_wd_prog, View.VISIBLE);
+        rv.setProgressBar(R.id.cy_wd_prog, 100, Math.round(100f * r / n), false);
+        rv.setTextViewText(R.id.cy_wd_cnt, (r + " of " + n + " read").toUpperCase(Locale.getDefault()));
+        if (next == null || !CyExtras.isHttpUrl(next.optString("link", ""))) {
+            // finished: say so, and when the next edition comes
+            boolean am = ed.toLowerCase(Locale.ROOT).startsWith("morning");
+            rv.setViewVisibility(R.id.cy_wd_kick, View.GONE);
+            rv.setViewVisibility(R.id.cy_wd_go, View.GONE);
+            rv.setTextViewText(R.id.cy_wd_head, "You’re done for this " + (am ? "morning" : "evening"));
+            String nx = d.optString("nxName", ""), at = d.optString("nxAtL", "");
+            rv.setTextViewText(R.id.cy_wd_sub, nx.length() > 0 && at.length() > 0 ? nx + " arrives at " + at + "." : "");
+            PendingIntent open = CyExtras.openIntent(c, "cypress:view:today", 600);
+            rv.setOnClickPendingIntent(android.R.id.background, open);
+            return rv;
+        }
+        String src = next.optString("src", "").trim().toUpperCase(Locale.getDefault());
+        rv.setViewVisibility(R.id.cy_wd_kick, View.VISIBLE);
+        rv.setTextViewText(R.id.cy_wd_kick, src.length() > 0 ? "UP NEXT  ·  " + src : "UP NEXT");
+        rv.setTextViewText(R.id.cy_wd_head, next.optString("title", ""));
+        int left = d.optInt("left", 0);
+        rv.setTextViewText(R.id.cy_wd_sub, ed + (left > 0 ? "  ·  " + left + " min left" : ""));
+        rv.setViewVisibility(R.id.cy_wd_go, wDp > 0 && wDp < 220 ? View.GONE : View.VISIBLE);
+        rv.setTextViewText(R.id.cy_wd_go, "Read next");
+        PendingIntent open = CyExtras.openIntent(c, next.optString("link", ""), 601);
+        rv.setOnClickPendingIntent(android.R.id.background, open);
+        rv.setOnClickPendingIntent(R.id.cy_wd_go, open);
+        return rv;
+    }
+
     // ---------------------------------------------------------------- test pictures
 
     /**
@@ -985,13 +1151,13 @@ final class CyWidgets {
     static JSONObject probe(Context ctx) {
         final Context c = ctx.getApplicationContext(); // like a home screen: plain Android views, not the app's own styled ones
         JSONObject out = new JSONObject();
-        String[] names = {"top-4x3", "top-4x3-page3", "top-2x2", "headlines-4x3", "headlines-4x1", "headlines-2x2", "ticker"};
-        int[][] sz = {{300, 226, 0}, {300, 226, 2}, {146, 146, 1}, {300, 226, 0}, {300, 120, 0}, {146, 146, 0}, {300, 64, 0}};
+        String[] names = {"top-4x3", "top-4x3-page3", "top-2x2", "headlines-4x3", "headlines-4x1", "headlines-2x2", "ticker", "daily-4x2", "listen-4x1"};
+        int[][] sz = {{300, 226, 0}, {300, 226, 2}, {146, 146, 1}, {300, 226, 0}, {300, 120, 0}, {146, 146, 0}, {300, 64, 0}, {300, 146, 0}, {300, 64, 0}};
         float d = c.getResources().getDisplayMetrics().density;
         for (int i = 0; i < names.length; i++) {
             try {
                 int w = sz[i][0], h = sz[i][1];
-                RemoteViews rv = i < 3 ? buildTop(c, 0, w, h, true) : (i < 6 ? buildList(c, w, h) : buildTicker(c));
+                RemoteViews rv = i < 3 ? buildTop(c, 0, w, h, true) : (i < 6 ? buildList(c, w, h) : (i < 7 ? buildTicker(c) : (i < 8 ? buildDaily(c, w, h) : CyListenWidget.build(c, w))));
                 View v = rv.apply(c, new android.widget.FrameLayout(c));
                 android.widget.ViewFlipper f = v.findViewById(R.id.cy_flipper);
                 if (f != null && sz[i][2] > 0 && f.getChildCount() > sz[i][2]) {

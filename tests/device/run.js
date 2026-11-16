@@ -163,7 +163,7 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
   await step('widgets', async s => {
     const out = {};
     for (const t of ['halcyon', 'rosewood', 'oled']) {
-      const r = await page.evaluate(async t => { S.theme = t; applyTheme(); await new Promise(r => setTimeout(r, 600)); const x = CyX(), top = widgetList(), th = widgetTheme(); await x.widgetUpdate({ headlines: top, breaking: widgetBreaking(), edition: 'Morning edition', theme: th }); return { n: top.length, pics: top.filter(a => a.img).length, theme: th, shown: document.documentElement.dataset.theme, p: await x.widgetProbe({}) } }, t);
+      const r = await page.evaluate(async t => { S.theme = t; applyTheme(); await new Promise(r => setTimeout(r, 600)); const x = CyX(), top = widgetList(), th = widgetTheme(), br = widgetBreaking(); /* show each new sign once: a saved lead, a new-story dot, a Breaking label */ if (top[0]) top[0].sv = true; if (top[1]) top[1].nw = true; if (br[0]) Object.assign(br[0], { brk: true, n: 4 }); await x.widgetUpdate({ headlines: top, breaking: br, edition: 'Morning edition', theme: th, daily: widgetDaily() }); return { n: top.length, pics: top.filter(a => a.img).length, theme: th, shown: document.documentElement.dataset.theme, p: await x.widgetProbe({}) } }, t);
       out[t] = { stories: r.n, withPicture: r.pics, colors: r.theme, shown: r.shown, errors: {} };
       for (const [k, v] of Object.entries(r.p || {})) {
         if (/_error$/.test(k)) { out[t].errors[k] = v; continue }

@@ -15,7 +15,8 @@ let pass=0,fail=0;const log=[];const ck=(n,c,x='')=>{if(c)pass++;else{fail++;log
  ck('widgetUpdate called',!!w);
  ck('top stories sent (max 6)',w&&w.headlines.length>0&&w.headlines.length<=6);
  ck('edition name is Morning or Evening',w&&/^(Morning|Evening) edition$/.test(w.edition),w&&w.edition);
- ck('breaking list sent, flagged, at most 5',w&&w.breaking.length>0&&w.breaking.length<=5&&w.breaking[0].brk===true&&/BREAKING/.test(w.breaking[0].title),JSON.stringify(w&&w.breaking[0]));
+ /* 'Breaking' label only by the app's strip rule (3+ sites within the hour), so plain keyword stories come first unflagged */
+ ck('breaking list sent, keyword stories first, at most 5',w&&w.breaking.length>0&&w.breaking.length<=5&&/BREAKING/.test(w.breaking[0].title)&&'nw' in w.breaking[0]&&'nw' in w.headlines[0]&&'sv' in w.headlines[0],JSON.stringify(w&&w.breaking[0]));
  ck('every ticker story has a link and source',w&&w.breaking.every(x=>x.link&&typeof x.src==='string'));
  await E(()=>{Object.values(items).flat().forEach(a=>{a.title=a.title.replace(/breaking/ig,'news')});widgetPush()});await p.waitForTimeout(200);
  const w2=await E(()=>window.__w[window.__w.length-1]);

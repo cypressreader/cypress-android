@@ -317,8 +317,15 @@ public class CyExtrasPlugin extends Plugin {
         try {
             Context c = getContext();
             android.content.SharedPreferences p = c.getSharedPreferences("cypress", Context.MODE_PRIVATE);
-            String link = p.getString("widget_save", null);
-            if (link != null) p.edit().remove("widget_save").apply();
+            // the Top Story's Save button queues links, one per line: hand over the oldest, keep the rest
+            String q = p.getString("widget_save", null), link = null;
+            if (q != null) {
+                int nl = q.indexOf('\n');
+                link = nl < 0 ? q : q.substring(0, nl);
+                if (nl < 0) p.edit().remove("widget_save").apply();
+                else p.edit().putString("widget_save", q.substring(nl + 1)).apply();
+                if (link.length() == 0) link = null;
+            }
             call.resolve(CyExtras.obj("{\"link\":\"" + (link == null ? "" : link.replace("\\", "\\\\").replace("\"", "\\\"")) + "\"}"));
         } catch (Throwable t) {
             call.reject("widgetSaved failed: " + msg(t));
@@ -334,6 +341,7 @@ public class CyExtrasPlugin extends Plugin {
             CyExtras.saveHeadlines(c, h == null ? new JSONArray() : h);
             CyWidgets.saveMeta(c, in.has("edition") ? in.optString("edition", "") : null, in.optJSONArray("breaking"));
             if (in.has("theme")) CyWidgets.saveTheme(c, in.optJSONObject("theme")); // null = the widgets' own look
+            if (in.has("daily")) CyWidgets.saveDaily(c, in.optJSONObject("daily"));
             CyExtras.updateWidgets(c);
             call.resolve();
         } catch (Throwable t) {

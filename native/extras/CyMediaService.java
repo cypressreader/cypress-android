@@ -713,14 +713,16 @@ public class CyMediaService extends Service {
     private String wKey = "";
     private Bitmap wArt = null;
 
-    /** The Continue listening widget follows the title, the picture and play/pause (not every position update). */
+    /** The Continue listening widget follows the title, the picture, play/pause and progress in 5% steps. */
     private void widgetSync() {
-        String k = title + "|" + subtitle + "|" + playing;
+        long pos = posMs, dur = durMs;
+        // progress moves the widget on in 5% steps, not on every position update
+        String k = title + "|" + subtitle + "|" + playing + "|" + (dur > 0 && pos >= 0 ? pos * 20 / dur : -1);
         boolean artChanged = art != wArt;
         if (k.equals(wKey) && !artChanged) return;
         wKey = k;
         wArt = art;
-        CyListenWidget.save(this, title, subtitle, playing, art, artChanged);
+        CyListenWidget.save(this, title, subtitle, playing, art, artChanged, pos, dur);
     }
 
     private PendingIntent actionIntent(String action, int code) {
