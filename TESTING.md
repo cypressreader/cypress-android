@@ -2057,3 +2057,4 @@ Dynamic look:
 - Fold open / tablet: the three round buttons at the top of the player (car, bookmark, close) are fully visible, not cut off at the top.
 - Car mode: big buttons still work; the three small buttons stay available under them.
 All implemented and checked in a headless browser only; unverified on a phone.
+- (unreleased, after 1.332) Phone or Fold cover screen, All Stories in Cards view: scroll down, then up a little. The top bar and the pinned section name ("Last hour") slide away and back together, with no jitter and no gap showing the stories behind. Implemented and checked headless (strip stays on the bar every frame), unverified on a phone.

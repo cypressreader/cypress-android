@@ -1134,7 +1134,7 @@ body.narrow>aside{z-index:27}
 #tabs button svg{width:22px;height:22px}#tabs button.on{color:var(--logo)}
 #tabs{transition:transform var(--dur-2) ease}body.tabtuck #tabs:not(:focus-within){transform:translateY(100%)}@media(prefers-reduced-motion:reduce){#tabs{transition:none}}
 /* R6/F13: on phones (and phones on their side) the title bar tucks away with the bottom tabs on scroll down and comes back on scroll up; the docked Daily tabs move up into its place (tabtuck is never set near the top, while typing, or with reduced motion) */
-@media(max-width:699px),(max-height:500px) and (orientation:landscape){body .top{transition:transform var(--dur-2) ease}body.tabtuck .top:not(:focus-within){transform:translateY(-100%)}body.tabtuck:not(:has(.top:focus-within)) .bmseg.dtabs{top:0}}
+@media(max-width:699px),(max-height:500px) and (orientation:landscape){body .top{transition:transform var(--dur-2) ease}body.tabtuck .top:not(:focus-within){transform:translateY(-100%)}#wpin{transition:translate var(--dur-2) ease}body.tabtuck:not(:has(.top:focus-within)) #wpin{translate:0 calc(var(--wph,0px)*-1)}body.tabtuck:not(:has(.top:focus-within)) .bmseg.dtabs{top:0}}
 body.narrow #toast{bottom:calc(76px + env(safe-area-inset-bottom))}body.narrow:has(#rd.on) #toast{bottom:calc(24px + env(safe-area-inset-bottom))}/* W-06: the bar is 64px tall; a toast sits 12px above it, or 24px up when the story page hides the bar */
 body:has(#toast.show) .sky{bottom:calc(140px + env(safe-area-inset-bottom))}/* a hint toast keeps the corner; the sunrise card steps up */
 body.narrow #rd.on~#tabs{display:none}
@@ -7349,7 +7349,8 @@ function wireChrome(){
  if(showPin){
   const t=cs.querySelector('span'),c=cs.querySelector('small'),html=`<span>${t?t.textContent:''}</span><small>${c?c.textContent:''}</small>`;
   if(wireChrome.html!==html){pin.innerHTML=html;wireChrome.html=html}
-  const push=nx?Math.min(0,nxTop-hb-ph):0,css=`left:${mr.left}px;width:${mr.width}px;top:${hb}px;transform:translateY(${push}px)`;
+  /* David 2026-11-16: the strip sits at the bar's RESTING bottom and slides with the same CSS animation as the bar (--wph); placing it from a measurement ~12 times a second made it jitter and open a see-through gap while the bar slid */
+  const ty=top?new DOMMatrix(getComputedStyle(top).transform).m42:0,hr=hb-ty,bh=top?top.offsetHeight:0,push=nx?Math.min(0,nxTop-hb-ph):0,css=`left:${mr.left}px;width:${mr.width}px;top:${hr}px;--wph:${bh}px;transform:translateY(${push}px)`;
   if(pin.style.cssText!==css)pin.style.cssText=css;if(pin.hidden)pin.hidden=false;
  }else if(!pin.hidden)pin.hidden=true;
  const M=cur.length;
