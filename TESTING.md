@@ -2040,3 +2040,5 @@ Dynamic look:
 - [ ] Near you: add a place (e.g. your town) and refresh: its stories load (before this fix a saved place never loaded any). Share one of them: the link does not contain the place name.
 - [ ] Settings > Clear downloaded stories: Saved stories still open offline and Back issues are still there.
 - [ ] Android morning pack notification with one story says "1 story picked from your sites".
+- [ ] Next device test run: it now installs with the release manifest (install permission, widgets, services); check the report for new failures from that.
+- [ ] Web app installed as an app: after this update it re-downloads itself once, then works offline as before.

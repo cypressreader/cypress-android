@@ -1,6 +1,7 @@
 /* CyPress web app: keeps the app itself available offline. Feeds are never cached here. */
-const V = 'cyp-web-14';
-const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'icon-mono-512.png'];
+const V = 'cyp-web-15';
+/* deep dive 3: './' only; an 'index.html' copy doubled the 2.6 MB app and was never refreshed */
+const FILES = ['./', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'icon-mono-512.png'];
 /* one missing icon must not stop the offline copy from installing */
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => Promise.all(FILES.map(f => c.add(f).catch(() => {})))).then(() => self.skipWaiting())); });
 /* the bundled fonts never change: they move to the new cache before the old one is deleted, so an update never re-downloads them or leaves them missing offline */

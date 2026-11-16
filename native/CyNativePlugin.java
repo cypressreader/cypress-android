@@ -197,7 +197,8 @@ public class CyNativePlugin extends Plugin {
             Context c = getContext();
             PackageInfo pi = c.getPackageManager().getPackageInfo(c.getPackageName(), 0);
             long code = Build.VERSION.SDK_INT >= 28 ? pi.getLongVersionCode() : (long) pi.versionCode;
-            boolean can = Build.VERSION.SDK_INT < 26 || c.getPackageManager().canRequestPackageInstalls();
+            boolean can = Build.VERSION.SDK_INT < 26;
+            if (!can) try { can = c.getPackageManager().canRequestPackageInstalls(); } catch (SecurityException e) { /* Play build: no install permission, so info() must not throw */ }
             JSObject r = new JSObject();
             r.put("versionCode", code);
             r.put("versionName", pi.versionName);
