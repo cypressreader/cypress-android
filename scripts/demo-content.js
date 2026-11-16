@@ -68,7 +68,7 @@ Neither test was scientific, and both editors said so. But the contrast was stri
 
 Not everyone is convinced. A media researcher we spoke to pointed out that readers who choose a long piece are, almost by definition, the readers most willing to finish one. Counting them proves less than it seems.
 
-She also cautioned against romanticising length. Many long stories are long because nobody edited them, and a padded piece is no more virtuous than a padded email. Length, she said, is only a virtue when it is earned.
+She also cautioned against romanticizing length. Many long stories are long because nobody edited them, and a padded piece is no more virtuous than a padded email. Length, she said, is only a virtue when it is earned.
 
 > Length is only a virtue when it is earned, and the edit is where it is earned.
 
@@ -340,7 +340,7 @@ Software draws what the data says. A person draws what she sees, and in between 
 
 !34 | A hand-drawn chart of the bay, in progress.
 
-A good hand-drawn map makes those decisions visible. It leaves out the lane nobody walks and emphasises the shortcut everybody takes. It is, in a sense, an opinion about a place, made by someone who cares about the answer.
+A good hand-drawn map makes those decisions visible. It leaves out the lane nobody walks and emphasizes the shortcut everybody takes. It is, in a sense, an opinion about a place, made by someone who cares about the answer.
 
 > A map is an opinion about a place, made by someone who cares.
 

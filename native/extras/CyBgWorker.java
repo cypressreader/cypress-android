@@ -552,7 +552,7 @@ public class CyBgWorker extends Worker {
 
     private static void announcePack(Context ctx, String today, int n) {
         boolean ok = CyExtras.post(ctx, CyExtras.CH_PACK, 7302, "Your morning pack is ready",
-            n + " stories picked from your feeds", CyExtras.PACK_URL, null, false);
+            n + (n == 1 ? " story" : " stories") + " picked from your sites", CyExtras.PACK_URL, null, false);
         if (ok) CyExtras.prefs(ctx).edit().putString("pack_notified", today).apply();
     }
 

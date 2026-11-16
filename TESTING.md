@@ -2037,3 +2037,6 @@ Dynamic look:
 - [ ] Android, phone text size at 130%: story text is about as much bigger as the app's labels (before it grew about 1.7x). NOTE: if David's phone has a large text size, story text will look SMALLER after this update; the Aa sheet can raise it.
 - [ ] Android: Settings > Erase everything > Save a backup first > dismiss the share sheet: a "Is your backup saved?" question appears and "Keep my data" keeps everything.
 - [ ] Web app in two tabs: save a story in one, then use the other: the other says "CyPress was changed in another window" and offers Reload; nothing is overwritten.
+- [ ] Near you: add a place (e.g. your town) and refresh: its stories load (before this fix a saved place never loaded any). Share one of them: the link does not contain the place name.
+- [ ] Settings > Clear downloaded stories: Saved stories still open offline and Back issues are still there.
+- [ ] Android morning pack notification with one story says "1 story picked from your sites".

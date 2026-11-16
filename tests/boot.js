@@ -31,7 +31,7 @@ const ctx={Element:class{},
  console,setTimeout,clearTimeout,setInterval,clearInterval,performance,MutationObserver:class{observe(){}disconnect(){}},HTMLDialogElement:class{},IntersectionObserver:class{observe(){}unobserve(){}disconnect(){}},
  localStorage:{getItem:k=>ls[k]===undefined?null:ls[k],setItem:(k,v)=>{ls[k]=String(v)},removeItem:k=>{delete ls[k]}},
  document:new Proxy({},{get:(t,k)=>k==='hidden'?false:k==='documentElement'?mk('html'):k==='body'?mk('body'):k==='addEventListener'?(()=>{}):k==='querySelectorAll'?(()=>[]):k==='createTreeWalker'?(()=>({nextNode:()=>null})):k==='createElement'?(()=>mk('el')):mk(String(k))}),
- navigator:{onLine:true,language:'en-US'},
+ navigator:{onLine:true,language:'en-US',userAgent:'Mozilla/5.0 (Linux; Android 14) Chrome/140.0'},
  matchMedia:()=>({matches:false}),
  fetch:()=>Promise.reject(new Error('offline')),
  AbortController,AbortSignal,URL,Blob,
@@ -49,5 +49,5 @@ ctx.window.speechSynthesis=ctx.speechSynthesis;
 process.on('unhandledRejection',e=>errors.push('unhandled: '+e));
 vm.createContext(ctx);
 try{vm.runInContext(code,ctx);console.log('BOOT OK (script ran through init incl. render + loadAll)')}
-catch(e){console.log('BOOT ERROR:',e.stack.split('\n').slice(0,4).join('\n'))}
+catch(e){console.log('FAIL boot:',e.message);console.log('BOOT ERROR:',e.stack.split('\n').slice(0,4).join('\n'))}
 setTimeout(()=>{console.log(errors.length?errors.slice(0,5):'no async errors');process.exit(0)},800);

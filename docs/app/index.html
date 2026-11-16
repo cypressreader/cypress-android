@@ -6402,7 +6402,7 @@ function lowres(im){
  if(im.naturalWidth&&im.naturalWidth<320)im.classList.add('duo');/* tiny or blurry: shown two-tone (CSS) */
  if(!im.naturalWidth||im.naturalWidth>=600||im.dataset.t)return;im.dataset.t=1;
  const a=cardStory(im.closest('.card'));if(!a||a.lrT)return;a.lrT=1;
- og(a).then(u=>{if(!u||u===im.src)return;const t=new Image();t.onload=()=>{if(t.naturalWidth>im.naturalWidth){a.img=u;a.imgs='';im.classList.toggle('duo',t.naturalWidth<320);im.src=u}};t.src=u});
+ og(a).then(u=>{if(!u||u===im.src)return;const t=new Image();t.referrerPolicy='no-referrer';t.onload=()=>{if(t.naturalWidth>im.naturalWidth){a.img=u;a.imgs='';im.classList.toggle('duo',t.naturalWidth<320);im.src=u}};t.src=u});
 }
 const svg=(d,on)=>`<svg viewBox="0 0 24 24" width="19" height="19" fill="${on?'currentColor':'none'}" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const STAR='<path d="m12 3.8 2.5 5.2 5.7.8-4.1 4 1 5.7L12 16.7 6.9 19.5l1-5.7-4.1-4 5.7-.8z"/>';
@@ -11964,7 +11964,7 @@ $('#pop').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='locq
 let wsAuto=0;
 $('#pop').addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-addurl]'))$('#frm').requestSubmit($('#ok'));const fc=e.target.closest&&e.target.closest('[data-fo]');if(fc){$('#fo').value=fc.dataset.fo;$('#fo').onchange()}});
 $('#u').oninput=()=>{const q=$('#u').value.trim();liveRes=null;pop();pwWarn(q,false);liveCheck(q);clearTimeout(wsAuto);
- if(q.length>=3&&!/[.@\/:]/.test(q)&&catSearch(q).length<3)wsAuto=setTimeout(()=>{if($('#u').value.trim()===q&&WS.q!==q)webSearch(q)},1000)};
+ if(q.length>=3&&!/[.@\/:]/.test(q)){const cs=catSearch(q),qf=foldQ(q);/* a built-in site's name is never sent to the web search (the privacy page promises that) */if(cs.length<3&&!cs.some(x=>foldQ(x.n).includes(qf)))wsAuto=setTimeout(()=>{if($('#u').value.trim()===q&&WS.q!==q)webSearch(q)},1000)}};
 $('#pop').onclick=e=>{const t=e.target;const wb=t.closest&&t.closest('[data-ws]');if(wb){webSearch(wb.dataset.ws);popTop();return}if(t.dataset&&t.dataset.dym){$('#u').value=t.dataset.dym;$('#u').oninput();return}if(t.dataset&&t.dataset.info){feedInfo(t.dataset.info,t);return}const cb=t.closest&&t.closest('[data-cat]');if(cb){cat=+cb.dataset.cat;pop();popTop()}else if(t.closest&&t.closest('[data-back]')){window.addBackHook();popTop()}else if(t.dataset.pack!==undefined)addPack(+t.dataset.pack,t);else if(t.dataset.local)localAct(t);else if(t.dataset.add){if(t.dataset.v)addVerified(t.dataset.add,t.dataset.n,t.dataset.c,t);else{const r=quickAdd(t.dataset.add,t.dataset.n,t.dataset.c);dlgAdded(1,r.fo.name);toast('Added '+t.dataset.n+' to “'+r.fo.name+'”',()=>openAddedFeed(r.f.id),'Open')}}};
 $('#add').onclick=()=>{drawer(false);fillFolders();$('#err').textContent='';$('#frm').reset();fillFolders();cat=-9;$('#adv').open=false;DLGADDED=[];dlgDoneFlip();pop();dlg.showModal()};
 $('#cancel').onclick=()=>dlg.close();$('#dlgx').onclick=()=>dlg.close();dlg.addEventListener('click',e=>{if(e.target!==dlg)return;const r=dlg.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dlg.close()});
@@ -12203,7 +12203,7 @@ function acPut(l,h,c){
  for(let i=0;i<8;i++){try{localStorage.setItem(AK,JSON.stringify(AC));return}catch(e){const o=Object.keys(AC).sort((a,b)=>AC[a].t-AC[b].t).find(x=>x!==l&&!isSaved({link:x}));if(!o)return;delete AC[o]}}
 }
 const acSize=()=>{let n=0,c=0;for(const k in AC){n+=(AC[k].h||'').length;c++}return{n,c}};
-function acClear(){AC={};try{localStorage.removeItem(AK)}catch(e){}if(IDB.ok)idbTx('readwrite',st=>st.clear())}
+/* deep dive 3: keeps the offline text of saved stories and every Back issue, as the button promises */function acClear(){const keep=new Set((S.saved||[]).map(a=>a.link)),drop=Object.keys(AC).filter(k=>!keep.has(k));drop.forEach(k=>delete AC[k]);try{IDB.ok?localStorage.removeItem(AK):localStorage.setItem(AK,JSON.stringify(AC))}catch(e){}if(IDB.ok)idbTx('readwrite',st=>{drop.forEach(k=>st.delete(k));st.delete('~cache')})}
 
 /* layout toggle */
 const GRID='<rect x="4" y="3.5" width="16" height="10" rx="2.2"/><path d="M4 17.5h16M4 21h10"/>',LIST='<rect x="3.5" y="4.5" width="5" height="4.5" rx="1"/><path d="M12 6.7h8.5"/><rect x="3.5" y="10" width="5" height="4.5" rx="1"/><path d="M12 12.2h8.5"/><rect x="3.5" y="15.5" width="5" height="4.5" rx="1"/><path d="M12 17.7h8.5"/>';
@@ -13116,9 +13116,9 @@ function mzSum(){const o=['','Story opening (last '+MZ.L.length+' taps)'];
  try{o.push('Stored stories: '+Object.keys(AC).length+' · Daily '+(DGL&&DGL.length?DGL.filter(l=>acHas(l)).length+' of '+DGL.length+' ready':'not built yet')+' · tried this session '+DPRE.tried.size)}catch(e){}
  return o.join('\n')}
 async function diagInfo(){
- const bad=S.feeds.filter(f=>state[f.id]==='err').map(f=>(FLG[f.id]||[]).slice(0,4).join('; ')).slice(0,8);/* a24: no site names here; they go only with "Include the addresses of my sites" (privacy page) */
+ const bad=S.feeds.filter(f=>state[f.id]==='err').map(f=>(FLG[f.id]||[]).slice(0,4).join('; ').replace(/\b(?:[a-z0-9-]+\.)+[a-z]{2,}\b/gi,'(site)')).slice(0,8);/* a24: no site names here; they go only with "Include the addresses of my sites" (privacy page) */
  let nat='web';try{const p=CyN();if(p){const i=await p.info();nat='native '+i.versionName+' ('+i.versionCode+')'}}catch(e){}
- return ['CyPress diagnostics','app '+APP_VERSION+' · '+nat+' · '+(/cypress-preview/.test(location.href)?'preview':'production'),'ai '+(AIST||'unchecked')+(AIWHY?' ('+AIWHY.slice(0,120)+')':''),'screen '+innerWidth+'x'+innerHeight+' @'+devicePixelRatio,'ua '+navigator.userAgent.slice(0,140),'theme '+(S.theme||'auto')+' · light/dark '+(S.sch||'theme')+' · cover '+(S.cvs||'clean')+' · view '+(S.view||'tiles')+(S.setall?' · all settings':''),'feeds '+S.feeds.length+' · failing '+bad.length+' · saved '+S.saved.length,'last refresh '+(S.lastLoad?new Date(S.lastLoad).toISOString():'never'),'online '+navigator.onLine+(S.offline?' · offline mode':''),bad.length?'failing: '+bad.join(' | '):'',CRUMB.length?'recent taps: '+CRUMB.slice(-20).join(' > '):'',ELOG.length?'recent errors:\n'+ELOG.slice(-40).map(x=>new Date(x.t).toISOString().slice(11,19)+' '+x.g+': '+x.m+(x.w?' @'+x.w:'')).join('\n'):''].filter(Boolean).join('\n')}
+ return ['CyPress diagnostics','app '+APP_VERSION+' · '+nat+' · '+(/cypress-preview/.test(location.href)?'preview':'production'),'ai '+(AIST||'unchecked')+(AIWHY?' ('+AIWHY.slice(0,120)+')':''),'screen '+innerWidth+'x'+innerHeight+' @'+devicePixelRatio,'ua '+navigator.userAgent.slice(0,140),'theme '+(S.theme||'auto')+' · light/dark '+(S.sch||'theme')+' · cover '+(S.cvs||'clean')+' · view '+(S.view||'tiles')+(S.setall?' · all settings':''),'feeds '+S.feeds.length+' · failing '+bad.length+' · saved '+S.saved.length,'last refresh '+(S.lastLoad?new Date(S.lastLoad).toISOString():'never'),'online '+navigator.onLine+(S.offline?' · offline mode':''),bad.length?'failing: '+bad.join(' | '):'',CRUMB.length?'recent taps: '+CRUMB.slice(-20).join(' > '):'',ELOG.length?'recent errors:\n'+ELOG.slice(-40).map(x=>new Date(x.t).toISOString().slice(11,19)+' '+x.g.replace(/^feed .*/,'feed')+': '+x.m+(x.w?' @'+x.w:'')).join('\n'):''].filter(Boolean).join('\n')}
 $('#diagb').onclick=async()=>{const t=await diagInfo()+mzSum();
  try{await navigator.clipboard.writeText(t);toast('Diagnostics copied')}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.append(ta);ta.select();try{document.execCommand('copy');toast('Diagnostics copied')}catch(_){toast('Couldn’t copy')}ta.remove()}
 };
@@ -13132,7 +13132,7 @@ $('#rpb').onclick=async(e,x)=>{const info=(x?x+'\n':'')+await diagInfo();
  try{const r=await fetch(SHARE_W+'/api/report',{method:'POST',body:JSON.stringify({msg:m.trim(),info:info+(o.checked?sites:''),v:APP_LABEL}),headers:{'content-type':'text/plain'},referrerPolicy:'no-referrer',signal:AbortSignal.timeout(15000)});if(!r.ok)throw 0;const j=await r.json().catch(()=>({}));if(j.id){S.rps=(S.rps||[]).concat({id:j.id}).slice(-10);save();rpText()}toast('Sent. Thank you. Settings shows when it’s fixed')}catch(e){toast('Couldn’t send. Check your connection and try again')}};
 /* your sent reports: the app keeps each one's random code and asks once a day whether it's being worked on or fixed (sends only those codes) */
 function rpText(){const e=$('#rpst'),a=S.rps||[];if(!e)return;e.hidden=!a.length;const n=st=>a.filter(x=>x.st===st).length,w=n('working'),f=n('fixed');e.textContent='Your reports: '+a.length+' sent'+(w?' · '+w+' being worked on':'')+(f?' · '+f+' fixed (update the app to get '+(f===1?'the fix':'the fixes')+')':'')}
-async function rpCheck(){const a=(S.rps||[]).filter(x=>x.st!=='fixed');rpText();if(!a.length||!navigator.onLine||Date.now()-(S.rpT||0)<864e5)return;
+async function rpCheck(){const a=(S.rps||[]).filter(x=>x.st!=='fixed');rpText();if(!a.length||!online()||Date.now()-(S.rpT||0)<864e5)return;
  try{const r=await fetch(SHARE_W+'/api/report?id='+a.map(x=>x.id).join(','),{referrerPolicy:'no-referrer',signal:AbortSignal.timeout(10000)});if(!r.ok)return;const j=await r.json();let nf=0;for(const x of a)if(j.st&&j.st[x.id]){if(j.st[x.id]==='fixed')nf++;x.st=j.st[x.id]}S.rpT=Date.now();save();rpText();if(nf)toast(nf===1?'A problem you reported has been fixed':nf+' problems you reported have been fixed')}catch(e){}}
 rpText();setTimeout(rpCheck,60000);
 /* opt-in weekly counts (off unless turned on): versions, settings, how often a few features were used, error count. No IDs, no sites, no stories */
@@ -13143,7 +13143,7 @@ function usePack(){const ua=navigator.userAgent,sw=screen.width,sh=screen.height
 const USEL={v:'App version',p:'App or website',os:'System',dev:'Device type',lang:'Language',th:'Theme',sch:'Light or dark',sz:'Card size',vw:'View',cv:'Cover',fn:'Font',sp:'Side by side',nv:'Natural voice',fd:'Sites (rough count)',sv:'Saved stories (rough count)',fo:'Folders (rough count)',e:'Errors since last time',fz:'Times the app closed unexpectedly',fu:'Times an update closed the app',t1:'Seconds until stories showed (typical)',tr:'Seconds a refresh took (typical)',lt:'Stutter (milliseconds frozen per minute)',rg:'Repeated taps on something that did nothing',rt:'What was tapped'};
 const USEF={open:'stories opened',aloud:'read aloud',share:'shares',save:'saves',near:'Near you',side:'side by side',find:'searches'};
 function useText(){const o=usePack();return Object.keys(USEL).map(k=>USEL[k]+': '+o[k]).join('\n')+'\nTimes used since last time: '+(Object.keys(o.f).map(k=>(USEF[k]||k)+' '+o.f[k]).join(', ')||'nothing yet')+(o.em.length?'\nRecent error messages with their codes (links removed): '+o.em.join(' | '):'')+(Object.keys(o.cf).length?'\nBuilt-in sites that failed, with the reason: '+Object.keys(o.cf).join(', '):'')+(Object.keys(o.g).length?'\nGave up: '+Object.keys(o.g).map(k=>({a:'closed Add without adding',q:'closed a story within 3 seconds'}[k]||k)+' '+o.g[k]).join(', '):'')}
-async function useSend(){if(!isOn('ustat')||!navigator.onLine||Date.now()-(S.ustT||0)<6048e5)return;
+async function useSend(){if(!isOn('ustat')||!online()||Date.now()-(S.ustT||0)<6048e5)return;
  try{const r=await fetch(SHARE_W+'/api/stats',{method:'POST',body:JSON.stringify(usePack()),headers:{'content-type':'text/plain'},referrerPolicy:'no-referrer',signal:AbortSignal.timeout(10000)});if(r.ok){S.ustT=Date.now();save();for(const k in UCT)delete UCT[k];for(const k in UX)delete UX[k];LTB=typeof LT!=="undefined"?LT.ms:0;UXV=Date.now();try{localStorage.removeItem('folio-use');localStorage.removeItem('folio-ux')}catch(e){}}}catch(e){}}
 setTimeout(useSend,45000);
 /* ask once about the usage counts, after real use (about 2 hours of reading, or 5 different days), at a calm moment: not during setup, a story or another window */
@@ -13209,7 +13209,7 @@ $('#fresh').onclick=()=>startFresh();
 $('#pfm').onchange=e=>{const v=e.target.value;if(v==='off')S.pfm='off';else{S.pfm='custom';S.pfn=+v}save();PF.done.clear();PF.n=0;PF.q=[];PF.tot=0;PF.fin=0;pfBar();if(S.pfm!=='off')prefetch(pfList());try{acEvict()}catch(x){}syncSet()};
 let arT;function setAuto(){clearInterval(arT);const m=+S.auto||0;if(m)arT=setInterval(()=>{if(!document.hidden&&!$('#rd').classList.contains('on'))loadAll()},m*6e4)}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)schTick();if(!document.hidden&&Date.now()-(S.lastLoad||0)>10*6e4&&!$('#rd').classList.contains('on'))loadAll(0,0,1)});
-$('#clr').onclick=async()=>{const n=Object.keys(AC).length;if(!await askBox({title:'Clear downloaded stories?',text:(n===1?'1 downloaded story':n+' downloaded stories')+' will be removed from this device. You can download them again when you’re online.',ok:'Clear',cancel:'Keep them',danger:true}))return;try{localStorage.removeItem(CK);localStorage.removeItem('folio-img')}catch(e){}acClear();toast('Stored stories cleared. Feeds, saved stories and highlights are kept.')};
+$('#clr').onclick=async()=>{const kp=new Set((S.saved||[]).map(a=>a.link)),n=Object.keys(AC).filter(k=>!kp.has(k)).length;if(!await askBox({title:'Clear downloaded stories?',text:(n===1?'1 downloaded story':n+' downloaded stories')+' will be removed from this device. You can download them again when you’re online.',ok:'Clear',cancel:'Keep them',danger:true}))return;try{localStorage.removeItem(CK);localStorage.removeItem('folio-img')}catch(e){}acClear();toast('Stored stories cleared. Feeds, saved stories and highlights are kept.')};
 
 /* feed health */
 const feedStat=f=>{const l=items[f.id]||[];if(!l.length)return'';const ds=l.map(a=>a.date).filter(Boolean);if(!ds.length)return'';const wk=ds.filter(d=>Date.now()-d<7*864e5).length,per=wk/7;return ' · '+(per>=1?'about '+Math.round(per)+' a day':wk?wk+' this week':'quiet this week')+', newest '+ago(Math.max(...ds))+' ago'};
@@ -13591,8 +13591,8 @@ function continueRow(){
 /* ===================== podcasts and video ===================== */
 /* a video inside a story: a picture with a play button that plays right there on tap (YouTube's own privacy-enhanced embed, loaded only when you tap). If the uploader has switched embedding off, it falls back to a plain 'Opens in YouTube' link */
 function ytCard(id,tap){
- if(tap){const b=document.createElement('button');b.type='button';b.className='emb yt yt-tap';b.dataset.yt=id;b.setAttribute('aria-label','Play video');b.innerHTML='<img referrerpolicy="no-referrer" alt="" src="https://i.ytimg.com/vi/'+id+'/hqdefault.jpg"><span class="pl" aria-hidden="true">▶</span><b>Play video</b><small>Plays here</small>';return b}
- const a=document.createElement('a');a.className='emb yt';a.href='https://www.youtube.com/watch?v='+id;a.target='_blank';a.rel='noopener';a.innerHTML='<img referrerpolicy="no-referrer" alt="" src="https://i.ytimg.com/vi/'+id+'/hqdefault.jpg"><span class="pl" aria-hidden="true">▶</span><b>YouTube video</b><small>Opens in YouTube</small>';return a;
+ if(tap){const b=document.createElement('button');b.type='button';b.className='emb yt yt-tap';b.dataset.yt=id;b.setAttribute('aria-label','Play video');b.innerHTML='<img loading="lazy" referrerpolicy="no-referrer" alt="" src="https://i.ytimg.com/vi/'+id+'/hqdefault.jpg"><span class="pl" aria-hidden="true">▶</span><b>Play video</b><small>Plays here</small>';return b}
+ const a=document.createElement('a');a.className='emb yt';a.href='https://www.youtube.com/watch?v='+id;a.target='_blank';a.rel='noopener';a.innerHTML='<img loading="lazy" referrerpolicy="no-referrer" alt="" src="https://i.ytimg.com/vi/'+id+'/hqdefault.jpg"><span class="pl" aria-hidden="true">▶</span><b>YouTube video</b><small>Opens in YouTube</small>';return a;
 }
 function ytPlay(b){
  const id=b.dataset.yt;if(!id)return;if(typeof TTS!=='undefined'&&TTS.on)try{ttsStop()}catch(e){}
@@ -14917,7 +14917,7 @@ const PEB={
   {id:'n8',t:'Late edition. Read one or two, then rest.',tod:['night']},
   {id:'n9',t:'Midday check-in: here is what changed since this morning.',tod:['afternoon']},
   {id:'n10',t:'A lot of {topic} in the headlines today. We kept the best of it.',topic:1},
-  {id:'n11',t:'A quiet one: only {n} stories made the cut today.',count:[1,12]},
+  {id:'n11',t:'A quiet one: only {n} stories made the cut today.',count:[2,12]},
   {id:'n12',t:'A full issue today, {n} stories. Start at the top and stop whenever you like.',count:[35,999]},
   {id:'n13',t:'That is {streak} days in a row. The habit is working.',streak:[3,6]},
   {id:'n14',t:'A whole week of showing up, and counting. The news is better when you read it on purpose.',streak:[7,999]},
@@ -14926,7 +14926,7 @@ const PEB={
  progress:[
   {id:'p1',t:'Nothing read yet. Start anywhere.',state:'start'},
   {id:'p2',t:'A clean slate. Pick the story that catches your eye.',state:'start'},
-  {id:'p3',t:'{n} stories are waiting, and none of them are in a hurry.',state:'start',count:[1,999]},
+  {id:'p3',t:'{n} stories are waiting, and none of them are in a hurry.',state:'start',count:[2,999]},
   {id:'p4',t:'Fresh issue. The first page is the best one.',state:'start'},
   {id:'p5',t:'Pour something warm. Begin when you like.',state:'start',tod:['evening','night']},
   {id:'p6',t:'Good pace. Keep going.',state:'mid'},
@@ -14962,9 +14962,9 @@ const PEB={
 };
 const PE_NEUTRAL={note:'A short issue, chosen for you.',progress:'Keep going at your own pace.',finish:'That is every story in this edition.',coverline:'Also today'};
 PEB.feedstat=[
- {id:'s1',t:'Averages {rate} stories a day · you’re {behindtxt} behind.',ok:x=>x.rate>=1&&x.behind>=2},
- {id:'s2',t:'Averages {rate} stories a day · you’re up to date.',ok:x=>x.rate>=1&&x.u===0},
- {id:'s3',t:'Averages {rate} stories a day.',ok:x=>x.rate>=1&&x.u>0},
+ {id:'s1',t:'Averages {rate} stories a day · you’re {behindtxt} behind.',ok:x=>x.rate>=1.5&&x.behind>=2},
+ {id:'s2',t:'Averages {rate} stories a day · you’re up to date.',ok:x=>x.rate>=1.5&&x.u===0},
+ {id:'s3',t:'Averages {rate} stories a day.',ok:x=>x.rate>=1.5&&x.u>0},
  {id:'s4',t:'Prolific: about {rate} stories a day.',ok:x=>x.rate>=12},
  {id:'s5',t:'About {perweek} stories a week.',ok:x=>x.rate>0&&x.rate<1&&x.u>0},
  {id:'s6',t:'About {perweek} stories a week, so there is no rush.',ok:x=>x.rate>0&&x.rate<1},
@@ -15837,7 +15837,7 @@ function sundayIssue(wkS,wkR){
 
 /* the caught-up moment at the true bottom of All stories: only shown when nothing at all is unread */
 PEB.caught=[
- {id:'c1',t:'{f} stories read to the end today · {streak} days in a row.',ok:x=>x.f>=1&&x.streak>=2},
+ {id:'c1',t:'{f} stories read to the end today · {streak} days in a row.',ok:x=>x.f>=2&&x.streak>=2},
  {id:'c2',t:'{mins} minutes of reading today. Well spent.',ok:x=>x.mins>=5},
  {id:'c3',t:'Every one of these {total} stories is read.',ok:x=>x.total>=5},
  {id:'c4',t:'{streak} days in a row. Come back tomorrow.',ok:x=>x.streak>=2},
@@ -16202,7 +16202,7 @@ async function quoteImage(q,art,note){
 const SHARE_W='https://cypressreader.com';
 /* the story's headline, source, address, color and date (and photo) packed into the text after the # of a CyPress share page */
 async function sharePayload(a){
- const f=fof(a),o={t:String(a.title||'').slice(0,160),s:String(f.title||host(f.url||'')||'').slice(0,60),l:a.link,c:brand(f),d:a.date||0};
+ const f=fof(a),o={t:String(a.title||'').slice(0,160),s:String((isHead(f.url)&&!siteOf(f)?a.src||host(a.link):f.title)||host(f.url||'')||'').slice(0,60),l:a.link,c:brand(f),d:a.date||0};
  const im=/^https:\/\//.test(a.img||'')&&String(a.img).length<400?a.img:'';if(im)o.i=im;
  const raw=new TextEncoder().encode(JSON.stringify(o));let k='p',b=raw;
  try{if(typeof CompressionStream==='function'){const z=new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());if(z.length<raw.length){k='z';b=z}}}catch(e){elog('shareUrl',e)}
@@ -16845,7 +16845,7 @@ function startView(){try{const v=new URLSearchParams(location.search).get('view'
 const bingFor=d=>'https://www.bing.com/news/search?q=site%3a'+encodeURIComponent(d)+'&format=RSS&setlang=en-us&qft=interval%3d%227%22';
 const isBing=u=>/bing\.com\/news\/search/.test(u||'');
 const FLG={};
-function siteOf(f){try{const u=new URL(f.site||f.url);let h=u.hostname.replace(/^(www|rss|feeds|feed|api|moxie)\./,'');if(/feedburner|feedblitz/.test(h))return'';if(h==='bbci.co.uk')h='bbc.com';if(h==='a.dj.com')h='wsj.com';if(h==='hnrss.org')h='news.ycombinator.com';if(h==='abcnews.go.com')h='abcnews.go.com';if(/bing\.com$/.test(h))return decodeURIComponent((u.searchParams.get('q')||'').replace(/^site:/,''));if(h==='news.google.com'&&/\/rss\/search/.test(u.pathname))return (u.searchParams.get('q')||'').replace(/^site:/,'').split(/\s+/)[0];return h}catch(e){return''}}
+function siteOf(f){try{const u=new URL(f.site||f.url);let h=u.hostname.replace(/^(www|rss|feeds|feed|api|moxie)\./,'');if(/feedburner|feedblitz/.test(h))return'';if(h==='bbci.co.uk')h='bbc.com';if(h==='a.dj.com')h='wsj.com';if(h==='hnrss.org')h='news.ycombinator.com';if(h==='abcnews.go.com')h='abcnews.go.com';/* deep dive 3: only a site: search names a site; a Near you search for a typed place ('Leeds') is not one, else it was searched as 'site:Leeds' and never loaded a story */if(/bing\.com$/.test(h)||h==='news.google.com'&&/\/rss\/search/.test(u.pathname)){const q=u.searchParams.get('q')||'';return /^site:/i.test(q)?q.slice(5).split(/\s+/)[0]:''}return h}catch(e){return''}}
 function parseBing(xml,f){
  const d=new DOMParser().parseFromString(xml,'text/xml');
  const list=[...d.querySelectorAll('item')].map(el=>{
@@ -16950,7 +16950,7 @@ async function loadFeed(f,fresh,sl){
  const lg=FLG[f.id]=[];const tag=m=>({push:x=>lg.push(m+x)});
  if(f.learn){try{const l=await scrapeLearned(f);if(l&&l.length){f.via='learned';return l}lg.push('no headlines were found on that page with the pattern you taught CyPress')}catch(e){lg.push('couldn\u2019t read the page')}throw new Error('no items')}
  const cb=u=>u+(u.includes('?')?'&':'?')+'_cp='+Date.now();
- if(isHead(f.url)){const sd=siteOf(f);if(!sd)throw new Error('no site');try{const l=await gnewsFeed(f,sd,'nofeed');return l}catch(e){return await bingFeed0(f,'nofeed',sd)}}
+ if(isHead(f.url)&&siteOf(f)){const sd=siteOf(f);if(!sd)throw new Error('no site');try{const l=await gnewsFeed(f,sd,'nofeed');return l}catch(e){return await bingFeed0(f,'nofeed',sd)}}
  let list=null;
  /* B1: on the Android app (direct route), a feed we already hold is downloaded only if it changed; a pull-to-refresh (fresh) always downloads */
  const h0=S.health[f.id]||{},held=items[f.id]||[],lf=tag('feed via ');lf.net=1;lf.sl=sl;

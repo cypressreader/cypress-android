@@ -43,5 +43,7 @@ if (!m) { console.error('build-demo: no <head> found'); process.exit(1); }
 let out = app.replace(/<!-- E2 Content Security Policy[\s\S]*?-->\s*/, '').replace(/<meta http-equiv="Content-Security-Policy"[^>]*>\s*/, '').replace(/<title>[^<]*<\/title>/, '<title>CyPress Reader demo (made-up sample stories)</title>').replace(m[0], m[0] + inject);
 /* the app's own manifest, icons and service worker are not wanted in the demo */
 out = out.replace(/<link rel="manifest"[^>]*>/g, '');
+/* deep dive 3: the demo lives in docs/, where fonts/ is not the app's font folder, so every app font failed to load; the three faces the demo shows are inlined (about 200 KB; the demo CSP allows font-src data:) */
+out = out.replace(/url\(fonts\/((?:CyPressDisplay-(?:normal|italic)-400|Literata-normal-400-700-latin|CormorantGaramond-normal-500-latin)\.woff2)\)/g, (m, f) => 'url(data:font/woff2;base64,' + fs.readFileSync(path.join(root, 'www/fonts', f)).toString('base64') + ')');
 fs.writeFileSync(path.join(root, 'docs/demo.html'), out);
 console.log('docs/demo.html written (app version ' + ver + ', ' + Math.round(out.length / 1024) + ' KB)');
