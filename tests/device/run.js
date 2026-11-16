@@ -159,6 +159,22 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
     return out;
   });
 
+  /* the home-screen widgets, drawn by the app itself (widgetProbe) in three themes: Halcyon keeps the widgets' own look */
+  await step('widgets', async s => {
+    const out = {};
+    for (const t of ['halcyon', 'rosewood', 'oled']) {
+      const r = await page.evaluate(async t => { S.theme = t; applyTheme(); await new Promise(r => setTimeout(r, 600)); const x = CyX(), top = widgetList(), th = widgetTheme(); await x.widgetUpdate({ headlines: top, breaking: widgetBreaking(), edition: 'Morning edition', theme: th }); return { n: top.length, pics: top.filter(a => a.img).length, theme: th, shown: document.documentElement.dataset.theme, p: await x.widgetProbe({}) } }, t);
+      out[t] = { stories: r.n, withPicture: r.pics, colors: r.theme, shown: r.shown, errors: {} };
+      for (const [k, v] of Object.entries(r.p || {})) {
+        if (/_error$/.test(k)) { out[t].errors[k] = v; continue }
+        const f = String(++n).padStart(2, '0') + '-widgets-' + t + '-' + k + '.jpg'; fs.writeFileSync(path.join(OUT, f), Buffer.from(v, 'base64')); s.shots.push(f);
+      }
+      if (Object.keys(out[t].errors).length) throw new Error('widget could not be drawn: ' + JSON.stringify(out[t].errors).slice(0, 300));
+    }
+    await page.evaluate(() => { S.theme = 'halcyon'; applyTheme() });
+    return out;
+  });
+
   R.crashes = (await sx('logcat -d -b crash -t 300').catch(() => '')).split('\n').filter(l => /cypress|FATAL|AndroidRuntime/i.test(l)).slice(0, 40);
   fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify(R, null, 1));
   const bad = R.steps.filter(s => !s.ok).length;

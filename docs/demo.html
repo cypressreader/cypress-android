@@ -13676,6 +13676,7 @@ try{root.classList.toggle('pdark',/dark/.test(getComputedStyle(root).colorScheme
  try{barSync()}catch(e){}
  /* a phone WebView can keep the old theme's big glow gradient painted (Aurora, then another theme) until something repaints it: the page color follows the theme and the body is nudged once on a theme change */
  try{root.style.backgroundColor='var(--bg)';if(changed&&root.dataset.theme!=='dynamic'){const b=document.body;b.style.backgroundImage='none';requestAnimationFrame(()=>requestAnimationFrame(()=>b.style.removeProperty('background-image')))}}catch(e){}
+ if(changed)try{clearTimeout(widgetPush.t);widgetPush.t=setTimeout(widgetPush,1500)}catch(e){}/* the widgets follow a theme change */
 }
 /* the color of the phone's status bar: the page color the theme is settling on (read from a probe that never fades), not whatever shade the page is part-way through fading to */
 function barRGB(){
@@ -17626,7 +17627,9 @@ function widgetList(){let l=[];try{if(typeof DGL!=='undefined'&&DGL.length){l=[L
 function widgetBreaking(){try{const now=Date.now(),all=Object.values(items).flat().filter(a=>a&&a.title&&a.link&&a.date),mk=a=>{let f;try{f=fof(a)}catch(e){}return{title:String(a.title).slice(0,140),link:a.link,src:String((f&&f.title)||'').slice(0,60),date:+a.date||0,read:!!(S.read&&S.read[a.link])}};
  let l=all.filter(a=>now-a.date<432e5&&DAYK1.test(a.title)).sort((p,q)=>q.date-p.date).slice(0,5).map(a=>Object.assign(mk(a),{brk:true}));
  if(!l.length)l=all.sort((p,q)=>q.date-p.date).slice(0,5).map(mk);return l}catch(e){return[]}}
-function widgetPush(){const x=CyX();if(!x||!x.widgetUpdate||!nFeat('widget')||!S.widget)return;try{const top=widgetList();if(top.length)x.widgetUpdate({headlines:top,breaking:widgetBreaking(),edition:edKind()==='m'?'Morning edition':'Evening edition'}).catch(()=>{})}catch(e){}}
+/* the widgets wear the app's theme (Android 12+): its page, text, accent, quiet-text and line colors as plain #rrggbb. Halcyon and Dynamic send nothing, so the widgets keep their own cream and green with the phone's day and night */
+function widgetTheme(){try{const t=document.documentElement.dataset.theme||'';if(/^halcyon|^dynamic$|^thegoat$/.test(t))return null;const cs=getComputedStyle(document.documentElement),cx=document.createElement('canvas').getContext('2d'),o={};for(const [k,v] of [['bg','--bg'],['ink','--ink'],['a1','--a1'],['mut','--mut'],['ln','--ln']]){cx.fillStyle='#000';cx.fillStyle=cs.getPropertyValue(v).trim();o[k]=cx.fillStyle;if(!/^#[0-9a-f]{6}$/i.test(o[k]))return null}return o}catch(e){return null}}
+function widgetPush(){const x=CyX();if(!x||!x.widgetUpdate||!nFeat('widget')||!S.widget)return;try{const top=widgetList();if(top.length)x.widgetUpdate({headlines:top,breaking:widgetBreaking(),edition:edKind()==='m'?'Morning edition':'Evening edition',theme:widgetTheme()}).catch(()=>{})}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)widgetPush()});onShow(widgetSavePull,700);
 /* B48: stories saved from the home-screen widget */
 async function widgetSavePull(){const x=CyX();if(!x||!x.widgetSaved||!nFeat('widget'))return;try{const r=await x.widgetSaved();const link=r&&r.link;if(!link)return;const a=findStory(link);if(!a){toast('Saved the link — open it once to finish saving');return}if(!isSaved(a)){toggleSave(a);toast('Saved “'+String(a.title||'').slice(0,60)+'”')}else toast('Already saved')}catch(e){}}

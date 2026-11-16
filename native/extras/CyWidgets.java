@@ -217,7 +217,7 @@ final class CyWidgets {
             AppWidgetManager m = AppWidgetManager.getInstance(c);
             for (int id : ids(c, CyWidgetProvider.class)) {
                 try {
-                    m.updateAppWidget(id, buildTop(c, id, widthDp(m, id), heightDp(m, id)));
+                    pushTop(c, m, id);
                 } catch (Throwable t) {
                     Log.w(TAG, "top refresh " + id + ": " + t); // one bad widget must not stop the others
                 }
@@ -311,7 +311,7 @@ final class CyWidgets {
             final Context app = c.getApplicationContext();
             JSONArray h = CyExtras.readHeadlines(app);
             boolean missing = false;
-            for (int i = 0; i < h.length() && i < 4; i++) {
+            for (int i = 0; i < h.length() && i < TOP_N; i++) {
                 JSONObject o = h.optJSONObject(i);
                 if (o == null) continue;
                 String u = o.optString("img", "");
@@ -333,7 +333,7 @@ final class CyWidgets {
                 @Override
                 public void run() {
                     try {
-                        if (CyWidgetProvider.fetchImages(app, CyExtras.readHeadlines(app))) refreshList(app);
+                        if (CyWidgetProvider.fetchImages(app, CyExtras.readHeadlines(app))) { refreshList(app); refreshTop(app); }
                     } catch (Throwable t) {
                         Log.w(TAG, "picture retry failed: " + t);
                     }
@@ -349,6 +349,43 @@ final class CyWidgets {
     private static int col(Context c, int id) {
         return c.getResources().getColor(id, null); // API 23+; follows the phone's day / night setting
     }
+
+    // The app's theme on the widgets (Android 12+): the app hands over its background, text, accent, quiet-text and line colors.
+    // Nothing handed over (the Halcyon theme, or an older Android) = the widgets' own cream and green, as before.
+    private static final int T_BG = 0, T_INK = 1, T_ACC = 2, T_MUT = 3, T_LN = 4;
+
+    static void saveTheme(Context c, JSONObject t) {
+        try {
+            sp(c).edit().putString("widget_theme", t == null ? "" : t.toString()).apply();
+        } catch (Throwable e) {
+            Log.w(TAG, "theme: " + e);
+        }
+    }
+
+    /** {background, text, accent, quiet text, line} or null for the widgets' own look. */
+    private static int[] theme(Context c) {
+        try {
+            if (Build.VERSION.SDK_INT < 31) return null;
+            String s = sp(c).getString("widget_theme", "");
+            if (s.length() == 0) return null;
+            JSONObject o = new JSONObject(s);
+            String[] k = {"bg", "ink", "a1", "mut", "ln"};
+            int[] out = new int[k.length];
+            for (int i = 0; i < k.length; i++) out[i] = android.graphics.Color.parseColor(o.getString(k[i])) | 0xFF000000;
+            return out;
+        } catch (Throwable e) {
+            return null;
+        }
+    }
+
+    /** Recolors a rounded card background, keeping its corners. Only called when theme() is not null (Android 12+). */
+    private static void tintBg(RemoteViews rv, int id, int color) {
+        if (Build.VERSION.SDK_INT >= 31) rv.setColorStateList(id, "setBackgroundTintList", android.content.res.ColorStateList.valueOf(color));
+    }
+
+    private static int ink(Context c, int[] th) { return th != null ? th[T_INK] : col(c, R.color.cy_w_ink); }
+    private static int kicker(Context c, int[] th) { return th != null ? th[T_ACC] : col(c, R.color.cy_w_kicker); }
+    private static int muted(Context c, int[] th) { return th != null ? th[T_MUT] : col(c, R.color.cy_w_muted); }
 
     /** "12 MIN", "2H", "3D", or "" when the story has no date. */
     static String ageLabel(long ms) {
@@ -404,11 +441,15 @@ final class CyWidgets {
      * Memory-safe downsampling and dimension bounds eliminate TransactionTooLargeException.
      */
     private static Bitmap hero(Context c, String url, int wDp, int hDp, boolean fullBleed) {
+        return hero(c, url, wDp, hDp, fullBleed, 480f);
+    }
+
+    private static Bitmap hero(Context c, String url, int wDp, int hDp, boolean fullBleed, float cap) {
         try {
             float dens = c.getResources().getDisplayMetrics().density;
             int tw = Math.round((wDp > 0 ? wDp : 260) * dens);
             int th = Math.round((hDp > 0 ? hDp : 170) * dens);
-            float k = Math.min(1f, 480f / Math.max(tw, th)); // strictly cap bitmap size for Binder safety
+            float k = Math.min(1f, cap / Math.max(tw, th)); // cap the bitmap so a widget update stays small
             tw = Math.max(1, Math.round(tw * k));
             th = Math.max(1, Math.round(th * k));
             Bitmap src = decodeFor(c, url, tw, th, Bitmap.Config.RGB_565);
@@ -460,6 +501,21 @@ final class CyWidgets {
     }
 
     static RemoteViews buildTop(Context c, int appWidgetId, int wDp, int hDp) {
+        return buildTop(c, appWidgetId, wDp, hDp, true);
+    }
+
+    /** Sends the Top Story with a photo on every page; if this phone refuses an update that large, again with the first photo only. */
+    static void pushTop(Context c, AppWidgetManager m, int id) {
+        int w = widthDp(m, id), h = heightDp(m, id);
+        try {
+            m.updateAppWidget(id, buildTop(c, id, w, h, true));
+        } catch (Throwable t) {
+            Log.w(TAG, "top with all photos refused, first photo only: " + t);
+            m.updateAppWidget(id, buildTop(c, id, w, h, false));
+        }
+    }
+
+    static RemoteViews buildTop(Context c, int appWidgetId, int wDp, int hDp, boolean allPics) {
         try {
             RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_top);
             JSONArray h = CyExtras.readHeadlines(c);
@@ -489,11 +545,17 @@ final class CyWidgets {
             rv.setOnClickPendingIntent(R.id.cy_wt_prev, flipIntent(c, -1));
             rv.setOnClickPendingIntent(R.id.cy_wt_next, flipIntent(c, 1));
 
-            // Simple ViewFlipper: pages are added directly. Only the first page carries a photo to stay under the Binder size limit.
+            int[] th = theme(c);
+            if (th != null) {
+                tintBg(rv, android.R.id.background, th[T_BG]);
+                rv.setInt(R.id.cy_wt_empty_t, "setTextColor", th[T_MUT]);
+            }
+            // Simple ViewFlipper: pages are added directly. Every page carries its photo (later pages a little smaller);
+            // allPics=false is the fallback for a phone that refuses the larger update.
             rv.removeAllViews(R.id.cy_flipper);
             for (int i = 0; i < pages; i++) {
                 JSONObject o = valid.get(i);
-                if (i > 0 && o.has("img")) {
+                if (!allPics && i > 0 && o.has("img")) {
                     o = new JSONObject(o.toString());
                     o.remove("img");
                 }
@@ -559,7 +621,8 @@ final class CyWidgets {
             if (age.length() > 0) kick = kick.length() > 0 ? kick + "  ·  " + age : age;
             if (isStale(c)) kick = "TAP TO REFRESH";
 
-            Bitmap pic = hero(c, o.optString("img", ""), wDp, hDp, true);
+            Bitmap pic = hero(c, o.optString("img", ""), wDp, hDp, true, position == 0 ? 480f : 360f);
+            int[] th = theme(c);
             if (pic != null) {
                 card.setImageViewBitmap(R.id.cy_card_img, pic);
                 card.setViewVisibility(R.id.cy_card_img, View.VISIBLE);
@@ -573,12 +636,19 @@ final class CyWidgets {
                 card.setViewVisibility(R.id.cy_card_fallback, View.VISIBLE);
                 card.setInt(R.id.cy_card_src, "setTextColor", col(c, R.color.cy_w_brass));
                 card.setInt(R.id.cy_card_head, "setTextColor", col(c, R.color.cy_w_paper));
+                if (th != null) { // a story with no photo sits on the theme's own page color
+                    tintBg(card, R.id.cy_card_fallback, th[T_BG]);
+                    card.setInt(R.id.cy_card_src, "setTextColor", th[T_ACC]);
+                    card.setInt(R.id.cy_card_head, "setTextColor", th[T_INK]);
+                    card.setInt(R.id.cy_card_sun, "setColorFilter", th[T_ACC]);
+                    card.setInt(R.id.cy_card_bar, "setBackgroundColor", th[T_ACC]);
+                }
             }
 
             boolean compact = hDp > 0 && hDp < 140;
             boolean expanded = hDp >= 220;
             card.setTextViewText(R.id.cy_card_folio, "CYPRESS  ·  " + (position + 1) + " / " + Math.max(1, total));
-            card.setViewVisibility(R.id.cy_card_folio, compact ? View.GONE : View.VISIBLE);
+            card.setViewVisibility(R.id.cy_card_folio, compact || (wDp > 0 && wDp < 200) ? View.GONE : View.VISIBLE);
             card.setTextViewText(R.id.cy_card_src, kick);
             card.setViewVisibility(R.id.cy_card_src, kick.length() == 0 ? View.GONE : View.VISIBLE);
             card.setTextViewText(R.id.cy_card_head, o.optString("title", ""));
@@ -604,14 +674,63 @@ final class CyWidgets {
         return buildList(c, 0, heightDp);
     }
 
+    /** Wide and short: the picture beside the headline, with the next headline underneath. */
+    private static RemoteViews buildListWide(Context c, java.util.ArrayList<JSONObject> stories, int widthDp, int heightDp, boolean upd, boolean stale, int[] th) {
+        RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_list_wide);
+        JSONObject lead = stories.get(0);
+        String src = lead.optString("src", "").trim().toUpperCase(Locale.getDefault());
+        String age = (upd || stale) ? "" : ageLabel(lead.optLong("date", 0L));
+        String kick = stale ? "TAP TO REFRESH" : (age.length() > 0 ? (src.length() > 0 ? src + "  ·  " + age : age) : src);
+        rv.setTextViewText(R.id.cy_wlw_src, kick);
+        rv.setTextViewText(R.id.cy_wlw_head, lead.optString("title", ""));
+        rv.setInt(R.id.cy_wlw_head, "setMaxLines", heightDp > 0 && heightDp < 110 ? 2 : 3);
+        boolean next = stories.size() > 1 && heightDp >= 110;
+        rv.setViewVisibility(R.id.cy_wlw_next, next ? View.VISIBLE : View.GONE);
+        if (next) rv.setTextViewText(R.id.cy_wlw_next, "Next: " + stories.get(1).optString("title", ""));
+        int picH = Math.max(40, (heightDp > 0 ? heightDp : 120) - 16);
+        Bitmap pic = hero(c, lead.optString("img", ""), Math.round((widthDp > 0 ? widthDp : 300) * 0.42f), picH, false, 360f);
+        if (pic != null) {
+            rv.setImageViewBitmap(R.id.cy_wlw_img, pic);
+            rv.setViewVisibility(R.id.cy_wlw_img, View.VISIBLE);
+        } else {
+            rv.setViewVisibility(R.id.cy_wlw_img, View.GONE);
+        }
+        rv.setInt(R.id.cy_wlw_src, "setTextColor", kicker(c, th));
+        rv.setInt(R.id.cy_wlw_head, "setTextColor", ink(c, th));
+        rv.setInt(R.id.cy_wlw_next, "setTextColor", muted(c, th));
+        if (th != null) tintBg(rv, android.R.id.background, th[T_BG]);
+        ensurePics(c);
+        PendingIntent open = stale ? refreshIntent(c, 391) : CyExtras.openIntent(c, lead.optString("link", ""), 401);
+        rv.setOnClickPendingIntent(android.R.id.background, open);
+        return rv;
+    }
+
     static RemoteViews buildList(Context c, int widthDp, int heightDp) {
-        RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_list);
         JSONArray h = CyExtras.readHeadlines(c);
         boolean upd = isUpdating(c), stale = isStale(c);
+        int[] th = theme(c);
         java.util.ArrayList<JSONObject> stories = new java.util.ArrayList<>();
         for (int i = 0; i < h.length() && stories.size() < 3; i++) {
             JSONObject o = h.optJSONObject(i);
             if (o != null && o.optString("title", "").trim().length() > 0) stories.add(o);
+        }
+        // A layout for each size: wide and short = picture beside the headline; a small square = one story; otherwise the full spread.
+        boolean narrow = widthDp > 0 && widthDp < 230;
+        if (!stories.isEmpty() && !narrow && heightDp > 0 && heightDp < 150) {
+            try {
+                return buildListWide(c, stories, widthDp, heightDp, upd, stale, th);
+            } catch (Throwable t) {
+                Log.w(TAG, "wide headlines failed, using the spread: " + t);
+            }
+        }
+        boolean single = narrow || (heightDp > 0 && heightDp < 150);
+        RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.cy_widget_list);
+        if (th != null) {
+            tintBg(rv, android.R.id.background, th[T_BG]);
+            rv.setInt(R.id.cy_wsp_bottom, "setBackgroundColor", th[T_BG]);
+            rv.setInt(R.id.cy_wsp_hrule, "setBackgroundColor", th[T_LN]);
+            rv.setInt(R.id.cy_wsp_vrule, "setBackgroundColor", th[T_LN]);
+            rv.setInt(R.id.cy_wl_empty_t, "setTextColor", th[T_MUT]);
         }
         if (stories.isEmpty()) {
             rv.setViewVisibility(R.id.cy_wsp_hero, View.GONE);
@@ -626,9 +745,10 @@ final class CyWidgets {
         }
 
         rv.setViewVisibility(R.id.cy_wsp_hero, View.VISIBLE);
-        rv.setViewVisibility(R.id.cy_wsp_hrule, View.VISIBLE);
-        rv.setViewVisibility(R.id.cy_wsp_bottom, View.VISIBLE);
+        rv.setViewVisibility(R.id.cy_wsp_hrule, single ? View.GONE : View.VISIBLE);
+        rv.setViewVisibility(R.id.cy_wsp_bottom, single ? View.GONE : View.VISIBLE);
         rv.setViewVisibility(R.id.cy_wl_empty, View.GONE);
+        if (narrow) rv.setTextViewText(R.id.cy_wsp_hero_pill, "CYPRESS"); // the edition name does not fit a small square
 
         // 1. Lead Hero Story (Top 60%)
         JSONObject lead = stories.get(0);
@@ -641,10 +761,10 @@ final class CyWidgets {
         rv.setTextViewText(R.id.cy_wsp_hero_head, lead.optString("title", ""));
 
         String ed = sp(c).getString("widget_ed", "");
-        rv.setTextViewText(R.id.cy_wsp_hero_pill, ("CYPRESS  ·  " + (ed.length() > 0 ? ed : "THE FRONT PAGE")).toUpperCase(Locale.getDefault()));
+        if (!narrow) rv.setTextViewText(R.id.cy_wsp_hero_pill, ("CYPRESS  ·  " + (ed.length() > 0 ? ed : "THE FRONT PAGE")).toUpperCase(Locale.getDefault()));
 
         int heroW = widthDp > 0 ? widthDp : 360;
-        int heroH = heightDp > 0 ? Math.round(heightDp * 0.6f) : 150;
+        int heroH = heightDp > 0 ? Math.round(heightDp * (single ? 1f : 0.6f)) : 150;
         Bitmap leadPic = hero(c, lead.optString("img", ""), heroW, heroH, false);
         if (leadPic != null) {
             rv.setImageViewBitmap(R.id.cy_wsp_hero_img, leadPic);
@@ -659,6 +779,12 @@ final class CyWidgets {
             rv.setViewVisibility(R.id.cy_wsp_hero_fallback, View.VISIBLE);
             rv.setInt(R.id.cy_wsp_hero_src, "setTextColor", col(c, R.color.cy_w_brass));
             rv.setInt(R.id.cy_wsp_hero_head, "setTextColor", col(c, R.color.cy_w_paper));
+            if (th != null) {
+                tintBg(rv, R.id.cy_wsp_hero_fallback, th[T_BG]);
+                rv.setInt(R.id.cy_wsp_hero_src, "setTextColor", th[T_ACC]);
+                rv.setInt(R.id.cy_wsp_hero_head, "setTextColor", th[T_INK]);
+                rv.setInt(R.id.cy_wsp_hero_sun, "setColorFilter", th[T_ACC]);
+            }
         }
         rv.setOnClickPendingIntent(R.id.cy_wsp_hero, stale ? refreshIntent(c, 391) : CyExtras.openIntent(c, lead.optString("link", ""), 401));
 
@@ -670,8 +796,8 @@ final class CyWidgets {
             String b1Kick = b1Age.length() > 0 ? (b1Src.length() > 0 ? b1Src + "  ·  " + b1Age : b1Age) : b1Src;
             rv.setTextViewText(R.id.cy_wsp_b1_src, b1Kick);
             rv.setTextViewText(R.id.cy_wsp_b1_head, b1.optString("title", ""));
-            rv.setInt(R.id.cy_wsp_b1_src, "setTextColor", col(c, R.color.cy_w_kicker));
-            rv.setInt(R.id.cy_wsp_b1_head, "setTextColor", col(c, R.color.cy_w_ink));
+            rv.setInt(R.id.cy_wsp_b1_src, "setTextColor", kicker(c, th));
+            rv.setInt(R.id.cy_wsp_b1_head, "setTextColor", ink(c, th));
             rv.setViewVisibility(R.id.cy_wsp_b1, View.VISIBLE);
             rv.setOnClickPendingIntent(R.id.cy_wsp_b1, stale ? refreshIntent(c, 391) : CyExtras.openIntent(c, b1.optString("link", ""), 402));
         } else {
@@ -686,8 +812,8 @@ final class CyWidgets {
             String b2Kick = b2Age.length() > 0 ? (b2Src.length() > 0 ? b2Src + "  ·  " + b2Age : b2Age) : b2Src;
             rv.setTextViewText(R.id.cy_wsp_b2_src, b2Kick);
             rv.setTextViewText(R.id.cy_wsp_b2_head, b2.optString("title", ""));
-            rv.setInt(R.id.cy_wsp_b2_src, "setTextColor", col(c, R.color.cy_w_kicker));
-            rv.setInt(R.id.cy_wsp_b2_head, "setTextColor", col(c, R.color.cy_w_ink));
+            rv.setInt(R.id.cy_wsp_b2_src, "setTextColor", kicker(c, th));
+            rv.setInt(R.id.cy_wsp_b2_head, "setTextColor", ink(c, th));
             rv.setViewVisibility(R.id.cy_wsp_b2, View.VISIBLE);
             rv.setViewVisibility(R.id.cy_wsp_vrule, View.VISIBLE);
             rv.setOnClickPendingIntent(R.id.cy_wsp_b2, stale ? refreshIntent(c, 391) : CyExtras.openIntent(c, b2.optString("link", ""), 403));
@@ -788,6 +914,11 @@ final class CyWidgets {
         JSONArray h = tickerStories(c), pics = CyExtras.readHeadlines(c);
         boolean upd = isUpdating(c), stale = isStale(c);
         float dens = c.getResources().getDisplayMetrics().density;
+        int[] th = theme(c);
+        if (th != null) {
+            tintBg(rv, android.R.id.background, th[T_BG]);
+            rv.setInt(R.id.cy_wk_empty, "setTextColor", th[T_MUT]);
+        }
         rv.removeAllViews(R.id.cy_wk_flip);
         int pages = 0;
         for (int i = 0; i < h.length() && pages < TICK_N; i++) {
@@ -800,9 +931,9 @@ final class CyWidgets {
             if (!stale && !upd && src.length() > 0) kick = kick + "  ·  " + src;
             if (age.length() > 0) kick = kick + "  ·  " + age;
             pg.setTextViewText(R.id.cy_wq_src, kick);
-            pg.setInt(R.id.cy_wq_src, "setTextColor", col(c, R.color.cy_w_kicker));
+            pg.setInt(R.id.cy_wq_src, "setTextColor", kicker(c, th));
             pg.setTextViewText(R.id.cy_wq_head, o.optString("title", ""));
-            pg.setInt(R.id.cy_wq_head, "setTextColor", col(c, R.color.cy_w_ink));
+            pg.setInt(R.id.cy_wq_head, "setTextColor", ink(c, th));
             pg.setFloat(R.id.cy_wq_head, "setAlpha", upd ? 0.5f : (o.optBoolean("read", false) ? 0.6f : 1f));
             String link = o.optString("link", "");
             String img = o.optString("img", "");
@@ -841,5 +972,44 @@ final class CyWidgets {
             rv.setViewVisibility(R.id.cy_wk_empty, View.GONE);
         }
         return rv;
+    }
+
+    // ---------------------------------------------------------------- test pictures
+
+    /**
+     * Draws the widgets the way a home screen would (the same RemoteViews, applied in this app) and returns them as JPEGs (base64),
+     * so the device test can look at them. A widget that cannot be built or applied is reported as "<name>_error".
+     */
+    static JSONObject probe(Context c) {
+        JSONObject out = new JSONObject();
+        String[] names = {"top-4x3", "top-4x3-page3", "top-2x2", "headlines-4x3", "headlines-4x1", "headlines-2x2", "ticker"};
+        int[][] sz = {{300, 226, 0}, {300, 226, 2}, {146, 146, 1}, {300, 226, 0}, {300, 120, 0}, {146, 146, 0}, {300, 64, 0}};
+        float d = c.getResources().getDisplayMetrics().density;
+        for (int i = 0; i < names.length; i++) {
+            try {
+                int w = sz[i][0], h = sz[i][1];
+                RemoteViews rv = i < 3 ? buildTop(c, 0, w, h, true) : (i < 6 ? buildList(c, w, h) : buildTicker(c));
+                View v = rv.apply(c, new android.widget.FrameLayout(c));
+                android.widget.ViewFlipper f = v.findViewById(R.id.cy_flipper);
+                if (f != null && sz[i][2] > 0 && f.getChildCount() > sz[i][2]) {
+                    f.setInAnimation(null);
+                    f.setOutAnimation(null);
+                    f.setDisplayedChild(sz[i][2]);
+                }
+                int pw = Math.round(w * d), ph = Math.round(h * d);
+                v.measure(View.MeasureSpec.makeMeasureSpec(pw, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(ph, View.MeasureSpec.EXACTLY));
+                v.layout(0, 0, pw, ph);
+                Bitmap b = Bitmap.createBitmap(pw, ph, Bitmap.Config.ARGB_8888);
+                Canvas cv = new Canvas(b);
+                cv.drawColor(0xFF51656D);
+                v.draw(cv);
+                java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
+                b.compress(Bitmap.CompressFormat.JPEG, 88, bo);
+                out.put(names[i], android.util.Base64.encodeToString(bo.toByteArray(), android.util.Base64.NO_WRAP));
+            } catch (Throwable t) {
+                try { out.put(names[i] + "_error", String.valueOf(t)); } catch (Throwable e) { /* nothing to report with */ }
+            }
+        }
+        return out;
     }
 }

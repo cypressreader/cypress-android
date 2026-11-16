@@ -8,7 +8,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.RemoteViews;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,10 +31,7 @@ public class CyWidgetProvider extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager manager, int[] appWidgetIds) {
         for (int id : appWidgetIds) {
             try {
-                int w = CyWidgets.widthDp(manager, id);
-                int h = CyWidgets.heightDp(manager, id);
-                RemoteViews rv = CyWidgets.buildTop(context, id, w, h);
-                manager.updateAppWidget(id, rv);
+                CyWidgets.pushTop(context, manager, id);
             } catch (Throwable t) {
                 Log.e(TAG, "onUpdate failed for widget " + id, t);
                 try {
@@ -56,9 +52,7 @@ public class CyWidgetProvider extends AppWidgetProvider {
     @Override
     public void onAppWidgetOptionsChanged(Context context, AppWidgetManager manager, int appWidgetId, Bundle newOptions) {
         try {
-            int w = CyWidgets.widthDp(manager, appWidgetId);
-            int h = CyWidgets.heightDp(manager, appWidgetId);
-            manager.updateAppWidget(appWidgetId, CyWidgets.buildTop(context, appWidgetId, w, h));
+            CyWidgets.pushTop(context, manager, appWidgetId);
         } catch (Throwable t) {
             Log.e(TAG, "onAppWidgetOptionsChanged failed for widget " + appWidgetId, t);
             try {

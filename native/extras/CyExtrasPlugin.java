@@ -333,10 +333,29 @@ public class CyExtrasPlugin extends Plugin {
             JSONArray h = in.optJSONArray("headlines");
             CyExtras.saveHeadlines(c, h == null ? new JSONArray() : h);
             CyWidgets.saveMeta(c, in.has("edition") ? in.optString("edition", "") : null, in.optJSONArray("breaking"));
+            if (in.has("theme")) CyWidgets.saveTheme(c, in.optJSONObject("theme")); // null = the widgets' own look
             CyExtras.updateWidgets(c);
             call.resolve();
         } catch (Throwable t) {
             call.reject("widgetUpdate failed: " + msg(t));
+        }
+    }
+
+    /** For the device test: fetch the pictures, then draw every widget and hand the pictures back. */
+    @PluginMethod
+    public void widgetProbe(final PluginCall call) {
+        try {
+            final Context c = getContext();
+            CyWidgetProvider.fetchImages(c, CyExtras.readHeadlines(c));
+            getActivity().runOnUiThread(() -> {
+                try {
+                    call.resolve(CyExtras.obj(CyWidgets.probe(c).toString()));
+                } catch (Throwable t) {
+                    call.reject("widgetProbe failed: " + msg(t));
+                }
+            });
+        } catch (Throwable t) {
+            call.reject("widgetProbe failed: " + msg(t));
         }
     }
 
