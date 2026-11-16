@@ -107,7 +107,7 @@ body:not(.narrow) .grid:not(.list) .tpl.t3>.card:nth-child(1),body:not(.narrow) 
 .cover.flip .cvwhy{top:auto;bottom:14px}
 ::view-transition-group(hero){animation-duration:.42s;animation-timing-function:var(--ease-out)}
 /* deep dive 3: Chromium 153 killed the whole tab (compositor CHECK) when a second photo story opened with the grow animation at widths over 500px, because the named card picture sat inside a contain:paint card; containment is dropped only while a transition runs. Page-turn copies must never carry the 'hero' name (duplicate name: animation skipped) */
-:root:active-view-transition #grid .card{contain:none}#sheet :is(.tl,.tl-leaf) img.hero{view-transition-name:none!important}
+:root:active-view-transition #grid .card{contain:none}html.lowp #rd.fxcol{transition:none}#sheet :is(.tl,.tl-leaf) img.hero{view-transition-name:none!important}
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.15s}
 .tf::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:.07;mix-blend-mode:multiply;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .35 0 0 0 0 .3 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
 .tsheen{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.55) 50%,rgba(255,255,255,0) 100%);background-size:60% 100%;background-repeat:no-repeat;mix-blend-mode:soft-light;opacity:0}
@@ -5359,11 +5359,11 @@ function askBox(o){return new Promise(res=>{
 /* backup / sync data is checked before it is trusted: ids, colors and links are cleaned */
 function cleanLib(d){
  const L=a=>Array.isArray(a)?a:[];
- d.feeds=L(d.feeds).filter(f=>f&&typeof f==='object'&&okId(f.id)&&webUrl(f.url)).map(f=>{f.url=webUrl(f.url);f.title=String(f.title||'').slice(0,120);if(f.color&&!okColor(f.color))delete f.color;if(f.folder&&!okId(f.folder))f.folder='';return f});
+ d.feeds=L(d.feeds).filter(f=>f&&typeof f==='object'&&okId(f.id)&&(webUrl(f.url)||f.url==='watch:')).map(f=>{f.url=webUrl(f.url)||f.url;/* the 'Page changes' feed (watch:) survives restore and sync */f.title=String(f.title||'').slice(0,120);if(f.color&&!okColor(f.color))delete f.color;if(f.folder&&!okId(f.folder))f.folder='';return f});
  d.folders=L(d.folders).filter(f=>f&&typeof f==='object'&&okId(f.id)).map(f=>{f.name=String(f.name||'').slice(0,80);return f});
  if(d.saved!=null)d.saved=L(d.saved).filter(a=>a&&typeof a==='object'&&webUrl(a.link)).map(a=>{a.link=webUrl(a.link);if(a.fc&&!okColor(a.fc))delete a.fc;if(a.feedId&&!okId(a.feedId))a.feedId='';return a});
- for(const k of ['hl','sk','mute'])if(d[k]!=null&&!Array.isArray(d[k]))d[k]=[];
- for(const k of ['read','pos','rt','prog'])if(d[k]!=null&&(typeof d[k]!=='object'||Array.isArray(d[k])))d[k]={};
+ for(const k of ['theme','sel','font','hfont','sch'])if(d[k]!=null&&typeof d[k]!=='string')delete d[k];/* deep dive 3: a malformed backup could lock the app on 'couldn’t start' */for(const k of ['hl','sk','mute','hist','places'])if(d[k]!=null&&!Array.isArray(d[k]))d[k]=[];
+ for(const k of ['read','pos','rt','prog','fcol','ops','health','muteT'])if(d[k]!=null&&(typeof d[k]!=='object'||Array.isArray(d[k])))d[k]={};
  if(d.sk!=null)d.sk=d.sk.filter(k=>k&&typeof k==='object'&&okId(k.id));/* a followed topic's id goes into the page as written: only plain ids come in from a backup or from sync */
  d.hl=L(d.hl).filter(h=>h&&typeof h==='object');d.hl.forEach(h=>{if(h.art&&h.art.fc&&!okColor(h.art.fc))delete h.art.fc});
  return d;
@@ -11168,8 +11168,8 @@ let SETW=setWide();addEventListener('resize',()=>{const w=setWide();if(set.open&
 $('#setpane')&&0;
 $('#setx').onclick=()=>set.close();
 $('#gear').onclick=()=>{drawer(false);setBuild();setAdopt();setCounts();syncSet();try{if('speechSynthesis' in window){if(speechSynthesis.reload&&!speechSynthesis.getVoices().length)speechSynthesis.reload();fillVoices()}}catch(e){}set.showModal();$('#sset').value='';setSearch('');SETW=setWide();if(SETW)SETP=SETP||'look';setShow(SETP);const pn=$('#setpane'),hm=$('#sethome');if(pn&&!pn._sc){pn._sc=1;pn.addEventListener('scroll',()=>{if(set.open&&SETP)SETSC[SETP]=pn.scrollTop},{passive:true})}if(hm&&!hm._sc){hm._sc=1;hm.addEventListener('scroll',()=>{if(set.open&&!SETP)SETSC._home=hm.scrollTop},{passive:true})}const rs=()=>{if(SETP&&pn)pn.scrollTop=SETSC[SETP]||0;else if(hm)hm.scrollTop=SETSC._home||0};rs();requestAnimationFrame(rs)};
-$('#rate').oninput=e=>{S.rate=+e.target.value;$('#ratev').value=S.rate.toFixed(1)+'×';save()};
-$('#vol').oninput=e=>{S.vol=+e.target.value;$('#volv').value=Math.round(S.vol*100)+'%';save()};
+$('#rate').oninput=e=>{S.rate=+e.target.value;$('#ratev').value=S.rate.toFixed(1)+'×';saveSoon()};
+$('#vol').oninput=e=>{S.vol=+e.target.value;$('#volv').value=Math.round(S.vol*100)+'%';saveSoon()};
 $('#voice').onchange=e=>{S.voice=e.target.value;save()};
 $('#grid').onclick=e=>{if(hlClick(e))return;{const tx=e.target.closest('[data-tipx]');if(tx){tx.parentNode.remove();TIPQ.cur=null;TIPQ.shown=0;return}}{const bp=e.target.closest('[data-bpause]'),bk=e.target.closest('[data-bkeep]');if(bp||bk){const f=S.feeds.find(x=>x.id===(bp||bk).dataset[bp?'bpause':'bkeep']);if(f){S.nudged=S.nudged||{};S.nudged[f.id]=Date.now();if(bp){const old=f.snz||0;f.snz=9e15;save();render();toast('Paused '+(f.title||'feed'),()=>{f.snz=old;delete S.nudged[f.id];save();render()})}else{save();render()}}return}}{const mb=e.target.closest('[data-msnz]');if(mb){const f=S.feeds.find(x=>x.id===mb.dataset.msnz);if(f){const old=f.snz||0;f.snz=Date.now()+7*864e5;save();render();toast('Paused '+f.title+' for a week',()=>{f.snz=old;save();render()})}return}}if(e.target.closest('[data-five]')){fiveMin();return}if(e.target.closest('[data-endall]')){S.sel='all';save();render();return}const sb=e.target.closest('.sech button');if(sb){S.sel=sb.dataset.sel;save();return render()}const st=e.target.closest('.star');if(st){e.preventDefault();{const sa=cur[+st.dataset.star];toggleSave(sa);if(!cardMarks(sa))render()}return}const wy=e.target.closest('[data-why]');if(wy){e.preventDefault();e.stopPropagation();showWhy(cur[+wy.dataset.why],wy);return}
  const stg=e.target.closest('[data-stag]');if(stg){S.stag=stg.dataset.stag;save();render();return}
@@ -11324,7 +11324,7 @@ $('#side-list').onclick=e=>{
  if(d.col){const cp=$('#cp');cp.dataset.id=d.col;try{cp.value=brand(feedOf(d.col))}catch(_){}cp.click();return}
  const s=t.closest('[data-sel]');if(s){const nt0=performance.now(),ns=s.dataset.sel,again=ns===S.sel,go=()=>{const b=performance.now();render();NAVB=performance.now()-b};S.sel=ns;saveSoon();drawer(false);if(again){const mn=$('main');if(mn)mn.scrollTop=0}if(S.sel==='today')requestAnimationFrame(()=>setTimeout(go,0));else go();navLog(nt0,ns)}/* the Daily is the heaviest page: let the menu close and paint first */
 };
-$('#cp').oninput=e=>{const f=feedOf(e.target.dataset.id);f.color=e.target.value;save();render()};
+$('#cp').oninput=e=>{feedOf(e.target.dataset.id).color=e.target.value};$('#cp').onchange=()=>{save();render()};/* deep dive 3: save and redraw once when the color is chosen, not on every drag step */
 async function askDelFolder(id){const fo=S.folders.find(f=>f.id===id);if(!fo)return;const n=S.feeds.filter(f=>f.folder===id).length;
  if(!n){if(!(await askBox({title:'Delete the folder “'+fo.name+'”?',text:'It’s empty. You can undo right after.',ok:'Delete',danger:true})))return;return delFolder(id,false)}
  const r=await askBox({title:'Delete the folder “'+fo.name+'”?',text:'It has '+n+(n===1?' site':' sites')+'. Delete '+(n===1?'it':'them')+' too, or keep '+(n===1?'it':'them')+' in your list, moved to Unfiled. You can undo right after.',ok:'Delete folder and '+(n===1?'feed':'feeds'),alt:'Keep the '+(n===1?'feed':'feeds'),danger:true});
@@ -12019,7 +12019,7 @@ function mrOlder(){const mr=$('#mr'),d=document.createElement('dialog');d.setAtt
 {const mr=$('#mr');let t=0,held=false;mr.onclick=async()=>{if(held){held=false;return}/* E1: ask first when it touches more than one story (Undo still follows) */const k=cur.filter(a=>!S.read[a.link]).length;if(k>1){const ok=await askBox({title:'Mark '+k+' stories as read?',text:'Press and hold this button to mark only older stories.',ok:'Mark as read'});mr.focus();if(!ok)return}markList(cur)};
  mr.addEventListener('pointerdown',()=>{held=false;t=setTimeout(()=>{held=true;mrOlder()},550)});['pointerup','pointerleave','pointercancel'].forEach(k=>mr.addEventListener(k,()=>clearTimeout(t)));
  mr.addEventListener('contextmenu',e=>{e.preventDefault();clearTimeout(t);if(!held)mrOlder();held=false})}
-$('#q').oninput=()=>render();
+$('#q').oninput=()=>{clearTimeout(render.qt);render.qt=setTimeout(render,150)};/* deep dive 3: one redraw after a pause in typing, not one per key */
 const srch=$('#srch');
 /* search remembers your last 8 searches (offered as you type) and can be narrowed to Unread or Saved */
 var QSC='all';
@@ -14303,7 +14303,7 @@ async function startFresh(){
  const want=await askBox({title:'Save a backup first?',text:'A backup lets you bring everything back later, except books: keep your original book files.',ok:'Save a backup, then erase',alt:'Erase without a backup',cancel:'Keep my data'});
  if(!want)return;
  if(want===true){const ok=await makeBackup();if(!ok){if(!(await askBox({title:'The backup wasn’t saved',text:'Erase anyway? Your data can’t be recovered afterwards.',ok:'Erase anyway',cancel:'Keep my data',danger:true})))return}else if(NATIVE&&!(await askBox({title:'Is your backup saved?',text:'Erase only after the backup file is saved somewhere safe.',ok:'Erase now',cancel:'Keep my data',danger:true})))return/* deep dive 3: on Android the share sheet reports success as soon as it opens, so erasing went ahead even if the backup was never saved */}
- freezeApp();
+ freezeApp();S.ustat=0;/* the weekly usage counts are erased too, not written again during the reload */
  try{const x=CyX();if(x&&x.wipe)await x.wipe()}catch(e){}
  try{localStorage.clear();sessionStorage.clear()}catch(e){}
  try{if(IDB.db)IDB.db.close();indexedDB.deleteDatabase('cypress')}catch(e){}try{bkErase()}catch(e){}try{caches.delete('cy-img');caches.delete('cyp-icons-1')}catch(e){}
@@ -18762,7 +18762,7 @@ setInterval(()=>{
  try{if(document.hidden||!curA||!$('#rd')||!$('#rd').classList.contains('on'))return;
   const d=S.dw[curA.link]=S.dw[curA.link]||{s:0,t:0};d.s+=5;d.t=Date.now();
   const ks=Object.keys(S.dw);if(ks.length>250)delete S.dw[ks.sort((a,b)=>S.dw[a].t-S.dw[b].t)[0]];
-  if(d.s%30===0)save();
+  if(d.s%30===0&&!HST)HST=setTimeout(()=>{HST=0;SAVE0()},60000);/* deep dive 3: the reading place is kept about once a minute (flushSave writes it when the app is hidden) */
  }catch(e){}
 },5000);
 function pkProg(l){const p=S.prog&&S.prog[l];return p?+p.p||0:0}
