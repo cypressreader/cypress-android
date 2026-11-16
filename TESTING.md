@@ -2078,3 +2078,9 @@ All implemented and checked in a headless browser only; unverified on a phone.
 - Top Story: every page that turns shows its own photo (not only the first). Arrows still work.
 - Headlines: resize to a small square (one story), wide and short (picture beside headline, "Next: ..." under it), large (spread as before).
 - Pick a non-Halcyon theme in the app, wait a few seconds: all three widgets take its colors (Android 12+). Back to Halcyon: cream by day, green at night as before.
+
+## Widgets batch 2 (2026-11-16, unreleased, branch claude/handoff-continuation-lrhpb6) — implemented, unverified on a phone
+- The Daily widget: add it, read a story, go home: count and bar move; finish the edition: "You're done" note; after 5 AM/5 PM it says the next edition is ready.
+- Top Story (4x3): Save button shows "Saved for later" toast; open the app: the story is in Saved. Listen button opens the story and starts reading aloud.
+- Headlines/Ticker: dot on unseen stories; Ticker red "Breaking" label only for the app's breaking strip story.
+- Continue listening: story picture behind the text, minutes left, skip back / next buttons, progress line moves while reading.
