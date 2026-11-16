@@ -2027,3 +2027,7 @@ Dynamic look:
 - [ ] Open a story that is still loading, turn 3 pages before it finishes: you stay on that page when the full article arrives.
 - [ ] In a story, tap A+ twice, then Wide, then a preset in Aa: the text you were reading stays on screen (within a paragraph or two).
 - [ ] Phone sideways with Narrow width or Large print: page 1 never shows only the site name; a long code box ends with its "Show all" button on the same page.
+- [ ] Phone with a keyboard or TalkBack: with the side drawer closed, Tab never lands on hidden site names; opening it moves focus into it, closing returns to the menu button.
+- [ ] Settings > Manage sites > remove a site: the "Removed … Undo" message shows above the dialog and Undo works.
+- [ ] Saved in Newsprint, Coast and Sepia Rosewood: the selected filter chip ("All N") shows its text.
+- [ ] Dark themes: "Erase everything" is readable; Sunday cards without a photo are readable; the Headlines "Latest" ticker pauses under a finger or keyboard focus.
