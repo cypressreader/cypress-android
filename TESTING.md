@@ -2010,3 +2010,9 @@ Dynamic look:
 - [ ] A short slow drag (about a third of the page) still falls back. Dragging across and then back before letting go still falls back.
 - [ ] Open Fold (two pages): same checks.
 - [ ] Picture breaks in the feed (the edge-to-edge photo every dozen stories, incl. the big split one): the headline has a thin dark outline and the source line a lighter one; words stay readable over a pale or busy part of the photo, in Halcyon and in a dark theme (David 2026-11-15 screenshots: Pope Leo / "Breaking news").
+
+## Short-story cover card + Notes (2026-11-16, headless-checked only)
+- [ ] Open Fold, Dynamic look: open a short story (an "In brief" one, about a 1-min read) with a large photo. The text card beside the picture on page 1 shows the story (or the summary box and then the story), not an empty card. Text is left-aligned and upright, not centered gray italics.
+- [ ] Same, for a story that only partly loads ("Partial story" note): the text follows the note on page 1's card.
+- [ ] The Brief page header (Daily brief) still looks the same: centered title, double rule on top.
+- [ ] Phone: a story with links ends in one "Notes · N links" line; tapping it opens the list. Tapping a small note number in the text also opens it.
