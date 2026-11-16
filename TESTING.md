@@ -2042,3 +2042,5 @@ Dynamic look:
 - [ ] Android morning pack notification with one story says "1 story picked from your sites".
 - [ ] Next device test run: it now installs with the release manifest (install permission, widgets, services); check the report for new failures from that.
 - [ ] Web app installed as an app: after this update it re-downloads itself once, then works offline as before.
+- [ ] Slide and Fade page turns: two quick taps turn two pages.
+- [ ] Core-only (pre-release) APK, if built: installs and refreshes normally; our own addresses stay HTTPS-only.

@@ -491,6 +491,8 @@ for name in ('MainActivity.java', 'CyNativePlugin.java', 'CyFileProvider.java'):
 say('added the CyPress Android code')
 
 copy(os.path.join(ROOT, 'native', 'cy_paths.xml'), os.path.join(RES, 'xml', 'cy_paths.xml'))
+# deep dive 3: the network config is core, not an extra, so even the core-only build keeps our own hosts HTTPS-only
+copy(os.path.join(ROOT, 'native', 'cy_network.xml'), os.path.join(RES, 'xml', 'cy_network.xml'))
 copy(os.path.join(ROOT, 'native', 'AndroidManifest.release.xml'),
      os.path.join(APP, 'src', 'release', 'AndroidManifest.xml'))
 say('added the install permission and file sharing')
