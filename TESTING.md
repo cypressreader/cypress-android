@@ -2062,3 +2062,8 @@ All implemented and checked in a headless browser only; unverified on a phone.
 ## New-story dots + breaking strip (unreleased, work branch, 2026-11-16)
 - Dot: open the app after being away a while. Stories newer than your last visit show a small dot after the site name; it fades a few seconds after the story has been on screen and is gone once read. Check it is visible on photo cards and in list view, on the Fold open and closed.
 - Breaking strip: only when a story has breaking wording AND 3+ of your sites report it within an hour, in the last 3 hours. Shows at the top of The Daily and All Stories; tap opens the story; × hides it and it stays hidden. Simulated only in a headless browser; needs a real news day to confirm it is rare enough.
+
+## Settings trim + Google News gate + offline picture lookup (unreleased, 2026-11-16)
+- Settings: The Daily, Reading, Look, Stories and Sites pages are shorter (22 rows gone). Check nothing you use is missing, Quick setup (Simple / Full / Everything) still changes the look, and Settings search no longer finds the removed rows.
+- Refresh three times within a few minutes: sites that rely on Google News headlines should stay online and keep their stories.
+- Airplane mode: open a stored story that has no picture; it should open at once with no waiting.

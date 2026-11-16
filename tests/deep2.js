@@ -36,7 +36,6 @@ for(const [nm,w,h,mob] of [['setup-phone',380,820,true],['setup-fold',884,1060,f
  ck(nm,'custom source added',await p.E(()=>OB.custom.length===1));
  await p.tap('[data-obnext]');await W(150);
  await p.screenshot({path:`/tmp/t/n-${nm}-3.png`});
- await p.tap('[data-obnext]');await W(150);await p.screenshot({path:`/tmp/t/n-${nm}-4.png`});
  await p.tap('[data-obdone]');await W(2500);
  const r=await p.E(()=>({n:S.feeds.length,ob:$('#ob').open,fo:S.folders.map(f=>f.name),alpha:S.feeds.find(f=>f.url.includes('alpha')),on:S.onboarded}));
  ck(nm,'setup builds feeds',r.n===n0,JSON.stringify(r).slice(0,200));

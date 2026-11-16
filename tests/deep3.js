@@ -38,6 +38,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060],['desk',1280,900]]){
  /* R-08: in Scroll a tap only shows or hides the bars, so the old tap-to-scroll checks are gone */
  await E(()=>document.querySelector('#nx').click());await W(900);ck(vp,'next button scrolls in vertical',await E(()=>$('#rd .view').scrollTop)>50);
  // finger scroll works (native)
+ const bb=await p.locator('.book').boundingBox();
  await W(800);const s2=await E(()=>$('#rd .view').scrollTop);await p.touchDrag(bb.x+bb.width/2,bb.y+bb.height*.7,bb.x+bb.width/2,bb.y+bb.height*.3,10);await W(700);
  ck(vp,'finger scroll works',await E(()=>$('#rd .view').scrollTop)>s2+40);
  // horizontal swipe does not start a page turn

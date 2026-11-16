@@ -61,7 +61,7 @@ for(const [vp,w,h,touch] of VPS){
  ck(vp,'keep reading block',rd.kr>=1,String(rd.kr));
  ck(vp,'section ornaments render',rd.orn&&rd.orn!=='none',JSON.stringify([rd.orn]));
  await E(()=>{decorate();decorate()});
- ck(vp,'decorate is idempotent',await E(()=>[...document.querySelectorAll('.cols .strip')].filter(x=>!x.closest('.tl,.tl-leaf')).length===1&&document.querySelectorAll('.code').length===1&&document.querySelectorAll('.crd').length>=1));
+ ck(vp,'decorate is idempotent',await E(()=>[...document.querySelectorAll('.cols .strip')].filter(x=>!x.closest('.tl,.tl-leaf')).length===1&&[...document.querySelectorAll('.cols .code')].filter(x=>!x.closest('.tl,.tl-leaf')).length===1&&document.querySelectorAll('.crd').length>=1));
  // embed re-hydration from cache markup
  ck(vp,'embed survives cache round trip',await E(()=>{const d=document.createElement('div');d.innerHTML=document.querySelector('.cols .body').innerHTML;const f=fromHTML(d.innerHTML,'https://x.test/');const t=document.createElement('div');t.append(f);return t.querySelectorAll('.emb').length>=2&&!!t.querySelector('.emb.yt img')}));
  // --- link peek
