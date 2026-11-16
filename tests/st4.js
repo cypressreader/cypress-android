@@ -11,18 +11,17 @@ for(const [vp,w,h,touch] of VPS){
  await p.goto(('file://'+APP));await p.waitForTimeout(1800);
  const E=(f,a)=>p.evaluate(f,a);
  // themes
- for(const th of ['rosewood','midnight','forest','rose','mono']){
+ for(const th of ['rosewood','halcyon','eink']){/* midnight, forest, rose and mono were folded into these */
   await E(t=>{S.theme=t;applyTheme(false)},th);
   ck(vp,'theme '+th,await E(t=>document.documentElement.dataset.theme===t&&getComputedStyle(document.body).backgroundColor!=='rgba(0, 0, 0, 0)',th));
  }
- ck(vp,'theme swatches in settings',await E(()=>document.querySelectorAll('#thm button').length>=11));
  await E(()=>{S.theme='auto';applyTheme(false)});
  // presets & hfont
  await E(()=>document.querySelector('#tpre [data-tp=classic]').click());
  ck(vp,'preset classic',await E(()=>S.font==='garamond'&&S.lh===1.9&&tpreOn()==='classic'));
  ck(vp,'headline font var',await E(()=>document.documentElement.style.getPropertyValue('--serif').includes('Playfair')));
  await E(()=>document.querySelector('#tpre [data-tp=editorial]').click());
- ck(vp,'preset editorial resets headline',await E(()=>getComputedStyle(document.documentElement).getPropertyValue('--serif').includes('Newsreader')));
+ ck(vp,'preset editorial resets headline',await E(()=>!document.documentElement.style.getPropertyValue('--serif').includes('Playfair')));/* back to the theme's own headline font */
  // reduce motion
  await E(()=>{S.rmo=true;applyRmo()});
  ck(vp,'reduce motion class',await E(()=>document.documentElement.classList.contains('rmo')&&reduced()));

@@ -37,8 +37,8 @@ for(const [vp,w,h,touch] of [['phone',380,820,true],['desktop',1280,900,false]])
    ck(tag+' pause calls stop',await E(()=>window.__calls.some(c=>c[0]==='stop')));
    ck(tag+' paused state',await E(()=>TTS.paused===true));
    // voice choice is passed
-   await E(()=>{S.voice='fr-fr-x-b-local';save();ttsFrom(0)});await p.waitForTimeout(400);
-   ck(tag+' voice passed to engine',await E(()=>window.__calls.filter(c=>c[0]==='speak').pop()[1].voice==='fr-fr-x-b-local'));
+   await E(()=>{S.voice='en-us-x-a-local';save();ttsFrom(0)});await p.waitForTimeout(400);
+   ck(tag+' voice passed to engine',await E(()=>window.__calls.filter(c=>c[0]==='speak').pop()[1].voice==='en-us-x-a-local'));/* a chosen voice is used when it speaks the story's language */
    await E(()=>ttsStop());
   }else{
    ck(tag+' shim removed / not installed',await E(()=>!('speechSynthesis' in window)));

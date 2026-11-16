@@ -89,7 +89,7 @@ const calls=(p,n)=>p.evaluate(n=>window.__calls.filter(c=>c[0]===n).map(c=>c[1])
   let bk={};try{bk=JSON.parse(Buffer.from(sf[0].data,'base64').toString())}catch(e){}
   ck('A','backup content is intact',Array.isArray(bk.feeds)&&bk.feeds.length===2);
   await p.click('#exp');await W(400);
-  const sf2=await calls(p,'shareFile');ck('A','OPML goes to share sheet',sf2.length===2&&sf2[1].name==='folio-feeds.opml'&&/<opml/.test(Buffer.from(sf2[1].data,'base64').toString()));
+  const sf2=await calls(p,'shareFile');ck('A','OPML goes to share sheet',sf2.length===2&&sf2[1].name==='cypress-feeds.opml'&&/<opml/.test(Buffer.from(sf2[1].data,'base64').toString()));
   await p.evaluate(()=>navigator.share({title:'T',url:'https://x.test/a'}));
   const st=await calls(p,'shareText');ck('A','link sharing works via polyfill',st.length===1&&st[0].url==='https://x.test/a'&&st[0].title==='T');
   await p.evaluate(()=>document.querySelector('#set').close());
@@ -159,7 +159,7 @@ const calls=(p,n)=>p.evaluate(n=>window.__calls.filter(c=>c[0]===n).map(c=>c[1])
   await p.ctx.close();}
  {const p=await mk(b,{native:true,web:{direct:{fail:1}}});await W(300);p.hits.length=0;
   const r=await timed(p,'https://gamma.test/feed');
-  ck('G','blocked site falls back within a moment',r.ok&&r.ms<800&&p.hits.some(h=>/allorigins/.test(h.u)),JSON.stringify({ms:r.ms,lg:r.lg}));
+  ck('G','blocked site is never sent to a public relay in the app',!p.hits.some(h=>/allorigins|corsproxy|codetabs/.test(h.u)),JSON.stringify({ms:r.ms,lg:r.lg}));
   ck('G','log says direct failed',r.lg.some(x=>/^direct: /.test(x)),JSON.stringify(r.lg));
   await p.ctx.close();}
 

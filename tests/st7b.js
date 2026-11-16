@@ -11,7 +11,7 @@ await p.evaluate(()=>document.querySelector('.bmseg [data-bm=edition]').click())
 ck(n+' digest',await p.evaluate(()=>!!document.querySelector('.dg .edbox')&&!!document.querySelector('.dg .back')));
 await p.screenshot({path:`d7_${n}_digest.png`,fullPage:false});
 ck(n+' chip gone',await p.evaluate(()=>{S.sel='today';render();return true}));
-await p.evaluate(()=>{S.dgk='week';S.sel='digest';render()});await p.waitForTimeout(300);
+await p.evaluate(()=>{S.st=S.st||{};S.st.d=S.st.d||{};S.st.d[dayKey()]={m:5,n:2,f:1};/* a first week with no reading shows a note instead of the bars */S.dgk='week';S.sel='digest';render()});await p.waitForTimeout(300);
 ck(n+' week tiles',await p.evaluate(()=>!!document.querySelector('.dg .wkhero .wkbars')));
 await p.evaluate(()=>{S.sel='today';render();document.querySelector('#grid .card[data-i]').click()});await p.waitForTimeout(1200);
 ck(n+' folio',await p.evaluate(()=>{const b=document.querySelector('.book');return !!b&&(!!b.dataset.folio||isVert())}));

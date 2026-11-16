@@ -12,7 +12,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    const g=document.querySelector('#grid'),cv=g.querySelector(':scope>.dcov'),o={};
    o.cover=!!cv;o.noPane=!g.querySelector('.d2,.d2l,.d2r');
    const main=document.querySelector('main').getBoundingClientRect(),cr=cv?cv.getBoundingClientRect():{width:0,height:0};
-   o.bleed=cr.width>=main.width-4;o.tall=cr.height>=Math.min(innerHeight*.6,500);o.cls=cv&&cv.className.includes('dct-'+t);
+   o.bleed=cr.width>=Math.min(main.width,720)-4;/* the cover is capped at 720px and centered on wide screens */o.tall=cr.height>=Math.min(innerHeight*.6,500);o.cls=cv&&cv.className.includes('dct-'+t);
    const nx=cv&&cv.nextElementSibling;o.meta=!!(nx&&nx.classList.contains('dmeta'));
    o.metaH=nx?nx.getBoundingClientRect().height:999;
    o.loose=[...g.querySelectorAll(':scope>.dateline,:scope>.dexp,:scope>.dtd,:scope>.dgp')].length;

@@ -74,7 +74,7 @@ ck('no page errors',errs.length===0,errs.join('|'));}
   window.getFull=async()=>{const f=frag('<p>'+words(120)+'</p><p>'+words(120)+'</p><p>'+words(80)+'</p><p>'+gateMsg+'</p>');f.gated_preview=true;return f};
   window.archiveFor=async()=>null;window.mirrorFor=async()=>null;
   await openReader(a);await new Promise(r=>setTimeout(r,2500));
-  const card=document.querySelector('.cols .gcard'),ps=[...document.querySelectorAll('.cols .body p')],last=ps[ps.length-1],lastFade=ps.filter(x=>x.classList.contains('gfade'));
+  const card=document.querySelector('.cols .gcard'),ps=[...document.querySelectorAll('.cols .body p')],last=ps[ps.length-1],lastFade=ps.filter(x=>x.classList.contains('gfade')&&!x.closest('.tl,.tl-leaf'));/* page-turn copies repeat the paragraph */
   const o={card:!!card,cardTxt:card?card.textContent:'',href:card?card.querySelector('a').getAttribute('href'):'',tgt:card?card.querySelector('a').getAttribute('target'):'',fade:lastFade.length,mask:lastFade[0]?getComputedStyle(lastFade[0]).webkitMaskImage||getComputedStyle(lastFade[0]).maskImage:'',gateGone:!/verify access/.test(document.querySelector('.cols .body').textContent),note:(document.querySelector('.cols .note')||{}).textContent||'',cached:!!acGet(link),link};
   document.querySelector('#cl').click();await new Promise(r=>setTimeout(r,400));
   // a saved copy found: no preview card

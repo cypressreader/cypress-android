@@ -22,7 +22,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    const ct=[...document.querySelectorAll('#grid .dcov .dcv-l span,#grid .dcov .dcv-lead h2')].map(e=>e.textContent.trim()),wt=[...document.querySelectorAll('#grid .dwell *')].map(e=>(e.children.length?'':e.textContent.trim())).filter(Boolean);
    o.sameText=ct.filter(t=>wt.includes(t));
    /* 3. Sunday week panel */
-   S.sel='digest';S.dgk='week';render();await w(1200);const e=document.querySelector('.wkhero');
+   S.st=S.st||{};S.st.d=S.st.d||{};S.st.d[dayKey()]={m:5,n:2,f:1};/* a first week with no reading shows a note instead of the bars */S.sel='digest';S.dgk='week';render();await w(1200);const e=document.querySelector('.wkhero');
    if(e){const r=e.getBoundingClientRect(),bars=e.querySelector('.wkbars').getBoundingClientRect();o.wk={h:Math.round(r.height),w:Math.round(r.width),bars:Math.round(bars.width)}}
    return o});
   const t='['+W+'] ';

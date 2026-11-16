@@ -60,6 +60,8 @@ for(const [vp,w,h,touch] of VPS){
  // like ranking
  const rk=await E(()=>{const f=S.feeds[2].id,a=items[f][8];const b=likeScore(a);likeA(a,1);const c=likeScore(a);likeA(a,1);likeA(a,1);return [b,c,likeScore(a)]});
  ck(vp,'more like this raises score',rk[1]>rk[0]&&rk[2]>rk[1],JSON.stringify(rk));
+ /* one message at a time: clear the three waiting ones, then like once more so the Undo on screen belongs to that last like */
+ await E(()=>{const t=document.querySelector('#toast');if(t)t.classList.remove('show','act');if(toast.q)toast.q.length=0;likeA(items[S.feeds[2].id][8],1)});
  ck(vp,'undo toast for like',await E(()=>!!document.querySelector('#toast .tundo')));
  await E(()=>document.querySelector('#toast .tundo').click());
  ck(vp,'like undo restores',await E(()=>{const a=items[S.feeds[2].id][8];return likeScore(a)>0}));
@@ -72,7 +74,7 @@ for(const [vp,w,h,touch] of VPS){
  ck(vp,'5-minute read built',fm.sel==='brief'&&fm.n>=1&&fm.t<=6&&fm.five===1&&/5-minute/.test(fm.head),JSON.stringify(fm));
  // reader menu
  await E(()=>{S.sel='all';render();openReader(cur[0])});await p.waitForTimeout(600);
- ck(vp,'reader menu: like/focus moved out',await E(()=>!document.querySelector('[data-act="more"]')&&!document.querySelector('[data-act="focus"]')&&!!document.querySelector('#fcs')&&!!document.querySelector('.cols .thb')));
+ ck(vp,'reader menu: like/focus moved out',await E(()=>!document.querySelector('[data-act="more"]')&&!document.querySelector('[data-act="focus"]')&&!!document.querySelector('#fcs')&&!!document.querySelector('#rd .thb')));
  // trending badge
  await E(()=>{closeRd();const id=S.feeds[0].id,a=items[id][0];a.title='Big merger announced today by giant companies';items[S.feeds[1].id][0].title='Big merger announced today by giant firms';items[S.feeds[2].id][0].title='Big merger announced today by giant companies';S.sel='all';render()});
  ck(vp,'trending badge for 3 outlets',await E(()=>!!document.querySelector('#grid .pw.tr')));

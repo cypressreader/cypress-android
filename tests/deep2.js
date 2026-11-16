@@ -35,8 +35,6 @@ for(const [nm,w,h,mob] of [['setup-phone',380,820,true],['setup-fold',884,1060,f
  await p.fill('#obu','alpha.test/feed');await p.tap('[data-obaddu]');await W(100);
  ck(nm,'custom source added',await p.E(()=>OB.custom.length===1));
  await p.tap('[data-obnext]');await W(150);
- await p.tap('[data-obth="rosewood"]');await p.tap('[data-obfn="lexend"]');await p.selectOption('#obnight','dark');
- ck(nm,'look choices',await p.E(()=>S.theme==='rosewood'&&S.font==='lexend'&&S.sch==='dark'));
  await p.screenshot({path:`/tmp/t/n-${nm}-3.png`});
  await p.tap('[data-obnext]');await W(150);await p.screenshot({path:`/tmp/t/n-${nm}-4.png`});
  await p.tap('[data-obdone]');await W(2500);

@@ -47,21 +47,21 @@ for(const [vp,w,h,touch] of VPS){
  // --- article furniture
  await E(BODY=>{S.sel='all';S.capn=0;render();const a=cur[0];a.by='Jane Roe';a.sec='Culture';a.cm='https://news.ycombinator.com/item?id=5';S.rt[a.link]=4;acPut(a.link,BODY,0);/* raw page HTML, like an entry saved before stories were stored ready to show */window.__A=a;openReader(a)},BODY);
  await p.waitForTimeout(1500);
- const rd=await E(()=>{const q=s=>document.querySelector(s);const t=q('.cols .body').textContent;return{kick:(q('.kick')||{}).textContent,dt:(q('.dt')||{}).textContent,cmt:(q('#mn [data-act="comments"]')||{}).textContent,curly:/“Hello,”/.test(t)&&/It’s/.test(t)&&/‘old’/.test(t),straight:/"/.test([...document.querySelectorAll('.cols .body p')].map(x=>x.textContent).join(' ')),endash:/day – really/.test(t),cr:(q('.crd')||{}).textContent,strip:document.querySelectorAll('.strip').length,strips:document.querySelectorAll('.strip>*').length,code:!!q('.code>pre')&&!!q('.cpy'),wsp:q('pre')&&getComputedStyle(q('pre')).whiteSpace,emb:document.querySelectorAll('.emb').length,yt:!!q('.emb.yt img'),kr:document.querySelectorAll('.kr button').length,orn:getComputedStyle(q('.body h2'),'::before').content,hr:q('.body hr')&&getComputedStyle(q('.body hr'),'::after').content}});
+ const rd=await E(()=>{const q=s=>document.querySelector(s);const t=q('.cols .body').textContent;return{kick:(q('.kick')||{}).textContent,dt:(q('.dt')||{}).textContent,cmt:(q('#mn [data-act="comments"]')||{}).textContent,curly:/“Hello,”/.test(t)&&/It’s/.test(t)&&/‘old’/.test(t),straight:/"/.test([...document.querySelectorAll('.cols .body p')].map(x=>x.textContent).join(' ')),endash:/day – really/.test(t),cr:(q('.crd')||{}).textContent,strip:[...document.querySelectorAll('.cols .strip')].filter(x=>!x.closest('.tl,.tl-leaf')).length,strips:[...document.querySelectorAll('.cols .strip>*')].filter(x=>!x.closest('.tl,.tl-leaf')).length,code:!!q('.code>pre')&&!!q('.cpy'),wsp:q('pre')&&getComputedStyle(q('pre')).whiteSpace,emb:document.querySelectorAll('.emb').length,yt:!!q('.emb.yt img'),kr:document.querySelectorAll('.kr button').length,orn:getComputedStyle(q('.body h2'),'::before').content,hr:q('.body hr')&&getComputedStyle(q('.body hr'),'::after').content}});
  ck(vp,'kicker shows source',/Alpha|Beta|Gamma/.test(rd.kick),rd.kick);
- ck(vp,'byline + reading time in header',/Jane Roe/.test(rd.dt)&&/\d+ min/.test(rd.dt),rd.dt);/* polish-2026-10 R-02: name without "By", the time from the body's own word count */
+ ck(vp,'byline + reading time in header',/Jane Roe/.test(rd.dt)&&/\d+-min/.test(rd.dt),rd.dt);/* polish-2026-10 R-02: name without "By", the time from the body's own word count */
  ck(vp,'discussion row in the More sheet',/Hacker News/.test(rd.cmt||''),String(rd.cmt));
  ck(vp,'curly quotes',rd.curly,JSON.stringify(rd));
  ck(vp,'no straight double quotes left',!rd.straight);
  ck(vp,'spaced hyphen becomes en dash',rd.endash);
  ck(vp,'credit split from caption',/Jane Doe/.test(rd.cr||''),String(rd.cr));
  ck(vp,'3 photos become a filmstrip',rd.strip===1&&rd.strips===3,JSON.stringify([rd.strip,rd.strips]));
- ck(vp,'code block has copy button and no wrapping',rd.code&&rd.wsp==='pre',JSON.stringify([rd.code,rd.wsp]));
+ ck(vp,'code block has copy button and wraps long lines',rd.code&&rd.wsp==='pre-wrap',JSON.stringify([rd.code,rd.wsp]));
  ck(vp,'embeds become cards',rd.emb>=2&&rd.yt,JSON.stringify([rd.emb,rd.yt]));
  ck(vp,'keep reading block',rd.kr>=1,String(rd.kr));
  ck(vp,'section ornaments render',rd.orn&&rd.orn!=='none',JSON.stringify([rd.orn]));
  await E(()=>{decorate();decorate()});
- ck(vp,'decorate is idempotent',await E(()=>document.querySelectorAll('.strip').length===1&&document.querySelectorAll('.code').length===1&&document.querySelectorAll('.crd').length>=1));
+ ck(vp,'decorate is idempotent',await E(()=>[...document.querySelectorAll('.cols .strip')].filter(x=>!x.closest('.tl,.tl-leaf')).length===1&&document.querySelectorAll('.code').length===1&&document.querySelectorAll('.crd').length>=1));
  // embed re-hydration from cache markup
  ck(vp,'embed survives cache round trip',await E(()=>{const d=document.createElement('div');d.innerHTML=document.querySelector('.cols .body').innerHTML;const f=fromHTML(d.innerHTML,'https://x.test/');const t=document.createElement('div');t.append(f);return t.querySelectorAll('.emb').length>=2&&!!t.querySelector('.emb.yt img')}));
  // --- link peek

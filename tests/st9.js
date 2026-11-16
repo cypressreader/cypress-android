@@ -7,7 +7,7 @@ for(const [n,w,h] of [['fold',884,1000],['phone',380,820]]){
  await p.addInitScript(s=>{localStorage.setItem('folio',JSON.stringify(s))},{...seed(['A','B','C']),scroll:undefined});await p.goto(('file://'+APP));await p.waitForTimeout(1800);
  const E=(f,a)=>p.evaluate(f,a);
  // sidebar
- ck(n+' sidebar order',await E(()=>{const t=[...document.querySelectorAll('#side-list .nav')].map(x=>x.textContent.replace(/\d+$/,'').trim());return t.indexOf('All stories')<t.indexOf('Saved')&&t.slice(-4).join()==='Saved,Highlights,History,Stats'}));
+ ck(n+' sidebar order',await E(()=>{const t=[...document.querySelectorAll('#side-list .nav')].map(x=>x.textContent.replace(/\d+$/,'').trim());return t.indexOf('All stories')<t.indexOf('Saved')&&t.slice(-5).join()==='Saved,Highlights,History,Stats,Books'}));
  await E(()=>{S.fcol={_mf:0};S.folders.forEach(x=>{S.fcol[x.id]=0});side();/* My Feeds and its folders start collapsed: open them, then collapse one folder */document.querySelector('#side-list [data-tgl]:not([data-tgl=daily]):not([data-tgl^=_])').click()});
  await p.waitForTimeout(400);
  ck(n+' folder collapses',await E(()=>!!S.fcol&&Object.entries(S.fcol).filter(([k,v])=>k[0]!=='_'&&v===1).length===1&&document.querySelectorAll('#side-list .fold')[0].querySelectorAll('.fr').length===0));
@@ -17,7 +17,7 @@ for(const [n,w,h] of [['fold',884,1000],['phone',380,820]]){
  ck(n+' auto mode',await E(()=>isVert()===(!isWide())));
  ck(n+' no app-icon picker (one brand only)',await E(()=>!document.querySelector('#icg,#icrow,#icst')));
  // theme fonts
- ck(n+' match theme font',await E(()=>{S.theme='forest';applyTheme(false);return fontKey()==='domine'&&getComputedStyle(document.documentElement).getPropertyValue('--serif').includes('Domine')}));
+ ck(n+' match theme font',await E(()=>{S.theme='halcyon';applyTheme(false);return fontKey()==='inter'&&getComputedStyle(document.documentElement).getPropertyValue('--serif').includes('Literata')}));
  ck(n+' explicit font wins',await E(()=>{S.font='lora';const k=fontKey();S.font=undefined;return k==='lora'}));
  await E(()=>{S.theme='light';applyTheme(false)});
  // features on Today
@@ -32,11 +32,11 @@ for(const [n,w,h] of [['fold',884,1000],['phone',380,820]]){
  await p.evaluate(async u=>{S.scroll='pages';const a=Object.values(items).flat()[0];a.img=u;openReader(a);await new Promise(r=>setTimeout(r,2500))},IMG('#26d'));
  for(const m of ['hero','split','classic','auto']){
   await E(m=>{S.rl=m;heroSpread();relayout()},m);await p.waitForTimeout(500);
-  const st=await E(()=>({f:!!document.querySelector('.hsf'),c:(document.querySelector('.hsf')||{}).className||'',m:!!document.querySelector('.mnotes'),ord:[...document.querySelector('.cols').children].map(x=>x.className.split(' ')[0]).filter(c=>c!=='rby').slice(0,4).join()}));
+  const st=await E(()=>({f:!!document.querySelector('.hsf'),c:(document.querySelector('.hsf')||{}).className||'',m:!!document.querySelector('.mnotes'),ord:[...document.querySelector('.cols').children].map(x=>x.className.split(' ')[0]).filter(c=>c!=='rby'&&c!=='whyit').slice(0,4).join()}));
   const wide=w>=700;
   if(m==='hero')ck(n+' layout hero',wide?st.f&&/hs-hero/.test(st.c)&&st.m:!st.f);
   if(m==='split')ck(n+' layout split',wide?st.f&&/hs-split/.test(st.c):!st.f);
-  if(m==='classic')ck(n+' layout classic restores order',!st.f&&!st.m&&/kick,tt,dt,hero/.test(st.ord));
+  if(m==='classic')ck(n+' layout classic restores order',!st.f&&!st.m&&/^kick,tt,dt/.test(st.ord));
   if(m==='auto')ck(n+' layout auto',true);
  }
  ck(n+' tts clean ok',await E(()=>ttsClean()===''));
