@@ -235,7 +235,7 @@ body:not(.narrow) .grid:not(.list) .tpl.t3>.card:nth-child(1),body:not(.narrow) 
 .cols{font-kerning:normal;font-variant-ligatures:common-ligatures contextual;font-feature-settings:'kern','liga','clig';text-wrap:pretty;hanging-punctuation:first allow-end}
 .body p{orphans:2;widows:2}
 .body p.dropcap::first-line{letter-spacing:.01em}
-.kick{font:600 12px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--b,var(--mut));margin:2px 0 6px;text-align:left;break-after:avoid}
+.kick{font:600 12px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--b,var(--mut));margin:2px 0 6px;text-align:left;break-after:avoid;break-inside:avoid}
 .kick::after{content:'';display:inline-block;width:30px;height:1px;background:currentColor;margin-left:10px;vertical-align:middle;opacity:.55}
 .dt{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
 .cmt{display:inline-flex;align-items:center;gap:6px;padding:3px 11px;border-radius:99px;border:1px solid var(--ln);font:600 13px var(--sans);color:var(--ink);text-decoration:none}
@@ -266,7 +266,7 @@ body:not(.narrow) .grid:not(.list) .tpl.t3>.card:nth-child(1),body:not(.narrow) 
 .cpy::after{content:'Copy'}.cpy.done::after{content:'Copied'}
 /* R-12: the Copy button sits in the block's top padding, clear of the first line; a capped block shows 12 lines in Pages */
 .code>pre{padding-top:2.4em}.cpy{top:6px;right:8px}
-#rd:not(.vert) .cols .body .code>pre.capped{max-height:calc(12*1.55em + 3.2em);overflow:hidden}#rd:not(.vert) .code>pre.capped+.cpy+.capx{display:block}
+#rd:not(.vert) .cols .body .code>pre.capped{max-height:min(calc(12*1.55em + 3.2em),calc(var(--ch) - 4em));overflow:hidden}#rd:not(.vert) .code>pre.capped+.cpy+.capx{display:block}
 .capx{display:none;margin:-.6em 0 1em;padding:6px 12px;border:1px solid var(--ln);border-radius:99px;background:var(--pn);color:var(--ink);font:600 12px var(--sans);cursor:pointer}
 .kr{margin:1.6em 0 1em;padding-top:1em;border-top:1px solid var(--ln);text-align:left;font-family:var(--sans);hyphens:none;break-inside:avoid}
 .kr h4{font:600 12px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:0 0 8px}
@@ -1180,6 +1180,7 @@ main{overscroll-behavior-y:none}
 .body iframe,.body video,.body embed,.body object{max-width:100%}
 .body .tbl,.body .emb,.body pre{min-width:0;max-width:100%;box-sizing:border-box}
 .body .tbl{overflow-x:auto;max-width:100%;break-inside:avoid;margin:0 0 1.1em;border:1px solid var(--ln);border-radius:10px;-webkit-overflow-scrolling:touch}
+/* deep dive 3: in Pages a tall table grew past the page and its bottom rows were never shown; it now scrolls inside its own box, one page tall (÷ --fsk undoes the text-size zoom on .tbl) */#rd:not(.vert) .cols .body .tbl:not(.wide){max-height:calc(var(--ch)/var(--fsk,1))}@media(min-width:601px){#rd:not(.vert) .cols .body .tbl.wide{max-height:calc(var(--ch)/var(--fsk,1))}}
 .body table{border-collapse:collapse;width:100%;font:13.5px/1.4 var(--sans);text-align:left;hyphens:none}
 .body th,.body td{padding:7px 10px;border-bottom:1px solid var(--ln);vertical-align:top}
 .body th{background:color-mix(in srgb,var(--ink) 6%,transparent);font-weight:600}
@@ -7991,6 +7992,7 @@ document.addEventListener('click',e=>{
  if(b.id==='aax'){aaClose(true);return}
  if(b.id==='aamore'||b.id==='aaall'){aaClose(false);try{$('#gear').onclick()}catch(x){}try{setShow(b.id==='aaall'?'look':'read')}catch(x){}return}
  const fz=b.dataset.fs,sc=b.dataset.sc,lh=b.dataset.lh,tg=b.dataset.tg,arw=b.dataset.aarw,apt=b.dataset.aapt,pre=b.dataset.aapre;
+ /* deep dive 3: every change that re-lays the story keeps the reading place (only Pages/Scroll did; A+ moved you back a page, Wide skipped unread text) */if(!apt&&(b.dataset.aasp||pre||arw||fz||sc||lh||tg==='sep'||tg==='focusr'))try{if(R.rf==null&&$('#rd').classList.contains('on')&&R.ready)R.rf=isVert()?vEndFrac():pgFrac()}catch(e){}
  if(b.dataset.aasp){S.tsp=b.dataset.aasp;if(S.tsp==='n')delete S.tsp;save();applyFs(true);aaSync();return}
  if(pre){const p=AA_PRE[+pre];rfsSet(p[1]);S.lh=p[2];S.rw=p[3];if(S.rw==='c')delete S.rw;save();applyFs(true);relayout()}
  else if(arw){S.rw=arw==='c'?undefined:arw;if(!S.rw)delete S.rw;save();relayout()}
@@ -8011,7 +8013,7 @@ document.addEventListener('keydown',e=>{
  if(e.key===' '&&pop.contains(e.target)){e.stopPropagation();return}
  if(e.key==='Tab'){const bs=[...pop.querySelectorAll('button,summary,select,input,a[href]')].filter(b=>b.getClientRects().length&&!b.disabled);if(!bs.length)return;/* Tab always cycles inside the sheet, from wherever focus is */e.preventDefault();const i=bs.indexOf(document.activeElement),n=bs.length;bs[i<0?(e.shiftKey?n-1:0):(i+(e.shiftKey?-1:1)+n)%n].focus()}
 },true);
-document.addEventListener('change',e=>{if(e.target.id!=='aafns')return;S.font=e.target.value;needFont(S.font);save();refreshReader();aaSync();try{syncSet()}catch(x){}});
+document.addEventListener('change',e=>{if(e.target.id!=='aafns')return;try{if(R.rf==null&&$('#rd').classList.contains('on')&&R.ready)R.rf=isVert()?vEndFrac():pgFrac()}catch(e){}S.font=e.target.value;needFont(S.font);save();refreshReader();aaSync();try{syncSet()}catch(x){}});
 try{new MutationObserver(()=>{const r=$('#rd');if(r&&!r.classList.contains('on'))aaClose(false)}).observe($('#rd'),{attributes:true,attributeFilter:['class']})}catch(e){}
 /* a thumb-height "Aa" button opens the same sheet; dragging the sheet down closes it */
 
@@ -9304,7 +9306,7 @@ function anim(from,to,dur,ease,done){
 function endTurn(ok){
  const T=R.T;if(!T)return;R.T=null;cancelAnimationFrame(T.raf);
  curlTune(T);
- if(ok&&!T.dead&&T.my===tok){if(T.peel)R.cpk=true;R.pg=T.to;show();turnTick()}
+ if(ok&&!T.dead&&T.my===tok){if(T.peel)R.cpk=true;R.pg=T.to;R.navAt=Date.now();show();turnTick()}
  T.els.forEach(e=>e.remove());
  const bk=$('.book');if(bk){edgeHide(bk,0);bk.style.perspectiveOrigin=''}
  R.busy=false;prepSoon();
@@ -9339,7 +9341,7 @@ function rdxSlideEnd(d,ts){
  const dir=dx<0?1:-1,to=R.pg+dir,ok=to>=0&&to<R.np&&(Math.abs(dx)>bk.clientWidth*.22||Math.abs(vx)>.4&&Math.sign(vx)===Math.sign(dx));
  R.noClick=true;setTimeout(()=>{R.noClick=false},350);
  c.style.transition='transform 240ms cubic-bezier(.22,.7,.24,1)';const my=tok;
- if(ok)R.pg=to;show();
+ if(ok){R.pg=to;R.navAt=Date.now()}show();
  setTimeout(()=>{if(my===tok)c.style.transition='';R.busy=false;if(ok&&my===tok)turnTick()},260);
 }
 /* Two-page cover with the sliding sheet (1.303). ccv(): the open story shows it. cvSlide: page 1 <-> the slid page; cvPeek: the sheet off and back on page 1 */
@@ -10284,7 +10286,7 @@ function toggleWeb(auto){
  w.hidden=false;R.web=true;R.auto=!!auto;b.innerHTML=svg(PAGE);b.title='Back to reader view';loadWeb();
 }
 async function openReader(a){use1('open');RDT=Date.now();
- const f=fof(a),my=++tok,sh=$('#sheet');curA=a;DPOS=dayPos(a);R.vl=null;RDSIG=rdSig(a);R.sf=null;R.rf=null;/* the story being read aloud keeps playing while you look at another one */if(ttsAway()){if(!R.tctx)R.tctx=R.ctx}else ttsStop();hlClear();const resume=S.pos[a.link]||0,wantResume=RD_CONT||!!a.book;RD_CONT=false;R.navAt=0;R.ready=false;R.tf=0;R.fa=0;R.hsq='';try{$('#rd').classList.remove('fauto','fpeek')}catch(e){}const afterLoad=()=>{R.tf=1;{const s=document.querySelector('.cols .body .skp');if(s)s.remove();const h=$('#rd .lhl');if(h)h.hidden=true}if(!a.book){legalBody($('.cols .body'));try{markRestricted(a,($('.cols .body')||{}).textContent,false)}catch(e){}}try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;/* ...but only when something really changed since the last layout: each one re-lays the whole story, a hitch just as reading starts */try{if(RLD)RLD.off()}catch(e){}const c0=$('.cols'),L={dirty:false},mark=()=>{L.dirty=true};L.mo=new MutationObserver(mark);if(c0){L.mo.observe(c0,{childList:true,subtree:true,characterData:true});c0.addEventListener('load',mark,true)}try{document.fonts&&document.fonts.addEventListener('loadingdone',mark)}catch(e){}L.off=()=>{L.mo.disconnect();if(c0)c0.removeEventListener('load',mark,true);try{document.fonts.removeEventListener('loadingdone',mark)}catch(e){}if(RLD===L)RLD=null};RLD=L;const maybe=()=>{if(curA!==a0){L.off();return}if(L.dirty)relayout()};setTimeout(maybe,800);setTimeout(()=>{maybe();setTimeout(()=>{if(curA===a0)L.off()},3000)},2600);setTimeout(()=>{if(curA===a0)rdWarm()},3300);try{document.fonts&&document.fonts.ready.then(maybe)}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if(!wantResume){R.pg=0;try{show()}catch(e){}/* page 1 again once the pictures have settled, unless the reader has already turned a page */const t0=Date.now();for(const ms of [0,350,900]){setTimeout(()=>{if(my===tok&&!isVert()&&R.pg>0&&!(R.navAt&&R.navAt>=t0-50)){R.pg=0;try{show()}catch(e){}}},ms)}/* a story you were partway through offers your page back instead of starting over in silence */if(resume||progOf(a.link))setTimeout(()=>{if(my!==tok||isVert()||R.pg>0||!R.np)return;const pf=progOf(a.link),tp=Math.max(0,Math.min(pf?Math.round(pf*(R.np-1)):resume,R.np-1));if(tp>0&&tp<R.np-1)toast('You were on page '+(tp+1)+' of '+R.np,()=>{if(my===tok){R.pg=tp;R.navAt=Date.now();show()}},'Resume')},1000)}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);saveSoon();setTimeout(()=>raWhenReady(a,0),1200);
+ const f=fof(a),my=++tok,sh=$('#sheet');curA=a;DPOS=dayPos(a);R.vl=null;RDSIG=rdSig(a);R.sf=null;R.rf=null;/* the story being read aloud keeps playing while you look at another one */if(ttsAway()){if(!R.tctx)R.tctx=R.ctx}else ttsStop();hlClear();const resume=S.pos[a.link]||0,wantResume=RD_CONT||!!a.book;RD_CONT=false;R.navAt=0;R.ready=false;R.tf=0;R.fa=0;R.hsq='';try{$('#rd').classList.remove('fauto','fpeek')}catch(e){}const afterLoad=()=>{R.tf=1;{const s=document.querySelector('.cols .body .skp');if(s)s.remove();const h=$('#rd .lhl');if(h)h.hidden=true}if(!a.book){legalBody($('.cols .body'));try{markRestricted(a,($('.cols .body')||{}).textContent,false)}catch(e){}}try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;/* ...but only when something really changed since the last layout: each one re-lays the whole story, a hitch just as reading starts */try{if(RLD)RLD.off()}catch(e){}const c0=$('.cols'),L={dirty:false},mark=()=>{L.dirty=true};L.mo=new MutationObserver(mark);if(c0){L.mo.observe(c0,{childList:true,subtree:true,characterData:true});c0.addEventListener('load',mark,true)}try{document.fonts&&document.fonts.addEventListener('loadingdone',mark)}catch(e){}L.off=()=>{L.mo.disconnect();if(c0)c0.removeEventListener('load',mark,true);try{document.fonts.removeEventListener('loadingdone',mark)}catch(e){}if(RLD===L)RLD=null};RLD=L;const maybe=()=>{if(curA!==a0){L.off();return}if(L.dirty)relayout()};setTimeout(maybe,800);setTimeout(()=>{maybe();setTimeout(()=>{if(curA===a0)L.off()},3000)},2600);setTimeout(()=>{if(curA===a0)rdWarm()},3300);try{document.fonts&&document.fonts.ready.then(maybe)}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if(!wantResume){if(!R.navAt){R.pg=0;try{show()}catch(e){}}/* page 1 again once the pictures have settled, unless the reader has already turned a page */const t0=Date.now();for(const ms of [0,350,900]){setTimeout(()=>{if(my===tok&&!isVert()&&R.pg>0&&!R.navAt){R.pg=0;try{show()}catch(e){}}},ms)}/* a story you were partway through offers your page back instead of starting over in silence */if(resume||progOf(a.link))setTimeout(()=>{if(my!==tok||isVert()||R.pg>0||!R.np)return;const pf=progOf(a.link),tp=Math.max(0,Math.min(pf?Math.round(pf*(R.np-1)):resume,R.np-1));if(tp>0&&tp<R.np-1)toast('You were on page '+(tp+1)+' of '+R.np,()=>{if(my===tok){R.pg=tp;R.navAt=Date.now();show()}},'Resume')},1000)}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);saveSoon();setTimeout(()=>raWhenReady(a,0),1200);
  rdB(brand(f));pushLayer('reader');rdGest();
  try{rdAmbient(null)}catch(e){}
  rdPal();
@@ -19073,7 +19075,7 @@ function origAlone(c){const rf=c.querySelector('.body .rfoot'),o=c.querySelector
 /* the page count comes from the width of the column strip, which can run a column or two past the last text (a margin, a hidden box); a page with nothing on it is never offered */
 function trimBlankPages(c){
  if(R.np<2||!(R.step>0)||R.web||isVert())return;
- const els=[...c.querySelectorAll('p,h2,h3,li,figure,img,table,blockquote,.rfoot,.orig,.endmark,.rtags,.stl,.rprev')].reverse(),cr=c.getBoundingClientRect();
+ const els=[...c.querySelectorAll('p,h2,h3,li,figure,img,table,blockquote,.rfoot,.rf-act,.orig,.endmark,.rtags,.stl,.rprev')].reverse(),cr=c.getBoundingClientRect();
  for(const e of els){
   for(const q of [...e.getClientRects()].reverse()){
    if(q.width<4||q.height<4)continue;

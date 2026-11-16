@@ -2023,3 +2023,7 @@ Dynamic look:
 
 ## Deep dive 3 fixes (2026-11-16, headless-checked only)
 - [ ] Open Fold and tablet: open 15 photo stories in a row from The Daily, closing each one (Back or swipe). The app must never close itself. (Before: Chromium killed the tab on about the 12th open.)
+- [ ] A story with a long table (sports standings, specs) in Pages mode: the table scrolls inside its box; no rows go missing at the page edge.
+- [ ] Open a story that is still loading, turn 3 pages before it finishes: you stay on that page when the full article arrives.
+- [ ] In a story, tap A+ twice, then Wide, then a preset in Aa: the text you were reading stays on screen (within a paragraph or two).
+- [ ] Phone sideways with Narrow width or Large print: page 1 never shows only the site name; a long code box ends with its "Show all" button on the same page.
