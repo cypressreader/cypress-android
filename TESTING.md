@@ -2033,3 +2033,7 @@ Dynamic look:
 - [ ] Dark themes: "Erase everything" is readable; Sunday cards without a photo are readable; the Headlines "Latest" ticker pauses under a finger or keyboard focus.
 - [ ] Bookshelf: open a normal EPUB you already have; chapters, pictures and links still work after the stricter cleaning. (Books stored before this update are cleaned only when opened from the file again.)
 - [ ] Share a story whose headline contains $ signs (e.g. "$5 for 'Ultra'"): the share page shows it.
+- [ ] Pull to refresh with many sites: stories start appearing within a couple of seconds, site by site (before: nothing until almost all were in).
+- [ ] Android, phone text size at 130%: story text is about as much bigger as the app's labels (before it grew about 1.7x). NOTE: if David's phone has a large text size, story text will look SMALLER after this update; the Aa sheet can raise it.
+- [ ] Android: Settings > Erase everything > Save a backup first > dismiss the share sheet: a "Is your backup saved?" question appears and "Keep my data" keeps everything.
+- [ ] Web app in two tabs: save a story in one, then use the other: the other says "CyPress was changed in another window" and offers Reload; nothing is overwritten.
