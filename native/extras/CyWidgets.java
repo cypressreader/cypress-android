@@ -125,6 +125,9 @@ final class CyWidgets {
                     if (dt > 0) o.put("date", dt);
                     if (h.optBoolean("brk", false)) o.put("brk", true);
                     if (h.optBoolean("read", false)) o.put("read", true);
+                    if (h.optBoolean("nw", false)) o.put("nw", true);
+                    int sites = h.optInt("n", 0);
+                    if (sites > 0) o.put("n", sites);
                     out.put(o);
                 }
                 e.putString("widget_breaking", out.toString());
@@ -1086,7 +1089,7 @@ final class CyWidgets {
         rv.setInt(R.id.cy_wd_cnt, "setTextColor", kicker(c, th));
         rv.setInt(R.id.cy_wd_kick, "setTextColor", kicker(c, th));
         rv.setInt(R.id.cy_wd_sub, "setTextColor", muted(c, th));
-        boolean small = hDp > 0 && hDp < 130; // a short widget: one headline line
+        boolean small = hDp > 0 && hDp < 170; // a standard 4x2 has room for one headline line
         rv.setInt(R.id.cy_wd_head, "setMaxLines", small ? 1 : 2);
         JSONObject d = null;
         try {

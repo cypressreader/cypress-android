@@ -701,6 +701,8 @@ public final class CyExtras {
                 long dt = h.optLong("date", 0L);
                 if (dt > 0) o.put("date", dt);
                 if (h.optBoolean("read", false)) o.put("read", true);
+                if (h.optBoolean("nw", false)) o.put("nw", true); // not seen yet: a dot on the widgets
+                if (h.optBoolean("sv", false)) o.put("sv", true); // saved: the Top Story's Save button shows it
                 out.put(o);
             }
             prefs(c).edit().putString("widget_headlines", out.toString()).apply();
