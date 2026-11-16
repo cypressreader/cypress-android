@@ -233,7 +233,7 @@ async function story(u, payload) {
   html = html
     .replace(/<meta property="og:[^>]*>\s*/g, '')
     .replace(/<meta name="description"[^>]*>\s*/g, '')
-    .replace(/<title>[\s\S]*?<\/title>/, '<title>' + esc(title) + ' · CyPress Reader</title>')
+    .replace(/<title>[\s\S]*?<\/title>/, () => '<title>' + esc(title) + ' · CyPress Reader</title>')
     .replace('<head>', '<head><base href="' + u.origin + '/">')
     .replace('</head>', tags + '</head>');
 

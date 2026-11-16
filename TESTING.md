@@ -2031,3 +2031,5 @@ Dynamic look:
 - [ ] Settings > Manage sites > remove a site: the "Removed … Undo" message shows above the dialog and Undo works.
 - [ ] Saved in Newsprint, Coast and Sepia Rosewood: the selected filter chip ("All N") shows its text.
 - [ ] Dark themes: "Erase everything" is readable; Sunday cards without a photo are readable; the Headlines "Latest" ticker pauses under a finger or keyboard focus.
+- [ ] Bookshelf: open a normal EPUB you already have; chapters, pictures and links still work after the stricter cleaning. (Books stored before this update are cleaned only when opened from the file again.)
+- [ ] Share a story whose headline contains $ signs (e.g. "$5 for 'Ultra'"): the share page shows it.
