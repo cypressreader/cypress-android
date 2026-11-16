@@ -6297,6 +6297,8 @@ async function load0(f,fresh,sl){
  if(got){got=noTwins(got).filter(a=>!isCouponSpam(a));/* B22: a feed's stories must be from its own site - drop strays from any aggregation path that skipped the onSite filter */
   try{const sd=siteOf(f);if(sd){const n0=got.length;got=got.filter(a=>{if(a.os)return true;return onSite(host(a.link),sd)});if(n0>got.length)(FLG[f.id]=FLG[f.id]||[]).push('dropped '+(n0-got.length)+' off-site stories')}}catch(e){}
   {const o=items[f.id],fut=Date.now()+3e6;if(o)got.forEach(a=>{if(a.date>fut){const p=o.find(x=>x.link===a.link);if(p&&p.date)a.date=p.date}})}
+  /* David 2026-11-16: The Verge's feed lists only its 10 newest stories (8 after its shopping deals), while its homepage has dozens. Stories that dropped off a short feed in the last 2 days stay, up to 30 per site */
+  {const o=items[f.id];if(o&&got.length<30){const have=new Set(got.map(a=>a.link)),t=Date.now()-1728e5;got=noTwins(got.concat(o.filter(a=>a.link&&!have.has(a.link)&&a.date>t))).slice(0,30)}}
   items[f.id]=got;dropGeneric(got);shortNote(f,got)}
  if(!cut){const pv=S.health[f.id]||{},now=Date.now();const lv=FLG[f.id]||{},vl=lv.val||{};S.health[f.id]=state[f.id]==='ok'?(vl.etag||vl.lm?{ok:now,etag:vl.etag,lm:vl.lm}:{ok:now}):(navigator.onLine?{...pv,fail:now,fn:(pv.fn||0)+1,ff:pv.ff||now,ra:lv.ra||0}:pv)}saveSoon();
  LP.f++;pfBar();
