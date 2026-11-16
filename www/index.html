@@ -16913,6 +16913,8 @@ const inSection=(link,sec)=>{if(!sec)return true;try{return new RegExp('/'+sec.r
 async function gnewsFeed(f,s,why){
  const lg=FLG[f.id]=FLG[f.id]||[];
  const sc=fallbackScope(f);if(!sc.ok){lg.push('Headline search not used: this feed is one section of '+s+', and a search for the whole site would fill it with the site’s other stories');throw new Error('no safe fallback')}
+ /* refreshing several times in a few minutes made Google turn every site away at once (8 sites offline together, 2026-11-16): a site Google answered for in the last 10 minutes keeps its stories and is not asked again */
+ {const t=gnewsFeed.t[f.id],held=items[f.id]||[];if(t&&Date.now()-t<6e5&&held.length){lg.push('Google News was asked a few minutes ago, kept the stories already here');return held.slice()}}
  const x=await fetchText(gnewsFor(s),t=>/<item[\s>]/i.test(t),{push:m=>lg.push('Google News headlines via '+m)});
  const srcHost=new Map();try{new DOMParser().parseFromString(String(x),'text/xml').querySelectorAll('item').forEach(it=>{const l=((it.querySelector('link')||{}).textContent||'').trim(),sc=it.querySelector('source');if(l&&sc){try{srcHost.set(l,new URL(sc.getAttribute('url')||'').hostname)}catch(e){}}})}catch(e){}
  const all=parse(x,f).list.map(a=>({...a,_h:srcHost.get(a.link)||'',link:gnDecode(a.link)||a.link,title:a.title.replace(/\s+-\s+[^-]{2,40}$/,''),img:'',html:'',gn:1}));
@@ -16929,8 +16931,9 @@ async function gnewsFeed(f,s,why){
    /* Google hides the real address behind a code that is not always readable; Bing lists the same headline with the real address */
    const m=bk.get(k);if(m&&/news\.google\./.test(a.link||'')&&m.link&&!/(news\.google\.|bing\.com)/.test(m.link))a.link=m.link})
  }catch(e){}
- l.sort((a,b)=>b.date-a.date);f.via='gnews';f.viaWhy=why;return l;
+ l.sort((a,b)=>b.date-a.date);f.via='gnews';f.viaWhy=why;gnewsFeed.t[f.id]=Date.now();return l;
 }
+gnewsFeed.t={};
 async function bingFeed(f,why){
  const s=siteOf(f);if(!s)throw new Error('no site');
  try{return await gnewsFeed(f,s,why)}catch(e){return await bingFeed0(f,why,s)}
