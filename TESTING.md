@@ -2048,3 +2048,12 @@ Dynamic look:
 ## Android Authority story endings (unreleased, after 1.331)
 - Open the Android Authority story "Samsung's Galaxy Claw is no longer a mystery" (or any newer Android Authority story) on the Fold and page to the end: the story should stop at its last paragraph. No "Conversation / Read what readers said or add your take." and no "More reading from Android Authority" list. Implemented, unverified on a phone (the phone's copy of the page could not be reproduced in the cloud).
 - Listen: play a story with an amount like "$30 billion" (also "$12.5 billion", "$2 million"): the voice should say "thirty billion dollars", not "thirty dollars billion". Implemented, unverified on a phone.
+
+## 1.332 audio player controls
+- Open the player (tap the bar at the bottom while something is being read): Speed, Sleep timer and Skip are three small buttons in one row. Tap each: its choices replace the row; pick one and the row folds back showing the new value. Tapping elsewhere in the player also folds it.
+- Speed: the − and + keep the choices open (fine steps); a preset folds it. The voice should change speed.
+- Skip: the number inside the back/forward arrows matches the choice (10, 15, 30, 60) and the arrows skip that far.
+- Sleep timer: "15 min" shows on the button; "Story end" stops at the end of the story (in a book it says "Chapter end").
+- Fold open / tablet: the three round buttons at the top of the player (car, bookmark, close) are fully visible, not cut off at the top.
+- Car mode: big buttons still work; the three small buttons stay available under them.
+All implemented and checked in a headless browser only; unverified on a phone.
