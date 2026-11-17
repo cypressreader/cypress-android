@@ -770,8 +770,8 @@ final class CyWidgets {
         String kick = stale ? "TAP TO REFRESH" : (age.length() > 0 ? (src.length() > 0 ? src + "  ·  " + age : age) : src);
         rv.setTextViewText(R.id.cy_wlw_src, dot(kick, lead, upd || stale));
         rv.setTextViewText(R.id.cy_wlw_head, lead.optString("title", ""));
-        rv.setInt(R.id.cy_wlw_head, "setMaxLines", heightDp > 0 && heightDp < 110 ? 2 : 3);
-        boolean next = stories.size() > 1 && heightDp >= 110;
+        rv.setInt(R.id.cy_wlw_head, "setMaxLines", heightDp > 0 && heightDp < 150 ? 2 : 3);
+        boolean next = stories.size() > 1 && heightDp >= 140;
         rv.setViewVisibility(R.id.cy_wlw_next, next ? View.VISIBLE : View.GONE);
         if (next) rv.setTextViewText(R.id.cy_wlw_next, "Next: " + stories.get(1).optString("title", ""));
         int picH = Math.max(40, (heightDp > 0 ? heightDp : 120) - 16);
@@ -846,6 +846,11 @@ final class CyWidgets {
         if (stale) leadKick = "TAP TO REFRESH";
         rv.setTextViewText(R.id.cy_wsp_hero_src, dot(leadKick, lead, upd || stale));
         rv.setTextViewText(R.id.cy_wsp_hero_head, lead.optString("title", ""));
+        // two lines on a standard widget so the label never runs into the edition pill; three on a tall one
+        boolean tall = heightDp >= 280;
+        rv.setInt(R.id.cy_wsp_hero_head, "setMaxLines", tall ? 3 : 2);
+        rv.setInt(R.id.cy_wsp_b1_head, "setMaxLines", tall ? 3 : 2);
+        rv.setInt(R.id.cy_wsp_b2_head, "setMaxLines", tall ? 3 : 2);
 
         String ed = sp(c).getString("widget_ed", "");
         if (!narrow) rv.setTextViewText(R.id.cy_wsp_hero_pill, ("CYPRESS  ·  " + (ed.length() > 0 ? ed : "THE FRONT PAGE")).toUpperCase(Locale.getDefault()));
@@ -1133,7 +1138,7 @@ final class CyWidgets {
             return rv;
         }
         String src = next.optString("src", "").trim().toUpperCase(Locale.getDefault());
-        rv.setViewVisibility(R.id.cy_wd_kick, View.VISIBLE);
+        rv.setViewVisibility(R.id.cy_wd_kick, hDp > 0 && hDp < 170 ? View.GONE : View.VISIBLE); // a short 4x2 keeps its room for the headline
         rv.setTextViewText(R.id.cy_wd_kick, src.length() > 0 ? "UP NEXT  ·  " + src : "UP NEXT");
         rv.setTextViewText(R.id.cy_wd_head, next.optString("title", ""));
         int left = d.optInt("left", 0);
