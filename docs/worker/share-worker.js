@@ -295,8 +295,8 @@ async function intake(req, env, kind) {
   if (req.method !== 'POST') return jres({ error: 'POST only' }, 405, h);
   if (limited(req, kind, kind === 'report' ? 5 : 10)) return tooMany();
   const t = await req.text();
-  // a tester's 'Send a messy story' carries the page and what the app kept (cl), so reports may be up to 1.5 MB; anything else stays small
-  if (t.length > (kind === 'report' ? 1500000 : 8000)) return jres({ error: 'Too big' }, 413, h);
+  // a tester's 'Send a messy story' carries the page and what the app kept (cl), so reports may be up to 3 MB (HTML grows when packed; the big parts are cut to size below); anything else stays small
+  if (t.length > (kind === 'report' ? 3000000 : 8000)) return jres({ error: 'Too big' }, 413, h);
   let o; try { o = JSON.parse(t); } catch (e) { return jres({ error: 'Bad data' }, 400, h); }
   if (!o || typeof o !== 'object') return jres({ error: 'Bad data' }, 400, h);
   if (!o.cl && t.length > 20000) return jres({ error: 'Too big' }, 413, h);
