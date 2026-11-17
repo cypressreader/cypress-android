@@ -2084,3 +2084,4 @@ All implemented and checked in a headless browser only; unverified on a phone.
 - Top Story (4x3): Save button shows "Saved for later" toast; open the app: the story is in Saved. Listen button opens the story and starts reading aloud.
 - Headlines/Ticker: dot on unseen stories; Ticker red "Breaking" label only for the app's breaking strip story.
 - Continue listening: story picture behind the text, minutes left, skip back / next buttons, progress line moves while reading.
+- 1.337 (unreleased): play the Daily from the Continue listening widget, close the app mid-story, tap Play again: it says "Picking up where you left off" and continues that story near the same spot (within 12 hours).

@@ -10450,13 +10450,16 @@ function digWarm(){
  /* the story playing, the one before and the next two are kept ready, so there is no gap between stories */
  try{const L=DIG.links,i=DIG.i,want=[L[i+1],L[i+2],L[i-1]].map(l=>l&&findStory(l)).filter(Boolean);if(want.length)prefetch(want,true)}catch(e){}
 }
+/* where listening to the Daily stopped (story and how far into it), so Play picks up there next time; cleared when the Daily is finished */
+function digMark(){if(!DIG.on||!R.briefAudio)return;let fr=0;try{if(TTS.on&&TTS.words&&TTS.words.length)fr=Math.min(.95,ttsPos()/TTS.words.length)}catch(e){}S.digRes={l:DIG.links.slice(0,40),i:DIG.i,fr,fo:DIG.fo||'',t:Date.now()};save()}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)digMark()});
 function digInit(links){DIG.on=true;tmArm();DIG.links=links.slice();DIG.i=0;DIG.tok++;R.briefAudio=true;R.audioList=links.slice()}
 async function digGo(i,o){
  o=o||{};if(!DIG.on)return;
  if(i>=DIG.links.length)return digEnd(true);
  if(i<0)i=0;
  const a=findStory(DIG.links[i]);if(!a){DIG.links.splice(i,1);return digGo(i,o)}
- const my=++DIG.tok;DIG.i=i;S.lq=DIG.links.slice(i+1);S.lqAuto=true;
+ const my=++DIG.tok;DIG.i=i;S.lq=DIG.links.slice(i+1);S.lqAuto=true;S.digRes={l:DIG.links.slice(0,40),i,fr:o.fr||0,fo:DIG.fo||'',t:Date.now()};save();
  R.digOpen=true;ttsStop();tminiSync();
  const vis=$('#rd').classList.contains('on')&&!$('#rd').classList.contains('ghost');
  R.ghostNext=!vis;
@@ -10477,7 +10480,7 @@ function digEnd(done){
  const was=DIG.on;DIG.on=false;DIG.tok++;R.briefAudio=false;
  const rd=$('#rd');if(rd.classList.contains('ghost')){rd.classList.remove('on','ghost','flex','vert');rdInert(false);curA=null}
  if(TTS.on)ttsStop();
- if(was&&done){speak('That’s your Daily. You’re all caught up.',()=>{if(!TTS.on)mediaNativeStop()})}
+ if(was&&done){S.digRes=null;save();speak('That’s your Daily. You’re all caught up.',()=>{if(!TTS.on)mediaNativeStop()})}
  tminiSync();
 }
 function digSeekTo(sec){
@@ -16739,11 +16742,13 @@ function briefAudioList(fo){
 }
 function listenBrief(fo){if(fo&&!fo.id)fo=null;
  if(!('speechSynthesis' in window)){toast('Reading aloud isn’t available on this device or browser.');return}
+ /* stopped partway (closed the app, or the phone stopped it) within the last 12 hours: carry on from that story and spot */
+ const rs=S.digRes;if(rs&&Date.now()-rs.t<432e5&&(rs.fo||'')===((fo&&fo.id)||'')&&rs.l&&rs.i<rs.l.length&&findStory(rs.l[rs.i])){digInit(rs.l);DIG.fo=rs.fo;digGo(rs.i,{fr:rs.fr>.02?rs.fr:null,intro:'Picking up where you left off.'});return}
  const links=briefAudioList(fo),l=links.map(findStory).filter(Boolean);if(!l.length){toast('Nothing left to read aloud');return}
  S.lq=l.slice(1).map(a=>a.link);S.lqAuto=true;save();/* Up Next shows the rest of the Daily */
  const mins=Math.max(1,Math.round(l.reduce((n,a)=>n+(readMin(a)||3),0)));
  /* the Daily plays from the feed: the player docks at the bottom and the stories are read in the background, one after another */
- digInit(l.map(a=>a.link));
+ digInit(l.map(a=>a.link));DIG.fo=(fo&&fo.id)||'';
  digGo(0,{intro:`Welcome to Cypress Reader. Here’s ${fo?fo.name.replace(/&/g,'and').replace(/[<>]/g,' '):'your Daily'}. ${plu(l.length,'story','stories')}, about ${MIN(mins)}, read in full. First, from ${fof(l[0]).title}.`});
 }
 
