@@ -1091,7 +1091,7 @@ final class CyWidgets {
         rv.setInt(R.id.cy_wd_sub, "setTextColor", muted(c, th));
         // the headline takes the room the widget has: one line on a short 4x2, up to four on a tall one
         rv.setInt(R.id.cy_wd_head, "setMaxLines", hDp <= 0 ? 2 : hDp < 170 ? 1 : hDp < 200 ? 2 : hDp < 240 ? 3 : 4);
-        rv.setTextViewTextSize(R.id.cy_wd_head, TypedValue.COMPLEX_UNIT_SP, hDp >= 200 ? 19.5f : 16.5f);
+        rv.setTextViewTextSize(R.id.cy_wd_head, TypedValue.COMPLEX_UNIT_SP, hDp >= 200 ? 21f : 18f);
         JSONObject d = null;
         try {
             String s = sp(c).getString("widget_daily", "");
