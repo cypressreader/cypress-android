@@ -12538,17 +12538,18 @@ function rdB(c){const rd=$('#rd');if(!rd)return;rd.style.setProperty('--b',c);rd
 function dynAccentOff(){if(!dynAccentOff.on)return;dynAccentOff.on=false;const r=document.documentElement;['--logo','--a1'].forEach(k=>r.style.removeProperty(k))}
 const dynDist=(a,b)=>{const x=anyRgb(a),y=anyRgb(b);return x&&y?Math.hypot(x[0]-y[0],x[1]-y[1],x[2]-y[2]):999};
 /* while you scroll the color changes at once instead of fading over 0.9 s, so the page is not re-styled on every frame of a fade */
-function dynApply(c){
- if(!c||dynSet.c===c)return;
+function dynApply(c,trim){
+ if(!c||dynSet.c===c)return;dynSet.tt=false;
  let d=document.getElementById('dynbg');
  if(!d){d=document.createElement('div');d.id='dynbg';d.setAttribute('aria-hidden','true');d.innerHTML='<i></i><i></i>';document.body.prepend(d)}
  const [a,b]=d.children,first=!d.classList.contains('has'),next=d.dataset.on==='a'?b:a,prev=next===a?b:a;
  /* each new tint is mixed with the one before it, so fast scrolling through many colors shifts gently instead of flashing */
  next.style.setProperty('--c',first||!dynSet.c?c:'color-mix(in srgb,'+dynSet.c+' 20%,'+c+')');
  {const T=dynTone(c,dynIsDark()),root=document.documentElement;
-  if(T){const tb=first||!dynSet.tb?T.bg:'color-mix(in srgb,'+dynSet.tb+' 20%,'+T.bg+')';next.style.setProperty('--tb',tb);root.style.setProperty('--dynb',tb);next.style.setProperty('--tg',T.glow);dynSet.tb=T.bg}
-  else{next.style.removeProperty('--tb');next.style.removeProperty('--tg');root.style.removeProperty('--dynb');dynSet.tb=null}
-  if(T){root.style.setProperty('--logo',T.a);root.style.setProperty('--a1',T.a);dynAccentOff.on=true}else dynAccentOff()}
+  /* a color set on the page root restyles every story on it (a pause each time the tint moved): the bar color goes in a rule for the three bars only, and the trim (logo, labels, buttons) changes only on a story open or tab switch, when the screen changes anyway */
+  if(T){const tb=first||!dynSet.tb?T.bg:'color-mix(in srgb,'+dynSet.tb+' 20%,'+T.bg+')';next.style.setProperty('--tb',tb);dynBars(tb);next.style.setProperty('--tg',T.glow);dynSet.tb=T.bg}
+  else{next.style.removeProperty('--tb');next.style.removeProperty('--tg');dynBars('');dynSet.tb=null}
+  if(trim||first)dynTrim(T)}
  dynSet.t=Date.now();dynSet.c=c;d.dataset.on=next===a?'a':'b';
  if(first){next.style.transition='none'}
  next.classList.add('on');prev.classList.remove('on');d.classList.add('has');
@@ -12556,18 +12557,20 @@ function dynApply(c){
 }
 /* a color change re-styles the page, so it waits until the finger is off and the scroll has stopped (it stuttered mid-scroll) */
 addEventListener('scroll',()=>{dynSet.sc=Date.now()},{capture:true,passive:true});
-function dynIdle(){const q=Date.now()-(dynSet.sc||0);if(q<200){dynSet.w=setTimeout(dynIdle,200-q);return}dynApply(dynSet.tgt)}
-function dynSet(c){
- if(!c)return;
+function dynTrim(T){const root=document.documentElement;if(T){root.style.setProperty('--logo',T.a);root.style.setProperty('--a1',T.a);dynAccentOff.on=true}else dynAccentOff()}
+function dynBars(v){let e=document.getElementById('dynst');if(!e){if(!v)return;e=document.createElement('style');e.id='dynst';document.head.append(e)}e.textContent=v?'html.dynx[data-theme=dynamic] :is(.top,.dtabs,#tabs){--dynb:'+v+'}':''}
+function dynIdle(){const q=Date.now()-(dynSet.sc||0);if(q<200){dynSet.w=setTimeout(dynIdle,200-q);return}dynApply(dynSet.tgt,dynSet.tt)}
+function dynSet(c,trim){
+ if(!c)return;if(trim)dynSet.tt=true;
  const d=document.getElementById('dynbg'),has=!!(d&&d.classList.contains('has')),now=Date.now();
  dynSet.tgt=c;
- if(has&&dynSet.c&&dynDist(c,dynSet.c)<30){clearTimeout(dynSet.w);return}/* a color that is nearly the same is not worth a change */
+ if(has&&dynSet.c&&dynDist(c,dynSet.c)<30){clearTimeout(dynSet.w);if(dynSet.tt){dynSet.tt=false;dynTrim(dynTone(dynSet.c,dynIsDark()))}return}/* a color that is nearly the same is not worth a change */
  /* the color only changes once scrolling settles for a moment, and the faster the colors come, the longer it waits */
  dynSet.h=(dynSet.h||[]).filter(t=>now-t<2500);dynSet.h.push(now);
  const dwell=has?Math.min(700,250+dynSet.h.length*80):0,wait=Math.max(dwell,600-(now-(dynSet.t||0)));/* David: quicker, still not flashy */
  clearTimeout(dynSet.w);
  if(has&&wait>0){dynSet.w=setTimeout(dynIdle,wait);return}
- dynApply(c);
+ dynApply(c,dynSet.tt);
 }
 /* the Daily section a story sits in (found from its heading) gives its own fixed color; stories outside the sections keep their own */
 function secCol(el){
@@ -12585,11 +12588,11 @@ function dynLive(){
  if(dynLive.io){dynLive.io.disconnect();dynLive.io=null}
  if(dynLive.sp){dynLive.sp.disconnect();dynLive.sp=null}
  if(dynLive.spot){dynLive.spot.classList.remove('spot');dynLive.spot=null}
- if(!on){r.style.removeProperty('--dynb');const d=document.getElementById('dynbg');if(d)d.remove();dynSet.c=null;dynSet.tb=null;dynAccentOff();clearTimeout(dynSet.w);return}
+ if(!on){dynBars('');const d=document.getElementById('dynbg');if(d)d.remove();dynSet.c=null;dynSet.tb=null;dynAccentOff();clearTimeout(dynSet.w);return}
  const g=$('#grid');if(!g)return;
  const cs=[...g.querySelectorAll(':scope>.card,:scope>.cover,:scope .card,:scope [data-href]')];/* text-only rows and boxes count too */
  const c0=cs[0]?(secCol(cs[0])||cs[0].style.getPropertyValue('--b')||getComputedStyle(cs[0]).getPropertyValue('--b')).trim():'';
- const keep=dynSet.c&&dynLive.sel===S.sel;dynLive.sel=S.sel;if(!keep){clearTimeout(dynSet.w);dynApply(c0||getComputedStyle(r).getPropertyValue('--a1').trim()||'#0a8f4a')}
+ const keep=dynSet.c&&dynLive.sel===S.sel;dynLive.sel=S.sel;if(!keep){clearTimeout(dynSet.w);dynApply(c0||getComputedStyle(r).getPropertyValue('--a1').trim()||'#0a8f4a',true)}
  if(!('IntersectionObserver' in window))return;
  const io=new IntersectionObserver(es=>{const e=es.filter(x=>x.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top)[0];if(!e)return;
   /* the tint follows the story's own photo (a far wider range than one color per site); a story without a usable photo falls back to its site color */
@@ -12622,7 +12625,7 @@ function dynReader(){
  const h=$('#rd .hero'),my=curA;if(!h||!h.src)return;
  imgInfo(h.src).then(async o=>{
   if(o&&o.t&&!o.pa){const u=h.src;delete IIS[u];IINFO.delete(u);o=(await imgInfo(u))||o}/* a picture measured before the palette existed is measured once more */
-  if(o&&o.t&&curA===my&&$('#rd').classList.contains('on')){rdB(o.t);rdPal(o);dynSet(o.t)}}).catch(()=>{});
+  if(o&&o.t&&curA===my&&$('#rd').classList.contains('on')){rdB(o.t);rdPal(o);dynSet(o.t,true)}}).catch(()=>{});
 }
 /* the reader's palette from the lead picture: its main color tints the page (rdB), its second color the label and first letter, its third the quotes; no picture, or no readable one, keeps the site color for everything */
 function rdPal(o){
