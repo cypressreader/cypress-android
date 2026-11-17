@@ -6122,6 +6122,8 @@ function extract0(html,base,MT){
  {const pl=x=>[...x.querySelectorAll('p')].reduce((q,p)=>{const L=p.textContent.trim().length;return q+(L>=50?L:0)},0);
  for(let e=best,k=0;e&&k<3&&e.parentElement&&!/^(BODY|HTML)$/.test(e.parentElement.tagName)&&!/^(ARTICLE|UL|OL|TABLE|LI)$/.test(e.tagName);e=e.parentElement,k++){
   if([...e.parentElement.children].some(x=>x!==e&&x.tagName===e.tagName&&x.className===e.className&&pl(x)>=150&&!x.querySelector('h1'))){best=e.parentElement;break}}}
+ /* the page names its story body: a find inside it widens to all of it (MakeUseOf split its story in two and only the second half was kept, 2026-11-17) */
+ {const ab=best&&best.parentElement&&best.parentElement.closest('[itemprop="articleBody"]');if(ab&&!ab.querySelector('h1'))best=ab}
  let node=best&&max>=300?tidyFrag(clean(best,base)):null;
  if(node){const pre=node.textContent.replace(/\s+/g,' ').trim().length;pruneJunk(node);const post=node.textContent.replace(/\s+/g,' ').trim().length;/* only a page that was mostly menus and notices is thrown away; a genuinely short story is kept */if(post<120&&pre>=post*3)node=null}
  /* B10: when the first finder found nothing, or clearly less than the page holds, the generic finder gets its turn; whatever it finds goes through the same cleaning */
@@ -7497,6 +7499,8 @@ const JK={
   {h:/(^|\.)justthenews\.com$/,cut:['.node__sidebar','.node__post-content','.node__text--dig-deeper','.node__dates','.block-tabs','.views-element-container','.node--view-mode-card','[class*="Unlock_unlimited" i]'],sel:[],txt:[/^published: \w+ \d{1,2}, \d{4}/i,/^unlock unlimited access\W*$/i]},
   {h:/(^|\.)npr\.org$/,sel:['[class*="sponsor" i]','[class*="donate" i]','[class*="support" i][class*="npr" i]'],txt:[/^(support|donate to) (public|npr|the)/i,/^sponsor message\W*$/i,/^become an npr sponsor/i,/^(subscribe to|get) (the )?npr .{0,40}(newsletter|podcast)/i,/^copyright (\d{4} )?npr/i]},
   {h:/(^|\.)aljazeera\.(com|net)$/,sel:['[class*="newsletter" i]','[class*="more-on" i]','[class*="trending" i]'],txt:[/^sign up for al jazeera\b/i,/^follow al jazeera\b/i,/^(recommended|more) stories\W*$/i,/^list of \d+ items\W*$/i,/^(advertisement|sponsored)\W*$/i,/^(the )?(al jazeera|aj) (app|newsletter|podcast)\b/i]},
+  /* one company's tech sites share a page layout: the author's long bio, follow/thread buttons and 'Link copied' sat at the top of the story (MakeUseOf messy report 2026-11-17) */
+  {h:/(^|\.)(makeuseof|howtogeek|xda-developers|androidpolice|pocket-lint)\.com$/,cut:['.with-excerpt'],sel:[],txt:[/^link copied to clipboard\W*$/i]},
   {h:/(^|\.)(reuters\.com|apnews\.com)$/,sel:['[class*="newsletter" i]'],txt:[/^(our standards|acquire licensing rights|sign up here)\b/i,/^(thomson reuters|the associated press) (trust principles|all rights)/i]},
   {h:/(^|\.)(nytimes|washingtonpost|wsj|ft|economist)\.com$/,sel:[],txt:[/^(supported by|advertisement|sign up for the .{0,50}newsletter|listen to this article)\b.{0,40}$/i,/^(read more|related|from the archive).{0,30}:/i]}
  ],
@@ -13176,7 +13180,7 @@ async function sendMessy(a){const m=await askBox({title:'Send a messy story',tex
  /* every step is time-limited and the whole send is in one try, so it always ends with a note; any error is sent along (1.340 stopped silently on a phone) */
  const lim=(p,v)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(v),25000))]),tk=setInterval(()=>toast('Still sending…'),15000);let err='',raw='',kept='';
  try{raw=await lim(fetchText(a.link,t=>t.length>200).catch(e=>'(fetch failed: '+(e&&e.message||e)+')'),'(fetch timed out)')}catch(e){err+='raw: '+(e&&e.message||e)+'\n'}
- try{kept=await lim(getFull(a.link).then(n=>n?n.innerHTML:'(nothing kept)',e=>'(error: '+(e&&e.message||e)+')'),'(timed out)')}catch(e){err+='kept: '+(e&&e.message||e)+'\n'}
+ try{kept=await lim(getFull(a.link).then(n=>{if(!n)return'(nothing kept)';const d=document.createElement('div');d.append(n);return d.innerHTML},e=>'(error: '+(e&&e.message||e)+')'),'(timed out)')}catch(e){err+='kept: '+(e&&e.message||e)+'\n'}
  try{const cl={u:a.link,t:a.title||'',raw:String(raw).slice(0,1e6),kept:String(kept).slice(0,3e5),lg:(LG[a.link]||[]).slice(-60).map(String),err};
   const r=await (window.CapacitorWebFetch||fetch)(SHARE_W+'/api/report',{method:'POST',body:JSON.stringify({msg:'Messy story: '+(m.trim()||'(no note)')+'\n'+a.link,info:err,v:APP_LABEL,cl}),headers:{'content-type':'text/plain'},referrerPolicy:'no-referrer',signal:AbortSignal.timeout(60000)});
   clearInterval(tk);if(!r.ok)throw Error('server said '+r.status);toast('Sent. Thank you')}
