@@ -13173,10 +13173,12 @@ $('#rpb').onclick=async(e,x)=>{const info=(x?x+'\n':'')+await diagInfo();
 /* testers: send a story the cleanup got wrong (address, the page as this phone got it, what the app kept, the fetch log) to the developer's report box, so the built-in cleanup rules can be fixed and the story kept as a test */
 async function sendMessy(a){const m=await askBox({title:'Send a messy story',text:'Sends this story’s address, the page as your phone got it and the text the app kept, so the cleanup can be improved. Nothing else is sent.',input:true,multi:true,placeholder:'What looks wrong? (optional)',ok:'Send'});
  if(m==null)return;toast('Sending…');
- let raw='',kept='';try{raw=await fetchText(a.link,t=>t.length>200)}catch(e){raw='(fetch failed: '+(e&&e.message||e)+')'}
- try{const n=await getFull(a.link);kept=n?n.innerHTML:'(nothing kept)'}catch(e){kept='(error)'}
+ /* each step gets a time limit; the send goes through the WebView's own fetch (Android's native one ignores the 30 s limit and can hang with no message) */
+ const lim=(p,v)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(v),25000))]);
+ const raw=await lim(fetchText(a.link,t=>t.length>200).catch(e=>'(fetch failed: '+(e&&e.message||e)+')'),'(fetch timed out)');
+ const kept=await lim(getFull(a.link).then(n=>n?n.innerHTML:'(nothing kept)',()=>'(error)'),'(timed out)');
  const cl={u:a.link,t:a.title||'',raw:String(raw).slice(0,1e6),kept:kept.slice(0,3e5),lg:(LG[a.link]||[]).slice(-60).map(String)};
- try{const r=await fetch(SHARE_W+'/api/report',{method:'POST',body:JSON.stringify({msg:'Messy story: '+(m.trim()||'(no note)')+'\n'+a.link,info:'',v:APP_LABEL,cl}),headers:{'content-type':'text/plain'},referrerPolicy:'no-referrer',signal:AbortSignal.timeout(30000)});if(!r.ok)throw 0;toast('Sent. Thank you')}catch(e){toast('Couldn’t send. Check your connection and try again')}}
+ try{const r=await (window.CapacitorWebFetch||fetch)(SHARE_W+'/api/report',{method:'POST',body:JSON.stringify({msg:'Messy story: '+(m.trim()||'(no note)')+'\n'+a.link,info:'',v:APP_LABEL,cl}),headers:{'content-type':'text/plain'},referrerPolicy:'no-referrer',signal:AbortSignal.timeout(60000)});if(!r.ok)throw 0;toast('Sent. Thank you')}catch(e){toast('Couldn’t send. Check your connection and try again')}}
 /* your sent reports: the app keeps each one's random code and asks once a day whether it's being worked on or fixed (sends only those codes) */
 function rpText(){const e=$('#rpst'),a=S.rps||[];if(!e)return;e.hidden=!a.length;const n=st=>a.filter(x=>x.st===st).length,w=n('working'),f=n('fixed');e.textContent='Your reports: '+a.length+' sent'+(w?' · '+w+' being worked on':'')+(f?' · '+f+' fixed (update the app to get '+(f===1?'the fix':'the fixes')+')':'')}
 async function rpCheck(){const a=(S.rps||[]).filter(x=>x.st!=='fixed');rpText();if(!a.length||!online()||Date.now()-(S.rpT||0)<864e5)return;

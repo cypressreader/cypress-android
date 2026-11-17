@@ -2094,3 +2094,6 @@ All implemented and checked in a headless browser only; unverified on a phone.
 ## Send a messy story (2026-11-17, branch claude/handoff-continuation-lrhpb6) — implemented, unverified on a phone
 - Story "..." > Something wrong? > Send a messy story: optional note, Send, toast "Sent. Thank you". Checked headless with fetch stubbed (payload has u/t/raw/kept/lg).
 - Needs the worker redeployed (docs/worker/share-worker.js: 1.5 MB reports with `cl`, stored under `c:<id>`, read with /api/insights?messy=list and ?messy=<t>). Until then sends over 20 KB fail with "Couldn't send".
+
+## Send a messy story: big pages (unreleased fix after 1.339)
+- On the phone, open a normal full story (e.g. MakeUseOf), ... > Something wrong? > Send a messy story > Send. Expect "Sent. Thank you" (or "Couldn't send") within about a minute, never a silent stop; then `?messy=list` shows it. 1.339 hung on "Sending…" (native fetch ignores the time limit).

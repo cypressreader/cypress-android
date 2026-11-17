@@ -13293,10 +13293,12 @@ $('#rpb').onclick=async(e,x)=>{const info=(x?x+'\n':'')+await diagInfo();
 /* testers: send a story the cleanup got wrong (address, the page as this phone got it, what the app kept, the fetch log) to the developer's report box, so the built-in cleanup rules can be fixed and the story kept as a test */
 async function sendMessy(a){const m=await askBox({title:'Send a messy story',text:'Sends this story’s address, the page as your phone got it and the text the app kept, so the cleanup can be improved. Nothing else is sent.',input:true,multi:true,placeholder:'What looks wrong? (optional)',ok:'Send'});
  if(m==null)return;toast('Sending…');
- let raw='',kept='';try{raw=await fetchText(a.link,t=>t.length>200)}catch(e){raw='(fetch failed: '+(e&&e.message||e)+')'}
- try{const n=await getFull(a.link);kept=n?n.innerHTML:'(nothing kept)'}catch(e){kept='(error)'}
+ /* each step gets a time limit; the send goes through the WebView's own fetch (Android's native one ignores the 30 s limit and can hang with no message) */
+ const lim=(p,v)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(v),25000))]);
+ const raw=await lim(fetchText(a.link,t=>t.length>200).catch(e=>'(fetch failed: '+(e&&e.message||e)+')'),'(fetch timed out)');
+ const kept=await lim(getFull(a.link).then(n=>n?n.innerHTML:'(nothing kept)',()=>'(error)'),'(timed out)');
  const cl={u:a.link,t:a.title||'',raw:String(raw).slice(0,1e6),kept:kept.slice(0,3e5),lg:(LG[a.link]||[]).slice(-60).map(String)};
- try{const r=await fetch(SHARE_W+'/api/report',{method:'POST',body:JSON.stringify({msg:'Messy story: '+(m.trim()||'(no note)')+'\n'+a.link,info:'',v:APP_LABEL,cl}),headers:{'content-type':'text/plain'},referrerPolicy:'no-referrer',signal:AbortSignal.timeout(30000)});if(!r.ok)throw 0;toast('Sent. Thank you')}catch(e){toast('Couldn’t send. Check your connection and try again')}}
+ try{const r=await (window.CapacitorWebFetch||fetch)(SHARE_W+'/api/report',{method:'POST',body:JSON.stringify({msg:'Messy story: '+(m.trim()||'(no note)')+'\n'+a.link,info:'',v:APP_LABEL,cl}),headers:{'content-type':'text/plain'},referrerPolicy:'no-referrer',signal:AbortSignal.timeout(60000)});if(!r.ok)throw 0;toast('Sent. Thank you')}catch(e){toast('Couldn’t send. Check your connection and try again')}}
 /* your sent reports: the app keeps each one's random code and asks once a day whether it's being worked on or fixed (sends only those codes) */
 function rpText(){const e=$('#rpst'),a=S.rps||[];if(!e)return;e.hidden=!a.length;const n=st=>a.filter(x=>x.st===st).length,w=n('working'),f=n('fixed');e.textContent='Your reports: '+a.length+' sent'+(w?' · '+w+' being worked on':'')+(f?' · '+f+' fixed (update the app to get '+(f===1?'the fix':'the fixes')+')':'')}
 async function rpCheck(){const a=(S.rps||[]).filter(x=>x.st!=='fixed');rpText();if(!a.length||!online()||Date.now()-(S.rpT||0)<864e5)return;
@@ -14489,7 +14491,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.11.17e';const APP_LABEL='1.339';
-const CHANGES=["The Dynamic theme is smoother: the page no longer pauses when its color changes after you stop scrolling","In the Dynamic theme, the background glow and bars still follow each story; the logo, labels and buttons take a story's color when you open it or switch tabs"];
+const CHANGES=["Something wrong with how a story looks? In the story's menu, under \"Something wrong?\", tap \"Send a messy story\" to send it to us so we can improve how stories are cleaned up"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
