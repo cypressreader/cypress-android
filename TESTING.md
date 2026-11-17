@@ -2085,3 +2085,6 @@ All implemented and checked in a headless browser only; unverified on a phone.
 - Headlines/Ticker: dot on unseen stories; Ticker red "Breaking" label only for the app's breaking strip story.
 - Continue listening: story picture behind the text, minutes left, skip back / next buttons, progress line moves while reading.
 - 1.337 (unreleased): play the Daily from the Continue listening widget, close the app mid-story, tap Play again: it says "Picking up where you left off" and continues that story near the same spot (within 12 hours).
+
+## 2026-11-17 lrhpb6: lag after closing the audio player (Fold inner screen)
+- Play the Daily, close the mini player with ×, then open Settings and scroll All Stories: no multi-second freezes; the right pane shows the empty edition page, not the last story. (implemented, unverified on device)
