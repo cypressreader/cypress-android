@@ -1089,8 +1089,9 @@ final class CyWidgets {
         rv.setInt(R.id.cy_wd_cnt, "setTextColor", kicker(c, th));
         rv.setInt(R.id.cy_wd_kick, "setTextColor", kicker(c, th));
         rv.setInt(R.id.cy_wd_sub, "setTextColor", muted(c, th));
-        boolean small = hDp > 0 && hDp < 170; // a standard 4x2 has room for one headline line
-        rv.setInt(R.id.cy_wd_head, "setMaxLines", small ? 1 : 2);
+        // the headline takes the room the widget has: one line on a short 4x2, up to four on a tall one
+        rv.setInt(R.id.cy_wd_head, "setMaxLines", hDp <= 0 ? 2 : hDp < 170 ? 1 : hDp < 200 ? 2 : hDp < 240 ? 3 : 4);
+        rv.setTextViewTextSize(R.id.cy_wd_head, TypedValue.COMPLEX_UNIT_SP, hDp >= 200 ? 19.5f : 16.5f);
         JSONObject d = null;
         try {
             String s = sp(c).getString("widget_daily", "");
@@ -1154,13 +1155,13 @@ final class CyWidgets {
     static JSONObject probe(Context ctx) {
         final Context c = ctx.getApplicationContext(); // like a home screen: plain Android views, not the app's own styled ones
         JSONObject out = new JSONObject();
-        String[] names = {"top-4x3", "top-4x3-page3", "top-2x2", "headlines-4x3", "headlines-4x1", "headlines-2x2", "ticker", "daily-4x2", "listen-4x1"};
-        int[][] sz = {{300, 226, 0}, {300, 226, 2}, {146, 146, 1}, {300, 226, 0}, {300, 120, 0}, {146, 146, 0}, {300, 64, 0}, {300, 146, 0}, {300, 64, 0}};
+        String[] names = {"top-4x3", "top-4x3-page3", "top-2x2", "headlines-4x3", "headlines-4x1", "headlines-2x2", "ticker", "daily-4x2", "listen-4x1", "daily-4x3"};
+        int[][] sz = {{300, 226, 0}, {300, 226, 2}, {146, 146, 1}, {300, 226, 0}, {300, 120, 0}, {146, 146, 0}, {300, 64, 0}, {300, 146, 0}, {300, 64, 0}, {300, 226, 0}};
         float d = c.getResources().getDisplayMetrics().density;
         for (int i = 0; i < names.length; i++) {
             try {
                 int w = sz[i][0], h = sz[i][1];
-                RemoteViews rv = i < 3 ? buildTop(c, 0, w, h, true) : (i < 6 ? buildList(c, w, h) : (i < 7 ? buildTicker(c) : (i < 8 ? buildDaily(c, w, h) : CyListenWidget.build(c, w))));
+                RemoteViews rv = i < 3 ? buildTop(c, 0, w, h, true) : (i < 6 ? buildList(c, w, h) : (i < 7 ? buildTicker(c) : (i == 8 ? CyListenWidget.build(c, w) : buildDaily(c, w, h))));
                 View v = rv.apply(c, new android.widget.FrameLayout(c));
                 android.widget.ViewFlipper f = v.findViewById(R.id.cy_flipper);
                 if (f != null && sz[i][2] > 0 && f.getChildCount() > sz[i][2]) {
