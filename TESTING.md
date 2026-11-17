@@ -2088,3 +2088,4 @@ All implemented and checked in a headless browser only; unverified on a phone.
 
 ## 2026-11-17 lrhpb6: lag after closing the audio player (Fold inner screen)
 - Play the Daily, close the mini player with ×, then open Settings and scroll All Stories: no multi-second freezes; the right pane shows the empty edition page, not the last story. (implemented, unverified on device)
+- Long All Stories page (scroll far down, 500+ cards): opening the menu, Settings, the player and tab switches no longer freeze for seconds. (implemented, unverified on device)
