@@ -295,16 +295,21 @@ async function intake(req, env, kind) {
   if (req.method !== 'POST') return jres({ error: 'POST only' }, 405, h);
   if (limited(req, kind, kind === 'report' ? 5 : 10)) return tooMany();
   const t = await req.text();
-  if (t.length > (kind === 'report' ? 20000 : 8000)) return jres({ error: 'Too big' }, 413, h);
+  // a tester's 'Send a messy story' carries the page and what the app kept (cl), so reports may be up to 1.5 MB; anything else stays small
+  if (t.length > (kind === 'report' ? 1500000 : 8000)) return jres({ error: 'Too big' }, 413, h);
   let o; try { o = JSON.parse(t); } catch (e) { return jres({ error: 'Bad data' }, 400, h); }
   if (!o || typeof o !== 'object') return jres({ error: 'Bad data' }, 400, h);
+  if (!o.cl && t.length > 20000) return jres({ error: 'Too big' }, 413, h);
   const day = new Date().toISOString().slice(0, 10);
   if (kind === 'stats') await env.STATS.put('s:' + day + ':' + rid(), '1', { expirationTtl: KEEP, metadata: cleanStats(o) });
   else {
     const msg = String(o.msg || '').slice(0, 2000).trim();
     if (!msg) return jres({ error: 'Empty report' }, 400, h);
     const id = Date.now() + ':' + rid();
-    await env.STATS.put('r:' + id, JSON.stringify({ msg, info: String(o.info || '').slice(0, 15000), v: word(o.v, 16) }), { expirationTtl: KEEP });
+    const cl = o.cl && typeof o.cl === 'object';
+    await env.STATS.put('r:' + id, JSON.stringify({ msg, info: String(o.info || '').slice(0, 15000), v: word(o.v, 16), ...(cl ? { kind: 'messy' } : {}) }), { expirationTtl: KEEP });
+    // the big part (page, kept text, fetch log) sits under its own key: the Insights list stays light; read it with /api/insights?messy=<t>
+    if (cl) await env.STATS.put('c:' + id, JSON.stringify({ u: String(o.cl.u || '').slice(0, 2000), t: String(o.cl.t || '').slice(0, 500), raw: String(o.cl.raw || '').slice(0, 1000000), kept: String(o.cl.kept || '').slice(0, 300000), lg: Array.isArray(o.cl.lg) ? o.cl.lg.slice(-60).map(x => String(x).slice(0, 300)) : [] }), { expirationTtl: KEEP });
     return jres({ ok: true, id }, 200, h);
   }
   return jres({ ok: true }, 200, h);
@@ -327,12 +332,16 @@ async function insights(req, env) {
     if (!o || !/^\d{10,15}$/.test(String(o.t)) || !['new', 'working', 'fixed', 'delete'].includes(o.st)) return jres({ error: 'Bad data' }, 400);
     const k = (await env.STATS.list({ prefix: 'r:' + o.t + ':', limit: 1 })).keys[0];
     if (!k) return jres({ error: 'No such report' }, 404);
-    if (o.st === 'delete') { await env.STATS.delete(k.name); return jres({ ok: true }, 200); }
+    if (o.st === 'delete') { await env.STATS.delete(k.name); await env.STATS.delete('c:' + k.name.slice(2)); return jres({ ok: true }, 200); }
     const r = JSON.parse(await env.STATS.get(k.name) || '{}'); r.st = o.st; r.stT = Date.now();
     await env.STATS.put(k.name, JSON.stringify(r), { expirationTtl: KEEP });
     return jres({ ok: true }, 200);
   }
   const st = await listAll(env.STATS, 's:', 20000);
+  // ?messy=<t>: one tester-sent messy story in full (page, kept text, fetch log); ?messy=list lists them
+  const ms = new URL(req.url).searchParams.get('messy');
+  if (ms === 'list') return jres({ messy: (await listAll(env.STATS, 'c:', 2000)).map(k => +k.name.split(':')[1]).sort((x, y) => y - x) });
+  if (ms && /^\d{10,15}$/.test(ms)) { const k = (await env.STATS.list({ prefix: 'c:' + ms + ':', limit: 1 })).keys[0]; return k ? new Response(await env.STATS.get(k.name), { headers: { 'content-type': 'application/json' } }) : jres({ error: 'Not found' }, 404); }
   // ?sum=1: a short per-version summary (for the daily check): phones, unexpected closes, typical speed, error codes, failing built-in sites, give-ups, new reports
   if (new URL(req.url).searchParams.get('sum')) {
     const by = {}, med = a => a.length ? a.sort((x, y) => x - y)[a.length >> 1] : null, add = (o, src) => { for (const k in src || {}) o[k] = (o[k] || 0) + src[k]; };

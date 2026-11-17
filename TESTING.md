@@ -2090,3 +2090,7 @@ All implemented and checked in a headless browser only; unverified on a phone.
 - Play the Daily, close the mini player with ×, then open Settings and scroll All Stories: no multi-second freezes; the right pane shows the empty edition page, not the last story. (implemented, unverified on device)
 - Long All Stories page (scroll far down, 500+ cards): opening the menu, Settings, the player and tab switches no longer freeze for seconds. (implemented, unverified on device)
 - Dynamic theme (lrhpb6, after 1.337): scrolling stops without a pause when the tint changes; the glow and bars still shift per story; logo/labels/buttons change color only when a story opens or the tab changes. (implemented, unverified on device)
+
+## Send a messy story (2026-11-17, branch claude/handoff-continuation-lrhpb6) — implemented, unverified on a phone
+- Story "..." > Something wrong? > Send a messy story: optional note, Send, toast "Sent. Thank you". Checked headless with fetch stubbed (payload has u/t/raw/kept/lg).
+- Needs the worker redeployed (docs/worker/share-worker.js: 1.5 MB reports with `cl`, stored under `c:<id>`, read with /api/insights?messy=list and ?messy=<t>). Until then sends over 20 KB fail with "Couldn't send".
