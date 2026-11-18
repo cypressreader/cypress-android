@@ -2102,3 +2102,10 @@ All implemented and checked in a headless browser only; unverified on a phone.
 - [ ] Save, Listen, Previous, Next on the Top Story widget are 44dp round buttons (were 32dp), easy to tap on the Fold.
 - [ ] Arrows show a single circle (no circle inside a circle).
 - [ ] Save/Listen only appear when the widget is at least 320dp wide; they never overlap the "CYPRESS · 1 / 5" pill.
+
+## 2026-11-18 Story touches (1.345)
+- [ ] Before/after slider: dragging the slider moves the split and does NOT turn the page (page-turn reader and scrolling).
+- [ ] "Show spoilers" button: blurred paragraphs can't be focused or read until tapped; tap reveals them.
+- [ ] Book-style numbers and small-cap initials look right in Literata on the Fold, in every theme (Magazine touches on).
+- [ ] Recipe, pros/cons, ticket and Background cards never get cut off at the bottom of a page in the page-turn reader.
+- [ ] Reader headline drops "Analysis:"/"Part 2 of 3" and the label shows above it; cover/hero layouts still fit.
