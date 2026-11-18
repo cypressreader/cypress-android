@@ -2125,3 +2125,4 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - [ ] A WordPress site with its feed off offers its posts, with pictures and real dates
 - [ ] A site with only a sitemap offers stories with real headlines (or tidy titles from the address)
 - [ ] After adding, refresh brings in new stories from that site
+- [ ] (2026-11-18) Open Fold, wide picture cover with headline over it (e.g. Gizmodo): no gray strip above the picture, corners clean
