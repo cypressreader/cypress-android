@@ -12059,7 +12059,7 @@ function teachPick(o){return new Promise(res=>{
  let d=document.getElementById('tpk');if(d)d.remove();
  d=document.createElement('dialog');d.id='tpk';d.setAttribute('aria-labelledby','tpk-t');
  const opts=S.folders.map(f=>`<option value="${esc(f.id)}"${f.id===o.fo?' selected':''}>${esc(f.name)}</option>`).join('')+`<option value="__new"${o.fo==='__new'?' selected':''}>New folder…</option>`;
- d.innerHTML=`<h3 id="tpk-t">Add “${esc(o.site)}”?</h3><p class="hint">CyPress found these stories on the page. Pages have no dates, so a story counts as new the first time it shows up.</p><ul class="tpl" aria-label="Stories found">${o.cands.map(c=>`<li>${c.img?`<img src="${esc(c.img)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:'<span class="tpn" aria-hidden="true"></span>'}<span>${esc(c.t)}</span></li>`).join('')}</ul>${o.sm?`<label class="tpc"><input type="checkbox" id="tpk-s" checked> Also check the site’s sitemap, so stories that never reach this page are found with their real dates</label>`:''}<label for="tpk-f">Put it in this folder</label><select id="tpk-f">${opts}</select><input id="tpk-n" type="text" autocomplete="off" placeholder="Name for the new folder" aria-label="Name for the new folder" value="${esc(o.nf||'')}"${o.fo==='__new'?'':' hidden'}><div class="row"><button type="button" class="tx2" data-a="0">Cancel</button><button type="button" class="go" data-a="1">Add site</button></div>`;
+ d.innerHTML=`<h3 id="tpk-t">Add “${esc(o.site)}”?</h3><p class="hint">${o.alt?'CyPress found these stories in the site’s own list of stories.':'CyPress found these stories on the page. Pages have no dates, so a story counts as new the first time it shows up.'}</p><ul class="tpl" aria-label="Stories found">${o.cands.map(c=>`<li>${c.img?`<img src="${esc(c.img)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:'<span class="tpn" aria-hidden="true"></span>'}<span>${esc(c.t)}</span></li>`).join('')}</ul>${o.sm?`<label class="tpc"><input type="checkbox" id="tpk-s" checked> Also check the site’s sitemap, so stories that never reach this page are found with their real dates</label>`:''}<label for="tpk-f">Put it in this folder</label><select id="tpk-f">${opts}</select><input id="tpk-n" type="text" autocomplete="off" placeholder="Name for the new folder" aria-label="Name for the new folder" value="${esc(o.nf||'')}"${o.fo==='__new'?'':' hidden'}><div class="row"><button type="button" class="tx2" data-a="0">Cancel</button><button type="button" class="go" data-a="1">Add site</button></div>`;
  document.body.append(d);let done=false;
  const fin=v=>{if(done)return;done=true;try{d.close()}catch(e){}d.remove();res(v)};
  const f=d.querySelector('#tpk-f'),n=d.querySelector('#tpk-n');
@@ -12074,13 +12074,15 @@ $('#teach').onclick=async()=>{
  toast('Reading the site…');
  const lg=[];let got=null;
  try{
-  got=await learnCandidates(q,lg);const {cands,rx,page,site,sm}=got;
-  if(!cands.length||!rx){await askBox({title:'Found the page, but no stories',text:'CyPress reached '+host0(q)+' ('+Math.round(got.size/1000)+' KB, '+got.links+' links) but couldn’t tell which links are stories. This can happen when a site builds its list with scripts after the page loads.',ok:'OK',cancel:''});return}
+  got=await learnCandidates(q,lg);let {cands,rx,page,site,sm}=got,alt='';
+  /* 1.347: no story links on the page: try its script data, WordPress, then the sitemap */
+  if(!cands.length||!rx){toast('Looking deeper…');const a=await teachAlt(page,got.html,lg);if(a){cands=a.cands.slice(0,8);rx=a.rx;alt=a.alt;sm=false}}
+  if(!cands.length||!(rx||alt)){await askBox({title:'Found the page, but no stories',text:'CyPress reached '+host0(q)+' ('+Math.round(got.size/1000)+' KB, '+got.links+' links) but couldn’t tell which links are stories. This can happen when a site builds its list with scripts after the page loads.',ok:'OK',cancel:''});return}
   const host=new URL(page).hostname.replace(/^www\./,'');
-  const pk=await teachPick({site:site||host,cands,sm,fo:$('#fo').value,nf:$('#nf').value});if(!pk)return;
+  const pk=await teachPick({site:site||host,cands,sm,alt,fo:$('#fo').value,nf:$('#nf').value});if(!pk)return;
   /* B91: the folder chosen, including a brand-new one, is used (it used to fall back to Unfiled) */
   let fid=pk.fo;if(fid==='__new'){const nm=(pk.nf||'').trim()||'New folder';const nf={id:'g'+Date.now(),name:nm};S.folders.push(nf);fid=nf.id}
-  const f={id:'x'+Date.now(),url:page,title:site||host+' (learned)',folder:fid,learn:{page,rx,sm:!!(sm&&pk.sm)}};
+  const f={id:'x'+Date.now(),url:page,title:site||host+' (learned)',folder:fid,learn:{page,rx,sm:alt==='sm'||!!(sm&&pk.sm)}};if(alt==='json'||alt==='wp')f.learn.alt=alt;
   S.feeds.push(f);save();dlg.close();load(f);fillFolders();
   {const fo=S.folders.find(o=>o.id===fid);feedAddedPop(f.title,fo?fo.name:'Unfiled',f.id)}
  }catch(e){if(got){toast('Couldn’t build that feed');return}await askBox({title:'Couldn’t reach the page',text:'CyPress couldn’t get '+host0(q)+(NATIVE?'':' through the browser’s relays. The app on a phone can often reach sites that the browser can’t')+'.\n\n'+([...new Set(lg)].slice(0,8).join('\n')||String(e&&e.message||e)),ok:'OK',cancel:''})}
@@ -17348,14 +17350,14 @@ async function learnCandidates(pageUrl,lg){
  const cards=rx?learnCards(doc,pageUrl,rx):[];
  const site=((doc.querySelector('meta[property="og:site_name"]')||{}).content||'').trim();
  let sm=false;if(rx&&cards.length){try{const it=await Promise.race([sitemapItems(new URL(pageUrl).origin,rx,lg),new Promise(r=>setTimeout(()=>r([]),12000))]);sm=it.filter(x=>x.d).length>=5}catch(e){}}
- return {cands:cards.slice(0,8).map(c=>({u:c.u,t:c.t,img:c.img})),rx,page:pageUrl,site,sm,links:urls.length,size:html.length};
+ return {cands:cards.slice(0,8).map(c=>({u:c.u,t:c.t,img:c.img})),rx,page:pageUrl,site,sm,links:urls.length,size:html.length,html};
 }
 /* the site's sitemap (a list of its pages with dates) as a second source: it shows stories that never reach the page, with real dates.
    Looked at most every 6 hours, newest first, only addresses that fit the taught link pattern. */
 async function sitemapItems(origin,rx,lg){
  const re=new RegExp(rx),okx=t=>/<(urlset|sitemapindex)[\s>]/i.test(t);
  const parseX=t=>new DOMParser().parseFromString(t,'text/xml');
- const locs=(d,tag)=>[...d.getElementsByTagName(tag)].map(e=>{const g=n=>((e.getElementsByTagName(n)[0]||{}).textContent||'').trim();return{u:g('loc'),d:Date.parse(g('lastmod'))||0}}).filter(x=>x.u);
+ const locs=(d,tag)=>[...d.getElementsByTagName(tag)].map(e=>{const g=n=>((e.getElementsByTagName(n)[0]||{}).textContent||'').trim();return{u:g('loc'),d:Date.parse(g('news:publication_date')||g('lastmod'))||0,t:g('news:title'),img:g('image:loc')}}).filter(x=>x.u);
  let root=null;
  for(const pth of ['/sitemap.xml','/wp-sitemap.xml','/sitemap_index.xml']){try{root=parseX(await fetchText(origin+pth,okx,lg));break}catch(e){}}
  if(!root){try{const r=await fetchText(origin+'/robots.txt',t=>/sitemap:/i.test(t),lg),m=r.match(/sitemap:\s*(\S+)/i);if(m)root=parseX(await fetchText(m[1],okx,lg))}catch(e){}}
@@ -17376,24 +17378,49 @@ async function storyMeta(u,lg){
  let img=mt('og:image');if(img){try{img=new URL(img,u).href}catch(e){img=''}}
  return{t:(mt('og:title')||(d.title||'')).replace(/\s+/g,' ').trim().slice(0,160),img,pub:Date.parse(mt('article:published_time'))||0};
 }
+/* 1.347: when a page builds its list of stories with scripts, three more ways to find them, all on the phone: the data the page ships for its scripts (Next.js, search-engine data), the WordPress list of posts, and the sitemap alone */
+function jsonCards(html,page,rx){
+ const d=new DOMParser().parseFromString(html,'text/html'),h0=new URL(page).hostname.replace(/^www\./,''),p0=new URL(page).pathname,out=new Map();let seen=0;
+ const s=v=>typeof v==='string'?v.replace(/\s+/g,' ').trim():'',pic=v=>!v?'':typeof v==='string'?v:Array.isArray(v)?pic(v[0]):pic(v.url||v.src||v.contentUrl||v.href),dt=v=>typeof v==='number'?(v>1e12?v:v>1e9?v*1000:0):Date.parse(s(v))||0;
+ const walk=(o,dp)=>{if(!o||typeof o!=='object'||dp>14||seen++>60000)return;
+  if(!Array.isArray(o)){const t=s(o.headline||o.title||o.name),r=s(o.url||o.link||o.href||o.permalink||o.canonicalUrl||o.canonical_url||o.uri);
+   if(t.length>=15&&t.length<=160&&r&&!/<\w/.test(t)){try{const x=new URL(r,page);if(/^https?:/.test(x.protocol)&&x.hostname.replace(/^www\./,'')===h0&&x.pathname.replace(/\//g,'').length>8&&x.pathname!==p0&&!out.has(x.href)){let img='';try{const g=pic(o.image||o.thumbnail||o.thumbnailUrl||o.imageUrl||o.image_url||o.featuredImage||o.leadImage||o.promoImage);if(g&&!/^data:/.test(g))img=new URL(g,page).href}catch(e){}out.set(x.href,{u:x.href,t,img,d:dt(o.datePublished||o.publishedAt||o.published_at||o.pubDate||o.date||o.firstPublished||o.createdAt||o.created_at)})}}catch(e){}}}
+  for(const k in o){const v=o[k];if(v&&typeof v==='object')walk(v,dp+1)}};
+ for(const nd of d.querySelectorAll('script#__NEXT_DATA__,script[type="application/json"],script[type="application/ld+json"]')){try{walk(JSON.parse(nd.textContent),0)}catch(e){}}
+ const all=[...out.values()];rx=rx||learnPattern(all.map(c=>c.u));if(!rx)return{rx:'',cands:[]};
+ const re=new RegExp(rx);return{rx,cands:all.filter(c=>re.test(new URL(c.u).pathname)).sort((a,b)=>b.d-a.d)};
+}
+async function wpCards(page,lg){
+ const t=await fetchText(new URL(page).origin+'/wp-json/wp/v2/posts?per_page=20&_fields=link,title,date_gmt,jetpack_featured_media_url',x=>/^\s*\[/.test(x),lg);
+ return JSON.parse(t).map(p=>({u:String(p.link||''),t:new DOMParser().parseFromString(String(p.title&&p.title.rendered||''),'text/html').body.textContent.replace(/\s+/g,' ').trim(),img:String(p.jetpack_featured_media_url||''),d:Date.parse(p.date_gmt?p.date_gmt+'Z':'')||0})).filter(c=>/^https?:/.test(c.u)&&c.t);
+}
+async function teachAlt(page,html,lg){
+ try{const j=html&&jsonCards(html,page);if(j&&j.cands.length>=4)return{alt:'json',rx:j.rx,cands:j.cands}}catch(e){}
+ try{const w=await wpCards(page,lg);if(w.length>=3)return{alt:'wp',rx:'',cands:w}}catch(e){}
+ try{const it=await sitemapItems(new URL(page).origin,'.',lg),rx=learnPattern(it.map(x=>x.u));if(rx){const re=new RegExp(rx),c=it.filter(x=>re.test(new URL(x.u).pathname));if(c.length>=4)return{alt:'sm',rx,cands:c.map(x=>({u:x.u,t:x.t||slugTitle(x.u),img:x.img||''}))}}}catch(e){}
+ return null;
+}
 async function scrapeLearned(f){
- const L=f.learn;if(!L||!L.rx)throw new Error('no pattern');
+ const L=f.learn;if(!L||!(L.rx||L.alt))throw new Error('no pattern');
  const lg=FLG[f.id]||[];
- const html=await fetchText(L.page,t=>/<a[\s>]/i.test(t),lg);
- const doc=new DOMParser().parseFromString(html,'text/html');
- const cards=learnCards(doc,L.page,L.rx).slice(0,30);
+ let cards=[];
+ /* 1.347: the page's script data or the WordPress list of posts, for sites taught that way */
+ if(L.alt==='wp')cards=await wpCards(L.page,lg);
+ else if(L.alt==='json')cards=jsonCards(await fetchText(L.page,t=>/<script/i.test(t),lg),L.page,L.rx).cands;
+ else{try{const html=await fetchText(L.page,t=>/<a[\s>]/i.test(t),lg);cards=learnCards(new DOMParser().parseFromString(html,'text/html'),L.page,L.rx)}catch(e){if(!L.sm)throw e}}
+ cards=cards.slice(0,30);
  /* a page has no dates: a story counts as new the first time it appears on the page, and keeps that time after */
  const sn=f.seen=f.seen||{},now=Date.now(),keep={},byU=new Map();
- cards.forEach((c,i)=>{const d=sn[c.u]||(now-i*1000);keep[c.u]=d;byU.set(c.u,{title:c.t,link:c.u,date:d,img:c.img,feedId:f.id})});
+ cards.forEach((c,i)=>{const d=c.d||sn[c.u]||(now-i*1000);keep[c.u]=d;byU.set(c.u,{title:c.t,link:c.u,date:d,img:c.img,feedId:f.id})});
  if(L.sm){
   try{
-   if(!f.smAt||now-f.smAt>216e5||!f.smList){f.smList=(await sitemapItems(new URL(L.page).origin,L.rx,lg)).map(x=>[x.u,x.d]);f.smAt=now}
+   if(!f.smAt||now-f.smAt>216e5||!f.smList){f.smList=(await sitemapItems(new URL(L.page).origin,L.rx,lg)).map(x=>[x.u,x.d,x.t,x.img]);f.smAt=now}
    const mt=f.meta=f.meta||{};
    /* stories only the sitemap knows: take the title and picture from the story's own page (a few per refresh) */
-   const need=f.smList.filter(([u])=>!byU.has(u)&&!mt[u]).slice(0,5);
+   const need=f.smList.filter(([u,,t])=>!t&&!byU.has(u)&&!mt[u]).slice(0,5);
    if(need.length)await Promise.race([Promise.all(need.map(([u])=>storyMeta(u,lg).then(m=>{mt[u]=m}).catch(()=>{mt[u]={t:'',img:'',pub:0}}))),new Promise(r=>setTimeout(r,9000))]);
-   f.smList.slice(0,30).forEach(([u,d])=>{
-    const m=mt[u]||{},date=m.pub||d||keep[u]||now;
+   f.smList.slice(0,30).forEach(([u,d,st,si])=>{
+    const m=mt[u]||{t:st,img:si},date=m.pub||d||keep[u]||now;
     const old=byU.get(u);
     if(old){old.date=Math.min(old.date,date)||date;return}
     byU.set(u,{title:m.t||slugTitle(u),link:u,date,img:m.img||'',feedId:f.id});keep[u]=date;

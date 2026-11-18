@@ -2118,3 +2118,10 @@ Dynamic theme, long story (2000+ words) with no picture, page-turn mode, on the 
 - [ ] Book title page: thin rules above/below headline, three stars under it
 - [ ] Masthead band: site name in a pale band at top, serif headline left, date at bottom
 - [ ] No title page headline runs past 5 lines, and no word splits; site name never cut off by the frame
+
+## 2026-11-18 Teach fallbacks (branch claude/handoff-continuation-38ykho, unreleased)
+On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
+- [ ] A site whose page builds its list with scripts (e.g. a Next.js news site) now offers stories instead of "Found the page, but no stories"
+- [ ] A WordPress site with its feed off offers its posts, with pictures and real dates
+- [ ] A site with only a sitemap offers stories with real headlines (or tidy titles from the address)
+- [ ] After adding, refresh brings in new stories from that site
