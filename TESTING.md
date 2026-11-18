@@ -2109,3 +2109,12 @@ All implemented and checked in a headless browser only; unverified on a phone.
 - [ ] Book-style numbers and small-cap initials look right in Literata on the Fold, in every theme (Magazine touches on).
 - [ ] Recipe, pros/cons, ticket and Background cards never get cut off at the bottom of a page in the page-turn reader.
 - [ ] Reader headline drops "Analysis:"/"Part 2 of 3" and the label shows above it; cover/hero layouts still fit.
+
+## 2026-11-18 Title page picks (branch claude/handoff-continuation-38ykho, unreleased)
+Dynamic theme, long story (2000+ words) with no picture, page-turn mode, on the Fold:
+- [ ] Framed title page headline is the italic serif (was falling back to plain sans: Dynamic has no `--fd`)
+- [ ] News site (name has news/politics/world) opens on the flush-left sans look (site name top, short rule, date at bottom) or the masthead band
+- [ ] Words in quotation marks in a title-page headline show in the story color, italic serif
+- [ ] Book title page: thin rules above/below headline, three stars under it
+- [ ] Masthead band: site name in a pale band at top, serif headline left, date at bottom
+- [ ] No title page headline runs past 5 lines, and no word splits; site name never cut off by the frame
