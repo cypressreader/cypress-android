@@ -725,7 +725,7 @@ final class CyWidgets {
             boolean expanded = hDp >= 220;
             String link = o.optString("link", "");
             // Save and Listen sit left of the arrows on medium and large widgets; a narrower one shortens the page count to make room
-            boolean acts = !compact && !inCollection && (wDp == 0 || wDp >= 250) && CyExtras.isHttpUrl(link) && !isStale(c);
+            boolean acts = !compact && !inCollection && (wDp == 0 || wDp >= 320) && CyExtras.isHttpUrl(link) && !isStale(c);
             card.setViewVisibility(R.id.cy_card_acts, acts ? View.VISIBLE : View.GONE);
             if (acts) {
                 boolean saved = o.optBoolean("sv", false) || pendingSaves(c).contains(link);

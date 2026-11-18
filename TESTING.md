@@ -2097,3 +2097,8 @@ All implemented and checked in a headless browser only; unverified on a phone.
 
 ## Send a messy story: big pages (unreleased fix after 1.339)
 - On the phone, open a normal full story (e.g. MakeUseOf), ... > Something wrong? > Send a messy story > Send. Expect "Sent. Thank you" (or "Couldn't send") within about a minute, never a silent stop; then `?messy=list` shows it. 1.339 hung on "Sending…" (native fetch ignores the time limit).
+
+## 2026-11-18 Top Story widget buttons bigger (unreleased, branch claude/handoff-continuation-ilc3hc)
+- [ ] Save, Listen, Previous, Next on the Top Story widget are 44dp round buttons (were 32dp), easy to tap on the Fold.
+- [ ] Arrows show a single circle (no circle inside a circle).
+- [ ] Save/Listen only appear when the widget is at least 320dp wide; they never overlap the "CYPRESS · 1 / 5" pill.
