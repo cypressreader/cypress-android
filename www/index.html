@@ -6041,10 +6041,10 @@ function payloadParas(root){
  const walk=(o,d)=>{
   if(!o||typeof o!=='object'||d>14||seen++>60000)return;
   if(Array.isArray(o)){
-   if(o.length>=3&&o.every(x=>typeof x==='string'))consider(o.map(x=>/<\w+/.test(x)?strip(x).join(' '):x.replace(/\s+/g,' ').trim()));
+   if(o.length>=3&&o.every(x=>typeof x==='string')&&o.filter(x=>/\s\S+\s/.test(x)).length*2>=o.length)/* 1.347: prose only: a list of codes (MarketWatch's 'fcode|i/con'...) is no story */consider(o.map(x=>/<\w+/.test(x)?strip(x).join(' '):x.replace(/\s+/g,' ').trim()));
    /* arrays of blocks: {type:'paragraph', content/text/value:'...'} */
    else if(o.length>=3&&o.every(x=>x&&typeof x==='object')){
-    const ps=[];for(const x of o){const ty=String(x.type||x.kind||x.__typename||'').toLowerCase(),tx=x.content??x.text??x.value??x.html??x.body;
+    const ps=[];for(const x of o){const ty=String(x.type||x.kind||x.__typename||'').toLowerCase();let tx=x.content??x.text??x.value??x.html??x.body;/* 1.347: text a level down (MarketWatch: textAndDecorations.nested[].text) */if(typeof tx!=='string'&&/(para|heading|quote|list)/.test(ty)){const a=[],dt=(v,n)=>{if(!v||typeof v!=='object'||n>6)return;for(const k in v){const w=v[k];if(k==='text'&&typeof w==='string')a.push(w);else dt(w,n+1)}};dt(x,0);if(a.length)tx=a.join('')}
      if(typeof tx==='string'&&(/(para|text|body|html|p$|heading|quote|list)/.test(ty)||(!ty&&tx.length>40)))ps.push(...(/<\w+/.test(tx)?strip(tx):[tx.replace(/\s+/g,' ').trim()]))}
     if(ps.length)consider(ps)}
   }else{

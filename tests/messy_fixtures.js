@@ -6,6 +6,7 @@ const F=[
  {f:'makeuseof.html',u:'https://www.makeuseof.com/windows-11-is-making-file-explorer-significantly-faster/',first:/^Microsoft is speeding things up/,keep:[/wider release/],drop:[/holds a B\.A/,/Link copied/,/Followed/]},
 
  {f:'xda.html',u:'https://www.xda-developers.com/i-asked-lovable-bolt-and-google-ai-studio-to-build-the-same-web-app-and-one-is-in-a-different-league/',first:/^If you have the vision/,keep:[/untapped potential/],drop:[/creating an account/i,/provide your email/i]},
+ {f:'marketwatch.html',u:'https://www.marketwatch.com/story/nearly-half-of-home-builders-are-cutting-prices-and-offering-lower-mortgage-rates-as-they-struggle-to-find-buyers-033351e1',first:/^More home builders are cutting prices/,keep:[/7% mortgage rates/],drop:[/fcode\|/,/chartingsymbol/]},
  {f:'techradar_kept.html',kept:1,u:'https://www.techradar.com/vpn/vpn-privacy-security/people-in-jordan-turn-to-vpns-as-telegram-goes-dark-nationwide',first:/^Proton VPN sign-ups/,keep:[/end-to-end encryption/],drop:[/Whatsapp Reddit/i]},
 ];
 (async()=>{const b=await chromium.launch();const p=await b.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));await mock(p,{n:2});await p.goto('file://'+APP);await p.waitForTimeout(1200);
