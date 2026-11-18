@@ -17075,7 +17075,7 @@ function onSite(h,s){
 const WIDESITE=/(^|\.)(npr\.org|bbc\.com|bbc\.co\.uk|bbci\.co\.uk|nytimes\.com|theguardian\.com|washingtonpost\.com|cnn\.com|wsj\.com|dj\.com|foxnews\.com|usatoday\.com|latimes\.com|reuters\.com|bloomberg\.com|forbes\.com|medium\.com|yahoo\.com|msn\.com|time\.com|abcnews\.go\.com|nbcnews\.com|cbsnews\.com|apnews\.com|independent\.co\.uk|telegraph\.co\.uk|economist\.com|ft\.com|theatlantic\.com|vox\.com|buzzfeed\.com|huffpost\.com|vice\.com|wired\.com|cnet\.com|businessinsider\.com|substack\.com|globalnews\.ca|cbc\.ca|ctvnews\.ca|thestar\.com|theglobeandmail\.com)$/i;
 function fallbackScope(f){
  let u;try{u=new URL(f.url)}catch(e){return{ok:true,sec:''}}
- const h=u.hostname.replace(/^www\./,'');if(!WIDESITE.test(h))return{ok:true,sec:''};
+ const h=u.hostname.replace(/^www\./,'');/* a blog that lives under /blog on a bigger site (huggingface.co/blog: a whole-site search filled it with dataset uploads, David 2026-11-18) searches and keeps only that part */if(!WIDESITE.test(h)){const s0=(u.pathname.split('/').filter(Boolean)[0]||'').toLowerCase();return{ok:true,sec:/^(blog|blogs|engineering|research)$/.test(s0)?s0:'',q:1}}
  const bare=x=>x.replace(/\.(xml|rss|atom|json)$/i,'');
  const segs=u.pathname.split('/').filter(Boolean).map(bare).filter(x=>x&&!/^(feed|feeds|rss|atom|xml|index|podcast|services|nyt|news|world|articles|latest|topstories|all|main|default|public|rss2\.0)$/i.test(x));
  const numeric=segs.some(x=>/^\d+$/.test(x)),sec=segs.filter(x=>!/^\d+$/.test(x))[0]||'';
@@ -17088,7 +17088,7 @@ async function gnewsFeed(f,s,why){
  const sc=fallbackScope(f);if(!sc.ok){lg.push('Headline search not used: this feed is one section of '+s+', and a search for the whole site would fill it with the site’s other stories');throw new Error('no safe fallback')}
  /* refreshing several times in a few minutes made Google turn every site away at once (8 sites offline together, 2026-11-16): a site Google answered for in the last 10 minutes keeps its stories and is not asked again */
  {const t=gnewsFeed.t[f.id],held=items[f.id]||[];if(t&&Date.now()-t<6e5&&held.length){lg.push('Google News was asked a few minutes ago, kept the stories already here');return held.slice()}}
- const x=await fetchText(gnewsFor(s),t=>/<item[\s>]/i.test(t),{push:m=>lg.push('Google News headlines via '+m)});
+ const x=await fetchText(gnewsFor(sc.q&&sc.sec?s+'/'+sc.sec:s),t=>/<item[\s>]/i.test(t),{push:m=>lg.push('Google News headlines via '+m)});
  const srcHost=new Map();try{new DOMParser().parseFromString(String(x),'text/xml').querySelectorAll('item').forEach(it=>{const l=((it.querySelector('link')||{}).textContent||'').trim(),sc=it.querySelector('source');if(l&&sc){try{srcHost.set(l,new URL(sc.getAttribute('url')||'').hostname)}catch(e){}}})}catch(e){}
  const all=parse(x,f).list.map(a=>({...a,_h:srcHost.get(a.link)||'',link:gnDecode(a.link)||a.link,title:a.title.replace(/\s+-\s+[^-]{2,40}$/,''),img:'',html:'',gn:1}));
  const l=all.filter(a=>onSite(a._h||host(a.link),s)&&inSection(gnDecode(a.link)||a.link,sc.sec));l.forEach(a=>{delete a._h;a.os=1});
