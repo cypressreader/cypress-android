@@ -2161,3 +2161,8 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - A story whose lead picture is small (a logo or a 120px photo) shows it at its own size, centered, in pages and scroll reading.
 - Night, Dark or Dynamic: story text reads warm off-white, story pictures a little dimmer; check skin tones do not look muddy. Daily cover picture at night in Coast, Sepia Rosewood, Black & White and Aurora is slightly dimmed.
 - Section headings inside a story are in the theme's accent ink and larger, day and night, readable on the phone's screen.
+
+## 2026-11-19 Idea book batch 1 (preview/pm-deep-dive, not shipped yet)
+- [ ] Fold, folded (phone width): story text is now justified with word breaks even with Compact reading on. Look for big gaps between words or three broken words in a row; if bad, phones go back to ragged (rdVars, `--hlc` '8 4 3').
+- [ ] Book-style paragraphs: no blank line between paragraphs, small indent; first paragraph and first after a heading or picture start flush. Check Dynamic looks (essay, letter, live thread) still look right.
+- [ ] Cover pictures: Newsprint warm black-and-white (no green), Sepia Rosewood brown/plum, Coast in color; Black & White Daily sections have a heavy bar and a big number.
