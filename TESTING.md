@@ -2177,3 +2177,9 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - D2: Dynamic story page by day takes the picture's light tone, at night its shadow tone (label/first letter keep the main color).
 - D7: Dynamic Daily section headings and the background glow take each section's lead picture color (fixed color until measured).
 - D9: Dynamic, tapping a card grows its color to full screen (~0.5 s) as the story opens; none with Reduce motion / low power / data saver. Check it never flickers or blocks taps.
+- D3: Dynamic openings follow the kind of story (live, review, interview, opinion, picture story, long read, news); two stories in a row still differ.
+- D4: Dynamic live story (3+ timed entries): one steady color, newest entry on a deeper band, Key moments strip (tap jumps; check in Pages mode).
+- D5: Dynamic interview: guest initials circle + "In conversation with", lighter questions in the picture's second color, one answer lifted as a pull quote with initials.
+- D6: Aa sheet "This story's look: Picture / Panel / Quiet" (Dynamic, big-picture stories only); re-sets the story in place, remembered per story.
+- M2: default line spacing opens up with larger text (18px unchanged).
+- M9: Dynamic long story with 3+ chapters lists "In this story" chapters on page 1; tap jumps to the chapter.
