@@ -9252,10 +9252,12 @@ function mkBox(pg,x0,pk,sd){
  c.style.transform=`translateX(${-pg*R.step+sh}px)`;
  return v;
 }
+/* a tap that comes before the turn built ahead is complete copies only what is still missing (same page and size: the key matched), not every copy again */
+function prepFin(T){try{while(T.q.length)T.q.shift()();T.part=false;return true}catch(e){elog('prepFill',e);return false}}
 function shade(dir){const e=document.createElement('i');e.className='tsh';e.style.background=`linear-gradient(${dir},rgba(0,0,0,.55),rgba(0,0,0,0) 65%)`;return e}
 function startTurn(dir,lazy){
  curlGet();
- if(RP){const P=RP.T;RP=null;const bk0=$('.book');if(dir>0&&bk0&&!P.part&&P.key===prepKey()&&P.els.every(e=>e.isConnected)){R.T=P;R.busy=true;edgeHide(bk0,1);bk0.classList.toggle('one',!P.two);bk0.style.perspectiveOrigin=P.po||'';P.hid.forEach(e=>e.style.opacity='');setAng(P.ang);return P}P.els.forEach(e=>e.remove())}
+ if(RP){const P=RP.T;RP=null;const bk0=$('.book');if(dir>0&&bk0&&P.key===prepKey()&&P.els.every(e=>e.isConnected)&&(!P.part||prepFin(P))){R.T=P;R.busy=true;edgeHide(bk0,1);bk0.classList.toggle('one',!P.two);bk0.style.perspectiveOrigin=P.po||'';P.hid.forEach(e=>e.style.opacity='');setAng(P.ang);return P}P.els.forEach(e=>e.remove())}
  const bk=$('.book'),W=bk.clientWidth,two=R.cpv===2,hw=two?W/2:W,hx=two?W/2:0,peel=dir>0&&R.pg===1&&!R.cpk&&ccv(),to=peel?R.pg:R.pg+dir;
  const T=R.T={my:tok,dir,to,hw,hx,two,peel,ang:dir>0?0:180,dead:false,els:[],q:lazy?[]:null};
  R.busy=true;edgeHide(bk,1);bk.classList.toggle('one',!two);
@@ -9274,7 +9276,7 @@ function startTurn(dir,lazy){
    const el=mkEl('tl-s',`left:0;width:${sw+1}px`);
    const f=mkEl('tf'),fs=shade('to right');fs.style.background='#000';f.append(fs);el.append(f);
    const b=mkEl('tf bk'),bs=shade('to left');bs.style.background='#000';b.append(bs);el.append(b);
-   const fill=()=>{f.prepend(mkBox(pgF,hx+i*sw,0,'R'));if(two)b.prepend(mkBox(pgB,hw-(i+1)*sw,peel,'L'))};if(T.q)T.q.push(fill);else fill();/* a turn built ahead copies the page into its strips later, a few per idle moment */
+   const ff=()=>f.prepend(mkBox(pgF,hx+i*sw,0,'R')),fb=()=>b.prepend(mkBox(pgB,hw-(i+1)*sw,peel,'L'));if(T.q){T.q.push(ff);if(two)T.q.push(fb)}else{ff();if(two)fb()}/* a turn built ahead copies the page into its strips later, a few per idle moment */
    leaf.append(el);T.st.push({el,f,b,o:-1});
   }
  }else{
@@ -9290,7 +9292,7 @@ function startTurn(dir,lazy){
  const ux=(dir>0)?hx:0;
  if(dir>0||two){
   const u=mkEl('tl tl-under',`left:${ux}px;width:${hw}px`);
-  u.append(mkBox(to,ux,peel,dir>0?'R':'L'));
+  const ub=()=>u.prepend(mkBox(to,ux,peel,dir>0?'R':'L'));if(T.q)T.q.push(ub);else ub();
   T.us=shade(dir>0?'to right':'to left');u.append(T.us);if(T.flip)u.classList.add('cvf');
   bk.append(u);T.els.push(u);
  }
@@ -9380,13 +9382,16 @@ function prepDrop(){if(RP){RP.T.els.forEach(e=>e.remove());RP=null}}
 function prepTurn(){
  if(RP&&RP.T.key===prepKey())return;prepDrop();
  if(!isOn('curl')||rdxPturn()!=='paper'||reduced()||R.busy||R.T||D||R.web||isVert()||!R.ready||R.pg+1>=R.np||!$('.book')||!$('#rd').classList.contains('on')||(R.pg<2&&!R.cpk&&ccv()))return;/* the sliding cover's first turn is a slide, nothing to build ahead; the turn after it lifts the picture away, and its copy built ahead (the page without the picture) showed for one frame on the phone (David's recording, 1.316): that one turn is built when asked for */
+ curlGet();const key=prepKey();/* read before the turn is put in the page: read after, it made the browser lay the new turn out at once (50 ms on a slow phone) */
  let T;try{T=startTurn(1,true)}catch(e){R.T=null;R.busy=false;elog('prepTurn',e);try{const bk=$('.book');edgeHide(bk,0);bk.style.perspectiveOrigin=''}catch(x){}return}
  R.T=null;R.busy=false;const bk=$('.book');edgeHide(bk,0);bk.style.perspectiveOrigin='';
- T.hid=[...T.leaf.querySelectorAll('.tf'),...T.els.filter(e=>e!==T.leaf)];T.hid.forEach(e=>{e.style.opacity='0'});T.key=prepKey();RP={T};
- /* the page is copied into the strips a few at a time between idle moments (copying all of them at once held the phone up for a moment after every turn), so a tap or a scroll never waits long; a turn asked for before they are all in builds the usual way */
+ T.hid=[...T.leaf.querySelectorAll('.tf'),...T.els.filter(e=>e!==T.leaf)];T.hid.forEach(e=>{e.style.opacity='0'});T.key=key;RP={T};
+ /* the page is copied into the strips a few at a time between idle moments (copying all of them at once held the phone up for a moment after every turn), so a tap or a scroll never waits long; a turn asked for before they are all in copies only the missing ones (prepFin) */
  const q=T.q||[];T.part=q.length>0;
- const step=dl=>{if(!RP||RP.T!==T)return;while(q.length){try{q.shift()()}catch(e){elog('prepFill',e);prepDrop();return}if(!(dl&&dl.timeRemaining&&dl.timeRemaining()>8))break}if(q.length)prepQ=window.requestIdleCallback?requestIdleCallback(step,{timeout:600}):setTimeout(step,60);else T.part=false};
- step();/* each face is hidden, not the turning page as a whole: a see-through page is flattened, and making it solid again rebuilt its 3D layers on the first frame */
+ let est=0;const later=()=>{prepQ=window.requestIdleCallback?requestIdleCallback(step,{timeout:300}):setTimeout(step,60)},step=dl=>{if(!RP||RP.T!==T)return;const t0=performance.now();
+  do{const a=performance.now();try{q.shift()()}catch(e){elog('prepFill',e);prepDrop();return}est=Math.max(est,performance.now()-a)}while(q.length&&est<(dl&&dl.timeRemaining&&!dl.didTimeout?dl.timeRemaining():16-(performance.now()-t0)));
+  if(q.length)later();else T.part=false};
+ if(q.length)later();/* one copy at a time, the next only if the dearest copy so far still fits in the idle moment (a copy's real cost shows up as the layout the next one forces: on a slow phone that is 60 to 90 ms, so it gets one copy per moment), and not in this moment, which already built the turn *//* each face is hidden, not the turning page as a whole: a see-through page is flattened, and making it solid again rebuilt its 3D layers on the first frame */
 }
 let prepQ=0;function prepSoon(){cancelIdle(prepQ);prepQ=window.requestIdleCallback?requestIdleCallback(prepTurn,{timeout:1500}):setTimeout(prepTurn,400)}
 function cancelIdle(h){if(!h)return;if(window.cancelIdleCallback)cancelIdleCallback(h);else clearTimeout(h)}
@@ -9457,7 +9462,7 @@ function cvSlide(to){const c=$('.cols');if(!c)return;if(R.peek)cvPeek(false,true
   if(im&&/^polygon\(evenodd/.test(cp))im.animate(to?[{clipPath:mv(cp,D),zIndex:1},{clipPath:cp,zIndex:1}]:[{clipPath:cp,zIndex:1},{clipPath:mv(cp,-D),zIndex:1}],o)}
  setTimeout(()=>{if(my!==tok)return;R.busy=false;turnTick();prepSoon()},ms&&D?ms+40:0)}
 /* the picture fades away in place (and back): it used to ride the page turn, which stuttered on the open Fold */
-function cvFade(on){const c=$('.cols');if(!c)return;const ms=reduced()?0:320;R.cpk=on;c.style.setProperty('--cvd',ms+'ms');c.classList.add('cfd');show();clearTimeout(R.pkT);R.pkT=setTimeout(()=>{c.style.removeProperty('--cvd');c.classList.remove('cfd')},ms+60);turnTick()}
+function cvFade(on){const c=$('.cols');if(!c)return;const ms=reduced()?0:320;R.cpk=on;c.style.setProperty('--cvd',ms+'ms');c.classList.add('cfd');show();clearTimeout(R.pkT);R.pkT=setTimeout(()=>{c.style.removeProperty('--cvd');c.classList.remove('cfd');prepSoon()/* the turn after the faded picture is built ahead like any other, once the fade is over (copies made mid-fade would carry it) */},ms+60);turnTick()}
 function cvPeek(on,now){const c=$('.cols');if(!c)return;const ms=now||reduced()?0:420;R.peek=!!on;c.style.setProperty('--cvd',ms+'ms');c.classList.add('cpeeking');c.classList.toggle('cpeek',R.peek);
  clearTimeout(R.pkT);R.pkT=setTimeout(()=>{c.classList.remove('cpeeking');c.style.removeProperty('--cvd')},ms+40)}
 /* a page turn that cannot be built must never leave the story stuck on its page (David 2026-11-13: a story would not change pages): clear the half-built turn and change the page plainly */
