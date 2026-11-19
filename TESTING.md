@@ -2132,3 +2132,4 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Empty Bookshelf: more room above "Open a book file".
 - Settings: "Look"/page headings same letter size and position in every theme (font-size-adjust cap-height .78, B&W base); top bar titles too. Tab strip flush with the header, no see-through fade at its right end.
 - Daily Front Page intro: "Start here: stories covered by more than one of your sites."
+- 2026-11-19 Dynamic + Quick looks: on Dynamic, the picked Quick look stays highlighted, and tapping another look changes only the cover (colors stay Dynamic).
