@@ -4515,6 +4515,13 @@ html[data-theme=rosewood] #rd .cols .kick{color:#7f5d1c}
 #rd .cols.tplf .body p.dropcap .dcap{color:color-mix(in srgb,var(--a2,var(--ink)) 72%,var(--ink))}
 #rd:not(.cine) .cols .body h2{font:600 1.35em/1.16 var(--disp,var(--serif));letter-spacing:-.005em;text-decoration:none;text-align:left;margin:1.35em 0 .45em}
 #rd:not(.cine) .cols .body h2::before{width:20px;height:2px;margin:0 0 .55em;background:var(--rbr);border-radius:1px}
+/* section headings in a story stand out from the text: the story's accent ink, a size up, about a third more room above, a firmer rule */
+#rd .cols .body h2{color:var(--rbr,var(--ink))}
+#rd:not(.cine) .cols .body h2{font-size:1.55em;margin-top:1.5em}
+#rd:not(.cine) .cols .body h2::before{width:30px;height:3px}
+#rd.cine .cols .body h2{margin-top:2.1em}
+html[data-theme=dynamic] #rd .cols .body h2{color:color-mix(in srgb,var(--rbr) 55%,var(--ink))}
+html:is([data-theme^=eink],[data-theme^=press]) #rd .cols .body h2{color:var(--ink)}
 #rd .cols .body h3{text-decoration:none}
 body.narrow #rd:not(.vert):not(.cpv2) .cols>img.hero{max-height:min(40svh,340px);aspect-ratio:3/2;height:auto}/* 1.322 R7: was 16/9 capped at 190px *//* R-07: never taller than 16:9 on a phone *//* phones only: on wide two-column pages the taller picture keeps column 1 from looking empty */
 /* 18. End of a story: related links and any publisher appeal stay in one tidy block, inside the column, never split */
@@ -14789,7 +14796,7 @@ function storyLooks3(b,c,ps,wds,LOOK,dyn){
     L.forEach(t=>{const v=t.nodeValue.replace(UN,'$1 ').replace(/(\S) ?— ?(?=\S)/g,'$1 — '),f=document.createDocumentFragment();let i=0,hit=0;
      for(const m of v.matchAll(RX)){if(m[1]&&(!cap||t.parentNode.closest('b,strong')))continue;const at=m.index+(m[4]||'').length;if(at>i)f.append(v.slice(i,at));f.append(m[1]?mk('span','ac',m[1]):m[2]?mk('span','tcm',m[2]):m[3]?mk('sup','fnr',m[3]):mk('span','qtag',m[5]));i=m.index+m[0].length;hit=1}
      if(hit){if(i<v.length)f.append(v.slice(i));t.replaceWith(f)}else if(v!==t.nodeValue)t.nodeValue=v})})}
-  b.querySelectorAll(':scope>:is(hr,h2,h3)+p').forEach(p=>{const t=p.firstChild,m=t&&t.nodeType===3&&t.nodeValue.match(/^\s*(\S+\s+\S+\s+\S+)(?=\s)/);if(m){t.nodeValue=t.nodeValue.slice(m[0].length);p.prepend(mk('span','hrl',m[1]))}});
+  /* the printed touch (first words in small capitals) follows the first heading only: after every one it repeated too often */[b.querySelector(':scope>:is(hr,h2,h3)+p')].filter(Boolean).forEach(p=>{const t=p.firstChild,m=t&&t.nodeType===3&&t.nodeValue.match(/^\s*(\S+\s+\S+\s+\S+)(?=\s)/);if(m){t.nodeValue=t.nodeValue.slice(m[0].length);p.prepend(mk('span','hrl',m[1]))}});
   const cn=c.dataset.tl?[]:ps.filter(p=>{const t=p.textContent.trim();return t.length<400&&/^(?:Corrections?|Clarifications?|Update[ds]?|Editor[’']s note|(?:Content|Trigger) (?:warning|note)|In short|TL;? ?DR|The short version|Summary)\b[^:]{0,40}:/i.test(t)});
   if(cn.length&&cn.length<=2&&ps[0])cn.forEach(p=>{p.classList.add('cnote');if(p!==ps[0])ps[0].before(p)});
   const nm=String(a.by||'').replace(/^by\s+/i,'').split(/\s*(?:,|&|\band\b)\s*/).filter(x=>/\S\s+\S/.test(x)&&x.length<40);
