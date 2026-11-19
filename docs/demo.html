@@ -6930,6 +6930,8 @@ function analyzePx(im){
  /* where to keep the picture when it is cropped: a face (skin tones) if there is one, otherwise where the detail is */
  let sx=0,sy=0,sn=0,ex=0,ey=0,en=0;const Yv=new Float32Array(W*H);
  for(let j=0;j<H;j++)for(let i=0;i<W;i++){const k=(j*W+i)*4;Yv[j*W+i]=.299*d[k]+.587*d[k+1]+.114*d[k+2]}
+ /* idea book D2: the picture's light tone (brightest 15%) and shadow tone (darkest 15%), for Dynamic's day and night pages */
+ const yo=[...Yv.keys()].sort((p,q)=>Yv[p]-Yv[q]),tn=Math.round(W*H*.15),avg=ix=>{const t=[0,0,0];ix.forEach(n=>{for(let c=0;c<3;c++)t[c]+=d[n*4+c]});return 'rgb('+t.map(v=>Math.round(v/ix.length)).join(',')+')'},lo=avg(yo.slice(0,tn)),hi=avg(yo.slice(-tn));
  for(let j=1;j<H-1;j++)for(let i=1;i<W-1;i++){const k=(j*W+i)*4,R=d[k],G=d[k+1],B=d[k+2],Y=Yv[j*W+i],Cb=128-.168736*R-.331264*G+.5*B,Cr=128+.5*R-.418688*G-.081312*B;
   if(Y>60&&Cb>77&&Cb<127&&Cr>133&&Cr<173){sx+=i;sy+=j;sn++}
   const e=Math.abs(Yv[j*W+i+1]-Yv[j*W+i-1])+Math.abs(Yv[(j+1)*W+i]-Yv[(j-1)*W+i]),cb=Math.max(.3,1-.5*Math.hypot((i-W/2)/(W/2),(j-H/2)/(H/2)));
@@ -6941,7 +6943,7 @@ function analyzePx(im){
  /* the picture's other main colors (hue families at least 60 degrees apart from each other, each at least 8% of the colorful pixels): the Dynamic reader gives them the label and the quotes */
  const bs=hb.map((q,i)=>[q,i]).sort((x,y)=>y[0][3]-x[0][3]),hd=(i,j)=>{const e=Math.abs(i-j);return Math.min(e,12-e)},pk=[bs[0]];
  for(const x of bs){if(pk.length>2||x[0][3]<=0||x[0][3]<w*.08)break;if(pk.every(y=>hd(y[1],x[1])>=2))pk.push(x)}
- return{v:5,pa:pk[0][0][3]>0?pk.slice(1).map(([q])=>toTint(q[0]/q[3],q[1]/q[3],q[2]/q[3])):[],bz:bzn?Math.round(bzs/bzn):0,s:bzn?+(sts/bzn).toFixed(2):0,t:w>0?toTint(r/w,g/w,b/w):'',f:(lowF>.15&&lowF>topF*1.3)?1:0,l:ln?Math.round(ls/ln):0,px:Math.round(Math.max(15,Math.min(85,fx))),py:Math.round(Math.max(15,Math.min(85,fy)))};
+ return{v:5,lo,hi,pa:pk[0][0][3]>0?pk.slice(1).map(([q])=>toTint(q[0]/q[3],q[1]/q[3],q[2]/q[3])):[],bz:bzn?Math.round(bzs/bzn):0,s:bzn?+(sts/bzn).toFixed(2):0,t:w>0?toTint(r/w,g/w,b/w):'',f:(lowF>.15&&lowF>topF*1.3)?1:0,l:ln?Math.round(ls/ln):0,px:Math.round(Math.max(15,Math.min(85,fx))),py:Math.round(Math.max(15,Math.min(85,fy)))};
 }
 /* Where to keep a photo when a card crops it. Faces first (the browser's own on-device FaceDetector, where there is one; nothing is uploaded), then, for a portrait photo, a point near the top (faces sit high); otherwise the detail-based point already worked out above. */
 async function faceAdjust(url,o){
@@ -12731,10 +12733,19 @@ function secCol(el){
  const top=el.closest('#grid>*');if(!top||!$('#grid .dsh[id^="dsec-"]'))return '';
  for(let n=top;n;n=n.previousElementSibling){
   const h=n.matches('.dsh')?n:n.querySelector('.dsh[id^="dsec-"]');
-  if(h)return SECCOL[h.id.slice(5)]||'';
+  if(h)return secPic(h,n)||SECCOL[h.id.slice(5)]||'';
   if(n.matches('.drit,.dwell,.dback,.ddiff,.dchap'))return '';
  }
  return '';
+}
+/* idea book D7: under Dynamic, a Daily section takes its color from its lead story's picture (the fixed color stays until that picture is measured, or when it is gray) */
+function secPic(h,top){
+ if(h.dataset.lc)return h.dataset.lc;
+ let im=null;for(let n=top;n&&!im;n=n.nextElementSibling){if(n!==top&&n.querySelector('.dsh[id^="dsec-"]'))break;im=[...n.querySelectorAll('img[src^="http"]')].find(i=>!i.closest('.dsh'))}
+ const u=im&&im.getAttribute('src');if(!u)return '';
+ const ok=o=>{const r=o&&o.t&&anyRgb(o.t);if(!r||rgb2hsl(r)[1]<.14)return '';h.dataset.lc=o.t;h.style.setProperty('--sc',o.t);return o.t};
+ if(IIS[u]&&IIS[u].v>=5)return ok(IIS[u]);
+ imgInfo(u).then(ok).catch(()=>{});return '';
 }
 const spOb=c=>{if(!c.matches('.card:not(.list-row):not(.dq-c)'))return;dynLive.sp&&dynLive.sp.observe(c)};
 function dynLive(){
@@ -12778,14 +12789,14 @@ function dynReader(){
  if(!isOn('dynx')||document.documentElement.dataset.theme!=='dynamic')return;
  const h=$('#rd .hero'),my=curA;if(!h||!h.src)return;
  imgInfo(h.src).then(async o=>{
-  if(o&&o.t&&!o.pa){const u=h.src;delete IIS[u];IINFO.delete(u);o=(await imgInfo(u))||o}/* a picture measured before the palette existed is measured once more */
-  if(o&&o.t&&curA===my&&$('#rd').classList.contains('on')){rdB(o.t);rdPal(o);dynSet(o.t,true)}}).catch(()=>{});
+  if(o&&o.t&&(!o.pa||!o.lo)){const u=h.src;delete IIS[u];IINFO.delete(u);o=(await imgInfo(u))||o}/* a picture measured before the palette existed is measured once more */
+  if(o&&o.t&&curA===my&&$('#rd').classList.contains('on')){const tc=(dynIsDark()?(Math.max(...(anyRgb(o.lo)||[0]))>=30&&o.lo):o.hi)||o.t;rdB(tc);rdPal(o);dynSet(tc,true)}/* D2: day takes the picture's light, night its shadows */}).catch(()=>{});
 }
 /* the reader's palette from the lead picture: its main color tints the page (rdB), its second color the label and first letter, its third the quotes; no picture, or no readable one, keeps the site color for everything */
 function rdPal(o){
  const rd=$('#rd');if(!rd)return;rd.classList.remove('pal');
  const c=o&&anyRgb(o.t);if(!c)return;
- const [h,s]=rgb2hsl(c),a=o.pa||[],f=(x,d)=>{const r=x&&anyRgb(x),z=r?rgb2hsl(r):[h+d,s];return [z[0],Math.max(.5,Math.min(.85,z[1]))]},k=f(a[0],45),q=f(a[1]||a[0],-45);
+ const [h,s]=rgb2hsl(c),a=o.pa||[],f=(x,d)=>{const r=x&&anyRgb(x),z=r?rgb2hsl(r):[h+d,s];return [z[0],Math.max(.5,Math.min(.85,z[1]))]},k=f(o.lo?o.t:a[0],45),q=f(a[1]||a[0],-45);/* D2: the page has the light or shadow tone, so the main color goes to the label and first letter */
  rd.style.setProperty('--rk',hsl2css(k[0],k[1],dynIsDark()?.7:.34));rd.style.setProperty('--rq',hsl2css(q[0],q[1],.5));rd.classList.add('pal');
 }
 function keepRead(){
