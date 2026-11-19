@@ -2126,3 +2126,9 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - [ ] A site with only a sitemap offers stories with real headlines (or tidy titles from the address)
 - [ ] After adding, refresh brings in new stories from that site
 - [ ] (2026-11-18) Open Fold, wide picture cover with headline over it (e.g. Gizmodo): no gray strip above the picture, corners clean
+
+## 2026-11-19 Patch notes (Nov 13 doc)
+- Black & White, All Stories list: 12px margin stripe→text, text→photo, photo→edge on every row; text centered top to bottom; headlines fill the line (up to 3 lines); big-photo row text centered under its photo; SUBSCRIBER/TEASER label bigger (11px).
+- Empty Bookshelf: more room above "Open a book file".
+- Settings: "Look"/page headings same letter size and position in every theme (font-size-adjust cap-height .78, B&W base); top bar titles too. Tab strip flush with the header, no see-through fade at its right end.
+- Daily Front Page intro: "Start here: stories covered by more than one of your sites."
