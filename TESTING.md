@@ -2133,3 +2133,10 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Settings: "Look"/page headings same letter size and position in every theme (font-size-adjust cap-height .78, B&W base); top bar titles too. Tab strip flush with the header, no see-through fade at its right end.
 - Daily Front Page intro: "Start here: stories covered by more than one of your sites."
 - 2026-11-19 Dynamic + Quick looks: on Dynamic, the picked Quick look stays highlighted, and tapping another look changes only the cover (colors stay Dynamic).
+
+## 2026-11-19 PM deep dive (branch preview/pm-deep-dive, NOT shipped)
+- Update stall: if the download (3 min) or the installer (30 s) never answers, the bar should say "The update didn't download. Try again" instead of staying on "Updating…". Implemented, unverified (needs a real install).
+- Daily preload pauses while the app is in the background (`dpOk` checks `document.hidden`): check the Daily still fills up on Wi-Fi after opening the app.
+- Offline: open a story that is not stored, go back online: the full story should load by itself.
+- Dynamic picture cover: the site name above the headline is now white.
+- Weekly tab shows the chosen review day (Monday/Friday/Saturday) instead of always "Sunday".
