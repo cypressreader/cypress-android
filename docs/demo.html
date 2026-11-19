@@ -3442,6 +3442,9 @@ html.pdark #grid.paper{background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .dfx i{height:1px;background:var(--dln)}
 .dfx b{font:400 24px/1 'Cormorant Garamond','Cormorant',var(--fd,Georgia),serif;letter-spacing:.04em;color:var(--ink)}
 #grid .dhd h3.dsh{background:none;display:block;justify-content:center;margin:12px 0 10px;padding:0 0 9px;border-bottom:1px solid var(--dln);text-align:center;font:500 clamp(26px,8vw,36px)/1.1 'CyPress Section','Playfair Display',Georgia,serif!important;letter-spacing:.06em!important;text-transform:uppercase!important;color:var(--ink);font-synthesis:none}
+/* R15 2026-11-19: one headline face per theme, the face its story title uses: story cards, The Daily's cover, section headings and the Settings title follow it (sizes and positions unchanged) */
+html:is([data-theme=halcyon],[data-theme=halcyond],[data-theme=coast],[data-theme=coastd],[data-theme=press],[data-theme=pressd],[data-theme=rosewood],[data-theme=rosewoodd],[data-theme=aurora]) :is(#set .sh h2,#grid .card h3,#grid .card h3 a,#grid .dcov h2,#grid h3.dsh:not(.dhd h3),#grid h3.dsh:not(.dhd h3) span){font-family:var(--disp)!important}
+html:is([data-theme=eink],[data-theme=einkd]) :is(#set .sh h2,#grid .card h3,#grid .card h3 a,#grid .dcov h2,#grid h3.dsh:not(.dhd h3),#grid h3.dsh:not(.dhd h3) span){font-family:var(--hf,var(--fd,Georgia))!important}
 #grid .dhd h3.dsh>span{display:inline;white-space:normal}
 #grid .dhd .ddek{margin:0 auto;max-width:34em;text-align:center;font:600 11px/1.5 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
 
@@ -4033,6 +4036,10 @@ html.txo #grid img,html.txo #rd img,html.txo #hub img,html.txo .dcv-art>img{disp
 .dcov{min-height:min(92svh,860px)}
 body.narrow .dcov{min-height:max(520px,calc(100svh - 215px - env(safe-area-inset-bottom)))}/* bug hunt 2026-11-03: on phones the cover fits between the masthead and the tab bar, so Play Daily shows without scrolling */
 @media(min-width:900px){.dcov{min-height:max(560px,calc(100svh - 190px))}}
+/* R4 2026-11-19: on a wide screen The Daily's cover runs the full width right of the side list (it was a 720px poster with blank page on both sides) and is laid out as a landscape page: the picture fills it, kept to its upper part so faces stay in, a bigger headline, the three story lines in a row and the play bar under them. Phones are unchanged. */
+@media(min-width:900px){.dcov{width:auto;max-width:none;margin-inline:calc(-1 * var(--gp))}}
+@media(min-width:1200px){.dcov.dcov:is(.dct-type,.dct-min,.dct-fb){min-height:max(560px,calc(100svh - 190px))}}/* the covers without a full photo get the same one-screen height there, so their headline has room to be big */
+@container (min-width:900px){.dcv-art>img{object-position:50% 30%}.dcv-main{max-width:min(1180px,92cqi);padding:40px calc(var(--gp) + 40px) 16px}.dcov .dcv-lead h2{font-size:clamp(52px,5.4cqi,96px)}.dcv-note{font-size:18px;max-width:46em}.dcv-lines{grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;margin-top:22px}.dcov .dcv-l span{font-size:16px}.dcv-prog{padding:0 calc(var(--gp) + 40px) 30px;max-width:640px}}
 .dcov.dct-type{background:radial-gradient(120% 80% at 50% 0,#17503a 0,#0b2119 55%,#06130e 100%)}
 .dcov.dct-type .dcv-art>svg{opacity:.35}
 .dcov.dct-type .dcv-top{border-bottom:1px solid rgba(255,255,255,.28);margin:0 calc(var(--gp,24px) + 14px);padding-bottom:16px}
@@ -8414,7 +8421,7 @@ function nrBlocks(l,base,o){
   /* a lone leftover story joins the lead's list instead of getting its own "Next up" header, and an empty middle column draws no rule */
   if(rail.length===1)sub.push(rail.pop());
   const lh=nrLH(rail.length),lc=nrLC();
-  pb([lead[0],...sub,...mid,...rail],()=>`<section class="nr-top${tv===2?' nr-flip':''}"><div class="nr-lw">${C(lead[0],'nr-lead')}${sub.length?`<div class="nr-lsub">${sub.map(i=>C(i,'nr-late')).join('')}</div>`:''}</div>${mid.length?`<div class="nr-mid">${mid.map(i=>C(i,'nr-row nr-m')).join('')}</div>`:''}${rail.length?`<div class="nr-rail">${lh}<div class="nr-rl">${rail.map(i=>C(i,lc)).join('')}</div></div>`:''}</section>`);
+  pb([lead[0],...sub,...mid,...rail],()=>`<section class="nr-top${tv===2?' nr-flip':''}"><div class="nr-lw">${C(lead[0],'nr-lead')}${sub.length?`<div class="nr-lsub">${sub.map(i=>C(i,'nr-late')).join('')}</div>`:''}</div>${mid.length?`<div class="nr-mid">${mid.map((i,j)=>C(i,o&&o.brk&&sub.length+j===Math.max(3,sub.length)?'nr-sp':'nr-row nr-m')).join('')}</div>`:''}${rail.length?`<div class="nr-rail">${lh}<div class="nr-rl">${rail.map(i=>C(i,lc)).join('')}</div></div>`:''}</section>`);
  }
  const seq=(o&&o.seq)||NRPAT[(seed>>3)%3];let n=0,guard=0,fl=0,qn=0,statDone=false,lt='';
  const river=max=>{const ix=P.pick(null,max);if(!ix.length)return false;const hd=SMARTV?'':`<h4>${nrAge(l[ix[0]])}</h4>`;pb(ix,()=>`<section class="nr-river">${hd}<div class="nr-rv">${ix.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`);return true};
@@ -8855,12 +8862,18 @@ function daySections(list,mode){
  const issue=issueNo();
  const sh=(id,t,sub,count,unit)=>{n++;const nn=String(n).padStart(2,'0');secs.push([id,nn,t,count,unit]);const dk=(DAYDEK[id]||[])[id==='front'&&S.feeds.length<2?0:peHash(edKey()+id)%2]||'';return `<div class="dhd">${dayArch()}<div class="dfx">${n===1?`<span>Vol. ${String(edDate().getFullYear()).slice(-2)}</span>`:''}<i></i><b>${nn}</b><i></i>${n===1?`<span>No. ${issue}</span>`:''}</div><h3 class="dsh" id="dsec-${id}" aria-level="2"${SECCOL[id]?` style="--sc:${SECCOL[id]}"`:''}><span>${t}</span></h3>${dk?`<p class="ddek">${dk}</p>`:''}</div>`};
  /* a pull quote after every fifth headline row, when that story has a line worth lifting */
- const rowsQ=arr=>{let h='',buf='',k=0;const wrap=x=>`<div class="nr-river"><div class="nr-rv">${x}</div></div>`;for(const a of arr){buf+=C(a,'nr nr-row nr-s');k++;if(k%5===0){const pq=pullQuoteHtml(a);if(pq){h+=wrap(buf)+pq;buf=''}}}return h+(buf?wrap(buf):'')};
+ /* after three plain rows in a row, the next story with a picture opens a picture card with the next rows beside it (stacked on a phone), so no two screens of the issue look the same; Compact stays rows */
+ const brk=!nrDense();let fl=0;
+ const rowsQ=arr=>{let h='',buf='',k=0,run=0;const wrap=x=>`<div class="nr-river"><div class="nr-rv">${x}</div></div>`,pqAt=a=>++k%5===0?pullQuoteHtml(a):'';
+  for(let i=0;i<arr.length;i++){const a=arr[i];
+   if(brk&&run>=3&&a.img&&i+1<arr.length){const tx=arr.slice(i+1,i+4);i+=tx.length;let pq='';tx.forEach(x=>{pq=pqAt(x)||pq});h+=(buf?wrap(buf):'')+`<section class="nr-split${fl++%2?' nr-flip':''}"><div class="nr-spl">${C(a,'nr nr-sp')}</div><div class="nr-spr">${tx.map(x=>C(x,'nr nr-row')).join('')}</div></section>`+pq;buf='';run=pq?0:tx.length;continue}
+   buf+=C(a,'nr nr-row nr-s');run++;const pq=pqAt(a);if(pq){h+=wrap(buf)+pq;buf='';run=0}}
+  return h+(buf?wrap(buf):'')};
  const frontCount=front.length+(lead&&!COVSHOWN?1:0);
  SMARTV=true;NRLAB='Next up';
  B.push(`<div class="dsec2">${sh('front','The Front Page','',frontCount,'stories')}</div>`);
  if(lead&&!lead.read){if(!COVSHOWN)B.push(royalHtml(lead,0));const L=ledeOf(lead),cand=[lead].concat(front),pick=cand.find(x=>{const q=nrQuoteText(x);return q&&q.real&&q.q!==L})||front.find(x=>{const q=nrQuoteText(x);return q&&q.q!==L});const pq=pick?pullQuoteHtml(pick):'';if(pq)B.push(pq)}
- if(front.length)nrBlocks(front,base).forEach(b=>B.push(b));
+ if(front.length)nrBlocks(front,base,{brk:brk&&VW<700/* the front page's middle column is a list of rows only at phone width; wider it is already a grid of pictures */}).forEach(b=>B.push(b));
  NRLAB='Latest';SMARTV=false;
  if(bkDayOn()){B.push('<section class="dsec2 dchap" id="dchap" aria-labelledby="dchk" hidden></section>');setTimeout(bkDay,30)}/* a book in progress: today's chapter, like a newspaper serial */
  if(diff)B.push(diffHtml(diff,C));
