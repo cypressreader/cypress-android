@@ -13676,7 +13676,12 @@ function ribSync(c,sv){
  if(sv&&!rb){const i=document.createElement('i');i.className='rib ribnew';i.setAttribute('aria-hidden','true');const st=c.querySelector(':scope>.star');c.insertBefore(i,st||null);setTimeout(()=>i.classList.remove('ribnew'),900)}
  else if(!sv&&rb)rb.remove();
 }
-function cardMarks(a){if(!a)return false;if(S.sel==='saved'||(S.hideRead&&S.read[a.link]))return false;const sv=isSaved(a),rd=!!S.read[a.link];document.querySelectorAll('#grid .card').forEach(c=>{if(chref(c)!==a.link)return;c.classList.toggle('read',rd);ribSync(c,sv);const b=c.querySelector('[data-star]');if(b){b.setAttribute('aria-pressed',sv?'true':'false');b.innerHTML=starSvg(sv)}});try{dgProgUpdate()}catch(e){}return true}
+function cardCount(a,rd){/* a card was marked read or unread: the "N unread" in the header and the side bar counts follow at once, without a full render (the Daily's "N left" has dgProgUpdate) */
+ const c=[...document.querySelectorAll('#grid .card')].find(x=>chref(x)===a.link);if(!c||c.classList.contains('read')===rd)return;
+ document.querySelectorAll('#grid .nr-meta,#grid .lr-dv span').forEach(m=>{m.textContent=m.textContent.replace(/(\d+)( unread)/,(z,n,u)=>Math.max(0,+n+(rd?-1:1))+u)});
+ clearTimeout(cardCount.t);cardCount.t=setTimeout(()=>{try{side()}catch(e){}},400)
+}
+function cardMarks(a){if(!a)return false;if(S.sel==='saved'||(S.hideRead&&S.read[a.link]))return false;const sv=isSaved(a),rd=!!S.read[a.link];cardCount(a,rd);document.querySelectorAll('#grid .card').forEach(c=>{if(chref(c)!==a.link)return;c.classList.toggle('read',rd);ribSync(c,sv);const b=c.querySelector('[data-star]');if(b){b.setAttribute('aria-pressed',sv?'true':'false');b.innerHTML=starSvg(sv)}});try{dgProgUpdate()}catch(e){}return true}
 function markReadA(a){if(!a||S.read[a.link])return;S.read[a.link]=1;(a.more||[]).forEach(m=>S.read[m.l]=1);trimRead();saveSoon();/* David 2026-11-05: a read mark is not worth a full synchronous library write while the story animates in */try{dgProgUpdate()}catch(e){}document.querySelectorAll('#grid .card[data-i]').forEach(c=>{if(chref(c)===a.link)c.classList.add('read')})}
 function wpmTick(f){const now=Date.now();if(R.lf!=null&&R.words>150){const dt=(now-R.lt)/60000,df=f-R.lf;if(df>0&&df<.25&&dt>.02&&dt<1.5){const w=df*R.words/dt;if(w>=90&&w<=550)S.wpm=Math.round((S.wpm||230)*.85+w*.15)}}R.lf=f;R.lt=now}
 function bodyEnd(){const b=$('.cols .body');if(!b)return null;const k=[...b.children].filter(e=>!e.matches('.bfold,.endmark,.rfoot,script,style'));/* the story ends at its last line of text, not at the footer under it */return k.pop()||null}
