@@ -2140,3 +2140,7 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Offline: open a story that is not stored, go back online: the full story should load by itself.
 - Dynamic picture cover: the site name above the headline is now white.
 - Weekly tab shows the chosen review day (Monday/Friday/Saturday) instead of always "Sunday".
+
+## 2026-11-19 PM deep dive, round 2 (page turn and speed)
+- Open Fold, Dynamic theme, story with a whole-screen picture cover: tap past the cover, tap to fade the picture, wait a second, tap again: the first page turn starts at once (no freeze), looks like every other turn, and no picture-less page flashes for a frame.
+- Phone: open a long story and turn pages right away and then steadily: no hitch after opening, every tap turns exactly one page, and the turn stays a curl (not flat) after several quick turns.
