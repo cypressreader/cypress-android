@@ -1768,6 +1768,7 @@ html.rdx .cols>.hsf.hs-top img.hero{width:100%;height:auto;aspect-ratio:auto;max
 .sop .sfrom{opacity:.75;margin-top:3px}
 .stl{margin:1.6em 0 1em;padding-top:1em;border-top:1px solid var(--ln);text-align:left;font-family:var(--sans);hyphens:none;break-inside:avoid}
 .stl h4{font:600 12px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:0 0 10px}
+.prvb{margin:0 0 1.4em;padding:10px 0;border-block:1px solid var(--ln);font:400 .8em/1.4 var(--sans);text-indent:0;text-align:left;hyphens:none;break-inside:avoid}.prvb h4{font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:0 0 6px}.prvb ol{list-style:none;margin:0;padding:0 0 0 12px;border-left:2px solid var(--ln)}.prvb li{margin:4px 0}.prvb time{font-weight:600;color:var(--a1)}.prvb small{color:var(--mut)}
 .stl ol{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px solid var(--ln)}
 .stl li{position:relative;padding:0 0 14px 16px;display:grid;grid-template-columns:78px 1fr;gap:10px}
 .stl li::before{content:'';position:absolute;left:-22px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--pn);border:2px solid var(--a1)}
@@ -2064,7 +2065,7 @@ html.dynx[data-theme=dynamic] #rd .body .intl small{font:600 11px var(--sans);le
 html.dynx[data-theme=dynamic] #rd .body .csh{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 18px;break-inside:avoid}
 html.dynx[data-theme=dynamic] #rd .body .csh button{position:relative;padding:0;border:0;background:none;aspect-ratio:1;cursor:pointer;border-radius:3px;overflow:hidden}
 html.dynx[data-theme=dynamic] #rd .body .csh img{width:100%;height:100%;max-height:none!important;object-fit:cover;display:block;margin:0;border-radius:0}
-html.dynx[data-theme=dynamic] #rd .body .csh span{position:absolute;left:6px;top:4px;font:600 11px var(--sans);color:#fff;text-shadow:0 1px 3px #000}
+html.dynx[data-theme=dynamic] #rd .body .csh button[aria-current]::after{content:'';position:absolute;inset:8%;border:3px solid #d0342c;border-radius:50% 46% 52% 44%;transform:rotate(-4deg)}html.dynx[data-theme=dynamic] #rd .body .csh span{position:absolute;left:6px;top:4px;font:600 11px var(--sans);color:#fff;text-shadow:0 1px 3px #000}
 @media (prefers-reduced-motion:no-preference){html.dynx[data-theme=dynamic] #rd.tide,html.dynx[data-theme=dynamic] #rd.tide :is(.view,.book){transition:background-color 1.2s linear}}
 /* headline voice */
 html.dynx[data-theme=dynamic] #rd .cols[data-hv=news] .tt{font-family:var(--sans);font-weight:700;letter-spacing:-.022em}
@@ -12646,6 +12647,17 @@ function timeline(){
  if(k)k.before(d);else if(o)o.before(d);else c.append(d);
  if(R&&R.pg===0)try{relayout()}catch(e){}
 }
+/* idea book M14: a running story opens with the stories you already read on it (from your own history on the phone, last 60 days, two or more shared headline words), oldest first */
+function prevBox(){
+ const b=$('.cols .body'),a=curA;if(!b||!a||a.book||R.web||b.querySelector('.prvb'))return;
+ const w=new Set(sigW(a.title)),now=Date.now();if(w.size<2)return;
+ const L=(S.hist||[]).filter(h=>h.l!==a.link&&h.ti&&now-h.t<60*864e5).map(h=>[h,sigW(h.ti).filter(x=>w.has(x)).length]).filter(x=>x[1]>=2).sort((x,y)=>y[1]-x[1]).slice(0,3).map(x=>x[0]).sort((x,y)=>x.t-y.t);
+ if(!L.length)return;
+ const d=document.createElement('aside');d.className='prvb';
+ d.innerHTML='<h4>Previously</h4><ol>'+L.map(h=>`<li><time>${esc(new Date(h.t).toLocaleDateString('en-US',{month:'short',day:'numeric'}))}</time> <span>${esc(h.ti)}</span>${h.ft?` <small>${esc(h.ft)}</small>`:''}</li>`).join('')+'</ol>';
+ const p=b.querySelector(':scope>p');(p||b.firstChild)?(p||b.firstChild).before(d):b.append(d);
+ if(R&&R.pg===0)try{relayout()}catch(e){}
+}
 function covTitle(){
  if(covTitle.io){covTitle.io.disconnect();covTitle.io=null}
  const c=$('#grid .cover');if(!c||!/^[fsk]:/.test(S.sel||'')||!('IntersectionObserver' in window)){document.body.classList.remove('hascov');return}
@@ -12820,7 +12832,7 @@ function rdPal(o){
 }
 function keepRead(){
  setTimeout(dynReader,700);try{trfAuto()}catch(e){}
- {const my=curA;setTimeout(()=>{if(curA===my)timeline()},50)}
+ {const my=curA;setTimeout(()=>{if(curA===my){timeline();try{prevBox()}catch(e){}}},50)}
  setTimeout(()=>{alsoLike().catch(()=>{})},900);
  const c=$('.cols');if(!c||!curA||c.querySelector('.kr:not(.dsc)'))return;
  const l=(items[curA.feedId]||[]).filter(x=>x.link!==curA.link&&!S.read[x.link]&&!muted(x)).sort((x,y)=>y.date-x.date).slice(0,3);
@@ -15093,7 +15105,7 @@ function storyLooks3(b,c,ps,wds,LOOK,dyn){
   /* idea book M9: a long story in chapters (the same test that numbers them) lists them on its first page; a tap goes to that chapter */
   {const H=[...b.querySelectorAll(':scope>h2')];if(dyn&&!c.dataset.lst&&wds>=900&&H.length>=3&&H.length<=9&&ps[0]&&!eq.length){const n=mk('nav','tlk chc');n.setAttribute('aria-label','Chapters');n.append(mk('small','','In this story'));H.forEach((h,i)=>{const t=h.textContent.replace(/\s+/g,' ').trim(),bt=mk('button','',String(i+1).padStart(2,'0')+' · '+(t.length>40?t.slice(0,40).replace(/\s\S*$/,'')+'…':t));bt.type='button';bt.addEventListener('click',()=>csGo(h));n.append(bt)});ps[0].before(n)}}
   if(dyn&&wds>=1200&&ps.length>=14)for(let i=Math.floor(ps.length*.45);i<ps.length*.75;i+=6){const o=dyOpen(ps.slice(i,i+6));if(o&&o[0]==='q'){const e=mk('aside','intl');e.setAttribute('aria-hidden','true');e.append(mk('b','','“'+o[1]+'”'),mk('small','',o[2]));(ps[i+6]||ps[i]).before(e);break}}
-  if(pst){const n=mk('div','csh');figs.slice(0,12).forEach((f,i)=>{const bt=mk('button',''),im=new Image();bt.type='button';bt.setAttribute('aria-label','Go to picture '+(i+1));im.referrerPolicy='no-referrer';im.alt='';im.src=f.querySelector('img').currentSrc||f.querySelector('img').src;bt.append(im,mk('span','',i+1));bt.addEventListener('click',()=>csGo(f));n.append(bt)});b.prepend(n)}
+  if(pst||(dyn&&figs.length>=6&&ps[0])){/* idea book M21: six or more pictures open on the contact sheet too; the frame last tapped is ringed in grease-pencil red */const n=mk('div','csh');figs.slice(0,12).forEach((f,i)=>{const bt=mk('button',''),im=new Image();bt.type='button';bt.setAttribute('aria-label','Go to picture '+(i+1));im.referrerPolicy='no-referrer';im.alt='';im.src=f.querySelector('img').currentSrc||f.querySelector('img').src;bt.append(im,mk('span','',i+1));bt.addEventListener('click',()=>{n.querySelectorAll('[aria-current]').forEach(x=>x.removeAttribute('aria-current'));bt.setAttribute('aria-current','true');csGo(f)});n.append(bt)});b.prepend(n)}
   if(storyLooks3.io){storyLooks3.io.disconnect();storyLooks3.io=null}const rd=$('#rd');if(rd)rd.classList.remove('tide');
   if(dyn&&figs.length>=2&&!c.dataset.tl/* D4: a live thread keeps one calm color */&&rd&&window.IntersectionObserver&&!(navigator.connection&&navigator.connection.saveData)){rd.classList.add('tide');const io=storyLooks3.io=new IntersectionObserver(es=>es.forEach(x=>{if(x.intersectionRatio<.6)return;imgInfo(x.target.currentSrc||x.target.src).then(o=>{if(o&&o.t&&io===storyLooks3.io&&b.isConnected)rdTone(o.t)}).catch(()=>{})}),{threshold:.6});const h=(c.closest('.cols')||c).querySelector('img.hero');[h,...figs.map(f=>f.querySelector('img'))].forEach(i=>{if(i)io.observe(i)})}}
  /* openers for a story with no picture at all (and no poster or title page): its strongest early quote from a named person, or else an early figure with the sentence it sits in */
