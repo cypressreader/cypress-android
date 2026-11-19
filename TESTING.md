@@ -2155,3 +2155,9 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 ## 2026-11-19 PM deep dive, round 2 (The Daily's layout and theme typefaces)
 - Open Fold / tablet (landscape, side list showing): The Daily's cover runs the full width right of the side list, picture fills it with faces kept in, headline, intro, three story lines in a row and the play bar all readable, nothing overlapping, cover about one screen tall; phone cover unchanged.
 - Phone: scroll The Daily's "More from your sites": after three plain rows a story with a picture shows as a picture card; with story card size Compact everything stays rows.
+## 2026-11-19 PM deep dive, round 2 (story openers and reading typography)
+- Dynamic theme, phone: a very short story (under about 150 words) with a big picture opens with the picture on top and the text on the same page, not a whole-page cover; check the page turn from it.
+- Open Fold: a cover with a one-word headline shows it large, a very long headline stays within five lines over the picture; check after rotating.
+- A story whose lead picture is small (a logo or a 120px photo) shows it at its own size, centered, in pages and scroll reading.
+- Night, Dark or Dynamic: story text reads warm off-white, story pictures a little dimmer; check skin tones do not look muddy. Daily cover picture at night in Coast, Sepia Rosewood, Black & White and Aurora is slightly dimmed.
+- Section headings inside a story are in the theme's accent ink and larger, day and night, readable on the phone's screen.
