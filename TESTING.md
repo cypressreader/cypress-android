@@ -2140,3 +2140,8 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Offline: open a story that is not stored, go back online: the full story should load by itself.
 - Dynamic picture cover: the site name above the headline is now white.
 - Weekly tab shows the chosen review day (Monday/Friday/Saturday) instead of always "Sunday".
+
+## 2026-11-19 PM deep dive, round 2 (navigation, story bar, settings, names, tap targets)
+- On a real phone: the story bar shows Back, site name, Save, Listen, Text and More without wrapping at 360 px; Save turns gold when saved; Text opens the sheet and Back returns focus to it.
+- On a real phone: the new 44 px touch areas (chips, Sections, Catch me up, Surprise me, MORE, Dismiss, queue pill, Play the Daily, onboarding chips) hit the intended control and never the neighbour.
+- On a real phone: after "Start with popular sites" the tip waits until the toast has gone and sits above the Daily play bar.
