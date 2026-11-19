@@ -2171,3 +2171,9 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - [ ] (1.353) Night (Always dark): Cypress lamp glow at the top (subtle, not a stain), Rosewood ember accent, Coast navy + yellow, Black & White graphite + red section number. Daily section numbers colored per theme. Newsprint section flags (box / reversed / underline / italic) on long headings; first story line in small caps.
 - [ ] (1.353) T1 cover frames: Cypress brass frame, Coast white postcard border, Rosewood arched picture, Black & White photo cover becomes type-only (black), Aurora glowing headline at night, Newsprint thin keyline.
 - [ ] (1.353) Velvet theme (Settings > Look > Color): day champagne, night aubergine + gold; story headlines in Playfair. Newsprint on the OPEN Fold: broadsheet front (lead left two thirds, side column, dashed fold line). Folded phone unchanged.
+
+## 2026-11-19 (after 1.353, branch preview/pm-deep-dive) — implemented, unverified on device
+- N1 (in 1.353): Newsprint Daily cover shows two boxed ears beside CYPRESS (stories/minutes left; offline count + No. right); on the phone they sit under the title.
+- D2: Dynamic story page by day takes the picture's light tone, at night its shadow tone (label/first letter keep the main color).
+- D7: Dynamic Daily section headings and the background glow take each section's lead picture color (fixed color until measured).
+- D9: Dynamic, tapping a card grows its color to full screen (~0.5 s) as the story opens; none with Reduce motion / low power / data saver. Check it never flickers or blocks taps.
