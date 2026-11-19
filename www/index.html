@@ -12118,7 +12118,7 @@ $('#ref').onclick=async()=>{
  try{await Promise.race([loadAll(true),new Promise(r=>setTimeout(r,20000))])}catch(e){}finally{b.classList.remove('spin')}
  try{sfxTone('refresh');WIRE.pillT=Date.now();wireReset();wireSettle()}catch(e){}
  const n=S.feeds.flatMap(f=>items[f.id]||[]).filter(a=>!before.has(a.link)).length,badL=S.feeds.filter(f=>state[f.id]==='err'),bad=badL.length,slow=S.feeds.filter(f=>state[f.id]==='load').length;
- toast((n?n+' new '+(n===1?'story':'stories'):slow?'No new stories yet':'No new stories')+(bad===1?' · '+badL[0].title+' didn’t respond':bad?' · '+bad+' sites didn’t respond':'')+(slow?' · '+slow+(slow===1?' site is':' sites are')+' still loading':''));
+ toast((n?n+' new '+(n===1?'story':'stories'):slow?'No new stories yet':'No new stories')+(bad?' · '+bad+(bad===1?' site':' sites')+' didn’t answer':'')+(slow?' · '+slow+(slow===1?' site is':' sites are')+' still loading':''),bad?()=>$('#mgb').click():undefined,'Check my sites');
 };
 function markList(L,old){const add=[];let k=0;L.forEach(a=>{if(!S.read[a.link])k++;[a.link,...(a.more||[]).map(m=>m.l)].forEach(l=>{if(!S.read[l])add.push(l);S.read[l]=1})});trimRead();save();render();
  if(add.length)toast('Marked '+(k||1)+(k>1?' stories':' story')+' as read',()=>{add.forEach(l=>delete S.read[l]);save();render()});else toast(old?'Nothing that old to mark':'Everything here is already read')}
