@@ -2152,3 +2152,6 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 ## 2026-11-19 PM deep dive, round 2 (page turn and speed)
 - Open Fold, Dynamic theme, story with a whole-screen picture cover: tap past the cover, tap to fade the picture, wait a second, tap again: the first page turn starts at once (no freeze), looks like every other turn, and no picture-less page flashes for a frame.
 - Phone: open a long story and turn pages right away and then steadily: no hitch after opening, every tap turns exactly one page, and the turn stays a curl (not flat) after several quick turns.
+## 2026-11-19 PM deep dive, round 2 (The Daily's layout and theme typefaces)
+- Open Fold / tablet (landscape, side list showing): The Daily's cover runs the full width right of the side list, picture fills it with faces kept in, headline, intro, three story lines in a row and the play bar all readable, nothing overlapping, cover about one screen tall; phone cover unchanged.
+- Phone: scroll The Daily's "More from your sites": after three plain rows a story with a picture shows as a picture card; with story card size Compact everything stays rows.
