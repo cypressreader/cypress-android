@@ -2149,3 +2149,6 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - On a real phone: the story bar shows Back, site name, Save, Listen, Text and More without wrapping at 360 px; Save turns gold when saved; Text opens the sheet and Back returns focus to it.
 - On a real phone: the new 44 px touch areas (chips, Sections, Catch me up, Surprise me, MORE, Dismiss, queue pill, Play the Daily, onboarding chips) hit the intended control and never the neighbour.
 - On a real phone: after "Start with popular sites" the tip waits until the toast has gone and sits above the Daily play bar.
+## 2026-11-19 PM deep dive, round 2 (page turn and speed)
+- Open Fold, Dynamic theme, story with a whole-screen picture cover: tap past the cover, tap to fade the picture, wait a second, tap again: the first page turn starts at once (no freeze), looks like every other turn, and no picture-less page flashes for a frame.
+- Phone: open a long story and turn pages right away and then steadily: no hitch after opening, every tap turns exactly one page, and the turn stays a curl (not flat) after several quick turns.
