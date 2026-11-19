@@ -7120,9 +7120,10 @@ function render0(){
  MUTN=0;if(S.sel!=='saved'||q)cur=q?cur.filter(a=>!muted(a)):mutCut(cur);
  /* search scope: All (every site, full text, history), Unread or Saved */
  if(q&&QSC==='saved')cur=S.saved.slice();if(q&&QSC==='unread')cur=cur.filter(a=>!S.read[a.link]);
- if(q)cur=cur.filter(a=>((a.title||'')+' '+(a.summary||'')+' '+(a.tags||[]).join(' ')).toLowerCase().includes(q));if(q&&QSC!=='saved')cur=cur.slice(0,200);
- if(q&&q.length>=3&&S.sel!=='saved'&&QSC==='all'){const have0=new Set(cur.map(a=>a.link));let n=0;for(const l in AC){if(n>=30)break;if(have0.has(l))continue;if(acText(l).includes(q)){const st=findStory(l);if(st){cur.push(st);have0.add(l);WHY[l]='Found in the full text of this story.';n++}}}}
- if(q&&S.sel!=='saved'&&QSC==='all'){const have=new Set(cur.map(a=>a.link));S.hist.filter(h=>!have.has(h.l)&&((h.ti||'')+' '+(h.ft||'')).toLowerCase().includes(q)).slice(0,40).forEach(h=>{cur.push(histStory(h));WHY[h.l]='You read this earlier.'})}
+ if(q)cur=cur.filter(a=>((a.title||'')+' '+(a.summary||'')+' '+(a.tags||[]).join(' ')+(QSC==='saved'&&a.html?' '+a.html.replace(/<[^>]*>/g,' '):'')).toLowerCase().includes(q));/* F16: Saved search reads the saved text too */if(q&&QSC!=='saved')cur=cur.slice(0,200);
+ if(q&&q.length>=3&&S.sel!=='saved'&&QSC==='all'){const have0=new Set(cur.map(a=>a.link));let n=0;for(const l in AC){if(n>=30)break;if(have0.has(l))continue;if(acText(l).includes(q)){const st=findStory(l);if(st){cur.push({...st,summary:qSnip(AC[l].h,q)});/* F16: the card shows the sentence it was found in */have0.add(l);WHY[l]='Found in the full text of this story.';n++}}}}
+ if(q&&S.sel!=='saved'&&QSC==='all'){const have=new Set(cur.map(a=>a.link));S.hist.filter(h=>!have.has(h.l)&&((h.ti||'')+' '+(h.ft||'')).toLowerCase().includes(q)).slice(0,40).forEach(h=>{cur.push(histStory(h));have.add(h.l);WHY[h.l]='You read this earlier.'});
+  /* F16: your highlights and notes are searched too */(S.hl||[]).filter(h=>h.art&&h.art.link&&!have.has(h.art.link)&&((h.q||'')+' '+(h.note||'')).toLowerCase().includes(q)).slice(0,30).forEach(h=>{cur.push({...h.art,summary:'“'+h.q+'”'+(h.note?' Note: '+h.note:'')});have.add(h.art.link);WHY[h.art.link]='Matches your highlight in this story.'})}
  if(S.hideRead&&S.sel!=='saved'&&!q)cur=cur.filter(a=>!S.read[a.link]);
  if(S.group!==false&&S.sel!=='saved')cur=group(cur);
  if(S.sel==='all'&&!q){if(wireOn())cur=wireList(cur);else if(smartOn()){cur=smartAll(cur);SMARTV=true}else cur=capList(cur)}
@@ -12502,6 +12503,8 @@ const acHas=l=>!!AC[l];
 async function acLoad(l){const e=AC[l];if(!e)return null;if(e.h)return e.h;if(!IDB.ok)return null;const v=await new Promise(res=>{try{const t=IDB.db.transaction('art','readonly'),r=t.objectStore('art').get(l);r.onsuccess=()=>res(r.result);r.onerror=t.onabort=()=>res(null)}catch(x){res(null)}});if(v&&v.h&&AC[l]){AC[l]=v;return v.h}return null}
 function acTrim(){const ks=Object.keys(AC).filter(k=>AC[k].h).sort((a,b)=>AC[b].t-AC[a].t);for(let i=120;i<ks.length;i++){AC[ks[i]]={t:AC[ks[i]].t,h:'',c:AC[ks[i]].c}}}
 const ACTX=new Map();
+/* F16: the sentence around a search word, from a story's stored text (as written, not lowercased) */
+function qSnip(h,q){const t=String(h||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/\s+/g,' '),i=t.toLowerCase().indexOf(q);if(i<0)return '';const pp=t.lastIndexOf('. ',i);let a=pp<0?Math.max(0,i-90):Math.max(pp+2,i-90),b=t.slice(i).search(/[.!?](\s|$)/);b=b<0?Math.min(t.length,i+120):Math.min(i+b+1,i+140);return (a>0&&a!==pp+2?'…':'')+t.slice(a,b).trim()+(b<t.length&&!/[.!?]$/.test(t.slice(a,b).trim())?'…':'')}
 function acText(l){const e=AC[l];if(!e||!e.h)return '';let c=ACTX.get(l);if(!c||c.n!==e.h.length){c={n:e.h.length,t:e.h.replace(/<[^>]*>/g,' ').replace(/&[a-z#0-9]+;/gi,' ').replace(/\s+/g,' ').toLowerCase()};ACTX.set(l,c);if(ACTX.size>500)ACTX.delete(ACTX.keys().next().value)}return c.t}
 /* c=1 marks a render-ready copy: extracted, cleaned and title-dropped when it was stored, so opening it needs no fetching, parsing or cleaning */
 /* Three separate budgets: saved stories and The Daily's current edition are kept for good and are not counted against the rest; everything else is a rolling set of the chosen size (50, 100 or 200), and when a new story arrives the oldest goes (stories you have already read go first). */
