@@ -2183,3 +2183,11 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - D6: Aa sheet "This story's look: Picture / Panel / Quiet" (Dynamic, big-picture stories only); re-sets the story in place, remembered per story.
 - M2: default line spacing opens up with larger text (18px unchanged).
 - M9: Dynamic long story with 3+ chapters lists "In this story" chapters on page 1; tap jumps to the chapter.
+- M13: Dynamic live thread: newest entry time reads "· LATEST", key moments get a filled dot on the line.
+- M14: a story whose headline shares 2+ words with stories you read in the last 60 days opens with a "Previously" box (dates + titles).
+- M15: a paragraph that opens with a quote mark (unindented) hangs the mark outside the text edge.
+- M21: Dynamic story with 6+ pictures opens on a contact sheet; the tapped frame gets a red grease-pencil ring.
+- M25: The Daily's "In this issue" starts with "Today's issue:" and up to three short headlines.
+- M27: Daily section headings: The Brief in a tight sans, Deep Dives italic (not Halcyon/Coast display fonts, not Newsprint).
+- F1: sites you read to the end rise in For you ("You finish most stories from X" under Why); needs 25+ history entries.
+- F2: long-press menu "Fewer like this: <topic>" hides it 30 days with Undo.
