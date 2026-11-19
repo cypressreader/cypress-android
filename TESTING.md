@@ -2145,3 +2145,7 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Preload on the phone (R1, needs a real build): on Wi-Fi open Settings, Report a problem and check the "Preload:" line: it should say `netKind wifi · phone says wifi true metered false` and `cap 40 of 40`. On mobile data or a hotspot it must say `netKind cell` and `cap 0`. Also confirm the build still lists no new permission (ACCESS_NETWORK_STATE comes from a merged library; `wifi` is read the same way as `metered`).
 - Refresh with a site down (R12): pull to refresh with one site unreachable, the note should read "1 site didn't answer" with a Check my sites button that opens the sites list.
 - Listen with no voice (R20, web only): in a browser with no speech voices, Daily Listen shows the "No voices" note once and no player bar stays up.
+## 2026-11-19 PM deep dive, round 2 (navigation, story bar, settings, names, tap targets)
+- On a real phone: the story bar shows Back, site name, Save, Listen, Text and More without wrapping at 360 px; Save turns gold when saved; Text opens the sheet and Back returns focus to it.
+- On a real phone: the new 44 px touch areas (chips, Sections, Catch me up, Surprise me, MORE, Dismiss, queue pill, Play the Daily, onboarding chips) hit the intended control and never the neighbour.
+- On a real phone: after "Start with popular sites" the tip waits until the toast has gone and sits above the Daily play bar.
