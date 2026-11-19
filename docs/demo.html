@@ -3350,7 +3350,7 @@ html.rmo .tbi,html.lowp .tbi{transition:none}
 .dsh>span{display:inline-flex;align-items:baseline;gap:6px;white-space:nowrap}
 .dtoc{margin:0 0 30px;padding:16px 18px;border:1px solid var(--ln);border-radius:14px;background:var(--pn)}
 .dtoc h4{margin:0 0 10px;font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
-.dtoc ol{list-style:none;margin:0;padding:0}#mvc[hidden],#mvv[hidden]{display:none}#mvc{display:block;width:min(100%,320px);height:auto;margin:8px auto;image-rendering:pixelated;border-radius:6px}#mvv{display:block;width:100%;max-height:50vh;margin:8px 0;border-radius:10px;background:#000;object-fit:cover}.dtoc-n{margin:2px 0 10px;font:italic 400 15px/1.45 var(--serif);color:var(--mut);text-wrap:pretty}.dtoc-n b{font:600 11px/1 var(--sans);font-style:normal;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);margin-right:4px}
+.dtoc ol{list-style:none;margin:0;padding:0}.colcv{grid-column:1/-1;position:relative;display:grid;align-items:end;min-height:min(56vw,320px);margin:4px 0 18px;border-radius:14px;overflow:hidden;background:var(--plate,var(--a1));color:#fff}.colcv>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.colcv>div{position:relative;padding:48px 20px 18px;background:linear-gradient(transparent,rgba(0,0,0,.72))}.colcv.noimg>div{background:none}.colcv small{font:600 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;opacity:.9}.colcv h2{margin:4px 0 0;font:500 clamp(30px,8vw,46px)/1.05 var(--disp,var(--serif));color:#fff}#mvc[hidden],#mvv[hidden]{display:none}#mvc{display:block;width:min(100%,320px);height:auto;margin:8px auto;image-rendering:pixelated;border-radius:6px}#mvv{display:block;width:100%;max-height:50vh;margin:8px 0;border-radius:10px;background:#000;object-fit:cover}.dtoc-n{margin:2px 0 10px;font:italic 400 15px/1.45 var(--serif);color:var(--mut);text-wrap:pretty}.dtoc-n b{font:600 11px/1 var(--sans);font-style:normal;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);margin-right:4px}
 .dtoc button{display:grid;grid-template-columns:2.2em 1fr auto;align-items:baseline;gap:6px;width:100%;padding:8px 0;text-align:left;border:0;border-bottom:1px dotted var(--ln);background:none;color:var(--ink);font:600 17px var(--serif,Georgia,serif);cursor:pointer}
 .dtoc li:last-child button{border-bottom:0}
 .dtoc button i{font:700 12px var(--sans);font-style:normal;letter-spacing:.1em;color:var(--a1,var(--mut))}
@@ -7135,7 +7135,7 @@ function render0(){
  }
  let pre='';
  if(S.sel==='all'&&!q)pre=(S.feeds.length?allSeg('latest'):'')+brkHtml(cur)+latestMast();
- if(S.sel==='saved'&&!q&&S.saved.length)pre=shelfMast()+savedChips();
+ if(S.sel==='saved'&&!q&&S.saved.length)pre=shelfMast()+savedChips()+colCover();
  if(q&&q.length>=3&&!S.sk.some(k=>k.words.length===1&&k.words[0]===q))pre=topicMast(q,cur);
  if(!q&&S.sel.startsWith('s:')){const f=S.feeds.find(x=>'s:'+x.id===S.sel);if(f&&paused(f))pre=`<div class="fbar"><span>${esc(f.title)} is paused${f.snz>8e15?'':' until '+esc(new Date(f.snz).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}))}. Its stories are hidden from Today and All Stories.</span><button class="tx2" data-resume="${f.id}">Resume</button></div>`;else if(f&&f.via==='bing')pre=`<div class="fbar"><span>Showing ${esc(f.title)} headlines from Bing News, because ${f.viaWhy==='stale'?'the site’s own feed is out of date':'the site blocks feed readers'}. Stories still open from ${esc(siteOf(f))}.</span></div>`;else if(f&&state[f.id]==='err')pre=`<div class="fbar"><span><b>We couldn’t refresh ${esc(f.title)}.</b> ${esc(feedReason(f))}. ${esc(lastOkTxt(f))}.</span><button class="tx2" data-frep="${f.id}">Try again</button></div>`}
  if(!q&&S.sel.startsWith('k:')){const k=S.sk.find(x=>'k:'+x.id===S.sel);if(k)pre=`<div class="fbar"><span>Following ${k.by||k.sec?'':'“'}${esc(kdesc(k))}${k.by||k.sec?'':'”'} across all your sites</span><button class="tx2" data-unfollow="${k.id}">Unfollow</button></div>`}
@@ -14230,6 +14230,11 @@ async function collectionPrompt(a){
  const v=await askBox({title:'Add to a collection',text:ex.length?'Your collections: '+ex.join(', '):'Type a name for a new collection.',input:true,ok:'Add'});
  if(v===null)return;const t=v.trim().slice(0,30);if(!t)return;
  if(!isSaved(a))toggleSave(a);const sv=S.saved.find(x=>x.link===a.link);if(!sv)return;sv.tags=[...new Set([...(sv.tags||[]),t])];save();render();toast('Added to “'+t+'”');
+}
+/* idea book F15: a collection opens like a small magazine, under a cover made from its first picture, its name and how many stories it holds */
+function colCover(){
+ if(!S.stag||S.stag[0]==='~')return '';const l=S.saved.filter(a=>(a.tags||[]).includes(S.stag));if(!l.length)return '';const im=(l.find(a=>a.img)||{}).img||'';
+ return `<div class="colcv${im?'':' noimg'}">${im?`<img src="${esc(im)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''}<div><small>Collection · ${l.length} ${l.length===1?'story':'stories'}</small><h2>${esc(S.stag)}</h2></div></div>`;
 }
 function savedChips(){
  const tags={};S.saved.forEach(a=>(a.tags||[]).forEach(t=>tags[t]=(tags[t]||0)+1));const nar=S.saved.filter(a=>a.ar).length,nur=S.saved.filter(a=>!a.ar&&!S.read[a.link]).length,nrs=S.saved.filter(svRes).length;

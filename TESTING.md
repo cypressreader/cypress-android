@@ -2193,3 +2193,4 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - F2: long-press menu "Fewer like this: <topic>" hides it 30 days with Undo.
 - F22 (needs TWO phones): old phone Settings > Sites & backup > Move to a new phone > Show codes (codes cycle every 0.7 s, screen stays on); new phone > Scan codes: Android asks for the camera once, "Got N of M parts…", then "Copied X sites, Y saved stories and Z highlights". Check: camera permission prompt appears (Capacitor), BarcodeDetector exists in the WebView (if not, the box says to use Back up/Restore), camera light goes off after. Desk test: QR maker decoded by ZXing at versions 1-39; mocked scan merged 60 sites.
 - F16: search finds words inside downloaded/saved story text (card shows the matching sentence), and inside your highlights and notes.
+- F15: Saved > a collection chip opens with a cover (first picture, 'Collection · N stories', its name).
