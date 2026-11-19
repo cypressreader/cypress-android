@@ -8284,7 +8284,7 @@ function nrBlocks(l,base,o){
   /* a lone leftover story joins the lead's list instead of getting its own "Next up" header, and an empty middle column draws no rule */
   if(rail.length===1)sub.push(rail.pop());
   const lh=nrLH(rail.length),lc=nrLC();
-  pb([lead[0],...sub,...mid,...rail],()=>`<section class="nr-top${tv===2?' nr-flip':''}"><div class="nr-lw">${C(lead[0],'nr-lead')}${sub.length?`<div class="nr-lsub">${sub.map(i=>C(i,'nr-late')).join('')}</div>`:''}</div>${mid.length?`<div class="nr-mid">${mid.map(i=>C(i,'nr-row nr-m')).join('')}</div>`:''}${rail.length?`<div class="nr-rail">${lh}<div class="nr-rl">${rail.map(i=>C(i,lc)).join('')}</div></div>`:''}</section>`);
+  pb([lead[0],...sub,...mid,...rail],()=>`<section class="nr-top${tv===2?' nr-flip':''}"><div class="nr-lw">${C(lead[0],'nr-lead')}${sub.length?`<div class="nr-lsub">${sub.map(i=>C(i,'nr-late')).join('')}</div>`:''}</div>${mid.length?`<div class="nr-mid">${mid.map((i,j)=>C(i,o&&o.brk&&sub.length+j===Math.max(3,sub.length)?'nr-sp':'nr-row nr-m')).join('')}</div>`:''}${rail.length?`<div class="nr-rail">${lh}<div class="nr-rl">${rail.map(i=>C(i,lc)).join('')}</div></div>`:''}</section>`);
  }
  const seq=(o&&o.seq)||NRPAT[(seed>>3)%3];let n=0,guard=0,fl=0,qn=0,statDone=false,lt='';
  const river=max=>{const ix=P.pick(null,max);if(!ix.length)return false;const hd=SMARTV?'':`<h4>${nrAge(l[ix[0]])}</h4>`;pb(ix,()=>`<section class="nr-river">${hd}<div class="nr-rv">${ix.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`);return true};
@@ -8725,12 +8725,18 @@ function daySections(list,mode){
  const issue=issueNo();
  const sh=(id,t,sub,count,unit)=>{n++;const nn=String(n).padStart(2,'0');secs.push([id,nn,t,count,unit]);const dk=(DAYDEK[id]||[])[id==='front'&&S.feeds.length<2?0:peHash(edKey()+id)%2]||'';return `<div class="dhd">${dayArch()}<div class="dfx">${n===1?`<span>Vol. ${String(edDate().getFullYear()).slice(-2)}</span>`:''}<i></i><b>${nn}</b><i></i>${n===1?`<span>No. ${issue}</span>`:''}</div><h3 class="dsh" id="dsec-${id}" aria-level="2"${SECCOL[id]?` style="--sc:${SECCOL[id]}"`:''}><span>${t}</span></h3>${dk?`<p class="ddek">${dk}</p>`:''}</div>`};
  /* a pull quote after every fifth headline row, when that story has a line worth lifting */
- const rowsQ=arr=>{let h='',buf='',k=0;const wrap=x=>`<div class="nr-river"><div class="nr-rv">${x}</div></div>`;for(const a of arr){buf+=C(a,'nr nr-row nr-s');k++;if(k%5===0){const pq=pullQuoteHtml(a);if(pq){h+=wrap(buf)+pq;buf=''}}}return h+(buf?wrap(buf):'')};
+ /* after three plain rows in a row, the next story with a picture opens a picture card with the next rows beside it (stacked on a phone), so no two screens of the issue look the same; Compact stays rows */
+ const brk=!nrDense();let fl=0;
+ const rowsQ=arr=>{let h='',buf='',k=0,run=0;const wrap=x=>`<div class="nr-river"><div class="nr-rv">${x}</div></div>`,pqAt=a=>++k%5===0?pullQuoteHtml(a):'';
+  for(let i=0;i<arr.length;i++){const a=arr[i];
+   if(brk&&run>=3&&a.img&&i+1<arr.length){const tx=arr.slice(i+1,i+4);i+=tx.length;let pq='';tx.forEach(x=>{pq=pqAt(x)||pq});h+=(buf?wrap(buf):'')+`<section class="nr-split${fl++%2?' nr-flip':''}"><div class="nr-spl">${C(a,'nr nr-sp')}</div><div class="nr-spr">${tx.map(x=>C(x,'nr nr-row')).join('')}</div></section>`+pq;buf='';run=pq?0:tx.length;continue}
+   buf+=C(a,'nr nr-row nr-s');run++;const pq=pqAt(a);if(pq){h+=wrap(buf)+pq;buf='';run=0}}
+  return h+(buf?wrap(buf):'')};
  const frontCount=front.length+(lead&&!COVSHOWN?1:0);
  SMARTV=true;NRLAB='Next up';
  B.push(`<div class="dsec2">${sh('front','The Front Page','',frontCount,'stories')}</div>`);
  if(lead&&!lead.read){if(!COVSHOWN)B.push(royalHtml(lead,0));const L=ledeOf(lead),cand=[lead].concat(front),pick=cand.find(x=>{const q=nrQuoteText(x);return q&&q.real&&q.q!==L})||front.find(x=>{const q=nrQuoteText(x);return q&&q.q!==L});const pq=pick?pullQuoteHtml(pick):'';if(pq)B.push(pq)}
- if(front.length)nrBlocks(front,base).forEach(b=>B.push(b));
+ if(front.length)nrBlocks(front,base,{brk:brk&&VW<700/* the front page's middle column is a list of rows only at phone width; wider it is already a grid of pictures */}).forEach(b=>B.push(b));
  NRLAB='Latest';SMARTV=false;
  if(bkDayOn()){B.push('<section class="dsec2 dchap" id="dchap" aria-labelledby="dchk" hidden></section>');setTimeout(bkDay,30)}/* a book in progress: today's chapter, like a newspaper serial */
  if(diff)B.push(diffHtml(diff,C));
