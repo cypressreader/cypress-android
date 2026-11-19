@@ -4,7 +4,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
 const svg=(w,h)=>`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="#46a"/><circle cx="60%" cy="35%" r="18%" fill="#fde9b8"/></svg>`;
 (async()=>{
  const b=await chromium.launch();
- const CASES=[['photo','big'],['photo','small'],['photo','portrait'],['photo','tiny'],['photo','404'],['type','big'],['min','big'],['type','none']];
+ const CASES=[['photo','big'],['photo','small'],['photo','portrait'],['photo','tiny'],['photo','404'],['type','none'],['min','none']];
  for(const [W,H] of [[412,860],[820,1180],[1180,820],[1366,1024]])for(const [t,kind] of CASES){
   const p=await (await b.newContext({viewport:{width:W,height:H}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
   await mock(p,{n:10});

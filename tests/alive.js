@@ -8,8 +8,8 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   const RD=Date;
   /* covers over 12 days, with and without a photo */
   const seq=[];S.cvt=null;
-  for(let i=0;i<12;i++){const off=i*864e5;window.Date=class extends RD{constructor(...a){if(a.length)super(...a);else super(RD.now()+off+12*36e5-(RD.now()%864e5))}static now(){return RD.now()+off}};seq.push(coverTreat({img:i%4===1?'':'https://x/y.jpg'}));window.Date=RD}
-  out.seq=seq.join(',');out.noRepeat=seq.every((t,i)=>!i||t!==seq[i-1]);out.allThree=new Set(seq).size===3;
+  for(let i=0;i<12;i++){const off=i*864e5;window.Date=class extends RD{constructor(...a){if(a.length)super(...a);else super(RD.now()+off+12*36e5-(RD.now()%864e5))}static now(){return RD.now()+off}};seq.push(coverTreat({img:''}));if(i===3)out.photo=coverTreat({img:'https://x/y.jpg'});window.Date=RD}
+  out.seq=seq.join(',');out.noRepeat=seq.every((t,i)=>!i||t!==seq[i-1]);out.allThree=new Set(seq).size===2&&out.photo==='photo';
   /* thumbs train Smart ranking */
   const f=S.feeds[0],g=S.feeds[1]||S.feeds[0];
   const A={feedId:f.id,title:'Alpha harbor story today',link:'https://w.test/a',date:now-36e5,summary:'x'},B={feedId:g.id,title:'Gamma orchard story today',link:'https://w.test/b',date:now-36e5,summary:'x'};
@@ -31,7 +31,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   items[f.id][0].more=[{l:'https://w.test/h1',t:T[1],f:f.id},{l:'https://other.test/z',t:'Elsewhere report',f:f.id}];openReader(items[f.id][0]);await w(1200);
   out.teaser=!!document.querySelector('.cov.covt');
   return out});
- ck('covers never repeat two days running',r.noRepeat,r.seq);ck('all three looks appear',r.allThree,r.seq);
+ ck('covers never repeat two days running',r.noRepeat,r.seq);ck('no-picture days take turns (type, minimal); a lead picture always gets the photo cover',r.allThree,r.seq+' photo='+r.photo);
  ck('thumbs up raises score',r.up);ck('thumbs down lowers score',r.down);
  ck('this day block shows a week-ago story',/A week ago today/.test(r.td)&&/last week/.test(r.td),r.td);ck('this day empty with no history',r.tdNone);
  ck('card tap opens the article',r.opened===1,JSON.stringify(r));ck('card tap does not open the hub',r.noHubOnTap);
