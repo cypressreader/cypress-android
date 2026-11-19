@@ -30,6 +30,14 @@ const CASES=[
  ck('a line reported as junk is skipped in that site\'s next story',r.learned,'');
  ck('a suspiciously short result says so and offers "View the site in the app"',r.short.btn&&/View the site in the app/.test(r.short.note),JSON.stringify(r.short));
  ck('a normal-length story shows no such notice',!r.long.btn,JSON.stringify(r.long));
+
+ /* words that touch across an inline tag or a line break: split when both are whole words, keep real single words joined */
+ const G=await p.evaluate(()=>{const run=h=>{const w=document.createElement('div');w.append(fromHTML('<p>'+h+'</p>','https://w.test/'));const x=document.createElement('div');x.innerHTML='<p>'+h+'</p>';try{junkClean(tidy(x),'https://w.test/')}catch(e){}return [w.textContent,x.textContent]};
+  const split=[['He has<a>won</a> the','has won'],['has<span>won</span>','has won'],['The report<span>is</span>due','report is due'],['A <b>big</b>win for<i>the</i>team','big win for the team'],['over the<br>harbour and the<br/>town','the harbour and the town'],['was<em>really</em>big','was really big'],['<a>in Ohio</a>and <a>Texas</a>went','Ohio and Texas went']];
+  const keep=[['reported<span> </span>purchased','reported purchased'],['<a>Smith</a><a>Jones</a>','Smith Jones'],['company<a>announced</a>that','company announced that'],['<span>T</span>he end','The end'],['<b>W</b>hen it','When it'],['wiki<i>p</i>edia','wikipedia'],['un<em>believable</em> luck','unbelievable'],['H<sub>2</sub>O','H2O'],['e<sup>x</sup>','ex'],['hi <a>@name</a>','@name'],['see https://a.com/<b>page</b>','com/page'],['<code>a</code>b','ab']];
+  return {split:split.map(([h,e])=>[h,e,...run(h)]),keep:keep.map(([h,e])=>[h,e,...run(h)])}});
+ for(const [h,e,a,b] of G.split)ck('unglue splits: '+h,[a,b].every(t=>t.replace(/\s+/g,' ').includes(e)),JSON.stringify([a,b]));
+ for(const [h,e,a,b] of G.keep)ck('unglue keeps: '+h,[a,b].every(t=>t.replace(/\s+/g,' ').includes(e)),JSON.stringify([a,b]));
  ck('no page errors',!errs.length,errs[0]);
  await b.close();console.log(bad?'clean_extract '+bad+' FAILED':'clean_extract all passed');process.exit(bad?1:0);
 })();

@@ -6259,7 +6259,7 @@ function md(txt,base){
  {const T=e=>e.textContent.replace(/\s+/g,' ').trim().length,tot=T(out);let pr=0;out.querySelectorAll('p,blockquote,li').forEach(e=>{const n=T(e);let k=0;e.querySelectorAll('a').forEach(a=>{k+=T(a)});if(n>=60&&k<n*.5)pr+=n});if(tot>0&&tot<4000&&pr<600)return document.createDocumentFragment()}
  return tidyFrag(out);
 }
-function fromHTML(html,base){const d=new DOMParser().parseFromString(html||'','text/html');try{junkDom(d,base)}catch(e){}try{d.querySelectorAll('.screen-reader-text,.sr-only,.visually-hidden,.visuallyhidden,.u-visually-hidden,.assistive-text,[class*="sr-only" i],[class*="screen-reader" i]').forEach(e=>{if((e.textContent||'').length<120){rmGap(e);e.remove()}})}catch(e){}const f=clean(d.body,base);try{unglue(f)}catch(e){}try{junkClean(f,base)}catch(e){}return f}
+function fromHTML(html,base){const d=new DOMParser().parseFromString(html||'','text/html');try{junkDom(d,base)}catch(e){}try{d.querySelectorAll('.screen-reader-text,.sr-only,.visually-hidden,.visuallyhidden,.u-visually-hidden,.assistive-text,[class*="sr-only" i],[class*="screen-reader" i]').forEach(e=>{if((e.textContent||'').length<120){rmGap(e);e.remove()}})}catch(e){}try{unglue(d.body)}catch(e){}/* before clean() flattens the spans that hold the gap */const f=clean(d.body,base);try{unglue(f)}catch(e){}try{junkClean(f,base)}catch(e){}return f}
 function firstImg(html,base){
  /* first real photo in the article HTML: reads lazy-load attributes and srcset, skips Google's own icons, favicons and tracking pixels */
  const d=new DOMParser().parseFromString(html||'','text/html');
@@ -9487,24 +9487,35 @@ function underscoreItalics(root){mdInline(root);dedupParas(root);dedupImgs(root)
 /* plain-text version of a line that may carry markdown marks (for deks and previews) */
 /* some publishers drop the space beside a link or italic ("Fish</a>,and watching", "<a>Shrinking</a>between"); put it back where a word plainly ends, and nowhere else */
 const GLUE_W=/^(?:and|the|but|for|nor|of|to|in|on|at|as|is|it|or|by|if|so|an|from|with|that|this|was|were|are|has|had|who|not|all|its|his|her|our|you|they|then|than|when|will|can|said|says|say|also|have|been|over|into|more|most|just|such|them|their|there|here|some|many|much|very|what|which|while|about|after|would|could|should|only|even|still|make|made|take|took|come|came|want|wants|told|tells|call|calls|find|found|gave|give|know|knew|like|look|looks|need|needs|plan|plans|show|shows|once|next|last|both|each|less|same|upon|out|off|new|now|one|two|she|him|how|why|get|got|did|does|may|might|must|shall|are|his|has|began|begin|plus|per|via|amid|says)$/;
+const GLUE_PRE=/^(?:pre|non|anti|dis|mis|sub|inter|semi|multi|self|ultra|extra|mega|micro|macro|super|hyper|counter)$/i,GLUE_SUF=/^(?:ing|ings|ers|ion|ions|ment|ments|ness|ful|less|able|ible|ish|est|ity|ous|ive|ally|ship|hood|like)$/i;
+/* two words that touch across a tag are really two words when both are whole: 3+ letters, or a 2-letter word from the list; a prefix or ending ("un|believable", "report|ing"), a camel-case brand and a capitalized fragment ("Can|ada") stay joined */
+function glueOk(L,R){
+ const ok=w=>w.length>=3||(w.length===2&&GLUE_W.test(w.toLowerCase()));
+ if(!ok(L)||!ok(R)||(L.length<3&&R.length<3)||GLUE_PRE.test(L)||GLUE_SUF.test(R))return false;
+ const lg=GLUE_W.test(L.toLowerCase()),rg=GLUE_W.test(R.toLowerCase());
+ if(/^[A-Z]/.test(R)&&!lg)return false;
+ if(/^[A-Z][a-z]/.test(L)&&L.length<=4&&!rg&&!(lg&&R.length>=5))return false;
+ return true;
+}
 function unglue(root){
  if(!root||!root.querySelectorAll)return root;
  try{
   const skip=n=>{for(let p=n.parentNode;p&&p!==root;p=p.parentNode)if(p.nodeType===1&&/^(PRE|CODE|KBD|SAMP|SCRIPT|STYLE|TEXTAREA|SUP|SUB)$/.test(p.tagName))return true;return false};
-  const word=(t,end)=>{const m=end?t.match(/[A-Za-z]+$/):t.match(/^[A-Za-z]+/);return m?m[0]:''};
-  const okw=w=>w.length>=5||GLUE_W.test(w.toLowerCase());
+  const gEnd=t=>{const m=t.match(/(?:^|[\s(\[\u201c\u2018"'\u2014\u2013])([A-Za-z]+)$/);return m?m[1]:''};
+  const gStart=t=>{const m=t.match(/^[A-Za-z]+(?![A-Za-z0-9'\u2019@\/]|\.[A-Za-z])/);return m?m[0]:''};
   const els=[...root.querySelectorAll('a,em,strong,b,i,span,cite,mark,u,small')];
   for(const e of els){
-   if(skip(e))continue;const t=e.textContent||'';if(t.length<3)continue;/* a one- or two-letter element is a drop cap or an initial, never a word */
-   const nx=e.nextSibling;
-   if(nx&&nx.nodeType===3&&/^[a-z]/.test(nx.data)&&/[A-Za-z]$/.test(t)&&okw(word(nx.data,false)))nx.data=' '+nx.data;
-   else if(nx&&nx.nodeType===3&&/^[,;]/.test(nx.data)===false&&/^[A-Z]/.test(nx.data)&&/[a-z][.!?]$/.test(t)){}
-   const pv=e.previousSibling;
-   if(pv&&pv.nodeType===3&&/[A-Za-z]$/.test(pv.data)&&/^[A-Za-z]/.test(t)&&okw(word(pv.data,true))&&okw(word(t,false)))pv.data=pv.data+' ';
+   if(skip(e))continue;const t=e.textContent||'';if(t.length<2)continue;/* a one-letter element is a drop cap or an initial, never a word */
+   const nx=e.nextSibling,pv=e.previousSibling;
+   if(nx&&nx.nodeType===3&&glueOk(gEnd(t),gStart(nx.data)))nx.data=' '+nx.data;
+   if(pv&&pv.nodeType===3&&glueOk(gEnd(pv.data),gStart(t)))pv.data=pv.data+' ';
+   if(t.length<3)continue;
    if(pv&&pv.nodeType===3&&/[,;]$/.test(pv.data)&&/^[A-Za-z]/.test(t))pv.data=pv.data+' ';
    /* two buttons or links set back to back ("$3600 at LG$3600 at Best Buy") */
    if(e.tagName==='A'&&pv&&pv.nodeType===1&&pv.tagName==='A'&&/\S$/.test(pv.textContent||'')&&/^\S/.test(t))e.before(document.createTextNode(' '));
   }
+  /* a line break between two letters is a space ('over the<br>harbour') */
+  for(const b of root.querySelectorAll('br')){const p=b.previousSibling,n=b.nextSibling;if(skip(b)||!p||!n||!/\p{L}$/u.test(p.textContent||'')||!/^\p{L}/u.test(n.textContent||''))continue;if(n.nodeType===3)n.data=' '+n.data;else b.after(document.createTextNode(' '))}
   const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const ns=[];while(w.nextNode())ns.push(w.currentNode);
   for(const n of ns){
    if(skip(n)||/:\/\/|@\w+\.\w/.test(n.data))continue;
