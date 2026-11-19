@@ -252,6 +252,11 @@ public class CyExtrasPlugin extends Plugin {
             r.put("metered", cm != null && cm.isActiveNetworkMetered());
             r.put("dataSaver", cm != null && Build.VERSION.SDK_INT >= 24
                 && cm.getRestrictBackgroundStatus() == android.net.ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED);
+            // Wi-Fi or a cable: the WebView often leaves connection.type empty, so the page asks here
+            android.net.Network an = cm != null && Build.VERSION.SDK_INT >= 23 ? cm.getActiveNetwork() : null;
+            android.net.NetworkCapabilities nc = an == null ? null : cm.getNetworkCapabilities(an);
+            r.put("wifi", nc != null && (nc.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI)
+                || nc.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET)));
         } catch (Throwable t) {
             // leave whatever was filled in
         }

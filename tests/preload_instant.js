@@ -27,7 +27,18 @@ async function boot(b,n,ua){
   ck('no page errors (gating)',!p.errs.length,p.errs[0]);await ctx.close()}
  {const {ctx,p}=await boot(b,6,'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/124 Mobile Safari/537.36');
   const g=await p.evaluate(()=>{Object.defineProperty(navigator,'connection',{value:undefined,configurable:true});BATST={level:.9,charging:true};return {unknown:pfCap(40),kind:netKind(),mobile:MOBILEUA}});
-  ck('a phone that cannot say what network it is on takes at most 6 stories',g.mobile&&g.kind==='unknown'&&g.unknown===6,JSON.stringify(g));await ctx.close()}
+  ck('a phone that cannot say what network it is on takes at most 6 stories',g.mobile&&g.kind==='unknown'&&g.unknown===6,JSON.stringify(g));
+  /* the app's own check (DEV.wifi from the native deviceState) settles it where the WebView leaves connection.type empty */
+  const h=await p.evaluate(()=>{const o={};Object.defineProperty(navigator,'connection',{value:{effectiveType:'4g'},configurable:true});BATST={level:.9,charging:true};
+   DEV.wifi=false;DEV.metered=false;o.none=[netKind(),pfCap(40),onWifi()];
+   DEV.wifi=true;o.wifi=[netKind(),pfCap(40),onWifi()];
+   DEV.metered=true;o.hotspot=[netKind(),pfCap(40),onWifi()];
+   DEV.metered=false;DEV.wifi=true;Object.defineProperty(navigator,'connection',{value:{type:'cellular'},configurable:true});o.cellWins=[netKind(),pfCap(40),onWifi()];
+   Object.defineProperty(navigator,'connection',{value:undefined,configurable:true});o.noApi=[netKind(),pfCap(40),onWifi()];
+   DEV.wifi=false;o.noApiNoWifi=[netKind(),onWifi()];return o});
+  ck('with no connection type, native Wi-Fi takes the full 40 and onWifi agrees',JSON.stringify(h.wifi)==='["wifi",40,true]'&&JSON.stringify(h.none)==='["unknown",6,true]',JSON.stringify(h));
+  ck('a metered link (hotspot) or a cellular type still wins over native Wi-Fi: nothing fetched ahead, not Wi-Fi',JSON.stringify(h.hotspot)==='["cell",0,false]'&&JSON.stringify(h.cellWins)==='["cell",0,false]',JSON.stringify(h));
+  ck('web without the connection API is unchanged (unknown, counts as Wi-Fi for slots)',JSON.stringify(h.noApiNoWifi)==='["unknown",true]',JSON.stringify(h));await ctx.close()}
  /* ---------- the Daily pre-download, then a tap with no network ---------- */
  {const {ctx,p}=await boot(b,6);
   const r=await p.evaluate(async()=>{const w=ms=>new Promise(r=>setTimeout(r,ms));Object.defineProperty(navigator,'connection',{value:{type:'wifi'},configurable:true});BATST={level:.9,charging:true};

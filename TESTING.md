@@ -2140,3 +2140,8 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Offline: open a story that is not stored, go back online: the full story should load by itself.
 - Dynamic picture cover: the site name above the headline is now white.
 - Weekly tab shows the chosen review day (Monday/Friday/Saturday) instead of always "Sunday".
+
+## 2026-11-19 PM deep dive, round 2 (story text, preloading, refresh feedback)
+- Preload on the phone (R1, needs a real build): on Wi-Fi open Settings, Report a problem and check the "Preload:" line: it should say `netKind wifi · phone says wifi true metered false` and `cap 40 of 40`. On mobile data or a hotspot it must say `netKind cell` and `cap 0`. Also confirm the build still lists no new permission (ACCESS_NETWORK_STATE comes from a merged library; `wifi` is read the same way as `metered`).
+- Refresh with a site down (R12): pull to refresh with one site unreachable, the note should read "1 site didn't answer" with a Check my sites button that opens the sites list.
+- Listen with no voice (R20, web only): in a browser with no speech voices, Daily Listen shows the "No voices" note once and no player bar stays up.
