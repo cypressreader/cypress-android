@@ -6775,6 +6775,8 @@ const COVFC=new Map();
 function cardInk(){const lum=c=>{const m=String(c).match(/[\d.]+/g);if(!m||m.length<3)return null;const v=m.slice(0,3).map(x=>{x/=255;return x<=.03928?x/12.92:((x+.055)/1.055)**2.4});return{L:.2126*v[0]+.7152*v[1]+.0722*v[2],a:m[3]==null?1:+m[3]}};
  document.querySelectorAll('#grid .card h3,#grid .dcov h2').forEach(h=>{h.style.removeProperty('color');const t=lum(getComputedStyle(h).color);let e=h,bg=null;while(e&&e!==document.body){const cs=getComputedStyle(e);if(e!==h&&cs.backgroundImage!=='none')return;const q=lum(cs.backgroundColor);if(q&&q.a>.6){bg=q;break}if(e!==h&&e.querySelector(':scope>img'))return;e=e.parentElement}
   if(!t||!bg)return;if((Math.max(t.L,bg.L)+.05)/(Math.min(t.L,bg.L)+.05)<3)h.style.setProperty('color',bg.L<.18?'#fff':'#14171c','important')})}
+/* David 2026-11-20 (Fold, 1.358 video): the Daily cover still ran past the screen on the phone. Last word, measured on the real page: while the cover's bottom is below the screen, the headline steps down (never under 22px) */
+function dcovGuard(cv,h){if(!cv.classList.contains('dcov')||cv.closest('.d2l'))return 0;const sc=cv.closest('main'),vh=Math.min(VH,innerHeight||VH,(window.visualViewport&&visualViewport.height)||VH),bot=()=>cv.getBoundingClientRect().bottom+(sc?sc.scrollTop:0)+scrollY;let f=parseFloat(h.style.fontSize)||parseFloat(getComputedStyle(h).fontSize)||0,n=0;while(f>22&&bot()>vh+2&&n++<14){f=Math.max(22,f*.92);h.style.setProperty('font-size',f.toFixed(1)+'px','important')}return n?f:0}
 function covFit(){
  try{requestAnimationFrame(cardInk)}catch(e){}
  document.querySelectorAll('#grid .cover,#grid .dcov,#cvg .cover,#lkr .cover').forEach(cv=>{
@@ -6790,7 +6792,7 @@ function covFit(){
   /* the same cover headline at the same size and look fits the same way: coming back to the Daily reuses the answer instead of measuring again */
   const ck=key+'|'+(h.textContent||'').replace(/\s+/g,' ')+'|'+cv.querySelectorAll('.cvlines .cvl,.dcv-lines .dcv-l').length+'|'+S.theme+'|'+S.font+'|'+S.hfont+'|'+(document.body.className+' '+document.documentElement.className).replace(/\b(cvstill|rdserif|rdx|reading|open|sbdrag|exbusy|ttssm|nospeech|boot|svpick|lpd?)\b/g,'').replace(/\s+/g,' ').trim(),hit=COVFC.get(ck);/* spaces normalized: the no-orphan pass swaps in a no-break space after the first fit, which made every return to the Daily miss and measure again */
   const band=cv.querySelector('.dcv-band');
-  if(hit){h.classList.add('cfit');h.style.setProperty('font-size',hit.size+'px','important');if(band){if(hit.band)band.style.maxHeight=hit.band+'px';else band.style.removeProperty('max-height')}const ls=[...cv.querySelectorAll('.cvlines .cvl,.dcv-lines .dcv-l')];ls.forEach((l,i)=>{if(hit.hide.includes(i))l.style.setProperty('display','none','important');else l.style.removeProperty('display')});h.dataset.fk=key;return}
+  if(hit){h.classList.add('cfit');h.style.setProperty('font-size',hit.size+'px','important');if(band){if(hit.band)band.style.maxHeight=hit.band+'px';else band.style.removeProperty('max-height')}const ls=[...cv.querySelectorAll('.cvlines .cvl,.dcv-lines .dcv-l')];ls.forEach((l,i)=>{if(hit.hide.includes(i))l.style.setProperty('display','none','important');else l.style.removeProperty('display')});dcovGuard(cv,h);h.dataset.fk=key;return}
   h.classList.add('cfit');h.style.removeProperty('font-size');band&&band.style.removeProperty('max-height');
   const max=parseFloat(getComputedStyle(h).fontSize)||40,min=Math.max(cv.classList.contains('dcov')?Math.min(22,max):13,Math.round(max*.2));/* the Daily's lead headline never drops below 22px (it read smaller than the quote under it); a long one wraps onto more lines instead */
   const lim=Math.max(parseFloat(getComputedStyle(cv).minHeight)||0,0)+2;
@@ -6813,6 +6815,7 @@ function covFit(){
   if(band){let bh=band.offsetHeight;const fl=Math.min(225,Math.round(cv.clientWidth*.42));while(size<max*.6&&bh>fl){bh=Math.max(fl,Math.round(bh*.88));band.style.maxHeight=bh+'px';size=search()}}
   /* too much text over the photo: drop the last story line, one at a time, while the headline would stay big */
   if(overlay&&!cv.classList.contains('dcov')){let k=lines.length;while(k>0&&(size<max*.6||used()>cv.offsetHeight*.62)){k--;lines[k].style.setProperty('display','none','important');size=search()}}
+  h.style.setProperty('font-size',size+'px','important');{const g=dcovGuard(cv,h);if(g)size=Math.floor(g*10)/10}
   if(!pend)COVFC.size>60&&COVFC.clear(),COVFC.set(ck,{size,band:band&&band.style.maxHeight?parseFloat(band.style.maxHeight):0,hide:lines.map((l,i)=>l.style.display==='none'?i:-1).filter(i=>i>=0)});
   h.style.setProperty('font-size',size+'px','important');h.dataset.fk=cv.clientWidth+'|'+VH+'|'+(h.textContent||'').length+'|'+cv.className+'|'+cv.style.minHeight;
  })
