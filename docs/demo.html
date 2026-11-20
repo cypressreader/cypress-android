@@ -12047,7 +12047,7 @@ async function feedIssues(list){
  const newest=Math.max(0,...list.map(a=>a.date||0));
  if(newest&&now-newest>120*864e5)out.push({k:'stale',months:Math.max(4,Math.round((now-newest)/(30*864e5)))});
  /* stories whose feed already carries the whole text never depend on the page, so only the thin ones are tried */
- const pick=list.filter(a=>a.link&&txtOf(a.html||a.summary).length<1200).slice(0,2);
+ const pick=list.filter(a=>a.link&&!a.yt&&!a.audio&&txtOf(a.html||a.summary).length<1200).slice(0,2);/* videos and podcast episodes play in the story; there is no article to load */
  let seen=0,none=0,junk=0,links=0,thin=0;
  await Promise.all(pick.map(async a=>{
   let n=null;try{n=await Promise.race([getFull(a.link),new Promise(r=>setTimeout(()=>r('t'),9000))])}catch(e){n='t'}/* a check that crashes or times out says nothing about the site */
