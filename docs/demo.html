@@ -9312,6 +9312,8 @@ function preOf(pg,rh){
 function mkBox(pg,x0,pk,sd){
  if(!(sd&&R.cpv===2&&boxTrim(pg)))sd='';/* sd: 'L' or 'R', the one page of the two this copy is seen through */
  const bk=$('.book'),v=$('.view').cloneNode(true),c=v.querySelector('.cols');if(pk)c.classList.add('cpk');/* the page under the lifted picture */if(ccv()){c.classList.toggle('cslid',pg>=1);if(pg<1)c.classList.remove('cpk')}/* a copy of the cover's other page shows that page's card, not the one on screen */
+ /* David 2026-11-20: a copy starts partway through the story, so its numbered headings (chapters 01, 02...) would count from 1 again: each keeps its real number */
+ {const b=c.querySelector(':scope>.body');if(b){const L=c.dataset.lst;let a=0,d=0,l=0;b.querySelectorAll('h2,h3').forEach(h=>{const t=h.parentNode===b,q=[];if(h.tagName==='H2'){q.push('cch '+(++a));if(t)q.push('dch '+(++d))}if(t&&h.tagName.toLowerCase()===L)q.push('dls '+(++l));if(q.length)h.style.counterSet=q.join(' ')})}}
  {const ps=[c,c.querySelector(':scope>.body')];cutOf(pg,sd==='L').forEach((d,j)=>{const p=ps[j];if(p)d.forEach(i=>{const x=p.children[i];if(x)x.remove()})})}
  v.removeAttribute('id');v.setAttribute('aria-hidden','true');v.inert=true;/* a copy is only a picture of the page: screen readers and the Tab key skip it */v.style.cssText=`position:absolute;inset:auto;top:0;left:${-x0}px;width:${bk.clientWidth}px;height:${bk.clientHeight}px`;
  const P=preOf(pg,sd==='R');let sh=0;
@@ -10962,7 +10964,7 @@ function ttsClean(){
  const q=textQuality(t);if(!q.ok)return 'the text looks garbled';
  return '';
 }
-function ttsToggle(){if(!TTS.on)use1('aloud');
+function ttsToggle(){if(!TTS.on&&curA&&curA.audio){epQueue(curA);return}/* F8: a podcast episode plays its own audio, not its show notes read aloud */if(!TTS.on)use1('aloud');
  if(!('speechSynthesis' in window)){toast('Reading aloud isn’t available on this device or browser.');return}
  if(!TTS.on&&window.__nvOffer&&window.__nvOffer())return;
  if(!TTS.on){const why=ttsClean();if(why&&!ttsToggle.force){if(R.queueRun||R.briefAudio){toast('Skipping: '+why);ttsEnd(true)}else{toast('Not reading this aloud because '+why+'. Tap Read aloud again to read what’s here');ttsToggle.force=true;setTimeout(()=>{ttsToggle.force=false},6000)}return}}
@@ -13142,7 +13144,7 @@ async function ttsEnd(manual){
  await openReader(nx);
  if(curA!==nx||!$('#rd').classList.contains('on')){if(!TTS.on)mediaNativeStop();return}
  if(brief){R.briefAudio=true;const why=isOn('skippay')?ttsClean():'';if(why){toast('Skipped “'+nx.title.slice(0,40)+'”: '+why);S.lq=S.lq.filter(l=>l!==nx.link);ttsEnd(true);return}const B=R.audioList||(S.brief&&S.brief.links)||[],n=B.indexOf(nx.link);mediaOn();speak(`${n>=0?'Story '+(n+1)+' of '+B.length+'. ':'Next. '}From ${fof(nx).title}.`,()=>{if(curA===nx)ttsToggle()})}
- else{R.queueRun=true;const why=ttsClean();if(why){toast('Skipped “'+nx.title.slice(0,40)+'”: '+why);S.lq=S.lq.filter(l=>l!==nx.link);ttsEnd(true);return}ttsToggle()}
+ else{R.queueRun=true;if(nx.audio){epQueue(nx);return}const why=ttsClean();if(why){toast('Skipped “'+nx.title.slice(0,40)+'”: '+why);S.lq=S.lq.filter(l=>l!==nx.link);ttsEnd(true);return}ttsToggle()}
  }finally{if(tdr.hold){tdr.hold=0;tminiSync()}}
 }
 
@@ -14042,7 +14044,7 @@ function epInit(){
  EPA.addEventListener('loadedmetadata',()=>{epPos();epUi()});
  EPA.addEventListener('ratechange',epPos);
  EPA.addEventListener('seeked',()=>{epPos();epUi()});
- EPA.addEventListener('ended',()=>{const a=findStory(EPL);if(a)markReadA(a);epSave();epUi()});
+ EPA.addEventListener('ended',()=>{const a=findStory(EPL);if(a)markReadA(a);epSave();epUi();/* F8: a finished episode moves on to the next in Up Next */if(R.epQ||S.lq.length){R.epQ=false;if(a&&(!curA||curA.link!==a.link))TTS.art=a;ttsEnd()}});
  EPA.addEventListener('timeupdate',()=>{
   epUi();if(Date.now()-lt<5000)return;lt=Date.now();epPos();epSave();
   const d=EPA.duration;if(isFinite(d)&&d>0&&EPA.currentTime/d>=.95){const a=findStory(EPL);if(a&&!S.read[a.link])markReadA(a)}
@@ -14055,6 +14057,7 @@ function epLoad(link,src){
  const p=(S.apos&&S.apos[link])||(S.prog&&S.prog['au:'+link]);
  EPA.addEventListener('loadedmetadata',()=>{if(p&&p.s>5&&p.s<EPA.duration-10)EPA.currentTime=p.s},{once:true});
 }
+function epQueue(a){epLoad(a.link,a.audio);if(!EPA.paused){EPA.pause();return}R.epQ=true;EPA.play().catch(()=>{toast('Couldn’t play this episode');R.epQ=false;if(R.queueRun||R.briefAudio)ttsEnd(true)})}
 function epAct(btn){
  const b=btn.closest('.aud');if(!b||!curA)return;const link=b.dataset.aud,k=btn.dataset.ap;
  epLoad(link,curA.audio);
