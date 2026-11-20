@@ -9341,7 +9341,8 @@ function rdWarm(){
 }
 /* the next page turn is built ahead, while the reader reads: copying the story into the strips of the turning page and drawing them is the slow part, so a tap or swipe starts the motion on the very next frame. The ready turn sits invisibly (1% see-through) over the page so its layers are already drawn. Any change to the page (layout, page, story) makes it stale and it is thrown away. */
 let RP=null;
-const prepKey=()=>{const bk=$('.book');return bk?[tok,R.pg,R.step,R.np,R.cpv,bk.clientWidth,bk.clientHeight,curlN,R.cpk?1:0].join():''};
+/* David 2026-11-20 (Fold video): a story picture or font that arrives after the turn copies were built moves the text by a line, so the turn showed the old line breaks and the page snapped to the new ones as it landed (and again turning back). Each such arrival changes the key, so copies and their measured cuts are built again */let RFLOW=0;{const bump=()=>{RFLOW++;if(RP&&!R.T)prepSoon()};document.addEventListener('load',e=>{const t=e.target;if(t&&t.tagName==='IMG'&&t.closest('#rd .cols')&&!t.closest('[aria-hidden=true]'))bump()},true);try{document.fonts.addEventListener('loadingdone',bump)}catch(e){}}
+const prepKey=()=>{const bk=$('.book');return bk?[tok,R.pg,R.step,R.np,R.cpv,bk.clientWidth,bk.clientHeight,curlN,R.cpk?1:0,RFLOW].join():''};
 /* the page-edge stack hides while a page turns; set on the stack itself, since changing the book's class made the browser recheck the whole story and its copies (a 40 ms hitch on the first frame) */
 function edgeHide(bk,on){const e=bk&&bk.querySelector(':scope>.rdedge');if(e)e.style.opacity=on?'0':''}
 function prepDrop(){if(RP){RP.T.els.forEach(e=>e.remove());RP=null}}

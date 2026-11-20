@@ -2216,3 +2216,4 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Daily tab at rest while a background refresh lands: the cover no longer blanks/fades for a frame (in-place redraw skips the .dcov fade-in).
 - Folder view (Tech) refresh: the folder header photo no longer blanks for a frame (eager + sync decode); big photos swapped to their shrunk copy decode in sync.
 - Newsprint (day and night): every story photo is gray, including the big headline-over-photo cards and list thumbnails in folder view.
+- 2026-11-20 q: paged reader on the Fold: turning a page shows the same line breaks as the page it lands on (no line jump at the bottom right / top left), forward and back, including stories with pictures. Implemented, unverified.
