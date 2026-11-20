@@ -10095,7 +10095,7 @@ const online=()=>navigator.onLine&&!S.offline;
 const onCell=()=>{try{const c=navigator.connection;return !!(c&&c.type==='cellular')}catch(e){return false}};
 /* the phone's own Battery Saver, Data Saver and metered networks (a hotspot) count too, not just our switches (Android app; read on start, on return and when the connection changes) */
 const DEV={powerSave:false,metered:false,dataSaver:false,wifi:false};
-async function devPoll(){try{const x=CyX();if(!x||!x.deviceState)return;const r=await x.deviceState();if(r){DEV.powerSave=!!r.powerSave;DEV.metered=!!r.metered;DEV.dataSaver=!!r.dataSaver;DEV.wifi=!!r.wifi;try{window.lowfxUp?window.lowfxUp():document.documentElement.classList.toggle('lowp',isOn('lowfx')&&DEV.powerSave)}catch(e){}}}catch(e){}}
+async function devPoll(){try{const x=CyX();if(!x||!x.deviceState)return;const r=await x.deviceState();if(r){DEV.powerSave=!!r.powerSave;DEV.metered=!!r.metered;DEV.dataSaver=!!r.dataSaver;DEV.wifi=!!r.wifi;try{window.lowfxUp?window.lowfxUp():document.documentElement.classList.toggle('lowp',isOn('lowfx')&&(DEV.powerSave||!!S.autoLow))}catch(e){}}}catch(e){}}
 setTimeout(devPoll,1500);onShow(devPoll,1200);addEventListener('online',devPoll);try{navigator.connection&&navigator.connection.addEventListener('change',devPoll)}catch(e){}
 const pfAllowed=()=>{if(pfMode()==='off'||!online()||BATLOW||DEV.powerSave||DEV.dataSaver)return false;const c=navigator.connection;if(c&&c.saveData)return false;if((isOn('pfwifi')||isOn('dsave'))&&(onCell()||DEV.metered))return false;return true};
 const storyMap=()=>{const m=new Map();S.feeds.forEach(f=>(items[f.id]||[]).forEach(a=>m.set(a.link,a)));S.saved.forEach(a=>{if(!m.has(a.link))m.set(a.link,a)});return m};
@@ -13268,8 +13268,12 @@ const THX={cyberdawn:'cyber',pixel:'silkscreen'};
 function themeFonts(th){[THB[th],THH[th],THF[th],THX[th]].forEach(k=>k&&needFont(k))}
 function applyHf(){let k=S.hfont||'serif';if(POLISH_HF_KEEP.indexOf(k)<0)k='serif';needFont(k);if(k==='serif'){document.documentElement.style.removeProperty('--serif');document.documentElement.style.removeProperty('--fd')}else{document.documentElement.style.setProperty('--serif',FONTS[k]||FONTS.serif);document.documentElement.style.setProperty('--fd',FONTS[k]||FONTS.serif)}trkApply()}
 function applyRmo(){document.documentElement.classList.toggle('rmo',!!S.rmo);try{window.lowfxUp&&window.lowfxUp()}catch(e){}}
+/* idea book S9: a phone that keeps stalling (six or more frames of 150 ms+ within two minutes, counted after the first 20 s) lightens itself the same way low battery does; it measures again after 14 days. No setting. */
+(()=>{try{const r=document.documentElement;if(S.autoLow&&Date.now()-S.autoLow>14*864e5){delete S.autoLow;saveSoon()}if(S.autoLow&&isOn('lowfx'))r.classList.add('lowp');
+ if(S.autoLow||!('PerformanceObserver' in window)||!(PerformanceObserver.supportedEntryTypes||[]).includes('longtask'))return;const t0=performance.now()+2e4,L=[];
+ const ob=new PerformanceObserver(l=>{for(const e of l.getEntries())if(e.startTime>t0&&e.duration>=150&&!document.hidden)L.push(e.startTime);while(L.length&&L[L.length-1]-L[0]>12e4)L.shift();if(L.length>=6){ob.disconnect();S.autoLow=Date.now();saveSoon();if(isOn('lowfx'))r.classList.add('lowp')}});ob.observe({type:'longtask'})}catch(e){}})();
 /* pause heavy effects when the battery is low */
-(async()=>{try{if(!navigator.getBattery)return;const bt=await navigator.getBattery();const up=()=>{const low=isOn('lowfx')&&((bt.level<=.2&&!bt.charging)||DEV.powerSave);document.documentElement.classList.toggle('lowp',low)};['levelchange','chargingchange'].forEach(t=>bt.addEventListener(t,up));up();window.lowfxUp=up}catch(e){}})();
+(async()=>{try{if(!navigator.getBattery)return;const bt=await navigator.getBattery();const up=()=>{const low=isOn('lowfx')&&((bt.level<=.2&&!bt.charging)||DEV.powerSave||!!S.autoLow);document.documentElement.classList.toggle('lowp',low)};['levelchange','chargingchange'].forEach(t=>bt.addEventListener(t,up));up();window.lowfxUp=up}catch(e){}})();
 
 applyHf();applyRmo();
 setTimeout(()=>{try{tipsCheck()}catch(e){}},14000);
