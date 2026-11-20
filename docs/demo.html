@@ -5654,7 +5654,7 @@ function liftDark(c){
  /* light pages: a bright site color (yellow, lime, sky) is darkened just enough for the white text on it to read (4.5:1); it was 1.6:1 on yellow */
  else if(r){const lum=q=>q.reduce((n,v,i)=>{v/=255;return n+[.2126,.7152,.0722][i]*(v<=.03928?v/12.92:((v+.055)/1.055)**2.4)},0);let q=r,k=0;while(lum(q)>.183&&k++<30)q=q.map(v=>v*.94);if(k)out='rgb('+q.map(Math.round).join(',')+')'}
  BLITE.set(key,out);return out}
-function brand(f){return liftDark(brand0(f))}
+/* Newsprint (David 2026-11-20): site colors (text-only tiles, source names, initials) are inked down to gray with a hint of their hue, at the same brightness so text on them still reads */function brand(f){const c=liftDark(brand0(f));if(!/^press/.test(document.documentElement.dataset.theme||''))return c;const r=anyRgb(c);if(!r)return c;const y=.299*r[0]+.587*r[1]+.114*r[2];return 'rgb('+r.map(v=>Math.round(y+(v-y)*.25)).join(',')+')'}
 function brand0(f){if(f.color&&okColor(f.color))return f.color;const k=known(f.url);if(k)return k[1];let h=0;for(const c of host(f.url))h=(h*31+c.charCodeAt(0))%360;return `hsl(${h} 55% 40%)`}
 let FIRST=false;try{FIRST=!localStorage.getItem('folio')}catch(e){}
 let S,LIBBAD=0;try{S=JSON.parse(localStorage.getItem('folio'))}catch(e){}
