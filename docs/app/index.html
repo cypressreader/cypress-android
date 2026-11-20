@@ -1709,6 +1709,7 @@ html.dynx[data-theme=dynamic] #grid .card.act{box-shadow:0 0 0 2px color-mix(in 
 html.dynx[data-theme=dynamic] :is(.top,.dtabs,#tabs){--ln:color-mix(in srgb,var(--ink) 14%,transparent);background:var(--dynb,var(--bg))!important;transition:background-color 1.6s ease-in-out,box-shadow 1.6s ease-in-out,transform var(--dur-2) ease/* keeps the bars sliding away on scroll: this rule used to replace that animation, so they popped in and out (David, 2026-11-11) */}
 html.dynx[data-theme=dynamic] .dtabs{box-shadow:0 0 0 100vmax var(--dynb,var(--bg))}
 html.dynx[data-theme=dynamic] #rd{transition:background-color var(--dur-3) ease}
+/* David 2026-11-20: with Remove animations, Reduce motion or low power on, the tint snapped to the next color the moment scrolling stopped. A color fade is not movement, so it still fades there (the bars still do not slide) */@media(prefers-reduced-motion:reduce){html.dynx[data-theme=dynamic] #dynbg i{transition:opacity 1.6s ease-in-out!important}html.dynx[data-theme=dynamic] :is(.top,.dtabs,#tabs){transition:background-color 1.6s ease-in-out,box-shadow 1.6s ease-in-out!important}}html:is(.rmo,.lowp).dynx[data-theme=dynamic] #dynbg i{transition:opacity 1.6s ease-in-out!important}html:is(.rmo,.lowp).dynx[data-theme=dynamic] :is(.top,.dtabs,#tabs){transition:background-color 1.6s ease-in-out,box-shadow 1.6s ease-in-out!important}
 .cols>.hsf.hs-cov{height:calc(var(--ch)*.62);break-after:auto;margin:0 0 18px;border-radius:16px;overflow:hidden}/* Dynamic cover: the picture takes most of page 1 and the story starts under it */
 /* scrolling stories: the cover stays put while the story slides up over it on a sheet */
 #rd.vert .cols>.hsf.hs-cov{position:sticky;top:0;height:72svh;margin:0;z-index:0}html.rdx #rd.vert .cols>.hsf.hs-cov img.hero{height:100%;max-height:none!important;aspect-ratio:auto!important;object-fit:cover}
@@ -12637,7 +12638,7 @@ function dynApply(c,trim){
   else{next.style.removeProperty('--tb');next.style.removeProperty('--tg');dynBars('');dynSet.tb=null}
   if(trim||first)dynTrim(T)}
  dynSet.t=Date.now();dynSet.c=c;d.dataset.on=next===a?'a':'b';
- if(first){next.style.transition='none'}
+ if(first){next.style.setProperty('transition','none','important')}
  next.classList.add('on');prev.classList.remove('on');d.classList.add('has');
  if(first){void next.offsetWidth;next.style.transition=''}
 }
