@@ -2201,3 +2201,7 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Open Fold, a story in pages with a wide photo further down: when the photo lands on a left page it spans both pages across the fold; the right page's text steps down under it and its first line sits level with the left page's first line under the photo. No word is split at the step.
 - Turning pages, rotating, changing text size: the photo goes back to one page when it no longer fits cleanly; nothing overlaps the photo.
 - Highlights, Listen and search still work on the paragraph that was stepped down (the gap is an empty, hidden span).
+
+## Transcripts (branch claude/pm-deep-dive-handoff-oqiipt, next 1.356)
+- A podcast transcript story (Wired "Uncanny Valley"): each speaker's name sits on a small line above what they said, lines are not stretched; normal stories with a "Name:" quote or two are unchanged.
+- F8: Listen / Up Next on a podcast episode plays the episode audio (not the show notes); when it ends Up Next opens the next item. Next up card: tapping its picture opens the next story.
