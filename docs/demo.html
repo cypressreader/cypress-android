@@ -10734,12 +10734,12 @@ function tmini(){let e=$('#tmini');if(e)return e;
  e=document.createElement('div');e.id='tmini';e.hidden=true;e.setAttribute('role','region');e.setAttribute('aria-label','Now playing');
  e.innerHTML=`<div class="tmline" aria-hidden="true"><i></i></div><button type="button" class="tmopen" aria-label="Open the player and story list"><span class="tmth"></span><span class="tmtx"><span class="tmt"></span><span class="tmp"></span></span></button><div class="tmc"><button type="button" class="tmrw" aria-label="Back 15 seconds">${dkI('<path d="M12 5a7 7 0 1 1-6.3 4"/><path d="M12 2 8.5 5 12 8"/>',22)}<b>15</b></button><button type="button" class="tmpv" aria-label="Previous story">${dkI('<path d="M7 5v14"/><path d="M19 5.5v13L9 12z" fill="currentColor"/>')}</button><button type="button" class="tmb" aria-label="Pause"></button><button type="button" class="tmnx" aria-label="Next story">${dkI('<path d="M17 5v14"/><path d="M5 5.5v13L15 12z" fill="currentColor"/>')}</button></div><button type="button" class="tmx" aria-label="Stop reading" title="Stop">${dkI('<path d="M7 7l10 10M17 7 7 17"/>',18)}</button>`;
  document.body.append(e);
- e.querySelector('.tmb').addEventListener('click',()=>tminiToggle());
- e.querySelector('.tmrw').addEventListener('click',()=>digSeekBy(-skipS()));
+ e.querySelector('.tmb').addEventListener('click',()=>epOn()?(EPA.paused?EPA.play().catch(()=>{}):EPA.pause()):tminiToggle());
+ e.querySelector('.tmrw').addEventListener('click',()=>{if(epOn())EPA.currentTime=Math.max(0,EPA.currentTime-15);else digSeekBy(-skipS())});
  e.querySelector('.tmpv').addEventListener('click',()=>digPrev());
  e.querySelector('.tmnx').addEventListener('click',()=>digNext());
- e.querySelector('.tmx').addEventListener('click',()=>{digEnd(false);ttsStop();tminiSync()});
- e.querySelector('.tmopen').addEventListener('click',()=>tdrOpen());
+ e.querySelector('.tmx').addEventListener('click',()=>{if(epOn()){epDockOff();return}digEnd(false);ttsStop();tminiSync()});
+ e.querySelector('.tmopen').addEventListener('click',()=>{if(epOn()){const a=findStory(EPL);if(a&&(!curA||curA.link!==a.link))openReader(a);return}tdrOpen()});
  return e;
 }
 function tminiToggle(){
@@ -10747,7 +10747,23 @@ function tminiToggle(){
  if(!TTS.paused)return ttsPause();
  ttsFrom(ttsPos());
 }
+/* a podcast episode gets the same docked player as read aloud (David 2026-11-20): pause from any page or from the list, and from the notification bar */
+const epOn=()=>!!(R.epDock&&EPA&&EPL&&!TTS.on&&!DIG.on);
+function epDockOff(){R.epDock=false;epPause();try{mediaNativeStop()}catch(e){}tminiSync()}
 function tminiSync(){
+ if(epOn()){
+  const e=tmini(),a=findStory(EPL)||{},d=EPA.duration,tb=$('#tabs'),tbh=(tb&&getComputedStyle(tb).display!=='none'&&tb.offsetHeight)||0,r=document.documentElement.style;
+  document.body.classList.add('hasdock');e.hidden=false;e.style.bottom=tbh+'px';r.setProperty('--dockh',e.offsetHeight+'px');r.setProperty('--tabh',tbh+'px');
+  e.querySelector('.tmt').textContent=a.title||'Episode';e.querySelector('.tmp').textContent=a.feedId?fof(a).title:'';
+  {const th=e.querySelector('.tmth'),u=npArt(a),k=EPL+'|'+u;if(th.dataset.k!==k){th.dataset.k=k;th.innerHTML=digThumb(a)}npTint(u)}
+  const b=e.querySelector('.tmb');b.innerHTML=dkI(EPA.paused?DK_PLAY:DK_PAUSE,24);b.setAttribute('aria-label',EPA.paused?'Play':'Pause');
+  e.querySelector('.tmpv').hidden=e.querySelector('.tmnx').hidden=true;
+  {const rw=e.querySelector('.tmrw');rw.setAttribute('aria-label','Back 15 seconds');rw.querySelector('b').textContent=15}
+  e.querySelector('.tmopen').setAttribute('aria-label','Open this episode');e.querySelector('.tmx').setAttribute('aria-label','Stop playing');
+  e.querySelector('.tmline i').style.transform='scaleX('+(isFinite(d)&&d>0?Math.min(1,EPA.currentTime/d):0).toFixed(4)+')';
+  return;
+ }
+ {const e=$('#tmini');if(e){e.querySelector('.tmopen').setAttribute('aria-label','Open the player and story list');e.querySelector('.tmx').setAttribute('aria-label','Stop reading')}}
  const show=!!((TTS.on||DIG.on||tdr.hold)&&('speechSynthesis' in window));
  document.body.classList.toggle('hasdock',show);if(!show){const r=document.documentElement.style;r.setProperty('--dockh','0px');r.setProperty('--tabh','0px')}
  let e=$('#tmini');if(!show&&!e)return;e=tmini();e.hidden=!show;
@@ -14025,7 +14041,7 @@ function mediaBlock(a){
  return'';
 }
 /* the one episode player: a single audio element that outlives the reader, so an episode keeps playing when you go back to the list */
-let EPA=null,EPL='';
+let EPA=null,EPL='',epNative=()=>{};
 const epT=t=>{t=Math.max(0,Math.floor(t||0));const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(s).padStart(2,'0')};
 const epSay=t=>{t=Math.max(0,Math.floor(t||0));const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return(h?h+' hr ':'')+(m?m+' min ':'')+s+' sec'};
 function epBox(){return[...document.querySelectorAll('.cols .aud')].find(b=>b.dataset.aud===EPL)||null}
@@ -14059,14 +14075,14 @@ function epPos(){try{if('mediaSession' in navigator&&navigator.mediaSession.setP
 function epInit(){
  if(EPA)return EPA;EPA=new Audio();EPA.preload='none';
  let lt=0;
- EPA.addEventListener('play',()=>{try{if(TTS.on)ttsStop()}catch(e){}epSession();try{navigator.mediaSession.playbackState='playing'}catch(e){}epUi()});
- EPA.addEventListener('pause',()=>{try{navigator.mediaSession.playbackState='paused'}catch(e){}epSave();epUi()});
+ EPA.addEventListener('play',()=>{try{if(TTS.on)ttsStop()}catch(e){}epSession();try{navigator.mediaSession.playbackState='playing'}catch(e){}epUi();R.epDock=true;tminiSync();epNative(true)});
+ EPA.addEventListener('pause',()=>{if(epOn()){try{navigator.mediaSession.playbackState='paused'}catch(e){}tminiSync();epNative(false)}epSave();epUi()});
  EPA.addEventListener('loadedmetadata',()=>{epPos();epUi()});
  EPA.addEventListener('ratechange',epPos);
- EPA.addEventListener('seeked',()=>{epPos();epUi()});
- EPA.addEventListener('ended',()=>{const a=findStory(EPL);if(a)markReadA(a);epSave();epUi();/* F8: a finished episode moves on to the next in Up Next */if(R.epQ||S.lq.length){R.epQ=false;if(a&&(!curA||curA.link!==a.link))TTS.art=a;ttsEnd()}});
+ EPA.addEventListener('seeked',()=>{epPos();epUi();if(epOn()){tminiSync();epNative(!EPA.paused)}});
+ EPA.addEventListener('ended',()=>{const a=findStory(EPL);if(a)markReadA(a);epSave();epUi();if(epOn())epDockOff();/* F8: a finished episode moves on to the next in Up Next */if(R.epQ||S.lq.length){R.epQ=false;if(a&&(!curA||curA.link!==a.link))TTS.art=a;ttsEnd()}});
  EPA.addEventListener('timeupdate',()=>{
-  epUi();if(Date.now()-lt<5000)return;lt=Date.now();epPos();epSave();
+  epUi();if(Date.now()-lt<5000)return;lt=Date.now();epPos();epSave();if(epOn())tminiSync();
   const d=EPA.duration;if(isFinite(d)&&d>0&&EPA.currentTime/d>=.95){const a=findStory(EPL);if(a&&!S.read[a.link])markReadA(a)}
  });
  return EPA;
@@ -16998,7 +17014,7 @@ function silentUrl(){const sr=8000,n=sr,b=new ArrayBuffer(44+n),v=new DataView(b
 /* the Android notification (play, pause, skip) is switched on from the app wrapper further down; these are no-ops on the web */
 let mediaNative=()=>{},mediaNativeStop=()=>{};
 function mediaOn(){
- epPause();
+ R.epDock=false;epPause();
  try{if(!silentAu){silentAu=new Audio(silentUrl());silentAu.loop=true;silentAu.volume=.01}silentAu.play().catch(()=>{})}catch(e){}
  if(!('mediaSession' in navigator)||!curA)return;
  try{
@@ -17984,12 +18000,13 @@ function nativeExtrasUi(x){
   let MPERM=0;const mediaPerm=async()=>{if(MPERM||S.mperm)return;MPERM=1;S.mperm=1;save();const ok=await notifOk();if(ok){try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}}else toast('Allow notifications for CyPress in Android settings to get play, pause and skip in the notification bar')};
   mediaNative=()=>{MADV=0;try{mediaPerm();x.mediaStart(MT()).catch(()=>{});x.mediaUpdate&&x.mediaUpdate({...MT(),playing:true}).catch(()=>{})}catch(e){}};
   mediaNativeStop=()=>{try{x.mediaStop&&x.mediaStop().catch(()=>{})}catch(e){}};
+  epNative=on=>{try{const a=findStory(EPL)||{},d=EPA.duration,m={title:a.title||'Episode',subtitle:a.feedId?fof(a).title:'',image:/^https?:/.test(a.img||'')?a.img:'',pos:Math.round((EPA.currentTime||0)*1000),dur:isFinite(d)&&d>0?Math.round(d*1000):0,rate:EPA.playbackRate||1,next:false,prev:false};mediaPerm();if(on)x.mediaStart(m).catch(()=>{});x.mediaUpdate&&x.mediaUpdate({...m,playing:on}).catch(()=>{})}catch(e){}};
   ttsFrom=function(w){const r=pf.apply(this,arguments);mediaNative();return r};
   npArt.push=()=>{try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}};
   ttsPause=function(){const r=pp.apply(this,arguments);try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:false}).catch(()=>{})}catch(e){}return r};
   /* moving to the next story (Daily or Up Next) leaves the notification playing: a paused or stopped one lets Android freeze the minimized app, and it can't come back from the background, so the next story never started */
   ttsStop=function(){const r=ps.apply(this,arguments);try{if((DIG.on&&R.digOpen)||Date.now()-MADV<8000){}else{x.mediaStop&&x.mediaStop().catch(()=>{})}}catch(e){}return r};
-  x.addListener&&x.addListener('mediaAction',r=>{const a=r&&r.action;if(a==='seek'&&r.pos>=0){digSeekTo(r.pos/1000);setTimeout(()=>{try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}},400);return}if(a==='toggle')ttsToggle();else if(a==='pause'){if(TTS.on&&!TTS.paused)ttsToggle()}else if(a==='play'){if(!TTS.on||TTS.paused)ttsToggle()}else if(a==='next')ttsEnd(true);else if(a==='prev'){if(TTS.on)ttsFrom(ttsStartWord())}else if(a==='rew'||a==='fwd'){digSeekBy(a==='rew'?-skipS():skipS());setTimeout(()=>{try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}},400)}else if(a==='stop'){if(DIG.on)digEnd(false);MADV=0;ttsStop()}});
+  x.addListener&&x.addListener('mediaAction',r=>{const a=r&&r.action;if(epOn()){if(a==='seek'&&r.pos>=0)EPA.currentTime=r.pos/1000;else if(a==='stop')epDockOff();else if(a==='rew')EPA.currentTime=Math.max(0,EPA.currentTime-15);else if(a==='fwd')EPA.currentTime=Math.min(EPA.duration||1e9,EPA.currentTime+30);else if(a==='pause'||(a==='toggle'&&!EPA.paused))EPA.pause();else if(a==='play'||a==='toggle')EPA.play().catch(()=>{});return}if(a==='seek'&&r.pos>=0){digSeekTo(r.pos/1000);setTimeout(()=>{try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}},400);return}if(a==='toggle')ttsToggle();else if(a==='pause'){if(TTS.on&&!TTS.paused)ttsToggle()}else if(a==='play'){if(!TTS.on||TTS.paused)ttsToggle()}else if(a==='next')ttsEnd(true);else if(a==='prev'){if(TTS.on)ttsFrom(ttsStartWord())}else if(a==='rew'||a==='fwd'){digSeekBy(a==='rew'?-skipS():skipS());setTimeout(()=>{try{x.mediaUpdate&&x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}catch(e){}},400)}else if(a==='stop'){if(DIG.on)digEnd(false);MADV=0;ttsStop()}});
  }
 }
 function widgetList(){let l=[];try{if(typeof DGL!=='undefined'&&DGL.length){l=[LEADK&&findStory(LEADK),...DGL.map(findStory)].filter((a,i,arr)=>a&&a.title&&a.link&&arr.indexOf(a)===i)}}catch(e){}
