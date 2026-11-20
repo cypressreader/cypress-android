@@ -11358,7 +11358,7 @@ function setBuild(){
  sh.insertAdjacentHTML('afterbegin','<button class="ib" id="setback" type="button" aria-label="Back"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>');
  sh.querySelector('h2').id='settitle';$('#set').setAttribute('aria-labelledby','settitle');/* B4: the dialog keeps its name after the heading is renamed */
  setAdopt();setLeftovers();
- SET_PAGES.forEach(p=>{const pg=$('#sp-'+p.id);const m=pg.querySelector('.smore');if(m)m.querySelector('.smn').textContent='· '+m.querySelectorAll('.line').length;if(p.rst){const b=document.createElement('button');b.type='button';b.className='srst';b.dataset.rst=p.id;b.textContent='Reset this section';if(m)m.append(b)}});
+ SET_PAGES.forEach(p=>{const pg=$('#sp-'+p.id);const m=pg.querySelector('.smore');if(p.rst){const b=document.createElement('button');b.type='button';b.className='srst';b.dataset.rst=p.id;b.textContent='Reset this section';if(m)m.append(b)}});
 }
 function setResetLine(){
  const d=document.createElement('div');d.className='line';d.id='resetlook';
@@ -11397,7 +11397,7 @@ function setLeftovers(){
 /* polish-2026-10 (J4): rows whose only control is an Open/Show/Copy pill become a whole-row tap with a ›. The button stays (same id, same click handler); it just stretches over the row and gets a longer accessible name. */
 const SET_ROWGO=['hcgo','vhopen','aaopen','dgopen','mut','sfb','mgb','prvb','diagb','schkb','kbopen','tipsb','obagain'];
 function setRows(){SET_ROWGO.forEach(id=>{const b=$('#'+id);if(!b||b.dataset.rg)return;const l=b.closest('.line'),lb=l&&l.querySelector('.lb');if(!lb||!lb.firstChild)return;b.dataset.rg='1';l.classList.add('srow');const nm=lb.firstChild.textContent.trim();b.setAttribute('aria-label',nm)})}
-function setCounts(){document.querySelectorAll('.spage .smore').forEach(m=>{m.querySelector('.smn').textContent='· '+m.querySelectorAll('.line').length})}
+function setCounts(){/* David 2026-11-20: count only the rows you can see (it said 14 with 2 showing: hidden per-folder rows counted) */document.querySelectorAll('.spage .smore').forEach(m=>{m.querySelector('.smn').textContent='· '+[...m.querySelectorAll('.line')].filter(l=>{const h=l.closest('[hidden]');return !h||!m.contains(h)}).length})}
 /* Controls that only matter when their switch is on stay out of sight until it is. */
 const SET_DEPS=[['#alke',()=>isOn('alerts')],['#alkt',()=>isOn('alerts')],['#packh',()=>isOn('pack')],['#packo',()=>isOn('pack')],['#bid',()=>isOn('bi')],['#dgwhen',()=>isOn('dgon')],['#dgwd',()=>isOn('dgwk')],['[data-tg="dglock"]',()=>isOn('dgnotif')],['[data-tg="pfwifi"]',()=>($('#pfm')||{}).value!=='off'],['[data-tg="pfshort"]',()=>($('#pfm')||{}).value!=='off'],['[data-tg="pfpow"]',()=>($('#pfm')||{}).value!=='off'],['#dgwk',()=>isOn('dgon')],['[data-tg="fbleed"]',()=>isOn('mag')],['[data-tg="keysOn"]',()=>!matchMedia('(hover:none)').matches],['[data-tg="spread"]',()=>isOn('mag')],['[data-tg="lowfx"]',()=>isOn('cyfx')],['[data-tg="dgwk"]',()=>isOn('dgon')]];
 const SET_INDENT=['#alke','#alkt','#packh','#packo','#bid','#dgwhen','#dgwd','[data-tg="dglock"]','[data-tg="pfwifi"]','[data-tg="pfpow"]','[data-tg="pfshort"]','[data-tg="fbleed"]','[data-tg="spread"]','[data-tg="lowfx"]'];
@@ -11407,7 +11407,7 @@ set.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('[data-
  else if(S.fthon&&S.fthOff){S.fth=S.fthOff;delete S.fthOff;save();applyTheme(false)}
  try{fthFill()}catch(x){}syncSet()},0)});
 function setSum(){
- setDeps();schSync();picSync();fsSync();setYou();setRows();{const f=$('#fthl');if(f)f.hidden=!isOn('fthon');const h=$('#fthh');if(h&&!isOn('fthon'))h.hidden=true}
+ setDeps();schSync();picSync();fsSync();setYou();setRows();{const f=$('#fthl');if(f)f.hidden=!isOn('fthon');const h=$('#fthh');if(h&&!isOn('fthon'))h.hidden=true}setCounts();
  const q=(s)=>document.querySelector(s);const t={};
  {const N={save:'Save',read:'Mark read',off:'Nothing'};t.use='Left '+N[S.swl||'save']+' · right '+N[S.swr||'read']+(isOn('rdscroll')?' · read as you scroll':'')}
  const tb=q('#thm button[data-th].on'),sc=schCur(),SCN={sys:'follows phone',light:'always light',dark:'always dark',dynamic:'colors follow stories'};t.look=((S.theme||'auto')==='dynamic'?'Dynamic':(tb?(tb.querySelector('.thn')||tb).textContent.replace(/\d+$/,'').trim():'Cypress'))+(SCN[sc]&&sc!=='dynamic'?' · '+SCN[sc]:'')+' · '+cvName(S.cvs||'clean')+' cover';t.motion='Motion '+moLevel()+(isOn('lowfx')?' · pauses effects on low battery':'');
@@ -11466,7 +11466,7 @@ function setSearch(q){
  if(!q){sr.hidden=true;gl.hidden=false;return}
  q=q.replace(/\bcolo(u)?rs?\b/g,'color');/* people who spell it the other way still find it */
  let tk=q.split(/[^a-z0-9']+/).filter(t=>t&&!SET_STOP.has(t)).map(t=>t.length>3?t.replace(/(ing|es|s)$/,''):t);if(!tk.length)tk=[q];
- const res=[];document.querySelectorAll('#setpane .spage').forEach(pg=>{const p=SET_PAGES.find(x=>x.id===pg.dataset.pg);const pgt=(p.t+' '+(p.d||'')).toLowerCase();pg.querySelectorAll('.line').forEach(l=>{const lb=l.querySelector('.lb');if(!lb)return;const name=setNorm(lb.firstChild.textContent),nl=name.toLowerCase();
+ const res=[];document.querySelectorAll('#setpane .spage').forEach(pg=>{const p=SET_PAGES.find(x=>x.id===pg.dataset.pg);const pgt=(p.t+' '+(p.d||'')).toLowerCase();pg.querySelectorAll('.line').forEach(l=>{const lb=l.querySelector('.lb');if(!lb)return;{const h=l.closest('[hidden]');if(h&&pg.contains(h)&&h!==pg)return}/* a hidden row is not offered */const name=setNorm(lb.firstChild.textContent),nl=name.toLowerCase();
   let cp=l._sx;if(!cp)cp=l._sx=(lb.textContent.toLowerCase()+' '+SET_SYN.filter(([k])=>nl.includes(k)).map(x=>x[1]).join(' ')+(nl.includes('light, dark')?' '+THEME_NAMES.flat().join(' ').toLowerCase():''));
   let sc=0,hit=0,dh=0;for(const t of tk){const w=new RegExp('(^|[^a-z0-9])'+t);/* whole-word starts: "line" no longer matches Offline or Timeline */if(w.test(nl)){sc+=3;hit++;dh++}else if(w.test(cp)){sc+=2;hit++;dh++}else if(t.length>2&&w.test(pgt)){sc+=1;hit++}}
   if(hit&&hit*2>=tk.length)res.push([l,p,name,sc,hit,dh])})});
