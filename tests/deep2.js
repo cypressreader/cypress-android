@@ -85,7 +85,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  // podcast reader
  await E(()=>openReader(cur.find(a=>a.audio)));await W(1500);
  ck(vp,'audio player in reader',await E(()=>!!$('.cols .aud [data-ap="play"]')&&/\.mp3/.test($('.cols .aud').dataset.aud+' '+(cur.find(a=>a.audio)||{}).audio)));/* the episode player shares one audio element (EPA), created on Play */
- await p.tap('[data-aspd="1.5"]');ck(vp,'podcast speed',await E(()=>S.prate===1.5&&(!EPA||EPA.playbackRate===1.5)&&$('.cols [data-aspd="1.5"]').getAttribute('aria-pressed')==='true'));
+ await E(()=>{S.prate=1.25});await p.tap('.cols [data-aspc]');ck(vp,'podcast speed',await E(()=>S.prate===1.5&&(!EPA||EPA.playbackRate===1.5)&&$('.cols [data-aspc]').textContent==='1.5×'));
  await p.tap('#cl');await W(200);
  await E(()=>openReader(cur.find(a=>a.yt)));await W(800);
  /* a video shows a tap-to-play card; nothing from YouTube loads until the tap (privacy), then the privacy-enhanced embed plays in place */

@@ -2227,3 +2227,18 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Page turns and scrolling stay smooth with the whole-page gray filter, on the Fold and a low-end phone.
 - Dynamic theme: colors fade (about 1.6 s) instead of snapping when scrolling stops, with the phone's Remove animations on, with Reduce motion on, and in power saver.
 - Add a site: the Videos group shows 12 channels; adding one fills with its videos and a video plays in the story on tap. Podcasts group: Planet Money replaced Reply All and its episodes play.
+
+## Podcast episode: bottom player + notification player (2026-11-20, implemented, unverified on device)
+- Play a podcast episode in a story, turn pages: the bottom player shows (title, show, back 15, play/pause, X). Pause works from any page.
+- Go back to the list while it plays: bottom player stays; tap it to reopen the episode; X stops it.
+- Leave the app / lock the screen: notification player shows the episode with play/pause, back/forward, scrubber; audio keeps playing.
+- Start read aloud on another story while an episode plays: episode pauses, the player and notification switch to read aloud.
+- Video cards from YouTube channels show the video's picture; adding a channel shows no "couldn't load the full articles" warning.
+- Sidebar order (2026-11-20): press and hold a folder (e.g. Tech) > Keep at the top > Yes: it moves first; survives A to Z / Z to A in Settings.
+- [ ] Episode player in the story (new look, 1.367): solid theme-color card with the show's picture, title, back 15 / play / ahead 30, one speed button that steps 0.8 to 2, time left, progress strip along the bottom edge. On the phone: drag the bottom strip to seek, strip does not fight page swipes, picture loads for real shows, every theme readable.
+- [ ] AI summary across a page turn (1.367): on the Fold, a story whose AI summary runs past the bottom of page 1. The last point should move whole to page 2, and the text must not re-wrap about half a second after the turn lands (David's 13:51 recording, 2026-11-20).
+- [ ] Podcasts (1.367): add Freakonomics Radio, Science Vs, Hard Fork, Radiolab, The Daily: each shows many episodes (was 1 to 20, Science Vs none); The Daily (20 MB list) loads on the phone in time, on Wi-Fi and on mobile data.
+- [ ] Podcast sleep timer (1.367): moon button on the episode player steps Off, 15, 30, 60 min, End of episode. On the phone: playback stops on time with the screen off, sound fades in the last 45 s, shake adds 10 minutes.
+- [ ] Dynamic theme, short stories and podcast episodes (1.367): taps inside the story work (player buttons, links). Before, every tap in a short story's page was swallowed.
+- [ ] Darknet Diaries, The Daily, Radiolab, 99% Invisible, Hard Fork, Freakonomics, Hidden Brain (1.367): each lists episodes after adding (were dropped as off-site).
+- [ ] Top-of-list download (1.367): on the phone, add The Daily and Freakonomics Radio on Wi-Fi and on mobile data: episodes appear within a few seconds; refresh keeps them. If a podcast shows nothing, check its site log for 'the top of the list didn't arrive'.
