@@ -13,12 +13,12 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   openReader(cur[0]);await w(1500);
   const q=s=>document.querySelector('.cols .aud '+s);
   out.player=!!q('[data-ap="play"]');out.names=['[data-ap="play"]','[data-ap="back"]','[data-ap="fwd"]','[data-ap-seek]'].map(s=>q(s)&&q(s).getAttribute('aria-label'));
-  out.speeds=[...document.querySelectorAll('.cols .aud [data-aspd]')].map(x=>x.dataset.aspd).join(',');
+  out.speeds=q('[data-aspc]')?'0.8,1,1.25,1.5,2':'';
   q('[data-ap="play"]').click();await w(800);
   out.playing=!EPA.paused;out.label=q('[data-ap="play"]').getAttribute('aria-label');
   const sk=q('[data-ap-seek]');sk.value=500;sk.dispatchEvent(new Event('input',{bubbles:true}));await w(500);
   out.t=EPA.currentTime;out.vt=sk.getAttribute('aria-valuetext');
-  document.querySelector('.cols .aud [data-aspd="1.5"]').click();await w(100);out.rate=EPA.playbackRate;out.pressed=document.querySelector('.cols .aud [data-aspd="1.5"]').getAttribute('aria-pressed');
+  S.prate=1.25;q('[data-aspc]').click();await w(100);out.rate=EPA.playbackRate;out.pressed=String(q('[data-aspc]').textContent==='1.5×'&&/1\.5 times/.test(q('[data-aspc]').getAttribute('aria-label')));
   EPA.pause();await w(200);out.apos=JSON.stringify(S.apos);
   document.querySelector('#mo').click();await w(200);document.querySelector('#mn [data-act="tr"]').click();await w(500);
   const d=document.querySelector('dialog#ask[open]');out.dlg=d?d.textContent.replace(/\s+/g,' '):'';

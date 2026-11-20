@@ -2235,3 +2235,4 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Start read aloud on another story while an episode plays: episode pauses, the player and notification switch to read aloud.
 - Video cards from YouTube channels show the video's picture; adding a channel shows no "couldn't load the full articles" warning.
 - Sidebar order (2026-11-20): press and hold a folder (e.g. Tech) > Keep at the top > Yes: it moves first; survives A to Z / Z to A in Settings.
+- [ ] Episode player in the story (new look, 1.367): solid theme-color card with the show's picture, title, back 15 / play / ahead 30, one speed button that steps 0.8 to 2, time left, progress strip along the bottom edge. On the phone: drag the bottom strip to seek, strip does not fight page swipes, picture loads for real shows, every theme readable.

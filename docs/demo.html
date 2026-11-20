@@ -1081,12 +1081,20 @@ main{overscroll-behavior-y:none}
 #ptr.ready{color:var(--logo);border-color:var(--logo)}
 .vid{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;margin:0 0 16px;background:#000;break-inside:avoid}
 .vid iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.aud{margin:0 0 18px;padding:12px;border-radius:14px;background:color-mix(in srgb,var(--b) 10%,var(--pn));border:1px solid var(--ln);break-inside:avoid;font-family:var(--sans)}
-.aud audio{width:100%;display:block}
-.aspd{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:8px;font-size:12px;color:var(--mut)}
-.aspd button{padding:4px 9px;border-radius:999px;border:1px solid var(--ln);font:600 12px var(--sans);color:var(--ink)}
-.aspd button.on,.aspd button[aria-pressed=true]{background:var(--ink);color:var(--pn);border-color:var(--ink)}
-.aur{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.aur .ap{min-width:44px;min-height:44px;border-radius:50%;border:0;background:var(--ink);color:var(--pn);font:700 16px var(--sans);display:grid;place-items:center;cursor:pointer}.aur .ask{min-height:44px;padding:0 10px;border-radius:999px;border:1px solid var(--ln);font:600 13px var(--sans);color:var(--ink);cursor:pointer}.aur .aseek{flex:1 1 140px;min-width:100px;accent-color:var(--ink);height:44px}.aur .atm{font:600 12px var(--sans);color:var(--mut);font-variant-numeric:tabular-nums;min-width:38px}
+.aud{position:relative;overflow:hidden;display:flex;align-items:stretch;gap:14px;margin:0 0 18px;padding:12px 14px 22px;border-radius:16px;background:var(--a1);color:var(--bg);text-align:start;hyphens:none;break-inside:avoid;font-family:var(--sans);--rt:color-mix(in srgb,var(--bg) 28%,transparent)}
+.aart{flex:none;align-self:flex-start;width:clamp(72px,26%,96px);aspect-ratio:1;border-radius:14px;display:grid;place-items:center;font:500 40px var(--serif);background:var(--bg) center/cover no-repeat;color:var(--a1)}
+.acol{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:8px}
+.aep{font-weight:600;font-size:15px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ash{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aur{display:flex;align-items:center;gap:4px}
+.aur button{flex:none;min-width:44px;min-height:44px;padding:0;border:0;background:none;color:inherit;display:grid;place-items:center;cursor:pointer}
+.aur .ap{border-radius:50%;background:var(--bg);color:var(--a1);font:700 16px var(--sans)}
+.aur .asp{min-width:50px;min-height:34px;margin-left:4px;padding:0 8px;border:1px solid var(--rt);border-radius:999px;font:600 13px var(--sans)}
+.aur .atm{margin-left:auto;min-width:0;overflow:hidden;white-space:nowrap;font:600 12px var(--sans);font-variant-numeric:tabular-nums}
+.aseek{position:absolute;left:0;right:0;bottom:0;width:100%;height:18px;margin:0;padding:0;border:0;border-radius:0;-webkit-appearance:none;appearance:none;background:linear-gradient(to right,var(--bg) var(--f,0%),var(--rt) 0) bottom/100% 4px no-repeat;cursor:pointer}
+.aseek::-webkit-slider-thumb{-webkit-appearance:none;width:4px;height:18px;background:none}
+.aseek::-moz-range-thumb{width:4px;height:18px;border:0;background:none}
+.aseek::-moz-range-track{background:none}
 .cols img{cursor:zoom-in}
 .rate{display:inline-flex;gap:6px;align-items:center;vertical-align:middle;margin-left:4px}
 .thb{width:32px;height:32px;border-radius:50%;border:1px solid var(--ln);background:none;color:var(--mut);display:inline-flex;align-items:center;justify-content:center;padding:0}
@@ -11577,7 +11585,7 @@ $('#rd').onclick=e=>{
  const rn=t.closest('[data-rnext]');if(rn){const n=findStory(rn.dataset.rnext)||(R.ctx||[]).find(x=>x.link===rn.dataset.rnext);if(n)openReader(n);return}
  const jl=t.closest('[data-junklog]');if(jl){navigator.clipboard.writeText(junkLogText()).then(()=>toast('Junk log copied'),()=>toast('Could not copy'));return}
  if(t.closest('[data-bfin]'))return closeRd();
- const sp=t.closest('[data-aspd]');if(sp){S.prate=+sp.dataset.aspd;S.setT=Date.now();save();if(EPA)EPA.playbackRate=S.prate;document.querySelectorAll('[data-aspd]').forEach(b=>{b.classList.toggle('on',b===sp);b.setAttribute('aria-pressed',b===sp)});return}
+ const sp=t.closest('[data-aspc]');if(sp){const V=[.8,1,1.25,1.5,2];S.prate=V[(V.indexOf(+S.prate||1)+1)%5];S.setT=Date.now();save();if(EPA)EPA.playbackRate=S.prate;document.querySelectorAll('[data-aspc]').forEach(b=>{b.textContent=S.prate+'×';b.setAttribute('aria-label','Speed '+S.prate+' times. Change speed')});return}
  const apb=t.closest('[data-ap]');if(apb){epAct(apb);return}
  if(t.closest('#pbq')){S.queue=!S.queue;save();return syncPb()}
  if(t.closest('#sayb,#pbsay')){const w=TTS.on&&TTS.words[TTS.wi],sel=String(getSelection()||'').trim();return sayFix(sel.length<40&&sel?sel:w&&w.n.data?w.n.data.slice(w.s,w.e).replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu,'').replace(/[’']s$/,''):'')}
@@ -14041,7 +14049,8 @@ function ytId(a){const m=(a.link||'').match(/(?:youtube\.com\/(?:watch\?v=|short
 function mediaBlock(a){
  const y=ytId(a);
  if(y)return ytCard(y,true).outerHTML;
- if(a.audio)return `<div class="aud" data-aud="${esc(a.link)}" role="group" aria-label="Episode player"><div class="aur"><button type="button" class="ap" data-ap="play" aria-label="Play episode">▶</button><button type="button" class="ask" data-ap="back" aria-label="Back 15 seconds">−15</button><button type="button" class="ask" data-ap="fwd" aria-label="Forward 30 seconds">+30</button><span class="atm" data-ap-cur>0:00</span><input type="range" class="aseek" data-ap-seek min="0" max="1000" value="0" step="1" aria-label="Seek" aria-valuetext="Not started"><span class="atm" data-ap-dur>${a.dur?esc(a.dur):''}</span></div><div class="aspd" role="group" aria-label="Playback speed"><span aria-hidden="true">Speed</span>${[0.8,1,1.25,1.5,2].map(v=>`<button type="button" data-aspd="${v}" aria-pressed="${(+S.prate||1)===v}" aria-label="Speed ${v}">${v}×</button>`).join('')}</div></div>`;
+ if(a.audio){const sh=(a.feedId&&fof(a)||{}).title||'',sk=(n,l)=>`<button type="button" data-ap="${n<0?'back':'fwd'}" aria-label="${l}"><svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g${n>0?' transform="matrix(-1 0 0 1 32 0)"':''}><path d="M6.5 16a9.5 9.5 0 1 0 3-6.9"/><path d="M9.6 4.6v4.7h4.7"/></g><text x="16" y="20" text-anchor="middle" font-size="9.5" font-weight="700" stroke="none" fill="currentColor">${Math.abs(n)}</text></svg></button>`,r=+S.prate||1;
+  return `<div class="aud" data-aud="${esc(a.link)}" role="group" aria-label="Episode player"><span class="aart" aria-hidden="true"${a.img&&/^https?:/.test(a.img)?` style="background-image:url(&quot;${esc(encodeURI(decodeURI(a.img)))}&quot;)">`:'>'+esc((sh||a.title||'E').trim().charAt(0).toUpperCase())}</span><div class="acol"><div><div class="aep">${esc(a.title||'Episode')}</div><div class="ash">${esc(sh)}</div></div><div class="aur">${sk(-15,'Back 15 seconds')}<button type="button" class="ap" data-ap="play" aria-label="Play episode">▶</button>${sk(30,'Forward 30 seconds')}<button type="button" class="asp" data-aspc aria-label="Speed ${r} times. Change speed">${r}×</button><span class="atm" data-ap-dur>${a.dur?esc(a.dur):''}</span></div></div><input type="range" class="aseek" data-ap-seek min="0" max="1000" value="0" step="1" aria-label="Seek" aria-valuetext="Not started"></div>`}
  return'';
 }
 /* the one episode player: a single audio element that outlives the reader, so an episode keeps playing when you go back to the list */
@@ -14052,8 +14061,7 @@ function epBox(){return[...document.querySelectorAll('.cols .aud')].find(b=>b.da
 function epUi(){
  const b=epBox();if(!b||!EPA)return;const d=EPA.duration,c=EPA.currentTime||0,ok=isFinite(d)&&d>0;
  b.querySelector('[data-ap="play"]').textContent=EPA.paused?'▶':'❚❚';b.querySelector('[data-ap="play"]').setAttribute('aria-label',EPA.paused?'Play episode':'Pause episode');
- b.querySelector('[data-ap-cur]').textContent=epT(c);
- const sk=b.querySelector('[data-ap-seek]');if(ok){if(document.activeElement!==sk)sk.value=Math.round(c/d*1000);b.querySelector('[data-ap-dur]').textContent=epT(d);sk.setAttribute('aria-valuetext',epSay(c)+' of '+epSay(d))}
+ const sk=b.querySelector('[data-ap-seek]');if(ok){if(document.activeElement!==sk)sk.value=Math.round(c/d*1000);sk.style.setProperty('--f',c/d*100+'%');b.querySelector('[data-ap-dur]').textContent='−'+epT(d-c);sk.setAttribute('aria-valuetext',epSay(c)+' of '+epSay(d))}
 }
 function epSave(){
  if(!EPA||!EPL)return;const d=EPA.duration;if(!isFinite(d)||d<=0)return;
@@ -14111,9 +14119,9 @@ function mediaWire(){
  const b=$('.cols .aud');if(!b)return;
  if(EPA&&EPL===b.dataset.aud){epUi();return}
  const p=(S.apos&&S.apos[b.dataset.aud])||(S.prog&&S.prog['au:'+b.dataset.aud]);
- if(p&&p.s>5){b.querySelector('[data-ap-cur]').textContent=epT(p.s);if(p.d){b.querySelector('[data-ap-dur]').textContent=epT(p.d);const sk=b.querySelector('[data-ap-seek]');sk.value=Math.round(p.s/p.d*1000);sk.setAttribute('aria-valuetext','Resume at '+epSay(p.s)+' of '+epSay(p.d))}}
+ if(p&&p.s>5){if(p.d){b.querySelector('[data-ap-dur]').textContent='−'+epT(p.d-p.s);const sk=b.querySelector('[data-ap-seek]');sk.value=Math.round(p.s/p.d*1000);sk.style.setProperty('--f',p.s/p.d*100+'%');sk.setAttribute('aria-valuetext','Resume at '+epSay(p.s)+' of '+epSay(p.d))}}
  const sk=b.querySelector('[data-ap-seek]');
- sk.addEventListener('input',()=>{epLoad(b.dataset.aud,curA.audio);const set=()=>{if(isFinite(EPA.duration))EPA.currentTime=sk.value/1000*EPA.duration};if(isFinite(EPA.duration)&&EPA.duration>0)set();else EPA.addEventListener('loadedmetadata',set,{once:true});if(EPA.readyState===0){EPA.preload='auto';EPA.load()}});
+ sk.addEventListener('input',()=>{sk.style.setProperty('--f',sk.value/10+'%');epLoad(b.dataset.aud,curA.audio);const set=()=>{if(isFinite(EPA.duration))EPA.currentTime=sk.value/1000*EPA.duration};if(isFinite(EPA.duration)&&EPA.duration>0)set();else EPA.addEventListener('loadedmetadata',set,{once:true});if(EPA.readyState===0){EPA.preload='auto';EPA.load()}});
 }
 const mediaBadge=a=>ytId(a)?'<span class="mb">▶ Video</span>':a.audio?`<span class="mb" role="img" aria-label="Podcast episode${a.dur?', '+esc(a.dur):''}">▶ ${a.dur?esc(a.dur):'Listen'}</span>`:'';
 
