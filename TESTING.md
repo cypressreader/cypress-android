@@ -2195,3 +2195,4 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - F16: search finds words inside downloaded/saved story text (card shows the matching sentence), and inside your highlights and notes.
 - F15: Saved > a collection chip opens with a cover (first picture, 'Collection · N stories', its name).
 - S9: on a phone that stalls often, the lighter mode (same as low battery) turns itself on and re-checks after 14 days; Settings 'lowfx' off still wins.
+- F20: the Daily widget's next story is the first unread one that fits your usual length (needs 3+ finished stories in 30 days); its source line shows '· N min'.
