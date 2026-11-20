@@ -6780,6 +6780,8 @@ function covFit(){
   const m=cv.querySelector('.cvm'),mb=m&&m.parentElement;
   if(m&&mb){const mk=mb.clientWidth+'|'+cv.className+'|'+m.textContent;if(m.dataset.mk!==mk){m.style.removeProperty('font-size');const cs=getComputedStyle(mb),av=mb.clientWidth-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0),ow=m.style.whiteSpace;m.style.whiteSpace='nowrap';const w=m.getBoundingClientRect().width;m.style.whiteSpace=ow;if(av>20&&w>av){const f=parseFloat(getComputedStyle(m).fontSize)||40;m.style.setProperty('font-size',Math.max(14,Math.floor(f*av/w*.97))+'px','important')}m.dataset.mk=mk}}
   const h=cv.querySelector('.cvlead h2,.dcv-lead h2');if(!h)return;
+  /* David 2026-11-20 (Velvet, Gallery cover): a cover measured before its photo arrives is too short, so the headline came out huge; it is measured again once the photo is in, and that first guess is never remembered */
+  const pi=[...cv.querySelectorAll('img')].find(i=>!(i.complete&&i.naturalWidth)),pend=!!pi;if(pi&&!pi.dataset.cf){pi.dataset.cf='1';pi.addEventListener('load',()=>{delete pi.dataset.cf;delete h.dataset.fk;covFit()},{once:true})}
   const key=cv.clientWidth+'|'+VH+'|'+(h.textContent||'').length+'|'+cv.className;if(h.dataset.fk===key&&h.style.fontSize)return;
   /* the same cover headline at the same size and look fits the same way: coming back to the Daily reuses the answer instead of measuring again */
   const ck=key+'|'+(h.textContent||'').replace(/\s+/g,' ')+'|'+cv.querySelectorAll('.cvlines .cvl,.dcv-lines .dcv-l').length+'|'+S.theme+'|'+S.font+'|'+S.hfont+'|'+(document.body.className+' '+document.documentElement.className).replace(/\b(cvstill|rdserif|rdx|reading|open|sbdrag|exbusy|ttssm|nospeech|boot|svpick|lpd?)\b/g,'').replace(/\s+/g,' ').trim(),hit=COVFC.get(ck);/* spaces normalized: the no-orphan pass swaps in a no-break space after the first fit, which made every return to the Daily miss and measure again */
@@ -6807,7 +6809,7 @@ function covFit(){
   if(band){let bh=band.offsetHeight;const fl=Math.min(225,Math.round(cv.clientWidth*.42));while(size<max*.6&&bh>fl){bh=Math.max(fl,Math.round(bh*.88));band.style.maxHeight=bh+'px';size=search()}}
   /* too much text over the photo: drop the last story line, one at a time, while the headline would stay big */
   if(overlay&&!cv.classList.contains('dcov')){let k=lines.length;while(k>0&&(size<max*.6||used()>cv.offsetHeight*.62)){k--;lines[k].style.setProperty('display','none','important');size=search()}}
-  COVFC.size>60&&COVFC.clear();COVFC.set(ck,{size,band:band&&band.style.maxHeight?parseFloat(band.style.maxHeight):0,hide:lines.map((l,i)=>l.style.display==='none'?i:-1).filter(i=>i>=0)});
+  if(!pend)COVFC.size>60&&COVFC.clear(),COVFC.set(ck,{size,band:band&&band.style.maxHeight?parseFloat(band.style.maxHeight):0,hide:lines.map((l,i)=>l.style.display==='none'?i:-1).filter(i=>i>=0)});
   h.style.setProperty('font-size',size+'px','important');h.dataset.fk=cv.clientWidth+'|'+VH+'|'+(h.textContent||'').length+'|'+cv.className;
  })
 }
