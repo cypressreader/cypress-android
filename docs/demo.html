@@ -6504,7 +6504,9 @@ function parse(xml,f){
  if(d.querySelector('parsererror')&&/<(item|entry)[\s>]/i.test(xml)){const d2=new DOMParser().parseFromString(fixXml(xml),'text/xml');if(!d2.querySelector('parsererror')||d2.querySelectorAll('item,entry').length)d=d2}
  const title=d.querySelector('channel>title,feed>title')?.textContent?.trim()||'';
  if(f){try{const ds=(d.querySelector('channel>description,feed>subtitle')?.textContent||'').trim();if(ds&&ds.length<=160&&!/[<>]/.test(ds))f.desc=ds}catch(e){}}
- const list=[...d.querySelectorAll('item,entry')].map(el=>{
+ /* podcasts often give every episode the show's home page as its link, or no link at all: such episodes get their own address (show page + episode id), or they collapse into one */
+ const chl=(d.querySelector('channel>link')?.textContent||'').trim().replace(/\/$/,''),LC={};d.querySelectorAll('item>link').forEach(l=>{const k=l.textContent.trim().replace(/\/$/,'');LC[k]=(LC[k]||0)+1});
+ const list=[...d.querySelectorAll('item,entry')].slice(0,300)/* newest 300: a long-running show lists thousands of episodes */.map(el=>{
   let link=tx(el,'link');
   const al=[...el.getElementsByTagName('link')].find(l=>l.getAttribute('href')&&(l.getAttribute('rel')||'alternate')==='alternate');
   if(al)link=al.getAttribute('href');
@@ -6524,6 +6526,7 @@ function parse(xml,f){
   const pcp=img?String(tx(el,'media:description')||tx(el,'media:title')).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,220):'';
   /* one spare document is reused for every story (a new one per story was most of a refresh's work) */const td=window.__td||(window.__td=document.implementation.createHTMLDocument(''));td.body.innerHTML=html.replace(/<(script|style|title)\b[\s\S]*?<\/\1>/gi,' ').replace(/<\/(p|div|li|h[1-6])>|<br\s*\/?>/gi,'$& ');const text=td.body.textContent.replace(/\s+/g,' ').trim();td.body.textContent='';
   const au=[...el.getElementsByTagName('enclosure'),...el.getElementsByTagName('media:content')].find(e=>/audio/.test(e.getAttribute('type')||'')||/\.(mp3|m4a|aac|ogg)(\?|$)/i.test(e.getAttribute('url')||''));
+  if(au&&(!link||link.replace(/\/$/,'')===chl||LC[link.replace(/\/$/,'')]>1))link=(link||chl||(f&&f.url)||'')+'#/ep-'+encodeURIComponent((tx(el,'guid')||au.getAttribute('url')||'').trim()).slice(-48);
   const yv=tx(el,'yt:videoId');
   const by=(tx(el,'dc:creator')||(el.getElementsByTagName('author')[0]?tx(el.getElementsByTagName('author')[0],'name'):'')||tx(el,'author')).replace(/^\S+@\S+\s*\((.*)\)$/,'$1').replace(/<[^>]*>/g,' ').replace(/https?:\/\/\S+/g,' ').replace(/\s+/g,' ').trim().slice(0,60);/* an Atom author holds a name and a web address: only the name is the byline */
   const cats=[...el.getElementsByTagName('category')].map(c=>(c.getAttribute('term')||c.textContent||'').trim().toLowerCase().slice(0,40)).filter(Boolean).slice(0,8),ce=!!tx(el,'content:encoded');const sec=(el.getElementsByTagName('category')[0]?(el.getElementsByTagName('category')[0].getAttribute('term')||el.getElementsByTagName('category')[0].textContent):'').trim().slice(0,30);
