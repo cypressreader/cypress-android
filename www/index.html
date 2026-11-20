@@ -6381,7 +6381,7 @@ function parse(xml,f){
   link=(link||'').trim();
   if(!/^https?:/i.test(link)||!link){const g=el.getElementsByTagName('guid')[0];if(g&&g.getAttribute('isPermaLink')!=='false'&&/^https?:/i.test((g.textContent||'').trim()))link=g.textContent.trim()}if(link)link=abs(link,(f&&f.url)||'')||link;
   const html=tx(el,'content:encoded')||tx(el,'content')||tx(el,'description')||tx(el,'summary');
-  const mc=[...el.getElementsByTagName('media:content'),...el.getElementsByTagName('media:thumbnail')].filter(m=>m.getAttribute('url')&&!/video|audio/.test(m.getAttribute('type')||'')&&(m.getAttribute('medium')||'image')==='image').sort((x,y)=>(+y.getAttribute('width')||0)-(+x.getAttribute('width')||0))[0];
+  const mc=[...el.getElementsByTagName('media:content'),...el.getElementsByTagName('media:thumbnail')].filter(m=>m.getAttribute('url')&&!/video|audio|flash/.test(m.getAttribute('type')||'')&&(m.getAttribute('medium')||'image')==='image').sort((x,y)=>(+y.getAttribute('width')||0)-(+x.getAttribute('width')||0))[0];
   const tnE=[...el.getElementsByTagName('media:thumbnail')].find(m=>m.getAttribute('url'));
   let img=mc?.getAttribute('url')||'';
   if(!img){const en=[...el.getElementsByTagName('enclosure')].find(e=>/image/.test(e.getAttribute('type')||''));img=en?.getAttribute('url')||''}
@@ -6390,7 +6390,7 @@ function parse(xml,f){
   const thu=tnE?abs(tnE.getAttribute('url'),link):'';
   const pcr=cleanCr(tx(el,'media:credit')||tx(el,'media:copyright'));
   /* every photo the feed lists for the story (its own media and the pictures in its text), for the '+N photos' badge and the reader's photo viewer */
-  const pics=(()=>{const m=new Map();[img,...[...el.getElementsByTagName('media:content')].filter(x=>(x.getAttribute('medium')||'image')==='image'&&!/video|audio/.test(x.getAttribute('type')||'')).map(x=>x.getAttribute('url')),...[...String(html).matchAll(/<img\b[^>]*?\ssrc=["']([^"']+)/gi)].map(x=>x[1])].forEach(u=>{if(!u||/1x1|pixel|track|gravatar|emoji|feedburner|\.gif(\?|$)/i.test(u))return;const v=hi(abs(u.replace(/&amp;/g,'&'),link));if(v&&/^https?:/.test(v)&&!m.has(v.split('?')[0]))m.set(v.split('?')[0],v)});const l=[...m.values()].slice(0,12);return l.length>1?l:undefined})();
+  const pics=(()=>{const m=new Map();[img,...[...el.getElementsByTagName('media:content')].filter(x=>(x.getAttribute('medium')||'image')==='image'&&!/video|audio|flash/.test(x.getAttribute('type')||'')).map(x=>x.getAttribute('url')),...[...String(html).matchAll(/<img\b[^>]*?\ssrc=["']([^"']+)/gi)].map(x=>x[1])].forEach(u=>{if(!u||/1x1|pixel|track|gravatar|emoji|feedburner|\.gif(\?|$)/i.test(u))return;const v=hi(abs(u.replace(/&amp;/g,'&'),link));if(v&&/^https?:/.test(v)&&!m.has(v.split('?')[0]))m.set(v.split('?')[0],v)});const l=[...m.values()].slice(0,12);return l.length>1?l:undefined})();
   const pcp=img?String(tx(el,'media:description')||tx(el,'media:title')).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,220):'';
   /* one spare document is reused for every story (a new one per story was most of a refresh's work) */const td=window.__td||(window.__td=document.implementation.createHTMLDocument(''));td.body.innerHTML=html.replace(/<(script|style|title)\b[\s\S]*?<\/\1>/gi,' ').replace(/<\/(p|div|li|h[1-6])>|<br\s*\/?>/gi,'$& ');const text=td.body.textContent.replace(/\s+/g,' ').trim();td.body.textContent='';
   const au=[...el.getElementsByTagName('enclosure'),...el.getElementsByTagName('media:content')].find(e=>/audio/.test(e.getAttribute('type')||'')||/\.(mp3|m4a|aac|ogg)(\?|$)/i.test(e.getAttribute('url')||''));
