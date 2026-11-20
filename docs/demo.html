@@ -18858,10 +18858,12 @@ const bkSz=n=>n<1e6?Math.max(1,Math.round(n/1e3))+' KB':(n/1e6).toFixed(1).repla
 async function bkSize(b){if(b.sz)return b.sz;const db=await bkDb(),rg=IDBKeyRange.bound(b.id+'/',b.id+'/\uffff'),all=st=>new Promise(r=>{const q=db.transaction(st).objectStore(st).getAll(rg);q.onsuccess=()=>r(q.result||[]);q.onerror=()=>r([])});
  b.sz=(await all('ch')).reduce((n,h)=>n+(h.length||0),0)+(await all('img')).reduce((n,x)=>n+(x.size||0),0);try{db.transaction('books','readwrite').objectStore('books').put(b)}catch(e){}return b.sz}
 const bkMin=w=>Math.max(1,Math.round(w/230)),bkLen=w=>bkMin(w)<90?bkMin(w)+' min':'about '+plu(Math.round(bkMin(w)/60),'hour','hours');
+/* a redraw (background refresh) must not blink the shelf or a book's page: each cover keeps one address, and a page that comes out the same is left alone */
+const BKC={},bkCv=async b=>{if(!b.cover)return '';const k=b.id+'/'+b.cover;if(BKC[k])return BKC[k];try{const x=await bkGet('img',k);return x?BKC[k]=URL.createObjectURL(x):''}catch(e){return ''}},bkSet=(g,h)=>{if(g._bkh===h&&g.querySelector('.rki,.rkg'))return;g.innerHTML=g._bkh=h};
 function renderBooks(){
  $('#ttl').textContent='Bookshelf';cur=[];const g=$('#grid');
  const add='<button type="button" class="go" data-bkadd>Open a book file</button>';
- g.innerHTML='<div class="empty">Opening your books…</div>';
+ if(!g.querySelector('.rki,.rkg'))g.innerHTML='<div class="empty">Opening your books…</div>';
  bkAll().then(async l=>{
   if(S.sel!=='books')return;if(S.bkn!==l.length){S.bkn=l.length;saveSoon();side()}
   if(S.bkv==='cp')return bkCp(l);
@@ -18869,21 +18871,20 @@ function renderBooks(){
   if(!l.length){g.innerHTML=emp('Your bookshelf is empty','Open an EPUB, text or Markdown file from this device to read it here.',add+'<details class="why"><summary>Which books work?</summary>Files without copy protection. Books from the Kindle, Apple or Kobo stores stay in their own apps.</details>');return}
   const so=S.bksort||'r',P=S.bkpos||{},D=S.bkdone||{},lt=b=>(P[b.id]&&P[b.id].t)||0;
   l.sort(so==='t'?(a,b)=>a.title.localeCompare(b.title):so==='w'?(a,b)=>(a.author||'~').localeCompare(b.author||'~')||a.title.localeCompare(b.title):so==='a'?(a,b)=>b.added-a.added:(a,b)=>lt(b)-lt(a)||b.added-a.added);
-  const us=await Promise.all(l.map(b=>b.cover?bkGet('img',b.id+'/'+b.cover).then(x=>{if(!x)return '';const u=URL.createObjectURL(x);BKU.push(u);return u}).catch(()=>''):''));if(S.sel!=='books')return;
+  const us=await Promise.all(l.map(bkCv));if(S.sel!=='books')return;
   const U={};l.forEach((b,i)=>U[b.id]=us[i]);const now=l.length>2?l.filter(b=>P[b.id]!=null&&!D[b.id]).sort((a,b)=>lt(b)-lt(a)).slice(0,4):[],cp=(S.hl||[]).some(h=>/^book:/.test(h.link||''));
   const pr=b=>{if(D[b.id])return ' · Finished';const p=P[b.id];if(p==null)return '';const c=typeof p==='number'?p:p.c,f=typeof p==='number'?0:p.f||0;let w=0;for(let i=0;i<c&&i<b.ch.length;i++)w+=b.ch[i].w||0;w+=(b.ch[c]||{w:0}).w*f;const k=b.words?Math.round(100*w/b.words):0;return k>0?' · '+k+'% read':''};
   const rk=b=>`<button type="button" class="rk" data-bk="${esc(b.id)}" aria-label="${esc(b.title+(b.author?', by '+b.author:''))}">${U[b.id]?`<img alt="" src="${U[b.id]}">`:`<span class="rk-m">BOOK</span><span class="rk-e">${esc(b.author||'')}</span>`}<b>${esc(b.title)}</b><small>${plu(bkRows(b.ch).length,'chapter','chapters')} · ${bkLen(b.words)}${pr(b)}</small></button>`;
-  g.innerHTML='<div class="rkg"><p class="hint rkh">'+plu(l.length,'book','books')+' on this device. '+add+(cp?' <button type="button" class="tx2" data-bkgo="cp">Commonplace book</button>':'')+'</p>'
+  bkSet(g,'<div class="rkg"><p class="hint rkh">'+plu(l.length,'book','books')+' on this device. '+add+(cp?' <button type="button" class="tx2" data-bkgo="cp">Commonplace book</button>':'')+'</p>'
    +(now.length?'<h3 class="rkm">Currently reading</h3>'+now.map(rk).join('')+'<h3 class="rkm">All books</h3>':'')
    +(l.length>1?'<label class="rks hint">Sort by <select data-bksort>'+[['r','Recently read'],['a','Recently added'],['t','Title'],['w','Author']].map(([k,n])=>`<option value="${k}"${k===so?' selected':''}>${n}</option>`).join('')+'</select></label>':'')
-   +l.map(rk).join('')+'<label class="rks hint"><input type="checkbox" data-bkdaychk'+(S.bkday!==false?' checked':'')+'> Today’s chapter in The Daily</label></div>';
+   +l.map(rk).join('')+'<label class="rks hint"><input type="checkbox" data-bkdaychk'+(S.bkday!==false?' checked':'')+'> Today’s chapter in The Daily</label></div>');
  }).catch(()=>{g.innerHTML=emp('Books can’t open here','This browser won’t let the app keep books on this device.','')});
 }
 async function bkFront(b){
- const g=$('#grid'),at=bkAt(b);let cv='';
- if(b.cover){const x=await bkGet('img',b.id+'/'+b.cover);if(x){BKU.push(cv=URL.createObjectURL(x))}}
+ const g=$('#grid'),at=bkAt(b),cv=await bkCv(b);
  const p=(S.bkpos||{})[b.id],f=at!=null&&p&&p.f||0,rows=bkRows(b.ch),c=at==null?bkFirst(rows):rows.find(x=>x.j>=at)||rows[0],left=bkMin((b.ch[at||0]||{w:0}).w*(1-f)+(at!=null&&at<c.j?b.ch[c.j].w:0));
- g.innerHTML=`<div class="rki"><button type="button" class="tx2" data-bk="">Back to bookshelf</button><div class="rkt">${cv?`<img src="${cv}" alt="">`:''}<h2>${esc(b.title)}</h2>${b.author?`<p class="rkby">${esc(b.author)}</p>`:''}<p class="hint">${plu(rows.length,'chapter','chapters')} · ${bkLen(b.words)} · ${bkSz(await bkSize(b))} on this device</p>${(pc=>pc?`<p class="hint">${pc}</p>`:'')(at!=null?bkPace(b,p):'')}</div><hr class="rkr"><button type="button" class="go rkc" data-bkch="${at!=null?at:c.i}"><span><b>${at!=null?'Continue: '+(/^([ivxlcdm]+|\d+)\.?$/i.test(c.t.trim())?'Chapter ':'')+esc(c.t):'Start reading'}</b><small>${at!=null?left+' min left in this chapter':esc(c.t)+' · '+bkMin(c.w)+' min'}</small></span><i aria-hidden="true">→</i></button><p class="rkl">In this book · ${plu(rows.length,'chapter','chapters')}</p><ol>${rows.map(x=>{const st=at==null?'':x.j<at?'done':x.i<=at?'here':'';return `<li${st?` class="${st}"`:''}><button type="button" data-bkch="${x.i}"><b>${esc(x.t)}</b><small>${st==='done'?'read':st==='here'?'you are here':bkMin(x.w)+' min'}</small></button></li>`}).join('')}</ol><button type="button" class="tx2" data-bkdel>Remove this book</button></div>`;
+ bkSet(g,`<div class="rki"><button type="button" class="tx2" data-bk="">Back to bookshelf</button><div class="rkt">${cv?`<img src="${cv}" alt="" decoding="sync">`:''}<h2>${esc(b.title)}</h2>${b.author?`<p class="rkby">${esc(b.author)}</p>`:''}<p class="hint">${plu(rows.length,'chapter','chapters')} · ${bkLen(b.words)} · ${bkSz(await bkSize(b))} on this device</p>${(pc=>pc?`<p class="hint">${pc}</p>`:'')(at!=null?bkPace(b,p):'')}</div><hr class="rkr"><button type="button" class="go rkc" data-bkch="${at!=null?at:c.i}"><span><b>${at!=null?'Continue: '+(/^([ivxlcdm]+|\d+)\.?$/i.test(c.t.trim())?'Chapter ':'')+esc(c.t):'Start reading'}</b><small>${at!=null?left+' min left in this chapter':esc(c.t)+' · '+bkMin(c.w)+' min'}</small></span><i aria-hidden="true">→</i></button><p class="rkl">In this book · ${plu(rows.length,'chapter','chapters')}</p><ol>${rows.map(x=>{const st=at==null?'':x.j<at?'done':x.i<=at?'here':'';return `<li${st?` class="${st}"`:''}><button type="button" data-bkch="${x.i}"><b>${esc(x.t)}</b><small>${st==='done'?'read':st==='here'?'you are here':bkMin(x.w)+' min'}</small></button></li>`}).join('')}</ol><button type="button" class="tx2" data-bkdel>Remove this book</button></div>`);
  g._bk=b;
 }
 async function bkAdd(f){
