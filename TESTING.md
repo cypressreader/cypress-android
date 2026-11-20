@@ -2241,3 +2241,4 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - [ ] Podcast sleep timer (1.367): moon button on the episode player steps Off, 15, 30, 60 min, End of episode. On the phone: playback stops on time with the screen off, sound fades in the last 45 s, shake adds 10 minutes.
 - [ ] Dynamic theme, short stories and podcast episodes (1.367): taps inside the story work (player buttons, links). Before, every tap in a short story's page was swallowed.
 - [ ] Darknet Diaries, The Daily, Radiolab, 99% Invisible, Hard Fork, Freakonomics, Hidden Brain (1.367): each lists episodes after adding (were dropped as off-site).
+- [ ] Top-of-list download (1.367): on the phone, add The Daily and Freakonomics Radio on Wi-Fi and on mobile data: episodes appear within a few seconds; refresh keeps them. If a podcast shows nothing, check its site log for 'the top of the list didn't arrive'.
