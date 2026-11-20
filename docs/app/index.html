@@ -966,6 +966,7 @@ main{overscroll-behavior-y:none}
 .acol{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:8px}
 .aep{font-weight:600;font-size:15px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ash{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ahd{display:flex;align-items:flex-start;gap:6px}.ahd>div{flex:1;min-width:0}.asl{flex:none;min-width:44px;min-height:44px;margin:-8px -8px -8px 0;padding:0;border:0;background:none;color:inherit;display:grid;place-items:center;align-content:center;gap:1px;cursor:pointer}.asl i{font:700 10px var(--sans);font-style:normal}.asl i:empty{display:none}
 .aur{display:flex;align-items:center;gap:4px}
 .aur button{flex:none;min-width:44px;min-height:44px;padding:0;border:0;background:none;color:inherit;display:grid;place-items:center;cursor:pointer}
 .aur .ap{border-radius:50%;background:var(--bg);color:var(--a1);font:700 16px var(--sans)}
@@ -6433,7 +6434,7 @@ async function load0(f,fresh,sl){
  let got=null,cut=0;try{got=(await loadFeed(f,fresh,sl)).map(fixA);state[f.id]='ok'}catch(e){state[f.id]='err';(FLG[f.id]=FLG[f.id]||[]).err=String(e&&e.message||e);tip('health');/* David 2026-11-05: leaving the app mid-refresh cut every open connection at once and half the sites showed (offline) and then rested. A cut in the background is not the site's fault: keep its stories, count no failure, and ask again when the app is back */if((FLG[f.id]||{}).nb||document.hidden&&(FLG[f.id]||[]).length&&(FLG[f.id]||[]).every(x=>!/HTTP \d|timed out|bot check|no readable|empty reply|came back empty/.test(x))){cut=1;state[f.id]=(items[f.id]||[]).length?'ok':'wait';S.lastLoad=0}if(!(e&&e.message==='no site')&&navigator.onLine){/* why every route failed (timed out, HTTP 403...) and whether the app was in the background: only reasons, never sites, so the error counts can tell a broken feed from a dozing phone */const why=[...new Set(((FLG[f.id]||[]).join(' ').match(/timed out|HTTP \d+|blocked or offline|empty reply|bot check|no readable/g)||[]))].join(', ');elog('feed '+(f.title||'').slice(0,20),(e&&e.message||e)+(why?' ('+why+')':'')+(document.hidden?' in background':''));if(!document.hidden){const c=CATY.find(c=>c[2]===f.url);if(c)ux('cf',String(c[1]).replace(/[^\w ]/g,'').slice(0,14)+':'+((why.match(/HTTP \d+/)||[])[0]||(why||'x')[0]).replace('HTTP ',''))}}}
  if(!S.feeds.includes(f)){delete items[f.id];delete state[f.id];LP.f++;pfBar();return}
  if(got){got=noTwins(got).filter(a=>!isCouponSpam(a));/* B22: a feed's stories must be from its own site - drop strays from any aggregation path that skipped the onSite filter */
-  try{const sd=siteOf(f);if(sd){const n0=got.length;got=got.filter(a=>{if(a.os)return true;return onSite(host(a.link),sd)});if(n0>got.length)(FLG[f.id]=FLG[f.id]||[]).push('dropped '+(n0-got.length)+' off-site stories')}}catch(e){}
+  try{const sd=siteOf(f);if(sd){const n0=got.length;got=got.filter(a=>{if(a.os||a.audio/* a podcast's list lives on its host (megaphone, simplecast), its episodes link to the show's own site: never off-site */)return true;return onSite(host(a.link),sd)});if(n0>got.length)(FLG[f.id]=FLG[f.id]||[]).push('dropped '+(n0-got.length)+' off-site stories')}}catch(e){}
   {const o=items[f.id],fut=Date.now()+3e6;if(o)got.forEach(a=>{if(a.date>fut){const p=o.find(x=>x.link===a.link);if(p&&p.date)a.date=p.date}})}
   /* David 2026-11-16: The Verge's feed lists only its 10 newest stories (8 after its shopping deals), while its homepage has dozens. Stories that dropped off a short feed in the last 2 days stay, up to 30 per site */
   {const o=items[f.id];if(o&&got.length<30){const have=new Set(got.map(a=>a.link)),t=Date.now()-1728e5;got=noTwins(got.concat(o.filter(a=>a.link&&!have.has(a.link)&&a.date>t))).slice(0,30)}}
@@ -7448,7 +7449,7 @@ function wireSavePos(){
  if(m)m.addEventListener('scroll',()=>{clearTimeout(idle);idle=setTimeout(wireSavePos,900)},{passive:true});
  document.addEventListener('visibilitychange',()=>{if(document.hidden){wireSavePos();WIRE.hid=Date.now()}else if(WIRE.hid&&Date.now()-WIRE.hid>30*60*1e3){WIRE.hid=0;wireReset();WIRE.restored=true}});
  document.addEventListener('click',e=>{
-  const w=e.target.closest&&e.target.closest('[data-wire]');if(w){e.preventDefault();e.stopPropagation();wireLoad();return}
+  const w=e.target.closest&&e.target.closest('button[data-wire]')/* the reader marks a short story's page with data-wire too: matching that swallowed every tap inside such a story in Dynamic */;if(w){e.preventDefault();e.stopPropagation();wireLoad();return}
   const t=e.target.closest&&e.target.closest('[data-thr]');if(t){e.preventDefault();e.stopPropagation();const b=document.getElementById(t.dataset.thr);if(b){const open=b.hidden;b.hidden=!open;t.setAttribute('aria-expanded',String(open));t.classList.toggle('on',open)}return}
   const tr=e.target.closest&&e.target.closest('[data-trend]');if(tr){e.preventDefault();e.stopPropagation();openTopic(tr.dataset.trend)}
  },true);
@@ -13933,7 +13934,7 @@ function mediaBlock(a){
  const y=ytId(a);
  if(y)return ytCard(y,true).outerHTML;
  if(a.audio){const sh=(a.feedId&&fof(a)||{}).title||'',sk=(n,l)=>`<button type="button" data-ap="${n<0?'back':'fwd'}" aria-label="${l}"><svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g${n>0?' transform="matrix(-1 0 0 1 32 0)"':''}><path d="M6.5 16a9.5 9.5 0 1 0 3-6.9"/><path d="M9.6 4.6v4.7h4.7"/></g><text x="16" y="20" text-anchor="middle" font-size="9.5" font-weight="700" stroke="none" fill="currentColor">${Math.abs(n)}</text></svg></button>`,r=+S.prate||1;
-  return `<div class="aud" data-aud="${esc(a.link)}" role="group" aria-label="Episode player"><span class="aart" aria-hidden="true"${a.img&&/^https?:/.test(a.img)?` style="background-image:url(&quot;${esc(encodeURI(decodeURI(a.img)))}&quot;)">`:'>'+esc((sh||a.title||'E').trim().charAt(0).toUpperCase())}</span><div class="acol"><div><div class="aep">${esc(a.title||'Episode')}</div><div class="ash">${esc(sh)}</div></div><div class="aur">${sk(-15,'Back 15 seconds')}<button type="button" class="ap" data-ap="play" aria-label="Play episode">▶</button>${sk(30,'Forward 30 seconds')}<button type="button" class="asp" data-aspc aria-label="Speed ${r} times. Change speed">${r}×</button><span class="atm" data-ap-dur>${a.dur?esc(a.dur):''}</span></div></div><input type="range" class="aseek" data-ap-seek min="0" max="1000" value="0" step="1" aria-label="Seek" aria-valuetext="Not started"></div>`}
+  return `<div class="aud" data-aud="${esc(a.link)}" role="group" aria-label="Episode player"><span class="aart" aria-hidden="true"${a.img&&/^https?:/.test(a.img)?` style="background-image:url(&quot;${esc(encodeURI(decodeURI(a.img)))}&quot;)">`:'>'+esc((sh||a.title||'E').trim().charAt(0).toUpperCase())}</span><div class="acol"><div class="ahd"><div><div class="aep">${esc(a.title||'Episode')}</div><div class="ash">${esc(sh)}</div></div><button type="button" class="asl" data-ap="sleep" aria-label="Sleep timer: off. Change"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><i></i></button></div><div class="aur">${sk(-15,'Back 15 seconds')}<button type="button" class="ap" data-ap="play" aria-label="Play episode">▶</button>${sk(30,'Forward 30 seconds')}<button type="button" class="asp" data-aspc aria-label="Speed ${r} times. Change speed">${r}×</button><span class="atm" data-ap-dur>${a.dur?esc(a.dur):''}</span></div></div><input type="range" class="aseek" data-ap-seek min="0" max="1000" value="0" step="1" aria-label="Seek" aria-valuetext="Not started"></div>`}
  return'';
 }
 /* the one episode player: a single audio element that outlives the reader, so an episode keeps playing when you go back to the list */
@@ -13942,7 +13943,7 @@ const epT=t=>{t=Math.max(0,Math.floor(t||0));const h=Math.floor(t/3600),m=Math.f
 const epSay=t=>{t=Math.max(0,Math.floor(t||0));const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return(h?h+' hr ':'')+(m?m+' min ':'')+s+' sec'};
 function epBox(){return[...document.querySelectorAll('.cols .aud')].find(b=>b.dataset.aud===EPL)||null}
 function epUi(){
- const b=epBox();if(!b||!EPA)return;const d=EPA.duration,c=EPA.currentTime||0,ok=isFinite(d)&&d>0;
+ const b=epBox();if(!b||!EPA)return;{const sl=b.querySelector('[data-ap="sleep"]'),v=SLEEP.eos?'End':SLEEP.t?SLEEP.min+'':'';sl.lastChild.textContent=v;sl.setAttribute('aria-label','Sleep timer: '+(SLEEP.eos?'stops at the end of this episode':SLEEP.t?SLEEP.min+' minutes':'off')+'. Change')}const d=EPA.duration,c=EPA.currentTime||0,ok=isFinite(d)&&d>0;
  b.querySelector('[data-ap="play"]').textContent=EPA.paused?'▶':'❚❚';b.querySelector('[data-ap="play"]').setAttribute('aria-label',EPA.paused?'Play episode':'Pause episode');
  const sk=b.querySelector('[data-ap-seek]');if(ok){if(document.activeElement!==sk)sk.value=Math.round(c/d*1000);sk.style.setProperty('--f',c/d*100+'%');b.querySelector('[data-ap-dur]').textContent='−'+epT(d-c);sk.setAttribute('aria-valuetext',epSay(c)+' of '+epSay(d))}
 }
@@ -13975,7 +13976,7 @@ function epInit(){
  EPA.addEventListener('loadedmetadata',()=>{epPos();epUi()});
  EPA.addEventListener('ratechange',epPos);
  EPA.addEventListener('seeked',()=>{epPos();epUi();if(epOn()){tminiSync();epNative(!EPA.paused)}});
- EPA.addEventListener('ended',()=>{const a=findStory(EPL);if(a)markReadA(a);epSave();epUi();if(epOn())epDockOff();/* F8: a finished episode moves on to the next in Up Next */if(R.epQ||S.lq.length){R.epQ=false;if(a&&(!curA||curA.link!==a.link))TTS.art=a;ttsEnd()}});
+ EPA.addEventListener('ended',()=>{const a=findStory(EPL);if(a)markReadA(a);epSave();epUi();if(epOn())epDockOff();/* F8: a finished episode moves on to the next in Up Next */if(R.epQ||S.lq.length){R.epQ=false;if(a&&(!curA||curA.link!==a.link))TTS.art=a;ttsEnd()}else SLEEP.eos=false});
  EPA.addEventListener('timeupdate',()=>{
   epUi();if(Date.now()-lt<5000)return;lt=Date.now();epPos();epSave();if(epOn())tminiSync();
   const d=EPA.duration;if(isFinite(d)&&d>0&&EPA.currentTime/d>=.95){const a=findStory(EPL);if(a&&!S.read[a.link])markReadA(a)}
@@ -13995,6 +13996,7 @@ function epAct(btn){
  if(k==='play'){if(EPA.paused)EPA.play().catch(()=>toast('Couldn’t play this episode'));else EPA.pause()}
  else if(k==='back')EPA.currentTime=Math.max(0,EPA.currentTime-15);
  else if(k==='fwd')EPA.currentTime=Math.min(isFinite(EPA.duration)?EPA.duration:1e9,EPA.currentTime+30);
+ else if(k==='sleep'){const V=['0','15','30','60','eos'];setSleep(V[(V.indexOf(SLEEP.eos?'eos':SLEEP.t?String(SLEEP.min):'0')+1)%5])}
  epUi();
 }
 function mediaWire(){
@@ -16934,8 +16936,8 @@ function syncUpNext(){
 /* B86: the page's own timer sleeps with the page when the screen is off, so the phone is also told the stop time (epoch ms): it stops the speech itself and tells the page */
 window.__ttsSleep=()=>sleepStop();
 /* the voice fades down over the last 45 s; shaking the phone adds 10 minutes (or, up to 5 minutes after it stopped, plays 10 more) */
-function sleepStop(){clearTimeout(SLEEP.t);(SLEEP.fd||[]).forEach(clearTimeout);SLEEP.t=0;SLEEP.at=0;try{ttsPause()}catch(e){}TTS.vf=1;epPause();try{mediaOff()}catch(e){}SLEEP.end=Date.now();setTimeout(()=>{if(!SLEEP.t)sleepShake(false)},3e5);try{syncUpNext()}catch(e){}toast('Sleep timer: stopped. Shake the phone to keep listening')}
-function sleepVol(v){TTS.vf=v;if(TTS.on&&!TTS.paused)ttsFrom(ttsPos())}
+function sleepStop(){clearTimeout(SLEEP.t);(SLEEP.fd||[]).forEach(clearTimeout);SLEEP.t=0;SLEEP.at=0;try{ttsPause()}catch(e){}TTS.vf=1;epPause();try{if(EPA)EPA.volume=1}catch(e){}try{mediaOff()}catch(e){}SLEEP.end=Date.now();setTimeout(()=>{if(!SLEEP.t)sleepShake(false)},3e5);try{syncUpNext()}catch(e){}toast('Sleep timer: stopped. Shake the phone to keep listening')}
+function sleepVol(v){TTS.vf=v;try{if(EPA)EPA.volume=v}catch(e){}if(TTS.on&&!TTS.paused)ttsFrom(ttsPos())}
 function sleepArm(){clearTimeout(SLEEP.t);(SLEEP.fd||[]).forEach(clearTimeout);if((TTS.vf||1)<1)sleepVol(1);const ms=SLEEP.at-Date.now();SLEEP.t=setTimeout(sleepStop,ms);SLEEP.fd=[[45,.55],[20,.25]].filter(x=>ms>x[0]*1e3+5e3).map(([sc,v])=>setTimeout(()=>sleepVol(v),ms-sc*1e3));sleepNative(SLEEP.at);sleepShake(true)}
 function sleepMore(){const now=Date.now();if(SLEEP.t){SLEEP.at+=6e5;sleepArm();toast('Sleep timer: 10 more minutes')}else if(SLEEP.end&&now-SLEEP.end<3e5&&TTS.on&&TTS.paused){SLEEP.at=now+6e5;sleepArm();ttsFrom(ttsPos());toast('Playing 10 more minutes')}else return;try{navigator.vibrate&&navigator.vibrate(40)}catch(e){}syncUpNext()}
 function sleepShake(on){const h=sleepShake.h||(sleepShake.h=e=>{const a=e.acceleration,b=e.accelerationIncludingGravity;let g=0;if(a&&a.x!=null)g=Math.hypot(a.x,a.y||0,a.z||0);else if(b&&b.x!=null)g=Math.abs(Math.hypot(b.x,b.y||0,b.z||0)-9.81);if(g<13)return;const t=Date.now(),k=sleepShake;if(t-(k.l||0)<150)return;k.l=t;if(t-(k.t||0)>1200){k.t=t;k.n=1;return}if(++k.n>=3){k.t=0;sleepMore()}});
@@ -16943,7 +16945,7 @@ function sleepShake(on){const h=sleepShake.h||(sleepShake.h=e=>{const a=e.accele
 function sleepNative(at){try{const x=CyX();if(x&&x.ttsSleepAt&&nFeat('ttsSleep'))Promise.resolve(x.ttsSleepAt({stopAt:at||0})).catch(()=>{})}catch(e){}}
 function setSleep(v){
  clearTimeout(SLEEP.t);(SLEEP.fd||[]).forEach(clearTimeout);SLEEP.t=0;SLEEP.eos=false;sleepNative(0);sleepShake(false);if((TTS.vf||1)<1)sleepVol(1);
- if(v==='eos'){SLEEP.eos=true;toast('Will stop at the end of this '+((curA||TTS.art||{}).book?'chapter':'story'))}
+ if(v==='eos'){SLEEP.eos=true;toast('Will stop at the end of this '+((curA||TTS.art||{}).book?'chapter':epOn()?'episode':'story'))}
  else if(+v>0){SLEEP.min=+v;SLEEP.at=Date.now()+v*6e4;sleepArm();toast('Sleep timer: '+v+' min. Shake the phone for 10 more')}
  syncUpNext();
 }
