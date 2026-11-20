@@ -2221,3 +2221,7 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 ## 1.363 (2026-11-20) — implemented, unverified on device
 - Page turns: text at bottom-right of a page / top-left of the next must not shift as the turn lands (forward and back), incl. stories with late-loading photos.
 - Newsprint logo: Pewter badge in day (gray ring, near-black badge) and night (cool gray ring, slate badge).
+
+## Pure Black & White (2026-11-20, branch claude/pm-deep-dive-handoff-y4x3ot, unverified on device)
+- Black & White theme: no color anywhere (photos, Daily cover, site names, dots, night accent), day and night.
+- Page turns and scrolling stay smooth with the whole-page gray filter, on the Fold and a low-end phone.
