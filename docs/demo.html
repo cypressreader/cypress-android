@@ -1443,6 +1443,7 @@ html.lowp .cine .body figure.cfr>img,html.lowp .cine .body figure.cfr>a>img{tran
 .body img:not(.tiny):not([height]){aspect-ratio:auto 3/2}
 .body img[height]:not(.tiny){height:auto}
 .body figure{break-inside:avoid}
+.body>figure.m23{width:var(--m23w);max-width:none;position:relative;z-index:1}.body>figure.m23 img{width:100%;max-width:none;max-height:calc(var(--ch,600px)*.5);object-fit:cover}.m23s{display:block}/* M23 picture across both pages */
 .body{overflow-wrap:break-word}
 .body pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font:.74em/1.55 ui-monospace,'SF Mono',Menlo,Consolas,monospace;background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.8em 1em;border-radius:10px;text-align:left;hyphens:none;max-width:100%}
 .body code{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:.86em;overflow-wrap:anywhere;hyphens:none}
@@ -9189,7 +9190,7 @@ function pagesUndo(c){
  c.querySelectorAll('img.hero').forEach(im=>{['height','max-height','object-fit'].forEach(q=>im.style.removeProperty(q));
   const d=IMGDIM.get(im.getAttribute('src'))||(im.complete&&im.naturalWidth?[im.naturalWidth,im.naturalHeight]:null);
   if(d&&d[0]>0&&d[1]>0)im.style.aspectRatio=Math.max(.6,Math.min(2.4,d[0]/d[1])).toFixed(3);else im.style.removeProperty('aspect-ratio')});
- c.querySelectorAll(':scope>.mnotes').forEach(m=>m.style.removeProperty('display'));
+ c.querySelectorAll(':scope>.mnotes').forEach(m=>m.style.removeProperty('display'));try{foldPicUndo(c)}catch(e){}
  c.querySelectorAll('.body [data-fit]').forEach(f=>{f.style.removeProperty('--ih');delete f.dataset.fit});
  if(!document.body.classList.contains('flexp')){rd.style.removeProperty('--segtop');rd.style.removeProperty('--segbot')}
 }
@@ -9234,6 +9235,7 @@ function layout(){prepDrop();CUT.k='';/* a new layout can move the story's block
  try{fitWide(c,cw,gap)}catch(e){elog('fitWide',e)}try{ftpFit(c.querySelector(':scope>.hsf'))}catch(e){}
  try{if(fitWhy(c,cw,gap))fillVoids(c,cw,gap)}catch(e){elog('fitWhy',e)}
  try{origAlone(c)}catch(e){elog('origAlone',e)}
+ try{foldPic(c,cw,gap)}catch(e){elog('foldPic',e)}
  R.np=Math.max(1,Math.ceil(Math.round((c.scrollWidth+gap)/(cw+gap))/R.cpv));
  try{trimBlankPages(c)}catch(e){elog('trimBlankPages',e)}
  /* Never-blank guard: if the column measurements collapsed (non-sane column
@@ -19505,6 +19507,38 @@ function fitHero(c,cw,gap){if(curA&&curA.book)return;
  if(room<Math.max(140,H*.28))return;
  im.style.height=room+'px';im.style.maxHeight=room+'px';im.style.aspectRatio='auto';
  const r2=im.getBoundingClientRect();if(Math.floor((r2.left-cr.left+2)/pitch)!==0){im.style.removeProperty('height');im.style.removeProperty('max-height');im.style.removeProperty('aspect-ratio')}
+}
+/* M23: on a two-page book (the open Fold, a tablet held sideways) the first wide picture that lands on a left page grows across both pages, and the right page's text steps down by the same height so lines on both pages stay in step. Undone on every layout; anything that does not land cleanly is put back */
+function foldPicUndo(c){c.querySelectorAll('.body .m23s').forEach(s=>{const p=s.parentNode;s.remove();p&&p.normalize()});c.querySelectorAll('.body>figure.m23').forEach(f=>f.classList.remove('m23'))}
+function foldPic(c,cw,gap){foldPicUndo(c);if(R.cpv!==2||(curA&&curA.book))return;
+ const bd=c.querySelector(':scope>.body');if(!bd)return;const pitch=cw+gap,L=c.getBoundingClientRect().left,col=x=>Math.round((x-L)/pitch);
+ const f=[...bd.querySelectorAll(':scope>figure:not(.cfr,.fbp,.pb2)')].find(f=>{const im=f.querySelector('img');if(!im||!im.naturalWidth||im.naturalWidth<1.4*im.naturalHeight)return false;const r=im.getBoundingClientRect();if(r.width<cw*.9)return false;const k=col(r.left);return k>=2&&k%2===0});
+ if(!f)return;const k=col(f.getBoundingClientRect().left),X=L+(k+1)*pitch;
+ c.style.setProperty('--m23w',(2*cw+gap)+'px');f.classList.add('m23');
+ const fr=f.getBoundingClientRect(),back=()=>foldPicUndo(c);
+ if(col(fr.left)!==k||!fr.height)return back();
+ const y0=fr.top,y1=fr.bottom+(parseFloat(getComputedStyle(f).marginBottom)||0);
+ /* the block on the right page at the picture's top */
+ const at=[...bd.children].find(e=>e!==f&&[...e.getClientRects()].some(q=>q.height&&Math.abs(q.left-X)<pitch/2&&q.bottom>y0+2));
+ if(!at)return back();
+ const sp=document.createElement('span');sp.className='m23s';sp.setAttribute('aria-hidden','true');
+ const top0=[...at.getClientRects()].find(q=>q.height&&Math.abs(q.left-X)<pitch/2);
+ if(top0.top>=y0-2)at.before(sp);
+ else{if(at.tagName!=='P')return back();
+  /* the first character on the right page at or below the picture's top: the text before it stays put, the rest steps down */
+  const tn=[],tw=document.createTreeWalker(at,4);let n;while(n=tw.nextNode())if(n.length)tn.push(n);
+  const idx=[];tn.forEach(t=>{for(let i=0;i<t.length;i++)idx.push([t,i])});const rg=document.createRange();
+  const below=j=>{const[t,i]=idx[j];rg.setStart(t,i);rg.setEnd(t,i+1);const q=rg.getClientRects()[0];if(!q)return false;const kk=col(q.left);return kk>k+1||(kk===k+1&&q.bottom>y0+2)};
+  let lo=0,hi=idx.length;while(lo<hi){const m=lo+hi>>1;if(below(m))hi=m;else lo=m+1}
+  if(lo>=idx.length)return back();
+  while(lo>0&&!/\s/.test(idx[lo-1][0].data[idx[lo-1][1]]))lo--;/* never split a word */
+  const[t,i]=idx[lo];rg.setStart(t,i);rg.collapse(true);rg.insertNode(sp)}
+ /* the right page's first line under the picture sits level with the left page's first line under it */
+ const nx=f.nextElementSibling,nq=nx&&[...nx.getClientRects()].find(q=>q.height),yt=nq&&col(nq.left)===k&&nq.top>=fr.bottom?nq.top:y1;
+ sp.style.height=Math.max(0,yt-sp.getBoundingClientRect().top)+'px';
+ /* checked again after the step: the picture still sits where it did and the gap is on the right page under it */
+ const g=sp.getBoundingClientRect(),fr2=f.getBoundingClientRect();
+ if(col(fr2.left)!==k||Math.abs(fr2.top-y0)>2||Math.abs(g.left-X)>pitch/2||g.bottom<fr2.bottom-2)return back();
 }
 /* page 1 of the two-column book: the picture, kicker, headline and "At a glance" box stay together in column 1, and the story text starts at the top of column 2. If the box would land in column 2, the picture is made a little shorter; if that is not enough the box is left out for this page */
 /* photo across both pages: everything before the story (headline, boxes, the loading line) must stay on the left page, or it lands on the right page under the photo and pushes the story to page 2; the photo is made shorter until it does */

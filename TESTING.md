@@ -2196,3 +2196,8 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - F15: Saved > a collection chip opens with a cover (first picture, 'Collection · N stories', its name).
 - S9: on a phone that stalls often, the lighter mode (same as low battery) turns itself on and re-checks after 14 days; Settings 'lowfx' off still wins.
 - F20: the Daily widget's next story is the first unread one that fits your usual length (needs 3+ finished stories in 30 days); its source line shows '· N min'.
+
+## M23 picture across both pages (branch claude/pm-deep-dive-handoff-oqiipt, implemented, unverified on the Fold)
+- Open Fold, a story in pages with a wide photo further down: when the photo lands on a left page it spans both pages across the fold; the right page's text steps down under it and its first line sits level with the left page's first line under the photo. No word is split at the step.
+- Turning pages, rotating, changing text size: the photo goes back to one page when it no longer fits cleanly; nothing overlaps the photo.
+- Highlights, Listen and search still work on the paragraph that was stepped down (the gap is an empty, hidden span).
