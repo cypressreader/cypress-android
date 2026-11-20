@@ -2217,3 +2217,11 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Folder view (Tech) refresh: the folder header photo no longer blanks for a frame (eager + sync decode); big photos swapped to their shrunk copy decode in sync.
 - Newsprint (day and night): every story photo is gray, including the big headline-over-photo cards and list thumbnails in folder view.
 - 2026-11-20 q: paged reader on the Fold: turning a page shows the same line breaks as the page it lands on (no line jump at the bottom right / top left), forward and back, including stories with pictures. Implemented, unverified.
+
+## 1.363 (2026-11-20) — implemented, unverified on device
+- Page turns: text at bottom-right of a page / top-left of the next must not shift as the turn lands (forward and back), incl. stories with late-loading photos.
+- Newsprint logo: Pewter badge in day (gray ring, near-black badge) and night (cool gray ring, slate badge).
+
+## Pure Black & White (2026-11-20, branch claude/pm-deep-dive-handoff-y4x3ot, unverified on device)
+- Black & White theme: no color anywhere (photos, Daily cover, site names, dots, night accent), day and night.
+- Page turns and scrolling stay smooth with the whole-page gray filter, on the Fold and a low-end phone.
