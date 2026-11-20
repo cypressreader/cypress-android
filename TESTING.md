@@ -2205,3 +2205,9 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 ## Transcripts (branch claude/pm-deep-dive-handoff-oqiipt, next 1.356)
 - A podcast transcript story (Wired "Uncanny Valley"): each speaker's name sits on a small line above what they said, lines are not stretched; normal stories with a "Name:" quote or two are unchanged.
 - F8: Listen / Up Next on a podcast episode plays the episode audio (not the show notes); when it ends Up Next opens the next item. Next up card: tapping its picture opens the next story.
+
+## 1.357 (2026-11-20) implemented, unverified on device
+- Slate theme day and night (Fold, both screens): cover, cards, reader text in Inter, Settings tile
+- Daily cover headline: no growth a few seconds after opening (re-measured after photo load), Velvet + Gallery cover fits
+- Quick looks: cover only, theme stays; Your theme tile highlighted when no cover picked
+- Newsprint: no color story pictures anywhere in the feed or reader
