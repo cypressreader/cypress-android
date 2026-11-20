@@ -2234,3 +2234,4 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Leave the app / lock the screen: notification player shows the episode with play/pause, back/forward, scrubber; audio keeps playing.
 - Start read aloud on another story while an episode plays: episode pauses, the player and notification switch to read aloud.
 - Video cards from YouTube channels show the video's picture; adding a channel shows no "couldn't load the full articles" warning.
+- Sidebar order (2026-11-20): press and hold a folder (e.g. Tech) > Keep at the top > Yes: it moves first; survives A to Z / Z to A in Settings.
