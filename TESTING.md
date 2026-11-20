@@ -2227,3 +2227,11 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Page turns and scrolling stay smooth with the whole-page gray filter, on the Fold and a low-end phone.
 - Dynamic theme: colors fade (about 1.6 s) instead of snapping when scrolling stops, with the phone's Remove animations on, with Reduce motion on, and in power saver.
 - Add a site: the Videos group shows 12 channels; adding one fills with its videos and a video plays in the story on tap. Podcasts group: Planet Money replaced Reply All and its episodes play.
+
+## Podcast episode: bottom player + notification player (2026-11-20, implemented, unverified on device)
+- Play a podcast episode in a story, turn pages: the bottom player shows (title, show, back 15, play/pause, X). Pause works from any page.
+- Go back to the list while it plays: bottom player stays; tap it to reopen the episode; X stops it.
+- Leave the app / lock the screen: notification player shows the episode with play/pause, back/forward, scrubber; audio keeps playing.
+- Start read aloud on another story while an episode plays: episode pauses, the player and notification switch to read aloud.
+- Video cards from YouTube channels show the video's picture; adding a channel shows no "couldn't load the full articles" warning.
+- Sidebar order (2026-11-20): press and hold a folder (e.g. Tech) > Keep at the top > Yes: it moves first; survives A to Z / Z to A in Settings.
