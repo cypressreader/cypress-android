@@ -6769,7 +6769,12 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 let VW=innerWidth,VH=innerHeight;addEventListener('resize',()=>{VW=innerWidth;VH=innerHeight},{passive:true});
 /* Cover headlines are sized to fit THEIR cover: the largest size (up to the style's own big size) at which the whole headline shows (no hidden lines, no "..."), no word is wider than the box (so none is cut in the middle), and the cover stays within its designed height (so nothing is pushed under the masthead or over a picture panel). Re-done when the window or the fonts change. */
 const COVFC=new Map();
+/* David 2026-11-20: a headline is never dark on a dark panel (or light on a light one): below 3:1 against the first solid color behind it, it turns white or ink */
+function cardInk(){const lum=c=>{const m=String(c).match(/[\d.]+/g);if(!m||m.length<3)return null;const v=m.slice(0,3).map(x=>{x/=255;return x<=.03928?x/12.92:((x+.055)/1.055)**2.4});return{L:.2126*v[0]+.7152*v[1]+.0722*v[2],a:m[3]==null?1:+m[3]}};
+ document.querySelectorAll('#grid .card h3,#grid .dcov h2').forEach(h=>{h.style.removeProperty('color');const t=lum(getComputedStyle(h).color);let e=h,bg=null;while(e&&e!==document.body){const cs=getComputedStyle(e);if(e!==h&&cs.backgroundImage!=='none')return;const q=lum(cs.backgroundColor);if(q&&q.a>.6){bg=q;break}if(e!==h&&e.querySelector(':scope>img'))return;e=e.parentElement}
+  if(!t||!bg)return;if((Math.max(t.L,bg.L)+.05)/(Math.min(t.L,bg.L)+.05)<3)h.style.setProperty('color',bg.L<.18?'#fff':'#14171c','important')})}
 function covFit(){
+ try{requestAnimationFrame(cardInk)}catch(e){}
  document.querySelectorAll('#grid .cover,#grid .dcov,#cvg .cover,#lkr .cover').forEach(cv=>{
   /* the paper's name must fit its column on one line, whatever the screen shape or letter spacing */
   const m=cv.querySelector('.cvm'),mb=m&&m.parentElement;
