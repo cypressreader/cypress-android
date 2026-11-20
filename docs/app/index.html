@@ -962,7 +962,7 @@ main{overscroll-behavior-y:none}
 .vid{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;margin:0 0 16px;background:#000;break-inside:avoid}
 .vid iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .aud{position:relative;overflow:hidden;display:flex;align-items:stretch;gap:14px;margin:0 0 18px;padding:12px 14px 22px;border-radius:16px;background:var(--a1);color:var(--bg);text-align:start;hyphens:none;break-inside:avoid;font-family:var(--sans);--rt:color-mix(in srgb,var(--bg) 28%,transparent)}
-.aart{flex:none;align-self:flex-start;width:clamp(72px,26%,96px);aspect-ratio:1;border-radius:14px;display:grid;place-items:center;font:500 40px var(--serif);background:var(--bg) center/cover no-repeat;color:var(--a1)}
+.aart{flex:none;align-self:flex-start;width:clamp(72px,26%,96px);aspect-ratio:1;border-radius:14px;display:grid;place-items:center;font:500 40px var(--serif);background:var(--bg) center/cover no-repeat;color:var(--a1);line-height:1;text-align:center;align-content:center}.aart b{font-weight:500}.aart b.s{font-size:30px}.aart small{font:600 12px/1.6 var(--serif);letter-spacing:.1em;text-transform:uppercase}.aart[data-k="1"]{background-color:var(--ink);color:var(--bg)}.aart[data-k="2"]{background:none;box-shadow:inset 0 0 0 2px var(--bg);color:var(--bg)}
 .acol{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:8px}
 .aep{font-weight:600;font-size:15px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ash{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -6388,6 +6388,7 @@ function parse(xml,f){
  let d=new DOMParser().parseFromString(xml,'text/xml');
  if(d.querySelector('parsererror')&&/<(item|entry)[\s>]/i.test(xml)){const d2=new DOMParser().parseFromString(fixXml(xml),'text/xml');if(!d2.querySelector('parsererror')||d2.querySelectorAll('item,entry').length)d=d2}
  const title=d.querySelector('channel>title,feed>title')?.textContent?.trim()||'';
+ /* the show's own cover (podcasts): used by the episode player when an episode has no picture */if(f){try{const ch=d.querySelector('channel'),it=ch&&[...ch.children].find(e=>e.tagName==='itunes:image'),u=(it&&it.getAttribute('href'))||(d.querySelector('channel>image>url')?.textContent||'').trim();if(/^https?:/i.test(u))f.art=u}catch(e){}}
  if(f){try{const ds=(d.querySelector('channel>description,feed>subtitle')?.textContent||'').trim();if(ds&&ds.length<=160&&!/[<>]/.test(ds))f.desc=ds}catch(e){}}
  /* podcasts often give every episode the show's home page as its link, or no link at all: such episodes get their own address (show page + episode id), or they collapse into one */
  const chl=(d.querySelector('channel>link')?.textContent||'').trim().replace(/\/$/,''),LC={};d.querySelectorAll('item>link').forEach(l=>{const k=l.textContent.trim().replace(/\/$/,'');LC[k]=(LC[k]||0)+1});
@@ -6418,7 +6419,7 @@ function parse(xml,f){
   let cm=tx(el,'comments');if(!/^https?:/.test(cm)){cm='';const m=(html||'').match(/href="(https?:\/\/(?:www\.|old\.)?(?:reddit\.com\/r\/[^"]+\/comments\/[^"]+|news\.ycombinator\.com\/item\?id=\d+|lobste\.rs\/s\/[^"]+))"/);if(m)cm=m[1]}
   let dur=tx(el,'itunes:duration');if(/^\d+$/.test(dur)){const n=+dur;dur=n>=3600?Math.floor(n/3600)+' hr '+Math.round(n%3600/60)+' min':Math.round(n/60)+' min'}else if(/^\d+:\d+(:\d+)?$/.test(dur)){const q=dur.split(':').map(Number);dur=q.length===3?(q[0]?q[0]+' hr ':'')+q[1]+' min':q[0]+' min'}else dur='';
   if(!img&&yv)img='https://i.ytimg.com/vi/'+yv+'/hqdefault.jpg';
-  return{feedId:f.id,by,sec,cats,ce,cm,audio:au?abs(au.getAttribute('url'),link):'',yt:yv||'',dur,th:(thu&&thu!==img&&img)?thu:'',pcr,pcp,pics,title:cleanT(tx(el,'title')||trimWords(text,90)),/* B1: Mastodon/Bluesky posts have no headline: use the start of the post, as the JSON reader does */link,date:pdate(tx(el,'pubDate')||tx(el,'published')||tx(el,'updated')||tx(el,'dc:date')),img,imgs,html,summary:trimWords(text,170),wc:text?text.split(' ').length:0};
+  return{feedId:f.id,by,sec,cats,ce,cm,epn:au&&+tx(el,'itunes:episode')||undefined,audio:au?abs(au.getAttribute('url'),link):'',yt:yv||'',dur,th:(thu&&thu!==img&&img)?thu:'',pcr,pcp,pics,title:cleanT(tx(el,'title')||trimWords(text,90)),/* B1: Mastodon/Bluesky posts have no headline: use the start of the post, as the JSON reader does */link,date:pdate(tx(el,'pubDate')||tx(el,'published')||tx(el,'updated')||tx(el,'dc:date')),img,imgs,html,summary:trimWords(text,170),wc:text?text.split(' ').length:0};
  });
  return{title,list:finishList(list)};
 }
@@ -13937,8 +13938,8 @@ function ytId(a){const m=(a.link||'').match(/(?:youtube\.com\/(?:watch\?v=|short
 function mediaBlock(a){
  const y=ytId(a);
  if(y)return ytCard(y,true).outerHTML;
- if(a.audio){const sh=(a.feedId&&fof(a)||{}).title||'',sk=(n,l)=>`<button type="button" data-ap="${n<0?'back':'fwd'}" aria-label="${l}"><svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g${n>0?' transform="matrix(-1 0 0 1 32 0)"':''}><path d="M6.5 16a9.5 9.5 0 1 0 3-6.9"/><path d="M9.6 4.6v4.7h4.7"/></g><text x="16" y="20" text-anchor="middle" font-size="9.5" font-weight="700" stroke="none" fill="currentColor">${Math.abs(n)}</text></svg></button>`,r=+S.prate||1;
-  return `<div class="aud" data-aud="${esc(a.link)}" role="group" aria-label="Episode player"><span class="aart" aria-hidden="true"${a.img&&/^https?:/.test(a.img)?` style="background-image:url(&quot;${esc(encodeURI(decodeURI(a.img)))}&quot;)">`:'>'+esc((sh||a.title||'E').trim().charAt(0).toUpperCase())}</span><div class="acol"><div class="ahd"><div><div class="aep">${esc(a.title||'Episode')}</div><div class="ash">${esc(sh)}</div></div><button type="button" class="asl" data-ap="sleep" aria-label="Sleep timer: off. Change"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><i></i></button></div><div class="aur">${sk(-15,'Back 15 seconds')}<button type="button" class="ap" data-ap="play" aria-label="Play episode">▶</button>${sk(30,'Forward 30 seconds')}<button type="button" class="asp" data-aspc aria-label="Speed ${r} times. Change speed">${r}×</button><span class="atm" data-ap-dur>${a.dur?esc(a.dur):''}</span></div></div><input type="range" class="aseek" data-ap-seek min="0" max="1000" value="0" step="1" aria-label="Seek" aria-valuetext="Not started"></div>`}
+ if(a.audio){const fd=a.feedId&&fof(a)||{},sh=fd.title||'',/* the episode's own picture, else a number tile (episode number, or the day it came out) in one of three looks, so a show's episodes don't all look alike */pic=a.img&&a.img!==fd.art&&/^https?:/.test(a.img)&&a.img,epn=a.epn||+((a.title||'').match(/(?:#|\bep(?:isode)?\.?\s*)(\d{1,4})\b/i)||[])[1]||0,dt=a.date&&new Date(a.date),tile=epn?`<b${epn>999?' class="s"':''}>${epn}</b>`:dt&&!isNaN(dt)?`<small>${dt.toLocaleDateString('en-US',{month:'short'})}</small><b>${dt.getDate()}</b>`:esc((fd.title||a.title||'E').trim().charAt(0).toUpperCase()),sk=(n,l)=>`<button type="button" data-ap="${n<0?'back':'fwd'}" aria-label="${l}"><svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g${n>0?' transform="matrix(-1 0 0 1 32 0)"':''}><path d="M6.5 16a9.5 9.5 0 1 0 3-6.9"/><path d="M9.6 4.6v4.7h4.7"/></g><text x="16" y="20" text-anchor="middle" font-size="9.5" font-weight="700" stroke="none" fill="currentColor">${Math.abs(n)}</text></svg></button>`,r=+S.prate||1;
+  return `<div class="aud" data-aud="${esc(a.link)}" role="group" aria-label="Episode player"><span class="aart" aria-hidden="true"${pic?` style="background-image:url(&quot;${esc(encodeURI(decodeURI(pic)))}&quot;)">`:` data-k="${[...String(a.link||'')].reduce((n,c)=>n+c.charCodeAt(0),0)%3}">`+tile}</span><div class="acol"><div class="ahd"><div><div class="aep">${esc(a.title||'Episode')}</div><div class="ash">${esc(sh)}</div></div><button type="button" class="asl" data-ap="sleep" aria-label="Sleep timer: off. Change"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><i></i></button></div><div class="aur">${sk(-15,'Back 15 seconds')}<button type="button" class="ap" data-ap="play" aria-label="Play episode">▶</button>${sk(30,'Forward 30 seconds')}<button type="button" class="asp" data-aspc aria-label="Speed ${r} times. Change speed">${r}×</button><span class="atm" data-ap-dur>${a.dur?esc(a.dur):''}</span></div></div><input type="range" class="aseek" data-ap-seek min="0" max="1000" value="0" step="1" aria-label="Seek" aria-valuetext="Not started"></div>`}
  return'';
 }
 /* the one episode player: a single audio element that outlives the reader, so an episode keeps playing when you go back to the list */
@@ -13962,7 +13963,7 @@ function epSession(){
  if(!('mediaSession' in navigator)||!EPA)return;
  try{
   const a=findStory(EPL)||curA||{},f=a.feedId?fof(a):{};
-  navigator.mediaSession.metadata=new MediaMetadata({title:a.title||'Episode',artist:f.title||'',album:f.title||'CyPress',artwork:a.img&&/^https?:/.test(a.img)?[{src:a.img,sizes:'512x512'}]:[]});
+  navigator.mediaSession.metadata=new MediaMetadata({title:a.title||'Episode',artist:f.title||'',album:f.title||'CyPress',artwork:(u=>u?[{src:u,sizes:'512x512'}]:[])([a.img,f.art].find(u=>u&&/^https?:/.test(u)))});
   const h=(n,fn)=>{try{navigator.mediaSession.setActionHandler(n,fn)}catch(e){}};
   h('play',()=>EPA.play().catch(()=>{}));h('pause',()=>EPA.pause());h('stop',()=>EPA.pause());
   h('seekbackward',d=>{EPA.currentTime=Math.max(0,EPA.currentTime-((d&&d.seekOffset)||15))});
@@ -14652,8 +14653,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.20n';const APP_LABEL='1.368';
-const CHANGES=["Opening a book from another app works: tap an EPUB in Files or Downloads, choose CyPress Reader, and the book is added and opens","The same fix applies to a list of sites (an OPML file) opened this way"];
+const APP_VERSION='2026.11.20o';const APP_LABEL='1.369';
+const CHANGES=["The Bookshelf no longer blinks: a book's page and its cover stay put while your sites refresh in the background","The episode player shows a number tile when an episode has no picture of its own: the episode number, or the day it came out, in a look that changes from episode to episode"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -18737,10 +18738,12 @@ const bkSz=n=>n<1e6?Math.max(1,Math.round(n/1e3))+' KB':(n/1e6).toFixed(1).repla
 async function bkSize(b){if(b.sz)return b.sz;const db=await bkDb(),rg=IDBKeyRange.bound(b.id+'/',b.id+'/\uffff'),all=st=>new Promise(r=>{const q=db.transaction(st).objectStore(st).getAll(rg);q.onsuccess=()=>r(q.result||[]);q.onerror=()=>r([])});
  b.sz=(await all('ch')).reduce((n,h)=>n+(h.length||0),0)+(await all('img')).reduce((n,x)=>n+(x.size||0),0);try{db.transaction('books','readwrite').objectStore('books').put(b)}catch(e){}return b.sz}
 const bkMin=w=>Math.max(1,Math.round(w/230)),bkLen=w=>bkMin(w)<90?bkMin(w)+' min':'about '+plu(Math.round(bkMin(w)/60),'hour','hours');
+/* a redraw (background refresh) must not blink the shelf or a book's page: each cover keeps one address, and a page that comes out the same is left alone */
+const BKC={},bkCv=async b=>{if(!b.cover)return '';const k=b.id+'/'+b.cover;if(BKC[k])return BKC[k];try{const x=await bkGet('img',k);return x?BKC[k]=URL.createObjectURL(x):''}catch(e){return ''}},bkSet=(g,h)=>{if(g._bkh===h&&g.querySelector('.rki,.rkg'))return;g.innerHTML=g._bkh=h};
 function renderBooks(){
  $('#ttl').textContent='Bookshelf';cur=[];const g=$('#grid');
  const add='<button type="button" class="go" data-bkadd>Open a book file</button>';
- g.innerHTML='<div class="empty">Opening your books…</div>';
+ if(!g.querySelector('.rki,.rkg'))g.innerHTML='<div class="empty">Opening your books…</div>';
  bkAll().then(async l=>{
   if(S.sel!=='books')return;if(S.bkn!==l.length){S.bkn=l.length;saveSoon();side()}
   if(S.bkv==='cp')return bkCp(l);
@@ -18748,21 +18751,20 @@ function renderBooks(){
   if(!l.length){g.innerHTML=emp('Your bookshelf is empty','Open an EPUB, text or Markdown file from this device to read it here.',add+'<details class="why"><summary>Which books work?</summary>Files without copy protection. Books from the Kindle, Apple or Kobo stores stay in their own apps.</details>');return}
   const so=S.bksort||'r',P=S.bkpos||{},D=S.bkdone||{},lt=b=>(P[b.id]&&P[b.id].t)||0;
   l.sort(so==='t'?(a,b)=>a.title.localeCompare(b.title):so==='w'?(a,b)=>(a.author||'~').localeCompare(b.author||'~')||a.title.localeCompare(b.title):so==='a'?(a,b)=>b.added-a.added:(a,b)=>lt(b)-lt(a)||b.added-a.added);
-  const us=await Promise.all(l.map(b=>b.cover?bkGet('img',b.id+'/'+b.cover).then(x=>{if(!x)return '';const u=URL.createObjectURL(x);BKU.push(u);return u}).catch(()=>''):''));if(S.sel!=='books')return;
+  const us=await Promise.all(l.map(bkCv));if(S.sel!=='books')return;
   const U={};l.forEach((b,i)=>U[b.id]=us[i]);const now=l.length>2?l.filter(b=>P[b.id]!=null&&!D[b.id]).sort((a,b)=>lt(b)-lt(a)).slice(0,4):[],cp=(S.hl||[]).some(h=>/^book:/.test(h.link||''));
   const pr=b=>{if(D[b.id])return ' · Finished';const p=P[b.id];if(p==null)return '';const c=typeof p==='number'?p:p.c,f=typeof p==='number'?0:p.f||0;let w=0;for(let i=0;i<c&&i<b.ch.length;i++)w+=b.ch[i].w||0;w+=(b.ch[c]||{w:0}).w*f;const k=b.words?Math.round(100*w/b.words):0;return k>0?' · '+k+'% read':''};
   const rk=b=>`<button type="button" class="rk" data-bk="${esc(b.id)}" aria-label="${esc(b.title+(b.author?', by '+b.author:''))}">${U[b.id]?`<img alt="" src="${U[b.id]}">`:`<span class="rk-m">BOOK</span><span class="rk-e">${esc(b.author||'')}</span>`}<b>${esc(b.title)}</b><small>${plu(bkRows(b.ch).length,'chapter','chapters')} · ${bkLen(b.words)}${pr(b)}</small></button>`;
-  g.innerHTML='<div class="rkg"><p class="hint rkh">'+plu(l.length,'book','books')+' on this device. '+add+(cp?' <button type="button" class="tx2" data-bkgo="cp">Commonplace book</button>':'')+'</p>'
+  bkSet(g,'<div class="rkg"><p class="hint rkh">'+plu(l.length,'book','books')+' on this device. '+add+(cp?' <button type="button" class="tx2" data-bkgo="cp">Commonplace book</button>':'')+'</p>'
    +(now.length?'<h3 class="rkm">Currently reading</h3>'+now.map(rk).join('')+'<h3 class="rkm">All books</h3>':'')
    +(l.length>1?'<label class="rks hint">Sort by <select data-bksort>'+[['r','Recently read'],['a','Recently added'],['t','Title'],['w','Author']].map(([k,n])=>`<option value="${k}"${k===so?' selected':''}>${n}</option>`).join('')+'</select></label>':'')
-   +l.map(rk).join('')+'<label class="rks hint"><input type="checkbox" data-bkdaychk'+(S.bkday!==false?' checked':'')+'> Today’s chapter in The Daily</label></div>';
+   +l.map(rk).join('')+'<label class="rks hint"><input type="checkbox" data-bkdaychk'+(S.bkday!==false?' checked':'')+'> Today’s chapter in The Daily</label></div>');
  }).catch(()=>{g.innerHTML=emp('Books can’t open here','This browser won’t let the app keep books on this device.','')});
 }
 async function bkFront(b){
- const g=$('#grid'),at=bkAt(b);let cv='';
- if(b.cover){const x=await bkGet('img',b.id+'/'+b.cover);if(x){BKU.push(cv=URL.createObjectURL(x))}}
+ const g=$('#grid'),at=bkAt(b),cv=await bkCv(b);
  const p=(S.bkpos||{})[b.id],f=at!=null&&p&&p.f||0,rows=bkRows(b.ch),c=at==null?bkFirst(rows):rows.find(x=>x.j>=at)||rows[0],left=bkMin((b.ch[at||0]||{w:0}).w*(1-f)+(at!=null&&at<c.j?b.ch[c.j].w:0));
- g.innerHTML=`<div class="rki"><button type="button" class="tx2" data-bk="">Back to bookshelf</button><div class="rkt">${cv?`<img src="${cv}" alt="">`:''}<h2>${esc(b.title)}</h2>${b.author?`<p class="rkby">${esc(b.author)}</p>`:''}<p class="hint">${plu(rows.length,'chapter','chapters')} · ${bkLen(b.words)} · ${bkSz(await bkSize(b))} on this device</p>${(pc=>pc?`<p class="hint">${pc}</p>`:'')(at!=null?bkPace(b,p):'')}</div><hr class="rkr"><button type="button" class="go rkc" data-bkch="${at!=null?at:c.i}"><span><b>${at!=null?'Continue: '+(/^([ivxlcdm]+|\d+)\.?$/i.test(c.t.trim())?'Chapter ':'')+esc(c.t):'Start reading'}</b><small>${at!=null?left+' min left in this chapter':esc(c.t)+' · '+bkMin(c.w)+' min'}</small></span><i aria-hidden="true">→</i></button><p class="rkl">In this book · ${plu(rows.length,'chapter','chapters')}</p><ol>${rows.map(x=>{const st=at==null?'':x.j<at?'done':x.i<=at?'here':'';return `<li${st?` class="${st}"`:''}><button type="button" data-bkch="${x.i}"><b>${esc(x.t)}</b><small>${st==='done'?'read':st==='here'?'you are here':bkMin(x.w)+' min'}</small></button></li>`}).join('')}</ol><button type="button" class="tx2" data-bkdel>Remove this book</button></div>`;
+ bkSet(g,`<div class="rki"><button type="button" class="tx2" data-bk="">Back to bookshelf</button><div class="rkt">${cv?`<img src="${cv}" alt="" decoding="sync">`:''}<h2>${esc(b.title)}</h2>${b.author?`<p class="rkby">${esc(b.author)}</p>`:''}<p class="hint">${plu(rows.length,'chapter','chapters')} · ${bkLen(b.words)} · ${bkSz(await bkSize(b))} on this device</p>${(pc=>pc?`<p class="hint">${pc}</p>`:'')(at!=null?bkPace(b,p):'')}</div><hr class="rkr"><button type="button" class="go rkc" data-bkch="${at!=null?at:c.i}"><span><b>${at!=null?'Continue: '+(/^([ivxlcdm]+|\d+)\.?$/i.test(c.t.trim())?'Chapter ':'')+esc(c.t):'Start reading'}</b><small>${at!=null?left+' min left in this chapter':esc(c.t)+' · '+bkMin(c.w)+' min'}</small></span><i aria-hidden="true">→</i></button><p class="rkl">In this book · ${plu(rows.length,'chapter','chapters')}</p><ol>${rows.map(x=>{const st=at==null?'':x.j<at?'done':x.i<=at?'here':'';return `<li${st?` class="${st}"`:''}><button type="button" data-bkch="${x.i}"><b>${esc(x.t)}</b><small>${st==='done'?'read':st==='here'?'you are here':bkMin(x.w)+' min'}</small></button></li>`}).join('')}</ol><button type="button" class="tx2" data-bkdel>Remove this book</button></div>`);
  g._bk=b;
 }
 async function bkAdd(f){
