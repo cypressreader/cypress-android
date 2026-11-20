@@ -124,13 +124,16 @@ public final class CyExtras {
      *  page as a share with an "opml" field, and the page runs its normal import (with a preview and Undo). */
     static void handleFile(final Context c, final Intent intent) {
         if (intent == null || !Intent.ACTION_VIEW.equals(intent.getAction())) return;
+        // The file's address and type are read here, before the thread starts: handleIntent runs right after this
+        // on the same intent and clears its data, so the thread found nothing and the book never opened.
+        final android.net.Uri u = intent.getData();
+        final String type = intent.getType();
         // off the main thread: copying a big book, or a file a cloud drive still has to download, froze the app
-        new Thread(() -> handleFile0(c, intent), "cy-open").start();
+        new Thread(() -> handleFile0(c, intent, u, type), "cy-open").start();
     }
 
-    private static void handleFile0(Context c, Intent intent) {
+    private static void handleFile0(Context c, Intent intent, android.net.Uri u, String type) {
         try {
-            android.net.Uri u = intent.getData();
             if (u == null || !"content".equals(u.getScheme()) && !"file".equals(u.getScheme())) return;
             if ((intent.getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0) return;
             java.io.InputStream in0 = c.getContentResolver().openInputStream(u);
@@ -144,7 +147,7 @@ public final class CyExtras {
             while (hn < hd.length && (r = in.read(hd, hn, hd.length - hn)) > 0) hn += r;
             in.reset();
             String hs = new String(hd, 0, hn, java.nio.charset.StandardCharsets.ISO_8859_1);
-            if (hs.startsWith("PK") && hs.contains("application/epub+zip") || "application/epub+zip".equals(intent.getType())) {
+            if (hs.startsWith("PK") && hs.contains("application/epub+zip") || "application/epub+zip".equals(type)) {
                 java.io.File f = new java.io.File(c.getCacheDir(), "open-book.epub");
                 long total = 0;
                 boolean ok = true;

@@ -2242,3 +2242,4 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - [ ] Dynamic theme, short stories and podcast episodes (1.367): taps inside the story work (player buttons, links). Before, every tap in a short story's page was swallowed.
 - [ ] Darknet Diaries, The Daily, Radiolab, 99% Invisible, Hard Fork, Freakonomics, Hidden Brain (1.367): each lists episodes after adding (were dropped as off-site).
 - [ ] Top-of-list download (1.367): on the phone, add The Daily and Freakonomics Radio on Wi-Fi and on mobile data: episodes appear within a few seconds; refresh keeps them. If a podcast shows nothing, check its site log for 'the top of the list didn't arrive'.
+- [ ] Open a book from another app (next build): in Files or Downloads tap an .epub, choose CyPress Reader. With the app closed and with it already open: the book is added to the app and opens. (Was: app opened, no book. The file's address was cleared before the background copy read it.)
