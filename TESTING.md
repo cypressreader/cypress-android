@@ -2225,3 +2225,4 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 ## Pure Black & White (2026-11-20, branch claude/pm-deep-dive-handoff-y4x3ot, unverified on device)
 - Black & White theme: no color anywhere (photos, Daily cover, site names, dots, night accent), day and night.
 - Page turns and scrolling stay smooth with the whole-page gray filter, on the Fold and a low-end phone.
+- Dynamic theme: colors fade (about 1.6 s) instead of snapping when scrolling stops, with the phone's Remove animations on, with Reduce motion on, and in power saver.
