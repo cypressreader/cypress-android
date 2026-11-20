@@ -2211,3 +2211,8 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Daily cover headline: no growth a few seconds after opening (re-measured after photo load), Velvet + Gallery cover fits
 - Quick looks: cover only, theme stays; Your theme tile highlighted when no cover picked
 - Newsprint: no color story pictures anywhere in the feed or reader
+
+## 2026-11-20 p: flicker + Newsprint color (implemented, unverified on device)
+- Daily tab at rest while a background refresh lands: the cover no longer blanks/fades for a frame (in-place redraw skips the .dcov fade-in).
+- Folder view (Tech) refresh: the folder header photo no longer blanks for a frame (eager + sync decode); big photos swapped to their shrunk copy decode in sync.
+- Newsprint (day and night): every story photo is gray, including the big headline-over-photo cards and list thumbnails in folder view.
