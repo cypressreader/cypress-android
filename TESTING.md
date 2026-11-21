@@ -2251,3 +2251,12 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 
 ## 1.371 (2026-11-21)
 - Add a site > Browse topics > Videos: with MKBHD already added, the other channels show an Add button (not "Added"); add one and it appears in the side bar with its own videos.
+
+## Video page (ready on branch 2026-11-21, ships as 1.372)
+- Open a video channel (or the Videos folder): newest video is a big screen with a round play button; "Up next" strip scrolls sideways; Shorts are upright tiles; older videos are an even shelf.
+- Tap an Up next video: it plays in the big screen at the top, with sound; full screen works.
+- Tap a shelf video: its tile grows to full width and plays. Scroll away: the video keeps playing in a small player bottom right; × closes it.
+- A Short plays upright. Do shorts really land in the Shorts row (their address must contain /shorts/)?
+- Played videos are dimmed and say Watched. Tapping a title (not the picture) opens the story page.
+- Sideways scrolling of the strips does not open the side bar or trigger swipe-to-save.
+- List view and Compact: every video in a mixed list has a Play button.
