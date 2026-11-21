@@ -2260,3 +2260,4 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Played videos are dimmed and say Watched. Tapping a title (not the picture) opens the story page.
 - Sideways scrolling of the strips does not open the side bar or trigger swipe-to-save.
 - List view and Compact: every video in a mixed list has a Play button.
+- (after 1.372, ready on branch) Docked player is a bar at the bottom: small video, title, ×. Play a video on a video page, then open another list: the bar stays and the video keeps playing without starting over (if it starts over, the phone's browser lacks moveBefore).
