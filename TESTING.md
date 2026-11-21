@@ -2265,3 +2265,7 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 ## 1.373 Docked video bar (device-unverified)
 - Play a video on a video page, scroll away: the player becomes a bar (video left, title, ×) and keeps playing with sound
 - With the bar playing, open a different list: the video keeps playing without restarting; × closes it
+
+## 1.374 Video bar at the bottom (device-unverified)
+- Scroll away from a playing video: the bar runs full width along the bottom, on top of the tab bar on the cover screen, and hides/returns with the tabs
+- Start read-aloud while a video bar is showing: the two bars stack, neither covers the other
