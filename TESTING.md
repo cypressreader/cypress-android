@@ -2324,3 +2324,17 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - [ ] All Stories or the Daily on the cover screen: swipe right starting about a finger-width from the left edge, on top of a story card. The side bar opens and the story is NOT marked read (no "Marked as read" message). A right swipe from the middle of a card still marks it read.
 - [ ] Phone font size set to largest, open a story > Aa: "Default / Comfortable / Large print / Dense" stay readable (two rows are fine), nothing printed over anything. Also note whether menus and tabs grow with the phone's font size at all (report item A3).
 - [ ] A long pop-up message (for example the storage-full one) stays up long enough to read; short ones still leave after about 3 seconds.
+
+## Round two picks, built so far (branch ccr-55075230-otnbgd, 2026-11-21; not merged, not in any APK)
+- [ ] J1: fresh install, on the welcome screen swipe the app away, reopen: the welcome steps show again (not four sample sites). "Have a backup? Restore it" on the first welcome screen opens the file picker and a restored library skips setup.
+- [ ] S1: a very short real story (a brief, a correction) shows its few sentences with "Short page", not "Couldn't reach the site".
+- [ ] J2: type a search: one thin line with the count and "Follow this topic", results right under it.
+- [ ] C2: tap a footnote number in a story: a small "Note" window shows the note; Close returns to the same page; "Go to the note" jumps.
+- [ ] T1: Coast (day) Daily cover source line, Sepia Rosewood night accent labels, Newsprint night section names, Dynamic night date line in a story: all readable.
+- [ ] G2: open the side bar on the cover screen, unfold, press Back once: it does something visible (no dead press). Two-page spread lines up with the hinge.
+- [ ] G3: double-tap a picture inside a story: the viewer opens and stays open.
+- [ ] S3: a tall picture with its caption over the dark fade: caption is white and readable.
+- [ ] S4: with Android data saver on, cover cards stop their slow zoom.
+- [ ] P3: Settings opens faster; Appearance & Theme still shows the six Quick looks.
+- [ ] C3: Saved shows "2 highlights" on a story you marked up.
+- [ ] A4: the color dot and folder arrow in the side bar are easier to hit; hint text in text boxes is darker.
