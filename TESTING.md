@@ -2279,3 +2279,10 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Video bar: rotate / unfold while a video is docked: bar sits on the tab bar, never over it
 - Shorts play upright in their tile; Play on the top list row plays the video
 - Episode player: time left shows in full; messages sit above the mini player; Now playing sideways shows Play
+
+## Inspection batch 1: video bar everywhere (preview only, 2026-11-21)
+- Play a video from an ORDINARY card (not a video page), scroll away: the bar appears at the bottom and the video keeps playing (older phones may restart it once).
+- Change list, then open a story: the bar stays; × closes it. Opening the video's own story closes the bar.
+- Tap the bar: pop-up opens; a Short pops up upright. Scroll a video-page tile back into view: pop-up is tucked.
+- A card without a picture: Play pill under the headline; playing, the card is a full 16:9 video.
+- Unfolded / tablet with the side bar showing: audio bar and video bar start right of the side bar.
