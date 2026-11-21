@@ -2305,3 +2305,7 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Book: Aa sheet has no 'This story's look'; Listen says 'Listen to this chapter'; Contents shows 'Chapter I' names, 'Read' on finished ones, and 'Chapter 3 of 61 · 7 h left' at the top (is the count right for your books?).
 - Story or book: after the first page turn a small handle shows where the hidden bar is; tap there, buttons return.
 - Keyboard (tablet/desktop): Tab stays inside the open story.
+
+## Inspection batch 5, first part (preview only, 2026-11-21)
+- The Daily's fourth tab says Weekly whatever day is picked in Settings; its page says 'The Weekly Issue'.
+- Add a site, type nonsense, tap 'Search the web': within about 12 seconds it says 'No sites found' or that the search didn't answer.

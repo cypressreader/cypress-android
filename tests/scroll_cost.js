@@ -9,7 +9,7 @@ const svg=c=>`<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000"
  await p.goto('file://'+APP);await p.waitForTimeout(1500);await p.click('text=Get started').catch(()=>{});await p.waitForTimeout(500);
  await p.evaluate(()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());const now=Date.now();const long='<p>'+'Long read paragraph words keep going for a good while so the story counts as long. '.repeat(30)+'</p>';
   S.feeds.slice(0,4).forEach((f,fi)=>{items[f.id]=Array.from({length:40},(_,i)=>({feedId:f.id,title:'Story number '+i+' of feed '+fi+' about the subject '+(i*7+fi),link:'https://w.test/'+fi+'/'+i,date:now-(i*55+fi*9+5)*6e4,summary:'A standfirst long enough to serve as a deck for the story.',img:i%5?'https://img.test/'+fi+'_'+i+'.svg':'',html:long.repeat(i%3?1:6),wc:i%3?400:2400}));state[f.id]='ok'});S.rt={};S.feeds.slice(0,4).forEach(f=>items[f.id].forEach((a,i)=>{S.rt[a.link]=i%3?3:11}));save()});
- for(const [name,sel,tab] of [['Deep reads','all','deep'],['Sunday','digest','week']]){
+ for(const [name,sel,tab] of [['Deep reads','all','deep'],['Weekly','digest','week']]){
   await p.evaluate(async([sel,tab])=>{const w=ms=>new Promise(r=>setTimeout(r,ms));S.sel=sel;if(sel==='all'){S.atab=tab;S.dtab=tab}if(sel==='digest')S.dgk=tab;save();render();await w(2500)},[sel,tab]);
   const M0=Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map(m=>[m.name,m.value]));
   const r=await p.evaluate(async()=>{const m=document.querySelector('main');const sun=[...document.querySelectorAll('.sun-i')];const timeline=[...document.querySelectorAll('#grid *')].slice(0,3000).filter(e=>{const c=getComputedStyle(e);return c.animationTimeline&&!/^(auto|none)/.test(c.animationTimeline)}).length;
