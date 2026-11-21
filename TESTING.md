@@ -2269,3 +2269,7 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 ## 1.374 Video bar at the bottom (device-unverified)
 - Scroll away from a playing video: the bar runs full width along the bottom, on top of the tab bar on the cover screen, and hides/returns with the tabs
 - Start read-aloud while a video bar is showing: the two bars stack, neither covers the other
+
+## 1.375 Tap the video bar (device-unverified)
+- Tap the video bar: the video pops up above the bar and keeps playing without restarting; its own controls and full screen work
+- Tap the bar again: it tucks back; × closes from either state
