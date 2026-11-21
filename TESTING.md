@@ -2364,3 +2364,10 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Play a video in a card, scroll away so it becomes the bar, tap the bar: the video pops up. Two round buttons now sit above its top right corner: the arrow makes it small again, × closes it. A tap on the bar also makes it small again.
 - David's report on 1.378: with the pop-up open, the bar's × at the bottom right did nothing. Could not be made to fail in the test browser. If × above the pop-up also does nothing on the Fold, say so (then taps are not reaching the player at all).
 - Shorts pop-up (tall): the two buttons sit above it, not over the video.
+
+## Video search (2026-11-21, after 1.378, not built yet)
+- Open a site or folder that is all videos: a search bar sits at the top. Type a word: only matching videos show, the rest of the page hides; clear it and the page comes back. Typing must not lose letters or close the keyboard when the list refreshes.
+- Type 'mkbhd': 'Marques Brownlee' shows under Channels with Follow. Tap it: toast 'Following…', it lands in the same folder, button says Following.
+- Type an exact @name of a channel not in the list, tap 'Find and follow': the channel is added (this asks YouTube; needs the phone).
+- 'Search YouTube for …' opens YouTube (app or browser) with that search.
+- Play a video inside a story from a site that is not a video channel: 'Follow channel' shows next to ×. Tap: 'Looking…', then the channel is followed in a Videos folder and the button goes away. A video from a channel you already follow shows no such button. In the pop-up the button sits above it beside the arrow and ×.
