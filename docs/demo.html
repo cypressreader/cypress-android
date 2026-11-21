@@ -14140,10 +14140,10 @@ function epSession(){
 }
 function epPos(){try{if('mediaSession' in navigator&&navigator.mediaSession.setPositionState&&isFinite(EPA.duration)&&EPA.duration>0)navigator.mediaSession.setPositionState({duration:EPA.duration,position:Math.min(EPA.duration,EPA.currentTime),playbackRate:EPA.playbackRate||1})}catch(e){}}
 function epInit(){
- if(EPA)return EPA;EPA=new Audio();EPA.preload='none';
+ if(EPA)return EPA;EPA=new Audio();EPA.preload='none';/* a pause the app itself asked for (a button, the sleep timer, the notification) is told apart from one the phone forced (another app's sound) */{const p0=EPA.pause.bind(EPA);EPA.pause=()=>{EPA._own=Date.now();p0()}}
  let lt=0;
  EPA.addEventListener('play',()=>{try{if(TTS.on)ttsStop()}catch(e){}epSession();try{navigator.mediaSession.playbackState='playing'}catch(e){}epUi();R.epDock=true;tminiSync();epNative(true)});
- EPA.addEventListener('pause',()=>{if(epOn()){try{navigator.mediaSession.playbackState='paused'}catch(e){}tminiSync();epNative(false)}epSave();epUi()});
+ EPA.addEventListener('pause',()=>{if(epOn()){try{navigator.mediaSession.playbackState='paused'}catch(e){}tminiSync();epNative(false,1)}epSave();epUi()});
  EPA.addEventListener('loadedmetadata',()=>{epPos();epUi()});
  {const st=k=>()=>{if(EPS===k)return;EPS=k;epUi();if(epOn()){tminiSync();if(k==='err'){try{navigator.mediaSession.playbackState='paused'}catch(e){}epNative(false)}}};EPA.addEventListener('error',st('err'));EPA.addEventListener('waiting',st('load'));EPA.addEventListener('playing',st(''));EPA.addEventListener('canplay',st(''))}
  EPA.addEventListener('ratechange',epPos);
@@ -18083,9 +18083,9 @@ function nativeExtrasUi(x){
   mediaNative=()=>{MADV=0;try{mediaPerm();x.mediaStart(MT()).catch(()=>{});x.mediaUpdate&&x.mediaUpdate({...MT(),playing:true}).catch(()=>{})}catch(e){}};
   mediaNativeStop=()=>{try{x.mediaStop&&x.mediaStop().catch(()=>{})}catch(e){}};
   /* 1.377 report (David's Fold) + device test run 52: a playing episode had no notification control. Three seconds after Play, the Now playing picture update told Android 'paused', because it only looked at read-aloud. Every update now asks mNow(), which knows about episodes */
-  const EM=()=>{const a=findStory(EPL)||{},d=EPA.duration;return{title:a.title||'Episode',subtitle:a.feedId?fof(a).title:'',image:/^https?:/.test(a.img||'')?a.img:'',pos:Math.round((EPA.currentTime||0)*1000),dur:isFinite(d)&&d>0?Math.round(d*1000):0,rate:EPA.playbackRate||1,next:epHasQ(),prev:epHasQ()}};
+  const EM=()=>{const a=findStory(EPL)||{},d=EPA.duration;return{title:a.title||'Episode',subtitle:a.feedId?fof(a).title:'',image:/^https?:/.test(a.img||'')?a.img:'',pos:Math.round((EPA.currentTime||0)*1000),dur:isFinite(d)&&d>0?Math.round(d*1000):0,rate:EPA.playbackRate||1,next:epHasQ(),prev:epHasQ(),web:true/* the page's own player makes the sound and holds the phone's audio focus; the notification service must not compete for it */}};
   function mNow(){if(!x.mediaUpdate)return;if(epOn())x.mediaUpdate({...EM(),playing:!EPA.paused&&EPS!=='err'}).catch(()=>{});else x.mediaUpdate({...MT(),playing:!!(TTS.on&&!TTS.paused)}).catch(()=>{})}
-  epNative=on=>{try{const m=EM();mediaPerm();if(on)x.mediaStart(m).catch(()=>{});x.mediaUpdate&&x.mediaUpdate({...m,playing:on}).catch(()=>{})}catch(e){}};
+  epNative=(on,sys)=>{try{const m=EM();mediaPerm();if(on)x.mediaStart(m).catch(()=>{});x.mediaUpdate&&x.mediaUpdate({...m,playing:on}).catch(()=>{});/* paused by the phone, not by the app (another app made a sound): play again once that sound is over (Android looks for up to a minute) */if(sys&&!on&&!EPA.ended&&EPS!=='err'&&Date.now()-(EPA._own||0)>1500&&x.mediaResumeWhenQuiet)x.mediaResumeWhenQuiet().catch(()=>{})}catch(e){}};
   ttsFrom=function(w){const r=pf.apply(this,arguments);mediaNative();return r};
   npArt.push=()=>{try{mNow()}catch(e){}};
   ttsPause=function(){const r=pp.apply(this,arguments);try{if(!epOn())x.mediaUpdate&&x.mediaUpdate({...MT(),playing:false}).catch(()=>{})}catch(e){}return r};

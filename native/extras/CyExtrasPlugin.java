@@ -163,6 +163,7 @@ public class CyExtrasPlugin extends Plugin {
             CyMediaService.rate = (float) call.getData().optDouble("rate", 1.0);
             CyMediaService.canNext = call.getData().optBoolean("next", true);
             CyMediaService.canPrev = call.getData().optBoolean("prev", true);
+            CyMediaService.webAudio = call.getData().optBoolean("web", false);
             String title = call.getString("title", "CyPress");
             String sub = call.getString("subtitle", "");
             CyMediaService.start(getContext(), title, sub, true, call.getString("image", ""));
@@ -180,6 +181,7 @@ public class CyExtrasPlugin extends Plugin {
             CyMediaService.rate = (float) call.getData().optDouble("rate", 1.0);
             CyMediaService.canNext = call.getData().optBoolean("next", true);
             CyMediaService.canPrev = call.getData().optBoolean("prev", true);
+            CyMediaService.webAudio = call.getData().optBoolean("web", false);
             String title = call.getString("title", "CyPress");
             String sub = call.getString("subtitle", "");
             boolean playing = call.getBoolean("playing", true);
@@ -187,6 +189,17 @@ public class CyExtrasPlugin extends Plugin {
             call.resolve();
         } catch (Throwable t) {
             call.reject("mediaUpdate failed: " + msg(t));
+        }
+    }
+
+    /** The page's own player was paused by the phone while the app is in the background: play again once other apps are quiet. */
+    @PluginMethod
+    public void mediaResumeWhenQuiet(PluginCall call) {
+        try {
+            CyMediaService.resumeWhenQuiet();
+            call.resolve();
+        } catch (Throwable t) {
+            call.reject("mediaResumeWhenQuiet failed: " + msg(t));
         }
     }
 

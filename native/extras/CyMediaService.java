@@ -56,6 +56,10 @@ public class CyMediaService extends Service {
     static volatile long posMs = -1, durMs = 0;
     static volatile boolean canNext = true, canPrev = true;
     static volatile float rate = 1f;
+    /** The page's own audio player is making the sound (a podcast episode). The browser part holds the phone's audio focus
+     *  for it, so this service must not ask for focus too: the two requests knocked each other out and the episode was
+     *  told to pause the moment it started (1.377 on David's Fold, device test run 55). */
+    static volatile boolean webAudio = false;
 
     /** The running service, so updates do not need to start anything. */
     static volatile CyMediaService instance;
@@ -95,9 +99,11 @@ public class CyMediaService extends Service {
     private final AudioManager.OnAudioFocusChangeListener focusListener = new AudioManager.OnAudioFocusChangeListener() {
         @Override
         public void onAudioFocusChange(int change) {
+            if (webAudio) return;
             if (change == AudioManager.AUDIOFOCUS_LOSS) {
                 focusHeld = false;
                 pauseHere();
+                waitForQuiet(); // another app took the sound for good: if it goes quiet again within a minute, carry on
             } else if (change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
                 // 1.377 report: a short sound from another app (a message tone, directions) stopped the player for good.
                 // It is a pause, and the focus request is kept, so Android tells us when that sound is over.
@@ -394,6 +400,7 @@ public class CyMediaService extends Service {
 
     /** Another app took the audio, the headphones came out, or Pause was tapped: pause once, here, without waiting for the page. */
     private void pauseHere() {
+        cancelQuiet();
         resumeOnGain = pausingForFocus && playing && !pauseAsked;
         if (!playing || pauseAsked) return;
         pauseAsked = true;
@@ -419,8 +426,46 @@ public class CyMediaService extends Service {
         }
     }
 
+    // ---- carry on when another app's sound is over
+    private int quietTicks = 0, quietLeft = 0;
+    private final Runnable quietTick = new Runnable() {
+        @Override
+        public void run() {
+            if (playing || quietLeft-- <= 0) return;
+            try {
+                if (audioMgr == null) audioMgr = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                boolean busy = audioMgr != null && audioMgr.isMusicActive();
+                quietTicks = busy ? 0 : quietTicks + 1;
+            } catch (Throwable e) {
+                return;
+            }
+            if (quietTicks >= 2) { CyExtras.emitMediaAction("play"); return; }
+            uiHandler.postDelayed(this, 1000);
+        }
+    };
+
+    /** Paused because another app made a sound: look once a second, for up to a minute, and play again once nothing else is playing. */
+    private void waitForQuiet() {
+        uiHandler.removeCallbacks(quietTick);
+        quietTicks = 0;
+        quietLeft = 60;
+        uiHandler.postDelayed(quietTick, 1500);
+    }
+
+    private void cancelQuiet() {
+        uiHandler.removeCallbacks(quietTick);
+        quietLeft = 0;
+    }
+
+    /** The page asks for this when its own player was paused by the phone (not by a button) while the app is in the background. */
+    static void resumeWhenQuiet() {
+        final CyMediaService s = instance;
+        if (s != null) s.uiHandler.post(new Runnable() { @Override public void run() { s.waitForQuiet(); } });
+    }
+
     @SuppressWarnings("deprecation")
     private void requestFocus() {
+        if (webAudio) return; // the page's own player holds the focus
         if (focusHeld) return;
         try {
             if (audioMgr == null) audioMgr = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -647,7 +692,7 @@ public class CyMediaService extends Service {
             public void onPause() {
                 CyMediaService s = instance;
                 if (s != null && s.playing) s.pauseHere();
-                else { if (s != null) s.resumeOnGain = false; CyExtras.emitMediaAction("pause"); }
+                else { if (s != null) { s.resumeOnGain = false; s.cancelQuiet(); } CyExtras.emitMediaAction("pause"); }
             }
 
             @Override
