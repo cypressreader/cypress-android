@@ -2359,3 +2359,8 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 ## Cover card flicker (2026-11-21, after 1.378, not built yet)
 - Open Fold, Dynamic theme, a story that opens on a whole-screen picture with the card on the right. Turn forward: as the card lands on the left, the page must NOT flash without its picture (it did for one frame, about a second after the tap). Turn back: no frame with the card but no picture, and no frame with the picture but no card.
 - Tap forward and back quickly on that cover: every tap still counts, nothing left on screen.
+
+## Video pop-up buttons (2026-11-21, after 1.378, not built yet)
+- Play a video in a card, scroll away so it becomes the bar, tap the bar: the video pops up. Two round buttons now sit above its top right corner: the arrow makes it small again, × closes it. A tap on the bar also makes it small again.
+- David's report on 1.378: with the pop-up open, the bar's × at the bottom right did nothing. Could not be made to fail in the test browser. If × above the pop-up also does nothing on the Fold, say so (then taps are not reaching the player at all).
+- Shorts pop-up (tall): the two buttons sit above it, not over the video.
