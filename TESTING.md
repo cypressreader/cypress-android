@@ -2344,3 +2344,7 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - [ ] C3: More > "Add a note" in a story; the note shows on the Highlights page without a quote; More then says "Edit your note"; saving it empty removes it.
 - [ ] J2: tapping a topic name still opens the full topic heading with Mute and Close; a typed search shows the thin line.
 - [ ] J3: Highlights, History and Stats no longer show Mark all as read or Refresh.
+- [ ] C3 video Up Next: hold two video cards > "Add to Up Next", play a third video to its end: the next queued video starts in the same player with a "Playing next" message. (End-of-video detection could NOT be tested in the cloud: the video site is blocked there.)
+- [ ] C1: full-screen Now playing lists the episode's chapters under it; tapping one jumps there.
+- [ ] J3: a headline longer than about 170 characters stops at eight lines; a tip strip hides while a pop-up message is showing and comes back after.
+- [ ] A3 (Fold check, nothing built): set the phone's font size to largest and open the app. The code notes say the Android app already follows the phone's size. Look for: the Daily cover's CYPRESS name cut off, bottom tab labels touching, Settings labels cut. Report what you see.
