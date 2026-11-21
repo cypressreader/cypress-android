@@ -6680,8 +6680,11 @@ let VW=innerWidth,VH=innerHeight;addEventListener('resize',()=>{VW=innerWidth;VH
 const COVFC=new Map();
 /* David 2026-11-20: a headline is never dark on a dark panel (or light on a light one): below 3:1 against the first solid color behind it, it turns white or ink */
 function cardInk(){const lum=c=>{const m=String(c).match(/[\d.]+/g);if(!m||m.length<3)return null;const v=m.slice(0,3).map(x=>{x/=255;return x<=.03928?x/12.92:((x+.055)/1.055)**2.4});return{L:.2126*v[0]+.7152*v[1]+.0722*v[2],a:m[3]==null?1:+m[3]}};
- document.querySelectorAll('#grid .card h3,#grid .dcov h2').forEach(h=>{h.style.removeProperty('color');const t=lum(getComputedStyle(h).color);let e=h,bg=null;while(e&&e!==document.body){const cs=getComputedStyle(e);if(e!==h&&cs.backgroundImage!=='none')return;const q=lum(cs.backgroundColor);if(q&&q.a>.6){bg=q;break}if(e!==h&&e.querySelector(':scope>img'))return;e=e.parentElement}
-  if(!t||!bg)return;if((Math.max(t.L,bg.L)+.05)/(Math.min(t.L,bg.L)+.05)<3)h.style.setProperty('color',bg.L<.18?'#fff':'#14171c','important')})}
+ const one=h=>{h.style.removeProperty('color');const t=lum(getComputedStyle(h).color);let e=h,bg=null;while(e&&e!==document.body){const cs=getComputedStyle(e);if(e!==h&&cs.backgroundImage!=='none')return;const q=lum(cs.backgroundColor);if(q&&q.a>.6){bg=q;break}if(e!==h&&e.querySelector(':scope>img'))return;e=e.parentElement}
+  if(!t||!bg)return;if((Math.max(t.L,bg.L)+.05)/(Math.min(t.L,bg.L)+.05)<3)h.style.setProperty('color',bg.L<.18?'#fff':'#14171c','important')};
+ /* round two P1: only headlines on or near the screen are checked now; the rest are checked as they scroll into reach. Checking every card on every draw cost about a second of start-up on a slow phone */
+ const hs=document.querySelectorAll('#grid .card h3,#grid .dcov h2'),sc=$('main');if(!('IntersectionObserver' in window)||!sc){hs.forEach(one);return}
+ if(cardInk.io)cardInk.io.disconnect();const io=cardInk.io=new IntersectionObserver(es=>{for(const x of es)if(x.isIntersecting){io.unobserve(x.target);one(x.target)}},{root:sc,rootMargin:'700px 300px'});hs.forEach(h=>io.observe(h))}
 /* David 2026-11-20 (Fold, 1.358 video): the Daily cover still ran past the screen on the phone. Last word, measured on the real page: while the cover's bottom is below the screen, the headline steps down (never under 22px) */
 function dcovGuard(cv,h){if(!cv.classList.contains('dcov')||cv.closest('.d2l'))return 0;const sc=cv.closest('main'),vh=Math.min(VH,innerHeight||VH,(window.visualViewport&&visualViewport.height)||VH),bot=()=>cv.getBoundingClientRect().bottom+(sc?sc.scrollTop:0)+scrollY;let f=parseFloat(h.style.fontSize)||parseFloat(getComputedStyle(h).fontSize)||0,n=0;while(f>22&&bot()>vh+2&&n++<14){f=Math.max(22,f*.92);h.style.setProperty('font-size',f.toFixed(1)+'px','important')}return n?f:0}
 function covFit(pv){/* round two P3: pv = only the small preview covers in Settings; opening Settings no longer re-fits and re-inks every card behind it */
@@ -17278,7 +17281,7 @@ function smartNotice(){
 function whatsNew(){
  if(FIRST){S.ver=APP_VERSION;S.fmig=1;return}
  if(!S.fmig){S.fmig=1;if(S.font==='serif'){delete S.font;try{applyFs&&applyFs()}catch(e){}}}
- if(S.ver===APP_VERSION){SAVE0();return}S.ver=APP_VERSION;SAVE0();
+ if(S.ver===APP_VERSION){/* round two P1: this start-up save waits for a quiet moment instead of holding up the first screen */(window.requestIdleCallback||(f=>setTimeout(f,4000)))(()=>SAVE0(),{timeout:10000});return}S.ver=APP_VERSION;SAVE0();
  const d=document.createElement('dialog');d.id='wn';{const lk=LOGOS[S.logo]?S.logo:'tree';d.innerHTML=`<div class="wnh"><span class="wnlg" style="--lm:${mkLm(lk,1)}"></span><div><h2>What’s New</h2><small>CyPress ${esc(APP_LABEL)}</small></div><button class="ib" data-wnx aria-label="Close">${svg('<path d="M6 6l12 12M18 6 6 18"/>')}</button></div><div class="sbox wnbox"><ul class="wnl">${CHANGES.slice(0,8).map(c=>`<li><span>${esc(c)}</span></li>`).join('')}</ul></div><div class="row"><button class="go" data-wnx>Got it</button></div>`}
  document.body.append(d);d.addEventListener('click',e=>{if(e.target.closest('[data-wnx]'))d.close()});d.addEventListener('close',()=>d.remove());setTimeout(()=>{if($('#shr')&&$('#shr').open){$('#shr').addEventListener('close',()=>{if(!d.open&&d.isConnected)d.showModal()},{once:true});return}if(!$('#ob')||!$('#ob').open)d.showModal()},1900);
 }
