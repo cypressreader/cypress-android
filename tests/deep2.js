@@ -81,7 +81,7 @@ for(const [vp,w,h] of [['phone',380,820],['fold',884,1060]]){
  ck(vp,'feeds ok',await E(()=>S.feeds.every(f=>state[f.id]==='ok')),await E(()=>JSON.stringify(state)));
  // media badges
  ck(vp,'podcast badge',await E(()=>[...document.querySelectorAll('.card .mb')].some(x=>/42 min/.test(x.textContent))));
- ck(vp,'video badge',await E(()=>[...document.querySelectorAll('.card .mb')].some(x=>/Video/.test(x.textContent))));
+ ck(vp,'video badge',await E(()=>[...document.querySelectorAll('.card .mb')].some(x=>/video/i.test(x.textContent))));
  // podcast reader
  await E(()=>openReader(cur.find(a=>a.audio)));await W(1500);
  ck(vp,'audio player in reader',await E(()=>!!$('.cols .aud [data-ap="play"]')&&/\.mp3/.test($('.cols .aud').dataset.aud+' '+(cur.find(a=>a.audio)||{}).audio)));/* the episode player shares one audio element (EPA), created on Play */

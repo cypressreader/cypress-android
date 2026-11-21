@@ -9572,7 +9572,7 @@ function cvSlide(to){const c=$('.cols');if(!c)return;if(R.peek)cvPeek(false,true
   for(const e of [im,hv])if(e)e.animate([{transform:`translateX(${-D}px)`},{transform:'translateX(0)'}],oa);
   if(!to&&hv)hv.animate([{opacity:0},{opacity:1}],{duration:220,delay:ms,fill:'backwards'});/* the headline is under the lifted picture until the card has left: it fades in rather than popping */
   if(im&&/^polygon\(evenodd/.test(cp))im.animate(to?[{clipPath:mv(cp,D),zIndex:1},{clipPath:cp,zIndex:1}]:[{clipPath:cp,zIndex:1},{clipPath:mv(cp,-D),zIndex:1}],o)}
- setTimeout(()=>{if(my!==tok)return;R.busy=false;turnTick();prepSoon()},ms&&D?ms+40:0)}
+ setTimeout(()=>{if(my!==tok)return;R.busy=false;turnTick();prepSoon()},ms&&D?ms+(!to&&hv?240:40):0)}/* going back, the next tap waits for the headline's fade too */
 /* the picture fades away in place (and back): it used to ride the page turn, which stuttered on the open Fold */
 function cvFade(on){const c=$('.cols');if(!c)return;const ms=reduced()?0:320;R.cpk=on;c.style.setProperty('--cvd',ms+'ms');c.classList.add('cfd');show();clearTimeout(R.pkT);R.pkT=setTimeout(()=>{c.style.removeProperty('--cvd');c.classList.remove('cfd');prepSoon()/* the turn after the faded picture is built ahead like any other, once the fade is over (copies made mid-fade would carry it) */},ms+60);turnTick()}
 function cvPeek(on,now){const c=$('.cols');if(!c)return;const ms=now||reduced()?0:420;R.peek=!!on;c.style.setProperty('--cvd',ms+'ms');c.classList.add('cpeeking');c.classList.toggle('cpeek',R.peek);
@@ -9589,6 +9589,7 @@ hurry();R.navAt=Date.now();if(!R.fa&&!isVert()&&R.np>1){R.fa=1;$('#rd').classLis
  if(R.web||R.busy||to<0||to>=R.np)return;
  if(reduced()){R.pg=to;show();/* idea book S11: with Reduce motion the page still changes like paper, by a 200 ms fade (opacity only, nothing sweeps) */try{const c=$('.cols');c&&c.animate&&c.animate([{opacity:.25},{opacity:1}],{duration:200,easing:'ease-out'})}catch(e){}return}
  if(rdxPturn()!=='paper'){rdxTurn(to);return}
+ /* the turn built ahead is not finished yet (a late photo or font threw the copies away): the missing copies go in one per frame and the turn starts when the last is in, so a tap never freezes the screen while they are all made at once */if(d>0&&RP&&RP.T.part&&RP.T.key===prepKey()){const P=RP.T,my=tok,f=()=>{if(my!==tok){R.busy=false;return}if(RP&&RP.T===P&&P.q.length){try{P.q.shift()()}catch(e){elog('prepFill',e);prepDrop()}if(RP&&P.q.length){requestAnimationFrame(f);return}}if(RP&&RP.T===P)P.part=false;R.busy=false;go(d)};R.busy=true;requestAnimationFrame(f);return}
  let T;try{T=startTurn(d)}catch(e){turnFail(e,to);return}T.ok=true;paperSound();
  anim(T.ang,d>0?180:0,1280,eBack,()=>endTurn(true));
 }
@@ -14856,7 +14857,7 @@ function pcText(){
  {const bar=$('#rd .bar');if(bar)bar.style.setProperty('--rp',Math.round(Math.max(0,Math.min(1,f))*1000)/10+'%')}
  if(curA&&curA.book){try{bkProg(cr)}catch(e){}return (v?cr>=.97:PG+1>=NP)?'end of chapter':Math.max(1,m)+' min left in chapter'}
  if(v?f<=.02:PG===0)return '';/* polish pick 11: the byline already gives the total on page 1 */
- if(v?cr>=.97:PG+1>=NP)return v?'done':'last page';
+ if(v?cr>=.97:PG+1>=NP)return v?'done':R.pg<R.np-1?'end of story':'last page';/* pages of extras can follow the story's last words: 'last page' is only said on the page that really is the last (the page line said '11 of 12' under it) */
  return `${Math.max(1,m)} min left`;/* a middle page is never called the last page, even with under a minute to go */
 }
 
