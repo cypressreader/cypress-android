@@ -2375,3 +2375,4 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 ## Wide picture over the words after unfolding (2026-11-21, after 1.379, not built yet)
 - Fold closed: open a long story with pictures (800 words or more; David's was the Zune story). Unfold while it is open: pictures must stay inside their own page, never run across both pages over the words. Fold again: the scrolled look with wide pictures comes back.
 - Dynamic theme, a story that opens on a whole-screen picture: after the first turn (card on the left, picture on the right) no picture caption from the hidden right page may show over the picture.
+- Same check without closing the Fold: hold the open Fold sideways (list and story side by side), open a long story with pictures, turn the Fold upright: pictures stay inside their page.
