@@ -5032,7 +5032,7 @@ body:has(#tmini:not([hidden])) #raaf{bottom:calc(76px + env(safe-area-inset-bott
 #aapop .aap.on{background:color-mix(in srgb,var(--rbr,#b08d3e) 26%,transparent);color:var(--ink);font-weight:700}
 #aapop .aarow>.aap{border:1px solid var(--ln);border-radius:12px;min-height:44px;padding:0 18px}
 #aapop .aarow>.aap.on{border-color:var(--rbr,#b08d3e)}
-@media(max-width:430px){#aapop .aarow:has(.aaq .aap:nth-child(3)) .aaq{flex:1 1 100%;width:100%}#aapop .aaq .aap{flex:1;padding:0 6px}}
+@media(max-width:430px){#aapop .aarow:has(.aaq .aap:nth-child(3)) .aaq{flex:1 1 100%;width:100%;flex-wrap:wrap}#aapop .aaq .aap{flex:1 0 auto;padding:0 6px}}/* round two: with large text the choices drop to a second row instead of printing over each other */
 #aapop .aarow.aacol{gap:8px;flex-wrap:nowrap}
 #aapop .aasw{width:30px;height:30px;font-size:14px}
 #aapop .aamore{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;text-decoration:none;color:var(--ink);font:500 15px var(--sans)}
@@ -12551,7 +12551,7 @@ function toast(m,undo,label){try{if(/^(Saved|Removed from saved|Marked as)/.test
  /* deep dive 3: inside the open dialog, else a modal (Manage sites) covered the toast and its Undo */{const h=[...document.querySelectorAll('dialog[open]')].pop()||document.body;if(t.parentNode!==h)h.append(t)}
  t.textContent='';const sp=document.createElement('span');sp.textContent=m;t.append(sp);
  if(undo){const b=document.createElement('button');b.type='button';b.className='tundo';b.textContent=label||'Undo';b.onclick=()=>{clearTimeout(t._h);t.className='';undo();next()};t.append(b)}
- t.className=undo?'show act':'show';clearTimeout(t._h);t._h=setTimeout(()=>{t.className='';next()},undo?6000:3000)}
+ t.className=undo?'show act':'show';clearTimeout(t._h);t._h=setTimeout(()=>{t.className='';next()},Math.max(undo?6000:3000,(''+m).length*70)/* round two: a long message stays long enough to read */)}
 async function askRemove(id){const f=S.feeds.find(x=>x.id===id);if(!f)return;if(await askBox({title:'Remove “'+(f.title||host(f.url))+'”?',text:'You can undo this right after or add it back later.',ok:'Remove',danger:true}))removeFeed(id)}
 function removeFeed(id){const i=S.feeds.findIndex(f=>f.id===id);if(i<0)return;const f=S.feeds[i],was=S.sel==='s:'+id;S.feeds.splice(i,1);if(S.health)delete S.health[id];if(was)S.sel='all';save();render();if($('#mng').open)renderMng();
  toast('Removed “'+(f.title||host(f.url))+'”',()=>{S.feeds.splice(Math.min(i,S.feeds.length),0,f);if(was)S.sel='s:'+id;save();render();if($('#mng').open)renderMng()})}
@@ -14272,7 +14272,7 @@ $('#grid').addEventListener('click',e=>{if(SW.block&&Date.now()-SW.block<400){e.
   else if(open&&t.clientX<parseFloat(getComputedStyle($('aside')).width))g={x:t.clientX,y:t.clientY,k:'close'};else g=null},{passive:true});
  document.addEventListener('touchmove',e=>{if(!g)return;const t=e.touches[0],dx=t.clientX-g.x,dy=t.clientY-g.y;
   if(Math.abs(dy)>Math.abs(dx)*1.2&&Math.abs(dy)>16){g=null;return}
-  if(g.k==='open'&&dx>52){g=null;drawer(true)}else if(g.k==='close'&&dx<-52){g=null;drawer(false)}},{passive:true});
+  if(g.k==='open'&&dx>52){g=null;SW.dx=0;swEnd();/* round two: the same swipe no longer also marks the card under the finger as read */drawer(true)}else if(g.k==='close'&&dx<-52){g=null;drawer(false)}},{passive:true});
  document.addEventListener('touchend',()=>{g=null},{passive:true});
 }
 {let d=null;
