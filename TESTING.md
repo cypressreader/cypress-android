@@ -2348,3 +2348,5 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - [ ] C1: full-screen Now playing lists the episode's chapters under it; tapping one jumps there.
 - [ ] J3: a headline longer than about 170 characters stops at eight lines; a tip strip hides while a pop-up message is showing and comes back after.
 - [ ] A3 (Fold check, nothing built): set the phone's font size to largest and open the app. The code notes say the Android app already follows the phone's size. Look for: the Daily cover's CYPRESS name cut off, bottom tab labels touching, Settings labels cut. Report what you see.
+
+## 1.377 (2026-11-21): everything under 'Round two inspection fixes' and 'Round two picks, built so far' above shipped in this build (build 442); none of it has been checked on a phone yet.
