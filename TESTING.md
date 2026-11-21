@@ -2248,3 +2248,6 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - (1.369, on branch) Episode player: an episode with no picture of its own shows a number tile (episode number, else month and day) in one of three looks; a show's episodes should not all look the same.
 - (1.370, on branch) Video cards: tap '▶ Play video' on a card: the video plays inside the card (sound, full screen button work), the list does not jump or cut the video off while sites refresh, × closes it and the card comes back. Opening any story stops it.
 - (1.370, on branch) Episode player picture for NPR shows (Up First): shows the real picture, not a gray 'Image' box.
+
+## 1.371 (2026-11-21)
+- Add a site > Browse topics > Videos: with MKBHD already added, the other channels show an Add button (not "Added"); add one and it appears in the side bar with its own videos.
