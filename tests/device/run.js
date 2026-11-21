@@ -179,11 +179,15 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
     await sleep(6000); await shot(s, 'playing'); const a1 = await st(), s1 = await sys();
     await sx('cmd statusbar expand-notifications'); await shot(s, 'shade'); await sx('cmd statusbar collapse');
     await sleep(6000); const a2 = await st();
+    /* opening another story while the episode plays must not take the notification away */
+    await page.evaluate(async () => { closeRd(); await new Promise(r => setTimeout(r, 800)); const o = cur.find(x => !x.audio); if (o) await openReader(o) }); await sleep(4000); const a2b = await st(), s2b = await sys();
     await sx('input keyevent 3'); await sleep(8000); const a3 = await st().catch(e => String(e)), s3 = await sys();
     await sx('cmd statusbar expand-notifications'); await shot(s, 'shade-home'); await sx('cmd statusbar collapse');
     await launch(); await sleep(2500); const a4 = await st().catch(e => String(e));
     await page.evaluate(() => { try { EPA.pause() } catch (e) {} try { closeRd() } catch (e) {} }).catch(() => {});
-    return { after6s: a1, after12s: a2, home8s: a3, back: a4, sys6s: s1, sysHome: s3 };
+    const playingIn = y => /state=PLAYING/.test(y.session || '');
+    if (!playingIn(s1) || !playingIn(s2b) || !playingIn(s3)) throw new Error('Android does not show the episode as playing: after 6 s ' + playingIn(s1) + ', with another story open ' + playingIn(s2b) + ', at Home ' + playingIn(s3) + ' | calls: ' + (a2b.log || []).join(' ; ').slice(0, 300));
+    return { after6s: a1, after12s: a2, otherStory: a2b, home8s: a3, back: a4, sys6s: s1, sysOther: s2b, sysHome: s3 };
   });
 
   await step('widgets', async s => {
