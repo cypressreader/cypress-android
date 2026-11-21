@@ -171,8 +171,10 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
       const url = URL.createObjectURL(new Blob([ab], { type: 'audio/wav' }));
       const f = S.feeds[0]; const a = { feedId: f.id, title: 'Device test episode', link: 'https://device.test/ep/1', date: Date.now(), summary: 'An episode.', img: '', audio: url, dur: '1 min', html: '<p>' + 'Show notes. '.repeat(40) + '</p>' }; (items[f.id] = items[f.id] || []).unshift(a);
       /* record every call the page makes to the phone's media notification */
-      window.__ml = []; try { const x = CyX(); for (const k of ['mediaStart', 'mediaUpdate', 'mediaStop']) { const o = x[k]; if (typeof o === 'function') x[k] = function (m) { window.__ml.push(k + ' ' + JSON.stringify({ playing: m && m.playing, title: m && m.title }).slice(0, 80) + ' @' + Math.round(performance.now())); let r; try { r = o.apply(this, arguments) } catch (e) { window.__ml.push(k + ' THREW ' + e); throw e } if (r && r.catch) r.catch(e => window.__ml.push(k + ' REJECTED ' + (e && e.message || e))); return r } } } catch (e) { window.__ml.push('wrap failed ' + e) }
+      window.__ml = []; try { const x = CyX(); for (const k of ['mediaStart', 'mediaUpdate', 'mediaStop']) { const o = x[k]; if (typeof o === 'function') x[k] = function (m) { window.__ml.push(k + ' ' + JSON.stringify({ playing: m && m.playing }) + ' @' + Math.round(performance.now()) + (m && m.playing === false || k === 'mediaStop' ? ' paused=' + (window.EPA ? EPA.paused : '?') + ' eps=' + (typeof EPS === 'string' ? EPS : '?') + ' via ' + (new Error().stack || '').split('\n').slice(2, 6).map(x => x.trim().replace(/\(?https?:\/\/[^ )]*\/([^\/ )]*)\)?/, '$1').replace(/^at /, '')).join(' < ').slice(0, 260) : '')); let r; try { r = o.apply(this, arguments) } catch (e) { window.__ml.push(k + ' THREW ' + e); throw e } if (r && r.catch) r.catch(e => window.__ml.push(k + ' REJECTED ' + (e && e.message || e))); return r } } } catch (e) { window.__ml.push('wrap failed ' + e) }
+      try { CyX().addListener('mediaAction', r => window.__ml.push('FROM ANDROID ' + (r && r.action) + ' @' + Math.round(performance.now()))) } catch (e) {}
       await openReader(a);
+      try { epInit(); for (const ev of ['play', 'pause', 'playing', 'waiting', 'error', 'ended']) EPA.addEventListener(ev, () => window.__ml.push('audio ' + ev + ' @' + Math.round(performance.now()))) } catch (e) { window.__ml.push('no epInit ' + e) }
     });
     await sleep(5000); await page.evaluate(() => document.querySelectorAll('[data-tipx]').forEach(b => b.click())).catch(() => {});
     await page.locator('#rd .cols .aud [data-ap="play"]').first().click({ timeout: 15000 });
@@ -185,6 +187,7 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
     await sx('cmd statusbar expand-notifications'); await shot(s, 'shade-home'); await sx('cmd statusbar collapse');
     await launch(); await sleep(2500); const a4 = await st().catch(e => String(e));
     await page.evaluate(() => { try { EPA.pause() } catch (e) {} try { closeRd() } catch (e) {} }).catch(() => {});
+    note({ podcastCalls: a4.log || a2b.log });
     const playingIn = y => /state=PLAYING/.test(y.session || '');
     if (!playingIn(s1) || !playingIn(s2b) || !playingIn(s3)) throw new Error('Android does not show the episode as playing: after 6 s ' + playingIn(s1) + ', with another story open ' + playingIn(s2b) + ', at Home ' + playingIn(s3) + ' | calls: ' + (a2b.log || []).join(' ; ').slice(0, 300));
     return { after6s: a1, after12s: a2, otherStory: a2b, home8s: a3, back: a4, sys6s: s1, sysOther: s2b, sysHome: s3 };
