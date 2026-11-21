@@ -160,6 +160,31 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
   });
 
   /* the home-screen widgets, drawn by the app itself (widgetProbe) in three themes: Halcyon keeps the widgets' own look */
+  /* 1.377 report from David's Fold: a playing podcast episode has no notification. Plays a one-minute silent episode and records what Android itself shows: the notification, the media session, who holds the sound (audio focus), and whether the episode is still running after a few seconds and after Home */
+  await step('podcast', async s => {
+    const sys = async () => ({ notif: await sx(`dumpsys notification --noredact | grep -A6 "pkg=${PKG}" | head -40`).catch(e => 'ERR ' + e), session: await sx(`dumpsys media_session | grep -B2 -A14 "${PKG}" | head -70`).catch(e => 'ERR ' + e), focus: await sx(`dumpsys audio | grep -A12 "Audio Focus stack" | head -24`).catch(e => 'ERR ' + e), service: await sx(`dumpsys activity services ${PKG} | grep -c CyMediaService`).catch(e => 'ERR ' + e), perm: await sx(`dumpsys package ${PKG} | grep -m2 "POST_NOTIFICATIONS"`).catch(e => 'ERR ' + e) });
+    const st = () => page.evaluate(() => ({ paused: EPA ? EPA.paused : null, t: EPA ? Math.round(EPA.currentTime * 10) / 10 : null, eps: typeof EPS === 'string' ? EPS : null, on: typeof epOn === 'function' ? epOn() : null, media: (() => { try { return { feat: nFeat('media'), start: !!(CyX() && CyX().mediaStart), update: !!(CyX() && CyX().mediaUpdate), mperm: S.mperm || 0, native: NATIVE } } catch (e) { return String(e) } })(), log: window.__ml || [] }));
+    await page.evaluate(async () => {
+      document.querySelectorAll('dialog[open]').forEach(d => d.close()); if (document.querySelector('#rd.on')) closeRd();
+      const sr = 8000, n = sr * 60, ab = new ArrayBuffer(44 + n), v = new DataView(ab), ws = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)) }; ws(0, 'RIFF'); v.setUint32(4, 36 + n, true); ws(8, 'WAVE'); ws(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, sr, true); v.setUint32(28, sr, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); ws(36, 'data'); v.setUint32(40, n, true); for (let i = 0; i < n; i++) v.setUint8(44 + i, 128 + Math.round(20 * Math.sin(i / 6)));
+      const url = URL.createObjectURL(new Blob([ab], { type: 'audio/wav' }));
+      const f = S.feeds[0]; const a = { feedId: f.id, title: 'Device test episode', link: 'https://device.test/ep/1', date: Date.now(), summary: 'An episode.', img: '', audio: url, dur: '1 min', html: '<p>' + 'Show notes. '.repeat(40) + '</p>' }; items[f.id].unshift(a);
+      /* record every call the page makes to the phone's media notification */
+      window.__ml = []; try { const x = CyX(); for (const k of ['mediaStart', 'mediaUpdate', 'mediaStop']) { const o = x[k]; if (typeof o === 'function') x[k] = function (m) { window.__ml.push(k + ' ' + JSON.stringify({ playing: m && m.playing, title: m && m.title }).slice(0, 80) + ' @' + Math.round(performance.now())); let r; try { r = o.apply(this, arguments) } catch (e) { window.__ml.push(k + ' THREW ' + e); throw e } if (r && r.catch) r.catch(e => window.__ml.push(k + ' REJECTED ' + (e && e.message || e))); return r } } } catch (e) { window.__ml.push('wrap failed ' + e) }
+      await openReader(a);
+    });
+    await sleep(5000); await page.evaluate(() => document.querySelectorAll('[data-tipx]').forEach(b => b.click())).catch(() => {});
+    await page.locator('#rd .cols .aud [data-ap="play"]').first().click({ timeout: 15000 });
+    await sleep(6000); await shot(s, 'playing'); const a1 = await st(), s1 = await sys();
+    await sx('cmd statusbar expand-notifications'); await shot(s, 'shade'); await sx('cmd statusbar collapse');
+    await sleep(6000); const a2 = await st();
+    await sx('input keyevent 3'); await sleep(8000); const a3 = await st().catch(e => String(e)), s3 = await sys();
+    await sx('cmd statusbar expand-notifications'); await shot(s, 'shade-home'); await sx('cmd statusbar collapse');
+    await launch(); await sleep(2500); const a4 = await st().catch(e => String(e));
+    await page.evaluate(() => { try { EPA.pause() } catch (e) {} try { closeRd() } catch (e) {} }).catch(() => {});
+    return { after6s: a1, after12s: a2, home8s: a3, back: a4, sys6s: s1, sysHome: s3 };
+  });
+
   await step('widgets', async s => {
     const out = {};
     for (const t of ['halcyon', 'rosewood', 'oled']) {
