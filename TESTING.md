@@ -2273,3 +2273,9 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 ## 1.375 Tap the video bar (device-unverified)
 - Tap the video bar: the video pops up above the bar and keeps playing without restarting; its own controls and full screen work
 - Tap the bar again: it tucks back; × closes from either state
+
+## Inspection fixes on preview/page-turn-inspection (device-unverified, not on main)
+- Page turn: after a full-screen cover and 4+ seconds on a page, tap to turn: no freeze (copies keep being prepared; old B1)
+- Video bar: rotate / unfold while a video is docked: bar sits on the tab bar, never over it
+- Shorts play upright in their tile; Play on the top list row plays the video
+- Episode player: time left shows in full; messages sit above the mini player; Now playing sideways shows Play
