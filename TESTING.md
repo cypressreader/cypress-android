@@ -2300,3 +2300,8 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Notification / headset next and previous with more in Up Next: next moves on, previous restarts the episode.
 - Airplane mode, play an episode that is not downloaded: bar says 'Can't play this episode', Play = try again. Slow connection: 'Loading…'.
 - Tabs take the player bar's color while audio or a video bar shows; Back-15 gone from the mini bar on the cover screen, title readable.
+
+## Inspection batch 4: books + reader (preview only, 2026-11-21)
+- Book: Aa sheet has no 'This story's look'; Listen says 'Listen to this chapter'; Contents shows 'Chapter I' names, 'Read' on finished ones, and 'Chapter 3 of 61 · 7 h left' at the top (is the count right for your books?).
+- Story or book: after the first page turn a small handle shows where the hidden bar is; tap there, buttons return.
+- Keyboard (tablet/desktop): Tab stays inside the open story.

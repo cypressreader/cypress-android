@@ -193,3 +193,4 @@ Batch 1 status 2026-11-21: R1, R1b, R4, R5, V6 DONE on claude/page-turn-inspecti
 R11 DONE 2026-11-21 (preview).
 Batch 2 status 2026-11-21: R2, R3=A, R15a, R15b DONE (preview). R16a/R16b wait for the Fold verdict.
 Batch 3 status 2026-11-21: R6, R7, R15f, V1=B, V1c DONE (preview).
+Batch 4 status 2026-11-21: R8, R8b, R9=A, R10 DONE (preview).
