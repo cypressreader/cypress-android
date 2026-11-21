@@ -2338,3 +2338,9 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - [ ] P3: Settings opens faster; Appearance & Theme still shows the six Quick looks.
 - [ ] C3: Saved shows "2 highlights" on a story you marked up.
 - [ ] A4: the color dot and folder arrow in the side bar are easier to hit; hint text in text boxes is darker.
+- [ ] P1: reopening the app with a full library shows the first story sooner (browser stand-in: about 4.1 s instead of 5.7 s at 4x slow-down). Headlines on dark cards further down the Daily still turn white as they scroll in (no dark-on-dark headline).
+- [ ] P2: open a story that has a "Previously" or "How the story developed" box: the text does not jump a moment after it appears.
+- [ ] C1: a podcast episode whose show lists chapters has "Chapters" under the player; tapping one jumps there and plays; the current chapter is bold. Shows that keep chapters in a separate file load the list when "Chapters" is opened (this path was NOT tested in the browser).
+- [ ] C3: More > "Add a note" in a story; the note shows on the Highlights page without a quote; More then says "Edit your note"; saving it empty removes it.
+- [ ] J2: tapping a topic name still opens the full topic heading with Mute and Close; a typed search shows the thin line.
+- [ ] J3: Highlights, History and Stats no longer show Mark all as read or Refresh.
