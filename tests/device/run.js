@@ -179,10 +179,11 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
     await sleep(5000); await page.evaluate(() => document.querySelectorAll('[data-tipx]').forEach(b => b.click())).catch(() => {});
     await page.locator('#rd .cols .aud [data-ap="play"]').first().click({ timeout: 15000 });
     await sleep(6000); await shot(s, 'playing'); const a1 = await st(), s1 = await sys();
+    note({ podcastAfter6s: a1.log, state: (s1.session.match(/state=\w+/) || [''])[0] });
     await sx('cmd statusbar expand-notifications'); await shot(s, 'shade'); await sx('cmd statusbar collapse');
-    await sleep(6000); const a2 = await st();
+    await sleep(6000); const a2 = await st().catch(e => ({ log: ['st failed ' + e] }));
     /* opening another story while the episode plays must not take the notification away */
-    await page.evaluate(async () => { closeRd(); await new Promise(r => setTimeout(r, 800)); const o = cur.find(x => !x.audio); if (o) await openReader(o) }); await sleep(4000); const a2b = await st(), s2b = await sys();
+    await page.evaluate(async () => { closeRd(); await new Promise(r => setTimeout(r, 800)); const o = cur.find(x => !x.audio); if (o) await openReader(o) }).catch(e => note({ otherStoryFailed: String(e).slice(0, 200) })); await sleep(4000); const a2b = await st().catch(e => ({ log: ['st failed ' + e] })), s2b = await sys();
     await sx('input keyevent 3'); await sleep(8000); const a3 = await st().catch(e => String(e)), s3 = await sys();
     await sx('cmd statusbar expand-notifications'); await shot(s, 'shade-home'); await sx('cmd statusbar collapse');
     await launch(); await sleep(2500); const a4 = await st().catch(e => String(e));
