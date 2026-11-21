@@ -2293,3 +2293,10 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Open a story, tap to turn at once, before it has settled: the turn may start a moment late but must never freeze.
 - Slide/Fade turn back to a picture cover, tap again at once: the second tap waits for the headline to fade in.
 - A story whose last words are not on the last page: caption says 'end of story', then 'last page' on the real last page.
+
+## Inspection batch 3: audio (preview only, 2026-11-21)
+- Podcast episode: tap the mini bar: the full Now playing screen opens (artwork, scrubber, back/forward, speed, sleep, car mode). Do all of them act on the episode?
+- Episodes + stories in Up Next: each row says Story or Episode; tapping a later row moves on to it; when the episode ends the next one starts.
+- Notification / headset next and previous with more in Up Next: next moves on, previous restarts the episode.
+- Airplane mode, play an episode that is not downloaded: bar says 'Can't play this episode', Play = try again. Slow connection: 'Loading…'.
+- Tabs take the player bar's color while audio or a video bar shows; Back-15 gone from the mini bar on the cover screen, title readable.
