@@ -19,7 +19,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
     o.tag=rf&&rf.tagName;o.tf=rf&&getComputedStyle(rf).transform;o.rfpos=rf&&getComputedStyle(rf).position;
     const rr=rf&&[...rf.getClientRects()].pop();/* on two-page screens the block may run on from one page to the next: the piece on the last page is the one checked */
     o.inView=rr&&rr.left>=view.left-1&&rr.right<=view.right+1;
-    const ps=[...document.querySelectorAll('.cols .body > p')].filter(p=>!p.classList.contains('endmark')&&!p.classList.contains('rtags'));
+    const ps=[...document.querySelectorAll('.cols .body > p')].filter(p=>!p.closest('.tl,.tl-leaf')&&!p.classList.contains('endmark')&&!p.classList.contains('rtags'));
     const hits=[];if(rr)for(const p of ps){for(const q of p.getClientRects()){if(q.width&&q.bottom>view.top&&q.top<view.bottom&&rr.left<q.right-2&&rr.right>q.left+2&&rr.top<q.bottom-2&&rr.bottom>q.top+2){hits.push(ps.indexOf(p));break}}}
     o.hits=hits;o.rnext=!!nx;
     if(nx){const nr=nx.getBoundingClientRect();o.rnextAfter=!rr||nr.top>=rr.bottom-1}

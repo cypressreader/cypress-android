@@ -2287,3 +2287,9 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - A card without a picture: Play pill under the headline; playing, the card is a full 16:9 video.
 - Unfolded / tablet with the side bar showing: audio bar and video bar start right of the side bar.
 - Video story page: phone = player on top, then headline and text; unfolded = player alone on the left page, words on the right. Does it play there, and does turning the page keep working?
+
+## Inspection batch 2: page turn (preview only, 2026-11-21)
+- Turn BACK a page (paper turn): no hitch at the start any more? Does reading feel heavier or warmer (twice as many hidden page copies are kept ready)?
+- Open a story, tap to turn at once, before it has settled: the turn may start a moment late but must never freeze.
+- Slide/Fade turn back to a picture cover, tap again at once: the second tap waits for the headline to fade in.
+- A story whose last words are not on the last page: caption says 'end of story', then 'last page' on the real last page.

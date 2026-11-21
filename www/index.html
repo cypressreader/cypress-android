@@ -9248,7 +9248,7 @@ function prepFin(T){try{while(T.q.length)T.q.shift()();T.part=false;return true}
 function shade(dir){const e=document.createElement('i');e.className='tsh';e.style.background=`linear-gradient(${dir},rgba(0,0,0,.55),rgba(0,0,0,0) 65%)`;return e}
 function startTurn(dir,lazy){
  curlGet();
- if(RP){const P=RP.T;RP=null;const bk0=$('.book');if(dir>0&&bk0&&P.key===prepKey()&&P.els.every(e=>e.isConnected)&&(!P.part||prepFin(P))){R.T=P;R.busy=true;edgeHide(bk0,1);bk0.classList.toggle('one',!P.two);bk0.style.perspectiveOrigin=P.po||'';P.hid.forEach(e=>e.style.opacity='');setAng(P.ang);return P}P.els.forEach(e=>e.remove())}
+ const RU=lazy?null:dir>0?RP:RB;if(RU){const P=RU.T;if(dir>0)RP=null;else RB=null;const bk0=$('.book');if(bk0&&P.key===prepKey()&&P.els.every(e=>e.isConnected)&&(!P.part||prepFin(P))){R.T=P;R.busy=true;edgeHide(bk0,1);bk0.classList.toggle('one',!P.two);bk0.style.perspectiveOrigin=P.po||'';P.hid.forEach(e=>e.style.opacity='');setAng(P.ang);return P}P.els.forEach(e=>e.remove())}
  const bk=$('.book'),W=bk.clientWidth,two=R.cpv===2,hw=two?W/2:W,hx=two?W/2:0,peel=dir>0&&R.pg===1&&!R.cpk&&ccv(),to=peel?R.pg:R.pg+dir;
  const T=R.T={my:tok,dir,to,hw,hx,two,peel,ang:dir>0?0:180,dead:false,els:[],q:lazy?[]:null};
  R.busy=true;edgeHide(bk,1);bk.classList.toggle('one',!two);
@@ -9370,21 +9370,31 @@ let RP=null;
 const prepKey=()=>{const bk=$('.book');return bk?[tok,R.pg,R.step,R.np,R.cpv,bk.clientWidth,bk.clientHeight,curlN,R.cpk?1:0,RFLOW].join():''};
 /* the page-edge stack hides while a page turns; set on the stack itself, since changing the book's class made the browser recheck the whole story and its copies (a 40 ms hitch on the first frame) */
 function edgeHide(bk,on){const e=bk&&bk.querySelector(':scope>.rdedge');if(e)e.style.opacity=on?'0':''}
-function prepDrop(){if(RP){RP.T.els.forEach(e=>e.remove());RP=null}}
+function prepDrop(){if(RP){RP.T.els.forEach(e=>e.remove());RP=null}if(RB){RB.T.els.forEach(e=>e.remove());RB=null}}
 function prepTurn(){
- if(RP&&RP.T.key===prepKey())return;prepDrop();
- if(!isOn('curl')||rdxPturn()!=='paper'||reduced()||R.busy||R.T||D||R.web||isVert()||!R.ready||R.pg+1>=R.np||!$('.book')||!$('#rd').classList.contains('on')||(R.pg<2&&!R.cpk&&ccv()))return;/* the sliding cover's first turn is a slide, nothing to build ahead; the turn after it lifts the picture away, and its copy built ahead (the page without the picture) showed for one frame on the phone (David's recording, 1.316): that one turn is built when asked for */
+ if(RP&&RP.T.key===prepKey()){if(!RP.T.part)prepBack();return}prepDrop();
+ if(!isOn('curl')||rdxPturn()!=='paper'||reduced()||R.busy||R.T||D||R.web||isVert()||!R.ready||R.pg+1>=R.np||!$('.book')||!$('#rd').classList.contains('on')||(R.pg<2&&!R.cpk&&ccv())){prepBack();return}/* the sliding cover's first turn is a slide, nothing to build ahead; the turn after it lifts the picture away, and its copy built ahead (the page without the picture) showed for one frame on the phone (David's recording, 1.316): that one turn is built when asked for */
  curlGet();const key=prepKey();/* read before the turn is put in the page: read after, it made the browser lay the new turn out at once (50 ms on a slow phone) */
  let T;try{T=startTurn(1,true)}catch(e){R.T=null;R.busy=false;elog('prepTurn',e);try{const bk=$('.book');edgeHide(bk,0);bk.style.perspectiveOrigin=''}catch(x){}return}
  R.T=null;R.busy=false;const bk=$('.book');edgeHide(bk,0);bk.style.perspectiveOrigin='';
  T.hid=[...T.leaf.querySelectorAll('.tf'),...T.els.filter(e=>e!==T.leaf)];T.hid.forEach(e=>{e.style.opacity='0'});T.key=key;RP={T};
  /* the page is copied into the strips a few at a time between idle moments (copying all of them at once held the phone up for a moment after every turn), so a tap or a scroll never waits long; a turn asked for before they are all in copies only the missing ones (prepFin) */
- const q=T.q||[];T.part=q.length>0;
- let est=0;const later=()=>{/* not kept in prepQ: prepSoon cancels prepQ, which stopped this filling for good (prepTurn then sees the same key and returns), and the next tap built every missing copy at once */window.requestIdleCallback?requestIdleCallback(step,{timeout:300}):setTimeout(step,60)},step=dl=>{if(!RP||RP.T!==T)return;const t0=performance.now();
-  do{const a=performance.now();try{q.shift()()}catch(e){elog('prepFill',e);prepDrop();return}est=Math.max(est,performance.now()-a)}while(q.length&&est<(dl&&dl.timeRemaining&&!dl.didTimeout?dl.timeRemaining():16-(performance.now()-t0)));
-  if(q.length)later();else T.part=false};
- if(q.length)later();/* one copy at a time, the next only if the dearest copy so far still fits in the idle moment (a copy's real cost shows up as the layout the next one forces: on a slow phone that is 60 to 90 ms, so it gets one copy per moment), and not in this moment, which already built the turn *//* each face is hidden, not the turning page as a whole: a see-through page is flattened, and making it solid again rebuilt its 3D layers on the first frame */
+ prepFill(T,()=>RP&&RP.T===T,()=>{window.requestIdleCallback?requestIdleCallback(prepBack,{timeout:800}):setTimeout(prepBack,120)});
 }
+function prepFill(T,live,done){const q=T.q||[];T.part=q.length>0;
+ let est=0;const later=()=>{/* not kept in prepQ: prepSoon cancels prepQ, which stopped this filling for good (prepTurn then sees the same key and returns), and the next tap built every missing copy at once */window.requestIdleCallback?requestIdleCallback(step,{timeout:300}):setTimeout(step,60)},step=dl=>{if(!live())return;const t0=performance.now();
+  do{const a=performance.now();try{q.shift()()}catch(e){elog('prepFill',e);prepDrop();return}est=Math.max(est,performance.now()-a)}while(q.length&&est<(dl&&dl.timeRemaining&&!dl.didTimeout?dl.timeRemaining():16-(performance.now()-t0)));
+  if(q.length)later();else{T.part=false;if(done)done()}};
+ if(q.length)later();else if(done)done();/* one copy at a time, the next only if the dearest copy so far still fits in the idle moment (a copy's real cost shows up as the layout the next one forces: on a slow phone that is 60 to 90 ms, so it gets one copy per moment), and not in this moment, which already built the turn *//* each face is hidden, not the turning page as a whole: a see-through page is flattened, and making it solid again rebuilt its 3D layers on the first frame */
+}
+/* the turn back is built ahead too, once the turn forward is ready (it was built at the tap: a hitch on every turn back). Not on the pages next to a picture cover, whose turns are special */
+let RB=null;function prepBack(){
+ curlGet();const key=prepKey();if(RB){if(RB.T.key===key)return;RB.T.els.forEach(e=>e.remove());RB=null}
+ if(!isOn('curl')||rdxPturn()!=='paper'||reduced()||R.busy||R.T||D||R.web||isVert()||!R.ready||R.pg<1||!$('.book')||!$('#rd').classList.contains('on')||(R.pg<3&&ccv()))return;
+ let T;try{T=startTurn(-1,true)}catch(e){R.T=null;R.busy=false;elog('prepBack',e);try{const bk=$('.book');edgeHide(bk,0);bk.style.perspectiveOrigin=''}catch(x){}return}
+ R.T=null;R.busy=false;const bk=$('.book');edgeHide(bk,0);bk.style.perspectiveOrigin='';
+ T.hid=[...T.leaf.querySelectorAll('.tf'),...T.els.filter(e=>e!==T.leaf)];T.hid.forEach(e=>{e.style.opacity='0'});T.key=key;RB={T};
+ prepFill(T,()=>RB&&RB.T===T)}
 let prepQ=0;function prepSoon(){cancelIdle(prepQ);prepQ=window.requestIdleCallback?requestIdleCallback(prepTurn,{timeout:1500}):setTimeout(prepTurn,400)}
 function cancelIdle(h){if(!h)return;if(window.cancelIdleCallback)cancelIdleCallback(h);else clearTimeout(h)}
 function anim(from,to,dur,ease,done){
