@@ -2246,3 +2246,5 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - [ ] Show cover in the episode player (next build): episodes without their own picture (Darknet Diaries, Hard Fork, Radiolab, Freakonomics) show the show's cover in the player and on the lock-screen controls. Shows added before this build get their cover after the next refresh.
 - (1.369, on branch) Bookshelf: leave a book's page (cover + chapter list) open for a minute while sites refresh in the background: the page and cover must not blink. Same for the shelf of covers.
 - (1.369, on branch) Episode player: an episode with no picture of its own shows a number tile (episode number, else month and day) in one of three looks; a show's episodes should not all look the same.
+- (1.370, on branch) Video cards: tap '▶ Play video' on a card: the video plays inside the card (sound, full screen button work), the list does not jump or cut the video off while sites refresh, × closes it and the card comes back. Opening any story stops it.
+- (1.370, on branch) Episode player picture for NPR shows (Up First): shows the real picture, not a gray 'Image' box.
