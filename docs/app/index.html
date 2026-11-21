@@ -12616,7 +12616,7 @@ function timeline(){
  d.innerHTML='<h4>How the story developed · '+all.length+' sites</h4><ol>'+all.map(x=>`<li class="${x.cur?'me':''}"><time>${x.a.date?esc(fmt(x.a.date)):'Earlier'}</time><span><b>${esc(fof(x.a).title||host(x.a.link))}</b>${x.cur?' <em>You’re reading this one</em>':`<button type="button" data-kr="${esc(x.a.link)}">${esc(x.a.title)}</button>`}</span></li>`).join('')+'</ol>';
  const k=c.querySelector('.kr'),o=c.querySelector('.orig');
  if(k)k.before(d);else if(o)o.before(d);else c.append(d);
- if(R&&R.pg===0)try{relayout()}catch(e){}
+ if(R&&R.pg===0&&!R.kq)try{relayout()}catch(e){}
 }
 /* idea book M14: a running story opens with the stories you already read on it (from your own history on the phone, last 60 days, two or more shared headline words), oldest first */
 function prevBox(){
@@ -12627,7 +12627,7 @@ function prevBox(){
  const d=document.createElement('aside');d.className='prvb';
  d.innerHTML='<h4>Previously</h4><ol>'+L.map(h=>`<li><time>${esc(new Date(h.t).toLocaleDateString('en-US',{month:'short',day:'numeric'}))}</time> <span>${esc(h.ti)}</span>${h.ft?` <small>${esc(h.ft)}</small>`:''}</li>`).join('')+'</ol>';
  const p=b.querySelector(':scope>p');(p||b.firstChild)?(p||b.firstChild).before(d):b.append(d);
- if(R&&R.pg===0)try{relayout()}catch(e){}
+ if(R&&R.pg===0&&!R.kq)try{relayout()}catch(e){}
 }
 function covTitle(){
  if(covTitle.io){covTitle.io.disconnect();covTitle.io=null}
@@ -12803,7 +12803,7 @@ function rdPal(o){
 }
 function keepRead(){
  setTimeout(dynReader,700);try{trfAuto()}catch(e){}
- {const my=curA;setTimeout(()=>{if(curA===my){timeline();try{prevBox()}catch(e){}}},50)}
+ /* round two P2: the 'Previously' and 'How the story developed' boxes go in before the page is laid out, so the text is not laid out again (and does not jump) a moment after it appears */{R.kq=1;try{timeline()}catch(e){}try{prevBox()}catch(e){}R.kq=0}
  setTimeout(()=>{alsoLike().catch(()=>{})},900);
  const c=$('.cols');if(!c||!curA||c.querySelector('.kr:not(.dsc)'))return;
  const l=(items[curA.feedId]||[]).filter(x=>x.link!==curA.link&&!S.read[x.link]&&!muted(x)).sort((x,y)=>y.date-x.date).slice(0,3);
