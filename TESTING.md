@@ -2371,3 +2371,7 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Type an exact @name of a channel not in the list, tap 'Find and follow': the channel is added (this asks YouTube; needs the phone).
 - 'Search YouTube for …' opens YouTube (app or browser) with that search.
 - Play a video inside a story from a site that is not a video channel: 'Follow channel' shows next to ×. Tap: 'Looking…', then the channel is followed in a Videos folder and the button goes away. A video from a channel you already follow shows no such button. In the pop-up the button sits above it beside the arrow and ×.
+
+## Wide picture over the words after unfolding (2026-11-21, after 1.379, not built yet)
+- Fold closed: open a long story with pictures (800 words or more; David's was the Zune story). Unfold while it is open: pictures must stay inside their own page, never run across both pages over the words. Fold again: the scrolled look with wide pictures comes back.
+- Dynamic theme, a story that opens on a whole-screen picture: after the first turn (card on the left, picture on the right) no picture caption from the hidden right page may show over the picture.
