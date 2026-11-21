@@ -2286,3 +2286,4 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Tap the bar: pop-up opens; a Short pops up upright. Scroll a video-page tile back into view: pop-up is tucked.
 - A card without a picture: Play pill under the headline; playing, the card is a full 16:9 video.
 - Unfolded / tablet with the side bar showing: audio bar and video bar start right of the side bar.
+- Video story page: phone = player on top, then headline and text; unfolded = player alone on the left page, words on the right. Does it play there, and does turning the page keep working?
