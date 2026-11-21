@@ -2317,3 +2317,5 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Daily cover on a tall phone: three teaser rows; on a short phone still three columns. Does the cover still fit the screen?
 - Small buttons (the 'i' on cards, chips, close buttons) are easier to hit; nothing nearby takes the tap by mistake?
 - Add a site: no Cancel, same row style for 'More ways to add'; every titled box has the same title bar.
+
+## 1.376 (2026-11-21): everything under 'Inspection batch 1' to 'batch 5' above shipped in this build; none of it has been tried on a phone.
