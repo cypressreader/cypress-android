@@ -67,7 +67,8 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
   }, true);
 
   await step('feed', async s => {
-    await page.evaluate(seed => localStorage.setItem('folio', JSON.stringify(seed)), SEED);
+    /* 1.377: a setup that was started and not finished comes back on the next launch ('cyob'); the seeded library stands for a finished setup */
+    await page.evaluate(seed => { localStorage.setItem('folio', JSON.stringify(Object.assign({ onboarded: 1 }, seed))); localStorage.removeItem('cyob') }, SEED);
     const t = Date.now(); await page.reload(); await page.evaluate(WATCH);
     await page.waitForSelector('#grid .card', { timeout: 90000 }); const first = Date.now() - t;
     await sleep(6000); await page.click('text=Dismiss', { timeout: 2000 }).catch(() => {}); await shot(s);
@@ -168,7 +169,7 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
       document.querySelectorAll('dialog[open]').forEach(d => d.close()); if (document.querySelector('#rd.on')) closeRd();
       const sr = 8000, n = sr * 60, ab = new ArrayBuffer(44 + n), v = new DataView(ab), ws = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)) }; ws(0, 'RIFF'); v.setUint32(4, 36 + n, true); ws(8, 'WAVE'); ws(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, sr, true); v.setUint32(28, sr, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); ws(36, 'data'); v.setUint32(40, n, true); for (let i = 0; i < n; i++) v.setUint8(44 + i, 128 + Math.round(20 * Math.sin(i / 6)));
       const url = URL.createObjectURL(new Blob([ab], { type: 'audio/wav' }));
-      const f = S.feeds[0]; const a = { feedId: f.id, title: 'Device test episode', link: 'https://device.test/ep/1', date: Date.now(), summary: 'An episode.', img: '', audio: url, dur: '1 min', html: '<p>' + 'Show notes. '.repeat(40) + '</p>' }; items[f.id].unshift(a);
+      const f = S.feeds[0]; const a = { feedId: f.id, title: 'Device test episode', link: 'https://device.test/ep/1', date: Date.now(), summary: 'An episode.', img: '', audio: url, dur: '1 min', html: '<p>' + 'Show notes. '.repeat(40) + '</p>' }; (items[f.id] = items[f.id] || []).unshift(a);
       /* record every call the page makes to the phone's media notification */
       window.__ml = []; try { const x = CyX(); for (const k of ['mediaStart', 'mediaUpdate', 'mediaStop']) { const o = x[k]; if (typeof o === 'function') x[k] = function (m) { window.__ml.push(k + ' ' + JSON.stringify({ playing: m && m.playing, title: m && m.title }).slice(0, 80) + ' @' + Math.round(performance.now())); let r; try { r = o.apply(this, arguments) } catch (e) { window.__ml.push(k + ' THREW ' + e); throw e } if (r && r.catch) r.catch(e => window.__ml.push(k + ' REJECTED ' + (e && e.message || e))); return r } } } catch (e) { window.__ml.push('wrap failed ' + e) }
       await openReader(a);
