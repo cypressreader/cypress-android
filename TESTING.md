@@ -2319,3 +2319,8 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Add a site: no Cancel, same row style for 'More ways to add'; every titled box has the same title bar.
 
 ## 1.376 (2026-11-21): everything under 'Inspection batch 1' to 'batch 5' above shipped in this build; none of it has been tried on a phone.
+
+## Round two inspection fixes (branch ccr-55075230-otnbgd, 2026-11-21; not merged, not in any APK)
+- [ ] All Stories or the Daily on the cover screen: swipe right starting about a finger-width from the left edge, on top of a story card. The side bar opens and the story is NOT marked read (no "Marked as read" message). A right swipe from the middle of a card still marks it read.
+- [ ] Phone font size set to largest, open a story > Aa: "Default / Comfortable / Large print / Dense" stay readable (two rows are fine), nothing printed over anything. Also note whether menus and tabs grow with the phone's font size at all (report item A3).
+- [ ] A long pop-up message (for example the storage-full one) stays up long enough to read; short ones still leave after about 3 seconds.
