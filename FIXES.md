@@ -195,3 +195,4 @@ Batch 2 status 2026-11-21: R2, R3=A, R15a, R15b DONE (preview). R16a/R16b wait f
 Batch 3 status 2026-11-21: R6, R7, R15f, V1=B, V1c DONE (preview).
 Batch 4 status 2026-11-21: R8, R8b, R9=A, R10 DONE (preview).
 Batch 5 status 2026-11-21: R12, R13, R14=Weekly, R15c DONE (preview). Open: R15d, R15e, V2=B, V3, V4, V5, V7.
+Batch 5 status 2026-11-21: R15d, R15e, V2=B, V3, V4, V5, V7 DONE (preview). Everything picked is built except R16a/R16b.

@@ -2309,3 +2309,11 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 ## Inspection batch 5, first part (preview only, 2026-11-21)
 - The Daily's fourth tab says Weekly whatever day is picked in Settings; its page says 'The Weekly Issue'.
 - Add a site, type nonsense, tap 'Search the web': within about 12 seconds it says 'No sites found' or that the search didn't answer.
+
+## Inspection batch 5, second part (preview only, 2026-11-21)
+- Settings on the phone: open a page, Escape/back, repeat four times: Settings never closes by itself (keyboard only).
+- On Saved, tap the Search tab: it searches all stories. The search button inside Saved still searches Saved.
+- Story text on the Fold cover screen: still justified with split words? (It turns ragged only where the browser cannot split words.)
+- Daily cover on a tall phone: three teaser rows; on a short phone still three columns. Does the cover still fit the screen?
+- Small buttons (the 'i' on cards, chips, close buttons) are easier to hit; nothing nearby takes the tap by mistake?
+- Add a site: no Cancel, same row style for 'More ways to add'; every titled box has the same title bar.
