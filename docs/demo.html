@@ -16563,8 +16563,11 @@ PEB.topicstat=[
 PE_NEUTRAL.topicstat='What your sites have said about this.';
 function topicMast(q,list){
  const f=topicFacts(q,list),stat=pe('topicstat',f,'tp'+q.toLowerCase()),fol=S.sk.some(k=>k.words.length===1&&k.words[0]===q);
- /* round two J2 (David's pick A): a typed search gets one thin line, the count and a Follow button, so results start at the top. Muting lives in a story's hold menu; clearing the search box closes it */
- return `<header class="tm1"><span class="tm-s">${plu(list.length,'story','stories')}</span>${fol?'<span class="tm-f">Following</span>':`<button class="tx2" type="button" data-follow="${esc(q)}">Follow this topic</button>`}</header>`;
+ /* round two J2 (David's pick A): a typed search gets one thin line, the count and a Follow button, so results start at the top */
+ if(!TOPIC)return `<header class="tm1"><span class="tm-s">${plu(list.length,'story','stories')}</span>${fol?'<span class="tm-f">Following</span>':`<button class="tx2" type="button" data-follow="${esc(q)}">Follow this topic</button>`}</header>`;
+ /* a topic opened by tapping its name keeps its full heading, with Mute and Close */
+ const m=mastArt(list);
+ return `<header class="tmast${m.c}"${m.s}>${m.i}<small>Topic</small><h2>${esc(q)}</h2><p class="tm-s">${esc(stat)}</p><div class="tm-a">${fol?'<span class="tm-f">Following</span>':`<button class="tx2" type="button" data-follow="${esc(q)}">Follow this topic</button>`}<button class="tx2" type="button" data-topicmute="${esc(q)}">Mute this topic</button><button class="tx2" type="button" data-topicx>Close topic</button></div></header>`;
 }
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-topicx]');if(!b)return;e.preventDefault();e.stopPropagation();openSearch(false);const m=$('main');if(m)m.scrollTop=0},true);
 /* earlier coverage of the same story, found in the feeds and reading history already on the device */
