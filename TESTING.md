@@ -2350,3 +2350,8 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - [ ] A3 (Fold check, nothing built): set the phone's font size to largest and open the app. The code notes say the Android app already follows the phone's size. Look for: the Daily cover's CYPRESS name cut off, bottom tab labels touching, Settings labels cut. Report what you see.
 
 ## 1.377 (2026-11-21): everything under 'Round two inspection fixes' and 'Round two picks, built so far' above shipped in this build (build 442); none of it has been checked on a phone yet.
+
+## After 1.377: three Fold reports fixed on ccr-55075230-otnbgd (2026-11-21; NOT in a build yet)
+- [ ] Podcast notification: play an episode, pull down the notification bar: play/pause, back and forward are there and stay there (also with another story open and from the Home screen). Emulator test 'podcast' step passes (Android 16 image: session PLAYING, ongoing notification); a real phone and Bluetooth buttons are unverified.
+- [ ] Story buttons: turn a few pages or scroll down a story: the top buttons stay. A tap in the middle still hides and shows them.
+- [ ] Another app's sound while CyPress plays in the background (episode or read-aloud): after a short sound (a message tone, a short video, directions) CyPress plays again by itself within a few seconds. If the other app keeps playing for more than a minute, CyPress stays paused. NOT testable on the emulator: needs the Fold.
