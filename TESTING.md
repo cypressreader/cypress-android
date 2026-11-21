@@ -2355,3 +2355,7 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - [ ] Podcast notification: play an episode, pull down the notification bar: play/pause, back and forward are there and stay there (also with another story open and from the Home screen). Emulator test 'podcast' step passes (Android 16 image: session PLAYING, ongoing notification); a real phone and Bluetooth buttons are unverified.
 - [ ] Story buttons: turn a few pages or scroll down a story: the top buttons stay. A tap in the middle still hides and shows them.
 - [ ] Another app's sound while CyPress plays in the background (episode or read-aloud): after a short sound (a message tone, a short video, directions) CyPress plays again by itself within a few seconds. If the other app keeps playing for more than a minute, CyPress stays paused. NOT testable on the emulator: needs the Fold.
+
+## Cover card flicker (2026-11-21, after 1.378, not built yet)
+- Open Fold, Dynamic theme, a story that opens on a whole-screen picture with the card on the right. Turn forward: as the card lands on the left, the page must NOT flash without its picture (it did for one frame, about a second after the tap). Turn back: no frame with the card but no picture, and no frame with the picture but no card.
+- Tap forward and back quickly on that cover: every tap still counts, nothing left on screen.
