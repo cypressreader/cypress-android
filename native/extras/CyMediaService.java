@@ -87,14 +87,29 @@ public class CyMediaService extends Service {
     private AudioManager audioMgr;
     private AudioFocusRequest focusReq;
     private boolean focusHeld = false;
+    /** Paused by another app's short sound: play again when Android gives the sound back. Any other pause clears it. */
+    private boolean resumeOnGain = false;
+    private boolean pausingForFocus = false;
     private boolean noisyRegistered = false;
 
     private final AudioManager.OnAudioFocusChangeListener focusListener = new AudioManager.OnAudioFocusChangeListener() {
         @Override
         public void onAudioFocusChange(int change) {
-            if (change == AudioManager.AUDIOFOCUS_LOSS || change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
+            if (change == AudioManager.AUDIOFOCUS_LOSS) {
                 focusHeld = false;
                 pauseHere();
+            } else if (change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
+                // 1.377 report: a short sound from another app (a message tone, directions) stopped the player for good.
+                // It is a pause, and the focus request is kept, so Android tells us when that sound is over.
+                focusHeld = false;
+                pausingForFocus = true;
+                try { pauseHere(); } finally { pausingForFocus = false; }
+            } else if (change == AudioManager.AUDIOFOCUS_GAIN) {
+                if (resumeOnGain) {
+                    resumeOnGain = false;
+                    focusHeld = true;
+                    CyExtras.emitMediaAction("play");
+                }
             }
         }
     };
@@ -305,7 +320,7 @@ public class CyMediaService extends Service {
             registerNoisy();
         } else {
             unregisterNoisy();
-            abandonFocus();
+            if (!resumeOnGain) abandonFocus(); // waiting for another app's short sound to end: keep the request so the gain arrives
             if (foregrounded) {
                 try {
                     ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH);
@@ -379,6 +394,7 @@ public class CyMediaService extends Service {
 
     /** Another app took the audio, the headphones came out, or Pause was tapped: pause once, here, without waiting for the page. */
     private void pauseHere() {
+        resumeOnGain = pausingForFocus && playing && !pauseAsked;
         if (!playing || pauseAsked) return;
         pauseAsked = true;
         stopSpeech(); // the phone's speech engine keeps talking by itself otherwise, even if the page is asleep
@@ -631,7 +647,7 @@ public class CyMediaService extends Service {
             public void onPause() {
                 CyMediaService s = instance;
                 if (s != null && s.playing) s.pauseHere();
-                else CyExtras.emitMediaAction("pause");
+                else { if (s != null) s.resumeOnGain = false; CyExtras.emitMediaAction("pause"); }
             }
 
             @Override
