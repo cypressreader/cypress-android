@@ -20,7 +20,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    S.feeds.slice(0,4).forEach((f,fi)=>{items[f.id]=fn(f,fi,now);state[f.id]='ok'});S.edn=null;S.sel='today';S.cards='compact';
    let err='';try{render()}catch(e){err=String(e&&e.message)}await new Promise(r=>setTimeout(r,900));
    const g=document.querySelector('#grid');return {err,cov:!!g.querySelector('.dcov'),sec:g.querySelectorAll('.dsec2').length,back:!!g.querySelector('.dback,.colo'),plain:g.dataset.cards==='narrow'&&!g.querySelector('.dcov')}},[name,Object.fromEntries(Object.entries(shapes).map(([k,v])=>[k,v.toString()]))]).catch(e=>({err:'eval '+e.message}));
-  ck(W+' '+name+' renders magazine',!r.err&&r.cov&&r.sec>=1&&r.back&&!r.plain,JSON.stringify(r));
+  ck(W+' '+name+' renders magazine',!r.err&&r.cov&&(name==='one'?r.sec===0:r.sec>=1)&&r.back&&!r.plain,JSON.stringify(r));
   ck(W+' '+name+' no page errors',!errs.length,errs[0]);
   await b.close();
  }
