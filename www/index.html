@@ -13557,7 +13557,7 @@ $('#scrim').onchange=e=>{S.scrim=e.target.value;save();applyFx();render()};
 $('#dgwhen').onchange=e=>{S.dgwhen=e.target.value;save();syncSet();render();bgSync()};$('#dgwd').onchange=e=>{S.dgwd=+e.target.value;save();syncSet();bgSync()};
 $('#dgopen').onclick=()=>{S.sel='digest';S.dgk='';save();set.close();render()};
 $('#tipsb').onclick=()=>{set.close();openTips()};
-$('#obagain').onclick=()=>{set.close();obOpen(true)};
+$('#obagain').onclick=()=>{set.close();obOpen(true);/* R3 S12: Redo setup opens on the first real choice, and Cancel goes back to Settings */OB.fromSet=1;OB.step=1;obRender();obFocus()};
 $('#fresh').onclick=()=>startFresh();
 ['click','change','input'].forEach(ev=>set.addEventListener(ev,e=>{if(e.target.closest('.spage')&&!e.target.closest('#sp-about,#sybox'))S.setT=Date.now()/* the sync buttons are not a settings change: joining must take the other device's newer settings */},true));
 $('#pfm').onchange=e=>{const v=e.target.value;if(v==='off')S.pfm='off';else{S.pfm='custom';S.pfn=+v}save();PF.done.clear();PF.n=0;PF.q=[];PF.tot=0;PF.fin=0;pfBar();if(S.pfm!=='off')prefetch(pfList());try{acEvict()}catch(x){}syncSet()};
@@ -14638,15 +14638,15 @@ onShow(()=>{if(S.sync)syncNow()},1800);
 /* ===================== first-run setup ===================== */
 const OB={step:0,topics:new Set(),picks:new Set(),custom:[],rerun:false,last:''};/* polish-2026-10 (I2): no topic is preselected any more; Skip for now still starts with Tech and News (see obQuick) */
 function obOpen(rerun){
- OB.rerun=!!rerun;OB.step=0;OB.custom=[];
+ OB.rerun=!!rerun;OB.step=0;OB.custom=[];OB.fromSet=0;
  if(rerun){OB.picks=new Set(S.feeds.map(f=>f.url));OB.topics=new Set(CAT.filter(c=>c.f.some(x=>OB.picks.has(x[1]))).map(c=>c.n));if(!OB.topics.size)OB.topics=new Set(['Tech'])}
  else{OB.picks=new Set();OB.topics=new Set();OB.last='';OB.seeded=0}
- let d=$('#ob');if(!d){d=document.createElement('dialog');d.id='ob';d.setAttribute('aria-label','Set up CyPress');document.body.append(d);d.addEventListener('click',obClick);d.addEventListener('cancel',e=>{if(!OB.rerun)e.preventDefault()})}
+ let d=$('#ob');if(!d){d=document.createElement('dialog');d.id='ob';d.setAttribute('aria-label','Set up CyPress');document.body.append(d);d.addEventListener('click',obClick);d.addEventListener('cancel',e=>{if(!OB.rerun)e.preventDefault()});d.addEventListener('close',()=>{if(OB.fromSet){OB.fromSet=0;$('#gear').onclick();setShow('about')}})}
  OB.fs=-1;obRender();if(!d.open)d.showModal();obFocus();
 }
 const OB_STEPS=['Welcome','Topics','Sites','Ready'];/* a18: the Look step left setup; theme and font live in Settings, pointed to on the last step */
 /* Back in setup: previous step; on the first step of the first run it does nothing (closing it would skip setup for good) */
-function obBack(){if(OB.step>0){OB.step--;obRender();obFocus();return true}return !OB.rerun}
+function obBack(){if(OB.step>(OB.fromSet?1:0)){OB.step--;obRender();obFocus();return true}return !OB.rerun}
 function obRender(){
  const d=$('#ob'),s=OB.step;if(!OB.more)OB.more=new Set();
  const dots=`<div class="obd" role="img" aria-label="Step ${s+1} of ${OB_STEPS.length}">${OB_STEPS.map((n,i)=>`<i class="${i===s?'on':i<s?'done':''}"></i>`).join('')}</div>`;
@@ -14662,7 +14662,7 @@ function obRender(){
   body=`<h2>Choose your sites</h2><p class="hint"><b id="obcount">${OB.picks.size+OB.custom.length}</b> selected. Tap to add or remove.</p><div class="obs"><input id="obq" class="obq" type="search" placeholder="Search every site" aria-label="Search every site" autocomplete="off" value="${esc(OB.q||'')}"><div id="obres" hidden></div><div id="obtop">${cats.map((c,ci)=>{const ex=OB.more.has(c.n)||c.f.slice(8).some(x=>OB.picks.has(x[1])),vis=ex?c.f:c.f.slice(0,8),f3=c.f.slice(0,3).every(x=>OB.picks.has(x[1]));return `<h3>${esc(c.n)}<button type="button" class="lnk obpk" data-obpack="${ci}">${f3?'Remove the first 3':'Add the first 3'}</button></h3><div class="obsl d">${vis.map(x=>`<button type="button" data-obsrc="${esc(x[1])}" class="${OB.picks.has(x[1])?'on':''}" aria-pressed="${OB.picks.has(x[1])}" style="--b:${brand({url:x[1]})}"><b></b><span>${esc(x[0])}${BLURB[x[0]]?'<small>'+esc(BLURB[x[0]])+'</small>':''}</span></button>`).join('')}</div>${!ex&&c.f.length>8?`<button type="button" class="obmore" data-obmore="${esc(c.n)}">Show ${c.f.length-8} more ${esc(c.n)} ${c.f.length===9?'site':'sites'}</button>`:''}`}).join('')}<h3>Your own</h3><div class="obown"><input id="obu" placeholder="Paste a site or feed address" autocomplete="off"><button type="button" class="tx2" data-obaddu>Add</button></div><div class="obsl">${OB.custom.map((u,i)=>`<button type="button" class="on" aria-pressed="true" data-obcus="${i}"><b></b><span>${esc(host(u)||u)}</span></button>`).join('')}</div></div></div>`;
  }
  else body=`<div class="obw"><div class="bck">${svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>')}</div><h2>${OB.rerun?'All set':'Your magazine is ready'}</h2><p>${OB.picks.size+OB.custom.length} ${OB.picks.size+OB.custom.length===1?'site':'sites'}. A few tips:</p><ul class="obtips"><li>${swTxt().replace(/^./,c=>c.toUpperCase())}</li><li>Pull down on the list to refresh.</li><li>In a story, drag the page edge to turn it like a magazine.</li><li>Tap a photo to zoom.</li><li>Change the theme, font and light or dark look any time in Settings.</li><li>Have CyPress on another device? Turn on sync in Settings.</li></ul></div>`;
- d.innerHTML=`<div class="obin">${dots}<div class="obbody">${body}${s===0&&!OB.rerun?'<p class="hint" style="text-align:center;margin:6px 0 0"><button type="button" class="lnk" data-obrestore style="min-height:44px">Have a backup? Restore it</button></p>':''}</div><div class="obnav">${s>0?'<button type="button" class="tx2" data-obback>Back</button>':(OB.rerun?'<button type="button" class="tx2" data-obclose>Cancel</button>':'<button type="button" class="tx2" data-obskip>Start with popular sites</button>')}${s===1&&!OB.topics.size?'<span class="hint obwhy" id="obwhy">Pick an edition, or one or more topics</span>':s===1&&!OB.rerun?'<button type="button" class="tx2" data-obquick>Start reading</button>':''}${s<3?`<button type="button" class="go" data-obnext ${s===1&&!OB.topics.size?'disabled aria-describedby="obwhy"':s===2&&!(OB.picks.size+OB.custom.length)?'disabled':''}>${s===0?'Get started':s===1&&!OB.rerun&&OB.topics.size?'Choose sites':'Next'}</button>`:`<button type="button" class="go" data-obdone>${OB.rerun?'Save':'Open my front page'}</button>`}</div></div>`;
+ d.innerHTML=`<div class="obin">${dots}<div class="obbody">${body}${s===0&&!OB.rerun?'<p class="hint" style="text-align:center;margin:6px 0 0"><button type="button" class="lnk" data-obrestore style="min-height:44px">Have a backup? Restore it</button></p>':''}</div><div class="obnav">${s>(OB.fromSet?1:0)?'<button type="button" class="tx2" data-obback>Back</button>':(OB.rerun?'<button type="button" class="tx2" data-obclose>Cancel</button>':'<button type="button" class="tx2" data-obskip>Start with popular sites</button>')}${s===1&&!OB.topics.size?'<span class="hint obwhy" id="obwhy">Pick an edition, or one or more topics</span>':s===1&&!OB.rerun?'<button type="button" class="tx2" data-obquick>Start reading</button>':''}${s<3?`<button type="button" class="go" data-obnext ${s===1&&!OB.topics.size?'disabled aria-describedby="obwhy"':s===2&&!(OB.picks.size+OB.custom.length)?'disabled':''}>${s===0?'Get started':s===1&&!OB.rerun&&OB.topics.size?'Choose sites':'Next'}</button>`:`<button type="button" class="go" data-obdone>${OB.rerun?'Save':'Open my front page'}</button>`}</div></div>`;
  const u=$('#obu');if(u)u.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();obAddU()}};
  const q=$('#obq');if(q){q.oninput=()=>{OB.q=q.value;obSearch()};q.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();q.blur()}};if(OB.q)obSearch()}
  if(OB.fs!==s){OB.fs=s;if(d.open)obFocus()}
@@ -14710,7 +14710,7 @@ function obFinish(){
  const pend=[];
  for(const u of OB.custom){if(S.feeds.some(f=>f.url===u))continue;const f={id:'x'+now+(i++)+Math.random().toString(36).slice(2,5),url:u,title:host(u),folder:''};S.feeds.push(f);pend.push(f)}
  if(!OB.rerun)S.folders=S.folders.filter(fo=>S.feeds.some(f=>f.folder===fo.id));
- S.onboarded=1;try{localStorage.removeItem('cyob')}catch(e){}if(!OB.rerun){S.welcome=1;S.fcol=S.fcol||{};S.fcol._mf=0}/* I3: My Feeds starts open in the drawer on first launch */S.sel='today';save();$('#ob').close();
+ S.onboarded=1;try{localStorage.removeItem('cyob')}catch(e){}if(!OB.rerun){S.welcome=1;S.fcol=S.fcol||{};S.fcol._mf=0}/* I3: My Feeds starts open in the drawer on first launch */S.sel='today';save();OB.fromSet=0;$('#ob').close();
  S.feeds.forEach(f=>{if(!items[f.id])load(f)});
  pend.forEach(async f=>{try{const r=await findFeed(f.url);if(r&&r.url!==f.url){f.url=r.url;const p=parse(r.xml,f);if(p.title)f.title=p.title;items[f.id]=p.list;state[f.id]='ok';save();render()}}catch(e){}});
  render();toast(OB.rerun?'Saved':'Welcome to CyPress');
