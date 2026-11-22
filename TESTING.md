@@ -2376,3 +2376,39 @@ On the phone, Add > More ways to add > Teach CyPress a site that has no feed:
 - Fold closed: open a long story with pictures (800 words or more; David's was the Zune story). Unfold while it is open: pictures must stay inside their own page, never run across both pages over the words. Fold again: the scrolled look with wide pictures comes back.
 - Dynamic theme, a story that opens on a whole-screen picture: after the first turn (card on the left, picture on the right) no picture caption from the hidden right page may show over the picture.
 - Same check without closing the Fold: hold the open Fold sideways (list and story side by side), open a long story with pictures, turn the Fold upright: pictures stay inside their page.
+
+## Round three fixes (built 2026-11-22, browser-checked only; check on the Fold)
+Speed
+- Turn pages in a story on the cover and inner screen: the turn should start at once and glide (P2). Wide-photo cover in the Dynamic theme, a story with 5+ pictures, and the "Next up" card with its picture should look as before.
+- Scroll a story in scroll mode: smooth, and the time-left label still updates (P1).
+- Tap Daily / Headlines / All Stories / chips: the tab lights up at once (P3). Open Settings from the phone menu: about a second, Look preview shows, scroll position kept between visits (P4).
+- Phone menu slides at once; all sites listed with unread dots; long site names wrap (P5, P10).
+- With Low power or Reduce motion on: open the Daily and wait for sites to answer; the cover headline must not jump (P9).
+- A slow site (with a relay set) loads instead of failing (P7).
+Touch and feel
+- Press a card with a finger: it dips slightly, with and without Smoother scrolling (A1).
+- Hold a card low on the screen, cover and inner: the menu opens, nothing fires when you lift (A2). A light tick on hold, on "Added to Up Next", and after a pull-to-refresh that brings new stories (A3).
+- Scroll far down All Stories and wait for a background refresh: "N new stories · Show" appears and the top bar shows the count (A4).
+- Close a story: a brief ring on the card you came from (A5). Reach the last page: "Finished · N min" appears briefly and is not over text (A6).
+- Tap Listen: the button pulses until the voice starts (A9). Open a story with no picture: short fade and rise (A11).
+Reading
+- Cover screen: story text is ragged-right with hyphens, no big gaps; Large print on the inner screen is ragged too (G1).
+- Inner screen: page numbers at the outer corners, also during and after a page turn (G9).
+- A long story with a wide lead photo opens across both pages with a large headline; nothing jumps when the full text arrives; a very long headline still fits (G8).
+- Last spread of a short story: the right page shows the next story; tapping it opens that story (G10).
+- A picture story (5+ pictures, few words) on the inner screen: one picture per page. Judge whether this beats the old two-column gallery (G12).
+- Mid-story spreads with pictures: no hole of more than about three lines at a column's foot; pictures stay next to their paragraph (G5).
+- Reader top bar on the cover screen: time left is whole, site name becomes its dot (R2). Story menu labels wrap, also with Large print (R3).
+- Reopen a half-read long story: "Continuing where you left off" with Start over (R4). Large print mid-story keeps your place (R9). Swipe right on page 1 after "next story" returns to the previous story's last page (R11).
+Lists
+- Medium size in All Stories and Weekly on the cover: small-picture rows look right (V1). Compact on the inner screen: picture-less stories are quiet rows (V11).
+- Daily cover status line fits on one line on the cover screen (L10). Side bar rows are two lines from the start and do not jump (V5). Folder arrows and color dots are easy to hit (V6).
+- Back from a folder, a site, Saved and Search returns to All Stories first; no wasted Back press (L4).
+- Bottom player bar on the cover during real playback: title on two lines, no Previous (V12).
+Listen, podcasts, video
+- Start a video while an episode plays, and Listen while a video plays: the first one really stops (M1).
+- Play a video on its story page, press Back: it continues in the docked video bar and can be closed (M2).
+- Mixed Up Next: a video next in line plays (not read aloud); the next video starts without a tap (M4).
+- Docked video bar Pause / Resume works (M9). Cover screen sideways: Now playing shows Speed, Sleep, Skip whole (M6). "Pause what's playing" in the Settings header pauses read-aloud (M12).
+Settings
+- Cover screen: theme tiles wrap, nothing off the side (S7). "Screen size" group on The Daily works on both screens (S4).
