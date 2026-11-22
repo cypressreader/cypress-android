@@ -2450,3 +2450,9 @@ Settings
 - Nothing should LOOK different anywhere (feed, Daily cover styles, story pages, every theme): the change only makes 132 style rules cheaper for the browser to apply.
 - Feel: the app opens a little sooner, page turns hitch less, switching The Daily / All Stories is snappier. Opening a story is not faster yet (next stage).
 - Tools: `node scripts/css-keys.js --check` (must say 'all keyed'), `tools/perf/cmp.sh <before.html> <after.html>`.
+
+## Speed stage 2: highlights from the page root, no :has() on the story page (after 1.384, not shipped yet, unverified on the Fold)
+- Nothing should LOOK different. Check in a story: Find in story (yellow matches, orange current), Listen (word/sentence highlight follows the voice), a saved highlight in each color, text selection color, dark mode marker underlines.
+- Story looks that depended on the swapped rules: wide/cover picture openings on two pages, a 'From the publisher' line with and without a top picture, pictures with captions (Dynamic theme), tables shown as cards, the 'next story' card with a picture, the page counter in the bar, the Aa pop-up, hands-free bar. Each should look as in 1.384.
+- Feel: opening a story and going to the next one is quicker; page turns hitch less; the app opens sooner.
+- Tools: `node scripts/css-has.js --check`, `HASCHK=1 node tools/perf/perf.js` (must print bad 0), `node tools/perf/hlcheck.js`.
