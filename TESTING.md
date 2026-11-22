@@ -2456,3 +2456,7 @@ Settings
 - Story looks that depended on the swapped rules: wide/cover picture openings on two pages, a 'From the publisher' line with and without a top picture, pictures with captions (Dynamic theme), tables shown as cards, the 'next story' card with a picture, the page counter in the bar, the Aa pop-up, hands-free bar. Each should look as in 1.384.
 - Feel: opening a story and going to the next one is quicker; page turns hitch less; the app opens sooner.
 - Tools: `node scripts/css-has.js --check`, `HASCHK=1 node tools/perf/perf.js` (must print bad 0), `node tools/perf/hlcheck.js`.
+
+## After 1.385 (not shipped yet, unverified on the Fold)
+- Read aloud starts with the headline and then the story: it no longer reads the 'In this story' links or the 'Previously' list first (David 2026-11-22).
+- Two pages: the 'AI summary' line alone at the top of the right column with the text starting on the next page (report 1795389974999, could NOT be reproduced in the browser): a check now re-fits the page when the line ends up there after the last fit. If the gap shows again, note whether the story had just opened, whether the headline changed size/font a moment before, and send it as a messy story.
