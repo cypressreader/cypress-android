@@ -10335,7 +10335,7 @@ function raWhenReady(a,n){
 }
 function pump(){
  /* reading stories ahead of time waits until you stop scrolling: parsing a page is heavy work for the main thread */
- if(PF.q.length&&userBusy()&&!document.hidden){clearTimeout(pump.t);pump.t=setTimeout(pump,800);return}
+ if(PF.q.length&&(userBusy()||(performance.now()<8000&&(performance.now()<4000||userRest())))&&!document.hidden){clearTimeout(pump.t);pump.t=setTimeout(pump,800);return}/* R3 P12: reading ahead starts 4 s after launch, and until 8 s only once taps have paused for 3 s, so it does not overlap your first taps */
  while(PF.run<(INFL.size?1:2)&&PF.q.length){
   const a=PF.q.shift();if(acHas(a.link)){PF.fin++;pfBar();continue}/* P2: saved meanwhile (photo lookup, Daily preload): don't download it twice */PF.run++;
   getFull(a.link,true).then(async n0=>{
