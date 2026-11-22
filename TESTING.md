@@ -2460,3 +2460,4 @@ Settings
 ## After 1.385 (not shipped yet, unverified on the Fold)
 - Read aloud starts with the headline and then the story: it no longer reads the 'In this story' links or the 'Previously' list first (David 2026-11-22).
 - Two pages: the 'AI summary' line alone at the top of the right column with the text starting on the next page (report 1795389974999, could NOT be reproduced in the browser): a check now re-fits the page when the line ends up there after the last fit. If the gap shows again, note whether the story had just opened, whether the headline changed size/font a moment before, and send it as a messy story.
+- Pictures a site wraps in a bulleted list (report 1795389547289, a phone screenshot in a how-to): no bullets beside pictures, no empty bullets; the picture stands in the text like any other. Left for later: the caption strip is wider than a tall narrow picture, and four of that story's five pictures were not captured (lazy-loaded on the site).
