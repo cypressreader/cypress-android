@@ -12,7 +12,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
   const hub=document.querySelector('#hub'),rows=[...hub.querySelectorAll('[data-hopen]')].map(x=>x.dataset.hopen);
   const sel=hub.querySelector('#hcmpsel'),opts=sel?[...sel.options].map(o=>o.value):[];
   return{teaser:hubTeaser(A),h3:[...hub.querySelectorAll('h3')].map(h=>h.textContent),rows,opts,def:sel&&sel.value,A:A.link,C:C.link,D:D.link,f0,fd:sel&&findStory(sel.value).feedId}});
- ck('the teaser does not count the story itself or a repeat',/1 other source|2 other sources/.test(r.teaser),r.teaser);
+ ck('the teaser does not count the story itself or a repeat',/1 other site|2 other sites/.test(r.teaser),r.teaser);
  const secs=r.rows.filter(l=>l!==r.A);
  ck('compare picker never offers the story itself',!r.opts.includes(r.A)&&r.opts.length>=2,JSON.stringify(r.opts));
  ck('compare picker starts on a different source',r.fd!==r.f0,r.fd+' vs '+r.f0);
