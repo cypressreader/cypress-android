@@ -6431,10 +6431,10 @@ function parse(xml,f){
  return{title,list:finishList(list)};
 }
 /* many feeds finish close together: draw and store once for the batch, not once per feed */
-let LRT=0,LRW=0;
-function loadFlush(){clearTimeout(LRT);clearTimeout(LRW);LRT=LRW=0;quietRender()}
+let LRT=0,LRW=0,LRN=0;
+function loadFlush(){clearTimeout(LRT);clearTimeout(LRW);LRT=LRW=LRN=0;quietRender()}
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&(LRT||LRW))loadFlush()});addEventListener('pagehide',()=>{if(LRT||LRW)loadFlush()});
-function loadRender(){/* nothing on screen yet: the first draw is not pushed back by every feed that lands */if(LRT&&!document.querySelector('#grid .card'))return;clearTimeout(LRT);LRT=setTimeout(loadFlush,350);if(!LRW)LRW=setTimeout(loadFlush,1500)}
+function loadRender(){/* nothing on screen yet: the first draw is not pushed back by every feed that lands */if(LRT&&!document.querySelector('#grid .card'))return;/* R3 P8: a batch shows once ten sites are in or a second has passed, whichever is first (it waited up to 1.5 s however many had landed) */if(++LRN>=10)return loadFlush();clearTimeout(LRT);LRT=setTimeout(loadFlush,350);if(!LRW)LRW=setTimeout(loadFlush,1000)}
 const INFL=new Map();
 /* B95: at most six feeds are read at the same time (the same six-slot pool the picture fetches use); the rest wait their turn, so a long list or an import never opens dozens of connections at once */
 const LDQ=[];let LDN=0;const inView=f=>S.sel==='s:'+f.id||(!!f.folder&&S.sel==='f:'+f.folder);/* the site or folder on screen jumps the queue whenever a slot frees up, even if you opened it after the refresh began *//* 1.312: ten sites at a time on Wi-Fi (six on mobile data, data saver or low power) */const onWifi=()=>{const k=netKind();return k==='wifi'||(k==='unknown'&&!(navigator.connection&&navigator.connection.saveData))},ldSlot=(f,front)=>LDN<(onWifi()&&!document.documentElement.classList.contains('lowp')?10:6)?(LDN++,Promise.resolve()):new Promise(r=>LDQ[front?'unshift':'push']({r,f}))/* deep dive 3: a site that already downloaded and gave its slot back while waiting goes to the FRONT when it takes one again, else nothing showed until almost every site was in (19 s with 128 sites; now about 1.5 s) */;const ldFree=()=>{const i=LDQ.findIndex(e=>inView(e.f)),e=LDQ.splice(i<0?0:i,1)[0];if(e)e.r();else LDN--};
