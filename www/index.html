@@ -11545,7 +11545,8 @@ addEventListener('keydown',e=>{
  else if(e.key===' '&&e.target.closest&&e.target.closest('button,a,summary,[role=button]')){}/* Space presses the focused button; it only turns the page from the text */
  else if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();go(1)}
  else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(-1)}
- else if(isVert()&&!R.web&&!e.defaultPrevented&&/^(Arrow(Down|Up)|Home|End)$/.test(e.key)&&(e.target===document.body||e.target.closest('#rd .bar'))){const v=vView();if(v){e.preventDefault();e.key[0]==='A'?v.scrollBy(0,e.key==='ArrowDown'?60:-60):v.scrollTo(0,e.key==='Home'?0:v.scrollHeight)}}/* Scroll mode: the arrows, Home and End still move the text when a bar button has the focus */
+ else if(!isVert()&&!R.web&&!R.busy&&R.np>0&&(e.key==='Home'||e.key==='End')&&(e.target===document.body||e.target.id==='rd'||e.target.closest('#rd .bar,#rd .cols'))){e.preventDefault();R.pg=e.key==='Home'?0:R.np-1;R.navAt=Date.now();show()}/* R3 R5: Home and End jump to the first and last page */
+ else if(isVert()&&!R.web&&!e.defaultPrevented&&/^(Arrow(Down|Up)|Home|End)$/.test(e.key)&&(e.target===document.body||e.target.id==='rd'||e.target.closest('#rd .bar'))){const v=vView();if(v){e.preventDefault();e.key[0]==='A'?v.scrollBy(0,e.key==='ArrowDown'?60:-60):v.scrollTo(0,e.key==='Home'?0:v.scrollHeight)}}/* Scroll mode: the arrows, Home and End still move the text when a bar button has the focus */
 });
 $('#rd').addEventListener('input',e=>{
  const t=e.target;
