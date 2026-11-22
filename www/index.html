@@ -1573,6 +1573,7 @@ html.quiet .cvm{letter-spacing:.06em}
 .body .fbp img{width:100%;height:auto;max-height:calc(var(--ch)*.72);object-fit:cover;border-radius:14px;margin:0}
 .body figure.fbp figcaption{position:absolute;left:0;right:0;bottom:0;padding:26px 14px 10px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);color:#fff;font-size:13px}#rd .body figure.fbp figcaption,#rd .body figure.fbp figcaption *{color:#fff!important}/* round two S3: the caption over a picture's dark fade stays white; a stronger rule was turning it gray, which could not be read */
 .body figure.fbp{position:relative}
+#rd .cols .body figure.fbp figcaption:not(.lcap){margin:0;border-left:0}#rd .cols[data-rlook=gallery] .body figure.fbp figcaption:not(.lcap){left:4px;right:4px;bottom:4px}/* G3: the fade reaches the picture's bottom edge (inside the Gallery mat), no rule beside it */
 /* colophon */
 .colo{margin:26px auto 8px;max-width:34em;text-align:center;border-top:1px solid var(--ln);padding-top:16px;color:var(--mut)}
 .colo b{display:block;font:700 11px var(--sans);letter-spacing:.24em;text-transform:uppercase;margin-bottom:6px;color:var(--ink)}
@@ -1673,7 +1674,7 @@ html.rdx .cols>.hsf.hs-top img.hero{width:100%;height:auto;aspect-ratio:auto;max
 .stl button{display:block;text-align:left;font:600 15px/1.3 var(--serif);color:var(--ink);padding:2px 0}
 .body figcaption,.body p.cap{font:400 12.5px/1.45 var(--sans);color:var(--mut);margin:-.5em 0 1.2em;text-align:left;hyphens:none;font-style:normal;border-left:2px solid var(--ln);padding-left:10px}
 .body p.cap em,.body p.cap i{font-style:normal}
-.body .cred{font:inherit;font-variant:small-caps;letter-spacing:.04em;opacity:.85}/* polish-2026-10 R-09: the credit runs on after a middle dot in small caps, like .crd */
+.body .cred{font:inherit;font-variant:small-caps;letter-spacing:.04em;opacity:.85;white-space:nowrap}/* polish-2026-10 R-09: the credit runs on after a middle dot in small caps, like .crd */
 .tx2.go{background:var(--a1);color:var(--bg);border-color:transparent}
 /* stage L: fluidity + phone polish */
 .trs .tri b,.mb,.star{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
@@ -14972,9 +14973,11 @@ function photoPages(){
  b.querySelectorAll('.fpl').forEach(f=>f.classList.remove('fpl'));
  /* 1.316: on two pages (Dynamic) up to three strong pictures take a page each */if(R.cpv===2&&!isVert()&&isOn('dynx')&&document.documentElement.dataset.theme==='dynamic'){let n=0;for(const f of b.querySelectorAll(':scope>figure:not(.pb2,.pbw,.mzh)')){const i=f.querySelector(':scope>img');if(!i||n>=3)continue;const w=i.naturalWidth||+i.getAttribute('width'),h=i.naturalHeight||+i.getAttribute('height');if(w>=1200&&h>=700){f.classList.add('fpl');n++}}}
  if(!isOn('fbleed')||isVert()||!isOn('mag'))return;
- const imgs=[...b.querySelectorAll('img')].filter(i=>!i.closest('.fpl')).filter(i=>!i.closest('.emb,.tbl,.tex')&&i.complete&&i.naturalWidth>=600&&i.naturalHeight>=300);
+ const imgs=[...b.querySelectorAll('img')].filter(i=>!i.closest('.fpl')).filter(i=>!i.closest('.emb,.tbl,.tex,.rfoot')&&i.complete&&i.naturalWidth>=600&&i.naturalHeight>=300);
  if(imgs.length<4)return;
- imgs.forEach((im,k)=>{if(k%2)return;const host=im.closest('figure')||(im.parentElement&&im.parentElement.tagName==='P'&&!im.parentElement.textContent.trim()?im.parentElement:null);if(host)host.classList.add('fbp')});
+ /* G3: the caption sits over the picture only when every picture is tall enough to fill most of a page; otherwise all captions sit underneath (one position per story) */
+ const ch=parseFloat(b.parentElement.style.getPropertyValue('--ch'))||innerHeight;if(!imgs.every(im=>im.getBoundingClientRect().width*im.naturalHeight>=ch*.6*im.naturalWidth))return;
+ imgs.forEach(im=>{const host=im.closest('figure')||(im.parentElement&&im.parentElement.tagName==='P'&&!im.parentElement.textContent.trim()?im.parentElement:null);if(host)host.classList.add('fbp')});
 }
 /* a text node that is only a photo credit and stands alone (not words inside a sentence) */
 const credLoose=(x,root)=>{const t=x.data.replace(/\s+/g,' ').trim(),pe=x.parentElement;return t.length>2&&t.length<80&&CREDITJ.test(t)&&(x.parentNode===root||!!pe&&/^(DIV|SECTION|FIGURE|ARTICLE|SPAN|SMALL|CITE)$/.test(pe.tagName)&&pe.textContent.replace(/\s+/g,' ').trim()===t||/^(DIV|SECTION|FIGURE|ARTICLE)$/.test(pe.tagName))};
@@ -14985,7 +14988,7 @@ function captions(){
  if(!isOn('caps'))return;
  const split=el=>{if(el.querySelector('.crd'))return;const t=el.textContent.trim();if(t.length>260)return;const m=t.match(CREDRE);if(!m||m.index==null||m.index<1&&t.length>90)return;const cr=m[1].trim().replace(/^[:/]\s*/,'');if(!cr)return;
   const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let last=null,n;while(n=w.nextNode())last=n;if(!last)return;
-  const i=last.data.lastIndexOf(cr.slice(0,Math.min(cr.length,12)));if(i<0)return;const rest=last.data.slice(i);last.data=last.data.slice(0,i).replace(/[\s(\[·]+$/,'');if(el.textContent.trim())last.data+=' · ';const sp=document.createElement('span');sp.className='cred';sp.textContent=rest.replace(/[)\]\s]+$/,'').replace(/^(?:photos?|images?|credits?|illustrations?|photographs?|source|courtesy)\s*(?:by|:|\/)\s*/i,'');el.append(sp)};
+  const i=last.data.lastIndexOf(cr.slice(0,Math.min(cr.length,12)));if(i<0)return;const rest=last.data.slice(i);last.data=last.data.slice(0,i).replace(/[\s(\[·]+$/,'');const dot=el.textContent.trim()?'· ':'';if(dot)last.data+=' ';const sp=document.createElement('span');sp.className='cred';sp.textContent=dot+rest.replace(/[)\]\s]+$/,'').replace(/^(?:photos?|images?|credits?|illustrations?|photographs?|source|courtesy)\s*(?:by|:|\/)\s*/i,'');el.append(sp)};
  b.querySelectorAll('figcaption').forEach(split);
  b.querySelectorAll(':scope>p').forEach(p=>{
   const pv=p.previousElementSibling;if(!pv)return;
