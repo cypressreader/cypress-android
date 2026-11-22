@@ -32,16 +32,17 @@ function fixSelector(sel){const lead=sel.match(/^\s*/)[0],s=sel.trim();if(!s)ret
   return k.map(key=>lead+s.slice(0,at)+comp.slice(0,x.b)+':where('+key+')'+comp.slice(x.b)).join(',')}
  return null}
 function fixPrelude(p){const m=p.match(/^((?:\s|\/\*[\s\S]*?\*\/)*)([\s\S]*)$/),pre=m[1],body=m[2];if(!body.trim()||body.includes('/*'))return p;let ch=0;const parts=splitTop(body,c=>c===',').map(s=>{const f=fixSelector(s);if(f){ch++;return f}return s});return ch?(fixPrelude.n+=ch,pre+parts.join(',')):p}fixPrelude.n=0;
-function fixCss(css){let out='',i=0,start=0;const n=css.length;
+function mapPreludes(css,fn){let out='',i=0,start=0;const n=css.length;
  const skipBlock=j=>{let d=0,q='';for(;j<n;j++){const c=css[j];if(q){if(c==='\\')j++;else if(c===q)q='';continue}if(c==='/'&&css[j+1]==='*'){j=css.indexOf('*/',j+2);if(j<0)return n;j++;continue}if(c==='"'||c==="'")q=c;else if(c==='{')d++;else if(c==='}'&&!--d)return j+1}return n};
  while(i<n){const c=css[i];if(c==='/'&&css[i+1]==='*'){const e=css.indexOf('*/',i+2);i=e<0?n:e+2;continue}if(c==='"'||c==="'"){i++;while(i<n&&css[i]!==c){if(css[i]==='\\')i++;i++}i++;continue}
   if(c===';'||c==='}'){out+=css.slice(start,i+1);start=++i;continue}
   if(c==='{'){const prelude=css.slice(start,i),t=prelude.replace(/\/\*[\s\S]*?\*\//g,'').trim();
    if(t[0]==='@'){if(/^@(media|supports|container|layer|scope|starting-style)\b/i.test(t)){out+=css.slice(start,i+1);start=++i;continue}const e=skipBlock(i);out+=css.slice(start,e);start=i=e;continue}
-   const e=skipBlock(i);out+=fixPrelude(prelude)+css.slice(i,e);start=i=e;continue}
+   const e=skipBlock(i);out+=fn(prelude)+css.slice(i,e);start=i=e;continue}
   i++}
  return out+css.slice(start)}
+const fixCss=css=>mapPreludes(css,fixPrelude);
 if(require.main===module){const html=fs.readFileSync(FILE,'utf8');const res=html.replace(/(<style\b[^>]*>)([\s\S]*?)(<\/style>)/gi,(m,a,css,z)=>a+fixCss(css)+z);
  if(CHECK){console.log(fixPrelude.n?fixPrelude.n+' selectors could be keyed: run node scripts/css-keys.js':'all keyed');process.exit(fixPrelude.n?1:0)}
  if(res!==html)fs.writeFileSync(FILE,res);console.log('keyed '+fixPrelude.n+' selectors in '+path.basename(FILE)+' ('+(res.length-html.length)+' bytes added)')}
-module.exports={fixCss,fixSelector};
+module.exports={fixCss,fixSelector,mapPreludes,splitTop,lastCompoundAt,simples,keysOf};
