@@ -2425,3 +2425,6 @@ Settings
 - Fold open sideways (list and story side by side): open the side bar, tap the STORY half: it closes and the tap does nothing else. Same on a boxed note inside a story, the top bar, the bottom corner.
 - Inner screen, story open, side bar tab at the left edge: opens and closes without a stutter; the story behind does not jump. No page copy shows through the side bar or flashes when it closes (copies are now see-through while it is open, not removed).
 - Inner screen, any story with a 'next story' card on its last spread: the phone stays cool and turns stay smooth after a minute of reading (the story used to lay itself out about five times a second for as long as it was open). Tools: `node tools/r3/relayout_loop.js`, `node tools/r3/side_open.js`, `node tools/r3/side_tap.js`.
+
+## Outside tap only closes the side bar (after 1.382, unverified on the Fold)
+- Side bar open over the list, the Daily, a story, and side by side: tap a story card, a button, the bottom of a page: the side bar closes and NOTHING else happens (no story opens, no page turns). A second tap then does the normal thing. The bottom tabs are covered too while it is open. Swipe left still closes it. Tool: `node tools/r3/side_only.js` (must end ALL OK).
