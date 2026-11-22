@@ -14075,7 +14075,7 @@ const vdTile=(L,a,k)=>{const f=fof(a),rd=S.read[a.link];return `<div class="vd $
 function vdRes(L){
  const raw=VDQ.q.trim(),ws=raw.toLowerCase().split(/\s+/).filter(Boolean);if(!ws.length)return '';
  const hit=t=>{t=t.toLowerCase();return ws.every(w=>t.includes(w))},V=L.filter(a=>hit((a.title||'')+' '+(fof(a).title||''))).slice(0,24),
-  C=CATY.filter(e=>e[0]==='Videos'&&hit([e[1],...(e[3]||[]),...(e[4]||[])].join(' '))).slice(0,6),h=raw.replace(/^@/,''),
+  /* R3 M8: a channel is suggested only when a whole word of the search (3 letters or more) is a word of its name or topic */qw=ws.filter(w=>w.length>2&&!/^(the|and|for|you|videos?)$/.test(w)),C=CATY.filter(e=>e[0]==='Videos'&&qw.length&&qw.some(w=>[e[1],...(e[3]||[]),...(e[4]||[])].join(' ').toLowerCase().split(/[^a-z0-9]+/).includes(w))).slice(0,6),h=raw.replace(/^@/,''),
   row=(n,d,u,l)=>`<div class="vdcr"><span><b>${esc(n)}</b><small>${esc(d)}</small></span>${u&&inFeeds(u)?'<i>Following</i>':`<button type="button" data-vdf="${esc(u||'https://www.youtube.com/@'+h)}" data-n="${u?esc(n):''}">${l}</button>`}</div>`;
  return `<h4 class="vdh">${V.length?V.length+(V.length===1?' video':' videos'):'No videos'} from channels you follow</h4>${V.length?`<div class="vdg">${V.map(a=>vdTile(L,a,'')).join('')}</div>`:''}<h4 class="vdh">Channels</h4>${C.map(e=>row(e[1],(e[4]||[]).filter(t=>t!=='video').join(', '),e[2],'Follow')).join('')}${/^[\w.-]{3,30}$/.test(h)?row('@'+h,'Asks YouTube for the channel with this exact name','','Find and follow'):''}<a class="vdo" href="https://www.youtube.com/results?search_query=${encodeURIComponent(raw)}" target="_blank" rel="noopener"><span>Search YouTube for “${esc(raw)}”<small>Opens YouTube</small></span><b aria-hidden="true">↗</b></a>`;
 }
