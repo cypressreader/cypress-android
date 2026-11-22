@@ -1,0 +1,20 @@
+const {APP}=require('../../tests/env');const {mock,PW}=require('../../tests/mock');const {chromium}=require(PW);const path=require('path');
+const FX=path.resolve(__dirname,'../../tests/fixtures/pride-and-prejudice.epub');
+(async()=>{const b=await chromium.launch();const W=+process.env.W||884,H=+process.env.H||1104;
+ const ctx=await b.newContext({viewport:{width:W,height:H},hasTouch:true});const p=await ctx.newPage();await mock(p,{n:3});
+ await p.goto('file://'+APP);await p.waitForTimeout(1500);await p.click('text=Get started').catch(()=>{});
+ await p.evaluate(()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());S.scroll="pages";S.sel='books';side();render()});await p.waitForTimeout(400);
+ const [fc]=await Promise.all([p.waitForEvent('filechooser'),p.evaluate(()=>document.querySelector('#grid [data-bkadd]').click())]);await fc.setFiles(FX);
+ await p.waitForFunction(()=>document.querySelector('#grid .rki h2'),null,{timeout:60000});
+ const ci=await p.evaluate(async()=>{const l=await bkAll();const b=l[0];let m=0;b.ch.forEach((c,i)=>{if(c.w>b.ch[m].w)m=i});return m});
+ await p.evaluate(i=>document.querySelector('#grid [data-bkch="'+i+'"]:not(.go)').click(),ci);
+ await p.waitForFunction(()=>R.ready&&curA&&curA.book,null,{timeout:20000});await p.waitForTimeout(1500);
+ await p.evaluate(()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true})));await p.waitForTimeout(12000);
+ const cdp=await ctx.newCDPSession(p);const ev=[];cdp.on('Tracing.dataCollected',d=>ev.push(...d.value));
+ await cdp.send('Tracing.start',{categories:'devtools.timeline,disabled-by-default-devtools.timeline.invalidationTracking',transferMode:'ReportEvents'});
+ const info=await p.evaluate(()=>{const host=document.querySelector('.book .view[aria-hidden]').parentNode;const r=[];for(let i=0;i<4;i++){const v=mkBox(R.pg+1,0,false,'');const w=document.createElement('div');w.className=host.className;w.style.cssText=host.style.cssText;w.append(v);host.parentNode.append(w);r.push(v.querySelectorAll('*').length);getComputedStyle(document.body).color}return {r,doc:document.querySelectorAll('*').length,kids:[...host.parentNode.children].map(e=>e.className.split(' ').slice(0,2).join('.')+':'+e.querySelectorAll('*').length).join(' ')}});
+ const done=new Promise(r=>cdp.once('Tracing.tracingComplete',r));await cdp.send('Tracing.end');await done;
+ console.log(JSON.stringify(info),'style passes:',ev.filter(e=>e.name==='UpdateLayoutTree'&&e.args.elementCount>20).map(e=>e.args.elementCount+' els '+Math.round(e.dur/1000)+'ms').join(', '));
+ const inv={};for(const e of ev)if(/InvalidationTracking/.test(e.name)&&!/^Layout/.test(e.name)){const d=e.args.data||{};const k=e.name.replace('InvalidationTracking','')+' | '+(d.reason||'')+' | '+(d.invalidationSet?'set':'')+(d.changedClass?' class '+d.changedClass:'')+(d.changedAttribute?' attr '+d.changedAttribute:'')+(d.changedId?' id '+d.changedId:'')+(d.changedPseudo?' pseudo '+d.changedPseudo:'')+' | '+(d.nodeName||'').slice(0,50)+(d.extraData?' | '+d.extraData:'')+(d.selectorPart?' | '+d.selectorPart:'');inv[k]=(inv[k]||0)+1}
+ console.log(Object.entries(inv).sort((a,b)=>b[1]-a[1]).slice(0,+process.env.TOP||16).map(x=>x[1]+' '+x[0]).join('\n'));
+ await b.close()})();

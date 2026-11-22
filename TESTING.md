@@ -2416,3 +2416,7 @@ Settings
 
 ## Headline over a photo stays white (after 1.381, unverified on the Fold)
 - Al Jazeera lead card (and any site with a light brand color: orange, yellow): the headline over the photo is white with its shadow, same as the kicker and time. Cause was the card's own site color behind the photo being used to pick the headline color. Check tool: `node tools/r3/ink_brand.js`.
+
+## Book page turns feel smooth (after 1.381, unverified on the Fold)
+- Open a long book chapter on the inner screen, turn 10 pages at reading pace and a few quickly: no hitch at the start of a turn, no stutter mid-turn. Stories should feel the same or better. Cause: one feed-layout rule made the browser re-check every paragraph in the app whenever a page copy was added (119 ms per copy, now 18). Tools: `GAP=6000 node tools/r3/book_turn.js`, `node tools/r3/book_count.js`.
+- Headlines in Columns view, a day with four or more stories under the lead: the short summaries are still hidden there (rule rewritten, same result).
