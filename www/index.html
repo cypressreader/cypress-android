@@ -7014,7 +7014,7 @@ let LSPD=0;
 {let y0=0,raf=0,ly=0,lt=0;const RM=matchMedia('(prefers-reduced-motion: reduce)');document.addEventListener('scroll',e=>{const m=e.target;if(!m||m.tagName!=='MAIN'||raf)return;raf=requestAnimationFrame(()=>{raf=0;const y=m.scrollTop,d=y-y0,t=performance.now();/* B5: list scroll speed in px/ms; Read as you scroll skips cards that leave the top during a fling */LSPD=t-lt<200?Math.abs(y-ly)/Math.max(1,t-lt):0;ly=y;lt=t;if(Math.abs(d)<14)return;y0=y;const ae=document.activeElement,typing=ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);document.body.classList.toggle('tabtuck',d>0&&y>160&&!typing&&!RM.matches)})},{capture:true,passive:true})}
 {const r0=render0;render0=function(){const x=r0.apply(this,arguments);try{feedHead()}catch(e){}return x}}
 function render0(){
- NRS=nrMode();$('#grid').classList.remove('nr','nrp','wire','wtopic','fed','paper','wc','gen-wire','gen-sun');$('#grid').style.removeProperty('--fb');
+ NRS=nrMode();$('#grid').classList.remove('nr','nrp','wire','wtopic','fed','paper','wc','gen-wire','gen-sun');$('#grid').style.removeProperty('--fb');try{updVw()}catch(e){}
  side();$('#grid').classList.toggle('list',S.view==='list');{const g=$('#grid');g.dataset.w=S.view==='list'?'list':'card';g.dataset.wdens=S.wdens==='col'?'col':'mag';g.removeAttribute('data-hist')}
  let fs=S.feeds,t='All Stories';
  if(S.sel.startsWith('f:')){const id=S.sel.slice(2);fs=S.feeds.filter(x=>x.folder===id);t=S.folders.find(f=>f.id===id)?.name||t}
@@ -7062,12 +7062,13 @@ function render0(){
   $('#grid').innerHTML=(S.sel==='all'&&!q&&S.feeds.length?allSeg('latest'):'')+(q?emp('No matches','Nothing matches “'+esc(q)+'”. Try a shorter word, or a different one.',EA('cl')):S.sel==='saved'&&S.saved.some(x=>x.ar)?savedChips()+emp('All caught up','Stories you read over a month ago are in Archive.'):S.sel==='saved'?emp('Nothing saved yet','Hold a story and choose Save, or swipe its card left, and it waits here, even offline.',EA('td')):S.sel.startsWith('k:')&&!busy?emp('Nothing here yet','No stories match this topic yet. New ones appear as your sites post them.',EA('td')):S.hideRead&&!busy&&fs.some(f=>(items[f.id]||[]).length)?emp('All caught up','You have read everything here. Turn off “Hide stories I’ve read” in Settings to see older stories.',EA('st')):busy?`<div class="empty">${SKEL()}</div>`:fs.length?empNoStories():emp('No sites here yet','Add a few sites you like and their latest stories show up here.',EA('ad','sp')));return;
  }
  let pre='';
- if(S.sel==='all'&&!q)pre=(S.feeds.length?allSeg('latest'):'')+brkHtml(cur)+latestMast();
+ if(S.sel==='all'&&!q)pre=(S.feeds.length?allSeg('latest'):'')+brkHtml(cur)+latestMast(cur);
  if(S.sel==='saved'&&!q&&S.saved.length)pre=shelfMast()+savedChips()+colCover();
  if(q&&q.length>=3&&!S.sk.some(k=>k.words.length===1&&k.words[0]===q))pre=topicMast(q,cur);
  if(!q&&S.sel.startsWith('s:')){const f=S.feeds.find(x=>'s:'+x.id===S.sel);if(f&&paused(f))pre=`<div class="fbar"><span>${esc(f.title)} is paused${f.snz>8e15?'':' until '+esc(new Date(f.snz).toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}))}. Its stories are hidden from Today and All Stories.</span><button class="tx2" data-resume="${f.id}">Resume</button></div>`;else if(f&&f.via==='bing')pre=`<div class="fbar"><span>Showing ${esc(f.title)} headlines from Bing News, because ${f.viaWhy==='stale'?'the site’s own feed is out of date':'the site blocks feed readers'}. Stories still open from ${esc(siteOf(f))}.</span></div>`;else if(f&&state[f.id]==='err')pre=`<div class="fbar"><span><b>We couldn’t refresh ${esc(f.title)}.</b> ${esc(feedReason(f))}. ${esc(lastOkTxt(f))}.</span><button class="tx2" data-frep="${f.id}">Try again</button></div>`}
  if(!q&&S.sel.startsWith('k:')){const k=S.sk.find(x=>'k:'+x.id===S.sel);if(k)pre=`<div class="fbar"><span>Following ${k.by||k.sec?'':'“'}${esc(kdesc(k))}${k.by||k.sec?'':'”'} across all your sites</span><button class="tx2" data-unfollow="${k.id}">Unfollow</button></div>`}
  pre+=mutRow();
+ /* L13: an empty search offers up to five topics from the stories already on this device (the wire view shows its own strip) */if(!q&&srch.classList.contains('open')&&!(wireOn()&&wireSel()&&cur.length>=6&&nrMode()&&S.view!=='list'))pre+=trendStripHtml(wireStrip(cur).slice(0,5));
  let cov=null,covN=0;
  if(isOn('covers')&&!q&&/^(s|f|k):/.test(S.sel)&&cur.length>=3&&S.view!=='list'&&!(nrMode()&&cur.length>=6)){
   const kd=S.sel[0],id=S.sel.slice(2);let title='',col='';
@@ -7440,7 +7441,7 @@ if(FD){
  newN=vis?cn.filter(a=>a.date>vis).length:0;WIRE.newN=newN;
  const tr=T?[]:wireStrip(cn),clock=vis?wireClock(vis):'';
  /* F05: a site or folder masthead already shows the one unread count, so its meta line keeps only the "new since" note */const mst=!!(f1||(FO&&FD));
- const wm=`<div class="wmeta"><div class="nr-meta">${mst?'':stN(cn.length)}${S.hideCount||mst?'':' · '+cn.filter(a=>!S.read[a.link]).length+' unread'}${vis&&newN?`${mst?'':' · '}${newN} new since ${clock}`:''}</div>${B.some(x=>/class="[^"]*\bwsec\b/.test(x))?'<button type="button" class="wsecb" data-secm aria-haspopup="dialog">Sections</button>':''}${densHtml()}</div>`;
+ const wm=pre.includes('class="tm1"')?'':`<div class="wmeta"><div class="nr-meta">${mst?'':stN(cn.length)}${S.hideCount||mst?'':' · '+cn.filter(a=>!S.read[a.link]).length+' unread'}${vis&&newN?`${mst?'':' · '}${newN} new since ${clock}`:''}</div>${B.some(x=>/class="[^"]*\bwsec\b/.test(x))?'<button type="button" class="wsecb" data-secm aria-haspopup="dialog">Sections</button>':''}${densHtml()}</div>`;
  const head=pre.replace('<h2 aria-hidden="true">All Stories</h2></header>','<h2 aria-hidden="true">All Stories</h2>'+wm+'</header>')+(f1?feedMast(f1,unread,cn):FO&&FD?feedMast(FD,unread,cn):'').replace(/<p class="fm-s">\d+ unread\.<\/p>/,'')+(pend?`<div class="wpill" data-n="${pend}"><span>${pend} new ${pend===1?'story':'stories'} since you opened this</span><button type="button" data-wire="load">Show</button></div>`:'')
   +(pre.includes('<h2 aria-hidden="true">All Stories</h2></header>')?'':wm)+trendStripHtml(tr);
  g.classList.add('nr','wire');g.dataset.w=g.dataset.wdens=S.wdens==='col'?'col':'mag';try{updVw()}catch(e){}if(T)g.classList.add('wtopic');if(FD){g.classList.add('fed');g.style.setProperty('--fb',brand(FD))}g.classList.toggle('nrp',nrPhone());g.dataset.cards='medium';
@@ -8854,7 +8855,7 @@ function daySections(list,mode){
   return h+(buf?wrap(buf):'')};
  const frontCount=front.length+(lead&&!COVSHOWN?1:0);
  SMARTV=true;NRLAB='Next up';
- B.push(`<div class="dsec2">${sh('front','The Front Page','',frontCount,'stories')}</div>`);
+ if(front.length||(lead&&!lead.read&&!COVSHOWN))B.push(`<div class="dsec2">${sh('front','The Front Page','',frontCount,'stories')}</div>`);
  if(lead&&!lead.read){if(!COVSHOWN)B.push(royalHtml(lead,0));const L=ledeOf(lead),cand=[lead].concat(front),pick=cand.find(x=>{const q=nrQuoteText(x);return q&&q.real&&q.q!==L})||front.find(x=>{const q=nrQuoteText(x);return q&&q.q!==L});const pq=pick?pullQuoteHtml(pick):'';if(pq)B.push(pq)}
  if(front.length)nrBlocks(front,base,{brk:brk&&VW<700/* the front page's middle column is a list of rows only at phone width; wider it is already a grid of pictures */}).forEach(b=>B.push(b));
  NRLAB='Latest';SMARTV=false;
@@ -12253,11 +12254,11 @@ function localAct(t){
 $('#pop').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='locq'){e.preventDefault();localGo(e.target.value)}});
 let wsAuto=0;
 $('#pop').addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-addurl]'))$('#frm').requestSubmit($('#ok'));const fc=e.target.closest&&e.target.closest('[data-fo]');if(fc){$('#fo').value=fc.dataset.fo;$('#fo').onchange()}});
-$('#u').oninput=()=>{const q=$('#u').value.trim();liveRes=null;pop();pwWarn(q,false);liveCheck(q);clearTimeout(wsAuto);
+$('#u').oninput=()=>{const q=$('#u').value.trim();$('#err').textContent='';liveRes=null;pop();pwWarn(q,false);liveCheck(q);clearTimeout(wsAuto);
  if(q.length>=3&&!/[.@\/:]/.test(q)){const cs=catSearch(q),qf=foldQ(q);/* a built-in site's name is never sent to the web search (the privacy page promises that) */if(cs.length<3&&!cs.some(x=>foldQ(x.n).includes(qf)))wsAuto=setTimeout(()=>{if($('#u').value.trim()===q&&WS.q!==q)webSearch(q)},1000)}};
 $('#pop').onclick=e=>{const t=e.target;const wb=t.closest&&t.closest('[data-ws]');if(wb){webSearch(wb.dataset.ws);popTop();return}if(t.dataset&&t.dataset.dym){$('#u').value=t.dataset.dym;$('#u').oninput();return}if(t.dataset&&t.dataset.info){feedInfo(t.dataset.info,t);return}const cb=t.closest&&t.closest('[data-cat]');if(cb){cat=+cb.dataset.cat;pop();popTop()}else if(t.closest&&t.closest('[data-back]')){window.addBackHook();popTop()}else if(t.dataset.pack!==undefined)addPack(+t.dataset.pack,t);else if(t.dataset.local)localAct(t);else if(t.dataset.add){if(t.dataset.v)addVerified(t.dataset.add,t.dataset.n,t.dataset.c,t);else{const r=quickAdd(t.dataset.add,t.dataset.n,t.dataset.c);dlgAdded(1,r.fo.name);toast('Added '+t.dataset.n+' to “'+r.fo.name+'”',()=>openAddedFeed(r.f.id),'Open')}}};
 $('#add').onclick=()=>{drawer(false);fillFolders();$('#err').textContent='';$('#frm').reset();fillFolders();cat=-9;$('#adv').open=false;DLGADDED=[];dlgDoneFlip();pop();dlg.showModal()};
-$('#cancel').onclick=()=>dlg.close();$('#dlgx').onclick=()=>dlg.close();dlg.addEventListener('click',e=>{if(e.target!==dlg)return;const r=dlg.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dlg.close()});
+dlg.addEventListener('cancel',e=>{if(window.addBackHook())e.preventDefault()});$('#cancel').onclick=()=>dlg.close();$('#dlgx').onclick=()=>dlg.close();dlg.addEventListener('click',e=>{if(e.target!==dlg)return;const r=dlg.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dlg.close()});
 /* B35: once feeds are added in this dialog session, the primary button becomes
    Done — tapping it confirms what was added and closes, instead of reading as abandon */
 let DLGADDED=[];
@@ -12283,6 +12284,7 @@ $('#frm').onsubmit=async e=>{
   if(!known(url))Promise.race([fetchText('https://'+host(url)),new Promise((_,j)=>setTimeout(j,6000))]).then(t=>{const m=new DOMParser().parseFromString(t,'text/html').querySelector('meta[name="theme-color"]');if(m&&/^#[0-9a-f]{3,8}$/i.test(m.content)&&S.feeds.includes(f)){f.color=m.content;save();render()}}).catch(()=>{});
  }catch(x){
   let q=$('#u').value.trim(),bad=false;try{bad=!/\./.test(new URL(socialUrl(q)).hostname)}catch(_){bad=true}
+  if(bad&&q&&!/[.@\/:]/.test(q)&&x!=='dup'){if(WS.q!==q)webSearch(q);btn.disabled=false;btn.textContent='Add site';return}
   err.textContent=x==='dup'?'That site is already in your list.':!q?'Type a website address first.':bad?'That doesn’t look like a web address. Try something like example.com.':!navigator.onLine?'You’re offline, so CyPress couldn’t check that address. Connect and try again.':'CyPress couldn’t find stories at that address. Nothing was added. Check the spelling, or type the site’s name to search for it.'}
  btn.disabled=false;btn.textContent='Add site';
 };
@@ -12318,7 +12320,7 @@ function qrecSync(){const d=$('#qrecent');if(d)d.innerHTML=(S.qr||[]).map(x=>`<o
 $('#q').addEventListener('change',()=>{const v=$('#q').value.trim();if(v.length<2)return;use1('find');S.qr=[v,...(S.qr||[]).filter(x=>x.toLowerCase()!==v.toLowerCase())].slice(0,8);save();qrecSync()});qrecSync();
 {const _rq=render;render=function(){const r=_rq.apply(this,arguments);try{const q=$('#q').value.trim();const g=$('#grid');if(q&&g&&!g.querySelector('#qsc'))g.insertAdjacentHTML('afterbegin',`<div id="qsc" class="segs chips" role="radiogroup" aria-label="Search in">${[['all','All'],['unread','Unread'],['saved','Saved']].map(([k,t])=>`<button type="button" role="radio" data-qsc="${k}" aria-checked="${QSC===k}" class="${QSC===k?'on':''}">${t}</button>`).join('')}</div>`)}catch(e){}return r}}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-qsc]');if(!b)return;QSC=b.dataset.qsc;render()});
-function openSearch(o){srch.classList.toggle('open',o);TOPIC=null;if(o){/* F6: say what is searched */const q=$('#q'),l=S.sel==='saved'?'Search saved stories':'Search stories';q.placeholder=l;q.setAttribute('aria-label',l);screenMode();q.focus()}else{$('#q').value='';QSC='all';render()}}
+function openSearch(o){srch.classList.toggle('open',o);TOPIC=null;if(o){/* F6: say what is searched */const q=$('#q'),l=S.sel==='saved'?'Search saved stories':'Search stories';q.placeholder=l;q.setAttribute('aria-label',l);screenMode();q.focus();render()}else{$('#q').value='';QSC='all';render()}}
 $('#sb').onclick=()=>openSearch(!srch.classList.contains('open'));
 /* an open but empty search box closes by itself once the keyboard is gone and you scroll, or move to another page (it used to stay stuck on screen) */
 {const q=$('#q'),vv=window.visualViewport;let gone=true,hmin=0,selAt='';
@@ -14256,7 +14258,7 @@ function colCover(){
 }
 function savedChips(){
  const tags={};S.saved.forEach(a=>(a.tags||[]).forEach(t=>tags[t]=(tags[t]||0)+1));const nar=S.saved.filter(a=>a.ar).length,nur=S.saved.filter(a=>!a.ar&&!S.read[a.link]).length,nrs=S.saved.filter(svRes).length;
- return `<div class="schips svm" role="group" aria-label="How much time you have"><span class="svl">How much time you have</span>${[0,5,15,30].map(m=>`<button type="button" class="chip ${(+S.svmin||0)===m?'on':''}" data-svmin="${m}" aria-pressed="${(+S.svmin||0)===m}">${m?m+' min':'Any'}</button>`).join('')}</div><div class="schips"><button class="chip ${!S.stag?'on':''}" data-stag="" aria-pressed="${!S.stag}">All ${S.saved.length-nar}</button>${nur?`<button class="chip ${S.stag==='~ur'?'on':''}" data-stag="~ur" aria-pressed="${S.stag==='~ur'}">Not read yet ${nur}</button>`:''}${nrs?`<button class="chip ${S.stag==='~rs'?'on':''}" data-stag="~rs" aria-pressed="${S.stag==='~rs'}">Resume ${nrs}</button>`:''}${Object.keys(tags).sort().map(t=>`<button class="chip ${S.stag===t?'on':''}" data-stag="${esc(t)}" aria-pressed="${S.stag===t}">${esc(t)} ${tags[t]}</button>`).join('')}${nar?`<button class="chip ${S.stag==='~ar'?'on':''}" data-stag="~ar" aria-pressed="${S.stag==='~ar'}">Archive ${nar}</button>`:''}<button class="tx2 sx" data-ssel aria-pressed="${SVSEL?'true':'false'}">${SVSEL?'Cancel picking':'Pick stories'}</button><button class="tx2 sx" data-sshare>Share this list</button></div>`;
+ const m3=S.saved.length>=3||+S.svmin;return `${m3?`<div class="schips svm" role="group" aria-label="How much time you have"><span class="svl">How much time you have</span>${[0,5,15,30].map(m=>`<button type="button" class="chip ${(+S.svmin||0)===m?'on':''}" data-svmin="${m}" aria-pressed="${(+S.svmin||0)===m}">${m?m+' min':'Any'}</button>`).join('')}</div>`:''}<div class="schips"><button class="chip ${!S.stag?'on':''}" data-stag="" aria-pressed="${!S.stag}">All ${S.saved.length-nar}</button>${nur?`<button class="chip ${S.stag==='~ur'?'on':''}" data-stag="~ur" aria-pressed="${S.stag==='~ur'}">Not read yet ${nur}</button>`:''}${nrs?`<button class="chip ${S.stag==='~rs'?'on':''}" data-stag="~rs" aria-pressed="${S.stag==='~rs'}">Resume ${nrs}</button>`:''}${Object.keys(tags).sort().map(t=>`<button class="chip ${S.stag===t?'on':''}" data-stag="${esc(t)}" aria-pressed="${S.stag===t}">${esc(t)} ${tags[t]}</button>`).join('')}${nar?`<button class="chip ${S.stag==='~ar'?'on':''}" data-stag="~ar" aria-pressed="${S.stag==='~ar'}">Archive ${nar}</button>`:''}${m3?`<button class="tx2 sx" data-ssel aria-pressed="${SVSEL?'true':'false'}">${SVSEL?'Cancel picking':'Pick stories'}</button>`:''}<button class="tx2 sx" data-sshare>Share this list</button></div>`;
 }
 function shareSavedList(){
  const l=S.saved.filter(a=>S.stag==='~ar'?a.ar:S.stag?(a.tags||[]).includes(S.stag):!a.ar);
@@ -16295,7 +16297,7 @@ function longformItem(a,i,ix,cover,why){
 }
 /* the Deep reads tab: a nameplate, the long reads one at a time with big art, and a proper end */
 /* the Smart view opens with a small masthead too: the day in the display serif, so All stories matches the other tabs */
-function latestMast(){const d=new Date(),day=d.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});return `<header class="tmast tm-day"><small>${esc(day)}</small><h2 aria-hidden="true">All Stories</h2></header>`}
+function latestMast(l){const d=new Date(),day=d.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});/* Compact and Narrow have no day sections: one slim line keeps the count and Mark read in sight */const un=l&&nrDense()?(SECR.all=l.map(a=>a.link).filter(k=>!S.read[k])):0;return `<header class="tmast tm-day"><small>${esc(day)}</small><h2 aria-hidden="true">All Stories</h2>${l&&nrDense()?`<div class="wmeta"><div class="nr-meta">${stN(l.length)}${S.hideCount?'':' · '+un.length+' unread'}</div>${un.length?'<button type="button" class="wsecb" data-secread="all" aria-label="Mark all stories as read">Mark read</button>':''}</div>`:''}</header>`}
 function tabMast(tab,list){
  const n=list.length,mins=list.reduce((t,a)=>t+(minsOf(a)||0),0),hrs=mins>=90?(Math.round(mins/6)/10)+' hours':MIN(mins),src=new Set(list.map(a=>a.feedId)).size;
  const T={top:['Top stories',n===1?'One top story':n+' top stories','The stories covered by the most sites you follow over the last three days.'],
@@ -16465,7 +16467,7 @@ PE_NEUTRAL.topicstat='What your sites have said about this.';
 function topicMast(q,list){
  const f=topicFacts(q,list),stat=pe('topicstat',f,'tp'+q.toLowerCase()),fol=S.sk.some(k=>k.words.length===1&&k.words[0]===q);
  /* round two J2 (David's pick A): a typed search gets one thin line, the count and a Follow button, so results start at the top */
- if(!TOPIC)return `<header class="tm1"><span class="tm-s">${plu(list.length,'story','stories')}</span>${fol?'<span class="tm-f">Following</span>':`<button class="tx2" type="button" data-follow="${esc(q)}">Follow this topic</button>`}</header>`;
+ if(!TOPIC)return `<header class="tm1"><span class="tm-s">${plu(list.length,'story','stories')}${S.hideCount?'':' · '+list.filter(a=>!S.read[a.link]).length+' unread'}</span>${fol?'<span class="tm-f">Following</span>':`<button class="tx2" type="button" data-follow="${esc(q)}">Follow this topic</button>`}</header>`;
  /* a topic opened by tapping its name keeps its full heading, with Mute and Close */
  const m=mastArt(list);
  return `<header class="tmast${m.c}"${m.s}>${m.i}<small>Topic</small><h2>${esc(q)}</h2><p class="tm-s">${esc(stat)}</p><div class="tm-a">${fol?'<span class="tm-f">Following</span>':`<button class="tx2" type="button" data-follow="${esc(q)}">Follow this topic</button>`}<button class="tx2" type="button" data-topicmute="${esc(q)}">Mute this topic</button><button class="tx2" type="button" data-topicx>Close topic</button></div></header>`;
@@ -17698,8 +17700,14 @@ addEventListener('popstate',()=>{
  if(top.startsWith('dlg:')){const d=DLG[top];if(d&&d.open&&((d.id==='set'&&window.setBackHook&&window.setBackHook())||(d.id==='dlg'&&window.addBackHook&&window.addBackHook())||(d.id==='ob'&&obBack()))){LAYER.push(top);try{history.pushState({cp:top,n:LAYER.length},'')}catch(e){}return}delete DLG[top];if(d&&d.open){d._ly=null;d.close()}return}
  const active={mn:()=>$('#mn')&&!$('#mn').hidden,gal:()=>$('#gal')&&!$('#gal').hidden,rdnav:()=>$('#rdnav')&&!$('#rdnav').hidden,reader:()=>$('#rd').classList.contains('on'),drawer:()=>document.body.classList.contains('open'),yir:()=>!!$('#yir'),fin:()=>FIN.open,hub:()=>!!$('#hub')&&$('#hub').classList.contains('on')}[top];
  if(active&&!active()){if(LAYER.length)history.back();return}
- if(top==='mn')rdxMnClose(true,true);else if(top==='gal')galClose(true);else if(top==='rdnav')rdNav(false,true);else if(top==='reader')closeRd(true);else if(top==='drawer')document.body.classList.remove('open');else if(top==='fin')finClose(true);else if(top==='hub')closeHub(true);else if(top==='yir'){const y=$('#yir');if(y)y.querySelector('.yx').click()}
+ if(top==='mn')rdxMnClose(true,true);else if(top==='gal')galClose(true);else if(top==='rdnav')rdNav(false,true);else if(top==='reader')closeRd(true);else if(top==='drawer')document.body.classList.remove('open');else if(top==='fin')finClose(true);else if(top==='hub')closeHub(true);else if(top==='view'){if(srch.classList.contains('open'))openSearch(false);else{S.sel=LASTHOME;save();render()}}else if(top==='yir'){const y=$('#yir');if(y)y.querySelector('.yx').click()}
 });
+
+/* round three L4: leaving the home views (a folder, a site, Saved, History, Search) is one Back step, so Back returns to All Stories or the Daily before it leaves the app */
+let LASTHOME='all';
+function viewLayer(){const home=/^(all|today|brief|digest)$/.test(S.sel);if(home)LASTHOME=S.sel;const i=LAYER.lastIndexOf('view');
+ if(home&&!srch.classList.contains('open')){if(i>=0){const stale=POPSKIP&&i===LAYER.length-1;dropLayer('view');if(stale)history.back()}}else if(i<0&&!LAYER.length)pushLayer('view')}
+{const _rv=render;render=function(){const r=_rv.apply(this,arguments);try{viewLayer()}catch(e){}return r}}
 
 /* ---------- in-reader navigation panel ---------- */
 function rdNav(open,fromPop){
