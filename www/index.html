@@ -3636,6 +3636,8 @@ body:not(.narrow):not(.split).reading:not(.sideshow) #sideh{display:flex}
 .rn-t b{display:block;margin-top:3px;font:500 clamp(21px,5vw,28px)/1.15 var(--hf,var(--serif));font-synthesis:none}
 .rn-h{margin:10px 0 0;font:italic 400 13px var(--serif,Georgia,serif);color:var(--mut)}
 #rnh{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px);z-index:60;padding:7px 14px;border-radius:999px;background:var(--ink);color:var(--pn);font:600 13px var(--sans);opacity:0;pointer-events:none;transition:opacity var(--dur-2),transform var(--dur-2)}#rnh.on{opacity:.94;transform:translate(-50%,0)}
+#rdfin{position:fixed;left:50%;bottom:calc(34px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:59;display:flex;flex-direction:column;align-items:center;gap:6px;font:600 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);opacity:0;pointer-events:none}#rdfin i{width:64px;height:2px;background:var(--a1,var(--logo));transform:scaleX(0);transform-origin:left}#rd:not(.on) #rdfin{display:none}
+#rdfin.on{animation:fmk 2.6s var(--ease-out) both}#rdfin.on i{animation:fml .6s var(--ease-out) .1s both}@keyframes fmk{0%{opacity:0}12%,80%{opacity:1}100%{opacity:0}}@keyframes fml{to{transform:none}}html.rmo #rdfin.on,html.lowp #rdfin.on{animation:none;opacity:1}html.rmo #rdfin.on i,html.lowp #rdfin.on i{animation:none;transform:none}/* A6 */
 #rnh.pk{width:min(86vw,420px);border-radius:14px;padding:10px 16px;text-align:left;font-weight:500;transform:translate(-50%,0);right:auto}#rnh.pk b{display:block;font:600 16px/1.3 var(--serif);margin:3px 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}#rnh.pk small{display:block;font-size:12px;opacity:.8}
 @media(prefers-reduced-motion:no-preference){#rnh.pk{transform:translate(calc(-50% + 48px),0)}#rnh.pk.on{transform:translate(-50%,0)}}
 @media(prefers-reduced-motion:no-preference){.rn-in .book{animation:rnIn .3s ease both}@keyframes rnIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}}
@@ -18992,7 +18994,12 @@ function recsCheck(){
  else{const E=R.ep!=null?R.ep:R.np-1;end=R.np<2||R.pg>=E}
  if(end)recsKick(a.link);
 }
-{const _sp=setProg;setProg=function(){const r=_sp.apply(this,arguments);try{recsCheck()}catch(e){}return r}}
+{const _sp=setProg;setProg=function(){const r=_sp.apply(this,arguments);try{recsCheck()}catch(e){}
+ /* A6: reaching the last page shows a small "Finished · N min" mark with a line that fills (outside the page-turn copies, so it is never drawn twice) */
+ try{const a=curA;if(a&&!R.web&&R.ready){let end;if(isVert()){const v=vView();end=!!v&&v.scrollHeight>v.clientHeight+20&&vEndFrac()>=.9}else end=R.np>1&&R.pg>=(R.ep!=null?R.ep:R.np-1);
+  let f=$('#rdfin');if(!f){f=document.createElement('div');f.id='rdfin';f.setAttribute('role','status');f.innerHTML='<span></span><i></i>';$('#rd').append(f)}
+  if(!end)f._l=0;else if(f._l!==a.link){f._l=a.link;const m=minsOf(a);f.firstChild.textContent='Finished'+(m?' · '+m+' min':'');f.classList.remove('on');void f.offsetWidth;f.classList.add('on');clearTimeout(f._t);f._t=setTimeout(()=>f.classList.remove('on'),2600)}}}catch(e){}
+ return r}}
 function rnHint(t,n){
  let h=$('#rnh');if(!h){h=document.createElement('div');h.id='rnh';h.setAttribute('role','status');($('#rd')||document.body).append(h)}
  /* C3: past the last page, the next story's headline peeks in before the second turn opens it */
