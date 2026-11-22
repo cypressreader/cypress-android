@@ -11141,7 +11141,7 @@ const SET_PAGES=[
   main:[{items:['L:Tips and gestures','L:See your year','L:Privacy','L:Redo setup']},{h:'Help the developer',items:['L:Report a problem','L:Share anonymous usage counts','L:What the counts contain']},{h:'Sharing and Kindle',items:['L:Shorten shared links','L:Kindle books','L:Your Kindle address']}],
   more:[{h:'Keyboard',fold:1,items:['L:Keyboard shortcuts']},{h:'Diagnostics',fold:1,items:['L:Copy support info','L:Test sites on this phone','L:Check scrolling','L:Test suggested feeds']},{h:'Reset',items:['X:resetlook','L:Erase everything and start over']}],rst:null}
 ];
-/* David 2026-11-04: touch screens only, so Keyboard shortcuts left the main list; it is a folded row under About > Advanced */const SET_GROUPS=[['look','read','daily','listen','stories','sites'],['motion','about']];
+/* David 2026-11-04: touch screens only, so Keyboard shortcuts left the main list; it is a folded row under About > Advanced */const SET_GROUPS=[['look','read','daily','listen','stories','dl','sites'],['motion','about']];
 /* polish-2026-10 (D1): seven pages instead of ten. Appearance, Reading, Home and Stories (layout + feeds + filters), Motion and Sound, Downloads and Storage, Listening and Alerts (read aloud + digest), Backup, Sync and About. The old ids still work as aliases. Restore the old hub by putting the old merge back (feeds/tts/sync/home pages are all still defined above). */
 const SET_ALIAS={tts:'listen',feeds:'sites',sync:'sites',home:'daily',dl:'stories',alerts:'daily'};
 (function(){const by=id=>SET_PAGES.find(p=>p.id===id);
@@ -11154,7 +11154,9 @@ const SET_ALIAS={tts:'listen',feeds:'sites',sync:'sites',home:'daily',dl:'storie
   main:tag(H.main,'Front page',1).concat(H.more.filter(c=>c.h==='The Daily'),tag(A.main,'Digest',1)),more:tag(H.more.filter(c=>c.h!=='The Daily'),'Layout',1),rst:H.rst};
  const listen={id:'listen',t:'Listen',d:T.d,c:T.c,lead:T.lead,main:T.main,more:T.more,rst:T.rst};
  const isS=c=>c.h==='Your sites';
- const stories={id:'stories',t:'Stories & loading',d:'Order, filters, downloads, offline',c:F.c,lead:'How stories are chosen and shown, and what is ready ahead.',main:F.main.filter(c=>!isS(c)).concat(tag(D.main,'Downloads',1)),more:F.more.filter(c=>!isS(c)).concat(D.more),rst:(F.rst||[]).concat(D.rst||[])};
+ /* R3 S3: Stories & loading was 35 controls over four screens; it is two pages now, Stories & filters and Downloads & offline (the downloads page is the old 'dl' page again) */
+ const stories={id:'stories',t:'Stories & filters',d:'Order, filters, swipes and taps',c:F.c,lead:'How stories are chosen and shown.',main:F.main.filter(c=>!isS(c)),more:F.more.filter(c=>!isS(c)),rst:F.rst};
+ Object.assign(D,{t:'Downloads & offline',d:'Ready ahead, offline, back issues',main:tag(D.main,'Downloads',1)});delete SET_ALIAS.dl;
  const sites={id:'sites',t:'Sites & backup',d:'Your sites, sync and backups',c:Sy.c,lead:'The sites you follow, and keeping them safe.',main:F.main.filter(isS).concat(Sy.main),more:F.more.filter(isS),rst:null};
  M.t='Motion & battery';M.d='Animation, effects and vibration';M.lead='Less movement saves battery.';
  Ab.t='About CyPress';Ab.d='Tips, privacy and version';Ab.lead='Help, privacy and the app itself.';
@@ -11162,12 +11164,12 @@ const SET_ALIAS={tts:'listen',feeds:'sites',sync:'sites',home:'daily',dl:'storie
  /* R3 S8: Swipes and taps (five controls) is a group on Stories, and Kindle and shared links sit with Sites & backup; the old page id still works */
  stories.main.push(...U.main);stories.rst=stories.rst.concat(U.rst);SET_ALIAS.use='stories';
  {const isK=c=>c.h==='Sharing and Kindle';sites.main.push(...Ab.main.filter(isK).map(c=>Object.assign({},c,{was:'About'})));Ab.main=Ab.main.filter(c=>!isK(c))}
- SET_PAGES.splice(0,SET_PAGES.length,...[L,R,daily,listen,stories,sites,M,Ab]);
+ SET_PAGES.splice(0,SET_PAGES.length,...[L,R,daily,listen,stories,D,sites,M,Ab]);
  SET_PAGES.OLD={home:H,feeds:F,tts:T,sync:Sy,alerts:A,dl:D};/* kept so the old split can be restored */
 })();
 /* The "Reset appearance and reading settings" button must keep resetting exactly what it did before the pages were merged: these extra keys cover the layout and read-aloud settings that moved. */
 const SET_RESET_EXTRA=['cards','ts','narrow','sop','rate','vol','voice','prate'];
-const SET_SECPG={'s-look':'look','s-fx':'motion','s-read':'read','s-mag':'daily','s-tts':'listen','s-stories':'stories','s-load':'stories','s-data':'sites','s-sync':'sites','s-setup':'about','s-notif':'daily','s-app':'about'};
+const SET_SECPG={'s-look':'look','s-fx':'motion','s-read':'read','s-mag':'daily','s-tts':'listen','s-stories':'stories','s-load':'dl','s-data':'sites','s-sync':'sites','s-setup':'about','s-notif':'daily','s-app':'about'};
 let SET_BUILT=false,SETP=null;const SET_IX={},SET_USED=new Set();
 const setWide=()=>VW>=760;
 const setNorm=s=>(s||'').replace(/\s+/g,' ').trim();
@@ -11343,7 +11345,7 @@ function setAdopt(){
   const sec=$('#'+id);if(!sec||sec.dataset.ad)return;sec.dataset.ad='1';if(!sec.querySelector(':scope>.sbox'))return;
   const page=$('#sp-'+pg);const h3=sec.querySelector(':scope>h3');const h4=document.createElement('h4');h4.className='sct';h4.textContent=h;if(h3)h3.replaceWith(h4);else sec.prepend(h4);sec.className='sgw';
   const first=page.querySelector('.sgw');if(first)first.before(sec);else page.append(sec);
-  if(id==='s-notif'){const pk=[...sec.querySelectorAll('.line')].filter(l=>l.querySelector('[data-tg="pack"],#packh,#packo'));if(pk.length){const dl=$('#sp-stories');const w=document.createElement('div');w.className='sgw';w.innerHTML='<h4 class="sct">Morning pack</h4><div class="sbox"></div>';pk.forEach(l=>w.lastChild.append(l));const bi=[...dl.querySelectorAll('.sct')].find(h=>h.textContent==='Back issues');if(bi)bi.parentNode.before(w);else dl.append(w)}}
+  if(id==='s-notif'){const pk=[...sec.querySelectorAll('.line')].filter(l=>l.querySelector('[data-tg="pack"],#packh,#packo'));if(pk.length){const dl=$('#sp-dl');const w=document.createElement('div');w.className='sgw';w.innerHTML='<h4 class="sct">Morning pack</h4><div class="sbox"></div>';pk.forEach(l=>w.lastChild.append(l));const bi=[...dl.querySelectorAll('.sct')].find(h=>h.textContent==='Back issues');if(bi)bi.parentNode.before(w);else dl.append(w)}}
   if(setReady())setTimeout(()=>{setCounts();setSum()},0)});
 }
 const setReady=()=>SET_BUILT;
@@ -11376,7 +11378,7 @@ function setSum(){
  t.alerts=(isOn('dgon')?'Digest on':'Digest off')+(isOn('alerts')?' · story alerts on':'')+' · voice '+(S.rate||1).toFixed(1)+'×';
  const ml=moLevel();t.motion='Motion '+(ml==='custom'?'custom':ml)+' · effects '+(isOn('cyfx')?'on':'off');
  t.sync=S.sync?'Sync is on':'Sync is off';t.about='Updates · version '+APP_LABEL+' · '+t.sync.toLowerCase();
- t.daily=t.home0+(isOn('dgon')?' · digest on':'');t.listen=t.tts;t.stories=({smart:'Best first',new:'Newest first'}[S.sort||'smart']||'Your order')+' · '+t.dl.charAt(0).toLowerCase()+t.dl.slice(1);t.sites=t.feeds+' · '+t.sync.toLowerCase();
+ t.daily=t.home0+(isOn('dgon')?' · digest on':'');t.listen=t.tts;t.stories=({smart:'Best first',new:'Newest first'}[S.sort||'smart']||'Your order')+(isOn('hideRead')?' · read stories hidden':'');t.sites=t.feeds+' · '+t.sync.toLowerCase();
  document.querySelectorAll('[data-sum]').forEach(e=>{if(t[e.dataset.sum])e.textContent=t[e.dataset.sum]});
 }
 let PREVK='';
