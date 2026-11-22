@@ -9,7 +9,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   const r=await p.evaluate(async()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());const w=ms=>new Promise(r=>setTimeout(r,ms));const o={};
    document.querySelector('#set').showModal();setBuild();syncSet();setGo('daily');await w(300);
    const pg=document.querySelector('#sp-daily');const rows=[...pg.querySelectorAll('.line')].map(l=>({t:(l.querySelector('.lb')||l).firstChild.textContent.trim(),more:!!l.closest('.smore')}));
-   const i=rows.findIndex(x=>x.t==='Card layout'),j=rows.findIndex(x=>x.t==='Text size in lists');o.rows=rows.slice(Math.max(0,i-1),i+3);o.i=i;o.j=j;o.more=j>=0&&rows[j].more;
+   const i=rows.findIndex(x=>x.t==='Card size'),j=rows.findIndex(x=>x.t==='Text size in lists');o.rows=rows.slice(Math.max(0,i-1),i+3);o.i=i;o.j=j;o.more=j>=0&&rows[j].more;
    const row=pg.querySelectorAll('.line')[j];o.visible=!!row&&row.getBoundingClientRect().height>0&&!row.closest('details:not([open])');
    /* reset puts it back */
    S.ts='l';tsApply();const before=document.documentElement.dataset.ts;SET_PAGES.find(x=>x.id==='look');
