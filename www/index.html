@@ -9488,6 +9488,7 @@ hurry();R.navAt=Date.now();
  if(isVert()&&!R.web){vScrollBy(d);return}
  if(!R.web&&!R.busy&&ccv()){if(R.peek){cvPeek(false);return}const pp=!reduced()&&rdxPturn()==='paper';if(R.pg===1&&(d>0?!R.cpk:R.cpk)){cvFade(d>0);return}if(!pp&&d>0&&R.pg===0&&R.np>1){cvSlide(1);return}if(!pp&&d<0&&R.pg===1){cvSlide(0);return}/* with Paper, startTurn turns the card over like a leaf */}
  const to=R.pg+d;if(d>0&&to>=R.np&&!R.web&&!R.busy&&R.np>0&&isOn('cont')&&readerNext()){if(R.endArmed||curA.book){advanceNext();return}/* B3: a book flows into its next chapter on one tap, like a swipe */R.endArmed=true;rnHint(curA.book?'Turn the page again for the next chapter':'Turn the page again for the next story',readerNext());clearTimeout(R.endT);R.endT=setTimeout(()=>{R.endArmed=false},2600);return}
+ if(d<0&&to<0&&!R.web&&!R.busy&&!R.adv&&!curA.book&&R.nxt&&R.nxt.to===curA.link&&R.nxt.from){advanceTo(R.nxt.from,-1,1);return}
  if(R.web||R.busy||to<0||to>=R.np)return;
  if(reduced()){R.pg=to;show();/* idea book S11: with Reduce motion the page still changes like paper, by a 200 ms fade (opacity only, nothing sweeps) */try{const c=$('.cols');c&&c.animate&&c.animate([{opacity:.25},{opacity:1}],{duration:200,easing:'ease-out'})}catch(e){}return}
  if(rdxPturn()!=='paper'){rdxTurn(to);return}
@@ -19006,7 +19007,7 @@ function advanceNext(){
  const bk=$('#rd .book'),fast=reduced();
  if(bk&&!fast){bk.style.transition='transform .2s ease,opacity .2s';bk.style.transform='translateY(-26px)';bk.style.opacity='0'}
  setTimeout(()=>{
-  R.keepCtx=true;R.adv=false;
+  R.keepCtx=true;R.adv=false;R.nxt={to:n.link,from:curA};/* R3 R11: remembers where you came from, so going back returns there */
   try{openReader(n)}catch(e){elog('advanceNext',e)}
   const sh=$('#sheet');if(sh&&!fast){sh.classList.add('rn-in');setTimeout(()=>sh.classList.remove('rn-in'),420)}
   const v=vView();if(v)v.scrollTop=0;
@@ -19019,20 +19020,20 @@ function readerPrev(){
  for(let j=i-1;j>=0;j--){const x=L[j];if(x&&x.link&&x.link!==curA.link&&x.feedId!=null)return x}
  return null;
 }
-function advanceTo(n,dir){
+function advanceTo(n,dir,end){
  if(!n||R.adv)return;R.adv=true;
  const bk=$('#rd .book'),fast=reduced();
  if(bk&&!fast){bk.style.transition='transform .2s ease,opacity .2s';bk.style.transform='translateX('+(dir>0?-26:26)+'px)';bk.style.opacity='0'}
  setTimeout(()=>{
-  R.keepCtx=true;R.adv=false;
-  try{openReader(n)}catch(e){elog('advanceTo',e)}
+  R.keepCtx=true;R.adv=false;if(dir>0)R.nxt={to:n.link,from:curA};
+  try{openReader(n)}catch(e){elog('advanceTo',e)}if(end){R.rf=1;R.navAt=Date.now()}/* back to the story you came from, on its last page */
   const sh=$('#sheet');if(sh&&!fast){sh.classList.add('rn-in');setTimeout(()=>sh.classList.remove('rn-in'),420)}
  },fast?0:200);
 }
 function edgeSwipe(dir){
  if(R.web||R.busy||R.adv||isVert())return;
  if(dir>0){if(R.np>0&&isOn('cont')){const n=readerNext();if(n)advanceTo(n,1)}}
- else{const p=readerPrev();if(p)advanceTo(p,-1)}
+ else{const bn=R.nxt&&curA&&R.nxt.to===curA.link&&!curA.book&&R.nxt.from,p=bn||readerPrev();if(p)advanceTo(p,-1,!!bn)}
 }
 function rdNext(){
  const c=$('.cols'),a=curA;if(!c||!a||R.web)return;
