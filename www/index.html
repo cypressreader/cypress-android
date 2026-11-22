@@ -7210,7 +7210,7 @@ const OWN_FUND={Public:'Public money',Nonprofit:'Nonprofit: donations, grants an
 function ownerOf(u){let h='';try{h=new URL(u).hostname.toLowerCase().replace(/^www\./,'')}catch(e){return null}
  for(let p=h.split('.');p.length>=2;p=p.slice(1)){const k=p.join('.');if(Object.prototype.hasOwnProperty.call(OWNERS,k))return OWNERS[k]}return null}
 function ownerCard(u){const o=u&&ownerOf(u);if(!o)return '';
- return `<section class="own" aria-label="About this source"><h3>About this source</h3><dl><dt>Owner</dt><dd>${esc(o.owner)}</dd><dt>Paid for by</dt><dd>${esc(OWN_FUND[o.funding]||o.funding)}</dd><dt>Based in</dt><dd>${esc(o.country)}</dd></dl><small>Ownership facts as of 2025; tell us if something changed.</small></section>`}
+ return `<section class="own" aria-label="About this site"><h3>About this site</h3><dl><dt>Owner</dt><dd>${esc(o.owner)}</dd><dt>Paid for by</dt><dd>${esc(OWN_FUND[o.funding]||o.funding)}</dd><dt>Based in</dt><dd>${esc(o.country)}</dd></dl><small>Ownership facts as of 2025; tell us if something changed.</small></section>`}
 function feedMast(f,unread,list){
  const col=brand(f),m=mastArt(list),hs=host(f.url).replace(/^www\./,''),nm=esc(f.title||hs),fo=S.folders.find(x=>x.id===f.folder);
  const desc=f.desc?esc(String(f.desc).replace(/\s+/g,' ').slice(0,110)):esc(hs+(fo?' · in '+fo.name:''));
@@ -7221,7 +7221,7 @@ function feedMast(f,unread,list){
 function folderPseudo(fo){
  const fs=S.feeds.filter(x=>x.folder===fo.id&&!paused(x));let h=0;for(const c of fo.name)h=(h*31+c.charCodeAt(0))%360;
  const hex=(H,Sat,L)=>{const a=Sat*Math.min(L,1-L),f=n=>{const k=(n+H/30)%12,c=L-a*Math.max(-1,Math.min(k-3,9-k,1));return Math.round(255*c).toString(16).padStart(2,'0')};return '#'+f(0)+f(8)+f(4)};
- return {id:'f:'+fo.id,title:fo.name,url:'',color:hex(h,.42,.3),isFolder:true,_feeds:fs.map(x=>x.id),desc:plu(fs.length,'source','sources')+(fs.length?': '+fs.slice(0,3).map(x=>x.title||host(x.url)).join(', ')+(fs.length>3?' and '+(fs.length-3)+' more':''):'')};
+ return {id:'f:'+fo.id,title:fo.name,url:'',color:hex(h,.42,.3),isFolder:true,_feeds:fs.map(x=>x.id),desc:plu(fs.length,'site','sites')+(fs.length?': '+fs.slice(0,3).map(x=>x.title||host(x.url)).join(', ')+(fs.length>3?' and '+(fs.length-3)+' more':''):'')};
 }
 function wireReset(){WIREX={};WIRE.order=null;WIRE.known=null;WIRE.anchor=null;WIRE.settled=false;clearTimeout(wireReset.t);wireReset.t=setTimeout(wireSettle,8000)}
 function wireSettle(){WIRE.settled=true;clearTimeout(wireReset.t);if(wireSel()&&!WIRE.order&&!(($('#q')||{}).value||'').trim()){/* far down the page the late re-rank would reshuffle what you are reading: leave it for the next natural redraw */const m=$('main');if(m&&m.scrollTop>500)return;try{quietRender()}catch(e){elog('render',e)}}}
@@ -7438,7 +7438,7 @@ if(FD){
  flush();{let guard=wild.length+1;while(wi<wild.length&&guard-->0)addWild();
   /* wild cards that could not be placed without breaking the mix still belong in the list: they close it as a short block of their own */
   const left=mixBy(wild.slice(wi),u=>u.head.feedId,S.view==='list'?1:2);if(left.length){B.push(`<h3 class="dsh wsec" aria-level="2"><span>More from your other sites</span><small>${plu(left.length,'story','stories')}</small></h3>`);let h2='',i2=0;while(i2<left.length){let j2=i2;while(j2<left.length&&left[j2].head.feedId===left[i2].head.feedId)j2++;const run=left.slice(i2,j2);i2=j2;
-   for(const u of run.slice(0,run.length>2?1:run.length)){WHY[u.head.link]='From '+fof(u.head).title+', a source you open less often.';h2+=rowHtml(u.head)}
+   for(const u of run.slice(0,run.length>2?1:run.length)){WHY[u.head.link]='From '+fof(u.head).title+', a site you open less often.';h2+=rowHtml(u.head)}
    if(run.length>2){const rest=run.slice(1),id='t'+peHash(rest[0].head.link);rest.forEach(u=>{WHY[u.head.link]='A busy stretch from '+fof(u.head).title+', folded to keep the list mixed.'});flush();B.push(rowsWrap(h2));h2='';B.push(`<div class="wthr"><button type="button" class="wthr-t" data-thr="${id}" aria-expanded="false">${rest.length} more from ${esc(fof(rest[0].head).title)}</button><div class="wthr-b" id="${id}" hidden>${rest.map(u=>rowHtml(u.head)).join('')}</div></div>`)}}
   if(h2)B.push(rowsWrap(h2))}}
   const selFeeds=T?null:S.sel==='all'?S.feeds:S.sel.startsWith('s:')?S.feeds.filter(f=>'s:'+f.id===S.sel):S.sel.startsWith('f:')?S.feeds.filter(f=>f.folder===S.sel.slice(2)):null,
@@ -8147,7 +8147,7 @@ function editionDiff0(pool){
  const have=new Set(prev.l),by=new Map(pool.map(a=>[a.link,a])),t0=prev.t||new Date().setHours(5,0,0,0),cov=prev.cov||{};
  const cv=a=>(a.more||[]).length;
  const news=pool.filter(a=>!have.has(a.link)&&a.date>t0&&!S.read[a.link]).sort((x,y)=>cv(y)-cv(x)||y.date-x.date).slice(0,3).map(a=>({a,tag:'New · '+ago(a.date)+' ago'}));
- const upd=prev.l.map(l=>by.get(l)).filter(a=>a&&cv(a)>(cov[a.link]||0)&&!S.read[a.link]).sort((x,y)=>cv(y)-cv(x)).slice(0,2).map(a=>({a,tag:'Updated · now covered by '+(cv(a)+1)+' sources'}));
+ const upd=prev.l.map(l=>by.get(l)).filter(a=>a&&cv(a)>(cov[a.link]||0)&&!S.read[a.link]).sort((x,y)=>cv(y)-cv(x)).slice(0,2).map(a=>({a,tag:'Updated · now covered by '+(cv(a)+1)+' sites'}));
  const all=news.concat(upd);
  if(all.length&&!Object.values(state).some(v=>v==='load'))DIFFSNAP={k:k0,items:all.map(x=>({l:x.a.link,tag:x.tag}))};
  return all.length?all:null;
@@ -8161,7 +8161,7 @@ function diffHtml(items,C){
 /* 16: why it matters, from counts only */
 function whyMatters(a){
  const parts=[],feeds=(a.more||[]).length+1;
- if(feeds>=2)parts.push('Covered by '+feeds+' sources');
+ if(feeds>=2)parts.push('Covered by '+feeds+' sites');
  const sg=wsig(a),d0=new Date();d0.setHours(0,0,0,0);let n=0,first=a.date;
  if(sg.size>=3)for(const f of S.feeds)for(const b of items[f.id]||[]){if(b===a||b.link===a.link||b.date<d0.getTime())continue;const s2=wsig(b);let sh=0;for(const w of sg)if(s2.has(w))sh++;if(sh>=3&&sh/Math.min(sg.size,s2.size)>=.6){n++;if(b.date<first)first=b.date}}
  if(n>=1)parts.push('updated '+n+(n===1?' time':' times')+' today');
@@ -8346,7 +8346,7 @@ function card(a,i,k){if(k&&a&&a.title&&a.title.length>=80)k+=' hlong';/* a very 
   if(a&&!WHY[a.link]){const pw=priWhy(a);if(pw)WHY[a.link]=pw}
   if(S.view==='list'&&!/\bnr\b/.test(k||''))return listRow(a,i,k,fof(a));
   const f=fof(a),seen=a.img&&IMGOK.has(a.img),q0=seen&&IIS[a.img],q1=a.img&&IIS[a.img],pc=q1&&q1.t?`--pc:${q1.t};`:'',op=q0&&q0.v>=5&&(Math.abs(q0.px-50)>6||Math.abs(q0.py-50)>6)?` style="${pc}object-position:${q0.px}% ${q0.py}%"`:pc?` style="${pc}"`:'';
-  return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="${pc}--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}${frWash(a)}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="${i<2||!EIO&&i<6?'eager':'lazy'}"${i<2?' fetchpriority="high"':''/* the first two pictures are what the opening screen waits for */} decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''/* David 2026-10-31: no hills-and-trees drawing behind a photo-less card's text (hard to read) */}<div class="ov"></div>${a.img&&a.pcr&&isOn('mag3')?`<span class="pcr">Photo: ${esc(a.pcr)}</span>`:''}${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg" style="--pg:${Math.round(progOf(a.link)*100)}%"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${a.img||!ytId(a)?mediaBadge(a):''}<div class="tx"><div class="src"><span class="sn" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}">${esc(f.title)}</span>${nwOn(a)?NWD:''}${a.sec?`<span class=" ssec">${esc(secT(a.sec))}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${a.img&&a.pics&&a.pics.length>1&&!/dq-c/.test(k)?`<span class="pw">+${a.pics.length-1} ${a.pics.length===2?'photo':'photos'}</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}" aria-label="${esc(a.title)}${a.date?', '+agoL(a.date):''}${nwOn(a)?', new':''}">${esc(a.title)}</a></h3>${/* no picture: the Play pill sits under the headline, not on the site name */!a.img&&ytId(a)?mediaBadge(a):''}${(()=>{const q=!a.img&&!/\b(nr-row|nr-late|list-row)\b/.test(k||'')?nrQuoteText(a):null;return q?`<p class="lq">${esc(q.q)}</p>`:`<p>${esc(sumOf(a.summary))}</p>`})()}<div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}<time datetime="${a.date?new Date(a.date).toISOString():''}" aria-hidden="true">${agoT(a.date)}</time>${readMin(a)?`<span class="rt">${readMin(a)}-min read</span>`:''}${a.more&&a.more.length?`<span class="pw tr" title="Also from ${esc(a.more.map(m=>fof({feedId:m.f}).title).join(', '))}">+${a.more.length} ${a.more.length===1?'source':'sources'}</span>`:''}${pwBadge(a)}</div></div></div>`;/* R3/R8: one quiet line, "By … · 27 min · 2-min read · +3 sources"; the pill and the "Also from" line folded into it */
+  return `<div data-ed class="card ${k} ${a.img?'':'noimg'} ${patCls(f)} ${S.read[a.link]?'read':''} ${curA&&curA.link===a.link?'act':''}" data-href="${esc(a.link)}" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}" data-i="${i}" style="${pc}--b:${brand(f)}${a.th?`;--th:url(&quot;${esc(a.th)}&quot;)`:''}${frWash(a)}"${a.th?' data-th':''}>${a.img?`<img ${seen?'class="ld nofade" ':''}${op} loading="${i<2||!EIO&&i<6?'eager':'lazy'}"${i<2?' fetchpriority="high"':''/* the first two pictures are what the opening screen waits for */} decoding="async"${imgWH(a.img)} referrerpolicy="no-referrer" alt="" src="${esc(a.img)}" onload="IMGOK.add(this.getAttribute('src'));if(IMGOK.size>800)IMGOK.delete(IMGOK.values().next().value);lowres(this);cardLum(this);cardFocus(this,()=>this.classList.add('ld'))" onerror="this.parentNode.classList.add('noimg');this.remove()">`:''/* David 2026-10-31: no hills-and-trees drawing behind a photo-less card's text (hard to read) */}<div class="ov"></div>${a.img&&a.pcr&&isOn('mag3')?`<span class="pcr">Photo: ${esc(a.pcr)}</span>`:''}${ribHtml(a)}<button type="button" class="star" data-star="${i}" title="Save" aria-label="Save ${esc(a.title)}" aria-pressed="${isSaved(a)?'true':'false'}">${starSvg(isSaved(a))}</button>${WHY[a.link]?`<button type="button" class="why" data-why="${i}" title="Why am I seeing this?" aria-label="Why am I seeing ${esc(a.title)}?">i</button>`:''}${acGet(a.link)?RDY_MARK:''}${progOf(a.link)?`<span class="prg" style="--pg:${Math.round(progOf(a.link)*100)}%"><span style="width:${Math.round(progOf(a.link)*100)}%"></span></span>`:''}${a.img||!ytId(a)?mediaBadge(a):''}<div class="tx"><div class="src"><span class="sn" data-ini="${esc([...String(f.title||'?').trim()][0]||'?')}">${esc(f.title)}</span>${nwOn(a)?NWD:''}${a.sec?`<span class=" ssec">${esc(secT(a.sec))}</span>`:''}${dealItem(a)?'<span class="deal">Deal</span>':''}${isPay(a)?PAYB:''}${a.img&&a.pics&&a.pics.length>1&&!/dq-c/.test(k)?`<span class="pw">+${a.pics.length-1} ${a.pics.length===2?'photo':'photos'}</span>`:''}</div><h3><a class="cl" href="${esc(a.link)}" aria-label="${esc(a.title)}${a.date?', '+agoL(a.date):''}${nwOn(a)?', new':''}">${esc(a.title)}</a></h3>${/* no picture: the Play pill sits under the headline, not on the site name */!a.img&&ytId(a)?mediaBadge(a):''}${(()=>{const q=!a.img&&!/\b(nr-row|nr-late|list-row)\b/.test(k||'')?nrQuoteText(a):null;return q?`<p class="lq">${esc(q.q)}</p>`:`<p>${esc(sumOf(a.summary))}</p>`})()}<div class="cfoot">${a.by?`<span class="cby">By ${esc(a.by)}</span>`:''}<time datetime="${a.date?new Date(a.date).toISOString():''}" aria-hidden="true">${agoT(a.date)}</time>${readMin(a)?`<span class="rt">${readMin(a)}-min read</span>`:''}${a.more&&a.more.length?`<span class="pw tr" title="Also from ${esc(a.more.map(m=>fof({feedId:m.f}).title).join(', '))}">+${a.more.length} more ${a.more.length===1?'site':'sites'}</span>`:''}${pwBadge(a)}</div></div></div>`;/* R3/R8: one quiet line, "By … · 27 min · 2-min read · +3 sources"; the pill and the "Also from" line folded into it */
 }
 /*NEWSROOM*/
 const IS_SAFARI=(()=>{try{const u=navigator.userAgent;return /iP(hone|ad|od)/.test(u)||(/Safari\//.test(u)&&!/Chrome\/|Chromium\/|Android|Edg\/|OPR\/|CriOS|FxiOS/.test(u))}catch(e){return false}})();
@@ -8583,15 +8583,15 @@ function trendPick(pool,lead){
 }
 function trendHtml(l){
  if(!l.length)return '';
- const it=l.map(a=>{cur.push(a);WHY[a.link]='Trending: '+(a.more.length+1)+' sources covered this story.';return `<a class="tri" href="${esc(a.link)}" data-i="${cur.length-1}" style="--b:${brand(fof(a))}"><i style="background-image:url(&quot;${esc(a.img)}&quot;)"></i><b>${a.more.length+1} sites</b><span>${esc(a.title)}</span></a>`}).join('');
- return `<section class="trend"><div class="trh"><b>Trending</b><small>Covered by several sources</small></div><div class="trs">${it}</div></section>`;
+ const it=l.map(a=>{cur.push(a);WHY[a.link]='Trending: '+(a.more.length+1)+' sites covered this story.';return `<a class="tri" href="${esc(a.link)}" data-i="${cur.length-1}" style="--b:${brand(fof(a))}"><i style="background-image:url(&quot;${esc(a.img)}&quot;)"></i><b>${a.more.length+1} sites</b><span>${esc(a.title)}</span></a>`}).join('');
+ return `<section class="trend"><div class="trh"><b>Trending</b><small>Covered by several sites</small></div><div class="trs">${it}</div></section>`;
 }
 function trendWide(tp,tx){
  if(!isOn('trend'))return '';
  const all=tp.concat(tx);if(all.length<2)return '';
- const C=(a,k)=>{cur.push(a);WHY[a.link]=tp.includes(a)?'Trending: '+(a.more.length+1)+' sources covered this story.':'One of your top stories right now.';return card(a,cur.length-1,'nr '+k)};
+ const C=(a,k)=>{cur.push(a);WHY[a.link]=tp.includes(a)?'Trending: '+(a.more.length+1)+' sites covered this story.':'One of your top stories right now.';return card(a,cur.length-1,'nr '+k)};
  const two=tp.length>=2;
- return `<section class="trend nr-trend"><div class="trh"><b>${two?'Trending':'Top stories'}</b><small>${two?'Covered by several sources':'The most talked-about right now'}</small></div><div class="nr-tr"><div class="nr-tb">${C(all[0],'nr-lead')}</div><div class="nr-trl">${all.slice(1,6).map(a=>C(a,'nr-row')).join('')}</div></div></section>`;
+ return `<section class="trend nr-trend"><div class="trh"><b>${two?'Trending':'Top stories'}</b><small>${two?'Covered by several sites':'The most talked-about right now'}</small></div><div class="nr-tr"><div class="nr-tb">${C(all[0],'nr-lead')}</div><div class="nr-trl">${all.slice(1,6).map(a=>C(a,'nr-row')).join('')}</div></div></section>`;
 }
 /* The last page of the issue: a calm ending, with the emblem filling up like a tree growing */
 /* polish-2026-10 K1/K5: the seal. sealHtml({title,sub,note,btn:[attr,label],cls}) builds it; sealRing() is the small mark in its brass ring (with the season's touch). */
@@ -8670,7 +8670,7 @@ function dayScore(a,aff,now){
  const af=aff[a.feedId]||1;s*=af;
  const lk=likeScore(a);if(lk)s*=Math.max(.6,Math.min(1.5,1+lk*.04));
  if(age<12){const t=a.title||'';if(DAYK1.test(t)){s*=1.8;why='Flagged as breaking news.'}else if(DAYK2.test(t)){s*=1.3;why='Marked as live, updated or exclusive.'}}
- const n=(a.more||[]).length;if(n){s*=Math.min(1.6,1+.15*n);if(!why)why='Covered by '+(n+1)+' sources.'}
+ const n=(a.more||[]).length;if(n){s*=Math.min(1.6,1+.15*n);if(!why)why='Covered by '+(n+1)+' sites.'}
  if(!why&&lk>=4)why='Like stories you have given a thumbs up.';
  if(!why&&dayAffinity.fin&&dayAffinity.fin[a.feedId])why='You finish most stories from '+fof(a).title+'.';
  if(!why&&af>=1.15)why='You often read '+fof(a).title+'.';
@@ -9071,7 +9071,7 @@ function renderToday(tab0,pool0,seg0,ttl0){
    const rec=pool.filter(a=>a.date>now-72*36e5);
    list=rec.filter(a=>(a.more||[]).length>0).sort((a,b)=>(b.more.length-a.more.length)||(b.date-a.date)).concat(rec.filter(a=>!(a.more||[]).length)).slice(0,40);
    label='Top stories';empty='Nothing is trending across your sites right now.';
-   list.forEach(a=>{WHY[a.link]=(a.more||[]).length?`Covered by ${a.more.length+1} sources.`:'A top story from '+fof(a).title+'.'});
+   list.forEach(a=>{WHY[a.link]=(a.more||[]).length?`Covered by ${a.more.length+1} sites.`:'A top story from '+fof(a).title+'.'});
   }else if(tab==='off'){
    /* every story already saved on this phone, so you can see what opens without a connection */
    list=byDate.filter(a=>acGet(a.link)).slice(0,60);label='';
@@ -9910,7 +9910,7 @@ async function getFull0(url,ctx){
 }
 /* real progress while a story loads: how long, and which route is being tried, instead of a static line */
 function rdProg(url,i,n,nm){
- try{if(!curA||(curA.link!==url&&!R.lpUrls.has(url)))return;if(R.lpK!==R.t0){R.lpK=R.t0;R.lpI=0}if(i&&i<R.lpI)return;/* two routes report at once: the line only ever moves forward */if(i)R.lpI=i;R.lp=i?('Loading the full article… trying source '+i+' of '+n+(nm?' ('+nm+')':'')):('Loading the full article… trying '+(nm||'another route'));rdTick()}catch(e){}
+ try{if(!curA||(curA.link!==url&&!R.lpUrls.has(url)))return;if(R.lpK!==R.t0){R.lpK=R.t0;R.lpI=0}if(i&&i<R.lpI)return;/* two routes report at once: the line only ever moves forward */if(i)R.lpI=i;R.lp=i?('Loading the full article… trying option '+i+' of '+n+(nm?' ('+nm+')':'')):('Loading the full article… trying '+(nm||'another route'));rdTick()}catch(e){}
 }
 function rdTick(){
  const n=document.querySelector('.cols .note');if(!n||!/^Loading the full article/.test(n.textContent))return;
@@ -10369,7 +10369,7 @@ async function loadWeb(){
  /* the site view never waits forever: a visible step count while it works, and an honest end after ~28 s */
  const wld=w.querySelector('.wld'),t0=Date.now(),dead=()=>Date.now()-t0>28000,ctl=new AbortController();wl.sig=ctl.signal;
  const say=m=>{if(wld&&w.dataset.u===url)wld.textContent=m};
- wl.prog=(i,n,nm)=>say('Loading site… trying source '+i+' of '+n+(nm?' ('+nm+')':''));
+ wl.prog=(i,n,nm)=>say('Loading site… trying option '+i+' of '+n+(nm?' ('+nm+')':''));
  const stop=setTimeout(()=>ctl.abort(),28000);
  wl.retry=1;try{html=await fetchText(url,t=>/<body/i.test(t),wl)}catch(e){}
  let burl=url;
@@ -12246,7 +12246,7 @@ async function localGo(q){use1('near');const my=localGo.n=(localGo.n||0)+1;
   const cands=[{n:q+' news (Google News)',d:'Headlines mentioning '+q,u:locGoogle(q)},{n:q+' news (Bing News)',d:'Headlines mentioning '+q,u:locBing(q)}];
   const ok=[];await Promise.all(cands.map(async c=>{try{const fd=await Promise.race([findFeed(c.u),new Promise((_,j)=>setTimeout(j,15000))]);if(fd&&fd.xml)ok.push(c)}catch(_){}}));
   if(my!==localGo.n)return;
-  if(!ok.length)throw new Error('Couldn’t reach a local news source right now. Check your connection and try again');
+  if(!ok.length)throw new Error('Couldn’t reach a local news site right now. Check your connection and try again');
   LOC={st:'ok',q,city:q,res:ok};
  }catch(e){LOC={st:'fail',q,msg:e.message}}
  pop();locFocus();
@@ -13659,7 +13659,7 @@ function openFset(id){
  {const r=f.rules||{};$('#fsrh').value=(r.hide||[]).join(', ');$('#fsrr').value=(r.read||[]).join(', ');$('#fsrs').value=(r.save||[]).join(', ');$('#fsrf').value=String(f.rfm||0)}
  const al=nFeat('alerts');$('#fsalrow').hidden=!al;$('#fsal').value=f.alert?'1':'0';
  {const dn=$('#fsdead'),it=items[f.id]||[],nw=it.reduce((m,a)=>Math.max(m,a.date||0),0),dd=nw?Math.floor((Date.now()-nw)/864e5):0;
-  if(dn){if(state[f.id]==='ok'&&it.length&&dd>=30){dn.hidden=false;dn.textContent='This source hasn’t posted in '+dd+' days. It may have stopped publishing. You can pause it or remove it.'}else dn.hidden=true}}
+  if(dn){if(state[f.id]==='ok'&&it.length&&dd>=30){dn.hidden=false;dn.textContent='This site hasn’t posted in '+dd+' days. It may have stopped publishing. You can pause it or remove it.'}else dn.hidden=true}}
  if(!d.open)d.showModal();
 }
 function cleanupList(){
@@ -14971,7 +14971,7 @@ function mnotes0(){
  c.querySelectorAll(':scope>.mnotes').forEach(x=>x.remove());
  if(!c.querySelector(':scope>.hsf')||!isOn('mnote')||!curA)return;
  const a=curA,f=fof(a),min=readMin(a)||1,n=(a.more||[]).length;
- const rows=[['Source',f.title||host(a.link)],['Published',a.date?new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'}):''],['Reading time',min+' min'],n?['Also covered by',(a.more.slice(0,3).map(m=>fof({feedId:m.f}).title).join(', '))+(n>3?' and '+(n-3)+' more':'')]:null].filter(r=>r&&r[1]);
+ const rows=[['Site',f.title||host(a.link)],['Published',a.date?new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'}):''],['Reading time',min+' min'],n?['Also covered by',(a.more.slice(0,3).map(m=>fof({feedId:m.f}).title).join(', '))+(n>3?' and '+(n-3)+' more':'')]:null].filter(r=>r&&r[1]);
  const el=document.createElement('aside');el.className='mnotes';el.innerHTML='<b>At a glance</b><dl>'+rows.map(r=>`<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join('')+'</dl>';
  const nt=c.querySelector(':scope>.note'),bd=c.querySelector(':scope>.body');c.insertBefore(el,nt||bd);
 }
@@ -15626,7 +15626,7 @@ function briefDigest(list){
   const pool=topOf(S.feeds,60,skip).filter(a=>!S.read[a.link]);
   const three=pool.sort((a,b)=>((b.more||[]).length-(a.more||[]).length)||b.date-a.date).slice(0,3);
   if(three.length<3)return '';
-  return `<section class="bdig"><h3>Three to know</h3><ol>${three.map(a=>{cur.push(a);WHY[a.link]='One of the three biggest stories right now: covered by the most sources.';return `<li><a class="bi-d" href="${esc(a.link)}" data-i="${cur.length-1}"><b>${esc(a.title)}</b><small>${esc(fof(a).title)}${(a.more||[]).length?' · '+((a.more.length)+1)+' sources':''}</small></a></li>`}).join('')}</ol></section>`;
+  return `<section class="bdig"><h3>Three to know</h3><ol>${three.map(a=>{cur.push(a);WHY[a.link]='One of the three biggest stories right now: covered by the most sites.';return `<li><a class="bi-d" href="${esc(a.link)}" data-i="${cur.length-1}"><b>${esc(a.title)}</b><small>${esc(fof(a).title)}${(a.more||[]).length?' · '+((a.more.length)+1)+' sites':''}</small></a></li>`}).join('')}</ol></section>`;
  }catch(e){return ''}
 }
 /* who said it: the name next to the quotation in the story's own text ("..., said Jane Smith" / "Jane Smith said: ..."), else nothing (the caption then names the source, never the headline) */
@@ -16315,7 +16315,7 @@ function tabMast(tab,list){
 }
 function deepBlocks(list){
  const B=[],mins=list.reduce((n,a)=>n+(minsOf(a)||0),0),hrs=hrMin(mins);
- B.push(`<header class="sun-m deep-m"><small>Deep reads</small><h2>${list.length===1?'One long read':list.length+' long reads'}</h2><p class="sun-s">${esc(list.length>=2?'About '+hrs+' of reading, from '+new Set(list.map(a=>a.feedId)).size+(new Set(list.map(a=>a.feedId)).size===1?' source':' sources')+'. Take your time.':'For when you have time to settle in.')}</p></header>`);
+ B.push(`<header class="sun-m deep-m"><small>Deep reads</small><h2>${list.length===1?'One long read':list.length+' long reads'}</h2><p class="sun-s">${esc(list.length>=2?'About '+hrs+' of reading, from '+new Set(list.map(a=>a.feedId)).size+(new Set(list.map(a=>a.feedId)).size===1?' site':' sites')+'. Take your time.':'For when you have time to settle in.')}</p></header>`);
  list.forEach((a,i)=>B.push(longformItem(a,i,cur.indexOf(a),i===0,i===0?'The strongest long read among your unread stories.':'A long read of about '+MIN(minsOf(a))+'.')));
  if(isOn('seal'))B.push(sealHtml({cls:'deep-end',title:'That’s every long read for now.',sub:`${plu(list.length,'story','stories')}, about ${hrs}.`}));
  else B.push(`<p class="sun-end deep-end">That is every long read for now: ${plu(list.length,'story','stories')}, about ${esc(hrs)}.</p>`);
@@ -16642,7 +16642,7 @@ function coverHtml(lead,pool){covSeen();
  }
  return `<div class="cover${cst}" style="--b:${brand(fof(lead))};${cvPh(lead.img)}"><img src="${esc(lead.img)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()"><div class="cvsh"></div><div class="cvtop"><span class="cvm">CyPress</span><span class="cvd">${esc(edition(d))}<i class="cvv">No. ${issue}</i></span></div><div class="cvbot"><a class="cvlead" href="${esc(lead.link)}" data-i="0"><small>${esc(fof(lead).title)}</small><h2>${cst===' cv-italic'?cvMix(lead.title):esc(lead.title)}</h2></a><div class="cvlines">${li}</div></div>${WHY[lead.link]?'<span class="why cvwhy" data-why="0" title="Why am I seeing this?" role="button" aria-label="Why am I seeing this?">i</span>':''}</div>`;
 }
-function whyLead(a){const n=(a.more||[]).length,pw=priWhy(a);if(pw)return pw;return n?`Top story: ${n+1} sources covered it.`:''}
+function whyLead(a){const n=(a.more||[]).length,pw=priWhy(a);if(pw)return pw;return n?`Top story: ${n+1} sites covered it.`:''}
 
 /* ---------- why popover ---------- */
 function showWhy(a,el){
@@ -16831,7 +16831,7 @@ function edStats(k,pool,fresh){
  let t=tile(np.pool.length,np.am?'new overnight':'new today','all')+tile(ns,ns===1?'site':'sites','feeds');
  if(tps)t+=tile(tps[1],tps[0]+' · new','all');
  if(sv)t+=tile(sv,'saved, unread','saved');
- const lead=multi&&nm>=2?`<button type="button" class="edl" data-edstory="${esc(multi.link)}"><b>Most covered</b> ${esc(multi.title)} <span>· ${nm} sources</span></button>`:'';
+ const lead=multi&&nm>=2?`<button type="button" class="edl" data-edstory="${esc(multi.link)}"><b>Most covered</b> ${esc(multi.title)} <span>· ${nm} sites</span></button>`:'';
  return `<div class="edbox"><div class="edts">${t}</div>${lead}</div>`;
 }
 document.addEventListener('click',e=>{
@@ -16874,12 +16874,12 @@ function renderDigest(){
   const seenW=new Set(),dupW=new Set();
   const big=allW.slice().sort((a,b)=>((b.more||[]).length-(a.more||[]).length)||b.date-a.date).filter(a=>{if(dupW.has(a.link))return false;dupW.add(a.link);return true}).slice(0,16);
   if(nrMode()&&big.length>=7){
-   const b0=cur.length;big.forEach(a=>{cur.push(a);WHY[a.link]='One of the week’s biggest stories: covered by the most sources over the last 7 days.';seenW.add(a.link)});dgNr=true;
-   h+=`<div class="dsec"><h3>The week’s biggest stories</h3><small>Covered by the most sources</small></div>`+nrBlocks(big,b0,{seed:5,mag:true,seq:MAG_W}).map(nrR).join('');
+   const b0=cur.length;big.forEach(a=>{cur.push(a);WHY[a.link]='One of the week’s biggest stories: covered by the most sites over the last 7 days.';seenW.add(a.link)});dgNr=true;
+   h+=`<div class="dsec"><h3>The week’s biggest stories</h3><small>Covered by the most sites</small></div>`+nrBlocks(big,b0,{seed:5,mag:true,seq:MAG_W}).map(nrR).join('');
   }else{
    big.splice(5);big.forEach(a=>seenW.add(a.link));
    if(big.length>=2){const bl=big.find(a=>a.img)||big[0];const rest=big.filter(a=>a!==bl).slice(0,3);
-    h+=`<div class="dsec"><h3>The week’s biggest stories</h3><small>Covered by the most sources</small></div>`+mk(bl,'lead','Covered by the most sources over the last 7 days.')+(rest.length?`<div class="dgrid">${rest.map(a=>mk(a,'mid','Widely covered across your sources in the last 7 days.')).join('')}</div>`:'')}
+    h+=`<div class="dsec"><h3>The week’s biggest stories</h3><small>Covered by the most sites</small></div>`+mk(bl,'lead','Covered by the most sites over the last 7 days.')+(rest.length?`<div class="dgrid">${rest.map(a=>mk(a,'mid','Widely covered across your sites in the last 7 days.')).join('')}</div>`:'')}
   }
   /* day by day: the best one or two stories from each day, for catching up after time away */
   let dh='';
@@ -16904,7 +16904,7 @@ function renderDigest(){
  /* the list view has the same first section as the tile view: "The front page", its top story as a big photo card, then the next most important stories */
  if(lead&&!useNews)skip.add(lead.link);
  const rest=useNews?[]:topOf(S.feeds,VW>=760?9:7,skip).filter(a=>a!==lead).slice(0,VW>=760?8:6);rest.forEach(a=>skip.add(a.link));
- if(!useNews&&(lead||rest.length))secs.push(['The front page',(lead?[lead]:[]).concat(rest),'The top stories right now, ranked by how many sources cover them','front']);
+ if(!useNews&&(lead||rest.length))secs.push(['The front page',(lead?[lead]:[]).concat(rest),'The top stories right now, ranked by how many sites cover them','front']);
  const tsecs=S.sk.map(t=>[t.name,topOf(S.feeds,useNews?6:3,skip,a=>kmatch(t,a)&&a.date>=since-2*864e5),`Matches “${t.name}”, a topic you follow.`,'mid']).filter(x=>x[1].length);
  tsecs.forEach(x=>x[1].forEach(a=>skip.add(a.link)));
  const sv=S.saved.filter(a=>!S.read[a.link]).slice(0,4);
@@ -16918,7 +16918,7 @@ function renderDigest(){
  const regL=(l,why)=>{const b=cur.length;l.forEach(a=>{cur.push(a);WHY[a.link]=why});return b};
  /* F-08: above 760px the front page is a broadsheet: the lead across 7 of 12 columns, two secondaries stacked beside it, then up to six text-only headlines in three ruled columns (the stories are already in cur from index b) */
  const wide=((GW&&GW[0]===gwk()?GW[1]:($('#grid')||{}).clientWidth)||VW)>=860&&!document.body.classList.contains('split'),bsheet=(l,b)=>`<div class="dbs"><div class="dfront">${card(l[0],b,'lead')}</div>${l.length>1?`<div class="dgrid">${l.slice(1,3).map((a,i)=>card(a,b+1+i,'mid')).join('')}</div>`:''}</div>${l.length>3?`<div class="nr-rl dbs-rows">${l.slice(3,9).map((a,i)=>card(a,b+3+i,'nr nr-late')).join('')}</div>`:''}`;
- if(useNews){const b=regL(fp,'On the front page: ranked by how many sources cover it, and how new it is.'),bs=wide&&fp.length>=15,fr=bs?fp.slice(9):fp,fb=bs?b+9:b;h+=`<div class="dsec nws" id="edin-front"><h3>The front page</h3></div>`+(bs?bsheet(fp,b):'')+nrBlocks(fr,fb,{seed:3,tv:0,seq:NEWS_W}).map(nrR).join('');dgNr=true}
+ if(useNews){const b=regL(fp,'On the front page: ranked by how many sites cover it, and how new it is.'),bs=wide&&fp.length>=15,fr=bs?fp.slice(9):fp,fb=bs?b+9:b;h+=`<div class="dsec nws" id="edin-front"><h3>The front page</h3></div>`+(bs?bsheet(fp,b):'')+nrBlocks(fr,fb,{seed:3,tv:0,seq:NEWS_W}).map(nrR).join('');dgNr=true}
  for(const [ni,[n,l,why,kind]] of all.entries()){h+=`<div class="dsec" id="edin-s${ni}"><h3>${esc(n)}</h3></div>`+(kind==='front'?(wide&&l.length>=4?bsheet(l,regL(l,why)):`<div class="dfront">${mk(l[0],'lead',why)}</div>`+(l.length>1?`<div class="dgrid">${l.slice(1).map(a=>mk(a,'mid',why)).join('')}</div>`:'')):kind==='lead'?l.map(a=>mk(a,'lead',why)).join(''):`<div class="dgrid">${l.map(a=>mk(a,'mid',why)).join('')}</div>`)}
  tsecs.forEach(([n,l,why],ti)=>{if(useNews&&l.length>=3){dgNr=true;const b=regL(l,why);h+=`<div class="dsec nws" id="edin-t${ti}"><h3>${esc(n)}</h3></div>`+nrSecHtml(l,b,ti)}else h+=`<div class="dsec" id="edin-t${ti}"><h3>${esc(n)}</h3></div><div class="dgrid">${l.map(a=>mk(a,'mid',why)).join('')}</div>`});
  if(sv.length)h+=`<div class="dsec" id="edin-sv"><h3>Saved, still unread</h3></div><div class="dgrid">${sv.map(a=>mk(findStory(a.link)||a,'mid','You saved this and haven’t read it yet.')).join('')}</div>`;
@@ -16972,7 +16972,7 @@ function openYir(){
  const slides=[
   `<small>CyPress</small><h1>Your ${D.y}<br>in reading</h1><p>Tap to continue</p>`,
   `<small>You read</small><h1>${D.n.toLocaleString()}<span> stories</span></h1><p>${fmtMin(D.m)} of reading${D.m>=360?`. That’s about ${Math.max(1,Math.round(D.m/360))} novel${D.m>=720?'s':''}’ worth`:''}.${D.f?` You finished ${D.f} to the very last page.`:''}</p>`,
-  top?`<small>Your number one source</small><h1 style="color:${col}">${esc(top[0])}</h1><p>${plu(top[1],'story','stories')} opened.</p>`:`<small>Your sites</small><h1>Just getting started</h1><p>Read more and your favorites will show up here.</p>`,
+  top?`<small>Your number one site</small><h1 style="color:${col}">${esc(top[0])}</h1><p>${plu(top[1],'story','stories')} opened.</p>`:`<small>Your sites</small><h1>Just getting started</h1><p>Read more and your favorites will show up here.</p>`,
   D.src.length>1?`<small>Your top five</small><ol>${D.src.slice(0,5).map(([s,v])=>`<li><b>${esc(s)}</b><span>${v}</span></li>`).join('')}</ol>`:'',
   D.tp[0]?`<small>Your favorite topic</small><h1>${esc(D.tp[0][0])}</h1><p>${stN(D.tp[0][1])}.</p>`:'',
   `<small>Your reading style</small><h1>${esc(D.pe[0])}</h1><p>${esc(D.pe[1])}</p>`,
@@ -19161,7 +19161,7 @@ function hubTeaser(a){
  const cv=covOf(a),n=cv.length,names=[...new Set(cv.map(m=>fof({feedId:m.f}).title))].slice(0,2);
  /* other angles: how up to two other sources headlined it, when their headline differs from this one */
  const ang=cv.filter(m=>m.t&&m.t.trim().toLowerCase()!==String(a.title||'').trim().toLowerCase()).slice(0,2);
- return `<button type="button" class="cov covt" data-hub><b>${n===1?'1 other source covers this':n+' other sources cover this'}</b>${ang.map(m=>`<q>${esc(m.t)}<small>${esc(fof({feedId:m.f}).title)}</small></q>`).join('')}<span>${esc(names.join(', '))}${n>names.length?' and more':''} · See the full coverage</span></button>`;
+ return `<button type="button" class="cov covt" data-hub><b>${n===1?'1 other site covers this':n+' other sites cover this'}</b>${ang.map(m=>`<q>${esc(m.t)}<small>${esc(fof({feedId:m.f}).title)}</small></q>`).join('')}<span>${esc(names.join(', '))}${n>names.length?' and more':''} · See the full coverage</span></button>`;
 }
 let HUBT=null;
 function openHub(a){
@@ -19175,7 +19175,7 @@ function openHub(a){
   +`<h2 id="hubt">${esc(a.title)}</h2>`
   +`<h3>${L===a?'Latest version · this story':'Latest version'}</h3><button type="button" class="hh" data-hopen="${esc(L.link)}">${L.img?`<img src="${esc(L.img)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}<small class="hk">${esc(fof(L).title||'')}${L.date?' · '+esc(fmt(L.date)):''}</small><br><strong>${esc(L.title)}</strong>${dk?`<br><span style="color:var(--mut)">${esc(dk)}</span>`:''}</button>`
   +(H.tl.filter(x=>!H.older.includes(x)).length>1?`<h3>The story so far</h3>${H.tl.filter(x=>!H.older.includes(x)).map(x=>row(x,x===a?' now':'')).join('')}`:'')
-  +(H.cov.length?`<h3>${H.cov.length===1?'Also covered by 1 other source':'Also covered by '+H.cov.length+' other sources'}</h3>${H.cov.map(c=>c.s?row(c.s):`<a class="hr" target="_blank" rel="noopener" href="${esc(c.l)}"><small>${esc(fof({feedId:c.f}).title)}</small>${esc(c.t)}</a>`).join('')}`:'')
+  +(H.cov.length?`<h3>${H.cov.length===1?'Also covered by 1 other site':'Also covered by '+H.cov.length+' other sites'}</h3>${H.cov.map(c=>c.s?row(c.s):`<a class="hr" target="_blank" rel="noopener" href="${esc(c.l)}"><small>${esc(fof({feedId:c.f}).title)}</small>${esc(c.t)}</a>`).join('')}`:'')
   +(()=>{const o0=covOf(a).map(c=>c.s).filter(Boolean),o=o0.filter(x=>x!==a&&x.link!==a.link).sort((x,y)=>(x.feedId===a.feedId)-(y.feedId===a.feedId));return o.length?`<h3>Compare coverage</h3><label for="hcmpsel" class="hk">Compare with</label><br><select id="hcmpsel" data-a="${esc(a.link)}">${o.map(x=>`<option value="${esc(x.link)}">${esc(fof(x).title||'')}: ${esc(x.title.slice(0,60))}</option>`).join('')}</select><div class="hcmp" id="hcmp">${cmpHtml(a,o[0])}</div>`:''})()
   +(H.older.length?`<h3>Background</h3>${H.older.map(x=>row(x)).join('')}`:'')
   +`</div>`;
