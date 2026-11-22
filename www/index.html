@@ -4523,6 +4523,7 @@ body:not(.narrow):not(.split).reading:not(.sideshow)>aside{transform:none;transi
 #rd.on{animation:rdfade .15s ease-out}
 @keyframes rdfade{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){#rd.on{animation:none}}
+html.rdrise #rd.on{animation:rdin .22s var(--ease-out)}@keyframes rdin{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}html.rmo.rdrise #rd.on,html.lowp.rdrise #rd.on{animation:none}/* A11 */
 .fm-t h2{line-height:1.2;padding:.12em 0 .06em}
 .fmast{margin-top:8px}
 @container feed (max-width:479px){#grid :is(.nr-trio,.nr-sw3,.nr-t3,.nr-rv,.nr-rv3,.nr-mid,.nr-sm,.nr-trl,.fd-decks,.wtriad,.wgrid,[data-cols="3"],[data-cols="4"]),#grid [style*="repeat(3"],#grid [style*="repeat(4"]{grid-template-columns:repeat(2,minmax(0,1fr))!important;column-gap:12px}#grid :is(.nr-trio,.nr-sw3,.nr-t3,.wtriad,.wgrid)>*:nth-child(3):last-child{grid-column:1/-1}#grid .wcols{column-count:2!important}}
@@ -6983,7 +6984,7 @@ function openTx(c,a){
     Closing is untouched: no transition there (rdFreeze / calm return). Otherwise the reader opens with its short fade, as before. */
  const im=c.querySelector(':scope>img,:scope>.cimg,img'),root=document.documentElement,
   ok=!!(im&&document.startViewTransition&&!reduced()&&!root.classList.contains('lowp')&&im.complete&&im.naturalWidth>40&&(()=>{const r=im.getBoundingClientRect();return r.width>60&&r.bottom>0&&r.top<innerHeight})()&&document.querySelectorAll('#grid .card').length<=40);
- if(!ok){openReader(a);return}
+ if(!ok){if(!reduced()&&!root.classList.contains('lowp')){root.classList.add('rdrise');setTimeout(()=>root.classList.remove('rdrise'),400)}/* A11: no photo to grow, so the story fades and rises in */openReader(a);return}
  let ran=null;const run=()=>{if(ran)return ran;im.style.viewTransitionName='';openReader(a);
   /* the lead photo is placed a frame or two after the reader opens; wait for it briefly (max 260 ms), then let the new page be captured */
   ran=new Promise(res=>{const t0=performance.now();const look=()=>{const h=$('#sheet img.hero');if(h&&h.isConnected){h.style.viewTransitionName='hero';res();return}if(performance.now()-t0>260){res();return}setTimeout(look,16)};look()});return ran};
