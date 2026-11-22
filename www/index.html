@@ -8410,8 +8410,8 @@ function nrBlocks(l,base,o){
   const lh=nrLH(rail.length),lc=nrLC();
   pb([lead[0],...sub,...mid,...rail],()=>`<section class="nr-top${tv===2?' nr-flip':''}"><div class="nr-lw">${C(lead[0],'nr-lead')}${sub.length?`<div class="nr-lsub">${sub.map(i=>C(i,'nr-late')).join('')}</div>`:''}</div>${mid.length?`<div class="nr-mid">${mid.map((i,j)=>C(i,o&&o.brk&&sub.length+j===Math.max(3,sub.length)?'nr-sp':'nr-row nr-m')).join('')}</div>`:''}${rail.length?`<div class="nr-rail">${lh}<div class="nr-rl">${rail.map(i=>C(i,lc)).join('')}</div></div>`:''}</section>`);
  }
- const seq=(o&&o.seq)||NRPAT[(seed>>3)%3];let n=0,guard=0,fl=0,qn=0,statDone=false,lt='';
- const river=max=>{const ix=P.pick(null,max);if(!ix.length)return false;const hd=SMARTV?'':`<h4>${nrAge(l[ix[0]])}</h4>`;pb(ix,()=>`<section class="nr-river">${hd}<div class="nr-rv">${ix.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`);return true};
+ const seq=(o&&o.seq)||NRPAT[(seed>>3)%3];let n=0,guard=0,fl=0,qn=0,statDone=false,lt='',rl='';
+ const river=max=>{const ix=P.pick(null,max);if(!ix.length)return false;const g=nrAge(l[ix[0]]),hd=SMARTV||g===rl?'':`<h4>${g}</h4>`;rl=g;/* R3 V4: the same day heading is not drawn twice in a row */pb(ix,()=>`<section class="nr-river">${hd}<div class="nr-rv">${ix.map(i=>C(i,'nr-row nr-s')).join('')}</div></section>`);return true};
  while(P.left()>0&&guard++<90){
   /* each pass through the pattern starts five steps further on, and the same kind of block never comes twice running: a long page no longer repeats one order */let sk=(n%seq.length+Math.floor(n/seq.length)*5)%seq.length;n++;if(seq[sk]===lt)sk=(sk+1)%seq.length;const t=lt=seq[sk];let ix,done=false;
   if(t==='trio'&&(ix=P.pick(nrHas,3,true))){pb(ix,()=>`<section class="nr-trio${ix.length<3?' nr-t'+ix.length:''}">${ix.map(i=>C(i,'nr-tri')).join('')}</section>`);done=true}
