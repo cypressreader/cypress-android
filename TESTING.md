@@ -2434,3 +2434,6 @@ Settings
 - Turn the page right after the points arrive: the turning page shows the points, not the waiting bars.
 - A story the AI gives up on: the publisher's description takes the same room (text may sit a few pixels off). A story with neither still closes the gap (the one remaining jump).
 - Reopen the same story later: the summary shows at once at its natural size. Tool: `node tools/r3/ai_box.js` (fakes the phone's AI; must end ALL OK).
+
+## No whole-screen picture covers (after 1.383, not shipped yet, unverified on the Fold)
+- Dynamic theme, inner screen, stories with very sharp wide pictures: none opens on the whole-screen picture (story on a sheet over the photo, or picture first). They open with the framed picture or the banner across both pages; no flash, no text moving as the story arrives. Phones keep their one-page picture opening. Tool: `node tools/r3/cover_pick.js`.
