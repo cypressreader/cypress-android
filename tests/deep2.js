@@ -46,7 +46,7 @@ for(const [nm,w,h,mob] of [['setup-phone',380,820,true],['setup-fold',884,1060,f
  // run setup again: remove one catalog source
  if(w<=720)await p.tap('#menu');await W(300);await p.tap('#gear');await W(300);await p.E(()=>$('#obagain').scrollIntoView());await p.tap('#obagain');await W(300);
  ck(nm,'rerun opens',await p.E(()=>$('#ob').open&&OB.rerun));
- await p.tap('[data-obnext]');await p.tap('[data-obnext]');await W(150);
+ /* R3 S12: Redo setup opens on the first real step, so one Next reaches the sources */await p.tap('[data-obnext]');await W(150);
  const rem=await p.E(()=>document.querySelector('[data-obsrc].on').dataset.obsrc);await p.tap(`[data-obsrc="${rem}"]`);
  /* sources and your own sites share one page now: one Next to the last page */await p.tap('[data-obnext]');await W(150);await p.tap('[data-obdone]');await W(500);
  ck(nm,'rerun removes unchecked, keeps custom',await p.E(u=>!S.feeds.some(f=>f.url===u)&&S.feeds.some(f=>f.url.includes('alpha')),rem));
