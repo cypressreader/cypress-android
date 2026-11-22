@@ -2428,3 +2428,9 @@ Settings
 
 ## Outside tap only closes the side bar (after 1.382, unverified on the Fold)
 - Side bar open over the list, the Daily, a story, and side by side: tap a story card, a button, the bottom of a page: the side bar closes and NOTHING else happens (no story opens, no page turns). A second tap then does the normal thing. The bottom tabs are covered too while it is open. Swipe left still closes it. Tool: `node tools/r3/side_only.js` (must end ALL OK).
+
+## AI summary box keeps its size (1.383, unverified on the Fold: needs the phone's built-in AI)
+- Open a long English story never opened before: the 'AI summary' box shows its waiting bars at full size; when the three points arrive they fade in and the story text below does NOT move (pages and scrolling, cover screen and inner screen). Long points end in '…' after two lines.
+- Turn the page right after the points arrive: the turning page shows the points, not the waiting bars.
+- A story the AI gives up on: the publisher's description takes the same room (text may sit a few pixels off). A story with neither still closes the gap (the one remaining jump).
+- Reopen the same story later: the summary shows at once at its natural size. Tool: `node tools/r3/ai_box.js` (fakes the phone's AI; must end ALL OK).
