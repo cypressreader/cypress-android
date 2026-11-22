@@ -14214,14 +14214,14 @@ function qaOpen(c,x,y){
  if(Date.now()-QA.fired<700)return;
  const a=cardStory(c),i=cur.indexOf(a);if(!a)return;QA.fired=Date.now();QA.ret=c;if(SW.c){SW.c=null;SW.act=false}
  let m=$('#qa');if(!m){m=document.createElement('div');m.id='qa';m.setAttribute('role','menu');document.body.append(m);
-  m.addEventListener('click',e=>{const b=e.target.closest('[data-qa]');if(!b)return;const k=b.dataset.qa,idx=+m.dataset.i,lk=m.dataset.l;qaClose(true);qaDo(k,idx,lk)});}
+  m.addEventListener('click',e=>{const b=e.target.closest('[data-qa]');if(!b||QA.dn)return;/* A2: the release of the hold that opened the menu is not a tap */const k=b.dataset.qa,idx=+m.dataset.i,lk=m.dataset.l;qaClose(true);qaDo(k,idx,lk)});}
  const f=S.feeds.find(x=>x.id===a.feedId),sv=isSaved(a);
  m.dataset.i=i;m.dataset.l=a.link;
  /* polish S-06: a compact menu (the swipes are shortcuts for the first two); collections and topic muting have no other home, so they stay below a rule */m.innerHTML=`<small>${esc(a.title)}</small>`+[
   ['save',sv?'Remove from saved':'Save'],['read',S.read[a.link]?'Mark as unread':'Mark as read'],['share','Share'],['upnext','Add to Up Next'],...(f?[['hide','Hide '+esc(f.title)+' for today']]:[]),['browser','Open in browser']
  ].map(([k,t])=>`<button role="menuitem" data-qa="${k}">${t}</button>`).join('')+`<hr><button role="menuitem" data-qa="coll">Add to a collection…</button>${S.stag&&(a.tags||[]).includes(S.stag)?`<button role="menuitem" data-qa="uncoll">Remove from “${esc(S.stag)}”</button>`:''}${(()=>{/* idea book F2: one tap hides the story's topic for 30 days, with Undo */const w=muteTopics(a)[0];return w&&!S.mute.includes(w)?`<button role="menuitem" data-qa="fewer">Fewer like this: “${esc(w)}”</button>`:''})()}<button role="menuitem" data-qa="mutet">Don’t show me stories about…</button>`;
  m.hidden=false;
- const w=m.offsetWidth,h=m.offsetHeight;m.style.left=Math.max(10,Math.min(innerWidth-w-10,x-w/2))+'px';m.style.top=Math.max(10,Math.min(innerHeight-h-10,y+8))+'px';
+ const w=m.offsetWidth,h=m.offsetHeight;m.style.left=Math.max(10,Math.min(innerWidth-w-10,x-w/2))+'px';m.style.top=Math.max(10,Math.min(innerHeight-h-10,y+8+h>innerHeight-10?y-h-12:y+8))+'px';/* A2: no room below the finger, so open above it */
 
  setTimeout(()=>{const b=m.querySelector('button');if(b)b.focus({preventScroll:true})},30);
 }
@@ -14271,10 +14271,11 @@ document.addEventListener('keydown',e=>{const m=$('#qa');if(!m||m.hidden)return;
 $('#grid').addEventListener('contextmenu',e=>{const c=e.target.closest('.card,.cvl,.cvlead');if(!c)return;e.preventDefault();let x=e.clientX,y=e.clientY;if(!x&&!y){const r=c.getBoundingClientRect();x=r.left+r.width/2;y=r.top+Math.min(r.height/2,60)}/* the keyboard's context key has no pointer, so the menu sits on the card */qaOpen(c,x,y)});
 $('#grid').addEventListener('pointerdown',e=>{
  if(e.pointerType==='mouse'&&e.button)return;const c=e.target.closest('.card,.cvl,.cvlead');if(!c||e.target.closest('.star,.why'))return;
- clearTimeout(QA.t);QA.x=e.clientX;QA.y=e.clientY;QA.c=c;QA.t=setTimeout(()=>{if(QA.c)qaOpen(QA.c,QA.x,QA.y)},560);
+ QA.dn=1;clearTimeout(QA.t);QA.x=e.clientX;QA.y=e.clientY;QA.c=c;QA.t=setTimeout(()=>{if(QA.c)qaOpen(QA.c,QA.x,QA.y)},560);
 });
 $('#grid').addEventListener('pointermove',e=>{if(QA.t&&(Math.abs(e.clientX-QA.x)>9||Math.abs(e.clientY-QA.y)>9)){clearTimeout(QA.t);QA.t=0;QA.c=null}});
 ['pointerup','pointercancel'].forEach(t=>$('#grid').addEventListener(t,()=>{clearTimeout(QA.t);QA.t=0;QA.c=null}));
+['pointerup','pointercancel'].forEach(t=>addEventListener(t,()=>setTimeout(()=>QA.dn=0,120),true));
 $('#grid').addEventListener('click',e=>{if(QA.fired&&Date.now()-QA.fired<700){e.preventDefault();e.stopImmediatePropagation()}},true);
 /* feed rows: long-press or right-click for settings */
 const HOLDQ='.fr[data-id],.fh[data-sel^="f:"]',holdOpen=r=>r.classList.contains('fh')?openFoset(r.dataset.sel.slice(2)):openFset(r.dataset.id);
