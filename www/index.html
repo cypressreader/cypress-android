@@ -12253,7 +12253,7 @@ function localAct(t){
 $('#pop').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='locq'){e.preventDefault();localGo(e.target.value)}});
 let wsAuto=0;
 $('#pop').addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-addurl]'))$('#frm').requestSubmit($('#ok'));const fc=e.target.closest&&e.target.closest('[data-fo]');if(fc){$('#fo').value=fc.dataset.fo;$('#fo').onchange()}});
-$('#u').oninput=()=>{const q=$('#u').value.trim();liveRes=null;pop();pwWarn(q,false);liveCheck(q);clearTimeout(wsAuto);
+$('#u').oninput=()=>{const q=$('#u').value.trim();$('#err').textContent='';liveRes=null;pop();pwWarn(q,false);liveCheck(q);clearTimeout(wsAuto);
  if(q.length>=3&&!/[.@\/:]/.test(q)){const cs=catSearch(q),qf=foldQ(q);/* a built-in site's name is never sent to the web search (the privacy page promises that) */if(cs.length<3&&!cs.some(x=>foldQ(x.n).includes(qf)))wsAuto=setTimeout(()=>{if($('#u').value.trim()===q&&WS.q!==q)webSearch(q)},1000)}};
 $('#pop').onclick=e=>{const t=e.target;const wb=t.closest&&t.closest('[data-ws]');if(wb){webSearch(wb.dataset.ws);popTop();return}if(t.dataset&&t.dataset.dym){$('#u').value=t.dataset.dym;$('#u').oninput();return}if(t.dataset&&t.dataset.info){feedInfo(t.dataset.info,t);return}const cb=t.closest&&t.closest('[data-cat]');if(cb){cat=+cb.dataset.cat;pop();popTop()}else if(t.closest&&t.closest('[data-back]')){window.addBackHook();popTop()}else if(t.dataset.pack!==undefined)addPack(+t.dataset.pack,t);else if(t.dataset.local)localAct(t);else if(t.dataset.add){if(t.dataset.v)addVerified(t.dataset.add,t.dataset.n,t.dataset.c,t);else{const r=quickAdd(t.dataset.add,t.dataset.n,t.dataset.c);dlgAdded(1,r.fo.name);toast('Added '+t.dataset.n+' to “'+r.fo.name+'”',()=>openAddedFeed(r.f.id),'Open')}}};
 $('#add').onclick=()=>{drawer(false);fillFolders();$('#err').textContent='';$('#frm').reset();fillFolders();cat=-9;$('#adv').open=false;DLGADDED=[];dlgDoneFlip();pop();dlg.showModal()};
@@ -12283,6 +12283,7 @@ $('#frm').onsubmit=async e=>{
   if(!known(url))Promise.race([fetchText('https://'+host(url)),new Promise((_,j)=>setTimeout(j,6000))]).then(t=>{const m=new DOMParser().parseFromString(t,'text/html').querySelector('meta[name="theme-color"]');if(m&&/^#[0-9a-f]{3,8}$/i.test(m.content)&&S.feeds.includes(f)){f.color=m.content;save();render()}}).catch(()=>{});
  }catch(x){
   let q=$('#u').value.trim(),bad=false;try{bad=!/\./.test(new URL(socialUrl(q)).hostname)}catch(_){bad=true}
+  if(bad&&q&&!/[.@\/:]/.test(q)&&x!=='dup'){if(WS.q!==q)webSearch(q);btn.disabled=false;btn.textContent='Add site';return}
   err.textContent=x==='dup'?'That site is already in your list.':!q?'Type a website address first.':bad?'That doesn’t look like a web address. Try something like example.com.':!navigator.onLine?'You’re offline, so CyPress couldn’t check that address. Connect and try again.':'CyPress couldn’t find stories at that address. Nothing was added. Check the spelling, or type the site’s name to search for it.'}
  btn.disabled=false;btn.textContent='Add site';
 };
