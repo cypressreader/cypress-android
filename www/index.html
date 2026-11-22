@@ -5812,10 +5812,10 @@ async function fetchText1(url,ok,lg,sl){
  const rec=(n,t)=>{try{const e=SROUTE[hh]||(SROUTE[hh]={}),f=e.f||(e.f={m:{}}),a=f.m[n]||(f.m[n]=[]);a.push(t);if(a.length>5)a.shift();f.w=n;const k=Object.keys(SROUTE);if(k.length>200)delete SROUTE[k[0]];clearTimeout(fetchText1.t);fetchText1.t=setTimeout(()=>{try{localStorage.setItem('folio-sroute',JSON.stringify(SROUTE))}catch(e){}},1500)}catch(e){}};
  const cell=(()=>{try{const c=navigator.connection;return !!(c&&(c.type==='cellular'||c.saveData))}catch(e){return false}})(),gap=NATIVE||cell?950:650;
  let over=false,won=false;const ctls=[],timers=[];
- const one=(p,c)=>new Promise((res,rej)=>{
+ const one=(p,c,nx)=>new Promise((res,rej)=>{
   let dead=false;const t0=Date.now();
   const fail=w=>{if(lg&&!over&&!won)lg.push(p.n+': '+w);rej(new Error(w))};
-  let to=setTimeout(()=>{dead=true;try{c.abort()}catch(e){}fail('timed out')},p.ms||4000);
+  /* R3 P7: a slow route is not cut off at 4 s: the next route starts then and both keep going until the last route's limit; whichever answers first wins and the other is stopped */const hard=()=>{dead=true;try{c.abort()}catch(e){}fail('timed out')},lt=P[P.length-1].ms,ms=p.ms||4000;let to=setTimeout(()=>{if(nx&&ms<lt){nx();to=setTimeout(hard,lt-ms)}else hard()},ms);
   (async()=>{
    try{
     /* "only if it changed": on the direct route a feed we already hold is asked for with the validators the site gave last time (ETag / Last-Modified); an unchanged feed answers 304 with no body */
@@ -5847,8 +5847,9 @@ async function fetchText1(url,ok,lg,sl){
    if(over||won||i>=P.length)return;
    const p=P[i++],c=new AbortController();ctls.push(c);if(lg&&lg.prog)try{lg.prog(i,P.length,p.n)}catch(e){}
    /* a25: on the web a public relay starts only once the CyPress fetcher or your relay has failed, not 650 ms in, so a slow start doesn't share the feed list with outside sites */
-   const pub=q=>q&&!q.h&&!q.w&&q.n!=='your relay',t=!pub(p)&&pub(P[i])?0:setTimeout(start,gap);timers.push(t);
-   one(p,c).then(v=>{if(over)return;over=true;timers.forEach(clearTimeout);ctls.forEach(x=>{try{x.abort()}catch(e){}});res(v)},er=>{
+   let nd=0;const nx=()=>{if(!nd){nd=1;clearTimeout(t);start()}};
+   const pub=q=>q&&!q.h&&!q.w&&q.n!=='your relay',t=!pub(p)&&pub(P[i])?0:setTimeout(nx,gap);timers.push(t);
+   one(p,c,nx).then(v=>{if(over)return;over=true;timers.forEach(clearTimeout);ctls.forEach(x=>{try{x.abort()}catch(e){}});res(v)},er=>{
     clearTimeout(t);fails++;
     if(over)return;
     if(er&&(er.hard||er.nm)){over=true;timers.forEach(clearTimeout);ctls.forEach(x=>{try{x.abort()}catch(e){}});rej(er);return}
