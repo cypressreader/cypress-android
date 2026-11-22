@@ -9879,7 +9879,7 @@ async function upgradeStub(fr,url){
  const known=SROUTE[hh]&&(Date.now()-SROUTE[hh].t<7*864e5)?SROUTE[hh].r:'';
  /* a page that says it is for subscribers is shown as it is: no other route is tried to get past a paywall */
  if(fr&&(fr.gate||fr.nofree||PAYRE.test(hh)))return fr;
- const isGated=!fr||known||looksIncomplete(fr.textContent,url);
+ const isGated=!fr||known||fr.querySelectorAll('figcaption').length<3&&looksIncomplete(fr.textContent,url);/* G13: a picture story (three or more captioned pictures) is whole with few words */
  if(!isGated)return fr;
  const baseW=w(fr);
  const check=cand=>(cand&&w(cand)>Math.max(120,baseW*1.25)&&!footerish(cand.textContent))?cand:null;
