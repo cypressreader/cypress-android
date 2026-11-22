@@ -278,7 +278,7 @@ for(const [vp,w,h] of [['fold',884,1060],['desk',1280,900]]){
  await E(()=>$('#gear').click());await W(300);
  for(const sel of ['#scs [data-sc="vertical"]','#cds [data-cd="large"]','.tg[data-tg="mag"]','.tg[data-tg="cover"]','.tg[data-tg="intro"]','#spm','#nrw','#qv'])ck('settings',sel+' present',await E(s=>!!$(s),sel));
  await E(()=>$('#scs [data-sc="vertical"]').click());ck('settings','scroll setting',await E(()=>S.scroll==='vertical'));
- await E(()=>$('#cds [data-cd="compact"]').click());ck('settings','cards setting',await E(()=>S.cards==='compact'));
+ await E(()=>$('[data-fsty="compact"]').click());/* R3 S4b: Compact is a Page layout choice; Card size is Medium or Large */ck('settings','cards setting',await E(()=>S.cards==='compact'));
  await E(()=>$('.tg[data-tg="mag"]').click());ck('settings','mag toggle off',await E(()=>S.mag===false&&$('.tg[data-tg="mag"]').textContent==='Off'));
  ck('settings','defaults on for cover/intro',await E(()=>$('.tg[data-tg="cover"]').textContent==='On'));
  ck('settings','quote voice options',await E(()=>$('#qv').options.length>=2));
