@@ -4023,6 +4023,10 @@ body.narrow .dcov{min-height:max(520px,calc(100svh - 215px - env(safe-area-inset
 /* R-14: thumb-sized tap areas without changing the look: the site name in the reader bar and the Aa sheet's close button (bar icons already reach 44px through .ib::after) */
 #rd .bar .bs{height:auto;min-height:44px;border-top:7px solid transparent;border-bottom:7px solid transparent;margin-block:-7px}#aax::after{inset:-7px}
 /* R-10: the end page leads with Next up; the action buttons are thumb-sized; the website is one quiet text link; no bare rule above the site line */
+/* G10: the next story's opening on the last spread's empty right page */
+#rd .cols>.nxl{position:absolute;top:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:10px;padding:32px;margin:0;border:0;border-radius:0;background:var(--pn);color:var(--ink);text-align:left;cursor:pointer;overflow:hidden}#rd.vert .cols>.nxl,#rd:not(.cpv2) .cols>.nxl{display:none}
+#rd .cols>.nxl img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 30%;border-radius:0}#rd .cols>.nxl.ph::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 35%,rgba(0,0,0,.8))}#rd .cols>.nxl.ph{color:#fff}#rd .cols>.nxl:not(.ph){justify-content:center;border-top:3px solid var(--ink)}#rd .cols>.nxl>:not(img){position:relative;z-index:1}
+#rd .cols>.nxl small{font:600 12px var(--sans);letter-spacing:.12em;text-transform:uppercase;opacity:.85}#rd .cols>.nxl b{font:400 clamp(36px,4.6vw,52px)/1.02 var(--disp);font-synthesis:none;text-wrap:balance}#rd .cols>.nxl em{font:600 13px var(--sans);font-style:normal;font-variant:all-small-caps;letter-spacing:.1em;opacity:.85}
 #rd .rfoot{border-top:0}#rd .rf-act button{min-height:44px}#rd .rf-next{min-height:48px}
 #rd .cols>.orig{display:flex;width:fit-content;margin:4px auto 20px;align-items:center;min-height:44px;padding:0 2px;background:none;color:var(--mut);font:500 14px var(--sans);text-decoration:underline;text-decoration-color:color-mix(in srgb,currentColor 40%,transparent);text-underline-offset:.2em}
 #rd .cols>.whyit:not(.ai){border:0!important;padding:0!important;margin:.3em 0 .7em;background:none!important}#rd .cols>.whyit:not(.ai) b{display:none}#rd .cols>.whyit:not(.ai) p{font:italic 400 1.06em/1.45 var(--serif)!important;color:var(--mut)}
@@ -9189,6 +9193,7 @@ function layout(){prepDrop();CUT.k='';/* a new layout can move the story's block
  try{foldPic(c,cw,gap)}catch(e){elog('foldPic',e)}
  R.np=Math.max(1,Math.ceil(Math.round((c.scrollWidth+gap)/(cw+gap))/R.cpv));
  try{trimBlankPages(c)}catch(e){elog('trimBlankPages',e)}
+ try{nextLeaf(c,cw,gap)}catch(e){elog('nextLeaf',e)}
  /* Never-blank guard: if the column measurements collapsed (non-sane column
     height/width, or an absurd page count), the pagination is unusable. Fall
     back to a plain single column with a viewport-derived height rather than
@@ -19669,6 +19674,16 @@ function trimBlankPages(c){
    return;
   }
  }
+}
+/* G10: the last spread's empty right page shows the next story's opening (the story a page turn opens, from data already here); tapping it or turning the page opens it. Placed over the page, so it never adds a page */
+function nextLeaf(c,cw,gap){c.querySelectorAll(':scope>.nxl').forEach(x=>x.remove());
+ const n=readerNext(),o=[...c.querySelectorAll('.body .rfoot,:scope>.orig')].flatMap(e=>[...e.getClientRects()]).filter(q=>q.width>4&&q.height>4).pop();
+ if(!n||!o||R.cpv!==2||isVert()||R.web||(curA&&curA.book))return;
+ const x=o.left-c.getBoundingClientRect().left;if(Math.floor((x+2)/R.step)!==R.np-1||x-(R.np-1)*R.step>cw)return;
+ const el=document.createElement('button');el.type='button';el.className='nxl'+(n.img?' ph':'');el.dataset.rnext='';/* an empty name: the click goes to advanceNext, the same story a page turn opens */el.setAttribute('aria-label','Next story: '+n.title);
+ el.style.cssText=`left:${(R.np-1)*R.step+cw+gap}px;width:${cw}px`;
+ el.innerHTML=(n.img?`<img alt="" decoding="async" referrerpolicy="no-referrer" src="${esc(n.img)}" onerror="this.parentNode.classList.remove('ph');this.remove()">`:'')+`<small>${esc(fof(n).title)}${n.sec?' · '+esc(n.sec):''}</small><b>${esc(n.title)}</b><em>Turn the page</em>`;
+ c.append(el);
 }
 function fillVoids(c,cw,gap){
  const bd=c.querySelector('.body');if(!bd||R.web||isVert())return;
