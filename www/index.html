@@ -12319,7 +12319,7 @@ function qrecSync(){const d=$('#qrecent');if(d)d.innerHTML=(S.qr||[]).map(x=>`<o
 $('#q').addEventListener('change',()=>{const v=$('#q').value.trim();if(v.length<2)return;use1('find');S.qr=[v,...(S.qr||[]).filter(x=>x.toLowerCase()!==v.toLowerCase())].slice(0,8);save();qrecSync()});qrecSync();
 {const _rq=render;render=function(){const r=_rq.apply(this,arguments);try{const q=$('#q').value.trim();const g=$('#grid');if(q&&g&&!g.querySelector('#qsc'))g.insertAdjacentHTML('afterbegin',`<div id="qsc" class="segs chips" role="radiogroup" aria-label="Search in">${[['all','All'],['unread','Unread'],['saved','Saved']].map(([k,t])=>`<button type="button" role="radio" data-qsc="${k}" aria-checked="${QSC===k}" class="${QSC===k?'on':''}">${t}</button>`).join('')}</div>`)}catch(e){}return r}}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-qsc]');if(!b)return;QSC=b.dataset.qsc;render()});
-function openSearch(o){srch.classList.toggle('open',o);TOPIC=null;if(o){/* F6: say what is searched */const q=$('#q'),l=S.sel==='saved'?'Search saved stories':'Search stories';q.placeholder=l;q.setAttribute('aria-label',l);screenMode();q.focus()}else{$('#q').value='';QSC='all';render()}}
+function openSearch(o){srch.classList.toggle('open',o);TOPIC=null;if(o){/* F6: say what is searched */const q=$('#q'),l=S.sel==='saved'?'Search saved stories':'Search stories';q.placeholder=l;q.setAttribute('aria-label',l);screenMode();q.focus();viewLayer()}else{$('#q').value='';QSC='all';render()}}
 $('#sb').onclick=()=>openSearch(!srch.classList.contains('open'));
 /* an open but empty search box closes by itself once the keyboard is gone and you scroll, or move to another page (it used to stay stuck on screen) */
 {const q=$('#q'),vv=window.visualViewport;let gone=true,hmin=0,selAt='';
@@ -17699,8 +17699,14 @@ addEventListener('popstate',()=>{
  if(top.startsWith('dlg:')){const d=DLG[top];if(d&&d.open&&((d.id==='set'&&window.setBackHook&&window.setBackHook())||(d.id==='dlg'&&window.addBackHook&&window.addBackHook())||(d.id==='ob'&&obBack()))){LAYER.push(top);try{history.pushState({cp:top,n:LAYER.length},'')}catch(e){}return}delete DLG[top];if(d&&d.open){d._ly=null;d.close()}return}
  const active={mn:()=>$('#mn')&&!$('#mn').hidden,gal:()=>$('#gal')&&!$('#gal').hidden,rdnav:()=>$('#rdnav')&&!$('#rdnav').hidden,reader:()=>$('#rd').classList.contains('on'),drawer:()=>document.body.classList.contains('open'),yir:()=>!!$('#yir'),fin:()=>FIN.open,hub:()=>!!$('#hub')&&$('#hub').classList.contains('on')}[top];
  if(active&&!active()){if(LAYER.length)history.back();return}
- if(top==='mn')rdxMnClose(true,true);else if(top==='gal')galClose(true);else if(top==='rdnav')rdNav(false,true);else if(top==='reader')closeRd(true);else if(top==='drawer')document.body.classList.remove('open');else if(top==='fin')finClose(true);else if(top==='hub')closeHub(true);else if(top==='yir'){const y=$('#yir');if(y)y.querySelector('.yx').click()}
+ if(top==='mn')rdxMnClose(true,true);else if(top==='gal')galClose(true);else if(top==='rdnav')rdNav(false,true);else if(top==='reader')closeRd(true);else if(top==='drawer')document.body.classList.remove('open');else if(top==='fin')finClose(true);else if(top==='hub')closeHub(true);else if(top==='view'){if(srch.classList.contains('open'))openSearch(false);else{S.sel=LASTHOME;save();render()}}else if(top==='yir'){const y=$('#yir');if(y)y.querySelector('.yx').click()}
 });
+
+/* round three L4: leaving the home views (a folder, a site, Saved, History, Search) is one Back step, so Back returns to All Stories or the Daily before it leaves the app */
+let LASTHOME='all';
+function viewLayer(){const home=/^(all|today|brief|digest)$/.test(S.sel);if(home)LASTHOME=S.sel;const i=LAYER.lastIndexOf('view');
+ if(home&&!srch.classList.contains('open')){if(i>=0){const stale=POPSKIP&&i===LAYER.length-1;dropLayer('view');if(stale)history.back()}}else if(i<0&&!LAYER.length)pushLayer('view')}
+{const _rv=render;render=function(){const r=_rv.apply(this,arguments);try{viewLayer()}catch(e){}return r}}
 
 /* ---------- in-reader navigation panel ---------- */
 function rdNav(open,fromPop){
