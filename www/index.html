@@ -876,7 +876,7 @@ html.rmo .book>.rdedge>i,html.lowp .book>.rdedge>i{transition:none}
 .grid.list .rdy{background:color-mix(in srgb,#1f7a45 14%,var(--pn));box-shadow:none}
 #set{width:min(640px,96vw);padding:0;display:none;flex-direction:column;overflow:hidden;height:min(860px,92dvh)}
 #set[open]{display:flex}
-#set .sh{padding:20px 22px 8px}
+#set .sh{padding:20px 22px 8px}#setpz[hidden]{display:none}
 #set .sh h2{font:600 21px var(--serif)}
 .snav{display:flex;gap:6px;overflow-x:auto;padding:4px 22px 12px;border-bottom:1px solid var(--ln);scrollbar-width:none}
 .snav::-webkit-scrollbar{display:none}
@@ -5416,7 +5416,7 @@ html.dynx[data-theme=dynamic] #rd .rf-next:has(.rn-i)::after{content:"";position
  <div class="row"><button type="button" id="cancel">Cancel</button><button class="go" id="ok">Add site</button></div>
 </form></dialog>
 <dialog id="set" aria-labelledby="set-t">
- <div class="sh"><h2 id="set-t">Settings</h2><button class="ib" id="setx" aria-label="Close"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+ <div class="sh"><h2 id="set-t">Settings</h2><button class="ib" id="setpz" aria-label="Pause what’s playing" hidden style="margin-left:auto"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></svg></button><button class="ib" id="setx" aria-label="Close"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
  <nav class="snav" id="snav" aria-label="Settings sections"><button data-go="s-look">Look</button><button data-go="s-fx">Effects</button><button data-go="s-read">Reading</button><button data-go="s-mag">Magazine</button><button data-go="s-tts">Listen</button><button data-go="s-stories">Stories</button><button data-go="s-load">Loading</button><button data-go="s-data">Sites &amp; backup</button><button data-go="s-sync">Sync</button><button data-go="s-setup">Setup</button></nav>
  <div class="sbody">
  
@@ -11457,7 +11457,8 @@ set.addEventListener('click',()=>{setTimeout(()=>{setSum();moSync();if(SETP==='l
 let SETW=setWide();addEventListener('resize',()=>{const w=setWide();if(set.open&&SET_BUILT&&w!==SETW){SETW=w;setShow(SETP)}});
 $('#setpane')&&0;
 $('#setx').onclick=()=>set.close();
-$('#gear').onclick=()=>{drawer(false);setBuild();setAdopt();setCounts();syncSet();try{if('speechSynthesis' in window){if(speechSynthesis.reload&&!speechSynthesis.getVoices().length)speechSynthesis.reload();fillVoices()}}catch(e){}set.showModal();$('#sset').value='';setSearch('');SETW=setWide();if(SETW)SETP=SETP||'look';setShow(SETP);const pn=$('#setpane'),hm=$('#sethome');if(pn&&!pn._sc){pn._sc=1;pn.addEventListener('scroll',()=>{if(set.open&&SETP)SETSC[SETP]=pn.scrollTop},{passive:true})}if(hm&&!hm._sc){hm._sc=1;hm.addEventListener('scroll',()=>{if(set.open&&!SETP)SETSC._home=hm.scrollTop},{passive:true})}const rs=()=>{if(SETP&&pn)pn.scrollTop=SETSC[SETP]||0;else if(hm)hm.scrollTop=SETSC._home||0};rs();requestAnimationFrame(rs)};
+/* R3 M12: Settings covers the playing bar, so while something plays its header offers a pause */$('#setpz').onclick=e=>{if(TTS.on&&!TTS.paused)ttsPause();epPause();document.querySelectorAll('div.cyv.cyd').forEach(w=>{ytCmd(w.querySelector('iframe'),'pauseVideo');cyPB(w,2)});e.currentTarget.hidden=true;$('#setx').focus()};
+$('#gear').onclick=()=>{$('#setpz').hidden=!(TTS.on&&!TTS.paused||EPA&&!EPA.paused||document.querySelector('div.cyv.cyd:not([data-ps="2"])'));drawer(false);setBuild();setAdopt();setCounts();syncSet();try{if('speechSynthesis' in window){if(speechSynthesis.reload&&!speechSynthesis.getVoices().length)speechSynthesis.reload();fillVoices()}}catch(e){}set.showModal();if(document.activeElement===$('#setpz'))$('#setx').focus();$('#sset').value='';setSearch('');SETW=setWide();if(SETW)SETP=SETP||'look';setShow(SETP);const pn=$('#setpane'),hm=$('#sethome');if(pn&&!pn._sc){pn._sc=1;pn.addEventListener('scroll',()=>{if(set.open&&SETP)SETSC[SETP]=pn.scrollTop},{passive:true})}if(hm&&!hm._sc){hm._sc=1;hm.addEventListener('scroll',()=>{if(set.open&&!SETP)SETSC._home=hm.scrollTop},{passive:true})}const rs=()=>{if(SETP&&pn)pn.scrollTop=SETSC[SETP]||0;else if(hm)hm.scrollTop=SETSC._home||0};rs();requestAnimationFrame(rs)};
 $('#rate').oninput=e=>{S.rate=+e.target.value;$('#ratev').value=S.rate.toFixed(1)+'×';saveSoon()};
 $('#vol').oninput=e=>{S.vol=+e.target.value;$('#volv').value=Math.round(S.vol*100)+'%';saveSoon()};
 $('#voice').onchange=e=>{S.voice=e.target.value;save()};
