@@ -11151,6 +11151,8 @@ const SET_HIDE=['Light or dark','Varied story layout','Quiet layout','Sepia pape
 SET_HIDE.push('Single-key shortcuts');
 /* R3 S2: Cover style and Quick looks set the same cover; the tiles (now named Cover style) are the one control left. The picker dialog behind the old button still works */
 SET_HIDE.push('Cover style');
+/* R3 S3b: rarely useful, so hidden; their saved values keep working and Reset this section on Downloads & offline still resets them */
+SET_HIDE.push('Fill up only while charging','Keep back issues','Keep back issues for');
 /* polish S-02: font, line spacing and margins live in the Reading sheet (the Aa panel), opened by the Reading settings row */
 SET_HIDE.push('Line spacing','Page margins');
 /* 2026-11-16 Settings trim (David): these features stay; only their switches leave. Quick setup and Magazine touches still steer the ones they always did */
@@ -11184,9 +11186,9 @@ const SET_PAGES=[
   main:[{h:'Swipes and taps',items:['L:Swipe a card to the left','L:Swipe a card to the right','L:Double-tap a card to save it','L:Swipe down to close a story','L:Read as you scroll']}],
   more:[],rst:['swl','swr','rdscroll']},
  {id:'dl',t:'Downloads and Storage',d:'Get ready ahead, offline, back issues',c:'#0b7285',lead:'Stories ready ahead, and how much room they use.',
-  main:[{h:'Loading',items:['L:Refresh automatically','X:pics']},{h:'Offline',items:['L:Offline mode','X:trip','L:Get stories ready in advance','L:Only on Wi-Fi','L:Keep photos for offline']},{h:'Back issues',items:['L:Keep back issues','L:Keep back issues for']}],
-  more:[{h:'Offline',items:['L:Fill up only while charging']},{h:'Storage',items:['L:Space for stored stories','L:Clear downloaded stories']}],
-  rst:['auto','acMB','pfm']},
+  main:[{h:'Loading',items:['L:Refresh automatically','X:pics']},{h:'Offline',items:['L:Offline mode','X:trip','L:Get stories ready in advance','L:Only on Wi-Fi','L:Keep photos for offline']}],
+  more:[{h:'Storage',items:['L:Space for stored stories','L:Clear downloaded stories']}],
+  rst:['auto','acMB','pfm','pfpow','bi','bidays']},
  {id:'alerts',t:'Digest and Alerts',d:'Daily digest and notifications',c:'#e2231a',lead:'A short digest of the day’s best stories, and notifications when you want them.',
   main:[{h:'Digest',items:['L:Daily digest','L:Digest edition','L:Weekly review','L:Weekly review day','L:Read today’s digest']}],more:[],rst:null},
  {id:'motion',t:'Battery and Motion',d:'Animation and theme effects',c:'#c27b00',lead:'Less movement saves battery and is easier on the eyes.',
@@ -11214,7 +11216,7 @@ const SET_ALIAS={tts:'listen',feeds:'sites',sync:'sites',home:'daily',dl:'storie
  const isS=c=>c.h==='Your sites';
  /* R3 S3: Stories & loading was 35 controls over four screens; it is two pages now, Stories & filters and Downloads & offline (the downloads page is the old 'dl' page again) */
  const stories={id:'stories',t:'Stories & filters',d:'Order, filters, swipes and taps',c:F.c,lead:'How stories are chosen and shown.',main:F.main.filter(c=>!isS(c)),more:F.more.filter(c=>!isS(c)),rst:F.rst};
- Object.assign(D,{t:'Downloads & offline',d:'Ready ahead, offline, back issues',main:tag(D.main,'Downloads',1)});delete SET_ALIAS.dl;
+ Object.assign(D,{t:'Downloads & offline',d:'Ready ahead, offline, storage',main:tag(D.main,'Downloads',1)});delete SET_ALIAS.dl;
  const sites={id:'sites',t:'Sites & backup',d:'Your sites, sync and backups',c:Sy.c,lead:'The sites you follow, and keeping them safe.',main:F.main.filter(isS).concat(Sy.main),more:F.more.filter(isS),rst:null};
  M.t='Motion & battery';M.d='Animation, effects and vibration';M.lead='Less movement saves battery.';
  Ab.t='About CyPress';Ab.d='Tips, privacy and version';Ab.lead='Help, privacy and the app itself.';
@@ -18984,7 +18986,7 @@ document.addEventListener('click',async e=>{
 });
 function renderBack(){
  $('#ttl').textContent='Back issues';cur=[];const g=$('#grid');
- if(!isOn('bi')){g.innerHTML='<div class="empty">Back issues are off. Turn on “Keep back issues” in Settings and CyPress will keep each edition’s text, from stories already stored on this device, for a while. Nothing extra is downloaded.</div>';return}
+ if(!isOn('bi')){g.innerHTML='<div class="empty">Back issues are off on this device.</div>';return}
  g.innerHTML='<div class="empty">Opening back issues…</div>';
  biAll().then(l=>{
   if(S.sel!=='bi')return;
