@@ -11392,8 +11392,8 @@ function setShow(id,focus){
  document.querySelectorAll('#sethome .sgi').forEach(b=>b.classList.toggle('on',setWide()&&b.dataset.pg===id));
  set.classList.toggle('inpage',!!id&&!setWide());
  const p=SET_PAGES.find(x=>x.id===id);$('#settitle').textContent=(p&&!setWide())?p.t:'Settings';
- const pane=$('#setpane');if(pane&&chg)pane.scrollTop=SETSC[id]||0;
- if(id==='look'||!id)setPrev();/* the phone shows every page in one scroll (no id), Look's preview included */
+ const pane=$('#setpane'),y=SETSC[id]||0;/* R3 P4: writing scrollTop lays the whole dialog out at once (over a second on a phone): skipped when it is already at the top */if(pane&&chg&&(y||pane._y))pane.scrollTop=y;
+ if(id==='look'||!id){const v=$('#sprev');/* R3 P4: the preview cover is drawn when it comes into view, after the dialog has opened */if(v&&window.IntersectionObserver){if(!v._io){v._io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting))setPrev()});v._io.observe(v)}}else setPrev()}/* the phone shows every page in one scroll (no id), Look's preview included */
  if(id==='look'&&looksFill.d)looksFill();
  setSum();moSync();
  if(id==='read'){try{if('speechSynthesis' in window)fillVoices()}catch(e){}}
@@ -11447,12 +11447,12 @@ set.addEventListener('click',e=>{
 set.addEventListener('input',e=>{if(e.target.id==='sset')setSearch(e.target.value)});
 set.addEventListener('click',e=>{const b=e.target.closest('[data-jg],[data-jgs]');if(!b)return;if(b.dataset.jgs){setShow(null);const q=$('#sset');if(q)q.focus()}else setGo(b.dataset.jg)});
 set.addEventListener('click',()=>{setTimeout(()=>{setSum();moSync();if(SETP==='look')setPrev()},0)});
-{const _ss=syncSet;syncSet=function(){_ss();if(SET_BUILT){moSync();setSum();if(SETP==='look')setPrev();syncReadPrev()}}}
+{const _ss=syncSet;syncSet=function(){_ss();if(SET_BUILT){moSync();setSum();if(SETP==='look'&&set.open)setPrev();syncReadPrev()}}}
 {const _af=applyFs;applyFs=function(){const r=_af.apply(this,arguments);try{syncReadPrev()}catch(e){}return r}}
 let SETW=setWide();addEventListener('resize',()=>{const w=setWide();if(set.open&&SET_BUILT&&w!==SETW){SETW=w;setShow(SETP)}});
 $('#setpane')&&0;
 $('#setx').onclick=()=>set.close();
-$('#gear').onclick=()=>{drawer(false);setBuild();setAdopt();setCounts();syncSet();try{if('speechSynthesis' in window){if(speechSynthesis.reload&&!speechSynthesis.getVoices().length)speechSynthesis.reload();fillVoices()}}catch(e){}set.showModal();$('#sset').value='';setSearch('');SETW=setWide();if(SETW)SETP=SETP||'look';setShow(SETP);const pn=$('#setpane'),hm=$('#sethome');if(pn&&!pn._sc){pn._sc=1;pn.addEventListener('scroll',()=>{if(set.open&&SETP)SETSC[SETP]=pn.scrollTop},{passive:true})}if(hm&&!hm._sc){hm._sc=1;hm.addEventListener('scroll',()=>{if(set.open&&!SETP)SETSC._home=hm.scrollTop},{passive:true})}const rs=()=>{if(SETP&&pn)pn.scrollTop=SETSC[SETP]||0;else if(hm)hm.scrollTop=SETSC._home||0};rs();requestAnimationFrame(rs)};
+$('#gear').onclick=()=>{/* R3 P4: focus steps back to the menu button before the drawer starts closing, so the drawer and the dialog cost one restyle between them, not two */if(document.body.classList.contains('open')){const m=$('#menu');if(m)m.focus({preventScroll:true})}drawer(false);setBuild();setAdopt();setCounts();syncSet();try{if('speechSynthesis' in window){if(speechSynthesis.reload&&!speechSynthesis.getVoices().length)speechSynthesis.reload();fillVoices()}}catch(e){}$('#sset').value='';setSearch('');SETW=setWide();if(SETW)SETP=SETP||'look';setShow(SETP);/* R3 P4: the page is chosen before the dialog opens, so opening restyles the screen once instead of twice */set.showModal();const pn=$('#setpane'),hm=$('#sethome');if(pn&&!pn._sc){pn._sc=1;pn.addEventListener('scroll',()=>{pn._y=pn.scrollTop;if(set.open&&SETP)SETSC[SETP]=pn._y},{passive:true})}if(hm&&!hm._sc){hm._sc=1;hm.addEventListener('scroll',()=>{hm._y=hm.scrollTop;if(set.open&&!SETP)SETSC._home=hm._y},{passive:true})}const rs=()=>{const e=SETP?pn:hm,y=(SETP?SETSC[SETP]:SETSC._home)||0;if(e&&(y||e._y))e.scrollTop=y};rs();requestAnimationFrame(rs)};
 $('#rate').oninput=e=>{S.rate=+e.target.value;$('#ratev').value=S.rate.toFixed(1)+'×';saveSoon()};
 $('#vol').oninput=e=>{S.vol=+e.target.value;$('#volv').value=Math.round(S.vol*100)+'%';saveSoon()};
 $('#voice').onchange=e=>{S.voice=e.target.value;save()};
