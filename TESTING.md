@@ -2412,3 +2412,4 @@ Listen, podcasts, video
 - Docked video bar Pause / Resume works (M9). Cover screen sideways: Now playing shows Speed, Sleep, Skip whole (M6). "Pause what's playing" in the Settings header pauses read-aloud (M12).
 Settings
 - Cover screen: theme tiles wrap, nothing off the side (S7). "Screen size" group on The Daily works on both screens (S4).
+- Settings > The Daily: "Page layout" (Varied / Classic / Quiet / Compact) with "Card size" under it; your current look is unchanged after the update; with Large print on the cover screen the row fits; switch Compact and back to Varied (S4).
