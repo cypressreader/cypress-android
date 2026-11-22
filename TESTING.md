@@ -2420,3 +2420,8 @@ Settings
 ## Book page turns feel smooth (after 1.381, unverified on the Fold)
 - Open a long book chapter on the inner screen, turn 10 pages at reading pace and a few quickly: no hitch at the start of a turn, no stutter mid-turn. Stories should feel the same or better. Cause: one feed-layout rule made the browser re-check every paragraph in the app whenever a page copy was added (119 ms per copy, now 18). Tools: `GAP=6000 node tools/r3/book_turn.js`, `node tools/r3/book_count.js`.
 - Headlines in Columns view, a day with four or more stories under the lead: the short summaries are still hidden there (rule rewritten, same result).
+
+## Side bar and a resting story (after 1.381, unverified on the Fold)
+- Fold open sideways (list and story side by side): open the side bar, tap the STORY half: it closes and the tap does nothing else. Same on a boxed note inside a story, the top bar, the bottom corner.
+- Inner screen, story open, side bar tab at the left edge: opens and closes without a stutter; the story behind does not jump. No page copy shows through the side bar or flashes when it closes (copies are now see-through while it is open, not removed).
+- Inner screen, any story with a 'next story' card on its last spread: the phone stays cool and turns stay smooth after a minute of reading (the story used to lay itself out about five times a second for as long as it was open). Tools: `node tools/r3/relayout_loop.js`, `node tools/r3/side_open.js`, `node tools/r3/side_tap.js`.
