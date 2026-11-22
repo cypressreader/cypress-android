@@ -2413,3 +2413,6 @@ Listen, podcasts, video
 Settings
 - Cover screen: theme tiles wrap, nothing off the side (S7). "Screen size" group on The Daily works on both screens (S4).
 - Settings > The Daily: "Page layout" (Varied / Classic / Quiet / Compact) with "Card size" under it; your current look is unchanged after the update; with Large print on the cover screen the row fits; switch Compact and back to Varied (S4).
+
+## Headline over a photo stays white (after 1.381, unverified on the Fold)
+- Al Jazeera lead card (and any site with a light brand color: orange, yellow): the headline over the photo is white with its shadow, same as the kicker and time. Cause was the card's own site color behind the photo being used to pick the headline color. Check tool: `node tools/r3/ink_brand.js`.
