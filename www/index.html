@@ -7954,8 +7954,8 @@ function decorateTpl(){
  /* a feature gets ornamental breaks, and a pull quote on a cadence */
  if(tpl==='f'){
   const ps=[...b.querySelectorAll(':scope > p')].filter(p=>!p.classList.contains('endmark')&&p.textContent.trim().length>60);
-  const every=Math.max(7,Math.round(ps.length/5));
-  ps.forEach((p,i)=>{if(i>0&&i%every===0&&p.previousElementSibling&&!/rbrk|pullq/.test(p.previousElementSibling.className||'')){const d=document.createElement('div');d.className='rbrk';d.setAttribute('aria-hidden','true');d.textContent='';p.before(d)}});
+  const every=b.querySelectorAll(':scope > :is(h2,h3,h4)').length>1?1e9:Math.max(7,Math.round(ps.length/5));
+  ps.forEach((p,i)=>{if(i>0&&i%every===0&&p.previousElementSibling&&!/rbrk|pullq/.test(p.previousElementSibling.className||'')&&!/^(H[2-4]|FIGURE)$/.test(p.previousElementSibling.tagName)){const d=document.createElement('div');d.className='rbrk';d.setAttribute('aria-hidden','true');d.textContent='';p.before(d)}});
  }
  /* R-08: "Filed under" tags live in the More sheet now (rdxMnOpen) */
  /* a brief carries no empty chrome */
