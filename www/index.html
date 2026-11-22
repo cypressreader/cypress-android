@@ -3589,6 +3589,7 @@ html.rdx .cols.tplb img.hero{aspect-ratio:16/9;max-height:calc(var(--ih)*.42)}
 #rd:not(.vert) .bar #fcs{display:none}
 /* the toolbar labels are real text inside each button (icon on top, label under it), never a pseudo-element that can drift out of the pill */
 #rd .bar .ib .bl{display:none}
+#ra.rwait svg{animation:rwp .9s ease-in-out infinite}@keyframes rwp{50%{opacity:.3}}/* A9 */
 @media(min-width:700px){#rd .bar .ib[data-lbl]{width:auto;min-width:50px;height:44px;padding:2px 8px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:0;border-radius:12px;box-sizing:border-box}
 #rd .bar .ib[data-lbl] svg{width:17px;height:17px;flex:none}
 #rd .bar{padding-top:7px;padding-bottom:8px}
@@ -10531,7 +10532,7 @@ document.addEventListener('visibilitychange',()=>{TTS.vis=Date.now()});
 const ENDS=/[.!?]["')\]”’]*$/;
 function raBtn(){
  const aw=ttsAway(),run=TTS.on&&!TTS.paused&&!aw,b=$('#ra');
- if(b){const bl=b.querySelector('.bl');b.innerHTML=svg(run?PAUSE:TTS.on&&!aw?PLAY:SPK);if(bl)b.append(bl);/* the icon changes, the 'Listen' label under it stays */b.classList.toggle('on',run);b.title=run?'Pause':TTS.on?'Resume':curA&&curA.book?'Listen to this chapter':'Listen to story'}
+ if(b){const bl=b.querySelector('.bl');b.innerHTML=svg(run?PAUSE:TTS.on&&!aw?PLAY:SPK);if(bl)b.append(bl);/* the icon changes, the 'Listen' label under it stays */b.classList.toggle('on',run);b.title=run?'Pause':TTS.on?'Resume':curA&&curA.book?'Listen to this chapter':'Listen to story';b.classList.toggle('rwait',!!TTS.st);if(TTS.st){b.setAttribute('aria-pressed','true');b.title='Starting…';if(bl&&reduced())bl.textContent='Starting…'}else{b.removeAttribute('aria-pressed');if(bl)bl.textContent=b.dataset.lbl}}
  const p=$('#pbp');if(p)p.innerHTML=svg(run?PAUSE:PLAY);
  /* while a story is read aloud, the hands-free speed pill shows the reading speed instead (theme colors, Slower / Faster / Stop) */
  try{const fx=$('#afx');if(fx&&!AUTO.on){const sh=TTS.on&&!aw&&$('#rd').classList.contains('on');fx.hidden=true;/* the mini player shows in the reader now (David: the pill looked out of place) */fx.dataset.m=sh?'tts':'';if(sh){fx.setAttribute('aria-label','Reading speed');fx.querySelector('span').textContent=ttsRate().toFixed(1)+'\u00d7';fx.querySelector('[data-afx="0"]').setAttribute('aria-label','Stop reading aloud')}/* pause / resume right on the pill (David: pausing needed the ... menu) */const pb=fx.querySelector('[data-afx="p"]');pb.hidden=!sh;fx.querySelector('[data-afx="k"]').hidden=!sh;/* R-13: the pill's height is kept free at the foot of the page while it shows, so it never covers the line being read */if(!!R.ttsPad!==sh){R.ttsPad=sh;relayout()}if(sh){pb.innerHTML=svg(run?PAUSE:PLAY);pb.setAttribute('aria-label',run?'Pause reading aloud':'Resume reading aloud')}}}catch(e){}
@@ -10887,7 +10888,7 @@ function ttsFrom(wi){
   let real=false,t0=0,early=0,tm1=null;const cps=()=>Math.max(5,Math.min(60,(TTS.cps||14)*ttsRate()));
   /* B24: the highlight is shown a few words early to cancel the delay between the phone's engine and the page. The delay is measured from the timestamp on each report (native) instead of guessed */
   const lead=()=>{if(S.hlead!=null)return +S.hlead;const nat=window.speechSynthesis&&window.speechSynthesis.native;if(!nat)return NATIVE?2:0;if(TTS.lag==null)return 1;return Math.max(0,Math.min(4,Math.round(TTS.lag/Math.max(120,5.5/cps()*1000))))};const at=(ci,tm)=>{let k=0;while(k+1<off.length&&off[k+1]<=ci)k++;TTS.sp=a+k;/* B85: where the voice really is, kept apart from the (earlier) highlighted word */k=Math.min(k+(tm?0:lead()),off.length-1);if(a+k!==TTS.wi||k===0)ttsMark(a+k)};
-  u.onstart=()=>{if(id!==TTS.id)return;t0=performance.now();ttsMark(a);if(!pre&&!TTS.sm)setTimeout(()=>{if(id!==TTS.id||real||TTS.sm)return;TTS.sm=1;TTS.nb=1;document.documentElement.classList.add('ttssm');try{const vv=bestVoice();S.tnbv=(vv&&vv.voiceURI)||'default';S.tnbt=Date.now();save()}catch(_){}try{ttsMark(TTS.wi)}catch(_){}},1800);clearInterval(TTS.timer);const tmr=tm1=TTS.timer=setInterval(()=>{if(id!==TTS.id||TTS.timer!==tmr){clearInterval(tmr);return}if(real&&!TTS.nb)return;at(Math.max(0,(performance.now()-t0)/1000-.15)*cps(),1)},90)};
+  u.onstart=()=>{if(id!==TTS.id)return;if(TTS.st){TTS.st=0;raBtn()}t0=performance.now();ttsMark(a);if(!pre&&!TTS.sm)setTimeout(()=>{if(id!==TTS.id||real||TTS.sm)return;TTS.sm=1;TTS.nb=1;document.documentElement.classList.add('ttssm');try{const vv=bestVoice();S.tnbv=(vv&&vv.voiceURI)||'default';S.tnbt=Date.now();save()}catch(_){}try{ttsMark(TTS.wi)}catch(_){}},1800);clearInterval(TTS.timer);const tmr=tm1=TTS.timer=setInterval(()=>{if(id!==TTS.id||TTS.timer!==tmr){clearInterval(tmr);return}if(real&&!TTS.nb)return;at(Math.max(0,(performance.now()-t0)/1000-.15)*cps(),1)},90)};
   /* some Android speech engines report every word of a chunk up front; if reports run well ahead of real speech, ignore them and pace by the clock */
   u.onboundary=e=>{if(id!==TTS.id||TTS.nb)return;if(e.name&&e.name!=='word')return;const el=(performance.now()-t0)/1000;if(e.charIndex>el*cps()+(TTS.cps?30:70)&&!hid()&&++early>=2){TTS.nb=1;try{const vv=bestVoice();S.tnbv=(vv&&vv.voiceURI)||'default';S.tnbt=Date.now();save()}catch(_){}return}if(e.ts){const lg=Date.now()-e.ts;if(lg>=0&&lg<4000)TTS.lag=TTS.lag==null?lg:TTS.lag*.7+lg*.3}real=true;at(e.charIndex);t0=performance.now()-e.charIndex/Math.max(5,cps())*1000;};
   const done=(ok)=>{if(id!==TTS.id)return;if(tm1)clearInterval(tm1);if(ok===1&&t0&&!hid()){const el=(performance.now()-t0)/1000-.25;if(el>1.5&&txt.length>40){const m=Math.max(5,Math.min(40,txt.length/el/ttsRate()));TTS.cps=TTS.cps?TTS.cps*.6+m*.4:m;S.tcps=Math.round(TTS.cps*10)/10}}if(last)next(b)};
@@ -10939,7 +10940,7 @@ function ttsToggle(){if(!TTS.on&&curA&&curA.audio){epQueue(curA);return}/* F8: a
  if(!TTS.on){const why=ttsClean();if(why&&!ttsToggle.force){if(R.queueRun||R.briefAudio){toast('Skipping: '+why);ttsEnd(true)}else{toast('Not reading this aloud because '+why+'. Tap Read aloud again to read what’s here');ttsToggle.force=true;setTimeout(()=>{ttsToggle.force=false},6000)}return}}
  if(TTS.on&&!TTS.paused)return ttsPause();
  if(TTS.on&&TTS.paused)return ttsFrom(ttsPos());
- if(!TTS.on&&!speechSynthesis.getVoices().length){const f=speechSynthesis.voiceState==='failed',msg=()=>{if(DIG.on)digEnd(false);/* no voice, so no player bar to leave up */toast(f?'The phone’s speech engine didn’t start. Check Text-to-speech output in Android Settings.':'No voices are installed, so reading aloud isn’t available. Add one in '+voiceWhere()+'.')};if(NATIVE||f)return msg();
+ if(!TTS.on&&!speechSynthesis.getVoices().length){const f=speechSynthesis.voiceState==='failed',msg=()=>{TTS.st=0;try{raBtn()}catch(e){}if(DIG.on)digEnd(false);/* no voice, so no player bar to leave up */toast(f?'The phone’s speech engine didn’t start. Check Text-to-speech output in Android Settings.':'No voices are installed, so reading aloud isn’t available. Add one in '+voiceWhere()+'.')};if(NATIVE||f)return msg();
   /* a browser can list its voices a moment late: wait up to a second for them before deciding */
   if(!ttsToggle.wait){ttsToggle.wait=1;let t;const go=()=>{clearTimeout(t);speechSynthesis.removeEventListener('voiceschanged',go);ttsToggle.wait=0;if(speechSynthesis.getVoices().length)ttsToggle();else msg()};speechSynthesis.addEventListener('voiceschanged',go);t=setTimeout(go,1000)}return}
  ttsCollect();if(!TTS.words.length)return;
@@ -11526,7 +11527,7 @@ $('#rd').onclick=e=>{
  if(t.closest('#fp')){rfsSet(rfs()+1);save();return applyFs(true)}
  if(t.closest('#sp')){S.sep=!S.sep;return applyFs(true)}
  if(t.closest('#ra')&&!TTS.on&&!DIG.on&&S.lqAuto!==false&&S.lq.length){S.lq=[];R.briefAudio=false;save();syncUpNext()}/* David 2026-11-03: a story you start yourself doesn't run on into what's left of an old Daily/shelf list (only Keep playing or your own Up Next does that); lqAuto unset = a list from before this flag, also left over */
- if(t.closest('#ra')||t.closest('#pbp'))return ttsHere();
+ if(t.closest('#ra')||t.closest('#pbp')){/* A9: show at once that the voice is starting (cleared when speech starts, fails, or after 4 s) */const w=!TTS.on&&!!t.closest('#ra');if(w){TTS.st=1;setTimeout(()=>{if(TTS.st){TTS.st=0;raBtn()}},4000)}ttsHere();if(w&&!TTS.on&&!ttsToggle.wait)TTS.st=0;raBtn();return}
  if(t.closest('#rp')){const p=$('#pb');rdxMnClose(false);$('#mn').hidden=true;p.hidden=!p.hidden;if(!p.hidden)syncPb();return}
  if(t.closest('#pbk2'))return ttsSkipPara(-1);
  if(t.closest('#pbn2'))return ttsSkipPara(1);
