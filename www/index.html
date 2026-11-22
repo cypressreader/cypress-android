@@ -7489,7 +7489,7 @@ function dayTabKey(){return S.sel==='today'?'front':S.sel==='brief'?'brief':S.se
 let TABPREV='';
 function tabAnim(){
  const k=dayTabKey(),prev=TABPREV;TABPREV=k;
- try{const m=$('main');if(m&&m.scrollTop)cvPar()}catch(e){}
+ try{const m=$('main');/* R3 P10: not on the first draw: reading the scroll there laid the page out before it was first shown (a restored scroll still fires the scroll handler, which calls cvPar) */if(m&&tabAnim.r&&m.scrollTop)cvPar();tabAnim.r=1}catch(e){}
  if(!k||!prev||k===prev||reduced())return;
  const g=$('#grid');if(!g)return;
  /* animated per section with animate(): an inline --dx on #grid plus a class restart restyled the whole page twice on every tab tap */
@@ -17677,7 +17677,7 @@ async function relayCheck(force){
 
 /* ---------- back button: close layers instead of leaving the app ---------- */
 const LAYER=[];
-function drawer(o){const b=document.body;if(o===b.classList.contains('open'))return;const ae=document.activeElement;b.classList.toggle('open',o);/* focus goes into the drawer when it opens and back to the menu button when it closes */if(o&&b.classList.contains('narrow'))requestAnimationFrame(()=>{const f=[...document.querySelectorAll('body>aside :is(a[href],button):not([hidden])')].find(x=>x.getClientRects().length);if(f)f.focus({preventScroll:true})});else if(!o&&ae&&ae.closest&&ae.closest('body>aside')){const m=$('#menu');if(m)m.focus({preventScroll:true})}if(o&&fitSide.d){fitSide.d=0;/* R3 P5: the drawer starts sliding first; its rows are measured a frame later (measuring at once held the slide for most of a second) */requestAnimationFrame(()=>setTimeout(()=>{try{fitSide()}catch(e){}},0))}if(o)pushLayer('drawer');else dropLayer('drawer')}
+function drawer(o){const b=document.body;if(o===b.classList.contains('open'))return;if(o&&!side.on){side.on=1;if(side.d){side.d=0;side()}}const ae=document.activeElement;b.classList.toggle('open',o);/* focus goes into the drawer when it opens and back to the menu button when it closes */if(o&&b.classList.contains('narrow'))requestAnimationFrame(()=>{const f=[...document.querySelectorAll('body>aside :is(a[href],button):not([hidden])')].find(x=>x.getClientRects().length);if(f)f.focus({preventScroll:true})});else if(!o&&ae&&ae.closest&&ae.closest('body>aside')){const m=$('#menu');if(m)m.focus({preventScroll:true})}if(o&&fitSide.d){fitSide.d=0;/* R3 P5: the drawer starts sliding first; its rows are measured a frame later (measuring at once held the slide for most of a second) */requestAnimationFrame(()=>setTimeout(()=>{try{fitSide()}catch(e){}},0))}if(o)pushLayer('drawer');else dropLayer('drawer')}
 /* round two G2: unfolding to a wide screen forgets the open side bar, so Back is never spent on nothing */onRsz(()=>{if(document.body.classList.contains('open')&&getComputedStyle($('aside')).position!=='fixed')drawer(false)});
 window.cyBack=()=>{if(!LAYER.length)return false;history.back();return true};
 /* predictive back (Android 14+): while the back swipe is in progress the open story shrinks and rounds off; letting go early springs it back. p is 0..1, -1 = cancelled; edge 0 = left, 1 = right */
@@ -19474,6 +19474,7 @@ try{document.fonts&&document.fonts.ready.then(()=>{try{document.querySelectorAll
 
 /* ---------- sidebar rows: when the name and "N · M min" cannot share a line, the figures drop to a quieter second line; the name is never cut while a label shows ---------- */
 function fitSide(){
+ /* R3 P10: a phone's closed drawer is measured when it opens (fitSide.d), not at start-up or on every resize */if(document.body.classList.contains('narrow')&&!document.body.classList.contains('open')){fitSide.d=1;return}
  document.querySelectorAll('#side-list .fr').forEach(r=>{
   r.classList.remove('fr2','fr3')});
  /* every row is reset first, then measured, then the second check runs on the rows that changed: one layout per pass, not one per row */
@@ -19481,7 +19482,7 @@ function fitSide(){
  const a=[...document.querySelectorAll('#side-list .fr')].filter(ov);a.forEach(r=>r.classList.add('fr2'));
  a.filter(ov).forEach(r=>r.classList.replace('fr2','fr3'));
 }
-{const _sd=side,mq=matchMedia('(max-width:720px)');side=function(){_sd.apply(this,arguments);/* P5: a side bar that is slid away (phone, split screen) is measured when it opens, not on every tab switch */if(!document.body.classList.contains('open')&&(mq.matches||document.body.classList.contains('split'))){fitSide.d=1;return}try{fitSide()}catch(e){}}}
+{const _sd=side,mq=matchMedia('(max-width:720px)');side=function(){/* R3 P10: on a phone the start-up draw leaves the closed drawer's list for the first quiet moment (at most a second later, or the first open if sooner) */if(!side.on&&mq.matches&&!document.body.classList.contains('open')&&!document.body.classList.contains('split')){if(!side.d){side.d=1;(window.requestIdleCallback||setTimeout)(()=>{side.on=1;if(side.d){side.d=0;side()}},{timeout:1000})}return}_sd.apply(this,arguments);/* P5: a side bar that is slid away (phone, split screen) is measured when it opens, not on every tab switch */if(!document.body.classList.contains('open')&&(mq.matches||document.body.classList.contains('split'))){fitSide.d=1;return}try{fitSide()}catch(e){}}}
 try{const a=document.querySelector('aside');if(a&&window.ResizeObserver){let t=0;new ResizeObserver(()=>{clearTimeout(t);t=setTimeout(()=>{try{fitSide()}catch(e){}},60)}).observe(a)}if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{try{fitSide()}catch(e){}})}catch(e){}
 try{fitSide()}catch(e){}
 
