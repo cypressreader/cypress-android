@@ -31,7 +31,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
  ck('topic page offers Mute this topic',r.topicMute);ck('quick menu offers the mute',r.qa.some(x=>/Don’t show me stories about/.test(x)),JSON.stringify(r.qa));
  ck('highlights are quote cards',r.hlCards===1);ck('highlights have one export button and no extra chrome',r.exportBtns===1&&r.oldBtns===0,JSON.stringify(r));
  ck('highlights export as markdown',/^# My highlights/.test(r.md)&&/^> A sentence worth keeping/m.test(r.md),r.md);
- ck('shelf can be listened to',r.shelfBtn);ck('duplicate coverage chip says how many report it',r.chip.some(x=>/\+4 sources/.test(x)),JSON.stringify(r.chip));
+ ck('shelf can be listened to',r.shelfBtn);ck('duplicate coverage chip says how many report it',r.chip.some(x=>/\+4 more sites/.test(x)),JSON.stringify(r.chip));
  const [dl]=await Promise.all([p.waitForEvent('download'),p.evaluate(()=>exportHighlightsMd())]);ck('export downloads a .md file',/\.md$/.test(dl.suggestedFilename()),dl.suggestedFilename());
  ck('no page errors',!errs.length,errs[0]);await b.close();
  console.log('control',bad?bad+' FAILED':'all passed');process.exit(bad?1:0);

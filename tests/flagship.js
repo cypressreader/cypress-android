@@ -23,7 +23,7 @@ const svg=i=>`<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000"
    return out});
   ck(`${W}: list view is a flat index (square rows, hairline, no card box)`,R.list.radius==='0px'&&/linear-gradient/.test(R.list.bg)&&R.list.bt==='1px',JSON.stringify(R.list));
   ck(`${W}: list source line is tracked small caps`,R.list.tr==='uppercase'&&R.list.ls>=1.2,JSON.stringify(R.list));
-  ck(`${W}: card view has 12px corners, an inner frame line and no drop shadow`,R.cards.radius==='12px'&&/inset/.test(R.cards.shadow)&&!/rgba\(0, 0, 0, 0\.\d+\) 0px [1-9]/.test(R.cards.shadow)&&R.cards.outline==='1px',JSON.stringify(R.cards));
+  ck(`${W}: card view has 14px corners, an inner frame line and no drop shadow`,R.cards.radius==='14px'&&/inset/.test(R.cards.shadow)&&!/rgba\(0, 0, 0, 0\.\d+\) 0px [1-9]/.test(R.cards.shadow)&&R.cards.outline==='1px',JSON.stringify(R.cards));
   ck(`${W}: a lead with no photo is set in type (no box, a hairline under it)`,R.typeLead.radius==='0px'&&R.typeLead.shadow==='none'&&R.typeLead.bb==='1px'&&/rgba\(0, 0, 0, 0\)|transparent/.test(R.typeLead.bg),JSON.stringify(R.typeLead));
   ck(`${W}: magazine density: no card headline is bigger than 26px (lead ${R.cards.h3}px, companion ${R.cards.rowh3}px)`,R.cards.rowh3<=26&&R.cards.h3<=40&&R.cards.h3>=R.cards.rowh3,JSON.stringify(R.cards));
   ck(`${W}: columns density has vertical rules (one full-width column on a phone) and a serif face`,R.col.n>0&&R.col.rule===(W<600?'0px':'1px')&&/serif|CyPress Display|Newsreader|Georgia|Source|Literata|Merri|Garamond|Playfair|Lora|Charter/i.test(R.col.ff),JSON.stringify(R.col));
