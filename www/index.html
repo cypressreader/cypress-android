@@ -1475,6 +1475,8 @@ dialog small{color:var(--mut)}
  .bar{gap:6px}.ib{width:34px;height:34px}.book{margin:0 12px 14px}
 }
 @media(max-width:520px){.bs{flex:0 1 auto;max-width:124px;margin-right:auto;font-size:12px;line-height:20px;min-height:24px;padding:4px 10px;border:1px solid var(--ln);border-radius:999px}.bs::before{width:8px;height:8px;margin-right:6px}#pc{min-width:0;font-size:12px}.ib{width:32px;height:32px}.bar{gap:4px}.pb{right:8px}}@media(max-width:359px){.bs{font-size:0;padding:0;border:0}.bs::before{margin:0}}
+@media(max-width:400px){#rd .bar:has(#pc:not(:empty)) .bs{font-size:0;min-width:44px}#rd .bar:has(#pc:not(:empty)) .bs::before{margin:0}}
+@media(max-width:520px){#rd #pc{flex:none}}/* R3 R2: the time-left label keeps its full width; the site name gives way */
 @media(prefers-reduced-motion:reduce){*{transition:none!important}.logo{animation:none!important}#rain{display:none!important}html.czoom .cover>img{animation:none!important}}
 
 /* stage G: every theme gets its own palette and fonts */
@@ -3656,6 +3658,7 @@ body:not(.narrow):not(.split).reading:not(.sideshow) #sideh{display:flex}
 .hlh{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;margin:0 0 6px}.hlh .hint{margin:0}
 .hlc{position:relative;margin:0 0 16px;padding:26px 22px 14px 24px;border:0;border-radius:6px;background:linear-gradient(160deg,color-mix(in srgb,var(--b) 14%,var(--pn)),var(--pn));border-top:4px solid var(--b);box-shadow:0 1px 0 var(--ln)}
 .hl-q{position:absolute;left:14px;top:-4px;font:400 84px/1 var(--disp,var(--serif));color:var(--b);opacity:.35}
+.hlc{cursor:pointer}
 .hlc blockquote{font:italic 400 clamp(21px,5vw,26px)/1.3 var(--disp,var(--serif));text-indent:0;padding-top:12px;overflow-wrap:anywhere}
 .hlc figcaption{margin-top:10px;display:flex;flex-direction:column;gap:2px;font:12.5px var(--sans);color:var(--mut)}.hlc figcaption button{all:unset;cursor:pointer;color:var(--ink);font:600 13.5px var(--sans);text-decoration:underline;text-decoration-color:var(--ln);text-underline-offset:3px}
 .hlc .hm{display:flex;gap:14px;margin-top:8px}.hlc .hm button{all:unset;cursor:pointer;font:600 12px var(--sans);color:var(--mut)}.hlc .hm button:focus-visible,.hlc figcaption button:focus-visible{outline:2px solid var(--logo);outline-offset:2px}
@@ -4071,6 +4074,7 @@ body.narrow .dcov{min-height:max(520px,calc(100svh - 215px - env(safe-area-inset
 #rd .rsh .rshl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px;row-gap:0;padding:0 14px 2px;align-items:stretch}
 #rd .rsh .rshl>:is(h3,.rtags){grid-column:1/-1}#rd .rsh .rshl>.rshp{display:contents}
 #rd .rsh .rshl>button,#rd .rsh .rshl>div>button{display:flex;align-items:center;justify-content:flex-start;gap:11px;width:auto;flex:none;min-height:48px;padding:0 4px;border:0;border-bottom:1px solid var(--ln);border-radius:0;background:none;font:500 14px/1.2 var(--sans);text-align:left}
+#rd .rsh .rshl>button,#rd .rsh .rshl>div>button,#rd .rsh .rshl button .mnl{white-space:normal;overflow:visible;text-overflow:clip;min-width:0}/* R3 R3: long labels wrap to two lines instead of being cut at 360 */
 #rd .rsh .rshl button[hidden]{display:none}#rd .rsh .rshl button svg{width:19px;height:19px;flex:none;color:var(--a1,var(--ink));stroke-width:1.5}
 #rd .rsh .rshl button:focus-visible{outline:2px solid var(--a1,var(--ink));outline-offset:-2px;border-radius:6px}
 /* the reading progress shows once, along the bottom of the page view (the bar under the header doubled it) */#rd:not(.vert) .bar::after{display:none}
@@ -8077,7 +8081,7 @@ document.addEventListener('click',e=>{
  if(b.id==='aax'){aaClose(true);return}
  if(b.id==='aamore'||b.id==='aaall'){aaClose(false);try{$('#gear').onclick()}catch(x){}try{setShow(b.id==='aaall'?'look':'read')}catch(x){}return}
  const fz=b.dataset.fs,sc=b.dataset.sc,lh=b.dataset.lh,tg=b.dataset.tg,arw=b.dataset.aarw,apt=b.dataset.aapt,pre=b.dataset.aapre;
- /* deep dive 3: every change that re-lays the story keeps the reading place (only Pages/Scroll did; A+ moved you back a page, Wide skipped unread text) */if(!apt&&(b.dataset.aasp||pre||arw||fz||sc||lh||tg==='sep'||tg==='focusr'))try{if(R.rf==null&&$('#rd').classList.contains('on')&&R.ready)R.rf=isVert()?vEndFrac():pgFrac()}catch(e){}
+ /* deep dive 3: every change that re-lays the story keeps the reading place (only Pages/Scroll did; A+ moved you back a page, Wide skipped unread text) */if(!apt&&(b.dataset.aasp||pre||arw||fz||sc||lh||tg==='sep'||tg==='focusr'))try{if(R.rf==null&&$('#rd').classList.contains('on')&&R.ready){R.rf=isVert()?vEndFrac():pgFrac();R.rr=null;if(!isVert()){const c=$('#rd .cols'),cr=$('#rd .view').getBoundingClientRect(),p=document.caretRangeFromPoint(cr.left+30,cr.top+40);/* R3 R9: remember the first words on screen, so a text-size change keeps them there */if(p&&c.contains(p.startContainer)&&!p.startContainer.parentElement.closest('.tl,.tl-leaf')&&p.startContainer.nodeType===3&&p.startOffset<p.startContainer.length){p.setEnd(p.startContainer,p.startOffset+1);R.rr={r:p,t:Date.now()}}}}}catch(e){}
  if(b.dataset.aasp){S.tsp=b.dataset.aasp;if(S.tsp==='n')delete S.tsp;save();applyFs(true);aaSync();return}
  if(pre){const p=AA_PRE[+pre];rfsSet(p[1]);S.lh=p[2];S.rw=p[3];if(S.rw==='c')delete S.rw;save();applyFs(true);relayout()}
  else if(arw){S.rw=arw==='c'?undefined:arw;if(!S.rw)delete S.rw;save();relayout()}
@@ -9495,6 +9499,7 @@ hurry();R.navAt=Date.now();
  if(isVert()&&!R.web){vScrollBy(d);return}
  if(!R.web&&!R.busy&&ccv()){if(R.peek){cvPeek(false);return}const pp=!reduced()&&rdxPturn()==='paper';if(R.pg===1&&(d>0?!R.cpk:R.cpk)){cvFade(d>0);return}if(!pp&&d>0&&R.pg===0&&R.np>1){cvSlide(1);return}if(!pp&&d<0&&R.pg===1){cvSlide(0);return}/* with Paper, startTurn turns the card over like a leaf */}
  const to=R.pg+d;if(d>0&&to>=R.np&&!R.web&&!R.busy&&R.np>0&&isOn('cont')&&readerNext()){if(R.endArmed||curA.book){advanceNext();return}/* B3: a book flows into its next chapter on one tap, like a swipe */R.endArmed=true;rnHint(curA.book?'Turn the page again for the next chapter':'Turn the page again for the next story',readerNext());clearTimeout(R.endT);R.endT=setTimeout(()=>{R.endArmed=false},2600);return}
+ if(d<0&&to<0&&!R.web&&!R.busy&&!R.adv&&!curA.book&&R.nxt&&R.nxt.to===curA.link&&R.nxt.from){advanceTo(R.nxt.from,-1,1);return}
  if(R.web||R.busy||to<0||to>=R.np)return;
  if(reduced()){R.pg=to;show();/* idea book S11: with Reduce motion the page still changes like paper, by a 200 ms fade (opacity only, nothing sweeps) */try{const c=$('.cols');c&&c.animate&&c.animate([{opacity:.25},{opacity:1}],{duration:200,easing:'ease-out'})}catch(e){}return}
  if(rdxPturn()!=='paper'){rdxTurn(to);return}
@@ -10423,7 +10428,7 @@ function toggleWeb(auto){
  w.hidden=false;R.web=true;R.auto=!!auto;b.innerHTML=svg(PAGE);b.title='Back to reader view';loadWeb();
 }
 async function openReader(a){try{const v=document.querySelector('.cyv');if(v){const y=a&&ytId(a);if(y&&v.firstChild.src.includes('/embed/'+y)){const c=v.closest('.card,.vd');if(c)c.classList.remove('cyp');if(CYIO){CYIO.disconnect();CYIO=null}v.remove()}else if(v.closest('#grid'))cytOut(v)}}catch(e){}use1('open');RDT=Date.now();
- const f=fof(a),my=++tok,sh=$('#sheet');curA=a;DPOS=dayPos(a);R.vl=null;RDSIG=rdSig(a);R.sf=null;R.rf=null;/* the story being read aloud keeps playing while you look at another one */if(ttsAway()){if(!R.tctx)R.tctx=R.ctx}else ttsStop();hlClear();const resume=S.pos[a.link]||0,wantResume=RD_CONT||!!a.book;RD_CONT=false;R.navAt=0;R.ready=false;R.tf=0;R.fa=0;R.hsq='';try{$('#rd').classList.remove('fauto','fpeek')}catch(e){}const afterLoad=()=>{R.tf=1;{const s=document.querySelector('.cols .body .skp');if(s)s.remove();const h=$('#rd .lhl');if(h)h.hidden=true}if(!a.book){legalBody($('.cols .body'));try{markRestricted(a,($('.cols .body')||{}).textContent,false)}catch(e){}}try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;/* ...but only when something really changed since the last layout: each one re-lays the whole story, a hitch just as reading starts */try{if(RLD)RLD.off()}catch(e){}const c0=$('.cols'),L={dirty:false},mark=()=>{L.dirty=true};L.mo=new MutationObserver(mark);if(c0){L.mo.observe(c0,{childList:true,subtree:true,characterData:true});c0.addEventListener('load',mark,true)}try{document.fonts&&document.fonts.addEventListener('loadingdone',mark)}catch(e){}L.off=()=>{L.mo.disconnect();if(c0)c0.removeEventListener('load',mark,true);try{document.fonts.removeEventListener('loadingdone',mark)}catch(e){}if(RLD===L)RLD=null};RLD=L;const maybe=()=>{if(curA!==a0){L.off();return}if(L.dirty)relayout()};setTimeout(maybe,800);setTimeout(()=>{maybe();setTimeout(()=>{if(curA===a0)L.off()},3000)},2600);setTimeout(()=>{if(curA===a0)rdWarm()},3300);try{document.fonts&&document.fonts.ready.then(maybe)}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v)v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight)}}else if(!wantResume){if(!R.navAt){R.pg=0;try{show()}catch(e){}}/* page 1 again once the pictures have settled, unless the reader has already turned a page */const t0=Date.now();for(const ms of [0,350,900]){setTimeout(()=>{if(my===tok&&!isVert()&&R.pg>0&&!R.navAt){R.pg=0;try{show()}catch(e){}}},ms)}/* a story you were partway through offers your page back instead of starting over in silence */if(resume||progOf(a.link))setTimeout(()=>{if(my!==tok||isVert()||R.pg>0||!R.np)return;const pf=progOf(a.link),tp=Math.max(0,Math.min(pf?Math.round(pf*(R.np-1)):resume,R.np-1));if(tp>0&&tp<R.np-1)toast('You were on page '+(tp+1)+' of '+R.np,()=>{if(my===tok){R.pg=tp;R.navAt=Date.now();show()}},'Resume')},1000)}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0)show()}};STAT.opened(a);histAdd(a);saveSoon();setTimeout(()=>raWhenReady(a,0),1200);
+ const f=fof(a),my=++tok,sh=$('#sheet');curA=a;DPOS=dayPos(a);R.vl=null;RDSIG=rdSig(a);R.sf=null;R.rf=null;/* the story being read aloud keeps playing while you look at another one */if(ttsAway()){if(!R.tctx)R.tctx=R.ctx}else ttsStop();hlClear();const resume=S.pos[a.link]||0,auto=!RD_CONT&&!a.book&&!isVert()&&progOf(a.link)>0&&minsOf(a)>5,wantResume=RD_CONT||!!a.book||auto;RD_CONT=false;/* R3 R4: a long story you left half-read reopens where you were, with a way back to the start */R.navAt=0;R.ready=false;R.tf=0;R.fa=0;R.hsq='';try{$('#rd').classList.remove('fauto','fpeek')}catch(e){}const afterLoad=()=>{R.tf=1;{const s=document.querySelector('.cols .body .skp');if(s)s.remove();const h=$('#rd .lhl');if(h)h.hidden=true}if(!a.book){legalBody($('.cols .body'));try{markRestricted(a,($('.cols .body')||{}).textContent,false)}catch(e){}}try{heroOnce()}catch(e){}decorate();briefFoot();keepRead();hdrFill();layout();applyHl();R.ready=true;try{finishWatch()}catch(e){}/* late fonts, pictures and the "you might also like" block can change how the text flows, so lay the page out again once things have settled */{const a0=curA;/* ...but only when something really changed since the last layout: each one re-lays the whole story, a hitch just as reading starts */try{if(RLD)RLD.off()}catch(e){}const c0=$('.cols'),L={dirty:false},mark=()=>{L.dirty=true};L.mo=new MutationObserver(mark);if(c0){L.mo.observe(c0,{childList:true,subtree:true,characterData:true});c0.addEventListener('load',mark,true)}try{document.fonts&&document.fonts.addEventListener('loadingdone',mark)}catch(e){}L.off=()=>{L.mo.disconnect();if(c0)c0.removeEventListener('load',mark,true);try{document.fonts.removeEventListener('loadingdone',mark)}catch(e){}if(RLD===L)RLD=null};RLD=L;const maybe=()=>{if(curA!==a0){L.off();return}if(L.dirty)relayout()};setTimeout(maybe,800);setTimeout(()=>{maybe();setTimeout(()=>{if(curA===a0)L.off()},3000)},2600);setTimeout(()=>{if(curA===a0)rdWarm()},3300);try{document.fonts&&document.fonts.ready.then(maybe)}catch(e){}/* and whenever the page itself changes size without the window resizing (a fold opening, a side panel sliding) */try{const bk=$('.book');if(bk&&window.ResizeObserver){let w0=bk.clientWidth,h0=bk.clientHeight;const ro=new ResizeObserver(()=>{if(curA!==a0||!bk.isConnected){ro.disconnect();return}if(Math.abs(bk.clientWidth-w0)>1||Math.abs(bk.clientHeight-h0)>1){w0=bk.clientWidth;h0=bk.clientHeight;relayout()}});ro.observe(bk)}}catch(e){}}if(isVert()){const pf=S.prog[a.link];if(pf&&pf.p>0&&pf.p<1){const v=vView();if(v){v.scrollTop=pf.p*(v.scrollHeight-v.clientHeight);if(minsOf(a)>5)toast('Continuing where you left off',()=>{if(my===tok){v.scrollTop=0}},'Start over')}}}else if(!wantResume){if(!R.navAt){R.pg=0;try{show()}catch(e){}}/* page 1 again once the pictures have settled, unless the reader has already turned a page */const t0=Date.now();for(const ms of [0,350,900]){setTimeout(()=>{if(my===tok&&!isVert()&&R.pg>0&&!R.navAt){R.pg=0;try{show()}catch(e){}}},ms)}/* a story you were partway through offers your page back instead of starting over in silence */if(resume||progOf(a.link))setTimeout(()=>{if(my!==tok||isVert()||R.pg>0||!R.np)return;const pf=progOf(a.link),tp=Math.max(0,Math.min(pf?Math.round(pf*(R.np-1)):resume,R.np-1));if(tp>0&&tp<R.np-1)toast('You were on page '+(tp+1)+' of '+R.np,()=>{if(my===tok){R.pg=tp;R.navAt=Date.now();show()}},'Resume')},1000)}else if((resume||progOf(a.link))&&R.pg===0){const pf=progOf(a.link),tp=pf?Math.round(pf*(R.np-1)):resume;R.pg=Math.max(0,Math.min(tp,R.np-1));if(R.pg>0){show();if(auto)toast('Continuing where you left off',()=>{if(my===tok){R.pg=0;R.navAt=Date.now();show()}},'Start over')}}};STAT.opened(a);histAdd(a);saveSoon();setTimeout(()=>raWhenReady(a,0),1200);
  rdB(brand(f));pushLayer('reader');rdGest();
  try{rdAmbient(null)}catch(e){}
  rdPal();
@@ -11506,7 +11511,7 @@ $('#rd').onclick=e=>{
  {const fc=t.closest('#rd .cols figcaption,#rd .cols .hsf>.hcap');if(fc&&!t.closest('a,button')&&!(getSelection()+'')&&getComputedStyle(fc).position==='absolute'){fc.classList.toggle('fcx');return}}
  /* a picture always opens in the in-app viewer, even when the site wrapped it in a link */
  const gim=t.closest('.cols img:not(button img)');/* David 2026-11-20: a picture inside a button (the Next up card) belongs to the button, not the photo viewer */if(gim&&gim.classList.contains('tiny'))return;if(gim&&!gim.closest('.emb')&&!R.noClick&&!R.web&&!(getSelection()+'')){e.preventDefault();openGal(gim);return}
- const fl=t.closest('.cols .body a[href^="#"]');if(fl&&!R.noClick&&!R.web&&!(getSelection()+'')){e.preventDefault();const k=fl.getAttribute('href').slice(1),h=[...document.querySelectorAll('.cols .body [data-nid]')].find(x=>x.dataset.nid===k&&!x.closest('.tl,.tl-leaf'));if(h){const rn=h.closest('.rnotes:not(.open)');const jump=()=>{if(rn){rn.classList.add('open');layout()}rdJumpTo(h)};/* round two C2: a note mark in a story shows its note in the same small window books use, so the page is not lost */const nt=h.textContent.replace(/[\s↩↑⤴]+$/,'').trim();if((fl.closest('sup')||fl.textContent.trim().length<=4)&&nt&&nt.length<=900&&!h.closest('.rnotes')&&!h.matches('h1,h2,h3,h4,h5,h6'))noteWin(nt,jump);else jump()}else if(curA)extOpen(curA.link.split('#')[0]+'#'+k);return}
+ const fl=t.closest('.cols .body a[href^="#"]');if(fl&&!R.noClick&&!R.web&&!(getSelection()+'')){e.preventDefault();const k=fl.getAttribute('href').slice(1),h=[...document.querySelectorAll('.cols .body [data-nid]')].find(x=>x.dataset.nid===k&&!x.closest('.tl,.tl-leaf'));if(h){const rn=h.closest('.rnotes:not(.open)');const jump=()=>{if(rn){rn.classList.add('open');layout()}rdJumpTo(h)};/* round two C2: a note mark in a story shows its note in the same small window books use, so the page is not lost */const nt=(c=>{c.querySelectorAll('a[href^="#"]').forEach(x=>{if(/^[\s↩↑⤴^]*(back|return|top|\w{0,3})?[\s↩↑⤴.]*$/i.test(x.textContent))x.remove()});return c.textContent})(h.cloneNode(true)).replace(/[\s↩↑⤴]+$/,'').trim();/* R3 R7: the note's own way-back link is left out */if((fl.closest('sup')||fl.textContent.trim().length<=4)&&nt&&nt.length<=900&&!h.closest('.rnotes')&&!h.matches('h1,h2,h3,h4,h5,h6'))noteWin(nt,jump);else jump()}else if(curA)extOpen(curA.link.split('#')[0]+'#'+k);return}
  const lk=t.closest('.cols .body a[href]');if(lk&&!lk.closest('.emb')&&!R.noClick&&!R.web&&!(getSelection()+'')){e.preventDefault();extOpen(lk.href);return}
  const bn=t.closest('[data-bnext]');if(bn){const n=briefNext();if(n)openReader(n);return}
  const rn=t.closest('[data-rnext]');if(rn){const n=findStory(rn.dataset.rnext)||(R.ctx||[]).find(x=>x.link===rn.dataset.rnext);if(n)openReader(n);return}
@@ -11552,7 +11557,8 @@ addEventListener('keydown',e=>{
  else if(e.key===' '&&e.target.closest&&e.target.closest('button,a,summary,[role=button]')){}/* Space presses the focused button; it only turns the page from the text */
  else if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();go(1)}
  else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(-1)}
- else if(isVert()&&!R.web&&!e.defaultPrevented&&/^(Arrow(Down|Up)|Home|End)$/.test(e.key)&&(e.target===document.body||e.target.closest('#rd .bar'))){const v=vView();if(v){e.preventDefault();e.key[0]==='A'?v.scrollBy(0,e.key==='ArrowDown'?60:-60):v.scrollTo(0,e.key==='Home'?0:v.scrollHeight)}}/* Scroll mode: the arrows, Home and End still move the text when a bar button has the focus */
+ else if(!isVert()&&!R.web&&!R.busy&&R.np>0&&(e.key==='Home'||e.key==='End')&&(e.target===document.body||e.target.id==='rd'||e.target.closest('#rd .bar,#rd .cols'))){e.preventDefault();R.pg=e.key==='Home'?0:R.np-1;R.navAt=Date.now();show()}/* R3 R5: Home and End jump to the first and last page */
+ else if(isVert()&&!R.web&&!e.defaultPrevented&&/^(Arrow(Down|Up)|Home|End)$/.test(e.key)&&(e.target===document.body||e.target.id==='rd'||e.target.closest('#rd .bar'))){const v=vView();if(v){e.preventDefault();e.key[0]==='A'?v.scrollBy(0,e.key==='ArrowDown'?60:-60):v.scrollTo(0,e.key==='Home'?0:v.scrollHeight)}}/* Scroll mode: the arrows, Home and End still move the text when a bar button has the focus */
 });
 $('#rd').addEventListener('input',e=>{
  const t=e.target;
@@ -12543,6 +12549,7 @@ function hlText(){
 function exportHighlights(){if(!S.hl.length){toast('No highlights yet');return}shareOrCopy('My highlights',hlText())}
 function hlClick(e){
  const t=e.target;
+ const c=t.closest('.hlc');if(c&&!t.closest('button,a,input,textarea')&&!(getSelection()+'')){const b=c.querySelector('[data-hopen]');if(b){b.click();return true}}/* R3 R8: the whole quote card opens the story (the title button stays the keyboard way in) */
  const o=t.closest('[data-hopen]');if(o){const h=S.hl[+o.dataset.hopen];if(h)openReader({...h.art,html:'',summary:''});return true}
  const hs=t.closest('[data-hshare]');if(hs){const h=S.hl[+hs.dataset.hshare];if(h)quoteImage(h.q,h.art,h.note).then(c=>shareCanvas(c,'cypress-quote.png',h.art.title+' '+h.art.link,undefined,h.art.title));return true}
  const d=t.closest('[data-hdel]');if(d){const i=+d.dataset.hdel,x=S.hl.splice(i,1)[0];save();render();if(x)toast('Highlight removed',()=>{S.hl.splice(Math.min(i,S.hl.length),0,x);save();render()});return true}
@@ -14100,7 +14107,7 @@ const mediaBadge=a=>ytId(a)?`<button type="button" class="mb" data-cyt="${ytId(a
 /* ===================== picture viewer ===================== */
 const G={list:[],i:0,s:1,x:0,y:0,pts:new Map(),start:null};
 function openGal(img){
- const imgs=[...document.querySelectorAll('.cols img')].filter(i=>i===img||i.naturalWidth>40||i.classList.contains('hero'));
+ const imgs=[...document.querySelectorAll('.cols img')].filter(i=>!i.closest('.tl,.tl-leaf')&&(i===img||i.naturalWidth>40||i.classList.contains('hero')));
  G.list=imgs.map(i=>i.currentSrc||i.src);G.i=Math.max(0,imgs.indexOf(img));
  /* each photo keeps its caption and credit (and its description for screen readers) */G.cap=imgs.map(i=>{const f=i.closest('figure'),c=f&&f.querySelector('figcaption');return [(c?c.textContent:'').replace(/\s+/g,' ').trim(),(i.alt||'').trim()]});G.from=document.activeElement;G.t0=Date.now();
  {const k=u=>String(u).split('?')[0],have=new Set(G.list.map(k));((curA&&curA.pics)||[]).forEach(u=>{if(!have.has(k(u))){have.add(k(u));G.list.push(u);G.cap.push(['',''])}})}if(!G.list.length)return;
@@ -14794,7 +14801,7 @@ function rdFollow(){if(typeof TTS!=='undefined'&&TTS.on&&TTS.words&&TTS.words[TT
 ['wheel','touchstart','keydown','pointerdown'].forEach(ev=>document.addEventListener(ev,e=>{if(e.target&&e.target.closest&&e.target.closest('#rd')){R.af=null;TTS.um=Date.now()}},{capture:true,passive:true}));
 function pgFrac(){if(!R.ready||!curA)return null;const E=R.ep!=null?R.ep:R.np-1;return E>0?Math.min(1,R.pg/E):0}
 function rdFrac(){if(!R.ready||!curA)return null;if(isVert())return vEndFrac();const E=R.ep!=null?R.ep:R.np-1;return E>0?Math.min(1,R.pg/E):0}
-function rdSetFrac(f){if(f==null)return;if(isVert()){const v=vView();if(!v)return;let m=v.scrollHeight-v.clientHeight;const e=bodyEnd();if(e){const endY=e.getBoundingClientRect().bottom-v.getBoundingClientRect().top+v.scrollTop;m=Math.min(m,Math.max(1,endY-v.clientHeight+24))}if(m>0)v.scrollTop=Math.round(f*m)}else if(R.np>1){const E=R.ep!=null?R.ep:R.np-1;R.pg=Math.max(0,Math.min(Math.round(f*E),R.np-1));show()}}
+function rdSetFrac(f){if(f==null)return;if(isVert()){const v=vView();if(!v)return;let m=v.scrollHeight-v.clientHeight;const e=bodyEnd();if(e){const endY=e.getBoundingClientRect().bottom-v.getBoundingClientRect().top+v.scrollTop;m=Math.min(m,Math.max(1,endY-v.clientHeight+24))}if(m>0)v.scrollTop=Math.round(f*m)}else if(R.np>1){if(R.rr&&Date.now()-R.rr.t<6500&&R.rr.r.startContainer.isConnected){const pg=findPage(R.rr.r);if(pg>=0&&pg<R.np){R.pg=pg;show();return}}const E=R.ep!=null?R.ep:R.np-1;R.pg=Math.max(0,Math.min(Math.round(f*E),R.np-1));show()}}
 function vScrollBy(d){const v=vView();if(!v)return;v.scrollBy({top:d*v.clientHeight*.88,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})}
 function minsLeft(frac){const m=curA?readMin(curA):0;return Math.max(0,Math.round(m*(1-frac)))}
 function pcText(){
@@ -19024,7 +19031,7 @@ function advanceNext(){
  const bk=$('#rd .book'),fast=reduced();
  if(bk&&!fast){bk.style.transition='transform .2s ease,opacity .2s';bk.style.transform='translateY(-26px)';bk.style.opacity='0'}
  setTimeout(()=>{
-  R.keepCtx=true;R.adv=false;
+  R.keepCtx=true;R.adv=false;R.nxt={to:n.link,from:curA};/* R3 R11: remembers where you came from, so going back returns there */
   try{openReader(n)}catch(e){elog('advanceNext',e)}
   const sh=$('#sheet');if(sh&&!fast){sh.classList.add('rn-in');setTimeout(()=>sh.classList.remove('rn-in'),420)}
   const v=vView();if(v)v.scrollTop=0;
@@ -19037,20 +19044,20 @@ function readerPrev(){
  for(let j=i-1;j>=0;j--){const x=L[j];if(x&&x.link&&x.link!==curA.link&&x.feedId!=null)return x}
  return null;
 }
-function advanceTo(n,dir){
+function advanceTo(n,dir,end){
  if(!n||R.adv)return;R.adv=true;
  const bk=$('#rd .book'),fast=reduced();
  if(bk&&!fast){bk.style.transition='transform .2s ease,opacity .2s';bk.style.transform='translateX('+(dir>0?-26:26)+'px)';bk.style.opacity='0'}
  setTimeout(()=>{
-  R.keepCtx=true;R.adv=false;
-  try{openReader(n)}catch(e){elog('advanceTo',e)}
+  R.keepCtx=true;R.adv=false;if(dir>0)R.nxt={to:n.link,from:curA};
+  try{openReader(n)}catch(e){elog('advanceTo',e)}if(end){R.rf=1;R.navAt=Date.now()}/* back to the story you came from, on its last page */
   const sh=$('#sheet');if(sh&&!fast){sh.classList.add('rn-in');setTimeout(()=>sh.classList.remove('rn-in'),420)}
  },fast?0:200);
 }
 function edgeSwipe(dir){
  if(R.web||R.busy||R.adv||isVert())return;
  if(dir>0){if(R.np>0&&isOn('cont')){const n=readerNext();if(n)advanceTo(n,1)}}
- else{const p=readerPrev();if(p)advanceTo(p,-1)}
+ else{const bn=R.nxt&&curA&&R.nxt.to===curA.link&&!curA.book&&R.nxt.from,p=bn||readerPrev();if(p)advanceTo(p,-1,!!bn)}
 }
 function rdNext(){
  const c=$('.cols'),a=curA;if(!c||!a||R.web)return;
