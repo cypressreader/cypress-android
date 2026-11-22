@@ -12663,7 +12663,7 @@ function dynTone(c,dark){
  /* richer than before: the page color is clearly the story's color (the earlier near-black and near-white tints hid the range of colors) */
  /* D1: the accent (labels, links) is stepped lighter or darker until it reads at 4.5:1 or better on the page color */
  const rgb=(S2,l)=>{const k=n=>(n+h/30)%12,q=S2*Math.min(l,1-l),f=n=>255*(l-q*Math.max(-1,Math.min(k(n)-3,9-k(n),1)));return[f(0),f(8),f(4)]},cr=(x,y)=>{const A=lumOf(x),B=lumOf(y);return(Math.max(A,B)+.05)/(Math.min(A,B)+.05)};
- const bgL=dark?TD.d+.035:TD.l-.03,bgS=dark?s*.85:s;let aL=dark?.7:.34;while(cr(rgb(s,aL),rgb(bgS,bgL))<4.5&&aL>.08&&aL<.95)aL+=dark?.03:-.03;
+ const bgL=dark?TD.d+.035:TD.l-.03,bgS=dark?s*.85:s;let aL=dark?.7:.34;while(cr(rgb(s,aL),rgb(bgS,bgL))<5&&aL>.08&&aL<.95)aL+=dark?.03:-.03;
  return dark?{bg:hsl2css(h,bgS,bgL),pn:hsl2css(h,s*.7,TD.d+.075),ln:hsl2css(h,s*.5,.27),glow:'hsl('+H+' '+P+'% 42% / .5)',a:hsl2css(h,s,aL)}
   :{bg:hsl2css(h,bgS,bgL),pn:hsl2css(h,s*.85,Math.min(.985,TD.l+.03)),ln:hsl2css(h,s*.6,.8),glow:'hsl('+H+' '+P+'% 74% / .65)',a:hsl2css(h,s,aL)};
 }
@@ -13873,7 +13873,7 @@ function applyTheme(anim){
  }
  root.dataset.theme=th;root.classList.toggle('hc',!!S.hc&&/^eink/.test(th));/* the High contrast switch = Black & White plus the html.hc rules */if(dm)root.dataset.dm=dm;else delete root.dataset.dm;applyTheme.sk=schk;applyTheme.th=th;
  /* the Dynamic tint layers were mixed for the old light or dark: build them again so day colors really replace night ones */
- if(th==='dynamic'&&applyTheme.dm!==undefined&&applyTheme.dm!==dm){try{const c0=dynSet.c;if(c0){dynSet.c=null;dynSet.tb=null;dynApply(c0)}}catch(e){}}applyTheme.dm=dm;
+ if(th==='dynamic'&&applyTheme.dm!==undefined&&applyTheme.dm!==dm){try{const c0=dynSet.c;if(c0){dynSet.c=null;dynSet.tb=null;dynApply(c0,true)/* R3 S6: the labels' color is worked out again for the new light or dark page */}}catch(e){}}applyTheme.dm=dm;
  {let w=schk;const t2=w?twinApply(root,th,w):(twinClear(root),th);if(t2!==th)root.dataset.theme=t2}
 try{root.classList.toggle('pdark',/dark/.test(getComputedStyle(root).colorScheme));root.classList.toggle('hasym',!!getComputedStyle(root).getPropertyValue('--sym').trim())}catch(e){}
  {const pd=bgDark();DARKBG=pd;document.documentElement.classList.toggle('dkbg',pd);if(applyTheme.pd!==undefined&&applyTheme.pd!==pd){try{side._h=null;applyTheme.did=1;/* the full redraw (brand colors lifted for dark) costs over a second on a big library: with Settings open it waits until Settings closes, otherwise until the screen is idle, so the color change itself never stutters */renderSoon()}catch(e){}}applyTheme.pd=pd}
