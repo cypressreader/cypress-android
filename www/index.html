@@ -11404,6 +11404,7 @@ function setShow(id,focus){
 }
 function setHome(){const was=SETP;setShow(null);const b=was&&$('#sethome .sgi[data-pg="'+was+'"]');if(b)b.focus()}
 /* R15d: Escape is taken at the key press too: the browser lets a page refuse 'cancel' only once in a row, so the third Escape closed all of Settings */set.addEventListener('keydown',e=>{if(e.key==='Escape'&&SET_BUILT&&!setWide()&&SETP&&set.classList.contains('inpage')){e.preventDefault();setHome()}});set.addEventListener('cancel',e=>{if(SET_BUILT&&!setWide()&&SETP&&set.classList.contains('inpage')){/* only a single open page steps back; the phone's all-pages scroll closes on Escape */e.preventDefault();setHome()}});
+/* R3 S11: Tab wraps inside Settings (last control back to the first, and Shift+Tab the other way) instead of leaving the dialog */set.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const f=[...set.querySelectorAll('button,summary,select,input,textarea,a[href],[tabindex]')].filter(x=>x.tabIndex>=0&&!x.disabled&&(x.checkVisibility?x.checkVisibility({visibilityProperty:true}):x.getClientRects().length));if(!f.length)return;const a=document.activeElement,l=e.shiftKey?f[0]:f[f.length-1];if(a===l||!set.contains(a)){e.preventDefault();(e.shiftKey?f[f.length-1]:f[0]).focus()}});
 function setGo(id,node){
  setShow(id);try{aiText()}catch(e){}
  if(node){const d=node.closest('details');if(d)d.open=true;setTimeout(()=>{node.scrollIntoView({block:'center',behavior:'smooth'});node.classList.add('sflash');setTimeout(()=>node.classList.remove('sflash'),1800)},60)}
