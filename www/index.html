@@ -1601,6 +1601,7 @@ html.rdx .cols>.hsf.hs-wide img.hero,.cols>.hsf.hs-wide img.hero{width:var(--sw)
 /* G8 feature opening: the photo runs across both pages, a large narrow headline under it on the left page */
 #rd.cpv2 .cols>.hsf.hs-wide~.tt{font-size:clamp(44px,5.5vw,64px);line-height:1.02}
 #rd.cpv2 .cols>.hsf.hs-wide:not(.hs-wcov) img.hero{height:min(calc(var(--ch)*.55),calc(var(--sw)*.66))}
+/* the right page's step under the photo has its height before fitWide measures it, so the blocks placed earlier in the layout (fillVoids) see the final flow */#rd.cpv2 .cols>.hsf.hs-wide:not(.hs-wcov)~.body::before{height:var(--wh2,calc(min(var(--ch)*.55,var(--sw)*.66) + 22px))}
 /* F10: a phone on its side has one short column per page: the photo filled page 1 and pushed the headline to page 2. Here it sits beside the headline instead */
 @media (orientation:landscape) and (max-height:500px){#rd:not(.cpv2) .cols>.hsf.hs-wide{float:left;width:42%;margin:0 24px 10px 0}html.rdx #rd:not(.cpv2) .cols>.hsf.hs-wide img.hero,#rd:not(.cpv2) .cols>.hsf.hs-wide img.hero{width:100%;height:calc(var(--ch) - 12px)}}
 #rd.cpv2:not(.rbk) .cols:has(>.hs-wide) .body>:first-child{break-before:auto}/* :not(.rbk) only so this outranks the later 'story starts on a fresh page' rule */
@@ -19697,7 +19698,7 @@ function nextLeaf(c,cw,gap){c.querySelectorAll(':scope>.nxl').forEach(x=>x.remov
 function fillVoids(c,cw,gap){
  const bd=c.querySelector('.body');if(!bd||R.web||isVert())return;
  const pitch=cw+gap,H=c.clientHeight;if(!(H>0&&pitch>0))return;
- const BLK='p,li,h2,h3,h4,blockquote,figure,img,table,pre,figcaption,.pullq,.tbl,.emb';
+ const BLK='p,li,h2,h3,h4,blockquote,figure,img,table,pre,figcaption,.pullq,.tbl,.emb',lh=parseFloat(getComputedStyle(bd).lineHeight)||28;
  for(let pass=0;pass<10;pass++){
   const bl=bd.getBoundingClientRect(),nC=Math.ceil((bd.offsetWidth+gap)/pitch);if(nC<4)return;
   const low=new Array(nC).fill(0);
@@ -19709,11 +19710,13 @@ function fillVoids(c,cw,gap){
    const q=k.getClientRects()[0];if(!q)continue;
    const ci=Math.floor((q.left-bl.left+2)/pitch);if(ci<1||ci>=endC)continue;
    if(q.top-bl.top>14)continue;               /* it opens its column */
-   if(low[ci-1]>=H*.72)continue;               /* the column before is well filled */
+   const sm=low[ci-1]>=H*.72;/* the column before is well filled */
+   /* G5: on two pages a picture (or pull quote) that jumped a column and left more than three empty lines still trades places with the paragraph after it, once only (never further from the text that mentions it) */
+   if(sm&&!(R.cpv===2&&(k.tagName==='FIGURE'||k.classList.contains('pullq'))&&!k.dataset.mv&&H-low[ci-1]>3*lh))continue;
    /* a picture is first fitted to the room that is left (cropped a little) when there is a fair amount */
    const rem=H-low[ci-1]-16;
-   if(k.tagName==='FIGURE'&&k.querySelector('img')&&!k.dataset.fit&&rem>=170){k.style.setProperty('--ih',Math.max(120,rem-34)+'px');k.dataset.fit='1';moved=true;break}
-   const mv=+k.dataset.mv||0;if(mv>=3)continue;
+   if(!sm&&k.tagName==='FIGURE'&&k.querySelector('img')&&!k.dataset.fit&&rem>=170){k.style.setProperty('--ih',Math.max(120,rem-34)+'px');k.dataset.fit='1';moved=true;break}
+   const mv=+k.dataset.mv||0;if(mv>=(R.cpv===2?1:3))continue;/* G5: on two pages never more than one paragraph from where it was */
    const nx=k.nextElementSibling;if(!nx||nx.tagName!=='P'||nx.classList.contains('endmark')||nx.classList.contains('rtags'))continue;
    if((nx.textContent||'').length>1900)continue;                  /* not past a paragraph longer than a column */
    const after=nx.nextElementSibling;if(!after||after.classList.contains('endmark')||after.classList.contains('rtags')||after.classList.contains('rfoot'))continue; /* never to the very end */
