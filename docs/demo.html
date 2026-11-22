@@ -19876,7 +19876,7 @@ function fillVoids(c,cw,gap){
    if(sm&&!(R.cpv===2&&(k.tagName==='FIGURE'||k.classList.contains('pullq'))&&!k.dataset.mv&&H-low[ci-1]>3*lh))continue;
    /* a picture is first fitted to the room that is left (cropped a little) when there is a fair amount */
    const rem=H-low[ci-1]-16;
-   if(!sm&&k.tagName==='FIGURE'&&k.querySelector('img')&&!k.dataset.fit&&rem>=170){k.style.setProperty('--ih',Math.max(120,rem-34)+'px');k.dataset.fit='1';moved=true;break}
+   if(!sm&&k.tagName==='FIGURE'&&k.querySelector('img')&&!k.dataset.fit&&rem>=170){k.style.setProperty('--ih',Math.max(120,rem-Math.max(34,k.offsetHeight-k.querySelector('img').offsetHeight+(parseFloat(getComputedStyle(k).marginBottom)||0)))+'px')/* the caption, the picture's own margins and the gap under it are measured, not guessed, so the fitted picture really fits */;k.dataset.fit='1';moved=true;break}
    const mv=+k.dataset.mv||0;if(mv>=(R.cpv===2?1:3))continue;/* G5: on two pages never more than one paragraph from where it was */
    const nx=k.nextElementSibling;if(!nx||nx.tagName!=='P'||nx.classList.contains('endmark')||nx.classList.contains('rtags'))continue;
    if((nx.textContent||'').length>1900)continue;                  /* not past a paragraph longer than a column */
