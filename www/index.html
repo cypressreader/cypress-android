@@ -14907,7 +14907,7 @@ function whyBox(){if(curA&&curA.book)return;
  if(d.length<20)return;const k=Math.min(d.length,80);if(first.includes(d.slice(0,k))||d.includes(first.slice(0,Math.min(first.length,k)))&&first.length>=20)return;
  const el=document.createElement('aside');el.className='whyit';el.setAttribute('aria-label','From the publisher');el.innerHTML='<b aria-hidden="true">From the publisher</b><p></p>';el.querySelector('p').textContent=raw;
  /* R-07: set as a plain italic line straight under the headline (CSS: no box, no label), so the story starts higher on page 1 */
- const tt=c.querySelector(':scope>.tt');if(tt)tt.after(el);else c.insertBefore(el,c.querySelector(':scope>.note')||bd);
+ const tt=c.querySelector(':scope>.tt');if(tt)tt.after(el);else c.insertBefore(el,c.querySelector(':scope>:is(.note,.mnotes,.body)'));
 }
 function mnotes(){mnotes0();try{if(!aiBox())whyBox()}catch(e){try{whyBox()}catch(_){}}try{rdxDeck()}catch(e){}}
 /* AI summary: on phones with Google's built-in AI (Android app only) a 3-point summary made ON the phone replaces "From the publisher". English stories only; nothing is sent anywhere */
@@ -14920,7 +14920,7 @@ function aiPut(c,lines){/* lines null = the waiting box (three shimmer bars) */
  const el=document.createElement('aside');el.className='whyit ai'+(lines?'':' wait');el.setAttribute('aria-label','AI summary');if(!lines)el.setAttribute('aria-busy','true');
  el.innerHTML='<b aria-hidden="true">AI summary</b><ul></ul><small>'+(lines?'Made on this phone by its built-in AI. It can get things wrong.':'Writing a summary on this phone…')+'</small>';
  const ul=el.querySelector('ul');(lines||['','','']).forEach(t=>{const li=document.createElement('li');li.textContent=t;ul.append(li)});
- c.insertBefore(el,c.querySelector(':scope>.note')||c.querySelector(':scope>.body'));return el}
+ c.insertBefore(el,c.querySelector(':scope>:is(.note,.mnotes,.body)'));return el}
 function aiGrow(el,h0){/* Rule and grow: the brass line draws down while the box grows from the waiting bars to fit, then the points fade in (CSS .whyit.ai.in) */
  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return 0;const u=el.querySelector('ul'),h1=u.offsetHeight;el.classList.add('in');setTimeout(()=>el.classList.remove('in'),1100);
  if(!h0||h0===h1||el.getClientRects().length>1)return 0;u.style.cssText='overflow:hidden;height:'+h0+'px;transition:height var(--dur-3) cubic-bezier(.3,.7,.2,1)';void u.offsetHeight;u.style.height=h1+'px';setTimeout(()=>u.style.cssText='',500);return 500}
@@ -14961,10 +14961,10 @@ function mnotes0(){
  const c=$('.cols');if(!c)return;
  c.querySelectorAll(':scope>.mnotes').forEach(x=>x.remove());
  if(!c.querySelector(':scope>.hsf')||!isOn('mnote')||!curA)return;
- const a=curA,f=fof(a),min=readMin(a)||1,n=(a.more||[]).length;
+ const a=curA,f=fof(a),min=readMin(a)||1,n=(a.more||[]).length;if(!n)return;/* G4: only when it adds something the byline does not already say */
  const rows=[['Source',f.title||host(a.link)],['Published',a.date?new Date(a.date).toLocaleDateString([],{month:'long',day:'numeric'}):''],['Reading time',min+' min'],n?['Also covered by',(a.more.slice(0,3).map(m=>fof({feedId:m.f}).title).join(', '))+(n>3?' and '+(n-3)+' more':'')]:null].filter(r=>r&&r[1]);
  const el=document.createElement('aside');el.className='mnotes';el.innerHTML='<b>At a glance</b><dl>'+rows.map(r=>`<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join('')+'</dl>';
- const nt=c.querySelector(':scope>.note'),bd=c.querySelector(':scope>.body');c.insertBefore(el,nt||bd);
+ c.insertBefore(el,c.querySelector(':scope>.body'));
 }
 function photoPages(){
  const b=$('.cols .body');if(!b)return;
