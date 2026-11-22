@@ -16,9 +16,9 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   ck(t+'rows with labels exist',r.length>=3,JSON.stringify(r).slice(0,300));
   ck(t+'a name is never cut while its label shows',r.every(x=>!(x.labelVisible&&x.cut)),JSON.stringify(r.filter(x=>x.labelVisible&&x.cut)));
   ck(t+'two-line rows: figures sit below the name, smaller',r.filter(x=>/fr2/.test(x.cls)).every(x=>x.below&&x.fs<x.nfs&&x.inside),JSON.stringify(r.filter(x=>/fr2/.test(x.cls))));
-  ck(t+'one-line rows keep name and figures on one line',r.filter(x=>!/fr2|fr3/.test(x.cls)).every(x=>x.sameLine),JSON.stringify(r.filter(x=>!/fr2|fr3/.test(x.cls))));
+  ck(t+'every row keeps the figures on a reserved second line and its name uncut',r.filter(x=>!/fr3/.test(x.cls)).every(x=>x.below&&!x.cut),JSON.stringify(r.filter(x=>!/fr3/.test(x.cls))));
   if(sw==='330px'&&W>700)ck(t+'a wide sidebar keeps short names on one line',r.filter(x=>x.name.length<=12).every(x=>!/fr2|fr3/.test(x.cls)),JSON.stringify(r.map(x=>[x.name,x.cls])));
-  if(sw==='205px')ck(t+'a narrow sidebar uses the second line for long names',r.some(x=>/fr2/.test(x.cls)),JSON.stringify(r.map(x=>[x.name,x.cls])));
+  if(sw==='205px')ck(t+'a narrow sidebar uses the second line for long names',r.every(x=>x.below||/fr3/.test(x.cls)),JSON.stringify(r.map(x=>[x.name,x.cls])));
   ck(t+'no page errors',!errs.length,errs[0]);await p.close();
  }
  await b.close();console.log(bad?'side_labels '+bad+' FAILED':'side_labels all passed');process.exit(bad?1:0);
