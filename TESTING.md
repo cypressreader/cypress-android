@@ -2435,10 +2435,10 @@ Settings
 - A story the AI gives up on: the publisher's description takes the same room (text may sit a few pixels off). A story with neither still closes the gap (the one remaining jump).
 - Reopen the same story later: the summary shows at once at its natural size. Tool: `node tools/r3/ai_box.js` (fakes the phone's AI; must end ALL OK).
 
-## No whole-screen picture covers (after 1.383, not shipped yet, unverified on the Fold)
+## No whole-screen picture covers (1.384, unverified on the Fold)
 - Dynamic theme, inner screen, stories with very sharp wide pictures: none opens on the whole-screen picture (story on a sheet over the photo, or picture first). They open with the framed picture or the banner across both pages; no flash, no text moving as the story arrives. Phones keep their one-page picture opening. Tool: `node tools/r3/cover_pick.js`.
 
-## AI summary line and card (after 1.383, not shipped yet, unverified on the Fold: needs the phone's built-in AI; replaces 'AI summary box keeps its size')
+## AI summary line and card (1.384, unverified on the Fold: needs the phone's built-in AI; replaces 'AI summary box keeps its size')
 - Open a long English story: under the headline one line reads 'AI summary … writing…' with a small spinner. A few seconds later the same line reads 'AI summary ready … Show'. The story text must NOT move at all, on the cover screen and the inner screen, pages and scrolled.
 - Tap the line: a card opens over the foot of the page with the three points WHOLE (no … cuts) and the small print. Close with the ×, a tap outside, or Back: the story is still open and nothing moved.
 - Turn the page and come back: the line still reads 'ready' (never 'writing…' again).
