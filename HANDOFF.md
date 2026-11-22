@@ -2,7 +2,7 @@
 Old detail (dated session logs, FIXES 16-26 notes, debugging traces) lives in `HANDOFF-ARCHIVE.md`: don't read it on boot, `grep` it only if needed.
 Keep THIS file under ~8 KB: when it grows past that, move finished/dated items to the archive and keep only rules, open items and the next tasks.
 
-Last updated: 2026-11-22 (work branch ccr-aefb8e60-idp0ts, ahead of claude/book-prototype-handoff-m0zc4d; main = 1.381). Do NOT push HANDOFF-only commits to main (every push to main starts an APK build).
+Last updated: 2026-11-22 (work branch ccr-aefb8e60-idp0ts, ahead of claude/book-prototype-handoff-m0zc4d; main = 1.382). Do NOT push HANDOFF-only commits to main (every push to main starts an APK build).
 ## 1. Working & locked (verified; don't change core logic without asking)
 - **Halcyon theme** (`halcyon`/`halcyond`): website palette (cream `#f3ecdc`, green `#123524`/`#0c2619`, brass `#c9a24a`/`#b08d3e`), follows phone via `twinApply`. Headlines use `--disp` (narrow display serif) with `!important` (user's choice). Dark-brass labels on cream `#7d5f14`; light-brass `#e2c27a` on dark `.noimg` lead/hero cards (`.noimg` ≠ cream card).
 - **The Daily**: name once per section (`sh()`), one-line intros (`DAYDEK`), "Vol. 26 · No. 290" line, "Next up" styled like "Since this morning", "In this issue" links use `jumpTop`, cover number `.dcv-num`.
@@ -37,7 +37,7 @@ Full detail of everything below: archive grep 'moved-1323b' (older: 'moved-1323'
 PM deep dive / 1.350 notes: archive grep 'moved-1351'. 1.337-1.347 notes (story touches, title page picks, Teach fallbacks, gray strip): archive grep 'moved-1345'/'moved-1345b'/'moved-1350'.
 **Idea book:** https://claude.ai/artifact/GWC3jXRYfrs8pJjWPLk8e5 (card text: Artifact read, then awk the `c-<id>` article). 87 picks received 2026-11-19; history, theme checks, skipped cards: archive grep 'moved-1355' / 'moved-1353'. F8 LAST.
 **Next 3 tasks:**
-AFTER 1.381, David's three Fold reports: ALL FIXED 2026-11-22 on branch ccr-aefb8e60-idp0ts (browser-checked, NOT on main, no version bump yet; original notes: archive grep 'moved-1382'). Offer David `build` (next label 1.382 + whats-new).
+AFTER 1.381, David's three Fold reports: ALL FIXED 2026-11-22 on branch ccr-aefb8e60-idp0ts (browser-checked, SHIPPED as 1.382 (2026.11.22b) on David's build 2026-11-22, device-unverified; original notes: archive grep 'moved-1382').
 - Dark headline over photo: cardInk stopped at the card's own color (--b = the site's brand color, behind the photo); a LIGHT brand color (Al Jazeera orange) inked the headline #14171c. Now skipped when the headline lies on the card's photo. Was also in 1.380; mock feeds have dark brand colors. `node tools/r3/ink_brand.js`.
 - Sluggish book turns: one feed rule `...nr-river:has(>.nr-rv>:nth-child(4))...` made every DOM insert re-check every <p> in the app (119 ms per page copy, now 18). Rewritten with :first-child:nth-last-child(n+4). The p:has(+p) book rule was NOT the cause (left alone). LESSON: a :has() holding a bare :nth-child / universal part invalidates the whole document on any insert. `GAP=6000 node tools/r3/book_turn.js`, `node tools/r3/book_count.js` (traces what one copy restyles).
 - Story never at rest on two pages (new in 1.381, G10): nextLeaf rebuilt the next-story card on every layout, its picture's load event asked for another layout: ~5 layouts a second forever, copies rebuilt each time. The .cols load/error listener now ignores pictures inside .nxl. `node tools/r3/relayout_loop.js` must print keyChanges 0.
