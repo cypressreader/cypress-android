@@ -11103,16 +11103,16 @@ const SET_REN={'L:Continuous reading':['Flow into the next story','Keep pulling 
 Object.assign(SET_REN,{'L:Narrow screen layout':['Phone-sized screen layout','Big headlines and a bar at the bottom when the screen is small or folded'],'L:Smooth mode':['Smoother scrolling','No blurs or soft shadows, and stories load as you scroll, so scrolling stays quick. On by default on touch screens'],'L:Feed text size':['Text size in lists','How big the words are in your story lists and The Daily. Reading text size is set separately'],'L:Voice timing':['Word highlight timing','If the highlighted word runs ahead of or behind the voice, Reset lets CyPress learn your voice’s timing again'],'L:Kindle books':['Kindle book colors','Black and white suits e-ink Kindles. Color suits the Kindle Colorsoft, Kobo Clara Color and phones']});
 const SET_PAGES=[
  {id:'look',t:'Appearance',d:'Theme, colors and cover style',c:'#7c5cff',lead:'Pick how CyPress looks. The preview below changes as you choose.',prev:1,
-  main:[{items:['X:sch']},{items:['X:presets']},{items:['P:lkp']},{h:'Fine-tune',items:['P:thm','L:Green top bar']}],
+  main:[{h:'Easier to see',was:'Reading',items:['X:hcgo','L:Bigger buttons','L:Follow my phone’s text size']},{items:['X:sch']},{items:['X:presets']},{items:['P:lkp']},{h:'Fine-tune',items:['P:thm','L:Green top bar']}],
   more:[{h:'Theme extras',items:['L:App icon','L:Seasonal touches','L:Theme layouts','L:Tinted photos']},{h:'Per folder',items:['L:Theme by folder']}],
   rst:['theme','sch','dynm','cvs','mast','ptone','paper','scrim','ptint','gtop']},
  {id:'read',t:'Reading',d:'Fonts, size and story layout',c:'#0a8f4a',lead:'How a story looks while you read it.',
-  main:[{h:'Easier to read',items:['L:Bigger buttons','L:Follow my phone’s text size','L:Bold word starts','X:hcgo']},{items:['P:rprev','X:aa','L:Reading style','L:Text size','L:Type preset']}],
+  main:[{h:'Easier to read',items:['L:Bold word starts']},{items:['P:rprev','X:aa','L:Reading style','L:Text size','L:Type preset']}],
   more:[{h:'Text details',items:['L:Headline font','L:Line spacing','L:Page margins','L:Dim photos in dark themes']},{h:'Page details',items:['L:Justify text','L:Author and site notes']},{h:'Magazine extras',items:['L:Magazine touches']}],
   rst:['font','hfont','fs','lh','mg','rl','scroll','endm','pqs']},
  {id:'home',t:'Home and Covers',d:'Today page, cards and wide screens',c:'#e2742a',lead:'What you see when you open CyPress, and how stories are laid out on big screens.',
   main:[{items:['L:Magazine cover on The Daily','L:Story card size','L:Feed text size']}],
-  more:[{items:['M:covers','L:Side-by-side reading','X:fpst','L:Narrow screen layout','L:Story layout on big screens','L:Hide the side bar']}],
+  more:[{items:['M:covers','X:fpst']},{h:'Screen size',items:['L:Narrow screen layout','L:Story layout on big screens','L:Side-by-side reading','L:Hide the side bar']}],
   rst:['cards','ts','narrow','sop']},
  {id:'tts',t:'Read Aloud',d:'Voice, speed and volume',c:'#1e88e5',lead:'Have CyPress read a story to you. Open a story and tap Listen.',
   main:[{items:['L:Voice','L:Natural voice','L:Speaking speed','L:Volume']},{h:'Voice',items:['L:Voice help']}],
@@ -11141,7 +11141,7 @@ const SET_PAGES=[
   main:[{items:['L:Tips and gestures','L:See your year','L:Privacy','L:Redo setup']},{h:'Help the developer',items:['L:Report a problem','L:Share anonymous usage counts','L:What the counts contain']},{h:'Sharing and Kindle',items:['L:Shorten shared links','L:Kindle books','L:Your Kindle address']}],
   more:[{h:'Keyboard',fold:1,items:['L:Keyboard shortcuts']},{h:'Diagnostics',fold:1,items:['L:Copy support info','L:Test sites on this phone','L:Check scrolling','L:Test suggested feeds']},{h:'Reset',items:['X:resetlook','L:Erase everything and start over']}],rst:null}
 ];
-/* David 2026-11-04: touch screens only, so Keyboard shortcuts left the main list; it is a folded row under About > Advanced */const SET_GROUPS=[['look','read','daily','listen','stories','use','sites'],['motion','about']];
+/* David 2026-11-04: touch screens only, so Keyboard shortcuts left the main list; it is a folded row under About > Advanced */const SET_GROUPS=[['look','read','daily','listen','stories','sites'],['motion','about']];
 /* polish-2026-10 (D1): seven pages instead of ten. Appearance, Reading, Home and Stories (layout + feeds + filters), Motion and Sound, Downloads and Storage, Listening and Alerts (read aloud + digest), Backup, Sync and About. The old ids still work as aliases. Restore the old hub by putting the old merge back (feeds/tts/sync/home pages are all still defined above). */
 const SET_ALIAS={tts:'listen',feeds:'sites',sync:'sites',home:'daily',dl:'stories',alerts:'daily'};
 (function(){const by=id=>SET_PAGES.find(p=>p.id===id);
@@ -11159,7 +11159,10 @@ const SET_ALIAS={tts:'listen',feeds:'sites',sync:'sites',home:'daily',dl:'storie
  M.t='Motion & battery';M.d='Animation, effects and vibration';M.lead='Less movement saves battery.';
  Ab.t='About CyPress';Ab.d='Tips, privacy and version';Ab.lead='Help, privacy and the app itself.';
  const U=by('use');/* Read You borrow: a seventh door for behavior (swipes, read marks) */
- SET_PAGES.splice(0,SET_PAGES.length,...[L,R,daily,listen,stories,U,sites,M,Ab]);
+ /* R3 S8: Swipes and taps (five controls) is a group on Stories, and Kindle and shared links sit with Sites & backup; the old page id still works */
+ stories.main.push(...U.main);stories.rst=stories.rst.concat(U.rst);SET_ALIAS.use='stories';
+ {const isK=c=>c.h==='Sharing and Kindle';sites.main.push(...Ab.main.filter(isK).map(c=>Object.assign({},c,{was:'About'})));Ab.main=Ab.main.filter(c=>!isK(c))}
+ SET_PAGES.splice(0,SET_PAGES.length,...[L,R,daily,listen,stories,sites,M,Ab]);
  SET_PAGES.OLD={home:H,feeds:F,tts:T,sync:Sy,alerts:A,dl:D};/* kept so the old split can be restored */
 })();
 /* The "Reset appearance and reading settings" button must keep resetting exactly what it did before the pages were merged: these extra keys cover the layout and read-aloud settings that moved. */
@@ -11203,7 +11206,7 @@ function setItems(items){
  });
  return out}
 /* R8b: a link row to the High contrast choice in Look (not a new setting) */
-function setHcLine(){const d=document.createElement('div');d.className='line';d.innerHTML='<span class="lb">High contrast look<small>Pure black and white, thicker lines, nothing faded. Opens it in Look</small></span><button type="button" class="tx2" id="hcgo">Open</button>';return d}
+function setHcLine(){const d=document.createElement('div');d.className='line';d.innerHTML='<span class="lb">High contrast look<small>Pure black and white, thicker lines, nothing faded. A switch under the Black &amp; White theme</small></span><button type="button" class="tx2" id="hcgo">Open</button>';return d}
 set.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('#hcgo')))return;const r=document.querySelector('#setpane .tg[data-tg="hc"]'),l=r&&r.closest('.line');if(l)setGo('look',l)});
 function setAaLine(){const d=document.createElement('div');d.className='line';d.innerHTML='<span class="lb">Reading preview<small>Try size, font, spacing, width and page turn together, with a live sample</small></span><button type="button" class="tx2" id="aaopen" aria-haspopup="dialog">Open</button>';return d}
 function setMotionLine(){
@@ -11332,7 +11335,7 @@ function setCard(c){
  if(c.fold){/* a card that starts folded away (developer tools), with its own heading as the summary */
   const dt=document.createElement('details');dt.className='smore sdev';dt.innerHTML='<summary><span></span><i class="smn"></i></summary>';dt.querySelector('span').textContent=c.h;
   const b=document.createElement('div');b.className='sbox';setItems(c.items).forEach(n=>b.append(n));dt.append(b);return dt}
- const w=document.createElement('div');w.className='sgw';if(c.id)w.dataset.cg=c.id;if(c.rs)w.dataset.rs='1';if(c.h){const h=document.createElement('h4');h.className='sct';h.textContent=c.h;w.append(h)}
+ const w=document.createElement('div');w.className='sgw';if(c.id)w.dataset.cg=c.id;if(c.was)w.dataset.was=c.was;/* R3 S8: the page a moved group came from, for search */if(c.rs)w.dataset.rs='1';if(c.h){const h=document.createElement('h4');h.className='sct';h.textContent=c.h;w.append(h)}
  const b=document.createElement('div');b.className='sbox';setItems(c.items).forEach(n=>b.append(n));w.append(b);return w}
 function setAdopt(){
  webUpd();
@@ -11426,7 +11429,7 @@ function setSearch(q){
  q=q.replace(/\bcolo(u)?rs?\b/g,'color');/* people who spell it the other way still find it */
  let tk=q.split(/[^a-z0-9']+/).filter(t=>t&&!SET_STOP.has(t)).map(t=>t.length>3?t.replace(/(ing|es|s)$/,''):t);if(!tk.length)tk=[q];
  const res=[];document.querySelectorAll('#setpane .spage').forEach(pg=>{const p=SET_PAGES.find(x=>x.id===pg.dataset.pg);const pgt=(p.t+' '+(p.d||'')).toLowerCase();pg.querySelectorAll('.line,.lkp').forEach(l=>{const lb=l.querySelector('.lb,.lbx')/* R3 S2: the cover tiles are found as Cover style */;if(!lb)return;{const h=l.closest('[hidden]');if(h&&pg.contains(h)&&h!==pg)return}/* a hidden row is not offered */const name=setNorm(lb.firstChild.textContent),nl=name.toLowerCase();
-  let cp=l._sx;if(!cp)cp=l._sx=(lb.textContent.toLowerCase()+' '+SET_SYN.filter(([k])=>nl.includes(k)).map(x=>x[1]).join(' ')+(nl.includes('light, dark')?' '+THEME_NAMES.flat().join(' ').toLowerCase():''));
+  let cp=l._sx;if(!cp)cp=l._sx=(lb.textContent.toLowerCase()+' '+(()=>{const g=l.closest('.sgw'),h=g&&g.querySelector(':scope>.sct');return ((h?h.textContent:'')+' '+(g&&g.dataset.was||'')).toLowerCase()})()/* R3 S8: a row's group heading and old page find it too */+' '+SET_SYN.filter(([k])=>nl.includes(k)).map(x=>x[1]).join(' ')+(nl.includes('light, dark')?' '+THEME_NAMES.flat().join(' ').toLowerCase():''));
   let sc=0,hit=0,dh=0;for(const t of tk){const w=new RegExp('(^|[^a-z0-9])'+t);/* whole-word starts: "line" no longer matches Offline or Timeline */if(w.test(nl)){sc+=3;hit++;dh++}else if(w.test(cp)){sc+=2;hit++;dh++}else if(t.length>2&&w.test(pgt)){sc+=1;hit++}}
   if(hit&&hit*2>=tk.length)res.push([l,p,name,sc,hit,dh])})});
  {const all=[5,4].map(i=>res.filter(r=>r[i]===tk.length)).find(a=>a.length);if(all)res.splice(0,res.length,...all)}/* rows with every word come first and alone */
