@@ -7440,7 +7440,7 @@ if(FD){
  newN=vis?cn.filter(a=>a.date>vis).length:0;WIRE.newN=newN;
  const tr=T?[]:wireStrip(cn),clock=vis?wireClock(vis):'';
  /* F05: a site or folder masthead already shows the one unread count, so its meta line keeps only the "new since" note */const mst=!!(f1||(FO&&FD));
- const wm=`<div class="wmeta"><div class="nr-meta">${mst?'':stN(cn.length)}${S.hideCount||mst?'':' · '+cn.filter(a=>!S.read[a.link]).length+' unread'}${vis&&newN?`${mst?'':' · '}${newN} new since ${clock}`:''}</div>${B.some(x=>/class="[^"]*\bwsec\b/.test(x))?'<button type="button" class="wsecb" data-secm aria-haspopup="dialog">Sections</button>':''}${densHtml()}</div>`;
+ const wm=pre.includes('class="tm1"')?'':`<div class="wmeta"><div class="nr-meta">${mst?'':stN(cn.length)}${S.hideCount||mst?'':' · '+cn.filter(a=>!S.read[a.link]).length+' unread'}${vis&&newN?`${mst?'':' · '}${newN} new since ${clock}`:''}</div>${B.some(x=>/class="[^"]*\bwsec\b/.test(x))?'<button type="button" class="wsecb" data-secm aria-haspopup="dialog">Sections</button>':''}${densHtml()}</div>`;
  const head=pre.replace('<h2 aria-hidden="true">All Stories</h2></header>','<h2 aria-hidden="true">All Stories</h2>'+wm+'</header>')+(f1?feedMast(f1,unread,cn):FO&&FD?feedMast(FD,unread,cn):'').replace(/<p class="fm-s">\d+ unread\.<\/p>/,'')+(pend?`<div class="wpill" data-n="${pend}"><span>${pend} new ${pend===1?'story':'stories'} since you opened this</span><button type="button" data-wire="load">Show</button></div>`:'')
   +(pre.includes('<h2 aria-hidden="true">All Stories</h2></header>')?'':wm)+trendStripHtml(tr);
  g.classList.add('nr','wire');g.dataset.w=g.dataset.wdens=S.wdens==='col'?'col':'mag';try{updVw()}catch(e){}if(T)g.classList.add('wtopic');if(FD){g.classList.add('fed');g.style.setProperty('--fb',brand(FD))}g.classList.toggle('nrp',nrPhone());g.dataset.cards='medium';
@@ -16466,7 +16466,7 @@ PE_NEUTRAL.topicstat='What your sites have said about this.';
 function topicMast(q,list){
  const f=topicFacts(q,list),stat=pe('topicstat',f,'tp'+q.toLowerCase()),fol=S.sk.some(k=>k.words.length===1&&k.words[0]===q);
  /* round two J2 (David's pick A): a typed search gets one thin line, the count and a Follow button, so results start at the top */
- if(!TOPIC)return `<header class="tm1"><span class="tm-s">${plu(list.length,'story','stories')}</span>${fol?'<span class="tm-f">Following</span>':`<button class="tx2" type="button" data-follow="${esc(q)}">Follow this topic</button>`}</header>`;
+ if(!TOPIC)return `<header class="tm1"><span class="tm-s">${plu(list.length,'story','stories')}${S.hideCount?'':' · '+list.filter(a=>!S.read[a.link]).length+' unread'}</span>${fol?'<span class="tm-f">Following</span>':`<button class="tx2" type="button" data-follow="${esc(q)}">Follow this topic</button>`}</header>`;
  /* a topic opened by tapping its name keeps its full heading, with Mute and Close */
  const m=mastArt(list);
  return `<header class="tmast${m.c}"${m.s}>${m.i}<small>Topic</small><h2>${esc(q)}</h2><p class="tm-s">${esc(stat)}</p><div class="tm-a">${fol?'<span class="tm-f">Following</span>':`<button class="tx2" type="button" data-follow="${esc(q)}">Follow this topic</button>`}<button class="tx2" type="button" data-topicmute="${esc(q)}">Mute this topic</button><button class="tx2" type="button" data-topicx>Close topic</button></div></header>`;
