@@ -2565,3 +2565,4 @@ After the next build (messy-story fixes, checked only against the saved pages):
 - After 1.392: with Halcyon's green top bar on, the section name under 'All Stories' (e.g. 'Last hour') is bronze and easy to read.
 - After 1.392: Add a site icon tiles take each theme's accent color (Cypress keeps green and bronze); Slate's gray text is a touch darker.
 - After 1.393: on Cypress with the green top bar, the new-stories arrow shows a green arrow inside its cream circle (it was an empty circle).
+- [ ] (branch after 1.393) Refresh line under the top bar: during a refresh where sites finish one by one, the thin line stays steady and fades once ~1.2 s after the last site, no on/off pulsing (David's recording 2026-11-23, Halcyon green bar).
