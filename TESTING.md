@@ -2539,3 +2539,5 @@ Housekeeping note: about 55 older sections are superseded (old widgets 227/710-7
 - [ ] Bottom tabs glide away going down and back going up (about two thirds of a second), on a phone that used to be in the lighter look.
 - [ ] After updating, animations are back without changing any setting (Settings > Copy diagnostics: "lighter look false" unless Battery Saver / Data Saver / under 20%).
 - [ ] Fold inner screen and larger text: the section name fits under the title and does not touch the buttons.
+
+After 1.389 (not yet built), jump log detail: on a phone where The Daily snaps back up while scrolling (friend's Pixel 6), reproduce, then Settings > Copy diagnostics: the "Jumps: ... unexplained" entries should now end with "finger down/lifted, went N px, bars hidden/shown" (plus key or focus if any). Unverified on a phone.
