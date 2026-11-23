@@ -2514,3 +2514,11 @@ Housekeeping note: about 55 older sections are superseded (old widgets 227/710-7
 - [ ] Scrolling and page turns feel no rougher while stories are being read ahead (three at a time now, was two).
 - [ ] Fold on Wi-Fi, a few minutes after opening the app: Settings > Copy diagnostics. The Preload line should say "allowed now true", and the last line "Daily 40 of 40 ready" (or close) with "tried this session" above 0. In 1.386 it said allowed false, 16 of 40, tried 0.
 - [ ] After a day of use, the "Story opening" lines should show far fewer "network" taps than "ready" ones (1.386: 37 network against 42 ready).
+
+## Batch of 2026-11-23 from David's screenshots and recordings (work branch; browser-checked only)
+- [ ] Newsprint dark, the Daily: the Today's Chapter book card uses the theme's own dark card colors (no green). In Halcyon it is still green.
+- [ ] Front page line under THE FRONT PAGE reads "The biggest stories right now, reported by several of your sites."
+- [ ] Phone, Newsprint dark, All Stories in the evening or morning: the top bar and the row of chips under it look like one surface, no step of color at the bar's lower edge.
+- [ ] Fold, All Stories: scroll slowly past "Last hour" and back: the small pinned "Last hour" strip under the top bar fades in and out instead of snapping.
+- [ ] Phone, All Stories: slide the chips row left, keep the finger down and move it down the page, let go: the row stays where you left it (it used to jump back to "For you" when the list redrew).
+- [ ] Settings > theme tiles: Velvet no longer has a gold box inside its tile.
