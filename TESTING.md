@@ -2552,3 +2552,4 @@ After the next build (messy-story fixes, checked only against the saved pages):
 - A Guardian phone review: no 'The verdict' box quoting a repair score ('five out of 10 for repairability').
 - An Ars Technica story: the lead picture shows once, no small title repeated above the text, no writer photo at the end.
 - An XDA / MakeUseOf story: no leftover product card or 'Expand Collapse' at the end.
+- The Daily on a phone: scrolling down, the top bar and the Daily tabs under it stay put; the bottom tabs slide away gently and fade; they come back on scrolling up.
