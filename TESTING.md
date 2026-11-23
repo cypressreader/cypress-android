@@ -2553,3 +2553,11 @@ After the next build (messy-story fixes, checked only against the saved pages):
 - An Ars Technica story: the lead picture shows once, no small title repeated above the text, no writer photo at the end.
 - An XDA / MakeUseOf story: no leftover product card or 'Expand Collapse' at the end.
 - The Daily on a phone: scrolling down, the top bar and the Daily tabs under it stay put; the bottom tabs slide away gently and fade; they come back on scrolling up.
+
+## New-stories notice in the top bar (on branch, after 1.391; browser-checked at 360 px only)
+- All Stories, scrolled down, wait for stories to arrive by themselves: title reads 'N new stories' about 3 s, then 'All Stories' returns with a dark up arrow and a red number.
+- Leave it about 10 s: the number shrinks to a small red dot. More stories later: the dot swells once, no number.
+- Tap the arrow: list jumps to the top with the new stories, title reads 'Back to where you were' about 3 s (two lines on a narrow phone), then a back arrow whose ring drains and leaves after about 10 s.
+- Tap the back arrow: returns to the story you were at, marked with a red 'You were here' line.
+- Your own refresh (button or pull): new stories at the top at once, no notice, no arrow.
+- Check on the Fold (closed and open) that the extra arrow does not squeeze the title; check dark Halcyon colors; check TalkBack reads the title message and the arrow's name.
