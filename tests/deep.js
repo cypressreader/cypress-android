@@ -73,7 +73,7 @@ if(touch){
   await t('touchStart',bb.x+bb.width*.95,bb.y+200);for(let i=1;i<=18;i++){await t('touchMove',bb.x+bb.width*.95-i*bb.width*.05,bb.y+202);await p.waitForTimeout(16)}
   const mid=await E(()=>R.T&&R.T.ang);ck(vp,'drag follows finger',mid>30&&mid<=180,'ang '+mid);
   await t('touchEnd');await p.waitForTimeout(1700);ck(vp,'drag completes turn',await E(()=>R.pg)===1);
-  ck(vp,'no leftover turn layers',await E(()=>[...document.querySelectorAll('.tl-leaf,.tl-under,.tl-cast')].every(e=>RP&&RP.T.els.some(x=>x===e||x.contains(e)))/* the pre-built next turn (prepTurn) is allowed */&&!R.busy));
+  ck(vp,'no leftover turn layers',await E(()=>[...document.querySelectorAll('.tl-leaf,.tl-under,.tl-cast')].every(e=>[RP,RB].some(q=>q&&q.T.els.some(x=>x===e||x.contains(e))))/* the pre-built next and previous turns (prepTurn, prepBack) are allowed */&&!R.busy));
   // small drag cancels
   await t('touchStart',bb.x+bb.width*.8,bb.y+200);for(let i=1;i<=3;i++){await t('touchMove',bb.x+bb.width*.8-i*20,bb.y+201);await p.waitForTimeout(30)}await p.waitForTimeout(150);
   await t('touchEnd');await p.waitForTimeout(1700);ck(vp,'short slow drag cancels',await E(()=>R.pg)===1);
@@ -148,7 +148,7 @@ ck(vp,'read-state sane after open',await E(()=>typeof S.read==='object'));
  ck(vp,'feed added',await E(()=>S.feeds.some(f=>f.url.includes('delta'))),await E(()=>$('#err').textContent));
  await E(()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close()));
  // mark all read
- await E(()=>{S.sel='all';render()});await tap('#mr');await p.waitForTimeout(300);ck(vp,'mark all read',await E(()=>cur.every(a=>S.read[a.link])||confirm));
+ await E(()=>{S.sel='all';render()});await tap('#mr');await p.click('#ask [data-a="1"]',{timeout:1500}).catch(()=>{});/* 'Mark N stories as read?' asks first now */await p.waitForTimeout(300);ck(vp,'mark all read',await E(()=>cur.every(a=>S.read[a.link])||confirm));
  // refresh
  await tap('#ref');await p.waitForTimeout(2500);ck(vp,'refresh toast',await E(()=>/stor|feed/.test($('#toast').textContent)),await E(()=>$('#toast').textContent));
  // offline article failure path shows Why

@@ -12,7 +12,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    const a={feedId:f.id,title:'Video story',link:'https://w.test/yt1',date:Date.now(),summary:'x',img:'',html:para(8)+'<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" width="560" height="315"></iframe>'+para(8)};
    items[f.id]=[a];S.sel='all';S.scroll='paged';render();await w(300);openReader(a);await w(1800);
    const c=document.querySelector('.cols .yt-tap');o.card=!!c;o.tag=c&&c.tagName;o.noIframeYet=!document.querySelector('.cols iframe[src*="youtube"]');o.label=c&&c.getAttribute('aria-label');o.nested=document.querySelectorAll('.cols a button,.cols button a').length;o.beforeTap=performance.getEntriesByType('resource').some(e=>/youtube-nocookie|youtube\.com\/embed/.test(e.name));
-   c.click();await w(300);const fr=document.querySelector('.cols .yt-live iframe');o.iframe=!!fr;o.src=fr&&fr.src;o.card2=!!document.querySelector('.cols .yt-tap');
+   c.click();await w(300);const fr=document.querySelector('.cols .yt-live iframe');o.iframe=!!fr;o.src=fr&&fr.src;o.card2=[...document.querySelectorAll('.cols .yt-tap')].some(x=>!x.closest('.tl,.tl-leaf'));/* page-turn copies keep a card of their own */
    window.dispatchEvent(new MessageEvent('message',{data:JSON.stringify({event:'onError',info:150}),source:fr.contentWindow}));await w(150);
    const fb=document.querySelector('.cols a.emb.yt');o.fallback=!!fb&&/Opens in YouTube/.test(fb.textContent)&&/watch\?v=dQw4w9WgXcQ/.test(fb.href);o.liveGone=![...document.querySelectorAll('.cols .yt-live')].some(x=>!x.closest('.tl,.tl-leaf'));/* page-turn copies of the page are not the story */
    return o});

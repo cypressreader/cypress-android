@@ -12,7 +12,7 @@ const res=await p.evaluate(async(ids)=>{const out=[];const s=document.createElem
  S.sel='all';
  for(const id of ids)for(const sch of ['light','dark']){S.theme=id;S.sch=sch;applyTheme(false);render();await new Promise(r=>setTimeout(r,120));
   const c=document.querySelector('#grid .card[data-i]');if(!c)continue;c.click();await new Promise(r=>setTimeout(r,500));
-  const L=c=>lumOf(anyRgb(c)),g=(e,p)=>e?getComputedStyle(e)[p]:null;
+  const L=c=>{let q=anyRgb(c);if(!q){const m=String(c).match(/color\(srgb ([\d.]+) ([\d.]+) ([\d.]+)/);if(m)q=[+m[1]*255,+m[2]*255,+m[3]*255]}return lumOf(q)},/* color-mix() comes back as color(srgb r g b) */g=(e,p)=>e?getComputedStyle(e)[p]:null;
   const sh=document.querySelector('#rd .sheet,#sheet'),tt=document.querySelector('#rd .tt'),bp=document.querySelector('.cols .body p');
   const bg=g(sh,'backgroundColor'),a=[g(tt,'color'),g(bp,'color')].filter(Boolean);
   const ct=a.map(x=>(Math.max(L(bg),L(x))+.05)/(Math.min(L(bg),L(x))+.05));
