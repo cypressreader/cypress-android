@@ -2545,3 +2545,5 @@ Housekeeping note: about 55 older sections are superseded (old widgets 227/710-7
 After 1.390 (not yet built), bars: tap a bottom tab, then scroll The Daily: BOTH the top bar and the bottom tabs glide away (before, the tapped bar stayed). Open the menu, close it, scroll: same. All Stories: the top bar never moves, from the first scroll; the bottom tabs glide away. With a keyboard, a focused bar stays on screen. Unverified on a phone.
 
 After 1.390 (not yet built), byline: on the Fold (two columns), open a story with a long byline (two authors): the "By ... · Today, 6:57 AM · 3-min read" line wraps inside its own column and never runs across the next column. Unverified on a phone.
+
+After 1.390 (not yet built), byline: on the Fold (two columns), open a story with a long byline (two authors): the "By ... · Today, 6:57 AM · 3-min read" line wraps inside its own column and never runs across the next column. Unverified on a phone.

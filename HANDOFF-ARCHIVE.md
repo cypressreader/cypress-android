@@ -1341,3 +1341,8 @@ ACTIVE STATE (2026-11-23, end of session 01FNE57K): main = 1.388 (2026.11.23c; s
 - BARS (David picked T2 'a little slower', 2026-11-23), SHIPPED in 1.388, browser-checked: `.top`, `#tabs`, `#wpin` tuck over .65s var(--ease-out) (rule next to `body #wpin[hidden]`; off with reduced motion / lowp). Section bar `#wpin` pop itself unchanged (no S pick yet; options page https://claude.ai/artifact/1A3PMmzsMXt9GWs3y68h6r: S1 heading sticks, S2 slides from under bar, S3 slow fade + names roll, S4 name into top bar, S5 small label, S6 none).
 - DAVID'S DIRECTION (2026-11-23, last message): NOT Play paperwork. He wants (1) speed, (2) how the app functions, and MOST of all (3) the visuals: how the app looks and how it looks WHEN READING. Start the next session there.
 - Tests: `boot` passes after `node tests/extract.js`; card_scrim tablet contrast 9.9 vs 10 on a bright photo (undecided: darken the overlay a touch). Emulator run 57: all 14 steps ok. TESTING.md ends with a 25-check FOLD SHORTLIST. Exit code 0 is not a pass: count `^FAIL`.
+
+
+## moved-1390 (2026-11-23)
+- 1.388: story timeline labels readable on dark (`.rprev em`, `.rn-t i`), Broadsheet bars lose the time-of-day tint (`html.sq :is(.top,#tabs,...)`), Fold picture credit size (`#rd .cols .body .cred`). 1.387: Broadsheet (`eink`/`einkd`, `html.sq`), read-ahead fix, Fold title page.
+- Demo pages: section in top bar https://claude.ai/artifact/WBDfKQ88DhyvnVk8uMeQyf ; bar options https://claude.ai/artifact/1A3PMmzsMXt9GWs3y68h6r ; Broadsheet proposal https://claude.ai/artifact/T7uCum7B4mBmUMsby6ayyG.
