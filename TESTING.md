@@ -2530,6 +2530,6 @@ Housekeeping note: about 55 older sections are superseded (old widgets 227/710-7
 - [ ] Look for anything that should be round and now looks wrong square: the refresh spinner, the pull-to-refresh tree, switches in Settings, the read-progress ring on the Daily cover.
 - [ ] Other themes are unchanged (corners still rounded).
 
-## 1.388 (not yet built): bars glide
+## 1.388: bars glide
 - [ ] All Stories on the phone: scroll down, the top bar and bottom tabs glide away over about two thirds of a second and ease to a stop; scroll up, they return the same way. No stutter while the list is moving (Fold, both screens).
 - [ ] "Last hour" pinned name moves up and down together with the top bar, not ahead of or behind it.
