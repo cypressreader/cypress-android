@@ -2522,3 +2522,10 @@ Housekeeping note: about 55 older sections are superseded (old widgets 227/710-7
 - [ ] Fold, All Stories: scroll slowly past "Last hour" and back: the small pinned "Last hour" strip under the top bar fades in and out instead of snapping.
 - [ ] Phone, All Stories: slide the chips row left, keep the finger down and move it down the page, let go: the row stays where you left it (it used to jump back to "For you" when the list redrew).
 - [ ] Settings > theme tiles: Velvet no longer has a gold box inside its tile.
+
+## Black & White "Broadsheet" (work branch, 2026-11-23; browser-checked only)
+- [ ] Pick Black & White with the phone in light mode: off-white paper, soft black text, thin gray lines, one black rule where a section starts, headlines in the same narrow serif as other themes (not heavy bold), every corner square (chips, buttons, switches, the story page).
+- [ ] Phone in dark mode (theme set to follow the phone): the theme turns true black with soft white text; pictures stay black and white.
+- [ ] No gray band or haze across the top bar, morning or evening.
+- [ ] Look for anything that should be round and now looks wrong square: the refresh spinner, the pull-to-refresh tree, switches in Settings, the read-progress ring on the Daily cover.
+- [ ] Other themes are unchanged (corners still rounded).
