@@ -2543,3 +2543,5 @@ Housekeeping note: about 55 older sections are superseded (old widgets 227/710-7
 1.390 jump log detail: on a phone where The Daily snaps back up while scrolling (friend's Pixel 6), reproduce, then Settings > Copy diagnostics: the "Jumps: ... unexplained" entries should now end with "finger down/lifted, went N px, bars hidden/shown" (plus key or focus if any). Unverified on a phone.
 
 After 1.390 (not yet built), bars: tap a bottom tab, then scroll The Daily: BOTH the top bar and the bottom tabs glide away (before, the tapped bar stayed). Open the menu, close it, scroll: same. All Stories: the top bar never moves, from the first scroll; the bottom tabs glide away. With a keyboard, a focused bar stays on screen. Unverified on a phone.
+
+After 1.390 (not yet built), byline: on the Fold (two columns), open a story with a long byline (two authors): the "By ... · Today, 6:57 AM · 3-min read" line wraps inside its own column and never runs across the next column. Unverified on a phone.
