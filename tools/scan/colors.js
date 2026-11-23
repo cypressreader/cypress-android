@@ -1,4 +1,4 @@
-// usage: node probe.js <light|dark> <themes,comma> <out.json>
+// Color/contrast + icon-shape scan of 13 screens. Run: APP=www/index.html node tools/scan/colors.js light halcyon,press,halcyon+gbar out.json  (dark for dark). Group results by element: a fail on one theme is that theme; on many themes, a shared rule.
 const T='/home/user/cypress-android/tests/';const {APP}=require(T+'env');const {mock,PW}=require(T+'mock');const {chromium}=require(PW);
 const [,,SCH,THS,OUT]=process.argv;const fs=require('fs');
 const PROBE=(screen)=>{
