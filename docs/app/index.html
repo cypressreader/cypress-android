@@ -5840,6 +5840,7 @@ async function fetchText(url,ok,lg){
   try{lg.push('retrying after a short pause')}catch(e){}
  }
 }
+const FTR=[];let NFL=0;
 async function fetchText1(url,ok,lg,sl){
  if(S.offline)return Promise.reject(new Error('Offline mode'));
  /* Tries the best route first and only starts the next one if it is slow or fails,
@@ -5864,8 +5865,8 @@ async function fetchText1(url,ok,lg,sl){
  const cell=(()=>{try{const c=navigator.connection;return !!(c&&(c.type==='cellular'||c.saveData))}catch(e){return false}})(),gap=NATIVE||cell?950:650;
  let over=false,won=false;const ctls=[],timers=[];
  const one=(p,c,nx)=>new Promise((res,rej)=>{
-  let dead=false;const t0=Date.now();
-  const fail=w=>{if(lg&&!over&&!won)lg.push(p.n+': '+w);rej(new Error(w))};
+  let dead=false,sv='';const t0=Date.now();
+  const fail=w=>{if(lg&&!over&&!won)lg.push(p.n+': '+w);/* the failing sites on David's Fold answer fine from anywhere else: each failed request leaves a line for the diagnostics report (time taken, what the site's server said, what was asked, how many were loading) */if(!over&&!won&&w!=='stopped')try{FTR.push([hh,p.n+': '+w+' · '+(Date.now()-t0)+' ms'+(sv?' · server '+sv:'')+(p.h&&lg&&lg.cond?' · only if changed':'')+(p.h&&lg&&lg.rng?' · top of list':'')+(/[?&]_cp=/.test(url)?' · fresh':'')+(sl?' · second try':'')+' · '+NFL+' loading · '+Math.round((Date.now()-(S.lastLoad||0))/1e3)+' s in'+(document.hidden?' · in background':'')]);if(FTR.length>40)FTR.shift()}catch(e){}rej(new Error(w))};
   /* R3 P7: a slow route is not cut off at 4 s: the next route starts then and both keep going until the last route's limit; whichever answers first wins and the other is stopped */const hard=()=>{dead=true;try{c.abort()}catch(e){}fail('timed out')},lt=P[P.length-1].ms,ms=p.ms||4000;let to=setTimeout(()=>{if(nx&&ms<lt){nx();to=setTimeout(hard,lt-ms)}else hard()},ms);
   (async()=>{
    try{
@@ -5874,7 +5875,8 @@ async function fetchText1(url,ok,lg,sl){
     if(cd){hd={...hd};if(cd.etag)hd['If-None-Match']=cd.etag;if(cd.lm)hd['If-Modified-Since']=cd.lm}
     /* a podcast's list holds every episode ever made (The Daily: 20 MB), newest first: only the top 1.5 MB is asked for, uncompressed so the cut is clean; a host that ignores this sends the whole list as before */
     if(p.h&&lg&&lg.rng)hd={...hd,Range:'bytes=0-1499999','Accept-Encoding':'identity'};
-    let r;try{r=await fetch(p(url),hd?{signal:c.signal,headers:hd}:{signal:c.signal})}catch(x){/* the Android HTTP bridge can't build a body-less 304 reply and throws instead */if(cd&&/304|null body/i.test(String(x&&x.message))){const er=new Error('not modified');er.nm=1;throw er}throw x}
+    let r;NFL++;try{r=await fetch(p(url),hd?{signal:c.signal,headers:hd}:{signal:c.signal})}catch(x){/* the Android HTTP bridge can't build a body-less 304 reply and throws instead */if(cd&&/304|null body/i.test(String(x&&x.message))){const er=new Error('not modified');er.nm=1;throw er}throw x}finally{NFL--}
+    if(!r.ok)try{sv=String(r.headers.get('server')||'?').slice(0,16)+(r.headers.get('cf-mitigated')?' (bot check)':'')}catch(e){}
     if(r.status===304&&cd){const er=new Error('not modified');er.nm=1;throw er}
     if(r.status===429&&lg&&p.h){try{const v=r.headers.get('retry-after');if(v){const s=+v,w=isFinite(s)?s*1e3:Date.parse(v)-Date.now();if(w>0)lg.ra=Date.now()+Math.min(864e5,w)}}catch(e){}}
     if(botCode(r.status)&&lg&&!over)lg.blocked=true;
@@ -13543,14 +13545,14 @@ function mzSum(){const o=['','Story opening (last '+MZ.L.length+' taps)'];
 async function diagInfo(){
  const bad=S.feeds.filter(f=>state[f.id]==='err').map(f=>(FLG[f.id]||[]).slice(0,4).join('; ').replace(/\b(?:[a-z0-9-]+\.)+[a-z]{2,}\b/gi,'(site)')).slice(0,8);/* a24: no site names here; they go only with "Include the addresses of my sites" (privacy page) */
  let nat='web';try{const p=CyN();if(p){const i=await p.info();nat='native '+i.versionName+' ('+i.versionCode+')'}}catch(e){}
- return ['CyPress diagnostics','app '+APP_VERSION+' · '+nat+' · '+(/cypress-preview/.test(location.href)?'preview':'production'),'ai '+(AIST||'unchecked')+(AIWHY?' ('+AIWHY.slice(0,120)+')':''),'screen '+innerWidth+'x'+innerHeight+' @'+devicePixelRatio,'ua '+navigator.userAgent.slice(0,140),'theme '+(S.theme||'auto')+' · light/dark '+(S.sch||'theme')+' · cover '+(S.cvs||'clean')+' · view '+(S.view||'tiles')+(S.setall?' · all settings':'')+' · showing '+document.documentElement.dataset.theme+(S.fth&&Object.keys(S.fth).length?' · folder themes '+Object.values(S.fth).join('/'):'')+(isOn('gtop')?' · green bar':''),'feeds '+S.feeds.length+' · failing '+bad.length+' · saved '+S.saved.length,'last refresh '+(S.lastLoad?new Date(S.lastLoad).toISOString():'never'),'online '+navigator.onLine+(S.offline?' · offline mode':''),bad.length?'failing: '+bad.join(' | '):'',CRUMB.length?'recent taps: '+CRUMB.slice(-20).join(' > '):'',ELOG.length?'recent errors:\n'+ELOG.slice(-40).map(x=>new Date(x.t).toISOString().slice(11,19)+' '+x.g.replace(/^feed .*/,'feed')+': '+x.m+(x.w?' @'+x.w:'')).join('\n'):''].filter(Boolean).join('\n')}
+ return ['CyPress diagnostics','app '+APP_VERSION+' · '+nat+' · '+(/cypress-preview/.test(location.href)?'preview':'production'),'ai '+(AIST||'unchecked')+(AIWHY?' ('+AIWHY.slice(0,120)+')':''),'screen '+innerWidth+'x'+innerHeight+' @'+devicePixelRatio,'ua '+navigator.userAgent.slice(0,140),'theme '+(S.theme||'auto')+' · light/dark '+(S.sch||'theme')+' · cover '+(S.cvs||'clean')+' · view '+(S.view||'tiles')+(S.setall?' · all settings':'')+' · showing '+document.documentElement.dataset.theme+(S.fth&&Object.keys(S.fth).length?' · folder themes '+Object.values(S.fth).join('/'):'')+(isOn('gtop')?' · green bar':''),'feeds '+S.feeds.length+' · failing '+bad.length+' · saved '+S.saved.length,'last refresh '+(S.lastLoad?new Date(S.lastLoad).toISOString():'never'),'online '+navigator.onLine+(S.offline?' · offline mode':''),bad.length?'failing: '+bad.join(' | '):'',FTR.length?'failed requests: '+FTR.slice(-12).map(x=>x[1]).join(' | '):'',CRUMB.length?'recent taps: '+CRUMB.slice(-20).join(' > '):'',ELOG.length?'recent errors:\n'+ELOG.slice(-40).map(x=>new Date(x.t).toISOString().slice(11,19)+' '+x.g.replace(/^feed .*/,'feed')+': '+x.m+(x.w?' @'+x.w:'')).join('\n'):''].filter(Boolean).join('\n')}
 $('#diagb').onclick=async()=>{const t=await diagInfo()+mzSum();
  try{await navigator.clipboard.writeText(t);toast('Diagnostics copied')}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.append(ta);ta.select();try{document.execCommand('copy');toast('Diagnostics copied')}catch(_){toast('Couldn’t copy')}ta.remove()}
 };
 
 /* Report a problem: the person writes what went wrong and sees exactly what is sent with it before sending */
 $('#rpb').onclick=async(e,x)=>{const info=(x?x+'\n':'')+await diagInfo();
- const sites='\nsites ('+S.feeds.length+', not loading first):\n'+S.feeds.slice().sort((a,b)=>(state[b.id]==='err')-(state[a.id]==='err')).slice(0,60).map(f=>(state[f.id]==='err'?'NOT LOADING ':'ok ')+String(f.url).slice(0,120)+(state[f.id]==='err'&&(FLG[f.id]||[]).length?' ('+FLG[f.id].slice(0,2).join('; ').slice(0,100)+')':'')).join('\n');
+ const sites='\nsites ('+S.feeds.length+', not loading first):\n'+S.feeds.slice().sort((a,b)=>(state[b.id]==='err')-(state[a.id]==='err')).slice(0,60).map(f=>(state[f.id]==='err'?'NOT LOADING ':'ok ')+String(f.url).slice(0,120)+(state[f.id]==='err'&&(FLG[f.id]||[]).length?' ('+FLG[f.id].slice(0,2).join('; ').slice(0,100)+')':'')).join('\n')+(FTR.length?'\nfailed requests by site:\n'+FTR.map(x=>x.join(' ')).join('\n'):'');
  const o={title:'Report a problem',text:'What went wrong, and what were you doing? Only what you write here and a few technical details go to the developer. To get a reply, use Email instead.',more:['See the details that are sent',info],check:{label:'Include the addresses of my sites (helps fix sites that aren’t loading)',more:c=>c?info+sites:info},input:true,multi:true,placeholder:'Describe the problem',ok:'Send',alt:'Email instead'},m=await askBox(o);
  if(m==='alt'){const w=(o.value||'').trim();location.href='mailto:hello@cypressreader.com?subject='+encodeURIComponent('CyPress Reader problem')+'&body='+encodeURIComponent((w?w+'\n\n':'\n\n')+'---\n'+info+(o.checked?sites:''));return}
  if(!m||!m.trim())return;

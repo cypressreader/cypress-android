@@ -2497,3 +2497,7 @@ Speed and look
 25. Find in story, Listen highlighting and saved highlights still look right. [2454]
 Housekeeping note: about 55 older sections are superseded (old widgets 227/710-752, old AI summary box 1257-1280/1769/2432, whole-screen cover work 1675-1931/2359, scroll rounds 906-944, location 383/396) and about 120 sections before line 1000 are older than 1.2xx: candidates to move to an archive file in one pass.
 - A story that opens in CAPITALS: the opening reads as a normal sentence with a drop cap (it stayed in small capitals). A scrolled story: the position slider on the edge is there before you scroll. Breaking strip reads 'N sites · … ago'; the Daily's front section says 'stories covered by more than one site'.
+
+## Failed-request lines in the report (branch, after 1.385; implemented, unverified on a phone)
+- [ ] After a refresh where some sites show as not loading: Settings > Report a problem > "See the details that are sent" has a "failed requests:" line (reason, time taken, the site's server, how many were loading). No site names appear unless "Include the addresses of my sites" is checked.
+- [ ] Send one report with the addresses box checked right after Signal Blog / Tom's Guide / Guardian fail, so the cause can be read from it.
