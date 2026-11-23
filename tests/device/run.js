@@ -79,6 +79,33 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
 
   await step('scroll', async s => { /* run 4 ended this step with a story open: record when that happens, then close it so later steps can go on */ const rd = () => page.evaluate(() => !!document.querySelector('#rd.on')), log = [(await page.evaluate(TRACE), await trace(), await rd())]; for (let i = 0; i < 3; i++) { await swipe(.5, .8, .5, .25, 160); log.push(await rd()) } await shot(s); const f = await facts(); f.readerAfterEachSwipe = log; f.trace = await trace(); if (f.reader) { s.ok = false; s.error = 'a story was open after scrolling the list: ' + JSON.stringify(log); await back().catch(() => {}) } return f });
 
+  /* 2026-11-23: on a friend's Pixel 6 (Android 17, Press theme, light, type cover) The Daily snaps back up 600 to 900 px while a finger scrolls it down; the app's own log shows no redraw and no height change. This scrolls the Daily with real finger swipes in her look and in Halcyon, records every backward move of the list frame by frame, and names any code that moved it */
+  await step('daily-jump', async s => {
+    const out = {};
+    const HOOK = String.raw`(() => { if (window.__dj) return; const m = document.querySelector('main'), dj = window.__dj = { back: [], code: [], ev: [], max: 0 }; const T = () => Math.round(performance.now()); const st = k => { dj.code.push(T() + ' ' + k + ' y=' + Math.round(m.scrollTop) + ' ' + String(new Error().stack).split('\n').slice(2, 6).map(x => x.trim().replace(/https?:\/\/[^/]+\//, '').slice(0, 70)).join(' < ')); if (dj.code.length > 40) dj.code.shift() };
+      const d = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollTop'); Object.defineProperty(m, 'scrollTop', { get() { return d.get.call(this) }, set(v) { st('scrollTop=' + Math.round(v)); d.set.call(this, v) }, configurable: true });
+      for (const k of ['scrollTo', 'scrollBy', 'scroll']) { const f = m[k]; m[k] = function () { st(k + '(' + JSON.stringify(arguments[0]).slice(0, 60) + ')'); return f.apply(this, arguments) } }
+      for (const k of ['scrollIntoView', 'focus']) { const f = Element.prototype[k] || HTMLElement.prototype[k], P = k === 'focus' ? HTMLElement.prototype : Element.prototype; P[k] = function () { if (m.contains(this) || this === m) st(k + ' ' + this.tagName + '.' + String(this.className).slice(0, 30) + ' ' + JSON.stringify(arguments[0] || '')); return f.apply(this, arguments) } }
+      let touch = 0; for (const k of ['touchstart', 'touchend', 'touchcancel', 'pointercancel', 'scrollend', 'resize']) addEventListener(k, e => { if (k === 'touchstart') touch = 1; if (k === 'touchend' || k === 'touchcancel') touch = 0; dj.ev.push(T() + ' ' + k + ' y=' + Math.round(d.get.call(m))); if (dj.ev.length > 80) dj.ev.shift() }, true);
+      new MutationObserver(l => { const c = [...new Set(l.map(x => x.type === 'attributes' ? (x.target.tagName + '.' + x.attributeName + '=' + String(x.target.getAttribute(x.attributeName)).slice(0, 50)) : ''))].filter(Boolean).slice(0, 4); if (c.length) { dj.ev.push(T() + ' attr ' + c.join(' | ')); if (dj.ev.length > 80) dj.ev.shift() } }).observe(document.documentElement, { attributes: true, subtree: false }); new MutationObserver(() => { dj.ev.push(T() + ' body.' + document.body.className.slice(0, 60)); if (dj.ev.length > 80) dj.ev.shift() }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+      let ly = d.get.call(m), lh = m.scrollHeight, lt = T(); const f = () => { const y = d.get.call(m), t = T(); if (y > dj.max) dj.max = Math.round(y); if (y < ly - 80) { const h = m.scrollHeight; dj.back.push({ t, from: Math.round(ly), to: Math.round(y), gap: t - lt, touch, h0: lh, h1: h, vh: m.clientHeight, tuck: document.body.classList.contains('tabtuck'), ev: dj.ev.slice(-8), code: dj.code.slice(-3) }); lh = h } ly = y; lt = t; requestAnimationFrame(f) }; requestAnimationFrame(f) })()`;
+    for (const [name, t] of [['press', 'press'], ['halcyon', 'halcyon']]) {
+      await page.evaluate(t => { S.theme = t; S.sch = 'light'; S.cvs = 'type'; applyTheme(); S.sel = 'today'; render(); document.querySelector('main').scrollTop = 0 }, t); await sleep(7000);
+      await page.evaluate(() => { delete window.__dj }); await page.evaluate(HOOK); await page.evaluate(TRACE).catch(() => {});
+      const [w, h] = await page.evaluate(() => [innerWidth * devicePixelRatio, innerHeight * devicePixelRatio]), X = Math.round(w * .5);
+      await shot(s, name + '-top');
+      /* finger moves up the screen (list goes down): slow drags, quick flicks, and flicks one straight after another, like her recording */
+      const sw = (a, b, ms) => sx(`input swipe ${X} ${Math.round(h * a)} ${X} ${Math.round(h * b)} ${ms}`);
+      for (const [a, b, ms, wait] of [[.75, .35, 600, 1500], [.75, .3, 350, 400], [.75, .3, 350, 400], [.8, .25, 200, 300], [.8, .25, 200, 300], [.8, .25, 200, 2500], [.7, .4, 900, 200], [.7, .4, 900, 200], [.8, .2, 150, 150], [.8, .2, 150, 150], [.8, .2, 150, 3000]]) { await sw(a, b, ms); await sleep(wait) }
+      await shot(s, name + '-after');
+      out[name] = await page.evaluate(() => { const m = document.querySelector('main'), dj = window.__dj; return { theme: document.documentElement.dataset.theme, cover: (document.querySelector('.dcov') || {}).className || '', y: Math.round(m.scrollTop), max: dj.max, height: m.scrollHeight, backward: dj.back.slice(0, 12), backwardCount: dj.back.length, codeMoves: dj.code.slice(-12), lastEvents: dj.ev.slice(-30) } });
+      if (await page.evaluate(() => !!document.querySelector('#rd.on'))) { out[name].storyOpened = true; await back().catch(() => {}) }
+      await page.evaluate(() => { document.querySelector('main').scrollTop = 0 }); await sleep(800);
+    }
+    await page.evaluate(() => { S.theme = 'dynamic'; delete S.sch; delete S.cvs; applyTheme(); S.sel = 'all'; render() }).catch(() => {});
+    return out;
+  });
+
   await step('themes', async s => {
     const out = {};
     for (const t of ['halcyon', 'press', 'oled']) {
