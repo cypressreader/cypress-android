@@ -2534,7 +2534,7 @@ Housekeeping note: about 55 older sections are superseded (old widgets 227/710-7
 - [ ] All Stories on the phone: scroll down, the top bar and bottom tabs glide away over about two thirds of a second and ease to a stop; scroll up, they return the same way. No stutter while the list is moving (Fold, both screens).
 - [ ] "Last hour" pinned name moves up and down together with the top bar, not ahead of or behind it.
 
-## 1.389 (not yet built): section name in the top bar, lighter look
+## 1.389: section name in the top bar, lighter look
 - [ ] All Stories: scroll down, the top bar stays, "Last hour" fades in under "All Stories" in brass italic; it changes at "This morning" / "Earlier" and fades away back at the top. No separate bar appears.
 - [ ] Bottom tabs glide away going down and back going up (about two thirds of a second), on a phone that used to be in the lighter look.
 - [ ] After updating, animations are back without changing any setting (Settings > Copy diagnostics: "lighter look false" unless Battery Saver / Data Saver / under 20%).
