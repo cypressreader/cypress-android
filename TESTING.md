@@ -2561,3 +2561,4 @@ After the next build (messy-story fixes, checked only against the saved pages):
 - Tap the back arrow: returns to the story you were at, marked with a red 'You were here' line.
 - Your own refresh (button or pull): new stories at the top at once, no notice, no arrow.
 - Check on the Fold (closed and open) that the extra arrow does not squeeze the title; check dark Halcyon colors; check TalkBack reads the title message and the arrow's name.
+- 1.392: the note at the top of the list ('N new stories since you opened this') is gone; the arrow is the only notice. After the number calms, the arrow is a plain icon with a red dot (not a filled circle).
