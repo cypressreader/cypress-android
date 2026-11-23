@@ -2501,3 +2501,7 @@ Housekeeping note: about 55 older sections are superseded (old widgets 227/710-7
 ## Failed-request lines in the report (branch, after 1.385; implemented, unverified on a phone)
 - [ ] After a refresh where some sites show as not loading: Settings > Report a problem > "See the details that are sent" has a "failed requests:" line (reason, time taken, the site's server, how many were loading). No site names appear unless "Include the addresses of my sites" is checked.
 - [ ] Send one report with the addresses box checked right after Signal Blog / Tom's Guide / Guardian fail, so the cause can be read from it.
+
+## Tall pictures in a story (work branch, after 1.386; browser-checked only)
+- [ ] Open a story with a tall (portrait) picture in the body, paged reading, Halcyon light: the thin frame hugs the picture, centered, no blank white bars at its sides. Phone and Fold.
+- [ ] Same story: turning pages forward and back, the picture never jumps or changes size after it loads.
