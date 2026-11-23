@@ -2505,3 +2505,5 @@ Housekeeping note: about 55 older sections are superseded (old widgets 227/710-7
 ## Tall pictures in a story (work branch, after 1.386; browser-checked only)
 - [ ] Open a story with a tall (portrait) picture in the body, paged reading, Halcyon light: the thin frame hugs the picture, centered, no blank white bars at its sides. Phone and Fold.
 - [ ] Same story: turning pages forward and back, the picture never jumps or changes size after it loads.
+- [ ] Fold open, any story, paged reading at the default text size: the two columns are left-aligned (even word spacing, ragged right edge), not stretched edge to edge. A wide tablet in landscape still justifies.
+- [ ] Fold open, first page of a story with a picture: picture, a large headline (two or more lines is fine), date, then the summary close below; the story text starts at the top of the right column. Try a very long headline: nothing spills into the right column.
