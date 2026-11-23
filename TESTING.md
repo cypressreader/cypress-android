@@ -2547,3 +2547,8 @@ After 1.390 (not yet built), bars: tap a bottom tab, then scroll The Daily: BOTH
 After 1.390 (not yet built), byline: on the Fold (two columns), open a story with a long byline (two authors): the "By ... · Today, 6:57 AM · 3-min read" line wraps inside its own column and never runs across the next column. Unverified on a phone.
 
 After 1.390 (not yet built), byline: on the Fold (two columns), open a story with a long byline (two authors): the "By ... · Today, 6:57 AM · 3-min read" line wraps inside its own column and never runs across the next column. Unverified on a phone.
+
+After the next build (messy-story fixes, checked only against the saved pages):
+- A Guardian phone review: no 'The verdict' box quoting a repair score ('five out of 10 for repairability').
+- An Ars Technica story: the lead picture shows once, no small title repeated above the text, no writer photo at the end.
+- An XDA / MakeUseOf story: no leftover product card or 'Expand Collapse' at the end.
