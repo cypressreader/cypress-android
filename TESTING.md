@@ -2512,3 +2512,5 @@ Housekeeping note: about 55 older sections are superseded (old widgets 227/710-7
 - [ ] Fold, Wi-Fi, just after a refresh: tap a story that has no "ready" mark yet. The full text should arrive a little sooner than in 1.386 (the download now starts at the tap).
 - [ ] Fold, Wi-Fi: open All Stories and wait 10 seconds without scrolling: the cards on screen get their ready mark first. Scroll far down, stop: the cards now on screen get ready next, ahead of the rest of the line.
 - [ ] Scrolling and page turns feel no rougher while stories are being read ahead (three at a time now, was two).
+- [ ] Fold on Wi-Fi, a few minutes after opening the app: Settings > Copy diagnostics. The Preload line should say "allowed now true", and the last line "Daily 40 of 40 ready" (or close) with "tried this session" above 0. In 1.386 it said allowed false, 16 of 40, tried 0.
+- [ ] After a day of use, the "Story opening" lines should show far fewer "network" taps than "ready" ones (1.386: 37 network against 42 ready).
