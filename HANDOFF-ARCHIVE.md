@@ -1315,3 +1315,9 @@ PM deep dive / 1.350 notes: archive grep 'moved-1351'. 1.337-1.347 notes (story 
 - **Side bar** hide setting (Never/portrait+square/Always), hamburger `#menu`, tab `#sideh`; click-to-close skips folder arrows/dots/× buttons.
 - Speed in the lab is at diminishing returns (archive 'moved-1387': hiding the list behind a story = no gain; broad `X *` rules = few %; perf.js varies ~20%). What remains at story open is the chain of fits in layout() (rewrite = high risk; only if David asks). Chase speed from what David FEELS on the Fold, not the lab.
 - Speed tools/rules: CLAUDE.md 'Speed tools'. Story-page CSS must not use :has(): scripts/css-has.js; scripts/css-keys.js after adding CSS.
+
+
+## moved-1387d (2026-11-23): locked-look notes moved out of HANDOFF section 1
+- **Halcyon theme** (`halcyon`/`halcyond`): website palette (cream `#f3ecdc`, green `#123524`/`#0c2619`, brass `#c9a24a`/`#b08d3e`), follows phone via `twinApply`. Headlines use `--disp` (narrow display serif) with `!important` (user's choice). Dark-brass labels on cream `#7d5f14`; light-brass `#e2c27a` on dark `.noimg` lead/hero cards (`.noimg` ≠ cream card).
+- **The Daily**: name once per section (`sh()`), one-line intros (`DAYDEK`), "Vol. 26 · No. 290" line, "Next up" styled like "Since this morning", "In this issue" links use `jumpTop`, cover number `.dcv-num`.
+- **Headlines**: list and tile views share "The front page" first section. **All Stories**: title-case header, centered chips, `tabMast` headings in both views.
