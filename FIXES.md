@@ -370,3 +370,22 @@ Unreachable since 1.384 (heroSpread never returns ccov/pcov; pickers only store 
 - JS only for it: `const ccv=`, cvSlide, cvFade, cvPeek (one block), R.peek / R.pkT / R.cpk, T.flip / T.peel in startTurn, the `ccv()` branches in show(), prepTurn / prepBack conditions, go(), the tap handler ('cvPeek(!R.peek)') and the swipe handler, the two 'hero hs-ccov' class branches + the `want==='pcov'` block and `.hsp` cleanup in heroSpread.
 - Shared, token only: /^(hero|ccov|pcov|post|ftp|spl|pc)$/ in fitPage1; `want==='ccov'||want==='pcov'` in the `hero` test; the mnotes rule '.cols:has(>.hs-post,>.hs-ftp,>.hs-spl,>.hs-pc,>.hs-ccov)' (edit the CSS back to :has() without >.hs-ccov, then run scripts/css-has.js); boxTrim's `!$('.cols>.hsf[data-m=ccov],...pcov')` (always true now).
 - KEEP: --cvd / .cvd of the Daily cover (.dcov), hs-cov (phone cover), everything cpv2 outside that block, PKA/pkTick.
+
+## Play Store readiness RE-AUDIT (2026-11-23, session 01FNE57L; replaces the status of the 2026-11-02 list above)
+DONE (in the code; device-unverified unless noted)
+- Updater out of the store copy: `prepare_android.py --play` blanks CP_REPO and strips REQUEST_INSTALL_PACKAGES; build-apk.yml fails the bundle step if the permission is still merged in. (The install/download Java stays in the bundle, unreachable.)
+- Target Android 16 / API 36: set in prepare_android.py step 2b. Confirmed 2026-11-23 on developer.android.com: still the rule for new apps and updates.
+- Listing pictures: store/play = 6 phone 1080x1920, 2 tablet 2560x1600, feature 1024x500, icon 512 (sizes checked). Listing text + Data safety + rating + news declaration drafts: store/LISTING.md.
+- Voice download SHA-256 check (CyNeural.java). zipalign -P 16 for 16 KB pages (APK; the Play pre-launch report is the real check for the .so files).
+- Privacy page: contact email, 13-month retention, how to have server data deleted, full-text helpers and Near you disclosed. 'isn't on the Play Store' wording gone from privacy.html.
+- Foreground service type mediaPlayback is in the manifest.
+STILL OPEN
+- B1 BLOCKER (if paid at launch) Google Play Billing: nothing exists (0 'billing' in www/native/scripts). Needs plugin, purchase screen, restore, manage-subscription link, and subscription wording on privacy.html + site (0 'subscri' on either).
+- B2 Website docs/index.html 'Get started' (:283-293) is still the three-tap APK install. Correct until the listing is live; prepare the Play-badge version to switch on launch day.
+- B3 Play Console forms (David, in the console): Data safety, content rating, news declaration, foreground-service declaration (needs a short video of background playback), CAMERA use ('Move to a new phone'; privacy.html mentions the camera: verify wording matches the form).
+- B4 Play App Signing: after enrolling, add Play's signing certificate SHA-256 to docs/.well-known/assetlinks.json (today it holds one key, the upload key).
+- B5 build-apk.yml 'Build the Play Store bundle' is still continue-on-error: make it fail loudly once the listing is live.
+- B6 Decision for David: full-text helpers (Jina, Morss, Google News copy) in a paid app = copyright risk; options: keep, make opt-in, or respect paywalls strictly.
+- B7 Account: new personal developer accounts had a closed-test rule (a group of testers for two weeks before production); NOT re-verified today, check in the console.
+- B8 arm64 only (NEURAL=1): no x86 Chromebooks/emulators. Accepted unless David wants them.
+- B9 privacy.html says 'made by Cy': Play's news policy wants clear ownership/contact; consider a fuller developer name to match the Play developer name.
