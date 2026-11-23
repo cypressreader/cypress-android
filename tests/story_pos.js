@@ -9,7 +9,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
   const r=await p.evaluate(async()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());const w=ms=>new Promise(r=>setTimeout(r,ms));S.sel='all';S.atab='latest';render();await w(1200);
    const m=document.querySelector('main'),out={};m.scrollTop=1400;await w(600);m.scrollTop=1500;await w(700);
    const pin=document.querySelector('#wpin'),top=document.querySelector('.top').getBoundingClientRect();
-   out.pin=!!pin&&!pin.hidden;out.pos=pin?(pin.querySelector('.wpos')||{}).textContent||'':'';
+   out.pin=!pin&&document.querySelector('.top').classList.contains('sec')&&!!(document.querySelector('#tsec')||{}).textContent;out.pos=pin?(pin.querySelector('.wpos')||{}).textContent||'':'';
    const pr=pin&&pin.getBoundingClientRect();out.pinTop=pr?Math.round(pr.top):null;out.hdrBottom=Math.round(top.bottom);
    out.floating=[...document.querySelectorAll('body *')].filter(e=>/^Story \d+ of \d+$/.test((e.textContent||'').trim())&&!e.closest('#wpin')&&e.children.length===0).length;
    out.oldPill=!!document.querySelector('#whairl');
@@ -18,7 +18,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x||'')}else con
    return out});
   const t='['+W+'] ';
   ck(t+'no floating "Story N of M" pill',r.floating===0&&!r.oldPill,JSON.stringify(r));
-  ck(t+'the pinned bar has no "Story N of M" note (B54): section name and count only',!r.pos&&!r.pos2&&r.pin,JSON.stringify(r));
+  ck(t+'no pinned bar and no "Story N of M" note (B54): the section name sits under the title in the top bar',!r.pos&&!r.pos2&&r.pin,JSON.stringify(r));
   ck(t+'no page errors',!errs.length,errs[0]);await p.close();
  }
  await b.close();console.log(bad?'story_pos '+bad+' FAILED':'story_pos all passed');process.exit(bad?1:0);

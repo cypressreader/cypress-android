@@ -3566,7 +3566,7 @@ html:is([data-theme=eink],[data-theme=einkd]) :is(#set .sh h2,#grid .card h3,#gr
 .dbk-colo{margin:40px 0 0;font:italic 400 14px/1.5 var(--serif,Georgia,serif);opacity:.88}.dbk-colo b{display:block;margin-bottom:5px;font:700 10px var(--sans);font-style:normal;letter-spacing:.24em;text-transform:uppercase}
 /* experiment, cluster 12: feed motion */
 #wpin{position:fixed;z-index:19;display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:9px clamp(14px,3vw,32px) 8px;background:color-mix(in srgb,var(--bg) 94%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--ln);font:400 22px/1 var(--disp);color:var(--ink);will-change:transform;cursor:pointer}
-#wpin small{font:italic 400 14px var(--disp);color:var(--mut)}#wpin[hidden]{display:none}/* David 2026-11-23: the pinned section name (Last hour, This morning) snapped in and out under the top bar; it now fades over a fifth of a second, both ways */body #wpin{transition:translate var(--dur-2) ease,opacity .2s ease,display .2s allow-discrete}/* David 2026-11-23 (picked T2, a little slower): the top bar, the bottom tabs and the pinned section name glide away over two thirds of a second and ease to a stop, instead of 250 ms */@media(prefers-reduced-motion:no-preference){html:not(.rmo,.lowp) body .top,html:not(.rmo,.lowp) body #tabs{transition:transform .65s var(--ease-out)}html:not(.rmo,.lowp) body #wpin{transition:translate .65s var(--ease-out),opacity .2s ease,display .2s allow-discrete}}/* David's phone sits in the lighter look (html.lowp), which sets every transition to .01 ms, so 1.387's fade and 1.388's glide never showed there. These three only move on the compositor, so they keep their glide in the lighter look (not with reduced motion) */html.lowp:not(.rmo) body :is(.top,#tabs):where(.top),html.lowp:not(.rmo) body :is(.top,#tabs):where(#tabs){transition:transform .65s var(--ease-out);transition-duration:.65s!important}html.lowp:not(.rmo) body #wpin{transition:translate .65s var(--ease-out),opacity .2s ease,display .2s allow-discrete;transition-duration:.65s,.2s,.2s!important}body #wpin[hidden]{opacity:0}@starting-style{body #wpin:not([hidden]){opacity:0}}html.rmo body #wpin{transition:none}@media(prefers-reduced-motion:reduce){body #wpin{transition:none}}
+#wpin small{font:italic 400 14px var(--disp);color:var(--mut)}#wpin[hidden]{display:none}/* David 2026-11-23: the pinned section name (Last hour, This morning) snapped in and out under the top bar; it now fades over a fifth of a second, both ways */body #wpin{transition:translate var(--dur-2) ease,opacity .2s ease,display .2s allow-discrete}/* David 2026-11-23 (picked T2, a little slower): the top bar, the bottom tabs and the pinned section name glide away over two thirds of a second and ease to a stop, instead of 250 ms */@media(prefers-reduced-motion:no-preference){html:not(.rmo,.lowp) body .top,html:not(.rmo,.lowp) body #tabs{transition:transform .65s var(--ease-out)}html:not(.rmo,.lowp) body #wpin{transition:translate .65s var(--ease-out),opacity .2s ease,display .2s allow-discrete}}/* David's phone sits in the lighter look (html.lowp), which sets every transition to .01 ms, so 1.387's fade and 1.388's glide never showed there. These three only move on the compositor, so they keep their glide in the lighter look (not with reduced motion) */html.lowp:not(.rmo) body :is(.top,#tabs):where(.top),html.lowp:not(.rmo) body :is(.top,#tabs):where(#tabs){transition:transform .65s var(--ease-out);transition-duration:.65s!important}html.lowp:not(.rmo) body #wpin{transition:translate .65s var(--ease-out),opacity .2s ease,display .2s allow-discrete;transition-duration:.65s,.2s,.2s!important}/* the section name on a second line in the top bar; the bar stays put while a section list is shown */#tsec{position:absolute;bottom:7px;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:italic 400 clamp(12px,3.6vw,15px)/1.2 var(--disp);color:var(--a1,var(--brass,var(--mut)));opacity:0;translate:0 4px;transition:opacity .3s ease,translate .3s var(--ease-out);pointer-events:none}.top.sec #tsec:not(.sw){opacity:1;translate:0 0}.top #ttl{transition:opacity var(--dur-2) ease,translate .3s var(--ease-out)}.top.sec #ttl{translate:0 -7px}body.tabtuck .top.sec:not(:focus-within){transform:none}html.lowp:not(.rmo) body :is(#tsec,#ttl):where(#tsec),html.lowp:not(.rmo) body :is(#tsec,#ttl):where(#ttl){transition-duration:.3s!important}body #wpin[hidden]{opacity:0}@starting-style{body #wpin:not([hidden]){opacity:0}}html.rmo body #wpin{transition:none}@media(prefers-reduced-motion:reduce){body #wpin{transition:none}}
 #whair{position:fixed;top:0;z-index:60;height:3px;background:color-mix(in srgb,var(--ink) 12%,transparent);pointer-events:none}#whair i{display:block;height:100%;background:var(--a1,#0f5a3b);transition:width var(--dur-1) linear}#whair[hidden]{display:none}
 /* (every card photo had translate3d+scale here: it out-ranked B104's 'only big cards drift' rule, so every photo was its own graphics layer and was decoded and redrawn on its own while scrolling) */
 /* experiment, cluster 13: rhythm and density */
@@ -7682,10 +7682,9 @@ function tabAnim(){
    and a thin hairline at the very top shows how far through the list you are, with "Story 40 of 132" appearing while you scroll. */
 function wireChrome(){
  const g=$('#grid'),m=$('main');
- let pin=$('#wpin'),hl=$('#whair');
+ let hl=$('#whair');const tp=$('.top');
  const on=g&&m&&g.classList.contains('wire')&&wireSel()&&!$('#rd').classList.contains('on');
- if(!on){if(pin&&!pin.hidden)pin.hidden=true;if(hl&&!hl.hidden)hl.hidden=true;return}
- if(!pin){pin=document.createElement('div');pin.id='wpin';pin.setAttribute('aria-hidden','true');document.body.append(pin)}
+ if(!on){if(tp)tp.classList.remove('sec');wireChrome.sec='';if(hl&&!hl.hidden)hl.hidden=true;return}
  if(!hl){hl=document.createElement('div');hl.id='whair';hl.setAttribute('aria-hidden','true');hl.innerHTML='<i></i>';document.body.append(hl)}
  /* all the measuring first, all the writing after: a read that follows a write forces the whole page to be laid out again, once per scroll frame */
  const mr=m.getBoundingClientRect(),top=$('.top'),hb=top?top.getBoundingClientRect().bottom:mr.top;
@@ -7701,27 +7700,19 @@ function wireChrome(){
  const sTop=m.scrollTop,hbRel=hb-mr.top+sTop;
  let cs=null,nx=null;
  for(const s of WC.secs){if(s.y<=hbRel+1)cs=s.el;else{nx=s;break}}
- const showPin=!!(cs&&sTop>40),nxTop=showPin&&nx?(nx.y-sTop+mr.top):0;
+ const showPin=!!(cs&&sTop>40);
  const cards=WC.cards,limRel=hb+24-mr.top+sTop;let n=0;
  if(cards.length){let i=Math.min(WC.ci||0,cards.length-1);
   while(i>0&&cards[i-1].el.isConnected&&cards[i-1].bot>limRel)i--;
   while(i<cards.length&&(!cards[i].el.isConnected||cards[i].bot<=limRel))i++;
   WC.ci=Math.min(i,cards.length-1);if(i<cards.length)n=cards[i].i+1}
- const ph=wireChrome.ph||40;
  /* writes */
- if(showPin){
-  const t=cs.querySelector('span'),c=cs.querySelector('small'),html=`<span>${t?t.textContent:''}</span><small>${c?c.textContent:''}</small>`;
-  if(wireChrome.html!==html){pin.innerHTML=html;wireChrome.html=html}
-  /* David 2026-11-16: the strip sits at the bar's RESTING bottom and slides with the same CSS animation as the bar (--wph); placing it from a measurement ~12 times a second made it jitter and open a see-through gap while the bar slid */
-  const ty=top?new DOMMatrix(getComputedStyle(top).transform).m42:0,hr=hb-ty,bh=top?top.offsetHeight:0,push=nx?Math.min(0,nxTop-hb-ph):0,css=`left:${mr.left}px;width:${mr.width}px;top:${hr}px;--wph:${bh}px;transform:translateY(${push}px)`;
-  if(pin.style.cssText!==css)pin.style.cssText=css;if(pin.hidden)pin.hidden=false;
- }else if(!pin.hidden)pin.hidden=true;
+ /* David 2026-11-23: no second bar. The top bar keeps its title and the section you are in (Last hour, This morning) fades in on a second line under it, in the headline italic; it fades out and back when the section changes */
+ {const want=showPin?((cs.querySelector('span')||{}).textContent||''):'';if(tp&&WC.sec!==want){WC.sec=want;let ts=$('#tsec');if(!ts){ts=document.createElement('span');ts.id='tsec';ts.setAttribute('aria-hidden','true');tp.append(ts)}clearTimeout(WC.st);const put=()=>{if(want){ts.textContent=want;ts.style.left=$('#ttl').offsetLeft+2+'px'}ts.classList.remove('sw');tp.classList.toggle('sec',!!want)};if(want&&tp.classList.contains('sec')){ts.classList.add('sw');WC.st=setTimeout(put,140)}else put()}}
  const M=cur.length;
  if(M&&n){const css=`left:${mr.left}px;width:${mr.width}px`;if(hl.hidden)hl.hidden=false;if(hl.style.cssText!==css)hl.style.cssText=css;const wd=(Math.min(1,n/M)*100).toFixed(1)+'%';if(hl.firstChild.style.width!==wd)hl.firstChild.style.width=wd;
 }
  else{if(!hl.hidden)hl.hidden=true}
- /* the pin's own height is measured at the end of the frame, for the next one */
- if(showPin&&!pin.hidden){const h=pin.offsetHeight;if(h)wireChrome.ph=h}
 }
 /* pictures drift inside their cards: each picture is shifted a little against the card as the card crosses the screen */
 const PARV=new Set();let PARIO=null;
