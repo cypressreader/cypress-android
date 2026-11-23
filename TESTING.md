@@ -2461,3 +2461,38 @@ Settings
 - Read aloud starts with the headline and then the story: it no longer reads the 'In this story' links or the 'Previously' list first (David 2026-11-22).
 - Two pages: the 'AI summary' line alone at the top of the right column with the text starting on the next page (report 1795389974999, could NOT be reproduced in the browser): a check now re-fits the page when the line ends up there after the last fit. If the gap shows again, note whether the story had just opened, whether the headline changed size/font a moment before, and send it as a messy story.
 - Pictures a site wraps in a bulleted list (report 1795389547289, a phone screenshot in a how-to): no bullets beside pictures, no empty bullets; the picture stands in the text like any other. Left for later: the caption strip is wider than a tall narrow picture, and four of that story's five pictures were not captured (lazy-loaded on the site).
+
+## FOLD SHORTLIST (2026-11-23): 25 checks, about 20 minutes, most valuable first (numbers in brackets = the line of the full section above)
+Opening and reading a story
+1. Open a long story, turn 10 pages slowly and a few fast: no hitch or freeze. [2380, 2420]
+2. Tap to turn right after a story opens, before it settles: it may start late but never freezes. [2291]
+3. Rest 4+ seconds on a page, then tap to turn: no freeze. [2277]
+4. Reopen a story you left half-read: 'Continuing where you left off' with Start over. [2380]
+5. Open a long story with pictures folded, then unfold: pictures stay inside their own page. [2375]
+6. No story opens on a whole-screen picture; no flash when the cover card turns. [2438, 2359]
+7. Inner screen, read for a minute with a 'next story' card showing: phone stays cool, turns smooth. [2424]
+8. AI summary line: 'writing…' then 'ready', the text never moves, a tap opens a card with three whole points. [2441]
+Side bar and touch
+9. Open the side bar over a story, tap a card or the bottom of a page: it only closes. [2424, 2429]
+10. Swipe right from the very edge of a card: the side bar opens, the story is not marked read. [2323]
+11. Press and hold a card: the menu opens, nothing fires when you lift. [2380]
+Listening
+12. Play an episode, pull down the notification bar: play/pause and back/forward are there; leave the app and repeat. [2354, 2231]
+13. Start read aloud while an episode plays: the episode pauses and the player switches. [2231, 2380]
+14. Play audio, let another app make a short sound: CyPress carries on by itself. [2354]
+15. Listen on a story: headline, then the story, not the 'In this story' links or 'Previously' first. [after 1.385]
+16. Tap the mini player bar: Now playing opens; try the sleep timer and chapters. [2297, 2209]
+Video
+17. Play a video in a card, scroll away, tap the bar: it pops up and keeps playing; the arrow and × above it work. [2363, 2265]
+18. Start a video while an episode plays, or Listen while a video plays: only one thing plays; Back from a video page leaves it in the bar. [2380]
+19. On a video channel page: the search bar and 'Follow channel'. [2368]
+Home screen and widgets
+20. Add all four widgets (Top Story, Headlines, Ticker, The Daily) plus Continue listening: each fills, taps open the right story. [2077, 2082]
+21. Top Story widget: Save and Listen buttons, bigger arrows. [2101, 2082]
+Books and sharing
+22. In Files, tap an .epub and choose CyPress Reader: it adds the book and opens it. [2209]
+23. Share a link into CyPress from Chrome with the app fully closed: 'Read it now' appears and opens the story. [21]
+Speed and look
+24. Open and close the app, switch The Daily / All Stories, scroll All Stories: smooth. [2449, 2454]
+25. Find in story, Listen highlighting and saved highlights still look right. [2454]
+Housekeeping note: about 55 older sections are superseded (old widgets 227/710-752, old AI summary box 1257-1280/1769/2432, whole-screen cover work 1675-1931/2359, scroll rounds 906-944, location 383/396) and about 120 sections before line 1000 are older than 1.2xx: candidates to move to an archive file in one pass.
