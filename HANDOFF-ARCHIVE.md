@@ -1277,3 +1277,7 @@ NEXT 3 TASKS:
 1. Build 450 (1.385) is GREEN. Wait for David's Fold verdict on speed and on highlights / read-aloud / picture openings.
 2. Page-wide body:has() rules -> body marks with explicit triggers (see LEFT), then story open's forced restyles inside layout(); measure with TRACE='open a story (first'.
 3. Feed :has() rules if adding cards still costs (insert of a card ~2 ms); real-device check of all this on the Fold (TESTING.md 'Speed stage 1' / 'Speed stage 2').
+
+## moved-1386b (2026-11-23): audits and failing-sites notes from the deep pass
+- AUDITS DONE (read-only): privacy = every outside service the app can call is on the privacy page (nothing missing). Whole-screen cover code = unreachable, ~13 KB, inventory in FIXES.md 'Whole-screen cover code removal' (remove only after David's Fold verdict). Real swipe scrolling (perf.js FLOWS=swipe GST=mouse): Daily drops ~1 frame in 10 on first reveal, none after: left alone.
+- Failing sites on the Fold (Insights 'cf' = a catalog site's own address failing in the foreground: Signal Blog 503, Tom's Guide 503, DeepMind 'blocked', Salon, Guardian 503, AP timeouts): the same addresses answer 200 from the cloud with the phone's browser identity, so it is phone-side (128 sites at once? the native fetch's headers?). Needs phone-side detail: log the failing request's headers/attempt order into the messy/diagnostics report.
