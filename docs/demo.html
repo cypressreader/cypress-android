@@ -13454,11 +13454,9 @@ function themeFonts(th){[THB[th],THH[th],THF[th],THX[th]].forEach(k=>k&&needFont
 function applyHf(){let k=S.hfont||'serif';if(POLISH_HF_KEEP.indexOf(k)<0)k='serif';needFont(k);if(k==='serif'){document.documentElement.style.removeProperty('--serif');document.documentElement.style.removeProperty('--fd')}else{document.documentElement.style.setProperty('--serif',FONTS[k]||FONTS.serif);document.documentElement.style.setProperty('--fd',FONTS[k]||FONTS.serif)}trkApply()}
 function applyRmo(){document.documentElement.classList.toggle('rmo',!!S.rmo);try{window.lowfxUp&&window.lowfxUp()}catch(e){}}
 /* idea book S9: a phone that keeps stalling (six or more frames of 150 ms+ within two minutes, counted after the first 20 s) lightens itself the same way low battery does; it measures again after 14 days. No setting. */
-(()=>{try{const r=document.documentElement;if(S.autoLow&&Date.now()-S.autoLow>14*864e5){delete S.autoLow;saveSoon()}if(S.autoLow&&isOn('lowfx'))r.classList.add('lowp');
- if(S.autoLow||!('PerformanceObserver' in window)||!(PerformanceObserver.supportedEntryTypes||[]).includes('longtask'))return;const t0=performance.now()+2e4,L=[];
- const ob=new PerformanceObserver(l=>{for(const e of l.getEntries())if(e.startTime>t0&&e.duration>=150&&!document.hidden)L.push(e.startTime);while(L.length&&L[L.length-1]-L[0]>12e4)L.shift();if(L.length>=6){ob.disconnect();S.autoLow=Date.now();saveSoon();if(isOn('lowfx'))r.classList.add('lowp')}});ob.observe({type:'longtask'})}catch(e){}})();
+/* David 2026-11-23: the app never switches itself to the lighter look because of stalls any more (it did so for 14 days on a top phone, without asking, and that switched off every animation). A phone already switched is put back at the next start */try{if(S.autoLow){delete S.autoLow;saveSoon()}}catch(e){}
 /* pause heavy effects when the battery is low */
-(async()=>{try{if(!navigator.getBattery)return;const bt=await navigator.getBattery();const up=()=>{const low=isOn('lowfx')&&((bt.level<=.2&&!bt.charging)||DEV.powerSave||DEV.dataSaver||!!(navigator.connection&&navigator.connection.saveData)||!!S.autoLow);document.documentElement.classList.toggle('lowp',low)};['levelchange','chargingchange'].forEach(t=>bt.addEventListener(t,up));up();window.lowfxUp=up}catch(e){}})();
+(async()=>{try{if(!navigator.getBattery)return;const bt=await navigator.getBattery();const up=()=>{const low=isOn('lowfx')&&((bt.level<=.2&&!bt.charging)||DEV.powerSave||DEV.dataSaver||!!(navigator.connection&&navigator.connection.saveData));document.documentElement.classList.toggle('lowp',low)};['levelchange','chargingchange'].forEach(t=>bt.addEventListener(t,up));up();window.lowfxUp=up}catch(e){}})();
 
 applyHf();applyRmo();
 setTimeout(()=>{try{tipsCheck()}catch(e){}},14000);
