@@ -2564,3 +2564,4 @@ After the next build (messy-story fixes, checked only against the saved pages):
 - 1.392: the note at the top of the list ('N new stories since you opened this') is gone; the arrow is the only notice. After the number calms, the arrow is a plain icon with a red dot (not a filled circle).
 - After 1.392: with Halcyon's green top bar on, the section name under 'All Stories' (e.g. 'Last hour') is bronze and easy to read.
 - After 1.392: Add a site icon tiles take each theme's accent color (Cypress keeps green and bronze); Slate's gray text is a touch darker.
+- After 1.393: on Cypress with the green top bar, the new-stories arrow shows a green arrow inside its cream circle (it was an empty circle).
