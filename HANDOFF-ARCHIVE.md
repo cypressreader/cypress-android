@@ -1308,3 +1308,10 @@ Older notes (Fold reports after 1.381-1.383, round three, video, podcasts, open 
 **Send a messy story (1.339-1.341 history, worker deploy notes, Cloudflare script `cypress-share`):** archive grep 'moved-1343'. Worker cap 3 MB; read via `curl -s 'https://cypressreader.com/api/insights?messy=list'` then `?messy=<t>`. Command David uses: 'check messy stories'.
 PM deep dive / 1.350 notes: archive grep 'moved-1351'. 1.337-1.347 notes (story touches, title page picks, Teach fallbacks, gray strip): archive grep 'moved-1345'/'moved-1345b'/'moved-1350'.
 **Idea book:** https://claude.ai/artifact/GWC3jXRYfrs8pJjWPLk8e5 (card text: Artifact read, then awk the `c-<id>` article). 87 picks received 2026-11-19; history, theme checks, skipped cards: archive grep 'moved-1355' / 'moved-1353'. F8 LAST.
+
+
+## moved-1387c (2026-11-23): lines moved out of HANDOFF
+- Return to feed (rdFreeze/rdAnchor/patchProg) and Light/dark modes (S.sch, oled): archive grep 'moved-1357c'.
+- **Side bar** hide setting (Never/portrait+square/Always), hamburger `#menu`, tab `#sideh`; click-to-close skips folder arrows/dots/× buttons.
+- Speed in the lab is at diminishing returns (archive 'moved-1387': hiding the list behind a story = no gain; broad `X *` rules = few %; perf.js varies ~20%). What remains at story open is the chain of fits in layout() (rewrite = high risk; only if David asks). Chase speed from what David FEELS on the Fold, not the lab.
+- Speed tools/rules: CLAUDE.md 'Speed tools'. Story-page CSS must not use :has(): scripts/css-has.js; scripts/css-keys.js after adding CSS.

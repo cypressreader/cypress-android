@@ -2507,3 +2507,8 @@ Housekeeping note: about 55 older sections are superseded (old widgets 227/710-7
 - [ ] Same story: turning pages forward and back, the picture never jumps or changes size after it loads.
 - [ ] Fold open, any story, paged reading at the default text size: the two columns are left-aligned (even word spacing, ragged right edge), not stretched edge to edge. A wide tablet in landscape still justifies.
 - [ ] Fold open, first page of a story with a picture: picture, a large headline (two or more lines is fine), date, then the summary close below; the story text starts at the top of the right column. Try a very long headline: nothing spills into the right column.
+
+## Story opening speed (work branch, after 1.386; lab-timed only)
+- [ ] Fold, Wi-Fi, just after a refresh: tap a story that has no "ready" mark yet. The full text should arrive a little sooner than in 1.386 (the download now starts at the tap).
+- [ ] Fold, Wi-Fi: open All Stories and wait 10 seconds without scrolling: the cards on screen get their ready mark first. Scroll far down, stop: the cards now on screen get ready next, ahead of the rest of the line.
+- [ ] Scrolling and page turns feel no rougher while stories are being read ahead (three at a time now, was two).
