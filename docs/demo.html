@@ -9863,7 +9863,29 @@ function dedupImgs(root){
   else seen.push(u)
  }
 }
-function underscoreItalics(root){mdInline(root);dedupParas(root);dedupImgs(root);dropTailPromo(root)}
+/* publisher furniture mined from 693 real stories (MJ's run, 2026-11-24): each rule matches one site's fixed wording, so it cannot touch story text */
+const PF_HDR=/^(?:From Your Site Articles|Related Articles Around the Web|What we[’']re reading)$/;
+const PF_SEP=/^[_—–]{5,}$/,PF_WBW=/^(?:If you like Wait But Why, sign up for our\b.{0,40}email list and we[’']ll send you new posts when they come out\.|To support Wait But Why,\s*visit our Patreon page\.(?: \([^)]{0,200}\))?)$/;
+function pubFurn(root){
+ const kids=()=>[...root.children],tx=e=>(e.textContent||'').replace(/[\s ]+/g,' ').trim(),lk=e=>[...e.querySelectorAll('a')].reduce((q,a)=>q+tx(a).length,0);
+ /* a sponsor's labeled block ('Partner content from Amazon Grocery' and its one paragraph) */
+ for(const k of kids()){const n=k.nextElementSibling;if(/^Partner content from [^.]{2,40}$/.test(tx(k))&&!k.querySelector('img')&&n&&n.tagName==='P'&&tx(n).length<400){n.remove();k.remove()}}
+ /* related lists under a fixed heading at the end (IEEE 'From Your Site Articles', STAT 'What we're reading'): cut from the earliest heading when everything after it is short lines or link lists */
+ {const k=kids(),from=Math.max(0,k.length-8);let i=-1;for(let j=from;j<k.length;j++)if(PF_HDR.test(tx(k[j]))){i=j;break}
+  if(i>0){const rest=k.slice(i+1),ok=rest.every(e=>!e.querySelector('img')&&(tx(e).length<=300||/^(UL|OL)$/.test(e.tagName)&&[...e.children].every(li=>tx(li).length<=260&&li.querySelector('a'))));if(ok)k.slice(i).forEach(e=>e.remove())}}
+ /* Wait But Why: the sign-up and Patreon lines, the 'More posts from…' lists after a ____ rule, and the rules left with nothing to divide */
+ for(const k of kids())if(k.tagName==='P'&&PF_WBW.test(tx(k)))k.remove();
+ for(const k of kids()){if(!k.parentNode||!/^More (?:posts|tales|thoughts)\b[^:]{0,60}:/.test(tx(k))||!k.querySelector('a')||k.querySelector('img')||lk(k)<(tx(k).replace(/^[^:]*:/,'').length)*.5)continue;const pv=k.previousElementSibling;if(!pv||!PF_SEP.test(tx(pv)))continue;
+  let n=k.nextElementSibling;k.remove();while(n&&!PF_SEP.test(tx(n))&&!n.querySelector('img')&&tx(n).length<=220&&(lk(n)>=tx(n).length*.4||/:$/.test(tx(n)))){const x=n.nextElementSibling;n.remove();n=x}}
+ const nx=k=>{let n=k.nextElementSibling;while(n&&(n.tagName==='HR'||!n.querySelector('img,video,iframe')&&/^(Tweet)?$/.test(tx(n))))n=n.nextElementSibling;return n};
+ const fnList=n=>n&&/^(OL|UL)$/.test(n.tagName)&&!!n.querySelector('a[href^="#"]')&&/↩/.test(n.textContent||'');
+ /* a 'More …:' label whose list is already gone, then the ____ rules left with nothing after them but the footnotes */
+ for(const k of kids()){const n=nx(k);if(k.parentNode&&/^More [^:.!?]{2,40}:$/.test(tx(k))&&!k.querySelector('img')&&(!n||PF_SEP.test(tx(n))||fnList(n))&&k.previousElementSibling&&PF_SEP.test(tx(k.previousElementSibling)))k.remove()}
+ for(const k of kids().reverse()){if(!k.parentNode||!PF_SEP.test(tx(k)))continue;const n=nx(k);if(!n||PF_SEP.test(tx(n))||fnList(n))k.remove()}
+ /* the New Yorker's ♦ end mark after the last sentence (the reader draws its own end mark) */
+ {const k=kids().filter(e=>tx(e));const L=k[k.length-1];if(L&&L.tagName==='P'){const w=document.createTreeWalker(L,4);let t=null,n;while(n=w.nextNode())if(n.data.trim())t=n;if(t){if(/([.!?"”’)])[\s ]*♦[\s ]*$/.test(t.data))t.data=t.data.replace(/([.!?"”’)])[\s ]*♦[\s ]*$/,'$1');else if(t.data.trim()==='♦'&&/[.!?"”’)][\s ]*$/.test(tx(L).replace(/♦$/,'').trim()+' ')){const pe=t.parentNode;t.remove();if(pe!==L&&!tx(pe))pe.remove()}}}}
+}
+function underscoreItalics(root){mdInline(root);dedupParas(root);dedupImgs(root);try{pubFurn(root)}catch(e){}dropTailPromo(root)}
 /* plain-text version of a line that may carry markdown marks (for deks and previews) */
 /* some publishers drop the space beside a link or italic ("Fish</a>,and watching", "<a>Shrinking</a>between"); put it back where a word plainly ends, and nowhere else */
 const GLUE_W=/^(?:and|the|but|for|nor|of|to|in|on|at|as|is|it|or|by|if|so|an|from|with|that|this|was|were|are|has|had|who|not|all|its|his|her|our|you|they|then|than|when|will|can|said|says|say|also|have|been|over|into|more|most|just|such|them|their|there|here|some|many|much|very|what|which|while|about|after|would|could|should|only|even|still|make|made|take|took|come|came|want|wants|told|tells|call|calls|find|found|gave|give|know|knew|like|look|looks|need|needs|plan|plans|show|shows|once|next|last|both|each|less|same|upon|out|off|new|now|one|two|she|him|how|why|get|got|did|does|may|might|must|shall|are|his|has|began|begin|plus|per|via|amid|says)$/;
@@ -10092,7 +10114,7 @@ function looksIncomplete(text,url){
  const tail=t.slice(-500);
  if(ENDMARK.test(tail))return false;
  /* a plain full stop is not proof by itself (a cut-off stub ends on one too), so it only counts for a story that is already long */
- if(words>=400&&/[.!?]["”’)]?$/.test(t))return false;
+ if(words>=400&&/(?:[.!?…]["”’)\]]?|[)\]])$/.test(t))return false;
  return true;
 }
 /* Tier 3 for a stub: the browser-style reader */
@@ -10450,7 +10472,10 @@ function openTab(u){
   return true;
  }catch(e){return false}
 }
+const STAT_CHROME=/^(?:STAT\+ Exclusive Story|Already have an account\? ?Log in|Already have an account\?|Log in|This article is exclusive to STAT\+ subscribers|Unlock this article\b.*|\$\d[\d,.]*(?:\/month|\/year| for \d+ months| Annually per user)?|Get Started|Request A Quote|View All Plans|Subscribe|To read the rest of this story subscribe to STAT\+\.|Monthly|Annual|Starter|Custom|Totals \$\d[\d,.]* per year|for \d+ months, then \$\d[\d,.]*\/year|Then \$\d[\d,.]*\/year|Save \d+%|Savings start at \d+%!|\d+-\d+ Users|\d+\+ Users|Annually per user)$/;
 function gatePreviewUi(body,a){
+ /* STAT+ previews: the sign-in and price-table lines under the story start go, so the preview reads cleanly above the subscriber note (only here, after the preview is known: the same lines are how it is recognized) */
+ if(/exclusive to STAT\+ subscribers|subscribe to STAT\+/.test(body.textContent||''))[...body.children].forEach(e=>{const t=(e.textContent||'').replace(/[\s\u00a0]+/g,' ').trim();if(!e.querySelector('img')&&(STAT_CHROME.test(t)||!t&&!e.querySelector('img,video,iframe')))e.remove()});
  let ps=[...body.querySelectorAll('p')],k=ps.length;
  while(k>1&&GATEMARK.test(ps[k-1].textContent)&&ps[k-1].textContent.length<420){ps[k-1].remove();k--}
  ps=[...body.querySelectorAll('p')];const last=ps[ps.length-1];if(last)last.classList.add('gfade');
