@@ -9887,6 +9887,8 @@ function pubFurn(root){
  {const k=kids(),i=k.findIndex(e=>/^(?:\/ latest|LATEST IN NEWS)$/.test(tx(e)));
   if(i>0){const rest=k.slice(i+1).filter(e=>tx(e)!=='See all news'),hd=rest.filter(e=>tx(e));
    if(hd.length>=3&&hd.every(e=>tx(e).length>=40&&tx(e).length<=220&&lk(e)>=tx(e).length*.9)&&rest.every(e=>tx(e)||e.querySelector('img')))cut(k[i])}}
+ /* ArchDaily: the '#Tags' block at the end (tag links, 'Published on', 'Cite:', 'Top #Tags') */
+ {const k=kids(),i=k.findIndex(e=>tx(e)==='#Tags');if(i>0&&k.slice(i+1).some(e=>tx(e)==='Top #Tags'))cut(k[i])}
  /* the New Yorker's ♦ end mark after the last sentence (the reader draws its own end mark) */
  {const k=kids().filter(e=>tx(e));const L=k[k.length-1];if(L&&L.tagName==='P'){const w=document.createTreeWalker(L,4);let t=null,n;while(n=w.nextNode())if(n.data.trim())t=n;if(t){if(/([.!?"”’)])[\s ]*♦[\s ]*$/.test(t.data))t.data=t.data.replace(/([.!?"”’)])[\s ]*♦[\s ]*$/,'$1');else if(t.data.trim()==='♦'&&/[.!?"”’)][\s ]*$/.test(tx(L).replace(/♦$/,'').trim()+' ')){const pe=t.parentNode;t.remove();if(pe!==L&&!tx(pe))pe.remove()}}}}
 }
@@ -9973,7 +9975,8 @@ function tidy(fr){
  let acc=0,cut=-1;
  for(let i=0;i<kids.length;i++){
   const t=txt(kids[i]);
-  if(acc>total*.35&&t.length<240&&END.test(t)){
+  /* a picture or its caption is never the end: a photo credit ('© Name') is a caption, and the story goes on after it */
+  if(acc>total*.35&&t.length<240&&END.test(t)&&kids[i].tagName!=='FIGURE'&&!kids[i].querySelector('img')){
    const rest=kids.slice(i+1);
    /* a short promo line mid-story ("Read more: …") is not the end when real story follows it: only that line goes */
    if((rest.filter(k=>txt(k).length>=90).length>=2&&rest.reduce((q,k)=>q+txt(k).length,0)>total*.25)||(/^(read (more|next)|related)\b/i.test(t)&&rest.some(k=>txt(k).length>=200))){drop(kids[i]);continue}
