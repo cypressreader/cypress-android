@@ -9715,6 +9715,8 @@ function dropTailPromo(root){
   if(!hit)break;
   last.remove();dropped++;
  }
+ /* David 2026-11-24: a 'perks' promo near the end ('flash your perks page to redeem offers') goes, and the photo after it stays */
+ for(const k of kids().slice(-4)){const t=(k.textContent||'').replace(/\s+/g,' ').trim();if(k.tagName==='P'&&t.length<600&&!k.querySelector('img')&&/\b(perks?|deals?|exclusive offers?)\b/i.test(t)&&/\b(redeem|promo code|use code|flash your)\b/i.test(t))k.remove()}
 }
 /* furniture that ends a story and is never story text: a row of topic tags ('Iowa'), a 'Send us tips' box, and a list of the site's other stories under its own heading ('New Yorker Favorites'). The list goes only when every item links to one site and at least a short story (600 letters) stays */
 function tailFurn(el,t){
@@ -9852,6 +9854,8 @@ function bfKind(t){
  t=(t||'').trim();if(!t||t.length>420)return '';
  if(t.length<60&&/^about\s+(the\s+)?(author|writer|reporter|us|this site)\b/i.test(t))return 'author';
  if(BF_BIO.test(t)||BF_BIO2.test(t)||(t.length<240&&BF_FOLLOW.test(t)))return 'author';
+ /* David 2026-11-24: a credit line ('Additional reporting by …', '… contributed to this report') is folded with the author notes, never deleted */
+ if(t.length<240&&/^(?:additional reporting by|reporting by|.{2,160}?\bcontributed (?:reporting )?to this (?:report|story|article))\b/i.test(t))return 'author';
  if(BF_SITE.test(t))return 'site';
  return '';
 }
@@ -10571,8 +10575,9 @@ async function openReader(a){/* R3 P11: the phone's text size is measured before
  if(!n&&alts.length){const ms=await Promise.all(alts.map(u=>getFull(u).catch(()=>null)));if(my!==tok)return;for(let i=0;i<alts.length;i++){const m=ms[i];if(m&&sameStory(m.textContent,a)){n=m;src=alts[i];break}}}
  let gated=false;try{gated=(LG[a.link]||[]).some(x=>/HTTP (401|402|403|429|451)\b/.test(String(x)))}catch(e){}
  /* nothing came back: the slow browser-rendered routes start now, alongside the syndication search, instead of after it */
- let deepP=null,deepRan=false;const dpc=new AbortController();if(!n&&online()&&!TRUNCDONE.has(a.link)){deepRan=true;deepP=getFullDeep(a.link,LG['deep:'+a.link]=[],dpc.signal).catch(()=>null)}
- if(online()&&!TRUNCDONE.has(a.link)&&(needsMore(n,src)||truncReason(n,src,src===a.link))){const dr=await Promise.race([deeperTiers(a,n,src),new Promise(r=>setTimeout(()=>r(null),34000))]);if(my!==tok){try{dpc.abort()}catch(e){}return}if(dr&&dr.n){n=dr.n;src=dr.src}}
+ /* a page already known to be a video, a gallery or a subscriber-only post gets its own note: no slow searches for words that aren't there */const xk=XK.get(a.link)||'',xkStop=!n&&/^(video|gallery|webinar|gated)$/.test(xk);
+ let deepP=null,deepRan=false;const dpc=new AbortController();if(!n&&!xkStop&&online()&&!TRUNCDONE.has(a.link)){deepRan=true;deepP=getFullDeep(a.link,LG['deep:'+a.link]=[],dpc.signal).catch(()=>null)}
+ if(!xkStop&&online()&&!TRUNCDONE.has(a.link)&&(needsMore(n,src)||truncReason(n,src,src===a.link))){const dr=await Promise.race([deeperTiers(a,n,src),new Promise(r=>setTimeout(()=>r(null),34000))]);if(my!==tok){try{dpc.abort()}catch(e){}return}if(dr&&dr.n){n=dr.n;src=dr.src}}
  if(my!==tok){try{dpc.abort()}catch(e){}return}
  if(!n&&deepP){const d=await Promise.race([deepP,new Promise(r=>setTimeout(()=>{dpc.abort();r(null)},30000))]);if(my!==tok){try{dpc.abort()}catch(e){}return}if(d){const df=tidy(d.cloneNode(true));if(df.textContent.length>600&&textQuality(df.textContent).ok){df.tier='deep';n=df}}}
  dpc.abort();mzDone(n?'network':'feed',a,src!==a.link?'mirror':(n&&n.tier)||(deepRan?'slow routes failed':'direct'));note.hidden=false;
@@ -10591,6 +10596,8 @@ async function openReader(a){/* R3 P11: the phone's text size is measured before
   if(/^Loading the full article/.test(note.textContent)||note.dataset.wd){note.textContent='';note.hidden=true;delete note.dataset.wd}
   if(S.autoReader&&R.web&&R.auto)toggleWeb();
  }else if(bodyFull(body)&&!gated){a.tier='feed';note.textContent='';note.hidden=true;markReady(a.link)
+ }else if(xkStop&&xk==='gated'){a.tier='feed';note.innerHTML='<span class="sbadge">Subscriber preview</span>The site is holding back the rest of this story.';gatePreviewUi(body,a)
+ }else if(xkStop){a.tier='feed';const w={video:'a video',gallery:'a photo gallery',webinar:'a webinar page'}[xk];note.innerHTML='<span class="sbadge">'+{video:'Video',gallery:'Gallery',webinar:'Webinar'}[xk]+'</span><br>This is '+w+', not a written story. <a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener noreferrer">Open the original</a>'
  }else{a.tier='feed';/* round two S1: a page that answered with a short story shows its words; 'only shares a preview' is said only when the site did answer */const shortN=!gated&&n&&n.textContent.trim().length>body.textContent.trim().length+40&&textQuality(n.textContent).ok;if(shortN){body.replaceChildren(dropTitle(n,a.title));try{legalBody(body)}catch(e){}}note.innerHTML=/* polish-2026-10 W-03: the badge, one line with the reason, one action */'<span class="sbadge">'+(shortN?'Short page':'Partial story')+'</span><br>'+(gated?'The site wouldn’t let CyPress load it.':shortN?'This page is short, so this may be all there is.':n&&(a.rkind==='teaser'||isShortFeed(f))?'The site only shares a preview.':'The story didn’t load from the site.')+' <a class="lnk" href="'+esc(a.link)+'" target="_blank" rel="noopener noreferrer">Open on site</a>'+whyHtml(a.link);if(my===tok&&!R.web&&online()&&(S.autoWeb||isBing(f.url)||/news\.google\./.test(f.url||'')||/news\.google\./.test(a.link||'')||isPay(a)))toggleWeb(true);if(my===tok&&online()&&!deepRan)setTimeout(()=>{if(my===tok&&curA===a)deepTry(a,false)},300)}
  afterLoad();/* afterLoad lays the page out itself (laying it out first as well cost a whole extra layout of the story) */
 }
