@@ -9882,6 +9882,11 @@ function pubFurn(root){
  /* a 'More …:' label whose list is already gone, then the ____ rules left with nothing after them but the footnotes */
  for(const k of kids()){const n=nx(k);if(k.parentNode&&/^More [^:.!?]{2,40}:$/.test(tx(k))&&!k.querySelector('img')&&(!n||PF_SEP.test(tx(n))||fnList(n))&&k.previousElementSibling&&PF_SEP.test(tx(k.previousElementSibling)))k.remove()}
  for(const k of kids().reverse()){if(!k.parentNode||!PF_SEP.test(tx(k)))continue;const n=nx(k);if(!n||PF_SEP.test(tx(n))||fnList(n))k.remove()}
+ /* ZDNet '/ latest' and CNET 'LATEST IN NEWS': the heading and its strip of other stories or deals (a picture, then a linked headline, three times or more) at the end */
+ const cut=e=>{while(e.nextSibling)e.nextSibling.remove();e.remove()};
+ {const k=kids(),i=k.findIndex(e=>/^(?:\/ latest|LATEST IN NEWS)$/.test(tx(e)));
+  if(i>0){const rest=k.slice(i+1).filter(e=>tx(e)!=='See all news'),hd=rest.filter(e=>tx(e));
+   if(hd.length>=3&&hd.every(e=>tx(e).length>=40&&tx(e).length<=220&&lk(e)>=tx(e).length*.9)&&rest.every(e=>tx(e)||e.querySelector('img')))cut(k[i])}}
  /* the New Yorker's ♦ end mark after the last sentence (the reader draws its own end mark) */
  {const k=kids().filter(e=>tx(e));const L=k[k.length-1];if(L&&L.tagName==='P'){const w=document.createTreeWalker(L,4);let t=null,n;while(n=w.nextNode())if(n.data.trim())t=n;if(t){if(/([.!?"”’)])[\s ]*♦[\s ]*$/.test(t.data))t.data=t.data.replace(/([.!?"”’)])[\s ]*♦[\s ]*$/,'$1');else if(t.data.trim()==='♦'&&/[.!?"”’)][\s ]*$/.test(tx(L).replace(/♦$/,'').trim()+' ')){const pe=t.parentNode;t.remove();if(pe!==L&&!tx(pe))pe.remove()}}}}
 }
@@ -9930,6 +9935,8 @@ function unglue(root){
 const unMd=x=>String(x||'').replace(/\[([^\]\n]+)\]\(https?:[^)\s]*\)/g,'$1').replace(/(\*\*|__|~~)(\S(?:[^\n]*?\S)?)\1/g,'$2').replace(/(^|[^\w*])\*(\S(?:[^*\n]*?\S)?)\*(?![\w*])/g,'$1$2').replace(/(^|[^\w_])_(\S(?:[^_\n]*?\S)?)_(?![\w_])/g,'$1$2');
 function tidy(fr){
  if(!fr||!fr.childNodes)return fr;
+ /* soft hyphens (a site's own word-break hints, hundreds per story on some) are dropped: they made a clean story read as garbled */
+ try{const w=document.createTreeWalker(fr,4);let n;while(n=w.nextNode())if(n.data.includes('\u00ad'))n.data=n.data.replace(/\u00ad/g,'')}catch(e){}
  try{underscoreItalics(fr)}catch(e){}
  unglue(fr);
  /* leftovers the device runs caught: a strip of other videos read as story text ('0:59 Title 00:00:59, play video Title'), and a 'Follow topics and authors' box with its list of names */
@@ -10088,7 +10095,7 @@ function textQuality(t){
  /* short words that really recur (of, de, la, ...) are fine in any language; scattered fragments are not */
  for(const k in sf){if(!SHORTOK.has(k)&&sf[k]<Math.max(4,sm.length*.012))frag+=sf[k]}
  const head=t.slice(0,6000),letters=(head.match(/[\p{L}\p{M}]/gu)||[]).length,nonsp=head.replace(/\s/g,'').length||1;
- const alpha=letters/nonsp,fr=frag/sm.length,avg=sum/sm.length,sym=(head.match(/[^\p{L}\p{M}\p{N}\s.,;:!?'’"“”()\-–—$%&\/@#*+=।॥]/gu)||[]).length/head.length;
+ const alpha=letters/nonsp,fr=frag/sm.length,avg=sum/sm.length,sym=(head.match(/[^\p{L}\p{M}\p{N}\s.,;:!?'’"“”()\-–—$%&\/@#*+=।॥\u00ad]/gu)||[]).length/head.length;
  let why='';
  if(alpha<.72)why='too many symbols';else if(fr>.10)why='broken words';else if(avg<3.1||avg>10)why='odd word lengths';else if(sym>.03)why='stray characters';else if(long/sm.length>.02)why='very long strings';
  return{ok:!why,why,n:w.length};
