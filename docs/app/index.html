@@ -6261,7 +6261,19 @@ function genBest(d){
  });
  return wrap.children.length>1?wrap:top;
 }
-function extract(html,base){const MT={};const r=extract0(html,base,MT);if(r&&MT.v)r.meta=MT.v;if(r&&MT.gate)r.gate=true;if(r&&MT.nofree)r.nofree=true;return r}
+/* a page that gives no story says what it is instead (a video, a gallery, a Google News link, a subscriber gate), so the log and the reader can explain it; nothing is made up for it */
+const XK=new Map();
+function pgKind(u,html,MT){
+ let h='',pa='';try{const x=new URL(u);h=x.hostname;pa=x.pathname}catch(e){}
+ if(/(^|\.)news\.google\.com$/.test(h)&&/\/(articles|read)\//.test(pa))return 'redirect';
+ if(MT&&MT.gate)return 'gated';
+ const og=typeof html==='string'?(html.match(/<meta[^>]+property=["']og:type["'][^>]*content=["']([^"']+)/i)||[])[1]||'':'';
+ if(/(^|\/)videos?(\/|$)/i.test(pa)||/^video/i.test(og))return 'video';
+ if(/(^|\/)(gallery|galleries|photos|pictures|slideshows?)(\/|$)/i.test(pa))return 'gallery';
+ if(/(^|\/)webinars?(\/|$)/i.test(pa))return 'webinar';
+ return '';
+}
+function extract(html,base){const MT={};const r=extract0(html,base,MT);if(r&&MT.v)r.meta=MT.v;if(r&&MT.gate)r.gate=true;if(r&&MT.nofree)r.nofree=true;try{const k=!r||(r.textContent||'').length<600?pgKind(base,html,MT):'';if(XK.size>300)XK.clear();if(k){XK.set(base,k);if(r)r.kind=k}else XK.delete(base)}catch(e){}return r}
 /* removing an inline element from between two words must leave the space it stood for */
 function rmGap(e){try{const pv=e.previousSibling,nx=e.nextSibling;if(pv&&nx&&pv.nodeType===3&&nx.nodeType===3&&/[A-Za-z0-9]$/.test(pv.data)&&/^[A-Za-z0-9]/.test(nx.data))pv.data+=' '}catch(x){}}
 /* first thing after a page arrives: consent and privacy furniture goes before anything reads, cleans or saves the page (html and body themselves are never removed) */
@@ -6283,7 +6295,7 @@ function extract0(html,base,MT){
  try{if(isOn('txo'))d.querySelectorAll('img,picture,video,iframe,source,amp-img,svg').forEach(e=>e.remove())}catch(e){}
  let ld='';let PL=null;try{PL=payloadOf(d)}catch(e){}
  /* a gate element only counts when it carries a gate message of its own: many pages ship "paywall" styling or markup without holding anything back */
- try{if(MT)for(const g of d.querySelectorAll('[class*="gateway" i],[class*="gate-container" i],[class*="paywall" i],[class*="regwall" i],[id*="gateway" i],[id*="paywall" i],[data-testid*="gateway" i],[data-testid*="paywall" i]')){const gt=(g.textContent||'').replace(/\s+/g,' ').trim();if(gt.length>=20&&gt.length<1500&&GATEMARK.test(gt)){MT.gate=true;break}}}catch(e){}
+ try{if(MT)for(const g of d.querySelectorAll('[class*="gateway" i],[class*="gate-container" i],[class*="paywall" i],[class*="regwall" i],[class*="upgrade-cta" i],[id*="gateway" i],[id*="paywall" i],[data-testid*="gateway" i],[data-testid*="paywall" i]')){const gt=(g.textContent||'').replace(/\s+/g,' ').trim();if(gt.length>=20&&gt.length<1500&&GATEMARK.test(gt)){MT.gate=true;break}}}catch(e){}
  /* the page's own structured data can say the story is not free */
  try{if(MT)d.querySelectorAll('script[type="application/ld+json"]').forEach(x=>{if(/"isAccessibleForFree"\s*:\s*(false|"false")/i.test(x.textContent||''))MT.nofree=true})}catch(e){}
  d.querySelectorAll('script[type="application/ld+json"]').forEach(x=>{try{const f=o=>{if(!o||typeof o!=='object')return;if(MT&&!MT.v&&o['@type']&&/(Article|Posting|Report)/i.test(String(o['@type']))){const au=o.author,nm=Array.isArray(au)?au.map(q=>(q&&q.name)||q).join(', '):(au&&(au.name||au))||'';MT.v={headline:String(o.headline||''),author:typeof nm==='string'?nm:'',date:String(o.datePublished||'')}}if(typeof o.articleBody==='string'&&o.articleBody.length>ld.length)ld=o.articleBody;Object.values(o).forEach(f)};f(JSON.parse(x.textContent))}catch(e){}});
@@ -9696,13 +9708,28 @@ function dropTailPromo(root){
  for(let guard=0;guard<8;guard++){
   const k=kids(),last=k[k.length-1];if(!last)break;
   const t=(last.textContent||'').replace(/\s+/g,' ').trim();
-  if(t.length>260)break;
+  if(t.length>260&&!tailFurn(last,t))break;
   const isForm=!!last.querySelector&&!!last.querySelector('input,button,form,select');
   if(!t&&!isForm&&!last.querySelector('img'))break;
-  const hit=isForm||strong(t)||(weak(t)&&lowerStart(t))||(dropped&&(weak(t)||lowerStart(t)||/^h[1-6]$/i.test(last.tagName)||/^(sign up|subscribe|submit|e-?mail|join|get started|continue)\b/i.test(t)));
+  const hit=isForm||tailFurn(last,t)||strong(t)||(weak(t)&&lowerStart(t))||(dropped&&(weak(t)||lowerStart(t)||/^h[1-6]$/i.test(last.tagName)||/^(sign up|subscribe|submit|e-?mail|join|get started|continue)\b/i.test(t)));
   if(!hit)break;
   last.remove();dropped++;
  }
+}
+/* furniture that ends a story and is never story text: a row of topic tags ('Iowa'), a 'Send us tips' box, and a list of the site's other stories under its own heading ('New Yorker Favorites'). The list goes only when every item links to one site and at least a short story (600 letters) stays */
+function tailFurn(el,t){
+ if(!el||el.querySelector('img,video,iframe,figure'))return false;
+ const as=[...el.querySelectorAll('a[href]')],lt=as.reduce((q,a)=>q+(a.textContent||'').trim().length,0);
+ if(as.length&&t.length<200&&as.every(a=>/\/(tags?|topics?|category|categories)\/[^/]+\/?$/i.test(a.getAttribute('href')||''))&&lt>=t.replace(/[\s,|•·]/g,'').length*.9)return true;
+ if(el.tagName==='P'&&t.length<300&&/^send us (?:your )?(?:news )?(?:tips|comments|questions)\b/i.test(t))return true;
+ if(/^(UL|OL)$/.test(el.tagName)){
+  const li=[...el.children].filter(x=>(x.textContent||'').trim()),pv=el.previousElementSibling,hs=new Set();
+  if(li.length<3||!pv||!/^H[2-6]$/.test(pv.tagName)||(pv.textContent||'').trim().length>60||li.some(x=>(x.textContent||'').trim().length>220))return false;
+  for(const x of li){const a=x.querySelector('a[href]');if(!a)return false;try{hs.add(new URL(a.href).hostname.replace(/^www\./,''))}catch(e){return false}}
+  const root=el.parentNode,rest=root?(root.textContent||'').length-(el.textContent||'').length:0;
+  return hs.size===1&&rest>=600;
+ }
+ return false;
 }
 /* the same picture twice in a row (a page that puts its lead photo in both a figure and the text) shows once: a later copy of a picture already shown in the opening part of the story is dropped, with its empty wrapper */
 function dedupImgs(root){
@@ -9784,6 +9811,7 @@ function tidy(fr){
   else if(t.length<80&&/^(share (on|via|this)|tweet|email this)/i.test(t)&&k.querySelectorAll&&[...k.querySelectorAll('a')].reduce((q,a)=>q+txt(a).length,0)>t.length*.6)bad=true;
   else if(t.length<300&&t.split('|').length>=3&&k.querySelectorAll&&[...k.querySelectorAll('a')].reduce((q,a)=>q+txt(a).length,0)>t.length*.5)bad=true;/* a row of links split by bars ("2026 ELECTION COVERAGE: Watch Live | Poll Closing Times | …") is the publisher's menu, not story */
   else if(t.length<170&&CAP.test(t))bad=true;
+  else if(/^\[(?:image|photo|picture):\s*https?:\/\/\S+\]$/i.test(t)){const m=t.match(/(https?:\/\/[^\s\]]+)/);if(/\.(jpe?g|png|webp|gif|avif)([?#]|$)/i.test(m[1])){const im=document.createElement('img');im.src=m[1];im.alt='';const fg=document.createElement('figure');fg.append(im);k.replaceWith(fg)}else bad=true}
   else if(/^!?\[.*\]\(https?:/.test(t)||/\]\(https?:\/\//.test(t)&&t.length<260)bad=true;
   else if(t.length<50&&ROLE.test(t))bad=true;
   else if(t.length<40&&(names.has(t)||/^by\s+/i.test(t)&&names.has(t.replace(/^by\s+/i,''))))bad=true;
@@ -9884,7 +9912,7 @@ function liteUrl(url){
  }catch(e){}
  return'';
 }
-const fromPage=async(url,lg,tag,sig,bg)=>{let fr=null;const w=lg&&{retry:2,push:m=>lg.push((tag||'')+m),sig,bg,prog:(i,n,nm)=>rdProg(url,i,n,nm)};await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);try{if(lg)lg.push((tag||'')+'page read: '+Math.round(t.length/1000)+' KB, '+(t.match(/<img\b/gi)||[]).length+' img tags ('+(t.match(/\sdata-(src|lazy-src|original|srcset)=/gi)||[]).length+' lazy), '+(t.match(/<picture\b/gi)||[]).length+' picture, '+(t.match(/<figure\b/gi)||[]).length+' figure, '+(t.match(/<noscript\b/gi)||[]).length+' noscript, '+(/application\/ld\+json/.test(t)?'has':'no')+' structured data; kept '+(x?x.querySelectorAll('img').length:0)+' pictures and '+(x?x.textContent.length:0)+' characters of text'+(x&&x.generic?' (found by the general-purpose finder)':''))}catch(e){}if(x&&(footerish(x.textContent)||errorPage(t,x.textContent))){try{if(lg)lg.push((tag||'')+'page was an error or notice page, not the story')}catch(e){}return false}if(x&&x.textContent.length>600){fr=x;return true}return false},w);if(fr&&w&&w.won)fr.tier=w.won==='direct'?'direct':'proxy';return fr};
+const fromPage=async(url,lg,tag,sig,bg)=>{let fr=null;const w=lg&&{retry:2,push:m=>lg.push((tag||'')+m),sig,bg,prog:(i,n,nm)=>rdProg(url,i,n,nm)};await fetchText(url,t=>{if(fr)return true;const x=extract(t,url);try{if(lg)lg.push((tag||'')+'page read: '+Math.round(t.length/1000)+' KB, '+(t.match(/<img\b/gi)||[]).length+' img tags ('+(t.match(/\sdata-(src|lazy-src|original|srcset)=/gi)||[]).length+' lazy), '+(t.match(/<picture\b/gi)||[]).length+' picture, '+(t.match(/<figure\b/gi)||[]).length+' figure, '+(t.match(/<noscript\b/gi)||[]).length+' noscript, '+(/application\/ld\+json/.test(t)?'has':'no')+' structured data; kept '+(x?x.querySelectorAll('img').length:0)+' pictures and '+(x?x.textContent.length:0)+' characters of text'+(x&&x.generic?' (found by the general-purpose finder)':'')+(XK.get(url)?'; the page is a '+({redirect:'Google News link',gated:'subscriber-only page'}[XK.get(url)]||XK.get(url)+' page')+', not a written story':''))}catch(e){}if(x&&(footerish(x.textContent)||errorPage(t,x.textContent))){try{if(lg)lg.push((tag||'')+'page was an error or notice page, not the story')}catch(e){}return false}if(x&&x.textContent.length>600){fr=x;return true}return false},w);if(fr&&w&&w.won)fr.tier=w.won==='direct'?'direct':'proxy';return fr};
 
 /* ---------- is this text really the story? ---------- */
 const SHORTOK=new Set('a i of to in is it on at be by an as do go he if me my no or so up us we am oh ok'.split(' '));
@@ -10263,7 +10291,7 @@ function pfList(){
  return cur.slice(0,8);
 }
 /* ---- stories that stop at a subscriber gate ---- */
-const GATEMARK=/(continue reading|in-depth journalism|subscriber verification|verify (your )?(subscription|access|you are)|thank you for your patience while we verify|already a subscriber|log ?in to (read|continue)|create (a )?(free )?account to (read|continue)|subscribe (now )?to (continue|keep|read)|you(’|')?ve reached your (free )?(article )?limit|unlock (this|the full) (article|story)|for subscribers? only)/i;
+const GATEMARK=/(continue reading|in-depth journalism|subscriber verification|verify (your )?(subscription|access|you are)|thank you for your patience while we verify|already a subscriber|log ?in to (read|continue)|create (a )?(free )?account to (read|continue)|subscribe (now )?to (continue|keep|read)|you(’|')?ve reached your (free )?(article )?limit|unlock (this|the full) (article|story)|for (?:paying |paid )?(?:subscribers?|members) only)/i;
 /* true when the text stops at a gate: it ends on a gate message, a gate element sits on the page, or a short story from a gated publisher has no proper ending */
 function gatedPreview(text,gate,url){
  const t=String(text||'').replace(/\s+/g,' ').trim(),words=t?t.split(' ').length:0;let h='';try{h=new URL(url).hostname}catch(e){}
