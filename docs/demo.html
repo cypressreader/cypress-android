@@ -16846,12 +16846,19 @@ function wePQ(a){const i=WE.cur.indexOf(a),el=i<0?null:document.querySelector('.
  if(!el.querySelector('.we-tz')){try{const D=new DOMParser().parseFromString(h,'text/html'),R=[...D.body.querySelectorAll('p')].map(x=>[x,x.textContent.replace(/\s+/g,' ').trim()]).filter(x=>x[1].length>1);
   let k=0;while(k<R.length&&!weReal(R[k][0],R[k][1]))k++;
   const f=R[k]&&R[k][1];if(f){const t=trimWords?trimWords(f,46):f.slice(0,260);el.insertAdjacentHTML('beforeend',`<p class="we-tz">${esc(t)}</p>`)}}catch(e){}}if(q)el.insertAdjacentHTML('beforeend',`<blockquote class="we-pq">“${esc(q)}”<cite>From the story · ${esc(a.ft)}</cite></blockquote>`)}
-function weSay(){const el=document.querySelector('.we-rdy');if(!el)return;const n=WE.cur.length,miss=WE.cur.filter(a=>!acHas(a.link)),r=n-miss.length;
- el.classList.toggle('we-all',r>=n);el.title=miss.length?'Not ready yet: '+miss.map(a=>a.title).join('; '):'';el.textContent=r>=n?`All ${n} stories are ready to read`:WE.on?`Getting stories ready: ${r} of ${n}`:`${r} of ${n} ready &middot; ${miss.length===1?'one story opens':miss.length+' stories open'} on the publisher's site`.replace('&middot;','\u00b7')/* issue 33: once the getting-ready pass has stopped, the line goes rather than sit at a number for the rest of the session */}
+function weSay(){const el=document.querySelector('.we-rdy');if(!el)return;const n=WE.cur.length,slow=WE.slow||new Set(),
+ out=WE.cur.filter(a=>!acHas(a.link));let note=out.filter(a=>slow.has(a.link)),miss=out.filter(a=>!slow.has(a.link));
+ if(note.length>2){miss=out;note=[]}/* one or two publishers sending nothing is a note; more than that is an edition that did not load */
+ const r=n-miss.length;
+ /* a publisher that did not send the text is settled, not pending: the edition is ready, and the line says which story opens on their own site */
+ el.classList.toggle('we-all',r>=n);
+ el.title=miss.length?'Not ready yet: '+miss.map(a=>a.title).join('; '):note.length?'Opens on the publisher\u2019s site: '+note.map(a=>a.title).join('; '):'';
+ el.textContent=r>=n?(note.length?`All ${n} stories are ready \u00b7 ${note.length===1?'one opens':note.length+' open'} on the publisher\u2019s site`:`All ${n} stories are ready to read`):WE.on?`Getting stories ready: ${r} of ${n}`:`${r} of ${n} ready \u00b7 ${miss.length===1?'one story opens':miss.length+' stories open'} on the publisher\u2019s site`}
 /* the whole edition is made ready behind the cover, the way the Daily's is (same network rules: dpOk; same store: acStoreOk keeps a gated or cut-short story out, so the gate line does not move); a story that fails simply loads when it is opened */
 async function wePreload(){if(WE.on||S.sel!=='we')return;WE.on=true;let a;
  try{while(S.sel==='we'&&dpOk(1)&&(a=WE.cur.find(x=>!acHas(x.link)&&!isPay(x)&&!WE.tried.has(x.link)))){WE.tried.add(a.link);weSay();await quietGap(600);
-  try{const n=await getFull(a.link,true);if(acStoreOk(n,a)){const d=document.createElement('div');d.append(dropTitle(n.cloneNode(true),a.title));acPut(a.link,d.innerHTML,1);rtSet(a.link,d);saveSoon();wePQ(a)}}catch(e){}}
+  try{const n=await getFull(a.link,true);if(acStoreOk(n,a)){const d=document.createElement('div');d.append(dropTitle(n.cloneNode(true),a.title));acPut(a.link,d.innerHTML,1);rtSet(a.link,d);saveSoon();wePQ(a)}}
+  catch(e){(WE.slow=WE.slow||new Set()).add(a.link)}/* every route was tried (the relay among them) and the publisher sent nothing: the page prints the opening and an honest note */}
  }finally{WE.on=false;weSay()}}
 function weExit(){WE.sp=null;WE.pg=0;S.sel=(typeof LASTHOME!=='undefined'&&LASTHOME)||'all';save();render()}
 function weClick(e){const t=e.target;if(!t.closest||!t.closest('.we,[data-wer]'))return false;
