@@ -2567,3 +2567,16 @@ After the next build (messy-story fixes, checked only against the saved pages):
 - After 1.393: on Cypress with the green top bar, the new-stories arrow shows a green arrow inside its cream circle (it was an empty circle).
 - [ ] (branch after 1.393) Refresh line under the top bar: during a refresh where sites finish one by one, the thin line stays steady and fades once ~1.2 s after the last site, no on/off pulsing (David's recording 2026-11-23, Halcyon green bar).
 - [ ] (preview/extractor-rules) Reader notes: a paywalled Platformer post shows the "Subscriber preview" badge + "Open the original story" card (as STAT does); an NBC/CBS video link shows "Video — This is a video, not a written story. Open the original" and the link opens in the Custom Tab. PBS/AP "… contributed to this report" folds into "About the author" (tap to open, "move it back" works). Eater Awards story: perks paragraph gone, last photo kept.
+
+## World Edition, first test version (preview/world-edition, not released)
+Checked in a desktop browser only. On a real phone and on the Fold, check:
+- The World Edition tab in the bottom bar: five tabs fit, labels are not cut, and tapping it again glides to the top.
+- Cover fills the first screen; the headline is whole; the ring does not touch the date line; night and day both look right.
+- Fold unfolded: cover on the left, contents on the right. Folded: one page after the other.
+- Tap the edition line under the masthead: the list opens, switching works, and the choice is remembered after closing the app.
+- First open on a phone set to a non-US region shows the International Edition.
+- Tap a headline: it opens in the reader, the full story loads, Back returns to the same place in the edition.
+- Contents rows jump to their sections; "How this edition was picked" jumps to the method page.
+- With large text switched on in Android, nothing on the cover is cut.
+- Offline after opening once: the edition still opens.
+- The photo layer has never been seen with a real photo (the sample has none that passes). It is unverified on any device.
