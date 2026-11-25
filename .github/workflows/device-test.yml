@@ -74,7 +74,15 @@ jobs:
           printf '\nandroid { defaultConfig { minSdkVersion 26 } }\n' >> android/app/build.gradle
           npx cap sync android
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
-          (cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon)
+          # run 62 never reached the emulator: Maven Central answered 429 (Too Many Requests) to every
+          # dependency. It is the runner's luck, not the build, so the build is simply tried again.
+          chmod +x android/gradlew
+          ok=0
+          for i in 1 2 3; do
+            if (cd android && ./gradlew assembleDebug --no-daemon); then ok=1; break; fi
+            echo "gradle attempt $i failed; waiting 60s before trying again"; sleep 60
+          done
+          [ "$ok" = 1 ]
           cp "$(find android/app/build/outputs/apk/debug -name '*.apk' | head -1)" cypress-debug.apk
           npm install -g --no-audit --no-fund playwright@1.63.0
 
