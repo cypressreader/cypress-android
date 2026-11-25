@@ -2628,3 +2628,9 @@ Implemented, unverified on a phone:
 - Story bodies on real publisher pages (the cleaning was tested against a fixture, not the live sites): check the first paragraph is the story's own on Ars Technica, ZDNet, CNET, NPR.
 - The ready line: hover it on a wide screen to see which stories did not come ready; on a phone, check it reaches "All 18" or disappears.
 - Preview first load shows the newest build (takes effect from the publish after 2c070fb).
+
+## World Edition round three, issue 36 (preview/world-edition)
+Unverified here, needs a real network or device:
+- The Al Jazeera story (DR Congo): whether it ever returns text; the 7-second limit and the "publisher did not send the text" page were tested against a fixture only.
+- The Food video embed and the "By Jay Bennett13 hours ago" byline: both come from live publisher pages, fixed by rule, not seen fixed.
+- Story pages are now cream paper in the night look too: check that reads right on a phone at night.
