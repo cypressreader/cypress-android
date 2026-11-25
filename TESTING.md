@@ -2662,3 +2662,11 @@ Check on the Fold first, then web, then wide:
 - B8: headlines break onto two lines after a colon or a dash.
 - D2: drawn cover is a flat navy field with one red block (no circles/gradients).
 - D5/D6: "From the editor" note page; the ready line reads "18 stories · all ready to read".
+
+## Issue 47 (World Edition magazine feel) - implemented, unverified on a Fold
+- Cover: drawn globe/sun/orbit art with two annotations; "returns" must not break across lines; kicker reads "Lead story · Home".
+- Contents: ten equal rows, headline clamped to two lines, thumbnail slot in every row (drawn tile when no photo), page numbers right-aligned; cover + Contents side by side on the Fold.
+- Story pages: three shapes (by link hash), a picture (drawn plate when no photo), a pull quote (quoted sentence, else the strongest sentence of the text), end mark + "next story/section" link, last page not mostly blank (text steps down up to 3 times).
+- Turn: 400 ms flat lift-and-settle (no rotation); check swipes in a row, Back from a story, no blank flash.
+- Back: no white page after the navy back cover; odd page counts get a colophon leaf BEFORE the back cover.
+- Not reproduced: the "3 of 7 / 4 of 7" repeated on two spreads of the turkey story; the stray word "caption" (guarded in the credit and body filters).
