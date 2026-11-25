@@ -2615,3 +2615,10 @@ Implemented, unverified on a phone:
 - One page per screen with nothing scrolling inside it, on a phone and on the Fold folded; the spread from 600px up.
 - Story pages: the body is split by measuring, so check no page is cut short or overfull on a real screen, and that the drop cap and pull quote sit right.
 - Swipe between pages with the app chrome gone (no gesture conflict with the system back swipe on the left edge).
+
+## World Edition curl + reading model, issue 33 (preview/world-edition)
+Implemented, unverified on a phone:
+- The curl on a real device: each turn poses 8-14 strips (by core count) with the reader's own bow. Watch for stutter on the first turn and on a cold start.
+- Phone reading: a story is one page and the body scrolls; check the scroll does not fight the sideways swipe, and that the back mark still flips out.
+- Spread reading: the body flows page to page; check no page is cut short or overfull on a real Fold screen.
+- Safe areas with no app chrome, and the swipe near the system back-swipe edge.
