@@ -2622,3 +2622,9 @@ Implemented, unverified on a phone:
 - Phone reading: a story is one page and the body scrolls; check the scroll does not fight the sideways swipe, and that the back mark still flips out.
 - Spread reading: the body flows page to page; check no page is cut short or overfull on a real Fold screen.
 - Safe areas with no app chrome, and the swipe near the system back-swipe edge.
+
+## World Edition round two, issue 34 (preview/world-edition)
+Implemented, unverified on a phone:
+- Story bodies on real publisher pages (the cleaning was tested against a fixture, not the live sites): check the first paragraph is the story's own on Ars Technica, ZDNet, CNET, NPR.
+- The ready line: hover it on a wide screen to see which stories did not come ready; on a phone, check it reaches "All 18" or disappears.
+- Preview first load shows the newest build (takes effect from the publish after 2c070fb).
