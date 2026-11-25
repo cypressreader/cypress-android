@@ -2634,3 +2634,13 @@ Unverified here, needs a real network or device:
 - The Al Jazeera story (DR Congo): whether it ever returns text; the 7-second limit and the "publisher did not send the text" page were tested against a fixture only.
 - The Food video embed and the "By Jay Bennett13 hours ago" byline: both come from live publisher pages, fixed by rule, not seen fixed.
 - Story pages are now cream paper in the night look too: check that reads right on a phone at night.
+
+## 1.396 preview self-update (issue 42, 2026-11-25) — needs a real phone
+- Implemented, unverified on a device: the preview app (`com.cypress.reader.preview`) now reads
+  `/releases?per_page=30` and offers the newest `preview-*` pre-release, by the build number printed in the
+  release's name; the real app still reads `releases/latest` and can never be offered a preview.
+  Verified in a browser with a stubbed native layer (preview -> build 465 of the preview line; real app ->
+  the stable release), and `node tests/native.js` is green.
+- On the phone: install this preview APK by hand once, publish a newer preview build, open the preview app,
+  and it should offer the update in-app (download, then one Install tap). Then confirm the real app does NOT
+  offer it. The first in-app update can only be tested from a build that already carries this change.

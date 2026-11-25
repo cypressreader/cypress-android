@@ -18359,11 +18359,18 @@ async function nativeUpdateCheck(manual){
  let inf;try{inf=await p.info()}catch(e){return null}
  try{
   LASTUPD=Date.now();
-  const r=await fetch('https://api.github.com/repos/'+CP_REPO+'/releases/latest',{headers:{'Accept':'application/vnd.github+json'},signal:AbortSignal.timeout(15000)});
+  /* The preview app (issue 42) installs beside the real one under its own id, and follows its own release
+     line: `releases/latest` never answers with a pre-release, so without this it could never update itself.
+     The real app keeps reading releases/latest, which is why a preview is never offered to a phone. */
+  const prev=/\.preview$/.test(String(inf.appId||''));
+  const r=await fetch('https://api.github.com/repos/'+CP_REPO+(prev?'/releases?per_page=30':'/releases/latest'),{headers:{'Accept':'application/vnd.github+json'},signal:AbortSignal.timeout(15000)});
   if(!r.ok)throw new Error('HTTP '+r.status);
-  const j=await r.json(),n=parseInt(String(j.tag_name||'').replace(/\D/g,''),10)||0;
+  let j=await r.json();
+  if(prev){j=(Array.isArray(j)?j:[]).find(x=>x&&x.prerelease&&/^preview-/.test(String(x.tag_name||'')));if(!j){if(manual)toast('You have the latest preview');return NU}}
+  /* a preview tag is a commit, not a number: its build number is the one printed in the release's name */
+  const n=prev?(parseInt((String(j.name||'').match(/build (\d+)/)||[])[1],10)||0):(parseInt(String(j.tag_name||'').replace(/\D/g,''),10)||0);
   const keep=NU&&NU.code===n?NU.got:0;
-  NU={cur:+inf.versionCode,name:inf.versionName,code:n,label:((String(j.name||'').match(/v(\d+(?:\.\d+)+)/)||[])[1])||'',tag:j.tag_name,notes:String(j.body||'').trim(),url:'https://github.com/'+CP_REPO+'/releases/download/'+j.tag_name+'/cypress.apk',got:keep};
+  NU={cur:+inf.versionCode,name:inf.versionName,code:n,prev:prev,label:prev?('build '+n):(((String(j.name||'').match(/v(\d+(?:\.\d+)+)/)||[])[1])||''),tag:j.tag_name,notes:String(j.body||'').trim(),url:'https://github.com/'+CP_REPO+'/releases/download/'+j.tag_name+'/cypress.apk',got:keep};
   nativeAppLine();
   if(n>NU.cur){if(!NUBUSY)nUpdBar('CyPress '+(NU.label||n)+' is ready to install','Update');return NU}
   if(manual)toast('You have the latest version');
