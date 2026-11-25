@@ -2590,3 +2590,13 @@ Tested in a desktop browser with a stand-in for the network. On a real phone, on
 - Tech and (US) Long read open with a photo and a credit under it; every other section opens in type, with no empty box.
 - Real pull quotes appear under some section leads: each must be a real sentence from that story. Report any that reads oddly.
 - Scrolling stays smooth while stories are being made ready.
+
+## World Edition, issues 28 and 29 (pages flip; new cover; art-direction fields; preview/world-edition)
+Tested with a mouse in a desktop browser only. On a real phone and Fold, check:
+- Swipe left and right turns one page (phone) or one spread (Fold unfolded), and never opens the side menu or changes tab by mistake.
+- The arrows at the bottom turn pages; "Page 3 of 17" keeps up.
+- Contents rows jump to the right page; Back from a story returns to the same page.
+- The cover: "CyPress" with "The World Edition" under it, the ring drawing in once, the headline rising in. With Reduce Motion on, nothing moves.
+- Nothing on any page is cut off; a page with a very long headline scrolls inside itself.
+- Rotating or unfolding mid-read keeps a sensible page.
+- Photo crops: the Tech and Long read photos keep their subject in frame on phone and Fold.

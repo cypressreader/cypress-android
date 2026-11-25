@@ -41,6 +41,7 @@ which shape fits) is decided upstream and written into the file. The app never g
 | `shape` | string or `null` | A name from the fixed library: `ring arc rise fall wave grid bar split`. Shown only on a type day that is not heavy. Unknown names show nothing. |
 | `accent` | `{night, day}` or `null` | Two `#rrggbb` colors, sampled from the lead photo upstream and adjusted to be readable on each look. `null` uses the house color for the weekday. |
 | `photo` | Photo or `null` | The best photo among all outlets' versions of the lead story, or `null`. |
+| `logo` | string | Where the name sits today: `top` (big "CyPress" with "The World Edition" under it), `corner` (small, bottom right, for photo days) or `ghost` (very large and faint behind the page). The art director sets it; it should move from day to day. |
 | `photoNote` | string | Optional. Why there is no photo. For people, not read by the app. |
 
 ### Photo
@@ -52,6 +53,8 @@ The photo is shown from the publisher's own address. It is never copied and neve
 | `url` | string | Must be `https`. |
 | `credit` | string | The publisher's own credit line. Empty means no photo. |
 | `w`, `h` | number | Pixel size as the pipeline measured it. The app measures again when the photo arrives. |
+| `focus` | `[x, y]` | The focal point of the crop, in percent from the left and top. The app crops around it. Missing means the center, which the art director should never rely on. |
+| `by` | string | Optional. Who chose the photo and crop. For people, not read by the app. |
 | `people` | boolean | `false` only if no identifiable person is in the picture. Anything else counts as `true`. |
 | `clear` | string[] | Each check the pipeline passed: `logo`, `text`, `child`, `body`, `grief`, `mugshot`. A missing name fails. |
 
@@ -94,3 +97,16 @@ everyone who reads that edition.
 - **Pull quote.** For a section's lead, once its story is stored, the phone shows the first
   complete quoted sentence of 10 to 36 words, word for word. If none qualifies there is no pull
   quote. Nothing is ever written for it, and the file never carries a sentence from a story.
+
+## Who decides what (issue 29)
+
+The art director (MJ) picks every photo, crop (`focus`), accent, shape and logo placement and
+writes them in this file. The app renders those picks and enforces the checklist; it chooses
+nothing itself. On a type day with no `accent`, the app falls back to the house color for the
+weekday.
+
+## Pages (issue 28)
+
+The edition is paged, not scrolled: cover, contents, one opener page per section, a second
+page for a section's other stories, then the method page. One page shows at a time on a
+phone; two side by side from 600 px of width. The order of pages follows the file.
