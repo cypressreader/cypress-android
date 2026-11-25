@@ -92,6 +92,8 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      # WELITE=1 here draws the edition with no cover art and no photographs (run 62/63's crash hunt).
+      # It is OFF: run 63 showed the emulator survives the cover, and the run must see the pictures.
       - name: Run the app on the emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -106,7 +108,7 @@ jobs:
           script: |
             adb install -r cypress-debug.apk
             adb logcat -v time '*:W' > /tmp/logcat.txt 2>&1 &
-            WELITE=1 node tests/device/run.js
+            node tests/device/run.js
 
       # the spread only exists from 600px, so the World Edition's two-page look needs a tablet screen.
       # It never fails the run: a missing device profile must not throw away the phone's results.
