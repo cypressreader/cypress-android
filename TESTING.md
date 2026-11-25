@@ -2649,3 +2649,16 @@ Unverified here, needs a real network or device:
 - Contents page: each section whose lead has an approved photo shows a small picture at the right of its row; leads with no photo stay text. Check at phone size and wide: no row is cut, the list still fills the page, type still legible.
 - Section opener pages already lead with the lead's photo (unchanged): confirm it is large on the Fold.
 - A photo that fails to load must leave the row as plain text, with no hole.
+
+## Issue 46 — World Edition magazine audit (UNVERIFIED on a phone; checked in desktop Chromium only)
+Check on the Fold first, then web, then wide:
+- C1/C5: a page turn is a 200 ms slide (no 3D). No white half, no ghost, quick taps queue and land on the right page.
+- C2/C3: headline and photo are there the moment the page lands (no 0.4 s photo fade, entrance 200 ms fade only).
+- C4: Contents lands in the same size every time you come back to it.
+- A1/A2: navy cover, thin frame, masthead the same size on every cover; red is the only colour (kicker, rules, ready line is now plain grey).
+- A3/D4: Contents leads with ONE big photo row (first section whose lead photo passes); other rows have no thumbnails.
+- A5/A6: story pages have "The World Edition" left and "source · date" right; a one-page story now shows its page number.
+- B3-B7: kicker rule, deck in italic serif (browser slant: Literata italic is not bundled), one pull quote between two rules, drop cap (3-line `initial-letter`), captions with the credit in small caps.
+- B8: headlines break onto two lines after a colon or a dash.
+- D2: drawn cover is a flat navy field with one red block (no circles/gradients).
+- D5/D6: "From the editor" note page; the ready line reads "18 stories · all ready to read".
