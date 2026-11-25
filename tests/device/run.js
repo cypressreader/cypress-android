@@ -247,6 +247,23 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
     else await page.evaluate(() => { S.sel = 'we'; render() });/* the drawer is off-screen on a phone: the test still has to get in */
     await page.waitForSelector('.we-sc', { timeout: 40000 }); await sleep(2500); return where;
   };
+  /* why a story did not arrive: the app keeps its own line per try (route, time, what came back) */
+  const weWatch = () => page.evaluate(() => { if (window.__weW) return; const w = window.__weW = { flips: 0 };
+    new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.classList && n.classList.contains('we-tn')) w.flips++ }))).observe(document.body, { childList: true, subtree: true }) }).catch(() => {});
+  const weDiag = () => page.evaluate(() => ({ log: (WE.lg || []).slice(-40), tries: WE.try || {}, flips: (window.__weW || {}).flips,
+    stored: WE.cur.filter(a => acHas(a.link)).length, slow: WE.slow ? WE.slow.size : 0, on: !!WE.on, online: navigator.onLine,
+    conn: (navigator.connection || {}).type || '', save: !!(navigator.connection || {}).saveData, dp: typeof dpOk === 'function' ? dpOk(1) : null })).catch(e => ({ err: String(e.message).slice(0, 80) }));
+  /* the ready line is the whole of item 1: watched on the real device, on the real network */
+  const weReady = async (s, limit = 150) => {
+    const series = []; let green = false;
+    for (let t = 0; t <= limit; t += 10) {
+      const r = await page.evaluate(() => { const e = document.querySelector('.we-rdy'); return { t: e ? e.textContent : '', g: !!(e && e.classList.contains('we-all')) } });
+      series.push(t + 's ' + r.t); if (r.g) { green = true; break }
+      await sleep(10000);
+    }
+    await shot(s, green ? 'ready' : 'NOT-READY');
+    return { green, series, diag: await weDiag() };
+  };
   const weLeave = async () => { await page.evaluate(() => { if (typeof weExit === 'function' && S.sel === 'we') weExit() }).catch(() => {}); await sleep(1500) };
   const weFacts = () => page.evaluate(() => {
     const sc = document.querySelector('.we-sc'); if (!sc) return { err: 'no edition' };
@@ -269,7 +286,8 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
   };
 
   await step('world', async s => {
-    const how = await weOpen(); await shot(s, 'cover'); const cover = await weFacts();
+    const how = await weOpen(); await weWatch(); await shot(s, 'cover'); const cover = await weFacts();
+    const ready = await weReady(s);
     await swipe(.85, .5, .15, .5); await shot(s, 'contents'); const contents = await weFacts();
     const jumped = await page.evaluate(() => { const b = [...document.querySelectorAll('.we-toc .we-tl button')].find(x => /tech/i.test(x.textContent)); if (!b) return false; b.click(); return true });
     await sleep(2500); await shot(s, 'section'); const section = await weFacts();
@@ -280,9 +298,15 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
     const b4 = await weFacts(); await swipe(.85, .5, .15, .5, 120); await sleep(120); await swipe(.85, .5, .15, .5, 120); await sleep(3000);
     const rapid = await weFacts(); await shot(s, 'rapid');
     await sx('input keyevent 4'); await sleep(2000); await shot(s, 'back');
-    const out = { how, jumped, cover, contents, section, story, turned, rapid: { from: b4.i, to: rapid.i, moved: rapid.i - b4.i }, after: await weFacts() };
+    const diag = await weDiag();
+    const out = { how, jumped, ready, cover, contents, section, story, turned, diag,
+      rapid: { from: b4.i, to: rapid.i, moved: rapid.i - b4.i }, after: await weFacts() };
     await weLeave();
-    if (story.story && !story.story.paras) throw new Error('the story opened with no body on the device');
+    const why = JSON.stringify((diag.log || []).slice(0, 6));
+    if (!ready.green) throw new Error('the ready line never went green in ' + ready.series.length * 10 + 's (' + ready.series.slice(-1) + '). Tries: ' + why);
+    if (story.story && story.story.paras < 2) throw new Error('the story opened with no body on the device. Tries: ' + why);
+    if (!diag.flips) throw new Error('no page turn drew a curl (no .we-tn appeared in ' + (turned.i - cover.i) + ' turns)');
+    if (rapid.i - b4.i < (b4.two ? 4 : 2)) throw new Error('two quick swipes moved ' + (rapid.i - b4.i) + ' page(s), not two');
     return out;
   });
 

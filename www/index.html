@@ -16604,7 +16604,7 @@ function weJunk(el,t,dek,ttl){if(WE_DOTS.test(t)||WE_DEAD.test(t))return true;
 /* a deck is printed only as a whole sentence: a source that cut one short is trimmed back, never printed mid-sentence */
 function weDek(t){t=String(t||'').trim();if(!t)return '';const abbr=/(\b([A-Z]\.){1,3}|\b(Mr|Mrs|Ms|Dr|Prof|Inc|Ltd|Co|Corp|St|Jr|Sr|vs|etc|No|Gen|Sen|Rep|Gov)\.)$/;if(/[.!?\u201d")]$/.test(t)&&!abbr.test(t))return t;const i=Math.max(t.lastIndexOf('. '),t.lastIndexOf('! '),t.lastIndexOf('? '));return i>40?t.slice(0,i+1):''}
 function weHead(a,n){const dt=a.date?new Date(a.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
- return `<div class="we-sk">${n?n+' &middot; ':''}${esc((a.wsec||'').toUpperCase())}</div><h2 class="we-sh">${esc(a.title)}</h2>${weDek(a.wdek)?`<p class="we-ss">${esc(weDek(a.wdek))}</p>`:''}<p class="we-by">${a.wby?'By '+esc(a.wby)+' &middot; ':''}${esc(a.ft||'')}${dt?' &middot; '+esc(dt):''}${a.wpc?' &middot; Photo: '+esc(a.wpc):''}</p>`}
+ return `<div class="we-sk">${n?n+' &middot; ':''}${esc((a.wsec||'').toUpperCase())}</div><h2 class="we-sh">${esc(a.title)}</h2>${weDek(a.wdek)?`<p class="we-ss">${esc(weDek(a.wdek))}</p>`:''}<p class="we-by">${a.wby?'By '+esc(a.wby)+' &middot; ':''}${esc(a.ft||'')}${dt?' &middot; '+esc(dt):''}${a.wpc&&WE.pic&&WE.pic.has(a.link)?' &middot; Photo: '+esc(a.wpc):''}</p>`}/* the credit goes with the picture: never printed where no picture of ours was shown */
 function wePage(a,first,scroll){const pg=document.createElement('section');
  pg.className='we-pg we-sp'+(scroll?' we-sx':'');pg.setAttribute('aria-label',a.title+(first?'':', continued'));
  pg.innerHTML=`<div class="we-in"><div class="we-sb"><button type="button" class="we-ex" data-werb><span aria-hidden="true">&#8249;</span> The edition</button><small>${esc(a.ft||'')}</small></div>${first?weHead(a,a.wnum):''}<div class="we-bd"></div><p class="we-more" hidden>Turn for more <span aria-hidden="true">&#8250;</span></p></div><i class="we-fo" aria-hidden="true"></i>`;
@@ -16631,7 +16631,7 @@ function weFill(a,html,gated,wait,fail){
  const two0=sc.clientWidth>=600;let at=(WE.sp!=null?WE.sp:(WE.at!=null?WE.at:(WE.pg|0)+1));if(two0&&at%2)at++;if(WE.sp==null){WE.spBack=WE.pg|0;WE.sp=at;pushLayer('weread')}
  [...sc.querySelectorAll('.we-sp')].forEach(x=>x.remove());
  const doc=new DOMParser().parseFromString(html||'','text/html'),out=[];
- {const txt=el=>{const c=el.cloneNode(true);c.querySelectorAll('*').forEach(x=>{x.before(' ');x.append(' ')});return c.textContent.replace(/\s+/g,' ').replace(/\s+([,.;:!?%’'])/g,'$1').replace(/([“(\[])\s+/g,'$1').trim()};
+ {const txt=el=>{const c=el.cloneNode(true);c.querySelectorAll('*').forEach(x=>{x.before(' ');x.append(' ')});return c.textContent.replace(/\s+/g,' ').replace(/\*\*|__/g,'').replace(/\s+([,.;:!?%’'])/g,'$1').replace(/([“(\[])\s+/g,'$1').replace(/^(.{4,40}?)\s*\1\b/,'$1').trim()};
   const raw=[...doc.body.querySelectorAll('p,h2,h3')].map(el=>[el,txt(el)]).filter(x=>x[1].length>1);
   let k=0;while(k<raw.length&&!weReal(raw[k][0],raw[k][1]))k++;/* nothing read as a real paragraph: keep what there is rather than show an empty page */
   let keep=(k<raw.length?raw.slice(k):raw).filter(x=>!weJunk(x[0],x[1],a.wdek,a.title));
@@ -16672,8 +16672,11 @@ function weFill(a,html,gated,wait,fail){
 function weRdClose(fromPop){const sc=document.querySelector('.we-sc');WE.rd=null;if(WE.sp==null)return;const bk=sc;
  const back=WE.spBack|0;WE.sp=null;
  if(sc)[...sc.querySelectorAll('.we-sp')].forEach(x=>x.remove());
- wePad(sc,sc.clientWidth>=600);weFolio();if(WE.snap)WE.snap();if(!fromPop)dropLayer('weread');
- if(WE.go)WE.go(back,-1);else if(WE.lab)WE.lab();if(bk)try{bk.focus({preventScroll:true})}catch(e){}}
+ wePad(sc,sc.clientWidth>=600);weFolio();if(!fromPop)dropLayer('weread');
+ /* no turn on the way back: a flip here builds its copies from pages that have just been removed, which is
+    the wrong spread the reader saw flash before it settled. The scroller simply goes where it belongs. */
+ if(sc){const two=sc.clientWidth>=600;sc.scrollLeft=(two?back-(back%2):back)*(sc.clientWidth/(two?2:1));WE.pg=two?back-(back%2):back}
+ if(WE.snap)WE.snap();if(WE.lab)WE.lab();if(bk)try{bk.focus({preventScroll:true})}catch(e){}}
 function weFit(){const cv=document.querySelector('.we-cv'),h=cv&&cv.querySelector('.we-h');if(!h||!cv.clientHeight)return;cv.classList.remove('we-ns','we-tall');/* the publisher's headline is never cut: it steps down in size until it fits, then the shape goes, then the cover grows */
  const Z=cv.classList.contains('we-on')?[8.4,7.6,6.8,6,5.4]:[11,10,9,8,7,6],ci=cv.firstElementChild,over=()=>ci.scrollHeight>cv.clientHeight+1;
  for(const z of Z){h.style.fontSize=z+'cqw';if(!over())return}
@@ -16698,11 +16701,11 @@ function renderWE(){
  const FO='<i class="we-fo" aria-hidden="true"></i>',EX='<button type="button" class="we-ex" data-wex><span aria-hidden="true">&#8249;</span> Editions</button>',
   EC='<button type="button" class="we-ex" data-wec><span aria-hidden="true">&#8249;</span> Contents</button>';/* inside the edition the corner mark goes back to the contents; only the cover and the contents leave the book */
  /* the cover: name big, the edition line under it, the lead at the foot, and the art drawn for the shape of this page */
- let P=[`<section class="we-pg we-cv we-lg-${lg}${art?' we-on we-ag':''}${!ok&&!art?' we-ty':''}" aria-label="Cover"><div class="we-ci">${EX}<div class="we-top"><h2 class="we-m">CyPress<small>The World Edition</small></h2><div class="we-dl"><select class="we-ed" aria-label="Edition: ${esc(e.name)}. Change edition">${d.editions.map(x=>`<option value="${esc(x.id)}"${x===e?' selected':''}>${esc(x.name)}</option>`).join('')}</select><i aria-hidden="true">&mdash;</i><span>${esc(date)}</span><i aria-hidden="true">&mdash;</i><span>No. ${+d.issue||1}</span></div>${ok?`<small class="we-pc">Photo: ${esc(c.photo.credit)}</small>`:art?'<small class="we-pc">Cover drawn for this edition</small>':''}</div><div class="we-mid"></div>${!heavy&&!art&&WE_SHAPES[c.shape]?`<svg class="we-shp" viewBox="0 0 100 100" aria-hidden="true">${WE_SHAPES[c.shape].replace(/<path /g,'<path pathLength="1" ')}</svg>`:''}<div class="we-lead"><div class="we-k">${esc(ls?ls.name:'')}${lead.n?' &middot; '+lead.n+' of '+d.sampled+' outlets':''}</div><h3 class="we-h">${A(lead)}</h3><div class="we-o">${esc(lead.o)}</div></div><div class="we-sw">Swipe to open <span aria-hidden="true">&#8250;</span></div></div>${ok?pic(c.photo,'we-ph'):''}${FO}</section>`,
+ let P=[`<section class="we-pg we-cv we-lg-${lg}${art?' we-on we-ag':''}${!ok&&!art?' we-ty':''}" aria-label="Cover"><div class="we-ci">${EC}<div class="we-top"><h2 class="we-m">CyPress<small>The World Edition</small></h2><div class="we-dl"><select class="we-ed" aria-label="Edition: ${esc(e.name)}. Change edition">${d.editions.map(x=>`<option value="${esc(x.id)}"${x===e?' selected':''}>${esc(x.name)}</option>`).join('')}</select><i aria-hidden="true">&mdash;</i><span>${esc(date)}</span><i aria-hidden="true">&mdash;</i><span>No. ${+d.issue||1}</span></div>${ok?`<small class="we-pc">Photo: ${esc(c.photo.credit)}</small>`:art?'<small class="we-pc">Cover drawn for this edition</small>':''}</div><div class="we-mid"></div>${!heavy&&!art&&WE_SHAPES[c.shape]?`<svg class="we-shp" viewBox="0 0 100 100" aria-hidden="true">${WE_SHAPES[c.shape].replace(/<path /g,'<path pathLength="1" ')}</svg>`:''}<div class="we-lead"><div class="we-k">${esc(ls?ls.name:'')}${lead.n?' &middot; '+lead.n+' of '+d.sampled+' outlets':''}</div><h3 class="we-h">${A(lead)}</h3><div class="we-o">${esc(lead.o)}</div></div><div class="we-sw">Swipe to open <span aria-hidden="true">&#8250;</span></div></div>${ok?pic(c.photo,'we-ph'):''}${FO}</section>`,
   `<section class="we-pg we-toc" data-fit aria-label="Contents"><div class="we-in">${EX}<div class="we-tt"><span>Contents</span><span>${n===1?'1 story':n+' stories'}</span></div>${weChart(e,lead)}<ol class="we-tl">${secs.map((x,k)=>`<li><button type="button" data-wej="we-s${x.i}"><b>${k+1}</b><span class="we-tn2">${esc(x.s.name)}</span><span class="we-th">${esc(x.s.stories[0].t)}</span><i>${x.s.stories.length}</i></button></li>`).join('')}</ol><div class="we-ft"><button type="button" class="we-lk" data-wej="we-how">How this edition was picked</button><p class="we-rdy" role="status"></p></div></div>${FO}</section>`];
  /* one idea per page: a section opens on a page of its own (its photo when one passes the checklist, type when none does), and its other stories follow on the next page */
  secs.forEach((x,k)=>{const[f,...r]=x.s.stories,w=why(f),pk=wePhotoOk(f.photo,false,f.t),hd=more=>`<header class="we-hd"><i aria-hidden="true">${x.i+1}</i><h2>${esc(x.s.name)}${more?', continued':''}</h2></header>`,last=k===secs.length-1;
-  P.push(`<section class="we-pg we-op${!pk&&k%2?' we-inv':''}" data-fit id="we-s${x.i}" aria-label="${esc(x.s.name)}"><div class="we-in">${EC}${pk?`<figure class="we-fg">${pic(f.photo,'')}<figcaption>Photo: ${esc(f.photo.credit)}</figcaption></figure>`:''}${hd()}<article class="we-ld" data-wel="${I(f)}">${f.region?`<em>${esc(f.region)}</em>`:''}<h3>${A(f)}</h3>${weDek(f.dek)?`<p>${esc(weDek(f.dek))}</p>`:''}<small><b>${esc(f.o)}</b>${w?' &middot; '+esc(w):''}</small></article>${last&&!r.length?'<div class="we-end">End of the edition</div>':''}</div>${FO}</section>`);
+  P.push(`<section class="we-pg we-op${!pk&&k%2?' we-inv':''}" data-fit id="we-s${x.i}" aria-label="${esc(x.s.name)}"><div class="we-in">${EC}${pk?`<figure class="we-fg" data-wepl="${esc(f.l)}">${pic(f.photo,'')}<figcaption>Photo: ${esc(f.photo.credit)}</figcaption></figure>`:''}${hd()}<article class="we-ld" data-wel="${I(f)}">${f.region?`<em>${esc(f.region)}</em>`:''}<h3>${A(f)}</h3>${weDek(f.dek)?`<p>${esc(weDek(f.dek))}</p>`:''}<small><b>${esc(f.o)}</b>${w?' &middot; '+esc(w):''}</small></article>${last&&!r.length?'<div class="we-end">End of the edition</div>':''}</div>${FO}</section>`);
   if(r.length)P.push(`<section class="we-pg" data-fit aria-label="${esc(x.s.name)}, continued"><div class="we-in">${EC}${hd(1)}${r.map(st=>`<article class="we-st${r.length>2?' we-li':''}" data-wel="${I(st)}">${st.region?`<em>${esc(st.region)}</em>`:''}<h3>${A(st)}</h3>${weDek(st.dek)?`<p class="we-sd">${esc(weDek(st.dek))}</p>`:''}<small><b>${esc(st.o)}</b></small></article>`).join('')}${last?'<div class="we-end">End of the edition</div>':''}</div>${FO}</section>`)});
  P.push(`<section class="we-pg we-how" data-fit id="we-how" aria-label="How this edition was picked"><div class="we-in">${EC}<h2>How this edition was picked</h2>${(d.method||[]).map(p=>`<p>${esc(p)}</p>`).join('')}</div>${FO}</section>`);
  P.push(`<section class="we-pg we-cl2${art?' we-on we-ag':''}" aria-label="End of the edition"><div class="we-in">${EC}<div class="we-mid"></div><p class="we-bkm">CyPress<small>The World Edition</small></p><p class="we-cend">${esc(e.name)} &middot; ${esc(date)} &middot; No. ${+d.issue||1}</p><p class="we-cend2">End of the edition.</p><div class="we-mid"></div></div>${FO}</section>`);
@@ -16713,7 +16716,7 @@ function renderWE(){
    lab=()=>{const i=Math.round(sc.scrollLeft/pw());WE.pg=i;const f=sc.children[i]&&sc.children[i].querySelector('.we-fo'),nm=f&&f.getAttribute('data-n');
    sc.setAttribute('aria-label',`${e.name}, page ${nm||i+1} of ${WE.base||pgs()}`)};
   WE.lab=lab;
-  const drawArt=()=>{if(!art)return;const cv=w.querySelector('.we-cv');if(!cv)return;const old=w.querySelector('.we-ar'),bw=Math.round(pw()),bh=Math.round(sc.clientHeight);if(!bw||!bh)return;
+  const drawArt=WE.art=()=>{if(!art)return;const cv=w.querySelector('.we-cv');if(!cv)return;const old=w.querySelector('.we-ar'),bw=Math.round(pw()),bh=Math.round(sc.clientHeight);if(!bw||!bh)return;
    /* the shapes live in the open field between the type: measured from the page, never guessed */
    const R0=cv.getBoundingClientRect(),tp=cv.querySelector('.we-top'),ld=cv.querySelector('.we-lead'),LR=ld&&ld.getBoundingClientRect(),
     t0=tp?Math.round(tp.getBoundingClientRect().bottom-R0.top+bh*.03):bh*.3,
@@ -16738,9 +16741,10 @@ function renderWE(){
   weSwipe(sc);sc.onkeydown=ev=>{if(ev.key==='ArrowRight'||ev.key==='ArrowLeft'){ev.preventDefault();WE.turn(ev.key==='ArrowRight'?1:-1)}
    else if(ev.key==='Escape'){ev.preventDefault();if(WE.sp!=null)weRdClose();else weExit()}}}
  g.querySelector('.we-ed').onchange=ev=>{S.weEd=ev.target.value;saveSoon();WE.pg=0;WE.sp=null;render()};
- weFit();weFitAll();if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(S.sel==='we'){weFit();weFitAll()}});
+ weFit();weFitAll();if(WE.art)WE.art();/* after the headline has stepped down, not before: the open field moves with it */
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(S.sel==='we'){weFit();weFitAll();if(WE.art)WE.art()}});
  g.querySelectorAll('.we-ph,[data-wep]').forEach(im=>{/* shown from the publisher's own server, never copied or stored; the page is already complete without it, so a late, missing or too-small photo is simply dropped (never a placeholder box) */const cov=im.classList.contains('we-ph'),box=cov?im:im.parentNode,off=()=>box.remove(),
-  shown=()=>{if(!im.isConnected)return;if(Math.max(im.naturalWidth,im.naturalHeight)<1600)return off();if(cov){im.parentNode.classList.add('we-on');weFit()}else{box.classList.add('we-ok');const pg=box.closest('.we-pg[data-fit]');if(pg)weFitPg(pg)}};
+  shown=()=>{if(!im.isConnected)return;if(Math.max(im.naturalWidth,im.naturalHeight)<1600)return off();if(cov){im.parentNode.classList.add('we-on');weFit()}else{box.classList.add('we-ok');(WE.pic=WE.pic||new Set()).add(box.getAttribute('data-wepl')||'');const pg=box.closest('.we-pg[data-fit]');if(pg)weFitPg(pg)}};
   im.onerror=off;im.onload=shown;if(im.complete&&im.naturalWidth)shown()});
  WE.cur.forEach(wePQ);weSay();setTimeout(wePreload,400);
 }
@@ -16779,30 +16783,36 @@ function wePQ(a){const i=WE.cur.indexOf(a),el=i<0?null:document.querySelector('[
    if(over()){const b=el.querySelector('.we-pq');if(b)b.remove()}
    if(fit)weFitPg(pg)}}catch(e){}}
 function weSay(){const el=document.querySelector('.we-rdy');if(!el)return;const n=WE.cur.length,slow=WE.slow||new Set(),
- out=WE.cur.filter(a=>!acHas(a.link));let note=out.filter(a=>slow.has(a.link)),miss=out.filter(a=>!slow.has(a.link));
- if(note.length>2){miss=out;note=[]}/* one or two publishers sending nothing is a note; more than that is an edition that did not load */
- const r=n-miss.length;
- /* a publisher that did not send the text is settled, not pending: the edition is ready, and the line says which story opens on their own site */
- el.classList.toggle('we-all',r>=n);
- el.title=miss.length?'Not ready yet: '+miss.map(a=>a.title).join('; '):note.length?'Opens on the publisher\u2019s site: '+note.map(a=>a.title).join('; '):'';
- el.textContent=r>=n?(note.length?`All ${n} stories are ready \u00b7 ${note.length===1?'one opens':note.length+' open'} on the publisher\u2019s site`:`All ${n} stories are ready to read`):WE.on?`Getting stories ready: ${r} of ${n}`:`${r} of ${n} ready \u00b7 ${miss.length===1?'one story opens':miss.length+' stories open'} on the publisher\u2019s site`}
+ /* the number only ever counts stories that are really here, so it cannot walk backwards while the pass runs */
+ got=WE.cur.filter(a=>acHas(a.link)).length,note=WE.cur.filter(a=>!acHas(a.link)&&slow.has(a.link)).length,left=n-got-note;
+ const done=left===0&&note<=2;
+ el.classList.toggle('we-all',done);
+ el.title=note?'Opens on the publisher\u2019s site: '+WE.cur.filter(a=>!acHas(a.link)&&slow.has(a.link)).map(a=>a.title).join('; '):'';
+ el.textContent=done?(note?`All ${n} stories are ready \u00b7 ${note===1?'one opens':note+' open'} on the publisher\u2019s site`:`All ${n} stories are ready to read`)
+  :WE.on?`Getting stories ready: ${got} of ${n}`:`${got} of ${n} ready \u00b7 ${n-got===1?'one story opens':(n-got)+' stories open'} on the publisher\u2019s site`}
 /* the whole edition is made ready behind the cover, the way the Daily's is (same network rules: dpOk; same store: acStoreOk keeps a gated or cut-short story out, so the gate line does not move); a story that fails simply loads when it is opened */
 async function wePreload(){if(WE.on||S.sel!=='we')return;WE.on=true;
  /* A story here is never a background fetch: `light` holds the answer at a quiet gate until the finger is
-    still, which on a phone being swiped is never - that is why the phone saw stubs while a desk saw bodies.
-    The Daily reads ahead one story at a time and waits out every scroll, because nobody asked for it.
-    The edition is 18 stories the reader opened on purpose and will swipe straight through, so the pass
-    waits once for the finger to settle and then runs a few at a time. One story per long scroll meant
-    the ready line crawled to 2 of 18 in seven minutes on David's Fold. */
- const one=async a=>{WE.tried.add(a.link);
-  try{const n=await getFull(a.link,false);if(acStoreOk(n,a)){const d=document.createElement('div');d.append(dropTitle(n.cloneNode(true),a.title));acPut(a.link,d.innerHTML,1);rtSet(a.link,d);saveSoon();if(WE.slow)WE.slow.delete(a.link);wePQ(a)}}
-  catch(e){(WE.slow=WE.slow||new Set()).add(a.link)}/* every route was tried (the relay among them) and the publisher sent nothing: the page prints the opening and an honest note */
+    still, which on a phone being swiped is never. The Daily reads ahead one story at a time and waits out
+    every scroll, because nobody asked for it; the edition is 18 stories the reader opened on purpose.
+    A phone's network drops requests the way a desk's does not, so a story that fails is tried again:
+    three goes before the edition says a publisher sent nothing. */
+ WE.try=WE.try||{};WE.lg=WE.lg||[];
+ const one=async a=>{WE.try[a.link]=(WE.try[a.link]||0)+1;const t0=Date.now(),k=WE.try[a.link];
+  const say=w=>{WE.lg.push({t:a.title.slice(0,40),go:k,ms:Date.now()-t0,w:String(w).slice(0,140)});if(WE.lg.length>60)WE.lg.shift()};
+  try{const n=await getFull(a.link,false);
+   if(acStoreOk(n,a)){const d=document.createElement('div');d.append(dropTitle(n.cloneNode(true),a.title));acPut(a.link,d.innerHTML,1);rtSet(a.link,d);saveSoon();if(WE.slow)WE.slow.delete(a.link);wePQ(a);say('stored')}
+   else say(n?'not usable ('+((n.textContent||'').length)+' chars)':'nothing came back')}
+  catch(e){say(e&&e.message||e);if(k>=3)(WE.slow=WE.slow||new Set()).add(a.link)}
   weSay()};
  try{await new Promise(r=>setTimeout(r,250));/* a breath after the cover is drawn, not the Daily's minute-long wait for a still finger */
-  const at=netKind()==='wifi'?4:2;
-  while(S.sel==='we'&&dpOk(1)){const b=[];let a;
-   while(b.length<at&&(a=WE.cur.find(x=>!acHas(x.link)&&!isPay(x)&&!WE.tried.has(x.link))))b.push(one(a));
-   if(!b.length)break;weSay();await Promise.all(b)}
+  const at=netKind()==='wifi'?4:2,left=()=>WE.cur.some(x=>!acHas(x.link)&&!isPay(x));
+  for(let round=0;round<3&&S.sel==='we'&&left();round++){
+   while(S.sel==='we'&&dpOk(1)){const b=[];let a;
+    while(b.length<at&&(a=WE.cur.find(x=>!acHas(x.link)&&!isPay(x)&&(WE.try[x.link]||0)<=round)))b.push(one(a));
+    if(!b.length)break;weSay();await Promise.all(b)}
+   if(left()&&round<2)await new Promise(r=>setTimeout(r,2500));
+  }
  }finally{WE.on=false;weSay()}}
 function weExit(){WE.sp=null;WE.pg=0;S.sel=(typeof LASTHOME!=='undefined'&&LASTHOME)||'all';save();render()}
 function weClick(e){const t=e.target;if(!t.closest||!t.closest('.we,[data-wer]'))return false;
