@@ -4,7 +4,10 @@ name: Build CyPress APK
 
 on:
   push:
-    branches: [main, master]
+    # A preview APK is asked for from a branch by putting [apk] in the commit message (see the job's `if`).
+    # A run started by hand through the API by an app cannot create a release - the token it is given is not
+    # allowed to - so a push is the way a preview build gets published without anyone pressing a button.
+    branches: [main, master, "preview/**", "claude/**"]
     # whats-new.txt must still start a build; notes (*.md), tests and review material never change the app, so they do not publish a release
     paths-ignore:
       - "*.md"
@@ -48,7 +51,7 @@ env:
   ALLOW_DEGRADED: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_degraded && '1' || '0' }}
   # A preview build can only ever be asked for by hand. It carries its own app id, its own tag and
   # pre-release status, so a phone that has the real app keeps it and is never offered this one.
-  PREVIEW_BUILD: ${{ github.event_name == 'workflow_dispatch' && inputs.preview && '1' || '0' }}
+  PREVIEW_BUILD: ${{ ((github.event_name == 'workflow_dispatch' && inputs.preview) || (github.event_name == 'push' && github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master')) && '1' || '0' }}
   BUILD_NUMBER: ${{ github.run_number }}
   # The version name people see. Change it when you want a new release label (1.3, 1.4, ...). The build number behind it always counts up by itself.
   APP_LABEL: "1.396"
@@ -59,6 +62,9 @@ env:
 
 jobs:
   build:
+    # main and master build and publish as always. On a branch, only a commit that says [apk] builds one, so
+    # ordinary work on a preview branch never makes a release.
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || contains(github.event.head_commit.message, '[apk]') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
@@ -322,6 +328,15 @@ jobs:
           name: cypress-play-bundle-${{ env.APP_LABEL }}
           path: cypress.aab
           retention-days: 30
+
+      - name: Keep the signed app with the build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-apk-${{ env.BUILD_NUMBER }}
+          path: cypress.apk
+          retention-days: 30
+          if-no-files-found: ignore
 
       - name: Publish the release
         env:
