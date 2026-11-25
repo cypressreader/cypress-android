@@ -75,6 +75,7 @@ Section: `{ "name": "Home", "stories": [Story] }`. The first story is the sectio
 | `n` | number | Optional. How many of `sampled` outlets reported it. |
 | `why` | string | Optional. Replaces the automatic "Reported by n of N outlets checked". |
 | `dek` | string | Optional. The publisher's own summary line **from its feed**, not a sentence taken from the article and never written by us. Shown under a section's lead. |
+| `photo` | Photo | Optional. Same object and same checklist as the cover photo. Used when the story is its section's lead: the section then opens with the photo. No photo, or one that fails, gives a type opener. |
 | `region` | string | Optional. A label above the headline, used by "Around the world". |
 | `kind` | string | `article`, `clip` (a broadcast segment), `meter` (needs a subscription), `short` (cut short), `lang` (another language). Everything opens in the reader. Only `article` will ever be read aloud by play mode. The app does not use this field yet. |
 
@@ -82,3 +83,14 @@ Section: `{ "name": "Home", "stories": [Story] }`. The first story is the sectio
 
 No article text, no audio, no copied photos, no per-reader data. The file is the same for
 everyone who reads that edition.
+
+## What the phone does by itself (not in the file)
+
+- **Stories made ready.** When the World Edition tab is shown, the phone fetches and stores each
+  story of the edition in the background, one at a time, under the same network rules as the
+  Daily (Wi-Fi, not Data Saver or Battery Saver, not while offline). A stored story opens at once.
+  A story behind a paywall or meter is never stored past the gate. A story that fails to store
+  loads when it is opened.
+- **Pull quote.** For a section's lead, once its story is stored, the phone shows the first
+  complete quoted sentence of 10 to 36 words, word for word. If none qualifies there is no pull
+  quote. Nothing is ever written for it, and the file never carries a sentence from a story.

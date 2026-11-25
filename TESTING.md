@@ -2580,3 +2580,13 @@ Checked in a desktop browser only. On a real phone and on the Fold, check:
 - With large text switched on in Android, nothing on the cover is cut.
 - Offline after opening once: the edition still opens.
 - The photo layer has never been seen with a real photo (the sample has none that passes). It is unverified on any device.
+
+## World Edition, issue 27 (magazine pages + stories made ready; preview/world-edition, not released)
+Tested in a desktop browser with a stand-in for the network. On a real phone, on Wi-Fi, check:
+- Open the World Edition tab and wait: the line under the contents counts up ("Getting stories ready: 7 of 18") and ends at "All 18 stories are ready" or names how many are.
+- After that, tap any ready story: the full text is there at once, with no gray loading bars.
+- On mobile data: nothing is fetched ahead, and the line says stories load when opened.
+- A story from a paywalled site keeps its subscriber-only note and is not stored.
+- Tech and (US) Long read open with a photo and a credit under it; every other section opens in type, with no empty box.
+- Real pull quotes appear under some section leads: each must be a real sentence from that story. Report any that reads oddly.
+- Scrolling stays smooth while stories are being made ready.
