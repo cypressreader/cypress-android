@@ -81,9 +81,24 @@ h = h.replace('<meta name="apple-mobile-web-app-title" content="CyPress">', '<me
 h = h.replace('<meta name="theme-color" content="#14171c">', '<meta name="theme-color" content="%s">' % COLOR, 1)
 bar = ('<div aria-hidden="true" title="CyPress Preview: %s @ %s, %s" style="position:fixed;top:0;left:0;right:0;height:3px;'
        'background:%s;z-index:2147483647;pointer-events:none"></div>' % (branch, sha, stamp, COLOR))
-assert "</body>" in h
+assert h.rstrip().endswith("</html>") and "</body>" in h
 fresh = ("<script>try{navigator.serviceWorker&&navigator.serviceWorker.addEventListener('message',function(e){if(e.data&&e.data.type==='update-ready'&&!sessionStorage.getItem('pvup')){sessionStorage.setItem('pvup','1');location.reload()}})}catch(e){}</script>")
-h = h.replace("</body>", bar + fresh + "</body>", 1)
+head, tail = h.rsplit("</body>", 1)
+h = head + bar + fresh + "</body>" + tail
+# Guard (issue 35): the stamp must sit after every script, never inside one, and the page must still
+# parse. A stamp inside the OPML export string once ended the main script early and the app never booted.
+assert tail.strip() in ("</html>", ""), "preview stamp did not land at the document close"
+import re as _re, subprocess as _sp, tempfile as _tf, os as _os
+for _m in _re.finditer(r"<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>", h, _re.S):
+    _src = _m.group(1)
+    if not _src.strip():
+        continue
+    _f = _tf.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8")
+    _f.write(_src); _f.close()
+    _r = _sp.run(["node", "--check", _f.name], capture_output=True, text=True)
+    _os.unlink(_f.name)
+    if _r.returncode:
+        raise SystemExit("publish-preview: the stamped page does not parse: " + _r.stderr.strip().splitlines()[0])
 open(p, "w", encoding="utf-8").write(h)
 
 m = site + "/manifest.webmanifest"
