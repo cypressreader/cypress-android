@@ -2608,3 +2608,10 @@ Implemented, unverified on a phone:
 - The drawn cover (no photo in the sample): check it reads well on the phone screen in both themes.
 - A story opens inside the magazine and Back returns to the same page; judge "instant" on the APK over Wi-Fi, not on the web preview.
 - Service worker fix: a data file (world-edition.json) is no longer answered with the app's own page when it is missing from the cache. Check the edition still opens after an update and when offline.
+
+## World Edition takeover, issue 32 (preview/world-edition, not in a release)
+Implemented, unverified on a phone:
+- The edition fills the screen: no sidebar, no feed, no tab bar. Check the top status bar and the gesture area on a real phone (safe-area padding), and that "‹ Editions" and the Android back button both return to the app as it was.
+- One page per screen with nothing scrolling inside it, on a phone and on the Fold folded; the spread from 600px up.
+- Story pages: the body is split by measuring, so check no page is cut short or overfull on a real screen, and that the drop cap and pull quote sit right.
+- Swipe between pages with the app chrome gone (no gesture conflict with the system back swipe on the left edge).
