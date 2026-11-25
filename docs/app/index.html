@@ -16561,16 +16561,20 @@ function weFolio(){const sc=document.querySelector('.we-sc');if(!sc)return;let n
  WE.base=n}
 /* a page is exactly one screen: when a built page is a little too tall for the screen it is on, its type steps down until it fits */
 function weFitPg(pg){if(!pg)return;const b=pg.querySelector('.we-in');if(!b)return;pg.style.removeProperty('--wz');
+ /* MEASURE INSIDE THE ZOOM, NEVER ACROSS IT: --wz is a `zoom` on .we-in, and a zoomed element reports its own
+    sizes in its own coordinate space - at 0.58 a full screen reads as 1,379 px tall, not 800. Measured against
+    the page (pg.clientHeight, never zoomed) every step down looked WORSE than the one before, so no page ever
+    fitted and every page that overflowed by a hair fell to the smallest step. Both sides come from .we-in. */
  /* issue 43: the contents list read as a small list floating in white space. It grows - headline size and
     the room around each entry together - until it fills the page, and no further. */
  if(pg.classList.contains('we-toc')){const tl=pg.querySelector('.we-tl');
   if(tl){tl.style.removeProperty('--wtg');
-   for(const g of [1.9,1.7,1.5,1.35,1.2,1.1]){tl.style.setProperty('--wtg',g);if(b.scrollHeight<=pg.clientHeight+1)break;tl.style.removeProperty('--wtg')}}}
+   for(const g of [1.9,1.7,1.5,1.35,1.2,1.1]){tl.style.setProperty('--wtg',g);if(b.scrollHeight<=b.clientHeight+1)break;tl.style.removeProperty('--wtg')}}}
  /* a photograph gives ground before the type does: the picture is cropped shallower until the page holds it,
     and only then does the whole page step down. A shrunken page of tiny type is not a magazine page. */
  const fg=pg.querySelector('.we-fg');if(fg){fg.style.removeProperty('--wfh');
-  if(b.scrollHeight>pg.clientHeight+1)for(const h of [68,58,50,42,34]){fg.style.setProperty('--wfh',h+'cqw');if(b.scrollHeight<=pg.clientHeight+1)return}}
- for(const z of [1,.95,.9,.85,.8,.75,.7,.64,.58]){pg.style.setProperty('--wz',z);if(b.scrollHeight<=pg.clientHeight+1)return}}
+  if(b.scrollHeight>b.clientHeight+1)for(const h of [68,58,50,42,34]){fg.style.setProperty('--wfh',h+'cqw');if(b.scrollHeight<=b.clientHeight+1)return}}
+ for(const z of [1,.95,.9,.85,.8,.75,.7,.64,.58]){pg.style.setProperty('--wz',z);if(b.scrollHeight<=b.clientHeight+1)return}}
 function weFitAll(){document.querySelectorAll('.we-pg[data-fit]').forEach(weFitPg)}
 /* Issue 33: the edition's pages curl. The reader's startTurn still cannot be called as it stands (it copies ONE flowing column by pixel offset and runs on reader state R), but its bow - the strip geometry in curlPose - is the same sheet, so the edition builds its own strips from whole pages and poses them with the reader's own maths: same 1,280 ms, same easing, same curl. */
 function weCopy(sc,i,pw,off){const g=sc.children[i];if(!g)return null;const b=document.createElement('div');b.className='we-sc we-cp';b.style.cssText=`width:${pw}px${off?`;transform:translateX(${-off}px)`:''}`;const c=g.cloneNode(true);c.removeAttribute('id');c.setAttribute('aria-hidden','true');c.inert=true;b.append(c);return b}
