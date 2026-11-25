@@ -2644,3 +2644,8 @@ Unverified here, needs a real network or device:
 - On the phone: install this preview APK by hand once, publish a newer preview build, open the preview app,
   and it should offer the update in-app (download, then one Install tap). Then confirm the real app does NOT
   offer it. The first in-app update can only be tested from a build that already carries this change.
+
+## Issue 43 (b): Contents thumbnails (World Edition, preview build)
+- Contents page: each section whose lead has an approved photo shows a small picture at the right of its row; leads with no photo stay text. Check at phone size and wide: no row is cut, the list still fills the page, type still legible.
+- Section opener pages already lead with the lead's photo (unchanged): confirm it is large on the Fold.
+- A photo that fails to load must leave the row as plain text, with no hole.
