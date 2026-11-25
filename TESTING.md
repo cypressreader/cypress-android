@@ -2600,3 +2600,11 @@ Tested with a mouse in a desktop browser only. On a real phone and Fold, check:
 - Nothing on any page is cut off; a page with a very long headline scrolls inside itself.
 - Rotating or unfolding mid-read keeps a sensible page.
 - Photo crops: the Tech and Long read photos keep their subject in frame on phone and Fold.
+
+## World Edition, issue 30 (preview/world-edition, not in a release)
+Implemented, unverified on a phone:
+- A finger swipe left/right turns the page (weSwipe). Check it does not fight the app's own swipes, and that up/down still scrolls inside a page.
+- The leaf turn (weFlip, 1,280 ms) on a real phone and on the Fold unfolded (two-page spread): smooth, no flash of the wrong page, no stutter on a cold start.
+- The drawn cover (no photo in the sample): check it reads well on the phone screen in both themes.
+- A story opens inside the magazine and Back returns to the same page; judge "instant" on the APK over Wi-Fi, not on the web preview.
+- Service worker fix: a data file (world-edition.json) is no longer answered with the app's own page when it is missing from the cache. Check the edition still opens after an update and when offline.

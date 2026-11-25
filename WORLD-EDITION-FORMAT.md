@@ -39,6 +39,8 @@ which shape fits) is decided upstream and written into the file. The app never g
 | `lead` | `[section, story]` | Index of the lead story. Its headline is the cover. |
 | `mood` | `"ordinary"` or `"heavy"` | Heavy day: no photo, no shape, gray accent. |
 | `shape` | string or `null` | A name from the fixed library: `ring arc rise fall wave grid bar split cross plus tri square diamond peak dip ripple rays bars stack zigzag frame half spiral horizon` (24). Shown only on a type day that is not heavy. Unknown names show nothing. |
+| `art` | `true` or absent | Draw the cover instead of photographing it: the third cover state. Used when no photo passes the checklist. The art is built from the day's cues only (accent, shape, mood) and never shows the event or anyone in it. |
+| `artNote` | string | Why the cover is drawn (for the report; never shown). |
 | `accent` | `{night, day}` or `null` | Two `#rrggbb` colors, sampled from the lead photo upstream and adjusted to be readable on each look. `null` uses the house color for the weekday. |
 | `photo` | Photo or `null` | The best photo among all outlets' versions of the lead story, or `null`. |
 | `logo` | string | Where the name sits today: `top` (big "CyPress" with "The World Edition" under it), `corner` (small, bottom right, for photo days) or `ghost` (very large and faint behind the page). The art director sets it; it should move from day to day. |
