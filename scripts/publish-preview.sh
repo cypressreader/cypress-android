@@ -82,7 +82,8 @@ h = h.replace('<meta name="theme-color" content="#14171c">', '<meta name="theme-
 bar = ('<div aria-hidden="true" title="CyPress Preview: %s @ %s, %s" style="position:fixed;top:0;left:0;right:0;height:3px;'
        'background:%s;z-index:2147483647;pointer-events:none"></div>' % (branch, sha, stamp, COLOR))
 assert "</body>" in h
-h = h.replace("</body>", bar + "</body>", 1)
+fresh = ("<script>try{navigator.serviceWorker&&navigator.serviceWorker.addEventListener('message',function(e){if(e.data&&e.data.type==='update-ready'&&!sessionStorage.getItem('pvup')){sessionStorage.setItem('pvup','1');location.reload()}})}catch(e){}</script>")
+h = h.replace("</body>", bar + fresh + "</body>", 1)
 open(p, "w", encoding="utf-8").write(h)
 
 m = site + "/manifest.webmanifest"
@@ -96,6 +97,10 @@ open(m, "w", encoding="utf-8").write(json.dumps(d, indent=2))
 s = site + "/sw.js"
 t = open(s, encoding="utf-8").read()
 t = re.sub(r"const V = '[^']*';", "const V = 'cyp-preview-%s';" % sha, t, 1)
+# The preview is for looking at the newest build, so its copy of the worker never answers the page
+# itself from the saved copy: a fresh load always shows the build that was just published.
+t = t.replace("  if (r.cache === 'no-store') return;",
+              "  if (r.cache === 'no-store') return;\n  if (r.mode === 'navigate' || /index\\.html$|\\/$/.test(u.pathname)) return;", 1)
 open(s, "w", encoding="utf-8").write(t)
 PY
 
