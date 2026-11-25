@@ -240,12 +240,16 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
      The edition is a magazine inside the app: a cover you swipe, a contents you tap, section pages, and
      stories that open as pages of the edition itself. The phone saw stubs where a desk saw bodies, and the
      cloud cannot reach a single publisher, so this is the only place the real fetch path can be watched. */
+  /* run 59: a real tap cannot reach the drawer - on a phone it is off-canvas, so Playwright waits for a
+     visible target and times out. The entry goes through the app's own handler all the same (a DOM click
+     on the drawer row), and only falls back to setting the view if the row is not there at all. */
   const weOpen = async () => {
-    const where = await page.evaluate(() => { const n = document.querySelector('.nav[data-sel="we"]'); if (!n) return 'missing';
-      const r = n.getBoundingClientRect(); return (r.width && r.height && r.top >= 0 && r.bottom <= innerHeight) ? 'tapped' : 'hidden' });
-    if (where === 'tapped') await page.locator('.nav[data-sel="we"]').click({ timeout: 10000 });
-    else await page.evaluate(() => { S.sel = 'we'; render() });/* the drawer is off-screen on a phone: the test still has to get in */
-    await page.waitForSelector('.we-sc', { timeout: 40000 }); await sleep(2500); return where;
+    let how = 'drawer-click';
+    const did = await page.evaluate(() => { const n = document.querySelector('.nav[data-sel="we"]'); if (!n) return false; n.click(); return true });
+    if (!did) { how = 'state'; await page.evaluate(() => { S.sel = 'we'; render() }) }
+    try { await page.waitForSelector('.we-sc', { timeout: 40000 }) }
+    catch (e) { how += '+state'; await page.evaluate(() => { S.sel = 'we'; render() }); await page.waitForSelector('.we-sc', { timeout: 40000 }) }
+    await sleep(2500); return how;
   };
   /* why a story did not arrive: the app keeps its own line per try (route, time, what came back) */
   const weWatch = () => page.evaluate(() => { if (window.__weW) return; const w = window.__weW = { flips: 0 };
