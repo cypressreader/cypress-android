@@ -644,4 +644,18 @@ if os.environ.get('NEURAL', '').strip() == '1':
         open(sx, 'w', encoding='utf-8').write(x2)
     say('natural voice added (sherpa-onnx)' + (', test app id com.cypress.reader.tts' if test else ''))
 
+# 8. Preview build (PREVIEW_BUILD=1, only ever from a hand-started run on a branch): a separate app,
+#    com.cypress.reader.preview, called "CyPress preview", so it installs BESIDE the real app rather than
+#    replacing it. The file provider's authority already follows ${applicationId}, so both can be installed.
+if os.environ.get('PREVIEW_BUILD', '').strip() == '1':
+    g = open(GRADLE, encoding='utf-8').read()
+    g += "\nandroid {\n    buildTypes { release { applicationIdSuffix '.preview'; versionNameSuffix '-preview' } }\n}\n"
+    open(GRADLE, 'w', encoding='utf-8').write(g)
+    sx = os.path.join(RES, 'values', 'strings.xml')
+    x = open(sx, encoding='utf-8').read()
+    x = re.sub(r'(<string name="app_name">)[^<]*', r'\1CyPress preview', x, count=1)
+    x = re.sub(r'(<string name="title_activity_main">)[^<]*', r'\1CyPress preview', x, count=1)
+    open(sx, 'w', encoding='utf-8').write(x)
+    say('preview build: app id com.cypress.reader.preview, name "CyPress preview"')
+
 print('Done.')
