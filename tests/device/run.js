@@ -245,6 +245,9 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
      on the drawer row), and only falls back to setting the view if the row is not there at all. */
   const weOpen = async () => {
     let how = 'drawer-click';
+    /* WELITE=1: the edition without its cover art or photographs. Run 61's render thread segfaulted on the
+       emulator's software renderer right after the cover, so a lite pass separates a paint crash from a code fault. */
+    if (process.env.WELITE) { how = 'lite+drawer-click'; await page.evaluate(() => { WE.lite = true; document.documentElement.classList.add('welite'); try { localStorage.setItem('welite', '1') } catch (e) {} }).catch(() => {}) }
     const did = await page.evaluate(() => { const n = document.querySelector('.nav[data-sel="we"]'); if (!n) return false; n.click(); return true });
     if (!did) { how = 'state'; await page.evaluate(() => { S.sel = 'we'; render() }) }
     try { await page.waitForSelector('.we-sc', { timeout: 40000 }) }
@@ -263,6 +266,9 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
     for (let t = 0; t <= limit; t += 10) {
       const r = await page.evaluate(() => { const e = document.querySelector('.we-rdy'); return { t: e ? e.textContent : '', g: !!(e && e.classList.contains('we-all')) } });
       series.push(t + 's ' + r.t); if (r.g) { green = true; break }
+      /* run 61 died mid-wait and took the log with it: each poll leaves what it knows on the step itself,
+         so a crash still reports how far the fetches got and why */
+      s.live = { series: series.slice(), diag: await weDiag() };
       await sleep(10000);
     }
     await shot(s, green ? 'ready' : 'NOT-READY');
