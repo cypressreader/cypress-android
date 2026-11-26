@@ -105,8 +105,16 @@ function coverOf(sections){
  all.sort((a,b)=>b.n-a.n);
  const top=all[0];
  const coverable=p=>p.st.photo&&p.st.photo.w>=1600&&p.st.photo.h&&p.st.photo.w>=p.st.photo.h;
+ /* How far the cover may step down to find a photograph. One newsroom was too tight: on 26 November the lead
+    had a picture 1,024px wide - too small for a front page - and the magazine ran a type cover while a 6,978px
+    photograph sat on a story three newsrooms behind it. Three is the limit; below that a story is not one of
+    the day's leads any more and the type cover is the honest answer. */
  if(!coverable(top)){
-  const near=all.filter(p=>p.n>=top.n-1&&coverable(p));
+  /* among the stories close enough to lead, the one with the best photograph for a front page - the widest,
+     and landscape ahead of square. Taking the first in counting order picked a 1,920px picture while a
+     6,978px one sat on a story with the same number of newsrooms. */
+  const near=all.filter(p=>p.n>=top.n-3&&coverable(p))
+    .sort((a,b)=>(b.st.photo.w*(b.st.photo.w/b.st.photo.h>=1.3?1.15:1))-(a.st.photo.w*(a.st.photo.w/a.st.photo.h>=1.3?1.15:1)));
   if(near.length)return{lead:near[0].lead,story:near[0].st,followedPicture:true};
  }
  return{lead:top.lead,story:top.st};
@@ -129,7 +137,9 @@ const shape=e=>({
  cover:{lead:e.lead,mood:'ordinary',shape:SHAPES[dayN%SHAPES.length],accent:null,
   photo:(()=>{const p=e.leadStory&&e.leadStory.photo;return p&&p.w>=1600?p:null})(),
   logo:dayN%2?'ghost':'top',
-  photoNote:'No photograph on the cover: the lead story had none big enough that had been looked at.'},
+  photoNote:(e.leadStory&&e.leadStory.photo&&e.leadStory.photo.w>=1600)
+   ?'The lead story\u2019s own photograph, looked at before it was printed.'
+   :'No photograph on the cover: no story close enough to lead had one big enough that had been looked at.'},
  sections:e.sections
 });
 
@@ -152,7 +162,8 @@ for(const e of built.slice(1))console.log('  + '+e.name+': '+e.count+' stories')
 console.log('\n'+total+' stories printed, '+((got.dropped||[]).length)+' dropped at the gate.');
 if(leadStory)console.log('cover: '+leadStory.t.slice(0,70)+'  ('+(leadStory.n||1)+' newsrooms, '+leadStory.o+')'
   +(built[0]&&built[0].followedPicture?'  [chosen over a story with the same count because it has a cover photograph]':''));
-console.log('cover state: type ('+file.editions[0].cover.shape+' shape, masthead '+file.editions[0].cover.logo+')');
+{const c=file.editions[0].cover;
+ console.log('cover state: '+(c.photo?'photograph '+c.photo.w+'x'+c.photo.h+' ('+c.photo.credit+')':'type, '+c.shape+' shape')+', masthead '+c.logo);}
 
 /* The stop condition from the plan, and the one rule that makes going away safe: a thin edition never replaces
    a good one. The edition already live stays live. */
