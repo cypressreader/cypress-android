@@ -43,7 +43,7 @@ const OUT=arg('--json'),HOURS=Number(arg('--hours')||36);
 /* The kinds a news desk refuses. Sport reaches every general feed and reads like news; a fixture list, a
    transfer, a fantasy column or a score is sport wherever it was published. Written once and used by the
    desks that are places rather than kinds. */
-const SPORTY=/\b(nfl|nba|mlb|nhl|ncaa|fifa|uefa|premier league|la liga|serie a|f1|formula 1|grand prix|super bowl|world cup|playoffs?|quarterfinals?|semifinals?|touchdown|home run|fantasy football|week \d+|game \d+|\bvs\.?\b|steelers|packers|lakers|yankees|dodgers|man utd|manchester (united|city)|arsenal|liverpool|chelsea|wildcats|open (final|semi)|atp|wta|test match|six nations)\b/i;
+const SPORTY=/\b(nfl|nba|mlb|nhl|ncaa|fifa|uefa|premier league|la liga|serie a|f1|formula 1|grand prix|super bowl|world cup|playoffs?|quarterfinals?|semifinals?|touchdown|home run|fantasy football|week \d+|game \d+|\bvs\.?\b|steelers|packers|lakers|yankees|dodgers|man utd|manchester (united|city)|arsenal|liverpool|chelsea|wildcats|australian open|us open|french open|atp|wta|test match|six nations)\b/i;
 /* WHAT COUNTS AS SPORT IN A MAGAZINE (David, 2026-11-26): "it should only be major events. Someone won the
    world cup, world series, super bowl, Wimbledon etc. A random team winning a random game doesn't matter for
    99% of readers. Now a sport related major story like Kobe Bryant dying or Messi retiring does matter
@@ -54,7 +54,7 @@ const SPORTY=/\b(nfl|nba|mlb|nhl|ncaa|fifa|uefa|premier league|la liga|serie a|f
    A death goes to the Obituary page instead, which is where a magazine prints one. */
 const SPORT_WON=/\b(world cup|super bowl|world series|wimbledon|olympics?|paralympics?|the ashes|tour de france|ryder cup|stanley cup|nba finals|world championships?|world record|gold medal|grand slam|ballon d'or|copa (am[\u00e9e]rica|libertadores)|champions league|europa league|euro 20\d\d)\b/i;
 const SPORT_FINAL=/\b(wins?|won|beat|crowned|clinch(es|ed)?|lifts?|claims?|seals?)\b[^.]{0,40}\b(title|final|championship|crown|cup|gold|medal|record)\b|\b(final|semi-?final|championship|title) (win|victory|triumph|decider)\b/i;
-const SPORT_CAREER=/\b(retires?|retirement|announces? (his|her|their) retirement|hangs up|steps down as|sacked as|banned for|doping ban|life(time)? ban|hall of fame|record (transfer|signing|deal)|world record)\b/i;
+const SPORT_CAREER=/\b(retires?|retirement|announces? (his|her|their) retirement|hangs up|sacked as (manager|coach|head coach)|steps down as (manager|coach|captain)|banned for|doping ban|life(time)? ban|hall of fame|record (transfer|signing|deal)|world record)\b/i;
 /* and what a sports feed is mostly made of, which a magazine never prints */
 const SPORT_NOISE=/\bfantasy\b|start '?em|sit '?em|\bodds\b|\bbetting\b|\bpicks?\b|\brankings?\b|\bpower rankings\b|\binjury report\b|\bweek \d+\b|\bpreview\b|\bhow to watch\b|\bhighlights\b|\brecap\b|\btrade rumou?rs?\b|\bmock draft\b/i;
 
