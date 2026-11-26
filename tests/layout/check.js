@@ -142,7 +142,8 @@ const INJECT = () => {
   const h = ops[0] && ops[0].querySelector('h2,h3,.we-h'); const tgt = ops[0] && [...ops[0].querySelectorAll('p,h3,small,.we-dk,.we-o')].filter(x => x !== h && x.textContent.trim())[0];
   if (h) h.style.cssText += ';position:relative;top:' + (tgt ? Math.round(tgt.getBoundingClientRect().top - h.getBoundingClientRect().top) : 30) + 'px';
   /* b: a wrong NEXT SECTION label */
-  const z = document.querySelector('.we-pz .we-pzs'); if (z) z.lastChild.textContent = 'Nowhere in particular';
+  /* (the NEXT SECTION leaf this used to break was removed in issue 49; a Contents row that names the wrong section is the same kind of fault) */
+  const z = document.querySelector('.we-toc .we-tl button[aria-label]'); if (z) z.setAttribute('aria-label', z.getAttribute('aria-label').replace(/^.*?: /, 'Nowhere in particular: '));
   /* c: a blank page */
   const b = pgs.find(x => x.classList.contains('we-how')); if (b) b.querySelector('.we-in').innerHTML = '';
   /* d: a truncated cover line */

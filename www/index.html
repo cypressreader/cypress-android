@@ -5533,7 +5533,7 @@ html.lowp .we *,html.lowp .we *::before{animation:none!important;transition:none
 .we-fin p{margin:0;font:700 11px/1 system-ui,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--wm)}
 .we-fin .we-nu{display:block;margin:6cqw 0 0;padding:4cqw 0 0;border-top:1px solid var(--wi);text-align:left;text-decoration:none;color:var(--wi)}
 .we-fin .we-nu small{display:block;font:700 11px/1 system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--wat);margin-bottom:.6em}
-.we-fin .we-nu b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font:700 clamp(18px,5cqw,24px)/1.15 var(--wd)}
+.we-fin .we-nu b{display:block;font:700 clamp(18px,5cqw,24px)/1.15 var(--wd);text-wrap:balance}/* issue 52: the next story's title was clamped to two lines and cut; it wraps whole (the layout check flags a cut headline) */
 .we-op .we-hd{border-top:6px solid var(--wa);padding-top:3cqw;animation:we-up .5s .12s ease-out both}
 .we-op .we-hd i{font-size:clamp(44px,14cqw,96px);line-height:.85}
 .we-bkc.we-how{background:var(--bg,#f6f1e6)}
@@ -12566,6 +12566,7 @@ $('#frm').onsubmit=async e=>{
 setTimeout(()=>watchCheck(),8000);
 $('#ref').onclick=async()=>{
  const b=$('#ref');if(b.classList.contains('spin'))return;
+ if(S.sel==='we'){WE.refq=1;return}/* issue 52: never refresh the sites while someone is reading the edition - it waits until they leave (weExit) */
  if(!online()){toast(S.offline?'Offline mode is on. Turn it off in Settings to refresh':'You’re offline');return}
  const before=new Set(S.feeds.flatMap(f=>(items[f.id]||[]).map(a=>a.link)));
  NN.here='';b.classList.add('spin');toast('Refreshing '+S.feeds.length+(S.feeds.length===1?' site…':' sites…'));WIRE.pillT=Date.now();wireReset();
@@ -16706,7 +16707,7 @@ function weFlip(sc,from,to,dir,pw,two,done){
  T.kz=Math.max(document.body.classList.contains('wefull')?.62:.25,Math.min(1,1700*rr/((1+rr)*pw*1.05)));/* full-screen leaves no room above or below, so the bow was always squeezed to its floor and the turn read as a flat slide */lf.style.transform=`scale3d(1,1,${T.kz.toFixed(3)})`;
  st.append(un,lf);host.append(st);host.classList.add('we-tg');if(!two)host.classList.add('we-tgh');/* the leaf covers the whole screen only on one page: on a spread the other half must keep showing *//* no page numbers mid-turn: the leaf used to print one over the other */
  const a0=fwd?0:180,a1=fwd?180:0,end=()=>{st.remove();host.classList.remove('we-tg','we-tgh');done()};let t0=0;
- const fr=now=>{if(!st.isConnected)return;if(WE.cut){WE.cut=0;end();return}if(!t0)t0=now;const q=Math.min(1,(now-t0)/WE_TURN),e=eBack(q),a=a0+(a1-a0)*e;
+ const fr=now=>{if(!st.isConnected){/* issue 52: the sheet was removed from under the turn - end it anyway, or WE.bz stays set and every later swipe is swallowed */host.classList.remove('we-tg','we-tgh');if(sc.isConnected)done();else WE.bz=0;return}if(WE.cut){WE.cut=0;end();return}if(!t0)t0=now;const q=Math.min(1,(now-t0)/WE_TURN),e=eBack(q),a=a0+(a1-a0)*e;
   try{curlPose(T,a)}catch(err){lf.style.transform=`rotateY(${(fwd?-180:180)*e}deg)`}
   if(q<1)requestAnimationFrame(fr);else end()};
  requestAnimationFrame(fr);
@@ -16874,6 +16875,13 @@ function renderWE(){
   g.innerHTML=skel(6);if(WE.st!=='load'){WE.st='load';fetch('world-edition.json').then(r=>r.json()).then(d=>{if(!d||!Array.isArray(d.editions)||!d.editions.length)throw 0;WE.d=d;WE.st=''}).catch(()=>{WE.st='fail'}).then(()=>{if(S.sel==='we')render()})}
   return}
  needFont('literata');
+ /* issue 52: the edition was torn down and rebuilt by EVERY render() - and the app calls render() whenever a site
+    finishes refreshing in the background. A rebuild in the middle of a turn threw away the page being turned
+    (the old page came back and the turn never ended, so the next swipes were swallowed); a rebuild in the middle of
+    a story threw away the page being read. The edition only depends on which edition it is, the file, and which
+    stories have been dropped: if none of those changed and it is on screen, there is nothing to redraw. */
+ {const sig=(S.weEd||'')+'|'+WE.d.date+'|'+WE.d.issue+'|'+(innerWidth>=600?2:1)/* folding or unfolding does rebuild: a story is laid out differently one page wide */+'|'+[...(WE.gone||[])].join(',');
+  if(WE.sig===sig&&g.querySelector('.we-sc'))return;WE.sig=sig}
  const d=WE.d,e=weEd(d),c=e.cover||{},gone=WE.gone||new Set(),
   secs=e.sections.map((s,i)=>({s:gone.size?Object.assign({},s,{stories:s.stories.filter(st=>!gone.has(st.l))}):s,i})).filter(x=>x.s.stories.length),
   L=c.lead||[0,0],L0=((e.sections[L[0]]||{}).stories||[])[L[1]],lead=(L0&&!gone.has(L0.l)?L0:null)||secs[0].s.stories[0],heavy=c.mood==='heavy';
@@ -17013,7 +17021,7 @@ async function wePreload(){if(WE.on||S.sel!=='we')return;WE.on=true;
    if(left()&&round<2)await new Promise(r=>setTimeout(r,2500));
   }
  }finally{WE.on=false;weSay();weSettle()}}
-function weExit(){WE.sp=null;WE.pg=0;S.sel=(typeof LASTHOME!=='undefined'&&LASTHOME)||'all';save();render()}
+function weExit(){WE.sp=null;WE.pg=0;WE.sig='';S.sel=(typeof LASTHOME!=='undefined'&&LASTHOME)||'all';save();render();if(WE.refq){WE.refq=0;setTimeout(()=>{const b=$('#ref');if(b&&S.sel!=='we')b.click()},1500)}}
 function weClick(e){const t=e.target;if(!t.closest||!t.closest('.we,[data-wer]'))return false;
  if(t.closest('[data-wex]')){weExit();return true}
  if(t.closest('[data-wec]')){if(WE.sp!=null)weRdClose();if(WE.go)WE.go(1,-1);return true}
