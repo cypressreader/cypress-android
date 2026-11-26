@@ -111,7 +111,11 @@ function inPage(opts) {
       if (m && m[1] !== pname(tg)) fails.push({ kind: 'label', what: 'Contents row names "' + m[1] + '" but opens "' + pname(tg) + '"', shown: al });
       if (m && real && m[2] !== real) fails.push({ kind: 'label', what: 'Contents says page ' + m[2] + ' but "' + pname(tg) + '" is printed as page ' + real, shown: al }) });
     /* 4c. inside a story: "Next section . X" / "Next story" at its end must match the story that really follows in the book */
-    pg.querySelectorAll('.we-nu').forEach(u => { const order = [], seenL = new Set(); sc.querySelectorAll('.we-pg:not(.we-sp):not(.we-cp) a[data-we]').forEach(a => { const k = a.getAttribute('data-we'); if (!seenL.has(k)) { seenL.add(k); order.push(+k) } });
+    /* the cover is not a page of the book: it NAMES the lead story, the way a magazine cover does, so its link must be
+       left out of the running order. Counting it put the lead at the front and shifted the expectation by one on either
+       side of it - 4 false failures on 2026-11-26, when the lead moved to World/3. The story itself is bound exactly
+       once, in its own section (measured: page order 0..17, no key twice). */
+    pg.querySelectorAll('.we-nu').forEach(u => { const order = [], seenL = new Set(); sc.querySelectorAll('.we-pg:not(.we-sp):not(.we-cp):not(.we-cv) a[data-we]').forEach(a => { const k = a.getAttribute('data-we'); if (!seenL.has(k)) { seenL.add(k); order.push(+k) } });
       const cur = WE.cur, here = cur.findIndex(x => x.link === WE.rd), want = order[order.indexOf(here) + 1], shown = u.querySelector('small').textContent.replace(/\s+/g, ' ').trim(), title = (u.querySelector('b') || {}).textContent;
       if (here < 0 || want == null) return; const nx = cur[want], exp = nx.wsec !== cur[here].wsec ? 'Next section \u00b7 ' + nx.wsec : 'Next story';
       if (shown !== exp || title !== nx.title) fails.push({ kind: 'label', what: 'story ends with "' + shown + ' / ' + title + '" but the next story in the book is "' + exp + ' / ' + nx.title + '"', shown }) });
