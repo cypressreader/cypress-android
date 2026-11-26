@@ -2771,3 +2771,14 @@ ten sections opening on a photograph. Both robot checks were clean at phone and 
   red on the last build and is now the page's own ink.
 - **The last word**: the final page before the navy back cover, Robert Frost, in the cover's colours.
 - **Sport** is empty again: nothing was won.
+
+## After David's three screenshots (2026-11-26)
+- **Contents rows**: the section name, headline, reading time and page number must each sit in their own
+  column with nothing overlapping, on the phone AND open. On the phone there should be NO reading time
+  visible, because the headline is hidden there too.
+- **A story's picture** should fill the column on every page shape. The one that used to print it at 70%
+  pushed right is the shape with a quote part-way down.
+- **The cover** should be Time's photograph of Trump and Putin, full bleed, with the credit on it.
+- STILL OPEN, seen in David's screenshots and reproduced in a browser: a story's opening page stops about
+  69% full because the pull quote cannot fit the remaining third, so it starts the next page and leaves a
+  hole on both. Not fixed in this build.
