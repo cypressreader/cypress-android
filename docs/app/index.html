@@ -16645,8 +16645,12 @@ async function weEdition(){
 const WE_EVERY=108e5;
 function weRefresh(have){
  if(S.offline||!navigator.onLine||DEV.dataSaver||DEV.powerSave||DEV.metered)return;
- try{if(Date.now()-(+localStorage.getItem('we-ck')||0)<WE_EVERY)return;localStorage.setItem('we-ck',Date.now())}catch(e){}
- setTimeout(()=>{weUrl().then(u=>fetch(u,{cache:'no-store',signal:AbortSignal.timeout(15000)}))
+ setTimeout(()=>{weUrl().then(u=>{
+   /* The three-hour limit is right for a reader - a new issue cannot appear more often than that, and the
+      request is one the phone pays for. It is wrong for testing: it turns 'did the new edition arrive?' into a
+      once-every-three-hours lottery. So the test app asks on every open, and only the test app. */
+   if(u!==WE_URL_PREVIEW){try{if(Date.now()-(+localStorage.getItem('we-ck')||0)<WE_EVERY)return null;localStorage.setItem('we-ck',Date.now())}catch(e){}}
+   return fetch(u,{cache:'no-store',signal:AbortSignal.timeout(15000)})})
   .then(r=>r&&r.ok?r.json():null).then(d=>{
     if(!weOk(d)||(have&&String(d.date||'')<=String(have.date||'')))return;
     try{localStorage.setItem('we-ed',JSON.stringify(d))}catch(e){}})

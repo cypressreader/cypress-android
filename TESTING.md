@@ -2725,3 +2725,9 @@ first machine-written edition, 26 November, while the copy inside the app is MJ'
   a fault.
 - Offline, on data saver, on a metered connection or in battery saver it must not ask at all, and the 24
   November issue keeps opening.
+
+## Preview build 505 (2026-11-26): the test app asks on every open
+The three-hour limit between checks is kept for the real app and dropped in the test app only, so the arrival
+of a new edition can be tried on demand. Open the magazine, wait about five seconds, back out, open it again:
+the 26 November machine-written issue should be there. It still must never change while the magazine is open,
+and it is still skipped on battery saver, data saver, a metered connection and offline.
