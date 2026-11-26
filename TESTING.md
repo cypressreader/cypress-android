@@ -2670,3 +2670,8 @@ Check on the Fold first, then web, then wide:
 - Turn: 400 ms flat lift-and-settle (no rotation); check swipes in a row, Back from a story, no blank flash.
 - Back: no white page after the navy back cover; odd page counts get a colophon leaf BEFORE the back cover.
 - Not reproduced: the "3 of 7 / 4 of 7" repeated on two spreads of the turkey story; the stray word "caption" (guarded in the credit and body filters).
+
+## World Edition, issue 49 (claude/issue-49-20261126-0159)
+- [ ] Fold: turn from Science to Tech and from Culture to Food: one rigid page swings over the spine, no two openers visible at once, nothing left behind after it lands (WE_TURN = 800 ms).
+- [ ] Fold + phone: Nvidia, World, Business openers show no number, rule or label over the headline or text. No blank page between a story's end and the next section's opener.
+- [ ] Cover lines end on whole words on the phone and the Fold.
