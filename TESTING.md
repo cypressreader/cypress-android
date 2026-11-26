@@ -2670,3 +2670,6 @@ Check on the Fold first, then web, then wide:
 - Turn: 400 ms flat lift-and-settle (no rotation); check swipes in a row, Back from a story, no blank flash.
 - Back: no white page after the navy back cover; odd page counts get a colophon leaf BEFORE the back cover.
 - Not reproduced: the "3 of 7 / 4 of 7" repeated on two spreads of the turkey story; the stray word "caption" (guarded in the credit and body filters).
+
+## World Edition app-side guard (issue 48 follow-up)
+- Open a story whose page has no readable text (or tap a paid one before the edition has finished getting ready): the story should simply leave the edition and you land back on the cover. No "did not send the text" page, no link out, and the ready line counts one fewer. Verified in a browser with stand-in pages; check on the Fold with real publishers.
