@@ -173,7 +173,11 @@ function storyScan() {
         for (const c of r.getClientRects()) if (c.width > 2 && c.bottom > fb.t && c.top < fb.b && c.right > fb.l && c.left < fb.r) { hit = n.nodeValue.trim().slice(0, 40); break } }
       if (hit) { f.push({ kind: 'folio', what: 'the page number prints over body text at scroll ' + y + ' px: "' + hit + '"', text: hit }); break } }
     pg.scrollTop = 0 });
-  { const seenT = new Map(); sp.forEach((pg, i) => pg.querySelectorAll('.we-bd p').forEach(q => { const t = q.textContent.replace(/\s+/g, ' ').trim(); if (t.length < 40) return; if (seenT.has(t) && seenT.get(t) !== i) f.push({ kind: 'dup', what: 'the same paragraph is printed on two pages of one story: "' + t.slice(0, 40) + '"', text: t.slice(0, 40) }); else seenT.set(t, i) })) }
+  /* A paragraph that runs on across a page break is not a duplicate: the first part ends one page and the
+     continuation (.we-ct) opens the next, which is what print does. Two continuations can even carry the same
+     words when the stories repeat a sentence, as the stand-in article does, so they are left out of this scan
+     entirely. Whole paragraphs printed twice - the fault this is here to catch - are still caught. */
+  { const seenT = new Map(); sp.forEach((pg, i) => pg.querySelectorAll('.we-bd p:not(.we-ct)').forEach(q => { const t = q.textContent.replace(/\s+/g, ' ').trim(); if (t.length < 40) return; if (seenT.has(t) && seenT.get(t) !== i) f.push({ kind: 'dup', what: 'the same paragraph is printed on two pages of one story: "' + t.slice(0, 40) + '"', text: t.slice(0, 40) }); else seenT.set(t, i) })) }
   if (sp.length) { const fin = sp[sp.length - 1].querySelector('.we-fin'); if (!fin || !/end of the story/i.test(fin.textContent)) f.push({ kind: 'endmark', what: 'the story does not end with the "End of the story" mark' }); else if (!fin.querySelector('.we-mk')) f.push({ kind: 'endmark', what: 'the end mark has no rule/mark glyph' }) }
   return f;
 }
