@@ -16757,15 +16757,15 @@ function weRead(i,from){WE.at=from>=0?from+1:null;
  const a=WE.cur[+i],sc=document.querySelector('.we-sc');if(!a||!sc)return;
  WE.rd=a.link;/* the story on screen: a late answer is printed only while the reader is still on it */
  const html=acGet(a.link);
- if(!html){if(isPay(a))return weFill(a,'<p>'+esc(a.summary||'')+'</p>',1);
-  weFill(a,'<p class="we-rl">Opening the story…</p>',0,1);
+ if(!html){if(isPay(a))return weDrop(a);
+  weFill(a,'<p class="we-rl">Opening the story…</p>',1);
   /* the note after 7 s says the wait is long; it must not throw the story away. Trying every route can take
      longer than that on a phone, and the answer that finally lands is still the story the reader asked for. */
-  const late=setTimeout(()=>{if(WE.rd!==a.link||acHas(a.link))return;(WE.slow=WE.slow||new Set()).add(a.link);weSay();weFill(a,'',0,0,1)},7000);
+  const late=setTimeout(()=>{if(WE.rd!==a.link||acHas(a.link))return;(WE.slow=WE.slow||new Set()).add(a.link);weSay()},7000);
   getFull(a.link,false).then(n=>{clearTimeout(late);weAuthor(a,n);const d=document.createElement('div');d.append(dropTitle(n.cloneNode(true),a.title)),st=acStoreOk(n,a);
    if(st){acPut(a.link,d.innerHTML,1);rtSet(a.link,d);saveSoon();if(WE.slow)WE.slow.delete(a.link);weSay()}
-   if(WE.rd===a.link)weFill(a,d.innerHTML,st?0:1)})
-   .catch(()=>{clearTimeout(late);(WE.slow=WE.slow||new Set()).add(a.link);weSay();if(WE.rd===a.link)weFill(a,'',0,0,1)});
+   if(WE.rd===a.link)st?weFill(a,d.innerHTML):weDrop(a)})
+   .catch(()=>{clearTimeout(late);(WE.slow=WE.slow||new Set()).add(a.link);weSay();if(WE.rd===a.link)weDrop(a)});
   return}
  weFill(a,html);
 }
@@ -16780,7 +16780,10 @@ function weCut(bd,el){if(el.tagName!=='P')return null;const t=(el.textContent||'
  el.textContent=w.slice(0,best).join(' ');
  const r=document.createElement('p');r.className=(el.className.replace(/\bwe-dc\b/,'').trim()+' we-ct').trim();r.textContent=w.slice(best).join(' ');return r}
 /* fills the story's pages in place, right after the page the reader is on */
-function weFill(a,html,gated,wait,fail){
+/* A story that cannot be read inside the edition is not carried with an apology or a link out (issue 48): it leaves the
+   edition, the shelf runs shorter and the ready line counts what is left. */
+function weDrop(a){(WE.gone=WE.gone||new Set()).add(a.link);weRdClose();render()}
+function weFill(a,html,wait){
  const sc=document.querySelector('.we-sc');if(!sc)return;
  const two0=sc.clientWidth>=600;let at=(WE.sp!=null?WE.sp:(WE.at!=null?WE.at:(WE.pg|0)+1));if(two0&&at%2)at++;if(WE.sp==null){WE.spBack=WE.pg|0;WE.spEl=sc.children[WE.spBack]||null;WE.sp=at;pushLayer('weread')}
  [...sc.querySelectorAll('.we-sp')].forEach(x=>x.remove());
@@ -16797,12 +16800,11 @@ function weFill(a,html,gated,wait,fail){
    else if(!a.wby){const rb=raw.slice(0,k+8).find(x=>isBy(x[1]));/* a short 'By ...' line is cut as furniture before this point */
     if(rb)a.wby=rb[1].replace(/^by\s+/i,'');else try{a.wby=weBy(doc)}catch(e){}}}
   for(const [el,t] of keep){const c=document.createElement(/^H/.test(el.tagName)?'h3':'p');c.textContent=t;if(/^H/.test(el.tagName))c.className='we-sub';out.push(c)}}
- if(!out.length){const q=document.createElement('p');q.textContent=fail?esc(a.ft||'The publisher')+' did not send the text of this story. The opening is above; the whole story is on their site.':'Opening the story…';if(wait)q.className='we-rl';if(fail)q.className='we-gt';if(wait)q.className='we-rl';out.push(q)}
+ if(!out.length){const q=document.createElement('p');q.textContent='Opening the story…';q.className='we-rl';out.push(q)}
  let q='';try{q=weQuote(html||'')}catch(e){}
  const lv=weHash(a.link)%3;/* three page shapes: 0 pull quote after the opening, 1 big picture and a mid-story quote, 2 the quote opens the story */
 let said=!!q;if(!q){/* no quoted sentence: the strongest whole sentence of the text itself, word for word */for(const el of out.slice(1)){if(el.tagName!=='P'||el.className)continue;const m=el.textContent.match(/^(.{50,240}?[.!?])(\s|$)/),w=m?m[1].split(' ').length:0;if(m&&w>=9&&w<=34&&/^[A-Z]/.test(m[1])&&!/https?:/.test(m[1])){q=m[1];break}}}
  if(q){const b=document.createElement('blockquote');b.className='we-pq2';b.innerHTML=`${said?'&ldquo;'+esc(q)+'&rdquo;':esc(q)}<cite>From the story &middot; ${esc(a.ft||'')}</cite>`;const px=[2,4,0][lv];if(out.length>px)out.splice(px,0,b);else out.push(b)}
- if(gated){const g=document.createElement('p');g.className='we-gt';g.textContent='This story is subscriber-only. The opening is here; the rest is on the publisher’s site.';out.push(g)}
  if(a.wvid){const v=document.createElement('p');v.className='we-gt';v.textContent='This story is told in a video, and the player does not run inside the edition.';out.push(v)}
  const link=document.createElement('p');link.className='we-ro';link.innerHTML=`<a href="${esc(a.link)}" target="_blank" rel="noopener noreferrer">${a.wvid?'Watch the original':'Open the original story'}</a>`;out.push(link);
  /* David's reading model (issue 33): on a phone the story is one page and reading scrolls; on a spread the body flows page to page and the reader turns them. */
