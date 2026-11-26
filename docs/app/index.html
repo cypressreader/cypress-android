@@ -5540,6 +5540,9 @@ html.lowp .we *,html.lowp .we *::before{animation:none!important;transition:none
 .we-lyr{position:absolute;left:0;top:0;height:100%;display:flex;background:var(--bg,#fff);will-change:transform}
 .we-lyr.we-up{z-index:2}
 .we-lyr>.we-sc{flex:0 0 auto}
+/* issue 54: only the page or spread on screen is painted. Every other page is visibility:hidden, so when a turn lands the old page is not drawn at all - there is nothing left for a compositor to leave behind. A page is .we-cur while any part of it is on screen (during a drag that is both neighbours; at rest it is exactly the current one or two). No copies, no transform, no will-change. */.we-sc{scroll-behavior:auto}
+.we-sc>.we-pg:not(.we-cur){visibility:hidden}
+.we-sc.we-dg{cursor:grabbing;user-select:none;-webkit-user-select:none}
 /* issue 47 item 3, the browsing surfaces: a section opener used to end halfway down the page, and a section whose lead has no photo that passes the checklist had no picture at all. Every opener now carries one - the photograph, or the drawn plate in the cover's hand - and it takes whatever room the type leaves, so the page is full and the spread balances. */.we-op>.we-in>.we-fg{display:flex;flex-direction:column;flex:1 1 auto;min-height:46cqw;overflow:hidden;margin-bottom:4cqw}.we-op>.we-in>.we-fg img,.we-op>.we-in>.we-fg svg{flex:1 1 auto;min-height:0;height:auto;width:100%;object-fit:cover}.we-op>.we-in>.we-fg figcaption{flex:0 0 auto}.we-op>.we-in>.we-ld{flex:0 0 auto}/* a section whose lead has no photograph that passes the checklist opens on type instead: the headline is set large and centred in the page, the deck under it, the byline still at the foot. A type page on purpose, not a half-empty one. *//* issue 49 item 1: this was justify-content:flex-end, and a block pushed to the end overflows UPWARD when it is too tall - over the section number, the name and the back button - where scrollHeight cannot see it, so the page never knew it was over-full once the story's opening lines were added. An auto margin sits the type on the baseline the same way but gives out at zero, so anything too tall overflows downward, is measured, and is taken back. */.we-op.we-tyo>.we-in>.we-ld{flex:1 1 auto;justify-content:flex-start;gap:.3em}.we-op.we-tyo>.we-in>.we-ld>:first-child{margin-top:auto}.we-op.we-tyo .we-ld small{margin-top:5cqw;padding-top:0}.we-op.we-tyo .we-ld h3{font-size:clamp(34px,11.4cqw,76px)}.we-op.we-tyo .we-ld p{font-size:clamp(19px,5.1cqw,26px);max-width:26em;margin-top:4cqw}/* issue 47 item 2: the Contents tile for a lead with no photograph was the same navy block with the same red corner in every row. The mark changes down the page, so the column reads as drawn marks rather than one block repeated. */.we-toc .we-tl li:nth-child(3n+2) .we-tb::before{left:auto;right:0;top:0;bottom:auto;width:44%;height:60%}.we-toc .we-tl li:nth-child(3n) .we-tb::before{left:0;bottom:0;width:100%;height:32%}.we-toc .we-tl li:nth-child(4n+1) .we-tb::after{content:"";position:absolute;right:12%;top:14%;width:34%;aspect-ratio:1;border:1px solid rgba(244,245,243,.5);border-radius:50%}/* issue 48 item 5: on a continued page the section marker was a giant numeral printed over the stories. The label is quiet there - a running head - and the stories are the loudest thing on the page. */.we-hd.we-hc{align-items:baseline;gap:.6em;border-bottom:1px solid var(--wl);padding-bottom:.7em;margin-bottom:1em}.we-hd.we-hc i{font:600 max(10px,2.4cqw)/1 Literata,Georgia,serif;font-style:normal;letter-spacing:0;color:var(--wm);opacity:1}.we-hd.we-hc h2{font:800 max(9px,2.2cqw)/1 system-ui,sans-serif;letter-spacing:.18em;color:var(--wm)}.we-inv .we-hd.we-hc i,.we-inv .we-hd.we-hc h2{color:inherit;opacity:.72}/* issue 48 item 1: the drop cap, the kicker and its red rule can never land on a word. Every block in the body clears the cap, the cap spans three lines and no more, and the kicker keeps its own room under the rule. */.we-bd>*{clear:left}.we-sp .we-sk{display:block;margin-bottom:.6em}.we-sp .we-sh{margin-top:0}/* issue 48 item 3: cover lines. A cover carries short teasers for stories inside; a story opener carries a headline, a deck and a byline and nothing else. That difference is what makes the cover a cover. */.we-cv .we-cls{list-style:none;text-align:left;margin:6cqw -6cqw 5cqw;padding:4cqw 6cqw 3cqw;display:flex;flex-direction:column;gap:2.2cqw;position:relative;z-index:2;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.5) 26%,rgba(0,0,0,.62))}.we-cv .we-cls::before{content:"";position:absolute;left:6cqw;right:6cqw;top:4cqw;border-top:1px solid rgba(255,255,255,.4)}.we-cv .we-cls li{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:.9em;align-items:baseline}.we-cv .we-cls b{font:800 max(8px,1.9cqw)/1.2 system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;opacity:.75}.we-cv .we-cls span{text-align:left;font:400 clamp(13px,3.1cqw,19px)/1.25 Literata,Georgia,serif;text-wrap:balance;overflow-wrap:break-word;hyphens:manual}/* issue 49 item 5: a cover line is never cut - it wraps on whole words and the cover gives it the room */@container we (min-width:600px){.we-cv .we-cls span{font-size:clamp(14px,2.1cqw,20px)}}/* issue 48 item 4: the curled sheet */.we-sb2{background:linear-gradient(to left,rgba(0,0,0,.7),rgba(0,0,0,.12))}</style></head>
 <body>
 <a class="skip" href="#grid">Skip to stories</a>
@@ -16649,7 +16652,7 @@ function wePad(sc,two){let b=sc.querySelector('.we-bkc');const n=sc.children.len
  /* issue 47 item 6: the book ends on the navy back cover. An odd count is made even by a colophon leaf BEFORE it (never a blank white page after it). */
  const last=sc.lastElementChild===b?null:sc.lastElementChild;
  if(need&&!b){b=document.createElement('section');b.className='we-pg we-bkc we-how';b.setAttribute('aria-label','Colophon');b.innerHTML='<div class="we-in"><div class="we-mid"></div><em>Colophon</em><p>The World Edition is set on your phone from the day\u2019s news. It keeps no account, no history and no tracking.</p><p class="we-sig">&mdash; CyPress</p><div class="we-mid"></div></div>';sc.insertBefore(b,last)}
- else if(!need&&b)b.remove();else if(need&&b&&b.nextElementSibling!==sc.lastElementChild)sc.insertBefore(b,sc.lastElementChild);}
+ else if(!need&&b)b.remove();else if(need&&b&&b.nextElementSibling!==sc.lastElementChild)sc.insertBefore(b,sc.lastElementChild);if(WE.lab)WE.lab()}
 /* every page carries its own number, like print */
 function weFolio(){const sc=document.querySelector('.we-sc');if(!sc)return;let n=0;
  [...sc.children].forEach(pg=>{if(pg.classList.contains('we-bkc'))return;/* the blank leaf that keeps a spread whole is not a numbered page */
@@ -16679,14 +16682,26 @@ function weFitPg(pg){if(!pg)return;const b=pg.querySelector('.we-in');if(!b)retu
 function weFitAll(){document.querySelectorAll('.we-pg[data-fit]').forEach(weFitPg)}
 /* issue 53: the turn is a plain opaque swap. The curl (issues 33, 48) was built from copies of the pages, and the Fold's compositor kept leaving one behind (a ghost of the old page over the new one). There are no copies now: the one scroller jumps to the new page and nothing else exists in the DOM. A curl may come back later only if it is proven ghost-free on the real device. */
 /* a finger turns the page; up and down still scroll inside the page */
-function weSwipe(sc){let x0=0,y0=0,id=0,go=false;
- /* the whole spread listens, not just the scroller, so a swipe that starts on the masthead or the edition
-    picker counts; and a quick flick that ends before a move event crosses the line still turns the page. */
- const host=sc.parentNode||sc,pull=(dx,dy,ev)=>{if(go)return;if(Math.abs(dx)>28&&Math.abs(dx)>Math.abs(dy)*1.4){go=true;if(ev&&ev.stopPropagation)ev.stopPropagation();if(WE.turn)WE.turn(dx<0?1:-1)}};
- host.onpointerdown=ev=>{if(ev.pointerType==='mouse'&&ev.button)return;x0=ev.clientX;y0=ev.clientY;id=ev.pointerId||1;go=false};
- host.onpointermove=ev=>{if(!id||(ev.pointerId||1)!==id)return;pull(ev.clientX-x0,ev.clientY-y0,ev)};
- host.onpointerup=ev=>{if(id&&(ev.pointerId||1)===id)pull(ev.clientX-x0,ev.clientY-y0,ev);id=0};
- host.onpointercancel=()=>{id=0};
+function weSwipe(sc){
+ /* issue 54: drag-to-turn. The page follows the finger (the one scroller's scrollLeft, set on every move) and on release it settles on the next page, the previous one, or back where it was; a quick flick counts. Nothing is copied, cloned or transformed - the scroller is the only thing that moves, and the pages that are not on screen are not painted (.we-cur, see the CSS). A new touch while a page is still settling lands it at once and takes over. */
+ const host=sc.parentNode||sc,two=()=>sc.clientWidth>=600,pw=()=>sc.clientWidth/(two()?2:1),st=()=>two()?2:1,top=()=>{const n=sc.children.length-1;return two()?n-(n%2):n},rm=matchMedia('(prefers-reduced-motion:reduce)');
+ let id=0,x0=0,y0=0,t0=0,s0=0,i0=0,drag=0,raf=0,tm=0,dest=-1,swallow=0;
+ const lab=()=>{if(WE.lab)WE.lab()},land=WE.fin=()=>{cancelAnimationFrame(raf);clearTimeout(tm);raf=tm=0;sc.classList.remove('we-dg');if(dest>=0){sc.scrollLeft=dest*pw();dest=-1}lab()};
+ WE.slide=to=>{land();to=Math.max(0,Math.min(top(),two()?to-(to%2):to));const from=sc.scrollLeft,end=to*pw();dest=to;
+  if(rm.matches||Math.abs(end-from)<1)return land();
+  const ms=Math.min(260,110+Math.abs(end-from)/pw()*60),t=performance.now(),f=n=>{const k=Math.min(1,(n-t)/ms);sc.scrollLeft=from+(end-from)*(1-Math.pow(1-k,3));lab();if(k<1)raf=requestAnimationFrame(f);else land()};
+  raf=requestAnimationFrame(f);tm=setTimeout(land,ms+120)};
+ host.addEventListener('click',ev=>{if(swallow&&ev.timeStamp-swallow<500){ev.stopPropagation();ev.preventDefault()}swallow=0},true);
+ host.onpointerdown=ev=>{if(ev.pointerType==='mouse'&&ev.button)return;land();id=ev.pointerId||1;x0=ev.clientX;y0=ev.clientY;t0=ev.timeStamp;s0=sc.scrollLeft;i0=WE.pg|0;drag=0};
+ host.onpointermove=ev=>{if(!id||(ev.pointerId||1)!==id)return;const dx=ev.clientX-x0,dy=ev.clientY-y0;
+  if(!drag){if(Math.abs(dx)<12||Math.abs(dx)<Math.abs(dy)*1.2)return;drag=1;sc.classList.add('we-dg');try{host.setPointerCapture(ev.pointerId)}catch(e){}}
+  sc.scrollLeft=Math.max(0,Math.min(top()*pw(),s0-dx));lab();ev.stopPropagation()};
+ host.onpointerup=ev=>{if(!id||(ev.pointerId||1)!==id)return;id=0;const dx=ev.clientX-x0,dy=ev.clientY-y0,dt=Math.max(1,ev.timeStamp-t0),u=pw()*st();
+  try{host.releasePointerCapture(ev.pointerId)}catch(e){}
+  if(drag){drag=0;swallow=ev.timeStamp;const flick=Math.abs(dx)/dt>.35&&Math.abs(dx)>24;WE.slide(i0+((Math.abs(dx)>u*.25||flick)?(dx<0?1:-1)*st():0));return}
+  if(Math.abs(dx)>28&&Math.abs(dx)>Math.abs(dy)*1.4){ev.stopPropagation();WE.turn(dx<0?1:-1)}};
+ host.ondragstart=ev=>ev.preventDefault();/* a mouse drag that starts on a headline link would be a link drag, and cancel the turn */
+ host.onpointercancel=()=>{id=0;if(drag){drag=0;WE.slide(Math.round(sc.scrollLeft/(pw()*st()))*st())}};
 }
 /* Issue 32 rule 6: a story IS magazine pages inside the edition - no reader overlay. The pages are built from the cleaned story the preload already stored, and filled by measuring: paragraphs go on until the page is full, then the next page starts. */
 const WE_JUNK=/\b(sections?|menu|subscribe|sign ?in|log ?in|newsletter|share this|follow us|comments?|forum|advertisement|sponsored|related|read more|more from|theme|pin to story|skip to|privacy|cookies?|consent|accept all|manage (your )?(choices|settings)|dark mode|light mode|red alert|support us|donate|account|notifications?|most popular|trending|back to top|agree and close|learn more|welcome to|please select your experience|watch live|breaking news|just in|video player is loading|play video|skip (backward|forward)|advertising|current time|duration|remaining time|picture-in-picture|fullscreen|copy\/paste the script below|view more|mute|unmute|loaded|stream type|playback rate|reset done|weather)\b/i;
@@ -16760,7 +16775,8 @@ function weFill(a,html,wait){
    if(bi>=0){a.wby=keep[bi][1].replace(/^by\s+/i,'');keep.splice(bi,1)}
    else if(!a.wby){const rb=raw.slice(0,k+8).find(x=>isBy(x[1]));/* a short 'By ...' line is cut as furniture before this point */
     if(rb)a.wby=rb[1].replace(/^by\s+/i,'');else try{a.wby=weBy(doc)}catch(e){}}}
-  for(const [el,t] of keep){const c=document.createElement(/^H/.test(el.tagName)?'h3':'p');c.textContent=t;if(/^H/.test(el.tagName))c.className='we-sub';out.push(c)}}
+  const seenP=new Set();/* issue 54: a publisher page that carries the same paragraph twice (a lazy-loaded copy, a repeated block) printed it on two pages: a long paragraph is told once */
+  for(const [el,t] of keep){if(t.length>=40){const k=t.toLowerCase();if(seenP.has(k))continue;seenP.add(k)}const c=document.createElement(/^H/.test(el.tagName)?'h3':'p');c.textContent=t;if(/^H/.test(el.tagName))c.className='we-sub';out.push(c)}}
  if(!out.length){const q=document.createElement('p');q.textContent='Opening the story…';q.className='we-rl';out.push(q)}
  let q='';try{q=weQuote(html||'')}catch(e){}
  const lv=weHash(a.link)%3;/* three page shapes: 0 pull quote after the opening, 1 big picture and a mid-story quote, 2 the quote opens the story */
@@ -16781,12 +16797,12 @@ let said=!!q;if(!q){/* no quoted sentence: the strongest whole sentence of the t
    if(fg&&bd.scrollHeight>bd.clientHeight+1){for(const hh of [40,32,26,20,15]){fg.style.setProperty('--wfh2',hh+'cqw');if(bd.scrollHeight<=bd.clientHeight+1)break}
     if(bd.scrollHeight>bd.clientHeight+1)fg.remove()}}
   const q=out.map(x=>x.cloneNode(true));
-  if(!two){for(const el of q){if(drop&&el.tagName==='P'&&!el.className&&el.textContent.length>40)el.classList.add('we-dc'),drop=0;bd.append(el)}}
+  if(!two){for(const el of q){if(drop&&el.tagName==='P'&&!el.className&&el.textContent.length>40&&/^[\u201c"'\u2018]?\p{Lu}/u.test(el.textContent))el.classList.add('we-dc'),drop=0;/* issue 54: only a paragraph that opens on a capital gets a drop cap - a fragment that opens mid-word printed one huge lowercase letter */bd.append(el)}}
   else{/* issue 42 item 3: a paragraph taller than the page it landed on is split at a word and carries on. */
    let guard=0;
    while(q.length&&guard++<500){
     const el=q.shift();
-    if(drop&&el.tagName==='P'&&!el.className&&el.textContent.length>40)el.classList.add('we-dc'),drop=0;
+    if(drop&&el.tagName==='P'&&!el.className&&el.textContent.length>40&&/^[\u201c"'\u2018]?\p{Lu}/u.test(el.textContent))el.classList.add('we-dc'),drop=0;/* issue 54: only a paragraph that opens on a capital gets a drop cap - a fragment that opens mid-word printed one huge lowercase letter */
     bd.append(el);
     if(bd.scrollHeight<=bd.clientHeight+1)continue;
     if(bd.children.length>1&&cap<13){
@@ -16814,8 +16830,8 @@ let said=!!q;if(!q){/* no quoted sentence: the strongest whole sentence of the t
  if(pages.length){const lm=pages[pages.length-1].querySelector('.we-more');if(lm)lm.hidden=true}
  if(out.length<=3&&!out.some(x=>x.tagName==='P'&&!x.className&&x.textContent.length>120))pages[0].classList.add('we-note');/* nothing but an opening and a note: it sits in the middle of the leaf, not at the top */
  wePad(sc,sc.clientWidth>=600);weFolio();
- const f=pages[0].querySelector('[data-werb]');if(f&&wait!==1)try{f.focus({preventScroll:true})}catch(e){}
  if(WE.go&&WE.pg!==at)WE.go(at,1);else if(WE.lab)WE.lab();
+ const f=pages[0].querySelector('[data-werb]');if(f&&wait!==1)try{f.focus({preventScroll:true})}catch(e){}/* after the jump: a hidden page cannot take focus */
 }
 function weRdClose(fromPop){if(WE.resettle)setTimeout(()=>{WE.resettle=0;weSettle()},60);const sc=document.querySelector('.we-sc');WE.rd=null;if(WE.sp==null)return;const bk=sc;
  const back=WE.spBack|0;WE.sp=null;
@@ -16878,7 +16894,7 @@ function renderWE(){
  {const mn=$('main');if(mn)mn.scrollTop=0;const w=g.firstElementChild,sc=w.firstElementChild;
   /* issue 32 rule 1: the edition is the whole screen. No app footer bar carries the page count - every page prints its own number. */
   const two=()=>w.clientWidth>=600,pw=()=>sc.clientWidth/(two()?2:1),pgs=()=>sc.children.length,
-   lab=()=>{const i=Math.round(sc.scrollLeft/pw());WE.pg=i;const f=sc.children[i]&&sc.children[i].querySelector('.we-fo'),nm=f&&f.getAttribute('data-n');
+   lab=()=>{const w=pw()||1,sl=sc.scrollLeft,i=Math.round(sl/w),a=Math.floor((sl+2)/w),b=Math.ceil((sl+sc.clientWidth-2)/w)-1;WE.pg=i;[...sc.children].forEach((p,k)=>p.classList.toggle('we-cur',k>=a&&k<=b));const f=sc.children[i]&&sc.children[i].querySelector('.we-fo'),nm=f&&f.getAttribute('data-n');
    sc.setAttribute('aria-label',`${e.name}, page ${nm||i+1} of ${WE.base||pgs()}`)};
   WE.lab=lab;
   const drawArt=WE.art=()=>{if(!art||WE.lite)return;const cv=w.querySelector('.we-cv');if(!cv)return;const old=w.querySelector('.we-ar'),bw=Math.round(pw()),bh=Math.round(sc.clientHeight);if(!bw||!bh)return;
@@ -16898,9 +16914,9 @@ function renderWE(){
   addEventListener('resize',size);
   /* a jump asked for during a turn keeps its exact target (returning from a story, a contents jump);
      a swipe only keeps its direction. Either way it runs the moment the turn ends, and the turn is cut short. */
-  WE.go=(to,dir)=>{const t2=two(),i=WE.pg|0,mx=t2?(pgs()-1)-((pgs()-1)%2):pgs()-1;to=Math.max(0,Math.min(mx,t2?to-(to%2):to));if(to===i)return;sc.scrollLeft=to*pw();lab()};
+  WE.go=(to,dir)=>{if(WE.fin)WE.fin();const t2=two(),i=WE.pg|0,mx=t2?(pgs()-1)-((pgs()-1)%2):pgs()-1;to=Math.max(0,Math.min(mx,t2?to-(to%2):to));if(to===i)return;sc.scrollLeft=to*pw();lab()};
   /* issue 38 rule 4: a swipe during a turn used to be thrown away (three swipes, two pages). It waits its turn now. */
-  WE.turn=dir=>{WE.go((WE.pg|0)+dir*(two()?2:1),dir)};
+  WE.turn=dir=>{if(WE.fin)WE.fin();if(WE.slide)WE.slide((WE.pg|0)+dir*(two()?2:1))};
   weSwipe(sc);sc.onkeydown=ev=>{if(ev.key==='ArrowRight'||ev.key==='ArrowLeft'){ev.preventDefault();WE.turn(ev.key==='ArrowRight'?1:-1)}
    else if(ev.key==='Escape'){ev.preventDefault();if(WE.sp!=null)weRdClose();else weExit()}}}
  g.querySelector('.we-ed').onchange=ev=>{S.weEd=ev.target.value;saveSoon();WE.pg=0;WE.sp=null;render()};
