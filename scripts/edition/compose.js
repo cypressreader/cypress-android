@@ -50,47 +50,65 @@ const dayN=Math.floor(Date.parse(DATE+'T12:00:00Z')/864e5);
 const prev=(()=>{try{return JSON.parse(fs.readFileSync(OUT,'utf8'))}catch(e){return null}})();
 const issue=(prev&&prev.date!==DATE&&prev.issue?prev.issue+1:(prev&&prev.issue)||1);
 
-const sections=[],kept=[];
-for(const s of cand.sections||[]){
- const stories=[];
- for(const st of s.stories||[]){
-  const r=read.get(st.l);if(!r)continue;            /* pass 1 dropped it: not read, too short, or gated */
-  if(drop.has(st.l))continue;
-  const o={t:st.t,o:st.o,l:st.l};
-  const ph=pics.get(st.l);
-  if(ph)o.photo={url:ph.url,credit:ph.credit,w:ph.w,h:ph.h,people:ph.people!==false,
-    clear:ph.clear,by:'Claude, looked at each one'};
-  if(st.n>1)o.n=st.n;                               /* "Reported by n of N outlets checked" */
-  else o.why='The only outlet checked that carried it';
-  /* the standfirst is the publisher's own summary FROM ITS FEED, never a sentence lifted out of the article */
-  if(!stories.length&&st.dek)o.dek=String(st.dek).replace(/\s+/g,' ').trim().slice(0,170);
-  /* `kind` is left out rather than guessed: calling every story an article would be wrong about the broadcast
-     segments, and the app does not read the field yet. */
-  stories.push(o);kept.push({...st,section:s.name,words:r.words});
+/* Build one edition's sections from what survived. Both editions draw on the same gathered stories, so this
+   runs once per edition and the pictures and the drop list apply to both. */
+let kept=[];
+function build(src){
+ const sections=[];
+ for(const s of src){
+  const stories=[];
+  for(const st of s.stories||[]){
+   const r=read.get(st.l);if(!r)continue;            /* pass 1 dropped it: not read, too short, or gated */
+   if(drop.has(st.l))continue;
+   const o={t:st.t,o:st.o,l:st.l};
+   const ph=pics.get(st.l);
+   if(ph)o.photo={url:ph.url,credit:ph.credit,w:ph.w,h:ph.h,people:ph.people!==false,
+     clear:ph.clear,by:'Claude, looked at each one'};
+   if(st.n>1)o.n=st.n;                               /* "Reported by n of N outlets checked" */
+   else o.why='The only outlet checked that carried it';
+   /* the standfirst is the publisher's own summary FROM ITS FEED, never a sentence lifted out of the article */
+   if(!stories.length&&st.dek)o.dek=String(st.dek).replace(/\s+/g,' ').trim().slice(0,170);
+   /* `kind` is left out rather than guessed */
+   stories.push(o);kept.push({...st,section:s.name,words:r.words});
+  }
+  /* The lead follows the picture. A section opens on a page of its own, and that page is a photograph when its
+     lead has one, so among the stories that survived, one with a cleared picture leads and the counting order
+     decides the rest. This is how magazines have always chosen what opens a section. */
+  const li=stories.findIndex(x=>x.photo);
+  if(li>0)stories.unshift(stories.splice(li,1)[0]);
+  sections.push({name:s.name,stories});
  }
- /* The lead follows the picture. A section opens on a page of its own, and that page is a photograph when its
-    lead has one - so among the stories that survived, one with a cleared picture leads, and the counting order
-    decides the rest. This is how magazines have always chosen what opens a section. */
- const li=stories.findIndex(x=>x.photo);
- if(li>0)stories.unshift(stories.splice(li,1)[0]);
- sections.push({name:s.name,stories});
+ return sections;
 }
-const total=kept.length;
 
 /* The cover story is the most reported story of the day. Nobody picks it - that is the promise on the method
    page, and it is the whole reason the counting exists. */
-let lead=[0,0],leadStory=null;
-{let best=-1;
- sections.forEach((s,si)=>s.stories.forEach((st,ti)=>{const n=st.n||1;if(n>best){best=n;lead=[si,ti];leadStory=st}}));
+function coverOf(sections){
+ let lead=[0,0],best=-1,story=null;
+ sections.forEach((s,si)=>s.stories.forEach((st,ti)=>{const n=st.n||1;if(n>best){best=n;lead=[si,ti];story=st}}));
+ return{lead,story};
 }
 
-const edition={
- id:'us',name:'US Edition',regions:['US'],fallback:true,
- cover:{lead,mood:'ordinary',shape:SHAPES[dayN%SHAPES.length],accent:null,photo:null,
+const srcEds=(cand.editions&&cand.editions.length)?cand.editions
+ :[{id:'us',name:'US Edition',regions:['US'],fallback:true,sections:cand.sections||[]}];
+const built=srcEds.map(e=>{
+ const sections=build(e.sections||[]);
+ const{lead,story}=coverOf(sections);
+ return{...e,sections,lead,leadStory:story,count:sections.reduce((n,s)=>n+s.stories.length,0)};
+}).filter(e=>e.count);
+const total=built[0]?built[0].count:0;
+const sections=built[0]?built[0].sections:[];
+const lead=built[0]?built[0].lead:[0,0];
+const leadStory=built[0]?built[0].leadStory:null;
+
+const shape=e=>({
+ id:e.id,name:e.name,regions:e.regions||[],fallback:!!e.fallback,
+ cover:{lead:e.lead,mood:'ordinary',shape:SHAPES[dayN%SHAPES.length],accent:null,
+  photo:(()=>{const p=e.leadStory&&e.leadStory.photo;return p&&p.w>=1600?p:null})(),
   logo:dayN%2?'ghost':'top',
-  photoNote:'No photograph: a picture is printed only once it has been cleared by eye, and that pass is not built yet.'},
- sections
-};
+  photoNote:'No photograph on the cover: the lead story had none big enough that had been looked at.'},
+ sections:e.sections
+});
 
 const file={
  format:1,date:DATE,issue,sampled:cand.sampled||0,
@@ -102,11 +120,12 @@ const file={
   'One link per story, to an outlet that lets you read it. The app never goes past a paywall or meter and never keeps a publisher’s story on a server.',
   'One edition a day. It is not updated after it is published, apart from a dated correction. No opinion columns, no games, no weather.'
  ],
- editions:[edition]
+ editions:built.map(shape)
 };
 
 console.log('EDITION '+DATE+'  No. '+issue+'  '+(cand.sampled||0)+' outlets read');
 for(const s of sections)console.log('  '+s.name.padEnd(18)+s.stories.length+(s.stories.length?'  '+s.stories.map(x=>x.o).join(', '):''));
+for(const e of built.slice(1))console.log('  + '+e.name+': '+e.count+' stories');
 console.log('\n'+total+' stories printed, '+((got.dropped||[]).length)+' dropped at the gate.');
 if(leadStory)console.log('cover: '+leadStory.t.slice(0,70)+'  ('+(leadStory.n||1)+' outlets, '+leadStory.o+')');
 console.log('cover state: type ('+file.editions[0].cover.shape+' shape, masthead '+file.editions[0].cover.logo+')');

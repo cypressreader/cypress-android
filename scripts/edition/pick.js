@@ -64,6 +64,21 @@ const DESK=[
  {name:'Back page',n:2,cats:['Good news']},
 ];
 
+/* TWO EDITIONS. The format has always had them and only the US one has been written, so an international
+   reader has been getting the US magazine. They cost nothing extra: the feeds are read once, the headlines
+   grouped once, and each edition then picks from the same groups with its own desk. Both may carry the same
+   story - two editions of a magazine do - so a story is spent within an edition, not across them.
+   The international desk is the US one with Home replaced: an international reader opens on the world. */
+const INTL=[{name:'Around the world',n:6,
+  outlets:['BBC World','The Guardian World','Al Jazeera','Deutsche Welle','Reuters','BBC News','Global News','The Guardian','France 24','The Japan Times','Euronews','Foreign Policy','Foreign Affairs','BBC Politics']},
+ ...DESK.filter(d=>d.name!=='Home')];
+const EDITIONS=[
+ {id:'us',name:'US Edition',regions:['US'],fallback:true,desk:DESK},
+ {id:'int',name:'International Edition',
+  regions:['GB','IE','AU','NZ','CA','ZA','IN','SG','DE','FR','NL','BE','SE','NO','DK','FI','ES','IT','PT','PL','JP','KR','BR','MX','AR','CL','AE','NG','KE','PH'],
+  desk:INTL},
+];
+
 /* One feed, fetched through the open browser rather than by hand in Node. Reason, measured: a request with our
    own user agent was refused by 19 of 73 outlets (BBC, NPR, The Guardian, Ars Technica, Wired and more all
    answered 403); the browser's own request carries the headers a feed reader is expected to send and they
@@ -139,15 +154,16 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
   return{m,byCat}});
  const inCat=n=>cat.byCat[n]||[];
  /* every outlet any desk reads: the categories it takes whole, plus the ones it names */
- const want=[...new Set(DESK.flatMap(d=>[...(d.cats||[]).flatMap(inCat),...(d.outlets||[])]))];
- const missing=[...new Set(DESK.flatMap(d=>d.outlets||[]))].filter(o=>!cat.m[o]);
+ const DESKS=EDITIONS.flatMap(e=>e.desk);
+ const want=[...new Set(DESKS.flatMap(d=>[...(d.cats||[]).flatMap(inCat),...(d.outlets||[])]))];
+ const missing=[...new Set(DESKS.flatMap(d=>d.outlets||[]))].filter(o=>!cat.m[o]);
  if(missing.length)console.log('named but not in the app catalogue, skipped: '+missing.join(', '));
  /* a desk that matches a kind of story rather than a place reads everything the others read */
  const everyone=want.slice();
- for(const d of DESK)if(d.any)d.outlets=everyone;
+ for(const d of DESKS)if(d.any)d.outlets=everyone;
  const feeds=want.filter(o=>cat.m[o]).map((o,i)=>({id:'e'+i,url:cat.m[o],title:o,outlet:o}));
  /* which outlets each desk may take from, worked out once */
- for(const d of DESK)d.from=new Set(d.any?everyone:[...(d.cats||[]).flatMap(inCat),...(d.outlets||[])]);
+ for(const d of DESKS)d.from=new Set(d.any?everyone:[...(d.cats||[]).flatMap(inCat),...(d.outlets||[])]);
  /* the site behind each feed, worked out by the app's own siteOf, so the relay asks Google News for the right
     publisher and the answer can be checked against it */
  const sites=await page.evaluate(us=>us.map(u=>siteOf({url:u})),feeds.map(f=>f.url));
@@ -219,36 +235,37 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
 
  /* a tab of its own for looking up relayed links: navigating the app's page away would take the app with it */
  const tab=await app.ctx.newPage();
- const used=new Set(),accepted=[],sections=[];
- for(const d of DESK){
-  const mine=[];
-  for(const g of groups){
-   if(mine.length>=d.n)break;
-   if(!d.from.has(g.outlet)||used.has(g.link))continue;
-   /* a desk that is a kind of story only takes a headline that is that kind */
-   if(d.find&&!d.find.test(g.title||''))continue;
-   /* one story per outlet per section: a desk whose other feeds went quiet would otherwise fill its whole
-      section from whichever outlet publishes most often (Space.com twice in Science & Health, one of them an
-      almanac item). A section that cannot be filled from different outlets runs short, which the method page
-      allows and a reader reads as a quiet day. */
-   if(mine.some(x=>x.outlet===g.outlet))continue;
-   if(await isRepeat(accepted,g))continue;
-   /* a story that came through the relay points at Google, not at the publisher: look its real address up
-      now, while there is still another candidate to fall back on if it does not resolve */
-   if(!await resolve(tab,page,g)){used.add(g.link);continue}
-   mine.push(g);accepted.push({title:g.title,link:g.link,feedId:g.feedId});
-   /* a group's other outlets are the same story: using one spends them all, so the next section cannot print
-      the same event under a different masthead */
-   used.add(g.link);for(const m of g.more)if(m.l)used.add(m.l);
+ /* each edition picks from the same groups with its own desk */
+ const editions=[];
+ for(const E of EDITIONS){
+  const used=new Set(),accepted=[],sections=[];
+  for(const d of E.desk){
+   const mine=[];
+   for(const g of groups){
+    if(mine.length>=d.n)break;
+    if(!d.from.has(g.outlet)||used.has(g.link))continue;
+    /* a desk that is a kind of story only takes a headline that is that kind */
+    if(d.find&&!d.find.test(g.title||''))continue;
+    /* one story per outlet per section: a desk whose other feeds went quiet would otherwise fill its whole
+       section from whichever outlet publishes most often. A section that cannot be filled from different
+       outlets runs short, which the method page allows and a reader reads as a quiet day. */
+    if(mine.some(x=>x.outlet===g.outlet))continue;
+    if(await isRepeat(accepted,g))continue;
+    /* a story that came through the relay points at Google, not at the publisher: look its real address up
+       now, while there is still another candidate to fall back on if it does not resolve */
+    if(!await resolve(tab,page,g)){used.add(g.link);continue}
+    mine.push(g);accepted.push({title:g.title,link:g.link,feedId:g.feedId});
+    /* a group's other outlets are the same story: using one spends them all inside THIS edition */
+    used.add(g.link);for(const m of g.more)if(m.l)used.add(m.l);
+   }
+   sections.push({name:d.name,places:d.n,stories:mine.map(g=>({t:ownWords(g.title,g.outlet),o:g.outlet,l:g.link,n:g.n,
+    dek:g.summary||'',img:g.img||'',date:g.date,outlets:g.outlets,
+    sibs:(g.more||[]).filter(m=>m.l&&!/news\.google\.com/.test(m.l)).map(m=>({o:outletOf[m.f]||'',l:m.l,img:m.img||''})).slice(0,4)}))});
   }
-  sections.push({name:d.name,places:d.n,stories:mine.map(g=>({t:ownWords(g.title,g.outlet),o:g.outlet,l:g.link,n:g.n,
-   dek:g.summary||'',img:g.img||'',date:g.date,outlets:g.outlets,
-   /* The other outlets' versions of the same story. Grouping finds them, and until now they were used only to
-      stop the same event printing twice. They are also the other photographers who were there: the format says
-      a cover photo is "the best photo among all outlets' versions", and 16 of 27 stories in the 26 November
-      edition had no usable picture of their own while 27 sibling versions went unlooked at. */
-   sibs:(g.more||[]).filter(m=>m.l&&!/news\.google\.com/.test(m.l)).map(m=>({o:outletOf[m.f]||'',l:m.l,img:m.img||''})).slice(0,4)}))});
+  editions.push({id:E.id,name:E.name,regions:E.regions,fallback:!!E.fallback,sections});
  }
+ /* the US edition is the one printed in the report and the one the old files called "sections" */
+ const sections=editions[0].sections;
 
  const sampled=new Set(ok.map(g=>g.f.outlet)).size;
  const total=sections.reduce((n,s)=>n+s.stories.length,0);
@@ -263,8 +280,12 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
  if(lead)console.log('\nlead by count: '+lead.t.slice(0,70)+'  ('+lead.n+' outlets, '+lead.o+')');
  console.log('\n'+total+' candidate stories. They still have to be read and gated: scripts/edition/gather.js');
 
+ for(const e of editions.slice(1)){
+  const n=e.sections.reduce((m,x)=>m+x.stories.length,0);
+  console.log('\n'+e.name+': '+n+' stories, '+e.sections.filter(x=>x.stories.length).length+' sections with something in them');
+ }
  if(OUT){fs.writeFileSync(OUT,JSON.stringify({picked:new Date().toISOString(),hours:HOURS,sampled,
-   lead:lead?[lead.si,lead.ti]:null,sections},null,1));console.log('written to '+OUT)}
+   lead:lead?[lead.si,lead.ti]:null,sections,editions},null,1));console.log('written to '+OUT)}
  await app.close();
  process.exit(total<10?2:0);
 })();

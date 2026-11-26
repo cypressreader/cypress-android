@@ -43,7 +43,10 @@ function candidates(){
  };
  if(CAND){
   const d=JSON.parse(fs.readFileSync(CAND,'utf8'));
-  for(const s of d.sections||[])for(const st of s.stories||[])add(st,s.name,'picked');
+  /* every edition's stories, not just the first one's: the two editions share most of them, and `add` keeps
+     each address once, so the extra edition costs almost nothing to gate */
+  for(const e of d.editions||[{name:'picked',sections:d.sections||[]}])
+   for(const s of e.sections||[])for(const st of s.stories||[])add(st,s.name,e.name||'picked');
   return out;
  }
  const d=JSON.parse(fs.readFileSync(EDITION,'utf8'));
