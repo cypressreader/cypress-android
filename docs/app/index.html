@@ -10340,6 +10340,14 @@ function oiWanted(){
   const h=acGet(a.link)||a.html||'',re=/<img[^>]+src=["']([^"']+)["']/gi;let m;while(u.length<6&&(m=re.exec(h)))u.push(m[1]);
   u.map(oiKey).filter(x=>/^https?:/.test(x)).forEach(x=>out.add(x));
  }
+ /* The edition's own pictures (David's choices sheet: keep the day's pictures on the phone). A magazine that
+    is all type on a plane is half a magazine. They join the store the app already keeps for stories rather
+    than a second one of their own, so they follow the same switch, the same storage limit and the same
+    pruning: when the issue is replaced, its pictures stop being wanted and go. */
+ try{const d=WE.d;if(d&&Array.isArray(d.editions))for(const e of d.editions){
+  const c=e.cover&&e.cover.photo;if(c&&c.url)out.add(oiKey(c.url));
+  for(const sec of e.sections||[])for(const st of sec.stories||[])if(st.photo&&st.photo.url)out.add(oiKey(st.photo.url));
+ }}catch(e){}
  return out;
 }
 async function oiDrop(c,u){try{await c.delete(u)}catch(e){}OI.set.delete(u);const b=OI.blob.get(u);if(b){URL.revokeObjectURL(b);OI.blob.delete(u)}}
