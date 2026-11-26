@@ -18582,7 +18582,12 @@ async function nativeUpdateCheck(manual){
   const r=await fetch('https://api.github.com/repos/'+CP_REPO+(prev?'/releases?per_page=30':'/releases/latest'),{headers:{'Accept':'application/vnd.github+json'},signal:AbortSignal.timeout(15000)});
   if(!r.ok)throw new Error('HTTP '+r.status);
   let j=await r.json();
-  if(prev){j=(Array.isArray(j)?j:[]).find(x=>x&&x.prerelease&&/^preview-/.test(String(x.tag_name||'')));if(!j){if(manual)toast('You have the latest preview');return NU}}
+  /* issue 42: the list is not always newest first - a re-run, or a build published out of order, can put an
+     older preview at the top, and taking the first one offered a build older than the one already installed.
+     Every preview is read and the highest build number wins. */
+  if(prev){const bn=x=>parseInt((String(x.name||'').match(/build (\d+)/)||[])[1],10)||0;
+   j=(Array.isArray(j)?j:[]).filter(x=>x&&x.prerelease&&/^preview-/.test(String(x.tag_name||''))).sort((a,b)=>bn(b)-bn(a))[0];
+   if(!j){if(manual)toast('You have the latest preview');return NU}}
   /* a preview tag is a commit, not a number: its build number is the one printed in the release's name */
   const n=prev?(parseInt((String(j.name||'').match(/build (\d+)/)||[])[1],10)||0):(parseInt(String(j.tag_name||'').replace(/\D/g,''),10)||0);
   const keep=NU&&NU.code===n?NU.got:0;
