@@ -2753,3 +2753,12 @@ ten sections opening on a photograph. Both robot checks were clean at phone and 
   arrived). Opening one should show that issue, and the Contents footer should then offer "Back to the latest
   issue". The last seven are kept.
 - **Listen to this edition** (from build 505) still plays the issue in order.
+
+## Preview build (2026-11-26, two editions and the sport rule)
+- **The edition switcher works again.** US Edition and International Edition are both in the file; the
+  international one opens on "Around the world" instead of Home. Switching should show a different running
+  order, not the same magazine with a different name on it.
+- **Sport.** Only things that were won, or a career ending, being banned or a record transfer. A day with no
+  final should leave Sport short or empty - that is the rule working, not a fault. A death belongs on the
+  Obituary page.
+- **Pictures.** 20 in the US edition, ten sections opening on a photograph.
