@@ -2782,3 +2782,12 @@ ten sections opening on a photograph. Both robot checks were clean at phone and 
 - STILL OPEN, seen in David's screenshots and reproduced in a browser: a story's opening page stops about
   69% full because the pull quote cannot fit the remaining third, so it starts the next page and leaves a
   hole on both. Not fixed in this build.
+
+## Pagination build (2026-11-26, late)
+- **A story's opening page should be full.** A paragraph now runs on across the break: the page ends
+  mid-sentence and the next opens flush with the rest of it. Measured on three stand-in stories, opening
+  pages went 29->53, 76->97 and 46->60 per cent full.
+- **A pull quote** shrinks a step or two to stay on the page, and if it still will not fit it waits for the
+  next paragraph rather than taking the rest of the page with it.
+- Watch for: a continuation that repeats words already read (it should carry on, never restart), a quote so
+  small it reads as body text, and any page that still ends a third empty.
