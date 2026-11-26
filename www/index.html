@@ -16669,6 +16669,10 @@ const WE_BIG=1600,WE_SM=600;/* a cover is printed full-bleed and needs the big f
    so a late, missing or too-small picture is simply dropped (never a placeholder box). Story pages are built
    when the reader opens a story, long after the edition was drawn, so they are wired through here too. */
 function wePics(root){if(!root)return;root.querySelectorAll('.we-ph,[data-wep],.we-tm').forEach(im=>{if(im.dataset.wewired)return;im.dataset.wewired='1';
+  /* Every page of the edition is in the document from the start, so its pictures are already downloading long
+     before the page is turned to - but a picture is DECODED when it is first painted, and that lands in the
+     middle of the turn. Asking for the decode now moves that work off the turn. Nothing depends on it. */
+  try{im.decode&&im.decode().catch(()=>{})}catch(e){}
   if(im.classList.contains('we-tm')){/* a Contents thumbnail: the lead's own picked photo; a failed or small file just leaves the row as text */const bt=im.parentNode,pg=bt.closest('.we-pg[data-fit]'),off=()=>{im.remove();pg&&weFitPg(pg)};im.onerror=off;im.onload=()=>{if(Math.max(im.naturalWidth,im.naturalHeight)<WE_SM)off()};if(im.complete&&im.naturalWidth&&Math.max(im.naturalWidth,im.naturalHeight)<WE_SM)off();return}
   const cov=im.classList.contains('we-ph'),box=cov?im:im.parentNode,off=()=>box.remove(),
   shown=()=>{if(!im.isConnected)return;if(Math.max(im.naturalWidth,im.naturalHeight)<(cov?WE_BIG:WE_SM))return off();
