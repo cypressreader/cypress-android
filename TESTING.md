@@ -2683,3 +2683,16 @@ Check on the Fold first, then web, then wide:
 ## Issue 54 (Fold, David)
 - Drag a page with a finger on phone + Fold: it follows the finger, snaps to next/previous on release; flick works; rapid swipes and a stopped-mid-drag finger end cleanly; arrow keys still turn.
 - No ghost of the old page 1 s / 5 s after any turn; no 3 openers on one page (Food / Long read / Back page); story pages (World story, 11 pages) all distinct, no repeated or spliced sentences, no clipped edges; no lone big "g"; every Home story ends with the end mark.
+
+## 1.396+ (branch claude/issue-47-20261125-2336) — needs a real phone
+- **Fast scroll up no longer resizes the screen** (David, 2026-11-26, APK 469): a height-only resize
+  (Android's system bar animating during a fast fling) no longer runs the full reshape — cover refit,
+  crop, tab indicators, transition writes and a forced layout of the whole document — on every event.
+  It is coalesced to one pass 220 ms after the height settles; a width change (fold/unfold) still
+  reshapes on the spot. Verified in a browser only (0 reshapes during a 12-step height burst, 1 after,
+  width change immediate). ON THE PHONE: fling up as fast as possible in the Daily and in a World
+  Edition story and watch for the content reflowing. If it still happens, Copy diagnostics and read the
+  'Shape changes' line — it now marks height-only events as `height` and full ones as `shape`.
+- **Speaker cues in broadcast clips (R17)**: open the NPR and PBS NewsHour stories on the Home page.
+  Each speaker's name should be small caps in front of their words, never a bare name on its own line,
+  and the drop cap should be on prose, not on a speaker's name.
