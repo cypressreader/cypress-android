@@ -78,7 +78,7 @@ const DESK=[
  {name:'Food',n:3,cats:['Food','Lifestyle']},
  {name:'From the archive',not:SPORTY,n:1,cats:['History'],
   find:/\bon this day\b|years ago\b|\bin 1[89]\d\d\b|\bhistory of\b|\bthe forgotten\b|\bwhen .* (was|were)\b/i},
- {name:'Obituary',n:1,any:1,
+ {name:'Obituary',n:1,any:1,first:1,
   find:/\b(dies|died|dead) at \d{2}\b|\bobituary\b|\b(19|20)\d\d\s*[\u2013\u2014-]\s*20\d\d\b/i},
  {name:'Long read',not:SPORTY,n:3,cats:['Knowledge'],
   outlets:['Longreads','Aeon','Knowable Magazine','Wait But Why','Farnam Street','Quanta Magazine','Granta','JSTOR Daily','Nautilus','The Atlantic']},
@@ -284,7 +284,15 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
  const editions=[];
  for(const E of EDITIONS){
   const used=new Set(),accepted=[],sections=[],spoke=new Map();
-  for(const d of E.desk){
+  /* WHO CHOOSES FIRST. The desks print in the order they are written, but they do not all choose in that
+     order. The Obituary desk goes first, because the day's biggest death belongs on the obituary page: on
+     26 November the Home desk took Andy Taylor's death (11 newsrooms) as news and the Obituary page was left
+     with a second, smaller death - so the magazine led on one death and ran an obituary of another, which no
+     magazine would do. It also quietly fixes a bias in the counting: a well-known person's death is quick to
+     write, so every newsroom files one within the hour, and it beats a harder story that fewer could cover. */
+  const order=[...E.desk.filter(d=>d.first),...E.desk.filter(d=>!d.first)];
+  const got=new Map();
+  for(const d of order){
    const mine=[];
    for(const g of groups){
     if(mine.length>=d.n)break;
@@ -311,10 +319,12 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
     /* a group's other outlets are the same story: using one spends them all inside THIS edition */
     used.add(g.link);for(const m of g.more)if(m.l)used.add(m.l);
    }
-   sections.push({name:d.name,places:d.n,stories:mine.map(g=>({t:ownWords(g.title,g.outlet),o:g.outlet,l:g.link,n:g.n,
+   got.set(d.name,mine.map(g=>({t:ownWords(g.title,g.outlet),o:g.outlet,l:g.link,n:g.n,
     dek:g.summary||'',img:g.img||'',date:g.date,outlets:g.outlets,
-    sibs:(g.more||[]).filter(m=>m.l&&!/news\.google\.com/.test(m.l)).map(m=>({o:outletOf[m.f]||'',l:m.l,t:ownWords(m.t||'',outletOf[m.f]||''),img:m.img||''})).slice(0,4)}))});
+    sibs:(g.more||[]).filter(m=>m.l&&!/news\.google\.com/.test(m.l)).map(m=>({o:outletOf[m.f]||'',l:m.l,t:ownWords(m.t||'',outletOf[m.f]||''),img:m.img||''})).slice(0,4)})));
   }
+  /* printed in the order they are written, whatever order they chose in */
+  for(const d of E.desk)sections.push({name:d.name,places:d.n,stories:got.get(d.name)||[]});
   editions.push({id:E.id,name:E.name,regions:E.regions,fallback:!!E.fallback,sections});
  }
  /* the US edition is the one printed in the report and the one the old files called "sections" */
