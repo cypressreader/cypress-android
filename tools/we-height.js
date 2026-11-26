@@ -4,15 +4,17 @@
 
    What it prints: `.we` flipping between 420 px and 915 px in a 915 px window. 420/915 = 46%, the square.
 
-   The cause, as far as this got: `.we` has NO height of its own - no inline style, and the only rule for it is
-   `.we{position:relative}`. It is a grid item inside `#grid`, which is 48 px tall (still carrying its list layout),
-   inside `main` at 915. So the edition's height falls back to its own CONTENT height - 420 px is the cover's natural
-   height - and `.we-sc{flex:1}` / `.we-pg{height:100%}` resolve against an indefinite height, which is why whole
-   pages come out short and clipped (the missing lead headline in his recording: the box really is shorter, the
-   content is not scaled).
-
-   STILL TO FIND: what normally gives `.we` the full 915, and why it is sometimes absent. Do not guess at CSS here -
-   `fitPage1`/`fitHero`/`layout` are delicate and the look is David's call. Run: node tools/we-height.js */
+   SOLVED 2026-11-26 - and the guess below was wrong, so it is replaced rather than kept. `.we` DOES have a height of
+   its own (`height:calc(100svh - 150px);min-height:420px`, and `height:100%!important` once `body.wefull` is on); the
+   height was never indefinite and 420 was never the cover's content height - it is the `min-height` floor, exactly.
+   The real cause: pull-to-refresh moves `#grid` with a transform and springs it back, a transformed element becomes the
+   containing block for any fixed-position descendant, and the full-screen edition is `position:fixed;inset:0`. So for
+   the length of the spring it measured 100% of `#grid` - 48 px while the edition is showing - and hit the 420 floor.
+   420/915 = 46%, the square; the duration was the spring, hence flat-topped and always the same size. Fixed by leaving
+   the edition out of pull-to-refresh (`.open,.wefull` in the `main` touchstart guard). Guard: `tests/we_square.js`.
+   This tool stays as the reproducer that cornered it: before the fix it prints `.we` flipping 915 -> 420 -> 915 on a
+   hard swipe down; after it, `.we` stays 915. To see the mechanism itself, log `getComputedStyle(#grid).transform`
+   alongside the height - the square is present exactly while that is not `none`. Run: node tools/we-height.js */
 const fs=require('fs'),path=require('path'),http=require('http');
 const PW=require('child_process').execSync('npm root -g').toString().trim()+'/playwright';
 const {chromium}=require(PW);
