@@ -14610,7 +14610,7 @@ function ptDraw(off,p,label,cls){const e=ptEl(),g=$('#grid');if(!e.classList.con
  const k=Math.round(p*60);if(k!==PT.last){PT.last=k;const gg=e.querySelector('.ptg');gg.style.setProperty('--p1',Math.min(1,p*1.5).toFixed(3));gg.style.setProperty('--p2',Math.max(0,(p-.45)/.55).toFixed(3));if(p>=1&&!PT.rdy){PT.rdy=1;buzz(15)}else if(p<.9)PT.rdy=0}
  const lb=$('#ptlb'),l=lb.querySelector('span');lb.style.setProperty('--o',off+'px');lb.classList.toggle('on',cls!=='busy'&&off>=22);if(l.textContent!==label)l.textContent=label;
  e.classList.toggle('ptready',cls==='ptready');e.classList.toggle('busy',cls==='busy');
- g.style.transform=off?'translateY('+off+'px)':''}
+ g.style.transform=off?'translateY('+off+'px)':''}/* an offset of 0 must CLEAR the property, never write translateY(0): any transform other than none makes #grid the containing block for a fixed descendant, and the full-screen edition measures height:100% against it - 48px, floored at 420, which was the square (2026-11-26). That is also why ptRefresh's ptDraw(0,...) and ptHide are safe while the edition is up. */
 function ptPull(d){
  if(d<14){if($('#pts.on')&&PT.last!==-1)ptHide(false);return}
  const p=ptClamp((d-10)/(PT.T-10)),rdy=d>=PT.T;
