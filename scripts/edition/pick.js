@@ -49,13 +49,45 @@ const DESK=[
    own user agent was refused by 19 of 73 outlets (BBC, NPR, The Guardian, Ars Technica, Wired and more all
    answered 403); the browser's own request carries the headers a feed reader is expected to send and they
    answer it. Playwright follows the redirects and the timeout for us, so this is also less code. */
-const get=async(ctx,url)=>{
- try{const r=await ctx.request.get(url,{timeout:20000,maxRedirects:4});
+const one=async(ctx,url,headers)=>{
+ try{const r=await ctx.request.get(url,{timeout:25000,maxRedirects:4,headers});
   if(!r.ok())return{err:'HTTP '+r.status()};
   const b=await r.body();if(b.length>4e6)return{err:'too big'};
-  return{xml:b.toString('utf8')};
+  const xml=b.toString('utf8');
+  return /<(rss|feed|rdf:RDF)[\s>]/i.test(xml.slice(0,2000))?{xml}:{err:'not a feed'};
  }catch(e){return{err:String(e&&e.message||e).split('\n')[0].slice(0,60)}}
 };
+/* THE RELAY. A third of the desks' feeds refuse a request from a data centre outright - BBC, The Guardian, Ars
+   Technica, Wired, ESPN all answer 403 however politely we ask, and that is what left World with one story and
+   Science & Health with none. The app has had the answer to this all along: when a site's own feed is no good
+   it reads that site through Google News instead (`gnewsFor`), which is how CNN and Reuters are already in the
+   catalogue. Google answers a data centre perfectly happily. Tried only when the direct request fails.
+   What it costs: a Google News item carries no picture and its link points at Google, so a story that reaches
+   the edition this way has its real address looked up afterwards (`resolve` below) and its picture comes from
+   the article itself. The reading service was tried first and is not usable: r.jina.ai now answers 401 without
+   a paid key. */
+const gnews=(site)=>'https://news.google.com/rss/search?q='+encodeURIComponent('site:'+site+' when:2d')+'&hl=en-US&gl=US&ceid=US:en';
+const get=async(ctx,url,site)=>{
+ const d=await one(ctx,url);
+ if(d.xml)return d;
+ if(!site)return d;
+ const r=await one(ctx,gnews(site));
+ return r.xml?{xml:r.xml,via:site}:{err:d.err+' (and through Google News: '+r.err+')'};
+};
+/* A Google News link is a redirect. Only the stories that actually made the edition are looked up - a page
+   visit each, about a second and a half - and one that does not land on the outlet's own site is dropped,
+   because the search can answer with another publisher's version of the story. */
+async function resolve(tab,app,g){
+ if(!/news\.google\.com/.test(g.link))return true;
+ try{
+  await tab.goto(g.link,{waitUntil:'domcontentloaded',timeout:20000});
+  await tab.waitForTimeout(1200);
+  const u=tab.url();
+  if(/news\.google\.com/.test(u))return false;
+  if(!await app.evaluate(([h,s])=>onSite(h,s),[new URL(u).hostname,g.site||'']))return false;
+  g.link=u;return true;
+ }catch(e){return false}
+}
 
 const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from({length:n},async()=>{while(i<list.length){const k=i++;out[k]=await fn(list[k])}}));return out};
 
@@ -69,9 +101,13 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
  const missing=want.filter(o=>!cat[o]);
  if(missing.length)console.log('not in the app catalogue, skipped: '+missing.join(', '));
  const feeds=want.filter(o=>cat[o]).map((o,i)=>({id:'e'+i,url:cat[o],title:o,outlet:o}));
+ /* the site behind each feed, worked out by the app's own siteOf, so the relay asks Google News for the right
+    publisher and the answer can be checked against it */
+ const sites=await page.evaluate(us=>us.map(u=>siteOf({url:u})),feeds.map(f=>f.url));
+ feeds.forEach((f,i)=>f.site=sites[i]);
 
  process.stdout.write('reading '+feeds.length+' feeds ');
- const got=await pool(feeds,8,async f=>{const r=await get(app.ctx,f.url);process.stdout.write(r.xml?'.':'x');return{f,...r}});
+ const got=await pool(feeds,8,async f=>{const r=await get(app.ctx,f.url,f.site);process.stdout.write(r.xml?(r.via?'r':'.'):'x');return{f,...r}});
  process.stdout.write('\n');
  const ok=got.filter(g=>g.xml),bad=got.filter(g=>!g.xml);
 
@@ -92,7 +128,8 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
    summary:x.summary||'',more:(x.more||[]).map(m=>({f:m.f,l:m.l}))}));
  },{ok:ok.map(g=>({f:{id:g.f.id,url:g.f.url,title:g.f.title},xml:g.xml})),hours:HOURS});
 
- const outletOf={};for(const f of feeds)outletOf[f.id]=f.outlet;
+ const outletOf={},siteFor={};for(const f of feeds){outletOf[f.id]=f.outlet;siteFor[f.id]=f.site}
+ for(const g of groups)g.site=siteFor[g.feedId]||'';
  /* how many SEPARATE outlets reported it. Two feeds of the same outlet (NPR and NPR Health) are one voice. */
  for(const g of groups){
   const names=new Set([outletOf[g.feedId],...g.more.map(m=>outletOf[m.f])].filter(Boolean));
@@ -109,6 +146,8 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
  const isRepeat=(accepted,cand)=>accepted.length?page.evaluate(([a,c])=>group([...a,c]).length===group(a).length,
    [accepted,{title:cand.title,link:cand.link,feedId:cand.feedId}]):Promise.resolve(false);
 
+ /* a tab of its own for looking up relayed links: navigating the app's page away would take the app with it */
+ const tab=await app.ctx.newPage();
  const used=new Set(),accepted=[],sections=[];
  for(const d of DESK){
   const mine=[];
@@ -121,6 +160,9 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
       allows and a reader reads as a quiet day. */
    if(mine.some(x=>x.outlet===g.outlet))continue;
    if(await isRepeat(accepted,g))continue;
+   /* a story that came through the relay points at Google, not at the publisher: look its real address up
+      now, while there is still another candidate to fall back on if it does not resolve */
+   if(!await resolve(tab,page,g)){used.add(g.link);continue}
    mine.push(g);accepted.push({title:g.title,link:g.link,feedId:g.feedId});
    /* a group's other outlets are the same story: using one spends them all, so the next section cannot print
       the same event under a different masthead */
