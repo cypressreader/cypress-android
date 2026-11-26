@@ -200,6 +200,10 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
      ||/\b(is|now|are)\s+down to\s*[$\u00a3\u20ac]|best price|deal of the day|\bsave [$\u00a3\u20ac]\d/i.test(a.title||'')
      ||/dezeen\.com\/[^?#]*showroom/i.test(a.link||'')
      ||/^the download[:\u2014-]/i.test((a.title||'').trim())
+     /* a publisher's daily round-up under its own name ("9to5Mac Daily: November 26") is a programme, not a
+        story, and so is a fan-opinion listicle */
+     ||/\bdaily:\s|\b(round-?up|newsletter|digest):/i.test(a.title||'')
+     ||/\b(fans|viewers|critics) are wrong\b|\byou('re| are) (doing|using) .* wrong\b/i.test(a.title||'')
      ||/how to watch|where to watch|\bsaved stories\b|\blatest (news|stories)\b|^(news|home|articles)$/i.test(a.title||'');
    for(const g of part){
     let r=null;try{r=parse(g.xml,{id:g.f.id,url:g.f.url,title:g.f.title})}catch(e){continue}
