@@ -77,3 +77,4 @@ UPDATE 2026-11-26 (issue 48 follow-up, branch claude/issue-47-20261125-2336): ap
 - END MARK: on a spread a full last page lost its end mark and next cue. If the bare mark does not fit, the last block + mark + cue go to one more page. Next labels verified on all 18 stories at both widths.
 - Cover lines wrap on whole words (no clamp).
 - UNVERIFIED on device: everything above was proven in a browser with real NPR/BBC text, not on the Fold.
+- ISSUE 51 (cover art is about the lead): `cover.motif` in `world-edition.json` names what a drawn cover draws; `weArt` has `chip` (processor + climbing share-price line, for the Nvidia lead) and falls back to the globe when no motif is named. A new kind of lead needs a new motif in `weArt` + a row in WORLD-EDITION-FORMAT.md. MJ had not supplied a pick when this was built - the chip is Claude's stand-in for it. The chip sits higher and smaller than the globe so its pins stop above the cover lines.
