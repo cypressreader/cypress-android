@@ -56,6 +56,49 @@ Still missing before this runs by itself: photographs (pass 4 — nothing is pri
 type today), the International desk, pass 2's editorial judgement, and the scheduled Action, which cannot
 publish anything until the edition is merged to `main`.
 
+## The rules the picking follows (2026-11-26)
+
+Written after watching real editions come out wrong. Each one is in `pick.js`, `photos.js` or `compose.js`,
+and each exists because something specific reached a page that should not have.
+
+**Counting**
+
+1. **Newsrooms, not mastheads.** Two feeds of one outlet are one voice. And a story arriving under four
+   mastheads with the *same headline word for word* is one newsroom's copy syndicated four times — the wire.
+   Identical headlines count once. Without this, every outlet added makes the front page more a measure of how
+   widely AP sells than of what mattered.
+2. **Today, not yesterday.** A story gains a point if it broke in the last six hours and loses one once it is
+   over a day old. The edition prints twice a day; this is what stops the evening's issue being the morning's.
+3. **No outlet speaks more than twice** in one edition, and never twice in one section.
+
+**Where a story belongs**
+
+4. **A news desk refuses sport.** Section-by-source finds what matters and does not know where it belongs: on
+   26 November it filed a tennis result in World, Aaron Rodgers in Culture and an ammunition plant in
+   Business, purely because of whose feed they came down. Home, World, Business, Culture, Explainer, the
+   archive and the Long read now refuse a headline that is plainly sport.
+5. **A desk can be a kind of story** rather than a place — Obituary, Explainer, Review and From the archive
+   read every feed and match the headline instead.
+6. **Not a story at all:** a price cut filed as news, a paid showroom listing, a newsletter round-up, a
+   how-to-watch listing, a feed's own furniture ("Saved Stories"), and a headline carrying a bare web address,
+   which breaks mid-word when printed word for word.
+7. **Google's masthead comes off.** A relayed headline arrives as "Headline - BBC"; the edition prints the
+   publisher's own words, so the appended masthead is removed when it names that outlet.
+
+**Pictures**
+
+8. **Ask the others who were there.** A story whose own page has nothing printable is not a story without a
+   picture: the grouping already knows which other newsrooms covered it, and up to two of their pages are read
+   for the picture the publisher put at the top. On 26 November this found nine of thirty pictures.
+9. **Biggest is not best.** A share card (an address saying og, social, share, card, twitter — usually with the
+   headline printed across it) is penalised; a figure with the caption the publisher wrote under it is
+   preferred; a landscape between 1.2 and 2.2 to 1 opens a page and a portrait fights it; and size counts with
+   a ceiling, because 4,000px is not twice as good as 2,000.
+10. **The lead follows the picture.** The most reported story leads — unless it has no cover-size photograph
+    and another story within one newsroom of it does. That is how a magazine has always chosen its cover.
+11. **Nothing is printed uncleared.** Code can measure and reject; only a look can clear. Six marks are
+    required and when unsure the answer is no.
+
 ## The passes
 
 | # | Pass | Who does it | Cost | On failure |

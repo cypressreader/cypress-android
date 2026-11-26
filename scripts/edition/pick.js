@@ -40,26 +40,30 @@ const OUT=arg('--json'),HOURS=Number(arg('--hours')||36);
    desks read everything, because an obituary or an explainer can come from any newsroom. (David's second
    sheet: good news, explainers, obituaries, criticism and the archive are his yeses that code can find; the
    numbers page, in pictures and the same-story-two-ways need the model pass and are not here yet.) */
+/* The kinds a news desk refuses. Sport reaches every general feed and reads like news; a fixture list, a
+   transfer, a fantasy column or a score is sport wherever it was published. Written once and used by the
+   desks that are places rather than kinds. */
+const SPORTY=/\b(nfl|nba|mlb|nhl|ncaa|fifa|uefa|premier league|la liga|serie a|f1|formula 1|grand prix|super bowl|world cup|playoffs?|quarterfinals?|semifinals?|touchdown|home run|fantasy football|week \d+|game \d+|\bvs\.?\b|steelers|packers|lakers|yankees|dodgers|man utd|manchester (united|city)|arsenal|liverpool|chelsea|wildcats|open (final|semi)|atp|wta|test match|six nations)\b/i;
 const DESK=[
- {name:'Home',n:6,cats:['News','Politics'],home:1,
+ {name:'Home',not:SPORTY,n:6,cats:['News','Politics'],home:1,
   outlets:['NPR','PBS NewsHour','NBC News','CBS News','AP News','Axios','The Hill','CNN','Fox News','Semafor','ProPublica','NPR Politics','The Hill Politics','Roll Call','Politico','The Intercept','FiveThirtyEight']},
- {name:'World',n:6,
+ {name:'World',not:SPORTY,n:6,
   outlets:['BBC World','The Guardian World','Al Jazeera','Deutsche Welle','Reuters','BBC News','Global News','The Guardian','Foreign Policy','Foreign Affairs','BBC Politics','France 24','The Japan Times','CNA','Africanews','MercoPress']},
- {name:'Business',n:4,cats:['Business','Money']},
+ {name:'Business',not:SPORTY,n:4,cats:['Business','Money']},
  {name:'Science & Health',n:4,cats:['Science','Health','Space','Environment']},
  {name:'Tech',n:4,cats:['Tech','Mobile','AI & Security','Developers']},
- {name:'Culture',n:4,cats:['Culture','Entertainment','Design','Music','Film & TV','Books']},
+ {name:'Culture',not:SPORTY,n:4,cats:['Culture','Entertainment','Design','Music','Film & TV','Books']},
  {name:'Review',n:2,cats:['Books','Film & TV','Music','Design','Culture'],
   find:/\breview\b|\bverdict\b|\breviewed\b|\u2605/i},
- {name:'Explainer',n:2,any:1,
+ {name:'Explainer',not:SPORTY,n:2,any:1,
   find:/\bexplainer\b|\bexplained\b|what to know|\bwhy (is|are|do|does|did|has|have)\b|\bhow (does|do|did|to)\b/i},
  {name:'Sport',n:3,cats:['Sports']},
  {name:'Food',n:3,cats:['Food','Lifestyle']},
- {name:'From the archive',n:1,cats:['History'],
+ {name:'From the archive',not:SPORTY,n:1,cats:['History'],
   find:/\bon this day\b|years ago\b|\bin 1[89]\d\d\b|\bhistory of\b|\bthe forgotten\b|\bwhen .* (was|were)\b/i},
  {name:'Obituary',n:1,any:1,
   find:/\b(dies|died|dead) at \d{2}\b|\bobituary\b|\b(19|20)\d\d\s*[\u2013\u2014-]\s*20\d\d\b/i},
- {name:'Long read',n:3,cats:['Knowledge'],
+ {name:'Long read',not:SPORTY,n:3,cats:['Knowledge'],
   outlets:['Longreads','Aeon','Knowable Magazine','Wait But Why','Farnam Street','Quanta Magazine','Granta','JSTOR Daily','Nautilus','The Atlantic']},
  {name:'Back page',n:2,cats:['Good news']},
 ];
@@ -217,13 +221,33 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
 
  const outletOf={},siteFor={};for(const f of feeds){outletOf[f.id]=f.outlet;siteFor[f.id]=f.site}
  for(const g of groups)g.site=siteFor[g.feedId]||'';
- /* how many SEPARATE outlets reported it. Two feeds of the same outlet (NPR and NPR Health) are one voice. */
+ /* HOW MANY SEPARATE NEWSROOMS REPORTED IT - which is not the same as how many mastheads carried it.
+    Two feeds of one outlet (NPR and NPR Health) are one voice. And a story that arrives under four mastheads
+    with the SAME HEADLINE, word for word, is one newsroom's copy syndicated four times: the wire. Counting it
+    as four would make the edition's front page a measure of how widely AP sells, not of what mattered, and
+    that danger grows with every outlet added. Identical headlines therefore count once. */
+ const plain=t=>String(t||'').toLowerCase().replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
  for(const g of groups){
-  const names=new Set([outletOf[g.feedId],...g.more.map(m=>outletOf[m.f])].filter(Boolean));
-  g.outlets=[...names];g.n=names.size;g.outlet=outletOf[g.feedId]||'';
+  const voices=new Map();/* outlet -> its headline, so one outlet cannot vote twice either */
+  voices.set(outletOf[g.feedId]||'',plain(g.title));
+  for(const m of g.more){const o=outletOf[m.f];if(o&&!voices.has(o))voices.set(o,plain(m.t))}
+  voices.delete('');
+  g.outlets=[...voices.keys()];
+  g.wire=new Set([...voices.values()]).size<voices.size;/* at least two told it in the very same words */
+  g.n=new Set([...voices.values()]).size;
+  g.carried=voices.size;/* how many mastheads, for the report */
+  g.outlet=outletOf[g.feedId]||'';
  }
- /* biggest story first; a tie goes to the newer one */
- groups.sort((a,b)=>b.n-a.n||b.date-a.date);
+ /* THE RUNNING ORDER. Biggest story first, where "biggest" is how many newsrooms told it - but a day-old
+    story is not today's news however many outlets carried it yesterday, so a story loses a point once it is
+    over a day old and gains one when it broke in the last six hours. The edition is printed twice a day; this
+    is what stops the morning's issue being the evening's again. */
+ const HOUR=36e5,now=Date.now();
+ for(const g of groups){
+  const age=(now-(g.date||now))/HOUR;
+  g.score=g.n+(age<=6?1:0)-(age>24?1:0);
+ }
+ groups.sort((a,b)=>b.score-a.score||b.n-a.n||b.date-a.date);
 
  /* Is this story one the edition has already printed? The same event reaches the desk under several mastheads,
     and the grouping above only merges headlines that are close enough: the SpaceX satellite story came through
@@ -238,7 +262,7 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
  /* each edition picks from the same groups with its own desk */
  const editions=[];
  for(const E of EDITIONS){
-  const used=new Set(),accepted=[],sections=[];
+  const used=new Set(),accepted=[],sections=[],spoke=new Map();
   for(const d of E.desk){
    const mine=[];
    for(const g of groups){
@@ -246,6 +270,13 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
     if(!d.from.has(g.outlet)||used.has(g.link))continue;
     /* a desk that is a kind of story only takes a headline that is that kind */
     if(d.find&&!d.find.test(g.title||''))continue;
+    /* and a desk that is a place in the world refuses the kinds that are not its business. Section-by-source
+       finds what matters and does not know where it belongs: on 26 November it filed a tennis result in
+       World, Aaron Rodgers in Culture and an ammunition plant in Business, all because of whose feed they
+       came down. A headline that is plainly sport does not belong in a news or culture section. */
+    if(d.not&&d.not.test(g.title||''))continue;
+    /* no outlet speaks more than twice in one edition, however loud its feed is */
+    if((spoke.get(g.outlet)||0)>=2)continue;
     /* one story per outlet per section: a desk whose other feeds went quiet would otherwise fill its whole
        section from whichever outlet publishes most often. A section that cannot be filled from different
        outlets runs short, which the method page allows and a reader reads as a quiet day. */
@@ -255,6 +286,7 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
        now, while there is still another candidate to fall back on if it does not resolve */
     if(!await resolve(tab,page,g)){used.add(g.link);continue}
     mine.push(g);accepted.push({title:g.title,link:g.link,feedId:g.feedId});
+    spoke.set(g.outlet,(spoke.get(g.outlet)||0)+1);
     /* a group's other outlets are the same story: using one spends them all inside THIS edition */
     used.add(g.link);for(const m of g.more)if(m.l)used.add(m.l);
    }

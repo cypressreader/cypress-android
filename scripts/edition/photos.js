@@ -52,9 +52,9 @@ if(cand)for(const s of cand.sections||[])for(const st of s.stories||[]){
    await tab.goto(u,{waitUntil:'domcontentloaded',timeout:20000});
    await tab.waitForTimeout(800);
    return await tab.evaluate(()=>{
-    const out=[],add=(src,cap,alt)=>{if(/^https:\/\//.test(src||''))out.push({src,cap:(cap||'').replace(/\s+/g,' ').trim().slice(0,220),alt:(alt||'').slice(0,160)})};
+    const out=[],add=(src,cap,alt,og)=>{if(/^https:\/\//.test(src||''))out.push({src,og:!!og,cap:(cap||'').replace(/\s+/g,' ').trim().slice(0,220),alt:(alt||'').slice(0,160)})};
     const og=document.querySelector('meta[property="og:image"],meta[name="twitter:image"]');
-    if(og)add(og.getAttribute('content'),'','');
+    if(og)add(og.getAttribute('content'),'','',1);
     for(const f of [...document.querySelectorAll('figure')].slice(0,4)){
      const im=f.querySelector('img'),c=f.querySelector('figcaption');
      if(im)add(im.getAttribute('src')||im.getAttribute('data-src'),c&&c.textContent,im.getAttribute('alt'));
@@ -81,10 +81,24 @@ if(cand)for(const s of cand.sections||[])for(const st of s.stories||[]){
     if(!d||!d.w)continue;
     const long=Math.max(d.w,d.h),r=d.w/d.h;
     if(long<WE_SM||r<0.4||r>3)continue;
-    out.push({...p,w:d.w,h:d.h,long,cover:long>=WE_BIG});
+    /* WHICH PICTURE A MAGAZINE WOULD CHOOSE, among the ones that are clean enough to print.
+       Biggest is not the same as best, so size is only the start:
+       - a share card is not a photograph. An address that says og, social, share, card or twitter is the
+         picture a publisher made for a link preview, and it usually has the headline printed across it;
+       - a page's own figure, with the caption the publisher wrote under it, beats a bare image with none;
+       - a section opener is a wide page, so a landscape picture opens it and a portrait fights it;
+       - and the file still has to be big enough to print across that page. */
+    const card=/\b(og|social|share|card|twitter|meta|preview|thumb)\b|[?&](w|width)=(\d{2,3})\b/i.test(p.src)&&!p.cap;
+    let score=Math.min(long,4000)/1000;          /* size, but with a ceiling: 4,000px is not twice as good as 2,000 */
+    if(p.cap)score+=1.2;                          /* the publisher wrote a caption under it: it is a picture of the story */
+    if(!p.fromFeed&&!p.og)score+=.3;              /* the article's own figure rather than the feed's thumbnail */
+    if(card)score-=1.5;
+    if(r>=1.2&&r<=2.2)score+=.8;                  /* a landscape that fits a page */
+    else if(r<1)score-=.6;                        /* a portrait on a page built wide */
+    out.push({...p,w:d.w,h:d.h,long,score,card,cover:long>=WE_BIG&&r>=1.1&&!card});
    }
-   /* the biggest clean one wins: a cover needs the big file and an inside page is never hurt by one */
-   out.sort((a,b)=>b.long-a.long);
+   /* best first, and the size rule still decides what may open a section */
+   out.sort((a,b)=>b.score-a.score);
    return out[0]||null;
   },ps);
 

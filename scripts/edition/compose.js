@@ -83,18 +83,31 @@ function build(src){
 
 /* The cover story is the most reported story of the day. Nobody picks it - that is the promise on the method
    page, and it is the whole reason the counting exists. */
+/* THE COVER. The lead is the most reported story of the day - nobody picks it, which is the promise on the
+   method page. But a magazine chooses its cover from among the stories strong enough to lead, and among those
+   it takes the one with a photograph worth the front page; that is how covers have always been chosen, and it
+   is in the pipeline plan as "the lead follows the picture". So: the top story by counting leads, unless
+   another story within one newsroom of it has a cover-size picture and the top one does not. */
 function coverOf(sections){
- let lead=[0,0],best=-1,story=null;
- sections.forEach((s,si)=>s.stories.forEach((st,ti)=>{const n=st.n||1;if(n>best){best=n;lead=[si,ti];story=st}}));
- return{lead,story};
+ const all=[];
+ sections.forEach((s,si)=>s.stories.forEach((st,ti)=>all.push({st,lead:[si,ti],n:st.n||1})));
+ if(!all.length)return{lead:[0,0],story:null};
+ all.sort((a,b)=>b.n-a.n);
+ const top=all[0];
+ const coverable=p=>p.st.photo&&p.st.photo.w>=1600&&p.st.photo.h&&p.st.photo.w>=p.st.photo.h;
+ if(!coverable(top)){
+  const near=all.filter(p=>p.n>=top.n-1&&coverable(p));
+  if(near.length)return{lead:near[0].lead,story:near[0].st,followedPicture:true};
+ }
+ return{lead:top.lead,story:top.st};
 }
 
 const srcEds=(cand.editions&&cand.editions.length)?cand.editions
  :[{id:'us',name:'US Edition',regions:['US'],fallback:true,sections:cand.sections||[]}];
 const built=srcEds.map(e=>{
  const sections=build(e.sections||[]);
- const{lead,story}=coverOf(sections);
- return{...e,sections,lead,leadStory:story,count:sections.reduce((n,s)=>n+s.stories.length,0)};
+ const{lead,story,followedPicture}=coverOf(sections);
+ return{...e,sections,lead,leadStory:story,followedPicture,count:sections.reduce((n,s)=>n+s.stories.length,0)};
 }).filter(e=>e.count);
 const total=built[0]?built[0].count:0;
 const sections=built[0]?built[0].sections:[];
@@ -127,7 +140,8 @@ console.log('EDITION '+DATE+'  No. '+issue+'  '+(cand.sampled||0)+' outlets read
 for(const s of sections)console.log('  '+s.name.padEnd(18)+s.stories.length+(s.stories.length?'  '+s.stories.map(x=>x.o).join(', '):''));
 for(const e of built.slice(1))console.log('  + '+e.name+': '+e.count+' stories');
 console.log('\n'+total+' stories printed, '+((got.dropped||[]).length)+' dropped at the gate.');
-if(leadStory)console.log('cover: '+leadStory.t.slice(0,70)+'  ('+(leadStory.n||1)+' outlets, '+leadStory.o+')');
+if(leadStory)console.log('cover: '+leadStory.t.slice(0,70)+'  ('+(leadStory.n||1)+' newsrooms, '+leadStory.o+')'
+  +(built[0]&&built[0].followedPicture?'  [chosen over a story with the same count because it has a cover photograph]':''));
 console.log('cover state: type ('+file.editions[0].cover.shape+' shape, masthead '+file.editions[0].cover.logo+')');
 
 /* The stop condition from the plan, and the one rule that makes going away safe: a thin edition never replaces
