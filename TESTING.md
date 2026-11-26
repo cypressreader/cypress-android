@@ -2762,3 +2762,12 @@ ten sections opening on a photograph. Both robot checks were clean at phone and 
   final should leave Sport short or empty - that is the rule working, not a fault. A death belongs on the
   Obituary page.
 - **Pictures.** 20 in the US edition, ten sections opening on a photograph.
+
+## The obituary issue (2026-11-26, third edition of the day)
+- **Cover**: the FCC/SpaceX story. It should NOT be the Duran Duran death any more: a death goes to the
+  Obituary page and the cover comes from the news sections only.
+- **Obituary page**: Andy Taylor, with a photograph and a short note under a red "Written by a machine"
+  label, naming NPR's obituary and Wikipedia beneath it. That label must always be visible - it was red on
+  red on the last build and is now the page's own ink.
+- **The last word**: the final page before the navy back cover, Robert Frost, in the cover's colours.
+- **Sport** is empty again: nothing was won.
