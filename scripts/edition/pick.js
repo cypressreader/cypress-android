@@ -123,7 +123,14 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
   /* the app's own filters, so the edition refuses what the lists already refuse: a shopping deal, a promo for
      the publisher's own newsletter, a feed's non-story pages. A magazine prints none of them, whatever the
      reader's Hide deals switch happens to say, so dealItem is asked directly rather than through dealHide. */
-  const fresh=all.filter(a=>a.date&&a.date>=cut&&!junkItem(a)&&!dealItem(a)&&!promoItem(a));
+  /* Three the app's filters let through, each caught by eye in the 26 November edition: a price cut The Verge
+     files as news ("is down to $300, its best price"), a paid showroom listing (Dezeen Showroom is advertising
+     with a byline), and a newsletter round-up filed as a story (MIT Technology Review's "The Download"). A
+     magazine prints none of the three. */
+  const notNews=a=>/\b(is|now|are)\s+down to\s*[$\u00a3\u20ac]|best price|deal of the day|\bsave [$\u00a3\u20ac]\d/i.test(a.title||'')
+    ||/dezeen\.com\/[^?#]*showroom/i.test(a.link||'')
+    ||/^the download[:\u2014-]/i.test((a.title||'').trim());
+  const fresh=all.filter(a=>a.date&&a.date>=cut&&!junkItem(a)&&!dealItem(a)&&!promoItem(a)&&!notNews(a));
   return group(fresh).map(x=>({title:x.title,link:x.link,feedId:x.feedId,date:x.date,img:x.img||'',
    summary:x.summary||'',more:(x.more||[]).map(m=>({f:m.f,l:m.l}))}));
  },{ok:ok.map(g=>({f:{id:g.f.id,url:g.f.url,title:g.f.title},xml:g.xml})),hours:HOURS});
