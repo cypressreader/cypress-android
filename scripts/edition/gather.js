@@ -65,8 +65,19 @@ function candidates(){
     let n=null;try{n=await getFull(u,false)}catch(e){return{err:String(e&&e.message||e),log:(LG[u]||[]).slice(-3)}}
     if(!n)return{none:1,log:(LG[u]||[]).slice(-3)};
     const ps=[...n.querySelectorAll('p')].map(x=>x.textContent.trim()).filter(Boolean);
+    /* The pictures the story itself carries, with whatever the publisher wrote under them. A magazine is
+       pictures as much as words, and these are the only ones we may print: the publisher's own, shown from the
+       publisher's own address. Nothing is judged here - that is the clearance pass - and nothing is measured,
+       because a picture in a detached page has not been loaded. */
+    const pics=[...n.querySelectorAll('img')].map(im=>{
+     const fig=im.closest('figure'),cap=fig&&fig.querySelector('figcaption');
+     return{src:im.getAttribute('src')||im.getAttribute('data-src')||'',
+       w:+im.getAttribute('width')||0,h:+im.getAttribute('height')||0,
+       alt:(im.getAttribute('alt')||'').replace(/\s+/g,' ').trim().slice(0,160),
+       cap:cap?cap.textContent.replace(/\s+/g,' ').trim().slice(0,220):''};
+    }).filter(p=>/^https:\/\//.test(p.src));
     return{tier:n.tier||'',pw:!!n.pw,gate:!!n.gate,preview:!!n.gated_preview,incomplete:!!n.incomplete,
-      paras:ps.length,words:ps.join(' ').split(/\s+/).filter(Boolean).length,
+      paras:ps.length,words:ps.join(' ').split(/\s+/).filter(Boolean).length,pics,
       text:ps.join('\n\n'),log:(LG[u]||[]).slice(-3)};
   },c.link)]).catch(e=>({err:String(e)}));
 
@@ -79,7 +90,7 @@ function candidates(){
   else if(r.words<MIN_WORDS)why='only '+r.words+' words';
 
   if(why){dropped.push({...c,why,log:r.log||[]});process.stdout.write('x')}
-  else{kept.push({...c,tier:r.tier,paras:r.paras,words:r.words,text:r.text});process.stdout.write('.')}
+  else{kept.push({...c,tier:r.tier,paras:r.paras,words:r.words,text:r.text,pics:r.pics||[]});process.stdout.write('.')}
  }
  process.stdout.write('\n\n');
 

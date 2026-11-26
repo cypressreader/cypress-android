@@ -33,16 +33,16 @@ const OUT=arg('--json'),HOURS=Number(arg('--hours')||36);
    up to date. Home is the US desk and World the foreign one, which is the only reason they are split: they
    read the same kind of feed. */
 const DESK=[
- {name:'Home',n:4,outlets:['NPR','PBS NewsHour','NBC News','CBS News','AP News','Axios','The Hill','CNN','Fox News','Semafor']},
- {name:'World',n:4,outlets:['BBC World','The Guardian World','Al Jazeera','Deutsche Welle','Reuters','BBC News','Global News','The Guardian']},
- {name:'Business',n:2,outlets:['CNBC','Forbes','Fortune','Fast Company','Inc.']},
- {name:'Science & Health',n:2,outlets:['Science News','New Scientist','Scientific American','NASA','Space.com','Live Science','ScienceDaily','STAT','KFF Health News','NPR Health','ScienceDaily Health']},
- {name:'Tech',n:1,outlets:['Ars Technica','The Verge','Wired','MIT Technology Review','TechCrunch','ZDNet','Engadget']},
- {name:'Culture',n:1,outlets:['The Atlantic','Vox','Slate','Hyperallergic','Open Culture','Colossal','It’s Nice That','Dezeen','Variety','Pitchfork','The A.V. Club']},
- {name:'Sport',n:1,outlets:['ESPN','BBC Sport','Sky Sports','CBS Sports','Formula 1']},
- {name:'Food',n:1,outlets:['The Kitchn','Budget Bytes','Bon Appétit','Serious Eats']},
- {name:'Long read',n:1,outlets:['Longreads','Aeon','Quanta Magazine','Knowable Magazine','Wait But Why','Farnam Street','ProPublica']},
- {name:'Back page',n:1,outlets:['Good News Network','Positive News','Reasons to Be Cheerful','The Optimist Daily','YES! Magazine']},
+ {name:'Home',n:6,outlets:['NPR','PBS NewsHour','NBC News','CBS News','AP News','Axios','The Hill','CNN','Fox News','Semafor','ProPublica']},
+ {name:'World',n:6,outlets:['BBC World','The Guardian World','Al Jazeera','Deutsche Welle','Reuters','BBC News','Global News','The Guardian']},
+ {name:'Business',n:4,outlets:['CNBC','Forbes','Fortune','Fast Company','Inc.']},
+ {name:'Science & Health',n:4,outlets:['Science News','New Scientist','Scientific American','NASA','Space.com','Live Science','ScienceDaily','STAT','KFF Health News','NPR Health','ScienceDaily Health','Quanta Magazine']},
+ {name:'Tech',n:4,outlets:['Ars Technica','The Verge','Wired','MIT Technology Review','TechCrunch','ZDNet','Engadget','Gizmodo','Hacker News']},
+ {name:'Culture',n:4,outlets:['The Atlantic','Vox','Slate','Hyperallergic','Open Culture','Colossal','It’s Nice That','Dezeen','Variety','Pitchfork','The A.V. Club','Rolling Stone','IndieWire','designboom']},
+ {name:'Sport',n:3,outlets:['ESPN','BBC Sport','Sky Sports','CBS Sports','Formula 1','SB Nation','MLB']},
+ {name:'Food',n:3,outlets:['The Kitchn','Budget Bytes','Bon Appétit','Serious Eats','Lifehacker']},
+ {name:'Long read',n:3,outlets:['Longreads','Aeon','Knowable Magazine','Wait But Why','Farnam Street','Smashing Magazine','MIT Technology Review']},
+ {name:'Back page',n:2,outlets:['Good News Network','Positive News','Reasons to Be Cheerful','The Optimist Daily','YES! Magazine','Our World in Data']},
 ];
 
 /* One feed, fetched through the open browser rather than by hand in Node. Reason, measured: a request with our
