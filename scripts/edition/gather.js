@@ -29,6 +29,11 @@ const OUT=arg('--json'),FIX=arg('--fixtures');
    about whether the story is any good. That judgement is pass 2, and it needs a model. */
 const MIN_WORDS=120;          /* a printed page holds 150-250; under 120 there is not a page in it */
 const MIN_PARAS=3;
+/* One slow publisher must never stall the edition. The app tries the page, several relays and a reader service in
+   turn, each with its own timeout, so a story that is simply unreachable can take minutes to give up - fine on a
+   phone where a person is waiting and can leave, useless in a build that has to finish. A story that has not been
+   read by the deadline is dropped like any other, and the edition goes out without it. */
+const DEADLINE=Number(arg('--deadline')||25)*1000;
 
 const MIME={'.html':'text/html','.json':'application/json','.js':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml','.webmanifest':'application/manifest+json'};
 const serve=()=>new Promise(res=>{const s=http.createServer((q,r)=>{let f=path.join(ROOT,decodeURIComponent(q.url.split('?')[0]));if(f.endsWith('/'))f+='index.html';
@@ -66,17 +71,20 @@ function candidates(){
 
  const kept=[],dropped=[];
  for(const c of list){
-  const r=await p.evaluate(async u=>{
+  const r=await Promise.race([
+   new Promise(res=>setTimeout(()=>res({slow:1}),DEADLINE)),
+   p.evaluate(async u=>{
     let n=null;try{n=await getFull(u,false)}catch(e){return{err:String(e&&e.message||e),log:(LG[u]||[]).slice(-3)}}
     if(!n)return{none:1,log:(LG[u]||[]).slice(-3)};
     const ps=[...n.querySelectorAll('p')].map(x=>x.textContent.trim()).filter(Boolean);
     return{tier:n.tier||'',pw:!!n.pw,gate:!!n.gate,preview:!!n.gated_preview,incomplete:!!n.incomplete,
       paras:ps.length,words:ps.join(' ').split(/\s+/).filter(Boolean).length,
       text:ps.join('\n\n'),log:(LG[u]||[]).slice(-3)};
-  },c.link).catch(e=>({err:String(e)}));
+  },c.link)]).catch(e=>({err:String(e)}));
 
   let why='';
-  if(r.err)why='the fetch itself failed ('+r.err+')';
+  if(r.slow)why='gave up after '+(DEADLINE/1000)+'s';
+  else if(r.err)why='the fetch itself failed ('+r.err+')';
   else if(r.none)why='could not be fetched or read';
   else if(r.pw||r.gate||r.preview)why='behind a paywall or sign-in';
   else if(r.paras<MIN_PARAS)why='only '+r.paras+' paragraph'+(r.paras===1?'':'s');
