@@ -14745,7 +14745,7 @@ function ptLeaf(){const w=$('#pts');if(!w||!w.classList.contains('on')||matchMed
 async function ptRefresh(){PT.busy=1;const g=$('#grid');g.style.transition='transform .28s ease';ptDraw(0,1,'Refreshing…','busy');const t0=Date.now(),r=$('#ref'),pn=WIRE.pend.length;r.click();let nl=t0+700;
  while(Date.now()-t0<20000){await new Promise(x=>setTimeout(x,250));if(Date.now()>=nl){ptLeaf();nl=Date.now()+900+Math.random()*900}if(Date.now()-t0>1600&&!r.classList.contains('spin'))break}
  PT.busy=0;ptHide(true);if(WIRE.pend.length>pn)buzz('tick')/* A3 */}
-$('main').addEventListener('touchstart',e=>{if(!PT.busy&&$('main').scrollTop<=0&&e.touches.length===1&&!document.body.classList.contains('open'))PR.y=e.touches[0].clientY,PR.x=e.touches[0].clientX,PR.d=0;else PR.y=null},{passive:true});
+$('main').addEventListener('touchstart',e=>{if(!PT.busy&&$('main').scrollTop<=0&&e.touches.length===1&&!document.body.matches('.open,.wefull'))PR.y=e.touches[0].clientY,PR.x=e.touches[0].clientX,PR.d=0;else PR.y=null},{passive:true});/* the edition is left out for the SQUARE (2026-11-26): pulling moves #grid, and a moved #grid becomes the box the fixed, full-screen edition measures height:100% against - #grid is 48px, so the edition fell to its 420px floor for the length of the spring-back. Its refresh tree is behind the edition anyway, so this was an invisible gesture. */
 $('main').addEventListener('touchmove',e=>{
  if(PR.y==null)return;const dy=e.touches[0].clientY-PR.y,dx=e.touches[0].clientX-PR.x;
  if(SW.act||Math.abs(dx)>Math.abs(dy)||$('main').scrollTop>0){if(PR.d>0)ptHide(true);PR.d=0;PR.y=null;return}
