@@ -108,6 +108,24 @@ async function resolve(tab,app,g){
  }catch(e){return false}
 }
 
+/* Google News hands back "Headline - BBC", and a relayed story would otherwise print Google's addition as if
+   the publisher had written it. The edition prints the publisher's own words, so the masthead it appended is
+   taken off again - only when it is the trailing one, and only when it names the outlet the story came from. */
+const ownWords=(t,outlet)=>{
+ t=String(t||'').trim();
+ const o=String(outlet||'').trim().toLowerCase();
+ if(!o)return t;
+ const same=x=>{x=x.trim().toLowerCase().replace(/^the\s+/,'');const b=o.replace(/^the\s+/,'');
+  return !!x&&x.length<=24&&(x===b||b.startsWith(x)||x.startsWith(b))};
+ /* only the trailing one, only when it names the outlet the story came from, and at most a couple of times
+    (Google sometimes appends it twice) */
+ for(let i=0;i<3;i++){
+  const m=/^(.*\S)\s[-\u2013\u2014]\s([^-\u2013\u2014]{1,24})$/.exec(t);
+  if(!m||!same(m[2]))break;
+  t=m[1].trim();
+ }
+ return t;
+};
 const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from({length:n},async()=>{while(i<list.length){const k=i++;out[k]=await fn(list[k])}}));return out};
 
 (async()=>{
@@ -161,7 +179,8 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
    const notNews=a=>/(^|\s)(https?:\/\/|www\.)|\b[a-z0-9-]+\.(com|org|net|co\.uk|io)\b/i.test(a.title||'')
      ||/\b(is|now|are)\s+down to\s*[$\u00a3\u20ac]|best price|deal of the day|\bsave [$\u00a3\u20ac]\d/i.test(a.title||'')
      ||/dezeen\.com\/[^?#]*showroom/i.test(a.link||'')
-     ||/^the download[:\u2014-]/i.test((a.title||'').trim());
+     ||/^the download[:\u2014-]/i.test((a.title||'').trim())
+     ||/how to watch|where to watch|\bsaved stories\b|\blatest (news|stories)\b|^(news|home|articles)$/i.test(a.title||'');
    for(const g of part){
     let r=null;try{r=parse(g.xml,{id:g.f.id,url:g.f.url,title:g.f.title})}catch(e){continue}
     for(const a of (r&&r.list)||[]){
@@ -222,7 +241,7 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
       the same event under a different masthead */
    used.add(g.link);for(const m of g.more)if(m.l)used.add(m.l);
   }
-  sections.push({name:d.name,places:d.n,stories:mine.map(g=>({t:g.title,o:g.outlet,l:g.link,n:g.n,
+  sections.push({name:d.name,places:d.n,stories:mine.map(g=>({t:ownWords(g.title,g.outlet),o:g.outlet,l:g.link,n:g.n,
    dek:g.summary||'',img:g.img||'',date:g.date,outlets:g.outlets,
    /* The other outlets' versions of the same story. Grouping finds them, and until now they were used only to
       stop the same event printing twice. They are also the other photographers who were there: the format says
