@@ -16743,6 +16743,16 @@ const WE={d:null,st:'',cur:[],on:false,tried:new Set(),lite:false};
    The request goes to CyPress's own site, carries nothing about the reader, and is skipped when offline, on data
    saver, on a metered connection or in power save. Disclosed on docs/privacy.html. */
 const WE_URL='https://cypressreader.com/app/world-edition.json';
+/* The preview app follows the preview site, the way it already follows its own release line: the real address
+   is only served once the edition is merged to main, and waiting for that would mean the delivery path - a new
+   issue arriving on its own - could never be tried on a phone at all. The real app never reads this. */
+const WE_URL_PREVIEW='https://cypressreader.github.io/cypress-preview/app/world-edition.json';
+let WEU='';
+async function weUrl(){
+ if(WEU)return WEU;
+ let id='';try{const p=CyN();if(p)id=String((await p.info()).appId||'')}catch(e){}
+ return WEU=/\.preview$/.test(id)?WE_URL_PREVIEW:WE_URL;
+}
 const weOk=d=>!!(d&&Array.isArray(d.editions)&&d.editions.length);
 function weKept(){try{const s=localStorage.getItem('we-ed'),d=s&&JSON.parse(s);return weOk(d)?d:null}catch(e){return null}}
 async function weEdition(){
@@ -16756,8 +16766,8 @@ const WE_EVERY=108e5;
 function weRefresh(have){
  if(S.offline||!navigator.onLine||DEV.dataSaver||DEV.powerSave||DEV.metered)return;
  try{if(Date.now()-(+localStorage.getItem('we-ck')||0)<WE_EVERY)return;localStorage.setItem('we-ck',Date.now())}catch(e){}
- setTimeout(()=>{fetch(WE_URL,{cache:'no-store',signal:AbortSignal.timeout(15000)})
-  .then(r=>r.ok?r.json():null).then(d=>{
+ setTimeout(()=>{weUrl().then(u=>fetch(u,{cache:'no-store',signal:AbortSignal.timeout(15000)}))
+  .then(r=>r&&r.ok?r.json():null).then(d=>{
     if(!weOk(d)||(have&&String(d.date||'')<=String(have.date||'')))return;
     try{localStorage.setItem('we-ed',JSON.stringify(d))}catch(e){}})
   .catch(()=>{})},2500)}
