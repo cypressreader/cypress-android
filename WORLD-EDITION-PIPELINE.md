@@ -25,6 +25,37 @@ Because the edition is built ahead of time into a file, **the cost is fixed no m
 there are.** If the app called the API itself the cost would scale with users and the key would ship
 inside the APK. That decision is already made and it is the right one.
 
+## What is built (2026-11-26)
+
+Three scripts, one browser, no model. Each one calls the app's own code rather than a copy of it, so there is
+no second reader to keep in step.
+
+| Step | File | What it does |
+|---|---|---|
+| Open the app | `scripts/edition/app.js` | Serves `www/` and opens it in a headless browser. Shared by the rest; `--fixtures` answers off-site addresses from local copies so the whole path runs offline. |
+| Pass 0, pick | `scripts/edition/pick.js` | Reads the feeds, groups the headlines with the app's own `group()`, counts how many separate outlets carried each story, and fills each section's fixed number of places, biggest story first. Feed addresses come from the app's own catalogue (`CAT`); the desks — which outlets each section reads — are the only new list, at the top of the file. |
+| Pass 1, gate | `scripts/edition/gather.js` | Opens every candidate through the app's `getFull()` and drops what cannot be read, is gated, or has under 3 paragraphs / 120 words. `--candidates` takes the picked list. |
+| Pass 7, write | `scripts/edition/compose.js` | Writes `world-edition.json` and the `docs/app/` copy from what survived. Only with `--write`; under 10 stories it writes nothing and says the live edition stays. |
+
+Three things learned building it, all of them load-bearing:
+
+- **A feed reader is judged by its headers.** Fetching the feeds from Node with our own user agent was refused
+  by 19 of 73 outlets — BBC, NPR, The Guardian, Ars Technica, Wired all answered 403. The same addresses
+  fetched through the open browser answer normally. 17 still refuse a cloud address outright (BBC, The
+  Guardian, Ars Technica, The Verge, Wired, ESPN); the app has relays for exactly this and the pipeline will
+  need them too, or the scheduled Action will run with a third of its desks silent.
+- **One story per outlet per section.** A desk whose other feeds go quiet otherwise fills its whole section
+  from whichever outlet publishes most often — Space.com twice in Science & Health, one of them an almanac
+  item. A section that cannot be filled from different outlets runs short, which the method page allows.
+- **The same event arrives under several mastheads** and grouping only merges headlines close enough to each
+  other: "FCC says SpaceX can deploy…" (AP) and "SpaceX gets FCC approval…" (Engadget) stayed two groups. So a
+  candidate is grouped *with the stories already accepted* before it is taken, by the same `group()` — one
+  detector, never two. Near-misses can still slip through; that is pass 2's job, not a second clusterer's.
+
+Still missing before this runs by itself: photographs (pass 4 — nothing is printed uncleared, so every page is
+type today), the International desk, pass 2's editorial judgement, and the scheduled Action, which cannot
+publish anything until the edition is merged to `main`.
+
 ## The passes
 
 | # | Pass | Who does it | Cost | On failure |

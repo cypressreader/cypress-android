@@ -12,18 +12,16 @@
  * nothing, so most stories will fail here with "could not be fetched" - that is the environment, not the code.
  * Pass --fixtures <dir> to read local copies instead and exercise the whole path offline.
  *
- *   node scripts/edition/gather.js                      # today's edition file, live
- *   node scripts/edition/gather.js --json out.json      # also write the gathered text
+ *   node scripts/edition/gather.js --candidates cand.json   # gate the stories pick.js chose from the feeds
+ *   node scripts/edition/gather.js                          # or re-gate the stories in today's edition file
+ *   node scripts/edition/gather.js --json out.json          # also write the gathered text
  *   node scripts/edition/gather.js --fixtures tests/fixtures
  */
-const fs=require('fs'),path=require('path'),http=require('http');
-const PW=require('child_process').execSync('npm root -g').toString().trim()+'/playwright';
-const {chromium}=require(PW);
-const ROOT=path.resolve(__dirname,'../../www');
+const fs=require('fs'),path=require('path'),{openApp,ROOT}=require('./app');
 const EDITION=path.join(ROOT,'world-edition.json');
 
 const arg=n=>{const i=process.argv.indexOf(n);return i>0?process.argv[i+1]:null};
-const OUT=arg('--json'),FIX=arg('--fixtures');
+const OUT=arg('--json'),FIX=arg('--fixtures'),CAND=arg('--candidates');
 
 /* The gate. Deliberately blunt: these are the conditions under which there is no story to print, not a judgement
    about whether the story is any good. That judgement is pass 2, and it needs a model. */
@@ -35,39 +33,29 @@ const MIN_PARAS=3;
    read by the deadline is dropped like any other, and the edition goes out without it. */
 const DEADLINE=Number(arg('--deadline')||25)*1000;
 
-const MIME={'.html':'text/html','.json':'application/json','.js':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml','.webmanifest':'application/manifest+json'};
-const serve=()=>new Promise(res=>{const s=http.createServer((q,r)=>{let f=path.join(ROOT,decodeURIComponent(q.url.split('?')[0]));if(f.endsWith('/'))f+='index.html';
- if(!f.startsWith(ROOT)||!fs.existsSync(f)){r.writeHead(404);return r.end()}
- r.writeHead(200,{'content-type':MIME[path.extname(f)]||'application/octet-stream'});fs.createReadStream(f).pipe(r)});s.listen(0,'127.0.0.1',()=>res(s))});
-
+/* Where the day's stories come from. `--candidates` is the real pipeline: the list `pick.js` chose from the
+   feeds by counting. With no flag it falls back to the stories in the edition file, which is how this started
+   and is still the way to re-gate an edition that already exists. */
 function candidates(){
- const d=JSON.parse(fs.readFileSync(EDITION,'utf8')),seen=new Set(),out=[];
- for(const e of d.editions||[])for(const s of e.sections||[])for(const st of s.stories||[]){
-  if(!st.l||seen.has(st.l))continue;seen.add(st.l);
-  out.push({link:st.l,title:st.h||st.t,outlet:st.o,section:s.name,edition:e.name});
+ const seen=new Set(),out=[],add=(st,section,edition)=>{
+  if(!st.l||seen.has(st.l))return;seen.add(st.l);
+  out.push({link:st.l,title:st.h||st.t,outlet:st.o,section,edition});
+ };
+ if(CAND){
+  const d=JSON.parse(fs.readFileSync(CAND,'utf8'));
+  for(const s of d.sections||[])for(const st of s.stories||[])add(st,s.name,'picked');
+  return out;
  }
+ const d=JSON.parse(fs.readFileSync(EDITION,'utf8'));
+ for(const e of d.editions||[])for(const s of e.sections||[])for(const st of s.stories||[])add(st,s.name,e.name);
  return out;
 }
 
 (async()=>{
  const list=candidates();
  if(!list.length){console.log('no candidate stories in '+EDITION);process.exit(1)}
- const srv=await serve(),url='http://127.0.0.1:'+srv.address().port+'/index.html';
- const b=await chromium.launch();
- const ctx=await b.newContext({viewport:{width:412,height:915}});
-
- /* offline mode: serve a local copy for any story that has one, so the whole path can be exercised with no network */
- if(FIX){const dir=path.resolve(FIX);
-  await ctx.route(u=>!/^(127\.0\.0\.1|localhost)$/.test(u.hostname),(r,q)=>{
-   const f=path.join(dir,encodeURIComponent(decodeURIComponent(q.url())).slice(0,120)+'.html');
-   if(fs.existsSync(f))return r.fulfill({status:200,contentType:'text/html; charset=utf-8',body:fs.readFileSync(f,'utf8')});
-   return r.abort().catch(()=>{})});
- }
-
- const p=await ctx.newPage();
- await p.goto(url,{waitUntil:'domcontentloaded'});await p.waitForTimeout(1500);
- /* the app holds background work back until the finger is still; a steady wheel event keeps userRest() true */
- await p.evaluate(()=>{setInterval(()=>dispatchEvent(new Event('wheel')),800)});
+ /* with --fixtures the harness answers every off-site address with a local copy, so the whole path runs offline */
+ const app=await openApp({fixtures:FIX}),p=app.page;
 
  const kept=[],dropped=[];
  for(const c of list){
@@ -108,6 +96,6 @@ function candidates(){
 
  if(OUT){fs.writeFileSync(OUT,JSON.stringify({gathered:new Date().toISOString(),kept,dropped:dropped.map(d=>({link:d.link,title:d.title,why:d.why}))},null,1));
   console.log('written to '+OUT)}
- await b.close();srv.close();
+ await app.close();
  process.exit(kept.length<10?2:0);
 })();
