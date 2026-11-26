@@ -26,6 +26,10 @@ const serve = () => new Promise(res => { const s = http.createServer((q, r) => {
 function inPage(opts) {
   const sc = document.querySelector('.we-sc'); const pages = [...sc.children].filter(x => !x.classList.contains('we-cp') && (opts.only ? x.classList.contains(opts.only) : !x.classList.contains('we-sp')));
   const HEAD = 'h1,h2,h3,.we-h,.we-cls li,.we-cls span,.we-cls b,.we-pzs,.we-tl button span,.we-lead,.we-hd h2';
+  /* deliberate, asked-for clamps: the phone Contents row carries its section lead's headline on two lines (issue 47), so a row that runs past two lines is the design, not a fault. Nothing else is exempt. */
+  const CLAMPED = '.we-th';
+  /* a page the reader scrolls: on a phone a story is ONE page and reading scrolls it (David's reading model, issue 33), so type below the fold is not cut off - it is the rest of the story. The page edge only means something on a page that cannot move. */
+  const SCROLLS = '.we-sx';
   const pname = pg => (pg.getAttribute('aria-label') || '').trim() || pg.className;
   const clipOf = el => { /* the visible box of a text rect: the page, the screen and every overflow-hidden ancestor */
     const pg = el.closest('.we-pg'); const pr = pg.getBoundingClientRect();
@@ -46,7 +50,7 @@ function inPage(opts) {
       const clip = clipOf(el), nodeId = id++;
       [...r.getClientRects()].forEach((q, qi, qa) => {
         if (el.classList.contains('we-dc') && qi === 0 && !el.dataset.dcSeen) { el.dataset.dcSeen = '1'; return } /* the drop cap's tall first-letter box is not a line of text */
-        if (q.width < 2 || q.height < 3) return;
+        if (q.width < 2 || q.height < 3 || el.closest(CLAMPED) || el.closest(SCROLLS)) return;
         const L = Math.max(q.left, clip[0]), T = Math.max(q.top, clip[1]), R = Math.min(q.right, clip[2]), B = Math.min(q.bottom, clip[3]);
         const vis = Math.max(0, R - L) * Math.max(0, B - T), full = q.width * q.height;
         if (vis < full * .5) { if (vis <= 0 || (q.right - q.left) < 1) return; } /* wholly hidden: not text on the page */
@@ -74,7 +78,7 @@ function inPage(opts) {
     /* 2. a blank / near-empty page: almost no type and nothing drawn */
     if (chars < opts.minChars && media < parea * .12) fails.push({ kind: 'blank', what: 'near-empty page: ' + chars + ' characters of text, ' + P.mediaPct + '% picture/art', text: [...pg.querySelectorAll('*')].filter(x => !x.children.length && x.textContent.trim()).map(x => x.textContent.trim()).join(' | ').slice(0, 80) });
     /* 3. truncation: ellipsis, line clamp, clipped box, a word broken across lines, a line ending on a hyphen */
-    pg.querySelectorAll('*').forEach(el => { if (!el.textContent.trim() || ink(el) < .15) return; const cs = getComputedStyle(el);
+    pg.querySelectorAll('*').forEach(el => { if (!el.textContent.trim() || ink(el) < .15 || el.matches(CLAMPED)) return; const cs = getComputedStyle(el);
       const nm = el.tagName.toLowerCase() + '.' + String(el.className).split(' ')[0];
       const clipX = /hidden|clip/.test(cs.overflowX), clipY = /hidden|clip/.test(cs.overflowY), clamp = cs.webkitLineClamp && cs.webkitLineClamp !== 'none';
       if (cs.textOverflow === 'ellipsis' && el.scrollWidth > el.clientWidth + 1) fails.push({ kind: 'trunc', what: 'ellipsis cuts the text', el: nm, text: el.textContent.trim().slice(0, 60) });
@@ -111,9 +115,17 @@ function inPage(opts) {
   return out;
 }
 
+const LEDE = 'The decision landed late in the day, and the people who had pressed for it for years were not in the room to hear it read out. What follows is an account of how it came about, drawn from the documents and from the people who wrote them.';
+const STANDIN = '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>A stand-in article for the layout check</title>'
+  + '<meta property="og:title" content="A stand-in article for the layout check"></head><body><article><h1>A stand-in article for the layout check</h1>'
+  + Array.from({ length: 22 }, (_, i) => '<p>' + LEDE + ' Paragraph ' + (i + 2) + ' carries the same weight of text as the one above it, so a page fills the way a real story fills it.</p>').join('') + '</article></body></html>';
 async function open(browser, url, w, h) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, isMobile: false, hasTouch: false }), page = await ctx.newPage();
   const errs = []; page.on('pageerror', e => errs.push(e.message));
+  /* publishers are unreachable from a cloud runner, so without this only one story in eighteen ever loads and the check measures empty pages.
+     A stand-in article answers every off-site page fetch, so the pages carry the type a reader would see. Pictures are left alone. STANDIN=0 turns it off. */
+  if (process.env.STANDIN !== '0') await ctx.route(u => !/^(127\.0\.0\.1|localhost)$/.test(u.hostname), (r, q) =>
+    /^(document|fetch|xhr)$/.test(q.resourceType()) ? r.fulfill({ contentType: 'text/html', body: STANDIN }) : r.continue().catch(() => {}));
   await page.addInitScript(() => { try { localStorage.setItem('cy_tip_seen', '1') } catch (e) {} });
   await page.goto(url, { waitUntil: 'domcontentloaded' }); await page.waitForTimeout(1500);
   await page.click('text=Get started', { timeout: 1500 }).catch(() => {});
