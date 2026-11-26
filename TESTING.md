@@ -2670,3 +2670,11 @@ Check on the Fold first, then web, then wide:
 - Turn: 400 ms flat lift-and-settle (no rotation); check swipes in a row, Back from a story, no blank flash.
 - Back: no white page after the navy back cover; odd page counts get a colophon leaf BEFORE the back cover.
 - Not reproduced: the "3 of 7 / 4 of 7" repeated on two spreads of the turkey story; the stray word "caption" (guarded in the credit and body filters).
+
+## Issue 48 checks (World Edition round, on the Fold)
+- Page curl: turn forward and back; no page shows twice, no freeze, feels fast (~480 ms). Rigid leaf with shading, not a bent sheet.
+- Cover has three cover lines and reads as a cover; no cover line sits on the lead.
+- A section opener always starts on the left page after a turn; the quiet "Next section" page appears only on a spread.
+- A story's last page is followed by a pause page that holds the Next-up link.
+- CBS story opens in full inside the app; the ready line reads 18/18.
+- Phone: Nvidia story drop cap clears the text; no kicker or rule over the body.
