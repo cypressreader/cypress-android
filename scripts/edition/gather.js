@@ -31,7 +31,12 @@ const MIN_PARAS=3;
    turn, each with its own timeout, so a story that is simply unreachable can take minutes to give up - fine on a
    phone where a person is waiting and can leave, useless in a build that has to finish. A story that has not been
    read by the deadline is dropped like any other, and the edition goes out without it. */
-const DEADLINE=Number(arg('--deadline')||25)*1000;
+/* David, 2026-11-26: "25 second time out seems short. Maybe give it more time." It was short: on the
+   26 November run it threw away both obituaries and sixteen stories in all, and a phone reading the same
+   page would have waited longer. 45 seconds now, and the gate reads three stories at once so the whole pass
+   still finishes in about the same wall-clock time it used to take at 25. */
+const DEADLINE=Number(arg('--deadline')||45)*1000;
+const LANES=Number(arg('--lanes')||3);
 
 /* Where the day's stories come from. `--candidates` is the real pipeline: the list `pick.js` chose from the
    feeds by counting. With no flag it falls back to the stories in the edition file, which is how this started
@@ -39,7 +44,7 @@ const DEADLINE=Number(arg('--deadline')||25)*1000;
 function candidates(){
  const seen=new Set(),out=[],add=(st,section,edition)=>{
   if(!st.l||seen.has(st.l))return;seen.add(st.l);
-  out.push({link:st.l,title:st.h||st.t,outlet:st.o,section,edition});
+  out.push({link:st.l,title:st.h||st.t,outlet:st.o,section,edition,sibs:st.sibs||[]});
  };
  if(CAND){
   const d=JSON.parse(fs.readFileSync(CAND,'utf8'));
@@ -61,40 +66,67 @@ function candidates(){
  const app=await openApp({fixtures:FIX}),p=app.page;
 
  const kept=[],dropped=[];
- for(const c of list){
-  const r=await Promise.race([
-   new Promise(res=>setTimeout(()=>res({slow:1}),DEADLINE)),
-   p.evaluate(async u=>{
-    let n=null;try{n=await getFull(u,false)}catch(e){return{err:String(e&&e.message||e),log:(LG[u]||[]).slice(-3)}}
-    if(!n)return{none:1,log:(LG[u]||[]).slice(-3)};
-    const ps=[...n.querySelectorAll('p')].map(x=>x.textContent.trim()).filter(Boolean);
-    /* The pictures the story itself carries, with whatever the publisher wrote under them. A magazine is
-       pictures as much as words, and these are the only ones we may print: the publisher's own, shown from the
-       publisher's own address. Nothing is judged here - that is the clearance pass - and nothing is measured,
-       because a picture in a detached page has not been loaded. */
-    const pics=[...n.querySelectorAll('img')].map(im=>{
-     const fig=im.closest('figure'),cap=fig&&fig.querySelector('figcaption');
-     return{src:im.getAttribute('src')||im.getAttribute('data-src')||'',
-       w:+im.getAttribute('width')||0,h:+im.getAttribute('height')||0,
-       alt:(im.getAttribute('alt')||'').replace(/\s+/g,' ').trim().slice(0,160),
-       cap:cap?cap.textContent.replace(/\s+/g,' ').trim().slice(0,220):''};
-    }).filter(p=>/^https:\/\//.test(p.src));
-    return{tier:n.tier||'',pw:!!n.pw,gate:!!n.gate,preview:!!n.gated_preview,incomplete:!!n.incomplete,
-      paras:ps.length,words:ps.join(' ').split(/\s+/).filter(Boolean).length,pics,
-      text:ps.join('\n\n'),log:(LG[u]||[]).slice(-3)};
-  },c.link)]).catch(e=>({err:String(e)}));
-
-  let why='';
-  if(r.slow)why='gave up after '+(DEADLINE/1000)+'s';
-  else if(r.err)why='the fetch itself failed ('+r.err+')';
-  else if(r.none)why='could not be fetched or read';
-  else if(r.pw||r.gate||r.preview)why='behind a paywall or sign-in';
-  else if(r.paras<MIN_PARAS)why='only '+r.paras+' paragraph'+(r.paras===1?'':'s');
-  else if(r.words<MIN_WORDS)why='only '+r.words+' words';
-
-  if(why){dropped.push({...c,why,log:r.log||[]});process.stdout.write('x')}
-  else{kept.push({...c,tier:r.tier,paras:r.paras,words:r.words,text:r.text,pics:r.pics||[]});process.stdout.write('.')}
+ /* One page per lane, so three stories are read at once. The app's own reader is what does the reading in
+    each of them, exactly as before. */
+ const lanes=[p];for(let i=1;i<LANES;i++)lanes.push(await app.ctx.newPage());
+ for(const lp of lanes.slice(1)){
+  await lp.goto(app.url,{waitUntil:'domcontentloaded'});await lp.waitForTimeout(1200);
+  await lp.evaluate(()=>{setInterval(()=>dispatchEvent(new Event('wheel')),800)});
  }
+
+ const readOne=(lp,url)=>Promise.race([
+  new Promise(res=>setTimeout(()=>res({slow:1}),DEADLINE)),
+  lp.evaluate(async u=>{
+   let n=null;try{n=await getFull(u,false)}catch(e){return{err:String(e&&e.message||e),log:(LG[u]||[]).slice(-3)}}
+   if(!n)return{none:1,log:(LG[u]||[]).slice(-3)};
+   const ps=[...n.querySelectorAll('p')].map(x=>x.textContent.trim()).filter(Boolean);
+   /* The pictures the story itself carries, with whatever the publisher wrote under them. A magazine is
+      pictures as much as words, and these are the only ones we may print: the publisher's own, shown from
+      the publisher's own address. Nothing is judged here - that is the clearance pass. */
+   const pics=[...n.querySelectorAll('img')].map(im=>{
+    const fig=im.closest('figure'),cap=fig&&fig.querySelector('figcaption');
+    return{src:im.getAttribute('src')||im.getAttribute('data-src')||'',
+      w:+im.getAttribute('width')||0,h:+im.getAttribute('height')||0,
+      alt:(im.getAttribute('alt')||'').replace(/\s+/g,' ').trim().slice(0,160),
+      cap:cap?cap.textContent.replace(/\s+/g,' ').trim().slice(0,220):''};
+   }).filter(x=>/^https:\/\//.test(x.src));
+   return{tier:n.tier||'',pw:!!n.pw,gate:!!n.gate,preview:!!n.gated_preview,incomplete:!!n.incomplete,
+     paras:ps.length,words:ps.join(' ').split(/\s+/).filter(Boolean).length,pics,
+     text:ps.join('\n\n'),log:(LG[u]||[]).slice(-3)};
+  },url)]).catch(e=>({err:String(e)}));
+
+ const verdict=r=>{
+  if(!r)return 'nothing came back';
+  if(r.slow)return 'gave up after '+(DEADLINE/1000)+'s';
+  if(r.err)return 'the fetch itself failed ('+r.err+')';
+  if(r.none)return 'could not be fetched or read';
+  if(r.pw||r.gate||r.preview)return 'behind a paywall or sign-in';
+  if(r.paras<MIN_PARAS)return 'only '+r.paras+' paragraph'+(r.paras===1?'':'s');
+  if(r.words<MIN_WORDS)return 'only '+r.words+' words';
+  return '';
+ };
+
+ /* THE SWAP RULE, which issue 47 asked for and the gate never had: "a story that can't be fetched is swapped
+    for one that loads". The grouping already knows which other newsrooms covered the same event, so when a
+    publisher's page will not answer, their version is tried before the place is given up. On 26 November the
+    Obituary page was empty because Billboard timed out while two other newsrooms' versions of the same death
+    sat unused. */
+ let i=0;
+ const work=async lp=>{
+  while(i<list.length){
+   const c=list[i++];
+   let r=await readOne(lp,c.link),why=verdict(r),swap=null;
+   if(why)for(const sb of (c.sibs||[]).slice(0,2)){
+    if(!sb||!sb.l||/news\.google\.com/.test(sb.l))continue;
+    const r2=await readOne(lp,sb.l),w2=verdict(r2);
+    if(!w2){r=r2;why='';swap={l:sb.l,o:sb.o||'',t:sb.t||''};break}
+   }
+   if(why){dropped.push({...c,why,log:(r&&r.log)||[]});process.stdout.write('x')}
+   else{kept.push({...c,tier:r.tier,paras:r.paras,words:r.words,text:r.text,pics:r.pics||[],swap});
+    process.stdout.write(swap?'s':'.')}
+  }
+ };
+ await Promise.all(lanes.map(work));
  process.stdout.write('\n\n');
 
  console.log('READ  '+kept.length+' of '+list.length+' stories');

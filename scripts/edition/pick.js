@@ -313,7 +313,7 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
    }
    sections.push({name:d.name,places:d.n,stories:mine.map(g=>({t:ownWords(g.title,g.outlet),o:g.outlet,l:g.link,n:g.n,
     dek:g.summary||'',img:g.img||'',date:g.date,outlets:g.outlets,
-    sibs:(g.more||[]).filter(m=>m.l&&!/news\.google\.com/.test(m.l)).map(m=>({o:outletOf[m.f]||'',l:m.l,img:m.img||''})).slice(0,4)}))});
+    sibs:(g.more||[]).filter(m=>m.l&&!/news\.google\.com/.test(m.l)).map(m=>({o:outletOf[m.f]||'',l:m.l,t:ownWords(m.t||'',outletOf[m.f]||''),img:m.img||''})).slice(0,4)}))});
   }
   editions.push({id:E.id,name:E.name,regions:E.regions,fallback:!!E.fallback,sections});
  }

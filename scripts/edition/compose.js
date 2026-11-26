@@ -60,7 +60,10 @@ function build(src){
   for(const st of s.stories||[]){
    const r=read.get(st.l);if(!r)continue;            /* pass 1 dropped it: not read, too short, or gated */
    if(drop.has(st.l))continue;
-   const o={t:st.t,o:st.o,l:st.l};
+   /* the swap rule: when the publisher's own page would not answer, another newsroom's version of the same
+      story was read instead, so that is the one printed - its masthead, its headline, its address */
+   const sw=r.swap&&r.swap.l?r.swap:null;
+   const o={t:(sw&&sw.t)||st.t,o:(sw&&sw.o)||st.o,l:(sw&&sw.l)||st.l};
    const ph=pics.get(st.l);
    if(ph)o.photo={url:ph.url,credit:ph.credit,w:ph.w,h:ph.h,people:ph.people!==false,
      clear:ph.clear,by:'Claude, looked at each one'};
