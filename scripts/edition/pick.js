@@ -132,7 +132,7 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
     ||/^the download[:\u2014-]/i.test((a.title||'').trim());
   const fresh=all.filter(a=>a.date&&a.date>=cut&&!junkItem(a)&&!dealItem(a)&&!promoItem(a)&&!notNews(a));
   return group(fresh).map(x=>({title:x.title,link:x.link,feedId:x.feedId,date:x.date,img:x.img||'',
-   summary:x.summary||'',more:(x.more||[]).map(m=>({f:m.f,l:m.l}))}));
+   summary:x.summary||'',more:(x.more||[]).map(m=>({f:m.f,l:m.l,t:m.t,img:m.img||''}))}));
  },{ok:ok.map(g=>({f:{id:g.f.id,url:g.f.url,title:g.f.title},xml:g.xml})),hours:HOURS});
 
  const outletOf={},siteFor={};for(const f of feeds){outletOf[f.id]=f.outlet;siteFor[f.id]=f.site}
@@ -176,7 +176,12 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
    used.add(g.link);for(const m of g.more)if(m.l)used.add(m.l);
   }
   sections.push({name:d.name,places:d.n,stories:mine.map(g=>({t:g.title,o:g.outlet,l:g.link,n:g.n,
-   dek:g.summary||'',img:g.img||'',date:g.date,outlets:g.outlets}))});
+   dek:g.summary||'',img:g.img||'',date:g.date,outlets:g.outlets,
+   /* The other outlets' versions of the same story. Grouping finds them, and until now they were used only to
+      stop the same event printing twice. They are also the other photographers who were there: the format says
+      a cover photo is "the best photo among all outlets' versions", and 16 of 27 stories in the 26 November
+      edition had no usable picture of their own while 27 sibling versions went unlooked at. */
+   sibs:(g.more||[]).filter(m=>m.l&&!/news\.google\.com/.test(m.l)).map(m=>({o:outletOf[m.f]||'',l:m.l,img:m.img||''})).slice(0,4)}))});
  }
 
  const sampled=new Set(ok.map(g=>g.f.outlet)).size;
