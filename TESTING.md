@@ -2673,3 +2673,7 @@ Check on the Fold first, then web, then wide:
 
 ## World Edition app-side guard (issue 48 follow-up)
 - Open a story whose page has no readable text (or tap a paid one before the edition has finished getting ready): the story should simply leave the edition and you land back on the cover. No "did not send the text" page, no link out, and the ready line counts one fewer. Verified in a browser with stand-in pages; check on the Fold with real publishers.
+
+## Issue 52 (World Edition turn teardown, no refresh while reading) - implemented, UNVERIFIED on a phone
+- Fold, phone width: turn forward and back through the edition (also three quick swipes, a story opened and closed). After each turn the page must be clean at once and still clean at 1 s and 5 s - no old page printed over the new one.
+- Read the Measles story top to bottom: no doubled text, no "Refreshing 6 sites..." note. Pull down on a story page: nothing should refresh. Leave the story: the refresh may start a moment later.

@@ -12566,6 +12566,7 @@ $('#frm').onsubmit=async e=>{
 setTimeout(()=>watchCheck(),8000);
 $('#ref').onclick=async()=>{
  const b=$('#ref');if(b.classList.contains('spin'))return;
+ if(S.sel==='we'&&WE.sp!=null){WE.rfq=1;return}/* issue 52: no refresh while a story is open in the World Edition; it runs when the reader leaves the story */
  if(!online()){toast(S.offline?'Offline mode is on. Turn it off in Settings to refresh':'You’re offline');return}
  const before=new Set(S.feeds.flatMap(f=>(items[f.id]||[]).map(a=>a.link)));
  NN.here='';b.classList.add('spin');toast('Refreshing '+S.feeds.length+(S.feeds.length===1?' site…':' sites…'));WIRE.pillT=Date.now();wireReset();
@@ -13833,7 +13834,7 @@ $('#fresh').onclick=()=>startFresh();
 ['click','change','input'].forEach(ev=>set.addEventListener(ev,e=>{if(e.target.closest('.spage')&&!e.target.closest('#sp-about,#sybox'))S.setT=Date.now()/* the sync buttons are not a settings change: joining must take the other device's newer settings */},true));
 $('#pfm').onchange=e=>{const v=e.target.value;if(v==='off')S.pfm='off';else{S.pfm='custom';S.pfn=+v}save();PF.done.clear();PF.n=0;PF.q=[];PF.tot=0;PF.fin=0;pfBar();if(S.pfm!=='off')prefetch(pfList());try{acEvict()}catch(x){}syncSet()};
 let arT;function setAuto(){clearInterval(arT);const m=+S.auto||0;if(m)arT=setInterval(()=>{if(!document.hidden&&!$('#rd').classList.contains('on'))loadAll()},m*6e4)}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)schTick();if(!document.hidden&&Date.now()-(S.lastLoad||0)>10*6e4&&!$('#rd').classList.contains('on'))loadAll(0,0,1)});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)schTick();if(!document.hidden&&Date.now()-(S.lastLoad||0)>10*6e4&&!$('#rd').classList.contains('on')&&!(S.sel==='we'&&WE.sp!=null))loadAll(0,0,1)});
 $('#clr').onclick=async()=>{const kp=new Set((S.saved||[]).map(a=>a.link)),n=Object.keys(AC).filter(k=>!kp.has(k)).length;if(!await askBox({title:'Clear downloaded stories?',text:(n===1?'1 downloaded story':n+' downloaded stories')+' will be removed from this device. You can download them again when you’re online.',ok:'Clear',cancel:'Keep them',danger:true}))return;try{localStorage.removeItem(CK);localStorage.removeItem('folio-img')}catch(e){}acClear();toast('Stored stories cleared. Feeds, saved stories and highlights are kept.')};
 
 /* feed health */
@@ -14594,7 +14595,7 @@ function ptLeaf(){const w=$('#pts');if(!w||!w.classList.contains('on')||matchMed
 async function ptRefresh(){PT.busy=1;const g=$('#grid');g.style.transition='transform .28s ease';ptDraw(0,1,'Refreshing…','busy');const t0=Date.now(),r=$('#ref'),pn=WIRE.pend.length;r.click();let nl=t0+700;
  while(Date.now()-t0<20000){await new Promise(x=>setTimeout(x,250));if(Date.now()>=nl){ptLeaf();nl=Date.now()+900+Math.random()*900}if(Date.now()-t0>1600&&!r.classList.contains('spin'))break}
  PT.busy=0;ptHide(true);if(WIRE.pend.length>pn)buzz('tick')/* A3 */}
-$('main').addEventListener('touchstart',e=>{if(!PT.busy&&$('main').scrollTop<=0&&e.touches.length===1&&!document.body.classList.contains('open'))PR.y=e.touches[0].clientY,PR.x=e.touches[0].clientX,PR.d=0;else PR.y=null},{passive:true});
+$('main').addEventListener('touchstart',e=>{if(!PT.busy&&S.sel!=='we'&&$('main').scrollTop<=0&&e.touches.length===1&&!document.body.classList.contains('open'))PR.y=e.touches[0].clientY,PR.x=e.touches[0].clientX,PR.d=0;else PR.y=null},{passive:true});
 $('main').addEventListener('touchmove',e=>{
  if(PR.y==null)return;const dy=e.touches[0].clientY-PR.y,dx=e.touches[0].clientX-PR.x;
  if(SW.act||Math.abs(dx)>Math.abs(dy)||$('main').scrollTop>0){if(PR.d>0)ptHide(true);PR.d=0;PR.y=null;return}
@@ -16705,8 +16706,10 @@ function weFlip(sc,from,to,dir,pw,two,done){
  const B=sc.getBoundingClientRect(),up0=Math.max(0,B.top),dn=Math.max(0,innerHeight-B.bottom),rr=(up0+dn)/Math.max(1,B.height);
  T.kz=Math.max(document.body.classList.contains('wefull')?.62:.25,Math.min(1,1700*rr/((1+rr)*pw*1.05)));/* full-screen leaves no room above or below, so the bow was always squeezed to its floor and the turn read as a flat slide */lf.style.transform=`scale3d(1,1,${T.kz.toFixed(3)})`;
  st.append(un,lf);host.append(st);host.classList.add('we-tg');if(!two)host.classList.add('we-tgh');/* the leaf covers the whole screen only on one page: on a spread the other half must keep showing *//* no page numbers mid-turn: the leaf used to print one over the other */
- const a0=fwd?0:180,a1=fwd?180:0,end=()=>{st.remove();host.classList.remove('we-tg','we-tgh');done()};let t0=0;
- const fr=now=>{if(!st.isConnected)return;if(WE.cut){WE.cut=0;end();return}if(!t0)t0=now;const q=Math.min(1,(now-t0)/WE_TURN),e=eBack(q),a=a0+(a1-a0)*e;
+ const a0=fwd?0:180,a1=fwd?180:0,end=()=>{/* issue 52: the old page ghosted for seconds after the turn on the Fold, although every copy was already out of the DOM - the phone's compositor kept the lifted sheet's many 3D / will-change layers painted. So the sheet is let go in steps: its layers are switched off and the sheet hidden first (the page coming in stays up, opaque, as a plain copy), and only a frame later is everything removed and the live page shown, already at its new place. Any stray turn left by a cut-short one goes too. */
+  if(end.d)return;end.d=1;lf.style.display='none';st.querySelectorAll('*').forEach(e=>{e.style.willChange='auto'});void st.offsetWidth;
+  requestAnimationFrame(()=>{host.querySelectorAll('.we-tn').forEach(e=>e.remove());host.classList.remove('we-tg','we-tgh');done()})};let t0=0;
+ const fr=now=>{if(!st.isConnected||end.d)return;if(WE.cut){WE.cut=0;end();return}if(!t0)t0=now;const q=Math.min(1,(now-t0)/WE_TURN),e=eBack(q),a=a0+(a1-a0)*e;
   try{curlPose(T,a)}catch(err){lf.style.transform=`rotateY(${(fwd?-180:180)*e}deg)`}
   if(q<1)requestAnimationFrame(fr);else end()};
  requestAnimationFrame(fr);
@@ -16850,7 +16853,7 @@ let said=!!q;if(!q){/* no quoted sentence: the strongest whole sentence of the t
  const f=pages[0].querySelector('[data-werb]');if(f&&wait!==1)try{f.focus({preventScroll:true})}catch(e){}
  if(WE.go&&WE.pg!==at)WE.go(at,1);else if(WE.lab)WE.lab();
 }
-function weRdClose(fromPop){if(WE.resettle)setTimeout(()=>{WE.resettle=0;weSettle()},60);const sc=document.querySelector('.we-sc');WE.rd=null;if(WE.sp==null)return;const bk=sc;
+function weRdClose(fromPop){if(WE.rfq){WE.rfq=0;setTimeout(()=>{if(WE.sp==null)$('#ref').click()},1200)}if(WE.resettle)setTimeout(()=>{WE.resettle=0;weSettle()},60);const sc=document.querySelector('.we-sc');WE.rd=null;if(WE.sp==null)return;const bk=sc;
  const back=WE.spBack|0;WE.sp=null;
  if(sc)[...sc.querySelectorAll('.we-sp')].forEach(x=>x.remove());
  wePad(sc,sc.clientWidth>=600);weFolio();if(!fromPop)dropLayer('weread');
