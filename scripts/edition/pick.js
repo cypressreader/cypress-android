@@ -44,6 +44,20 @@ const OUT=arg('--json'),HOURS=Number(arg('--hours')||36);
    transfer, a fantasy column or a score is sport wherever it was published. Written once and used by the
    desks that are places rather than kinds. */
 const SPORTY=/\b(nfl|nba|mlb|nhl|ncaa|fifa|uefa|premier league|la liga|serie a|f1|formula 1|grand prix|super bowl|world cup|playoffs?|quarterfinals?|semifinals?|touchdown|home run|fantasy football|week \d+|game \d+|\bvs\.?\b|steelers|packers|lakers|yankees|dodgers|man utd|manchester (united|city)|arsenal|liverpool|chelsea|wildcats|open (final|semi)|atp|wta|test match|six nations)\b/i;
+/* WHAT COUNTS AS SPORT IN A MAGAZINE (David, 2026-11-26): "it should only be major events. Someone won the
+   world cup, world series, super bowl, Wimbledon etc. A random team winning a random game doesn't matter for
+   99% of readers. Now a sport related major story like Kobe Bryant dying or Messi retiring does matter
+   because that's a major story affecting all of sports."
+   So the Sport desk takes two kinds and nothing else: something was WON - a final, a championship, a medal, a
+   record - or a career ended, was banned or was sold for a record. Everything else, which is most of what a
+   sports feed publishes, is a result nobody outside the fixture cares about a day later.
+   A death goes to the Obituary page instead, which is where a magazine prints one. */
+const SPORT_WON=/\b(world cup|super bowl|world series|wimbledon|olympics?|paralympics?|the ashes|tour de france|ryder cup|stanley cup|nba finals|world championships?|world record|gold medal|grand slam|ballon d'or|copa (am[\u00e9e]rica|libertadores)|champions league|europa league|euro 20\d\d)\b/i;
+const SPORT_FINAL=/\b(wins?|won|beat|crowned|clinch(es|ed)?|lifts?|claims?|seals?)\b[^.]{0,40}\b(title|final|championship|crown|cup|gold|medal|record)\b|\b(final|semi-?final|championship|title) (win|victory|triumph|decider)\b/i;
+const SPORT_CAREER=/\b(retires?|retirement|announces? (his|her|their) retirement|hangs up|steps down as|sacked as|banned for|doping ban|life(time)? ban|hall of fame|record (transfer|signing|deal)|world record)\b/i;
+/* and what a sports feed is mostly made of, which a magazine never prints */
+const SPORT_NOISE=/\bfantasy\b|start '?em|sit '?em|\bodds\b|\bbetting\b|\bpicks?\b|\brankings?\b|\bpower rankings\b|\binjury report\b|\bweek \d+\b|\bpreview\b|\bhow to watch\b|\bhighlights\b|\brecap\b|\btrade rumou?rs?\b|\bmock draft\b/i;
+
 const DESK=[
  {name:'Home',not:SPORTY,n:6,cats:['News','Politics'],home:1,
   outlets:['NPR','PBS NewsHour','NBC News','CBS News','AP News','Axios','The Hill','CNN','Fox News','Semafor','ProPublica','NPR Politics','The Hill Politics','Roll Call','Politico','The Intercept','FiveThirtyEight']},
@@ -57,7 +71,10 @@ const DESK=[
   find:/\breview\b|\bverdict\b|\breviewed\b|\u2605/i},
  {name:'Explainer',not:SPORTY,n:2,any:1,
   find:/\bexplainer\b|\bexplained\b|what to know|\bwhy (is|are|do|does|did|has|have)\b|\bhow (does|do|did|to)\b/i},
- {name:'Sport',n:3,cats:['Sports']},
+ {name:'Sport',n:3,cats:['Sports'],
+  find:new RegExp(SPORT_WON.source+'|'+SPORT_FINAL.source+'|'+SPORT_CAREER.source,'i'),
+  /* a death is an obituary, not a result, so it is left for that page */
+  not:new RegExp(SPORT_NOISE.source+'|\\b(dies|died|dead at)\\b','i')},
  {name:'Food',n:3,cats:['Food','Lifestyle']},
  {name:'From the archive',not:SPORTY,n:1,cats:['History'],
   find:/\bon this day\b|years ago\b|\bin 1[89]\d\d\b|\bhistory of\b|\bthe forgotten\b|\bwhen .* (was|were)\b/i},

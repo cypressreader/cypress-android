@@ -77,26 +77,34 @@ and each exists because something specific reached a page that should not have.
    26 November it filed a tennis result in World, Aaron Rodgers in Culture and an ammunition plant in
    Business, purely because of whose feed they came down. Home, World, Business, Culture, Explainer, the
    archive and the Long read now refuse a headline that is plainly sport.
-5. **A desk can be a kind of story** rather than a place — Obituary, Explainer, Review and From the archive
+5. **Sport is major events only** (David, 2026-11-26: "A random team winning a random game doesn't matter for
+   99% of readers. Now a sport related major story like Kobe Bryant dying or Messi retiring does matter
+   because that's a major story affecting all of sports."). The Sport desk takes two kinds and nothing else:
+   something was **won** — a World Cup, a Super Bowl, Wimbledon, a championship, a medal, a world record — or a
+   **career** ended, was banned, or was sold for a record. Fixture reports, injury news, rankings, fantasy
+   columns, odds, previews and recaps are refused, which is most of what a sports feed publishes. A death goes
+   to the Obituary page, where a magazine prints one. The section runs short on a day when nothing was won,
+   which is the honest answer.
+6. **A desk can be a kind of story** rather than a place — Obituary, Explainer, Review and From the archive
    read every feed and match the headline instead.
-6. **Not a story at all:** a price cut filed as news, a paid showroom listing, a newsletter round-up, a
+7. **Not a story at all:** a price cut filed as news, a paid showroom listing, a newsletter round-up, a
    how-to-watch listing, a feed's own furniture ("Saved Stories"), and a headline carrying a bare web address,
    which breaks mid-word when printed word for word.
-7. **Google's masthead comes off.** A relayed headline arrives as "Headline - BBC"; the edition prints the
+8. **Google's masthead comes off.** A relayed headline arrives as "Headline - BBC"; the edition prints the
    publisher's own words, so the appended masthead is removed when it names that outlet.
 
 **Pictures**
 
-8. **Ask the others who were there.** A story whose own page has nothing printable is not a story without a
+9. **Ask the others who were there.** A story whose own page has nothing printable is not a story without a
    picture: the grouping already knows which other newsrooms covered it, and up to two of their pages are read
    for the picture the publisher put at the top. On 26 November this found nine of thirty pictures.
-9. **Biggest is not best.** A share card (an address saying og, social, share, card, twitter — usually with the
+10. **Biggest is not best.** A share card (an address saying og, social, share, card, twitter — usually with the
    headline printed across it) is penalised; a figure with the caption the publisher wrote under it is
    preferred; a landscape between 1.2 and 2.2 to 1 opens a page and a portrait fights it; and size counts with
    a ceiling, because 4,000px is not twice as good as 2,000.
-10. **The lead follows the picture.** The most reported story leads — unless it has no cover-size photograph
+11. **The lead follows the picture.** The most reported story leads — unless it has no cover-size photograph
     and another story within one newsroom of it does. That is how a magazine has always chosen its cover.
-11. **Nothing is printed uncleared.** Code can measure and reject; only a look can clear. Six marks are
+12. **Nothing is printed uncleared.** Code can measure and reject; only a look can clear. Six marks are
     required and when unsure the answer is no.
 
 ## The passes
