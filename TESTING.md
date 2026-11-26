@@ -2712,3 +2712,16 @@ Check on the Fold first, then web, then wide:
 - **The old turn-layer rules (`.we-lyr`) were removed.** Nothing has used that class since the turn stopped
   building pages from copies, so a page turn should look exactly as it did in build 502. If a turn flickers or a
   page paints oddly, that removal is the first thing to put back.
+
+## Preview build 504 (2026-11-26): does a new edition arrive on its own?
+The test app now asks CyPress Reader's preview site for a newer edition (the real app still asks
+cypressreader.com, which carries nothing until the World Edition is merged). The preview site is serving the
+first machine-written edition, 26 November, while the copy inside the app is MJ's hand-made 24 November one.
+- Install 504, open the magazine: it should be the **24 November** issue, exactly as before.
+- Leave it on screen a few seconds (the check runs about 2.5 s after the pages are drawn), close the magazine,
+  open it again: it should now be **26 November, No. 2** - nine stories, Business, Science & Health and Culture
+  empty, no photographs, a type cover. Thin on purpose: a third of the feeds refuse a cloud address.
+- An issue must never change under you while reading. If the magazine switches issue while it is open, that is
+  a fault.
+- Offline, on data saver, on a metered connection or in battery saver it must not ask at all, and the 24
+  November issue keeps opening.
