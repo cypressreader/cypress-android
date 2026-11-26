@@ -21,6 +21,7 @@ const fs=require('fs'),path=require('path'),{ROOT}=require('./app');
 
 const arg=n=>{const i=process.argv.indexOf(n);return i>0?process.argv[i+1]:null};
 const CAND=arg('--candidates'),GOT=arg('--gathered'),WRITE=process.argv.includes('--write');
+const CLEARED=arg('--photos'),DROP=arg('--drop');
 const OUT=arg('--out')||path.join(ROOT,'world-edition.json');
 const DOCS=path.resolve(__dirname,'../../docs/app/world-edition.json');
 if(!CAND){console.log('need --candidates <file from pick.js> (and --gathered <file from gather.js>)');process.exit(1)}
@@ -31,6 +32,13 @@ const cand=JSON.parse(fs.readFileSync(CAND,'utf8'));
 const got=GOT?JSON.parse(fs.readFileSync(GOT,'utf8')):null;
 if(!got){console.log('need --gathered <file from gather.js>: a story that has not been read must not be printed');process.exit(1)}
 const read=new Map((got.kept||[]).map(k=>[k.link,k]));
+/* Pictures that have been looked at. A photo reaches the page ONLY from this file: the app refuses one that is
+   missing any clearance mark, and a mark can only be made by something that saw the picture. */
+const pics=new Map();
+if(CLEARED)for(const p of (JSON.parse(fs.readFileSync(CLEARED,'utf8')).photos||[]))pics.set(p.link,p);
+/* Stories left out by hand this time: a price deal, a paid showroom listing, a newsletter round-up. Each is a
+   rule the picker should learn rather than a judgement to repeat here. */
+const drop=new Set(DROP?JSON.parse(fs.readFileSync(DROP,'utf8')):[]);
 
 /* The 24 shapes the app will draw on a type cover, in the format's own order. One is chosen by the date so that
    two editions running the same day look the same and consecutive days do not. */
@@ -47,7 +55,11 @@ for(const s of cand.sections||[]){
  const stories=[];
  for(const st of s.stories||[]){
   const r=read.get(st.l);if(!r)continue;            /* pass 1 dropped it: not read, too short, or gated */
+  if(drop.has(st.l))continue;
   const o={t:st.t,o:st.o,l:st.l};
+  const ph=pics.get(st.l);
+  if(ph)o.photo={url:ph.url,credit:ph.credit,w:ph.w,h:ph.h,people:ph.people!==false,
+    clear:ph.clear,by:'Claude, looked at each one'};
   if(st.n>1)o.n=st.n;                               /* "Reported by n of N outlets checked" */
   else o.why='The only outlet checked that carried it';
   /* the standfirst is the publisher's own summary FROM ITS FEED, never a sentence lifted out of the article */
@@ -56,6 +68,11 @@ for(const s of cand.sections||[]){
      segments, and the app does not read the field yet. */
   stories.push(o);kept.push({...st,section:s.name,words:r.words});
  }
+ /* The lead follows the picture. A section opens on a page of its own, and that page is a photograph when its
+    lead has one - so among the stories that survived, one with a cleared picture leads, and the counting order
+    decides the rest. This is how magazines have always chosen what opens a section. */
+ const li=stories.findIndex(x=>x.photo);
+ if(li>0)stories.unshift(stories.splice(li,1)[0]);
  sections.push({name:s.name,stories});
 }
 const total=kept.length;
