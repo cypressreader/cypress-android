@@ -129,6 +129,16 @@ function ghostScan(opts) {
   const copies = host.querySelectorAll('.we-tn,.we-cp,.we-lf,.we-un,.we-sl,.we-fc,.tl,.tl-leaf,.we-slide');
   if (copies.length) f.push({ kind: 'ghost', what: copies.length + ' page copies in the DOM after the turn (' + [...new Set([...copies].map(e => String(e.className).split(' ')[0]))].join(', ') + ')' });
   if (opts && opts.mid) return f;
+  /* 1b. (issue 54) THE REAL GHOST. Issue 53 removed every page copy and the Fold still showed the old page over the new one, so a copy was never the whole story:
+     the edition kept ALL its pages laid out and painted side by side in one scroller, and the Fold's compositor left stale tiles of the pages it had just scrolled past.
+     A browser cannot show that stale paint, but it can prove its precondition: at rest, no page other than the one(s) on screen may be painted at all, and the scroller
+     must rest exactly on a page (never between two). This FAILS on build 480 (every one of its other pages is visibility:visible) and passes once off-screen pages are not painted. */
+  {const R0 = sc.getBoundingClientRect(), painted = [...sc.children].filter(p => { const b = p.getBoundingClientRect(), cs = getComputedStyle(p);
+      return (b.right <= R0.left + 2 || b.left >= R0.right - 2) && cs.display !== 'none' && cs.visibility !== 'hidden' && p.textContent.trim().length > 0 });
+   if (painted.length) f.push({ kind: 'ghost', what: painted.length + ' pages that are not on screen are still painted (' + painted.slice(0, 3).map(p => (p.getAttribute('aria-label') || p.className).slice(0, 24)).join(', ') + (painted.length > 3 ? ', ...' : '') + ') - the Fold\u2019s compositor leaves these behind as a ghost' });
+   const u = sc.clientWidth, off = sc.scrollLeft % u; if (Math.min(off, u - off) > 2 && !(opts && opts.mid)) f.push({ kind: 'ghost', what: 'the pages came to rest between two pages (' + Math.round(off) + ' px into one)' });
+   const share = [...sc.children].filter(p => p.querySelectorAll('.we-hd:not(.we-hc)').length > 1 || p.querySelectorAll('.we-op, .we-ld').length > 1 || p.querySelectorAll('.we-ld').length > 1);
+   if (share.length) f.push({ kind: 'ghost', what: share.length + ' pages carry more than one section opener' })}
   const sc2 = sc.getBoundingClientRect(), L = Math.max(sc2.left, 0), T = Math.max(sc2.top, 0), R = Math.min(sc2.right, innerWidth), Bt = Math.min(sc2.bottom, innerHeight);
   /* 2. text of two different pages on the same spot */
   const items = [], w = document.createTreeWalker(host, NodeFilter.SHOW_TEXT); let n;
@@ -159,6 +169,7 @@ function storyScan() {
         for (const c of r.getClientRects()) if (c.width > 2 && c.bottom > fb.t && c.top < fb.b && c.right > fb.l && c.left < fb.r) { hit = n.nodeValue.trim().slice(0, 40); break } }
       if (hit) { f.push({ kind: 'folio', what: 'the page number prints over body text at scroll ' + y + ' px: "' + hit + '"', text: hit }); break } }
     pg.scrollTop = 0 });
+  { const seenT = new Map(); sp.forEach((pg, i) => pg.querySelectorAll('.we-bd p').forEach(q => { const t = q.textContent.replace(/\s+/g, ' ').trim(); if (t.length < 40) return; if (seenT.has(t) && seenT.get(t) !== i) f.push({ kind: 'dup', what: 'the same paragraph is printed on two pages of one story: "' + t.slice(0, 40) + '"', text: t.slice(0, 40) }); else seenT.set(t, i) })) }
   if (sp.length) { const fin = sp[sp.length - 1].querySelector('.we-fin'); if (!fin || !/end of the story/i.test(fin.textContent)) f.push({ kind: 'endmark', what: 'the story does not end with the "End of the story" mark' }); else if (!fin.querySelector('.we-mk')) f.push({ kind: 'endmark', what: 'the end mark has no rule/mark glyph' }) }
   return f;
 }
@@ -167,6 +178,8 @@ const LEDE = 'The decision landed late in the day, and the people who had presse
 const STANDIN = '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>A stand-in article for the layout check</title>'
   + '<meta property="og:title" content="A stand-in article for the layout check"></head><body><article><h1>A stand-in article for the layout check</h1>'
   + Array.from({ length: 22 }, (_, i) => '<p>' + LEDE + ' Paragraph ' + (i + 2) + ' carries the same weight of text as the one above it, so a page fills the way a real story fills it.</p>').join('') + '</article></body></html>';
+/* the page measures every page, on screen or not; pages that are off screen are not painted any more (issue 54), so they are shown for the measurement only */
+const measure = async (page, opts) => { const h = await page.addStyleTag({ content: '.we-sc>.we-pg{visibility:visible!important}' }); const r = await page.evaluate(inPage, opts); await h.evaluate(e => e.remove()); return r };
 async function open(browser, url, w, h) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, isMobile: false, hasTouch: false }), page = await ctx.newPage();
   const errs = []; page.on('pageerror', e => errs.push(e.message));
@@ -231,7 +244,7 @@ const INJECT = () => {
     const per = [];
     for (let i = 0; i < total; i += step) {
       await page.evaluate(i => { const sc = document.querySelector('.we-sc'), pw = sc.clientWidth / (sc.clientWidth >= 600 ? 2 : 1); sc.scrollLeft = i * pw }, i); await page.waitForTimeout(150);
-      const m = await page.evaluate(inPage, { minChars: 50, ov: .4 });
+      const m = await measure(page, { minChars: 50, ov: .4 });
       for (let k = 0; k < step && i + k < total; k++) per[i + k] = m[i + k];
     }
 
@@ -285,7 +298,7 @@ const INJECT = () => {
       for (const i of idx) { const at = two ? i - (i % 2) : i; if (seenS.has(at)) continue; seenS.add(at);
         await page.evaluate(at => { const sc = document.querySelector('.we-sc'), pw = sc.clientWidth / (sc.clientWidth >= 600 ? 2 : 1); sc.scrollLeft = at * pw }, at); await page.waitForTimeout(200);
         await page.screenshot({ path: path.join(OUT, `${name}-story-${String(k + 1).padStart(2, '0')}-${seenS.size}.png`) }) }
-      const m = await page.evaluate(inPage, { minChars: 30, ov: .4, only: 'we-sp' });
+      const m = await measure(page, { minChars: 30, ov: .4, only: 'we-sp' });
       m.forEach((p, j) => { p.i = idx[j]; p.name = 'story ' + (k + 1) + ': ' + stories[k].slice(0, 40); p.story = k + 1; p.fails.forEach(f => { f.shot = `${name}-story-${String(k + 1).padStart(2, '0')}-1.png` }); per.push(p) });
       { const sf = await page.evaluate(storyScan); sf.forEach(f => report.failures.push(Object.assign({ width: name, page: idx[0] + 1, pageName: 'story ' + (k + 1) + ': ' + stories[k].slice(0, 40), shot: `${name}-story-${String(k + 1).padStart(2, '0')}-1.png` }, f))) }
       await page.evaluate(() => weRdClose()); await page.waitForTimeout(700);

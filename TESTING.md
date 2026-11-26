@@ -2679,3 +2679,7 @@ Check on the Fold first, then web, then wide:
 - The turn is now a plain cut: there are no page copies in the DOM at any time. Only the Fold can confirm the ghost is gone.
 - Phone story page: scroll the whole story; the page number sits under the last line (end of the story), never over a line of text.
 - The large lone "g" on the dark "World, continued" page: not reproducible in any render (phone, Fold, light, dark). Most likely a piece of a leftover turn copy, which no longer exists. Confirm on the Fold.
+
+## Issue 54 (Fold, David)
+- Drag a page with a finger on phone + Fold: it follows the finger, snaps to next/previous on release; flick works; rapid swipes and a stopped-mid-drag finger end cleanly; arrow keys still turn.
+- No ghost of the old page 1 s / 5 s after any turn; no 3 openers on one page (Food / Long read / Back page); story pages (World story, 11 pages) all distinct, no repeated or spliced sentences, no clipped edges; no lone big "g"; every Home story ends with the end mark.
