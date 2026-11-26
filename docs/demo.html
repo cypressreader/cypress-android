@@ -17075,8 +17075,28 @@ let said=!!q,who='';
       if(bd.scrollHeight<=bd.clientHeight+1){fits=true;break}}
      if(fits)continue;
      el.style.fontSize='';
+     /* It still will not fit, and the page behind it is half empty. A pull quote is not fixed to one spot in
+        the story - it is a line lifted out of it - so it waits for the next paragraph instead of taking the
+        rest of the page with it. Twice at most, or it would walk to the end of the story. */
+     const q0=q[0];
+     if(q0&&(el.dataset.waited|0)<2&&bd.children.length>1){
+      const prev=el.previousElementSibling;
+      const fill=prev?(prev.getBoundingClientRect().bottom-bd.getBoundingClientRect().top)/bd.clientHeight:1;
+      if(fill<.8){el.remove();el.dataset.waited=(el.dataset.waited|0)+1;q.shift();q.unshift(el);q.unshift(q0);continue}
+     }
     }
     if(bd.children.length>1&&cap<13){
+     /* A PARAGRAPH RUNS ON ACROSS THE BREAK rather than leaving a hole behind it. A story's first page is
+        about 200px shorter than the rest, because it carries the headline, so it is the page where a block
+        most often will not fit - and pushing the whole paragraph over left David looking at an opening page
+        a third full. Print has always run the paragraph on, and the machinery was already here: weCut splits
+        at a word and `.we-ct` sets the continuation flush. Only when the page would otherwise be left under
+        four fifths full, so a page that ends nearly full still ends on a whole paragraph. */
+     if(el.tagName==='P'&&!el.className){
+      const prev=el.previousElementSibling;
+      const fill=prev?(prev.getBoundingClientRect().bottom-bd.getBoundingClientRect().top)/bd.clientHeight:0;
+      if(fill<.8){const rest=weCut(bd,el);if(rest){rest.classList.add('we-ct');q.unshift(rest);continue}}
+     }
      el.remove();pg.querySelector('.we-more').style.visibility='';
      pg=mk(0);sc.insertBefore(pg,pages[pages.length-1].nextSibling);pages.push(pg);bd=pg.querySelector('.we-bd');cap++;
      bd.append(el);
@@ -17089,21 +17109,27 @@ let said=!!q,who='';
  if(two){/* how full is the last page? under a third: the text steps down and is laid out again */
   const full=()=>{const k=bd.lastElementChild,h=bd.clientHeight;return pages.length<2||!k||!h?1:(k.getBoundingClientRect().bottom-bd.getBoundingClientRect().top)/h};
   /* How full the emptiest page in the MIDDLE of the story is. The last page may end wherever the story ends -
-     that is what a last page is - but a page in the middle with a third of it blank is a fault, and David
-     photographed two of them: one holding a pull quote and nothing else. It happens when the next block is
-     taller than the space left, usually the quote, which is set large on purpose. The page is re-laid a step
-     smaller, which is the same answer the last page has always had, applied where the hole actually is. */
+     that is what a last page is - but a page in the middle with a third of it blank is a fault. */
   const emptiest=()=>{let worst=1;
    for(let i=0;i<pages.length-1;i++){const b=pages[i].querySelector('.we-bd'),k=b&&b.lastElementChild;
     if(!k||!b.clientHeight)continue;
     worst=Math.min(worst,(k.getBoundingClientRect().bottom-b.getBoundingClientRect().top)/b.clientHeight);
    }
    return worst};
-  for(const z of [.96,.92,.88]){
-   if(pages.length<2)break;
-   if(full()>=.34&&emptiest()>=.72)break;
-   const n0=pages.length;lay(z);
-   if(pages.length>n0)break;/* a smaller step that makes MORE pages has made it worse, not better */
+  /* A SMALLER STEP IS ONLY KEPT IF IT IS ACTUALLY BETTER. Stepping the type down re-lays the whole story, and
+     the new layout can be worse than the one it replaced - on a measured case it dropped the story's picture
+     and left the opening page emptier than before. So each step is scored on the emptiest middle page and on
+     the last page, and the best one seen is the one the reader gets, even if that is the original. */
+  if(two&&pages.length>1){
+   const score=()=>Math.min(emptiest(),1)+Math.min(full(),1)*.25;
+   let bestZ=1,best=score();
+   for(const z of [.96,.92,.88]){
+    if(emptiest()>=.8&&full()>=.34)break;
+    const n0=pages.length;lay(z);
+    const sc=score();
+    if(sc>best+.01&&pages.length<=n0+1){best=sc;bestZ=z}
+   }
+   if(bestZ!==.88||score()<best-.01)lay(bestZ);
   }}
  /* issue 47 item 4: a story ends with a mark, and the next story is offered as a pause before the next section - never a hard cut */
  {const ix=WE.cur.indexOf(a),nx=ix>=0?WE.cur[ix+1]:null,fin=document.createElement('div');fin.className='we-fin';
