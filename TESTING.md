@@ -2731,3 +2731,11 @@ The three-hour limit between checks is kept for the real app and dropped in the 
 of a new edition can be tried on demand. Open the magazine, wait about five seconds, back out, open it again:
 the 26 November machine-written issue should be there. It still must never change while the magazine is open,
 and it is still skipped on battery saver, data saver, a metered connection and offline.
+
+## Preview build 506 (2026-11-26): a new issue appears on opening the magazine
+On 505 the new edition only appeared after the app itself was restarted (David). The edition was read once at
+start-up, so coming back into the magazine never looked again. Now, whenever the magazine is opened with none
+of it on screen, a newer issue already fetched is taken up and the site is asked again. Check: with a newer
+edition on the preview site, open the magazine, wait a few seconds, back out to the lists, open it again - the
+new issue should be there with no app restart. It must still never change while the magazine is open or a
+story is being read.

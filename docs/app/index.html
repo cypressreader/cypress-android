@@ -16946,6 +16946,16 @@ function renderWE(){
     (the old page came back and the turn never ended, so the next swipes were swallowed); a rebuild in the middle of
     a story threw away the page being read. The edition only depends on which edition it is, the file, and which
     stories have been dropped: if none of those changed and it is on screen, there is nothing to redraw. */
+ /* A newer issue is taken up when the magazine is OPENED. The edition is loaded once when the app starts, so
+    until now a new issue only appeared after the app itself was restarted (David, build 505: "it didn't load
+    when I went into the edition. I closed and reopened the app and then it worked"). Opening the magazine with
+    nothing of it on screen is the safe moment - no page is being turned, no story is being read - which is what
+    "never under a reader" means. It is also when the site is asked again, since that ask lived in the same
+    once-per-start path. Forward only: an older date on the site is ignored. */
+ if(!g.querySelector('.we-sc')){
+  const k=weKept();if(k&&String(k.date||'')>String(WE.d.date||'')){WE.d=k;WE.sig=''}
+  weRefresh(WE.d);
+ }
  {const sig=(S.weEd||'')+'|'+WE.d.date+'|'+WE.d.issue+'|'+(innerWidth>=600?2:1)/* folding or unfolding does rebuild: a story is laid out differently one page wide */+'|'+[...(WE.gone||[])].join(',');
   if(WE.sig===sig&&g.querySelector('.we-sc'))return;WE.sig=sig}
  const d=WE.d,e=weEd(d),c=e.cover||{},gone=WE.gone||new Set(),
