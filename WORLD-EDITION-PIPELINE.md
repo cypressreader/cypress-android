@@ -9,8 +9,17 @@ broken one.**
 
 A scheduled GitHub Action, twice a day. It writes `www/world-edition.json`, copies it to
 `docs/app/world-edition.json` (done by hand today — the script does it), commits and pushes. GitHub
-Pages serves it; the app fetches `world-edition.json` at `renderWE`. Nothing changes on the phone, and
-no key ever reaches it. The API key lives in GitHub Secrets.
+Pages serves it; the app fetches it in the background and uses it from the next open. No key ever reaches
+the phone.
+
+**Corrected 2026-11-26.** This section used to say the app already fetched the edition from Pages. It did not.
+`capacitor.config.json` has `webDir: "www"` and no remote server, so the APK serves its own bundled files and
+`fetch('world-edition.json')` read the copy INSIDE the app - an edition was only ever as fresh as the last build.
+The app was changed that day (`weEdition`/`weRefresh`, guard `tests/edition_live.js`) so the sentence above is now
+true: the bundled copy stays the fallback, the live one is used from the NEXT open so an issue never changes under
+a reader, an older date is ignored, the check runs at most once every three hours, and it is skipped offline, on
+data saver, on a metered connection and in battery saver. **The file still has to be published, which needs the
+merge to `main`.** The API key lives in GitHub Secrets.
 
 Because the edition is built ahead of time into a file, **the cost is fixed no matter how many readers
 there are.** If the app called the API itself the cost would scale with users and the key would ship

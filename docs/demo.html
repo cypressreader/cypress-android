@@ -16752,8 +16752,13 @@ async function weEdition(){
  let built=null;try{built=await (await fetch('world-edition.json')).json()}catch(e){}
  const kept=weKept(),use=(kept&&(!weOk(built)||String(kept.date||'')>String(built.date||'')))?kept:built;
  weRefresh(use);return use}
+/* A new issue appears twice a day, so checking on every open is a request the reader pays for and nobody needs.
+   Once every three hours is far more often than the edition can change, and the first open after a restart still
+   checks. */
+const WE_EVERY=108e5;
 function weRefresh(have){
  if(S.offline||!navigator.onLine||DEV.dataSaver||DEV.powerSave||DEV.metered)return;
+ try{if(Date.now()-(+localStorage.getItem('we-ck')||0)<WE_EVERY)return;localStorage.setItem('we-ck',Date.now())}catch(e){}
  setTimeout(()=>{fetch(WE_URL,{cache:'no-store',signal:AbortSignal.timeout(15000)})
   .then(r=>r.ok?r.json():null).then(d=>{
     if(!weOk(d)||(have&&String(d.date||'')<=String(have.date||'')))return;

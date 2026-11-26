@@ -38,6 +38,9 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
  const open=async()=>{await p.evaluate(()=>{document.querySelectorAll('dialog[open]').forEach(d=>d.close());WE.st='';WE.d=null;S.sel='we';render()});
    await p.waitForTimeout(4500)};
  const lead=()=>p.evaluate(()=>((WE.d&&WE.d.editions[0].sections[0].stories[0].h)||''));
+ /* the app checks at most once every three hours; these opens are seconds apart, so the clock is wound back
+    between phases to stand for a reader coming back the next day */
+ const laterDay=()=>p.evaluate(()=>{try{localStorage.removeItem('we-ck')}catch(e){}});
  const date=()=>p.evaluate(()=>((WE.d&&WE.d.date)||''));
 
  await p.goto(url,{waitUntil:'domcontentloaded'});await p.waitForTimeout(1500);
@@ -49,6 +52,7 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
 
  /* 2. a newer edition appears on the site */
  liveBody=stamp('2099-01-02','A newer edition arrived on its own');
+ await laterDay();
  await open();                       /* this open fetches it in the background */
  await p.waitForTimeout(3500);
  ck('the site was asked for a newer edition',asked>0,asked+' request(s)');
@@ -57,8 +61,13 @@ let bad=0;const ck=(n,ok,x)=>{if(!ok){bad++;console.log('FAIL',n,x===undefined?'
  ck('the next open uses the newer edition',await date()==='2099-01-02',await date());
  ck('with its own lead story',(await lead())==='A newer edition arrived on its own',await lead());
 
- /* 3. an older edition on the site must never pull the magazine backwards */
+ /* 3. the check is not made again on every open: a new issue appears twice a day, not every time the app opens */
+ const was=asked;await open();await p.waitForTimeout(3500);
+ ck('opening again straight away does not ask the site again',asked===was,asked-was+' extra request(s)');
+
+ /* 4. an older edition on the site must never pull the magazine backwards */
  liveBody=stamp('2000-01-01','An older edition that must be ignored');
+ await laterDay();
  await open();await p.waitForTimeout(3500);await open();
  ck('an older edition on the site is ignored',await date()==='2099-01-02',await date());
  ck('and the lead story is still the newer one',(await lead())==='A newer edition arrived on its own',await lead());
