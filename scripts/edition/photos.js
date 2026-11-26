@@ -72,7 +72,7 @@ if(cand)for(const s of cand.sections||[])for(const st of s.stories||[]){
   const list=s.pics.filter(p=>{const k=p.src.split(/[?#]/)[0];if(seen.has(k))return false;seen.add(k);return true}).slice(0,12);
   const measure=async ps=>page.evaluate(async ps2=>{
    const out=[];
-   for(const p of ps){
+   for(const p of ps2){
     if(LOGOISH.test(p.src)||/\/(avatar|icon|logo|badge|pixel|1x1)\b/i.test(p.src))continue;
     const d=await new Promise(res=>{const im=new Image();let done=0;
       im.onload=()=>{if(!done++)res({w:im.naturalWidth,h:im.naturalHeight})};
