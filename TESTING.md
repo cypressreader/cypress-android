@@ -2703,3 +2703,12 @@ Check on the Fold first, then web, then wide:
   screen, for exactly as long as the spring took. Pull-to-refresh now leaves the edition alone (`.open,.wefull`).
   If it is ever seen again: swipe DOWN hard in the edition, flat on a table, and check whether `#grid` carries a
   transform while `body.wefull` is set — `tests/we_square.js` reproduces it in a browser, so it needs no phone.
+
+## Preview build 503 (branch claude/issue-47-20261125-2336, 2026-11-26)
+- **The last page of the edition on the Fold.** The credit line under the Back page story used to print on top of
+  "End of the edition". Fixed in the browser (the Fold layout check went from 2 problems to 0, and both checks are
+  still 0 on the hand-made edition). NOT seen on a phone: open the edition, turn to the last spread, and check the
+  outlet name and the end line sit apart, at both the open and the closed size.
+- **The old turn-layer rules (`.we-lyr`) were removed.** Nothing has used that class since the turn stopped
+  building pages from copies, so a page turn should look exactly as it did in build 502. If a turn flickers or a
+  page paints oddly, that removal is the first thing to put back.
