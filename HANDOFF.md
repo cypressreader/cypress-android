@@ -68,3 +68,12 @@ Built on 473. Playbook saved as `docs/EDITORIAL.md` - read it before touching an
 - SWAP (item 2): the CBS video item is out of `world-edition.json`; in its place a PBS NewsHour nation story verified with Firecrawl to carry real body text. STILL OPEN: the other three Home stories are `kind:"clip"` (NPR + PBS /show/ pages) and may still open thin; there is no app-side guard that drops a text-less story.
 
 UPDATE 2026-11-26 (issue 48 follow-up, branch claude/issue-47-20261125-2336): app-side guard built. `weSettle` (after preload) already dropped never-stored stories; now `weDrop(a)` also drops a story on open when its text cannot be read (fetch fails, too short, gated, paid). The "did not send the text" and "subscriber-only" notices are removed from `weFill`. Unverified on device: see TESTING.md.
+
+## Issue 49 (2026-11-26, same branch; the guard commit from claude/issue-48-20261126-0153 is cherry-picked in)
+- ROOT CAUSE of the type collisions (issues 48 + 49): the type-led opener (`we-tyo`) used `justify-content:flex-end`. Once a story loads, `wePQ` adds its opening lines (`.we-tz`) to the opener and takes them back while `scrollHeight>clientHeight` - but a flex-end block overflows UPWARD, which scrollHeight cannot see, so nothing was taken back and the type ran over the section number, name and back button. Now `flex-start` + `margin-top:auto` on the first child. NEVER use flex-end/center on a measured page.
+- PROVE TYPE ON REAL TEXT: `curl` works from the cloud for NPR and BBC (mobile UA). Recipe: scratchpad `real.js` - route the real HTML by article id, stand-in for the rest, then a box-overlap scan over every page (`.we-hd`, `.we-ld>*`, `.we-bd>*`, `.we-ex`...). Stand-in text hid this bug for two rounds.
+- TURN GHOSTS: `.we-op .we-hd` plays an entrance (`we-up`), and every page copy in the curl replayed it. `.we-cp *{animation:none!important;transition:none!important}`. Still 700 ms (`WE_TURN`).
+- TITLE LEAF REMOVED (David): `weBreak`/`.we-pz` are gone; do not insert pages between sections. EDITORIAL.md says so now, and carries principles 11-19.
+- END MARK: on a spread a full last page lost its end mark and next cue. If the bare mark does not fit, the last block + mark + cue go to one more page. Next labels verified on all 18 stories at both widths.
+- Cover lines wrap on whole words (no clamp).
+- UNVERIFIED on device: everything above was proven in a browser with real NPR/BBC text, not on the Fold.
