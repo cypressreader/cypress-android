@@ -10318,6 +10318,9 @@ async function getFull00(url,ctx){
  const orig=url;url=await gnResolve(url);
  const lg=[];LG[orig]=lg;const ks=Object.keys(LG);if(ks.length>25)delete LG[ks[0]];
  const stop=new AbortController(),direct=fromPage(url,lg,'page via ',stop.signal,()=>ctx.light);ctx.stop=()=>stop.abort();
+ /* A page that answers with almost nothing is not an answer. It used to count as one: the Riemann story (David, 2026-11-26) came back from a proxy as a photo caption and the 'listen to this article' notice, about 150 characters, and that was enough to cancel the WordPress route - which holds the whole story - and to win the race outright. 600 is the bar the WordPress route below already holds ITSELF to, so the page is now judged by the same rule. A thin page is kept as `weak` and handed back only if every other route fails, so a genuinely short story is never lost. */
+ const THIN=600,thin=f=>!f||(f.textContent||'').trim().length<=THIN;let weak=null;
+ const directOk=direct.then(f=>{if(thin(f)){if(f)weak=f;lg.push('the page itself returned almost no story ('+((f&&f.textContent||'').trim().length)+' characters), so the other routes were given their turn');throw 0}return f});directOk.catch(()=>{});
  const wpRun=async()=>{
   const u=new URL(url),slug=u.pathname.split('/').filter(Boolean).pop();
   if(WPNO.has(u.origin)){lg.push('WordPress feed: not available');throw 0}
@@ -10326,9 +10329,9 @@ async function getFull00(url,ctx){
   const fr=fromHTML(h,url);if(fr.textContent.length<=600){lg.push('WordPress feed: too short');throw 0}fr.tier='wp-json';return fr;
  };
  /* the WordPress check only runs if the page itself hasn't answered quickly */
- const wp=(async()=>{const r=await Promise.race([direct.then(v=>({v}),()=>({v:null})),new Promise(r=>setTimeout(()=>r({v:null}),2500))]);if(r.v||stop.signal.aborted)throw new Error('not needed');return wpRun()})();
+ const wp=(async()=>{const r=await Promise.race([directOk.then(v=>({v}),()=>({v:null})),new Promise(r=>setTimeout(()=>r({v:null}),2500))]);if(r.v||stop.signal.aborted)throw new Error('not needed');return wpRun()})();
  const lu=liteUrl(url),lite=lu?fromPage(lu,lg,'lite site via ',stop.signal,()=>ctx.light).then(f=>{if(f)f.tier='lite';return f}):null;
- const good=Promise.any([direct,wp,lite].filter(Boolean));
+ const good=Promise.any([directOk,wp,lite].filter(Boolean));
  good.then(()=>stop.abort(),()=>{});
  let jn=null;
  const startJina=()=>{
@@ -10346,7 +10349,7 @@ async function getFull00(url,ctx){
  if(first.v)return first.v;
  /* a read-ahead load that gets opened by the reader is upgraded in place (ctx.light=false) instead of being fetched a second time */
  return await new Promise(res=>{
-  let gd=0,jd=0;const chk=()=>{if(gd&&(jd||ctx.light))res(null)};
+  let gd=0,jd=0;const chk=()=>{if(gd&&(jd||ctx.light))res(weak)};/* weak: the thin page, better than nothing once every other route has failed */
   good.then(res,()=>{gd=1;chk()});
   const go=()=>{if(jn)return;startJina();jn.then(res,()=>{jd=1;chk()})};
   ctx.up=go;if(!ctx.light)go();
