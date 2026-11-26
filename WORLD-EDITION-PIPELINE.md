@@ -95,11 +95,17 @@ pipeline can settle a design that is not settled.
 
 - **Claude cannot generate images**, and the credit is Anthropic's, so it cannot buy another company's
   image model either. The covers are drawn shapes; the model composes the SVG.
-- **THE DRAWN COVER IS A RULE, NOT A WORKAROUND.** Issue 30, in the comment above `weArt`: art drawn from the day's
-  cues only - the accent, a shape from the library, the mood - *never a picture of the event or of anyone in it*.
-  `WE_ACCUSE` backs it up inside the magazine by refusing photos of people under an accusing headline. A cover
-  photographed from the lead story is a reversal of that decision, not a shortcut around a limitation. David may
-  well want to reverse it - but as a decision, recorded here, not as drift.
+- **THE PHOTO COVER ALREADY EXISTS AND IS THE FIRST CHOICE.** (Correcting an error made earlier in this file: issue
+  30's "never a picture of the event or of anyone in it" governs what the DRAWN art may depict, not cover policy.)
+  `renderWE` picks in this order: `wePhotoOk(c.photo,...)` passes -> **photograph**; else `c.art` -> **drawn**; else
+  **typographic**. Three states, and the drawn one is the fallback issue 30 calls "the third cover state".
+- **So "photo from the lead story" (David, 2026-11-26) needs no app change.** Today's cover is drawn only because no
+  photo cleared. The edition file says why: *"logo placeholder, baked-in text, broadcaster mark, under 1,600 px, a
+  face beside 'scandal'."* Every photo in the file carries `by: "MJ"` - a person cleared them by hand. **That hand is
+  the only thing standing between this and an automatic cover**, which is pass 4.
+- **Two jobs, then, not one.** (a) Pass 4 clears photos automatically, so one passes more often. (b) The editorial
+  pass should weigh *whether a story has a cover-worthy picture* when choosing the lead - which is how magazines
+  actually pick a lead, and it is David's "if it has a logo on it, use another story", in the right place.
 - **A magazine looks intentional because it repeats.** Fixed grid, fixed furniture, same folio in the
   same corner. Let the model *choose* which of the three page shapes suits a story; never let it invent
   a new one. Variety comes from the content and the art, not from the layout rules moving.
