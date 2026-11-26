@@ -18160,18 +18160,23 @@ const SHPL=[];function shpLog(k){try{const de=document.documentElement,vv=visual
    forced layout of the whole document - ran on every one of them, which is the screen visibly resizing until the scrolling
    stops (David, 2026-11-26, fast scroll up). The width-driven work is done once, when the height settles. The reader still
    refits on the spot, because the page it is fitting really did get shorter. */
-let SHPW=null;
+let SHPW=null,SHPPIN=0;
+/* the viewport tag is the only say the page has over the width the WebView lays out to */
+function shpVp(w){const m=document.querySelector('meta[name=viewport]');if(!m)return;
+ const want=(w?'width='+w:'width=device-width')+',initial-scale=1,viewport-fit=cover';
+ if(m.content!==want){m.content=want;shpLog(w?'pin '+w:'unpin')}}
 function shapeChanged(){const de=document.documentElement,w=de.clientWidth||innerWidth;
- /* A FOLD CAN REPORT A WINDOW THAT IS NOT ON THIS SCREEN. David's SM-F976U1, 2026-11-26, from his own shape log:
-    `859x847 ... scr 412x960` - a window 859 wide on a screen 412 wide, which cannot be true. The page believed it,
-    laid the whole edition out at 859, and the folded screen showed that layout scaled to fit: 411/859 = 45%, which is
-    exactly the squeezed, left-clipped page in his recording. A window is never wider than the screen it sits on, so
-    that reading is mid-fold and stale - wait for the two to agree rather than lay out to a size that does not exist.
-    Re-read on each retry so a real unfold lands as soon as the screen catches up, and give up after ~0.7 s so a phone
-    that never reconciles the two is not frozen in the old shape. */
+ /* THE WEBVIEW CAN KEEP THE INNER SCREEN'S WIDTH AFTER THE FOLD IS CLOSED. David's SM-F976U1, 2026-11-26, from his
+    own shape log: `859x847 ... scr 412x960` - a window 859 wide on a screen 412 wide, which cannot be true - and it
+    HELD FOR 6.2 SECONDS. The page laid the edition out at 859 and the folded screen showed that scaled to fit:
+    411/859 = 45%, exactly the squeezed, left-clipped page he filmed, the same 45% in both recordings.
+    `width=device-width` is what went stale, so waiting is no answer and neither is believing it: tell the WebView the
+    width the screen actually is. The pin is handed back the moment the screen reports a different size again - the
+    next fold or unfold - so a real change of screen is never held down. A too-narrow layout for one frame is a far
+    kinder failure than a page drawn at 45%. */
  {const sw=(window.screen&&screen.width)||0;
-  if(sw&&w>sw+2&&(shapeChanged.n=(shapeChanged.n||0)+1)<=6){shpLog('stale '+w+'>'+sw);clearTimeout(shapeChanged.r);shapeChanged.r=setTimeout(shapeChanged,120);return}
-  shapeChanged.n=0;clearTimeout(shapeChanged.r)}
+  if(sw&&w>sw+2){shpLog('stale '+w+'>'+sw);SHPPIN=sw;shpVp(sw);return}
+  if(SHPPIN&&sw&&sw!==SHPPIN){SHPPIN=0;shpVp(0)}}
  const same=SHPW!==null&&w===SHPW;SHPW=w;
  VW=w;VH=de.clientHeight||innerHeight;
  clearTimeout(screenMode.t);screenMode.t=setTimeout(()=>{if($('#rd').classList.contains('on'))flexUi()},120);

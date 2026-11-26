@@ -29,10 +29,13 @@ const BURST=[915,899,883,867,851,867,883,899,915,899,883,867];/* the bar sliding
     Laying that out drew the edition at 45% size on the folded screen. A window is never wider than its screen. */
  await p.evaluate(()=>{Object.defineProperty(window.screen,'width',{get:()=>412,configurable:true});SHPL.length=0});
  await p.setViewportSize({width:760,height:1040});await p.waitForTimeout(300);
- const st=await p.evaluate(()=>({shape:SHPL.filter(x=>/ shape /.test(x)).length,stale:SHPL.filter(x=>/ stale /.test(x)).length}));
+ const st=await p.evaluate(()=>({shape:SHPL.filter(x=>/ shape /.test(x)).length,stale:SHPL.filter(x=>/ stale /.test(x)).length,
+   vp:(document.querySelector('meta[name=viewport]')||{}).content||''}));
  ck('a window wider than the screen is never laid out',st.shape===0&&st.stale>0,JSON.stringify(st));
- /* and it must not freeze there: once the retries run out the page takes the size rather than keeping the old one */
- await p.waitForTimeout(900);
- const gv=await p.evaluate(()=>SHPL.filter(x=>/ shape /.test(x)).length);
- ck('it gives up rather than freezing in the old shape',gv>=1,String(gv));
+ ck('the viewport is pinned to the width the screen really is',/width=412\b/.test(st.vp),st.vp);
+ /* the pin is handed back as soon as the screen reports a different size - a real fold must never be held down */
+ await p.evaluate(()=>{Object.defineProperty(window.screen,'width',{get:()=>884,configurable:true})});
+ await p.setViewportSize({width:884,height:1104});await p.waitForTimeout(400);
+ const un=await p.evaluate(()=>(document.querySelector('meta[name=viewport]')||{}).content||'');
+ ck('and handed back when the screen changes again',/width=device-width/.test(un),un);
  await b.close();console.log('shape_burst',bad?bad+' FAILED':'all passed');process.exit(bad?1:0)})();
