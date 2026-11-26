@@ -1,5 +1,5 @@
 /* CyPress web app: keeps the app itself available offline. Feeds are never cached here. */
-const V = 'cyp-web-15';
+const V = 'cyp-web-16';
 /* deep dive 3: './' only; an 'index.html' copy doubled the 2.6 MB app and was never refreshed */
 const FILES = ['./', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'icon-mono-512.png'];
 /* one missing icon must not stop the offline copy from installing */
@@ -20,7 +20,8 @@ self.addEventListener('fetch', e => {
   if (r.cache === 'no-store') return;
   /* every shortcut (?view=today, ?view=brief…) is the same page, and query strings never change a file: one cached copy per path */
   const k0 = (r.mode === 'navigate' && (u.pathname === base || u.pathname === base + 'index.html')) ? new Request(u.origin + base) : new Request(u.origin + u.pathname);
-  const cached = () => caches.match(k0).then(m => m || caches.match('./')).then(m => m || caches.match('index.html'));
+  /* only a page asked for by the browser falls back to the saved app; a data file the app asks for (world-edition.json) must not be answered with the app's own HTML */
+  const cached = () => caches.match(k0).then(m => m || (r.mode === 'navigate' ? caches.match('./').then(x => x || caches.match('index.html')) : null));
   /* shell first: the saved copy answers at once, the network copy refreshes the cache in the background;
      when a different index.html lands, open pages are told so the "new version" bar can show */
   /* the background check asks "changed since my copy?" (ETag / Last-Modified): an unchanged app answers 304 with no body

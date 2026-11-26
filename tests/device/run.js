@@ -236,6 +236,121 @@ const WATCH = () => { if (!window.__lto) { window.__lt = []; try { window.__lto 
     return out;
   });
 
+  /* ---- The World Edition (issues 38, 39) ----------------------------------------------------------
+     The edition is a magazine inside the app: a cover you swipe, a contents you tap, section pages, and
+     stories that open as pages of the edition itself. The phone saw stubs where a desk saw bodies, and the
+     cloud cannot reach a single publisher, so this is the only place the real fetch path can be watched. */
+  /* run 59: a real tap cannot reach the drawer - on a phone it is off-canvas, so Playwright waits for a
+     visible target and times out. The entry goes through the app's own handler all the same (a DOM click
+     on the drawer row), and only falls back to setting the view if the row is not there at all. */
+  const weOpen = async () => {
+    let how = 'drawer-click';
+    /* WELITE=1: the edition without its cover art or photographs. Run 61's render thread segfaulted on the
+       emulator's software renderer right after the cover, so a lite pass separates a paint crash from a code fault. */
+    if (process.env.WELITE) { how = 'lite+drawer-click'; await page.evaluate(() => { WE.lite = true; document.documentElement.classList.add('welite'); try { localStorage.setItem('welite', '1') } catch (e) {} }).catch(() => {}) }
+    const did = await page.evaluate(() => { const n = document.querySelector('.nav[data-sel="we"]'); if (!n) return false; n.click(); return true });
+    if (!did) { how = 'state'; await page.evaluate(() => { S.sel = 'we'; render() }) }
+    try { await page.waitForSelector('.we-sc', { timeout: 40000 }) }
+    catch (e) { how += '+state'; await page.evaluate(() => { S.sel = 'we'; render() }); await page.waitForSelector('.we-sc', { timeout: 40000 }) }
+    await sleep(2500); return how;
+  };
+  /* why a story did not arrive: the app keeps its own line per try (route, time, what came back) */
+  const weWatch = () => page.evaluate(() => { if (window.__weW) return; const w = window.__weW = { flips: 0 };
+    new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.classList && n.classList.contains('we-tn')) w.flips++ }))).observe(document.body, { childList: true, subtree: true }) }).catch(() => {});
+  const weDiag = () => page.evaluate(() => ({ log: (WE.lg || []).slice(-40), tries: WE.try || {}, flips: (window.__weW || {}).flips,
+    stored: WE.cur.filter(a => acHas(a.link)).length, slow: WE.slow ? WE.slow.size : 0, on: !!WE.on, online: navigator.onLine,
+    conn: (navigator.connection || {}).type || '', save: !!(navigator.connection || {}).saveData, dp: typeof dpOk === 'function' ? dpOk(1) : null })).catch(e => ({ err: String(e.message).slice(0, 80) }));
+  /* the ready line is the whole of item 1: watched on the real device, on the real network */
+  const weReady = async (s, limit = 150) => {
+    const series = []; let green = false;
+    for (let t = 0; t <= limit; t += 10) {
+      const r = await page.evaluate(() => { const e = document.querySelector('.we-rdy'); return { t: e ? e.textContent : '', g: !!(e && e.classList.contains('we-all')) } });
+      series.push(t + 's ' + r.t); if (r.g) { green = true; break }
+      /* run 61 died mid-wait and took the log with it: each poll leaves what it knows on the step itself,
+         so a crash still reports how far the fetches got and why */
+      s.live = { series: series.slice(), diag: await weDiag() };
+      await sleep(10000);
+    }
+    await shot(s, green ? 'ready' : 'NOT-READY');
+    return { green, series, diag: await weDiag() };
+  };
+  const weLeave = async () => { await page.evaluate(() => { if (typeof weExit === 'function' && S.sel === 'we') weExit() }).catch(() => {}); await sleep(1500) };
+  const weFacts = () => page.evaluate(() => {
+    const sc = document.querySelector('.we-sc'); if (!sc) return { err: 'no edition' };
+    const two = sc.clientWidth >= 600, pw = sc.clientWidth / (two ? 2 : 1), i = Math.round(sc.scrollLeft / pw);
+    const rdy = document.querySelector('.we-rdy'), pg = sc.children[i], nx = sc.children[i + 1], sp = document.querySelector('.we-sp');
+    const lab = x => x ? (x.getAttribute('aria-label') || '') : null, fo = x => x && x.querySelector('.we-fo') ? x.querySelector('.we-fo').getAttribute('data-n') : null;
+    return { w: innerWidth, two, pages: sc.children.length, base: WE.base, i, pw: Math.round(pw * 10) / 10,
+      off: Math.round((sc.scrollLeft - i * pw) * 10) / 10, label: sc.getAttribute('aria-label') || '',
+      left: lab(pg), right: two ? lab(nx) : null, folio: fo(pg), folioRight: two ? fo(nx) : null,
+      ready: rdy ? rdy.textContent : '', green: !!(rdy && rdy.classList.contains('we-all')),
+      photos: document.querySelectorAll('.we-fg.we-ok').length, figures: document.querySelectorAll('.we-fg').length,
+      story: sp ? { paras: sp.querySelectorAll('.we-bd > *').length, text: (sp.querySelector('.we-bd') || {}).textContent ? sp.querySelector('.we-bd').textContent.replace(/\s+/g, ' ').trim().slice(0, 90) : '',
+        by: (sp.querySelector('.we-by') || {}).textContent || '', deck: !!sp.querySelector('.we-ss'), quote: !!sp.querySelector('.we-pq2'), drop: !!sp.querySelector('.we-dc') } : null };
+  });
+  /* a story opens by a real tap on its headline; the wait is for the body, not for the page */
+  const weRead1 = async (ms = 45000) => {
+    await page.evaluate(() => { const a = document.querySelector('.we-pg.we-op .we-ld a[data-we]') || document.querySelector('.we-pg .we-st a[data-we]'); if (a) a.click() });
+    await page.waitForFunction(() => { const b = document.querySelector('.we-sp .we-bd'); return b && !/Opening the story/.test(b.textContent) }, null, { timeout: ms }).catch(() => {});
+    await sleep(1200);
+  };
+
+  await step('world', async s => {
+    const how = await weOpen(); await weWatch(); await shot(s, 'cover'); const cover = await weFacts();
+    const ready = await weReady(s);
+    await swipe(.85, .5, .15, .5); await shot(s, 'contents'); const contents = await weFacts();
+    const jumped = await page.evaluate(() => { const b = [...document.querySelectorAll('.we-toc .we-tl button')].find(x => /tech/i.test(x.textContent)); if (!b) return false; b.click(); return true });
+    await sleep(2500); await shot(s, 'section'); const section = await weFacts();
+    await weRead1(); await shot(s, 'story'); const story = await weFacts();
+    for (let i = 1; i <= 2; i++) { await swipe(.85, .5, .15, .5); await shot(s, 'turn' + i) }
+    const turned = await weFacts();
+    /* two quick swipes in a row: the second used to be dropped, so only one page turned */
+    const b4 = await weFacts(); await swipe(.85, .5, .15, .5, 120); await sleep(120); await swipe(.85, .5, .15, .5, 120); await sleep(3000);
+    const rapid = await weFacts(); await shot(s, 'rapid');
+    await sx('input keyevent 4'); await sleep(2000); await shot(s, 'back');
+    const diag = await weDiag();
+    const out = { how, jumped, ready, cover, contents, section, story, turned, diag,
+      rapid: { from: b4.i, to: rapid.i, moved: rapid.i - b4.i }, after: await weFacts() };
+    await weLeave();
+    const why = JSON.stringify((diag.log || []).slice(0, 6));
+    if (!ready.green) throw new Error('the ready line never went green in ' + ready.series.length * 10 + 's (' + ready.series.slice(-1) + '). Tries: ' + why);
+    if (story.story && story.story.paras < 2) throw new Error('the story opened with no body on the device. Tries: ' + why);
+    if (!diag.flips) throw new Error('no page turn drew a curl (no .we-tn appeared in ' + (turned.i - cover.i) + ' turns)');
+    if (rapid.i - b4.i < (b4.two ? 4 : 2)) throw new Error('two quick swipes moved ' + (rapid.i - b4.i) + ' page(s), not two');
+    return out;
+  });
+
+  /* Issue 39: returning from a story landed on a mismatched spread at 1919 px but never at 1280. 1919 is odd,
+     so each page of a spread is 959.5 px wide: this checks the landing is exact at odd and even widths.
+     MJ's three: Microsoft from Tech, the rebel story from Around the world, the turkey story from Sport. */
+  await step('we-widths', async s => {
+    const out = {}; let bad = 0;
+    try {
+      for (const w of [1280, 1365, 1919, 1921]) {
+        await sx(`wm size ${w}x998`); await sx('wm density 160'); await sleep(4000);
+        if (!page || page.isClosed()) await restart();
+        await weOpen();
+        for (const sec of ['Tech', 'World', 'Sport']) {
+          const went = await page.evaluate(n => { const sc = document.querySelector('.we-sc');
+            const k = [...sc.children].findIndex(x => (x.getAttribute('aria-label') || '') === n); if (k < 0) return null; WE.go(k, 1); return k }, sec);
+          const key = w + '-' + sec;
+          if (went == null) { out[key] = 'no section page'; continue }
+          await sleep(2200); const before = await weFacts();
+          await weRead1(25000);
+          await sx('input keyevent 4'); await sleep(2500);
+          if (await page.evaluate(() => !!document.querySelector('.we-sp'))) { await page.evaluate(() => weRdClose()).catch(() => {}); await sleep(1800) }
+          const after = await weFacts();
+          const okLanding = Math.abs(after.off) <= 1, okPair = !after.two || after.i % 2 === 0, okSame = after.i === before.i;
+          out[key] = { before: before.i, after: after.i, off: after.off, pw: after.pw, left: after.left, right: after.right, okLanding, okPair, okSame };
+          if (!(okLanding && okPair && okSame)) { bad++; await shot(s, key + '-MISMATCH'); note({ spreadMismatch: { width: w, from: sec, before, after } }) }
+        }
+        await shot(s, 'w' + w); await weLeave();
+      }
+    } finally { await sx('wm size reset'); await sx('wm density reset'); await sleep(3000); if (!page || page.isClosed()) await restart().catch(() => {}) }
+    if (bad) throw new Error(bad + ' return(s) landed on the wrong spread');
+    return out;
+  });
+
   R.crashes = (await sx('logcat -d -b crash -t 300').catch(() => '')).split('\n').filter(l => /cypress|FATAL|AndroidRuntime/i.test(l)).slice(0, 40);
   fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify(R, null, 1));
   const bad = R.steps.filter(s => !s.ok).length;
