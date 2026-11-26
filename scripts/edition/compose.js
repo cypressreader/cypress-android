@@ -132,7 +132,7 @@ const file={
   'This edition was built by counting. The feeds of '+(cand.sampled||0)+' outlets were read, headlines about the same event were grouped, and a story is big when separate outlets report it. The cover story is the one reported by the most outlets. Nobody hand-picks it.',
   'Every edition has the same ten sections in the same order, each with a fixed number of places: Home 4, World 4, Business 2, Science & Health 2, Tech 1, Culture 1, Sport 1, Food 1, one long read, and one story to finish on. A section may run short but never borrows, and no section prints two stories from the same outlet.',
   'Every story was opened and read before it was printed. A story that could not be read, that is behind a paywall or a sign-in, or that has fewer than three paragraphs or 120 words was dropped and its place left empty rather than filled with a hollow page.',
-  'Every headline is the publisher’s own, word for word, and opens the publisher’s story. A summary line is the publisher’s own from its feed. Nothing here is written for you by a machine.',
+  'Every headline is the publisher’s own, word for word, and opens the publisher’s story. A summary line is the publisher’s own from its feed. One thing on these pages is written by a machine and nothing else is: the short note on the Obituary page saying who the person was, put together from that publisher’s obituary and Wikipedia’s summary of them. It is labelled as such where it is printed.',
   'One link per story, to an outlet that lets you read it. The app never goes past a paywall or meter and never keeps a publisher’s story on a server.',
   'One edition a day. It is not updated after it is published, apart from a dated correction. No opinion columns, no games, no weather.'
  ],
