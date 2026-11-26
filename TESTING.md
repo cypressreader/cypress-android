@@ -2696,3 +2696,10 @@ Check on the Fold first, then web, then wide:
 - **Speaker cues in broadcast clips (R17)**: open the NPR and PBS NewsHour stories on the Home page.
   Each speaker's name should be small caps in front of their words, never a bare name on its own line,
   and the drop cap should be on prose, not on a speaker's name.
+- **The square / "the scroll" — CONFIRMED FIXED ON THE DEVICE** (David, build 494, 2026-11-26: "It's fixed ! The scroll").
+  This was the last of the three faults that all looked like one squeezed page. Cause: pull-to-refresh moves `#grid`
+  with a transform and springs it back, and a transformed element becomes the containing block for a fixed descendant,
+  so the full-screen edition measured `height:100%` against a 48 px `#grid` and hit its own 420 px floor — 46% of the
+  screen, for exactly as long as the spring took. Pull-to-refresh now leaves the edition alone (`.open,.wefull`).
+  If it is ever seen again: swipe DOWN hard in the edition, flat on a table, and check whether `#grid` carries a
+  transform while `body.wefull` is set — `tests/we_square.js` reproduces it in a browser, so it needs no phone.
