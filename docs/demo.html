@@ -17076,7 +17076,23 @@ let said=!!q,who='';
  lay(1);
  if(two){/* how full is the last page? under a third: the text steps down and is laid out again */
   const full=()=>{const k=bd.lastElementChild,h=bd.clientHeight;return pages.length<2||!k||!h?1:(k.getBoundingClientRect().bottom-bd.getBoundingClientRect().top)/h};
-  for(const z of [.96,.92,.88]){if(full()>=.34||pages.length<2)break;const n0=pages.length;lay(z);if(pages.length>n0)break}}
+  /* How full the emptiest page in the MIDDLE of the story is. The last page may end wherever the story ends -
+     that is what a last page is - but a page in the middle with a third of it blank is a fault, and David
+     photographed two of them: one holding a pull quote and nothing else. It happens when the next block is
+     taller than the space left, usually the quote, which is set large on purpose. The page is re-laid a step
+     smaller, which is the same answer the last page has always had, applied where the hole actually is. */
+  const emptiest=()=>{let worst=1;
+   for(let i=0;i<pages.length-1;i++){const b=pages[i].querySelector('.we-bd'),k=b&&b.lastElementChild;
+    if(!k||!b.clientHeight)continue;
+    worst=Math.min(worst,(k.getBoundingClientRect().bottom-b.getBoundingClientRect().top)/b.clientHeight);
+   }
+   return worst};
+  for(const z of [.96,.92,.88]){
+   if(pages.length<2)break;
+   if(full()>=.34&&emptiest()>=.72)break;
+   const n0=pages.length;lay(z);
+   if(pages.length>n0)break;/* a smaller step that makes MORE pages has made it worse, not better */
+  }}
  /* issue 47 item 4: a story ends with a mark, and the next story is offered as a pause before the next section - never a hard cut */
  {const ix=WE.cur.indexOf(a),nx=ix>=0?WE.cur[ix+1]:null,fin=document.createElement('div');fin.className='we-fin';
   /* Keeping a story (David's choices sheet). It belongs at the end, where a reader has just decided what they
