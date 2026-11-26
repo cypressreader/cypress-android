@@ -16944,6 +16944,18 @@ let said=!!q,who='';
     if(drop&&el.tagName==='P'&&!el.className&&el.textContent.length>40&&/^[\u201c"'\u2018]?\p{Lu}/u.test(el.textContent))el.classList.add('we-dc'),drop=0;/* issue 54: only a paragraph that opens on a capital gets a drop cap - a fragment that opens mid-word printed one huge lowercase letter */
     bd.append(el);
     if(bd.scrollHeight<=bd.clientHeight+1)continue;
+    /* A PULL QUOTE GIVES WAY RATHER THAN STRAND A PAGE. It is set large on purpose, which is why it is often
+       the block that will not fit; pushed to the next page it leaves a hole behind it - David photographed an
+       opening page holding one paragraph, and another holding nothing but the quote. The figure has stepped
+       itself down for this reason since issue 43; the quote does the same now, and only down to about three
+       fifths, below which it is no longer a pull quote and may as well start the next page. */
+    if(el.classList.contains('we-pq2')&&bd.children.length>1){
+     const base=parseFloat(getComputedStyle(el).fontSize)||0;let fits=false;
+     if(base)for(const f of [.86,.74,.62]){el.style.fontSize=(base*f).toFixed(2)+'px';
+      if(bd.scrollHeight<=bd.clientHeight+1){fits=true;break}}
+     if(fits)continue;
+     el.style.fontSize='';
+    }
     if(bd.children.length>1&&cap<13){
      el.remove();pg.querySelector('.we-more').style.visibility='';
      pg=mk(0);sc.insertBefore(pg,pages[pages.length-1].nextSibling);pages.push(pg);bd=pg.querySelector('.we-bd');cap++;
