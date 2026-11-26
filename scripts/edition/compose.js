@@ -96,7 +96,8 @@ console.log('cover state: type ('+file.editions[0].cover.shape+' shape, masthead
 
 /* The stop condition from the plan, and the one rule that makes going away safe: a thin edition never replaces
    a good one. The edition already live stays live. */
-if(total<10){console.log('\nSTOP: only '+total+' stories survived, so the edition already live is kept. Nothing written.');process.exit(2)}
+const MIN=Number(arg('--min')||10);   /* --min is for trying the writer out in a cloud session, where publishers refuse us and only a handful of stories can be read. The scheduled Action leaves it alone. */
+if(total<MIN){console.log('\nSTOP: only '+total+' stories survived, so the edition already live is kept. Nothing written.');process.exit(2)}
 
 if(!WRITE){console.log('\nNothing written (no --write). Pass --write to replace '+path.relative(process.cwd(),OUT)+' and the copy in docs/app/.');process.exit(0)}
 fs.writeFileSync(OUT,JSON.stringify(file,null,1));
