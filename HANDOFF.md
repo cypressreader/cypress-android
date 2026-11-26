@@ -49,3 +49,8 @@ NEXT 3 TASKS:
 1. Device runs 64/65 have never been read (`git fetch origin device-results`), and MJ's + David's verdict on the photos, the self-update and the turn in build 465+.
 2. Still open: MJ's cover art pick for issue 51 (the chip is a stand-in); the other three Home stories are `kind:"clip"`; sparse last pages on the Fold; device runs 64/65 have never been read.
 Pointers (older notes, messy stories, PM deep dive, idea book, insights task, launch checklist; NEVER commit family path or insights password): archive grep 'moved-1387b'. Locked: page turn 1280 ms. NO NEW SETTINGS. 'check messy stories' = `curl -s 'https://cypressreader.com/api/insights?messy=list'`.
+
+## Issue 53 (World Edition, branch claude/issue-53-20261126-0434)
+- Turn = plain opaque swap (`WE.go` sets scrollLeft; `weFlip`/`weCopy`/strip CSS deleted, no page copies). Curl may return only later, proven ghost-free on the Fold.
+- `tests/layout/check.js` now turns pages (forward, back, story open/close, 3 rapid swipes) and runs `ghostScan` (no copies in DOM; text of two different pages overlapping) at 1 s and 5 s; `storyScan` checks folio vs body text and the end mark. Pre-fix build: fails (page copies mid-turn, folio over text x18). Fixed build: phone and Fold pass. Headless cannot reproduce the Fold compositor ghost itself.
+- Folio on scrolling phone story pages (`.we-sx .we-fo`) now sits at the end of the story. Big "g": not reproducible, awaiting Fold. End marks: every story already ends with one (check enforces it).

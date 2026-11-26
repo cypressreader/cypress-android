@@ -2673,3 +2673,9 @@ Check on the Fold first, then web, then wide:
 
 ## World Edition app-side guard (issue 48 follow-up)
 - Open a story whose page has no readable text (or tap a paid one before the edition has finished getting ready): the story should simply leave the edition and you land back on the cover. No "did not send the text" page, no link out, and the ready line counts one fewer. Verified in a browser with stand-in pages; check on the Fold with real publishers.
+
+## Issue 53: World Edition opaque page swap (implemented, unverified on a real phone)
+- On the Fold (884x1104) and a phone: turn forward and back through the whole edition, three rapid swipes, open and close a story, then turn. After every turn the page must be clean at once, at 1 s and at 5 s (no Nvidia over "Home, continued", no cover over Contents).
+- The turn is now a plain cut: there are no page copies in the DOM at any time. Only the Fold can confirm the ghost is gone.
+- Phone story page: scroll the whole story; the page number sits under the last line (end of the story), never over a line of text.
+- The large lone "g" on the dark "World, continued" page: not reproducible in any render (phone, Fold, light, dark). Most likely a piece of a leftover turn copy, which no longer exists. Confirm on the Fold.

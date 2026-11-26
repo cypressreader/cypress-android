@@ -5,6 +5,11 @@
      2. blank / near-empty pages (almost no text, no picture, no drawn art)
      3. truncation (a headline / cover line clipped, ellipsised, line-clamped or broken mid-word; cover lines vs the data)
      4. NEXT SECTION labels vs the section that actually follows, and Contents rows vs the page they point to
+     5. (issue 53) TURNS: at each width it turns forward through the whole edition, back again, and in a rapid sequence, with the page's own
+        swipe/turn code. After every turn it waits, screenshots, and at 1 s and again 5 s runs the ghost scan: no copy of a page left in the DOM
+        (the old curl built the turn from copies), nothing from outside the current page painting over it and text of two
+        DIFFERENT pages overlapping (a ghost IS text over text). Mid-turn it also requires that no page copy exists at all.
+     6. every story ends with the 'End of the story' mark, and its folio never prints over a line of body text at any scroll position
    Run: node tests/layout/check.js      Env: OUT=dir (default layout-out)  URL=<app url> (default: serves www/)
         SELFTEST=1 injects known defects and proves each detector fires (exit 0 only if all do).  WIDTHS=phone,fold
    Exit 1 on any failure. Screenshots + report.json + report.md land in OUT. Text over a photo is fine; text over text is not. */
@@ -115,6 +120,49 @@ function inPage(opts) {
   return out;
 }
 
+
+/* ---- issue 53: runs inside the page, after a turn has settled. A ghost is a page that is still painted after the turn: a copy of the old page left over the new one. ---- */
+function ghostScan(opts) {
+  const host = document.querySelector('.we'), sc = document.querySelector('.we-sc'), f = [];
+  if (!host || !sc) return [{ kind: 'ghost', what: 'the edition is not on screen' }];
+  /* 1. no copy of any page, in any form, anywhere in the edition (the curl's strips, leaf, under-page and copies) */
+  const copies = host.querySelectorAll('.we-tn,.we-cp,.we-lf,.we-un,.we-sl,.we-fc,.tl,.tl-leaf,.we-slide');
+  if (copies.length) f.push({ kind: 'ghost', what: copies.length + ' page copies in the DOM after the turn (' + [...new Set([...copies].map(e => String(e.className).split(' ')[0]))].join(', ') + ')' });
+  if (opts && opts.mid) return f;
+  const sc2 = sc.getBoundingClientRect(), L = Math.max(sc2.left, 0), T = Math.max(sc2.top, 0), R = Math.min(sc2.right, innerWidth), Bt = Math.min(sc2.bottom, innerHeight);
+  /* 2. text of two different pages on the same spot */
+  const items = [], w = document.createTreeWalker(host, NodeFilter.SHOW_TEXT); let n;
+  while ((n = w.nextNode())) {
+    const el = n.parentElement, txt = n.nodeValue.replace(/\s+/g, ' ').trim(); if (!txt || el.closest('script,style,.we-fo')) continue;
+    let o = 1, hid = false; for (let e = el; e && e !== host; e = e.parentElement) { const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden') { hid = true; break } o *= +cs.opacity } if (hid || o < .15) continue;
+    const r = document.createRange(); r.selectNodeContents(n);
+    [...r.getClientRects()].forEach(q => { if (q.width < 2 || q.height < 3) return; let l = Math.max(q.left, L), t = Math.max(q.top, T), rr = Math.min(q.right, R), b = Math.min(q.bottom, Bt);
+      for (let e = el; e && e !== host; e = e.parentElement) { const cs = getComputedStyle(e); if (/hidden|clip/.test(cs.overflowX + cs.overflowY)) { const c = e.getBoundingClientRect(); l = Math.max(l, c.left); t = Math.max(t, c.top); rr = Math.min(rr, c.right); b = Math.min(b, c.bottom) } }
+      if ((rr - l) * (b - t) < q.width * q.height * .5) return; const ih = b - t; items.push({ txt, el, pg: el.closest('.we-pg') || el.closest('.we-tn') || host, r: [l, t + ih * .18, rr, b - ih * .12] }) });
+  }
+  const seen = new Set();
+  for (let a = 0; a < items.length; a++) for (let c = a + 1; c < items.length; c++) { const A = items[a], C = items[c]; if (A.pg === C.pg) continue;
+    const ww = Math.min(A.r[2], C.r[2]) - Math.max(A.r[0], C.r[0]), hh = Math.min(A.r[3], C.r[3]) - Math.max(A.r[1], C.r[1]); if (ww < 2 || hh <= 0) continue;
+    if (hh < Math.min(A.r[3] - A.r[1], C.r[3] - C.r[1]) * .4) continue;
+    const nm = i => '"' + i.txt.slice(0, 40) + '" (' + ((i.pg.getAttribute && i.pg.getAttribute('aria-label')) || String(i.pg.className).split(' ')[0]) + ')', k = nm(A) + nm(C); if (seen.has(k)) continue; seen.add(k);
+    f.push({ kind: 'ghost', what: 'text of two different pages on the same spot (a ghost): ' + nm(A) + ' over ' + nm(C), at: [Math.round(Math.max(A.r[0], C.r[0])), Math.round(Math.max(A.r[1], C.r[1]))] }) }
+  return f;
+}
+/* the folio against body text, at every scroll position of every scrolling story page; and the end mark of every story */
+function storyScan() {
+  const sc = document.querySelector('.we-sc'), sp = [...sc.children].filter(x => x.classList.contains('we-sp')), f = [];
+  sp.forEach(pg => { const fo = pg.querySelector('.we-fo'); if (!fo || !pg.classList.contains('we-sx')) return;
+    const fs = parseFloat(getComputedStyle(fo).fontSize) || 9, H = pg.scrollHeight - pg.clientHeight;
+    for (let y = 0; y <= Math.max(0, H); y += 80) { pg.scrollTop = y; const q = fo.getBoundingClientRect(), fb = { l: q.left, r: q.right, t: q.top, b: q.top + (q.height > fs ? q.height : fs) };
+      const w = document.createTreeWalker(pg, NodeFilter.SHOW_TEXT); let n, hit = null;
+      while ((n = w.nextNode()) && !hit) { if (!n.nodeValue.trim() || n.parentElement.closest('.we-fo')) continue; const r = document.createRange(); r.selectNodeContents(n);
+        for (const c of r.getClientRects()) if (c.width > 2 && c.bottom > fb.t && c.top < fb.b && c.right > fb.l && c.left < fb.r) { hit = n.nodeValue.trim().slice(0, 40); break } }
+      if (hit) { f.push({ kind: 'folio', what: 'the page number prints over body text at scroll ' + y + ' px: "' + hit + '"', text: hit }); break } }
+    pg.scrollTop = 0 });
+  if (sp.length) { const fin = sp[sp.length - 1].querySelector('.we-fin'); if (!fin || !/end of the story/i.test(fin.textContent)) f.push({ kind: 'endmark', what: 'the story does not end with the "End of the story" mark' }); else if (!fin.querySelector('.we-mk')) f.push({ kind: 'endmark', what: 'the end mark has no rule/mark glyph' }) }
+  return f;
+}
+
 const LEDE = 'The decision landed late in the day, and the people who had pressed for it for years were not in the room to hear it read out. What follows is an account of how it came about, drawn from the documents and from the people who wrote them.';
 const STANDIN = '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>A stand-in article for the layout check</title>'
   + '<meta property="og:title" content="A stand-in article for the layout check"></head><body><article><h1>A stand-in article for the layout check</h1>'
@@ -186,6 +234,45 @@ const INJECT = () => {
       const m = await page.evaluate(inPage, { minChars: 50, ov: .4 });
       for (let k = 0; k < step && i + k < total; k++) per[i + k] = m[i + k];
     }
+
+    /* ---- issue 53: turn through the edition and scan for ghosts after every turn ---- */
+    {
+      const flush = (label, fs, shot) => fs.forEach(f => report.failures.push(Object.assign({ width: name, page: 0, pageName: label, shot: shot || '' }, f)));
+      const where = () => page.evaluate(() => ({ pg: WE.pg | 0, bz: !!WE.bz }));
+      const shotOf = async tag => { const fn = `${name}-turn-${tag}.png`; await page.screenshot({ path: path.join(OUT, fn) }); return fn };
+      await page.evaluate(() => { const s = document.querySelector('.we-sc'); s.scrollLeft = 0 }); await page.waitForTimeout(400);
+      let lastIx = 0, nt = 0;
+      const turn = async (dir, label, long) => {
+        const before = (await where()).pg, want = Math.max(0, Math.min((total - 1) - ((total - 1) % step), before + dir * step));
+        await page.evaluate(d => WE.turn(d), dir);
+        if (long) { await page.waitForTimeout(300); flush(label + ' (mid-turn)', await page.evaluate(ghostScan, { mid: true })) } /* the turn must not build any copy of a page, even while it runs */
+        await page.waitForTimeout(long ? 800 : 700);
+        const at = (await where()).pg, shot = await shotOf(`${String(++nt).padStart(2, '0')}-${label.replace(/\W+/g, '-')}`);
+        if (at !== want) report.failures.push({ kind: 'turn', width: name, page: before + 1, pageName: label, what: `a turn ${dir > 0 ? 'forward' : 'back'} from page ${before + 1} landed on page ${at + 1}, expected ${want + 1}`, shot });
+        flush(label + ' (1 s)', await page.evaluate(ghostScan), shot);
+        if (long) { await page.waitForTimeout(4200); flush(label + ' (5 s)', await page.evaluate(ghostScan), shot) }
+        return at;
+      };
+      const lastPg = (total - 1) - ((total - 1) % step);
+      for (let i = 0, k = 0; i < lastPg; i += step, k++) await turn(1, `forward from page ${i + 1}`, k === 0 || i + step >= lastPg);
+      for (let i = lastPg, k = 0; i > 0; i -= step, k++) await turn(-1, `back from page ${i + 1}`, k === 0 || i - step <= 0);
+      /* a story opened and closed in the middle of the book, then a turn */
+      if (!SELF) { await page.evaluate(() => { WE.go(2, 1) }); await page.waitForTimeout(500); await page.evaluate(() => weRead(0, WE.pg | 0)); await page.waitForSelector('.we-sc .we-sp', { timeout: 12000 }).catch(() => {}); await page.waitForTimeout(900);
+        await page.evaluate(() => weRdClose()); await page.waitForTimeout(900); await turn(1, 'forward after a story was opened and closed', true) }
+      /* three rapid swipes with the pointer, as a thumb does it */
+      await page.evaluate(() => { WE.go(0, -1) }); await page.waitForTimeout(500);
+      const bx = await page.evaluate(() => { const r = document.querySelector('.we-sc').getBoundingClientRect(); return [r.left, r.top + r.height / 2, r.width] });
+      for (let r = 0; r < 3; r++) { await page.mouse.move(bx[0] + bx[2] * .8, bx[1]); await page.mouse.down(); await page.mouse.move(bx[0] + bx[2] * .2, bx[1] + 4, { steps: 6 }); await page.mouse.up(); await page.waitForTimeout(80) }
+      await page.waitForTimeout(1100);
+      const rap = (await where()).pg, shotR = await shotOf('rapid-3-swipes');
+      if (rap < step || rap > 3 * step) report.failures.push({ kind: 'turn', width: name, page: rap + 1, pageName: 'three rapid swipes', what: `three rapid swipes from page 1 landed on page ${rap + 1} (expected page ${step + 1} to ${3 * step + 1})`, shot: shotR });
+      flush('three rapid swipes (1 s)', await page.evaluate(ghostScan), shotR);
+      await page.waitForTimeout(4200); flush('three rapid swipes (5 s)', await page.evaluate(ghostScan), shotR);
+      /* SELFTEST: leave a copy of the old page over the new one, as the Fold's compositor did - the scan has to name it */
+      if (SELF) { await page.evaluate(() => { const sc = document.querySelector('.we-sc'), B = sc.getBoundingClientRect(), at = WE.pg | 0, src = sc.children[Math.max(0, at + 1)] || sc.children[0], c = src.cloneNode(true);
+          c.removeAttribute('id'); c.setAttribute('aria-hidden', 'true'); c.style.cssText = `position:fixed;left:${B.left}px;top:${B.top}px;width:${B.width / (B.width >= 600 ? 2 : 1)}px;height:${B.height}px;z-index:9;pointer-events:none;flex:none`; document.querySelector('.we').append(c) });
+        await page.waitForTimeout(300); flush('SELFTEST ghost left over the new page', await page.evaluate(ghostScan)) }
+    }
     /* every story, opened as a reader opens it, from its own cached real text */
     const stories = await page.evaluate(() => WE.cur.map(a => a.title)); report.stories = report.stories || {}; const stNote = [];
     for (let k = 0; k < stories.length; k++) {
@@ -200,6 +287,7 @@ const INJECT = () => {
         await page.screenshot({ path: path.join(OUT, `${name}-story-${String(k + 1).padStart(2, '0')}-${seenS.size}.png`) }) }
       const m = await page.evaluate(inPage, { minChars: 30, ov: .4, only: 'we-sp' });
       m.forEach((p, j) => { p.i = idx[j]; p.name = 'story ' + (k + 1) + ': ' + stories[k].slice(0, 40); p.story = k + 1; p.fails.forEach(f => { f.shot = `${name}-story-${String(k + 1).padStart(2, '0')}-1.png` }); per.push(p) });
+      { const sf = await page.evaluate(storyScan); sf.forEach(f => report.failures.push(Object.assign({ width: name, page: idx[0] + 1, pageName: 'story ' + (k + 1) + ': ' + stories[k].slice(0, 40), shot: `${name}-story-${String(k + 1).padStart(2, '0')}-1.png` }, f))) }
       await page.evaluate(() => weRdClose()); await page.waitForTimeout(700);
     }
     if (stNote.length) report.failures.push({ kind: 'note', width: name, what: stNote.length + ' stor' + (stNote.length > 1 ? 'ies' : 'y') + ' did not open in 12 s (not prepared yet, or no network): ' + stNote.join(' | ').slice(0, 200), page: 0, pageName: '', shot: '' });
@@ -215,6 +303,6 @@ const INJECT = () => {
   for (const f of report.failures) md.push(`- **${f.kind}** · ${f.width} · page ${f.page} (${f.pageName}) · ${f.what || ''} ${f.a ? `"${f.a}" over "${f.b}" at ${JSON.stringify(f.at)}` : ''} ${f.text ? `→ "${f.text}"` : ''} [${f.shot}]`);
   for (const [n, v] of Object.entries(report.widths)) md.push('', `${n} ${v.size.join('x')}: ${v.pages} pages` + (v.spread ? ' (two per spread)' : '') + ` · ready line: ${v.ready.slice(-1)[0] || 'none'}`);
   fs.writeFileSync(path.join(OUT, 'report.md'), md.join('\n') + '\n'); console.log(md.join('\n'));
-  if (SELF) { const need = ['overlap', 'blank', 'trunc', 'label']; const miss = need.filter(k => !by[k]); console.log(miss.length ? 'SELFTEST FAILED: never fired: ' + miss.join(', ') : 'SELFTEST ok: every detector fired'); process.exit(miss.length ? 1 : 0) }
+  if (SELF) { const need = ['overlap', 'blank', 'trunc', 'label', 'ghost']; const miss = need.filter(k => !by[k]); console.log(miss.length ? 'SELFTEST FAILED: never fired: ' + miss.join(', ') : 'SELFTEST ok: every detector fired'); process.exit(miss.length ? 1 : 0) }
   process.exit(report.failures.some(f => f.kind !== 'note') ? 1 : 0);
 })().catch(e => { console.error('FAIL layout check: ' + (e && e.stack || e)); process.exit(2) });
