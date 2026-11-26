@@ -16619,6 +16619,26 @@ function longformItem(a,i,ix,cover,why){
 function latestMast(l){const d=new Date(),day=d.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'});/* Compact and Narrow have no day sections: one slim line keeps the count and Mark read in sight */const un=l&&nrDense()?(SECR.all=l.map(a=>a.link).filter(k=>!S.read[k])):0;return `<header class="tmast tm-day"><small>${esc(day)}</small><h2 aria-hidden="true">All Stories</h2>${l&&nrDense()?`<div class="wmeta"><div class="nr-meta">${stN(l.length)}${S.hideCount?'':' · '+un.length+' unread'}</div>${un.length?'<button type="button" class="wsecb" data-secread="all" aria-label="Mark all stories as read">Mark read</button>':''}</div>`:''}</header>`}
 /* World Edition (preview/world-edition): one shared edition per region, read from the bundled world-edition.json (its format is written down in WORLD-EDITION-FORMAT.md). Reading only: no play mode, no back issues, no sharing yet. The edition is designed from its own data: the pipeline reads the stories first and writes the cover's mood, shape, accent and photo verdict into the file; the app only enforces the rules. */
 const WE={d:null,st:'',cur:[],on:false,tried:new Set(),lite:false};
+/* THE EDITION ARRIVES ON ITS OWN (David's choice, 2026-11-26). The copy inside the app is the one it shipped with,
+   and it is always the fallback: the magazine opens with no network and never waits on one. The live edition is
+   fetched in the BACKGROUND, a couple of seconds after the pages are on screen, and kept for the NEXT time the
+   edition is opened - an issue never changes under a reader mid-page. Only ever forward: an older date is ignored.
+   The request goes to CyPress's own site, carries nothing about the reader, and is skipped when offline, on data
+   saver, on a metered connection or in power save. Disclosed on docs/privacy.html. */
+const WE_URL='https://cypressreader.com/app/world-edition.json';
+const weOk=d=>!!(d&&Array.isArray(d.editions)&&d.editions.length);
+function weKept(){try{const s=localStorage.getItem('we-ed'),d=s&&JSON.parse(s);return weOk(d)?d:null}catch(e){return null}}
+async function weEdition(){
+ let built=null;try{built=await (await fetch('world-edition.json')).json()}catch(e){}
+ const kept=weKept(),use=(kept&&(!weOk(built)||String(kept.date||'')>String(built.date||'')))?kept:built;
+ weRefresh(use);return use}
+function weRefresh(have){
+ if(S.offline||!navigator.onLine||DEV.dataSaver||DEV.powerSave||DEV.metered)return;
+ setTimeout(()=>{fetch(WE_URL,{cache:'no-store',signal:AbortSignal.timeout(15000)})
+  .then(r=>r.ok?r.json():null).then(d=>{
+    if(!weOk(d)||(have&&String(d.date||'')<=String(have.date||'')))return;
+    try{localStorage.setItem('we-ed',JSON.stringify(d))}catch(e){}})
+  .catch(()=>{})},2500)}
 /* test-only (device runs): the emulator's software renderer dies on the cover's full-page art. `welite` draws the
    edition with no cover art and no photographs, so a run can tell a paint crash from a code fault. Never set by the app. */
 try{WE.lite=/^1|true$/.test(localStorage.getItem('welite')||'');if(WE.lite)document.documentElement.classList.add('welite')}catch(e){}
@@ -16902,7 +16922,7 @@ function renderWE(){
  const g=$('#grid');$('#ttl').textContent='The World Edition';['#mr','#ref','#vw'].forEach(q=>{const b=$(q);if(b)b.hidden=true});
  if(!WE.d){cur=[];
   if(WE.st==='fail'){g.innerHTML=emp('The World Edition could not be opened','Check your connection, then try again.','<div class="eact"><button type="button" class="go" data-wer>Try again</button></div>');return}
-  g.innerHTML=skel(6);if(WE.st!=='load'){WE.st='load';fetch('world-edition.json').then(r=>r.json()).then(d=>{if(!d||!Array.isArray(d.editions)||!d.editions.length)throw 0;WE.d=d;WE.st=''}).catch(()=>{WE.st='fail'}).then(()=>{if(S.sel==='we')render()})}
+  g.innerHTML=skel(6);if(WE.st!=='load'){WE.st='load';weEdition().then(d=>{if(!d||!Array.isArray(d.editions)||!d.editions.length)throw 0;WE.d=d;WE.st=''}).catch(()=>{WE.st='fail'}).then(()=>{if(S.sel==='we')render()})}
   return}
  needFont('literata');
  /* issue 52: the edition was torn down and rebuilt by EVERY render() - and the app calls render() whenever a site
