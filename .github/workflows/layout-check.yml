@@ -39,11 +39,24 @@ jobs:
           rc=$?
           cat layout-out/report.md >> "$GITHUB_STEP_SUMMARY"
           exit $rc
+      - name: Prove the see-through detector fires (a page made transparent on purpose)
+        if: always()
+        run: SELFTEST=1 OUT=$RUNNER_TEMP/paint-self node tests/layout/paint.js
+      - name: Every page must paint its own paper (issue 54)
+        if: always()
+        run: |
+          set +e
+          OUT=$GITHUB_WORKSPACE/paint-out node tests/layout/paint.js
+          rc=$?
+          cat paint-out/report.md >> "$GITHUB_STEP_SUMMARY"
+          exit $rc
       - name: Keep the screenshots and the report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: layout-check
-          path: layout-out
+          path: |
+            layout-out
+            paint-out
           retention-days: 14
           if-no-files-found: ignore
