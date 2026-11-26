@@ -43,10 +43,33 @@ function nameFrom(title){
  return /^[A-Z][^ ]*( [A-Z][^ ]*){0,3}$/.test(t)?t:'';
 }
 
-async function wiki(name){
+/* A name on its own is often not enough. "Andy Taylor" is a disambiguation page - there are several - so when
+   the plain title is ambiguous or missing, the encyclopedia is searched for the name together with whatever the
+   headline says about them ("Duran Duran"), and the first article it offers is tried instead. Wikipedia rate-
+   limits a shared address, so a refusal is waited out once rather than treated as an answer. */
+async function summary(title){
+ for(let go=0;go<2;go++){
+  const j=await get('https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(String(title).replace(/ /g,'_')));
+  if(j)return j;
+  await new Promise(r=>setTimeout(r,4000));
+ }
+ return null;
+}
+async function search(q){
+ const j=await get('https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch='+encodeURIComponent(q)+'&srlimit=3&format=json&formatversion=2');
+ const hits=(j&&j.query&&j.query.search)||[];
+ return hits.length?hits[0].title:'';
+}
+async function wiki(name,hint){
  if(!name)return null;
- const j=await get('https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(name.replace(/ /g,'_')));
+ let j=await summary(name);
+ if(!j||j.type==='disambiguation'||!j.extract){
+  const t=await search(name+' '+(hint||''));
+  j=t?await summary(t):null;
+ }
  if(!j||j.type==='disambiguation'||!j.extract)return null;
+ /* the article has to be about the person the headline is about */
+ if(!String(j.title||'').toLowerCase().includes(String(name).split(' ').pop().toLowerCase()))return null;
  const d=String(j.description||'');
  /* a person, and one the encyclopedia agrees has died */
  const years=/\((\d{4})\s*[–—-]\s*(\d{4})\)/.exec(d);
@@ -65,7 +88,9 @@ async function wiki(name){
  if(!obit){console.log('no obituary in this edition');process.exit(0)}
 
  const name=nameFrom(obit.swap&&obit.swap.t||obit.title);
- const w=await wiki(name);
+ /* what the headline says about them, which is what tells two people of the same name apart */
+ const hint=String(obit.swap&&obit.swap.t||obit.title).replace(/^[^,]*,?/,'').replace(/\b(dies|died|dead)\b.*$/i,'').replace(/[^A-Za-z0-9 ]/g,' ').trim().slice(0,60);
+ const w=await wiki(name,hint);
  console.log('obituary: '+(obit.swap&&obit.swap.t||obit.title));
  console.log('person:   '+(name||'(could not read a name from the headline)'));
  console.log('wikipedia: '+(w?w.title+' — '+w.description:'no usable article (refused: not a person, still living, or ambiguous)'));

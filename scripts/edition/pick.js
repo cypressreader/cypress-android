@@ -74,7 +74,9 @@ const DESK=[
  {name:'Sport',n:3,cats:['Sports'],
   find:new RegExp(SPORT_WON.source+'|'+SPORT_FINAL.source+'|'+SPORT_CAREER.source,'i'),
   /* a death is an obituary, not a result, so it is left for that page */
-  not:new RegExp(SPORT_NOISE.source+'|\\b(dies|died|dead at)\\b','i')},
+  /* and a piece ABOUT a retirement - a reaction, a rumour, a question - is not a career ending: "Kevin Durant
+     Reacts to ... Making NBA History Retirement Question" reached Sport on 26 November */
+  not:new RegExp(SPORT_NOISE.source+'|\\b(dies|died|dead at)\\b|\\b(reacts?|rumou?rs?|speculation|question|talks about|hints?)\\b','i')},
  {name:'Food',n:3,cats:['Food','Lifestyle']},
  {name:'From the archive',not:SPORTY,n:1,cats:['History'],
   find:/\bon this day\b|years ago\b|\bin 1[89]\d\d\b|\bhistory of\b|\bthe forgotten\b|\bwhen .* (was|were)\b/i},

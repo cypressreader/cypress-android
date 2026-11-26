@@ -91,9 +91,16 @@ function build(src){
    it takes the one with a photograph worth the front page; that is how covers have always been chosen, and it
    is in the pipeline plan as "the lead follows the picture". So: the top story by counting leads, unless
    another story within one newsroom of it has a cover-size picture and the top one does not. */
+/* The cover names the day's lead story, and the standing pages are not it. An obituary, the archive page, the
+   last-page good news, a review and an explainer each have their own place in the book and a magazine does not
+   put them on the front - David, looking at the built issue: "Still showing the Duran duran story as the cover
+   is that correct". Moving the death to the obituary page was only half of it; the cover was still pointing at
+   it, because it was still the most reported story in the edition. */
+const NOT_COVER=new Set(['Obituary','From the archive','Back page','Review','Explainer']);
 function coverOf(sections){
  const all=[];
- sections.forEach((s,si)=>s.stories.forEach((st,ti)=>all.push({st,lead:[si,ti],n:st.n||1})));
+ sections.forEach((s,si)=>{if(NOT_COVER.has(s.name))return;
+  s.stories.forEach((st,ti)=>all.push({st,lead:[si,ti],n:st.n||1}))});
  if(!all.length)return{lead:[0,0],story:null};
  all.sort((a,b)=>b.n-a.n);
  const top=all[0];
