@@ -32,17 +32,36 @@ const OUT=arg('--json'),HOURS=Number(arg('--hours')||36);
    by the name they carry in the app's catalogue - the addresses stay in the app, which is where they are kept
    up to date. Home is the US desk and World the foreign one, which is the only reason they are split: they
    read the same kind of feed. */
+/* THE DESK. The sections, in the order they are printed, each with its fixed number of places. A desk reads
+   whole categories of the app's own catalogue (735 feeds, kept up to date in the app) rather than a list of
+   outlet names kept here - that is what "drastically more outlets" means in practice, and it costs nothing:
+   feeds are free to read and only the stories that reach the edition are opened.
+   A desk may also be a KIND of story rather than a place in the world: `find` matches the headline, and those
+   desks read everything, because an obituary or an explainer can come from any newsroom. (David's second
+   sheet: good news, explainers, obituaries, criticism and the archive are his yeses that code can find; the
+   numbers page, in pictures and the same-story-two-ways need the model pass and are not here yet.) */
 const DESK=[
- {name:'Home',n:6,outlets:['NPR','PBS NewsHour','NBC News','CBS News','AP News','Axios','The Hill','CNN','Fox News','Semafor','ProPublica']},
- {name:'World',n:6,outlets:['BBC World','The Guardian World','Al Jazeera','Deutsche Welle','Reuters','BBC News','Global News','The Guardian']},
- {name:'Business',n:4,outlets:['CNBC','Forbes','Fortune','Fast Company','Inc.']},
- {name:'Science & Health',n:4,outlets:['Science News','New Scientist','Scientific American','NASA','Space.com','Live Science','ScienceDaily','STAT','KFF Health News','NPR Health','ScienceDaily Health','Quanta Magazine']},
- {name:'Tech',n:4,outlets:['Ars Technica','The Verge','Wired','MIT Technology Review','TechCrunch','ZDNet','Engadget','Gizmodo','Hacker News']},
- {name:'Culture',n:4,outlets:['The Atlantic','Vox','Slate','Hyperallergic','Open Culture','Colossal','It’s Nice That','Dezeen','Variety','Pitchfork','The A.V. Club','Rolling Stone','IndieWire','designboom']},
- {name:'Sport',n:3,outlets:['ESPN','BBC Sport','Sky Sports','CBS Sports','Formula 1','SB Nation','MLB']},
- {name:'Food',n:3,outlets:['The Kitchn','Budget Bytes','Bon Appétit','Serious Eats','Lifehacker']},
- {name:'Long read',n:3,outlets:['Longreads','Aeon','Knowable Magazine','Wait But Why','Farnam Street','Smashing Magazine','MIT Technology Review']},
- {name:'Back page',n:2,outlets:['Good News Network','Positive News','Reasons to Be Cheerful','The Optimist Daily','YES! Magazine','Our World in Data']},
+ {name:'Home',n:6,cats:['News','Politics'],home:1,
+  outlets:['NPR','PBS NewsHour','NBC News','CBS News','AP News','Axios','The Hill','CNN','Fox News','Semafor','ProPublica','NPR Politics','The Hill Politics','Roll Call','Politico','The Intercept','FiveThirtyEight']},
+ {name:'World',n:6,
+  outlets:['BBC World','The Guardian World','Al Jazeera','Deutsche Welle','Reuters','BBC News','Global News','The Guardian','Foreign Policy','Foreign Affairs','BBC Politics','France 24','The Japan Times','CNA','Africanews','MercoPress']},
+ {name:'Business',n:4,cats:['Business','Money']},
+ {name:'Science & Health',n:4,cats:['Science','Health','Space','Environment']},
+ {name:'Tech',n:4,cats:['Tech','Mobile','AI & Security','Developers']},
+ {name:'Culture',n:4,cats:['Culture','Entertainment','Design','Music','Film & TV','Books']},
+ {name:'Review',n:2,cats:['Books','Film & TV','Music','Design','Culture'],
+  find:/\breview\b|\bverdict\b|\breviewed\b|\u2605/i},
+ {name:'Explainer',n:2,any:1,
+  find:/\bexplainer\b|\bexplained\b|what to know|\bwhy (is|are|do|does|did|has|have)\b|\bhow (does|do|did|to)\b/i},
+ {name:'Sport',n:3,cats:['Sports']},
+ {name:'Food',n:3,cats:['Food','Lifestyle']},
+ {name:'From the archive',n:1,cats:['History'],
+  find:/\bon this day\b|years ago\b|\bin 1[89]\d\d\b|\bhistory of\b|\bthe forgotten\b|\bwhen .* (was|were)\b/i},
+ {name:'Obituary',n:1,any:1,
+  find:/\b(dies|died|dead) at \d{2}\b|\bobituary\b|\b(19|20)\d\d\s*[\u2013\u2014-]\s*20\d\d\b/i},
+ {name:'Long read',n:3,cats:['Knowledge'],
+  outlets:['Longreads','Aeon','Knowable Magazine','Wait But Why','Farnam Street','Quanta Magazine','Granta','JSTOR Daily','Nautilus','The Atlantic']},
+ {name:'Back page',n:2,cats:['Good news']},
 ];
 
 /* One feed, fetched through the open browser rather than by hand in Node. Reason, measured: a request with our
@@ -96,44 +115,70 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
  const page=app.page;
 
  /* the app's own catalogue is the list of feeds: name -> address */
- const cat=await page.evaluate(()=>{const m={};for(const c of CAT)for(const f of c.f)m[f[0]]=f[1];return m});
- const want=[...new Set(DESK.flatMap(d=>d.outlets))];
- const missing=want.filter(o=>!cat[o]);
- if(missing.length)console.log('not in the app catalogue, skipped: '+missing.join(', '));
- const feeds=want.filter(o=>cat[o]).map((o,i)=>({id:'e'+i,url:cat[o],title:o,outlet:o}));
+ /* the app's own catalogue, by category and by outlet name */
+ const cat=await page.evaluate(()=>{const m={},byCat={};
+  for(const c of CAT){byCat[c.n]=c.f.map(f=>f[0]);for(const f of c.f)m[f[0]]=f[1]}
+  return{m,byCat}});
+ const inCat=n=>cat.byCat[n]||[];
+ /* every outlet any desk reads: the categories it takes whole, plus the ones it names */
+ const want=[...new Set(DESK.flatMap(d=>[...(d.cats||[]).flatMap(inCat),...(d.outlets||[])]))];
+ const missing=[...new Set(DESK.flatMap(d=>d.outlets||[]))].filter(o=>!cat.m[o]);
+ if(missing.length)console.log('named but not in the app catalogue, skipped: '+missing.join(', '));
+ /* a desk that matches a kind of story rather than a place reads everything the others read */
+ const everyone=want.slice();
+ for(const d of DESK)if(d.any)d.outlets=everyone;
+ const feeds=want.filter(o=>cat.m[o]).map((o,i)=>({id:'e'+i,url:cat.m[o],title:o,outlet:o}));
+ /* which outlets each desk may take from, worked out once */
+ for(const d of DESK)d.from=new Set(d.any?everyone:[...(d.cats||[]).flatMap(inCat),...(d.outlets||[])]);
  /* the site behind each feed, worked out by the app's own siteOf, so the relay asks Google News for the right
     publisher and the answer can be checked against it */
  const sites=await page.evaluate(us=>us.map(u=>siteOf({url:u})),feeds.map(f=>f.url));
  feeds.forEach((f,i)=>f.site=sites[i]);
 
  process.stdout.write('reading '+feeds.length+' feeds ');
- const got=await pool(feeds,8,async f=>{const r=await get(app.ctx,f.url,f.site);process.stdout.write(r.xml?(r.via?'r':'.'):'x');return{f,...r}});
+ const got=await pool(feeds,12,async f=>{const r=await get(app.ctx,f.url,f.site);process.stdout.write(r.xml?(r.via?'r':'.'):'x');return{f,...r}});
  process.stdout.write('\n');
  const ok=got.filter(g=>g.xml),bad=got.filter(g=>!g.xml);
 
  /* parse and group in the page, with the app's own code. One story reported by several outlets comes back as one
     group whose `more` names the others, which is exactly the count the edition prints. */
- const groups=await page.evaluate(({ok,hours})=>{
-  const all=[];
-  for(const g of ok){
-   let r=null;try{r=parse(g.xml,{id:g.f.id,url:g.f.url,title:g.f.title})}catch(e){continue}
-   for(const a of (r&&r.list)||[])all.push(a);
-  }
-  const cut=Date.now()-hours*36e5;
-  /* the app's own filters, so the edition refuses what the lists already refuse: a shopping deal, a promo for
-     the publisher's own newsletter, a feed's non-story pages. A magazine prints none of them, whatever the
-     reader's Hide deals switch happens to say, so dealItem is asked directly rather than through dealHide. */
-  /* Three the app's filters let through, each caught by eye in the 26 November edition: a price cut The Verge
-     files as news ("is down to $300, its best price"), a paid showroom listing (Dezeen Showroom is advertising
-     with a byline), and a newsletter round-up filed as a story (MIT Technology Review's "The Download"). A
-     magazine prints none of the three. */
-  const notNews=a=>/\b(is|now|are)\s+down to\s*[$\u00a3\u20ac]|best price|deal of the day|\bsave [$\u00a3\u20ac]\d/i.test(a.title||'')
-    ||/dezeen\.com\/[^?#]*showroom/i.test(a.link||'')
-    ||/^the download[:\u2014-]/i.test((a.title||'').trim());
-  const fresh=all.filter(a=>a.date&&a.date>=cut&&!junkItem(a)&&!dealItem(a)&&!promoItem(a)&&!notNews(a));
-  return group(fresh).map(x=>({title:x.title,link:x.link,feedId:x.feedId,date:x.date,img:x.img||'',
+ /* Parse in batches and keep the result in the page. Handing 597 feeds' XML across in one call killed the
+    browser outright - hundreds of megabytes of strings in one argument - and the only thing that has to cross
+    is the finished list of groups. Each batch is parsed, filtered and thrown away; what is kept is the small
+    part of every story the edition needs. */
+ await page.evaluate(()=>{window.__we=[]});
+ const BATCH=20;
+ for(let i=0;i<ok.length;i+=BATCH){
+  const part=ok.slice(i,i+BATCH).map(g=>({f:{id:g.f.id,url:g.f.url,title:g.f.title},xml:g.xml}));
+  await page.evaluate(({part,hours})=>{
+   const cut=Date.now()-hours*36e5;
+   /* the app's own filters, so the edition refuses what the lists already refuse: a shopping deal, a promo for
+      the publisher's own newsletter, a feed's non-story pages. A magazine prints none of them, whatever the
+      reader's Hide deals switch happens to say, so dealItem is asked directly rather than through dealHide.
+      Three more the app lets through, each caught by eye in the 26 November edition: a price cut filed as news,
+      a paid Dezeen Showroom listing, a newsletter round-up - and a headline carrying a bare web address, which
+      is the publisher's own furniture and breaks mid-word when printed word for word. */
+   const notNews=a=>/(^|\s)(https?:\/\/|www\.)|\b[a-z0-9-]+\.(com|org|net|co\.uk|io)\b/i.test(a.title||'')
+     ||/\b(is|now|are)\s+down to\s*[$\u00a3\u20ac]|best price|deal of the day|\bsave [$\u00a3\u20ac]\d/i.test(a.title||'')
+     ||/dezeen\.com\/[^?#]*showroom/i.test(a.link||'')
+     ||/^the download[:\u2014-]/i.test((a.title||'').trim());
+   for(const g of part){
+    let r=null;try{r=parse(g.xml,{id:g.f.id,url:g.f.url,title:g.f.title})}catch(e){continue}
+    for(const a of (r&&r.list)||[]){
+     if(!a.date||a.date<cut)continue;
+     if(junkItem(a)||dealItem(a)||promoItem(a)||notNews(a))continue;
+     /* only what the edition needs from a story, so a day's worth fits in the page */
+     window.__we.push({feedId:a.feedId,title:a.title,link:a.link,date:a.date,img:a.img||'',summary:a.summary||''});
+    }
+   }
+  },{part,hours:HOURS});
+  for(const g of ok.slice(i,i+BATCH))g.xml='';/* and let Node drop it too */
+ }
+ const groups=await page.evaluate(()=>{
+  const g=group(window.__we);window.__we=[];
+  return g.map(x=>({title:x.title,link:x.link,feedId:x.feedId,date:x.date,img:x.img||'',
    summary:x.summary||'',more:(x.more||[]).map(m=>({f:m.f,l:m.l,t:m.t,img:m.img||''}))}));
- },{ok:ok.map(g=>({f:{id:g.f.id,url:g.f.url,title:g.f.title},xml:g.xml})),hours:HOURS});
+ });
 
  const outletOf={},siteFor={};for(const f of feeds){outletOf[f.id]=f.outlet;siteFor[f.id]=f.site}
  for(const g of groups)g.site=siteFor[g.feedId]||'';
@@ -160,7 +205,9 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
   const mine=[];
   for(const g of groups){
    if(mine.length>=d.n)break;
-   if(!d.outlets.includes(g.outlet)||used.has(g.link))continue;
+   if(!d.from.has(g.outlet)||used.has(g.link))continue;
+   /* a desk that is a kind of story only takes a headline that is that kind */
+   if(d.find&&!d.find.test(g.title||''))continue;
    /* one story per outlet per section: a desk whose other feeds went quiet would otherwise fill its whole
       section from whichever outlet publishes most often (Space.com twice in Science & Health, one of them an
       almanac item). A section that cannot be filled from different outlets runs short, which the method page
