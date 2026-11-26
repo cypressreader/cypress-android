@@ -2739,3 +2739,17 @@ of it on screen, a newer issue already fetched is taken up and the site is asked
 edition on the preview site, open the magazine, wait a few seconds, back out to the lists, open it again - the
 new issue should be there with no app restart. It must still never change while the magazine is open or a
 story is being read.
+
+## Preview build (2026-11-26, the 27-story edition with pictures)
+The edition in this build was written by the pipeline from 597 outlets: 27 stories, 13 sections, 17 pictures,
+ten sections opening on a photograph. Both robot checks were clean at phone and Fold width before it shipped.
+- **Pictures.** Every section opener that has one should be a photograph with a credit under it. Nothing should
+  show a broken picture box: a picture that fails or arrives too small is dropped, never replaced by a frame.
+- **Keep this story.** At the end of a story, "Keep this story" should put it on the shelf and read "On your
+  shelf" afterwards; it should be on the shelf when you leave the magazine.
+- **Reading time.** Each Contents row should gain "N min" as its story is stored. Nothing should jump when the
+  times appear.
+- **Earlier issues.** On the method page at the back: a list of kept issues (only once a second one has
+  arrived). Opening one should show that issue, and the Contents footer should then offer "Back to the latest
+  issue". The last seven are kept.
+- **Listen to this edition** (from build 505) still plays the issue in order.
