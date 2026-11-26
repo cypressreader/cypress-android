@@ -23,16 +23,23 @@ inside the APK. That decision is already made and it is the right one.
 | 0 | Gather: feeds, pick candidates, fetch each page, `extract` → `tidy` → `junkClean` | Code | free | drop that story |
 | 1 | Gate: too short, no paragraphs, paywalled, extraction failed | Code | free | drop that story |
 | 2 | Editorial: running order, sections, standfirsts, pull quotes, what leads | Model | ~$0.03/edition | fall back to today's heuristics |
-| 3 | Pronunciation list for play mode (20–40 terms → spoken form) | Model (Haiku) | pennies | ship without it |
-| 4 | Cover: compose the SVG from the lead story | Model | ~$0.01/edition | last edition's shapes, new palette |
-| 5 | Verify: `tests/layout/check.js` + `tests/layout/paint.js` on the real edition | Code | free | **do not publish** |
-| 6 | Publish: write both JSON copies, commit, push | Code | free | — |
+| 3 | Pronunciation list for reading aloud (20–40 terms → spoken form) | Model (Haiku) | pennies | ship without it |
+| 4 | Photo clearance: look at each candidate picture, reject ads, burned-in logos, watermarks, collages | Model (vision) | <$0.01/edition | reject it (conservative) |
+| 5 | Cover: compose the SVG from the lead story | Model | ~$0.01/edition | last edition's shapes, new palette |
+| 6 | Verify: `tests/layout/check.js` + `tests/layout/paint.js` on the real edition | Code | free | **do not publish** |
+| 7 | Publish: write both JSON copies, commit, push | Code | free | — |
 
 **Pass 0 runs the app's own code, it does not reimplement it.** Load `www/index.html` in headless
 Playwright and call `extract`/`tidy`/`junkClean` in the page, exactly as the probes in this session did.
 Zero duplication, and the pipeline cleans text the same way the reader does, forever.
 
-**Pass 5 is what makes going away safe.** The layout check already opens the edition at phone and Fold
+**Pass 4 fills in data the app already expects.** `wePhotoOk` already refuses a picture with no credit, under the
+minimum size, missing any flag in `WE_CLEAR`, or showing people under an accusing headline (`WE_ACCUSE`). Those
+clearance flags have to come from somewhere, and a pair of eyes on each candidate is what makes that automatic. Cheap
+code checks run first (size, aspect ratio, ad-network URLs); only the survivors cost a look. **Be conservative: when
+unsure, reject.** A picture is never required - the story runs without one.
+
+**Pass 6 is what makes going away safe.** The layout check already opens the edition at phone and Fold
 width, turns every page, and reports text-on-text, blank pages, truncation, wrong labels, page ghosts
 and a missing end mark. It is the robot that looks at the magazine so David does not have to. It
 already runs in CI (`.github/workflows/layout-check.yml`).
@@ -78,8 +85,8 @@ flags (`curl -s 'https://cypressreader.com/api/insights?messy=list'`) — about 
 1. **Passes 0, 1, 5, 6 with no model at all.** That alone makes it automatic, with zero model risk.
 2. Pass 2, the editorial pass — the biggest visible lift.
 3. Pass 4, the cover.
-4. Pass 3, pronunciation — **only once play mode ships.** A spoken-form list is useless until there is
-   something speaking.
+4. Pass 3, pronunciation. **Reading aloud already ships** (the Listen button, the phone's own voice; natural
+   downloadable voices are a separate track), so this helps today - it is last only because it is the smallest win.
 
 Keep tuning the look by hand in `www/index.html` while this is built: the look lives in the CSS, and no
 pipeline can settle a design that is not settled.
@@ -87,7 +94,12 @@ pipeline can settle a design that is not settled.
 ## Two limits worth knowing
 
 - **Claude cannot generate images**, and the credit is Anthropic's, so it cannot buy another company's
-  image model either. The covers are drawn shapes; the model composes the SVG. That is the route.
+  image model either. The covers are drawn shapes; the model composes the SVG.
+- **THE DRAWN COVER IS A RULE, NOT A WORKAROUND.** Issue 30, in the comment above `weArt`: art drawn from the day's
+  cues only - the accent, a shape from the library, the mood - *never a picture of the event or of anyone in it*.
+  `WE_ACCUSE` backs it up inside the magazine by refusing photos of people under an accusing headline. A cover
+  photographed from the lead story is a reversal of that decision, not a shortcut around a limitation. David may
+  well want to reverse it - but as a decision, recorded here, not as drift.
 - **A magazine looks intentional because it repeats.** Fixed grid, fixed furniture, same folio in the
   same corner. Let the model *choose* which of the three page shapes suits a story; never let it invent
   a new one. Variety comes from the content and the art, not from the layout rules moving.
