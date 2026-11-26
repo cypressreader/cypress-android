@@ -80,6 +80,27 @@ session: PBS 1,128 words, NPR 686. Sixty editions a month at 18 stories:
 free, testably, and without rewording a journalist. Send the model only the stories the messy list
 flags (`curl -s 'https://cypressreader.com/api/insights?messy=list'`) — about one in twenty.
 
+## The cover checklist (pass 4), as applied for real on 2026-11-26
+
+Cheap code checks first - 4 of the 7 photos in the edition were eliminated for size alone, before a single look:
+
+1. **HTTPS, credited, 1,600 px on the long edge.** (`WE_BIG`. Inline pictures only need 600.)
+2. **Nothing painted on the picture**: advertisement, broadcaster bug, burned-in caption, watermark, collage, screenshot.
+3. **The existing clearance list** - logo, text, child, body, grief, mugshot (`WE_CLEAR`) - and no face under a headline
+   carrying an accusation word (`WE_ACCUSE`).
+4. **NEW - not a handout from the subject of the story.** The Microsoft operations-centre photo is credited "Microsoft"
+   on a story about Microsoft's own outage. That is the subject's picture of itself: fine inside, never the cover.
+5. **NEW - no identifiable private individual as the subject of the frame.** The ProPublica portrait is a clean,
+   beautiful photograph of a named man in a story about his cancer care. Right inside the story where its own
+   publisher ran it; wrong on the front of an aggregated magazine. **The cover needs a stricter test than the inside
+   pages** - that is the general rule, and it is the one a size-and-logo check will never catch.
+6. **When unsure, reject.** A story runs perfectly well without a picture, and the drawn cover is always there.
+
+**The lead follows the picture.** Among stories strong enough to lead, prefer one with a cover-worthy photograph - the
+way magazines have always chosen a cover. On 2026-11-26 that moved the cover from the Nvidia story (no usable picture
+anywhere) to the Colombia car bomb (AFP, 1,920 px, clean), and it needed **no app change at all**: `cover.lead` and
+`cover.photo` are data, and `wePhotoOk` already said yes.
+
 ## Build order
 
 1. **Passes 0, 1, 5, 6 with no model at all.** That alone makes it automatic, with zero model risk.
