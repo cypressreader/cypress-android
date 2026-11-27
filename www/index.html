@@ -5520,9 +5520,13 @@ html.lowp .we *,html.lowp .we *::before{animation:none!important;transition:none
 @container we (min-width:600px){.we-toc .we-tl li button{grid-template-columns:1.8em minmax(0,1fr) 9cqw 2.4em}.we-toc .we-tl .we-th{font-size:clamp(14px,2.2cqw,19px)}}
 .we-bd>p,.we-bd>.we-pq2{max-width:36em}
 .we-sp .we-bd{font-size:calc(clamp(15px,3.9cqw,17px)*var(--wsz,1))}
-.we-bd>.we-fst svg{display:block;width:100%;height:var(--wfh2,min(34svh,46cqw))}
-.we-bd>.we-fst.we-pl figcaption{font-style:italic}
-.we-v1 .we-bd>.we-fst{margin:0 -6cqw 1.05em}.we-v1 .we-bd>.we-fst img,.we-v1 .we-bd>.we-fst svg{height:var(--wfh2,min(46svh,62cqw))}.we-v1 .we-bd>.we-fst figcaption{padding-left:6cqw;padding-right:6cqw}
+/* David, 2026-11-27: "you cut off every single one of the band members heads". A wide crop of a tall press
+   photograph takes its middle by default, and the middle of a group shot is a row of jackets. Faces sit in the
+   upper third of almost every picture a newsroom files, so that is where the house crop holds. A focal point
+   given in the edition file is set on the element itself and still wins. */
+.we img[data-wep]{object-position:50% 22%}
+
+.we-v1 .we-bd>.we-fst{margin:0 -6cqw 1.05em}.we-v1 .we-bd>.we-fst img{height:var(--wfh2,min(46svh,62cqw))}.we-v1 .we-bd>.we-fst figcaption{padding-left:6cqw;padding-right:6cqw}
 /* David, 2026-11-26: "Photo looks odd here. Should take up more space." This shape used to print the story's picture at 70% of the column, pushed to the right, which reads as an accident rather than a choice. It takes the full column now, and what makes this shape different from the others is where its quote falls, not a shrunken photograph. */.we-v2 .we-bd>.we-fst{width:100%;margin-left:0}.we-v2 .we-bd>.we-fst img,.we-v2 .we-bd>.we-fst svg{height:var(--wfh2,min(34svh,46cqw))}
 .we-bd .we-pq2{margin:1.1em 0;padding:.8em 0;border-left:0;border-right:0}
 .we-v1 .we-bd .we-pq2{text-align:center;border-top:1px solid var(--wi);border-bottom:1px solid var(--wi);font-size:clamp(24px,6.6cqw,34px);padding:1em .4em}
@@ -16698,19 +16702,22 @@ function wePics(root){if(!root)return;root.querySelectorAll('.we-ph,[data-wep],.
    else{box.classList.add('we-ok');if(Math.max(im.naturalWidth,im.naturalHeight)<1200)box.classList.add('we-fsm');/* a small file is never printed large */
     (WE.pic=WE.pic||new Set()).add(box.getAttribute('data-wepl')||'');const pg=box.closest('.we-pg[data-fit]');if(pg)weFitPg(pg)}};
   im.onerror=off;im.onload=shown;if(im.complete&&im.naturalWidth)shown()})}
-/* issue 47 item 3: every story has a picture. Where no photo passes the checklist the page carries a flat drawn plate in the cover's own language (never a stock image, never a placeholder box). */
+/* issue 47 item 3 ASKED for a picture on every story, and the answer was a drawn mark - a shape on a coloured
+   ground - wherever no photograph passed. David, 2026-11-27: the marks mean nothing. Two circles in a red and blue
+   box have nothing to do with a Texas woman's Thanksgiving dinner, and a reader can see that. Decoration that
+   carries no information is worse than space, so there is none: a story prints a photograph or it prints type. */
 function weHash(x){let h=0;for(const c of String(x))h=(h*31+c.charCodeAt(0))>>>0;return h}
-/* issue 48 item 3: one drawn image was used for every photo-less story, so the Storms page and the Medicaid page carried the same picture. Each story is given its own mark instead - a different shape on a different ground - and no two in one edition are alike until all twelve are spent. */
-const WE_PL=new Map();
-function wePlate(a){const k=String((a&&a.link)||'');if(!WE_PL.has(k))WE_PL.set(k,WE_PL.size);
- const v=WE_PL.get(k),sh=v%4,gr=['#10213f','#0c1a2f','#1b2a21'][Math.floor(v/4)%3],R='#b0362a',C='#f4f5f3',
-  g=[`<circle cx="68" cy="26" r="19" fill="${R}"/><rect y="42" width="100" height="18" fill="${C}" fill-opacity=".14"/><path d="M0 42H100" stroke="${C}" stroke-width=".6"/>`,
-   `<rect width="34" height="60" fill="${R}"/><circle cx="66" cy="30" r="17" fill="none" stroke="${C}" stroke-width=".8"/><circle cx="66" cy="30" r="7" fill="${C}"/>`,
-   `<path d="M0 60 38 10 74 60Z" fill="${R}"/><path d="M48 60 78 24 100 60Z" fill="${C}" fill-opacity=".85"/><path d="M0 52H100" stroke="${C}" stroke-width=".6"/>`,
-   `<g stroke="${C}" stroke-width=".5" fill="none" opacity=".55">${[12,24,36,48].map(y=>`<path d="M0 ${y}H100"/>`).join('')}</g><rect x="58" y="14" width="30" height="30" fill="${R}"/><circle cx="22" cy="40" r="11" fill="none" stroke="${C}" stroke-width=".9"/>`][sh];
- return `<figure class="we-fg we-fst we-ok we-pl"><svg viewBox="0 0 100 60" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="100" height="60" fill="${gr}"/>${g}</svg><figcaption>Drawn for this edition</figcaption></figure>`}
+/* The credit line under a picture is whatever the publisher wrote, and the wires write a lot that is not a credit:
+   'FILE PHOTO: FILE PHOTO OF MEMBERS OF BRITISH BAND \u201cDURAN DURAN\u201d...' is the FILE mark twice over and then a
+   caption in shouting capitals. The mark is stripped however many times it was stamped on, the player's control
+   text goes, and what is left is cut at the first sentence so a credit stays a credit. */
+function weCred(x){let t=String(x||'').replace(/\s+/g,' ').trim();
+ for(let i=0;i<4;i++){const u=t.replace(/^file\s*(photo)?\s*(of\b)?\s*[-\u2013\u2014:]?\s*/i,'');if(u===t)break;t=u}
+ t=t.replace(/\s*\b(hide|toggle|show) caption\s*$/i,'').trim();
+ if(t.length>150){const m=t.slice(0,150).match(/^(.{40,}?[.!?])\s/);t=(m?m[1]:t.slice(0,147).replace(/\s\S*$/,'')+'\u2026')}
+ return t}
 function weFig(a){const p=a.wph;if(!wePhotoOk(p,0,a.title))return '';
- return `<figure class="we-fg we-fst" data-wepl="${esc(a.link)}"><img alt="" referrerpolicy="no-referrer" data-wep src="${esc(p.url)}"${Array.isArray(p.focus)?` style="object-position:${+p.focus[0]||50}% ${+p.focus[1]||50}%"`:''}><figcaption>Photo: <span class="we-cr">${esc(String(p.credit).replace(/[\s,.\u00b7-]*\b(photo |image )?captions?\b[\s:.]*$/i,'').trim())}</span></figcaption></figure>`}
+ return `<figure class="we-fg we-fst" data-wepl="${esc(a.link)}"><img alt="" referrerpolicy="no-referrer" data-wep src="${esc(p.url)}"${Array.isArray(p.focus)?` style="object-position:${+p.focus[0]||50}% ${+p.focus[1]||50}%"`:''}><figcaption>Photo: <span class="we-cr">${esc(weCred(p.credit))}</span></figcaption></figure>`}
 function wePhotoOk(p,heavy,title,big){return !!(p&&!heavy&&!WE.lite&&/^https:\/\//.test(p.url||'')&&String(p.credit||'').trim()&&Math.max(+p.w||0,+p.h||0)>=(big?WE_BIG:WE_SM)&&WE_CLEAR.every(k=>(p.clear||[]).includes(k))&&!(p.people!==false&&WE_ACCUSE.test(title)))}
 function weMix(h,g,t){const q=x=>[1,3,5].map(i=>parseInt(x.slice(i,i+2),16)),A=q(h),B=q(g);return '#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('')}
 /* Issue 30 fix 1: the third cover state. Art drawn from the day's cues only - the accent, the shape from the library, the mood - never a picture of the event or of anyone in it. The file says `art`; the app never decides, it draws. */
@@ -16798,8 +16805,15 @@ const WE_BOILER=/(we,? (and |or )?(our )?(partners|vendors|advertisers)\b)|perso
 const WE_STRAY=/^(ars )?(video|watch|listen|gallery|photos?|advertisement|sponsored|most read|read next|newsletter|sign up|further reading|promoted)\b/i;
 const WE_DEAD=/media could not be loaded|your browser does not support|enable javascript|player (is )?unavailable|(beginning|end) of dialog window|this is a modal window|close modal dialog|caption settings dialog|(text|background|window) color opacity|transparent semi-transparent|text edge style|font family|caption settings|audio track|this (modal|dialog) can be closed|descriptions off|subtitles off|captions off|chapters|loaded:\s*\d|stream type\b|reset\s+done\b|copy\/paste the script/i;
 const WE_DOTS=/^[\s.\u2026\u2022\u00b7\-\u2013\u2014_|]+$/;
+/* a wire photo caption, wherever a publisher prints one as a paragraph: it opens with the agency's FILE mark, or ends with the player's own 'hide caption'/'Enlarge this image' control */
+const WE_CAP=/^file\s*(photo)?\s*[-\u2013\u2014:]|\b(hide|toggle|show) caption\s*$|^enlarge this image/i;
 function weReal(el,t){return el.tagName==='P'&&!WE_BOILER.test(t)&&(t.length>=120||(t.length>=55&&/[.!?][\"\u201d\u2019)]?$/.test(t)&&!WE_JUNK.test(t)))}
 function weJunk(el,t,dek,ttl){if(WE_DOTS.test(t)||WE_DEAD.test(t)||/^(photo |image )?captions?:?$/i.test(t))return true;
+ /* David's Duran Duran obituary, 2026-11-27: the word FILE kept turning up in the middle of the story. NPR prints
+    each photo caption as an ordinary paragraph of the page, so the agency's own furniture - 'FILE - Music group
+    Duran Duran poses at The Sony Club... Jim Cooper/AP hide caption' - was read as the story, and one of them even
+    took the drop cap on the opening page. A caption is not the story: it goes. */
+ if(WE_CAP.test(t))return true;
  if(/#{3}/.test(t))return true;/* a teaser block for another story, markdown markers and all *//* a line of dots is a separator, not a sentence */
  if(WE_BOILER.test(t))return true;/* the site's consent notice reads like a paragraph but is not the story */
  if(/^H/.test(el.tagName)&&(WE_STRAY.test(t)||WE_JUNK.test(t)||t.length<4))return true;
@@ -16812,7 +16826,7 @@ function weDek(t){t=String(t||'').trim();if(!t)return '';const abbr=/(\b([A-Z]\.
 /* a headline is edited for rhythm: it breaks into stacked lines where the sense turns (after a colon, or at a dash) */
 function weStack(t){const x=String(t||'');const m=x.match(/^(.{8,}?(?::| \u2014 | \u2013 | - ))\s*(.{8,})$/);return m?esc(m[1].trim())+'<br>'+esc(m[2]):esc(x)}
 function weHead(a,n){const dt=a.date?new Date(a.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
- return `<div class="we-sk">${n?n+' &middot; ':''}${esc((a.wsec||'').toUpperCase())}</div><h2 class="we-sh">${weStack(a.title)}</h2>${weDek(a.wdek)?`<p class="we-ss">${esc(weDek(a.wdek))}</p>`:''}<p class="we-by">${a.wby?'By '+esc(a.wby)+' &middot; ':''}${esc(a.ft||'')}${dt?' &middot; '+esc(dt):''}${a.wpc&&WE.pic&&WE.pic.has(a.link)?' &middot; Photo: '+esc(a.wpc):''}</p>`}/* the credit goes with the picture: never printed where no picture of ours was shown */
+ return `<div class="we-sk">${n?n+' &middot; ':''}${esc((a.wsec||'').toUpperCase())}</div><h2 class="we-sh">${weStack(a.title)}</h2>${weDek(a.wdek)?`<p class="we-ss">${esc(weDek(a.wdek))}</p>`:''}<p class="we-by">${a.wby?'By '+esc(a.wby)+' &middot; ':''}${esc(a.ft||'')}${dt?' &middot; '+esc(dt):''}${a.wpc&&WE.pic&&WE.pic.has(a.link)?' &middot; Photo: '+esc(weCred(a.wpc)):''}</p>`}/* the credit goes with the picture: never printed where no picture of ours was shown */
 function wePage(a,first,scroll){const pg=document.createElement('section');
  pg.className='we-pg we-sp'+(scroll?' we-sx':'');pg.setAttribute('aria-label',a.title+(first?'':', continued'));
  pg.innerHTML=`<div class="we-in"><div class="we-sb"><button type="button" class="we-ex" data-werb><span aria-hidden="true">&#8249;</span> The World Edition</button><small>${esc(a.ft||'')}${a.date?' &middot; '+esc(new Date(a.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})):''}</small></div>${first?weHead(a,a.wnum):''}<div class="we-bd"></div><p class="we-more" style="visibility:hidden">Turn for more <span aria-hidden="true">&#8250;</span></p></div><i class="we-fo" aria-hidden="true"></i>`;
@@ -16932,7 +16946,7 @@ let said=!!q,who='';
   const mk=(first)=>{const p=wePage(a,first,!two);if(sz<1)p.style.setProperty('--wsz',sz);p.classList.add('we-v'+lv);return p};
   pg=mk(1);sc.insertBefore(pg,sc.children[at]||null);bd=pg.querySelector('.we-bd');pages.push(pg);
   /* issue 42 item 4 / 47: the story prints its own picture; the page shape (lv) sets how big. A drawn plate stands in when no photo passes. */
-  {const fh=weFig(a)||wePlate(a);bd.insertAdjacentHTML('afterbegin',fh);wePics(pg);
+  {const fh=weFig(a);if(fh)bd.insertAdjacentHTML('afterbegin',fh);wePics(pg);
    const fg=bd.querySelector('.we-fst');
    if(fg&&bd.scrollHeight>bd.clientHeight+1){for(const hh of [40,32,26,20,15]){fg.style.setProperty('--wfh2',hh+'cqw');if(bd.scrollHeight<=bd.clientHeight+1)break}
     if(bd.scrollHeight>bd.clientHeight+1)fg.remove()}}
@@ -17103,7 +17117,7 @@ function renderWE(){
   `<section class="we-pg we-toc" data-fit aria-label="Contents"><div class="we-in">${EX}<div class="we-tt"><span>Contents</span><span>${n===1?'1 story':n+' stories'}</span></div><ol class="we-tl">${secs.map((x,k)=>{const f=x.s.stories[0],ph=wePhotoOk(f.photo,false,f.t),T=f.h||f.t;return `<li><button type="button" data-wej="we-s${x.i}" aria-label="${esc(x.s.name)}: ${esc(T)}, page ${pnum[k]}"><b>${k+1}</b><span class="we-tx"><span class="we-tn2">${esc(x.s.name)}</span><span class="we-th">${esc(T)}<i class="we-tmin" data-wemin="${I(f)}"></i></span></span><span class="we-tb">${ph?pic(f.photo,'we-tm'):''}</span><i>${pnum[k]}</i></button></li>`}).join('')}</ol><div class="we-ft">${WE.live?'<button type="button" class="we-lk we-now" data-wenow>Back to the latest issue</button>':''}${('speechSynthesis' in window)?'<button type="button" class="we-lk we-lis" data-weplay>Listen to this edition</button>':''}<button type="button" class="we-lk" data-wej="we-how">How this edition was picked</button><p class="we-rdy" role="status"></p></div></div>${FO}</section>`];
  /* one idea per page: a section opens on a page of its own (its photo when one passes the checklist, type when none does), and its other stories follow on the next page */
  secs.forEach((x,k)=>{const[f,...r]=x.s.stories,w=why(f),pk=wePhotoOk(f.photo,false,f.t),hd=more=>`<header class="we-hd${more?' we-hc':''}"><i aria-hidden="true">${x.i+1}</i><h2>${esc(x.s.name)}${more?', continued':''}</h2></header>`,last=k===secs.length-1;
-  P.push(`<section class="we-pg we-op${!pk?' we-tyo':''}${!pk&&k%2?' we-inv':''}" data-fit id="we-s${x.i}" aria-label="${esc(x.s.name)}"><div class="we-in">${EC}${!pk?'':`<figure class="we-fg we-ok" data-wepl="${esc(f.l)}">${pic(f.photo,'')}<figcaption>Photo: <span class="we-cr">${esc(String(f.photo.credit).replace(/[\s,.\u00b7-]*\b(photo |image )?captions?\b[\s:.]*$/i,'').trim())}</span></figcaption></figure>`}${hd()}<article class="we-ld" data-wel="${I(f)}">${f.region?`<em>${esc(f.region)}</em>`:''}<h3>${A(f)}</h3>${weDek(f.dek)?`<p>${esc(weDek(f.dek))}</p>`:''}${f.note?`<aside class="we-nt"><em>Written by a machine</em><p>${esc(f.note)}</p>${f.noteBy?`<small>${esc(f.noteBy)}</small>`:''}</aside>`:''}<small><b>${esc(f.o)}</b>${w?' &middot; '+esc(w):''}</small></article>${last&&!r.length?'<div class="we-end">End of the edition</div>':''}</div>${FO}</section>`);
+  P.push(`<section class="we-pg we-op${!pk?' we-tyo':''}${!pk&&k%2?' we-inv':''}" data-fit id="we-s${x.i}" aria-label="${esc(x.s.name)}"><div class="we-in">${EC}${!pk?'':`<figure class="we-fg we-ok" data-wepl="${esc(f.l)}">${pic(f.photo,'')}<figcaption>Photo: <span class="we-cr">${esc(weCred(f.photo.credit))}</span></figcaption></figure>`}${hd()}<article class="we-ld" data-wel="${I(f)}">${f.region?`<em>${esc(f.region)}</em>`:''}<h3>${A(f)}</h3>${weDek(f.dek)?`<p>${esc(weDek(f.dek))}</p>`:''}${f.note?`<aside class="we-nt"><em>Written by a machine</em><p>${esc(f.note)}</p>${f.noteBy?`<small>${esc(f.noteBy)}</small>`:''}</aside>`:''}<small><b>${esc(f.o)}</b>${w?' &middot; '+esc(w):''}</small></article>${last&&!r.length?'<div class="we-end">End of the edition</div>':''}</div>${FO}</section>`);
   if(r.length)P.push(`<section class="we-pg" data-fit aria-label="${esc(x.s.name)}, continued"><div class="we-in">${EC}${hd(1)}${r.map(st=>`<article class="we-st${r.length>2?' we-li':''}" data-wel="${I(st)}">${st.region?`<em>${esc(st.region)}</em>`:''}<h3>${A(st)}</h3>${weDek(st.dek)?`<p class="we-sd">${esc(weDek(st.dek))}</p>`:''}<small><b>${esc(st.o)}</b></small></article>`).join('')}${last?'<div class="we-end">End of the edition</div>':''}</div>${FO}</section>`)});
 
  P.push(`<section class="we-pg we-how" data-fit id="we-how" aria-label="How this edition was picked"><div class="we-in">${EC}<em>From the editor</em><h2>How this edition was picked</h2>${(d.method||[]).map(p=>`<p>${esc(p)}</p>`).join('')}<p class="we-sig">&mdash; The editors</p>${(()=>{const ps=wePast().filter(x=>String(x.date)!==String(d.date));return ps.length?`<div class="we-arch"><em>Earlier issues</em><ul>${ps.map((x,i)=>`<li><button type="button" data-weiss="${i}">${esc(weWhen(x.date))}<span>No. ${+x.issue||'\u2014'}</span></button></li>`).join('')}</ul></div>`:''})()}</div>${FO}</section>`);
