@@ -5476,8 +5476,8 @@ html.dynx[data-theme=dynamic] #rd .rf-next[hz-cgoj3z]::after{content:"";position
 .we-cr{font-variant-caps:all-small-caps;letter-spacing:.08em;font-weight:700}
 .we-bd .we-dc::first-letter{float:left;font:700 3.6em/.82 var(--wd);padding:.04em .1em 0 0;color:var(--wi)}
 @supports (initial-letter:3){.we-bd .we-dc::first-letter{float:none;initial-letter:3;font:700 1em var(--wd);padding:0 .1em 0 0;line-height:inherit}}
-.we-toc .we-tl{justify-content:flex-start}
-.we-toc .we-ft{margin-top:auto}
+/* The list scrolls and SETTLES ON A ROW: a flick carries its momentum and lands on a row's top edge, so a   row is never left sliced across the foot - the thing that makes a free scroll look unplanned. Because the   rows do not divide evenly into the page, part of the next one is always showing while more remains, which   is the whole affordance: nothing has to tell the reader to scroll. The fade under it says the same again.   `proximity`, not `mandatory`: mandatory fights a reader who wants to stop between two rows. */.we-toc .we-tl{justify-content:flex-start;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;scroll-snap-type:y proximity;scrollbar-width:none}.we-toc .we-tl::-webkit-scrollbar{display:none}.we-toc .we-tl>li{scroll-snap-align:start}.we-toc .we-tl[data-more]{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 38px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 38px),transparent)}
+.we-toc .we-ft{margin-top:0;flex:0 0 auto}
 .we-toc .we-tl li.we-lli button{grid-template-columns:1.8em minmax(0,1fr) auto;row-gap:.45em}
 .we-toc .we-tl li.we-lli .we-tm{grid-column:1/-1;grid-row:1;width:100%;aspect-ratio:2/1;margin:0 0 .3em;border-radius:0}
 .we-toc .we-tl li.we-lli b{grid-column:1;grid-row:2}
@@ -5512,7 +5512,7 @@ html.lowp .we *,html.lowp .we *::before{animation:none!important;transition:none
 /* minmax(min-content,1fr), never minmax(0,1fr): a track allowed to collapse to zero still takes its share of the list's height, but content taller than that share overflows it - and because the row is centred, it overflowed equally into the rows above and below. On the Fold's cover screen the headline wraps to two lines, 46px of content in a 27.5px track, and every section label had a headline lying across it (David's screenshot, 2026-11-26). A min-content floor keeps the even spacing and never lets a row be shorter than what is in it. */.we-toc .we-tl li button{display:grid;grid-template-columns:1.8em minmax(0,1fr) 16cqw 2.4em;grid-template-rows:minmax(min-content,1fr);gap:0 .8em;align-items:center;width:100%;padding:1.6cqw 0}
 .we-toc .we-tl li b{grid-column:1;grid-row:1}
 .we-toc .we-tl .we-tx{grid-column:2;grid-row:1;display:flex;flex-direction:column;gap:.35em;min-width:0}
-.we-toc .we-tl .we-th{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font:700 clamp(13px,3.5cqw,17px)/1.2 var(--wd);color:var(--wi)}
+.we-toc .we-tl .we-th{display:block;overflow:visible;font:700 clamp(13px,3.5cqw,17px)/1.2 var(--wd);color:var(--wi);text-wrap:pretty;overflow-wrap:break-word}
 .we-toc .we-tl .we-tb{grid-column:3;grid-row:1;align-self:stretch;position:relative;overflow:hidden;background:#10213f;min-height:0}
 .we-toc .we-tl .we-tb::before{content:"";position:absolute;left:0;bottom:0;width:52%;height:46%;background:var(--wa)}
 .we-toc .we-tl .we-tb .we-tm{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;grid-column:auto;grid-row:auto;object-fit:cover;border-radius:0;z-index:1}
@@ -16921,7 +16921,22 @@ function weFitPg(pg){if(!pg)return;const b=pg.querySelector('.we-in');if(!b)retu
     and only then does the whole page step down. A shrunken page of tiny type is not a magazine page. */
  const fg=pg.querySelector('.we-fg');if(fg){fg.style.removeProperty('--wfh');
   if(b.scrollHeight>b.clientHeight+1)for(const h of [68,58,50,42,34]){fg.style.setProperty('--wfh',h+'cqw');if(b.scrollHeight<=b.clientHeight+1)return}}
- for(const z of [1,.95,.9,.85,.8,.75,.7,.64,.58]){pg.style.setProperty('--wz',z);if(b.scrollHeight<=b.clientHeight+1)return}}
+ /* THE CONTENTS STOPS SHRINKING AND SCROLLS (David picked it 2026-11-27, having watched a thirteen-entry
+    contents on the phone: "This is really hard to read. It's a lot of crammed information... This would never
+    pass a magazine editors desk"). HE WAS LOOKING AT THIS LADDER. Every other page holds a fixed amount of
+    writing, so stepping its type down a little is the right answer; the contents holds one row per section and
+    a full issue drove it to 58%, which is not a smaller page, it is a squeezed one. It now steps down three
+    rungs at most and then lets the list scroll, which is the one place in the magazine where that is
+    understood, because a reader can SEE a row continuing past the foot. */
+ const toc=pg.classList.contains('we-toc');
+ for(const z of (toc?[1,.95,.9]:[1,.95,.9,.85,.8,.75,.7,.64,.58])){pg.style.setProperty('--wz',z);if(b.scrollHeight<=b.clientHeight+1)break}
+ if(toc)weTocMore(pg)}
+/* the fade at the foot of the contents is on only while there is more below it: a fade over the last row
+   would say there is more when there is not. */
+function weTocMore(pg){const l=pg&&pg.querySelector('.we-tl');if(!l)return;
+ if(l.scrollHeight-l.clientHeight-l.scrollTop>8)l.setAttribute('data-more','');else l.removeAttribute('data-more')}
+addEventListener('scroll',e=>{const t=e.target;
+ if(t&&t.classList&&t.classList.contains('we-tl'))weTocMore(t.parentNode)},true);
 function weFitAll(){document.querySelectorAll('.we-pg[data-fit]').forEach(weFitPg)}
 /* issue 53: the turn is a plain opaque swap. The curl (issues 33, 48) was built from copies of the pages, and the Fold's compositor kept leaving one behind (a ghost of the old page over the new one). There are no copies now: the one scroller jumps to the new page and nothing else exists in the DOM. A curl may come back later only if it is proven ghost-free on the real device. */
 /* a finger turns the page; up and down still scroll inside the page */
