@@ -70,7 +70,21 @@ function build(src){
    if(st.n>1)o.n=st.n;                               /* "Reported by n of N outlets checked" */
    else o.why='The only outlet checked that carried it';
    /* the standfirst is the publisher's own summary FROM ITS FEED, never a sentence lifted out of the article */
-   if(!stories.length&&st.dek)o.dek=String(st.dek).replace(/\s+/g,' ').trim().slice(0,170);
+   /* The publisher's summary, with the feed's own furniture off the end: "Read more", "Continue reading",
+      "The post ... appeared first on ...". Seen on the page: "Linux Mint 27 Beta is here with a set of new
+      features, and you can download it right now. See what's new: Read more..." */
+   if(!stories.length&&st.dek){
+    /* stripped until nothing is left to strip: the furniture comes in layers ("...See what's new: Read more…") */
+    let d=String(st.dek).replace(/\s+/g,' ').trim();
+    for(let i=0;i<4;i++){
+     const was=d;
+     d=d.replace(/\s*(the post\s+.*?\s+appeared first on\s+.*)$/i,'')
+        .replace(/\s*[\u2013\u2014-]?\s*(read (more|on)|continue reading|see what'?s new|learn more|the post)\s*[.\u2026:]*\s*$/i,'')
+        .replace(/\s*[:\u2013\u2014-]\s*$/,'').trim();
+     if(d===was)break;
+    }
+    if(d)o.dek=d.slice(0,170);
+   }
    /* `kind` is left out rather than guessed */
    stories.push(o);kept.push({...st,section:s.name,words:r.words});
   }

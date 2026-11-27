@@ -223,6 +223,10 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
         story, and so is a fan-opinion listicle */
      ||/\bdaily:\s|\b(round-?up|newsletter|digest):/i.test(a.title||'')
      ||/\b(fans|viewers|critics) are wrong\b|\byou('re| are) (doing|using) .* wrong\b/i.test(a.title||'')
+     /* "EarthCARE ATLAS" reached Science & Health from ESA's feed and was set across the page as a headline.
+        Two words naming a thing is a caption or a file name, not a headline; a magazine headline says
+        something, and three words is the lowest that can. */
+     ||String(a.title||'').trim().split(/\s+/).length<3
      ||/how to watch|where to watch|\bsaved stories\b|\blatest (news|stories)\b|^(news|home|articles)$/i.test(a.title||'');
    for(const g of part){
     let r=null;try{r=parse(g.xml,{id:g.f.id,url:g.f.url,title:g.f.title})}catch(e){continue}

@@ -102,7 +102,9 @@ async function wiki(name,hint){
   for(const e of f.editions||[])for(const s of e.sections||[])for(const st of s.stories||[]){
    if(s.name!=='Obituary')continue;
    st.note=String(NOTE).replace(/\s+/g,' ').trim();
-   st.noteBy='Written by a machine from '+(obit.swap&&obit.swap.o||obit.outlet)+'’s obituary'+(w?' and Wikipedia':'');
+   /* the red label above the note already says a machine wrote it; this line names what it was written FROM.
+      Saying "written by a machine" twice on one page reads as a disclaimer rather than a credit. */
+   st.noteBy='From '+(obit.swap&&obit.swap.o||obit.outlet)+'’s obituary'+(w?' and Wikipedia':'');
    if(w&&w.url)st.noteSrc=w.url;
    n++;
   }
