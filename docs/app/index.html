@@ -13783,7 +13783,8 @@ function mzSum(){const o=['','Story opening (last '+MZ.L.length+' taps)'];
 async function diagInfo(){
  const bad=S.feeds.filter(f=>state[f.id]==='err').map(f=>(FLG[f.id]||[]).slice(0,4).join('; ').replace(/\b(?:[a-z0-9-]+\.)+[a-z]{2,}\b/gi,'(site)')).slice(0,8);/* a24: no site names here; they go only with "Include the addresses of my sites" (privacy page) */
  let nat='web';try{const p=CyN();if(p){const i=await p.info();nat='native '+i.versionName+' ('+i.versionCode+')'}}catch(e){}
- return ['CyPress diagnostics','app '+APP_VERSION+' · '+nat+' · '+(/cypress-preview/.test(location.href)?'preview':'production'),'ai '+(AIST||'unchecked')+(AIWHY?' ('+AIWHY.slice(0,120)+')':''),'screen '+innerWidth+'x'+innerHeight+' @'+devicePixelRatio,'ua '+navigator.userAgent.slice(0,140),'theme '+(S.theme||'auto')+' · light/dark '+(S.sch||'theme')+' · cover '+(S.cvs||'clean')+' · view '+(S.view||'tiles')+(S.setall?' · all settings':'')+' · showing '+document.documentElement.dataset.theme+(S.fth&&Object.keys(S.fth).length?' · folder themes '+Object.values(S.fth).join('/'):'')+(isOn('gtop')?' · green bar':''),'feeds '+S.feeds.length+' · failing '+bad.length+' · saved '+S.saved.length,'last refresh '+(S.lastLoad?new Date(S.lastLoad).toISOString():'never'),'online '+navigator.onLine+(S.offline?' · offline mode':''),bad.length?'failing: '+bad.join(' | '):'',FTR.length?'failed requests: '+FTR.slice(-12).map(x=>x[1]).join(' | '):'',CRUMB.length?'recent taps: '+CRUMB.slice(-20).join(' > '):'',ELOG.length?'recent errors:\n'+ELOG.slice(-40).map(x=>new Date(x.t).toISOString().slice(11,19)+' '+x.g.replace(/^feed .*/,'feed')+': '+x.m+(x.w?' @'+x.w:'')).join('\n'):''].filter(Boolean).join('\n')}
+ return ['CyPress diagnostics','app '+APP_VERSION+' · '+nat+' · '+(/cypress-preview/.test(location.href)?'preview':'production'),'ai '+(AIST||'unchecked')+(AIWHY?' ('+AIWHY.slice(0,120)+')':''),
+   'edition '+(function(){try{const d=WE&&WE.d;if(!d)return 'not loaded yet';let n=0,first='';for(const e of d.editions||[])for(const s of e.sections||[])for(const t of s.stories||[])if(t.art){n++;if(!first)first=weArtUrl(t.art.url)}return (d.date||'?')+' rev '+(d.rev||'none')+' · '+n+' drawing'+(n===1?'':'s')+' · reads '+(WEU||'(not settled)')+(first?' · first drawing '+first:'')}catch(e){return 'could not read: '+e.message}})(),'screen '+innerWidth+'x'+innerHeight+' @'+devicePixelRatio,'ua '+navigator.userAgent.slice(0,140),'theme '+(S.theme||'auto')+' · light/dark '+(S.sch||'theme')+' · cover '+(S.cvs||'clean')+' · view '+(S.view||'tiles')+(S.setall?' · all settings':'')+' · showing '+document.documentElement.dataset.theme+(S.fth&&Object.keys(S.fth).length?' · folder themes '+Object.values(S.fth).join('/'):'')+(isOn('gtop')?' · green bar':''),'feeds '+S.feeds.length+' · failing '+bad.length+' · saved '+S.saved.length,'last refresh '+(S.lastLoad?new Date(S.lastLoad).toISOString():'never'),'online '+navigator.onLine+(S.offline?' · offline mode':''),bad.length?'failing: '+bad.join(' | '):'',FTR.length?'failed requests: '+FTR.slice(-12).map(x=>x[1]).join(' | '):'',CRUMB.length?'recent taps: '+CRUMB.slice(-20).join(' > '):'',ELOG.length?'recent errors:\n'+ELOG.slice(-40).map(x=>new Date(x.t).toISOString().slice(11,19)+' '+x.g.replace(/^feed .*/,'feed')+': '+x.m+(x.w?' @'+x.w:'')).join('\n'):''].filter(Boolean).join('\n')}
 $('#diagb').onclick=async()=>{const t=await diagInfo()+mzSum();
  try{await navigator.clipboard.writeText(t);toast('Diagnostics copied')}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.append(ta);ta.select();try{document.execCommand('copy');toast('Diagnostics copied')}catch(_){toast('Couldn’t copy')}ta.remove()}
 };
@@ -15057,8 +15058,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.27e';const APP_LABEL='1.401';
-const CHANGES=["Fixed: drawings made for the edition were looked for in the wrong place and never appeared","Fixed: a drawing on a section's opening page covered the headline"];
+const APP_VERSION='2026.11.27f';const APP_LABEL='1.402';
+const CHANGES=["Fixed: the app kept showing the edition it was installed with and threw away every newer one it downloaded","Diagnostics now name the edition on screen, where it came from, and how many drawings it has"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -16672,7 +16673,15 @@ async function weEdition(){
     looked for at cypressreader.com, where a preview issue's pictures do not exist, and dropped in silence.
     David saw a magazine with no drawings in it twice, on the phone and in a browser. */
  if(built&&!built.weBase)try{built.weBase=new URL('world-edition.json',location.href).href}catch(e){}
- const kept=weKept(),use=(kept&&(!weOk(built)||String(kept.date||'')>String(built.date||'')))?kept:built;
+ /* AND THE SAME ASSUMPTION A FOURTH TIME. The copy saved from the network was preferred over the one bundled
+    in the app only when its date was LATER. They are the same day, so the bundled copy won every launch and
+    the refreshed one - the one with the drawings in it - was thrown away before it could be drawn. That is
+    why David reopened the app over and over and always saw the edition the APK shipped with. Same rule as
+    weRefresh: a later date wins, and on the same date a different `rev` wins. A bundled copy carries no
+    rev, so any issue fetched since install is preferred, which is what a reader wants. */
+ const fresher=(a,b)=>String(a.date||'')>String(b.date||'')
+   ||(String(a.date||'')===String(b.date||'')&&String(a.rev||'')!==String(b.rev||''));
+ const kept=weKept(),use=(kept&&(!weOk(built)||fresher(kept,built)))?kept:built;
  weRefresh(use);return use}
 /* A new issue appears twice a day, so checking on every open is a request the reader pays for and nobody needs.
    Once every three hours is far more often than the edition can change, and the first open after a restart still
