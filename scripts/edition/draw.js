@@ -30,6 +30,7 @@ const fs=require('fs'),path=require('path'),https=require('https'),{ROOT}=requir
 const arg=n=>{const i=process.argv.indexOf(n);return i>0?process.argv[i+1]:null};
 const EDITION=arg('--edition')||path.join(ROOT,'world-edition.json');
 const WRITE=process.argv.includes('--write');
+const REDRAW=process.argv.includes('--redraw');
 const ART=path.resolve(__dirname,'../../docs/app/we-art');
 const ACCOUNT=process.env.CF_ACCOUNT||'cbc8ef24792cbf676d3717119cf1abb6';
 const MODEL='@cf/black-forest-labs/flux-1-schnell';
@@ -147,6 +148,7 @@ const key=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;retu
  for(const e of f.editions||[])for(const s of e.sections||[])for(const st of s.stories||[]){
   if(!ALLOWED.has(s.name))continue;
   if(st.photo&&st.photo.url)continue;/* a real photograph always wins */
+  if(st.art&&st.art.url&&!REDRAW)continue;/* a drawing already passed an eye: do not spend it again */
   jobs.push({e:e.id,section:s.name,st});
  }
  console.log('pages that may carry an illustration and have no photograph: '+jobs.length);
@@ -176,7 +178,11 @@ const key=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;retu
   live.add(name);made++;process.stdout.write('.');
  }
  process.stdout.write('\n');
- /* keep the folder to the editions still on the site: a drawing nothing points at is dead weight every day */
+ /* Keep the folder to what the editions still point AT - which is not the same as what was drawn just now.
+    Pruning by 'drawn this run' deleted the one good drawing the moment a skip was added, because a drawing
+    that was kept rather than redrawn is exactly the one nothing in this run touched. Read the file. */
+ for(const e of f.editions||[])for(const sc of e.sections||[])for(const st of sc.stories||[])
+  if(st.art&&st.art.url)live.add(String(st.art.url).replace(/^.*\//,''));
  for(const old of fs.readdirSync(ART))if(/\.jpg$/.test(old)&&!live.has(old))fs.unlinkSync(path.join(ART,old));
 
  if(made){

@@ -15054,8 +15054,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.27b';const APP_LABEL='1.398';
-const CHANGES=["Some pages of the World Edition now carry a drawing made for the edition, labelled as such. Never on news stories or the obituary page"];
+const APP_VERSION='2026.11.27c';const APP_LABEL='1.399';
+const CHANGES=["Fixed: drawings made for the edition did not appear at all in the test app","Three pages of this edition now carry one"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -16679,10 +16679,15 @@ function weRefresh(have){
   .then(r=>r&&r.ok?r.json():null).then(d=>{
     if(!weOk(d)||(have&&String(d.date||'')<=String(have.date||'')))return;
     if(have)wePastAdd(have);/* the issue it replaces joins the archive rather than vanishing */
+    d.weBase=u;/* WHERE THIS ISSUE CAME FROM, kept with it. Its drawings are published beside it, and the app
+      renders the SAVED copy on a cold open - before it has worked out which site it reads. Without this the
+      address was resolved against the live site, where a preview issue's drawings do not exist, so every one
+      of them 404'd and was silently dropped: David, 27 Nov, 'I didn't see a single one of those'. */
     try{localStorage.setItem('we-ed',JSON.stringify(d))}catch(e){}})
   .catch(()=>{})},2500)}
 /* test-only (device runs): the emulator's software renderer dies on the cover's full-page art. `welite` draws the
    edition with no cover art and no photographs, so a run can tell a paint crash from a code fault. Never set by the app. */
+try{weUrl()}catch(e){}/* settle which site this build reads before anything needs to know */
 try{WE.lite=/^1|true$/.test(localStorage.getItem('welite')||'');if(WE.lite)document.documentElement.classList.add('welite')}catch(e){}
 const WE_HOUSE=[['#e6a08f','#a1402b'],['#8fc7a8','#1f6b4a'],['#8fa9e6','#2d4a9a'],['#e0c27a','#7a5a10'],['#c9a3e0','#6a3a94'],['#7fc6d6','#1a6474']];/* type-day accents by weekday: [night, day] */
 const WE_SHAPES={ring:'<path d="M50 8A42 42 0 1 1 20.3 20.3"/><circle cx="50" cy="8" r="6" fill="currentColor" stroke="none"/>',arc:'<path d="M8 78A42 42 0 0 1 92 78"/>',rise:'<path d="M10 86h22V62h22V38h22V14h14"/>',fall:'<path d="M10 14h22v24h22v24h22v24h14"/>',wave:'<path d="M6 50c15-30 29-30 44 0s29 30 44 0"/>',grid:'<path d="M20 20h60v60H20zM40 20v60M60 20v60M20 40h60M20 60h60"/>',bar:'<path d="M10 50h80"/>',split:'<path d="M46 8a42 42 0 0 0 0 84M54 8a42 42 0 0 1 0 84"/>',cross:'<path d="M22 22 78 78M78 22 22 78"/>',plus:'<path d="M50 14V86M14 50H86"/>',tri:'<path d="M50 14 88 84H12Z"/>',square:'<path d="M20 20H80V80H20Z"/>',diamond:'<path d="M50 10 90 50 50 90 10 50Z"/>',peak:'<path d="M10 82 34 32 58 60 90 16"/>',dip:'<path d="M10 18 34 68 58 40 90 84"/>',ripple:'<path d="M8 78A42 42 0 0 1 92 78M22 78A28 28 0 0 1 78 78M36 78A14 14 0 0 1 64 78"/>',rays:'<path d="M50 50 50 8M50 50 86 29M50 50 86 71M50 50 50 92M50 50 14 71M50 50 14 29"/>',bars:'<path d="M24 88V44M50 88V16M76 88V60"/>',stack:'<path d="M14 30H86M14 50H62M14 70H74"/>',zigzag:'<path d="M8 36 30 64 52 36 74 64 96 36"/>',frame:'<path d="M20 36V20H36M64 20H80V36M80 64V80H64M36 80H20V64"/>',half:'<path d="M14 62A36 36 0 0 1 86 62Z"/>',spiral:'<path d="M50 50a8 8 0 0 1 8 8a16 16 0 0 1-16 16a24 24 0 0 1-24-24a32 32 0 0 1 32-32a40 40 0 0 1 40 40"/>',horizon:'<path d="M8 68H92M28 68A22 22 0 0 1 72 68"/>'};/* the fixed shape library: plain shapes only, never a face, a place, a logo or anything from the event */
@@ -16694,7 +16699,8 @@ const WE_CLEAR=['logo','text','child','body','grief','mugshot'];
    where a magazine has always commissioned a drawing. */
 const WE_ART_OK=new Set(['Explainer','Long read','Review','From the archive','Back page']);
 /* the drawing is published beside the edition file, so its address is read against the edition's own */
-function weArtUrl(u){try{return new URL(String(u||''),WEU||WE_URL).href}catch(e){return ''}}
+let WEB='';/* the base of the issue on screen; set from the issue itself as it is drawn */
+function weArtUrl(u){try{return new URL(String(u||''),WEB||WEU||WE_URL).href}catch(e){return ''}}
 function weArtPass(p,sec){const u=p&&weArtUrl(p.url);return !!(u&&/^https:\/\//.test(u)&&WE_ART_OK.has(sec)&&!WE.lite&&Math.max(+p.w||0,+p.h||0)>=WE_SM)}
 function weEd(d){const E=d.editions;let e=E.find(x=>x.id===S.weEd);if(e)return e;let r='';for(const l of navigator.languages||[navigator.language]){try{r=new Intl.Locale(l).region||''}catch(_){}if(r)break}return E.find(x=>(x.regions||[]).includes(r))||E.find(x=>x.fallback)||E[0]}
 /* the photo checklist: everything the app can check is checked here; what only a person or the pipeline can see (a logo, baked-in text, a child, a body, grief in close-up, a mugshot) must each be marked clear in the file, and a missing mark fails */
@@ -17089,6 +17095,7 @@ function weFit(){const cv=document.querySelector('.we-cv'),h=cv&&cv.querySelecto
  for(const z of Z){h.style.fontSize=z+'cqw';if(!over())return}
  cv.classList.add('we-ns');if(over())cv.classList.add('we-tall')}
 function renderWE(){
+ WEB=(WE.d&&WE.d.weBase)||WEU||WE_URL;
  const g=$('#grid');$('#ttl').textContent='The World Edition';['#mr','#ref','#vw'].forEach(q=>{const b=$(q);if(b)b.hidden=true});
  if(!WE.d){cur=[];
   if(WE.st==='fail'){g.innerHTML=emp('The World Edition could not be opened','Check your connection, then try again.','<div class="eact"><button type="button" class="go" data-wer>Try again</button></div>');return}
