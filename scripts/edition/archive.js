@@ -28,6 +28,17 @@
  *
  * Asked at BUILD TIME, here, never by a phone.
  *
+ * WHAT STILL BLOCKS THIS, 27 Nov 2026, found by running it:
+ *   - Openverse without a key allows about a hundred requests a day from one address, and a single run of
+ *     this over one edition spends them. It then refuses for the rest of the day. A free API key raises
+ *     that, and registering one needs an email address to verify, which is David's decision to make.
+ *   - upload.wikimedia.org, where most Openverse results actually live, returns 429 to this data centre
+ *     exactly as the catalogue does. A phone would fetch those files normally, but the pipeline cannot:
+ *     it cannot measure a picture it cannot load, and nobody can clear a picture nobody can look at. So a
+ *     Wikimedia-hosted result is unusable here however good it is. The museum sources (the Met, NASA,
+ *     Europeana, the Science Museum, the Wellcome Collection) serve from their own addresses and may well
+ *     be reachable - untested, because the day's Openverse requests were gone before that test ran.
+ *
  *   node scripts/edition/archive.js --edition docs/app/world-edition.json   # what it would find, nothing written
  */
 const fs=require('fs'),https=require('https');
@@ -59,15 +70,14 @@ function candidates(title,text){
   else{if(cur.length)runs.push(cur);cur=[]}
  }
  if(cur.length)runs.push(cur);
+ /* ONLY WHOLE RUNS. The first version also offered every pair inside a run, and that is how "The Bombmaker
+    Next Door" came to be searched for as "Next Door" - a real Wikipedia article, about an Almodovar film, whose
+    premiere photograph was then offered as the picture for a story about a bombmaker. A fragment cut out of a
+    phrase is not that phrase's subject. A headline whose run names nothing real gets no picture, which is the
+    safe direction to be wrong in. */
  const out=new Set();
- for(const r of runs){
-  /* the whole run, then its leading pairs: "Hundred Years Ago Nikola Tesla Predicted" also offers "Nikola Tesla" */
-  for(let len=r.length;len>=2;len--)for(let i=0;i+len<=r.length;i++){
-   const p=r.slice(i,i+len).join(' ');
-   if(body.includes(p))out.add(p);
-  }
- }
- return [...out].sort((a,b)=>b.length-a.length).slice(0,6);
+ for(const r of runs){const p=r.join(' ');if(r.length>=2&&body.includes(p))out.add(p)}
+ return [...out].sort((a,b)=>b.length-a.length).slice(0,4);
 }
 
 /* Which of these phrases name a real thing. Asked of Wikipedia 40 at a time, so the whole edition costs a
@@ -107,8 +117,11 @@ function keep(r,subject,big){
  const ratio=Math.max(w,h)/Math.max(1,Math.min(w,h));
  if(ratio>2.4)return false;
  if(/\.svg($|\?)/i.test(r.url))return false;
- /* the file's own title must name the whole subject - this is the rule that keeps a tangential picture out */
- return String(r.title||'').toLowerCase().includes(subject.toLowerCase());
+ /* THE FILE MUST BE OF THE SUBJECT, not merely mention it. Containing the words is far too weak: it let
+    "Soused herring, served with potato salad and cucumber" stand in for a potato salad recipe and "Carolina
+    Bianchi at Venice Biennale Danza 2025" stand in for next year's Biennale curator. An archive names a file
+    after what it shows, so what it shows is what the title STARTS with. */
+ return String(r.title||'').toLowerCase().replace(/^(the|a|an)\s+/,'').startsWith(subject.toLowerCase());
 }
 
 /* The caption says what the picture is OF, then who made it and under what. A reader can then see at a glance
