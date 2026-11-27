@@ -43,8 +43,19 @@ const ALLOWED=new Set(['Explainer','Long read','Review','From the archive','Back
    What this half of the prompt is for is composition: one object, centred, flat, no text, nobody in it. */
 const STYLE='Two-colour screen print, flat vector editorial illustration in the style of a 1960s printed '
  +'newspaper cartoon. Solid flat fills, hard edges, bold poster shapes, no photographic rendering, no 3D, '
- +'no gradients, no soft shadows. One single object, centred, large, with generous empty space around it. '
- +'No text, no letters, no numbers, no logos, no people, no faces, no hands, no crowds, no watermark.';
+ +'no gradients, no soft shadows. ONE single object, centred, drawn very large so that it FILLS the frame '
+ +'edge to edge and is cropped by the edges. Close up. No small object floating in empty space. '
+ +'An empty scene or a still life with NO living thing in it whatsoever. Absolutely no people, no human '
+ +'figures, no faces, no hands, no crowds, no animals, no text, no letters, no numbers, no logos, no watermark.';
+/* "no people, no faces" alone does not hold. Asked for a Thanksgiving dinner on 27 Nov it drew a woman,
+   face and all, for a story about a real named person - the breach this whole rule exists to prevent.
+   Naming the KIND of picture wanted (an empty scene, a still life with nothing living in it) holds far
+   better than forbidding a thing, but it is still the model's choice, so every drawing is looked at by eye
+   before it prints. An automatic check needs a vision model, and the one on this account needs Meta's
+   licence accepted, which is David's to accept and not mine. */
+/* "generous empty space" was in here until 27 Nov and it did exactly what it says: a pumpkin the size of a
+   postage stamp in the bottom third of an empty square, which a landscape crop would have cut in half. The
+   page wants a picture, not a sticker. */
 
 /* What the picture is OF. An illustration says something about the piece, so the idea is the one thing a
    machine should not improvise: `idea` in the edition file is used when an editor (or the editorial pass) has
@@ -84,6 +95,14 @@ async function draw(prompt){
  const b64=r.json.result&&(r.json.result.image||r.json.result.images&&r.json.result.images[0]);
  return b64?{png:Buffer.from(b64,'base64')}:{err:'the service answered without a picture'};
 }
+/* The safety filter refuses about one prompt in five, and it is not reading the subject: the same story
+   drew fine in the other edition on the same run. It is a coin toss, so it is tossed twice. */
+async function drawTwice(prompt){
+ const a=await draw(prompt);
+ if(!a.err)return a;
+ await new Promise(r=>setTimeout(r,1500));
+ return await draw(prompt);
+}
 
 /* THE HOUSE PALETTE, IMPOSED. The model will not hold a palette on instruction, so every pixel is mapped to
    one of the edition's three colours by brightness: light becomes the paper, dark becomes the ink, and a
@@ -106,7 +125,13 @@ async function housePalette(tab,bytes){
     a[i]=t[0];a[i+1]=t[1];a[i+2]=t[2];a[i+3]=255;
    }
    x.putImageData(g,0,0);
-   res({u:c.toDataURL('image/jpeg',.88),w:c.width,h:c.height});
+   /* out as a landscape plate. The square's outer margin is where the model leaves its strays - a page
+      number, a signature, a stray glyph - and the page prints a band anyway, so the centre is taken and
+      the margin goes with it. */
+   const W=Math.round(c.width*.92),H=Math.round(W*3/5),ox=Math.round((c.width-W)/2),oy=Math.round((c.height-H)/2);
+   const o=document.createElement('canvas');o.width=W;o.height=H;
+   o.getContext('2d').drawImage(c,ox,oy,W,H,0,0,W,H);
+   res({u:o.toDataURL('image/jpeg',.88),w:W,h:H});
   };
   im.onerror=()=>res(null);
   im.src='data:'+m+';base64,'+d;
@@ -141,7 +166,7 @@ const key=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;retu
  const live=new Set();
  for(const j of jobs){
   const prompt=STYLE+' '+ideaFrom(j.st);
-  const r=await draw(prompt);
+  const r=await drawTwice(prompt);
   if(r.err){failed++;why=why||r.err;process.stdout.write('x');continue}
   const jp=await housePalette(tab,r.png);
   if(!jp){failed++;process.stdout.write('x');continue}
