@@ -16,7 +16,9 @@
  *                                         "7": {"ok": false, "why": "a crying relative at a graveside"} }
  *      `ok` means all six marks pass. Anything uncertain is `ok: false` with a reason - the bias is written
  *      into photos.js and it is not symmetric: a bare page is the correct outcome when in doubt.
- *   4. This writes the cleared ones into the edition and says what it did.
+ *   4. This writes the cleared ones into the edition and says what it did. A candidate marked `inline` by
+ *      photos.js joins the story's `inline` list (the pictures inside a long read) instead of becoming its
+ *      opener; the whole list is rewritten each run, so clearing the same picture twice cannot double it.
  *
  * IT REPORTS BY DEFAULT AND WRITES ONLY WITH --write. The first rounds are meant to be read by a person before
  * anything is written, which is how the drawings were introduced.
@@ -60,6 +62,9 @@ for (const e of (d.editions || [d])) for (const s of (e.sections || [])) for (co
 }
 
 let cleared = 0, refused = 0, skipped = 0;
+/* the pictures inside a story are collected first and written as one list, so a second run replaces that
+   list rather than adding the same picture to it again */
+const inside = new Map();
 for (const [no, c] of cands) {
   const v = vs[no] || vs[String(no)];
   const name = '#' + no + ' ' + String(c.title || '').slice(0, 44);
@@ -70,10 +75,17 @@ for (const [no, c] of cands) {
   if (!sts || !sts.length) { skipped++; console.log('  ??  ' + name + ': its story is not in the edition any more'); continue }
   const photo = { url: c.url, credit: String(c.credit).trim(), w: +c.w, h: +c.h, clear: MARKS.slice(), by: BY };
   if (v.people === false) photo.people = false;
-  sts.forEach(st => { st.photo = photo });
+  if (c.kind === 'inline') {
+    photo.after = +c.after || 0;
+    if (!inside.has(c.link)) inside.set(c.link, []);
+    inside.get(c.link).push(photo);
+  } else sts.forEach(st => { st.photo = photo });
   cleared++;
-  console.log('  ok  ' + name + (v.people === false ? '  (nobody identifiable)' : ''));
+  console.log('  ok  ' + name + (c.kind === 'inline' ? '  (inside the story, after paragraph ' + photo.after + ')' : '')
+    + (v.people === false ? '  (nobody identifiable)' : ''));
 }
+
+for (const [link, list] of inside) (byLink.get(link) || []).forEach(st => { st.inline = list });
 
 console.log('\n' + cleared + ' cleared, ' + refused + ' not cleared' + (skipped ? ', ' + skipped + ' whose story has gone' : ''));
 if (!WRITE) { console.log('nothing written (pass --write)'); process.exit(0) }

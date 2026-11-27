@@ -127,16 +127,16 @@ if(cand)for(const s of cand.sections||[])for(const st of s.stories||[]){
    }
    /* best first, and the size rule still decides what may open a section */
    out.sort((a,b)=>b.score-a.score);
-   return out[0]||null;
+   return out;/* the winner opens the story; the rest are what a long read can carry inside it */
   },ps);
 
-  s.best=await measure(list);
+  s.all=await measure(list);s.best=s.all[0]||null;
   /* nothing printable of its own, or nothing big enough to open a section: ask the others who were there */
   if((!s.best||!s.best.cover)&&s.sibs.length){
    for(const sb of s.sibs.slice(0,2)){
     const got2=await fromSibling(sb.l);asked++;
     if(!got2.length)continue;
-    const b=await measure(got2.map(p=>({...p,outlet:sb.o})));
+    const b=(await measure(got2.map(p=>({...p,outlet:sb.o}))))[0];
     if(b&&(!s.best||b.long>s.best.long)){s.best={...b,outlet:sb.o,sib:sb.o};}
     if(s.best&&s.best.cover)break;
    }
@@ -150,6 +150,34 @@ if(cand)for(const s of cand.sections||[])for(const st of s.stories||[]){
   +have.filter(s=>s.best.sib).length+' of them from another outlet that covered the story, '+asked+' sibling pages opened)');
  for(const s of have)console.log('  '+String(s.best.w+'x'+s.best.h).padStart(10)+(s.best.cover?' COVER':'      ')+'  '+s.section.padEnd(17)+s.title.slice(0,48));
 
+ /* THE PICTURES INSIDE A LONG READ. The opener takes the best picture; a long read may also carry two or
+    three from the body, where the publisher had them. The rules are mechanical, and they exist because the
+    raw list is mostly furniture - one story offered twelve pictures all sitting after paragraph 23, which is
+    a related-articles strip, not the article:
+      - the section must be one that may carry them (the app holds the same list as WE_INL_OK);
+      - the publisher must have written a caption under it - that caption becomes the credit the app requires,
+        and a picture nobody captioned is usually furniture;
+      - never a share card, never the one already opening the story;
+      - `after` (how many paragraphs stood before it) must be a real position in the body;
+      - THREE OR MORE SHARING ONE POSITION IS A STRIP, and the whole cluster goes;
+      - at most three, and never two within two paragraphs of each other, so they are spread through the read.
+    They are still only CANDIDATES: like every picture, each one needs its six marks before it can print. */
+ const INL_OK=new Set(['Long read']);
+ for(const s of have){
+  if(!INL_OK.has(s.section))continue;
+  const by={};(s.all||[]).forEach(p=>{if(p.after>0)by[p.after]=(by[p.after]||0)+1});
+  const body=(s.all||[]).filter(p=>p!==s.best&&p.cap&&!p.card&&p.after>0&&by[p.after]<3)
+    .sort((a,b)=>a.after-b.after);
+  const keep=[];for(const p of body){if(keep.length>=3)break;if(keep.length&&p.after-keep[keep.length-1].after<2)continue;keep.push(p)}
+  s.inl=keep;
+ }
+ const inls=have.flatMap(s=>(s.inl||[]).map(p=>({s,p})));
+ if(inls.length)console.log(inls.length+' picture'+(inls.length===1?'':'s')+' offered from inside long reads');
+
+ /* one numbered list for the sheet and for photos.json, so a verdict about number 7 means number 7 in both */
+ const cards=[...have.map(s=>({s,p:s.best,kind:'opener'})),...inls.map(x=>({s:x.s,p:x.p,kind:'inline'}))]
+   .map((c,i)=>({...c,no:i+1}));
+
  /* The contact sheet: every candidate at a size a person can judge, numbered, with what the publisher wrote
     under it. One picture to look at instead of forty files to open. */
  const sheet=`<!doctype html><meta charset="utf-8"><style>
@@ -159,12 +187,12 @@ if(cand)for(const s of cand.sections||[])for(const st of s.stories||[]){
   img{width:100%;height:190px;object-fit:cover;display:block;background:#e6e2d8}
   figcaption{padding:7px 9px;display:flex;flex-direction:column;gap:3px}
   b{font-size:15px}.s{color:#6b6559;font-size:11px}.c{font-size:11px;color:#3d4954}
- </style><div class="g">${have.map((s,i)=>`<figure>
-   <img src="${s.best.src}" referrerpolicy="no-referrer">
-   <figcaption><b>${i+1}. ${s.section}</b>
-    <span class="s">${s.best.sib?s.best.sib+' (for '+s.outlet+')':s.outlet} &middot; ${s.best.w}&times;${s.best.h}${s.best.cover?' &middot; cover size':''}</span>
+ </style><div class="g">${cards.map(({s,p,kind,no})=>`<figure>
+   <img src="${p.src}" referrerpolicy="no-referrer">
+   <figcaption><b>${no}. ${s.section}${kind==='inline'?' &middot; inside the story':''}</b>
+    <span class="s">${p.sib?p.sib+' (for '+s.outlet+')':s.outlet} &middot; ${p.w}&times;${p.h}${p.cover?' &middot; cover size':''}${kind==='inline'?' &middot; after paragraph '+p.after:''}</span>
     <span class="c">${(s.title||'').replace(/[<&]/g,'')}</span>
-    <span class="s">${((s.best.cap||s.best.alt||'no caption')).replace(/[<&]/g,'').slice(0,120)}</span>
+    <span class="s">${((p.cap||p.alt||'no caption')).replace(/[<&]/g,'').slice(0,120)}</span>
    </figcaption></figure>`).join('')}</div>`;
  fs.writeFileSync(path.join(OUT,'contact.html'),sheet);
  const sheetTab=tab;
@@ -174,9 +202,9 @@ if(cand)for(const s of cand.sections||[])for(const st of s.stories||[]){
  await sheetTab.screenshot({path:path.join(OUT,'contact.png'),fullPage:true});
 
  fs.writeFileSync(path.join(OUT,'photos.json'),JSON.stringify({made:new Date().toISOString(),
-   photos:have.map((s,i)=>({no:i+1,link:s.link,title:s.title,outlet:s.outlet,section:s.section,
-     url:s.best.src,w:s.best.w,h:s.best.h,cover:!!s.best.cover,from:s.best.sib||s.outlet,
-     credit:(s.best.cap||'').trim()||(s.best.alt||'').trim()||s.best.sib||s.outlet}))},null,1));
+   photos:cards.map(({s,p,kind,no})=>({no,kind,link:s.link,title:s.title,outlet:s.outlet,section:s.section,
+     url:p.src,w:p.w,h:p.h,cover:!!p.cover,from:p.sib||s.outlet,...(kind==='inline'?{after:p.after}:{}),
+     credit:(p.cap||'').trim()||(p.alt||'').trim()||p.sib||s.outlet}))},null,1));
  console.log('\nwritten: '+path.join(OUT,'photos.json')+' and '+path.join(OUT,'contact.png'));
  console.log('NOTHING IS CLEARED YET. Look at the sheet, then mark each one.');
  await app.close();
