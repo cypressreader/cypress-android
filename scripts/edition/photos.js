@@ -106,7 +106,14 @@ if(cand)for(const s of cand.sections||[])for(const st of s.stories||[]){
   /* measured in the page: the app's own junk-address rule first, then the picture is actually loaded, because
      a publisher's markup lies about size more often than not */
   const seen=new Set();
-  const list=s.pics.filter(p=>{const k=p.src.split(/[?#]/)[0];if(seen.has(k))return false;seen.add(k);return true}).slice(0,12);
+  /* FURNITURE WAS CROWDING OUT THE PHOTOGRAPH (review of 2026-11-27). Only twelve pictures a story are
+     measured, taken in page order - and of 112 candidates in one run 12 were social-media icons, 28 were one
+     site's thumbnails and most of the rest were related-story tiles, so on a busy page the real photograph
+     could be thirteenth and never looked at. Icons go before the count; then the declared lead photograph,
+     then anything the publisher captioned, then the rest. */
+  const FURN=/\.svg(\?|$)|\/(icons?|social-icons?|sprites?|emoji|featured-programs?)\//i;
+  const list=s.pics.filter(p=>{if(FURN.test(p.src))return false;const k=p.src.split(/[?#]/)[0];if(seen.has(k))return false;seen.add(k);return true})
+   .map((p,i)=>({p,i})).sort((x,y)=>((x.p.og?0:x.p.cap?1:2)-(y.p.og?0:y.p.cap?1:2))||x.i-y.i).map(x=>x.p).slice(0,12);
   const measure=async ps=>page.evaluate(async ps2=>{
    const out=[];
    for(const p of ps2){
@@ -125,7 +132,7 @@ if(cand)for(const s of cand.sections||[])for(const st of s.stories||[]){
        - a page's own figure, with the caption the publisher wrote under it, beats a bare image with none;
        - a section opener is a wide page, so a landscape picture opens it and a portrait fights it;
        - and the file still has to be big enough to print across that page. */
-    const card=/\b(og|social|share|card|twitter|meta|preview|thumb)\b|[?&](w|width)=(\d{2,3})\b/i.test(p.src)&&!p.cap;
+    const card=/\b(og|social|share|card|twitter|meta|preview|thumb)\b|[?&](w|width)=(\d{2,3})\b/i.test(p.src)&&!p.cap&&!p.og;
     let score=Math.min(long,4000)/1000;          /* size, but with a ceiling: 4,000px is not twice as good as 2,000 */
     if(p.cap)score+=1.2;                          /* the publisher wrote a caption under it: it is a picture of the story */
     if(!p.fromFeed&&!p.og)score+=.3;              /* the article's own figure rather than the feed's thumbnail */

@@ -53,7 +53,7 @@ const OUT=arg('--json'),HOURS=Number(arg('--hours')||36);
    before any desk sees them, because none of them belongs in any section. Kept narrow on purpose: every
    pattern here is a shape of PUBLISHING, not a subject, so it cannot silently drop a real story about sales,
    gifts or newsletters. */
-const NOT_A_STORY=/^(how|what|where|when|who)\s+(was|were|is|are|did|do)\s+your\b|^(open thread|weekend (reading|links|open))|\b\d{1,2}%\s*off\b|\b(discount|promo|coupon)\s*codes?\b|\bbest deals\b|\bdeals? of the (day|week)\b|\b(gift|shopping)\s+guide\b|\bwhat (we|i)( a|'?)re (reading|buying|loving|watching this week)\b|\blinks? (we|i) love\b|\bgiveaway\b|\bhoroscopes?\b|\bsubscribe to our\b|\bthis week'?s newsletter\b|\bearnings call transcript\b|\b(q[1-4]|full[- ]year) \d{4} (results|earnings) call\b/i;
+const NOT_A_STORY=/^(how|what|where|when|who)\s+(was|were|is|are|did|do)\s+your\b|^(open thread|weekend (reading|links|open))|\b\d{1,2}%\s*off\b|\b(discount|promo|coupon)\s*codes?\b|\bbest deals\b|\bdeals? of the (day|week)\b|\b(gift|shopping)\s+guide\b|\bwhat (we|i)( a|'?)re (reading|buying|loving|watching this week)\b|\blinks? (we|i) love\b|\bgiveaway\b|\bhoroscopes?\b|\bsubscribe to our\b|\bthis week'?s newsletter\b|^(the\s+)?\d{1,3}\s+(best|top|greatest|worst|must-see|must-read|essential)\b|\b(best|top)\s+\d{1,3}\b|\bthings to (buy|watch|stream|do) (this|over)\b|\b(what|where) to (watch|stream|buy)\b|\bto watch over the\b|\b(black friday|cyber monday|prime day)\b|\btested by\b|\bas it happened\b|\blive (updates?|blog|coverage)\b|[–—-]\s*live\s*$|\bearnings call transcript\b|\b(q[1-4]|full[- ]year) \d{4} (results|earnings) call\b/i;
 /* PUZZLES, WHICH OUTGREW ONE PATTERN (David, 2026-11-27, finding one on page 7: "I said no puzzles. I also
    mean no stories with puzzle hints. No one wants to read that."). Three facts fight each other here:
    these outlets publish one EVERY DAY, so anything that leaks leaks daily; some puzzle names - connections,
@@ -341,8 +341,23 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
     as "FCC says SpaceX can deploy..." on AP and "SpaceX gets FCC approval..." on Engadget - two groups, one
     event. So a candidate is grouped WITH the stories already accepted, by the app's own group(), and if it
     vanishes into one of them it is a repeat. One detector, never two of them to keep in step. */
- const isRepeat=(accepted,cand)=>accepted.length?page.evaluate(([a,c])=>group([...a,c]).length===group(a).length,
-   [accepted,{title:cand.title,link:cand.link,feedId:cand.feedId}]):Promise.resolve(false);
+ /* ...AND STILL THE SAME EVENT LED TWO SECTIONS (review of 2026-11-27): "Hackers reportedly breach US Air
+    Force's flagship cloud computing platform" opened Home and "Hackers reportedly infiltrated the Air Force's
+    cloud systems" opened Tech. The app's group() is built to be careful - it merges headlines that are nearly
+    the same sentence - and these are the same event told in different words. So there is a second, blunter
+    question asked first, across the WHOLE edition: do the two headlines share most of what they are about?
+    Three words of substance in common, and at least half of the shorter headline's, is one event. Two stories
+    about the same PERSON share one or two words and pass ("Trump urges Putin..." / "Trump calls GDP figures
+    fake"); two tellings of one event share nearly all of them. */
+ const EVW=new Set('that this with from have will were been says said after over into about their they them what when where which while would could should than then there these those more most some only just also amid first last year years week weeks today news report reports reportedly according being because before under again still every other'.split(' '));
+ const evWords=t=>new Set(String(t||'').toLowerCase().replace(/[‘’']s\b/g,'').replace(/[^a-z0-9\s-]/g,' ').split(/[\s-]+/)
+  .filter(w=>w.length>=4&&!EVW.has(w)).map(w=>w.replace(/(ies)$/,'y').replace(/(ed|s)$/,'')));
+ const sameEvent=(a,b)=>{const A=evWords(a),B=evWords(b);let n=0;for(const w of A)if(B.has(w))n++;
+  return n>=3&&n>=Math.min(A.size,B.size)*.5};
+ const isRepeat=(accepted,cand)=>{
+  if(accepted.some(x=>sameEvent(x.title,cand.title)))return Promise.resolve(true);
+  return accepted.length?page.evaluate(([a,c])=>group([...a,c]).length===group(a).length,
+   [accepted,{title:cand.title,link:cand.link,feedId:cand.feedId}]):Promise.resolve(false)};
 
  /* a tab of its own for looking up relayed links: navigating the app's page away would take the app with it */
  const tab=await app.ctx.newPage();

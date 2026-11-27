@@ -64,6 +64,7 @@ function build(src){
       story was read instead, so that is the one printed - its masthead, its headline, its address */
    const sw=r.swap&&r.swap.l?r.swap:null;
    const o={t:(sw&&sw.t)||st.t,o:(sw&&sw.o)||st.o,l:(sw&&sw.l)||st.l};
+   o.t=tidyHead(o.t,o.o);
    const ph=pics.get(st.l);
    if(ph)o.photo={url:ph.url,credit:ph.credit,w:ph.w,h:ph.h,people:ph.people!==false,
      clear:ph.clear,by:'Claude, looked at each one'};
@@ -83,7 +84,7 @@ function build(src){
         .replace(/\s*[:\u2013\u2014-]\s*$/,'').trim();
      if(d===was)break;
     }
-    if(d)o.dek=d.slice(0,170);
+    if(d&&dekFits(o.t,d,r&&r.text))o.dek=d.slice(0,170);
    }
    /* `kind` is left out rather than guessed */
    stories.push(o);kept.push({...st,section:s.name,words:r.words});
@@ -134,13 +135,48 @@ function coverOf(sections){
  return{lead:top.lead,story:top.st};
 }
 
+/* The words a headline is ABOUT: lower case, four letters or more, plurals folded, and none of the words every
+   headline uses. Shared by the summary test below. */
+const STOPW=new Set('that this with from have will were been says said after over into about their they them what when where which while would could should than then there these those more most some only just also amid amid first last year years week weeks today news report reports reportedly according being because before under again still every other'.split(' '));
+const about=t=>new Set(String(t||'').toLowerCase().replace(/[‘’']s\b/g,'').replace(/[^a-z0-9\s-]/g,' ').split(/[\s-]+/)
+ .filter(w=>w.length>=4&&!STOPW.has(w)).map(w=>w.replace(/(ies)$/,'y').replace(/s$/,'')));
+/* A SUMMARY MUST BE ABOUT ITS HEADLINE (review of 2026-11-27). The Obituary opener for Anita DeFrantz printed
+   "Jerry Jones says he still believes Brian Schottenheimer is the right coach for the Dallas Cowboys" under
+   her name: the outlet's feed had attached another story's summary, and nothing asked. A summary now has to
+   share at least one word of substance with the headline it sits under. A good summary that happens to share
+   none is lost with the bad ones, which costs a line of type; the alternative cost an obituary. */
+/* ...or with the opening of the article it belongs to, because a good summary often PARAPHRASES its headline
+   and repeats none of it: "The group's co-founding guitarist says doctors gave him a 40% chance of survival"
+   shares no word with "The Killers' Dave Keuning Reveals He Suffered 'Major Stroke'", and the headline-only
+   test threw it away. Two shared words with the first 200 words of the story it was read from is the same
+   proof by another route - and the Cowboys line shares none with an obituary. */
+const dekFits=(head,dek,text)=>{const d=about(dek),h=about(head);for(const w of d)if(h.has(w))return true;
+ const t=about(String(text||'').split(/\s+/).slice(0,200).join(' '));let n=0;for(const w of d)if(t.has(w))n++;return n>=2};
+/* FURNITURE OFF A HEADLINE, AND NOTHING ELSE. The method page promises the publisher's own words, so nothing
+   here rewrites one. Three things are not words: a label hung on the end ("... on Earth, space? - explainer"),
+   the outlet's own name hung on the end, and a first letter the feed left in lower case. */
+const tidyHead=(t,outlet)=>{let x=String(t||'').replace(/\s+/g,' ').trim();
+ x=x.replace(/\s+[-–—|]\s+(explainer|analysis|opinion|review|video|watch|live|update[sd]?|exclusive|podcast)\s*$/i,'');
+ if(outlet){const o=String(outlet).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');x=x.replace(new RegExp('\\s+[-\\u2013\\u2014|]\\s+'+o+'\\s*$','i'),'')}
+ return x.replace(/^([a-z])/,c=>c.toUpperCase())};
+
 const srcEds=(cand.editions&&cand.editions.length)?cand.editions
  :[{id:'us',name:'US Edition',regions:['US'],fallback:true,sections:cand.sections||[]}];
 const built=srcEds.map(e=>{
  const sections=build(e.sections||[]);
  const{lead,story,followedPicture}=coverOf(sections);
  return{...e,sections,lead,leadStory:story,followedPicture,count:sections.reduce((n,s)=>n+s.stories.length,0)};
-}).filter(e=>e.count);
+});
+/* EVERY EDITION IS HELD TO THE MINIMUM, not only the first (review of 2026-11-27). The stop below looked at
+   built[0] alone, so a one-story International edition would have been published beside a full US one - and
+   had the US edition come out empty, International would have slid into its place and been treated as it.
+   An edition under the bar is left out; the fallback edition being under the bar stops the whole build. */
+const MINED=Number(arg('--min')||10);
+const thin=built.filter(e=>e.count<MINED);
+for(const e of thin)console.log('left out: '+e.name+' has only '+e.count+' stories');
+const fb=built.find(e=>e.fallback)||built[0];
+built.splice(0,built.length,...built.filter(e=>e.count>=MINED||e===fb));
+if(fb&&built[0]!==fb){built.splice(built.indexOf(fb),1);built.unshift(fb)}
 const total=built[0]?built[0].count:0;
 const sections=built[0]?built[0].sections:[];
 const lead=built[0]?built[0].lead:[0,0];
@@ -158,7 +194,7 @@ const shape=e=>({
 });
 
 const file={
- format:1,date:DATE,issue,sampled:cand.sampled||0,
+ format:1,date:DATE,issue,rev:new Date().toISOString(),sampled:cand.sampled||0,
  method:[
   'This edition was built by counting. The feeds of '+(cand.sampled||0)+' outlets were read, headlines about the same event were grouped, and a story is big when separate outlets report it. The cover story is the one reported by the most outlets. Nobody hand-picks it.',
   'Every edition has the same ten sections in the same order, each with a fixed number of places: Home 4, World 4, Business 2, Science & Health 2, Tech 1, Culture 1, Sport 1, Food 1, one long read, and one story to finish on. A section may run short but never borrows, and no section prints two stories from the same outlet.',
