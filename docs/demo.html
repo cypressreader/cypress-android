@@ -17475,6 +17475,15 @@ async function wePreload(){if(WE.on||S.sel!=='we')return;WE.on=true;
     A phone's network drops requests the way a desk's does not, so a story that fails is tried again:
     three goes before the edition says a publisher sent nothing. */
  WE.try=WE.try||{};WE.lg=WE.lg||[];
+ /* A NEW PASS IS A NEW CHANCE. A story that could not be prepared leaves the edition (weSettle), and until
+    now it was gone for the rest of the session: WE.try had already reached its three goes, so no later pass
+    ever tried it again. The worst moment for that is the minute after an install, when the cache is empty
+    and all eighteen stories are fetched in one burst - David, 2026-11-27: 'I got a new edition but it's much
+    smaller in terms of story count'. A pass only happens when the reader refreshes or re-opens the magazine,
+    which is a deliberate act and exactly when they want the issue whole, so every pass starts the dropped
+    ones from zero. If they fail again they are simply dropped again. */
+ const had=WE.gone&&WE.gone.size?[...WE.gone]:null;
+ if(had){had.forEach(l=>{delete WE.try[l]});WE.gone=new Set()}
  const one=async a=>{WE.try[a.link]=(WE.try[a.link]||0)+1;const t0=Date.now(),k=WE.try[a.link];
   const say=w=>{WE.lg.push({t:a.title.slice(0,40),go:k,ms:Date.now()-t0,w:String(w).slice(0,140)});if(WE.lg.length>60)WE.lg.shift()};
   try{const n=await getFull(a.link,false);weAuthor(a,n);
@@ -17490,7 +17499,10 @@ async function wePreload(){if(WE.on||S.sel!=='we')return;WE.on=true;
     if(!b.length)break;weSay();await Promise.all(b)}
    if(left()&&round<2)await new Promise(r=>setTimeout(r,2500));
   }
- }finally{WE.on=false;weSay();weSettle()}}
+ }finally{WE.on=false;weSay();weSettle();
+  /* a story that came back has to be put back on the page: render() settles by its own signature, so this
+     does nothing when the same ones failed again, and never while the reader is inside a story */
+  if(had&&WE.sp==null)render()}}
 function weExit(){WE.sp=null;WE.pg=0;WE.sig='';S.sel=(typeof LASTHOME!=='undefined'&&LASTHOME)||'all';save();render();if(WE.refq){WE.refq=0;setTimeout(()=>{const b=$('#ref');if(b&&S.sel!=='we')b.click()},1500)}}
 function weClick(e){const t=e.target;if(!t.closest||!t.closest('.we,[data-wer]'))return false;
  if(t.closest('[data-wex]')){weExit();return true}
