@@ -6079,7 +6079,12 @@ async function fetchText1(url,ok,lg,sl){
  /* Tries the best route first and only starts the next one if it is slow or fails,
     so a launch doesn't fire seven requests per feed. The Android app goes straight to the site. */
  const P=[],add=(n,f,j,h)=>{f.n=n;f.j=j;f.h=h;P.push(f)};
- if(NATIVE)add('direct',u=>u,0,1);
+ /* `CYDIRECT` is set only by the edition pipeline's own browser (scripts/edition/app.js), which runs with the
+    browser's cross-origin rule switched off. Without it the pipeline is the WEB build, which has no direct
+    route at all, so every story went out through a public relay - and on 27 Nov one of those relays rate-limited
+    us and an entire edition failed to read a single story. Nothing on the real web sets it, and if something did
+    the browser would refuse the fetch anyway; the Android app's promise to go straight to the site is unchanged. */
+ if(NATIVE||window.CYDIRECT)add('direct',u=>u,0,1);
  if(S.relay)add('your relay',u=>S.relay+encodeURIComponent(u));
  if(WEBW){add('CyPress fetcher',u=>WEBW+encodeURIComponent(u));P[P.length-1].w=1}
  /* public relays are for the web version only: the Android app goes straight to the site (privacy page promise) */

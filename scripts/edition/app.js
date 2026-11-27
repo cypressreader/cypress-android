@@ -32,10 +32,16 @@ async function useFixtures(ctx,dir){
 
 async function openApp({fixtures,viewport,wake=true}={}){
  const srv=await serve(),url='http://127.0.0.1:'+srv.address().port+'/index.html';
- const browser=await chromium.launch();
+ /* The pipeline fetches stories the way the ANDROID app does: straight from the publisher, falling back to a
+    relay only when one refuses. The web build has no direct route, because a browser forbids the cross-origin
+    fetch - so this browser runs with that rule off and tells the app so (CYDIRECT below). Until 27 Nov every
+    story in a run went out through a PUBLIC relay instead, and when one rate-limited us an entire edition read
+    nothing and published nothing. A runner reaches most publishers directly; the relays are for the rest. */
+ const browser=await chromium.launch({args:['--disable-web-security','--disable-features=IsolateOrigins,site-per-process']});
  const ctx=await browser.newContext({viewport:viewport||{width:412,height:915}});
  if(fixtures)await useFixtures(ctx,fixtures);
  const page=await ctx.newPage();
+ await page.addInitScript(()=>{window.CYDIRECT=1});
  await page.goto(url,{waitUntil:'domcontentloaded'});
  await page.waitForTimeout(1500);
  /* the app holds background work back until the finger is still; a steady wheel event keeps userRest() true */
