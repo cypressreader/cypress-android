@@ -37,11 +37,14 @@ const MODEL='@cf/black-forest-labs/flux-1-schnell';
 const ALLOWED=new Set(['Explainer','Long read','Review','From the archive','Back page']);
 
 /* The style, word for word on every prompt. The negative half matters more than the positive half. */
-const STYLE='Flat two-colour editorial illustration in the style of a printed newspaper cartoon or a mid-century '
- +'paperback cover. Deep navy #16263f and brick red #a8372a on a cream #f3efe6 ground, nothing else. Bold simple '
- +'shapes, clean edges, generous empty space, slight print texture. Strictly no gradients, no shading, no '
- +'photographic rendering, no 3D, no glow, no lens effects, no text, no letters, no numbers, no logos, no human '
- +'faces, no crowds, no watermark.';
+/* The style, word for word on every prompt. Tested 27 Nov: the model obeys the SHAPE instructions well and
+   ignores the COLOUR ones about half the time - a plate came back pink and pale blue however many times the
+   prompt said otherwise. So the colours are not argued for here, they are imposed afterwards by housePalette.
+   What this half of the prompt is for is composition: one object, centred, flat, no text, nobody in it. */
+const STYLE='Two-colour screen print, flat vector editorial illustration in the style of a 1960s printed '
+ +'newspaper cartoon. Solid flat fills, hard edges, bold poster shapes, no photographic rendering, no 3D, '
+ +'no gradients, no soft shadows. One single object, centred, large, with generous empty space around it. '
+ +'No text, no letters, no numbers, no logos, no people, no faces, no hands, no crowds, no watermark.';
 
 /* What the picture is OF. An illustration says something about the piece, so the idea is the one thing a
    machine should not improvise: `idea` in the edition file is used when an editor (or the editorial pass) has
@@ -56,16 +59,20 @@ function ideaFrom(st){
    :'A simple symbolic arrangement of geometric objects on an empty ground.';
 }
 
+/* THE REQUEST GOES THROUGH curl, NOT node's own https, and that is not a style choice. The Cloudflare key
+   is injected by this environment's outbound proxy, and node's https client ignores the proxy settings
+   entirely: it connected straight out, arrived at Cloudflare with no credential, and every drawing came
+   back 'Authentication error' long after the token itself was working. curl honours the proxy, so the key
+   is attached. Nothing here ever sees or stores the key. */
+const {spawn}=require('child_process');
 const post=(url,body)=>new Promise(res=>{
- const data=JSON.stringify(body);
- const r=https.request(url,{method:'POST',timeout:120000,
-   headers:{'content-type':'application/json','content-length':Buffer.byteLength(data)}},q=>{
-  let b='';q.setEncoding('utf8');q.on('data',c=>b+=c);
-  q.on('end',()=>{try{res({code:q.statusCode,json:JSON.parse(b)})}catch(e){res({code:q.statusCode,json:null,raw:b.slice(0,300)})}});
- });
- r.on('timeout',()=>{r.destroy();res({code:0,json:null,raw:'timed out'})});
- r.on('error',e=>res({code:0,json:null,raw:String(e.message)}));
- r.end(data);
+ const c=spawn('curl',['-s','--max-time','120','-X','POST',url,'-H','content-type: application/json','--data-binary','@-']);
+ let out='',bad='';
+ c.stdout.setEncoding('utf8');c.stdout.on('data',d=>out+=d);
+ c.stderr.setEncoding('utf8');c.stderr.on('data',d=>bad+=d);
+ c.on('error',e=>res({code:0,json:null,raw:String(e.message).slice(0,200)}));
+ c.on('close',()=>{try{res({code:200,json:JSON.parse(out)})}catch(e){res({code:0,json:null,raw:(bad||out||'empty answer').slice(0,200)})}});
+ c.stdin.end(JSON.stringify(body));
 });
 
 async function draw(prompt){
@@ -78,17 +85,32 @@ async function draw(prompt){
  return b64?{png:Buffer.from(b64,'base64')}:{err:'the service answered without a picture'};
 }
 
-/* PNG out of the model, JPEG onto the site: the same picture at a fifth of the weight, and the browser the
-   pipeline already runs is the only encoder involved - no new dependency for one conversion. */
-async function toJpeg(tab,png){
- const b64=png.toString('base64');
- const out=await tab.evaluate(async d=>await new Promise(res=>{
+/* THE HOUSE PALETTE, IMPOSED. The model will not hold a palette on instruction, so every pixel is mapped to
+   one of the edition's three colours by brightness: light becomes the paper, dark becomes the ink, and a
+   midtone becomes the red if it is warm and the ink if it is cool. It cannot drift, whatever the model does
+   on the day, and the result reads as a real two-colour print rather than a flat render.
+   Done on the canvas of the browser the pipeline already runs, so there is no new dependency and nothing
+   extra has to exist on the machine that runs the scheduled build. */
+const PAPER=[243,239,230],INK=[22,38,63],RED=[168,55,42];
+async function housePalette(tab,bytes){
+ const mime=(bytes[0]===0xFF&&bytes[1]===0xD8)?'image/jpeg':'image/png';
+ const out=await tab.evaluate(async ([d,m,P,I,R])=>await new Promise(res=>{
   const im=new Image();
-  im.onload=()=>{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;
-   c.getContext('2d').drawImage(im,0,0);res({u:c.toDataURL('image/jpeg',.86),w:c.width,h:c.height})};
+  im.onload=()=>{
+   const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;
+   const x=c.getContext('2d');x.drawImage(im,0,0);
+   const g=x.getImageData(0,0,c.width,c.height),a=g.data;
+   for(let i=0;i<a.length;i+=4){
+    const r=a[i],gg=a[i+1],b=a[i+2],l=.299*r+.587*gg+.114*b,warm=r-(gg+b)/2;
+    const t=l>188?P:(l<92?I:(warm>8?R:I));
+    a[i]=t[0];a[i+1]=t[1];a[i+2]=t[2];a[i+3]=255;
+   }
+   x.putImageData(g,0,0);
+   res({u:c.toDataURL('image/jpeg',.88),w:c.width,h:c.height});
+  };
   im.onerror=()=>res(null);
-  im.src='data:image/png;base64,'+d;
- }),b64);
+  im.src='data:'+m+';base64,'+d;
+ }),[bytes.toString('base64'),mime,PAPER,INK,RED]);
  return out?{buf:Buffer.from(out.u.split(',')[1],'base64'),w:out.w,h:out.h}:null;
 }
 
@@ -121,7 +143,7 @@ const key=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;retu
   const prompt=STYLE+' '+ideaFrom(j.st);
   const r=await draw(prompt);
   if(r.err){failed++;why=why||r.err;process.stdout.write('x');continue}
-  const jp=await toJpeg(tab,r.png);
+  const jp=await housePalette(tab,r.png);
   if(!jp){failed++;process.stdout.write('x');continue}
   const name=key(j.st.l||j.st.t)+'.jpg';
   fs.writeFileSync(path.join(ART,name),jp.buf);
