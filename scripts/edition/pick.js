@@ -19,12 +19,14 @@
  * (`gather.js`) before it can be printed, and a story that cannot be read is dropped there.
  *
  *   node scripts/edition/pick.js                      # print what today's edition would be made of
+ *   node scripts/edition/pick.js --wide               # also read the swept publishers whose pictures load
  *   node scripts/edition/pick.js --json cand.json     # write the candidates for gather.js
  *   node scripts/edition/pick.js --hours 48           # how far back a story may be (default 36)
  */
 const fs=require('fs'),https=require('https'),{openApp}=require('./app');
 
 const arg=n=>{const i=process.argv.indexOf(n);return i>0?process.argv[i+1]:null};
+const WIDE=process.argv.includes('--wide');/* read the swept publishers too - see the note in the catalogue read below */
 const OUT=arg('--json'),HOURS=Number(arg('--hours')||36);
 
 /* THE DESK. Ten sections, fixed order, fixed number of places (the method page: "each with a fixed number of
@@ -172,9 +174,17 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
 
  /* the app's own catalogue is the list of feeds: name -> address */
  /* the app's own catalogue, by category and by outlet name */
- const cat=await page.evaluate(()=>{const m={},byCat={};
+ const cat=await page.evaluate(wide=>{const m={},byCat={};
   for(const c of CAT){byCat[c.n]=c.f.map(f=>f[0]);for(const f of c.f)m[f[0]]=f[1]}
-  return{m,byCat}});
+  /* --wide: also read MJ's swept publishers (CATW in the app), and only the ones whose PICTURES were verified
+     to load. Two reasons, both about the edition's own weaknesses: more outlets make the counting that decides
+     the front page better, and a page goes bare when no photograph passes, so an outlet whose pictures work is
+     worth more to this pipeline than one whose pictures do not. They are search-only in the app and stay out of
+     the browsable catalogue; this reads the list directly rather than putting them in CAT. */
+  if(wide&&typeof CATW==='string')for(const l of CATW.split('\n')){const p=l.split('|');
+   if(p.length<4||p[3]!=='1'||m[p[0]])continue;
+   m[p[0]]=p[1];(byCat[p[2]]=byCat[p[2]]||[]).push(p[0])}
+  return{m,byCat}},WIDE);
  const inCat=n=>cat.byCat[n]||[];
  /* every outlet any desk reads: the categories it takes whole, plus the ones it names */
  const DESKS=EDITIONS.flatMap(e=>e.desk);
