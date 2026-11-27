@@ -15058,8 +15058,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.27i';const APP_LABEL='1.405';
-const CHANGES=["Fixed: the corrected edition was prepared and then thrown away before it was shown"];
+const APP_VERSION='2026.11.27j';const APP_LABEL='1.406';
+const CHANGES=["Fixed: the phone had saved a wrong note of where its edition came from, and could not find the edition's drawings because of it"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -16661,7 +16661,7 @@ const weOk=d=>!!(d&&Array.isArray(d.editions)&&d.editions.length);
    fifth time I could not reproduce it even with the phone's own state in front of me. An issue whose
    addresses are already absolute cannot be resolved against the wrong thing, whatever order anything runs
    in. Called on every path an issue arrives by. Idempotent: an address that is already absolute is left. */
-function weAbs(d,base){if(!d||!base)return d;
+function weAbs(d,base){if(!d||typeof base!=='string'||!/^https?:\/\//.test(base))return d;
  for(const e of d.editions||[])for(const s of e.sections||[])for(const t of s.stories||[]){
   if(t.art&&t.art.url&&!/^https?:\/\//.test(t.art.url)){try{t.art.url=new URL(t.art.url,base).href}catch(_){ } }
  }
@@ -16705,7 +16705,9 @@ async function weEdition(){
     addresses stayed relative and the diagnostics said so twice. The upgraded object in hand is the one to
     show; saving it is a convenience for next launch and nothing depends on it. */
  const kept=weKept();
- if(kept)try{weAbs(kept,kept.weBase||site)}catch(e){}
+ /* a saved base is believed only if it is actually an address; anything else is the garbage described in
+    weRefresh, and the settled site stands in */
+ if(kept)try{weAbs(kept,(typeof kept.weBase==='string'&&/^https:\/\//.test(kept.weBase))?kept.weBase:site);delete kept.weBase}catch(e){}
  try{if(kept)localStorage.setItem('we-ed',JSON.stringify(kept))}catch(e){}
  const fresher=(a,b)=>String(a.date||'')>String(b.date||'')
    ||(String(a.date||'')===String(b.date||'')&&String(a.rev||'')!==String(b.rev||''));
@@ -16736,7 +16738,11 @@ function weRefresh(have){
     /* the issue it replaces joins the archive - but a correction of today is not yesterday, and the archive is
        a list of days */
     if(have&&String(d.date||'')!==String(have.date||''))wePastAdd(have);
-    weAbs(d,u);/* WHERE THIS ISSUE CAME FROM, kept with it. Its drawings are published beside it, and the app
+    weAbs(d,WEU);/* NOT `u`: that name belongs to the first step of this chain and is out of scope here.
+      From 1.399 to 1.405 this line read whatever else in the page happened to be called `u`, and saved it as
+      the issue's own address - so David's phone held an issue whose 'address' was garbage, and every later
+      build resolved his drawings against the garbage, failed without a sound, and left them unfindable.
+      WEU is the settled address this very fetch used. WHERE THIS ISSUE CAME FROM, kept with it. Its drawings are published beside it, and the app
       renders the SAVED copy on a cold open - before it has worked out which site it reads. Without this the
       address was resolved against the live site, where a preview issue's drawings do not exist, so every one
       of them 404'd and was silently dropped: David, 27 Nov, 'I didn't see a single one of those'. */
