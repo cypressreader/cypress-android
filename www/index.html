@@ -15058,8 +15058,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.27f';const APP_LABEL='1.402';
-const CHANGES=["Fixed: the app kept showing the edition it was installed with and threw away every newer one it downloaded","Diagnostics now name the edition on screen, where it came from, and how many drawings it has"];
+const APP_VERSION='2026.11.27g';const APP_LABEL='1.403';
+const CHANGES=["Fixed, properly this time: picture addresses in the edition are settled once, when the edition arrives, instead of being worked out again every time a page is drawn"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -16655,6 +16655,17 @@ async function weUrl(){
  return WEU=/\.preview$/.test(id)?WE_URL_PREVIEW:WE_URL;
 }
 const weOk=d=>!!(d&&Array.isArray(d.editions)&&d.editions.length);
+/* EVERY PICTURE ADDRESS IS MADE ABSOLUTE THE MOMENT AN ISSUE IS IN HAND, against the address it came from,
+   and never resolved again. This replaces resolving at drawing time against a global that is set in one
+   place and read in another: that arrangement broke four separate ways in one night, and when it broke the
+   fifth time I could not reproduce it even with the phone's own state in front of me. An issue whose
+   addresses are already absolute cannot be resolved against the wrong thing, whatever order anything runs
+   in. Called on every path an issue arrives by. Idempotent: an address that is already absolute is left. */
+function weAbs(d,base){if(!d||!base)return d;
+ for(const e of d.editions||[])for(const s of e.sections||[])for(const t of s.stories||[]){
+  if(t.art&&t.art.url&&!/^https?:\/\//.test(t.art.url)){try{t.art.url=new URL(t.art.url,base).href}catch(_){ } }
+ }
+ return d}
 /* EARLIER ISSUES (David's choices sheet). An issue used to be replaced and yesterday was gone. The last seven
    are kept on the phone, so Tuesday's can be finished on Thursday. They are kept where the live one is kept -
    on the device, never on a server - and the oldest falls off the end. */
@@ -16672,13 +16683,16 @@ async function weEdition(){
     resolved against the live site, so on the preview site - and in the preview app - every one of them was
     looked for at cypressreader.com, where a preview issue's pictures do not exist, and dropped in silence.
     David saw a magazine with no drawings in it twice, on the phone and in a browser. */
- if(built&&!built.weBase)try{built.weBase=new URL('world-edition.json',location.href).href}catch(e){}
+ if(built)try{weAbs(built,new URL('world-edition.json',location.href).href)}catch(e){}
  /* AND THE SAME ASSUMPTION A FOURTH TIME. The copy saved from the network was preferred over the one bundled
     in the app only when its date was LATER. They are the same day, so the bundled copy won every launch and
     the refreshed one - the one with the drawings in it - was thrown away before it could be drawn. That is
     why David reopened the app over and over and always saw the edition the APK shipped with. Same rule as
     weRefresh: a later date wins, and on the same date a different `rev` wins. A bundled copy carries no
     rev, so any issue fetched since install is preferred, which is what a reader wants. */
+ /* A copy saved by an earlier build holds relative picture addresses and the base it came from. Upgrade it
+    in place, once, so a phone that already has today's issue does not have to wait for tomorrow's. */
+ const k0=weKept();if(k0&&k0.weBase)try{weAbs(k0,k0.weBase);localStorage.setItem('we-ed',JSON.stringify(k0))}catch(e){}
  const fresher=(a,b)=>String(a.date||'')>String(b.date||'')
    ||(String(a.date||'')===String(b.date||'')&&String(a.rev||'')!==String(b.rev||''));
  const kept=weKept(),use=(kept&&(!weOk(built)||fresher(kept,built)))?kept:built;
@@ -16708,7 +16722,7 @@ function weRefresh(have){
     /* the issue it replaces joins the archive - but a correction of today is not yesterday, and the archive is
        a list of days */
     if(have&&String(d.date||'')!==String(have.date||''))wePastAdd(have);
-    d.weBase=u;/* WHERE THIS ISSUE CAME FROM, kept with it. Its drawings are published beside it, and the app
+    weAbs(d,u);/* WHERE THIS ISSUE CAME FROM, kept with it. Its drawings are published beside it, and the app
       renders the SAVED copy on a cold open - before it has worked out which site it reads. Without this the
       address was resolved against the live site, where a preview issue's drawings do not exist, so every one
       of them 404'd and was silently dropped: David, 27 Nov, 'I didn't see a single one of those'. */
@@ -16728,8 +16742,8 @@ const WE_CLEAR=['logo','text','child','body','grief','mugshot'];
    where a magazine has always commissioned a drawing. */
 const WE_ART_OK=new Set(['Explainer','Long read','Review','From the archive','Back page']);
 /* the drawing is published beside the edition file, so its address is read against the edition's own */
-let WEB='';/* the base of the issue on screen; set from the issue itself as it is drawn */
-function weArtUrl(u){try{return new URL(String(u||''),WEB||WEU||WE_URL).href}catch(e){return ''}}
+/* kept as a plain pass-through: an issue's addresses are absolute before anything draws them */
+function weArtUrl(u){return String(u||'')}
 function weArtPass(p,sec){const u=p&&weArtUrl(p.url);return !!(u&&/^https:\/\//.test(u)&&WE_ART_OK.has(sec)&&!WE.lite&&Math.max(+p.w||0,+p.h||0)>=WE_SM)}
 function weEd(d){const E=d.editions;let e=E.find(x=>x.id===S.weEd);if(e)return e;let r='';for(const l of navigator.languages||[navigator.language]){try{r=new Intl.Locale(l).region||''}catch(_){}if(r)break}return E.find(x=>(x.regions||[]).includes(r))||E.find(x=>x.fallback)||E[0]}
 /* the photo checklist: everything the app can check is checked here; what only a person or the pipeline can see (a logo, baked-in text, a child, a body, grief in close-up, a mugshot) must each be marked clear in the file, and a missing mark fails */
@@ -17124,7 +17138,6 @@ function weFit(){const cv=document.querySelector('.we-cv'),h=cv&&cv.querySelecto
  for(const z of Z){h.style.fontSize=z+'cqw';if(!over())return}
  cv.classList.add('we-ns');if(over())cv.classList.add('we-tall')}
 function renderWE(){
- WEB=(WE.d&&WE.d.weBase)||WEU||WE_URL;
  const g=$('#grid');$('#ttl').textContent='The World Edition';['#mr','#ref','#vw'].forEach(q=>{const b=$(q);if(b)b.hidden=true});
  if(!WE.d){cur=[];
   if(WE.st==='fail'){g.innerHTML=emp('The World Edition could not be opened','Check your connection, then try again.','<div class="eact"><button type="button" class="go" data-wer>Try again</button></div>');return}
