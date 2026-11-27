@@ -208,6 +208,7 @@ const key=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;retu
  for(const old of fs.readdirSync(ART))if(/\.jpg$/.test(old)&&!live.has(old))fs.unlinkSync(path.join(ART,old));
 
  if(made){
+  f.rev=new Date().toISOString();/* an issue corrected during its own day must still reach a phone that already has it */
   fs.writeFileSync(EDITION,JSON.stringify(f,null,1));
   const docs=path.resolve(__dirname,'../../docs/app/world-edition.json');
   try{if(path.resolve(EDITION)!==docs)fs.writeFileSync(docs,JSON.stringify(f,null,1))}catch(e){}

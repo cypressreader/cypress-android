@@ -15054,8 +15054,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.27c';const APP_LABEL='1.399';
-const CHANGES=["Fixed: drawings made for the edition did not appear at all in the test app","Three pages of this edition now carry one"];
+const APP_VERSION='2026.11.27d';const APP_LABEL='1.400';
+const CHANGES=["Fixed: a corrected edition never reached the phone. If an issue was improved during its own day, the phone kept its first copy and ignored every update"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -16677,8 +16677,18 @@ function weRefresh(have){
    if(u!==WE_URL_PREVIEW){try{if(Date.now()-(+localStorage.getItem('we-ck')||0)<WE_EVERY)return null;localStorage.setItem('we-ck',Date.now())}catch(e){}}
    return fetch(u,{cache:'no-store',signal:AbortSignal.timeout(15000)})})
   .then(r=>r&&r.ok?r.json():null).then(d=>{
-    if(!weOk(d)||(have&&String(d.date||'')<=String(have.date||'')))return;
-    if(have)wePastAdd(have);/* the issue it replaces joins the archive rather than vanishing */
+    /* IS THIS A NEWER ISSUE? A later date, obviously - but also the SAME date with a different `rev`, because
+       an issue is corrected during its own day: a picture is cleared, a headline is fixed, a drawing is added.
+       The rule used to be date-only, so every such correction was fetched, compared, and thrown away, and the
+       phone kept its first copy of the day for good. David, 27 Nov, had three drawings published and could not
+       see one of them on two different builds: his phone had already decided it had the 26th. A saved copy
+       from before `rev` existed carries none, which differs from any stamped one, so it updates once and settles. */
+    const newer=String(d.date||'')>String(have?have.date||'':'')
+      ||(!!have&&String(d.date||'')===String(have.date||'')&&String(d.rev||'')!==String(have.rev||''));
+    if(!weOk(d)||(have&&!newer))return;
+    /* the issue it replaces joins the archive - but a correction of today is not yesterday, and the archive is
+       a list of days */
+    if(have&&String(d.date||'')!==String(have.date||''))wePastAdd(have);
     d.weBase=u;/* WHERE THIS ISSUE CAME FROM, kept with it. Its drawings are published beside it, and the app
       renders the SAVED copy on a cold open - before it has worked out which site it reads. Without this the
       address was resolved against the live site, where a preview issue's drawings do not exist, so every one
