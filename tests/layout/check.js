@@ -51,8 +51,12 @@ function inPage(opts) {
   const clipOf = el => { /* the visible box of a text rect: the page, the screen and every overflow-hidden ancestor */
     const pg = el.closest('.we-pg'); const pr = pg.getBoundingClientRect();
     let L = Math.max(pr.left, 0), T = Math.max(pr.top, 0), R = Math.min(pr.right, innerWidth), B = Math.min(pr.bottom, innerHeight);
-    for (let e = el; e && e !== pg; e = e.parentElement) { const cs = getComputedStyle(e); if (/hidden|clip/.test(cs.overflowX + cs.overflowY)) { const b = e.getBoundingClientRect(); if (/hidden|clip/.test(cs.overflowX)) { L = Math.max(L, b.left); R = Math.min(R, b.right) } if (/hidden|clip/.test(cs.overflowY)) { T = Math.max(T, b.top); B = Math.min(B, b.bottom) } } }
+    for (let e = el; e && e !== pg; e = e.parentElement) { const cs = getComputedStyle(e); const CX = /hidden|clip|auto|scroll/.test(cs.overflowX), CY = /hidden|clip|auto|scroll/.test(cs.overflowY); if (CX || CY) { const b = e.getBoundingClientRect(); if (CX) { L = Math.max(L, b.left); R = Math.min(R, b.right) } if (CY) { T = Math.max(T, b.top); B = Math.min(B, b.bottom) } } }
     return [L, T, R, B] };
+  /* the nearest ancestor that actually scrolls vertically, up to the page */
+  const scrollerUnder = el => { const pg = el.closest('.we-pg');
+    for (let e = el.parentElement; e && e !== pg; e = e.parentElement) { const cs = getComputedStyle(e);
+      if (/auto|scroll/.test(cs.overflowY) && e.scrollHeight > e.clientHeight + 1) return e } return null };
   const ink = (el) => { let o = 1; for (let e = el; e; e = e.parentElement) { const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden') return 0; o *= +cs.opacity; if (cs.clip === 'rect(0px, 0px, 0px, 0px)') return 0 } return o };
   const out = [];
   pages.forEach((pg, pi) => {
@@ -71,7 +75,13 @@ function inPage(opts) {
         const L = Math.max(q.left, clip[0]), T = Math.max(q.top, clip[1]), R = Math.min(q.right, clip[2]), B = Math.min(q.bottom, clip[3]);
         const vis = Math.max(0, R - L) * Math.max(0, B - T), full = q.width * q.height;
         if (vis < full * .5) { if (vis <= 0 || (q.right - q.left) < 1) return; } /* wholly hidden: not text on the page */
-        if (vis > 0 && vis < full * .72 && q.bottom - q.top > 6) fails.push({ kind: 'trunc', what: 'text cut off by its box or the page edge', text: txt.slice(0, 60), el: el.tagName.toLowerCase() + '.' + String(el.className).split(' ')[0], lost: Math.round(100 - 100 * vis / full) + '%' });
+        /* A PART-SHOWN ROW AT THE FOOT OF A SCROLLER IS THE DESIGN, NOT A FAULT: it is what tells a reader
+           there is more below (the Contents, 2026-11-27). Only forgiven while there IS more to scroll to,
+           and only for the rect hanging off the bottom - a row cut at the top, or cut with nothing below it,
+           is still a fault. */
+        const sc = scrollerUnder(el);
+        const atFoot = sc && sc.scrollHeight - sc.clientHeight - sc.scrollTop > 2 && q.bottom > sc.getBoundingClientRect().bottom - 1;
+        if (!atFoot && vis > 0 && vis < full * .72 && q.bottom - q.top > 6) fails.push({ kind: 'trunc', what: 'text cut off by its box or the page edge', text: txt.slice(0, 60), el: el.tagName.toLowerCase() + '.' + String(el.className).split(' ')[0], lost: Math.round(100 - 100 * vis / full) + '%' });
         if (vis <= 0) return;
         const ih = B - T; items.push({ id: nodeId, el, txt, r: [L, T + ih * .18, R, B - ih * .12] }); /* a line box is taller than the letters: keep the band the glyphs really fill */
       });

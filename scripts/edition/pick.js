@@ -45,7 +45,23 @@ const OUT=arg('--json'),HOURS=Number(arg('--hours')||36);
 /* The kinds a news desk refuses. Sport reaches every general feed and reads like news; a fixture list, a
    transfer, a fantasy column or a score is sport wherever it was published. Written once and used by the
    desks that are places rather than kinds. */
-const SPORTY=/\b(nfl|nba|mlb|nhl|ncaa|fifa|uefa|premier league|la liga|serie a|f1|formula 1|grand prix|super bowl|world cup|playoffs?|quarterfinals?|semifinals?|touchdown|home run|fantasy football|week \d+|game \d+|\bvs\.?\b|steelers|packers|lakers|yankees|dodgers|man utd|manchester (united|city)|arsenal|liverpool|chelsea|wildcats|australian open|us open|french open|atp|wta|test match|six nations)\b/i;
+/* NOT A STORY, ON ANY DESK (David, 2026-11-27: "that one story isn't even a story. How did that get passed
+   out reviewer?"). The honest answer was that nothing reviews the TEXT - the eye that looks at an edition
+   looks only at pictures. The desks test which KIND of story a headline is, never whether it is one.
+   These are the shapes that are published on a news feed and are not news: a post talking to the readers, a
+   list of discount codes, a weekly links roundup, a giveaway, a horoscope. They are refused everywhere,
+   before any desk sees them, because none of them belongs in any section. Kept narrow on purpose: every
+   pattern here is a shape of PUBLISHING, not a subject, so it cannot silently drop a real story about sales,
+   gifts or newsletters. */
+const NOT_A_STORY=/^(how|what|where|when|who)\s+(was|were|is|are|did|do)\s+your\b|^(open thread|weekend (reading|links|open))|\b\d{1,2}%\s*off\b|\b(discount|promo|coupon)\s*codes?\b|\bbest deals\b|\bdeals? of the (day|week)\b|\b(gift|shopping)\s+guide\b|\bwhat (we|i)( a|'?)re (reading|buying|loving|watching this week)\b|\blinks? (we|i) love\b|\bgiveaway\b|\bhoroscopes?\b|\bsubscribe to our\b|\bthis week'?s newsletter\b|\b(wordle|quordle|heardle|nerdle|strands|sudoku|crosswords?|connections|spelling bee|nyt mini)\b[^|]{0,40}\b(hints?|answers?|clues?|solutions?)\b|\bpuzzle\s*#\s*\d+|\bearnings call transcript\b|\b(q[1-4]|full[- ]year) \d{4} (results|earnings) call\b/i;
+/* GOSSIP IS NOT THE FRONT SECTION. On 27 November Home carried "Thom Evans Confirms Nicole Scherzinger
+   Split After Seven Years", because Home is filled by how widely a story is reported and six outlets covered
+   it. The answer is NOT to refuse celebrity news - it is real, and Culture is where a magazine prints it -
+   but to keep it off the front. So this is used by Home, World and Business only.
+   Every word here is a tabloid verb or a tabloid noun. "Slams" is deliberately absent: real political
+   headlines use it constantly. */
+const GOSSIP=/\bclaps? back\b|\bgushe[sd]\b|\bflaunts?\b|\bsteps? out in\b|\bspotted (with|on a date)\b|\bsparks? (romance|dating|engagement|split|pregnancy) rumou?rs\b|\bbaby bump\b|\bred carpet\b|\bco-?parenting\b|\bPDA\b|\bconfirms?\s+(?:\S+\s+){0,3}(split|breakup|romance|divorce|engagement)\b(?!\s+of\b)|\bannounce[sd]?\s+(their|his|her)\s+(split|separation|divorce|engagement)\b|\b(split|together) after \d+ years\b/i;
+const SPORTY=/\b(nfl|nba|mlb|nhl|ncaa|fifa|uefa|premier league|la liga|serie a|f1|formula 1|grand prix|super bowl|world cup|playoffs?|quarterfinals?|semifinals?|touchdown|home run|fantasy football|week \d+|game \d+|\bvs\.?\b|steelers|packers|lakers|yankees|dodgers|man utd|manchester (united|city)|arsenal|liverpool|chelsea|wildcats|australian open|us open|french open|atp|wta|test match|six nations|strikers?|midfielders?|goalkeepers?|wingers?|quarterbacks?|wide receivers?|point guards?|transfer window|signs? a new contract|signs new contract|on loan to|caps for|matchday|kick-?off|full-?time|half-?time|depth charts?|recruiting class|bowl game|mock drafts?)\b/i;
 /* WHAT COUNTS AS SPORT IN A MAGAZINE (David, 2026-11-26): "it should only be major events. Someone won the
    world cup, world series, super bowl, Wimbledon etc. A random team winning a random game doesn't matter for
    99% of readers. Now a sport related major story like Kobe Bryant dying or Messi retiring does matter
@@ -61,12 +77,19 @@ const SPORT_CAREER=/\b(retires?|retirement|announces? (his|her|their) retirement
 const SPORT_NOISE=/\bfantasy\b|start '?em|sit '?em|\bodds\b|\bbetting\b|\bpicks?\b|\brankings?\b|\bpower rankings\b|\binjury report\b|\bweek \d+\b|\bpreview\b|\bhow to watch\b|\bhighlights\b|\brecap\b|\btrade rumou?rs?\b|\bmock draft\b/i;
 
 const DESK=[
- {name:'Home',not:SPORTY,n:6,cats:['News','Politics'],home:1,
+ {name:'Home',not:new RegExp(SPORTY.source+'|'+GOSSIP.source,'i'),n:6,cats:['News','Politics'],home:1,
   outlets:['NPR','PBS NewsHour','NBC News','CBS News','AP News','Axios','The Hill','CNN','Fox News','Semafor','ProPublica','NPR Politics','The Hill Politics','Roll Call','Politico','The Intercept','FiveThirtyEight']},
- {name:'World',not:SPORTY,n:6,
+ {name:'World',not:new RegExp(SPORTY.source+'|'+GOSSIP.source,'i'),n:6,
   outlets:['BBC World','The Guardian World','Al Jazeera','Deutsche Welle','Reuters','BBC News','Global News','The Guardian','Foreign Policy','Foreign Affairs','BBC Politics','France 24','The Japan Times','CNA','Africanews','MercoPress']},
- {name:'Business',not:SPORTY,n:4,cats:['Business','Money']},
- {name:'Science & Health',n:4,cats:['Science','Health','Space','Environment']},
+ {name:'Business',not:new RegExp(SPORTY.source+'|'+GOSSIP.source,'i'),n:4,cats:['Business','Money']},
+/* SCIENCE & HEALTH WAS THREE-QUARTERS TECHNOLOGY on 27 November - Nvidia chips in a Shanghai data centre,
+   smartphone shipments, a Razer audio driver - because its feeds overlap Tech's and nothing asked what the
+   story was ABOUT. Enumerating technology to refuse is the losing end of that argument: a chip can be a real
+   science story. So it works the way Food now works and asks for its own subject. A science story that uses
+   none of these words is refused and its place goes to a section that has more to say, which is the trade
+   David asked for. */
+ {name:'Science & Health',n:4,cats:['Science','Health','Space','Environment'],
+  find:/\b(stud(y|ies)|research(ers)?|scientists?|trial|clinical|patients?|doctors?|disease|cancer|virus|vaccine|infection|outbreak|diagnos(is|ed)|symptoms?|therapy|treatment|drug|brain|genes?|genetic|dna|species|fossil|evolution|climate|emissions?|warming|glacier|wildlife|ecosystem|telescope|astronomers?|galaxy|orbit|spacecraft|asteroid|mars|moon|nasa|quantum|physicists?|chemistry|antibiotic|microb|neurons?|immune|surgery|mental health|nutrition|sleep|exercise)\b/i},
  {name:'Tech',n:4,cats:['Tech','Mobile','AI & Security','Developers']},
  {name:'Culture',not:SPORTY,n:4,cats:['Culture','Entertainment','Design','Music','Film & TV','Books']},
  {name:'Review',n:2,cats:['Books','Film & TV','Music','Design','Culture'],
@@ -79,7 +102,17 @@ const DESK=[
   /* and a piece ABOUT a retirement - a reaction, a rumour, a question - is not a career ending: "Kevin Durant
      Reacts to ... Making NBA History Retirement Question" reached Sport on 26 November */
   not:new RegExp(SPORT_NOISE.source+'|\\b(dies|died|dead at)\\b|\\b(reacts?|rumou?rs?|speculation|question|talks about|hints?)\\b','i')},
- {name:'Food',n:3,cats:['Food','Lifestyle']},
+/* THE FOOD DESK HAD NO TEST THAT A HEADLINE WAS ABOUT FOOD (David, 2026-11-27, from the phone: "that one
+   story isn't even a story"). It took the whole Lifestyle category - 82 outlets - and printed whatever came
+   first. On the 27th that was a Ladbible piece about the last episode of Chicken Shop Date, which reached a
+   food section because its feed is filed under Lifestyle, and a Cup of Jo post asking readers how their
+   Thanksgiving went, ending in a numbered list of discount codes. Neither is a story and nothing was
+   checking. Lifestyle stays as the pool, because that is where food writing lives, but a headline now has to
+   be ABOUT food or drink to be printed as food. The desk running short on a thin day is the correct
+   outcome - the method page already tells a reader a quiet section means a quiet day. */
+ {name:'Food',n:3,cats:['Food','Lifestyle'],
+  find:/\b(recipes?|cook(s|ed|ing|book)?|bake[drs]?|baking|roast(ed|ing)?|grill(ed|ing)?|kitchen|chefs?|restaurants?|diner|menus?|dish(es)?|meals?|dinner|lunch|breakfast|brunch|supper|foods?|eat(s|en|ing)?|flavou?rs?|ingredients?|pantry|wines?|beers?|cocktails?|whisk(e)?y|coffee|teas?|bread|pasta|pizza|cheese|dessert|cakes?|sauces?|spice[sd]?|michelin|tast(e|es|ing)|feast|butcher|bakery|farmers'? market|grocer(y|ies)|dining|appetite|leftovers?)\b/i,
+  not:SPORTY},
  {name:'From the archive',not:SPORTY,n:1,cats:['History'],
   find:/\bon this day\b|years ago\b|\bin 1[89]\d\d\b|\bhistory of\b|\bthe forgotten\b|\bwhen .* (was|were)\b/i},
  {name:'Obituary',n:1,any:1,first:1,
@@ -314,6 +347,11 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
     if(mine.length>=d.n)break;
     if(!d.from.has(g.outlet)||used.has(g.link))continue;
     /* a desk that is a kind of story only takes a headline that is that kind */
+    /* not a story on any desk, whatever the feed called it */
+    if(NOT_A_STORY.test(g.title||''))continue;
+    /* a title of one or two words is a feed's placeholder, not a headline: The Atlantic offered the Long
+       read desk a story called "television" on 27 November, and it was picked. */
+    if((g.title||'').trim().split(/\s+/).length<3)continue;
     if(d.find&&!d.find.test(g.title||''))continue;
     /* and a desk that is a place in the world refuses the kinds that are not its business. Section-by-source
        finds what matters and does not know where it belongs: on 26 November it filed a tennis result in
@@ -338,6 +376,38 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
    got.set(d.name,mine.map(g=>({t:ownWords(g.title,g.outlet),o:g.outlet,l:g.link,n:g.n,
     dek:g.summary||'',img:g.img||'',date:g.date,outlets:g.outlets,
     sibs:(g.more||[]).filter(m=>m.l&&!/news\.google\.com/.test(m.l)).map(m=>({o:outletOf[m.f]||'',l:m.l,t:ownWords(m.t||'',outletOf[m.f]||''),img:m.img||''})).slice(0,4)})));
+  }
+  /* A SECTION THAT RUNS SHORT HANDS ITS PLACES TO ONE THAT HAS MORE TO SAY (David, 2026-11-27, told that the
+     new refusals would thin some sections: "If a section runs short that's ok just add more to other
+     sections"). Every refusal above - not a story, not food, plainly sport - now costs the issue nothing in
+     SIZE, only in where the stories sit, which is the right trade: it was never the aim to print less, only
+     to stop printing the wrong thing.
+     Second pass only, so a desk's own first choices always come before another desk's overflow; +3 at most to
+     any one desk, so a single loud section cannot swallow a thin day; and every gate above still applies,
+     because a spare place is not a reason to lower the bar. */
+  let spare=E.desk.reduce((n,d)=>n+Math.max(0,d.n-(got.get(d.name)||[]).length),0);
+  for(const d of E.desk){
+   if(spare<=0)break;
+   const mine=got.get(d.name)||[];let extra=0;
+   for(const g of groups){
+    if(spare<=0||extra>=3)break;
+    if(!d.from.has(g.outlet)||used.has(g.link))continue;
+    if(NOT_A_STORY.test(g.title||''))continue;
+    if(d.find&&!d.find.test(g.title||''))continue;
+    if(d.not&&d.not.test(g.title||''))continue;
+    if((spoke.get(g.outlet)||0)>=2)continue;
+    if(mine.some(x=>x.o===g.outlet||x.outlet===g.outlet))continue;
+    if(await isRepeat(accepted,g))continue;
+    if(!await resolve(tab,page,g)){used.add(g.link);continue}
+    accepted.push({title:g.title,link:g.link,feedId:g.feedId});
+    spoke.set(g.outlet,(spoke.get(g.outlet)||0)+1);
+    used.add(g.link);for(const m of g.more)if(m.l)used.add(m.l);
+    mine.push({t:ownWords(g.title,g.outlet),o:g.outlet,l:g.link,n:g.n,
+     dek:g.summary||'',img:g.img||'',date:g.date,outlets:g.outlets,
+     sibs:(g.more||[]).filter(m=>m.l&&!/news\.google\.com/.test(m.l)).map(m=>({o:outletOf[m.f]||'',l:m.l,t:ownWords(m.t||'',outletOf[m.f]||''),img:m.img||''})).slice(0,4)});
+    extra++;spare--;
+   }
+   got.set(d.name,mine);
   }
   /* printed in the order they are written, whatever order they chose in */
   for(const d of E.desk)sections.push({name:d.name,places:d.n,stories:got.get(d.name)||[]});
