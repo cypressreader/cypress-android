@@ -12,9 +12,21 @@ name: World Edition
 
 on:
   schedule:
-    # 06:12 and 17:12 UTC. Off the hour on purpose: every other scheduled job in the world runs at :00.
-    - cron: "12 6 * * *"
-    - cron: "12 17 * * *"
+    # 11:38 and 00:38 UTC. Off the hour on purpose: every other scheduled job in the world runs at :00.
+    #
+    # WHY THESE TIMES. David wakes at 7am Pacific (2026-11-27). The edition used to be built at 06:12 UTC,
+    # which is 10:12pm his time the night before - so the issue he picked up over breakfast was nearly nine
+    # hours old, yesterday evening's news wearing a morning date. 11:38 UTC is 3:38am in his winter and
+    # 4:38am in his summer, so the issue and the review after it are finished by about 5:45am either way:
+    # fresh, and well clear of 7am even when the clocks move. The second run, 00:38 UTC, lands late
+    # afternoon for him (4:38pm winter, 5:38pm summer) rather than two hours after he has already read it.
+    #
+    # These stay in UTC rather than his time zone for two reasons. GitHub Actions cron has no time zone
+    # support at all - it is UTC only. And the Claude task that reviews the drawings is chained to this one,
+    # 35 minutes behind; if the two ran on different clocks, daylight saving would silently slide the review
+    # in front of the build twice a year, where it would do nothing and look like it was working.
+    - cron: "38 11 * * *"
+    - cron: "38 0 * * *"
   workflow_dispatch:
     inputs:
       min:
