@@ -140,8 +140,11 @@ function candidates(){
      copy), which is a real story told twice and which the reader already folds back into one. The first cut of
      this refused 'Uganda to withdraw troops from DR Congo' for exactly that. A wall is ONE line many times, or
      almost nothing left once the repeats are gone. */
-  const cnt=new Map();for(const x of ps){const k=x.toLowerCase().slice(0,80);cnt.set(k,(cnt.get(k)||0)+1)}
-  if(ps.length>=4&&(Math.max(...cnt.values())>=4||cnt.size<3))return 'the same paragraph over and over';
+  /* ...and only PARAGRAPHS count, and only when the repeats are most of the page. The second cut refused two
+     long real articles because a photo caption ("Nico Rosberg, Mercedes") and a stray "or" each turned up a
+     few times among fifty paragraphs. */
+  const longs=ps.filter(x=>x.length>=25),cnt=new Map();for(const x of longs){const k=x.toLowerCase().slice(0,80);cnt.set(k,(cnt.get(k)||0)+1)}
+  if(longs.length>=4&&(Math.max(...cnt.values())>=longs.length*.5||cnt.size<3))return 'the same paragraph over and over';
   const letters=(t.match(/\p{L}/gu)||[]).length,latin=(t.match(/[A-Za-z\u00c0-\u024f]/g)||[]).length;
   if(letters>200&&latin<letters*.8)return 'not in a language this edition prints';
   return ''};
