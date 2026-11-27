@@ -17,6 +17,34 @@
  * eye, which is the whole point of the pass.
  *
  *   node scripts/edition/photos.js --gathered got.json --candidates cand.json --out tmp/photos
+ *
+ * ---------------------------------------------------------------------------------------------------------
+ * THE SIX MARKS, AND WHAT EACH ONE MEANS. Written here because this is the file that prepares the looking, and
+ * because a rule that lives in somebody's head drifts. Whoever or whatever clears a picture - MJ, a session,
+ * David - answers these six questions about it, and `clear` lists only the ones it passes. The app prints a
+ * photograph only when all six are there (`wePhotoOk` / `WE_CLEAR`), so a missing mark is simply no picture.
+ *
+ *   logo     Is the picture a logo, wordmark, badge, app icon or press handout dominated by one? A brand on a
+ *            shirt or a van inside a real scene is fine; a picture that IS the brand is not.
+ *   text     Are there words burned into the image that the page would print as if they were ours - a headline
+ *            card, a quote graphic, a titled chart, a poster, a slide, a meme? Incidental words in the world
+ *            (a street sign, a shop front, a protest placard in a crowd) are fine.
+ *   child    Is anyone who looks under about sixteen identifiable in the frame? A crowd at a distance where no
+ *            face reads is fine.
+ *   body     A dead or injured body, blood, a covered corpse, a coffin with the body visible, or a person in
+ *            visible physical distress from violence or disaster.
+ *   grief    A person crying, mourning, being comforted; a funeral; the moment of loss. We do not print
+ *            somebody's worst day as decoration on a page.
+ *   mugshot  A police booking photograph, handcuffs, a perp walk, a court dock, a wanted poster.
+ *
+ * `people:false` is separate and says NO identifiable person is the subject of the frame. It is required when
+ * the headline accuses somebody (`WE_ACCUSE` in the app), so that a story about a charge never runs a face.
+ *
+ * THE BIAS IS DELIBERATE AND IT IS NOT SYMMETRIC. Wrongly clearing a picture publishes a mugshot or a grieving
+ * face. Wrongly refusing one costs a bare page, which this magazine already treats as the correct outcome when
+ * in doubt. So the eye does not need to be perfect, it needs to be CAUTIOUS: anything you are unsure about
+ * gets no mark, and a picture with no marks does not print. Never guess in favour of printing.
+ * ---------------------------------------------------------------------------------------------------------
  */
 const fs=require('fs'),path=require('path'),{openApp}=require('./app');
 
