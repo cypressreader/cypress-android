@@ -37,7 +37,10 @@ const state = { fail: true };
 const refuses = u => { let d = u; try { d = decodeURIComponent(u) } catch (e) {} return HOSTS.some(h => d.includes(h)) };
 
 (async () => {
-  const app = await openApp({ viewport: { width: 412, height: 915 } });
+  /* `wake: false`: openApp normally dispatches a wheel event every 800 ms, which makes the app think a finger
+     is moving for ever. The edition now waits for a pause before it drops a story (it must not rebuild under a
+     moving finger), so with the fake finger running it never settles and this test proves nothing. */
+  const app = await openApp({ viewport: { width: 412, height: 915 }, wake: false });
   const p = app.page; let fails = 0;
   const bad = (m) => { fails++; console.log('FAIL ' + m) };
   try {
