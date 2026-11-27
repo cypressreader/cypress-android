@@ -45,6 +45,15 @@ const OUT=arg('--json'),HOURS=Number(arg('--hours')||36);
 /* The kinds a news desk refuses. Sport reaches every general feed and reads like news; a fixture list, a
    transfer, a fantasy column or a score is sport wherever it was published. Written once and used by the
    desks that are places rather than kinds. */
+/* NOT A STORY, ON ANY DESK (David, 2026-11-27: "that one story isn't even a story. How did that get passed
+   out reviewer?"). The honest answer was that nothing reviews the TEXT - the eye that looks at an edition
+   looks only at pictures. The desks test which KIND of story a headline is, never whether it is one.
+   These are the shapes that are published on a news feed and are not news: a post talking to the readers, a
+   list of discount codes, a weekly links roundup, a giveaway, a horoscope. They are refused everywhere,
+   before any desk sees them, because none of them belongs in any section. Kept narrow on purpose: every
+   pattern here is a shape of PUBLISHING, not a subject, so it cannot silently drop a real story about sales,
+   gifts or newsletters. */
+const NOT_A_STORY=/^(how|what|where|when|who)\s+(was|were|is|are|did|do)\s+your\b|^(open thread|weekend (reading|links|open))|\b\d{1,2}%\s*off\b|\b(discount|promo|coupon)\s*codes?\b|\bbest deals\b|\bdeals? of the (day|week)\b|\b(gift|shopping)\s+guide\b|\bwhat (we|i)( a|'?)re (reading|buying|loving|watching this week)\b|\blinks? (we|i) love\b|\bgiveaway\b|\bhoroscopes?\b|\bsubscribe to our\b|\bthis week'?s newsletter\b/i;
 const SPORTY=/\b(nfl|nba|mlb|nhl|ncaa|fifa|uefa|premier league|la liga|serie a|f1|formula 1|grand prix|super bowl|world cup|playoffs?|quarterfinals?|semifinals?|touchdown|home run|fantasy football|week \d+|game \d+|\bvs\.?\b|steelers|packers|lakers|yankees|dodgers|man utd|manchester (united|city)|arsenal|liverpool|chelsea|wildcats|australian open|us open|french open|atp|wta|test match|six nations)\b/i;
 /* WHAT COUNTS AS SPORT IN A MAGAZINE (David, 2026-11-26): "it should only be major events. Someone won the
    world cup, world series, super bowl, Wimbledon etc. A random team winning a random game doesn't matter for
@@ -79,7 +88,17 @@ const DESK=[
   /* and a piece ABOUT a retirement - a reaction, a rumour, a question - is not a career ending: "Kevin Durant
      Reacts to ... Making NBA History Retirement Question" reached Sport on 26 November */
   not:new RegExp(SPORT_NOISE.source+'|\\b(dies|died|dead at)\\b|\\b(reacts?|rumou?rs?|speculation|question|talks about|hints?)\\b','i')},
- {name:'Food',n:3,cats:['Food','Lifestyle']},
+/* THE FOOD DESK HAD NO TEST THAT A HEADLINE WAS ABOUT FOOD (David, 2026-11-27, from the phone: "that one
+   story isn't even a story"). It took the whole Lifestyle category - 82 outlets - and printed whatever came
+   first. On the 27th that was a Ladbible piece about the last episode of Chicken Shop Date, which reached a
+   food section because its feed is filed under Lifestyle, and a Cup of Jo post asking readers how their
+   Thanksgiving went, ending in a numbered list of discount codes. Neither is a story and nothing was
+   checking. Lifestyle stays as the pool, because that is where food writing lives, but a headline now has to
+   be ABOUT food or drink to be printed as food. The desk running short on a thin day is the correct
+   outcome - the method page already tells a reader a quiet section means a quiet day. */
+ {name:'Food',n:3,cats:['Food','Lifestyle'],
+  find:/\b(recipes?|cook(s|ed|ing|book)?|bake[drs]?|baking|roast(ed|ing)?|grill(ed|ing)?|kitchen|chefs?|restaurants?|diner|menus?|dish(es)?|meals?|dinner|lunch|breakfast|brunch|supper|foods?|eat(s|en|ing)?|flavou?rs?|ingredients?|pantry|wines?|beers?|cocktails?|whisk(e)?y|coffee|teas?|bread|pasta|pizza|cheese|dessert|cakes?|sauces?|spice[sd]?|michelin|tast(e|es|ing)|feast|butcher|bakery|farmers'? market|grocer(y|ies)|dining|appetite|leftovers?)\b/i,
+  not:SPORTY},
  {name:'From the archive',not:SPORTY,n:1,cats:['History'],
   find:/\bon this day\b|years ago\b|\bin 1[89]\d\d\b|\bhistory of\b|\bthe forgotten\b|\bwhen .* (was|were)\b/i},
  {name:'Obituary',n:1,any:1,first:1,
@@ -314,6 +333,8 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
     if(mine.length>=d.n)break;
     if(!d.from.has(g.outlet)||used.has(g.link))continue;
     /* a desk that is a kind of story only takes a headline that is that kind */
+    /* not a story on any desk, whatever the feed called it */
+    if(NOT_A_STORY.test(g.title||''))continue;
     if(d.find&&!d.find.test(g.title||''))continue;
     /* and a desk that is a place in the world refuses the kinds that are not its business. Section-by-source
        finds what matters and does not know where it belongs: on 26 November it filed a tennis result in
