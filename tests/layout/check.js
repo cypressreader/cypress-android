@@ -17,8 +17,11 @@ const fs = require('fs'), path = require('path'), http = require('http');
 const PW = require('child_process').execSync('npm root -g').toString().trim() + '/playwright';
 const { chromium } = require(PW);
 const ROOT = path.resolve(__dirname, '../../www'), OUT = path.resolve(process.env.OUT || 'layout-out');
-const SIZES = { phone: [412, 915], fold: [884, 1104] };
-const WANT = (process.env.WIDTHS || 'phone,fold').split(',');
+/* 'cover' is the Fold folded - about 320 CSS pixels wide, and the size three passes of this check never
+   looked at while every section label on David's cover screen had a headline lying across it. A phone at
+   412 did not show it; 320 did. Anything that only breaks when the type has to wrap breaks here first. */
+const SIZES = { cover: [320, 720], phone: [412, 915], fold: [884, 1104] };
+const WANT = (process.env.WIDTHS || 'cover,phone,fold').split(',');
 const SELF = !!process.env.SELFTEST;
 fs.mkdirSync(OUT, { recursive: true });
 
