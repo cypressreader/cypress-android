@@ -100,7 +100,18 @@ jobs:
           had either found a problem, the edition already live would have been kept.
 
           $(sed -n '2,20p' "$RUNNER_TEMP/compose.txt")"
-          git push
+          # An edition takes about fifteen minutes to build, and anything that lands on main meanwhile makes
+          # this push a non-fast-forward and throws the whole edition away at the last step (run 4, 27 Nov:
+          # every check green, then one second of failure because a commit had landed while it worked).
+          # Rebasing is safe here because this commit only ever touches the two edition files.
+          for try in 1 2 3; do
+            git push && exit 0
+            echo "push rejected; someone else committed while the edition was building (attempt $try)"
+            git pull --rebase origin "$(git rev-parse --abbrev-ref HEAD)" || exit 1
+            sleep 5
+          done
+          echo "::error title=Not published::main kept moving under the edition; nothing was published."
+          exit 1
 
       - name: Keep the evidence
         if: always()
