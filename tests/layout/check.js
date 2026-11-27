@@ -251,8 +251,11 @@ function picScan(opts) {
   /* the story open in the reader: its pages carry no story index, the reader holds it (WE.rd), and the figure
      weRead puts at the head of the body lives on the first of them. */
   if (opts && opts.only === 'we-sp') { const sp = pages.filter(x => x.classList.contains('we-sp'));
-    if (sp.length) one((WE.cur || []).find(x => x && x.link === WE.rd), 'as the reader opens it', pages.indexOf(sp[0]) + 1,
-      sp.map(x => x.querySelector('figure[data-wepl]')).find(Boolean));
+    if (!sp.length) return f;
+    const a = (WE.cur || []).find(x => x && x.link === WE.rd);
+    /* say so out loud rather than check nothing: a pass that cannot find its story is how this check went blind in the first place */
+    if (!a) return f.push({ kind: 'note', pageName: 'as the reader opens it', page: pages.indexOf(sp[0]) + 1, what: 'the check could not tell which story the reader has open (' + (WE.rd || 'nothing') + ')' }), f;
+    one(a, 'as the reader opens it', pages.indexOf(sp[0]) + 1, sp.map(x => x.querySelector('figure[data-wepl]')).find(Boolean));
     return f }
   /* the section openers: the lead story is the page's own `.we-ld` article */
   pages.filter(x => x.classList.contains('we-op')).forEach(pg => { const lead = pg.querySelector('[data-wel]');
@@ -357,6 +360,8 @@ const INJECT = () => {
         await page.screenshot({ path: path.join(OUT, `${name}-story-${String(k + 1).padStart(2, '0')}-${seenS.size}.png`) }) }
       const m = await measure(page, { minChars: 30, ov: .4, only: 'we-sp' });
       m.forEach((p, j) => { p.i = idx[j]; p.name = 'story ' + (k + 1) + ': ' + stories[k].slice(0, 40); p.story = k + 1; p.fails.forEach(f => { f.shot = `${name}-story-${String(k + 1).padStart(2, '0')}-1.png` }); per.push(p) });
+      /* the same injected defect on the reader's own page, so the self-test proves THAT pass fires too */
+      if (SELF) await page.evaluate(() => { const g = document.querySelector('.we-sc>.we-sp figure[data-wepl]'); if (g) g.style.cssText += ';visibility:hidden' });
       { const pf = await shown(page, picScan, { only: 'we-sp' }); pf.forEach(f => report.failures.push(Object.assign({ width: `${name} ${W}x${H}`, shot: `${name}-story-${String(k + 1).padStart(2, '0')}-1.png` }, f, { pageName: 'story ' + (k + 1) + ': ' + f.pageName }))) }
       { const sf = await page.evaluate(storyScan); sf.forEach(f => report.failures.push(Object.assign({ width: name, page: idx[0] + 1, pageName: 'story ' + (k + 1) + ': ' + stories[k].slice(0, 40), shot: `${name}-story-${String(k + 1).padStart(2, '0')}-1.png` }, f))) }
       await page.evaluate(() => weRdClose()); await page.waitForTimeout(700);
