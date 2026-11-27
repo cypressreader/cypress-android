@@ -45,6 +45,35 @@ const BY = arg('--by') || 'Claude, looked at each one';
 const MARKS = ['logo', 'text', 'child', 'body', 'grief', 'mugshot'];
 const SM = 600;
 
+/* --recheck: IS EVERY CLEARED PICTURE STILL THERE? (review of 2026-11-27.) A picture is shown from the
+   publisher's own address and never copied, so one that was looked at and cleared in the morning can be moved
+   or deleted by the afternoon, and the page silently goes bare with a credit under nothing. This asks each
+   address again and takes the picture off the story when it no longer answers with an image; the app then
+   falls back to a drawing, a plate or type, exactly as if it had never had one. Reports by default, like
+   everything else here; --write to act. It needs neither --photos nor --verdicts. */
+if (process.argv.includes('--recheck')) {
+  (async () => {
+    const d = JSON.parse(fs.readFileSync(EDITION, 'utf8')); let gone = 0, seen = 0;
+    /* ONLY A DEFINITE 'NOT THERE' REMOVES A PICTURE. The first cut treated anything but a clean image reply as
+       gone, and reported two live BBC photographs missing: the BBC's picture host answers 403 to a data centre
+       and serves the same file to a phone without complaint. A refusal, a rate limit, a timeout or a server
+       error all mean 'could not tell from here', and a picture nobody could check stays exactly where it is.
+       404 and 410 are the publisher saying it is gone. */
+    const alive = async u => { for (const method of ['HEAD', 'GET']) { try {
+      const r = await fetch(u, { method, redirect: 'follow', signal: AbortSignal.timeout(12000), headers: { 'user-agent': 'Mozilla/5.0', accept: 'image/*,*/*' } });
+      if (r.status === 404 || r.status === 410) return false;
+      if (r.ok) return true } catch (e) {} } return true };
+    for (const e of d.editions || [d]) {
+      for (const sec of e.sections || []) for (const st of sec.stories || []) {
+        if (st.photo && st.photo.url) { seen++; if (!await alive(st.photo.url)) { gone++; console.log('  gone  ' + String(st.t).slice(0, 60)); if (WRITE) delete st.photo } }
+        if (Array.isArray(st.inline)) { const keep = []; for (const ph of st.inline) { seen++; if (await alive(ph.url)) keep.push(ph); else { gone++; console.log('  gone  (inside) ' + String(st.t).slice(0, 52)) } } if (WRITE) { if (keep.length) st.inline = keep; else delete st.inline } }
+      }
+      if (e.cover && e.cover.photo && e.cover.photo.url) { seen++; if (!await alive(e.cover.photo.url)) { gone++; console.log('  gone  the cover photograph'); if (WRITE) e.cover.photo = null } }
+    }
+    console.log(seen + ' cleared picture' + (seen === 1 ? '' : 's') + ' asked for again, ' + gone + ' no longer there');
+    if (WRITE && gone) { d.rev = new Date().toISOString(); fs.writeFileSync(EDITION, JSON.stringify(d, null, 1)); if (!GIVEN && fs.existsSync(DOCS)) fs.writeFileSync(DOCS, JSON.stringify(d, null, 1)); console.log('written, issue stamped ' + d.rev) }
+    else if (gone) console.log('nothing written (no --write)');
+  })(); return }
 if (!PHOTOS || !VERDICTS) { console.error('need --photos photos.json and --verdicts v.json'); process.exit(1) }
 const pj = JSON.parse(fs.readFileSync(PHOTOS, 'utf8'));
 const vs = JSON.parse(fs.readFileSync(VERDICTS, 'utf8'));
