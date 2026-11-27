@@ -76,8 +76,11 @@ const inText=(needle,hay)=>!!needle&&norm(hay).toLowerCase().includes(norm(needl
 /* A figure has to be found the way the ARTICLE writes it, not the way the model hands it over: it answers 17700
    and the page says $17,700. Caught by --selfcheck on the first run, which would otherwise have refused every
    honest chart in the edition and looked like the model's fault. */
-const numText=(n,hay)=>{const v=Number(String(n).replace(/[, ]/g,''));if(!isFinite(v))return false;
- return [String(n),String(v),v.toLocaleString('en-US')].some(x=>inText(x,hay))};
+const numForm=(n,hay)=>{const v=Number(String(n).replace(/[, ]/g,''));if(!isFinite(v))return '';
+ for(const x of [String(n),String(v),v.toLocaleString('en-US')]){if(!inText(x,hay))continue;
+  return inText('$'+x,hay)?'$'+x:x}/* a figure keeps the article's own money sign: the page says $17,700, not 17700 */
+ return ''};
+const numText=(n,hay)=>!!numForm(n,hay);
 
 /* Every check here answers one question: is this on the page the reader can go and read? A plate that cannot be
    pointed at in the article is a plate the machine wrote, and that is the thing this file exists to prevent. */
@@ -111,7 +114,9 @@ function check(p,text,title){
   if(!sub||sub.length>90)return{err:'the line under the chart is missing or too long'};
   const max=Math.max(...v);if(!(max>0))return{err:'every figure is zero'};
   if(max===Math.min(...v))return{err:'the figures do not move, so there is no shape to draw'};
-  return{plate:{kind:'chart',bars:v.map(x=>Math.round(x/max*100)),sub}};
+  /* the bar heights, and under each one the figure as the ARTICLE writes it - a chart a reader cannot check is decoration */
+  const labs=(Array.isArray(p.values)?p.values:[]).map(x=>numForm(x,t));
+  return{plate:{kind:'chart',bars:v.map(x=>Math.round(x/max*100)),labs,sub}};
  }
  return{err:'the reply names no kind of plate I know'};
 }
