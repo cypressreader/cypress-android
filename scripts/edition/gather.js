@@ -136,8 +136,12 @@ function candidates(){
  const NOTICE=/\b(we use cookies|accept (all )?cookies|cookie (policy|settings|preferences)|enable javascript|javascript is (disabled|required)|access denied|are you a (robot|human)|verify (that )?you are human|unusual traffic|page (not|cannot be) found|sign in to continue|subscribe to (continue|read)|your browser is (out of date|not supported)|ad ?blocker)\b/i;
  const junk=r=>{const t=String(r.text||''),ps=t.split(/\n\n+/).filter(Boolean);
   if(NOTICE.test(t.slice(0,700))&&r.words<350)return 'reads like a notice, not an article';
-  const uniq=new Set(ps.map(x=>x.toLowerCase().slice(0,80))).size;
-  if(ps.length>=4&&uniq<ps.length*.7)return 'the same paragraph over and over';
+  /* NOT 'most paragraphs are repeats': some publishers' pages carry the whole article twice (a lazy-loaded
+     copy), which is a real story told twice and which the reader already folds back into one. The first cut of
+     this refused 'Uganda to withdraw troops from DR Congo' for exactly that. A wall is ONE line many times, or
+     almost nothing left once the repeats are gone. */
+  const cnt=new Map();for(const x of ps){const k=x.toLowerCase().slice(0,80);cnt.set(k,(cnt.get(k)||0)+1)}
+  if(ps.length>=4&&(Math.max(...cnt.values())>=4||cnt.size<3))return 'the same paragraph over and over';
   const letters=(t.match(/\p{L}/gu)||[]).length,latin=(t.match(/[A-Za-z\u00c0-\u024f]/g)||[]).length;
   if(letters>200&&latin<letters*.8)return 'not in a language this edition prints';
   return ''};
