@@ -29,7 +29,8 @@ const fs=require('fs'),path=require('path'),{ROOT}=require('./app');
 const {spawn}=require('child_process');
 
 const arg=n=>{const i=process.argv.indexOf(n);return i>0?process.argv[i+1]:null};
-const EDITION=arg('--edition')||path.join(ROOT,'world-edition.json');
+const GIVEN=arg('--edition');
+const EDITION=GIVEN||path.join(ROOT,'world-edition.json');
 const DOCS=path.resolve(__dirname,'../../docs/app/world-edition.json');
 const TEXT=arg('--text'),WRITE=process.argv.includes('--write'),ALL=process.argv.includes('--all');
 const LIMIT=Number(arg('--limit')||4);
@@ -193,7 +194,10 @@ function selfcheck(){
      (HANDOFF, 1.400). Any pass that edits an issue in place must stamp it. */
   d.rev=new Date().toISOString();
   fs.writeFileSync(EDITION,JSON.stringify(d,null,1));
-  if(fs.existsSync(DOCS))fs.writeFileSync(DOCS,JSON.stringify(d,null,1));
+  /* Only mirror into the DEPLOYED copy when we are writing the default edition. With an explicit --edition
+     this must not touch docs/app: a test run of clear.js with a four-story fixture replaced the live 33-story
+     edition in the working tree on 27 Nov, and only the uncommitted-changes hook caught it before it was pushed. */
+  if(!GIVEN&&fs.existsSync(DOCS))fs.writeFileSync(DOCS,JSON.stringify(d,null,1));
   console.log(set+' plate'+(set===1?'':'s')+' written, issue stamped '+d.rev);
  } else if(WRITE) console.log('nothing to write');
 })().catch(e=>{console.error('FAIL plate: '+(e&&e.stack||e));process.exit(1)});

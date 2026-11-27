@@ -19,7 +19,8 @@ const fs=require('fs'),path=require('path'),https=require('https'),{ROOT}=requir
 
 const arg=n=>{const i=process.argv.indexOf(n);return i>0?process.argv[i+1]:null};
 const WRITE=process.argv.includes('--write');
-const EDITION=arg('--edition')||path.join(ROOT,'world-edition.json');
+const GIVEN=arg('--edition');
+const EDITION=GIVEN||path.join(ROOT,'world-edition.json');
 const DOCS=path.resolve(__dirname,'../../docs/app/world-edition.json');
 
 /* Short, plainly attributed, and old enough that quoting a line of it is ordinary practice. Kept deliberately
@@ -105,6 +106,6 @@ async function wikiquote(){
  if(!WRITE){console.log('\nNothing written (no --write).');process.exit(0)}
  f.quote=q;
  fs.writeFileSync(EDITION,JSON.stringify(f,null,1));
- try{fs.writeFileSync(DOCS,JSON.stringify(f,null,1))}catch(e){}
+ if(!GIVEN)try{fs.writeFileSync(DOCS,JSON.stringify(f,null,1))}catch(e){}/* never the deployed copy when an explicit --edition was given: see clear.js */
  console.log('written into the edition.');
 })();

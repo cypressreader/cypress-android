@@ -35,7 +35,8 @@ const fs = require('fs'), path = require('path'), { ROOT } = require('./app');
 
 const arg = n => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : null };
 const WRITE = process.argv.includes('--write');
-const EDITION = arg('--edition') || path.join(ROOT, 'world-edition.json');
+const GIVEN = arg('--edition');
+const EDITION = GIVEN || path.join(ROOT, 'world-edition.json');
 const DOCS = path.resolve(__dirname, '../../docs/app/world-edition.json');
 const PHOTOS = arg('--photos'), VERDICTS = arg('--verdicts');
 const BY = arg('--by') || 'Claude, looked at each one';
@@ -80,5 +81,8 @@ if (!cleared) { console.log('nothing to write'); process.exit(0) }
 /* the rev stamp, or the correction never travels to a phone that already holds today's issue */
 d.rev = new Date().toISOString();
 fs.writeFileSync(EDITION, JSON.stringify(d, null, 1));
-if (fs.existsSync(DOCS) && path.resolve(EDITION) !== path.resolve(DOCS)) fs.writeFileSync(DOCS, JSON.stringify(d, null, 1));
+/* Only mirror into the DEPLOYED copy when we are writing the default edition. With an explicit --edition
+   this must not touch docs/app: a test run of clear.js with a four-story fixture replaced the live 33-story
+   edition in the working tree on 27 Nov, and only the uncommitted-changes hook caught it before it was pushed. */
+if (!GIVEN && fs.existsSync(DOCS)) fs.writeFileSync(DOCS, JSON.stringify(d, null, 1));
 console.log('written, issue stamped ' + d.rev);
