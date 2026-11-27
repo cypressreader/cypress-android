@@ -1,134 +1,165 @@
 /* World Edition, pass 4c: the third place to look for a picture.
  *
  * The edition asks the publisher first, then the other newsrooms who covered the same story. When neither has
- * a picture that passes, the page has been going bare. This is the third place: the free archives, which hold
- * a photograph of almost every place, building, institution, species, vehicle and historical event a story is
- * likely to be about. Wikimedia Commons alone is around 120 million freely licensed files.
+ * one that passes, the page has been going bare. This is the third place: the free archives.
  *
- * WHAT IT WILL AND WILL NOT DO. A wrong picture is worse than no picture, so the match has to be strict:
- *   - the subject is a multi-word proper name taken from the HEADLINE and confirmed in the ARTICLE TEXT, so a
- *     name the headline only alludes to is not searched for;
- *   - the file's own title or the archive's description of it must contain that whole subject, not a word of it;
- *   - the licence must be a free one, named on the page as the archive states it;
- *   - and NEVER on the Obituary page. David, 2026-11-27, asked for publisher photographs only there: a face is
- *     the one thing an archive can get wrong in a way a reader would never forgive, and it is the page where
- *     being wrong costs most.
- * No match, no picture. That is the normal outcome and it is the right one.
+ * WHICH ARCHIVE. Wikimedia Commons' own API refuses this data centre outright (429 on every request, every
+ * time - the same wall the publishers put up, and the same reason the feeds go through a relay). Openverse,
+ * the Creative Commons search the WordPress Foundation runs, indexes Commons anyway - 89 million files of it -
+ * along with Europeana, the Met, the Smithsonian, NASA, the Science Museum and the Wellcome Collection, and it
+ * answers. So the archive is reached through Openverse, and Flickr and iNaturalist are left out of the search:
+ * half a billion amateur snapshots is not a picture desk.
  *
- * Asked at BUILD TIME, by this script, never by a phone, so no reader is involved and the app makes no new
- * request. The picture itself is then served from the archive like any other, under the credit it requires.
+ * WHICH PAGES. An archive picture is a picture of the SUBJECT, not of the news - the Thames Barrier, not
+ * today's flood. On an explainer or a long read that is honest and normal; on a news page it would quietly
+ * pass a library picture off as a picture of the event, which is the same lie as a drawing. So:
+ *   NEVER   Home, Around the world, World, Business, Sport - events.
+ *           Obituary - David, 2026-11-27: publisher photographs only. A face is the one thing an archive can
+ *           get wrong in a way a reader would never forgive, on the page where it costs most.
+ *   ALLOWED Explainer, Long read, From the archive, Food, Science & Health, Tech, Culture, Review - where the
+ *           picture is of a thing, a place or a work, and saying so is the whole caption.
  *
- *   node scripts/edition/archive.js --gathered got.json        # what it would find, printed, nothing written
+ * HOW A SUBJECT IS CONFIRMED. Capitalisation alone proves nothing: in a Title Case headline every word is
+ * capitalised, which is how an early version of this came up with "Reloads Without Slowing Down" as a subject
+ * to search for. So each candidate phrase has to be a real thing: it must appear word for word in the article
+ * text AND have an article of its own on Wikipedia (whose API does answer this data centre). "Nikola Tesla",
+ * "Venice Biennale", "Australian Open" and "Major League Baseball" survive that; the headline fragments do not.
+ * Then the archive file's own title must contain the whole subject. No match, no picture - the normal outcome.
+ *
+ * Asked at BUILD TIME, here, never by a phone.
+ *
+ *   node scripts/edition/archive.js --edition docs/app/world-edition.json   # what it would find, nothing written
  */
-const fs=require('fs');
+const fs=require('fs'),https=require('https');
 
-const NEVER=new Set(['Obituary']);/* David's answer, 2026-11-27 */
-/* words that look like names at the start of a headline but name nothing an archive can hold */
-const STOP=/^(The|A|An|This|That|These|Those|New|How|Why|What|When|Where|Who|Here|There|After|Before|Inside|Meet|Watch|First|Last|Best|Worst|More|Most|Town|City|Man|Woman|People|One|Two|Three|Police|Report|Study|Exclusive|Opinion|Analysis|Review|Live|Update)$/i;
+const NEVER=new Set(['Home','Around the world','World','Business','Sport','Obituary']);
+const SOURCES='wikimedia,nasa,met,europeana,sciencemuseum,wellcome_collection,brooklynmuseum,museumsvictoria';
+/* cc0 and the public domain mark are free outright; by and by-sa need a credit, which the page prints.
+   nc is grey for an application, nd forbids the derivative that cropping arguably is. Neither is worth it. */
+const LIC_OK=new Set(['cc0','pdm','by','by-sa']);
+const STOP=/^(The|A|An|This|That|These|Those|New|How|Why|What|When|Where|Who|Here|There|After|Before|Inside|Meet|Watch|First|Last|Best|Worst|More|Most|One|Two|Three|Live|Update|Exclusive|Opinion|Analysis)$/i;
 
-/* The subject: the longest run of capitalised words in the headline that also appears, word for word, in the
-   story. Two words at least - a single capitalised word is as likely to be the first word of the sentence as
-   a name. "Thames Barrier", "Great Barrier Reef", "International Space Station" all survive this; "Town" and
-   "Thanksgiving" do not. */
-function subjectOf(title,text){
- const t=String(title||'').replace(/[‘’]/g,"'").replace(/\s+/g,' ').trim();
- const body=String(text||'');
- const runs=[];
- let cur=[];
+const UA='CyPressEditionBuilder/1.0 (static magazine build)';
+const get=(url)=>new Promise(res=>{
+ const r=https.get(url,{timeout:25000,headers:{'accept':'application/json','user-agent':UA}},q=>{
+  let b='';q.setEncoding('utf8');q.on('data',c=>b+=c);
+  q.on('end',()=>{if(q.statusCode!==200)return res(null);try{res(JSON.parse(b))}catch(e){res(null)}});
+ });
+ r.on('timeout',()=>{r.destroy();res(null)});r.on('error',()=>res(null));
+});
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* every capitalised run of two words or more in the headline that also appears in the story */
+function candidates(title,text){
+ const t=String(title||'').replace(/[‘’]/g,"'").replace(/\s+/g,' ').trim(),body=String(text||'');
+ const runs=[];let cur=[];
  for(const w of t.split(' ')){
   const bare=w.replace(/^[^A-Za-z0-9']+|[^A-Za-z0-9']+$/g,'');
   if(/^[A-Z][A-Za-z'’-]+$/.test(bare)&&!STOP.test(bare))cur.push(bare);
   else{if(cur.length)runs.push(cur);cur=[]}
  }
  if(cur.length)runs.push(cur);
- const cands=runs.filter(r=>r.length>=2).map(r=>r.join(' ')).sort((a,b)=>b.length-a.length);
- for(const c of cands)if(body.includes(c))return c;
- return '';
-}
-
-/* Commons answers a browser the way it answers nobody else: the catalogue is asked from inside the page, with
-   `origin=*` so the browser is allowed to read it, which is the same route the feeds already take. */
-async function commons(tab,subject,want){
- return await tab.evaluate(async ([q,n])=>{
-  const api='https://commons.wikimedia.org/w/api.php?origin=*&format=json&formatversion=2&';
-  const go=async u=>{try{const r=await fetch(u);return r.ok?await r.json():null}catch(e){return null}};
-  const s=await go(api+'action=query&list=search&srnamespace=6&srlimit='+n+'&srsearch='+encodeURIComponent(q));
-  const hits=((s&&s.query&&s.query.search)||[]).map(h=>h.title);
-  if(!hits.length)return[];
-  const d=await go(api+'action=query&prop=imageinfo&iiprop=url|size|mime|extmetadata&titles='+encodeURIComponent(hits.join('|')));
-  const pages=(d&&d.query&&d.query.pages)||[];
-  const out=[];
-  for(const p of pages){
-   const i=p.imageinfo&&p.imageinfo[0];if(!i)continue;
-   const m=i.extmetadata||{},v=k=>String((m[k]&&m[k].value)||'').replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim();
-   out.push({src:i.url,w:i.width,h:i.height,mime:i.mime,
-    file:String(p.title||'').replace(/^File:/,''),
-    desc:v('ImageDescription').slice(0,400),
-    artist:v('Artist').slice(0,120),
-    lic:v('LicenseShortName').slice(0,60),
-    usable:String((m.NonFree&&m.NonFree.value)||'0')!=='1'});
+ const out=new Set();
+ for(const r of runs){
+  /* the whole run, then its leading pairs: "Hundred Years Ago Nikola Tesla Predicted" also offers "Nikola Tesla" */
+  for(let len=r.length;len>=2;len--)for(let i=0;i+len<=r.length;i++){
+   const p=r.slice(i,i+len).join(' ');
+   if(body.includes(p))out.add(p);
   }
-  return out;
- },[subject,want]);
-}
-
-/* A free licence, a real photograph, big enough to print, and - the rule that does the work - the archive's own
-   words about the file must name the whole subject. */
-const FREE=/^(cc[ -]|public domain|pd[- ]|cc0|no restrictions|attribution)/i;
-function keep(c,subject){
- if(!c||!c.usable||!/^https:\/\//.test(c.src||''))return false;
- if(!/^image\/(jpeg|png)$/.test(c.mime||''))return false;/* no svg: an archive svg is a map, a flag or a logo */
- if(!FREE.test(c.lic||''))return false;
- if(Math.max(c.w||0,c.h||0)<900)return false;
- const r=Math.max(c.w,c.h)/Math.max(1,Math.min(c.w,c.h));
- if(r>2.6)return false;/* a banner or a panorama is not a story picture */
- const hay=(c.file+' '+c.desc).toLowerCase();
- return hay.includes(subject.toLowerCase());
-}
-
-/* The credit the archive requires, written the way the magazine writes one. */
-function credit(c){
- const who=(c.artist||'').replace(/\s*\(.*?\)\s*/g,' ').replace(/\s+/g,' ').trim();
- return (who?who+' / ':'')+(c.lic||'free licence')+', via Wikimedia Commons';
-}
-
-/* The one function photos.js calls. Returns candidates in the shape it already measures, or an empty list. */
-async function fromArchive(tab,{title,text,section}){
- if(NEVER.has(section))return[];
- const subject=subjectOf(title,text);
- if(!subject)return[];
- let got=[];
- for(let go=0;go<2&&!got.length;go++){
-  try{got=await commons(tab,subject,8)}catch(e){got=[]}
-  if(!got.length)await new Promise(r=>setTimeout(r,3000));
  }
- return got.filter(c=>keep(c,subject))
-   .sort((a,b)=>Math.max(b.w,b.h)-Math.max(a.w,a.h))
-   .slice(0,3)
-   .map(c=>({src:c.src,cap:credit(c),alt:c.desc.slice(0,160),arch:'Wikimedia Commons',subject}));
+ return [...out].sort((a,b)=>b.length-a.length).slice(0,6);
 }
 
-module.exports={fromArchive,subjectOf,credit,keep};
+/* Which of these phrases name a real thing. Asked of Wikipedia 40 at a time, so the whole edition costs a
+   handful of requests rather than one per story. Returns the canonical article titles. */
+async function realThings(phrases){
+ const real=new Set();
+ const all=[...new Set(phrases)].filter(p=>p.length<120);
+ for(let i=0;i<all.length;i+=40){
+  const batch=all.slice(i,i+40);
+  const j=await get('https://en.wikipedia.org/w/api.php?action=query&redirects=1&format=json&formatversion=2&titles='
+    +encodeURIComponent(batch.join('|')));
+  const pages=(j&&j.query&&j.query.pages)||[];
+  for(const p of pages)if(!p.missing&&p.title)real.add(p.title);
+  for(const n of ((j&&j.query&&j.query.normalized)||[]))if(real.has(n.to))real.add(n.from);
+  for(const r of ((j&&j.query&&j.query.redirects)||[]))if(real.has(r.to))real.add(r.from);
+  await wait(900);
+ }
+ return real;
+}
 
-/* Run on its own to see what it would find for today's edition, printed, writing nothing. */
+async function openverse(subject){
+ const u='https://api.openverse.org/v1/images/?page_size=12&license_type=all-cc&source='+SOURCES
+   +'&q='+encodeURIComponent(subject);
+ for(let go=0;go<2;go++){
+  const j=await get(u);
+  if(j&&Array.isArray(j.results))return j.results;
+  await wait(2500);
+ }
+ return [];
+}
+
+function keep(r,subject,big){
+ if(!r||!/^https:\/\//.test(r.url||''))return false;
+ if(!LIC_OK.has(String(r.license||'').toLowerCase()))return false;
+ const w=+r.width||0,h=+r.height||0;
+ if(Math.max(w,h)<(big?1600:1200))return false;
+ const ratio=Math.max(w,h)/Math.max(1,Math.min(w,h));
+ if(ratio>2.4)return false;
+ if(/\.svg($|\?)/i.test(r.url))return false;
+ /* the file's own title must name the whole subject - this is the rule that keeps a tangential picture out */
+ return String(r.title||'').toLowerCase().includes(subject.toLowerCase());
+}
+
+/* The caption says what the picture is OF, then who made it and under what. A reader can then see at a glance
+   that it came from a library rather than from today. */
+function credit(r){
+ const what=String(r.title||'').replace(/^File:/,'').replace(/\.(jpe?g|png|tiff?)$/i,'').replace(/\s+/g,' ').trim();
+ const who=String(r.creator||'').replace(/\s+/g,' ').trim();
+ const lic=({cc0:'CC0',pdm:'public domain'})[r.license]||('CC '+String(r.license||'').toUpperCase());
+ const where=({wikimedia:'Wikimedia Commons',met:'the Metropolitan Museum of Art',nasa:'NASA',
+   europeana:'Europeana',sciencemuseum:'the Science Museum',wellcome_collection:'the Wellcome Collection',
+   brooklynmuseum:'the Brooklyn Museum',museumsvictoria:'Museums Victoria'})[r.source]||r.source;
+ return (what?what+'. ':'')+(who?who+' / ':'')+lic+', via '+where;
+}
+
+/* The one function photos.js calls, once per story that still has nothing. */
+async function fromArchive({title,text,section},realSet,big){
+ if(NEVER.has(section))return[];
+ const subs=candidates(title,text).filter(p=>realSet.has(p));
+ for(const subject of subs){
+  const got=await openverse(subject);
+  const ok=got.filter(r=>keep(r,subject,big)).sort((a,b)=>Math.max(b.width,b.height)-Math.max(a.width,a.height));
+  if(ok.length)return ok.slice(0,3).map(r=>({src:r.url,w:r.width,h:r.height,cap:credit(r),
+    alt:String(r.title||'').slice(0,160),arch:r.source,subject}));
+  await wait(400);
+ }
+ return [];
+}
+
+module.exports={fromArchive,candidates,realThings,credit,keep,NEVER};
+
 if(require.main===module)(async()=>{
  const arg=n=>{const i=process.argv.indexOf(n);return i>0?process.argv[i+1]:null};
- const GOT=arg('--gathered');
- if(!GOT){console.log('need --gathered <file from gather.js>');process.exit(1)}
- const {openApp}=require('./app');
- const got=JSON.parse(fs.readFileSync(GOT,'utf8'));
- const app=await openApp(),tab=await app.ctx.newPage();
- let found=0,asked=0;
- for(const k of got.kept||[]){
-  const subject=subjectOf(k.title,k.text||'');
-  if(NEVER.has(k.section)){console.log('  --  '+k.section.padEnd(17)+'(never, by rule)  '+k.title.slice(0,46));continue}
-  if(!subject){console.log('  --  '+k.section.padEnd(17)+'(no subject in the headline)  '+k.title.slice(0,46));continue}
+ const ED=arg('--edition')||'docs/app/world-edition.json';
+ const f=JSON.parse(fs.readFileSync(ED,'utf8'));
+ const rows=[];
+ for(const e of f.editions||[])for(const s of e.sections||[])for(const st of s.stories||[])
+  if(e.id==='us')rows.push({section:s.name,title:st.t,text:(st.t||'')+' '+(st.dek||''),has:!!(st.photo&&st.photo.url)});
+ const all=[];for(const r of rows)if(!NEVER.has(r.section))all.push(...candidates(r.title,r.text));
+ console.log('asking Wikipedia which of '+new Set(all).size+' phrases name a real thing…');
+ const real=await realThings(all);
+ console.log('real: '+[...real].join(' | ')+'\n');
+ let hit=0,asked=0;
+ for(const r of rows){
+  if(NEVER.has(r.section)){console.log('  --   '+r.section.padEnd(17)+'(never, by rule)');continue}
+  const subs=candidates(r.title,r.text).filter(p=>real.has(p));
+  if(!subs.length){console.log('  --   '+r.section.padEnd(17)+'(no real subject)  '+r.title.slice(0,40));continue}
   asked++;
-  const pics=await fromArchive(tab,{title:k.title,text:k.text||'',section:k.section});
-  if(pics.length)found++;
-  console.log((pics.length?'  '+String(pics.length).padStart(2)+'  ':'   0  ')+k.section.padEnd(17)+'['+subject+']  '+k.title.slice(0,40));
-  for(const p of pics)console.log('        '+p.src.slice(0,96)+'\n          '+p.cap);
+  const p=await fromArchive(r,real,!r.has);
+  if(p.length)hit++;
+  console.log('  '+(p.length?String(p.length).padStart(2):' 0')+'   '+r.section.padEnd(17)+'['+subs.join(' / ')+']');
+  for(const x of p.slice(0,1))console.log('        '+x.w+'x'+x.h+'  '+x.cap.slice(0,96)+'\n        '+x.src.slice(0,96));
  }
- console.log('\n'+found+' of '+asked+' searchable stories found a free archive picture');
- await app.close();
+ console.log('\n'+hit+' of '+asked+' searchable stories found a free archive picture');
 })();
