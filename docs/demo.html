@@ -17495,11 +17495,22 @@ function weSay(){weMins();const el=document.querySelector('.we-rdy');if(!el)retu
    nothing is dropped - an empty magazine is worse than an unprepared one. */
 function weSettle(){if(S.sel!=='we'||!WE.d||WE.on)return;
  if(!WE.cur.some(a=>acHas(a.link)))return;
- const gone=WE.gone=WE.gone||new Set();let n=0;
- WE.cur.forEach(a=>{if(!acHas(a.link)&&!gone.has(a.link)){gone.add(a.link);n++}});
- if(!n)return;
+ const gone=WE.gone=WE.gone||new Set();
+ /* worked out BEFORE anything is dropped, because this can now decide to wait: adding to `gone` first and
+    then deferring left nothing new to report on the second visit, and the page never settled at all. */
+ const miss=WE.cur.filter(a=>!acHas(a.link)&&!gone.has(a.link));
+ if(!miss.length)return;
  if(WE.sp!=null){WE.resettle=1;return}/* the reader is inside a story: the pages are not pulled from under them */
- WE.resettle=0;render()}
+ /* NEVER REBUILD UNDER A MOVING FINGER. A rebuild puts the scroller back to the page the reader is on, which
+    kills a fling dead and, near the front of the edition, reads as being thrown back to the cover - David on a
+    Fold, 2026-11-27: "it kept kicking me back to the cover randomly", while a bad network was failing story
+    after story. Dropping a story is never urgent: it waits for a pause. */
+ if(userRest()){clearTimeout(WE.stl);WE.stl=setTimeout(weSettle,1200);return}
+ miss.forEach(a=>gone.add(a.link));
+ /* and the pass this rebuild schedules must NOT hand those stories another chance: on a bad network they fail
+    again, the set of failures differs each time, and the edition rebuilds in a loop under the reader. A second
+    chance belongs to a pass the READER asked for - opening the magazine, a refresh, a fold. */
+ WE.resettle=0;WE.nochance=1;render()}
 /* the whole edition is made ready behind the cover, the way the Daily's is (same network rules: dpOk; same store: acStoreOk keeps a gated or cut-short story out, so the gate line does not move); a story that fails simply loads when it is opened */
 async function wePreload(){if(WE.on||S.sel!=='we')return;WE.on=true;
  /* A story here is never a background fetch: `light` holds the answer at a quiet gate until the finger is
@@ -17515,7 +17526,8 @@ async function wePreload(){if(WE.on||S.sel!=='we')return;WE.on=true;
     smaller in terms of story count'. A pass only happens when the reader refreshes or re-opens the magazine,
     which is a deliberate act and exactly when they want the issue whole, so every pass starts the dropped
     ones from zero. If they fail again they are simply dropped again. */
- const had=WE.gone&&WE.gone.size?[...WE.gone]:null;
+ const again=!WE.nochance;WE.nochance=0;
+ const had=again&&WE.gone&&WE.gone.size?[...WE.gone]:null;
  if(had){had.forEach(l=>{delete WE.try[l]});WE.gone=new Set()}
  const one=async a=>{WE.try[a.link]=(WE.try[a.link]||0)+1;const t0=Date.now(),k=WE.try[a.link];
   const say=w=>{WE.lg.push({t:a.title.slice(0,40),go:k,ms:Date.now()-t0,w:String(w).slice(0,140)});if(WE.lg.length>60)WE.lg.shift()};
