@@ -41,7 +41,10 @@ const WIDTHS = [{ name: 'phone', width: 412, height: 915 }, { name: 'fold', widt
             return {
               id: s.id, idx: s.i, name: lab(pg),
               als: als ? [...als.querySelectorAll('li')].map(li => ({
-                link: !!li.querySelector('a[data-we]'), wel: li.getAttribute('data-wel')
+                link: !!li.querySelector('a[data-we]'),
+                /* must NOT carry data-wel: wePQ fills anything with that attribute with body paragraphs,
+                   and these entries are headlines in a list, not openers with a page to fill */
+                wel: li.hasAttribute('data-wel')
               })) : null,
               cont: !!(next && /, continued$/.test(lab(next)) && lab(next).indexOf(lab(pg)) === 0)
             }
@@ -73,6 +76,7 @@ const WIDTHS = [{ name: 'phone', width: 412, height: 915 }, { name: 'fold', widt
           if (!got.als) bad(w.name + ': ' + s.name + ' dropped its ' + s.left + ' leftover stories entirely');
           else if (got.als.length !== s.left) bad(w.name + ': ' + s.name + ' prints ' + got.als.length + ' of its ' + s.left + ' leftover stories');
           else if (got.als.some(x => !x.link)) bad(w.name + ': ' + s.name + ' prints a leftover headline that cannot be opened');
+          else if (got.als.some(x => x.wel)) bad(w.name + ': ' + s.name + " has an 'Also in' entry carrying data-wel - wePQ will pour body text into it");
         } else if (got.als) bad(w.name + ': ' + s.name + ' prints "Also in" with nothing to put in it');
       });
       if (merged) ok(w.name + ': ' + merged + ' sections print their leftovers on the opener (' + merged + ' pages saved)');
