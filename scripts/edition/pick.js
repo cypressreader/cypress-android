@@ -53,8 +53,8 @@ const OUT=arg('--json'),HOURS=Number(arg('--hours')||36);
    before any desk sees them, because none of them belongs in any section. Kept narrow on purpose: every
    pattern here is a shape of PUBLISHING, not a subject, so it cannot silently drop a real story about sales,
    gifts or newsletters. */
-const NOT_A_STORY=/^(how|what|where|when|who)\s+(was|were|is|are|did|do)\s+your\b|^(open thread|weekend (reading|links|open))|\b\d{1,2}%\s*off\b|\b(discount|promo|coupon)\s*codes?\b|\bbest deals\b|\bdeals? of the (day|week)\b|\b(gift|shopping)\s+guide\b|\bwhat (we|i)( a|'?)re (reading|buying|loving|watching this week)\b|\blinks? (we|i) love\b|\bgiveaway\b|\bhoroscopes?\b|\bsubscribe to our\b|\bthis week'?s newsletter\b/i;
-const SPORTY=/\b(nfl|nba|mlb|nhl|ncaa|fifa|uefa|premier league|la liga|serie a|f1|formula 1|grand prix|super bowl|world cup|playoffs?|quarterfinals?|semifinals?|touchdown|home run|fantasy football|week \d+|game \d+|\bvs\.?\b|steelers|packers|lakers|yankees|dodgers|man utd|manchester (united|city)|arsenal|liverpool|chelsea|wildcats|australian open|us open|french open|atp|wta|test match|six nations)\b/i;
+const NOT_A_STORY=/^(how|what|where|when|who)\s+(was|were|is|are|did|do)\s+your\b|^(open thread|weekend (reading|links|open))|\b\d{1,2}%\s*off\b|\b(discount|promo|coupon)\s*codes?\b|\bbest deals\b|\bdeals? of the (day|week)\b|\b(gift|shopping)\s+guide\b|\bwhat (we|i)( a|'?)re (reading|buying|loving|watching this week)\b|\blinks? (we|i) love\b|\bgiveaway\b|\bhoroscopes?\b|\bsubscribe to our\b|\bthis week'?s newsletter\b|\b(wordle|quordle|heardle|nerdle|strands|sudoku|crosswords?|connections|spelling bee|nyt mini)\b[^|]{0,40}\b(hints?|answers?|clues?|solutions?)\b|\bpuzzle\s*#\s*\d+/i;
+const SPORTY=/\b(nfl|nba|mlb|nhl|ncaa|fifa|uefa|premier league|la liga|serie a|f1|formula 1|grand prix|super bowl|world cup|playoffs?|quarterfinals?|semifinals?|touchdown|home run|fantasy football|week \d+|game \d+|\bvs\.?\b|steelers|packers|lakers|yankees|dodgers|man utd|manchester (united|city)|arsenal|liverpool|chelsea|wildcats|australian open|us open|french open|atp|wta|test match|six nations|strikers?|midfielders?|goalkeepers?|wingers?|quarterbacks?|wide receivers?|point guards?|transfer window|signs? a new contract|signs new contract|on loan to|caps for|matchday|kick-?off|full-?time|half-?time)\b/i;
 /* WHAT COUNTS AS SPORT IN A MAGAZINE (David, 2026-11-26): "it should only be major events. Someone won the
    world cup, world series, super bowl, Wimbledon etc. A random team winning a random game doesn't matter for
    99% of readers. Now a sport related major story like Kobe Bryant dying or Messi retiring does matter
@@ -359,6 +359,38 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
    got.set(d.name,mine.map(g=>({t:ownWords(g.title,g.outlet),o:g.outlet,l:g.link,n:g.n,
     dek:g.summary||'',img:g.img||'',date:g.date,outlets:g.outlets,
     sibs:(g.more||[]).filter(m=>m.l&&!/news\.google\.com/.test(m.l)).map(m=>({o:outletOf[m.f]||'',l:m.l,t:ownWords(m.t||'',outletOf[m.f]||''),img:m.img||''})).slice(0,4)})));
+  }
+  /* A SECTION THAT RUNS SHORT HANDS ITS PLACES TO ONE THAT HAS MORE TO SAY (David, 2026-11-27, told that the
+     new refusals would thin some sections: "If a section runs short that's ok just add more to other
+     sections"). Every refusal above - not a story, not food, plainly sport - now costs the issue nothing in
+     SIZE, only in where the stories sit, which is the right trade: it was never the aim to print less, only
+     to stop printing the wrong thing.
+     Second pass only, so a desk's own first choices always come before another desk's overflow; +3 at most to
+     any one desk, so a single loud section cannot swallow a thin day; and every gate above still applies,
+     because a spare place is not a reason to lower the bar. */
+  let spare=E.desk.reduce((n,d)=>n+Math.max(0,d.n-(got.get(d.name)||[]).length),0);
+  for(const d of E.desk){
+   if(spare<=0)break;
+   const mine=got.get(d.name)||[];let extra=0;
+   for(const g of groups){
+    if(spare<=0||extra>=3)break;
+    if(!d.from.has(g.outlet)||used.has(g.link))continue;
+    if(NOT_A_STORY.test(g.title||''))continue;
+    if(d.find&&!d.find.test(g.title||''))continue;
+    if(d.not&&d.not.test(g.title||''))continue;
+    if((spoke.get(g.outlet)||0)>=2)continue;
+    if(mine.some(x=>x.o===g.outlet||x.outlet===g.outlet))continue;
+    if(await isRepeat(accepted,g))continue;
+    if(!await resolve(tab,page,g)){used.add(g.link);continue}
+    accepted.push({title:g.title,link:g.link,feedId:g.feedId});
+    spoke.set(g.outlet,(spoke.get(g.outlet)||0)+1);
+    used.add(g.link);for(const m of g.more)if(m.l)used.add(m.l);
+    mine.push({t:ownWords(g.title,g.outlet),o:g.outlet,l:g.link,n:g.n,
+     dek:g.summary||'',img:g.img||'',date:g.date,outlets:g.outlets,
+     sibs:(g.more||[]).filter(m=>m.l&&!/news\.google\.com/.test(m.l)).map(m=>({o:outletOf[m.f]||'',l:m.l,t:ownWords(m.t||'',outletOf[m.f]||''),img:m.img||''})).slice(0,4)});
+    extra++;spare--;
+   }
+   got.set(d.name,mine);
   }
   /* printed in the order they are written, whatever order they chose in */
   for(const d of E.desk)sections.push({name:d.name,places:d.n,stories:got.get(d.name)||[]});

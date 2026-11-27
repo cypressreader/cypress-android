@@ -40,6 +40,15 @@
  * `people:false` is separate and says NO identifiable person is the subject of the frame. It is required when
  * the headline accuses somebody (`WE_ACCUSE` in the app), so that a story about a charge never runs a face.
  *
+ * WHAT IS NOT A REASON TO REFUSE, because the eye was being stricter than the magazine (David, 2026-11-27,
+ * on a publicity still of two women in bed that this reader had refused: "Two women in bed is fine as long as
+ * there's no pornography so yes you can loosen things a bit"). None of the six marks covers nudity, and a
+ * refusal invented beyond them is the eye deciding policy on its own. So: intimacy, an embrace, a kiss, bare
+ * shoulders or a bare back, a swimsuit, a life-drawing class, a publicity still from a drama - all fine, and
+ * none of them touches `body`, which is about a dead or injured body and nothing else.
+ * THE ONE LINE: a sexually explicit picture gets NO MARKS AT ALL and so never prints. It is not a mark to
+ * withhold, it is a picture this magazine does not carry.
+ *
  * THE BIAS IS DELIBERATE AND IT IS NOT SYMMETRIC. Wrongly clearing a picture publishes a mugshot or a grieving
  * face. Wrongly refusing one costs a bare page, which this magazine already treats as the correct outcome when
  * in doubt. So the eye does not need to be perfect, it needs to be CAUTIOUS: anything you are unsure about
