@@ -54,6 +54,13 @@ const OUT=arg('--json'),HOURS=Number(arg('--hours')||36);
    pattern here is a shape of PUBLISHING, not a subject, so it cannot silently drop a real story about sales,
    gifts or newsletters. */
 const NOT_A_STORY=/^(how|what|where|when|who)\s+(was|were|is|are|did|do)\s+your\b|^(open thread|weekend (reading|links|open))|\b\d{1,2}%\s*off\b|\b(discount|promo|coupon)\s*codes?\b|\bbest deals\b|\bdeals? of the (day|week)\b|\b(gift|shopping)\s+guide\b|\bwhat (we|i)( a|'?)re (reading|buying|loving|watching this week)\b|\blinks? (we|i) love\b|\bgiveaway\b|\bhoroscopes?\b|\bsubscribe to our\b|\bthis week'?s newsletter\b|\b(wordle|quordle|heardle|nerdle|strands|sudoku|crosswords?|connections|spelling bee|nyt mini)\b[^|]{0,40}\b(hints?|answers?|clues?|solutions?)\b|\bpuzzle\s*#\s*\d+|\bearnings call transcript\b|\b(q[1-4]|full[- ]year) \d{4} (results|earnings) call\b/i;
+/* GOSSIP IS NOT THE FRONT SECTION. On 27 November Home carried "Thom Evans Confirms Nicole Scherzinger
+   Split After Seven Years", because Home is filled by how widely a story is reported and six outlets covered
+   it. The answer is NOT to refuse celebrity news - it is real, and Culture is where a magazine prints it -
+   but to keep it off the front. So this is used by Home, World and Business only.
+   Every word here is a tabloid verb or a tabloid noun. "Slams" is deliberately absent: real political
+   headlines use it constantly. */
+const GOSSIP=/\bclaps? back\b|\bgushe[sd]\b|\bflaunts?\b|\bsteps? out in\b|\bspotted (with|on a date)\b|\bsparks? (romance|dating|engagement|split|pregnancy) rumou?rs\b|\bbaby bump\b|\bred carpet\b|\bco-?parenting\b|\bPDA\b|\bconfirms?\s+(?:\S+\s+){0,3}(split|breakup|romance|divorce|engagement)\b(?!\s+of\b)|\bannounce[sd]?\s+(their|his|her)\s+(split|separation|divorce|engagement)\b|\b(split|together) after \d+ years\b/i;
 const SPORTY=/\b(nfl|nba|mlb|nhl|ncaa|fifa|uefa|premier league|la liga|serie a|f1|formula 1|grand prix|super bowl|world cup|playoffs?|quarterfinals?|semifinals?|touchdown|home run|fantasy football|week \d+|game \d+|\bvs\.?\b|steelers|packers|lakers|yankees|dodgers|man utd|manchester (united|city)|arsenal|liverpool|chelsea|wildcats|australian open|us open|french open|atp|wta|test match|six nations|strikers?|midfielders?|goalkeepers?|wingers?|quarterbacks?|wide receivers?|point guards?|transfer window|signs? a new contract|signs new contract|on loan to|caps for|matchday|kick-?off|full-?time|half-?time|depth charts?|recruiting class|bowl game|mock drafts?)\b/i;
 /* WHAT COUNTS AS SPORT IN A MAGAZINE (David, 2026-11-26): "it should only be major events. Someone won the
    world cup, world series, super bowl, Wimbledon etc. A random team winning a random game doesn't matter for
@@ -70,12 +77,19 @@ const SPORT_CAREER=/\b(retires?|retirement|announces? (his|her|their) retirement
 const SPORT_NOISE=/\bfantasy\b|start '?em|sit '?em|\bodds\b|\bbetting\b|\bpicks?\b|\brankings?\b|\bpower rankings\b|\binjury report\b|\bweek \d+\b|\bpreview\b|\bhow to watch\b|\bhighlights\b|\brecap\b|\btrade rumou?rs?\b|\bmock draft\b/i;
 
 const DESK=[
- {name:'Home',not:SPORTY,n:6,cats:['News','Politics'],home:1,
+ {name:'Home',not:new RegExp(SPORTY.source+'|'+GOSSIP.source,'i'),n:6,cats:['News','Politics'],home:1,
   outlets:['NPR','PBS NewsHour','NBC News','CBS News','AP News','Axios','The Hill','CNN','Fox News','Semafor','ProPublica','NPR Politics','The Hill Politics','Roll Call','Politico','The Intercept','FiveThirtyEight']},
- {name:'World',not:SPORTY,n:6,
+ {name:'World',not:new RegExp(SPORTY.source+'|'+GOSSIP.source,'i'),n:6,
   outlets:['BBC World','The Guardian World','Al Jazeera','Deutsche Welle','Reuters','BBC News','Global News','The Guardian','Foreign Policy','Foreign Affairs','BBC Politics','France 24','The Japan Times','CNA','Africanews','MercoPress']},
- {name:'Business',not:SPORTY,n:4,cats:['Business','Money']},
- {name:'Science & Health',n:4,cats:['Science','Health','Space','Environment']},
+ {name:'Business',not:new RegExp(SPORTY.source+'|'+GOSSIP.source,'i'),n:4,cats:['Business','Money']},
+/* SCIENCE & HEALTH WAS THREE-QUARTERS TECHNOLOGY on 27 November - Nvidia chips in a Shanghai data centre,
+   smartphone shipments, a Razer audio driver - because its feeds overlap Tech's and nothing asked what the
+   story was ABOUT. Enumerating technology to refuse is the losing end of that argument: a chip can be a real
+   science story. So it works the way Food now works and asks for its own subject. A science story that uses
+   none of these words is refused and its place goes to a section that has more to say, which is the trade
+   David asked for. */
+ {name:'Science & Health',n:4,cats:['Science','Health','Space','Environment'],
+  find:/\b(stud(y|ies)|research(ers)?|scientists?|trial|clinical|patients?|doctors?|disease|cancer|virus|vaccine|infection|outbreak|diagnos(is|ed)|symptoms?|therapy|treatment|drug|brain|genes?|genetic|dna|species|fossil|evolution|climate|emissions?|warming|glacier|wildlife|ecosystem|telescope|astronomers?|galaxy|orbit|spacecraft|asteroid|mars|moon|nasa|quantum|physicists?|chemistry|antibiotic|microb|neurons?|immune|surgery|mental health|nutrition|sleep|exercise)\b/i},
  {name:'Tech',n:4,cats:['Tech','Mobile','AI & Security','Developers']},
  {name:'Culture',not:SPORTY,n:4,cats:['Culture','Entertainment','Design','Music','Film & TV','Books']},
  {name:'Review',n:2,cats:['Books','Film & TV','Music','Design','Culture'],
