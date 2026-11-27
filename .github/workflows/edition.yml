@@ -1,0 +1,119 @@
+# CyPress: build the World Edition by itself, twice a day.
+#
+# David's goal is set-up-once-then-hands-off: nothing in here waits for him. It reads the feeds, picks the day's
+# stories by counting, opens every one through the app's own reader, writes the edition file, and then hands it
+# to the two robots that look at the magazine. IT PUBLISHES ONLY IF BOTH COME BACK CLEAN. If anything is wrong,
+# or too few stories survive, the edition already live stays live and the run says why. The fallback is always
+# yesterday's edition, never a broken one.
+#
+# WHAT IT CANNOT DO YET, and neither can anyone: print a photograph. A picture is only printed once something
+# has looked at it (WORLD-EDITION-PIPELINE.md, pass 4), so until that pass exists these editions are type.
+name: World Edition
+
+on:
+  schedule:
+    # 11:38 and 00:38 UTC. Off the hour on purpose: every other scheduled job in the world runs at :00.
+    #
+    # WHY THESE TIMES. David wakes at 7am Pacific (2026-11-27). The edition used to be built at 06:12 UTC,
+    # which is 10:12pm his time the night before - so the issue he picked up over breakfast was nearly nine
+    # hours old, yesterday evening's news wearing a morning date. 11:38 UTC is 3:38am in his winter and
+    # 4:38am in his summer, so the issue and the review after it are finished by about 5:45am either way:
+    # fresh, and well clear of 7am even when the clocks move. The second run, 00:38 UTC, lands late
+    # afternoon for him (4:38pm winter, 5:38pm summer) rather than two hours after he has already read it.
+    #
+    # These stay in UTC rather than his time zone for two reasons. GitHub Actions cron has no time zone
+    # support at all - it is UTC only. And the Claude task that reviews the drawings is chained to this one,
+    # 35 minutes behind; if the two ran on different clocks, daylight saving would silently slide the review
+    # in front of the build twice a year, where it would do nothing and look like it was working.
+    - cron: "38 11 * * *"
+    - cron: "38 0 * * *"
+  workflow_dispatch:
+    inputs:
+      min:
+        description: "Fewest stories that may be published (below this the live edition is kept)"
+        default: "10"
+      publish:
+        description: "Commit and push the edition if the checks pass"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: edition-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  edition:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install Playwright and Chromium
+        run: |
+          npm install -g --no-audit --no-fund playwright@1.63.0
+          npx -y playwright@1.63.0 install --with-deps chromium
+
+      - name: Pick the day's stories from the feeds
+        run: node scripts/edition/pick.js --json "$RUNNER_TEMP/cand.json"
+
+      - name: Read every one of them
+        run: node scripts/edition/gather.js --candidates "$RUNNER_TEMP/cand.json" --deadline 30 --json "$RUNNER_TEMP/got.json"
+
+      - name: Write the edition
+        id: write
+        run: |
+          node scripts/edition/compose.js \
+            --candidates "$RUNNER_TEMP/cand.json" --gathered "$RUNNER_TEMP/got.json" \
+            --min "${{ inputs.min || '10' }}" --write | tee "$RUNNER_TEMP/compose.txt"
+          echo "### The edition" >> "$GITHUB_STEP_SUMMARY"
+          sed 's/^/    /' "$RUNNER_TEMP/compose.txt" >> "$GITHUB_STEP_SUMMARY"
+
+      # The robot that looks at the magazine. Both must pass; neither is allowed to be skipped.
+      - name: Check every page and spread
+        run: OUT="$RUNNER_TEMP/layout" node tests/layout/check.js
+      - name: Check that every page paints its own paper
+        run: OUT="$RUNNER_TEMP/paint" node tests/layout/paint.js
+
+      - name: Publish it
+        if: ${{ inputs.publish != false }}
+        env:
+          DATE: ${{ github.run_id }}
+        run: |
+          if git diff --quiet -- www/world-edition.json docs/app/world-edition.json; then
+            echo "No change to publish." >> "$GITHUB_STEP_SUMMARY"; exit 0
+          fi
+          git config user.name "cypressreader"
+          git config user.email "davealmaguer@gmail.com"
+          git add www/world-edition.json docs/app/world-edition.json
+          git commit -m "$(head -1 "$RUNNER_TEMP/compose.txt")
+
+          Written by the scheduled run. Both checks came back clean before this was committed;
+          had either found a problem, the edition already live would have been kept.
+
+          $(sed -n '2,20p' "$RUNNER_TEMP/compose.txt")"
+          git push
+
+      - name: Keep the evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: edition-${{ github.run_number }}
+          path: |
+            ${{ runner.temp }}/layout
+            ${{ runner.temp }}/paint
+            ${{ runner.temp }}/cand.json
+            ${{ runner.temp }}/got.json
+          retention-days: 14
+
+      - name: Say what went wrong
+        if: failure()
+        run: |
+          {
+            echo "### The edition was not published"
+            echo "A step failed, so the edition already live stays live. The screenshots and the two reports are in this run's artifact."
+          } >> "$GITHUB_STEP_SUMMARY"

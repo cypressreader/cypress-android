@@ -202,6 +202,8 @@ public class CyNativePlugin extends Plugin {
             JSObject r = new JSObject();
             r.put("versionCode", code);
             r.put("versionName", pi.versionName);
+            // the preview app installs under its own id and follows its own release line (issue 42)
+            r.put("appId", c.getPackageName());
             r.put("canInstall", can);
             // the phone's text size setting (1.0 is normal), so the reader can follow it
             r.put("fontScale", (double) c.getResources().getConfiguration().fontScale);

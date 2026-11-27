@@ -1,14 +1,15 @@
 # CyPress — Operating Rules (read on every boot)
 
-## 0. Boot sequence & Mandatory Reply Header
-1. **EVERY SINGLE REPLY MUST START WITH A TURN COUNTER:** Start your very first line of every message with `**[Turn X/8]**` (incrementing X by 1 for each message the user sends in this chat, starting at `[Turn 1/8]`). Never skip this header—it is how you track when to trigger the §4 Handoff Alarm.
-2. **Read `HANDOFF.md` first on Turn 1.** It holds live state, locked rules, dead ends, and the next 3 tasks. Never ask the user to repeat anything in it.
+## 0. Boot sequence
+1. **No turn counter and no reply header** (dropped 2026-11-26). Counting David's messages measured nothing real: a one-line question counted the same as twenty tool calls, and the hard stop at 8 was a made-up deadline that cut sessions off mid-thought. What actually protects the work is §4 - HANDOFF.md committed and pushed the moment a task finishes.
+2. **Read `HANDOFF.md` before anything else.** It holds live state, locked rules, dead ends, and the next 3 tasks. Never ask the user to repeat anything in it.
 3. Use the §2 map to jump straight to the right file and symbol. Do not scan the repo.
 4. If the user types `Continue`: resume immediately from "Active state" in `HANDOFF.md`.
 
 ## 1. What this is & How to communicate
 CyPress Reader: privacy-first, magazine-style reader. No accounts, no ads, all data on-device. Web app + Capacitor Android wrapper (`com.cypress.reader`, sideloaded APK). Static hosting on GitHub Pages; no backend (only an optional user-run Cloudflare Worker).
 - **Workflow & Persona:** The user vibe-codes from the Claude mobile/web app in cloud sessions. **Do everything yourself inside the cloud environment.** Never ask the user to run local terminal/CLI commands, git commands, or `/plugin` commands unless strictly unavoidable. Explain in plain English first, then brief details.
+- **Plain English, always** (David's standing instruction, 2026-11-26): no jargon and no internal shorthand in a reply. Name a function or a file only when he needs it to find something, and say what it does in the same breath. Save the symbol names for the commit message.
 
 ## 2. Codebase map (zero-search navigation)
 | What | Where |
@@ -33,31 +34,28 @@ Key symbols in `www/index.html` (grep name, then read ±30 lines): `render0` (li
 
 ## 3. Token & Code Discipline (non-negotiable)
 - **Ponytail Rule (Zero Bloat):** Act like the laziest senior engineer. Write the smallest correct implementation using native browser/DOM APIs. Never add external libraries, redundant wrapper functions, speculative abstractions, or extra CSS classes when existing styles work. Verify the actual execution path before patching so we never stack band-aid fixes inside `www/index.html`.
-- **Surgical reads:** Never read `www/index.html` whole (2 MB / ~550k tokens). `grep -n` the symbol, then Read with `offset`/`limit`, and cut long lines (`cut -c1-300`). Never re-read a file already read this session.
+  - **Ruthless about what reaches the phone; pragmatic about tooling that earns its keep.** Nothing new ships inside `www/index.html` without a reason that survives the speed rule and the privacy rule (§7: every third-party request gets disclosed). Dev-only files that never ship — `tests/`, `tools/perf/`, `scripts/`, `.claude/skills/` — are judged on whether they pay for themselves, not on their size. Still never commit a vendored runtime library, a binary asset or a whole third-party bundle (claude-design's 852 KB: install it globally, don't commit it).
+- **Surgical reads:** Never read `www/index.html` whole (2 MB / ~550k tokens). `grep -n` the symbol, then Read with `offset`/`limit`, and cut long lines (`cut -c1-300`). Don't re-read what is already in context - but do re-read a region you have just changed when an exact edit depends on how it reads now.
 - **Big text files are grep-or-append only:** `TESTING.md`, `FIXES.md`, `HANDOFF-ARCHIVE.md`, `whats-new.txt`. Append blind with `cat >> file <<'EOF'`, read with `grep -n` or `tail`, never whole.
-- **Quiet commands & failures only:** Run only tests the change needs: `node tests/x.js >/dev/null 2>&1 && echo "x ok" || echo "x FAIL"`. Only inspect output on failure. Never write new test suites or run audits unprompted.
+- **Quiet commands, and a pass you can trust:** Run only tests the change needs, and COUNT the failures instead of trusting the exit code - several suites exit 0 with FAILs in the output, and a piped `grep -c` returns its own exit code, not the test's: `node tests/x.js >/tmp/x.log 2>&1; echo "x FAILs=$(grep -c '^FAIL' /tmp/x.log)"`. Open the log only when that count is not 0. Never write new test suites or run audits unprompted — with one exception: a bug a real device reported gets one regression guard, because the guard is cheaper than the bug returning (`tests/shape_burst.js`).
 - **Diffs & Ignored files:** `git diff --stat` / `git log --oneline` first; `git diff` only on the one file that matters. Never read lockfiles, `node_modules/`, build output, `docs/app/index.html`, `docs/demo.html`, `context/`, `backup/`.
 - **Workers (`model: sonnet`):** Use ONLY when a read-only job reads massive output (sweeping greps, searching `TESTING.md`/`HANDOFF-ARCHIVE.md`/`FIXES.md`, running full test suites) and returns a short conclusion. Never use workers for edits, commits, single-grep lookups, or `fork`.
-- **Brief replies:** Always begin with `**[Turn X/8]**`, followed by a plain-English summary of what changed and why. Show only changed lines. Use Implemented / Upgraded / Skipped for batches.
+- **Brief replies:** Lead with a plain-English summary of what changed and why. Show only changed lines. Use Implemented / Upgraded / Skipped for batches.
 
 ## 3b. Model matching
-Check which model this session is running (`get_session` / attribution reminder). Never switch unprompted and never refuse work, but flag mismatches in **one line on Turn 1**:
+Check which model this session is running (`get_session` / attribution reminder). Never switch unprompted and never refuse work, but flag a mismatch in **one line, once per session**:
 - **On Opus doing pure procedure** (version bumps, `whats-new.txt`, merges, preview scripts, handoff trims, spelling sweeps, running tests): *"This is procedure — you can switch to Sonnet (`/model claude-sonnet-5-5`) to save quota."*
 - **On Sonnet doing complex judgment** (device-only bugs, layout/`fitPage1`/`fitHero`, §7 locked-rule edge cases): *"This touches complex layout/rules — switch to Opus (`/model claude-opus-5`) if you want deeper reasoning, or I can proceed."*
 - **Already matched:** Say nothing about models.
 
-## 4. Memory & Hard-Stop Quota Protocol
-- **Keep HANDOFF.md under ~8 KB:** Move finished/dated items to `HANDOFF-ARCHIVE.md` (never read on boot). Silently update and commit `HANDOFF.md` whenever a task/fix finishes.
-- **MANDATORY AUTO-HANDOFF ALARM (NO EXCEPTIONS):**
-  - At **`[Turn 7/8]`**: Include a 1-line warning at the bottom of your reply: *"⚠️ Next message is Turn 8 — I will wrap up and trigger a session handoff after the next turn."*
-  - At **`[Turn 8/8]`** (OR if the `[turn-counter]` hook fires): **HARD STOP.** Finish the immediate edit, update and commit `HANDOFF.md`, push the branch, and output EXACTLY this banner at the end of your message:
-
-  🛑 **WEEKLY QUOTA CHECKPOINT: START A NEW SESSION** 🛑
-  (Put this 1-click copy line in a code fence with the real branch name): `Checkout branch <current-branch-name>, read CLAUDE.md and HANDOFF.md, and Continue.`
-  `HANDOFF.md` and `CLAUDE.md` are updated on disk. Open a new session and simply type: `Continue`
-
-  Followed by a code fence containing the current "Active state" and "Next 3 tasks" from `HANDOFF.md`.
-  - **If the user sends a `[Turn 9/8]` message anyway:** Refuse to start new feature work until they start a new chat, unless they explicitly say "override quota".
+## 4. Memory & not losing work
+- **HANDOFF.md is the safety net, and it only works if it is current.** Update and commit it the moment a task or fix finishes, not at some later checkpoint, and push on the same turn. Any session can end without warning; nothing should be lost when it does.
+- **Size: a smell, not a rule** (David, 2026-11-26: 'Fix handoff when it makes sense to not a hard rule. I'd rather things work well then trim just to trim'). There is no byte count to hit and no trimming for its own sake. Move something to `HANDOFF-ARCHIVE.md` (never read on boot) when it has actually gone dead - solved and confirmed, or a dead end already written up - and leave it alone while it is still live, however long the file gets. If the file is big AND full of live state, that is the work being big, which is information, not a problem to tidy away. Never delete a live note to make a number; never report a size as if it were a fault. Trim as a side effect of finishing things, when the trim is obvious and safe.
+- **The `session-guard` hook** (`scripts/session-guard.js`, on each of David's messages) speaks only when there is unpushed work, a branch with no upstream, or uncommitted HANDOFF.md edits. It is a note, never a stop.
+- **Say when a fresh session would help, and why - don't leave David guessing.** He cannot see the context budget and should not be managing it. A new window earns its keep in three cases: the work changes subject (carrying the old detail costs tokens every turn and invites pattern-matching to the wrong problem), the session has read a lot of large files and turns have got heavy, or a wrong assumption has set in and is not shaking out. It is a waste mid-task, and while he is away testing a build and coming back with findings - there, staying put is the whole value. Length is about how much conversation gets re-processed each turn, never the number of messages.
+- **Wrapping up is David's call, not a turn number.** When he says wrap up / handoff / new session, or context is genuinely short: commit and push HANDOFF.md, then give him this copy line in a code fence with the real branch name -
+  `Checkout branch <current-branch-name>, read CLAUDE.md and HANDOFF.md, and Continue.`
+  followed by a code fence holding the current "Active state" and "Next 3 tasks".
 
 ## 5. Workflow rules
 - Work on feature branches (named in HANDOFF). **Nothing ships to `main` until the user says `build` or `merge`.** Publish a preview (`scripts/publish-preview.sh <branch>`) when asked or when a change needs a look first. If the user explicitly says `build` or `merge`, ship straight to `main` without waiting for a preview.

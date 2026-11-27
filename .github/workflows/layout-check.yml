@@ -1,0 +1,62 @@
+# CyPress: World Edition layout check (issue 50). Opens the REAL edition at phone width (412x915) and Fold width (884x1104),
+# screenshots every page / spread and story, and fails on text-on-text overlap, blank pages, truncated headlines and wrong NEXT SECTION labels.
+# Screenshots + report.md + report.json are the "layout-check" artifact of every run (pass or fail).
+name: Layout check
+
+on:
+  push:
+    branches: ["claude/**", "preview/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: layout-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  layout:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install Playwright and Chromium
+        run: |
+          npm install -g --no-audit --no-fund playwright@1.63.0
+          npx -y playwright@1.63.0 install --with-deps chromium
+      - name: Prove the detectors fire (known defects injected on purpose)
+        run: SELFTEST=1 READY_WAIT=10 OUT=$RUNNER_TEMP/self node tests/layout/check.js
+      - name: Check the real edition
+        run: |
+          set +e
+          OUT=$GITHUB_WORKSPACE/layout-out node tests/layout/check.js
+          rc=$?
+          cat layout-out/report.md >> "$GITHUB_STEP_SUMMARY"
+          exit $rc
+      - name: Prove the see-through detector fires (a page made transparent on purpose)
+        if: always()
+        run: SELFTEST=1 OUT=$RUNNER_TEMP/paint-self node tests/layout/paint.js
+      - name: Every page must paint its own paper (issue 54)
+        if: always()
+        run: |
+          set +e
+          OUT=$GITHUB_WORKSPACE/paint-out node tests/layout/paint.js
+          rc=$?
+          cat paint-out/report.md >> "$GITHUB_STEP_SUMMARY"
+          exit $rc
+      - name: Keep the screenshots and the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: layout-check
+          path: |
+            layout-out
+            paint-out
+          retention-days: 14
+          if-no-files-found: ignore

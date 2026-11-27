@@ -1,12 +1,13 @@
 # CyPress: installs a test copy of the Android app on an Android emulator (a real Android phone image) and drives it:
 # real taps, swipes, the back button, rotation, Fold screen sizes, big system text, dark phone, share-in, cold start.
 # It never publishes a release. Screenshots and report.json go to the "device-results" branch (replaced on every run).
-# Start it by pushing a change under tests/device/ on a claude/ branch (for example edit tests/device/RUN), or by hand.
+# Start it by pushing a change under tests/device/ on a claude/ or preview/ branch (for example edit tests/device/RUN), or by hand.
+# It runs twice: once on a phone image, then once on a tablet image for the two-page spread (World Edition).
 name: Device test
 
 on:
   push:
-    branches: ["claude/**"]
+    branches: ["claude/**", "preview/**"]
     paths:
       - "tests/device/**"
       - ".github/workflows/device-test.yml"
@@ -16,6 +17,10 @@ on:
         description: "Only these steps, comma separated (empty = all). See tests/device/run.js."
         type: string
         default: ""
+      tablet:
+        description: "Also run on a tablet image, for the two-page spread (World Edition). Adds about 15 minutes."
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -37,7 +42,7 @@ env:
 jobs:
   device:
     runs-on: ubuntu-24.04
-    timeout-minutes: 50
+    timeout-minutes: 80
     steps:
       - name: Get the files
         uses: actions/checkout@v4
@@ -69,7 +74,15 @@ jobs:
           printf '\nandroid { defaultConfig { minSdkVersion 26 } }\n' >> android/app/build.gradle
           npx cap sync android
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
-          (cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon)
+          # run 62 never reached the emulator: Maven Central answered 429 (Too Many Requests) to every
+          # dependency. It is the runner's luck, not the build, so the build is simply tried again.
+          chmod +x android/gradlew
+          ok=0
+          for i in 1 2 3; do
+            if (cd android && ./gradlew assembleDebug --no-daemon); then ok=1; break; fi
+            echo "gradle attempt $i failed; waiting 60s before trying again"; sleep 60
+          done
+          [ "$ok" = 1 ]
           cp "$(find android/app/build/outputs/apk/debug -name '*.apk' | head -1)" cypress-debug.apk
           npm install -g --no-audit --no-fund playwright@1.63.0
 
@@ -79,6 +92,8 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      # WELITE=1 here draws the edition with no cover art and no photographs (run 62/63's crash hunt).
+      # It is OFF: run 63 showed the emulator survives the cover, and the run must see the pictures.
       - name: Run the app on the emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -95,6 +110,26 @@ jobs:
             adb logcat -v time '*:W' > /tmp/logcat.txt 2>&1 &
             node tests/device/run.js
 
+      # the spread only exists from 600px, so the World Edition's two-page look needs a tablet screen.
+      # It never fails the run: a missing device profile must not throw away the phone's results.
+      - name: Run the app on a tablet image (the two-page spread)
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.tablet }}
+        continue-on-error: true
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_tablet
+          ram-size: 4096M
+          disk-size: 6000M
+          disable-animations: false
+          emulator-options: -no-snapshot-save -no-window -gpu angle_indirect -noaudio -no-boot-anim -no-metrics
+          script: |
+            adb install -r cypress-debug.apk
+            adb logcat -v time '*:W' > /tmp/logcat-tablet.txt 2>&1 &
+            OUT=device-out/tablet STEPS=world,we-widths node tests/device/run.js
+
       # runs 10, 11, 12 and 14: the emulator vanished mid-test with nothing in its own output. This says why:
       # the runner's kernel log names a process it killed for memory, or one that crashed
       - name: Note why the emulator stopped, if it did
@@ -110,11 +145,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           [ -d "$OUT" ] || { echo "No results were written."; exit 0; }
-          cd "$OUT"
-          # smaller pictures: quicker to fetch and to look through
+          # smaller pictures: quicker to fetch and to look through. The tablet's run has its own folder.
           if sudo apt-get install -y -qq imagemagick > /dev/null 2>&1; then
-            mogrify -format jpg -quality 82 -resize '720x1600>' *.png && rm -f *.png && sed -i 's/\.png"/.jpg"/g' report.json || true
+            for d in "$OUT" "$OUT/tablet"; do
+              [ -d "$d" ] || continue
+              ( cd "$d" && ls *.png > /dev/null 2>&1 && mogrify -format jpg -quality 82 -resize '720x1600>' *.png && rm -f *.png && sed -i 's/\.png"/.jpg"/g' report.json ) || true
+            done
           fi
+          cd "$OUT"
           git init -q -b device-results .
           git add -A
           git -c user.name=device-test -c user.email=device-test@users.noreply.github.com commit -qm "Device test of ${GITHUB_SHA} (${GITHUB_REF_NAME})"

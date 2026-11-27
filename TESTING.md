@@ -2567,3 +2567,236 @@ After the next build (messy-story fixes, checked only against the saved pages):
 - After 1.393: on Cypress with the green top bar, the new-stories arrow shows a green arrow inside its cream circle (it was an empty circle).
 - [ ] (branch after 1.393) Refresh line under the top bar: during a refresh where sites finish one by one, the thin line stays steady and fades once ~1.2 s after the last site, no on/off pulsing (David's recording 2026-11-23, Halcyon green bar).
 - [ ] (preview/extractor-rules) Reader notes: a paywalled Platformer post shows the "Subscriber preview" badge + "Open the original story" card (as STAT does); an NBC/CBS video link shows "Video — This is a video, not a written story. Open the original" and the link opens in the Custom Tab. PBS/AP "… contributed to this report" folds into "About the author" (tap to open, "move it back" works). Eater Awards story: perks paragraph gone, last photo kept.
+
+## World Edition, first test version (preview/world-edition, not released)
+Checked in a desktop browser only. On a real phone and on the Fold, check:
+- The World Edition tab in the bottom bar: five tabs fit, labels are not cut, and tapping it again glides to the top.
+- Cover fills the first screen; the headline is whole; the ring does not touch the date line; night and day both look right.
+- Fold unfolded: cover on the left, contents on the right. Folded: one page after the other.
+- Tap the edition line under the masthead: the list opens, switching works, and the choice is remembered after closing the app.
+- First open on a phone set to a non-US region shows the International Edition.
+- Tap a headline: it opens in the reader, the full story loads, Back returns to the same place in the edition.
+- Contents rows jump to their sections; "How this edition was picked" jumps to the method page.
+- With large text switched on in Android, nothing on the cover is cut.
+- Offline after opening once: the edition still opens.
+- The photo layer has never been seen with a real photo (the sample has none that passes). It is unverified on any device.
+
+## World Edition, issue 27 (magazine pages + stories made ready; preview/world-edition, not released)
+Tested in a desktop browser with a stand-in for the network. On a real phone, on Wi-Fi, check:
+- Open the World Edition tab and wait: the line under the contents counts up ("Getting stories ready: 7 of 18") and ends at "All 18 stories are ready" or names how many are.
+- After that, tap any ready story: the full text is there at once, with no gray loading bars.
+- On mobile data: nothing is fetched ahead, and the line says stories load when opened.
+- A story from a paywalled site keeps its subscriber-only note and is not stored.
+- Tech and (US) Long read open with a photo and a credit under it; every other section opens in type, with no empty box.
+- Real pull quotes appear under some section leads: each must be a real sentence from that story. Report any that reads oddly.
+- Scrolling stays smooth while stories are being made ready.
+
+## World Edition, issues 28 and 29 (pages flip; new cover; art-direction fields; preview/world-edition)
+Tested with a mouse in a desktop browser only. On a real phone and Fold, check:
+- Swipe left and right turns one page (phone) or one spread (Fold unfolded), and never opens the side menu or changes tab by mistake.
+- The arrows at the bottom turn pages; "Page 3 of 17" keeps up.
+- Contents rows jump to the right page; Back from a story returns to the same page.
+- The cover: "CyPress" with "The World Edition" under it, the ring drawing in once, the headline rising in. With Reduce Motion on, nothing moves.
+- Nothing on any page is cut off; a page with a very long headline scrolls inside itself.
+- Rotating or unfolding mid-read keeps a sensible page.
+- Photo crops: the Tech and Long read photos keep their subject in frame on phone and Fold.
+
+## World Edition, issue 30 (preview/world-edition, not in a release)
+Implemented, unverified on a phone:
+- A finger swipe left/right turns the page (weSwipe). Check it does not fight the app's own swipes, and that up/down still scrolls inside a page.
+- The leaf turn (weFlip, 1,280 ms) on a real phone and on the Fold unfolded (two-page spread): smooth, no flash of the wrong page, no stutter on a cold start.
+- The drawn cover (no photo in the sample): check it reads well on the phone screen in both themes.
+- A story opens inside the magazine and Back returns to the same page; judge "instant" on the APK over Wi-Fi, not on the web preview.
+- Service worker fix: a data file (world-edition.json) is no longer answered with the app's own page when it is missing from the cache. Check the edition still opens after an update and when offline.
+
+## World Edition takeover, issue 32 (preview/world-edition, not in a release)
+Implemented, unverified on a phone:
+- The edition fills the screen: no sidebar, no feed, no tab bar. Check the top status bar and the gesture area on a real phone (safe-area padding), and that "‹ Editions" and the Android back button both return to the app as it was.
+- One page per screen with nothing scrolling inside it, on a phone and on the Fold folded; the spread from 600px up.
+- Story pages: the body is split by measuring, so check no page is cut short or overfull on a real screen, and that the drop cap and pull quote sit right.
+- Swipe between pages with the app chrome gone (no gesture conflict with the system back swipe on the left edge).
+
+## World Edition curl + reading model, issue 33 (preview/world-edition)
+Implemented, unverified on a phone:
+- The curl on a real device: each turn poses 8-14 strips (by core count) with the reader's own bow. Watch for stutter on the first turn and on a cold start.
+- Phone reading: a story is one page and the body scrolls; check the scroll does not fight the sideways swipe, and that the back mark still flips out.
+- Spread reading: the body flows page to page; check no page is cut short or overfull on a real Fold screen.
+- Safe areas with no app chrome, and the swipe near the system back-swipe edge.
+
+## World Edition round two, issue 34 (preview/world-edition)
+Implemented, unverified on a phone:
+- Story bodies on real publisher pages (the cleaning was tested against a fixture, not the live sites): check the first paragraph is the story's own on Ars Technica, ZDNet, CNET, NPR.
+- The ready line: hover it on a wide screen to see which stories did not come ready; on a phone, check it reaches "All 18" or disappears.
+- Preview first load shows the newest build (takes effect from the publish after 2c070fb).
+
+## World Edition round three, issue 36 (preview/world-edition)
+Unverified here, needs a real network or device:
+- The Al Jazeera story (DR Congo): whether it ever returns text; the 7-second limit and the "publisher did not send the text" page were tested against a fixture only.
+- The Food video embed and the "By Jay Bennett13 hours ago" byline: both come from live publisher pages, fixed by rule, not seen fixed.
+- Story pages are now cream paper in the night look too: check that reads right on a phone at night.
+
+## 1.396 preview self-update (issue 42, 2026-11-25) — needs a real phone
+- Implemented, unverified on a device: the preview app (`com.cypress.reader.preview`) now reads
+  `/releases?per_page=30` and offers the newest `preview-*` pre-release, by the build number printed in the
+  release's name; the real app still reads `releases/latest` and can never be offered a preview.
+  Verified in a browser with a stubbed native layer (preview -> build 465 of the preview line; real app ->
+  the stable release), and `node tests/native.js` is green.
+- On the phone: install this preview APK by hand once, publish a newer preview build, open the preview app,
+  and it should offer the update in-app (download, then one Install tap). Then confirm the real app does NOT
+  offer it. The first in-app update can only be tested from a build that already carries this change.
+
+## Issue 43 (b): Contents thumbnails (World Edition, preview build)
+- Contents page: each section whose lead has an approved photo shows a small picture at the right of its row; leads with no photo stay text. Check at phone size and wide: no row is cut, the list still fills the page, type still legible.
+- Section opener pages already lead with the lead's photo (unchanged): confirm it is large on the Fold.
+- A photo that fails to load must leave the row as plain text, with no hole.
+
+## Issue 46 — World Edition magazine audit (UNVERIFIED on a phone; checked in desktop Chromium only)
+Check on the Fold first, then web, then wide:
+- C1/C5: a page turn is a 200 ms slide (no 3D). No white half, no ghost, quick taps queue and land on the right page.
+- C2/C3: headline and photo are there the moment the page lands (no 0.4 s photo fade, entrance 200 ms fade only).
+- C4: Contents lands in the same size every time you come back to it.
+- A1/A2: navy cover, thin frame, masthead the same size on every cover; red is the only colour (kicker, rules, ready line is now plain grey).
+- A3/D4: Contents leads with ONE big photo row (first section whose lead photo passes); other rows have no thumbnails.
+- A5/A6: story pages have "The World Edition" left and "source · date" right; a one-page story now shows its page number.
+- B3-B7: kicker rule, deck in italic serif (browser slant: Literata italic is not bundled), one pull quote between two rules, drop cap (3-line `initial-letter`), captions with the credit in small caps.
+- B8: headlines break onto two lines after a colon or a dash.
+- D2: drawn cover is a flat navy field with one red block (no circles/gradients).
+- D5/D6: "From the editor" note page; the ready line reads "18 stories · all ready to read".
+
+## Issue 47 (World Edition magazine feel) - implemented, unverified on a Fold
+- Cover: drawn globe/sun/orbit art with two annotations; "returns" must not break across lines; kicker reads "Lead story · Home".
+- Contents: ten equal rows, headline clamped to two lines, thumbnail slot in every row (drawn tile when no photo), page numbers right-aligned; cover + Contents side by side on the Fold.
+- Story pages: three shapes (by link hash), a picture (drawn plate when no photo), a pull quote (quoted sentence, else the strongest sentence of the text), end mark + "next story/section" link, last page not mostly blank (text steps down up to 3 times).
+- Turn: 400 ms flat lift-and-settle (no rotation); check swipes in a row, Back from a story, no blank flash.
+- Back: no white page after the navy back cover; odd page counts get a colophon leaf BEFORE the back cover.
+- Not reproduced: the "3 of 7 / 4 of 7" repeated on two spreads of the turkey story; the stray word "caption" (guarded in the credit and body filters).
+
+## World Edition app-side guard (issue 48 follow-up)
+- Open a story whose page has no readable text (or tap a paid one before the edition has finished getting ready): the story should simply leave the edition and you land back on the cover. No "did not send the text" page, no link out, and the ready line counts one fewer. Verified in a browser with stand-in pages; check on the Fold with real publishers.
+
+## Issue 53: World Edition opaque page swap (implemented, unverified on a real phone)
+- On the Fold (884x1104) and a phone: turn forward and back through the whole edition, three rapid swipes, open and close a story, then turn. After every turn the page must be clean at once, at 1 s and at 5 s (no Nvidia over "Home, continued", no cover over Contents).
+- The turn is now a plain cut: there are no page copies in the DOM at any time. Only the Fold can confirm the ghost is gone.
+- Phone story page: scroll the whole story; the page number sits under the last line (end of the story), never over a line of text.
+- The large lone "g" on the dark "World, continued" page: not reproducible in any render (phone, Fold, light, dark). Most likely a piece of a leftover turn copy, which no longer exists. Confirm on the Fold.
+
+## Issue 54 (Fold, David)
+- Drag a page with a finger on phone + Fold: it follows the finger, snaps to next/previous on release; flick works; rapid swipes and a stopped-mid-drag finger end cleanly; arrow keys still turn.
+- No ghost of the old page 1 s / 5 s after any turn; no 3 openers on one page (Food / Long read / Back page); story pages (World story, 11 pages) all distinct, no repeated or spliced sentences, no clipped edges; no lone big "g"; every Home story ends with the end mark.
+
+## 1.396+ (branch claude/issue-47-20261125-2336) — needs a real phone
+- **Fast scroll up no longer resizes the screen** (David, 2026-11-26, APK 469): a height-only resize
+  (Android's system bar animating during a fast fling) no longer runs the full reshape — cover refit,
+  crop, tab indicators, transition writes and a forced layout of the whole document — on every event.
+  It is coalesced to one pass 220 ms after the height settles; a width change (fold/unfold) still
+  reshapes on the spot. Verified in a browser only (0 reshapes during a 12-step height burst, 1 after,
+  width change immediate). ON THE PHONE: fling up as fast as possible in the Daily and in a World
+  Edition story and watch for the content reflowing. If it still happens, Copy diagnostics and read the
+  'Shape changes' line — it now marks height-only events as `height` and full ones as `shape`.
+- **Speaker cues in broadcast clips (R17)**: open the NPR and PBS NewsHour stories on the Home page.
+  Each speaker's name should be small caps in front of their words, never a bare name on its own line,
+  and the drop cap should be on prose, not on a speaker's name.
+- **The square / "the scroll" — CONFIRMED FIXED ON THE DEVICE** (David, build 494, 2026-11-26: "It's fixed ! The scroll").
+  This was the last of the three faults that all looked like one squeezed page. Cause: pull-to-refresh moves `#grid`
+  with a transform and springs it back, and a transformed element becomes the containing block for a fixed descendant,
+  so the full-screen edition measured `height:100%` against a 48 px `#grid` and hit its own 420 px floor — 46% of the
+  screen, for exactly as long as the spring took. Pull-to-refresh now leaves the edition alone (`.open,.wefull`).
+  If it is ever seen again: swipe DOWN hard in the edition, flat on a table, and check whether `#grid` carries a
+  transform while `body.wefull` is set — `tests/we_square.js` reproduces it in a browser, so it needs no phone.
+
+## Preview build 503 (branch claude/issue-47-20261125-2336, 2026-11-26)
+- **The last page of the edition on the Fold.** The credit line under the Back page story used to print on top of
+  "End of the edition". Fixed in the browser (the Fold layout check went from 2 problems to 0, and both checks are
+  still 0 on the hand-made edition). NOT seen on a phone: open the edition, turn to the last spread, and check the
+  outlet name and the end line sit apart, at both the open and the closed size.
+- **The old turn-layer rules (`.we-lyr`) were removed.** Nothing has used that class since the turn stopped
+  building pages from copies, so a page turn should look exactly as it did in build 502. If a turn flickers or a
+  page paints oddly, that removal is the first thing to put back.
+
+## Preview build 504 (2026-11-26): does a new edition arrive on its own?
+The test app now asks CyPress Reader's preview site for a newer edition (the real app still asks
+cypressreader.com, which carries nothing until the World Edition is merged). The preview site is serving the
+first machine-written edition, 26 November, while the copy inside the app is MJ's hand-made 24 November one.
+- Install 504, open the magazine: it should be the **24 November** issue, exactly as before.
+- Leave it on screen a few seconds (the check runs about 2.5 s after the pages are drawn), close the magazine,
+  open it again: it should now be **26 November, No. 2** - nine stories, Business, Science & Health and Culture
+  empty, no photographs, a type cover. Thin on purpose: a third of the feeds refuse a cloud address.
+- An issue must never change under you while reading. If the magazine switches issue while it is open, that is
+  a fault.
+- Offline, on data saver, on a metered connection or in battery saver it must not ask at all, and the 24
+  November issue keeps opening.
+
+## Preview build 505 (2026-11-26): the test app asks on every open
+The three-hour limit between checks is kept for the real app and dropped in the test app only, so the arrival
+of a new edition can be tried on demand. Open the magazine, wait about five seconds, back out, open it again:
+the 26 November machine-written issue should be there. It still must never change while the magazine is open,
+and it is still skipped on battery saver, data saver, a metered connection and offline.
+
+## Preview build 506 (2026-11-26): a new issue appears on opening the magazine
+On 505 the new edition only appeared after the app itself was restarted (David). The edition was read once at
+start-up, so coming back into the magazine never looked again. Now, whenever the magazine is opened with none
+of it on screen, a newer issue already fetched is taken up and the site is asked again. Check: with a newer
+edition on the preview site, open the magazine, wait a few seconds, back out to the lists, open it again - the
+new issue should be there with no app restart. It must still never change while the magazine is open or a
+story is being read.
+
+## Preview build (2026-11-26, the 27-story edition with pictures)
+The edition in this build was written by the pipeline from 597 outlets: 27 stories, 13 sections, 17 pictures,
+ten sections opening on a photograph. Both robot checks were clean at phone and Fold width before it shipped.
+- **Pictures.** Every section opener that has one should be a photograph with a credit under it. Nothing should
+  show a broken picture box: a picture that fails or arrives too small is dropped, never replaced by a frame.
+- **Keep this story.** At the end of a story, "Keep this story" should put it on the shelf and read "On your
+  shelf" afterwards; it should be on the shelf when you leave the magazine.
+- **Reading time.** Each Contents row should gain "N min" as its story is stored. Nothing should jump when the
+  times appear.
+- **Earlier issues.** On the method page at the back: a list of kept issues (only once a second one has
+  arrived). Opening one should show that issue, and the Contents footer should then offer "Back to the latest
+  issue". The last seven are kept.
+- **Listen to this edition** (from build 505) still plays the issue in order.
+
+## Preview build (2026-11-26, two editions and the sport rule)
+- **The edition switcher works again.** US Edition and International Edition are both in the file; the
+  international one opens on "Around the world" instead of Home. Switching should show a different running
+  order, not the same magazine with a different name on it.
+- **Sport.** Only things that were won, or a career ending, being banned or a record transfer. A day with no
+  final should leave Sport short or empty - that is the rule working, not a fault. A death belongs on the
+  Obituary page.
+- **Pictures.** 20 in the US edition, ten sections opening on a photograph.
+
+## The obituary issue (2026-11-26, third edition of the day)
+- **Cover**: the FCC/SpaceX story. It should NOT be the Duran Duran death any more: a death goes to the
+  Obituary page and the cover comes from the news sections only.
+- **Obituary page**: Andy Taylor, with a photograph and a short note under a red "Written by a machine"
+  label, naming NPR's obituary and Wikipedia beneath it. That label must always be visible - it was red on
+  red on the last build and is now the page's own ink.
+- **The last word**: the final page before the navy back cover, Robert Frost, in the cover's colours.
+- **Sport** is empty again: nothing was won.
+
+## After David's three screenshots (2026-11-26)
+- **Contents rows**: the section name, headline, reading time and page number must each sit in their own
+  column with nothing overlapping, on the phone AND open. On the phone there should be NO reading time
+  visible, because the headline is hidden there too.
+- **A story's picture** should fill the column on every page shape. The one that used to print it at 70%
+  pushed right is the shape with a quote part-way down.
+- **The cover** should be Time's photograph of Trump and Putin, full bleed, with the credit on it.
+- STILL OPEN, seen in David's screenshots and reproduced in a browser: a story's opening page stops about
+  69% full because the pull quote cannot fit the remaining third, so it starts the next page and leaves a
+  hole on both. Not fixed in this build.
+
+## Pagination build (2026-11-26, late)
+- **A story's opening page should be full.** A paragraph now runs on across the break: the page ends
+  mid-sentence and the next opens flush with the rest of it. Measured on three stand-in stories, opening
+  pages went 29->53, 76->97 and 46->60 per cent full.
+- **A pull quote** shrinks a step or two to stay on the page, and if it still will not fit it waits for the
+  next paragraph rather than taking the rest of the page with it.
+- Watch for: a continuation that repeats words already read (it should carry on, never restart), a quote so
+  small it reads as body text, and any page that still ends a third empty.
+
+## Contents rows on the folded screen (2026-11-27)
+The rows could shrink below their own headlines, so on the Fold's cover screen every section label had a
+headline lying across it. Both the grid track and the row itself now have a content floor.
+- Open the magazine FOLDED and look at the Contents: section name, headline, reading time and page number,
+  nothing touching anything else. Then open the Fold and check it again.
+- The list should still fill the page evenly. If it cannot fit, the type should step down rather than the
+  rows overlap.
+- The layout check now walks 320x720 as well as 412 and 884, which is where this hid.
