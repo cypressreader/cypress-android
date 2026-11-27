@@ -16662,6 +16662,13 @@ const weWhen=v=>{try{const t=Date.parse(String(v)+'T12:00:00');return isNaN(t)?S
 function weKept(){try{const s=localStorage.getItem('we-ed'),d=s&&JSON.parse(s);return weOk(d)?d:null}catch(e){return null}}
 async function weEdition(){
  let built=null;try{built=await (await fetch('world-edition.json')).json()}catch(e){}
+ /* An issue carries the address it was loaded FROM, because its drawings are published beside it and a
+    relative address has to be resolved against something. This copy is fetched relative to the page, so the
+    page is what it is relative to. Getting this wrong is the same mistake three times over: the drawings were
+    resolved against the live site, so on the preview site - and in the preview app - every one of them was
+    looked for at cypressreader.com, where a preview issue's pictures do not exist, and dropped in silence.
+    David saw a magazine with no drawings in it twice, on the phone and in a browser. */
+ if(built&&!built.weBase)try{built.weBase=new URL('world-edition.json',location.href).href}catch(e){}
  const kept=weKept(),use=(kept&&(!weOk(built)||String(kept.date||'')>String(built.date||'')))?kept:built;
  weRefresh(use);return use}
 /* A new issue appears twice a day, so checking on every open is a request the reader pays for and nobody needs.
