@@ -10,10 +10,14 @@
         (the old curl built the turn from copies), nothing from outside the current page painting over it and text of two
         DIFFERENT pages overlapping (a ghost IS text over text). Mid-turn it also requires that no page copy exists at all.
      6. every story ends with the 'End of the story' mark, and its folio never prints over a line of body text at any scroll position
+     7. (issue 47) PICTURES: a story whose photo or drawing the app accepts must actually show it - a figure in the page, visible, with a
+        box of its own. Served over HTTPS with a throwaway certificate for exactly this reason: both picture gates in the app require
+        https, so for three months on plain http every picture was refused inside the harness and the check reported '0 problems' on
+        pages it had never seen carrying one. A picture the app refuses is reported as a note, with the reason.
    Run: node tests/layout/check.js      Env: OUT=dir (default layout-out)  URL=<app url> (default: serves www/)
         SELFTEST=1 injects known defects and proves each detector fires (exit 0 only if all do).  WIDTHS=phone,fold
    Exit 1 on any failure. Screenshots + report.json + report.md land in OUT. Text over a photo is fine; text over text is not. */
-const fs = require('fs'), path = require('path'), http = require('http');
+const fs = require('fs'), path = require('path'), https = require('https');
 const PW = require('child_process').execSync('npm root -g').toString().trim() + '/playwright';
 const { chromium } = require(PW);
 const ROOT = path.resolve(__dirname, '../../www'), OUT = path.resolve(process.env.OUT || 'layout-out');
@@ -26,7 +30,12 @@ const SELF = !!process.env.SELFTEST;
 fs.mkdirSync(OUT, { recursive: true });
 
 const MIME = { '.html': 'text/html', '.json': 'application/json', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
-const serve = () => new Promise(res => { const s = http.createServer((q, r) => { let f = path.join(ROOT, decodeURIComponent(q.url.split('?')[0])); if (f.endsWith('/')) f += 'index.html';
+/* a throwaway certificate, made once per OUT: the app only shows a picture whose address is https (weArtPass / wePhotoOk), so a
+   harness on plain http can never see one. The browser is told to accept it (ignoreHTTPSErrors) and nothing leaves the machine. */
+const cert = () => { const d = path.join(OUT, 'tls'), k = path.join(d, 'key.pem'), c = path.join(d, 'cert.pem'); fs.mkdirSync(d, { recursive: true });
+  if (!fs.existsSync(k) || !fs.existsSync(c)) require('child_process').execSync(`openssl req -x509 -newkey rsa:2048 -nodes -keyout "${k}" -out "${c}" -days 365 -subj /CN=127.0.0.1 -addext subjectAltName=IP:127.0.0.1`, { stdio: 'ignore' });
+  return { key: fs.readFileSync(k), cert: fs.readFileSync(c) } };
+const serve = () => new Promise(res => { const s = https.createServer(cert(), (q, r) => { let f = path.join(ROOT, decodeURIComponent(q.url.split('?')[0])); if (f.endsWith('/')) f += 'index.html';
   if (!f.startsWith(ROOT) || !fs.existsSync(f)) { r.writeHead(404); return r.end() } r.writeHead(200, { 'content-type': MIME[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(r) });
   s.listen(0, '127.0.0.1', () => res(s)) });
 
@@ -192,7 +201,7 @@ const STANDIN = '<!doctype html><html lang="en"><head><meta charset="utf-8"><tit
 /* the page measures every page, on screen or not; pages that are off screen are not painted any more (issue 54), so they are shown for the measurement only */
 const measure = async (page, opts) => { const h = await page.addStyleTag({ content: '.we-sc>.we-pg{visibility:visible!important}' }); const r = await page.evaluate(inPage, opts); await h.evaluate(e => e.remove()); return r };
 async function open(browser, url, w, h) {
-  const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, isMobile: false, hasTouch: false }), page = await ctx.newPage();
+  const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, isMobile: false, hasTouch: false, ignoreHTTPSErrors: true }), page = await ctx.newPage();
   const errs = []; page.on('pageerror', e => errs.push(e.message));
   /* publishers are unreachable from a cloud runner, so without this only one story in eighteen ever loads and the check measures empty pages.
      A stand-in article answers every off-site page fetch, so the pages carry the type a reader would see. Pictures are left alone. STANDIN=0 turns it off. */
@@ -218,6 +227,33 @@ async function open(browser, url, w, h) {
   return { ctx, page, errs, ready };
 }
 
+/* ---- runs inside the page: a picture the app accepts must be drawn, and visible ---- */
+function picScan(opts) {
+  const f = [], pages = [...document.querySelector('.we-sc').children];
+  const want = a => !!(a && (wePhotoOk(a.wph, 0, a.title) || weArtPass(a.wart, a.wsec)));
+  const why = a => { const p = a.wph, t = a.wart; if (WE.lite) return 'the app is in its light mode';
+    if (p && !/^https:\/\//.test(p.url || '')) return 'the photo address is not https: ' + String(p.url).slice(0, 60);
+    if (p && !String(p.credit || '').trim()) return 'the photo carries no credit';
+    if (p && Math.max(+p.w || 0, +p.h || 0) < 600) return 'the photo is too small (' + p.w + 'x' + p.h + ')';
+    if (p) return 'the photo is not cleared, or the story names someone it pictures';
+    if (t && !/^https:\/\//.test(weArtUrl(t.url) || '')) return 'the drawing address is not https: ' + String(weArtUrl(t.url)).slice(0, 60);
+    if (t) return 'drawings are not allowed in the ' + a.wsec + ' section, or this one is too small';
+    return 'no reason found' };
+  pages.filter(p => p.classList.contains(opts.only || 'we-op')).forEach(pg => {
+    const lead = pg.querySelector('[data-wel]'); if (!lead) return;
+    const a = WE.cur[+lead.dataset.wel]; if (!a) return;
+    const name = (pg.getAttribute('aria-label') || '').trim(), ttl = String(a.title || '').slice(0, 60);
+    const fig = pg.querySelector('figure[data-wepl]'), kind = a.wart && !a.wph ? 'drawing' : 'picture';
+    if (!want(a)) { if (a.wph || a.wart) f.push({ kind: 'note', pageName: name, what: 'the ' + kind + ' was refused by the app: ' + why(a), text: ttl }); return }
+    if (!fig) return f.push({ kind: 'nofig', pageName: name, what: 'the story has a ' + kind + ' the app accepts and the page draws no figure at all', text: ttl });
+    const cs = getComputedStyle(fig), b = fig.getBoundingClientRect(), img = fig.querySelector('img');
+    const gone = cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity < .05;
+    if (gone || b.width < 40 || b.height < 40) f.push({ kind: 'nofig', pageName: name, what: 'the figure is in the page but not visible: ' + Math.round(b.width) + 'x' + Math.round(b.height) + (gone ? ', hidden' : ''), text: ttl });
+    else if (!img || !img.naturalWidth) f.push({ kind: 'note', pageName: name, what: 'the figure is drawn but its ' + kind + ' did not load (no network in the harness, or a dead address)', text: ttl });
+  });
+  return f;
+}
+
 /* defects for SELFTEST, injected as CSS/DOM after the real edition has drawn: the check must name every one */
 const INJECT = () => {
   const pgs = [...document.querySelectorAll('.we-sc>.we-pg')];
@@ -234,10 +270,12 @@ const INJECT = () => {
   const c = document.querySelector('.we-cls li span'); if (c) { c.style.cssText += ';display:block;width:6em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis' }
   /* e: a headline broken mid-word */
   const k = ops[1] && ops[1].querySelector('h2,h3'); if (k) k.style.cssText += ';width:2.2em;overflow-wrap:anywhere;hyphens:auto';
+  /* f: a picture the app accepted, drawn and then invisible - the shape of every rendering fault of issue 47 */
+  const g = document.querySelector('.we-sc>.we-op figure[data-wepl]'); if (g) g.style.cssText += ';visibility:hidden';
 };
 
 (async () => {
-  let srv = null, base = process.env.URL; if (!base) { srv = await serve(); base = 'http://127.0.0.1:' + srv.address().port + '/index.html' }
+  let srv = null, base = process.env.URL; if (!base) { srv = await serve(); base = 'https://127.0.0.1:' + srv.address().port + '/index.html' }
   const browser = await chromium.launch();
   const report = { date: new Date().toISOString(), url: base, selftest: SELF, widths: {}, failures: [] };
   for (const name of WANT) {
@@ -258,6 +296,8 @@ const INJECT = () => {
       const m = await measure(page, { minChars: 50, ov: .4 });
       for (let k = 0; k < step && i + k < total; k++) per[i + k] = m[i + k];
     }
+    /* (issue 47) the pictures on the section openers */
+    { const pf = await page.evaluate(picScan, {}); pf.forEach(f => report.failures.push(Object.assign({ width: `${name} ${W}x${H}`, page: 0, shot: '' }, f))) }
 
     /* ---- issue 53: turn through the edition and scan for ghosts after every turn ---- */
     {
@@ -311,6 +351,7 @@ const INJECT = () => {
         await page.screenshot({ path: path.join(OUT, `${name}-story-${String(k + 1).padStart(2, '0')}-${seenS.size}.png`) }) }
       const m = await measure(page, { minChars: 30, ov: .4, only: 'we-sp' });
       m.forEach((p, j) => { p.i = idx[j]; p.name = 'story ' + (k + 1) + ': ' + stories[k].slice(0, 40); p.story = k + 1; p.fails.forEach(f => { f.shot = `${name}-story-${String(k + 1).padStart(2, '0')}-1.png` }); per.push(p) });
+      { const pf = await page.evaluate(picScan, { only: 'we-sp' }); pf.forEach(f => report.failures.push(Object.assign({ width: `${name} ${W}x${H}`, page: idx[0] + 1, shot: `${name}-story-${String(k + 1).padStart(2, '0')}-1.png` }, f))) }
       { const sf = await page.evaluate(storyScan); sf.forEach(f => report.failures.push(Object.assign({ width: name, page: idx[0] + 1, pageName: 'story ' + (k + 1) + ': ' + stories[k].slice(0, 40), shot: `${name}-story-${String(k + 1).padStart(2, '0')}-1.png` }, f))) }
       await page.evaluate(() => weRdClose()); await page.waitForTimeout(700);
     }
@@ -327,6 +368,6 @@ const INJECT = () => {
   for (const f of report.failures) md.push(`- **${f.kind}** · ${f.width} · page ${f.page} (${f.pageName}) · ${f.what || ''} ${f.a ? `"${f.a}" over "${f.b}" at ${JSON.stringify(f.at)}` : ''} ${f.text ? `→ "${f.text}"` : ''} [${f.shot}]`);
   for (const [n, v] of Object.entries(report.widths)) md.push('', `${n} ${v.size.join('x')}: ${v.pages} pages` + (v.spread ? ' (two per spread)' : '') + ` · ready line: ${v.ready.slice(-1)[0] || 'none'}`);
   fs.writeFileSync(path.join(OUT, 'report.md'), md.join('\n') + '\n'); console.log(md.join('\n'));
-  if (SELF) { const need = ['overlap', 'blank', 'trunc', 'label', 'ghost']; const miss = need.filter(k => !by[k]); console.log(miss.length ? 'SELFTEST FAILED: never fired: ' + miss.join(', ') : 'SELFTEST ok: every detector fired'); process.exit(miss.length ? 1 : 0) }
+  if (SELF) { const need = ['overlap', 'blank', 'trunc', 'label', 'ghost', 'nofig']; const miss = need.filter(k => !by[k]); console.log(miss.length ? 'SELFTEST FAILED: never fired: ' + miss.join(', ') : 'SELFTEST ok: every detector fired'); process.exit(miss.length ? 1 : 0) }
   process.exit(report.failures.some(f => f.kind !== 'note') ? 1 : 0);
 })().catch(e => { console.error('FAIL layout check: ' + (e && e.stack || e)); process.exit(2) });
