@@ -53,7 +53,24 @@ const OUT=arg('--json'),HOURS=Number(arg('--hours')||36);
    before any desk sees them, because none of them belongs in any section. Kept narrow on purpose: every
    pattern here is a shape of PUBLISHING, not a subject, so it cannot silently drop a real story about sales,
    gifts or newsletters. */
-const NOT_A_STORY=/^(how|what|where|when|who)\s+(was|were|is|are|did|do)\s+your\b|^(open thread|weekend (reading|links|open))|\b\d{1,2}%\s*off\b|\b(discount|promo|coupon)\s*codes?\b|\bbest deals\b|\bdeals? of the (day|week)\b|\b(gift|shopping)\s+guide\b|\bwhat (we|i)( a|'?)re (reading|buying|loving|watching this week)\b|\blinks? (we|i) love\b|\bgiveaway\b|\bhoroscopes?\b|\bsubscribe to our\b|\bthis week'?s newsletter\b|\b(wordle|quordle|heardle|nerdle|strands|sudoku|crosswords?|connections|spelling bee|nyt mini)\b[^|]{0,40}\b(hints?|answers?|clues?|solutions?)\b|\bpuzzle\s*#\s*\d+|\bearnings call transcript\b|\b(q[1-4]|full[- ]year) \d{4} (results|earnings) call\b/i;
+const NOT_A_STORY=/^(how|what|where|when|who)\s+(was|were|is|are|did|do)\s+your\b|^(open thread|weekend (reading|links|open))|\b\d{1,2}%\s*off\b|\b(discount|promo|coupon)\s*codes?\b|\bbest deals\b|\bdeals? of the (day|week)\b|\b(gift|shopping)\s+guide\b|\bwhat (we|i)( a|'?)re (reading|buying|loving|watching this week)\b|\blinks? (we|i) love\b|\bgiveaway\b|\bhoroscopes?\b|\bsubscribe to our\b|\bthis week'?s newsletter\b|\bearnings call transcript\b|\b(q[1-4]|full[- ]year) \d{4} (results|earnings) call\b/i;
+/* PUZZLES, WHICH OUTGREW ONE PATTERN (David, 2026-11-27, finding one on page 7: "I said no puzzles. I also
+   mean no stories with puzzle hints. No one wants to read that."). Three facts fight each other here:
+   these outlets publish one EVERY DAY, so anything that leaks leaks daily; some puzzle names - connections,
+   strands, crossword - are ordinary English; and a real story about a puzzle is a real story.
+   So: the distinctive names are refused on sight, the ordinary words only in a puzzle's company, and either
+   is spared when the headline is plainly ABOUT the puzzle rather than being one. A regex cannot say "unless
+   the headline also contains", which is why this is a function. */
+const PUZ_SURE=/\b(wordle|quordle|heardle|nerdle|sudoku|spelling bee|nyt mini|mini crossword)\b/i;
+const PUZ_WORD=/\b(connections|strands|crossword)\b/i;
+const PUZ_NEAR=/\b(hints?|answers?|clues?|solutions?|puzzle|today'?s|daily|game|nyt)\b|\bnew york times\b|#\s*\d+/i;
+const PUZ_REAL=/\b(creator|maker|designer|editor|sold|sells?|sale|acquisition|acquires?|lawsuit|sues?|history|turns \d+|clones?|company|million|revenue)\b/i;
+const isPuzzle=t=>{t=String(t||'');
+ if(PUZ_REAL.test(t))return false;                       /* a story ABOUT the puzzle is a story */
+ if(PUZ_SURE.test(t))return true;                        /* these words are not used for anything else */
+ if(PUZ_WORD.test(t)&&PUZ_NEAR.test(t))return true;      /* the ordinary ones need a puzzle beside them */
+ return /\b(hints?|clues?) (and|&) answers?\b/i.test(t)} /* the shape itself, whatever the puzzle is called */
+const notAStory=t=>NOT_A_STORY.test(String(t||''))||isPuzzle(t);
 /* GOSSIP IS NOT THE FRONT SECTION. On 27 November Home carried "Thom Evans Confirms Nicole Scherzinger
    Split After Seven Years", because Home is filled by how widely a story is reported and six outlets covered
    it. The answer is NOT to refuse celebrity news - it is real, and Culture is where a magazine prints it -
@@ -348,7 +365,7 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
     if(!d.from.has(g.outlet)||used.has(g.link))continue;
     /* a desk that is a kind of story only takes a headline that is that kind */
     /* not a story on any desk, whatever the feed called it */
-    if(NOT_A_STORY.test(g.title||''))continue;
+    if(notAStory(g.title))continue;
     /* a title of one or two words is a feed's placeholder, not a headline: The Atlantic offered the Long
        read desk a story called "television" on 27 November, and it was picked. */
     if((g.title||'').trim().split(/\s+/).length<3)continue;
@@ -392,7 +409,7 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
    for(const g of groups){
     if(spare<=0||extra>=3)break;
     if(!d.from.has(g.outlet)||used.has(g.link))continue;
-    if(NOT_A_STORY.test(g.title||''))continue;
+    if(notAStory(g.title))continue;
     if(d.find&&!d.find.test(g.title||''))continue;
     if(d.not&&d.not.test(g.title||''))continue;
     if((spoke.get(g.outlet)||0)>=2)continue;
