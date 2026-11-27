@@ -199,7 +199,8 @@ const STANDIN = '<!doctype html><html lang="en"><head><meta charset="utf-8"><tit
   + '<meta property="og:title" content="A stand-in article for the layout check"></head><body><article><h1>A stand-in article for the layout check</h1>'
   + Array.from({ length: 22 }, (_, i) => '<p>' + LEDE + ' Paragraph ' + (i + 2) + ' carries the same weight of text as the one above it, so a page fills the way a real story fills it.</p>').join('') + '</article></body></html>';
 /* the page measures every page, on screen or not; pages that are off screen are not painted any more (issue 54), so they are shown for the measurement only */
-const measure = async (page, opts) => { const h = await page.addStyleTag({ content: '.we-sc>.we-pg{visibility:visible!important}' }); const r = await page.evaluate(inPage, opts); await h.evaluate(e => e.remove()); return r };
+const shown = async (page, fn, opts) => { const h = await page.addStyleTag({ content: '.we-sc>.we-pg{visibility:visible!important}' }); const r = await page.evaluate(fn, opts); await h.evaluate(e => e.remove()); return r };
+const measure = (page, opts) => shown(page, inPage, opts);
 async function open(browser, url, w, h) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, isMobile: false, hasTouch: false, ignoreHTTPSErrors: true }), page = await ctx.newPage();
   const errs = []; page.on('pageerror', e => errs.push(e.message));
@@ -239,18 +240,23 @@ function picScan(opts) {
     if (t && !/^https:\/\//.test(weArtUrl(t.url) || '')) return 'the drawing address is not https: ' + String(weArtUrl(t.url)).slice(0, 60);
     if (t) return 'drawings are not allowed in the ' + a.wsec + ' section, or this one is too small';
     return 'no reason found' };
-  pages.filter(p => p.classList.contains(opts.only || 'we-op')).forEach(pg => {
-    const lead = pg.querySelector('[data-wel]'); if (!lead) return;
-    const a = WE.cur[+lead.dataset.wel]; if (!a) return;
-    const name = (pg.getAttribute('aria-label') || '').trim(), ttl = String(a.title || '').slice(0, 60);
-    const fig = pg.querySelector('figure[data-wepl]'), kind = a.wart && !a.wph ? 'drawing' : 'picture';
-    if (!want(a)) { if (a.wph || a.wart) f.push({ kind: 'note', pageName: name, what: 'the ' + kind + ' was refused by the app: ' + why(a), text: ttl }); return }
-    if (!fig) return f.push({ kind: 'nofig', pageName: name, what: 'the story has a ' + kind + ' the app accepts and the page draws no figure at all', text: ttl });
+  const one = (a, name, page, fig) => { if (!a) return;
+    const ttl = String(a.title || '').slice(0, 60), kind = a.wart && !a.wph ? 'drawing' : 'picture';
+    if (!want(a)) { if (a.wph || a.wart) f.push({ kind: 'note', pageName: name, page, what: 'the ' + kind + ' was refused by the app: ' + why(a), text: ttl }); return }
+    if (!fig) return f.push({ kind: 'nofig', pageName: name, page, what: 'the story has a ' + kind + ' the app accepts and the page draws no figure at all', text: ttl });
     const cs = getComputedStyle(fig), b = fig.getBoundingClientRect(), img = fig.querySelector('img');
     const gone = cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity < .05;
-    if (gone || b.width < 40 || b.height < 40) f.push({ kind: 'nofig', pageName: name, what: 'the figure is in the page but not visible: ' + Math.round(b.width) + 'x' + Math.round(b.height) + (gone ? ', hidden' : ''), text: ttl });
-    else if (!img || !img.naturalWidth) f.push({ kind: 'note', pageName: name, what: 'the figure is drawn but its ' + kind + ' did not load (no network in the harness, or a dead address)', text: ttl });
-  });
+    if (gone || b.width < 40 || b.height < 40) f.push({ kind: 'nofig', pageName: name, page, what: 'the figure is in the page but not visible: ' + Math.round(b.width) + 'x' + Math.round(b.height) + (gone ? ', hidden' : ''), text: ttl });
+    else if (!img || !img.naturalWidth) f.push({ kind: 'note', pageName: name, page, what: 'the figure is drawn but its ' + kind + ' did not load (no network in the harness, or a dead address)', text: ttl }) };
+  /* the story open in the reader: its pages carry no story index, the reader holds it (WE.rd), and the figure
+     weRead puts at the head of the body lives on the first of them. */
+  if (opts && opts.only === 'we-sp') { const sp = pages.filter(x => x.classList.contains('we-sp'));
+    if (sp.length) one((WE.cur || []).find(x => x && x.link === WE.rd), 'as the reader opens it', pages.indexOf(sp[0]) + 1,
+      sp.map(x => x.querySelector('figure[data-wepl]')).find(Boolean));
+    return f }
+  /* the section openers: the lead story is the page's own `.we-ld` article */
+  pages.filter(x => x.classList.contains('we-op')).forEach(pg => { const lead = pg.querySelector('[data-wel]');
+    if (lead) one(WE.cur[+lead.dataset.wel], (pg.getAttribute('aria-label') || '').trim(), pages.indexOf(pg) + 1, pg.querySelector('figure[data-wepl]')) });
   return f;
 }
 
@@ -297,7 +303,7 @@ const INJECT = () => {
       for (let k = 0; k < step && i + k < total; k++) per[i + k] = m[i + k];
     }
     /* (issue 47) the pictures on the section openers */
-    { const pf = await page.evaluate(picScan, {}); pf.forEach(f => report.failures.push(Object.assign({ width: `${name} ${W}x${H}`, page: 0, shot: '' }, f))) }
+    { const pf = await shown(page, picScan, {}); pf.forEach(f => report.failures.push(Object.assign({ width: `${name} ${W}x${H}` }, f, { shot: `${name}-${two ? 'spread' : 'page'}-${String(Math.floor((f.page - 1) / step) + 1).padStart(2, '0')}.png` }))) }
 
     /* ---- issue 53: turn through the edition and scan for ghosts after every turn ---- */
     {
@@ -351,7 +357,7 @@ const INJECT = () => {
         await page.screenshot({ path: path.join(OUT, `${name}-story-${String(k + 1).padStart(2, '0')}-${seenS.size}.png`) }) }
       const m = await measure(page, { minChars: 30, ov: .4, only: 'we-sp' });
       m.forEach((p, j) => { p.i = idx[j]; p.name = 'story ' + (k + 1) + ': ' + stories[k].slice(0, 40); p.story = k + 1; p.fails.forEach(f => { f.shot = `${name}-story-${String(k + 1).padStart(2, '0')}-1.png` }); per.push(p) });
-      { const pf = await page.evaluate(picScan, { only: 'we-sp' }); pf.forEach(f => report.failures.push(Object.assign({ width: `${name} ${W}x${H}`, page: idx[0] + 1, shot: `${name}-story-${String(k + 1).padStart(2, '0')}-1.png` }, f))) }
+      { const pf = await shown(page, picScan, { only: 'we-sp' }); pf.forEach(f => report.failures.push(Object.assign({ width: `${name} ${W}x${H}`, shot: `${name}-story-${String(k + 1).padStart(2, '0')}-1.png` }, f, { pageName: 'story ' + (k + 1) + ': ' + f.pageName }))) }
       { const sf = await page.evaluate(storyScan); sf.forEach(f => report.failures.push(Object.assign({ width: name, page: idx[0] + 1, pageName: 'story ' + (k + 1) + ': ' + stories[k].slice(0, 40), shot: `${name}-story-${String(k + 1).padStart(2, '0')}-1.png` }, f))) }
       await page.evaluate(() => weRdClose()); await page.waitForTimeout(700);
     }
