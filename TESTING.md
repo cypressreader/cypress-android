@@ -2791,3 +2791,12 @@ ten sections opening on a photograph. Both robot checks were clean at phone and 
   next paragraph rather than taking the rest of the page with it.
 - Watch for: a continuation that repeats words already read (it should carry on, never restart), a quote so
   small it reads as body text, and any page that still ends a third empty.
+
+## Contents rows on the folded screen (2026-11-27)
+The rows could shrink below their own headlines, so on the Fold's cover screen every section label had a
+headline lying across it. Both the grid track and the row itself now have a content floor.
+- Open the magazine FOLDED and look at the Contents: section name, headline, reading time and page number,
+  nothing touching anything else. Then open the Fold and check it again.
+- The list should still fill the page evenly. If it cannot fit, the type should step down rather than the
+  rows overlap.
+- The layout check now walks 320x720 as well as 412 and 884, which is where this hid.
