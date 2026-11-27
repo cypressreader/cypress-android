@@ -15058,8 +15058,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.27g';const APP_LABEL='1.403';
-const CHANGES=["Fixed, properly this time: picture addresses in the edition are settled once, when the edition arrives, instead of being worked out again every time a page is drawn"];
+const APP_VERSION='2026.11.27h';const APP_LABEL='1.404';
+const CHANGES=["Fixed: an edition already saved on the phone kept its pictures' short addresses and could not find them"];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -16692,7 +16692,15 @@ async function weEdition(){
     rev, so any issue fetched since install is preferred, which is what a reader wants. */
  /* A copy saved by an earlier build holds relative picture addresses and the base it came from. Upgrade it
     in place, once, so a phone that already has today's issue does not have to wait for tomorrow's. */
- const k0=weKept();if(k0&&k0.weBase)try{weAbs(k0,k0.weBase);localStorage.setItem('we-ed',JSON.stringify(k0))}catch(e){}
+ /* A copy saved by an earlier build holds RELATIVE picture addresses. It may also hold the address it came
+    from, and it may not - that field only existed in four builds. 1.403 upgraded such a copy only when the
+    field was there, and David's copy did not have it, so his drawings stayed relative and were refused:
+    the diagnostics said `first drawing we-art/1isuxkl.jpg` in plain sight. So the site this build reads is
+    SETTLED FIRST, with an await, and stands in whenever the field is missing. A drawing is published
+    beside its issue, so the issue's own address is the right base by definition. */
+ const site=await weUrl();
+ const k0=weKept();
+ if(k0)try{weAbs(k0,k0.weBase||site);localStorage.setItem('we-ed',JSON.stringify(k0))}catch(e){}
  const fresher=(a,b)=>String(a.date||'')>String(b.date||'')
    ||(String(a.date||'')===String(b.date||'')&&String(a.rev||'')!==String(b.rev||''));
  const kept=weKept(),use=(kept&&(!weOk(built)||fresher(kept,built)))?kept:built;
