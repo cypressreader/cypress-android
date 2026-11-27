@@ -83,13 +83,16 @@ function candidates(){
    /* The pictures the story itself carries, with whatever the publisher wrote under them. A magazine is
       pictures as much as words, and these are the only ones we may print: the publisher's own, shown from
       the publisher's own address. Nothing is judged here - that is the clearance pass. */
-   const pics=[...n.querySelectorAll('img')].map(im=>{
+   /* `after` is how many paragraphs stood before a picture in the article, so the edition can put it back where
+      the publisher had it instead of guessing. The reader clamps it; this only has to be the right order. */
+   let seen=0;const pics=[...n.querySelectorAll('p,h2,h3,img')].map(im=>{
+    if(im.tagName!=='IMG'){seen++;return null}
     const fig=im.closest('figure'),cap=fig&&fig.querySelector('figcaption');
-    return{src:im.getAttribute('src')||im.getAttribute('data-src')||'',
+    return{after:seen,src:im.getAttribute('src')||im.getAttribute('data-src')||'',
       w:+im.getAttribute('width')||0,h:+im.getAttribute('height')||0,
       alt:(im.getAttribute('alt')||'').replace(/\s+/g,' ').trim().slice(0,160),
       cap:cap?cap.textContent.replace(/\s+/g,' ').trim().slice(0,220):''};
-   }).filter(x=>/^https:\/\//.test(x.src));
+   }).filter(x=>x&&/^https:\/\//.test(x.src));
    return{tier:n.tier||'',pw:!!n.pw,gate:!!n.gate,preview:!!n.gated_preview,incomplete:!!n.incomplete,
      paras:ps.length,words:ps.join(' ').split(/\s+/).filter(Boolean).length,pics,
      text:ps.join('\n\n'),log:(LG[u]||[]).slice(-3)};
