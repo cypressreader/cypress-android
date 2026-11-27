@@ -58,17 +58,35 @@ const STYLE='Two-colour screen print, flat vector editorial illustration in the 
    postage stamp in the bottom third of an empty square, which a landscape crop would have cut in half. The
    page wants a picture, not a sticker. */
 
-/* What the picture is OF. An illustration says something about the piece, so the idea is the one thing a
-   machine should not improvise: `idea` in the edition file is used when an editor (or the editorial pass) has
-   written one. Without it, the concrete nouns of the headline become a still life - a safe, dull, honest
-   fallback that never claims to depict an event. */
-const ABSTRACT=/^(the|a|an|and|or|of|for|to|in|on|at|is|are|was|were|be|been|how|why|what|when|where|who|new|more|most|than|with|from|that|this|it|its|his|her|their|our|your|about|after|before|into|over|under|up|down|out|off|again|very|just|now|still|says?|said|could|would|should|may|might|will|can)$/i;
-function ideaFrom(st){
- if(st.idea)return String(st.idea).slice(0,220);
- const words=String(st.t||'').replace(/[^A-Za-z0-9 '-]/g,' ').split(/\s+/).filter(w=>w.length>3&&!ABSTRACT.test(w));
- const nouns=[...new Set(words.map(w=>w.toLowerCase()))].slice(0,5);
- return nouns.length?('A simple symbolic still life suggesting: '+nouns.join(', ')+'. An object, not a scene; nobody in it.')
-   :'A simple symbolic arrangement of geometric objects on an empty ground.';
+/* WHAT THE PICTURE IS OF - the one thing a machine should not improvise from a headline, and for a while here
+   it did. Taking the concrete nouns out of 'The Bombmaker Next Door' and handing them to an illustrator got a
+   picture with BOMBMAKER printed across the top in foot-high letters; 'Town Rewards a Woman...' got a shop
+   sign reading TOWN REWARDS. Every drawing made from a mechanical idea was thrown away; both made from an
+   idea written as a sentence were kept. So a picture editor writes the brief: a model reads the headline and
+   the standfirst and names ONE concrete object. If it will not, NOTHING IS DRAWN - a bad picture is worse
+   than a bare page, which is the whole rule of this file. */
+const BRIEF='You are a magazine picture editor briefing an illustrator. You are given a headline and a '
+ +'standfirst. Reply with ONE sentence of at most 22 words naming a single concrete inanimate object to draw, '
+ +'and how it is seen. The object must be one a reader connects to the story the moment they read the '
+ +'headline. Never a person, a face, a body part, an animal, a crowd, a weapon, a flag or a logo. Never '
+ +'anything carrying writing: no sign, no book cover, no screen showing text, no newspaper, no label. Never '
+ +'the literal event. Begin with "A single". No preamble, no quotation marks, no explanation.';
+const WORDS='@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+
+async function askIdea(st){
+ const r=await post('https://api.cloudflare.com/client/v4/accounts/'+ACCOUNT+'/ai/run/'+WORDS,
+  {messages:[{role:'system',content:BRIEF},
+    {role:'user',content:'Headline: '+String(st.t||'')+'\nStandfirst: '+String(st.dek||'')}],
+   max_tokens:60,temperature:.4});
+ if(r.code!==200||!r.json||!r.json.success){
+  const why=(r.json&&r.json.errors&&r.json.errors[0]&&r.json.errors[0].message)||r.raw||('HTTP '+r.code);
+  return{err:why};
+ }
+ let t=String((r.json.result&&(r.json.result.response||r.json.result.output))||'').replace(/\s+/g,' ').trim();
+ t=t.replace(/^["\u201c\u2018']+|["\u201d\u2019']+$/g,'').trim();
+ const m=t.match(/^(.{10,240}?[.!?])(\s|$)/);if(m)t=m[1];/* one sentence was asked for; hold it to one */
+ if(!/^A single/i.test(t)||t.length<12)return{err:'the brief came back in a shape I did not ask for: '+t.slice(0,70)};
+ return{idea:t};
 }
 
 /* THE REQUEST GOES THROUGH curl, NOT node's own https, and that is not a style choice. The Cloudflare key
@@ -156,7 +174,8 @@ const key=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;retu
  if(!jobs.length)process.exit(0);
 
  if(!WRITE){
-  console.log('\nthe first prompt would be:\n'+STYLE+'\n'+ideaFrom(jobs[0].st));
+  const b=await askIdea(jobs[0].st);
+  console.log('\nthe brief for the first one: '+(b.idea||'REFUSED - '+b.err));
   console.log('\nnothing drawn. Pass --write.');
   process.exit(0);
  }
@@ -164,11 +183,14 @@ const key=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;retu
  fs.mkdirSync(ART,{recursive:true});
  const {openApp}=require('./app');
  const app=await openApp(),tab=await app.ctx.newPage();
- let made=0,failed=0,why='';
+ let made=0,failed=0,why='';const briefs=[];
  const live=new Set();
  for(const j of jobs){
-  const prompt=STYLE+' '+ideaFrom(j.st);
-  const r=await drawTwice(prompt);
+  /* the brief first. No brief, no drawing - the mechanical idea is gone and is not coming back. */
+  let idea=j.st.idea;
+  if(!idea){const b=await askIdea(j.st);if(b.err){failed++;why=why||b.err;process.stdout.write('b');continue}idea=b.idea}
+  briefs.push(j.section+': '+idea);
+  const r=await drawTwice(STYLE+' '+idea);
   if(r.err){failed++;why=why||r.err;process.stdout.write('x');continue}
   const jp=await housePalette(tab,r.png);
   if(!jp){failed++;process.stdout.write('x');continue}
@@ -190,7 +212,9 @@ const key=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;retu
   const docs=path.resolve(__dirname,'../../docs/app/world-edition.json');
   try{if(path.resolve(EDITION)!==docs)fs.writeFileSync(docs,JSON.stringify(f,null,1))}catch(e){}
  }
+ for(const b of briefs)console.log('  '+b);
  console.log(made+' drawn, '+failed+' not'+(why?' ('+why+')':''));
+ if(failed&&/neurons|allocation/i.test(why))console.log('The account has spent its Workers AI allowance for today. It resets daily.');
  if(failed&&/auth/i.test(why))console.log('The Cloudflare token cannot run Workers AI. Add the "Workers AI" permission to it in the Cloudflare dashboard.');
  await app.close();
 })();
