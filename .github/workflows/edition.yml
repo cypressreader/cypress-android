@@ -59,7 +59,11 @@ jobs:
           npx -y playwright@1.63.0 install --with-deps chromium
 
       - name: Pick the day's stories from the feeds
-        run: node scripts/edition/pick.js --json "$RUNNER_TEMP/cand.json"
+        # --wide also reads MJ's swept publishers whose pictures were verified to load (383 of them, on top of
+        # the catalogue's 735). More outlets make the counting that picks the front page better, and a page goes
+        # bare when no photograph passes. Measured on run 1: picking took 63s of an 18-minute run, and the rest
+        # is reading the stories the desks chose, which their fixed sizes cap - so this costs about 30 seconds.
+        run: node scripts/edition/pick.js --wide --json "$RUNNER_TEMP/cand.json"
 
       - name: Read every one of them
         run: node scripts/edition/gather.js --candidates "$RUNNER_TEMP/cand.json" --deadline 30 --json "$RUNNER_TEMP/got.json"
