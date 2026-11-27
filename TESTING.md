@@ -2805,3 +2805,10 @@ headline lying across it. Both the grid track and the row itself now have a cont
 - **Back out of a story in The World Edition.** Open a story, press the system back: it must land on the magazine page you were reading, and only the NEXT press leaves the magazine. The case that broke was a back press AFTER the edition re-rendered under the open story (a refresh, a fold, or a corrected issue arriving during the day) — it fired twice and dropped you in the app. Guarded by `tests/we_back.js`, which reproduces the old behaviour, but the hardware back button itself is device-only.
 - **The door.** Every page inside the book should carry the same line at the top with the way back under a hairline — including the colophon, which had none. The cover keeps its floating mark instead. Check it does not crowd the contents at the folded width.
 - **The quiet sentence plate at night.** Only visible once an edition carries a plate, which cannot happen yet (see HANDOFF): nothing to check on the phone until then.
+
+## 1.414 — needs a real phone
+- **The Contents page can be swiped back to the cover.** The scrolling contents list was claiming the sideways
+  drag, so the page turn never happened and the cover was unreachable (David, 2026-11-27, on the phone).
+  `touch-action:pan-y` on the list hands horizontal back to the pager. A harness cannot reproduce a real
+  touch gesture, so this is implemented, unverified: on the phone, open the Contents and swipe right.
+  Check too that the list still scrolls up and down, and that a swipe begun on a row still turns the page.
