@@ -15174,7 +15174,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.11.28g';const APP_LABEL='1.422';
-const CHANGES=["Fixed: a new cover or a corrected copy of The World Edition could take hours to reach your phone. The magazine now looks for a newer copy every ten minutes while it is open and shows it as soon as it arrives.","Turning pages in The World Edition is smoother: the pictures on the next pages are got ready before you reach them.","Fixed: real sentences were sometimes dropped from a story because they contained a word like \"subscribe\", and a pulled quote could be taken from a newsletter notice or repeat the paragraph beside it.","Every story is now read by an editor before it is printed, and every story carries a summary line under its headline."];
+const CHANGES=["Fixed: a new cover or a corrected copy of The World Edition could take hours to reach your phone. The magazine now looks for a newer copy every ten minutes while it is open and shows it as soon as it arrives.","Turning pages in The World Edition is smoother: every picture in the issue is got ready in the background as soon as it opens, nearest pages first.","Fixed: real sentences were sometimes dropped from a story because they contained a word like \"subscribe\", and a pulled quote could be taken from a newsletter notice or repeat the paragraph beside it.","Every story is now read by an editor before it is printed, and every story carries a summary line under its headline."];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -16861,6 +16861,17 @@ function weAhead(sc,i){clearTimeout(weAhead.t);weAhead.t=setTimeout(()=>{try{
    for(const im of p.querySelectorAll('img')){if(im._dc)continue;
     if(!im.complete||!im.naturalWidth){if(!im._dl){im._dl=1;im.addEventListener('load',()=>{if(!im._dc&&im.decode){im._dc=1;im.decode().catch(()=>{})}},{once:true})}continue}
     im._dc=1;if(im.decode)im.decode().catch(()=>{})}}}catch(e){}},160)}
+/* EVERY PICTURE IN THE ISSUE, NOT JUST THE NEAR ONES (David, 28 Nov: 'Unpack them all'). weAhead keeps the
+   pages around the reader first in line; this walks the whole book once, in page order, ONE picture at a
+   time with a breath between, so it never competes with a page turn. It stops by itself if the book is
+   rebuilt (the pictures it holds are no longer on the page) and it does not run on data saver, low power
+   or a metered connection, where fetching pictures nobody has asked for is the wrong thing to spend. */
+function weAll(sc){if(DEV.dataSaver||DEV.powerSave||DEV.metered||S.offline)return;
+ const ims=[...sc.querySelectorAll('.we-pg img')];let k=0;
+ const next=()=>{let im;while((im=ims[k++])&&im._dc);if(!im||!im.isConnected)return;
+  im._dc=1;try{im.loading='eager'}catch(e){}
+  (im.decode?im.decode():Promise.resolve()).catch(()=>{}).then(()=>setTimeout(next,40))};
+ setTimeout(next,400)}
 function weRefresh(have){
  if(S.offline||!navigator.onLine||DEV.dataSaver||DEV.powerSave||DEV.metered)return;
  setTimeout(()=>{weUrl().then(u=>{
@@ -17594,7 +17605,7 @@ function renderWE(){
     if(at<0)at=Math.min(wePlace.i,ch.length-1);
     if(two())at-=at%2}
    sc.scrollLeft=Math.max(0,at)*pw()}
-  WE.pgEd=e.id;WE.wcls=innerWidth>=600?2:1;lab();let rq=0;sc.onscroll=()=>{if(!rq)rq=requestAnimationFrame(()=>{rq=0;lab()})};
+  WE.pgEd=e.id;WE.wcls=innerWidth>=600?2:1;lab();weAll(sc);let rq=0;sc.onscroll=()=>{if(!rq)rq=requestAnimationFrame(()=>{rq=0;lab()})};
   addEventListener('resize',size);
   /* a jump asked for during a turn keeps its exact target (returning from a story, a contents jump);
      a swipe only keeps its direction. Either way it runs the moment the turn ends, and the turn is cut short. */
