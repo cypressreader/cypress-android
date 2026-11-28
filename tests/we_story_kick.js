@@ -35,7 +35,11 @@ const BODY = '<p>' + Array.from({ length: 14 }, (_, i) => 'The decision landed l
       await p.evaluate(() => weRdClose()); await p.waitForTimeout(2500);
       const c = await st();
       /* by the story itself, not by a page count: a dropped "Also in" line takes no page with it */
-      const still = await p.evaluate(l => [...document.querySelectorAll('.we-sc a[data-we]')].some(x => x.getAttribute('href') === l), gone);
+      /* "still there" only counts while the app still holds it as dropped. A story that loads on its second
+         chance is rightly put back (tests/we_dropped.js); on a clean issue that happens here, and this guard
+         failed on 28 November for exactly that reason, not for a fault. What must be true is that the
+         postponed rebuild RAN: nothing is left waiting, and the book agrees with the dropped list. */
+      const still = await p.evaluate(l => WE.redo || ((WE.gone || new Set()).has(l) && [...document.querySelectorAll('.we-sc a[data-we]')].some(x => x.getAttribute('href') === l)), gone);
       if (c.open || c.pages) bad(w.name + ': the story did not close');
       else if (still) bad(w.name + ': the dropped story is still in the book after the story was closed');
       else if (c.on.indexOf(sec) !== 0) bad(w.name + ': closing the story left the reader on "' + c.on + '", not in ' + sec);

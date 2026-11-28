@@ -15173,8 +15173,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.28f';const APP_LABEL='1.421';
-const CHANGES=["On a folding phone's big screen the cover of The World Edition is now a spread: one photograph across both pages, with the headline and the cover lines underneath and room around them.","More pictures. A section now opens on its photograph when it has one, and stories further down show theirs too.","The International edition is its own magazine at the front: world news from newsrooms outside the United States, a section on America, and business from desks outside the US."];
+const APP_VERSION='2026.11.28g';const APP_LABEL='1.422';
+const CHANGES=["Fixed: a new cover or a corrected copy of The World Edition could take hours to reach your phone. The magazine now looks for a newer copy every ten minutes while it is open and shows it as soon as it arrives.","Turning pages in The World Edition is smoother: the pictures on the next pages are got ready before you reach them.","Fixed: real sentences were sometimes dropped from a story because they contained a word like \"subscribe\", and a pulled quote could be taken from a newsletter notice or repeat the paragraph beside it.","Every story is now read by an editor before it is printed, and every story carries a summary line under its headline."];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -16830,14 +16830,37 @@ async function weEdition(){
     weRefresh, and the settled site stands in */
  if(kept)try{weAbs(kept,(typeof kept.weBase==='string'&&/^https:\/\//.test(kept.weBase))?kept.weBase:site);delete kept.weBase}catch(e){}
  try{if(kept)localStorage.setItem('we-ed',JSON.stringify(kept))}catch(e){}
- const fresher=(a,b)=>String(a.date||'')>String(b.date||'')
-   ||(String(a.date||'')===String(b.date||'')&&String(a.rev||'')!==String(b.rev||''));
+ const fresher=weNewer;
  const use=(kept&&(!weOk(built)||fresher(kept,built)))?kept:built;
  weRefresh(use);return use}
 /* A new issue appears twice a day, so checking on every open is a request the reader pays for and nobody needs.
    Once every three hours is far more often than the edition can change, and the first open after a restart still
    checks. */
-const WE_EVERY=108e5;
+/* TEN MINUTES, NOT THREE HOURS (David, 2026-11-28, on 1.421: "Still no cover story" - his diagnostics said
+   `rev ...06:26` while the site was serving the 08:53 copy that HAD the cover). The three-hour limit was
+   written when an issue never changed after it was published. It changes now: the pictures arrive about
+   forty minutes after the build, then the cover. A phone that asked once at the wrong moment showed the
+   bare edition for three hours. The file is small and is only asked for while the magazine is being opened. */
+const WE_EVERY=6e5;
+/* IS THIS COPY NEWER? One rule, used by every place that has to decide - there were three, and each said
+   "a DIFFERENT rev" where it meant "a LATER one". 1.421 shipped with the 08:53 copy inside it and David's
+   saved 06:26 copy still won, for being different. `rev` is a timestamp, so later means later; a copy with
+   no rev at all (saved by a build before 1.400) loses to any that has one. */
+const weNewer=(a,b)=>{if(!a)return false;if(!b)return true;const da=String(a.date||''),db=String(b.date||'');
+ return da>db||(da===db&&String(a.rev||'')>String(b.rev||''))};
+/* THE PICTURES ON THE NEXT PAGES ARE UNPACKED BEFORE THE READER TURNS TO THEM (David, 2026-11-28, with a
+   recording: "Page slide isn't smooth. The first time I looked at it... was more than the video").
+   Only the page on screen is painted; every other page is hidden, and a hidden picture is not decoded. So the
+   first time a page slid in, its photograph - often a 2,000px file from the publisher - was decoded DURING the
+   slide, on the frames the slide needed: his diagnostics show 230-260ms frames on the turn. The second time
+   it was already in memory, which is why the recording was better than the first look. Since 1.421 most
+   pages carry a picture, so most turns paid this. Now, a moment after the reader lands on a page, the
+   pictures two pages back and three ahead are decoded off the main thread, once each. */
+function weAhead(sc,i){clearTimeout(weAhead.t);weAhead.t=setTimeout(()=>{try{
+  for(let k=i-2;k<=i+3;k++){const p=sc.children[k];if(!p)continue;
+   for(const im of p.querySelectorAll('img')){if(im._dc)continue;
+    if(!im.complete||!im.naturalWidth){if(!im._dl){im._dl=1;im.addEventListener('load',()=>{if(!im._dc&&im.decode){im._dc=1;im.decode().catch(()=>{})}},{once:true})}continue}
+    im._dc=1;if(im.decode)im.decode().catch(()=>{})}}}catch(e){}},160)}
 function weRefresh(have){
  if(S.offline||!navigator.onLine||DEV.dataSaver||DEV.powerSave||DEV.metered)return;
  setTimeout(()=>{weUrl().then(u=>{
@@ -16853,8 +16876,7 @@ function weRefresh(have){
        phone kept its first copy of the day for good. David, 27 Nov, had three drawings published and could not
        see one of them on two different builds: his phone had already decided it had the 26th. A saved copy
        from before `rev` existed carries none, which differs from any stamped one, so it updates once and settles. */
-    const newer=String(d.date||'')>String(have?have.date||'':'')
-      ||(!!have&&String(d.date||'')===String(have.date||'')&&String(d.rev||'')!==String(have.rev||''));
+    const newer=weNewer(d,have);
     if(!weOk(d)||(have&&!newer))return;
     /* the issue it replaces joins the archive - but a correction of today is not yesterday, and the archive is
        a list of days */
@@ -16867,7 +16889,12 @@ function weRefresh(have){
       renders the SAVED copy on a cold open - before it has worked out which site it reads. Without this the
       address was resolved against the live site, where a preview issue's drawings do not exist, so every one
       of them 404'd and was silently dropped: David, 27 Nov, 'I didn't see a single one of those'. */
-    try{localStorage.setItem('we-ed',JSON.stringify(d))}catch(e){}})
+    try{localStorage.setItem('we-ed',JSON.stringify(d))}catch(e){}
+    /* AND IT IS SHOWN, not only saved for next time. It used to wait for the magazine to be closed and opened
+       again, so the cover could arrive while the reader was looking at the bare one. If the magazine is on
+       screen and the reader is on today's issue, it is redrawn in place - the reader keeps their page - and
+       if a story is open it waits until the story is closed. */
+    try{if(S.sel==='we'&&WE.d&&!WE.live&&weNewer(d,WE.d)){if(WE.sp==null){WE.d=d;WE.sig='';render()}else WE.pend=d}}catch(e){}})
   .catch(()=>{})},2500)}
 /* test-only (device runs): the emulator's software renderer dies on the cover's full-page art. `welite` draws the
    edition with no cover art and no photographs, so a run can tell a paint crash from a code fault. Never set by the app. */
@@ -17069,7 +17096,7 @@ const WE_DOTS=/^[\s.\u2026\u2022\u00b7\-\u2013\u2014_|]+$/;
 /* a wire photo caption, wherever a publisher prints one as a paragraph: it opens with the agency's FILE mark, or ends with the player's own 'hide caption'/'Enlarge this image' control */
 const WE_CAP=/^file\s*(photo)?\s*[-\u2013\u2014:]|\b(hide|toggle|show) caption\s*$|^enlarge this image/i;
 function weReal(el,t){return el.tagName==='P'&&!WE_BOILER.test(t)&&(t.length>=120||(t.length>=55&&/[.!?][\"\u201d\u2019)]?$/.test(t)&&!WE_JUNK.test(t)))}
-function weJunk(el,t,dek,ttl){if(WE_DOTS.test(t)||WE_DEAD.test(t)||/^(photo |image )?captions?:?$/i.test(t))return true;
+function weJunk(el,t,dek,ttl){if(WE_DOTS.test(t)||(t.length<140&&WE_DEAD.test(t))/* a player's leftover text is short; at any length this rule also threw away a 190-character paragraph of a book review for containing "chapters" and one of a film piece for "audio track" */||/^(photo |image )?captions?:?$/i.test(t))return true;
  /* David's Duran Duran obituary, 2026-11-27: the word FILE kept turning up in the middle of the story. NPR prints
     each photo caption as an ordinary paragraph of the page, so the agency's own furniture - 'FILE - Music group
     Duran Duran poses at The Sony Club... Jim Cooper/AP hide caption' - was read as the story, and one of them even
@@ -17095,7 +17122,16 @@ function weJunk(el,t,dek,ttl){if(WE_DOTS.test(t)||WE_DEAD.test(t)||/^(photo |ima
   const dg=(t.match(/[0-9]/g)||[]).length+(t.match(/[$%+\u2212\u2013]/g)||[]).length;
   if(dg/t.length>0.18&&/\S*\d\S{11,}|\S{11,}\d\S*/.test(t))return true;
   if(/^(written|reported|edited|photographs?) by\b/i.test(t)&&t.length<200)return true}
- return t.length<90&&(WE_JUNK.test(t)||!/[.!?][\"\u201d\u2019)]?$/.test(t)&&el.tagName==='P'&&t.length<45)}
+ /* A SHORT SENTENCE WITH AN ORDINARY WORD IN IT IS NOT FURNITURE (review of 2026-11-28, proved by calling this).
+    Any paragraph under 90 characters containing one of WE_JUNK's words was thrown away, full stop or not:
+    "Officials said the account had been frozen on Tuesday.", "He called the weather a factor in the crash.",
+    "Critics say the comments were taken out of context.", "Volunteers loaded the trucks." - all gone, and a
+    short sentence is often the one a story turns on. Furniture gives itself away differently: it is not a
+    sentence at all (no full stop), or it speaks TO the reader - you, your, our, us - or opens on an order.
+    A reported sentence in the third person is kept. */
+ const ends=/[.!?][\"\u201d\u2019)]?$/.test(t);
+ if(t.length<90&&WE_JUNK.test(t)&&(!ends||/\b(you|your|yours|our|us|we)\b/i.test(t)||/^(sign|subscribe|share|follow|read|click|tap|download|get|join|log|listen|watch|see|view|add|enable|accept|manage|support|donate|skip|back|more|related|advertisement|sponsored)\b/i.test(t)))return true;
+ return !ends&&el.tagName==='P'&&t.length<45}
 /* a deck is printed only as a whole sentence: a source that cut one short is trimmed back, never printed mid-sentence */
 function weDek(t){t=String(t||'').trim();if(!t)return '';const abbr=/(\b([A-Z]\.){1,3}|\b(Mr|Mrs|Ms|Dr|Prof|Inc|Ltd|Co|Corp|St|Jr|Sr|vs|etc|No|Gen|Sen|Rep|Gov)\.)$/;if(/[.!?\u201d")]$/.test(t)&&!abbr.test(t))return t;const i=Math.max(t.lastIndexOf('. '),t.lastIndexOf('! '),t.lastIndexOf('? '));return i>40?t.slice(0,i+1):''}
 /* a headline is edited for rhythm: it breaks into stacked lines where the sense turns (after a colon, or at a dash) */
@@ -17220,7 +17256,8 @@ let said=!!q,who='';
   const nm=cb2.textContent.replace(/[:\s]+$/,'').trim(),sp=el.textContent.slice(cb2.textContent.length).trim(),m=sp.match(/^(.{50,240}?[.!?])(\s|$)/),w=m?m[1].split(' ').length:0;
   if(nm&&m&&w>=9&&w<=34&&/^[A-Z\u201c"]/.test(m[1])){q=m[1];said=true;who=nm;break}}}
  /* no quoted sentence: the strongest whole sentence of the text itself, word for word - but never a piece of the page's furniture. David's Riemann page printed 'This is a human-written story voiced by AI. Got feedback?' as its pull quote, in the biggest type on the spread, because that notice was one of only two paragraphs the reader had. */
- if(!q){for(const el of out.slice(1)){if(el.tagName!=='P'||el.className)continue;const tx=el.textContent.trim();if(FURNJ.test(tx))continue;const m=tx.match(/^(.{50,240}?[.!?])(\s|$)/),w=m?m[1].split(' ').length:0;if(m&&w>=9&&w<=34&&/^[A-Z]/.test(m[1])&&!/https?:/.test(m[1])){q=m[1];break}}}
+ /* ...AND NEVER THE SENTENCE IT WILL BE SET BESIDE. The quote goes in after paragraph 1, 2 or 4 depending on the page's shape, and this took the first good sentence from paragraph 1 onward - so in two shapes out of three it printed a paragraph's opening sentence directly above or below that paragraph. It is taken from at least two paragraphs past where it will sit. */
+ if(!q){for(const el of out.slice(Math.max(1,[2,4,1][weHash(a.link)%3]+2))){if(el.tagName!=='P'||el.className)continue;const tx=el.textContent.trim();if(FURNJ.test(tx))continue;const m=tx.match(/^(.{50,240}?[.!?])(\s|$)/),w=m?m[1].split(' ').length:0;if(m&&w>=9&&w<=34&&/^[A-Z]/.test(m[1])&&!/https?:/.test(m[1])){q=m[1];break}}}
  /* a pull quote needs a story to pull FROM: on a page with two paragraphs it just prints one of them twice, which is what the Riemann page did */
  if(q&&out.filter(el=>el.tagName==='P').length>=4){const b=document.createElement('blockquote');b.className='we-pq2';b.innerHTML=`${said?'&ldquo;'+esc(q)+'&rdquo;':esc(q)}<cite>${who?esc(who):'From the story'} &middot; ${esc(a.ft||'')}</cite>`;const px=[2,4,1][lv];if(out.length>px)out.splice(px,0,b);else out.push(b)}
  if(a.wvid){const v=document.createElement('p');v.className='we-gt';v.textContent='This story is told in a video, and the player does not run inside the edition.';out.push(v)}
@@ -17341,7 +17378,7 @@ let said=!!q,who='';
  if(WE.go&&WE.pg!==at)WE.go(at,1);else if(WE.lab)WE.lab();
  const f=pages[0].querySelector('[data-werb]');if(f&&wait!==1)try{f.focus({preventScroll:true})}catch(e){}/* after the jump: a hidden page cannot take focus */
 }
-function weRdClose(fromPop){if(WE.resettle)setTimeout(()=>{WE.resettle=0;weSettle()},60);/* the phone was folded or unfolded while this story was open: the book behind it is still laid out for the other width */if(WE.redo||(WE.wcls&&WE.wcls!==(innerWidth>=600?2:1)))setTimeout(()=>{if(WE.sp==null&&S.sel==='we')render()},120);const sc=document.querySelector('.we-sc');WE.rd=null;if(WE.sp==null)return;const bk=sc;
+function weRdClose(fromPop){if(WE.resettle)setTimeout(()=>{WE.resettle=0;weSettle()},60);/* the phone was folded or unfolded while this story was open: the book behind it is still laid out for the other width */if(WE.redo||WE.pend||(WE.wcls&&WE.wcls!==(innerWidth>=600?2:1)))setTimeout(()=>{if(WE.sp==null&&S.sel==='we'){if(WE.pend){if(!WE.live&&weNewer(WE.pend,WE.d)){WE.d=WE.pend;WE.sig=''}WE.pend=null}render()}},120);const sc=document.querySelector('.we-sc');WE.rd=null;if(WE.sp==null)return;const bk=sc;
  const back=WE.spBack|0;WE.sp=null;
  if(sc)[...sc.querySelectorAll('.we-sp')].forEach(x=>x.remove());
  wePad(sc,sc.clientWidth>=600);weFolio();if(!fromPop)dropLayer('weread');
@@ -17381,7 +17418,7 @@ function renderWE(){
     once-per-start path. Forward only: an older date on the site is ignored. */
  if(!g.querySelector('.we-sc')){
   /* the same rule as weRefresh and weEdition - a later date, OR the same date with a different rev. This one was date-only, so a correction made during the day was saved and never shown on re-opening; and `WE.live` was left pointing at an earlier issue, which put 'Back to the latest issue' on the latest issue and sent the reader a day backwards. */
-  const k=weKept();if(k&&weOk(k)&&(String(k.date||'')>String(WE.d.date||'')||(String(k.date||'')===String(WE.d.date||'')&&String(k.rev||'')!==String(WE.d.rev||'')&&!WE.live))){if(String(k.date||'')>String(WE.d.date||''))WE.live=null;WE.d=k;WE.sig=''}
+  const k=weKept();if(k&&weOk(k)&&weNewer(k,WE.d)&&(String(k.date||'')>String(WE.d.date||'')||!WE.live)){if(String(k.date||'')>String(WE.d.date||''))WE.live=null;WE.d=k;WE.sig=''}
   weRefresh(WE.d);
  }
  {const sig=(S.weEd||'')+'|'+WE.d.date+'|'+WE.d.issue+'|'+(innerWidth>=600?2:1)/* folding or unfolding does rebuild: a story is laid out differently one page wide */+'|'+[...(WE.gone||[])].sort().join(',');/* sorted: the same dropped stories in another order are the same book, and used to rebuild it */
@@ -17528,7 +17565,7 @@ function renderWE(){
  {const mn=$('main');if(mn)mn.scrollTop=0;const w=g.firstElementChild,sc=w.firstElementChild;
   /* issue 32 rule 1: the edition is the whole screen. No app footer bar carries the page count - every page prints its own number. */
   const two=()=>w.clientWidth>=600,pw=()=>sc.clientWidth/(two()?2:1),pgs=()=>sc.children.length,
-   lab=()=>{const w=pw()||1,sl=sc.scrollLeft,i=Math.round(sl/w),a=Math.floor((sl+2)/w),b=Math.ceil((sl+sc.clientWidth-2)/w)-1;WE.pg=i;[...sc.children].forEach((p,k)=>p.classList.toggle('we-cur',k>=a&&k<=b));const f=sc.children[i]&&sc.children[i].querySelector('.we-fo'),nm=f&&f.getAttribute('data-n');
+   lab=()=>{const w=pw()||1,sl=sc.scrollLeft,i=Math.round(sl/w),a=Math.floor((sl+2)/w),b=Math.ceil((sl+sc.clientWidth-2)/w)-1;WE.pg=i;weAhead(sc,i);[...sc.children].forEach((p,k)=>p.classList.toggle('we-cur',k>=a&&k<=b));const f=sc.children[i]&&sc.children[i].querySelector('.we-fo'),nm=f&&f.getAttribute('data-n');
    sc.setAttribute('aria-label',`${e.name}, page ${nm||i+1} of ${WE.base||pgs()}`)};
   WE.lab=lab;
   const drawArt=WE.art=()=>{if(!art||WE.lite)return;const cv=w.querySelector('.we-cv');if(!cv)return;const old=w.querySelector('.we-ar'),bw=Math.round(pw()),bh=Math.round(sc.clientHeight);if(!bw||!bh)return;
@@ -17586,7 +17623,7 @@ function weBy(doc){const name=/^[\p{L}][\p{L}.'’-]*(\s+[\p{L}][\p{L}.'’-]*){
   const m=t.length<400&&t.match(/^([A-Z][\p{L}.'’-]*(?:\s+[A-Z][\p{L}.'’-]*){1,3})\s+is\s+(?:a|an|the)\s+[^.]{0,60}\b(reporter|writer|journalist|editor|correspondent|columnist|author|contributor|analyst|producer|photographer|critic)\b/u);
   if(m&&name.test(m[1]))return m[1]}
  return ''}
-function weQuote(h){let alt='';for(const p of new DOMParser().parseFromString(h,'text/html').querySelectorAll('p')){const t=p.textContent.replace(/\s+/g,' '),m=t.match(/“([A-Za-z][^“”]{40,280}[.!?,;])”/)||t.match(/(?:^|[\s(])"([A-Za-z][^"]{40,280}[.!?,;])"/);if(m){const q=m[1].replace(/[,;]$/,'.'),n=q.split(' ').length;if(n>=6&&n<=46){if(/^[A-Z]/.test(q))return q;if(!alt)alt=q}}}return alt}
+function weQuote(h){let alt='';for(const p of new DOMParser().parseFromString(h,'text/html').querySelectorAll('p')){const t=p.textContent.replace(/\s+/g,' ');/* never from the page's furniture: a "Subscribe to our newsletter: \u201cGet the stories that matter most...\u201d" box is a quoted sentence of the right length, and it was being lifted into the biggest type on the page */if(WE_BOILER.test(t)||/\b(subscribe|newsletter|sign up|sign in|cookies?|advertis\w+|follow us|download (the|our) app|privacy policy|terms of (use|service)|all rights reserved)\b/i.test(t))continue;const m=t.match(/“([A-Za-z][^“”]{40,280}[.!?,;])”/)||t.match(/(?:^|[\s(])"([A-Za-z][^"]{40,280}[.!?,;])"/);if(m){const q=m[1].replace(/[,;]$/,'.'),n=q.split(' ').length;if(n>=6&&n<=46){if(/^[A-Z]/.test(q))return q;if(!alt)alt=q}}}return alt}
 function wePQ(a){/* BY LINK, not by object: a rebuild makes new story objects, and a download that finished afterwards still held the old one - indexOf said -1 and that story's opener stayed bare until the next rebuild */const i=WE.cur.findIndex(x=>x===a||(a&&x.link===a.link));if(i>=0)a=WE.cur[i];const el=i<0?null:document.querySelector('[data-wel="'+i+'"]'),lead=!!el&&el.classList.contains('we-ld'),
  h=el&&!el.querySelector('.we-tz')&&!el.querySelector('.we-pq')&&acGet(a.link);if(!h)return;let q='';try{q=lead?weQuote(h):''}catch(e){}
  /* issue 38 rule 3: the opener carries as much of the story's opening as the page holds - a page with a

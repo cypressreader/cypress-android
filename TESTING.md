@@ -2827,3 +2827,8 @@ headline lying across it. Both the grid track and the row itself now have a cont
 - [ ] Fold shut: the phone cover still shows the framed picture.
 - [ ] Small pictures beside headlines on list pages and "Also in" lines: they load, and tapping the headline still opens the story.
 - [ ] International edition (edition picker): the front section is "Around the world", there is an "America" section, and no "World" section.
+
+## 1.422 (needs a real phone)
+- [ ] The World Edition: with the magazine open, a newer copy published on the site appears within about ten minutes without closing the app (and waits until you close a story if one is open).
+- [ ] The World Edition: page turns on phone and fold are smooth on the first pass through an issue (pictures are unpacked two pages ahead). Compare against 1.421's 230-260ms slow frames in diagnostics.
+- [ ] A phone that kept 1.421's older copy of the day (rev 06:26) takes the later one (same date, later rev) after updating.

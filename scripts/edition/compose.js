@@ -50,6 +50,20 @@ const dayN=Math.floor(Date.parse(DATE+'T12:00:00Z')/864e5);
 const prev=(()=>{try{return JSON.parse(fs.readFileSync(OUT,'utf8'))}catch(e){return null}})();
 const issue=(prev&&prev.date!==DATE&&prev.issue?prev.issue+1:(prev&&prev.issue)||1);
 
+/* THE BACK HALF IS HELD TO A HIGHER BAR (STYLEBOOK.md section 3). The front is the news and a short front is
+   a quiet day; the back is the reason to keep the magazine open, and these sections took whatever arrived
+   first. A "long read" of 400 words is not one. These are the floors, on words that were actually read; the
+   reading pass then asks whether a piece that clears its floor also deserves its page. */
+const MINW={'Long read':1200,'From the archive':400,'Explainer':400,'Back page':250};
+/* A REBUILD ON THE SAME DAY USED TO WIPE EVERY PICTURE (review of 2026-11-28). This file is written from
+   nothing each time, so the second build of a day threw away every photograph that had been looked at and
+   cleared, every drawing kept and every plate set - and stamped a fresh rev, so phones took the bare version
+   until the review ran again an hour later. A story that is still in the issue keeps what was already
+   decided about it: the clearance belongs to the picture, not to the build. */
+const carried=new Map();
+if(prev)for(const e of prev.editions||[])for(const sc of e.sections||[])for(const st of sc.stories||[])
+ if(st&&st.l&&(st.photo||st.art||st.plate||st.inline||st.note)&&!carried.has(st.l))carried.set(st.l,st);
+
 /* Build one edition's sections from what survived. Both editions draw on the same gathered stories, so this
    runs once per edition and the pictures and the drop list apply to both. */
 let kept=[];
@@ -59,6 +73,7 @@ function build(src){
   const stories=[];
   for(const st of s.stories||[]){
    const r=read.get(st.l);if(!r)continue;            /* pass 1 dropped it: not read, too short, or gated */
+   if(MINW[s.name]&&(r.words||0)<MINW[s.name])continue; /* too short for the page it was offered */
    if(drop.has(st.l))continue;
    /* the swap rule: when the publisher's own page would not answer, another newsroom's version of the same
       story was read instead, so that is the one printed - its masthead, its headline, its address */
@@ -74,7 +89,11 @@ function build(src){
    /* The publisher's summary, with the feed's own furniture off the end: "Read more", "Continue reading",
       "The post ... appeared first on ...". Seen on the page: "Linux Mint 27 Beta is here with a set of new
       features, and you can download it right now. See what's new: Read more..." */
-   if(!stories.length&&st.dek){
+   {const was=carried.get(o.l);if(was){for(const k of ['photo','art','plate','inline','note','noteBy'])if(was[k]&&!o[k])o[k]=was[k]}}
+   /* EVERY STORY GETS ITS SUMMARY LINE, not only the one that opens the section (STYLEBOOK.md 2.5). The
+      publisher's feed supplies one for nearly all of them and only the first was ever printed, which is why
+      a "continued" page read as a list of headlines. The same cleaning and the same tests apply to each. */
+   if(st.dek){
     /* stripped until nothing is left to strip: the furniture comes in layers ("...See what's new: Read more…") */
     let d=String(st.dek).replace(/\s+/g,' ').trim();
     for(let i=0;i<4;i++){
