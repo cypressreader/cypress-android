@@ -11,22 +11,25 @@
 name: World Edition
 
 on:
+  # THE BUILD IS STARTED BY A PUSH, NOT BY A CLOCK (2026-11-28).
+  # GitHub's schedule is "best effort", and for this repository that meant: of every slot since the workflow
+  # reached main, exactly ONE was ever delivered - 11:38 on 27 November, which arrived at 20:17, eight hours
+  # and thirty-nine minutes late - and the 00:38 after it never came. A late edition is worse than none: it
+  # landed after the picture review had run, so it went out with no pictures and nobody had looked at it.
+  # A push starts a workflow within seconds. The Claude task that reviews the pictures now STARTS the build
+  # itself (`bash .github/edition/kick.sh start`, which pushes a new line into the file below), waits for
+  # it, and only then reviews - so the review cannot run ahead of the build, whatever any clock does.
+  # The times live on that task (11:38 and 00:38 UTC: David wakes at 7am Pacific, and an issue built at
+  # 3:38am his time is fresh at breakfast; the second lands late afternoon for him).
+  push:
+    branches: [main]
+    paths: [".github/edition/RUN"]
   schedule:
-    # 11:38 and 00:38 UTC. Off the hour on purpose: every other scheduled job in the world runs at :00.
-    #
-    # WHY THESE TIMES. David wakes at 7am Pacific (2026-11-27). The edition used to be built at 06:12 UTC,
-    # which is 10:12pm his time the night before - so the issue he picked up over breakfast was nearly nine
-    # hours old, yesterday evening's news wearing a morning date. 11:38 UTC is 3:38am in his winter and
-    # 4:38am in his summer, so the issue and the review after it are finished by about 5:45am either way:
-    # fresh, and well clear of 7am even when the clocks move. The second run, 00:38 UTC, lands late
-    # afternoon for him (4:38pm winter, 5:38pm summer) rather than two hours after he has already read it.
-    #
-    # These stay in UTC rather than his time zone for two reasons. GitHub Actions cron has no time zone
-    # support at all - it is UTC only. And the Claude task that reviews the drawings is chained to this one,
-    # 35 minutes behind; if the two ran on different clocks, daylight saving would silently slide the review
-    # in front of the build twice a year, where it would do nothing and look like it was working.
-    - cron: "38 11 * * *"
-    - cron: "38 0 * * *"
+    # A FALLBACK ONLY, twenty minutes behind the real start. It builds only when no edition has landed for
+    # nine hours (the `gate` job) - which means the push never came. On time or eight hours late, if the
+    # slot was already served it does nothing, so a late delivery can no longer replace a reviewed edition.
+    - cron: "58 11 * * *"
+    - cron: "58 0 * * *"
   workflow_dispatch:
     inputs:
       min:
@@ -46,7 +49,30 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      go: ${{ steps.g.outputs.go }}
+    steps:
+      - id: g
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          go=true
+          if [ "${{ github.event_name }}" = schedule ]; then
+            last=$(gh api "repos/$GITHUB_REPOSITORY/commits?path=docs/app/world-edition.json&per_page=1" --jq '.[0].commit.committer.date' 2>/dev/null || true)
+            if [ -n "$last" ]; then
+              age=$(( ( $(date -u +%s) - $(date -u -d "$last" +%s) ) / 60 ))
+              echo "The edition was last written $age minutes ago." >> "$GITHUB_STEP_SUMMARY"
+              if [ "$age" -lt 540 ]; then go=false; echo "This slot was already served, so the fallback does nothing." >> "$GITHUB_STEP_SUMMARY"; fi
+            fi
+          fi
+          echo "go=$go" >> "$GITHUB_OUTPUT"
+
   edition:
+    needs: gate
+    if: needs.gate.outputs.go == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 55
     steps:
@@ -88,12 +114,13 @@ jobs:
         run: OUT="$RUNNER_TEMP/paint" node tests/layout/paint.js
 
       - name: Publish it
+        id: publish
         if: ${{ inputs.publish != false }}
         env:
           DATE: ${{ github.run_id }}
         run: |
           if git diff --quiet -- www/world-edition.json docs/app/world-edition.json; then
-            echo "No change to publish." >> "$GITHUB_STEP_SUMMARY"; exit 0
+            echo "No change to publish." >> "$GITHUB_STEP_SUMMARY"; echo "published=unchanged" >> "$GITHUB_OUTPUT"; exit 0
           fi
           git config user.name "cypressreader"
           git config user.email "davealmaguer@gmail.com"
@@ -109,7 +136,7 @@ jobs:
           # every check green, then one second of failure because a commit had landed while it worked).
           # Rebasing is safe here because this commit only ever touches the two edition files.
           for try in 1 2 3; do
-            git push && exit 0
+            git push && { echo "published=yes" >> "$GITHUB_OUTPUT"; exit 0; }
             echo "push rejected; someone else committed while the edition was building (attempt $try)"
             git pull --rebase origin "$(git rev-parse --abbrev-ref HEAD)" || exit 1
             sleep 5
@@ -151,3 +178,24 @@ jobs:
           n=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search 'in:title "The World Edition did not publish"' --json number --jq '.[0].number' 2>/dev/null || true)
           if [ -n "$n" ]; then gh issue comment "$n" --repo "$GITHUB_REPOSITORY" --body "$body" || true
           else gh issue create --repo "$GITHUB_REPOSITORY" --title "The World Edition did not publish" --body "$body" || true; fi
+
+
+      # WHOEVER STARTED THIS BUILD IS WAITING FOR IT, and has only plain git to look with (the Claude task
+      # carries no GitHub connector). So the outcome goes to a one-file branch, replaced on every run - the
+      # same way the device test hands back its results. `kick` is the line that started this build, which
+      # is how `.github/edition/kick.sh wait` knows the answer is for ITS build and not the one before.
+      - name: Report back
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          d="$RUNNER_TEMP/status"; mkdir -p "$d"
+          kick="$(tr -d '[:space:]' < .github/edition/RUN 2>/dev/null || true)"
+          line="$(head -1 "$RUNNER_TEMP/compose.txt" 2>/dev/null | tr -d '"\\' || true)"
+          printf '{\n "kick": "%s",\n "published": "%s",\n "result": "%s",\n "edition": "%s",\n "at": "%s",\n "run": "%s"\n}\n' \
+            "$kick" "${{ steps.publish.outputs.published || 'no' }}" "${{ job.status }}" "$line" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" > "$d/status.json"
+          cat "$d/status.json"
+          cd "$d" && git init -q -b edition-status . && git add -A
+          git -c user.name=edition -c user.email=edition@users.noreply.github.com commit -qm "Edition build of ${GITHUB_SHA}"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" edition-status
