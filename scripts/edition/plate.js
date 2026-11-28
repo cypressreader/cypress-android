@@ -96,6 +96,11 @@ function check(p,text,title){
   if(!inText(big,t)&&!numText(big,t))return{err:'the figure is not in the article word for word: '+big};
   if(!sub||sub.length>90)return{err:'the line under the figure is missing or too long'};
   if(/\d/.test(sub)&&!inText(sub,t))return{err:'the line under the figure states a number the article does not'};
+  /* A YEAR IS NOT A FIGURE (2026-11-28, the first four plates this ever set on real stories). Two of them
+     were "2019 - year Quebec passed law" and "2028 - year Vance may run": true, in the article, and saying
+     nothing. A big number on a page promises a quantity - how many, how much, how long. A date set that
+     large is a headline with the words taken out. */
+  if(/^(1[89]|20)\d\d$/.test(String(big).trim()))return{err:'the figure is only a year, which is a date and not a quantity'};
   return{plate:{kind:'number',big,sub}};
  }
  if(p.kind==='sentence'){
@@ -151,6 +156,7 @@ const SELF=[
  ['number, as written',{kind:'number',big:'2,000',sub:'people she cooks for every year'},true],
  ['number, rounded by the model',{kind:'number',big:'2,500',sub:'people she cooks for every year'},false],
  ['number with no digit',{kind:'number',big:'two thousand',sub:'people she cooks for'},false],
+ ['a year set as the figure',{kind:'number',big:'2019',sub:'year she opened the kitchen'},false],
  ['number, line invents a figure',{kind:'number',big:'2,000',sub:'up from 900 in 1988'},false],
  ['sentence, word for word',{kind:'sentence',line:'Thank you so very much, community.',who:'Kennard'},true],
  ['sentence, tidied up',{kind:'sentence',line:'Thank you so much, community.',who:'Kennard'},false],
