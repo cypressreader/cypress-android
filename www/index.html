@@ -5564,6 +5564,14 @@ html.lowp .we *,html.lowp .we *::before{animation:none!important;transition:none
 .we-op.we-tyo.we-opa .we-tz+.we-tz{clear:left}
 .we-op.we-tyo.we-opa .we-dc::first-letter{float:left;font:700 3.6em/.82 var(--wd);padding:.04em .1em 0 0;color:var(--wa)}
 .we-inv .we-als{border-top-color:currentColor}
+.we-op .we-ldh{flex:1 1 auto;display:flex;flex-direction:column;justify-content:flex-end}
+.we-op .we-ldh h3{font-size:clamp(34px,11.4cqw,76px);line-height:1;font-family:var(--wd);font-weight:700;letter-spacing:-.015em;margin:0}
+.we-op.we-op2>.we-in>.we-ld{flex:1 1 auto;justify-content:flex-start;gap:.3em}
+.we-op.we-op2 .we-sf{font-size:clamp(17px,4.6cqw,23px);line-height:1.35;margin:0 0 .2em;max-width:30em}
+.we-op.we-op2 .we-tz{font-size:clamp(14px,3.7cqw,18px);line-height:1.5;margin-top:1.05em;max-width:34em}
+.we-op.we-op2 .we-tz+.we-tz{clear:left}
+.we-op.we-op2 .we-dc::first-letter{float:left;font:700 3.6em/.82 var(--wd);padding:.04em .1em 0 0;color:var(--wa)}
+.we-op.we-op2 .we-ld small{margin-top:auto;padding-top:5cqw}
 .we-als{flex:0 0 auto;margin-top:4cqw;padding-top:2.2cqw;border-top:1px solid var(--wl)}
 .we-als>em{display:block;font:700 max(9px,2.2cqw)/1 system-ui,sans-serif;font-style:normal;letter-spacing:.18em;text-transform:uppercase;color:var(--wm);margin-bottom:1.8cqw}
 .we-als ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2cqw}
@@ -17011,6 +17019,20 @@ function weJunk(el,t,dek,ttl){if(WE_DOTS.test(t)||WE_DEAD.test(t)||/^(photo |ima
  const n=x=>String(x||'').replace(/\s+/g,' ').trim().toLowerCase();
  if(dek&&n(t)&&(n(t)===n(dek)||(n(dek).length>40&&n(t).startsWith(n(dek).slice(0,40)))))return true;/* the deck, printed again */
  if(ttl&&n(t)===n(ttl))return true;
+ /* A PRICE TICKER IS NOT A PARAGRAPH (David's fold recording, 2026-11-27, Business section). Cointelegraph
+    prints its market strip as an ordinary <p>, so the story opened on
+    'DOGE$0.05759+ 2.13%TRX$0.3008-1.02%LINK$9.36+...' - twice - before a word of the article. It is long, so
+    weReal passed it (anything over 120 characters is "real"), and it has no sentence end, so nothing else
+    caught it. Three things have to be true at once, which keeps real market copy safe: a quarter of it is
+    figures and signs, it carries an unbroken run of a dozen characters with a digit in it, and it does not
+    end on a full stop. Measured against four real paragraphs including two number-heavy market reports
+    (ratios .14 to .16, all ending on a stop): none of them is touched; the ticker scores .62.
+    The same recording printed 'Written by Zoltan Vardai staff writer Edited by Yohan Yunstaff editor' as the
+    story's third paragraph - that is the page's byline furniture run together, not prose. */
+ if(t.length>40&&!/[.!?][\"\u201d\u2019)]?$/.test(t)){
+  const dg=(t.match(/[0-9]/g)||[]).length+(t.match(/[$%+\u2212\u2013]/g)||[]).length;
+  if(dg/t.length>0.18&&/\S*\d\S{11,}|\S{11,}\d\S*/.test(t))return true;
+  if(/^(written|reported|edited|photographs?) by\b/i.test(t)&&t.length<200)return true}
  return t.length<90&&(WE_JUNK.test(t)||!/[.!?][\"\u201d\u2019)]?$/.test(t)&&el.tagName==='P'&&t.length<45)}
 /* a deck is printed only as a whole sentence: a source that cut one short is trimmed back, never printed mid-sentence */
 function weDek(t){t=String(t||'').trim();if(!t)return '';const abbr=/(\b([A-Z]\.){1,3}|\b(Mr|Mrs|Ms|Dr|Prof|Inc|Ltd|Co|Corp|St|Jr|Sr|vs|etc|No|Gen|Sen|Rep|Gov)\.)$/;if(/[.!?\u201d")]$/.test(t)&&!abbr.test(t))return t;const i=Math.max(t.lastIndexOf('. '),t.lastIndexOf('! '),t.lastIndexOf('? '));return i>40?t.slice(0,i+1):''}
@@ -17332,8 +17354,15 @@ function renderWE(){
     weSplit is the SINGLE source of truth - the contents' page numbers and the pages themselves both
     read it, so they cannot disagree (they did when the rule lived in two places). */
  const weSplit=x=>{const st=x.s.stories||[],f=st[0],r=st.length-1;if(r<=0)return false;if(r>2)return true;
+  if(WTWO)return true;/* on the fold the other headlines ARE the right-hand page of the section's spread */
   const pk=!!f&&wePhotoOk(f.photo,false,f.t);return !!(pk&&weBigPic(f.photo))};
- let pn0=WTWO?5:3;const pnum=secs.map(x=>{const p=pn0;pn0+=1+(weSplit(x)?1:0);return p});
+ /* EVERY SECTION STARTS ON A LEFT-HAND PAGE, which it can only do if every section takes an EVEN number of
+    pages (the pager rounds each index down to even, so a spread is always 0-1, 2-3, 4-5...). A section with
+    other stories gets its two pages from them. A section with only ONE story used to take a single page and
+    knock every section after it out of step - David's choice, 2026-11-28: its opener takes the whole spread,
+    the section mark and the headline on the left, the story's own opening on the right. */
+ const weSpread=x=>WTWO&&!weSplit(x)&&(x.s.stories||[]).length<=1;
+ let pn0=WTWO?5:3;const pnum=secs.map(x=>{const p=pn0;pn0+=1+((weSplit(x)||weSpread(x))?1:0);return p});
   /* WITHOUT A PICTURE THE MASTHEAD AND THE HEADLINE EACH TAKE A PAGE (David, 2026-11-27, on issue No. 3:
     'This looks bad'). The first cut gave the picture the left page and the words the right, and was only
     ever rendered against an issue that HAD a cover photograph - most carry none, so the left page came out
@@ -17353,8 +17382,11 @@ function renderWE(){
   return pick.length?`<ul class="we-cls">${pick.map(x=>{const st=x.s.stories[0];return `<li><b>${esc(x.s.name)}</b><span>${esc(st.h||st.t)}</span></li>`}).join('')}</ul>`:''})()}<div class="we-lead"><div class="we-k">Lead story${ls?' &middot; '+esc(ls.name):''}</div><h3 class="we-h">${A(lead)}</h3><div class="we-o">${esc(lead.o)}</div></div><div class="we-sw">Swipe to open <span aria-hidden="true">&#8250;</span></div></div>${ok?pic(c.photo,'we-ph'):''}${FO}</section>`]).concat([
   ...(()=>{const rows=secs.map((x,k)=>{const f=x.s.stories[0],ph=wePhotoOk(f.photo,false,f.t),T=f.h||f.t;return `<li><button type="button" data-wej="we-s${x.i}" aria-label="${esc(x.s.name)}: ${esc(T)}, page ${pnum[k]}"><b>${k+1}</b><span class="we-tx"><span class="we-tn2">${esc(x.s.name)}</span><span class="we-th">${esc(T)}<i class="we-tmin" data-wemin="${I(f)}"></i></span></span><span class="we-tb">${ph?pic(f.photo,'we-tm'):''}</span><i>${pnum[k]}</i></button></li>`});const foot=`<div class="we-ft">${WE.live?'<button type="button" class="we-lk we-now" data-wenow>Back to the latest issue</button>':''}${('speechSynthesis' in window)?'<button type="button" class="we-lk we-lis" data-weplay>Listen to this edition</button>':''}<button type="button" class="we-lk" data-wej="we-how">How this edition was picked</button><p class="we-rdy" role="status"></p></div>`;const head=`<div class="we-tt"><span>Contents</span><span>${n===1?'1 story':n+' stories'}</span></div>`;if(!WTWO)return [`<section class="we-pg we-toc we-scr" data-fit aria-label="Contents"><div class="we-in">${EX}${head}<ol class="we-tl">${rows.join('')}</ol>${foot}</div>${FO}</section>`];const half=Math.ceil(rows.length/2);return [`<section class="we-pg we-toc" data-fit aria-label="Contents"><div class="we-in">${EX}${head}<ol class="we-tl">${rows.slice(0,half).join('')}</ol></div>${FO}</section>`,`<section class="we-pg we-toc we-toc2" data-fit aria-label="Contents, continued"><div class="we-in">${EX.replace('<button ','<button tabindex="-1" aria-hidden="true" ')}<ol class="we-tl">${rows.slice(half).join('')}</ol>${foot}</div>${FO}</section>`]})()]);
  /* one idea per page: a section opens on a page of its own (its photo when one passes the checklist, type when none does), and its other stories follow on the next page */
- secs.forEach((x,k)=>{const[f,...r]=x.s.stories,w=why(f),pk=wePhotoOk(f.photo,false,f.t),ak=!pk&&weArtPass(f.art,x.s.name),tp=!pk&&!ak?wePlate(f.plate):'',ng=pk&&weBigPic(f.photo),split=weSplit(x),als=!split&&r.length?`<div class="we-als"><em>Also in ${esc(x.s.name)}</em><ul>${r.map(st=>`<li><h4>${A(st)}</h4><small><b>${esc(st.o)}</b></small></li>`).join('')}</ul></div>`:'',hd=more=>`<header class="we-hd${more?' we-hc':''}"><i aria-hidden="true">${x.i+1}</i><h2>${esc(x.s.name)}${more?', continued':''}</h2></header>`,last=k===secs.length-1;
-  P.push(`<section class="we-pg we-op${ng?' we-ng':''}${!pk&&!ak&&!tp?' we-tyo':''}${!pk&&!ak&&!tp&&k%2?' we-inv':''}" data-fit id="we-s${x.i}" aria-label="${esc(x.s.name)}"><div class="we-in">${EC}${pk?`<figure class="we-fg we-ok" data-wepl="${esc(f.l)}">${pic(f.photo,'')}<figcaption>Photo: <span class="we-cr">${esc(weCred(f.photo.credit))}</span></figcaption></figure>`:ak?`<figure class="we-fg we-ok we-ill" data-wepl="${esc(f.l)}"><img alt="" referrerpolicy="no-referrer" data-wep src="${esc(weArtUrl(f.art.url))}"><figcaption>Illustration made by a machine</figcaption></figure>`:tp}${hd()}<article class="we-ld" data-wel="${I(f)}">${f.region?`<em>${esc(f.region)}</em>`:''}<h3>${A(f)}</h3>${weDek(f.dek)?`<p>${esc(weDek(f.dek))}</p>`:''}${f.note?`<aside class="we-nt"><em>Written by a machine</em><p>${esc(f.note)}</p>${f.noteBy?`<small>${esc(f.noteBy)}</small>`:''}</aside>`:''}<small><b>${esc(f.o)}</b>${w?' &middot; '+esc(w):''}</small></article>${als}${last&&!split?'<div class="we-end">End of the edition</div>':''}</div>${FO}</section>`);
+ secs.forEach((x,k)=>{const[f,...r]=x.s.stories,w=why(f),pk=wePhotoOk(f.photo,false,f.t),ak=!pk&&weArtPass(f.art,x.s.name),tp=!pk&&!ak?wePlate(f.plate):'',ng=pk&&weBigPic(f.photo),split=weSplit(x),spread=weSpread(x),als=!split&&!spread&&r.length?`<div class="we-als"><em>Also in ${esc(x.s.name)}</em><ul>${r.map(st=>`<li><h4>${A(st)}</h4><small><b>${esc(st.o)}</b></small></li>`).join('')}</ul></div>`:'',hd=more=>`<header class="we-hd${more?' we-hc':''}"><i aria-hidden="true">${x.i+1}</i><h2>${esc(x.s.name)}${more?', continued':''}</h2></header>`,last=k===secs.length-1;
+  P.push(`<section class="we-pg we-op${ng?' we-ng':''}${!pk&&!ak&&!tp?' we-tyo':''}${!pk&&!ak&&!tp&&k%2?' we-inv':''}" data-fit id="we-s${x.i}" aria-label="${esc(x.s.name)}"><div class="we-in">${EC}${pk?`<figure class="we-fg we-ok" data-wepl="${esc(f.l)}">${pic(f.photo,'')}<figcaption>Photo: <span class="we-cr">${esc(weCred(f.photo.credit))}</span></figcaption></figure>`:ak?`<figure class="we-fg we-ok we-ill" data-wepl="${esc(f.l)}"><img alt="" referrerpolicy="no-referrer" data-wep src="${esc(weArtUrl(f.art.url))}"><figcaption>Illustration made by a machine</figcaption></figure>`:tp}${hd()}${spread?`<div class="we-ldh">${f.region?`<em>${esc(f.region)}</em>`:''}<h3>${A(f)}</h3></div>`:`<article class="we-ld" data-wel="${I(f)}">${f.region?`<em>${esc(f.region)}</em>`:''}<h3>${A(f)}</h3>${weDek(f.dek)?`<p>${esc(weDek(f.dek))}</p>`:''}${f.note?`<aside class="we-nt"><em>Written by a machine</em><p>${esc(f.note)}</p>${f.noteBy?`<small>${esc(f.noteBy)}</small>`:''}</aside>`:''}<small><b>${esc(f.o)}</b>${w?' &middot; '+esc(w):''}</small></article>`}${als}${last&&!split&&!spread?'<div class="we-end">End of the edition</div>':''}</div>${FO}</section>`);
+  /* the right-hand half of a one-story section's spread: the story's own opening, which wePQ fills as soon
+     as the text arrives, with the deck standing in until it does */
+  if(spread)P.push(`<section class="we-pg we-op we-op2${!pk&&!ak&&!tp?' we-tyo':''}" data-fit aria-label="${esc(x.s.name)}, continued"><div class="we-in">${EC}<article class="we-ld" data-wel="${I(f)}">${weDek(f.dek)?`<p class="we-sf">${esc(weDek(f.dek))}</p>`:''}${f.note?`<aside class="we-nt"><em>Written by a machine</em><p>${esc(f.note)}</p>${f.noteBy?`<small>${esc(f.noteBy)}</small>`:''}</aside>`:''}<small><b>${esc(f.o)}</b>${w?' &middot; '+esc(w):''}</small></article>${last?'<div class="we-end">End of the edition</div>':''}</div>${FO}</section>`);
   if(split)P.push(`<section class="we-pg" data-fit aria-label="${esc(x.s.name)}, continued"><div class="we-in">${EC}${hd(1)}${r.map(st=>`<article class="we-st${r.length>2?' we-li':''}" data-wel="${I(st)}">${st.region?`<em>${esc(st.region)}</em>`:''}<h3>${A(st)}</h3>${weDek(st.dek)?`<p class="we-sd">${esc(weDek(st.dek))}</p>`:''}<small><b>${esc(st.o)}</b></small></article>`).join('')}${last?'<div class="we-end">End of the edition</div>':''}</div>${FO}</section>`)});
 
  P.push(`<section class="we-pg we-how" data-fit id="we-how" aria-label="How this edition was picked"><div class="we-in">${EC}<em>From the editor</em><h2>How this edition was picked</h2>${(d.method||[]).map(p=>`<p>${esc(p)}</p>`).join('')}<p class="we-sig">&mdash; The editors</p>${(()=>{const ps=wePast().filter(x=>String(x.date)!==String(d.date));return ps.length?`<div class="we-arch"><em>Earlier issues</em><ul>${ps.map((x,i)=>`<li><button type="button" data-weiss="${i}">${esc(weWhen(x.date))}<span>No. ${+x.issue||'\u2014'}</span></button></li>`).join('')}</ul></div>`:''})()}</div>${FO}</section>`);
@@ -17424,7 +17456,7 @@ function wePQ(a){const i=WE.cur.indexOf(a),el=i<0?null:document.querySelector('[
   let k=0;while(k<R.length&&!weReal(R[k][0],R[k][1]))k++;
   /* the same opening printed twice (deck, then the paragraph it was drawn from) reads as a mistake */
   const key=t=>String(t||'').replace(/\s+/g,' ').trim().toLowerCase().slice(0,40),seen=new Set([key(a.wdek)]);
-  const op=R.slice(k).filter(x=>!weJunk(x[0],x[1],a.wdek,a.title)).map(x=>x[1]).filter(t=>{const k2=key(t);if(!k2||seen.has(k2))return false;seen.add(k2);return true}).slice(0,lead?4:3);
+  const op=R.slice(k).filter(x=>!weJunk(x[0],x[1],a.wdek,a.title)).map(x=>x[1]).filter(t=>{const k2=key(t);if(!k2||seen.has(k2))return false;seen.add(k2);return true}).slice(0,lead?7:4);
   const sm=el.querySelector('small'),put=x=>sm?sm.insertAdjacentHTML('beforebegin',x):el.insertAdjacentHTML('beforeend',x);/* the source line stays at the foot of the page */
   /* FORM A, "the story starts here" - David's pick from the review of 2026-11-27, and the fault it fixes was
      in the SIZE of the type, not in the text. A type opener sets its headline to fill the page ON ITS OWN, so
@@ -17441,6 +17473,12 @@ function wePQ(a){const i=WE.cur.indexOf(a),el=i<0?null:document.querySelector('[
  /* a page whose PICTURE is a sentence from this story does not also print a pull quote: that is the same line twice,
     and it reads as a mistake. The plate is the loud one, so the quiet one gives way. */
  if(q&&el.closest('.we-pg')&&el.closest('.we-pg').querySelector('.we-tp-s'))q='';
+ /* AND IT DOES NOT PRINT A SENTENCE THE PAGE HAS ALREADY PRINTED. Now that an opener carries up to four of
+    the story's opening paragraphs, the quote weQuote lifted is often sitting a few lines above it - the
+    Business spread printed "Today's historic judgment finally delivers some semblance of justice..." as
+    paragraph three and again as the pull quote. Same rule as the plate above: the quiet one gives way. */
+ if(q){const kq=q.replace(/\s+/g,' ').trim().toLowerCase().slice(0,60);
+  if(kq&&[...el.querySelectorAll('.we-tz')].some(x=>x.textContent.replace(/\s+/g,' ').trim().toLowerCase().includes(kq)))q=''}
  if(q){const sm=el.querySelector('small'),qh=`<blockquote class="we-pq">“${esc(q)}”<cite>From the story · ${esc(a.ft)}</cite></blockquote>`;sm?sm.insertAdjacentHTML('beforebegin',qh):el.insertAdjacentHTML('beforeend',qh)}
  try{const pg=el.closest('.we-pg'),inn=pg&&pg.querySelector('.we-in'),fit=pg&&pg.hasAttribute('data-fit');
   if(inn){if(fit)pg.style.setProperty('--wz',1);/* measured at full size: a page that has already been shrunk reads as if it fits */
