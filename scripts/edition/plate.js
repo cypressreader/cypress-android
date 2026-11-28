@@ -130,7 +130,14 @@ async function askPlate(st,text){
  if(!r.json||!r.json.success){
   return{err:(r.json&&r.json.errors&&r.json.errors[0]&&r.json.errors[0].message)||r.raw||'the service did not answer'};
  }
- let out=String((r.json.result&&(r.json.result.response||r.json.result.output))||'').trim();
+ /* THE REPLY CAN ARRIVE ALREADY PARSED (found 2026-11-28, the first time this ever ran on a real edition).
+    When the model answers with JSON the service now hands `response` back as an OBJECT, not as text. This
+    read it with String(), got "[object Object]", found no braces in that, and threw away EVERY plate as
+    "the reply was not JSON" - so no edition has ever carried one. Both forms are read now. Nothing about the
+    check changes: every figure and word is still tested against the article below. */
+ const raw=r.json.result&&(r.json.result.response!=null?r.json.result.response:r.json.result.output);
+ if(raw&&typeof raw==='object')return check(raw,body,st.t);
+ let out=String(raw||'').trim();
  if(/^NONE\b/i.test(out))return{err:'the model found nothing honest to print'};
  const m=out.match(/\{[\s\S]*\}/);if(!m)return{err:'the reply was not JSON: '+out.slice(0,70)};
  let p=null;try{p=JSON.parse(m[0])}catch(e){return{err:'the reply was not JSON I could read: '+m[0].slice(0,70)}}

@@ -16742,7 +16742,11 @@ async function weEdition(){
     resolved against the live site, so on the preview site - and in the preview app - every one of them was
     looked for at cypressreader.com, where a preview issue's pictures do not exist, and dropped in silence.
     David saw a magazine with no drawings in it twice, on the phone and in a browser. */
- if(built)try{weAbs(built,new URL('world-edition.json',location.href).href)}catch(e){}
+ /* ...EXCEPT INSIDE THE ANDROID APP, WHERE THE PAGE IS https://localhost AND THE DRAWINGS ARE NOT IN IT.
+    Drawings are never bundled; they are published beside the issue on the site. David's 1.417 diagnostics,
+    2026-11-28: `first drawing https://localhost/we-art/akl8wb.jpg` - every drawing of the built-in issue was
+    looked for inside the app and not found. In the app the built-in copy takes the site it reads from. */
+ if(built)try{weAbs(built,NATIVE?await weUrl():new URL('world-edition.json',location.href).href)}catch(e){}
  /* AND THE SAME ASSUMPTION A FOURTH TIME. The copy saved from the network was preferred over the one bundled
     in the app only when its date was LATER. They are the same day, so the bundled copy won every launch and
     the refreshed one - the one with the drawings in it - was thrown away before it could be drawn. That is

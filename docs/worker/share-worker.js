@@ -428,6 +428,17 @@ export default {
   },
   async fetch(req, env) {
     const u = new URL(req.url);
+    // THE EDITION IS PUBLIC, AND THE APP COULD NEVER FETCH IT (found 2026-11-28).
+    // The Android app asks for /app/world-edition.json and its drawings in /app/we-art/. Both rules below sent
+    // everything under /app/ to the home page (or the family gate), so the app got a web page where it expected
+    // an edition and kept the copy it was installed with - for good. No production phone ever received one.
+    // These two paths are not the private web app: they are the magazine, already public on the Pages site.
+    // The app asks from its own origin, so the answer also has to say any origin may read it.
+    if (/^\/app\/(world-edition\.json|we-art\/[\w.-]+)$/.test(u.pathname)) {
+      const r = await site(req, u), h = new Headers(r.headers);
+      h.set('access-control-allow-origin', '*'); h.set('cache-control', 'public, max-age=120');
+      return new Response(r.body, { status: r.status, headers: h });
+    }
     const fp = String(env.FAMILY_PATH || '').replace(/[^\w-]/g, '');
     if (fp) {
       const fm = u.pathname.match(new RegExp('^/' + fp + '(/.*)?$', 'i'));
