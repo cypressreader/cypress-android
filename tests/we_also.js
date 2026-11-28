@@ -58,7 +58,9 @@ const WIDTHS = [{ name: 'phone', width: 412, height: 915 }, { name: 'fold', widt
         const e = (WE.d.editions || []).find(x => x.id === (WE.ed || (WE.d.editions[0] || {}).id)) || WE.d.editions[0];
         return (e.sections || []).filter(s => (s.stories || []).length).map(s => ({
           name: s.name, left: s.stories.length - 1,
-          big: !!(wePhotoOk(s.stories[0].photo, false, s.stories[0].t) && weBigPic(s.stories[0].photo))
+          big: !!(wePhotoOk(s.stories[0].photo, false, s.stories[0].t) && weBigPic(s.stories[0].photo)),
+          /* a one-story section may take a two-page spread only if its left page has something on it */
+          carries: !!(wePhotoOk(s.stories[0].photo, false, s.stories[0].t) || weArtPass(s.stories[0].art, s.name) || String(s.stories[0].h || s.stories[0].t || '').length >= 50)
         }))
       });
 
@@ -73,7 +75,7 @@ const WIDTHS = [{ name: 'phone', width: 412, height: 915 }, { name: 'fold', widt
            and a section with no leftovers at all spreads its opener over the two. */
         const fold = w.name === 'fold';
         const shouldSplit = fold ? s.left > 0 : (s.left > 2 || (s.left > 0 && s.big));
-        const shouldSpread = fold && s.left === 0;
+        const shouldSpread = fold && s.left === 0 && s.carries;
         if (shouldSplit) {
           kept++;
           if (!got.cont) bad(w.name + ': ' + s.name + ' has ' + s.left + ' leftover stories and lost its continued page');
@@ -87,6 +89,8 @@ const WIDTHS = [{ name: 'phone', width: 412, height: 915 }, { name: 'fold', widt
           else if (got.als.some(x => x.wel)) bad(w.name + ': ' + s.name + " has an 'Also in' entry carrying data-wel - wePQ will pour body text into it");
         } else if (shouldSpread) {
           if (!got.cont) bad(w.name + ': ' + s.name + ' has one story and did not spread its opener, so every section after it starts on the wrong page');
+        } else if (fold && s.left === 0 && !s.carries) {
+          if (got.cont) bad(w.name + ': ' + s.name + ' spread a short headline over two pages, which leaves a page with nothing on it');
         } else if (got.als) bad(w.name + ': ' + s.name + ' prints "Also in" with nothing to put in it');
       });
       if (merged) ok(w.name + ': ' + merged + ' sections print their leftovers on the opener (' + merged + ' pages saved)');
@@ -102,7 +106,9 @@ const WIDTHS = [{ name: 'phone', width: 412, height: 915 }, { name: 'fold', widt
       if (!wrong && r.rows.length) ok(w.name + ': all ' + r.rows.length + ' contents numbers match the page they point to');
       if (w.name === 'fold') {
         const right = r.secs.filter(x => x.idx % 2);
-        if (right.length) bad('fold: ' + right.length + ' section(s) start on a right-hand page: ' + right.map(x => x.name).join(', '));
+        const short = shape.some(x => x.left === 0 && !x.carries);
+        if (short) ok('fold: a one-story section with a short headline keeps one page, so the left-hand rule is not checked for this edition');
+        else if (right.length) bad('fold: ' + right.length + ' section(s) start on a right-hand page: ' + right.map(x => x.name).join(', '));
         else ok('fold: all ' + r.secs.length + ' sections start on a left-hand page');
       }
       if (!r.rows.length) bad(w.name + ': the contents printed no rows at all');

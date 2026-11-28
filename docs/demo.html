@@ -17481,7 +17481,16 @@ function renderWE(){
     other stories gets its two pages from them. A section with only ONE story used to take a single page and
     knock every section after it out of step - David's choice, 2026-11-28: its opener takes the whole spread,
     the section mark and the headline on the left, the story's own opening on the right. */
- const weSpread=x=>WTWO&&!weSplit(x)&&(x.s.stories||[]).length<=1;
+ /* ...BUT ONLY WHEN THE LEFT PAGE CAN CARRY IT (2026-11-28, the first edition built after this shipped).
+    The left page of the spread holds the section mark and the headline and nothing else. The Long read of
+    28 November was headed "Americans Seen" - two words alone on a page - and the layout check rightly called
+    it near-empty and REFUSED THE WHOLE EDITION. It was only ever drawn against issue No. 3, which had no
+    section like it: the same mistake as the cover with no photograph, a render that was not of the case
+    that ships. A spread needs a picture on that page or a headline long enough to be one; without either
+    the section keeps the ordinary single opener, which fills with the story. That section's neighbours
+    then start a page out of step, which is the lesser fault by a long way: it is not an empty page. */
+ const weSpread=x=>{const st=x.s.stories||[],f=st[0];if(!WTWO||!f||st.length>1||weSplit(x))return false;
+  return !!(wePhotoOk(f.photo,false,f.t)||weArtPass(f.art,x.s.name)||String(f.h||f.t||'').length>=50)};
  let pn0=WTWO?5:3;const pnum=secs.map(x=>{const p=pn0;pn0+=1+((weSplit(x)||weSpread(x))?1:0);return p});
   /* WITHOUT A PICTURE THE MASTHEAD AND THE HEADLINE EACH TAKE A PAGE (David, 2026-11-27, on issue No. 3:
     'This looks bad'). The first cut gave the picture the left page and the words the right, and was only
