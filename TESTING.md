@@ -2821,3 +2821,9 @@ headline lying across it. Both the grid track and the row itself now have a cont
 - [ ] The framed cover: the photograph sits between the nameplate and the lead, the headline is whole, nothing is cut at the foot (phone and fold).
 - [ ] Reading on a section, let the magazine refresh or a story drop: you stay on that section, not the cover.
 - [ ] Open the magazine with the fold shut, then unfold: cover spread and two-page contents appear and you stay on the same section. Fold again: same.
+
+## 1.421 (2026-11-28) - needs a real phone
+- [ ] The cover spread on the fold's inner screen: the photograph runs across both pages and meets cleanly at the fold; the nameplate is readable over it; the headline is whole; the edition picker still opens.
+- [ ] Fold shut: the phone cover still shows the framed picture.
+- [ ] Small pictures beside headlines on list pages and "Also in" lines: they load, and tapping the headline still opens the story.
+- [ ] International edition (edition picker): the front section is "Around the world", there is an "America" section, and no "World" section.

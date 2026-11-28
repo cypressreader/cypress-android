@@ -49,6 +49,23 @@ const usable=(st,min)=>{const p=st&&st.photo;
 const best=l=>l.slice().sort((a,b)=>(b.n-a.n)||((b.st.photo.w*(b.st.photo.w/b.st.photo.h>=1.3?1.15:1))-(a.st.photo.w*(a.st.photo.w/a.st.photo.h>=1.3?1.15:1))));
 const widest=l=>l.slice().sort((a,b)=>(b.st.photo.w*(b.st.photo.w/b.st.photo.h>=1.3?1.15:1))-(a.st.photo.w*(a.st.photo.w/a.st.photo.h>=1.3?1.15:1)));
 
+/* A SECTION OPENS ON ITS PICTURE (David, 2026-11-28: "And more pictures in the magazine? The ones there look
+   good but they are rare"). They were rare because they were hidden, not because they were missing: issue
+   No. 4 had sixteen cleared photographs and its Home, World, Business, Culture and Long read sections all
+   opened on a bare page with a photograph sitting on a story further down. compose.js already says "the lead
+   follows the picture" - and, like the cover, it says so before any picture exists. This is the same rule run
+   when it can work: in each section, if the opening story has no picture and a later one does, the pictured
+   story opens the section. The obituary page keeps its order; who is named first there is not a layout choice. */
+const pictured=st=>{const p=st&&st.photo;return !!(p&&/^https:\/\//.test(p.url||'')&&String(p.credit||'').trim()&&Math.max(+p.w||0,+p.h||0)>=600
+  &&MARKS.every(k=>(p.clear||[]).includes(k))&&!(p.people!==false&&ACCUSE.test(String(st.h||st.t||''))))||!!(st&&st.art&&st.art.url)};
+function openOnPicture(e){let moved=0;
+ for(const s of e.sections||[]){const st=s.stories||[];if(st.length<2||s.name==='Obituary'||pictured(st[0]))continue;
+  const i=st.findIndex(pictured);if(i<1)continue;
+  const[x]=st.splice(i,1);st.unshift(x);moved++;
+  /* the summary line was written for the story that used to open; it does not travel to another story */
+ }
+ return moved}
+
 function choose(e){
  const all=[];
  (e.sections||[]).forEach((s,si)=>{if(NOT_COVER.has(s.name))return;
@@ -79,12 +96,13 @@ const NOTE={
 };
 
 function apply(e){
+ const opened=openOnPicture(e);
  const r=choose(e);e.cover=e.cover||{};
  const same=r.pick&&e.cover.lead&&r.pick.lead[0]===e.cover.lead[0]&&r.pick.lead[1]===e.cover.lead[1];
  if(r.pick){e.cover.lead=r.pick.lead;e.cover.photo=r.pick.st.photo;if(r.frame)e.cover.frame=true;else delete e.cover.frame}
  else{e.cover.photo=null;delete e.cover.frame;if(r.top)e.cover.lead=r.top.lead}
  e.cover.photoNote=NOTE[r.step](r);
- return{...r,moved:!!(r.pick&&!same)};
+ return{...r,moved:!!(r.pick&&!same),opened};
 }
 
 module.exports={choose,apply,usable};
@@ -92,13 +110,14 @@ if(require.main!==module)return;/* draw.js asks `choose` whether a photograph wi
 if(process.argv.includes('--selfcheck')){
  const ph=(w,h,extra)=>({url:'https://x.example/p.jpg',credit:'A. Photographer',w,h,clear:MARKS.slice(),people:false,...extra});
  const iss=(stories,draw)=>({cover:{lead:[0,0],...(draw?{draw:{url:'we-art/c.jpg',w:942,h:942}}:{})},sections:[{name:'Home',stories},{name:'Back page',stories:[{t:'A standing page',n:99,photo:ph(4000,2000)}]}]});
+ /* the section opens on its pictured story first, so a pictured story is at index 0 by the time the cover is chosen */
  const cases=[
   ['the lead has a cover-size photograph',iss([{t:'Lead',n:12,photo:ph(2400,1350)},{t:'Other',n:10}]),'near-big',[0,0],false],
-  ['a story within three of the lead has one',iss([{t:'Lead',n:12},{t:'Close',n:9,photo:ph(1920,1080)}]),'near-big',[0,1],false],
+  ['a story within three of the lead has one',iss([{t:'Lead',n:12},{t:'Close',n:9,photo:ph(1920,1080)}]),'near-big',[0,0],false],
   ['the lead has only a smaller photograph',iss([{t:'Lead',n:12,photo:ph(1200,675)},{t:'Other',n:2,photo:ph(3000,1500)}]),'near-framed',[0,0],true],
-  ['nothing near, a strong story has one (issue No. 4)',iss([{t:'Lead',n:12},{t:'Second',n:10},{t:'Hack',n:8,photo:ph(1500,999)},{t:'Kitchen',n:1,photo:ph(2560,1440)}]),'strong',[0,2],true],
-  ['nothing strong, a drawing was kept',iss([{t:'Lead',n:12},{t:'Kitchen',n:1,photo:ph(2560,1440)}],true),'drawn',[0,0],undefined],
-  ['nothing strong and no drawing: the best in the issue',iss([{t:'Lead',n:12},{t:'Kitchen',n:1,photo:ph(2560,1440)}]),'any',[0,1],false],
+  ['nothing near, a strong story has one (issue No. 4)',iss([{t:'Lead',n:12},{t:'Second',n:10},{t:'Hack',n:8,photo:ph(1500,999)},{t:'Kitchen',n:1,photo:ph(2560,1440)}]),'strong',[0,0],true],
+  ['nothing strong, a drawing was kept',iss([{t:'Lead',n:12},{t:'Kitchen',n:1,photo:ph(2560,1440)}],true),'drawn',[0,1],undefined],
+  ['nothing strong and no drawing: the best in the issue',iss([{t:'Lead',n:12},{t:'Kitchen',n:1,photo:ph(2560,1440)}]),'any',[0,0],false],
   ['a photograph that was not fully cleared is never taken',iss([{t:'Lead',n:12,photo:ph(2400,1350,{clear:['logo','text']})}]),'type',[0,0],undefined],
   ['an identifiable person under an accusing headline is never taken',iss([{t:'Minister charged with fraud',n:12,photo:ph(2400,1350,{people:true})}]),'type',[0,0],undefined],
   ['a portrait-shaped photograph is never taken',iss([{t:'Lead',n:12,photo:ph(1400,2100)}]),'type',[0,0],undefined],
@@ -118,7 +137,7 @@ for(const e of f.editions||[]){
  console.log((e.name||e.id)+': '+({'near-big':'a full-page photograph','near-framed':'a framed photograph',strong:'a photograph from a strong story',drawn:'a drawing for the lead',any:'the best photograph in the issue',type:'NO PICTURE'})[r.step]
   +(st?'  -  '+String(st.h||st.t||'').slice(0,64)+' ('+(r.pick?r.pick.n:r.top.n)+' newsroom'+((r.pick?r.pick.n:r.top.n)===1?'':'s')+')':'')
   +(r.pick?'  '+r.pick.st.photo.w+'x'+r.pick.st.photo.h+(e.cover.frame?', framed':', full page')+', '+r.pick.st.photo.credit:'')
-  +(r.moved?'  [the cover story moved]':'')+(r.why?'  - '+r.why:''));
+  +(r.moved?'  [the cover story moved]':'')+(r.why?'  - '+r.why:'')+(r.opened?'\n   '+r.opened+' section'+(r.opened===1?' now opens':'s now open')+' on a pictured story':''));
  if(r.step==='type')bare++;
 }
 if(WRITE){f.rev=new Date().toISOString();
