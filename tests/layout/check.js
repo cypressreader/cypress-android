@@ -36,7 +36,13 @@ const cert = () => { const d = path.join(OUT, 'tls'), k = path.join(d, 'key.pem'
   if (!fs.existsSync(k) || !fs.existsSync(c)) require('child_process').execSync(`openssl req -x509 -newkey rsa:2048 -nodes -keyout "${k}" -out "${c}" -days 365 -subj /CN=127.0.0.1 -addext subjectAltName=IP:127.0.0.1`, { stdio: 'ignore' });
   return { key: fs.readFileSync(k), cert: fs.readFileSync(c) } };
 const serve = () => new Promise(res => { const s = https.createServer(cert(), (q, r) => { let f = path.join(ROOT, decodeURIComponent(q.url.split('?')[0])); if (f.endsWith('/')) f += 'index.html';
-  if (!f.startsWith(ROOT) || !fs.existsSync(f)) { r.writeHead(404); return r.end() } r.writeHead(200, { 'content-type': MIME[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(r) });
+  /* THE DRAWINGS ARE NOT IN www/. They are served from the site (docs/app/we-art/) and never bundled, and an
+     edition names them relative to itself - so here, with www/ as the whole site, every drawing was a 404, the
+     app dropped the figure, and the check reported "the page draws no figure at all" for every reviewed
+     edition whose drawing sat on a story with no photograph (found 2026-11-28: three false failures on an
+     edition whose four drawings all answer on the live site). The one folder is answered from where it lives. */
+  if (!fs.existsSync(f) && /^\/we-art\/[\w.-]+$/.test(q.url.split('?')[0])) f = path.join(ROOT, '../docs/app', q.url.split('?')[0]);
+  if (!(f.startsWith(ROOT) || f.startsWith(path.join(ROOT, '../docs/app/we-art'))) || !fs.existsSync(f)) { r.writeHead(404); return r.end() } r.writeHead(200, { 'content-type': MIME[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(r) });
   s.listen(0, '127.0.0.1', () => res(s)) });
 
 /* ---- runs inside the page: everything measured on the page as drawn ---- */
