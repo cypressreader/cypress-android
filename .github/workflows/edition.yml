@@ -115,7 +115,14 @@ jobs:
 
       - name: Publish it
         id: publish
-        if: ${{ inputs.publish != false }}
+        # AN UNATTENDED RUN NEVER PUBLISHED, AND SAID "SUCCESS" EVERY TIME (found 2026-11-28).
+        # This read `inputs.publish != false`. The box only exists on a run started by hand; on a schedule or
+        # a push `inputs.publish` is EMPTY, and in a GitHub expression empty and false both turn into 0, so
+        # "empty != false" is FALSE and the step was skipped. Run 6 (the schedule) and run 7 (the first push)
+        # each built a whole edition, passed both checks, threw it away and went green. The one edition this
+        # workflow ever published, run 5, was started by hand. Now: every automatic run publishes, and a run
+        # by hand publishes unless the box is unticked.
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.publish }}
         env:
           DATE: ${{ github.run_id }}
         run: |
