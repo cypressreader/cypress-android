@@ -98,6 +98,17 @@ for (const [no, c] of cands) {
   const v = vs[no] || vs[String(no)];
   const name = '#' + no + ' ' + String(c.title || '').slice(0, 44);
   if (!v || v.ok !== true) { refused++; console.log('  --  ' + name + ': ' + ((v && v.why) || 'no verdict')); continue }
+  /* not a photograph of this story (photos.js, "one question before the six"): refused whatever `ok` says, so a
+     verdict that passed the six marks but noted a stock image or a render cannot slip through */
+  if (v.photo === false) { refused++; console.log('  --  ' + name + ': not a photograph of this story' + (v.why ? ' (' + v.why + ')' : '')); continue }
+  /* A CREDIT THAT IS NOT A CREDIT. Issue No. 4 printed "Photo: CHER ON A GRAY BACKGROUND" and "Photo: RIPPLED TAN
+     SAND AND ROCK ON THE SLOPE OF MOUNT SHARP ON MARS" - the picture's description - and one that was the
+     story's own headline. A credit names who made or supplied the picture. One that reads like a description
+     (a long lower-case phrase with no name in it) or repeats the headline falls back to the outlet's name,
+     which is at least true: the publisher supplied it. */
+  { const cr = String(c.credit || '').trim(), low = x => String(x || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const looksLikeCaption = cr.split(/\s+/).length > 7 || low(cr) === low(c.title) || (low(c.title).length > 20 && low(cr).startsWith(low(c.title).slice(0, 20))) || /^(a|an|the)\s/i.test(cr) || /\b(on a|in front of|depicting|showing|illustration of)\b/i.test(cr);
+    if (looksLikeCaption && !/\b(getty|reuters|ap photo|afp|epa|shutterstock|alamy|nasa|esa|courtesy|\u00a9|cc by|via)\b/i.test(cr)) c.credit = String(c.outlet || c.o || '').trim() || cr; }
   if (!String(c.credit || '').trim()) { refused++; console.log('  --  ' + name + ': cleared, but it has no credit, so the app would refuse it'); continue }
   if (Math.max(+c.w || 0, +c.h || 0) < SM) { refused++; console.log('  --  ' + name + ': cleared, but it is only ' + c.w + 'x' + c.h); continue }
   const sts = byLink.get(c.link);

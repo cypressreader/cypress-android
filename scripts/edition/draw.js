@@ -169,6 +169,16 @@ const key=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;retu
   if(st.art&&st.art.url&&!REDRAW)continue;/* a drawing already passed an eye: do not spend it again */
   jobs.push({e:e.id,section:s.name,st});
  }
+ /* A DRAWING FOR THE COVER (David, 2026-11-28: "always a cover story with a picture or drawing"). Asked for
+    with --cover. cover.js is the one place that decides what the cover carries; it is asked here whether a
+    photograph will do, and only when none will - not the lead's, not a near story's, not a strong story's -
+    is the day's lead drawn. The drawing is kept or thrown away by the same eye and the same rules as any
+    other, and the app labels it "Illustration made by a machine". */
+ if(process.argv.includes('--cover')){const{choose}=require('./cover');
+  for(const e of f.editions||[]){const had=e.cover&&e.cover.draw;if(had)delete e.cover.draw;const r=choose(e);if(had)e.cover.draw=had;
+   if(!r.top||['near-big','near-framed','strong'].includes(r.step))continue;
+   if(had&&had.url&&!REDRAW)continue;
+   jobs.push({e:e.id,section:'Cover',st:r.top.st,cover:e})}}
  console.log('pages that may carry an illustration and have no photograph: '+jobs.length);
  for(const j of jobs)console.log('  '+j.e+'  '+j.section.padEnd(17)+j.st.t.slice(0,54));
  if(!jobs.length)process.exit(0);
@@ -184,9 +194,14 @@ const key=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;retu
  const {openApp}=require('./app');
  const app=await openApp(),tab=await app.ctx.newPage();
  let made=0,failed=0,why='';const briefs=[];
- const live=new Set();
+ const live=new Set(),done=new Map();
  for(const j of jobs){
   /* the brief first. No brief, no drawing - the mechanical idea is gone and is not coming back. */
+  /* ONE STORY, ONE DRAWING. Both editions usually carry the same story, and each copy was briefed, drawn and
+     paid for separately - then written to the same file name, so the first edition was left pointing at a
+     picture made for the second. A story already drawn in this run is given the same picture. */
+  const kk=(j.cover?'c:':'s:')+(j.st.l||j.st.t);
+  if(done.has(kk)){const a=done.get(kk);if(j.cover)j.cover.cover.draw={...a};else j.st.art={...a};continue}
   let idea=j.st.idea;
   if(!idea){const b=await askIdea(j.st);if(b.err){failed++;why=why||b.err;process.stdout.write('b');continue}idea=b.idea}
   briefs.push(j.section+': '+idea);
@@ -194,9 +209,10 @@ const key=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;retu
   if(r.err){failed++;why=why||r.err;process.stdout.write('x');continue}
   const jp=await housePalette(tab,r.png);
   if(!jp){failed++;process.stdout.write('x');continue}
-  const name=key(j.st.l||j.st.t)+'.jpg';
+  const name=key(j.st.l||j.st.t)+(j.cover?'-c':'')+'.jpg';
   fs.writeFileSync(path.join(ART,name),jp.buf);
-  j.st.art={url:'we-art/'+name,w:jp.w,h:jp.h};
+  const art={url:'we-art/'+name,w:jp.w,h:jp.h};done.set(kk,art);
+  if(j.cover){j.cover.cover=j.cover.cover||{};j.cover.cover.draw={...art}}else j.st.art={...art};
   live.add(name);made++;process.stdout.write('.');
  }
  process.stdout.write('\n');
@@ -205,13 +221,19 @@ const key=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))>>>0;retu
     that was kept rather than redrawn is exactly the one nothing in this run touched. Read the file. */
  for(const e of f.editions||[])for(const sc of e.sections||[])for(const st of sc.stories||[])
   if(st.art&&st.art.url)live.add(String(st.art.url).replace(/^.*\//,''));
- for(const old of fs.readdirSync(ART))if(/\.jpg$/.test(old)&&!live.has(old))fs.unlinkSync(path.join(ART,old));
+ for(const e of f.editions||[])if(e.cover&&e.cover.draw&&e.cover.draw.url)live.add(String(e.cover.draw.url).replace(/^.*\//,''));
+ /* ONLY THE LIVE EDITION MAY EMPTY THE LIVE FOLDER. Run on a test file with --edition, this deleted every
+    published drawing the test file did not mention, and then wrote the test file over the copy the site
+    serves - the clear.js accident of 27 November, still open here. The folder is pruned, and the deployed
+    copy mirrored, only when the file being written IS one of the two live copies. */
+ const docs=path.resolve(__dirname,'../../docs/app/world-edition.json'),www=path.resolve(ROOT,'world-edition.json');
+ const LIVE=path.resolve(EDITION)===docs||path.resolve(EDITION)===www;
+ if(LIVE)for(const old of fs.readdirSync(ART))if(/\.jpg$/.test(old)&&!live.has(old))fs.unlinkSync(path.join(ART,old));
 
  if(made){
   f.rev=new Date().toISOString();/* an issue corrected during its own day must still reach a phone that already has it */
   fs.writeFileSync(EDITION,JSON.stringify(f,null,1));
-  const docs=path.resolve(__dirname,'../../docs/app/world-edition.json');
-  try{if(path.resolve(EDITION)!==docs)fs.writeFileSync(docs,JSON.stringify(f,null,1))}catch(e){}
+  try{if(path.resolve(EDITION)===www)fs.writeFileSync(docs,JSON.stringify(f,null,1))}catch(e){}
  }
  for(const b of briefs)console.log('  '+b);
  console.log(made+' drawn, '+failed+' not'+(why?' ('+why+')':''));

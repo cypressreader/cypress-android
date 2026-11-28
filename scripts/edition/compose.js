@@ -84,6 +84,21 @@ function build(src){
         .replace(/\s*[:\u2013\u2014-]\s*$/,'').trim();
      if(d===was)break;
     }
+    /* A SUMMARY THAT IS THE HEADLINE AGAIN IS NOT A SUMMARY (issue No. 4, 28 Nov). Tech's opener printed
+       "AI Made Self-Hosting Fun Again (Just in Time) On November 26, a blog post titled..." under the headline
+       "AI Made Self-Hosting Fun Again (Just in Time)", and the Long read printed "Americans Seen Granta" under
+       "Americans Seen": the feed's summary was the title, then the outlet. dekFits passes both - they share
+       every word. So the headline and the outlet's name come OFF THE FRONT first, and what is left has to be
+       a sentence of its own: six words or more, and not made of the headline's words. */
+    {const low=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+     const strip=(x,lead)=>{const a=low(x),b=low(lead);if(!b||!a.startsWith(b))return x;
+      let n=0,i=0;const want=b.replace(/ /g,'').length;for(;i<x.length&&n<want;i++)if(/[a-z0-9]/i.test(x[i]))n++;
+      return x.slice(i).replace(/^[\s:;,.\u2013\u2014|)\]-]+/,'')};
+     d=strip(d,o.t);d=strip(d,o.o);d=d.replace(/\s+/g,' ').trim();
+     const words=low(d).split(' ').filter(Boolean),hw=new Set(low(o.t).split(' ').concat(low(o.o).split(' ')));
+     const fresh=words.filter(w=>!hw.has(w)).length;
+     if(words.length<6||fresh<Math.max(4,Math.ceil(words.length*.3)))d='';
+     else d=d.replace(/^([a-z])/,c=>c.toUpperCase())}
     if(d&&dekFits(o.t,d,r&&r.text))o.dek=d.slice(0,170);
    }
    /* `kind` is left out rather than guessed */
@@ -197,11 +212,14 @@ const file={
  format:1,date:DATE,issue,rev:new Date().toISOString(),sampled:cand.sampled||0,
  method:[
   'This edition was built by counting. The feeds of '+(cand.sampled||0)+' outlets were read, headlines about the same event were grouped, and a story is big when separate outlets report it. The cover story is the one reported by the most outlets. Nobody hand-picks it.',
-  'Every edition has the same ten sections in the same order, each with a fixed number of places: Home 4, World 4, Business 2, Science & Health 2, Tech 1, Culture 1, Sport 1, Food 1, one long read, and one story to finish on. A section may run short but never borrows, and no section prints two stories from the same outlet.',
+  /* THIS PAGE DESCRIBED A MAGAZINE THAT NO LONGER EXISTED (review of 2026-11-28): "the same ten sections",
+     "Home 4, World 4, Business 2...", "never borrows", "One edition a day". It is read by people deciding
+     whether to trust the thing, so the section list is now taken from the edition actually built. */
+  'Every edition has the same sections in the same order: '+(built[0]?built[0].sections.filter(x=>x.stories.length).map(x=>x.name).join(', '):'')+'. Each has a fixed number of places and a rule for what belongs in it. A section runs short on a quiet day, and its places may then go to a section with more to say. No outlet is printed more than twice in an edition.',
   'Every story was opened and read before it was printed. A story that could not be read, that is behind a paywall or a sign-in, or that has fewer than three paragraphs or 120 words was dropped and its place left empty rather than filled with a hollow page.',
-  'Every headline is the publisher’s own, word for word, and opens the publisher’s story. A summary line is the publisher’s own from its feed. One thing on these pages is written by a machine and nothing else is: the short note on the Obituary page saying who the person was, put together from that publisher’s obituary and Wikipedia’s summary of them. It is labelled as such where it is printed.',
+  'Every headline is the publisher’s own and opens the publisher’s story; only a label or the outlet’s name hung on the end is taken off. A summary line is the publisher’s own from its feed. A photograph is the publisher’s, and each one is looked at before it is printed. Three things are made by a machine and each is labelled where it appears: the short note on the Obituary page saying who the person was, put together from that publisher’s obituary and Wikipedia’s summary; a drawing on a page with no photograph; and a figure or a line from the story set large, which is checked word for word against the story.',
   'One link per story, to an outlet that lets you read it. The app never goes past a paywall or meter and never keeps a publisher’s story on a server.',
-  'One edition a day. It is not updated after it is published, apart from a dated correction. No opinion columns, no games, no weather.'
+  'Two editions a day, morning and evening. An edition is not changed after it is published except to add pictures once they have been looked at, or to correct it. No opinion columns, no games, no weather.'
  ],
  editions:built.map(shape)
 };

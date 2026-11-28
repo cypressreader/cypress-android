@@ -40,6 +40,18 @@
  * `people:false` is separate and says NO identifiable person is the subject of the frame. It is required when
  * the headline accuses somebody (`WE_ACCUSE` in the app), so that a story about a charge never runs a face.
  *
+ * AND ONE QUESTION BEFORE THE SIX: IS IT A PHOTOGRAPH OF THIS STORY? (added 2026-11-28)
+ *   Issue No. 4 printed, on a Business news page about a government department being hacked, a glossy stock
+ *   picture of a hooded figure in front of screens. It passed all six marks, because none of them asks whether
+ *   the picture is real. The same issue cleared a game's promotional key art and a space agency's rendering as
+ *   photographs. So before the marks, ask: is this a camera's picture of a real scene, and is that scene the
+ *   story's own subject? REFUSE (`ok:false`, and say which): a stock or generic image standing in for the
+ *   event ("hacker at a keyboard", "gavel", "stethoscope"); a render, a CGI or AI-looking image; an
+ *   illustration, a diagram, a chart; promotional key art, a poster, a book or album cover; a screenshot; a
+ *   file picture of something that is not what the story is about. Write `"photo":false` in the verdict so
+ *   the reason is recorded. A publicity still of the actual person or show the story is about is fine.
+ *   A drawing is honest because it is labelled as one; a fake photograph is the opposite of that.
+ *
  * WHAT IS NOT A REASON TO REFUSE, because the eye was being stricter than the magazine (David, 2026-11-27,
  * on a publicity still of two women in bed that this reader had refused: "Two women in bed is fine as long as
  * there's no pornography so yes you can loosen things a bit"). None of the six marks covers nudity, and a

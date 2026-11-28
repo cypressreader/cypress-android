@@ -70,7 +70,15 @@ const isPuzzle=t=>{t=String(t||'');
  if(PUZ_SURE.test(t))return true;                        /* these words are not used for anything else */
  if(PUZ_WORD.test(t)&&PUZ_NEAR.test(t))return true;      /* the ordinary ones need a puzzle beside them */
  return /\b(hints?|clues?) (and|&) answers?\b/i.test(t)} /* the shape itself, whatever the puzzle is called */
-const notAStory=t=>NOT_A_STORY.test(String(t||''))||isPuzzle(t);
+/* MORE THINGS THAT ARE NOT STORIES, each one printed in issue No. 4 of 28 November 2026:
+   "2026 Full Moon calendar: When to see the Full Moon and phases" (a listing, in Science & Health);
+   "Book Review Contest 2026 Winners" (a blog announcing its own contest, LEADING the Review page);
+   and the kinds a feed labels itself - Watch:, Listen:, Podcast:, Video:, Photos:, Quiz:.
+   The method page promises "no opinion columns", and nothing tested for one: an opinion piece is told by
+   where the publisher FILED it, which is in the address, so the address is read too. */
+const NOT_A_STORY_2=/^(watch|listen|podcast|video|photos?|in pictures|gallery|quiz|poll|newsletter|live)\b\s*[:|\u2013\u2014-]|\bcalendar\b[^.]{0,40}\bwhen to\b|\bwhen to (see|watch)\b|\bcontest\b[^.]{0,30}\b(winners?|results|finalists)\b|\bwinners? (announced|revealed)\b|\b(letters to the editor|readers'? letters|corrections and clarifications)\b|\bhow to watch\b|\bwhere to (buy|stream|watch)\b|\barchives?\s*$|\bcrossword\b\s*[:\u2013\u2014-]|^new (on|to) (netflix|prime video|hulu|disney|max|apple tv|peacock|paramount)|\b(everything|what'?s) (coming|new|leaving) (to|on)\b|\bto (stream|watch) this (week|weekend|month)\b|\bstocks? to (buy|watch|sell|own)\b|\bbuy and hold\b|\bprice target\b|\bshould you (buy|sell)\b|\blooks unrecognizable\b|\bcause of death revealed\b|^special:/i;
+const NOT_A_STORY_PATH=/\/(opinions?|commentisfree|comment|editorials?|op-?eds?|columnists?|columns?|letters|podcasts?|videos?|watch|live|live-news|newsletters?|sponsored|partner-content|advertorial|deals|shopping|coupons?|quiz(zes)?|puzzles?|horoscopes?)\//i;
+const notAStory=(t,link)=>NOT_A_STORY.test(String(t||''))||NOT_A_STORY_2.test(String(t||''))||isPuzzle(t)||(!!link&&NOT_A_STORY_PATH.test(String(link)));
 /* GOSSIP IS NOT THE FRONT SECTION. On 27 November Home carried "Thom Evans Confirms Nicole Scherzinger
    Split After Seven Years", because Home is filled by how widely a story is reported and six outlets covered
    it. The answer is NOT to refuse celebrity news - it is real, and Culture is where a magazine prints it -
@@ -78,7 +86,12 @@ const notAStory=t=>NOT_A_STORY.test(String(t||''))||isPuzzle(t);
    Every word here is a tabloid verb or a tabloid noun. "Slams" is deliberately absent: real political
    headlines use it constantly. */
 const GOSSIP=/\bclaps? back\b|\bgushe[sd]\b|\bflaunts?\b|\bsteps? out in\b|\bspotted (with|on a date)\b|\bsparks? (romance|dating|engagement|split|pregnancy) rumou?rs\b|\bbaby bump\b|\bred carpet\b|\bco-?parenting\b|\bPDA\b|\bconfirms?\s+(?:\S+\s+){0,3}(split|breakup|romance|divorce|engagement)\b(?!\s+of\b)|\bannounce[sd]?\s+(their|his|her)\s+(split|separation|divorce|engagement)\b|\b(split|together) after \d+ years\b/i;
-const SPORTY=/\b(nfl|nba|mlb|nhl|ncaa|fifa|uefa|premier league|la liga|serie a|f1|formula 1|grand prix|super bowl|world cup|playoffs?|quarterfinals?|semifinals?|touchdown|home run|fantasy football|week \d+|game \d+|\bvs\.?\b|steelers|packers|lakers|yankees|dodgers|man utd|manchester (united|city)|arsenal|liverpool|chelsea|wildcats|australian open|us open|french open|atp|wta|test match|six nations|strikers?|midfielders?|goalkeepers?|wingers?|quarterbacks?|wide receivers?|point guards?|transfer window|signs? a new contract|signs new contract|on loan to|caps for|matchday|kick-?off|full-?time|half-?time|depth charts?|recruiting class|bowl game|mock drafts?)\b/i;
+const SPORTY0=/\b(nfl|nba|mlb|nhl|ncaa|fifa|uefa|premier league|la liga|serie a|f1|formula 1|grand prix|super bowl|world cup|playoffs?|quarterfinals?|semifinals?|touchdown|home run|fantasy football|week \d+|game \d+|\bvs\.?\b|steelers|packers|lakers|yankees|dodgers|man utd|manchester (united|city)|arsenal|liverpool|chelsea|wildcats|australian open|us open|french open|atp|wta|test match|six nations|strikers?|midfielders?|goalkeepers?|wingers?|quarterbacks?|wide receivers?|point guards?|transfer window|signs? a new contract|signs new contract|on loan to|caps for|matchday|kick-?off|full-?time|half-?time|depth charts?|recruiting class|bowl game|mock drafts?)\b/i;
+/* "Kraken lean on special teams to beat Oilers" ran in the International edition's WORLD section on 28 Nov.
+   The list above knew the leagues and a few clubs and had no hockey in it at all. These are the words of a
+   result - the vocabulary a match report cannot avoid - and the North American clubs most often filed by a
+   general news feed. */
+const SPORTY=new RegExp(SPORTY0.source+'|\\b(special teams|power play|hat[- ]trick|shutout|shootout|overtime (win|loss|thriller)|goalie|goaltender|puck|penalty kill|innings?|wickets?|run chase|pole position|podium|match report|full[- ]time|half[- ]time|extra time|stoppage time|penalty shootout|free kick|red card|buzzer[- ]beater|walk[- ]off|no[- ]hitter|grand slam final|tee time|birdie|bogey|knockout round|group stage|relegat\\w+|kraken|oilers|canucks|flames|maple leafs|canadiens|senators|blue jays|raptors|bruins|rangers|penguins|red wings|blackhawks|avalanche|golden knights|celtics|warriors|knicks|bulls|cowboys|patriots|chiefs|eagles|49ers|red sox|cubs|astros|braves|mets|ufc|wwe|mma|bout|title fight|heavyweight|welterweight|cage fight)\\b','i');
 /* WHAT COUNTS AS SPORT IN A MAGAZINE (David, 2026-11-26): "it should only be major events. Someone won the
    world cup, world series, super bowl, Wimbledon etc. A random team winning a random game doesn't matter for
    99% of readers. Now a sport related major story like Kobe Bryant dying or Messi retiring does matter
@@ -93,12 +106,33 @@ const SPORT_CAREER=/\b(retires?|retirement|announces? (his|her|their) retirement
 /* and what a sports feed is mostly made of, which a magazine never prints */
 const SPORT_NOISE=/\bfantasy\b|start '?em|sit '?em|\bodds\b|\bbetting\b|\bpicks?\b|\brankings?\b|\bpower rankings\b|\binjury report\b|\bweek \d+\b|\bpreview\b|\bhow to watch\b|\bhighlights\b|\brecap\b|\btrade rumou?rs?\b|\bmock draft\b/i;
 
+/* A DEATH IS PRINTED ONCE, ON THE OBITUARY PAGE. On 28 November Home carried "New York State Senate Majority
+   Leader Andrea Stewart-Cousins dies at 76" while the Obituary page ran a wrestler, because the Obituary desk
+   takes one story and every other desk was free to print the rest. The news desks refuse the shape now, and
+   the Obituary page takes two. */
+const DEATH=/\b(dies|died|dead) at \d{2,3}\b|\b(dies|died) aged \d{2,3}\b|\bobituary\b|\bhas died\b|\bpasses away\b/i;
+const newsNot=new RegExp(SPORTY.source+'|'+GOSSIP.source+'|'+DEATH.source,'i');
+/* BUSINESS HAD NO TEST THAT A STORY WAS ABOUT BUSINESS. It took the whole Business and Money categories, so on
+   28 November it LED on "Vance and Rubio learn the price of loyalty to Trump" (politics, from Axios Markets'
+   feed) and carried "Chinese military tests new Taiwan landing tactics". Same answer as Food and Science: the
+   headline has to be about the desk's own subject. */
+const MONEY=/\b(markets?|stocks?|shares|shareholders?|earnings|profits?|revenue|sales|banks?|banking|econom(y|ic|ies|ists?)|inflation|interest rates?|recession|gdp|the fed|federal reserve|central bank|tariffs?|trade (deal|war|talks|deficit)|exports?|imports?|jobs report|unemployment|layoffs?|job cuts|hiring|merger|acquisitions?|acquires?|takeover|buyout|ipo|investors?|investment|funding|valuation|billion|million|trillion|oil prices?|crude|opec|compan(y|ies)|corporate|ceo|cfo|startup|retailers?|retail|consumers?|spending|budget|deficit|debt|bonds?|treasur(y|ies)|tax(es)?|workers|strike|unions?|wages?|pay rise|housing market|mortgages?|rents?|crypto|bitcoin|currency|dollar|euro|yen|bankrupt\w*|antitrust|regulators?|supply chain|factory|manufactur\w+|airlines?|automakers?|carmakers?|chipmakers?|insurers?|pension funds?)\b/i;
 const DESK=[
- {name:'Home',not:new RegExp(SPORTY.source+'|'+GOSSIP.source,'i'),n:6,cats:['News','Politics'],home:1,
+ /* HOME IS HOME. It read the whole News and Politics categories - 110 outlets, most of them not American -
+    with the named list merely added on top. On 28 November the US edition's Home section led on a Canadian
+    court ruling and five of its seven stories came from the BBC, The Guardian, the Times of India, The Japan
+    Times and The Hindu. It reads the named American newsrooms and nothing else now. A short Home on a quiet
+    day hands its places on, which is the trade David has already chosen for every other desk. */
+ /* `count` is read for the COUNTING and never printed from: how widely a story is reported is what ranks it
+    and chooses the cover, and that needs every newsroom, not only the ones this desk prints. Dropping the
+    categories without it cut the lead from 12 newsrooms to 4 on a live run. */
+ {name:'Home',not:newsNot,n:6,home:1,count:['News','Politics'],
   outlets:['NPR','PBS NewsHour','NBC News','CBS News','AP News','Axios','The Hill','CNN','Fox News','Semafor','ProPublica','NPR Politics','The Hill Politics','Roll Call','Politico','The Intercept','FiveThirtyEight']},
- {name:'World',not:new RegExp(SPORTY.source+'|'+GOSSIP.source,'i'),n:6,
-  outlets:['BBC World','The Guardian World','Al Jazeera','Deutsche Welle','Reuters','BBC News','Global News','The Guardian','Foreign Policy','Foreign Affairs','BBC Politics','France 24','The Japan Times','CNA','Africanews','MercoPress']},
- {name:'Business',not:new RegExp(SPORTY.source+'|'+GOSSIP.source,'i'),n:4,cats:['Business','Money']},
+ /* BBC News and Global News are DOMESTIC feeds - Britain's and Canada's - and filed a body found in a wood, a
+    local sentencing and an ice hockey result under World on 28 November. The world feeds stay. */
+ {name:'World',not:newsNot,n:6,
+  outlets:['BBC World','The Guardian World','Al Jazeera','Deutsche Welle','Reuters','The Guardian','Foreign Policy','Foreign Affairs','BBC Politics','France 24','The Japan Times','CNA','Africanews','MercoPress','Euronews']},
+ {name:'Business',find:MONEY,not:newsNot,n:4,cats:['Business','Money']},
 /* SCIENCE & HEALTH WAS THREE-QUARTERS TECHNOLOGY on 27 November - Nvidia chips in a Shanghai data centre,
    smartphone shipments, a Razer audio driver - because its feeds overlap Tech's and nothing asked what the
    story was ABOUT. Enumerating technology to refuse is the losing end of that argument: a chip can be a real
@@ -108,17 +142,22 @@ const DESK=[
  {name:'Science & Health',n:4,cats:['Science','Health','Space','Environment'],
   find:/\b(stud(y|ies)|research(ers)?|scientists?|trial|clinical|patients?|doctors?|disease|cancer|virus|vaccine|infection|outbreak|diagnos(is|ed)|symptoms?|therapy|treatment|drug|brain|genes?|genetic|dna|species|fossil|evolution|climate|emissions?|warming|glacier|wildlife|ecosystem|telescope|astronomers?|galaxy|orbit|spacecraft|asteroid|mars|moon|nasa|quantum|physicists?|chemistry|antibiotic|microb|neurons?|immune|surgery|mental health|nutrition|sleep|exercise)\b/i},
  {name:'Tech',n:4,cats:['Tech','Mobile','AI & Security','Developers']},
- {name:'Culture',not:SPORTY,n:4,cats:['Culture','Entertainment','Design','Music','Film & TV','Books']},
+ {name:'Culture',not:new RegExp(SPORTY.source+'|'+DEATH.source,'i'),n:4,cats:['Culture','Entertainment','Design','Music','Film & TV','Books']},
  {name:'Review',n:2,cats:['Books','Film & TV','Music','Design','Culture'],
-  find:/\breview\b|\bverdict\b|\breviewed\b|\u2605/i},
- {name:'Explainer',not:SPORTY,n:2,any:1,
-  find:/\bexplainer\b|\bexplained\b|what to know|\bwhy (is|are|do|does|did|has|have)\b|\bhow (does|do|did|to)\b/i},
+  find:/\breview\b|\bverdict\b|\breviewed\b|\u2605/i,
+  /* a review is of ONE thing: a contest, a round-up or a "best of" is a list with the word review in it */
+  not:/\bcontest\b|\bwinners?\b|\bround-?up\b|\bbest (books|films|albums|shows|games) of\b|\byear in review\b|\bweek in review\b|\breview of the (year|week)\b/i},
+ {name:'Explainer',n:2,any:1,
+  /* "how to" is OUT: it let in "How to Avoid the December Burnout Trap" and "Screwed up at work? Here's how to
+     learn from your mistake" on a live run. An explainer says how something WORKS, not how the reader should live. */
+  find:/\bexplainer\b|\bexplained\b|what to know|\bwhy (is|are|do|does|did|has|have)\b|\bhow (does|do|did)\b|\bwhat (is|are|does) (a|an|the)\b/i,
+  not:new RegExp(SPORTY.source+'|\\b(burnout|self-care|your (life|career|energy|money|relationship)|at work\\?|tips|hacks?|ways to)\\b','i')},
  {name:'Sport',n:3,cats:['Sports'],
   find:new RegExp(SPORT_WON.source+'|'+SPORT_FINAL.source+'|'+SPORT_CAREER.source,'i'),
   /* a death is an obituary, not a result, so it is left for that page */
   /* and a piece ABOUT a retirement - a reaction, a rumour, a question - is not a career ending: "Kevin Durant
      Reacts to ... Making NBA History Retirement Question" reached Sport on 26 November */
-  not:new RegExp(SPORT_NOISE.source+'|\\b(dies|died|dead at)\\b|\\b(reacts?|rumou?rs?|speculation|question|talks about|hints?)\\b','i')},
+  not:new RegExp(SPORT_NOISE.source+'|\\b(dies|died|dead at)\\b|\\b(reacts?|rumou?rs?|speculation|question|talks about|hints?)\\b|^(can|will|could|should|who|what|why|how)\\b[^?]*\\?|\\?\\s*$|\\bupsetting\\b|\\bahead of\\b','i')},
 /* THE FOOD DESK HAD NO TEST THAT A HEADLINE WAS ABOUT FOOD (David, 2026-11-27, from the phone: "that one
    story isn't even a story"). It took the whole Lifestyle category - 82 outlets - and printed whatever came
    first. On the 27th that was a Ladbible piece about the last episode of Chicken Shop Date, which reached a
@@ -127,13 +166,27 @@ const DESK=[
    checking. Lifestyle stays as the pool, because that is where food writing lives, but a headline now has to
    be ABOUT food or drink to be printed as food. The desk running short on a thin day is the correct
    outcome - the method page already tells a reader a quiet section means a quiet day. */
- {name:'Food',n:3,cats:['Food','Lifestyle'],
-  find:/\b(recipes?|cook(s|ed|ing|book)?|bake[drs]?|baking|roast(ed|ing)?|grill(ed|ing)?|kitchen|chefs?|restaurants?|diner|menus?|dish(es)?|meals?|dinner|lunch|breakfast|brunch|supper|foods?|eat(s|en|ing)?|flavou?rs?|ingredients?|pantry|wines?|beers?|cocktails?|whisk(e)?y|coffee|teas?|bread|pasta|pizza|cheese|dessert|cakes?|sauces?|spice[sd]?|michelin|tast(e|es|ing)|feast|butcher|bakery|farmers'? market|grocer(y|ies)|dining|appetite|leftovers?)\b/i,
-  not:SPORTY},
- {name:'From the archive',not:SPORTY,n:1,cats:['History'],
-  find:/\bon this day\b|years ago\b|\bin 1[89]\d\d\b|\bhistory of\b|\bthe forgotten\b|\bwhen .* (was|were)\b/i},
- {name:'Obituary',n:1,any:1,first:1,
-  find:/\b(dies|died|dead) at \d{2}\b|\bobituary\b|\b(19|20)\d\d\s*[\u2013\u2014-]\s*20\d\d\b/i},
+ /* FOOD READS FOOD. With the 82 Lifestyle outlets in the pool a live pick filled the section with a cocktail
+    night listing, a rapper called Stove God Cooks, and Guy Fieri's haircut. */
+ {name:'Food',n:3,cats:['Food'],
+  find:/\b(recipes?|cook(s|ed|ing|book)?|bake[drs]?|baking|roast(ed|ing)?|grill(ed|ing)?|chefs?|restaurants?|diner|menus?|dish(es)?|meals?|dinner|lunch|breakfast|brunch|supper|foods?|eat(s|en|ing)?|flavou?rs?|ingredients?|pantry|wines?|beers?|cocktails?|whisk(e)?y|coffee|teas?|bread|pasta|pizza|cheese|dessert|cakes?|sauces?|spice[sd]?|michelin|tast(e|es|ing)|feast|butcher|bakery|farmers'? market|grocer(y|ies)|dining|appetite|leftovers?)\b/i,
+  /* A KITCHEN IS A ROOM. Both of the Food section's stories on 28 November were interior design - "Cher's
+     Anti-Minimalist Kitchen is a Lesson in Pairing Textured Wood, Stone, and Antiques" and "Instead of
+     Replacing My Dark Wood Kitchen Cabinets..." - let in by the word `kitchen`. It is out of the list above,
+     and the vocabulary of decorating is refused. */
+  not:new RegExp(SPORTY.source+'|\\b(cabinets?|countertops?|backsplash|decor|d\u00e9cor|interiors?|interior design|minimalis[mt]|maximalis[mt]|paint colou?rs?|furniture|renovat\\w+|remodel\\w*|makeover|home tour|house tour|wallpaper|flooring|appliances?|air fryer deals?|album|mixtape|rapper|hairstyle|red carpet|boyfriend|girlfriend|dating)\\b|'+GOSSIP.source,'i')},
+ /* THIS PAGE HAS BEEN EMPTY IN EVERY EDITION, BY CONSTRUCTION. It read the eleven History outlets and then
+    ALSO required the headline to say "on this day", "years ago", "in 18xx", "history of"... Run against the
+    real feeds on 28 November, every fresh headline failed it: "Medieval Chain Mail Armour Discovered in
+    15th-Century Shipwreck", "What happened to King Harold's children after the battle of Hastings?", "The
+    crime-solving surgeon who inspired Sherlock Holmes". A history outlet's story IS the archive page; the
+    extra test only ever removed them. */
+ {name:'From the archive',not:newsNot,n:1,cats:['History']},
+ /* two places, so a public figure is not lost behind whoever the most fan sites wrote about; and "dead at 25
+    Elm Street" is an address, not an age - the number must not be followed by a capitalised word */
+ {name:'Obituary',n:2,any:1,first:1,
+  find:/\b(dies|died|dead) at \d{2,3}\b(?!\s+[A-Z])|\b(dies|died) aged \d{2,3}\b|\bobituary\b|\b(19|20)\d\d\s*[\u2013\u2014-]\s*20\d\d\b/i,
+  not:/\b(found dead|shot dead|stabbed|crash|fire|collapse|accident|police|suspect|arrest\w*|charged)\b/i},
  {name:'Long read',not:SPORTY,n:3,cats:['Knowledge'],
   outlets:['Longreads','Aeon','Knowable Magazine','Wait But Why','Farnam Street','Quanta Magazine','Granta','JSTOR Daily','Nautilus','The Atlantic']},
  {name:'Back page',n:2,cats:['Good news']},
@@ -144,8 +197,8 @@ const DESK=[
    grouped once, and each edition then picks from the same groups with its own desk. Both may carry the same
    story - two editions of a magazine do - so a story is spent within an edition, not across them.
    The international desk is the US one with Home replaced: an international reader opens on the world. */
-const INTL=[{name:'Around the world',n:6,
-  outlets:['BBC World','The Guardian World','Al Jazeera','Deutsche Welle','Reuters','BBC News','Global News','The Guardian','France 24','The Japan Times','Euronews','Foreign Policy','Foreign Affairs','BBC Politics']},
+const INTL=[{name:'Around the world',not:newsNot,n:6,
+  outlets:['BBC World','The Guardian World','Al Jazeera','Deutsche Welle','Reuters','BBC News','The Guardian','France 24','The Japan Times','Euronews','Foreign Policy','Foreign Affairs','BBC Politics']},
  ...DESK.filter(d=>d.name!=='Home')];
 const EDITIONS=[
  {id:'us',name:'US Edition',regions:['US'],fallback:true,desk:DESK},
@@ -238,7 +291,14 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
  const inCat=n=>cat.byCat[n]||[];
  /* every outlet any desk reads: the categories it takes whole, plus the ones it names */
  const DESKS=EDITIONS.flatMap(e=>e.desk);
- const want=[...new Set(DESKS.flatMap(d=>[...(d.cats||[]).flatMap(inCat),...(d.outlets||[])]))];
+ /* NOT NEWSROOMS. Hacker News is a list of other people's links (its "story" on 28 November was a Substack
+    post printed under the Hacker News name); DEV Community is a blogging platform (a post ABOUT a blog post
+    led Tech, and the two of them counted as separate newsrooms reporting it); Seeking Alpha publishes
+    contributors' notes ("U.S. Government Interest Payments On Debt, Interest Rates, Tax Receipts..."). */
+ const NOT_NEWSROOMS=new Set(['Hacker News','DEV Community','Seeking Alpha','Lobsters','Product Hunt','Reddit','Medium',
+  /* stock-tip mills: "The Best Natural Gas Stocks to Buy and Hold Through 2040" led a live Business pick */
+  'The Motley Fool','Motley Fool','Insidermonkey','Insider Monkey','Zacks','Benzinga','InvestorPlace','24/7 Wall St.']);
+ const want=[...new Set(DESKS.flatMap(d=>[...(d.cats||[]).flatMap(inCat),...(d.count||[]).flatMap(inCat),...(d.outlets||[])]))].filter(o=>!NOT_NEWSROOMS.has(o));
  const missing=[...new Set(DESKS.flatMap(d=>d.outlets||[]))].filter(o=>!cat.m[o]);
  if(missing.length)console.log('named but not in the app catalogue, skipped: '+missing.join(', '));
  /* a desk that matches a kind of story rather than a place reads everything the others read */
@@ -302,7 +362,11 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
  }
  const groups=await page.evaluate(()=>{
   const g=group(window.__we);window.__we=[];
-  return g.map(x=>({title:x.title,link:x.link,feedId:x.feedId,date:x.date,img:x.img||'',
+  /* THE ADDRESS LOSES ITS TRACKING. A feed stamps its links so the publisher can tell a reader came from the
+     feed (`?at_medium=RSS&at_campaign=rss`, `?source=feed_all_articles`, `utm_*`). The magazine promises no
+     tracking and was printing those in every "open the original" link. */
+  const cleanLink=u=>{try{const x=new URL(u);for(const k of [...x.searchParams.keys()])if(/^(utm_|at_|ns_|mc_|fb|gclid|cmpid|ref$|ref_|source$|src$|smid|partner|ito|cid$|xtor)/i.test(k))x.searchParams.delete(k);return x.href}catch(e){return u}};
+  return g.map(x=>({title:x.title,link:cleanLink(x.link),feedId:x.feedId,date:x.date,img:x.img||'',
    summary:x.summary||'',more:(x.more||[]).map(m=>({f:m.f,l:m.l,t:m.t,img:m.img||''}))}));
  });
 
@@ -380,10 +444,13 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
     if(!d.from.has(g.outlet)||used.has(g.link))continue;
     /* a desk that is a kind of story only takes a headline that is that kind */
     /* not a story on any desk, whatever the feed called it */
-    if(notAStory(g.title))continue;
+    if(notAStory(g.title,g.link))continue;
     /* a title of one or two words is a feed's placeholder, not a headline: The Atlantic offered the Long
        read desk a story called "television" on 27 November, and it was picked. */
     if((g.title||'').trim().split(/\s+/).length<3)continue;
+    /* "- The Atlantic" is three words and was picked for the Long read: what is left once the outlet's own name
+       and the punctuation are taken off has to be a headline too */
+    {const bare=String(g.title||'').replace(new RegExp(String(g.outlet||'\u0000').replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'ig'),' ').replace(/[^\p{L}\p{N}]+/gu,' ').trim();if(bare.split(' ').filter(Boolean).length<3)continue}
     if(d.find&&!d.find.test(g.title||''))continue;
     /* and a desk that is a place in the world refuses the kinds that are not its business. Section-by-source
        finds what matters and does not know where it belongs: on 26 November it filed a tennis result in
@@ -424,7 +491,7 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
    for(const g of groups){
     if(spare<=0||extra>=3)break;
     if(!d.from.has(g.outlet)||used.has(g.link))continue;
-    if(notAStory(g.title))continue;
+    if(notAStory(g.title,g.link))continue;
     if(d.find&&!d.find.test(g.title||''))continue;
     if(d.not&&d.not.test(g.title||''))continue;
     if((spoke.get(g.outlet)||0)>=2)continue;

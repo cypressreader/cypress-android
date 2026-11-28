@@ -87,6 +87,8 @@ function apply(e){
  return{...r,moved:!!(r.pick&&!same)};
 }
 
+module.exports={choose,apply,usable};
+if(require.main!==module)return;/* draw.js asks `choose` whether a photograph will do before it draws one */
 if(process.argv.includes('--selfcheck')){
  const ph=(w,h,extra)=>({url:'https://x.example/p.jpg',credit:'A. Photographer',w,h,clear:MARKS.slice(),people:false,...extra});
  const iss=(stories,draw)=>({cover:{lead:[0,0],...(draw?{draw:{url:'we-art/c.jpg',w:942,h:942}}:{})},sections:[{name:'Home',stories},{name:'Back page',stories:[{t:'A standing page',n:99,photo:ph(4000,2000)}]}]});
