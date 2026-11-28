@@ -101,6 +101,12 @@ function check(p,text,title){
      nothing. A big number on a page promises a quantity - how many, how much, how long. A date set that
      large is a headline with the words taken out. */
   if(/^(1[89]|20)\d\d$/.test(String(big).trim()))return{err:'the figure is only a year, which is a date and not a quantity'};
+  /* A DEATH TOLL IS NOT SET AS DISPLAY TYPE - FOR NOW, AND IT IS DAVID'S TO OVERRULE (2026-11-28). The first
+     real run set "74,000 - Palestinians killed": accurate, word for word from the article, and a count of the
+     dead printed the way a magazine prints a sales figure. He was asked and had not answered when plates went
+     live, and shipping without a rule would have answered for him. A bare page costs little; this is the
+     cautious side of an open question, not a settled one. Delete this line if he says they may run. */
+  if(/\b(killed|dead|deaths?|died|dying|casualt\w*|victims?|wounded|injured|murdered|slain|executed|drowned|massacred?|bodies)\b/i.test(sub))return{err:'the figure counts the dead or the injured, which is not set as a plate until David says it may be'};
   return{plate:{kind:'number',big,sub}};
  }
  if(p.kind==='sentence'){
@@ -157,6 +163,7 @@ const SELF=[
  ['number, rounded by the model',{kind:'number',big:'2,500',sub:'people she cooks for every year'},false],
  ['number with no digit',{kind:'number',big:'two thousand',sub:'people she cooks for'},false],
  ['a year set as the figure',{kind:'number',big:'2019',sub:'year she opened the kitchen'},false],
+ ['a count of the dead',{kind:'number',big:'2,000',sub:'people killed in the fighting'},false],
  ['number, line invents a figure',{kind:'number',big:'2,000',sub:'up from 900 in 1988'},false],
  ['sentence, word for word',{kind:'sentence',line:'Thank you so very much, community.',who:'Kennard'},true],
  ['sentence, tidied up',{kind:'sentence',line:'Thank you so much, community.',who:'Kennard'},false],

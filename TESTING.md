@@ -2812,3 +2812,7 @@ headline lying across it. Both the grid track and the row itself now have a cont
   `touch-action:pan-y` on the list hands horizontal back to the pager. A harness cannot reproduce a real
   touch gesture, so this is implemented, unverified: on the phone, open the Contents and swipe right.
   Check too that the list still scrolls up and down, and that a swipe begun on a row still turns the page.
+
+## 1.418 (2026-11-28) - needs a real phone
+- [ ] Fresh install with no network: the built-in World Edition's drawings. Inside the app the page is https://localhost, so the built-in copy's drawings now resolve against the site (`NATIVE?await weUrl():page`). The harness runs as the web build and cannot take this path. Check the diagnostics line reads `first drawing https://cypressreader.com/app/we-art/...`, not `https://localhost/...`.
+- [ ] After the worker deploy of 28 Nov: open the magazine, the `edition` line must show the live issue's date and rev, not the one the APK shipped with.
