@@ -2834,3 +2834,7 @@ headline lying across it. Both the grid track and the row itself now have a cont
 - [ ] A phone that kept 1.421's older copy of the day (rev 06:26) takes the later one (same date, later rev) after updating.
 - [ ] The World Edition opening (1.422): on first opening an issue the cover photograph fades up out of the paper and the headline sets about a second later; it is smooth on the phone and on the fold's inner screen, plays once per issue, never holds the page longer than about 2.5 seconds, and does not play with "remove animations" switched on.
 - [ ] After the opening, the first swipes through the issue are smooth (every picture is unpacked in the background, nearest pages first).
+
+## 1.423 (needs a real phone)
+- [ ] The World Edition with Android font size turned up one or two notches: on the cover "Swipe to open" sits inside the frame; on a full-picture section page the photo credit is clear of the outlet line and the page number; on the Obituary page the page number is not on top of a line of text (it is hidden if there is no room).
+- [ ] Fold inner screen: the cover's right-hand page shows only cover lines that fit, with "Swipe to open" visible.

@@ -17,7 +17,22 @@ const ROOT=path.resolve(__dirname,'../../www');
 const MIME={'.html':'text/html','.json':'application/json','.js':'text/javascript','.css':'text/css','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.woff2':'font/woff2','.webmanifest':'application/manifest+json'};
 const serve=()=>new Promise(res=>{const s=http.createServer((q,r)=>{let f=path.join(ROOT,decodeURIComponent(q.url.split('?')[0]));if(f.endsWith('/'))f+='index.html';
  if(!f.startsWith(ROOT)||!fs.existsSync(f)){r.writeHead(404);return r.end()}
- r.writeHead(200,{'content-type':MIME[path.extname(f)]||'application/octet-stream'});fs.createReadStream(f).pipe(r)});s.listen(0,'127.0.0.1',()=>res(s))});
+ r.writeHead(200,{'content-type':MIME[path.extname(f)]||'application/octet-stream'});
+ if(TZ>1&&f.endsWith('index.html'))return r.end(bigText(fs.readFileSync(f,'utf8'),TZ));
+ fs.createReadStream(f).pipe(r)});s.listen(0,'127.0.0.1',()=>res(s))});
+
+/* TEXTZOOM=1.15 - A PHONE WITH ITS FONT SIZE TURNED UP. Android scales every font in the app by the system
+   'Font size' setting, and nothing here could imitate that, so every check passed on a magazine that
+   overlapped its own page furniture on David's phone (28 Nov 2026, his setting is about 115%). The headless
+   browser has no such switch, so the page is served with every absolute font size in its stylesheet
+   multiplied instead. Sizes in em or % are left alone - they follow their parent, which is already scaled. */
+const TZ=+process.env.TEXTZOOM||1;
+function bigText(html,k){const tok=v=>{const o=[];let d=0,c='';for(const ch of v){if(ch==='(')d++;if(ch===')')d--;if(ch===' '&&!d){if(c)o.push(c);c=''}else c+=ch}if(c)o.push(c);return o};
+ const abs=v=>/^(\d*\.?\d+(px|cqw|cqh|vw|vh|rem|pt)\b|max\(|min\(|clamp\(|calc\()/.test(v);
+ const css=x=>x.replace(/font-size:([^;}!]+)/g,(m,v)=>abs(v.trim())?'font-size:calc(('+v.trim()+')*'+k+')':m)
+  .replace(/([;{\s])font:([^;}!]+)/g,(m,pre,v)=>{const t=tok(v.trim()),i=t.findIndex(x=>abs(x));if(i<0)return m;const[sz,lh]=t[i].split(/\/(?![^(]*\))/);
+   t[i]='calc(('+sz+')*'+k+')'+(lh?'/'+lh:'');return pre+'font:'+t.join(' ')});
+ return html.replace(/<style[^>]*>[\s\S]*?<\/style>/g,css)}
 
 /* fixtures: answer every off-site address with a local copy if there is one, so the whole path runs with no
    network at all. That is the only way to exercise the article passes in a cloud session, where publishers

@@ -5494,6 +5494,10 @@ html.dynx[data-theme=dynamic] #rd .rf-next[hz-cgoj3z]::after{content:"";position
 .we-how .we-sig{font:700 12px/1.4 system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--wm);margin-top:5cqw}
 .we-h,.we-k,.we-o{animation:we-up var(--m2) ease-out both}
 @keyframes we-up{from{opacity:0}}
+/* the cover lines never give up their own height to make a full cover look as if it fits: squeezed, the last one ran into the lead story's label. Unsqueezed, the overflow is real and weFit answers it. */
+.we-cv .we-cls{flex-shrink:0}
+/* on the framed cover the lead story follows the cover lines: it keeps its own air above it, and the page number, which landed on the frame's rule, is not printed on a cover */
+.we-fr .we-cls+.we-lead{margin-top:4cqw}.we-fr>.we-fo{display:none}
 /* THE OPENING (David picked 'C, the picture develops', 28 Nov): the cover photograph comes up out of the paper
    while the rest of the issue's pictures are unpacked behind it, and the headline sets last. Opacity and
    transform only - a blur or a color filter over a full-screen picture is exactly the cost this is here to
@@ -15183,8 +15187,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.28g';const APP_LABEL='1.422';
-const CHANGES=["Fixed: a new cover or a corrected copy of The World Edition could take hours to reach your phone. The magazine now looks for a newer copy every ten minutes while it is open and shows it as soon as it arrives.","Turning pages in The World Edition is smoother: every picture in the issue is got ready in the background as soon as it opens, nearest pages first.","The World Edition opens with its cover photograph coming up out of the paper, while the rest of the pictures are made ready behind it.","Fixed: real sentences were sometimes dropped from a story because they contained a word like \"subscribe\", and a pulled quote could be taken from a newsletter notice or repeat the paragraph beside it.","Every story is now read by an editor before it is printed, and every story carries a summary line under its headline."];
+const APP_VERSION='2026.11.28h';const APP_LABEL='1.423';
+const CHANGES=["Fixed: with your phone's font size turned up, the lines at the foot of a page in The World Edition ran into each other. The photo credit sat on the line above it, the page number sat on the text, and \"Swipe to open\" landed on the cover's frame.","On a shorter screen the cover no longer cuts off its last cover line; a line that does not fit is left out."];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -17056,7 +17060,22 @@ function weFolio(){const sc=document.querySelector('.we-sc');if(!sc)return;let n
  sp.forEach((pg,i)=>{const f=pg.querySelector('.we-fo');if(!f)return;f.setAttribute('data-n',sp.length>1?(i+1)+' of '+sp.length:String(WE.at||f.getAttribute('data-n')||''))});
  WE.base=n}
 /* a page is exactly one screen: when a built page is a little too tall for the screen it is on, its type steps down until it fits */
-function weFitPg(pg){if(!pg)return;const b=pg.querySelector('.we-in');if(!b)return;pg.style.removeProperty('--wz');
+/* THE FOOT OF A PAGE IS MEASURED, NOT ASSUMED (David's phone, 28 Nov 2026, Android font size at about 115%:
+   'Bottom text cuts off other text or is too low'). The page number, a photograph's credit line and the room
+   kept for them were each given a fixed slice of the page width, which is right at the standard text size
+   and wrong at any other: the credit grew, wrapped, and sat on the outlet line; the number sat on the credit.
+   weFoot gives the credit room above the number and the text room above the credit, from their real sizes;
+   weNum hides a page number rather than let it sit on a line of text. tests: TEXTZOOM=1.15 (scripts/edition/app.js). */
+function weFoot(pg,b){const fo=pg.querySelector('.we-fo'),fc=b.querySelector(':scope>.we-fg>figcaption');
+ if(!fc||getComputedStyle(fc).position!=='absolute')return;
+ if(fo)fc.style.paddingBottom=Math.ceil(pg.getBoundingClientRect().bottom-fo.getBoundingClientRect().top+8)+'px';
+ b.style.paddingBottom=Math.ceil(fc.offsetHeight+8)+'px'}
+function weNum(pg,b){const fo=pg.querySelector('.we-fo');if(!fo)return;fo.style.visibility='';
+ const f=fo.getBoundingClientRect();if(!f.height)return;
+ const w=document.createTreeWalker(b,NodeFilter.SHOW_TEXT),r=document.createRange();let n;
+ while((n=w.nextNode())){if(!n.nodeValue.trim()||fo.contains(n))continue;r.selectNodeContents(n);
+  for(const q of r.getClientRects())if(q.bottom>f.top+1&&q.top<f.bottom-1&&q.right>f.left+f.width/2-18&&q.left<f.left+f.width/2+18){fo.style.visibility='hidden';return}}}
+function weFitPg(pg){if(!pg)return;const b=pg.querySelector('.we-in');if(!b)return;pg.style.removeProperty('--wz');weFoot(pg,b);
  /* MEASURE INSIDE THE ZOOM, NEVER ACROSS IT: --wz is a `zoom` on .we-in, and a zoomed element reports its own
     sizes in its own coordinate space - at 0.58 a full screen reads as 1,379 px tall, not 800. Measured against
     the page (pg.clientHeight, never zoomed) every step down looked WORSE than the one before, so no page ever
@@ -17076,7 +17095,7 @@ function weFitPg(pg){if(!pg)return;const b=pg.querySelector('.we-in');if(!b)retu
     understood, because a reader can SEE a row continuing past the foot. */
  const toc=pg.classList.contains('we-toc');
  for(const z of (toc?[1,.95,.9]:[1,.95,.9,.85,.8,.75,.7,.64,.58])){pg.style.setProperty('--wz',z);if(b.scrollHeight<=b.clientHeight+1)break}
- if(toc)weTocMore(pg)}
+ if(toc)weTocMore(pg);else weNum(pg,b)}
 /* the fade at the foot of the contents is on only while there is more below it: a fade over the last row
    would say there is more when there is not. */
 function weTocMore(pg){const l=pg&&pg.querySelector('.we-tl');if(!l)return;
@@ -17415,9 +17434,11 @@ function weRdClose(fromPop){if(WE.resettle)setTimeout(()=>{WE.resettle=0;weSettl
  const opn=WE.opn&&WE.opn.isConnected?WE.opn:bk;WE.opn=null;
  if(WE.snap)WE.snap();if(WE.lab)WE.lab();if(opn)try{opn.focus({preventScroll:true})}catch(e){}}
 function weFit(){const cv=document.querySelector('.we-cv'),h=cv&&cv.querySelector('.we-h');if(!h||!cv.clientHeight)return;cv.classList.remove('we-ns','we-tall');
- if(cv.classList.contains('we-cs')){/* the cover spread: the headline has half the screen's width and the room under the picture */const ci=cv.querySelector('.we-ci');for(const z of [12,11,10,9,8.2,7.4,6.6,5.8]){h.style.fontSize=z+'cqw';if(ci.scrollHeight<=cv.clientHeight+1)return}return}/* the publisher's headline is never cut: it steps down in size until it fits, then the shape goes, then the cover grows */
- const Z=cv.classList.contains('we-on')?[8.4,7.6,6.8,6,5.4]:[11,10,9,8,7,6],ci=cv.firstElementChild,over=()=>ci.scrollHeight>cv.clientHeight+1;
+ if(cv.classList.contains('we-cs')){/* the cover spread: the headline has half the screen's width and the room under the picture */const ci=cv.querySelector('.we-ci');for(const z of [12,11,10,9,8.2,7.4,6.6,5.8]){h.style.fontSize=z+'cqw';if(ci.scrollHeight<=cv.clientHeight+1)break}/* the right-hand page: on a short screen, or with the phone's text turned up, three cover lines do not fit under the picture - the last was cut by the page number and 'Swipe to open' fell off the page. A cover line that does not fit is not printed. */const c2=document.querySelector('.we-cv.we-cs2'),s2=c2&&c2.querySelector('.we-sw'),l2=c2&&c2.querySelector('.we-cls');if(s2&&l2)while(l2.children.length>1&&s2.getBoundingClientRect().bottom>c2.getBoundingClientRect().bottom-c2.clientWidth*.07)l2.lastElementChild.remove();return}/* the publisher's headline is never cut: it steps down in size until it fits, then the shape goes, then the cover grows */
+ const Z=cv.classList.contains('we-on')?[8.4,7.6,6.8,6,5.4]:[11,10,9,8,7,6],ci=cv.firstElementChild,sw=cv.querySelector('.we-sw'),over=()=>ci.scrollHeight>cv.clientHeight+1||(sw&&sw.getBoundingClientRect().bottom>cv.getBoundingClientRect().bottom-cv.clientWidth*.05);/* the last line on the cover stays clear of the frame and the page number: a flex column lets it slide into the padding without ever reporting an overflow */
  for(const z of Z){h.style.fontSize=z+'cqw';if(!over())return}
+ /* then a cover line goes before the cover's shape does: two lines that fit beat three that push 'Swipe to open' onto the frame */
+ {const cl=cv.querySelector('.we-cls');while(cl&&cl.children.length>1&&over())cl.lastElementChild.remove();if(!over())return}
  cv.classList.add('we-ns');if(over())cv.classList.add('we-tall')}
 function renderWE(){
  const g=$('#grid');$('#ttl').textContent='The World Edition';['#mr','#ref','#vw'].forEach(q=>{const b=$(q);if(b)b.hidden=true});
