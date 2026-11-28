@@ -2838,3 +2838,4 @@ headline lying across it. Both the grid track and the row itself now have a cont
 ## 1.423 (needs a real phone)
 - [ ] The World Edition with Android font size turned up one or two notches: on the cover "Swipe to open" sits inside the frame; on a full-picture section page the photo credit is clear of the outlet line and the page number; on the Obituary page the page number is not on top of a line of text (it is hidden if there is no room).
 - [ ] Fold inner screen: the cover's right-hand page shows only cover lines that fit, with "Swipe to open" visible.
+- [ ] The World Edition at night (app in a dark theme): no page is paper-white - open a story and turn through every section; text is comfortable to read; switch the app back to a light theme and the magazine's story pages are cream again.
