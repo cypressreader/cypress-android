@@ -15129,8 +15129,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.28d';const APP_LABEL='1.419';
-const CHANGES=["The cover of The World Edition now carries a picture. When the leading story's photograph is too small to fill the page it is set as a framed picture above the headline, and when no photograph will do, a drawing made for the story takes its place.","Fixed: The World Edition could throw you back to the cover while you were reading.","Fixed: unfolding a folding phone while the magazine was open left it laid out for the small screen.","Fixed: the arrow keys on the edition picker turned the page instead of changing the edition, and jumping from the contents left the keyboard without a place.","Better editing: Home is home news, Business is about business, Food is about food, and opinion pieces, listings and stock tips are kept out."];
+const APP_VERSION='2026.11.28e';const APP_LABEL='1.420';
+const CHANGES=["Fixed: while you were reading a story in The World Edition, the magazine could suddenly close it and take you back to the cover."];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -17297,7 +17297,7 @@ let said=!!q,who='';
  if(WE.go&&WE.pg!==at)WE.go(at,1);else if(WE.lab)WE.lab();
  const f=pages[0].querySelector('[data-werb]');if(f&&wait!==1)try{f.focus({preventScroll:true})}catch(e){}/* after the jump: a hidden page cannot take focus */
 }
-function weRdClose(fromPop){if(WE.resettle)setTimeout(()=>{WE.resettle=0;weSettle()},60);/* the phone was folded or unfolded while this story was open: the book behind it is still laid out for the other width */if(WE.wcls&&WE.wcls!==(innerWidth>=600?2:1))setTimeout(()=>{if(WE.sp==null&&S.sel==='we')render()},120);const sc=document.querySelector('.we-sc');WE.rd=null;if(WE.sp==null)return;const bk=sc;
+function weRdClose(fromPop){if(WE.resettle)setTimeout(()=>{WE.resettle=0;weSettle()},60);/* the phone was folded or unfolded while this story was open: the book behind it is still laid out for the other width */if(WE.redo||(WE.wcls&&WE.wcls!==(innerWidth>=600?2:1)))setTimeout(()=>{if(WE.sp==null&&S.sel==='we')render()},120);const sc=document.querySelector('.we-sc');WE.rd=null;if(WE.sp==null)return;const bk=sc;
  const back=WE.spBack|0;WE.sp=null;
  if(sc)[...sc.querySelectorAll('.we-sp')].forEach(x=>x.remove());
  wePad(sc,sc.clientWidth>=600);weFolio();if(!fromPop)dropLayer('weread');
@@ -17340,7 +17340,15 @@ function renderWE(){
   weRefresh(WE.d);
  }
  {const sig=(S.weEd||'')+'|'+WE.d.date+'|'+WE.d.issue+'|'+(innerWidth>=600?2:1)/* folding or unfolding does rebuild: a story is laid out differently one page wide */+'|'+[...(WE.gone||[])].sort().join(',');/* sorted: the same dropped stories in another order are the same book, and used to rebuild it */
-  if(WE.sig===sig&&g.querySelector('.we-sc'))return;WE.sig=sig}
+  if(WE.sig===sig&&g.querySelector('.we-sc'))return;
+  /* THE BOOK IS NEVER REBUILT UNDER AN OPEN STORY (David's friend, 2026-11-28, phone: "she was on a story and
+     suddenly it kicked her back to the cover"). Reproduced: with a story open, another story fails to load in
+     the background and is dropped, which changes the book; the next redraw of the screen for ANY reason - a
+     feed refresh finishing is enough - rebuilt every page, and the story's pages are pages of the book, so
+     they went with it. On 1.418 the reader landed on the cover; 1.419 kept the place for the book's own pages
+     and still threw the story away. The rebuild waits: it is remembered, and done when the story is closed. */
+  if(WE.sp!=null&&g.querySelector('.we-sc .we-sp')){WE.redo=1;return}
+  WE.sig=sig;WE.redo=0}
  /* THE READER'S PLACE SURVIVES A REBUILD (found by the review of 2026-11-28, and proved: on Tech, a rebuild
     landed on the Cover). The place was restored from WE.pg AFTER wePad() had run on the new, unscrolled
     scroller - and wePad ends by reading the page off the scroll position, which wrote 0 over it. So every
