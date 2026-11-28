@@ -39,6 +39,7 @@ on:
 
 permissions:
   contents: write
+  issues: write   # only to tell David when an edition did not publish
 
 concurrency:
   group: edition-${{ github.ref }}
@@ -55,8 +56,11 @@ jobs:
           node-version: 22
       - name: Install Playwright and Chromium
         run: |
-          npm install -g --no-audit --no-fund playwright@1.63.0
-          npx -y playwright@1.63.0 install --with-deps chromium
+          # one more go if the registry or the browser download blinks: a lost install was a lost edition
+          for i in 1 2; do
+            npm install -g --no-audit --no-fund playwright@1.63.0 && npx -y playwright@1.63.0 install --with-deps chromium && break
+            [ "$i" = 2 ] && exit 1; sleep 20
+          done
 
       - name: Pick the day's stories from the feeds
         # --wide also reads MJ's swept publishers whose pictures were verified to load (383 of them, on top of
@@ -132,3 +136,18 @@ jobs:
             echo "### The edition was not published"
             echo "A step failed, so the edition already live stays live. The screenshots and the two reports are in this run's artifact."
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # NOBODY WAS TOLD WHEN AN EDITION FAILED (review of 2026-11-27). Keeping the old edition is the right thing
+      # to do and it was completely silent: the magazine could have gone stale for days. GitHub emails the
+      # repository owner about a new issue, so an issue IS the alert. One issue is kept open and added to, rather
+      # than a new one every twelve hours, and it is closed by hand once somebody has looked.
+      - name: Tell David the edition did not publish
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          body="The World Edition build did not publish on $(date -u '+%a %d %b, %H:%M UTC'), so the edition already live stays live. Run: $RUN_URL"
+          n=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search 'in:title "The World Edition did not publish"' --json number --jq '.[0].number' 2>/dev/null || true)
+          if [ -n "$n" ]; then gh issue comment "$n" --repo "$GITHUB_REPOSITORY" --body "$body" || true
+          else gh issue create --repo "$GITHUB_REPOSITORY" --title "The World Edition did not publish" --body "$body" || true; fi

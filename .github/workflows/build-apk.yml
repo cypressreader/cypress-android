@@ -24,6 +24,8 @@ on:
       # here only matters to a fresh install and rides along with the next real app build. Without this line the
       # edition Action would cut a signed release twice a day, every day.
       - "www/world-edition.json"
+      # The pipeline that BUILDS an edition never ships in the app. A change to it is not a new app either.
+      - "scripts/edition/**"
       - "scripts/build-demo.js"
       - "scripts/demo-content.js"
       - "scripts/demo-shim.js"
@@ -60,7 +62,7 @@ env:
   PREVIEW_BUILD: ${{ ((github.event_name == 'workflow_dispatch' && inputs.preview) || (github.event_name == 'push' && github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master')) && '1' || '0' }}
   BUILD_NUMBER: ${{ github.run_number }}
   # The version name people see. Change it when you want a new release label (1.3, 1.4, ...). The build number behind it always counts up by itself.
-  APP_LABEL: "1.414"
+  APP_LABEL: "1.416"
   # The Natural voice (on-device, downloaded from our own release when the person picks it): sherpa-onnx engine, Apache-2.0, no eSpeak.
   NEURAL: "1"
   SHERPA: "2.0.1"

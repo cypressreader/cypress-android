@@ -74,7 +74,13 @@ function candidates(){
   await lp.evaluate(()=>{setInterval(()=>dispatchEvent(new Event('wheel')),800)});
  }
 
- const readOne=(lp,url)=>Promise.race([
+ /* A READ THAT LOSES THE RACE IS STILL RUNNING (review of 2026-11-27). The deadline only stops US waiting; the
+    fetch carries on inside that lane's page, working through every route it knows, while the next story in
+    the same lane starts beside it and competes with it. One slow publisher made the stories behind it slow
+    too. So a lane that timed out is loaded afresh before it is given another story. */
+ const fresh=async lp=>{try{await lp.goto(app.url,{waitUntil:'domcontentloaded'});await lp.waitForTimeout(1200);
+  await lp.evaluate(()=>{setInterval(()=>dispatchEvent(new Event('wheel')),800)})}catch(e){}};
+ const readOneRaw=(lp,url)=>Promise.race([
   new Promise(res=>setTimeout(()=>res({slow:1}),DEADLINE)),
   lp.evaluate(async u=>{
    let n=null;try{n=await getFull(u,false)}catch(e){return{err:String(e&&e.message||e),log:(LG[u]||[]).slice(-3)}}
@@ -93,10 +99,55 @@ function candidates(){
       alt:(im.getAttribute('alt')||'').replace(/\s+/g,' ').trim().slice(0,160),
       cap:cap?cap.textContent.replace(/\s+/g,' ').trim().slice(0,220):''};
    }).filter(x=>x&&/^https:\/\//.test(x.src));
+   /* THE PUBLISHER'S LEAD PHOTOGRAPH, which this never looked for (review of 2026-11-27). The pictures above
+      come only from <img> inside the article text. A news site's main photograph is very often NOT there: it is
+      drawn by script, or sits in a header outside the text. It is, almost always, declared in the page's head
+      for sharing. 18 of 31 stories arrived with no picture; six of those pages were opened by hand and ALL SIX
+      had one there (Time at 6978px, NPR, STAT, Epicurious, Upworthy, Japan Times).
+      The article node has no <head>, so the page is fetched once more. It is the same picture the publisher
+      shows, from the publisher's own address, and it is judged by the same clearance as any other. */
+   try{const L=await gnResolve(u).catch(()=>u);
+    const pg=await Promise.race([fetchText(L,t=>/<meta/i.test(t)),new Promise(r=>setTimeout(()=>r(''),8000))]);
+    if(pg){const d=new DOMParser().parseFromString(pg,'text/html');
+     const M=k=>{const m=d.querySelector('meta[property="'+k+'"],meta[name="'+k+'"]');return m?(m.getAttribute('content')||''):''};
+     let src=M('og:image:secure_url')||M('og:image')||M('twitter:image')||M('twitter:image:src');
+     if(!src)for(const sc of d.querySelectorAll('script[type="application/ld+json"]')){
+      try{for(const o of [].concat(JSON.parse(sc.textContent)).flatMap(j=>j&&j['@graph']?j['@graph']:[j])){
+        let im=o&&o.image;if(Array.isArray(im))im=im[0];if(im&&typeof im==='object')im=im.url;
+        if(typeof im==='string'&&im){src=im;break}}}catch(e){}
+      if(src)break}
+     if(src){try{src=new URL(src,L).href}catch(e){}
+      const k=x=>String(x).split(/[?#]/)[0];
+      if(/^https:\/\//.test(src)&&!pics.some(x=>k(x.src)===k(src)))
+       pics.unshift({after:0,og:1,src,w:+M('og:image:width')||0,h:+M('og:image:height')||0,
+        alt:(M('og:image:alt')||'').replace(/\s+/g,' ').trim().slice(0,160),cap:''})}}
+   }catch(e){}
    return{tier:n.tier||'',pw:!!n.pw,gate:!!n.gate,preview:!!n.gated_preview,incomplete:!!n.incomplete,
      paras:ps.length,words:ps.join(' ').split(/\s+/).filter(Boolean).length,pics,
      text:ps.join('\n\n'),log:(LG[u]||[]).slice(-3)};
   },url)]).catch(e=>({err:String(e)}));
+
+ const readOne=async(lp,url)=>{const r=await readOneRaw(lp,url);if(r&&r.slow)await fresh(lp);return r};
+
+ /* WHAT THE STORY ACTUALLY SAYS (review of 2026-11-27). The gate below counted paragraphs and words and never
+    read them, so a cookie notice, an error page or a wall of one repeated line passed as an article as long
+    as it was long enough. Cheap and blunt, like the rest of this gate - it refuses what is plainly not an
+    article and judges nothing else. */
+ const NOTICE=/\b(we use cookies|accept (all )?cookies|cookie (policy|settings|preferences)|enable javascript|javascript is (disabled|required)|access denied|are you a (robot|human)|verify (that )?you are human|unusual traffic|page (not|cannot be) found|sign in to continue|subscribe to (continue|read)|your browser is (out of date|not supported)|ad ?blocker)\b/i;
+ const junk=r=>{const t=String(r.text||''),ps=t.split(/\n\n+/).filter(Boolean);
+  if(NOTICE.test(t.slice(0,700))&&r.words<350)return 'reads like a notice, not an article';
+  /* NOT 'most paragraphs are repeats': some publishers' pages carry the whole article twice (a lazy-loaded
+     copy), which is a real story told twice and which the reader already folds back into one. The first cut of
+     this refused 'Uganda to withdraw troops from DR Congo' for exactly that. A wall is ONE line many times, or
+     almost nothing left once the repeats are gone. */
+  /* ...and only PARAGRAPHS count, and only when the repeats are most of the page. The second cut refused two
+     long real articles because a photo caption ("Nico Rosberg, Mercedes") and a stray "or" each turned up a
+     few times among fifty paragraphs. */
+  const longs=ps.filter(x=>x.length>=25),cnt=new Map();for(const x of longs){const k=x.toLowerCase().slice(0,80);cnt.set(k,(cnt.get(k)||0)+1)}
+  if(longs.length>=4&&(Math.max(...cnt.values())>=longs.length*.5||cnt.size<3))return 'the same paragraph over and over';
+  const letters=(t.match(/\p{L}/gu)||[]).length,latin=(t.match(/[A-Za-z\u00c0-\u024f]/g)||[]).length;
+  if(letters>200&&latin<letters*.8)return 'not in a language this edition prints';
+  return ''};
 
  const verdict=r=>{
   if(!r)return 'nothing came back';
@@ -106,7 +157,7 @@ function candidates(){
   if(r.pw||r.gate||r.preview)return 'behind a paywall or sign-in';
   if(r.paras<MIN_PARAS)return 'only '+r.paras+' paragraph'+(r.paras===1?'':'s');
   if(r.words<MIN_WORDS)return 'only '+r.words+' words';
-  return '';
+  return junk(r);
  };
 
  /* THE SWAP RULE, which issue 47 asked for and the gate never had: "a story that can't be fetched is swapped
