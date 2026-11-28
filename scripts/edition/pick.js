@@ -76,7 +76,7 @@ const isPuzzle=t=>{t=String(t||'');
    and the kinds a feed labels itself - Watch:, Listen:, Podcast:, Video:, Photos:, Quiz:.
    The method page promises "no opinion columns", and nothing tested for one: an opinion piece is told by
    where the publisher FILED it, which is in the address, so the address is read too. */
-const NOT_A_STORY_2=/^(watch|listen|podcast|video|photos?|in pictures|gallery|quiz|poll|newsletter|live)\b\s*[:|\u2013\u2014-]|\bcalendar\b[^.]{0,40}\bwhen to\b|\bwhen to (see|watch)\b|\bcontest\b[^.]{0,30}\b(winners?|results|finalists)\b|\bwinners? (announced|revealed)\b|\b(letters to the editor|readers'? letters|corrections and clarifications)\b|\bhow to watch\b|\bwhere to (buy|stream|watch)\b|\barchives?\s*$|\bcrossword\b\s*[:\u2013\u2014-]|^new (on|to) (netflix|prime video|hulu|disney|max|apple tv|peacock|paramount)|\b(everything|what'?s) (coming|new|leaving) (to|on)\b|\bto (stream|watch) this (week|weekend|month)\b|\bstocks? to (buy|watch|sell|own)\b|\bbuy and hold\b|\bprice target\b|\bshould you (buy|sell)\b|\blooks unrecognizable\b|\bcause of death revealed\b|^special:/i;
+const NOT_A_STORY_2=/^(watch|listen|podcast|video|photos?|in pictures|gallery|quiz|poll|newsletter|live)\b\s*[:|\u2013\u2014-]|\bcalendar\b[^.]{0,40}\bwhen to\b|\bwhen to (see|watch)\b|\bcontest\b[^.]{0,30}\b(winners?|results|finalists)\b|\bwinners? (announced|revealed)\b|\b(letters to the editor|readers'? letters|corrections and clarifications)\b|\bhow to watch\b|\bwhere to (buy|stream|watch)\b|\barchives?\s*$|\bcrossword\b\s*[:\u2013\u2014-]|^new (on|to) (netflix|prime video|hulu|disney|max|apple tv|peacock|paramount)|\b(everything|what'?s) (coming|new|leaving) (to|on)\b|\bto (stream|watch) this (week|weekend|month)\b|\bstocks? to (buy|watch|sell|own)\b|\bbuy and hold\b|\bprice target\b|\bshould you (buy|sell)\b|\blooks unrecognizable\b|\bcause of death revealed\b|^special:|\|\s*(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}(st|nd|rd|th)?,?\s+20\d\d\s*$|^weekly recap\b|\bweek in (review|numbers)\b/i;
 const NOT_A_STORY_PATH=/\/(opinions?|commentisfree|comment|editorials?|op-?eds?|columnists?|columns?|letters|podcasts?|videos?|watch|live|live-news|newsletters?|sponsored|partner-content|advertorial|deals|shopping|coupons?|quiz(zes)?|puzzles?|horoscopes?)\//i;
 const notAStory=(t,link)=>NOT_A_STORY.test(String(t||''))||NOT_A_STORY_2.test(String(t||''))||isPuzzle(t)||(!!link&&NOT_A_STORY_PATH.test(String(link)));
 /* GOSSIP IS NOT THE FRONT SECTION. On 27 November Home carried "Thom Evans Confirms Nicole Scherzinger
@@ -116,7 +116,10 @@ const newsNot=new RegExp(SPORTY.source+'|'+GOSSIP.source+'|'+DEATH.source,'i');
    28 November it LED on "Vance and Rubio learn the price of loyalty to Trump" (politics, from Axios Markets'
    feed) and carried "Chinese military tests new Taiwan landing tactics". Same answer as Food and Science: the
    headline has to be about the desk's own subject. */
-const MONEY=/\b(markets?|stocks?|shares|shareholders?|earnings|profits?|revenue|sales|banks?|banking|econom(y|ic|ies|ists?)|inflation|interest rates?|recession|gdp|the fed|federal reserve|central bank|tariffs?|trade (deal|war|talks|deficit)|exports?|imports?|jobs report|unemployment|layoffs?|job cuts|hiring|merger|acquisitions?|acquires?|takeover|buyout|ipo|investors?|investment|funding|valuation|billion|million|trillion|oil prices?|crude|opec|compan(y|ies)|corporate|ceo|cfo|startup|retailers?|retail|consumers?|spending|budget|deficit|debt|bonds?|treasur(y|ies)|tax(es)?|workers|strike|unions?|wages?|pay rise|housing market|mortgages?|rents?|crypto|bitcoin|currency|dollar|euro|yen|bankrupt\w*|antitrust|regulators?|supply chain|factory|manufactur\w+|airlines?|automakers?|carmakers?|chipmakers?|insurers?|pension funds?)\b/i;
+const MONEY=/\b(markets?|stocks?|share price|shares (fall|fell|rise|rose|jump|slump|drop|surge|soar|slide|tumble|gain|plunge|climb|hit)\w*|shareholders?|earnings|profits?|revenue|sales|banks?|banking|econom(y|ic|ies|ists?)|inflation|interest rates?|recession|gdp|the fed|federal reserve|central bank|tariffs?|trade (deal|war|talks|deficit)|exports?|imports?|jobs report|unemployment|layoffs?|job cuts|hiring|merger|acquisitions?|acquires?|takeover|buyout|ipo|investors?|investment|funding|valuation|oil prices?|crude|opec|compan(y|ies)|corporate|ceo|cfo|startup|retailers?|retail|consumers?|spending|budget|deficit|debt|bonds?|treasur(y|ies)|tax(es)?|workers|strike|unions?|wages?|pay rise|housing market|mortgages?|rents?|crypto|bitcoin|currency|dollar|euro|yen|bankrupt\w*|antitrust|regulators?|supply chain|factory|manufactur\w+|airlines?|automakers?|carmakers?|chipmakers?|insurers?|pension funds?)\b|[$\u00a3\u20ac\u00a5]\s?\d|\b\d[\d.,]*\s?(bn|billion|million|trillion)\b/i;
+/* "shares" alone let in "Rumer Willis shares touching moment with dad Bruce", and "million" alone let in "A million
+   satellites?" - both on the first live International pick. A share is a business word when it MOVES, and a
+   million when it counts money. */
 const DESK=[
  /* HOME IS HOME. It read the whole News and Politics categories - 110 outlets, most of them not American -
     with the named list merely added on top. On 28 November the US edition's Home section led on a Canadian
@@ -192,14 +195,43 @@ const DESK=[
  {name:'Back page',n:2,cats:['Good news']},
 ];
 
-/* TWO EDITIONS. The format has always had them and only the US one has been written, so an international
-   reader has been getting the US magazine. They cost nothing extra: the feeds are read once, the headlines
-   grouped once, and each edition then picks from the same groups with its own desk. Both may carry the same
-   story - two editions of a magazine do - so a story is spent within an edition, not across them.
-   The international desk is the US one with Home replaced: an international reader opens on the world. */
-const INTL=[{name:'Around the world',not:newsNot,n:6,
-  outlets:['BBC World','The Guardian World','Al Jazeera','Deutsche Welle','Reuters','BBC News','The Guardian','France 24','The Japan Times','Euronews','Foreign Policy','Foreign Affairs','BBC Politics']},
- ...DESK.filter(d=>d.name!=='Home')];
+/* TWO EDITIONS, AND THE SECOND IS ITS OWN MAGAZINE AT THE FRONT (David, 2026-11-28: "Make the International
+   edition its own magazine").
+   It used to be the US desk with Home swapped for "Around the world" - and World left in beside it, so it had
+   two world desks drawn from nearly the same outlets and American news everywhere else. Measured on issue
+   No. 4: 38 of its 43 stories were the US edition's, eleven of thirteen sections identical, and its World
+   page carried "Sales for Biden memoir fall far short". A reader in London or Singapore could tell in three
+   pages that it was the American magazine with one page renamed.
+   WHAT DIFFERS, and only this:
+     THE FRONT is built from newsrooms outside the United States. There is no separate World page - for this
+       reader the world IS the news.
+     AMERICA is a section of its own, three places, from American newsrooms: the honest mirror of the US
+       edition's World page, and where a big American story goes without running the whole issue.
+     BUSINESS reads the business desks outside the US first.
+   WHAT IS SHARED, on purpose: Science & Health, Tech, Culture, Review, Explainer, Sport, Food, the archive,
+   the obituary, the long read and the back page. A Mars rover or a good long read is the same for everyone;
+   two editions of one magazine SHOULD overlap there.
+   A story is spent within an edition, not across them, so both may carry the same one. */
+const ABROAD=['BBC World','The Guardian World','Al Jazeera','Deutsche Welle','Reuters','France 24','The Japan Times','Euronews',
+ 'South China Morning Post','Times of India','The Hindu','Hindustan Times','NDTV','Dawn','The Irish Times','RT\u00c9 News','ABC News Australia',
+ 'Sydney Morning Herald','The Guardian Australia','RNZ','NZ Herald','Stuff NZ','CBC News','The Globe and Mail','Straits Times','Channel News Asia',
+ 'NHK World','The Diplomat','Le Monde in English','Der Spiegel International','Politico Europe','The Independent','Sky News','The Economist',
+ 'Kyiv Independent','Middle East Eye','The Jerusalem Post','BBC Europe','BBC Asia','BBC Africa','BBC Middle East','BBC Latin America',
+ 'The Guardian','BBC Politics','Foreign Policy','Foreign Affairs'];
+const AMERICAN=['NPR','NPR National','NPR Politics','PBS NewsHour','NBC News','CBS News','AP News','Associated Press','Axios','The Hill','The Hill Politics',
+ 'Politico','Roll Call','ProPublica','Semafor','BBC US & Canada','The Guardian US'];
+const INTL=[
+ {name:'Around the world',not:newsNot,n:7,outlets:ABROAD},
+ /* what is happening IN America - so a US newsroom's report on Taiwan or Gaza is not it. The words are the
+    country's own: its government, its states, its courts, its money. */
+ {name:'America',n:3,outlets:AMERICAN,
+  find:/\b(U\.S\.|US\b|United States|American?s?\b|Washington|White House|Congress|Senate|Capitol|Pentagon|Trump|Biden|Vance|Republicans?|Democrats?|GOP|governor|federal (judge|court|government|agency|workers)|FBI|CIA|ICE\b|Medicare|Medicaid|Wall Street|New York|California|Texas|Florida|Chicago|Los Angeles|AG-elect|attorney general|state (senate|house|legislature))\b/,
+  /* "Canada's Supreme Court..." matched on the words Supreme Court, and a Los Angeles high-school final ran as
+     American news. Another country named in the headline, or a school result, is not America. */
+  not:new RegExp(newsNot.source+'|\\b(Canada|Canadian|Quebec|Mexico|Britain|UK|China|Russia|Israel|Gaza|Ukraine|Taiwan|India|Europe\\w*|Costa Rica|Afghan\\w*|French|Germany?)\\b|\\b(Division (I|II|III|IV|V)|City Section|high school|prep (football|basketball))\\b','i')},
+ {name:'Business',find:MONEY,not:newsNot,n:4,
+  outlets:['The Guardian Business','BBC Business','Reuters','The Economist','Cityam','Bworldonline','Thehindubusinessline','Businesstoday','Forbesindia','CNBC','Fortune','Flightglobal']},
+ ...DESK.filter(d=>!['Home','World','Business'].includes(d.name))];
 const EDITIONS=[
  {id:'us',name:'US Edition',regions:['US'],fallback:true,desk:DESK},
  {id:'int',name:'International Edition',
@@ -457,6 +489,11 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
        World, Aaron Rodgers in Culture and an ammunition plant in Business, all because of whose feed they
        came down. A headline that is plainly sport does not belong in a news or culture section. */
     if(d.not&&d.not.test(g.title||''))continue;
+    /* THE HEADLINE THAT IS PRINTED IS HELD TO THE SAME TESTS as the one that was judged. They are not always the
+       same words: the tests ran on the group's headline and `ownWords` then prints the chosen outlet's own, with
+       its furniture off. "I, dishwasher | November 28th 2026" reached Business on a live pick that way, having
+       passed as something else. */
+    {const T=ownWords(g.title,g.outlet);if(T!==g.title&&(notAStory(T,g.link)||(T||'').trim().split(/\s+/).length<3||(d.find&&!d.find.test(T))||(d.not&&d.not.test(T))))continue}
     /* no outlet speaks more than twice in one edition, however loud its feed is */
     if((spoke.get(g.outlet)||0)>=2)continue;
     /* one story per outlet per section: a desk whose other feeds went quiet would otherwise fill its whole
@@ -494,6 +531,11 @@ const pool=async(list,n,fn)=>{const out=[];let i=0;await Promise.all(Array.from(
     if(notAStory(g.title,g.link))continue;
     if(d.find&&!d.find.test(g.title||''))continue;
     if(d.not&&d.not.test(g.title||''))continue;
+    /* THE HEADLINE THAT IS PRINTED IS HELD TO THE SAME TESTS as the one that was judged. They are not always the
+       same words: the tests ran on the group's headline and `ownWords` then prints the chosen outlet's own, with
+       its furniture off. "I, dishwasher | November 28th 2026" reached Business on a live pick that way, having
+       passed as something else. */
+    {const T=ownWords(g.title,g.outlet);if(T!==g.title&&(notAStory(T,g.link)||(T||'').trim().split(/\s+/).length<3||(d.find&&!d.find.test(T))||(d.not&&d.not.test(T))))continue}
     if((spoke.get(g.outlet)||0)>=2)continue;
     if(mine.some(x=>x.o===g.outlet||x.outlet===g.outlet))continue;
     if(await isRepeat(accepted,g))continue;

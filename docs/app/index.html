@@ -5584,6 +5584,37 @@ html.lowp .we *,html.lowp .we *::before{animation:none!important;transition:none
 @container we (min-width:600px){.we-cv .we-cf img{aspect-ratio:auto;height:54svh;max-height:none}}
 .we-cv .we-cf.we-ill img{object-position:50% 50%}
 .we-cv .we-cf figcaption{flex:0 0 auto;text-align:left;font:600 max(8px,1.9cqw)/1.3 system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;opacity:.7;padding-top:1.6cqw}
+/* THE COVER SPREAD on the fold: one picture across both pages, the type under it with room to breathe.
+   Every rule is written against `.we .we-cv.we-cs...` because the ordinary cover's rules are specific and
+   were winning: the first drawing of this had a 38px nameplate and a 25px headline.
+   1cqw here is a hundredth of ONE PAGE, not of the spread - the second drawing was half size for that reason. */
+.we .we-cv.we-cs{background:#0f1c35;color:#f4f5f3}
+.we .we-cv.we-cs::before{display:none}
+.we .we-cv.we-cs .we-csf{position:absolute;left:0;top:0;width:100%;height:56svh;margin:0;overflow:hidden;z-index:1}
+.we .we-cv.we-cs .we-csf img{position:absolute;top:0;height:100%;width:200%;max-width:none;object-fit:cover;object-position:50% 38%;display:block}
+.we .we-cv.we-cs1 .we-csf img{left:0}.we .we-cv.we-cs2 .we-csf img{left:-100%}
+.we .we-cv.we-cs .we-csf::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(6,12,28,.8),rgba(6,12,28,.2) 32%,rgba(6,12,28,0) 48%,rgba(6,12,28,0) 80%,rgba(15,28,53,.6))}
+.we .we-cv.we-cs .we-csf figcaption{position:absolute;right:4.8cqw;bottom:2.4cqw;z-index:2;font:600 max(8px,2.2cqw)/1 system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#fff;opacity:.9;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.we .we-cv.we-cs .we-ci{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:flex-start;box-sizing:border-box;padding:calc(56svh + 8cqw) 8.8cqw 10cqw;height:auto;min-height:0;text-align:left}
+.we .we-cv.we-cs2 .we-ci{min-height:100%}
+.we .we-cv.we-cs1 .we-ex{position:absolute;left:8.8cqw;top:3.6cqw}
+.we .we-cv.we-cs1 .we-top{position:absolute;left:8.8cqw;right:6cqw;top:10.8cqw;text-align:left;margin:0;padding:0;display:block}
+.we .we-cv.we-cs1 .we-top h2.we-m{font-size:clamp(54px,21cqw,112px);line-height:.86;margin:0;text-align:left;text-shadow:0 2px 18px rgba(0,0,0,.5)}
+.we .we-cv.we-cs1 .we-top h2.we-m small{display:block;margin:4.4cqw 0 0;text-align:left;font-size:max(10px,2.7cqw);letter-spacing:.34em}
+.we .we-cv.we-cs1 .we-top .we-dl{justify-content:flex-start;margin:3.2cqw 0 0;border:0;padding:0;width:auto;text-shadow:0 1px 4px rgba(0,0,0,.65)}
+.we .we-cv.we-cs1 .we-lead{margin:0;padding:0;text-align:left}
+.we .we-cv.we-cs1 .we-lead .we-k{font-size:max(10px,2.6cqw);margin-bottom:3.6cqw}
+.we .we-cv.we-cs1 .we-h{line-height:1.02;text-wrap:balance;margin:0}
+.we .we-cv.we-cs1 .we-o{margin-top:3.6cqw}
+.we .we-cv.we-cs2 .we-cdk{margin:0 0 6cqw;font:400 clamp(17px,4.6cqw,25px)/1.42 Literata,Georgia,serif;max-width:26em;text-wrap:pretty}
+.we .we-cv.we-cs2 .we-cls{margin:0;padding:0;background:none;gap:0;display:block;position:static}
+.we .we-cv.we-cs2 .we-cls::before{display:none}
+.we .we-cv.we-cs2 .we-cls li{display:block;padding:3.8cqw 0;border-top:1px solid rgba(255,255,255,.24)}
+.we .we-cv.we-cs2 .we-cls li:first-child{border-top:0;padding-top:0}
+.we .we-cv.we-cs2 .we-cdk+.we-cls li:first-child{border-top:1px solid rgba(255,255,255,.24);padding-top:3.8cqw}
+.we .we-cv.we-cs2 .we-cls b{display:block;margin-bottom:.14cqw;font-size:max(9px,2.3cqw);opacity:.7}
+.we .we-cv.we-cs2 .we-cls span{display:block;font-size:clamp(17px,4.7cqw,25px);line-height:1.28}
+.we .we-cv.we-cs2 .we-sw{margin-top:auto;padding-top:6cqw;text-align:left;position:static}
 .we-als{flex:0 0 auto;margin-top:4cqw;padding-top:2.2cqw;border-top:1px solid var(--wl)}
 .we-als>em{display:block;font:700 max(9px,2.2cqw)/1 system-ui,sans-serif;font-style:normal;letter-spacing:.18em;text-transform:uppercase;color:var(--wm);margin-bottom:1.8cqw}
 .we-als ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2cqw}
@@ -17312,7 +17343,8 @@ function weRdClose(fromPop){if(WE.resettle)setTimeout(()=>{WE.resettle=0;weSettl
  /* focus goes back to the headline the story was opened from; the scroller is only the fallback */
  const opn=WE.opn&&WE.opn.isConnected?WE.opn:bk;WE.opn=null;
  if(WE.snap)WE.snap();if(WE.lab)WE.lab();if(opn)try{opn.focus({preventScroll:true})}catch(e){}}
-function weFit(){const cv=document.querySelector('.we-cv'),h=cv&&cv.querySelector('.we-h');if(!h||!cv.clientHeight)return;cv.classList.remove('we-ns','we-tall');/* the publisher's headline is never cut: it steps down in size until it fits, then the shape goes, then the cover grows */
+function weFit(){const cv=document.querySelector('.we-cv'),h=cv&&cv.querySelector('.we-h');if(!h||!cv.clientHeight)return;cv.classList.remove('we-ns','we-tall');
+ if(cv.classList.contains('we-cs')){/* the cover spread: the headline has half the screen's width and the room under the picture */const ci=cv.querySelector('.we-ci');for(const z of [12,11,10,9,8.2,7.4,6.6,5.8]){h.style.fontSize=z+'cqw';if(ci.scrollHeight<=cv.clientHeight+1)return}return}/* the publisher's headline is never cut: it steps down in size until it fits, then the shape goes, then the cover grows */
  const Z=cv.classList.contains('we-on')?[8.4,7.6,6.8,6,5.4]:[11,10,9,8,7,6],ci=cv.firstElementChild,over=()=>ci.scrollHeight>cv.clientHeight+1;
  for(const z of Z){h.style.fontSize=z+'cqw';if(!over())return}
  cv.classList.add('we-ns');if(over())cv.classList.add('we-tall')}
@@ -17429,7 +17461,22 @@ function renderWE(){
     page full, neither pretending a picture is missing. Either way two pages, so the contents keeps its own
     spread. */
  const CVPIC=!!(ok||art);
- let P=(WTWO?[CVPIC?`<section class="we-pg we-cv we-lg-${lg}${art?' we-on we-ag':''}${!ok&&!art?' we-ty':''}${cvf?' we-fr':''}" aria-label="Cover"><div class="we-ci">${EC}<div class="we-top"><h2 class="we-m">CyPress<small>The World Edition</small></h2><div class="we-dl"><select class="we-ed" aria-label="Edition: ${esc(e.name)}. Change edition">${d.editions.map(x=>`<option value="${esc(x.id)}"${x===e?' selected':''}>${esc(x.name)}</option>`).join('')}</select><i aria-hidden="true">&mdash;</i><span>${esc(date)}</span><i aria-hidden="true">&mdash;</i><span>No. ${+d.issue||1}</span></div>${ok?`<small class="we-pc">Photo: ${esc(c.photo.credit)}</small>`:art?'<small class="we-pc">Cover drawn for this edition</small>':''}</div><div class="we-mid">${cvf}</div>${!heavy&&!art&&WE_SHAPES[c.shape]?`<svg class="we-shp" viewBox="0 0 100 100" aria-hidden="true">${WE_SHAPES[c.shape].replace(/<path /g,'<path pathLength="1" ')}</svg>`:''}</div>${ok?pic(c.photo,'we-ph'):''}${FO}</section>`:`<section class="we-pg we-cv we-lg-${lg}${art?' we-on we-ag':''}${!ok&&!art?' we-ty':''}${cvf?' we-fr':''}" aria-label="Cover"><div class="we-ci">${EC}<div class="we-top"><h2 class="we-m">CyPress<small>The World Edition</small></h2><div class="we-dl"><select class="we-ed" aria-label="Edition: ${esc(e.name)}. Change edition">${d.editions.map(x=>`<option value="${esc(x.id)}"${x===e?' selected':''}>${esc(x.name)}</option>`).join('')}</select><i aria-hidden="true">&mdash;</i><span>${esc(date)}</span><i aria-hidden="true">&mdash;</i><span>No. ${+d.issue||1}</span></div>${ok?`<small class="we-pc">Photo: ${esc(c.photo.credit)}</small>`:art?'<small class="we-pc">Cover drawn for this edition</small>':''}</div><div class="we-mid">${cvf}</div>${!heavy&&!art&&WE_SHAPES[c.shape]?`<svg class="we-shp" viewBox="0 0 100 100" aria-hidden="true">${WE_SHAPES[c.shape].replace(/<path /g,'<path pathLength="1" ')}</svg>`:''}${(()=>{const o=secs.filter(x=>x.s.stories[0]!==lead);const pick=[o[0],o[Math.floor(o.length/2)],o[o.length-1]].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,3);
+ /* THE COVER SPREAD (David, 2026-11-28, with the fold's cover in front of him: "These covers have looked so
+    boring. Specially on the fold inner screen where pictures would look amazing and text should have room to
+    breathe"). He was looking at a nameplate, three lines and a headline on two navy pages that were mostly
+    empty. A news photograph is LANDSCAPE and the inner screen is two pages wide, so the picture now runs
+    ACROSS BOTH PAGES on the upper part of the spread - the same file drawn twice, each page showing its own
+    half - with the nameplate set over it. Under it the left page carries the lead headline and the right page
+    its summary and the cover lines, each with air round it. Any cover picture takes this form on the fold:
+    a full-size photograph, a smaller one, or the drawing made for the lead. */
+ const cvP=ok?c.photo:fph,cvU=cvP?cvP.url:(fdr?weArtUrl(fdr.url):''),
+  cvFo=cvP&&Array.isArray(cvP.focus)?` style="object-position:${+cvP.focus[0]||50}% ${+cvP.focus[1]||50}%"`:'',
+  cvLines=(()=>{const o=secs.filter(x=>x.s.stories[0]!==lead);const pick=[o[0],o[Math.floor(o.length/2)],o[o.length-1]].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,3);
+   return pick.length?`<ul class="we-cls">${pick.map(x=>{const st=x.s.stories[0];return `<li><b>${esc(x.s.name)}</b><span>${esc(st.h||st.t)}</span></li>`}).join('')}</ul>`:''})(),
+  SPREAD=WTWO&&cvU&&!WE.lite?[
+   `<section class="we-pg we-cv we-cs we-cs1" aria-label="Cover"><figure class="we-csf" data-wepl="${esc(lead.l)}"><img alt="" referrerpolicy="no-referrer" data-wep src="${esc(cvU)}"${cvFo}></figure><div class="we-ci">${EC}<div class="we-top"><h2 class="we-m">CyPress<small>The World Edition</small></h2><div class="we-dl"><select class="we-ed" aria-label="Edition: ${esc(e.name)}. Change edition">${d.editions.map(x=>`<option value="${esc(x.id)}"${x===e?' selected':''}>${esc(x.name)}</option>`).join('')}</select><i aria-hidden="true">&mdash;</i><span>${esc(date)}</span><i aria-hidden="true">&mdash;</i><span>No. ${+d.issue||1}</span></div></div><div class="we-lead"><div class="we-k">Lead story${ls?' &middot; '+esc(ls.name):''}</div><h3 class="we-h">${A(lead)}</h3><div class="we-o">${esc(lead.o)}</div></div></div>${FO}</section>`,
+   `<section class="we-pg we-cv we-cs we-cs2" aria-label="Cover, continued"><figure class="we-csf"><img alt="" referrerpolicy="no-referrer" data-wep src="${esc(cvU)}"${cvFo}><figcaption>${cvP?`Photo: <span class="we-cr">${esc(weCred(cvP.credit))}</span>`:'Illustration made by a machine'}</figcaption></figure><div class="we-ci">${weDek(lead.dek)?`<p class="we-cdk">${esc(weDek(lead.dek))}</p>`:''}${cvLines}<div class="we-sw">Swipe to open <span aria-hidden="true">&#8250;</span></div></div>${FO}</section>`]:null;
+ let P=(SPREAD?SPREAD:WTWO?[CVPIC?`<section class="we-pg we-cv we-lg-${lg}${art?' we-on we-ag':''}${!ok&&!art?' we-ty':''}${cvf?' we-fr':''}" aria-label="Cover"><div class="we-ci">${EC}<div class="we-top"><h2 class="we-m">CyPress<small>The World Edition</small></h2><div class="we-dl"><select class="we-ed" aria-label="Edition: ${esc(e.name)}. Change edition">${d.editions.map(x=>`<option value="${esc(x.id)}"${x===e?' selected':''}>${esc(x.name)}</option>`).join('')}</select><i aria-hidden="true">&mdash;</i><span>${esc(date)}</span><i aria-hidden="true">&mdash;</i><span>No. ${+d.issue||1}</span></div>${ok?`<small class="we-pc">Photo: ${esc(c.photo.credit)}</small>`:art?'<small class="we-pc">Cover drawn for this edition</small>':''}</div><div class="we-mid">${cvf}</div>${!heavy&&!art&&WE_SHAPES[c.shape]?`<svg class="we-shp" viewBox="0 0 100 100" aria-hidden="true">${WE_SHAPES[c.shape].replace(/<path /g,'<path pathLength="1" ')}</svg>`:''}</div>${ok?pic(c.photo,'we-ph'):''}${FO}</section>`:`<section class="we-pg we-cv we-lg-${lg}${art?' we-on we-ag':''}${!ok&&!art?' we-ty':''}${cvf?' we-fr':''}" aria-label="Cover"><div class="we-ci">${EC}<div class="we-top"><h2 class="we-m">CyPress<small>The World Edition</small></h2><div class="we-dl"><select class="we-ed" aria-label="Edition: ${esc(e.name)}. Change edition">${d.editions.map(x=>`<option value="${esc(x.id)}"${x===e?' selected':''}>${esc(x.name)}</option>`).join('')}</select><i aria-hidden="true">&mdash;</i><span>${esc(date)}</span><i aria-hidden="true">&mdash;</i><span>No. ${+d.issue||1}</span></div>${ok?`<small class="we-pc">Photo: ${esc(c.photo.credit)}</small>`:art?'<small class="we-pc">Cover drawn for this edition</small>':''}</div><div class="we-mid">${cvf}</div>${!heavy&&!art&&WE_SHAPES[c.shape]?`<svg class="we-shp" viewBox="0 0 100 100" aria-hidden="true">${WE_SHAPES[c.shape].replace(/<path /g,'<path pathLength="1" ')}</svg>`:''}${(()=>{const o=secs.filter(x=>x.s.stories[0]!==lead);const pick=[o[0],o[Math.floor(o.length/2)],o[o.length-1]].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,3);
   return pick.length?`<ul class="we-cls">${pick.map(x=>{const st=x.s.stories[0];return `<li><b>${esc(x.s.name)}</b><span>${esc(st.h||st.t)}</span></li>`}).join('')}</ul>`:''})()}</div>${FO}</section>`,
   CVPIC?`<section class="we-pg we-cv we-cvb" aria-label="Cover, continued"><div class="we-ci">${(()=>{const o=secs.filter(x=>x.s.stories[0]!==lead);const pick=[o[0],o[Math.floor(o.length/2)],o[o.length-1]].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,3);
   return pick.length?`<ul class="we-cls">${pick.map(x=>{const st=x.s.stories[0];return `<li><b>${esc(x.s.name)}</b><span>${esc(st.h||st.t)}</span></li>`}).join('')}</ul>`:''})()}<div class="we-lead"><div class="we-k">Lead story${ls?' &middot; '+esc(ls.name):''}</div><h3 class="we-h">${A(lead)}</h3><div class="we-o">${esc(lead.o)}</div></div><div class="we-sw">Swipe to open <span aria-hidden="true">&#8250;</span></div></div>${FO}</section>`
