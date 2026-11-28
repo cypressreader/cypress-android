@@ -2832,3 +2832,5 @@ headline lying across it. Both the grid track and the row itself now have a cont
 - [ ] The World Edition: with the magazine open, a newer copy published on the site appears within about ten minutes without closing the app (and waits until you close a story if one is open).
 - [ ] The World Edition: page turns on phone and fold are smooth on the first pass through an issue (pictures are unpacked two pages ahead). Compare against 1.421's 230-260ms slow frames in diagnostics.
 - [ ] A phone that kept 1.421's older copy of the day (rev 06:26) takes the later one (same date, later rev) after updating.
+- [ ] The World Edition opening (1.422): on first opening an issue the cover photograph fades up out of the paper and the headline sets about a second later; it is smooth on the phone and on the fold's inner screen, plays once per issue, never holds the page longer than about 2.5 seconds, and does not play with "remove animations" switched on.
+- [ ] After the opening, the first swipes through the issue are smooth (every picture is unpacked in the background, nearest pages first).

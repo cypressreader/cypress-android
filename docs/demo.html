@@ -5614,6 +5614,16 @@ html.dynx[data-theme=dynamic] #rd .rf-next[hz-cgoj3z]::after{content:"";position
 .we-how .we-sig{font:700 12px/1.4 system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--wm);margin-top:5cqw}
 .we-h,.we-k,.we-o{animation:we-up var(--m2) ease-out both}
 @keyframes we-up{from{opacity:0}}
+/* THE OPENING (David picked 'C, the picture develops', 28 Nov): the cover photograph comes up out of the paper
+   while the rest of the issue's pictures are unpacked behind it, and the headline sets last. Opacity and
+   transform only - a blur or a color filter over a full-screen picture is exactly the cost this is here to
+   hide on a slow phone. Never runs with reduced motion (the class is not added). */
+.we-dev img{opacity:.08;transform:scale(1.035)}
+.we-dev .we-lead,.we-dev .we-cdk{opacity:0}
+.we-dev.we-dev2 img{animation:we-dev 1.7s cubic-bezier(.2,.6,.2,1) both}
+.we-dev.we-dev2 .we-lead,.we-dev.we-dev2 .we-cdk{animation:we-rise .55s 1.1s ease-out both}
+@keyframes we-dev{from{opacity:.08;transform:scale(1.035)}to{opacity:1;transform:none}}
+@keyframes we-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .we-ar{animation:none}
 .we-ph{transition:none}
 
@@ -15294,7 +15304,7 @@ async function startFresh(){
 
 /* ===================== v2 features ===================== */
 const APP_VERSION='2026.11.28g';const APP_LABEL='1.422';
-const CHANGES=["Fixed: a new cover or a corrected copy of The World Edition could take hours to reach your phone. The magazine now looks for a newer copy every ten minutes while it is open and shows it as soon as it arrives.","Turning pages in The World Edition is smoother: the pictures on the next pages are got ready before you reach them.","Fixed: real sentences were sometimes dropped from a story because they contained a word like \"subscribe\", and a pulled quote could be taken from a newsletter notice or repeat the paragraph beside it.","Every story is now read by an editor before it is printed, and every story carries a summary line under its headline."];
+const CHANGES=["Fixed: a new cover or a corrected copy of The World Edition could take hours to reach your phone. The magazine now looks for a newer copy every ten minutes while it is open and shows it as soon as it arrives.","Turning pages in The World Edition is smoother: every picture in the issue is got ready in the background as soon as it opens, nearest pages first.","Fixed: real sentences were sometimes dropped from a story because they contained a word like \"subscribe\", and a pulled quote could be taken from a newsletter notice or repeat the paragraph beside it.","Every story is now read by an editor before it is printed, and every story carries a summary line under its headline."];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -17725,7 +17735,14 @@ function renderWE(){
     if(at<0)at=Math.min(wePlace.i,ch.length-1);
     if(two())at-=at%2}
    sc.scrollLeft=Math.max(0,at)*pw()}
-  WE.pgEd=e.id;WE.wcls=innerWidth>=600?2:1;lab();weAll(sc);let rq=0;sc.onscroll=()=>{if(!rq)rq=requestAnimationFrame(()=>{rq=0;lab()})};
+  WE.pgEd=e.id;WE.wcls=innerWidth>=600?2:1;lab();weAll(sc);
+  /* once per issue per run of the app, only when the reader is on the cover and it has a picture. It starts
+     when the cover picture is actually ready, and at 2.5s regardless, so it can never hold the page back. */
+  {const key=d.date+'|'+e.id;if(WE.devFor!==key&&(WE.pg|0)===0&&!matchMedia('(prefers-reduced-motion:reduce)').matches){WE.devFor=key;
+    const cv=[...sc.querySelectorAll('.we-cv')].filter(x=>x.querySelector('img')),im=cv[0]&&cv[0].querySelector('img');
+    if(im){cv.forEach(x=>x.classList.add('we-dev'));let on=0;const go=()=>{if(on)return;on=1;cv.forEach(x=>x.classList.add('we-dev2'));setTimeout(()=>cv.forEach(x=>x.classList.remove('we-dev','we-dev2')),1900)};
+     (im.decode?im.decode():Promise.resolve()).then(go,go);setTimeout(go,2500)}}}
+  let rq=0;sc.onscroll=()=>{if(!rq)rq=requestAnimationFrame(()=>{rq=0;lab()})};
   addEventListener('resize',size);
   /* a jump asked for during a turn keeps its exact target (returning from a story, a contents jump);
      a swipe only keeps its direction. Either way it runs the moment the turn ends, and the turn is cut short. */
