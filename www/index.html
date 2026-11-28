@@ -5572,6 +5572,18 @@ html.lowp .we *,html.lowp .we *::before{animation:none!important;transition:none
 .we-op.we-op2 .we-tz+.we-tz{clear:left}
 .we-op.we-op2 .we-dc::first-letter{float:left;font:700 3.6em/.82 var(--wd);padding:.04em .1em 0 0;color:var(--wa)}
 .we-op.we-op2 .we-ld small{margin-top:auto;padding-top:5cqw}
+/* the framed cover: the picture takes the room between the nameplate and the lead, at its own shape */
+/* its height comes from the FILE's own shape, not from the image once it has loaded: the cover headline is fitted the moment the page is built, and a picture that grew afterwards pushed the headline off the foot of the page */
+.we-cv.we-fr .we-mid{flex:0 0 auto;min-height:0;display:block;margin:3cqw 0 3cqw;position:relative;z-index:2}
+.we-cv .we-cf{margin:0;display:block;width:100%}
+.we-cv .we-cf img{width:100%;height:auto;aspect-ratio:var(--ar,1.5);max-height:34svh;object-fit:cover;object-position:50% 30%;display:block}
+/* a framed cover carries two cover lines, not three: the picture is the third */
+.we-cv.we-fr .we-cls li:nth-child(n+3){display:none}
+.we-cv.we-fr .we-cls::before{display:none}
+/* on the fold the picture has a whole page to itself and takes most of it */
+@container we (min-width:600px){.we-cv .we-cf img{aspect-ratio:auto;height:54svh;max-height:none}}
+.we-cv .we-cf.we-ill img{object-position:50% 50%}
+.we-cv .we-cf figcaption{flex:0 0 auto;text-align:left;font:600 max(8px,1.9cqw)/1.3 system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;opacity:.7;padding-top:1.6cqw}
 .we-als{flex:0 0 auto;margin-top:4cqw;padding-top:2.2cqw;border-top:1px solid var(--wl)}
 .we-als>em{display:block;font:700 max(9px,2.2cqw)/1 system-ui,sans-serif;font-style:normal;letter-spacing:.18em;text-transform:uppercase;color:var(--wm);margin-bottom:1.8cqw}
 .we-als ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2cqw}
@@ -16713,7 +16725,8 @@ async function weUrl(){
  let id='';try{const p=CyN();if(p)id=String((await p.info()).appId||'')}catch(e){}
  return WEU=/\.preview$/.test(id)?WE_URL_PREVIEW:WE_URL;
 }
-const weOk=d=>!!(d&&Array.isArray(d.editions)&&d.editions.length);
+/* An `editions` array was the whole test, so a file with an edition missing its sections was SAVED, preferred on the next launch, and threw inside the draw every time: 'Setting the type...' for ever, with no way back to the built-in issue until a newer one arrived. */
+const weOk=d=>!!(d&&Array.isArray(d.editions)&&d.editions.length&&d.editions.every(e=>e&&Array.isArray(e.sections)&&e.sections.every(x=>x&&Array.isArray(x.stories))));
 /* EVERY PICTURE ADDRESS IS MADE ABSOLUTE THE MOMENT AN ISSUE IS IN HAND, against the address it came from,
    and never resolved again. This replaces resolving at drawing time against a global that is set in one
    place and read in another: that arrangement broke four separate ways in one night, and when it broke the
@@ -16724,6 +16737,7 @@ function weAbs(d,base){if(!d||typeof base!=='string'||!/^https?:\/\//.test(base)
  for(const e of d.editions||[])for(const s of e.sections||[])for(const t of s.stories||[]){
   if(t.art&&t.art.url&&!/^https?:\/\//.test(t.art.url)){try{t.art.url=new URL(t.art.url,base).href}catch(_){ } }
  }
+ for(const e of d.editions||[]){const c=e.cover&&e.cover.draw;if(c&&c.url&&!/^https?:\/\//.test(c.url)){try{c.url=new URL(c.url,base).href}catch(_){ }}}
  return d}
 /* EARLIER ISSUES (David's choices sheet). An issue used to be replaced and yesterday was gone. The last seven
    are kept on the phone, so Tuesday's can be finished on Thursday. They are kept where the live one is kept -
@@ -17283,7 +17297,7 @@ let said=!!q,who='';
  if(WE.go&&WE.pg!==at)WE.go(at,1);else if(WE.lab)WE.lab();
  const f=pages[0].querySelector('[data-werb]');if(f&&wait!==1)try{f.focus({preventScroll:true})}catch(e){}/* after the jump: a hidden page cannot take focus */
 }
-function weRdClose(fromPop){if(WE.resettle)setTimeout(()=>{WE.resettle=0;weSettle()},60);const sc=document.querySelector('.we-sc');WE.rd=null;if(WE.sp==null)return;const bk=sc;
+function weRdClose(fromPop){if(WE.resettle)setTimeout(()=>{WE.resettle=0;weSettle()},60);/* the phone was folded or unfolded while this story was open: the book behind it is still laid out for the other width */if(WE.wcls&&WE.wcls!==(innerWidth>=600?2:1))setTimeout(()=>{if(WE.sp==null&&S.sel==='we')render()},120);const sc=document.querySelector('.we-sc');WE.rd=null;if(WE.sp==null)return;const bk=sc;
  const back=WE.spBack|0;WE.sp=null;
  if(sc)[...sc.querySelectorAll('.we-sp')].forEach(x=>x.remove());
  wePad(sc,sc.clientWidth>=600);weFolio();if(!fromPop)dropLayer('weread');
@@ -17321,11 +17335,21 @@ function renderWE(){
     "never under a reader" means. It is also when the site is asked again, since that ask lived in the same
     once-per-start path. Forward only: an older date on the site is ignored. */
  if(!g.querySelector('.we-sc')){
-  const k=weKept();if(k&&String(k.date||'')>String(WE.d.date||'')){WE.d=k;WE.sig=''}
+  /* the same rule as weRefresh and weEdition - a later date, OR the same date with a different rev. This one was date-only, so a correction made during the day was saved and never shown on re-opening; and `WE.live` was left pointing at an earlier issue, which put 'Back to the latest issue' on the latest issue and sent the reader a day backwards. */
+  const k=weKept();if(k&&weOk(k)&&(String(k.date||'')>String(WE.d.date||'')||(String(k.date||'')===String(WE.d.date||'')&&String(k.rev||'')!==String(WE.d.rev||'')&&!WE.live))){if(String(k.date||'')>String(WE.d.date||''))WE.live=null;WE.d=k;WE.sig=''}
   weRefresh(WE.d);
  }
- {const sig=(S.weEd||'')+'|'+WE.d.date+'|'+WE.d.issue+'|'+(innerWidth>=600?2:1)/* folding or unfolding does rebuild: a story is laid out differently one page wide */+'|'+[...(WE.gone||[])].join(',');
+ {const sig=(S.weEd||'')+'|'+WE.d.date+'|'+WE.d.issue+'|'+(innerWidth>=600?2:1)/* folding or unfolding does rebuild: a story is laid out differently one page wide */+'|'+[...(WE.gone||[])].sort().join(',');/* sorted: the same dropped stories in another order are the same book, and used to rebuild it */
   if(WE.sig===sig&&g.querySelector('.we-sc'))return;WE.sig=sig}
+ /* THE READER'S PLACE SURVIVES A REBUILD (found by the review of 2026-11-28, and proved: on Tech, a rebuild
+    landed on the Cover). The place was restored from WE.pg AFTER wePad() had run on the new, unscrolled
+    scroller - and wePad ends by reading the page off the scroll position, which wrote 0 over it. So every
+    rebuild - a story dropped, a corrected issue arriving, a fold - sent the reader to page one. David,
+    26 Nov: "It kept kicking me back to the cover randomly"; the fix then made rebuilds rarer and left each
+    one losing the place. The place is now taken BEFORE anything is rebuilt, and as the PAGE ITSELF (its id,
+    or its name), not its number: the phone and the fold do not have the same pages in the same order. */
+ const wePlace=(()=>{const o=g.querySelector('.we-sc'),pg=o&&o.children[WE.pg|0];
+  return pg&&WE.pgEd===weEd(WE.d).id?{id:pg.id||'',lab:pg.getAttribute('aria-label')||'',i:WE.pg|0}:null})();
  const d=WE.d,e=weEd(d),c=e.cover||{},gone=WE.gone||new Set(),
   secs=e.sections.map((s,i)=>({s:gone.size?Object.assign({},s,{stories:s.stories.filter(st=>!gone.has(st.l))}):s,i})).filter(x=>x.s.stories.length),
   L=c.lead||[0,0],L0=((e.sections[L[0]]||{}).stories||[])[L[1]],lead=(L0&&!gone.has(L0.l)?L0:null)||secs[0].s.stories[0],heavy=c.mood==='heavy';
@@ -17335,7 +17359,18 @@ function renderWE(){
  const ix=new Map(),I=st=>{if(!ix.has(st)){let fu='';try{fu=new URL(st.l).origin}catch(_){}ix.set(st,cur.push({feedId:'',title:st.h||st.t,link:st.l,date:+dt,img:'',html:st.dek?'<p>'+esc(st.dek)+'</p>':'',summary:st.dek||'',ft:st.o,fu})-1)}return ix.get(st)};
  cur=WE.cur=[];secs.forEach((x,k)=>x.s.stories.forEach(st=>{const i=I(st);cur[i].wsec=x.s.name;cur[i].wnum=k+1;cur[i].wdek=st.dek||'';cur[i].wpc=(st.photo&&st.photo.credit)||'';cur[i].wph=st.photo||null;cur[i].wart=st.art||null;cur[i].wplate=st.plate||null;cur[i].winl=Array.isArray(st.inline)?st.inline:null}));
  const A=st=>`<a href="${esc(st.l)}" data-we="${I(st)}">${weStack(st.h||st.t)}</a>`,why=st=>st.why||(st.n?`Reported by ${st.n} of the ${d.sampled} outlets checked`:(d.sample?'Chosen by hand for this sample edition':'')),n=cur.length;
- const ok=wePhotoOk(c.photo,heavy,lead.t,1),art=!ok&&!!c.art,ls=e.sections.find(s=>s.stories.includes(lead));
+ /* THE FRAMED COVER (David, 2026-11-28: "make sure there's always a cover story... with a picture or drawing").
+    A cover photograph had to be 1,600px to fill the page, and on most days the stories that lead have nothing
+    that size - so the cover was type. Print has always had a second form for a picture it cannot bleed: set
+    it as a framed picture above the headline. The pipeline says `frame` when the photograph it chose is
+    smaller than a full page wants, and `draw` when it had a drawing made for the lead instead. Both are
+    still held to the same gates as any other picture on a page. */
+ const okFull=wePhotoOk(c.photo,heavy,lead.t,1),
+  fph=!okFull&&!c.art&&wePhotoOk(c.photo,heavy,lead.t)?c.photo:null,
+  fdr=!okFull&&!c.art&&!fph&&c.draw&&!heavy&&!WE.lite&&/^https:\/\//.test(weArtUrl(c.draw.url)||'')&&Math.max(+c.draw.w||0,+c.draw.h||0)>=WE_SM?c.draw:null,
+  cvf=fph?`<figure class="we-fg we-ok we-cf" data-wepl="${esc(lead.l)}" style="--ar:${Math.max(1.2,Math.min(2.2,(+fph.w||3)/(+fph.h||2))).toFixed(3)}"><img alt="" referrerpolicy="no-referrer" data-wep src="${esc(fph.url)}"${Array.isArray(fph.focus)?` style="object-position:${+fph.focus[0]||50}% ${+fph.focus[1]||50}%"`:''}><figcaption>Photo: <span class="we-cr">${esc(weCred(fph.credit))}</span></figcaption></figure>`
+   :fdr?`<figure class="we-fg we-ok we-ill we-cf" style="--ar:${Math.max(1,Math.min(2.2,(+fdr.w||5)/(+fdr.h||3))).toFixed(3)}"><img alt="" referrerpolicy="no-referrer" data-wep src="${esc(weArtUrl(fdr.url))}"><figcaption>Illustration made by a machine</figcaption></figure>`:'';
+ const ok=okFull,art=!ok&&!!c.art,ls=e.sections.find(s=>s.stories.includes(lead));
  const pic=(ph,k)=>`<img class="${k}" alt="" referrerpolicy="no-referrer"${k?'':' data-wep'} src="${esc(ph.url)}"${Array.isArray(ph.focus)?` style="object-position:${+ph.focus[0]||50}% ${+ph.focus[1]||50}%"`:''}>`;/* the crop is the art director's: the focal point comes from the file, never a center-crop guess */
  const lg=({corner:'corner',ghost:'ghost'})[c.logo]||'top';
  const FO='<i class="we-fo" aria-hidden="true"></i>',EX='<button type="button" class="we-ex" data-wex><span aria-hidden="true">&#8249;</span> Editions</button>',
@@ -17386,21 +17421,21 @@ function renderWE(){
     page full, neither pretending a picture is missing. Either way two pages, so the contents keeps its own
     spread. */
  const CVPIC=!!(ok||art);
- let P=(WTWO?[CVPIC?`<section class="we-pg we-cv we-lg-${lg}${art?' we-on we-ag':''}${!ok&&!art?' we-ty':''}" aria-label="Cover"><div class="we-ci">${EC}<div class="we-top"><h2 class="we-m">CyPress<small>The World Edition</small></h2><div class="we-dl"><select class="we-ed" aria-label="Edition: ${esc(e.name)}. Change edition">${d.editions.map(x=>`<option value="${esc(x.id)}"${x===e?' selected':''}>${esc(x.name)}</option>`).join('')}</select><i aria-hidden="true">&mdash;</i><span>${esc(date)}</span><i aria-hidden="true">&mdash;</i><span>No. ${+d.issue||1}</span></div>${ok?`<small class="we-pc">Photo: ${esc(c.photo.credit)}</small>`:art?'<small class="we-pc">Cover drawn for this edition</small>':''}</div><div class="we-mid"></div>${!heavy&&!art&&WE_SHAPES[c.shape]?`<svg class="we-shp" viewBox="0 0 100 100" aria-hidden="true">${WE_SHAPES[c.shape].replace(/<path /g,'<path pathLength="1" ')}</svg>`:''}</div>${ok?pic(c.photo,'we-ph'):''}${FO}</section>`:`<section class="we-pg we-cv we-lg-${lg}${art?' we-on we-ag':''}${!ok&&!art?' we-ty':''}" aria-label="Cover"><div class="we-ci">${EC}<div class="we-top"><h2 class="we-m">CyPress<small>The World Edition</small></h2><div class="we-dl"><select class="we-ed" aria-label="Edition: ${esc(e.name)}. Change edition">${d.editions.map(x=>`<option value="${esc(x.id)}"${x===e?' selected':''}>${esc(x.name)}</option>`).join('')}</select><i aria-hidden="true">&mdash;</i><span>${esc(date)}</span><i aria-hidden="true">&mdash;</i><span>No. ${+d.issue||1}</span></div>${ok?`<small class="we-pc">Photo: ${esc(c.photo.credit)}</small>`:art?'<small class="we-pc">Cover drawn for this edition</small>':''}</div><div class="we-mid"></div>${!heavy&&!art&&WE_SHAPES[c.shape]?`<svg class="we-shp" viewBox="0 0 100 100" aria-hidden="true">${WE_SHAPES[c.shape].replace(/<path /g,'<path pathLength="1" ')}</svg>`:''}${(()=>{const o=secs.filter(x=>x.s.stories[0]!==lead);const pick=[o[0],o[Math.floor(o.length/2)],o[o.length-1]].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,3);
+ let P=(WTWO?[CVPIC?`<section class="we-pg we-cv we-lg-${lg}${art?' we-on we-ag':''}${!ok&&!art?' we-ty':''}${cvf?' we-fr':''}" aria-label="Cover"><div class="we-ci">${EC}<div class="we-top"><h2 class="we-m">CyPress<small>The World Edition</small></h2><div class="we-dl"><select class="we-ed" aria-label="Edition: ${esc(e.name)}. Change edition">${d.editions.map(x=>`<option value="${esc(x.id)}"${x===e?' selected':''}>${esc(x.name)}</option>`).join('')}</select><i aria-hidden="true">&mdash;</i><span>${esc(date)}</span><i aria-hidden="true">&mdash;</i><span>No. ${+d.issue||1}</span></div>${ok?`<small class="we-pc">Photo: ${esc(c.photo.credit)}</small>`:art?'<small class="we-pc">Cover drawn for this edition</small>':''}</div><div class="we-mid">${cvf}</div>${!heavy&&!art&&WE_SHAPES[c.shape]?`<svg class="we-shp" viewBox="0 0 100 100" aria-hidden="true">${WE_SHAPES[c.shape].replace(/<path /g,'<path pathLength="1" ')}</svg>`:''}</div>${ok?pic(c.photo,'we-ph'):''}${FO}</section>`:`<section class="we-pg we-cv we-lg-${lg}${art?' we-on we-ag':''}${!ok&&!art?' we-ty':''}${cvf?' we-fr':''}" aria-label="Cover"><div class="we-ci">${EC}<div class="we-top"><h2 class="we-m">CyPress<small>The World Edition</small></h2><div class="we-dl"><select class="we-ed" aria-label="Edition: ${esc(e.name)}. Change edition">${d.editions.map(x=>`<option value="${esc(x.id)}"${x===e?' selected':''}>${esc(x.name)}</option>`).join('')}</select><i aria-hidden="true">&mdash;</i><span>${esc(date)}</span><i aria-hidden="true">&mdash;</i><span>No. ${+d.issue||1}</span></div>${ok?`<small class="we-pc">Photo: ${esc(c.photo.credit)}</small>`:art?'<small class="we-pc">Cover drawn for this edition</small>':''}</div><div class="we-mid">${cvf}</div>${!heavy&&!art&&WE_SHAPES[c.shape]?`<svg class="we-shp" viewBox="0 0 100 100" aria-hidden="true">${WE_SHAPES[c.shape].replace(/<path /g,'<path pathLength="1" ')}</svg>`:''}${(()=>{const o=secs.filter(x=>x.s.stories[0]!==lead);const pick=[o[0],o[Math.floor(o.length/2)],o[o.length-1]].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,3);
   return pick.length?`<ul class="we-cls">${pick.map(x=>{const st=x.s.stories[0];return `<li><b>${esc(x.s.name)}</b><span>${esc(st.h||st.t)}</span></li>`}).join('')}</ul>`:''})()}</div>${FO}</section>`,
   CVPIC?`<section class="we-pg we-cv we-cvb" aria-label="Cover, continued"><div class="we-ci">${(()=>{const o=secs.filter(x=>x.s.stories[0]!==lead);const pick=[o[0],o[Math.floor(o.length/2)],o[o.length-1]].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,3);
   return pick.length?`<ul class="we-cls">${pick.map(x=>{const st=x.s.stories[0];return `<li><b>${esc(x.s.name)}</b><span>${esc(st.h||st.t)}</span></li>`}).join('')}</ul>`:''})()}<div class="we-lead"><div class="we-k">Lead story${ls?' &middot; '+esc(ls.name):''}</div><h3 class="we-h">${A(lead)}</h3><div class="we-o">${esc(lead.o)}</div></div><div class="we-sw">Swipe to open <span aria-hidden="true">&#8250;</span></div></div>${FO}</section>`
    :`<section class="we-pg we-cv we-cvb we-cvb1" aria-label="Cover, continued"><div class="we-ci"><div class="we-lead"><div class="we-k">Lead story${ls?' &middot; '+esc(ls.name):''}</div><h3 class="we-h">${A(lead)}</h3><div class="we-o">${esc(lead.o)}</div></div><div class="we-sw">Swipe to open <span aria-hidden="true">&#8250;</span></div></div>${FO}</section>`]
-  :[`<section class="we-pg we-cv we-lg-${lg}${art?' we-on we-ag':''}${!ok&&!art?' we-ty':''}" aria-label="Cover"><div class="we-ci">${EC}<div class="we-top"><h2 class="we-m">CyPress<small>The World Edition</small></h2><div class="we-dl"><select class="we-ed" aria-label="Edition: ${esc(e.name)}. Change edition">${d.editions.map(x=>`<option value="${esc(x.id)}"${x===e?' selected':''}>${esc(x.name)}</option>`).join('')}</select><i aria-hidden="true">&mdash;</i><span>${esc(date)}</span><i aria-hidden="true">&mdash;</i><span>No. ${+d.issue||1}</span></div>${ok?`<small class="we-pc">Photo: ${esc(c.photo.credit)}</small>`:art?'<small class="we-pc">Cover drawn for this edition</small>':''}</div><div class="we-mid"></div>${!heavy&&!art&&WE_SHAPES[c.shape]?`<svg class="we-shp" viewBox="0 0 100 100" aria-hidden="true">${WE_SHAPES[c.shape].replace(/<path /g,'<path pathLength="1" ')}</svg>`:''}${(()=>{const o=secs.filter(x=>x.s.stories[0]!==lead);const pick=[o[0],o[Math.floor(o.length/2)],o[o.length-1]].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,3);
+  :[`<section class="we-pg we-cv we-lg-${lg}${art?' we-on we-ag':''}${!ok&&!art?' we-ty':''}${cvf?' we-fr':''}" aria-label="Cover"><div class="we-ci">${EC}<div class="we-top"><h2 class="we-m">CyPress<small>The World Edition</small></h2><div class="we-dl"><select class="we-ed" aria-label="Edition: ${esc(e.name)}. Change edition">${d.editions.map(x=>`<option value="${esc(x.id)}"${x===e?' selected':''}>${esc(x.name)}</option>`).join('')}</select><i aria-hidden="true">&mdash;</i><span>${esc(date)}</span><i aria-hidden="true">&mdash;</i><span>No. ${+d.issue||1}</span></div>${ok?`<small class="we-pc">Photo: ${esc(c.photo.credit)}</small>`:art?'<small class="we-pc">Cover drawn for this edition</small>':''}</div><div class="we-mid">${cvf}</div>${!heavy&&!art&&WE_SHAPES[c.shape]?`<svg class="we-shp" viewBox="0 0 100 100" aria-hidden="true">${WE_SHAPES[c.shape].replace(/<path /g,'<path pathLength="1" ')}</svg>`:''}${(()=>{const o=secs.filter(x=>x.s.stories[0]!==lead);const pick=[o[0],o[Math.floor(o.length/2)],o[o.length-1]].filter((x,i,a)=>x&&a.indexOf(x)===i).slice(0,3);
   return pick.length?`<ul class="we-cls">${pick.map(x=>{const st=x.s.stories[0];return `<li><b>${esc(x.s.name)}</b><span>${esc(st.h||st.t)}</span></li>`}).join('')}</ul>`:''})()}<div class="we-lead"><div class="we-k">Lead story${ls?' &middot; '+esc(ls.name):''}</div><h3 class="we-h">${A(lead)}</h3><div class="we-o">${esc(lead.o)}</div></div><div class="we-sw">Swipe to open <span aria-hidden="true">&#8250;</span></div></div>${ok?pic(c.photo,'we-ph'):''}${FO}</section>`]).concat([
   ...(()=>{const rows=secs.map((x,k)=>{const f=x.s.stories[0],ph=wePhotoOk(f.photo,false,f.t),T=f.h||f.t;return `<li><button type="button" data-wej="we-s${x.i}" aria-label="${esc(x.s.name)}: ${esc(T)}, page ${pnum[k]}"><b>${k+1}</b><span class="we-tx"><span class="we-tn2">${esc(x.s.name)}</span><span class="we-th">${esc(T)}<i class="we-tmin" data-wemin="${I(f)}"></i></span></span><span class="we-tb">${ph?pic(f.photo,'we-tm'):''}</span><i>${pnum[k]}</i></button></li>`});const foot=`<div class="we-ft">${WE.live?'<button type="button" class="we-lk we-now" data-wenow>Back to the latest issue</button>':''}${('speechSynthesis' in window)?'<button type="button" class="we-lk we-lis" data-weplay>Listen to this edition</button>':''}<button type="button" class="we-lk" data-wej="we-how">How this edition was picked</button><p class="we-rdy" role="status"></p></div>`;const head=`<div class="we-tt"><span>Contents</span><span>${n===1?'1 story':n+' stories'}</span></div>`;if(!WTWO)return [`<section class="we-pg we-toc we-scr" data-fit aria-label="Contents"><div class="we-in">${EX}${head}<ol class="we-tl">${rows.join('')}</ol>${foot}</div>${FO}</section>`];const half=Math.ceil(rows.length/2);return [`<section class="we-pg we-toc" data-fit aria-label="Contents"><div class="we-in">${EX}${head}<ol class="we-tl">${rows.slice(0,half).join('')}</ol></div>${FO}</section>`,`<section class="we-pg we-toc we-toc2" data-fit aria-label="Contents, continued"><div class="we-in">${EX.replace('<button ','<button tabindex="-1" aria-hidden="true" ')}<ol class="we-tl">${rows.slice(half).join('')}</ol>${foot}</div>${FO}</section>`]})()]);
  /* one idea per page: a section opens on a page of its own (its photo when one passes the checklist, type when none does), and its other stories follow on the next page */
  secs.forEach((x,k)=>{const[f,...r]=x.s.stories,w=why(f),pk=wePhotoOk(f.photo,false,f.t),ak=!pk&&weArtPass(f.art,x.s.name),tp=!pk&&!ak?wePlate(f.plate):'',ng=pk&&weBigPic(f.photo),split=weSplit(x),spread=weSpread(x),als=!split&&!spread&&r.length?`<div class="we-als"><em>Also in ${esc(x.s.name)}</em><ul>${r.map(st=>`<li><h4>${A(st)}</h4><small><b>${esc(st.o)}</b></small></li>`).join('')}</ul></div>`:'',hd=more=>`<header class="we-hd${more?' we-hc':''}"><i aria-hidden="true">${x.i+1}</i><h2>${esc(x.s.name)}${more?', continued':''}</h2></header>`,last=k===secs.length-1;
-  P.push(`<section class="we-pg we-op${ng?' we-ng':''}${!pk&&!ak&&!tp?' we-tyo':''}${!pk&&!ak&&!tp&&k%2?' we-inv':''}" data-fit id="we-s${x.i}" aria-label="${esc(x.s.name)}"><div class="we-in">${EC}${pk?`<figure class="we-fg we-ok" data-wepl="${esc(f.l)}">${pic(f.photo,'')}<figcaption>Photo: <span class="we-cr">${esc(weCred(f.photo.credit))}</span></figcaption></figure>`:ak?`<figure class="we-fg we-ok we-ill" data-wepl="${esc(f.l)}"><img alt="" referrerpolicy="no-referrer" data-wep src="${esc(weArtUrl(f.art.url))}"><figcaption>Illustration made by a machine</figcaption></figure>`:tp}${hd()}${spread?`<div class="we-ldh">${f.region?`<em>${esc(f.region)}</em>`:''}<h3>${A(f)}</h3></div>`:`<article class="we-ld" data-wel="${I(f)}">${f.region?`<em>${esc(f.region)}</em>`:''}<h3>${A(f)}</h3>${weDek(f.dek)?`<p>${esc(weDek(f.dek))}</p>`:''}${f.note?`<aside class="we-nt"><em>Written by a machine</em><p>${esc(f.note)}</p>${f.noteBy?`<small>${esc(f.noteBy)}</small>`:''}</aside>`:''}<small><b>${esc(f.o)}</b>${w?' &middot; '+esc(w):''}</small></article>`}${als}${last&&!split&&!spread?'<div class="we-end">End of the edition</div>':''}</div>${FO}</section>`);
+  P.push(`<section class="we-pg we-op${ng?' we-ng':''}${!pk&&!ak&&!tp?' we-tyo':''}${!pk&&!ak&&!tp&&k%2?' we-inv':''}" data-fit id="we-s${x.i}" aria-label="${esc(x.s.name)}"><div class="we-in">${EC}${pk?`<figure class="we-fg we-ok" data-wepl="${esc(f.l)}">${pic(f.photo,'')}<figcaption>Photo: <span class="we-cr">${esc(weCred(f.photo.credit))}</span></figcaption></figure>`:ak?`<figure class="we-fg we-ok we-ill" data-wepl="${esc(f.l)}"><img alt="" referrerpolicy="no-referrer" data-wep src="${esc(weArtUrl(f.art.url))}"><figcaption>Illustration made by a machine</figcaption></figure>`:tp}${hd()}${spread?`<div class="we-ldh">${f.region?`<em>${esc(f.region)}</em>`:''}<h3>${A(f)}</h3></div>`:`<article class="we-ld" data-wel="${I(f)}">${f.region?`<em>${esc(f.region)}</em>`:''}<h3>${A(f)}</h3>${weDek(f.dek)?`<p>${esc(weDek(f.dek))}</p>`:''}${f.note?`<aside class="we-nt"><em>Written by a machine</em><p>${esc(f.note)}</p>${f.noteBy?`<small>${esc(f.noteBy)}</small>`:''}</aside>`:''}<small><b>${esc(f.o)}</b>${w?' &middot; '+esc(w):''}</small></article>`}${als}</div>${FO}</section>`);
   /* the right-hand half of a one-story section's spread: the story's own opening, which wePQ fills as soon
      as the text arrives, with the deck standing in until it does */
-  if(spread)P.push(`<section class="we-pg we-op we-op2${!pk&&!ak&&!tp?' we-tyo':''}" data-fit aria-label="${esc(x.s.name)}, continued"><div class="we-in">${EC}<article class="we-ld" data-wel="${I(f)}">${weDek(f.dek)?`<p class="we-sf">${esc(weDek(f.dek))}</p>`:''}${f.note?`<aside class="we-nt"><em>Written by a machine</em><p>${esc(f.note)}</p>${f.noteBy?`<small>${esc(f.noteBy)}</small>`:''}</aside>`:''}<small><b>${esc(f.o)}</b>${w?' &middot; '+esc(w):''}</small></article>${last?'<div class="we-end">End of the edition</div>':''}</div>${FO}</section>`);
-  if(split)P.push(`<section class="we-pg" data-fit aria-label="${esc(x.s.name)}, continued"><div class="we-in">${EC}${hd(1)}${r.map(st=>`<article class="we-st${r.length>2?' we-li':''}" data-wel="${I(st)}">${st.region?`<em>${esc(st.region)}</em>`:''}<h3>${A(st)}</h3>${weDek(st.dek)?`<p class="we-sd">${esc(weDek(st.dek))}</p>`:''}<small><b>${esc(st.o)}</b></small></article>`).join('')}${last?'<div class="we-end">End of the edition</div>':''}</div>${FO}</section>`)});
+  if(spread)P.push(`<section class="we-pg we-op we-op2${!pk&&!ak&&!tp?' we-tyo':''}" data-fit aria-label="${esc(x.s.name)}, continued"><div class="we-in">${EC}<article class="we-ld" data-wel="${I(f)}">${weDek(f.dek)?`<p class="we-sf">${esc(weDek(f.dek))}</p>`:''}${f.note?`<aside class="we-nt"><em>Written by a machine</em><p>${esc(f.note)}</p>${f.noteBy?`<small>${esc(f.noteBy)}</small>`:''}</aside>`:''}<small><b>${esc(f.o)}</b>${w?' &middot; '+esc(w):''}</small></article></div>${FO}</section>`);
+  if(split)P.push(`<section class="we-pg" data-fit aria-label="${esc(x.s.name)}, continued"><div class="we-in">${EC}${hd(1)}${r.map(st=>`<article class="we-st${r.length>2?' we-li':''}" data-wel="${I(st)}">${st.region?`<em>${esc(st.region)}</em>`:''}<h3>${A(st)}</h3>${weDek(st.dek)?`<p class="we-sd">${esc(weDek(st.dek))}</p>`:''}<small><b>${esc(st.o)}</b></small></article>`).join('')}</div>${FO}</section>`)});
 
  P.push(`<section class="we-pg we-how" data-fit id="we-how" aria-label="How this edition was picked"><div class="we-in">${EC}<em>From the editor</em><h2>How this edition was picked</h2>${(d.method||[]).map(p=>`<p>${esc(p)}</p>`).join('')}<p class="we-sig">&mdash; The editors</p>${(()=>{const ps=wePast().filter(x=>String(x.date)!==String(d.date));return ps.length?`<div class="we-arch"><em>Earlier issues</em><ul>${ps.map((x,i)=>`<li><button type="button" data-weiss="${i}">${esc(weWhen(x.date))}<span>No. ${+x.issue||'\u2014'}</span></button></li>`).join('')}</ul></div>`:''})()}</div>${FO}</section>`);
  /* THE LAST WORD (David, 2026-11-26: "The last page of the edition should also end with a famous quote.
@@ -17425,19 +17460,32 @@ function renderWE(){
     lx=LR?Math.round(Math.max(...[...ld.children].map(x=>x.getBoundingClientRect().right))-R0.left+bw*.03):bw;
    const k=[bw,bh,t0,b0,lx].join('x');if(old&&WE.box===k)return;WE.box=k;
    const svg=weArt(c,a,night,e.id+d.date,bw,bh,t0,b0,lx,['Today\u2019s lead']/* issue 48: the lower-left annotation gave way to the cover lines */);if(old)old.outerHTML=svg;else cv.insertAdjacentHTML('beforeend',svg)};
-  const size=()=>{if(!w.isConnected)return removeEventListener('resize',size);const zk=sc.clientWidth+'x'+sc.clientHeight;if(WE.zk===zk)return;WE.zk=zk;drawArt();wePad(sc,two());weFit();weFitAll();WE.snap&&WE.snap()};
+  const size=()=>{if(!w.isConnected)return removeEventListener('resize',size);
+   /* UNFOLDING RE-LAYS THE BOOK (review of 2026-11-28, proved: opened shut and then unfolded, the fold showed
+      25 phone pages two at a time - no cover spread, no two-page contents, sections out of step). The book is
+      built for one width or the other and nothing rebuilt it when the width changed; it stayed wrong until
+      some unrelated redraw. With a story open the story is re-cut instead (shapeFull), and the book follows
+      when the story closes. */
+   if(WE.wcls&&WE.wcls!==(innerWidth>=600?2:1)&&WE.sp==null){render();return}
+   const zk=sc.clientWidth+'x'+sc.clientHeight;if(WE.zk===zk)return;WE.zk=zk;drawArt();wePad(sc,two());weFit();weFitAll();WE.snap&&WE.snap()};
   WE.snap=()=>{const u=pw()*(two()?2:1);if(u)sc.scrollLeft=Math.round(sc.scrollLeft/u)*u;lab()};
   const drawEnd=()=>{if(!art||WE.lite)return;const pg=w.querySelector('.we-cl2');if(!pg||pg.querySelector('.we-ar'))return;
    pg.insertAdjacentHTML('beforeend',weArt(c,a,night,e.id+d.date+'end',Math.round(pw()),Math.round(sc.clientHeight),sc.clientHeight*.22,sc.clientHeight*.78,Math.round(pw())))};
   wePad(sc,two());drawArt();drawEnd();weFolio();
-  sc.scrollLeft=(WE.pgEd===e.id?WE.pg||0:0)*pw();WE.pgEd=e.id;lab();let rq=0;sc.onscroll=()=>{if(!rq)rq=requestAnimationFrame(()=>{rq=0;lab()})};
+  {let at=0;if(wePlace){const ch=[...sc.children];
+    at=wePlace.id?ch.findIndex(x=>x.id===wePlace.id):-1;
+    if(at<0&&wePlace.lab)at=ch.findIndex(x=>(x.getAttribute('aria-label')||'')===wePlace.lab);
+    if(at<0)at=Math.min(wePlace.i,ch.length-1);
+    if(two())at-=at%2}
+   sc.scrollLeft=Math.max(0,at)*pw()}
+  WE.pgEd=e.id;WE.wcls=innerWidth>=600?2:1;lab();let rq=0;sc.onscroll=()=>{if(!rq)rq=requestAnimationFrame(()=>{rq=0;lab()})};
   addEventListener('resize',size);
   /* a jump asked for during a turn keeps its exact target (returning from a story, a contents jump);
      a swipe only keeps its direction. Either way it runs the moment the turn ends, and the turn is cut short. */
   WE.go=(to,dir)=>{if(WE.fin)WE.fin();const t2=two(),i=WE.pg|0,mx=t2?(pgs()-1)-((pgs()-1)%2):pgs()-1;to=Math.max(0,Math.min(mx,t2?to-(to%2):to));if(to===i)return;sc.scrollLeft=to*pw();lab()};
   /* issue 38 rule 4: a swipe during a turn used to be thrown away (three swipes, two pages). It waits its turn now. */
   WE.turn=dir=>{if(WE.fin)WE.fin();if(WE.slide)WE.slide((WE.pg|0)+dir*(two()?2:1))};
-  weSwipe(sc);sc.onkeydown=ev=>{if(ev.key==='ArrowRight'||ev.key==='ArrowLeft'){ev.preventDefault();WE.turn(ev.key==='ArrowRight'?1:-1)}
+  weSwipe(sc);sc.onkeydown=ev=>{if(ev.target&&ev.target.closest&&ev.target.closest('select,input,textarea'))return;/* the arrow keys on the edition picker change the edition; they used to turn the page and leave the picker where it was */if(ev.key==='ArrowRight'||ev.key==='ArrowLeft'){ev.preventDefault();WE.turn(ev.key==='ArrowRight'?1:-1)}
    else if(ev.key==='Escape'){ev.preventDefault();if(WE.sp!=null)weRdClose();else weExit()}}}
  g.querySelector('.we-ed').onchange=ev=>{S.weEd=ev.target.value;saveSoon();WE.pg=0;WE.sp=null;render()};
  weFit();weFitAll();if(WE.art)WE.art();/* after the headline has stepped down, not before: the open field moves with it */
@@ -17460,7 +17508,7 @@ function weBy(doc){const name=/^[\p{L}][\p{L}.'’-]*(\s+[\p{L}][\p{L}.'’-]*){
   if(m&&name.test(m[1]))return m[1]}
  return ''}
 function weQuote(h){let alt='';for(const p of new DOMParser().parseFromString(h,'text/html').querySelectorAll('p')){const t=p.textContent.replace(/\s+/g,' '),m=t.match(/“([A-Za-z][^“”]{40,280}[.!?,;])”/)||t.match(/(?:^|[\s(])"([A-Za-z][^"]{40,280}[.!?,;])"/);if(m){const q=m[1].replace(/[,;]$/,'.'),n=q.split(' ').length;if(n>=6&&n<=46){if(/^[A-Z]/.test(q))return q;if(!alt)alt=q}}}return alt}
-function wePQ(a){const i=WE.cur.indexOf(a),el=i<0?null:document.querySelector('[data-wel="'+i+'"]'),lead=!!el&&el.classList.contains('we-ld'),
+function wePQ(a){/* BY LINK, not by object: a rebuild makes new story objects, and a download that finished afterwards still held the old one - indexOf said -1 and that story's opener stayed bare until the next rebuild */const i=WE.cur.findIndex(x=>x===a||(a&&x.link===a.link));if(i>=0)a=WE.cur[i];const el=i<0?null:document.querySelector('[data-wel="'+i+'"]'),lead=!!el&&el.classList.contains('we-ld'),
  h=el&&!el.querySelector('.we-tz')&&!el.querySelector('.we-pq')&&acGet(a.link);if(!h)return;let q='';try{q=lead?weQuote(h):''}catch(e){}
  /* issue 38 rule 3: the opener carries as much of the story's opening as the page holds - a page with a
     headline, one line and a void is not a magazine page. The paragraphs are added, then taken back one at
@@ -17587,7 +17635,7 @@ function weClick(e){const t=e.target;if(!t.closest||!t.closest('.we,[data-wer]')
   if(WE.go){const sc=document.querySelector('.we-sc'),ti=sc?[...sc.children].findIndex(x=>x.classList.contains('we-toc')):1;WE.go(ti<0?1:ti,-1)}return true}
  if(t.closest('[data-werb]')){weRdClose();return true}
  const a=t.closest('[data-we]');if(a){e.preventDefault();const pg=a.closest('.we-pg'),sc=pg&&pg.parentNode;weRead(+a.dataset.we,sc?[...sc.children].indexOf(pg):-1);return true}
- const j=t.closest('[data-wej]');if(j){const el=document.getElementById(j.dataset.wej),sc=el&&el.parentNode;if(el&&WE.go){const i=[...sc.children].indexOf(el);WE.go(i,i>(WE.pg|0)?1:-1);el.tabIndex=-1}return true}
+ const j=t.closest('[data-wej]');if(j){const el=document.getElementById(j.dataset.wej),sc=el&&el.parentNode;if(el&&WE.go){const i=[...sc.children].indexOf(el);WE.go(i,i>(WE.pg|0)?1:-1);el.tabIndex=-1;/* the row that was pressed is on a page that has just been hidden, so focus fell to the body and the arrow keys went dead; it goes to the page that was asked for */try{el.focus({preventScroll:true})}catch(_){}}return true}
  const tn=t.closest('[data-wet]');if(tn){if(WE.turn)WE.turn(+tn.dataset.wet);return true}
  if(t.closest('[data-wer]')){WE.st='';render();return true}
  return !!t.closest('.we-play')}
