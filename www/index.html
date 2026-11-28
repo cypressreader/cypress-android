@@ -15194,8 +15194,8 @@ async function startFresh(){
 }
 
 /* ===================== v2 features ===================== */
-const APP_VERSION='2026.11.28h';const APP_LABEL='1.423';
-const CHANGES=["Fixed: with your phone's font size turned up, the lines at the foot of a page in The World Edition ran into each other. The photo credit sat on the line above it, the page number sat on the text, and \"Swipe to open\" landed on the cover's frame.","On a shorter screen the cover no longer cuts off its last cover line; a line that does not fit is left out.","The World Edition has a proper night mode: when the app is dark, story pages and the section pages that used to stay paper-white are dark too."];
+const APP_VERSION='2026.11.28i';const APP_LABEL='1.424';
+const CHANGES=["Fixed: on small phones a photo credit in The World Edition could touch the line above it."];
 const DEF_ON=new Set(['pdim','mag3','pfshort','shortlinks','cine','sysfs','cont','dglock','haptic','wire','pfwifi','keysOn','fcheck','intro','skippay','nroom','lowfx','pcomp','tlay','dynx','sop','tline','caps','disc','mnote','trend','must','pqc','seal','rib','ten','tidy','alm','szn','fbleed','toc','spread','pqs','folio','endm','cyfx','rainv','curl','sitecol','tod','czoom','clive','micro','season','sdown','typo','group','just','preload','mag','cover','intro','covers','ptint','thaptic']);
 DEF_ON.delete('thaptic');/* polish-2026-10 G3: the page-turn tick now really vibrates, so it starts off (it used to show On but did nothing); restore by deleting this line */
 /* side-by-side reading starts on by itself on a touch tablet or an open Fold held landscape (800px or wider), until the person sets it in Settings */
@@ -17083,6 +17083,8 @@ function weNum(pg,b){const fo=pg.querySelector('.we-fo');if(!fo)return;fo.style.
  while((n=w.nextNode())){if(!n.nodeValue.trim()||fo.contains(n))continue;r.selectNodeContents(n);
   for(const q of r.getClientRects())if(q.bottom>f.top+1&&q.top<f.bottom-1&&q.right>f.left+f.width/2-18&&q.left<f.left+f.width/2+18){fo.style.visibility='hidden';return}}}
 function weFitPg(pg){if(!pg)return;const b=pg.querySelector('.we-in');if(!b)return;pg.style.removeProperty('--wz');weFoot(pg,b);
+ /* a column of text can slide down into the room kept for the credit without the page ever reporting an overflow (found at 320 wide, 28 Nov), so on a full-picture page the test is the real one: does the text end above the credit */
+ const fc0=b.querySelector(':scope>.we-fg>figcaption'),ar0=fc0&&getComputedStyle(fc0).position==='absolute'&&b.querySelector(':scope>article'),ov=()=>b.scrollHeight>b.clientHeight+1||(ar0&&ar0.getBoundingClientRect().bottom>fc0.getBoundingClientRect().top+1);
  /* MEASURE INSIDE THE ZOOM, NEVER ACROSS IT: --wz is a `zoom` on .we-in, and a zoomed element reports its own
     sizes in its own coordinate space - at 0.58 a full screen reads as 1,379 px tall, not 800. Measured against
     the page (pg.clientHeight, never zoomed) every step down looked WORSE than the one before, so no page ever
@@ -17092,7 +17094,7 @@ function weFitPg(pg){if(!pg)return;const b=pg.querySelector('.we-in');if(!b)retu
  /* a photograph gives ground before the type does: the picture is cropped shallower until the page holds it,
     and only then does the whole page step down. A shrunken page of tiny type is not a magazine page. */
  const fg=pg.querySelector('.we-fg');if(fg){fg.style.removeProperty('--wfh');
-  if(b.scrollHeight>b.clientHeight+1)for(const h of [68,58,50,42,34]){fg.style.setProperty('--wfh',h+'cqw');if(b.scrollHeight<=b.clientHeight+1)return}}
+  if(ov())for(const h of [68,58,50,42,34]){fg.style.setProperty('--wfh',h+'cqw');if(!ov())return}}
  /* THE CONTENTS STOPS SHRINKING AND SCROLLS (David picked it 2026-11-27, having watched a thirteen-entry
     contents on the phone: "This is really hard to read. It's a lot of crammed information... This would never
     pass a magazine editors desk"). HE WAS LOOKING AT THIS LADDER. Every other page holds a fixed amount of
@@ -17101,7 +17103,7 @@ function weFitPg(pg){if(!pg)return;const b=pg.querySelector('.we-in');if(!b)retu
     rungs at most and then lets the list scroll, which is the one place in the magazine where that is
     understood, because a reader can SEE a row continuing past the foot. */
  const toc=pg.classList.contains('we-toc');
- for(const z of (toc?[1,.95,.9]:[1,.95,.9,.85,.8,.75,.7,.64,.58])){pg.style.setProperty('--wz',z);if(b.scrollHeight<=b.clientHeight+1)break}
+ for(const z of (toc?[1,.95,.9]:[1,.95,.9,.85,.8,.75,.7,.64,.58])){pg.style.setProperty('--wz',z);if(!ov())break}
  if(toc)weTocMore(pg);else weNum(pg,b)}
 /* the fade at the foot of the contents is on only while there is more below it: a fade over the last row
    would say there is more when there is not. */
